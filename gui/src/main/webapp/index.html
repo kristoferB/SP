@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en" ng-app="myApp">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sequence Planner - LISA</title>
+    <link rel="stylesheet" href="css/bootstrap-superhero.css">
+    <link rel="stylesheet" href="lib/angularUI/ng-grid.min.css"/>
+    <link rel="stylesheet" href="css/app.css"/>
+</head>
+<body ng-controller="MainCtrl">
+
+<div class="navbar navbar-inverse navbar-static-top" role="navigation" ng-controller="MenuCtrl">
+    <div class="container-fluid">
+        <div class="pull-right">
+            <object id="splogo"  style="height:40px" data="/img/splogo.svg" type="image/svg+xml"></object>
+        </div>
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">Sequence Planner</a>
+        </div>
+        <div class="collapse navbar-collapse">
+
+        </div><!--/.nav-collapse -->
+    </div>
+</div>
+
+<div class="container">
+
+
+
+    <div class="row" ng-controller="TabCtrl">
+
+        <tabset>
+            <tab heading="Scania DEMO">
+                <div class="tabContent">
+                    <ng-include src="'partials/lisademoTab.html'"></ng-include>
+                </div>
+            </tab>
+            <tab heading="Scania Transformations">
+                <div class="tabContent">
+                    <ng-include src="'partials/scaniaTab.html'"></ng-include>
+                </div>
+            </tab>
+            <tab heading="Products">
+                <div class="tabContent">
+                    <ng-include src="'partials/productsTab.html'"></ng-include>
+                </div>
+            </tab>
+            <tab heading="Positions">
+                <div class="tabContent">
+                    <ng-include src="'partials/positionsTab.html'"></ng-include>
+                </div>
+            </tab>
+            <tab heading="ResourceS">
+                <div class="tabContent">
+                    <ng-include src="'partials/resourceTab.html'"></ng-include>
+                </div>
+            </tab>
+        </tabset>
+    </div>
+
+
+</div>
+
+
+  <!-- In production use:
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+  -->
+  <script src="lib/angular/angular.min.js"></script>
+  <script src="lib/angularUI/ui-bootstrap-tpls-0.11.0.min.js"></script>
+  <script src="lib/JQuery/jquery-2.1.1.min.js"></script>
+  <script src="lib/angularUI/ng-grid-2.0.11.min.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/services.js"></script>
+  <script src="js/controllers.js"></script>
+  <script src="js/filters.js"></script>
+  <script src="js/directives.js"></script>
+  <script src="js/googlechart.js"></script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+/* app css stylesheet */
+
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+.menu {
+  list-style: none;
+  border-bottom: 0.1em solid black;
+  margin-bottom: 2em;
+  padding: 0 0 0.5em;
+}
+
+.menu:before {
+  content: "[";
+}
+
+.menu:after {
+  content: "]";
+}
+
+.menu > li {
+  display: inline;
+}
+
+.menu > li:before {
+  content: "|";
+  padding-right: 0.3em;
+}
+
+.menu > li:nth-child(1):before {
+  content: "";
+  padding: 0;
+}
+
+#scaniaImg {
+  -webkit-transition:all ease-in-out 0.5s;
+  transition:all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+}
+
+.tabContent {
+    border-top: 5px solid #4e5d6c;
+    padding-top: 1em;
+}
+
+.splogo {
+
+}
+
+#splogo {
+    margin-top: 2px;
+    height: 40px;
+}
+
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus {
+  color: #ebebeb;
+  background-color: #4e5d6c;
+  border: 1px solid #4e5d6c;
+  border-bottom-color: transparent;
+  cursor: default;
+}
+
+
+

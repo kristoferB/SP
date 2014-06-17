@@ -1,0 +1,177 @@
+<div class="row" ng-controller="LisaDemoTab">
+    <div class="col-md-6" ng-controller="RawEvents">
+
+        <h4>Raw position Events</h4>
+        <!--                <button type="button" class="btn btn-default" ng-click="getRawPosEvents()">
+                            get it to
+                        </button>-->
+
+
+        <p class="input-group">
+            <input type="text"
+                   class="form-control"
+                   datepicker-popup="{{format}}"
+                   ng-model="dtstart"
+                   is-open="openedstart"
+                   min-date="minDate"
+                   max-date="'2015-06-22'"
+                   datepicker-options="dateOptions"
+                   date-disabled="disabled(date, mode)"
+                   ng-required="true"
+                   close-text="Close" />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="openstart($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                    </span>
+            <input type="text"
+                   class="form-control"
+                   datepicker-popup="{{format}}"
+                   ng-model="dtstop"
+                   is-open="openedstop"
+                   min-date="minDate"
+                   max-date="'2015-06-22'"
+                   datepicker-options="dateOptions"
+                   date-disabled="disabled(date, mode)"
+                   ng-required="true"
+                   close-text="Close" />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="openstop($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                    </span>
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="getRawPosEvents(dtstart, dtstop)"><i class="glyphicon glyphicon-refresh"></i></button>
+                    </span>
+        </p>
+
+
+
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th ng-click="changeSorting('body.eventID')">id</th>
+                <th ng-click="changeSorting('body.productID')">Product id</th>
+                <th ng-click="changeSorting('body.position')">Position</th>
+                <th ng-click="changeSorting('body.starttime')">Time</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="p in rawPosEvents | orderBy:sort.column:sort.descending"
+                ng-click="$parent.selected = p.body">
+                <td>{{p.body.eventID}}</td>
+                <td>{{p.body.productID}}</td>
+                <td>{{p.body.position}}</td>
+                <td>{{p.body.starttime}}</td>
+            </tr>
+            <tr><td colspan="4">Found: {{rawPosEventHits}}
+                <!--<pagination total-items="rawPosEventHits"
+                            ng-model="rawPosEventStartPos"
+                            max-size="5"
+                            class="pagination-sm"
+                            boundary-links="true"
+                            rotate="false"
+                            direction-links="false"
+                            num-pages="numPages"
+                            ng-change="rawPosPageChanged()">
+                </pagination>-->
+            </td></tr>
+            </tbody>
+        </table>
+
+
+        <div class="panel panel-default" ng-show="selected.eventID">
+            <div class="panel-body">
+                <div class="pull-right" ng-click="selected = {}"><span
+                        class="glyphicon glyphicon-remove"></span></div>
+                <div ng-repeat="(key, value) in selected">
+                    <h4>{{key}} : {{value}}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6" ng-controller="RawEvents">
+        <h4>Filled Position Events</h4>
+               <p class="input-group">
+            <input type="text"
+                   class="form-control"
+                   datepicker-popup="{{format}}"
+                   ng-model="dtstart"
+                   is-open="openedstart"
+                   min-date="minDate"
+                   max-date="'2015-06-22'"
+                   datepicker-options="dateOptions"
+                   date-disabled="disabled(date, mode)"
+                   ng-required="true"
+                   close-text="Close" />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="openstart($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                    </span>
+            <input type="text"
+                   class="form-control"
+                   datepicker-popup="{{format}}"
+                   ng-model="dtstop"
+                   is-open="openedstop"
+                   min-date="minDate"
+                   max-date="'2015-06-22'"
+                   datepicker-options="dateOptions"
+                   date-disabled="disabled(date, mode)"
+                   ng-required="true"
+                   close-text="Close" />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="openstop($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                    </span>
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="getFilledPosEvents(dtstart, dtstop)"><i class="glyphicon glyphicon-refresh"></i></button>
+                    </span>
+        </p>
+
+
+
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th ng-click="changeSorting('body.eventID')">id</th>
+                <th ng-click="changeSorting('body.productID')">Product id</th>
+                <th ng-click="changeSorting('body.position')">Position</th>
+                <th ng-click="changeSorting('body.starttime')">Time</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="p in filledPosEvents"
+                ng-click="$parent.selectedF = p.body">
+                <td>{{p.body.eventID}}</td>
+                <td>{{p.body.productID}}</td>
+                <td>{{p.body.position}}</td>
+                <td>{{p.body.starttime}}</td>
+            </tr>
+            <tr><td colspan="4">Found: {{rawFilledEventHits}}
+                <!--<pagination total-items="rawPosEventHits"
+                            ng-model="rawPosEventStartPos"
+                            max-size="5"
+                            class="pagination-sm"
+                            boundary-links="true"
+                            rotate="false"
+                            direction-links="false"
+                            num-pages="numPages"
+                            ng-change="rawPosPageChanged()">
+                </pagination>-->
+            </td></tr>
+            </tbody>
+        </table>
+
+
+        <div class="panel panel-default" ng-show="selectedF.eventID">
+            <div class="panel-body">
+                <div class="pull-right" ng-click="selectedF = {}"><span
+                        class="glyphicon glyphicon-remove"></span></div>
+                <div ng-repeat="(key, value) in selectedF">
+                    <h4>{{key}} : {{value}}</h4>
+                </div>
+            </div>
+        </div>
+
+
+
+    </div>
+</div>
+
+
+
