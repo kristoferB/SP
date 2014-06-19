@@ -2,7 +2,7 @@ package sp.models
 
 import akka.actor._
 import sp.domain._
-import sp.system._
+import sp.system.messages._
 import akka.persistence._
 
 /**

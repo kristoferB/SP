@@ -1,4 +1,4 @@
-package sp.system
+package sp.system.messages
 
 import java.util.UUID
 import sp.domain._
@@ -7,11 +7,10 @@ import akka.persistence._
 /**
  * Created by Kristofer on 2014-06-12.
  */
-sealed trait SPMessage
 
 // API Inputs
 
-sealed trait ModelMessage extends SPMessage { val model: String }
+sealed trait ModelMessage { val model: String }
 sealed trait ModelQuery extends ModelMessage
 sealed trait ModelUpdate extends ModelMessage
 
@@ -43,11 +42,5 @@ case class ModelDiff(ids: List[IDAble],
                      time: DatePrimitive = DatePrimitive.now) extends SPMessage
 case class ModelInfo(model: String, version: Long)
 
-// Error messages
-trait SPError extends SPMessage
-object SPError {
-  def apply(s: String): SPError = SPErrorString(s)
-}
-case class SPErrorString(error: String) extends SPError
-case class UpdateError(yourModelVersion: Long, currentModelVersion: Long, conflicts: List[ID]) extends SPError
+
 

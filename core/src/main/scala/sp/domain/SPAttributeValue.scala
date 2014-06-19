@@ -11,10 +11,12 @@ sealed abstract class SPAttributeValue {
   }
   def asInt: Option[Int] = SPAttributeValue.this match {
     case IntPrimitive(i) => Some(i)
+    case LongPrimitive(i) => Some(i.toInt)
     case _ => None
   }
   def asLong: Option[Long] = SPAttributeValue.this match {
     case LongPrimitive(i) => Some(i)
+    case IntPrimitive(i) => Some(i)
     case _ => None
   }
   def asDouble: Option[Double] = SPAttributeValue.this match {

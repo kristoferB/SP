@@ -10,6 +10,7 @@ case class SPAttributes(attrs: Map[String, SPAttributeValue]) {
   def get(attribute: String) = attrs.get(attribute)
   def getAsString(attribute: String) = extract(get(attribute), _.asString)
   def getAsInt(attribute: String) = extract(get(attribute), _.asInt)
+  def getAsLong(attribute: String) = extract(get(attribute), _.asLong)
   def getAsDouble(attribute: String) = extract(get(attribute), _.asDouble)
   def getAsBool(attribute: String) = extract(get(attribute), _.asBool)
   def getAsList(attribute: String) = extract(get(attribute), _.asList)

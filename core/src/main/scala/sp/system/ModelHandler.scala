@@ -6,6 +6,7 @@ import akka.util.Timeout
 import scala.concurrent.Future
 import akka.pattern.pipe
 import scala.concurrent.duration._
+import sp.system.messages._
 
 
 class ModelHandler extends Actor {
@@ -21,7 +22,7 @@ class ModelHandler extends Actor {
         val newModelH = context.actorOf(sp.models.ModelActor.props(name), name)
         modelMap += name -> newModelH
       }
-      modelMap(name) ? GetModels pipeTo reply
+      modelMap(name).tell(GetModels, reply)
     }
 
     case m: ModelMessage => {

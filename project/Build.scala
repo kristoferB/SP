@@ -31,7 +31,7 @@ object Build extends Build {
   lazy val gui = project.in(file("gui"))
     .dependsOn(core)
     .settings(basicSettings: _*)
-    .settings(libraryDependencies ++= defaultDepend)
+    .settings(libraryDependencies ++= (defaultDepend :+ sprayJson))
 
 
 	

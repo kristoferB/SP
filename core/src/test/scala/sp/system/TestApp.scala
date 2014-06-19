@@ -1,6 +1,7 @@
 package sp.system
 
 import akka.actor.{Actor, ActorRef, Props}
+import sp.system.messages._
 
 /**
  * Created by Kristofer on 2014-06-18.

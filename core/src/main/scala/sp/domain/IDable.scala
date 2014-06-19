@@ -43,9 +43,18 @@ trait IDAble {
 
 }
 
-case class ID(value: UUID)
+case class ID(value: UUID){
+  override def toString() = value.toString
+}
 
 object ID {
   implicit def uuidToID(id: UUID) = ID(id)
   implicit def idToUUID(id: ID) = id.value
+  def makeID(id: String): Option[ID] = {
+    try {
+      Some(ID(UUID.fromString(id)))
+    } catch {
+      case e: IllegalArgumentException => None
+    }
+  }
 }

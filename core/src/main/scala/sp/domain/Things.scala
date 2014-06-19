@@ -7,7 +7,9 @@ package sp.domain
  *
  * Created by Kristofer on 2014-06-11.
  */
-case class Thing(name: String, stateVariables: List[StateVariable] = List(), attributes: SPAttributes = SPAttributes(Map())) extends IDAble with StateVariable {
+case class Thing(name: String,
+                 stateVariables: List[StateVariable] = List(),
+                 attributes: SPAttributes = SPAttributes(Map())) extends IDAble with StateVariable {
   override def valueInDomain(v: Any): Boolean = v.isInstanceOf[Boolean]
 
   override def update(currentID: ID, currentVersion: Long): IDAble = {

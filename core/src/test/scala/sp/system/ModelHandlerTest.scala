@@ -9,6 +9,7 @@ import org.scalatest.Matchers
 import org.scalatest.BeforeAndAfterAll
 import akka.testkit.ImplicitSender
 import com.typesafe.config._
+import sp.system.messages._
 
 /**
  * Created by Kristofer on 2014-06-17.
@@ -34,7 +35,7 @@ class ModelHandlerTest(_system: ActorSystem) extends TestKit(_system) with Impli
 
     "create a new model and return success" in {
       mh ! CreateModel("test2")
-      expectMsg("hej")
+      expectMsg(ModelInfo("test2",1))
     }
   }
 }
