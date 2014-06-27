@@ -35,7 +35,7 @@ class ModelHandler extends Actor {
       if (!modelMap.isEmpty){
         val fList = Future.traverse(modelMap.values)(x => (x ? GetModels).mapTo[ModelInfo]) map(_ toList)
         fList pipeTo reply
-      } else reply ! List[ModelInfo]()
+      } else reply ! ModelInfos(List[ModelInfo]())
   }
 
 }

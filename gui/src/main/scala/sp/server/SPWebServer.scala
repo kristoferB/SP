@@ -24,6 +24,8 @@ trait SPRoute extends HttpService {
   import sp.domain._
   import sp.system.messages._
   import sp.system.SPActorSystem._
+  import spray.json._
+  import sp.json.SPJson._
 
 
   val api = pathPrefix("api") {
@@ -31,11 +33,17 @@ trait SPRoute extends HttpService {
       pathEnd {
         get {
           onSuccess(modelHandler ? GetModels){ evalReply {
-            // change to a wrapper case class
-            case l: List[_] if l.isEmpty || l.head.isInstanceOf[ModelInfo] => {
-              complete(l.asInstanceOf[List[ModelInfo]])
+            case ModelInfos(list) => {
+              complete(list)
             }
           }}
+        }
+        post{
+          entity(as[CreateModel]){cmd =>
+            onSuccess(modelHandler ? cmd){ evalReply {
+              case x: ModelInfo => complete(x)
+            }}
+          }
         }
       }
 

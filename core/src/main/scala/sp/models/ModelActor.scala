@@ -78,9 +78,10 @@ class ModelActor(name: String) extends EventsourcedProcessor  {
   }
 
   def createDiff(model: String, modelVersion: Long, ids: List[UpdateID]): Either[ModelDiff, UpdateError] = {
-    // Check if any item could not be updated and devide them
+    // Check if any item could not be updated and divide them
     val updateMe = ids partition {case UpdateID(id,v, item) => {
         val current = state.idMap.getOrElse(id, null)
+        // TODO: also need to check so that the classes match. Impl when everything is working. 140627
         current == null || current.version <= v
       }
     }

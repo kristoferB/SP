@@ -39,7 +39,9 @@ case class ModelDiff(ids: List[IDAble],
                      model: String,
                      prevVersion: Long,
                      version: Long,
-                     time: DatePrimitive = DatePrimitive.now) extends SPMessage
+                     attributes: SPAttributes = SPAttributes(Map("time"->DatePrimitive.now))
+                   ) extends SPMessage
+case class ModelInfos(models: List[ModelInfo])
 case class ModelInfo(model: String, version: Long)
 
 

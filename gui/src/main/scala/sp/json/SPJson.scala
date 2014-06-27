@@ -5,13 +5,11 @@ import sp.system.messages._
 import spray.json._
 
 object SPJson extends DefaultJsonProtocol {
+  import SharedConvert._
 
 
-  
-  
   implicit object IDJsonFormat extends RootJsonFormat[ID] {
-    def write(id: ID) = id.value.toJson
-
+    def write(id: ID) = id.value.toString.toJson
     def read(value: JsValue) = value match {
       case JsString(idStr) =>
         ID.makeID(idStr) match {
@@ -24,135 +22,132 @@ object SPJson extends DefaultJsonProtocol {
 
   implicit object IDAbleJsonFormat extends RootJsonFormat[IDAble] {
     def write(x: IDAble) = {
-      val id = Map(
-        "version" -> x.version.toJson,
-        "id" -> x.id.toJson,
-        "type" -> x.getClass.getSimpleName.toJson
-      )
-      val extra: Map[String, JsValue] = x match {
-        case Operation(name, cond, attr) => Map[String, JsValue](
-          "name" -> name.toJson,
-          "conditions" -> "to be impl".toJson, //o.conditions.toJson
-          "attributes" -> attr.toJson
-        )
-        case Thing(name, sv, attr) => Map(
-          "name" -> name.toJson,
-          "stateVariables" -> "to be impl".toJson, //o.conditions.toJson
-          "attributes" -> attr.toJson
-        )
-        case SPObject(name, attr) => Map(
-          "name" -> name.toJson,
-          "attributes" -> attr.toJson
-        )
-        case SOPSpec(sop, label, attr) => Map(
-          "label" -> label.toJson,
-          "attributes" -> attr.toJson,
-          "sop" -> sop.toJson
-        )
-        case SPSpec(label, attr) => Map(
-          "label" -> label.toJson,
-          "attributes" -> attr.toJson
-        )
-        case x@_ => println(s"no match IDAble json write: $x"); Map()
-
+      x match {
+        case x: Operation => x.toJson
+        case Thing(name, sv, attr) => x.toJson
+        case SPObject(name, attr) => x.toJson
+        case SOPSpec(sop, label, attr) => x.toJson
+        case SPSpec(label, attr) => x.toJson
+        case x@_ => println(s"no match IDAble json write: $x"); JsObject(Map[String, JsValue]())
       }
-      JsObject(id ++ extra)
     }
 
     def read(value: JsValue) = {
-        val xs = value.asJsObject.convertTo[SPAttributes]
-        val idPart = for {
-          ver <- xs.getAsLong("version")
-          id <- xs.getAsID("id")
-          t <- xs.getAsString("type")
-        } yield {
-          val name = xs.getAsString("name")
-          val cond = xs.getAsMap("conditions")
-          val attr = xs.getAsMap("attributes")
-          val label = xs.getAsString("label")
-          val sv = xs.getAsMap("stateVariables")
-          val sop = xs.getAsMap("sop")
-
-          t match {
-            case JsString("Operation") => {
-
-            }
-            case JsString("Thing") => {
-
-            }
-            case JsString("SPObject") => {
-
-            }
-            case JsString("SOPSpec") => {
-
-            }
-            case JsString("SPSpec") => {
-
-            }
-          }
+      val obj = for {
+        newV <- filterAndUpdateIDAble(value.asJsObject())
+        t <- value.asJsObject.fields.get("type")
+      } yield {
+        t match {
+          case JsString("Operation") => newV.convertTo[Operation]
+          case JsString("Thing") => newV.convertTo[Thing]
+          case JsString("SPObject") => newV.convertTo[SPObject]
+          case JsString("SOPSpec") => newV.convertTo[SOPSpec]
+          case JsString("SPSpec") => newV.convertTo[SPSpec]
         }
+      }
+      obj match {
+        case Some(o) => o
+        case None => throw new DeserializationException(s"IDAble could not be read: $value")
+      }
     }
   }
 
   implicit object OperationJsonFormat extends RootJsonFormat[Operation] {
-    // Add more later!
-    def write(o: Operation) = JsObject(List(
-      "name" -> o.name.toJson,
-      "id" -> o.id.toJson,
-      "version" -> o.version.toJson,
-      "conditions" -> "to be impl" toJson //o.conditions.toJson
-      "attributes" -> o.attributes.toJson,
-      "type" -> JsString("Operation")))
-
-    def read(value: JsValue) = value match {
-      case o @ JsObject => {
-
+    def write(x: Operation) = {
+      val map = List(
+        "name" -> x.name.toJson,
+        "conditions" -> "to be impl".toJson //o.conditions.toJson
+      ) ++ idPart(x)
+      JsObject(map)
+    }
+    def read(value: JsValue) = {
+      val newV = filterAndUpdateIDAble(value.asJsObject).getOrElse(value)
+      newV.asJsObject.getFields("name", "conditions", "attributes") match {
+        case Seq(JsString(name), c: JsArray, a: JsObject) => {
+          val cond = c.elements map(_.asJsObject.convertTo[Condition])
+          val attr = a.convertTo[SPAttributes]
+          Operation(name, cond, attr)
+        }
       }
     }
   }
 
-  implicit object SimpleOperationJsonFormat extends RootJsonFormat[SimpleOperationToSend] {
-    // Add more later!
-    def write(o: SimpleOperationToSend) = JsObject(
-      "name" -> JsString(o.o.name),
-      "id" -> IDJsonFormat.write(o.o.id))
-
-    def read(value: JsValue) = throw new DeserializationException("Operation JsonParse not implemented")
-  }
-
-  import se.sekvensa.sp.algorithms._
-  implicit object ParameterJsonFormat extends RootJsonFormat[Parameter] {
-    // Add more later!
-    def write(p: Parameter) = JsObject(
-      "id" -> JsString(p.id),
-      {
-        p match {
-          case ps: StringParameter => "strs" -> JsArray(ps.strs.toList map (s => JsString(s)))
-          case pi: IntegerParameter => "ints" -> JsArray(pi.ints.toList map (i => JsNumber(i)))
-        }
-      })
-
+  implicit object ThingJsonFormat extends RootJsonFormat[Thing] {
+    def write(x: Thing) = {
+      val map = List(
+        "name" -> x.name.toJson,
+        "stateVariables" -> "to be impl".toJson //o.conditions.toJson
+      ) ++ idPart(x)
+      JsObject(map)
+    }
     def read(value: JsValue) = {
-      value.asJsObject.getFields("id", "strs", "ints") match {
-        case Seq(JsString(id), JsArray(values)) => {
-          if (!values.isEmpty) values.head match {
-            case x: JsString =>
-              val vs = values map (v => v.asInstanceOf[JsString])
-              StringParameter(id, (vs map (_.value)): _*)
-            case x: JsNumber =>
-              val vs = values map (v => v.asInstanceOf[JsNumber])
-              IntegerParameter(id, (vs map (_.value)): _*)
-            case _ => deserializationError("Parameter expected, values= " + values)
-          }else deserializationError("Parameter expected, values= " +values)
-        } 
-        case _ => deserializationError("Parameter expected")
-      }     
-    }
-
-    private def convertArray[T](vs: List[JsValue]): List[T] = {
-      vs map (v => v.asInstanceOf[T])
+      val newV = filterAndUpdateIDAble(value.asJsObject).getOrElse(value)
+      newV.asJsObject.getFields("name", "stateVariables", "attributes") match {
+        case Seq(JsString(name), c: JsArray, a: JsObject) => {
+          val sv = c.elements map(_.asJsObject.convertTo[StateVariable])
+          val attr = a.convertTo[SPAttributes]
+          Thing(name, sv, attr)
+        }
+      }
     }
   }
+
+  implicit object SPObjectJsonFormat extends RootJsonFormat[SPObject] {
+    def write(x: SPObject) = {
+      val map = List(
+        "name" -> x.name.toJson
+      ) ++ idPart(x)
+      JsObject(map)
+    }
+    def read(value: JsValue) = {
+      val newV = filterAndUpdateIDAble(value.asJsObject).getOrElse(value)
+      newV.asJsObject.getFields("name", "attributes") match {
+        case Seq(JsString(name), a: JsObject) => {
+          val attr = a.convertTo[SPAttributes]
+          SPObject(name, attr)
+        }
+      }
+    }
+  }
+
+  implicit object SPSpecJsonFormat extends RootJsonFormat[SPSpec] {
+    def write(x: SPSpec) = {
+      val map = List(
+        "label" -> x.label.toJson
+      ) ++ idPart(x)
+      JsObject(map)
+    }
+    def read(value: JsValue) = {
+      val newV = filterAndUpdateIDAble(value.asJsObject).getOrElse(value)
+      newV.asJsObject.getFields("label", "attributes") match {
+        case Seq(JsString(name), a: JsObject) => {
+          val attr = a.convertTo[SPAttributes]
+          SPSpec(name, attr)
+        }
+      }
+    }
+  }
+
+  implicit object SOPSpecJsonFormat extends RootJsonFormat[SOPSpec] {
+    def write(x: SOPSpec) = {
+      val map = List(
+        "label" -> x.label.toJson,
+        "sop" -> x.sop.toJson //o.conditions.toJson
+      ) ++ idPart(x)
+      JsObject(map)
+    }
+    def read(value: JsValue) = {
+      val newV = filterAndUpdateIDAble(value.asJsObject).getOrElse(value)
+      newV.asJsObject.getFields("label", "sop", "attributes") match {
+        case Seq(JsString(label), s: JsObject, a: JsObject) => {
+          val sop = s.convertTo[SOP]
+          val attr = a.convertTo[SPAttributes]
+          SOPSpec(sop, label, attr)
+        }
+      }
+    }
+  }
+
 
   
   implicit object SOPJsonFormat extends RootJsonFormat[SOP] {
@@ -170,46 +165,35 @@ object SPJson extends DefaultJsonProtocol {
     
 
   }
-  
-  // name: String, runtimeType: String, modelid: String="", id: ID=ID.empty
-  implicit object CreateRunTimeFormat extends RootJsonFormat[CreateRuntime] {
-    def write(x: CreateRuntime) = {
-      JsObject(
-        "name" -> JsString(x.name),
-        "type" -> JsString(x.runtimeType),
-        "modelID" -> IDJsonFormat.write(x.modelID),
-        "runtimeID" -> IDJsonFormat.write(x.runtimeID)
-      )
-    }
-    def read(value: JsValue) = {
-      value.asJsObject.getFields("name", "type", "modelID") match {
-        case Seq(JsString(name), JsString(rt)) => {
-          CreateRuntime(name, rt)
-        }
-        case Seq(JsString(name), JsString(rt), JsString(mid)) => {
-          val modelid = ID.getID(mid) match {case Some(id)=> id; case None => ID.empty}         
-          CreateRuntime(name, rt, modelid)
-        }
-        case _ => throw new DeserializationException("CreateRunTimeFormat is missing parameters: " + value)
-      }
-    } 
 
-  }
-  
-  /*
-   * case class StringPrimitive(value: String) extends SPAttributeValue
-case class IntPrimitive(value: Int) extends SPAttributeValue
-case class DoublePrimitive(value: Double) extends SPAttributeValue
-case class BoolPrimitive(value: Boolean) extends SPAttributeValue
-case class DatePrimitive(value: DateTime) extends SPAttributeValue 
-case class DurationPrimitive(value: Duration) extends SPAttributeValue 
-case class IDPrimitive(value: ID) extends SPAttributeValue
-case class ListValue(value: List[SPAttributeValue]) extends SPAttributeValue
-   */
-  
-  
-  import se.sekvensa.sp.runtime.domain._
-  implicit val StateDiffFormat = jsonFormat1(StateDiff) 
+
+  // USE  WHEN ADDING RUNTIMES, KRISTOFER 140627
+//  // name: String, runtimeType: String, modelid: String="", id: ID=ID.empty
+//  implicit object CreateRunTimeFormat extends RootJsonFormat[CreateRuntime] {
+//    def write(x: CreateRuntime) = {
+//      JsObject(
+//        "name" -> JsString(x.name),
+//        "type" -> JsString(x.runtimeType),
+//        "modelID" -> IDJsonFormat.write(x.modelID),
+//        "runtimeID" -> IDJsonFormat.write(x.runtimeID)
+//      )
+//    }
+//    def read(value: JsValue) = {
+//      value.asJsObject.getFields("name", "type", "modelID") match {
+//        case Seq(JsString(name), JsString(rt)) => {
+//          CreateRuntime(name, rt)
+//        }
+//        case Seq(JsString(name), JsString(rt), JsString(mid)) => {
+//          val modelid = ID.getID(mid) match {case Some(id)=> id; case None => ID.empty}
+//          CreateRuntime(name, rt, modelid)
+//        }
+//        case _ => throw new DeserializationException("CreateRunTimeFormat is missing parameters: " + value)
+//      }
+//    }
+//
+//  }
+//  import se.sekvensa.sp.runtime.domain._
+//  implicit val StateDiffFormat = jsonFormat1(StateDiff)
   
   
   implicit object SPAttributesFormat extends RootJsonFormat[SPAttributes] {
@@ -225,9 +209,7 @@ case class ListValue(value: List[SPAttributeValue]) extends SPAttributeValue
         SPAttributes(map)
       }
       case _ => throw new DeserializationException("can not convert to SPAttribute: "+value)
-      
     }
-
   }
   
   
@@ -277,52 +259,102 @@ case class ListValue(value: List[SPAttributeValue]) extends SPAttributeValue
   }
   
   
-  implicit object StateVariableFormat extends RootJsonFormat[StateVariable[_]] {
-    def write(x: StateVariable[_]) = { 
-      "Var".toJson
-    }
-    def read(value: JsValue) = throw new DeserializationException("StateVariableFormat JsonParse not implemented")
-  }
+//  implicit object StateVariableFormat extends RootJsonFormat[StateVariable[_]] {
+//    def write(x: StateVariable[_]) = {
+//      "Var".toJson
+//    }
+//    def read(value: JsValue) = throw new DeserializationException("StateVariableFormat JsonParse not implemented")
+//  }
+//
+//  implicit object EntityFormat extends RootJsonFormat[Entity] {
+//    def write(x: Entity) = {
+//      JsObject(
+//        "name" -> x.name.toJson,
+//        "id" -> x.id.toJson,
+//        "attributes" -> x.attributes.toJson
+//      )
+//    }
+//    def read(value: JsValue) = throw new DeserializationException("Entity JsonParse not implemented")
+//  }
+//
+//
+//  implicit object ResourceJsonFormat extends RootJsonFormat[Resource] {
+//    // Add more later!
+//    def write(o: Resource) = JsObject(
+//      "name" -> JsString(o.name),
+//      "id" -> IDJsonFormat.write(o.id),
+//      "attributes" -> SPAttributesFormat.write(o.attributes),
+//      "type" -> JsString("Resource"))
+//
+//    def read(value: JsValue) = throw new DeserializationException("Resource JsonParse not implemented")
+//  }
   
-  implicit object EntityFormat extends RootJsonFormat[Entity] {
-    def write(x: Entity) = {
-      JsObject(
-        "name" -> x.name.toJson,
+  
+
+/* ---------------------------------------
+ * CASE CLASSES
+ * ---------------------------------------
+*/
+
+  implicit val cmFormat = jsonFormat1(CreateModel)
+  implicit val gidFormat = jsonFormat2(GetIds)
+  implicit val gopsFormat = jsonFormat1(GetOperations)
+  implicit val gtFormat = jsonFormat1(GetThings)
+  implicit val gspFormat = jsonFormat1(GetSpecs)
+  implicit val gqFormat = jsonFormat2(GetQuery)
+  implicit val gDiffFormat = jsonFormat2(GetDiff)
+
+  implicit val uidFormat = jsonFormat3(UpdateID.apply)
+  implicit val uidsFormat = jsonFormat3(UpdateIDs)
+
+  implicit val spidsFormat = jsonFormat3(SPIDs)
+  implicit val mdiffFormat = jsonFormat5(ModelDiff)
+  implicit val modelInfoFormat = jsonFormat2(ModelInfo)
+
+
+  implicit val esFormat = jsonFormat1(SPErrorString)
+  implicit val euFormat = jsonFormat3(UpdateError)
+
+
+  //  implicit val modelInfoFormat = jsonFormat3(ModelInfo)
+//  implicit val serviceErrorFormat = jsonFormat1(ServiceErrorString)
+//  implicit val serviceErrorMissingIdFormat = jsonFormat2(ServiceErrorMissingID)
+//  implicit val operationsFormat = jsonFormat1(Operations)
+//  implicit val searchResourcesFormat = jsonFormat3(SearchResources)
+//  implicit val algorithmMessageFormat = jsonFormat2(AlgorithmMessage)
+//  implicit val CreatedFormat = jsonFormat1(Created)
+//  implicit val RuntimeInfoFormat = jsonFormat3(RuntimeInfo)
+//  implicit val EventFormat = jsonFormat1(Event)
+
+
+
+
+
+    object SharedConvert {
+      def idPart(x: IDAble) = List(
+        "version" -> x.version.toJson,
         "id" -> x.id.toJson,
+        "type" -> x.getClass.getSimpleName.toJson,
         "attributes" -> x.attributes.toJson
       )
+
+      def filterAndUpdateIDAble(js: JsObject): Option[JsObject] = {
+        val xs = js.fields
+        for {
+          ver <- xs.get("version")
+          id <- xs.get("id")
+          t <- xs.get("type")
+          attr <- xs.get("attributes")
+        } yield {
+          val update = JsObject(attr.asJsObject.fields + ("basedOn" -> JsObject("id" -> id.toJson, "ver" -> ver.toJson)))
+          JsObject(xs + ("attributes" -> update))
+        }
+      }
+
+      def getAs[T](k: String, xs: Map[String, JsValue]): Option[T] = {
+        xs.get(k) map (_.convertTo[T])
+      }
     }
-    def read(value: JsValue) = throw new DeserializationException("Entity JsonParse not implemented")
-  }
-  
-  
-  implicit object ResourceJsonFormat extends RootJsonFormat[Resource] {
-    // Add more later!
-    def write(o: Resource) = JsObject(
-      "name" -> JsString(o.name),
-      "id" -> IDJsonFormat.write(o.id),
-      "attributes" -> SPAttributesFormat.write(o.attributes),
-      "type" -> JsString("Resource"))
-
-    def read(value: JsValue) = throw new DeserializationException("Resource JsonParse not implemented")
-  }
-  
-  
-
-  
-    // case classes
-  implicit val modelInfoFormat = jsonFormat3(ModelInfo)
-  implicit val serviceErrorFormat = jsonFormat1(ServiceErrorString)
-  implicit val serviceErrorMissingIdFormat = jsonFormat2(ServiceErrorMissingID)
-  implicit val operationsFormat = jsonFormat1(Operations)
-  implicit val searchResourcesFormat = jsonFormat3(SearchResources)
-  implicit val algorithmMessageFormat = jsonFormat2(AlgorithmMessage)
-  implicit val CreatedFormat = jsonFormat1(Created)
-  implicit val RuntimeInfoFormat = jsonFormat3(RuntimeInfo)
-  implicit val EventFormat = jsonFormat1(Event)
-
-
-  
 
 
 }

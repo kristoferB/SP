@@ -24,6 +24,7 @@ trait IDAble {
 
   lazy val id: ID = ID(UUID.randomUUID())
   lazy val version: Long = -1
+  val attributes: SPAttributes
 
   def |=(x: Any) = x match {
     case m: IDAble => m.id.equals(id)
@@ -42,6 +43,7 @@ trait IDAble {
   }
 
 }
+
 
 case class ID(value: UUID){
   override def toString() = value.toString
