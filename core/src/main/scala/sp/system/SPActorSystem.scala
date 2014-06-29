@@ -15,8 +15,6 @@ object SPActorSystem {
   // temp test
   val modelHandler = system.actorOf(ModelHandler.props, "modelHandler")
 
-
-
   val settings = SPSettings(system)
 
 }

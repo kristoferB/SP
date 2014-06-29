@@ -15,3 +15,32 @@ case class stateMapCondition(guardMap: Map[String, Any] = Map(), actionMap: Map[
 
   val attributes = SPAttributes(Map("conditionType"-> conditionType, "label"-> label))
 }
+
+
+// propositional logic conditions
+
+sealed trait Proposition {
+  def eval: State => Boolean
+}
+sealed trait Operator extends Proposition
+sealed trait Atom extends Proposition
+
+case class AND(_1: Proposition, _2: Proposition) extends Operator {
+  def eval = state => _1.eval(state) && _2.eval(state)
+}
+case class OR(_1: Proposition, _2: Proposition) extends Operator {
+  def eval = state => _1.eval(state) || _2.eval(state)
+}
+case class NOT(p: Proposition) extends Operator {
+  def eval = state => ! p.eval(state)
+}
+
+case class BoolAtom(v: BooleanVariable) extends Atom {
+  def eval = state => {
+    state.evaluate(Map[StateVariable, Any](v -> true))
+  }
+}
+
+
+
+

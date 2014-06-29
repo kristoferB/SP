@@ -5,6 +5,7 @@ import Keys._
 object Build extends Build {
   import BuildSettings._
   import Dependencies._
+  import spray.revolver.RevolverPlugin._
 
   // configure prompt to show current project
   override lazy val settings = super.settings :+ {
@@ -33,6 +34,11 @@ object Build extends Build {
     .settings(basicSettings: _*)
     .settings(libraryDependencies ++= (defaultDepend :+ sprayJson))
 
+  lazy val launch = project.in(file("launch"))
+    .dependsOn(core, gui)
+    .settings(basicSettings: _*)
+    .settings(libraryDependencies ++= defaultDepend)
 
+  run in Compile <<= (run in Compile in launch)
 	
 }

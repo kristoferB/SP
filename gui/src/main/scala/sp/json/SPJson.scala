@@ -43,6 +43,7 @@ object SPJson extends DefaultJsonProtocol {
           case JsString("SPObject") => newV.convertTo[SPObject]
           case JsString("SOPSpec") => newV.convertTo[SOPSpec]
           case JsString("SPSpec") => newV.convertTo[SPSpec]
+          case _ => throw new DeserializationException(s"IDAble could not be read: $value")
         }
       }
       obj match {
@@ -64,7 +65,7 @@ object SPJson extends DefaultJsonProtocol {
       val newV = filterAndUpdateIDAble(value.asJsObject).getOrElse(value)
       newV.asJsObject.getFields("name", "conditions", "attributes") match {
         case Seq(JsString(name), c: JsArray, a: JsObject) => {
-          val cond = c.elements map(_.asJsObject.convertTo[Condition])
+          val cond = List[Condition]() //c.elements map(_.asJsObject.convertTo[Condition])
           val attr = a.convertTo[SPAttributes]
           Operation(name, cond, attr)
         }
@@ -84,7 +85,7 @@ object SPJson extends DefaultJsonProtocol {
       val newV = filterAndUpdateIDAble(value.asJsObject).getOrElse(value)
       newV.asJsObject.getFields("name", "stateVariables", "attributes") match {
         case Seq(JsString(name), c: JsArray, a: JsObject) => {
-          val sv = c.elements map(_.asJsObject.convertTo[StateVariable])
+          val sv = List[StateVariable]() //c.elements map(_.asJsObject.convertTo[StateVariable])
           val attr = a.convertTo[SPAttributes]
           Thing(name, sv, attr)
         }
@@ -165,7 +166,6 @@ object SPJson extends DefaultJsonProtocol {
     
 
   }
-
 
   // USE  WHEN ADDING RUNTIMES, KRISTOFER 140627
 //  // name: String, runtimeType: String, modelid: String="", id: ID=ID.empty
@@ -346,13 +346,9 @@ object SPJson extends DefaultJsonProtocol {
           t <- xs.get("type")
           attr <- xs.get("attributes")
         } yield {
-          val update = JsObject(attr.asJsObject.fields + ("basedOn" -> JsObject("id" -> id.toJson, "ver" -> ver.toJson)))
+          val update = JsObject(attr.asJsObject.fields + ("basedOn" -> JsObject("id" -> id, "ver" -> ver)))
           JsObject(xs + ("attributes" -> update))
         }
-      }
-
-      def getAs[T](k: String, xs: Map[String, JsValue]): Option[T] = {
-        xs.get(k) map (_.convertTo[T])
       }
     }
 

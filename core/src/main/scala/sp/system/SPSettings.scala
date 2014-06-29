@@ -20,12 +20,14 @@ class SPSettings(system: ExtendedActorSystem) extends Extension {
   /**
    * The network interface the SP gui gets bound to, e.g. `"localhost"`.
    */
-  val interface: String = system.settings.config getString "service.interface"
+  val interface: String = system.settings.config getString "sp.interface"
 
   /**
    * The port the the SP gui gets bound to, e.g. `8080`.
    */
-  val port: Int = system.settings.config getInt "service.port"
+  val port: Int = system.settings.config getInt "sp.port"
+
+  val webfolder: String = system.settings.config getString "sp.webfolder"
 
 
 }
