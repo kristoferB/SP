@@ -7,22 +7,25 @@ import scala.concurrent.Future
 import akka.pattern.pipe
 import scala.concurrent.duration._
 import sp.system.messages._
+import akka.persistence._
 
 
-class ModelHandler extends Actor {
+class ModelHandler extends EventsourcedProcessor {
   private var modelMap: Map[String, ActorRef] = Map()
   implicit val timeout = Timeout(1 seconds)
   import context.dispatcher
+  println("The Modelhandler created")
   
-  def receive = {
+  def receiveCommand = {
     case CreateModel(name)=> {
       val reply = sender
+      println(s"in cm ($name): $modelMap")
       if (!modelMap.contains(name)){
-        println(s"The modelService creates a new model called $name")
-        val newModelH = context.actorOf(sp.models.ModelActor.props(name), name)
-        modelMap += name -> newModelH
-      }
-      modelMap(name).tell(GetModels, reply)
+        persist(name){n =>
+          addModel(n)
+          modelMap(name).tell(GetModels, reply)
+        }
+      } else modelMap(name).tell(GetModels, reply)
     }
 
     case m: ModelMessage => {
@@ -34,8 +37,19 @@ class ModelHandler extends Actor {
       val reply = sender
       if (!modelMap.isEmpty){
         val fList = Future.traverse(modelMap.values)(x => (x ? GetModels).mapTo[ModelInfo]) map(_ toList)
-        fList pipeTo reply
+        fList map ModelInfos pipeTo reply
       } else reply ! ModelInfos(List[ModelInfo]())
+  }
+
+  def addModel(name: String) = {
+    println(s"The modelService creates a new model called $name")
+    val newModelH = context.actorOf(sp.models.ModelActor.props(name), name)
+    modelMap += name -> newModelH
+  }
+
+  def receiveRecover = {
+    case name: String  => addModel(name)
+    case SnapshotOffer(_, snapshot: Any) => snapshot
   }
 
 }

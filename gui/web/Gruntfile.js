@@ -68,15 +68,21 @@ module.exports = function (grunt) {
       options: {
         port: 9000,
         // Change this to '0.0.0.0' to access the server from outside.
-        hostname: '0.0.0.0',
+        hostname: 'localhost',
         livereload: 35729
       },
+      proxies: [{
+        context: '/api', // the context of the data service
+        host: 'localhost', // wherever the data service is running
+        port: 8030 // the port that the data service is running on
+      }],
       livereload: {
         options: {
           open: true,
           middleware: function (connect) {
             return [
               connect.static('.tmp'),
+              require('grunt-connect-proxy/lib/utils').proxyRequest,
               connect().use(
                 '/bower_components',
                 connect.static('./bower_components')
@@ -366,6 +372,7 @@ module.exports = function (grunt) {
       'wiredep',
       'concurrent:server',
       'autoprefixer',
+      'configureProxies:server',
       'connect:livereload',
       'watch'
     ]);

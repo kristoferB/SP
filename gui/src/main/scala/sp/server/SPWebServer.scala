@@ -37,6 +37,7 @@ trait SPRoute extends HttpService {
   import sp.json.SPJson._
 
   val api = pathPrefix("api") {
+    pathEnd {complete("Sequence Planner REST API")} ~
     pathPrefix("models") {
       pathEnd {
         get {
@@ -45,16 +46,16 @@ trait SPRoute extends HttpService {
               complete(list)
             }
           }}
-        }
+        } ~
         post{
           entity(as[CreateModel]){cmd =>
+            println(s"got: $cmd")
             onSuccess(modelHandler ? cmd){ evalReply {
               case x: ModelInfo => complete(x)
             }}
           }
         }
       }
-
     }
   }
 
