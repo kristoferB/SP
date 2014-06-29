@@ -4,8 +4,7 @@ Sequence Planner
 Work in progress. We need to define this.
 
 Pre:
- install nodejs
- install yeoman
+ install nodejs and yeoman
 
 To init run from command:
 
