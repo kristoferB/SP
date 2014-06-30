@@ -33,8 +33,8 @@ object SPJson extends DefaultJsonProtocol {
     }
 
     def read(value: JsValue) = {
+      val newV = filterAndUpdateIDAble(value.asJsObject()).getOrElse(value.asJsObject())
       val obj = for {
-        newV <- filterAndUpdateIDAble(value.asJsObject())
         t <- value.asJsObject.fields.get("type")
       } yield {
         t match {
@@ -316,6 +316,11 @@ object SPJson extends DefaultJsonProtocol {
   implicit val euFormat = jsonFormat3(UpdateError)
 
 
+  // REST API CLASSES
+  import sp.server._
+  implicit val inclIFormat = jsonFormat2(InclInfo)
+
+
   //  implicit val modelInfoFormat = jsonFormat3(ModelInfo)
 //  implicit val serviceErrorFormat = jsonFormat1(ServiceErrorString)
 //  implicit val serviceErrorMissingIdFormat = jsonFormat2(ServiceErrorMissingID)
@@ -334,7 +339,7 @@ object SPJson extends DefaultJsonProtocol {
       def idPart(x: IDAble) = List(
         "version" -> x.version.toJson,
         "id" -> x.id.toJson,
-        "type" -> x.getClass.getSimpleName.toJson,
+        "type" -> x.getClass.toString.toJson,
         "attributes" -> x.attributes.toJson
       )
 

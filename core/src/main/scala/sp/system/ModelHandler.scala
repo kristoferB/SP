@@ -14,12 +14,10 @@ class ModelHandler extends EventsourcedProcessor {
   private var modelMap: Map[String, ActorRef] = Map()
   implicit val timeout = Timeout(1 seconds)
   import context.dispatcher
-  println("The Modelhandler created")
   
   def receiveCommand = {
     case CreateModel(name)=> {
       val reply = sender
-      println(s"in cm ($name): $modelMap")
       if (!modelMap.contains(name)){
         persist(name){n =>
           addModel(n)

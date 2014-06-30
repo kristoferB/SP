@@ -24,11 +24,12 @@ case class GetThings(model: String)  extends ModelQuery
 case class GetSpecs(model: String)  extends ModelQuery
 case class GetQuery(q: SPAttributes, model: String) extends ModelQuery // fix better later
 case class GetDiff(model: String, version: Long) extends ModelQuery
+case class GetModelInfo(model: String) extends ModelQuery
 
 case class UpdateIDs(model: String, version: Long, ids: List[UpdateID]) extends ModelUpdate
 case class UpdateID(id: ID, version: Long, updated: IDAble)
 object UpdateID {
-  def addNew(x: IDAble) = UpdateID(x.id, x.version, x)
+  def addNew(x: IDAble) = UpdateID(x.id, 0, x)
 }
 
 // API output

@@ -27,6 +27,7 @@ class ModelActor(name: String) extends EventsourcedProcessor  {
         case Left(diff) => {
           persist(diff)(d =>{
             updateState(d)
+            //TODO: If we create new items, we should probably return that also 140630
             if (state.version == v+1)
               reply ! diff
             else {
@@ -36,19 +37,22 @@ class ModelActor(name: String) extends EventsourcedProcessor  {
         }
         case Right(error) => reply ! error
       }
-      //persist(Evt(s"${data}-${numEvents}"))(updateState)
     }
+
+    /**
+     * TODO: This is a temporary solution. When we go more production
+     * the Query should be in a separate actor. 140630
+     */
     case mess: ModelQuery => {
       val reply = sender
       mess match {
         case GetIds(ids, m) => {
-
           val res = for {
             i <- ids
             x <- state.idMap.get(i)
           } yield x
-          println(s"getIDs: $ids result: $res")
-          reply ! SPIDs(name, state.version, res)
+          if (ids.isEmpty) reply ! SPIDs(name, state.version, state.idMap.values.toList)
+          else reply ! SPIDs(name, state.version, res)
         }
         case get: GetOperations => {
           val res = state.operations.values
@@ -66,9 +70,11 @@ class ModelActor(name: String) extends EventsourcedProcessor  {
           println("GETQUERY NOT IMPLEMENTED in ModelActor")
         }
         case GetDiff(_,v) => reply ! getDiff(v)
+        case x: GetModelInfo => reply ! ModelInfo(name, state.version)
       }
     }
     case "printState" => println(s"$name: $state")
+    case "snapshot" => saveSnapshot(state)
     case GetModels => sender ! ModelInfo(name, state.version)
   }
 
@@ -77,6 +83,15 @@ class ModelActor(name: String) extends EventsourcedProcessor  {
     case SnapshotOffer(_, snapshot: ModelState) => state = snapshot
   }
 
+  /**
+   * Checks if the model can be updated. If the version defined in UpdateID
+   * is the same as in the model for all items, the model is updated. Else
+   * the method returns a UpdateError
+   * @param model The name of the model
+   * @param modelVersion The version that the updated items origin from
+   * @param ids The new items to be updated or added
+   * @return Either Left[ModelDiff] -> The model can be updated. Right[UpdateError]
+   */
   def createDiff(model: String, modelVersion: Long, ids: List[UpdateID]): Either[ModelDiff, UpdateError] = {
     // Check if any item could not be updated and divide them
     val updateMe = ids partition {case UpdateID(id,v, item) => {
@@ -99,6 +114,12 @@ class ModelActor(name: String) extends EventsourcedProcessor  {
     state = ModelState(state.version+1, state.idMap ++ idm, modelDiff)
   }
 
+  /**
+   * Returns all items that have been change since version fromV. Does not include
+   * the changes made in that version
+   * @param fromV From what version to return diffs
+   * @return The ModelDiff
+   */
   def getDiff(fromV: Long) = {
     val allDiffs = state.diff.filter(_.version > fromV).foldLeft(List[IDAble]())((res,md)=>{
        md.ids ++ res

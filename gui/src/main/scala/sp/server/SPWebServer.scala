@@ -22,8 +22,14 @@ class SPWebServer extends Actor with SPRoute {
   }
 }
 
+import sp.domain._
+
+
+// API classes
+case class InclInfo(items: List[IDAble], modelVersion: Long)
+
+
 trait SPRoute extends HttpService {
-  import sp.domain._
   import sp.system.messages._
   import sp.system.SPActorSystem._
   import reflect.ClassTag
@@ -35,30 +41,102 @@ trait SPRoute extends HttpService {
   import spray.httpx.SprayJsonSupport._
   import spray.json._
   import sp.json.SPJson._
+  import spray.httpx.encoding._
 
   val api = pathPrefix("api") {
-    pathEnd {complete("Sequence Planner REST API")} ~
-    pathPrefix("models") {
-      pathEnd {
+    / {complete("Seqeunce Planner REST API")} ~
+    encodeResponse(Gzip) {
+      path("models") {
         get {
-          onSuccess(modelHandler ? GetModels){ evalReply {
-            case ModelInfos(list) => {
-              complete(list)
-            }
-          }}
+          toSP(GetModels, {
+            case ModelInfos(list) => complete(list)
+          })
         } ~
-        post{
-          entity(as[CreateModel]){cmd =>
-            println(s"got: $cmd")
-            onSuccess(modelHandler ? cmd){ evalReply {
-              case x: ModelInfo => complete(x)
-            }}
+          post {
+            entity(as[CreateModel]) { cmd =>
+              toSP(cmd, {
+                case x: ModelInfo => complete(x)
+              })
+            }
           }
+      } ~
+        pathPrefix("models" / Segment) { model =>
+          / {
+            toSP(GetModelInfo(model), {
+              case x: ModelInfo => complete(x)
+            })
+          } ~
+            pathPrefix("operations") {
+              IDHandler(model) ~
+                getSPIDS(GetOperations(model))
+            } ~
+            pathPrefix("things") {
+              IDHandler(model) ~
+                getSPIDS(GetThings(model))
+            } ~
+            pathPrefix("specs") {
+              IDHandler(model) ~
+                getSPIDS(GetSpecs(model))
+            } ~
+            pathPrefix("items") {
+              IDHandler(model) ~
+                getSPIDS(GetIds(List(), model))
+            }
+        }
+    }
+  }
+
+  def IDHandler(model: String) = {
+    path(JavaUUID){id =>
+      getSPIDS(GetIds(List(ID(id)), model))~
+      post {
+        entity(as[InclInfo]) { x =>
+          val uids = for {
+            item <- x.items
+            bo <- getBasedOn(item)
+          } yield (UpdateID(bo._1, bo._2, item))
+          if (uids.isEmpty) reject(MalformedRequestContentRejection("No version and id in the item"))
+          else {
+            toSP(UpdateIDs(model, x.modelVersion, uids),  {
+              case x: ModelDiff => complete(x)
+            })
+          }
+        }
+      }
+    } ~
+    / {
+      post {
+        entity(as[InclInfo]) { x =>
+          val uids = x.items map UpdateID.addNew
+          toSP(UpdateIDs(model, x.modelVersion, uids),  {
+            case x: ModelDiff => complete(x)
+          })
         }
       }
     }
   }
 
+  def getSPIDS(mess: ModelQuery) = {
+    /{ get {toSP(mess, { case x: SPIDs => complete(x)})}}
+  }
+
+  def getBasedOn(x: IDAble) = {
+    for {
+      bo <- x.attributes.getAsMap("basedOn")
+      id <- bo.get("id").flatMap(_.asID)
+      v <- bo.get("version").flatMap(_.asLong)
+    } yield {
+      (id, v)
+    }
+
+  }
+
+  def toSP(mess: Any, matchReply: PartialFunction[Any, Route]) = {
+    onSuccess(modelHandler ? mess){evalReply{matchReply}}
+  }
+
+  // to cleanup the routing
+  def / = pathEndOrSingleSlash
 
 
   def replyMatcher: PartialFunction[Any, Route] = {
