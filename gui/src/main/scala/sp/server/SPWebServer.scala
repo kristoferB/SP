@@ -121,6 +121,7 @@ trait SPRoute extends HttpService {
   }
 
   def getBasedOn(x: IDAble) = {
+    println(s"getbasedon: $x")
     for {
       bo <- x.attributes.getAsMap("basedOn")
       id <- bo.get("id").flatMap(_.asID)

@@ -9,7 +9,7 @@ case class Operation(name: String,
         extends IDAble with StateVariable {
 
 
-  override def valueInDomain(v: Any): Boolean = v.isInstanceOf[OpLocation]
+  //override def valueInDomain(v: Any): Boolean = v.isInstanceOf[OpLocation]
   override def update(currentID: ID, currentVersion: Long): IDAble = {
     new Operation(name, conditions, attributes){
       override lazy val id = currentID

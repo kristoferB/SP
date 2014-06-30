@@ -56,8 +56,9 @@ object SPJson extends DefaultJsonProtocol {
   implicit object OperationJsonFormat extends RootJsonFormat[Operation] {
     def write(x: Operation) = {
       val map = List(
+        "type" -> "Operation".toJson,
         "name" -> x.name.toJson,
-        "conditions" -> "to be impl".toJson //o.conditions.toJson
+        "conditions" -> List[String]().toJson //o.conditions.toJson
       ) ++ idPart(x)
       JsObject(map)
     }
@@ -76,8 +77,9 @@ object SPJson extends DefaultJsonProtocol {
   implicit object ThingJsonFormat extends RootJsonFormat[Thing] {
     def write(x: Thing) = {
       val map = List(
+        "type" -> "Thing".toJson,
         "name" -> x.name.toJson,
-        "stateVariables" -> "to be impl".toJson //o.conditions.toJson
+        "stateVariables" -> List[String]().toJson //o.conditions.toJson
       ) ++ idPart(x)
       JsObject(map)
     }
@@ -96,6 +98,7 @@ object SPJson extends DefaultJsonProtocol {
   implicit object SPObjectJsonFormat extends RootJsonFormat[SPObject] {
     def write(x: SPObject) = {
       val map = List(
+        "type" -> "SPObject".toJson,
         "name" -> x.name.toJson
       ) ++ idPart(x)
       JsObject(map)
@@ -114,6 +117,7 @@ object SPJson extends DefaultJsonProtocol {
   implicit object SPSpecJsonFormat extends RootJsonFormat[SPSpec] {
     def write(x: SPSpec) = {
       val map = List(
+        "type" -> "SPSpec".toJson,
         "label" -> x.label.toJson
       ) ++ idPart(x)
       JsObject(map)
@@ -132,6 +136,7 @@ object SPJson extends DefaultJsonProtocol {
   implicit object SOPSpecJsonFormat extends RootJsonFormat[SOPSpec] {
     def write(x: SOPSpec) = {
       val map = List(
+        "type" -> "SOPSpec".toJson,
         "label" -> x.label.toJson,
         "sop" -> x.sop.toJson //o.conditions.toJson
       ) ++ idPart(x)
@@ -257,44 +262,64 @@ object SPJson extends DefaultJsonProtocol {
       case _ => throw new DeserializationException("can not convert to SPAttribute: "+value)
     }
   }
+
+  implicit object StateVariableFormat extends RootJsonFormat[StateVariable] {
+    def write(x: StateVariable) = {
+      JsObject( x match {
+        case x: IntVariable => x.toJson.asJsObject.fields + ("type"-> "IntVariable".toJson)
+        case x: RestrictedIntRangeVariable => x.toJson.asJsObject.fields + ("type"-> "IntVariable".toJson)
+        case x: RestrictedIntVariable => x.toJson.asJsObject.fields + ("type"-> "IntVariable".toJson)
+        case x: StringVariable => x.toJson.asJsObject.fields + ("type"-> "IntVariable".toJson)
+        case x: RestrictedStringVariable => x.toJson.asJsObject.fields + ("type"-> "IntVariable".toJson)
+        case x: BooleanVariable => x.toJson.asJsObject.fields + ("type"-> "IntVariable".toJson)
+      })
+    }
+    def read(value: JsValue) = {
+      val obj = for {
+        t <- value.asJsObject.fields.get("type")
+      } yield t match {
+        case JsString("IntVariable") => IntVariable("hej")
+        case _ => throw new DeserializationException(s"StateVariable could not be read: $value")
+      }
+      obj match {
+        case Some(o) => o
+        case None => throw new DeserializationException(s"IDAble could not be read: $value")
+      }
+    }
+  }
+
+  implicit object RangeFormat extends RootJsonFormat[Range] {
+    def write(x: Range) = {
+      JsObject(
+        "start" -> x.start.toJson,
+        "end" -> x.end.toJson,
+        "step" -> x.step.toJson
+      )
+    }
+    def read(value: JsValue) = {
+      value.asJsObject.getFields("start", "end", "step") match {
+        case Seq(JsNumber(start), JsNumber(end), JsNumber(step)) =>
+          new Range(start.toInt, end.toInt, step.toInt)
+        case _ => throw new DeserializationException("Range expected")
+      }
+
+    }
+  }
   
-  
-//  implicit object StateVariableFormat extends RootJsonFormat[StateVariable[_]] {
-//    def write(x: StateVariable[_]) = {
-//      "Var".toJson
-//    }
-//    def read(value: JsValue) = throw new DeserializationException("StateVariableFormat JsonParse not implemented")
-//  }
-//
-//  implicit object EntityFormat extends RootJsonFormat[Entity] {
-//    def write(x: Entity) = {
-//      JsObject(
-//        "name" -> x.name.toJson,
-//        "id" -> x.id.toJson,
-//        "attributes" -> x.attributes.toJson
-//      )
-//    }
-//    def read(value: JsValue) = throw new DeserializationException("Entity JsonParse not implemented")
-//  }
-//
-//
-//  implicit object ResourceJsonFormat extends RootJsonFormat[Resource] {
-//    // Add more later!
-//    def write(o: Resource) = JsObject(
-//      "name" -> JsString(o.name),
-//      "id" -> IDJsonFormat.write(o.id),
-//      "attributes" -> SPAttributesFormat.write(o.attributes),
-//      "type" -> JsString("Resource"))
-//
-//    def read(value: JsValue) = throw new DeserializationException("Resource JsonParse not implemented")
-//  }
-  
+
   
 
 /* ---------------------------------------
  * CASE CLASSES
  * ---------------------------------------
 */
+
+  implicit val svintFormat = jsonFormat3(IntVariable)
+  implicit val svrrintFormat = jsonFormat4(RestrictedIntRangeVariable)
+  implicit val svrintFormat = jsonFormat4(RestrictedIntVariable)
+  implicit val svstrFormat = jsonFormat3(StringVariable)
+  implicit val svrestrFormat = jsonFormat4(RestrictedStringVariable)
+  implicit val svboolFormat = jsonFormat3(BooleanVariable)
 
   implicit val cmFormat = jsonFormat1(CreateModel)
   implicit val gidFormat = jsonFormat2(GetIds)
@@ -339,7 +364,6 @@ object SPJson extends DefaultJsonProtocol {
       def idPart(x: IDAble) = List(
         "version" -> x.version.toJson,
         "id" -> x.id.toJson,
-        "type" -> x.getClass.toString.toJson,
         "attributes" -> x.attributes.toJson
       )
 
@@ -352,6 +376,7 @@ object SPJson extends DefaultJsonProtocol {
           attr <- xs.get("attributes")
         } yield {
           val update = JsObject(attr.asJsObject.fields + ("basedOn" -> JsObject("id" -> id, "ver" -> ver)))
+          println(s"add based on: ${JsObject(xs + ("attributes" -> update))}" )
           JsObject(xs + ("attributes" -> update))
         }
       }

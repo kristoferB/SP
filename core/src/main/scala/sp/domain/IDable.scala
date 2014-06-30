@@ -52,6 +52,7 @@ case class ID(value: UUID){
 object ID {
   implicit def uuidToID(id: UUID) = ID(id)
   implicit def idToUUID(id: ID) = id.value
+  def newID = ID(UUID.randomUUID())
   def makeID(id: String): Option[ID] = {
     try {
       Some(ID(UUID.fromString(id)))

@@ -22,9 +22,7 @@ object LaunchGUI {
     Console.println(s"Server started ${system.name}, $interface:$port")
     Console.println("Type `exit` to exit....")
 
-    //test
-
-    waitForExit()
+    Console.readLine() // wait for enter to exit
     system.shutdown()
 
 
