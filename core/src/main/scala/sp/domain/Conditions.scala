@@ -10,7 +10,7 @@ trait Condition {
 }
 
 case class PropositionGuard(g: Proposition)
-case class Action[T](svid: SVIDHolder, value: T)
+case class Action[T](svid: ID, value: T)
 case class PropositionCondition(g: PropositionGuard,
                                 a: List[Action[_]],
                                 attributes: SPAttributes = SPAttributes(Map())) extends Condition {
@@ -46,7 +46,7 @@ case class NEQ(x: StateEvaluator, y: StateEvaluator) extends Atom
 
 trait StateEvaluator
 
-case class SVIDEval(svid: SVIDHolder) extends StateEvaluator
+case class SVIDEval(svid: ID) extends StateEvaluator
 case class ValueHolder(v: Any) extends StateEvaluator
 
 

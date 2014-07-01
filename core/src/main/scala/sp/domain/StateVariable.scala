@@ -6,9 +6,6 @@ trait StateVariable {
   val id: ID
 }
 
-case class SVIDHolder(thing: ID, value: ID)
-case class SVHolder(thing: Thing, value: StateVariable)
-
 case class IntVariable(name: String, id: ID = ID.newID, attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
 case class RestrictedIntRangeVariable(name: String, domain: Range, id: ID = ID.newID, attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
 case class RestrictedIntVariable(name: String, domain: Set[Int], id: ID = ID.newID, attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
