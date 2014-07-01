@@ -1,0 +1,12 @@
+<div class="btn-toolbar" role="toolbar">
+<button type="button" class="btn btn-default" ng-click="loadData()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
+</div>
+<div>
+    <table class="table">
+        <thead><tr><th>Name</th><th>Type</th><th>Edit</th></tr></thead>
+        <tbody ng-repeat="item in items.ids"
+               ng-include="{'normal':'views/row_normal.html','expanded':'views/row_expanded.html','edit':'views/row_edit.html'}[row.mode]"
+               ng-init="row={mode:'normal'}">
+        </tbody>
+    </table>
+</div>

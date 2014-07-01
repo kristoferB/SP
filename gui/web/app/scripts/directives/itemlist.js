@@ -7,17 +7,19 @@
  * # sop
  */
 angular.module('spGuiApp')
-.directive('oplist', [ function () {
+.directive('itemlist', ['spTalker', function (spTalker) {
 
   return {
-    template: '<table class="table">' +
-              '<tr> ' +
-              '</table>',
+    templateUrl: 'views/itemlist.html',
     restrict: 'E',
     scope: {},
     link: function postLink(scope, element, attrs) {
 
+      scope.loadData = function() {
+        scope.items = spTalker.items.get({model: 'model1'});
+      };
 
+      scope.loadData();
 
     }
   };

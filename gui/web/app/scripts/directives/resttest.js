@@ -7,10 +7,10 @@
  * # restTest
  */
 angular.module('spGuiApp')
-  .directive('restTest', [ '$rootScope', 'spTalker', 'dateFilter', function ($rootScope, spTalker, dateFilter) {
+  .directive('resttest', [ '$rootScope', 'spTalker', 'dateFilter', function ($rootScope, spTalker, dateFilter) {
     return {
       template: '<div><p>Operations</p><ul><li style="float:none;" ng-repeat="op in operations.ids">name: {{op.name}}, id: {{op.id}}, version: {{op.version}}</li></ul>' +
-                '<p>Operation by ID, requesting \"551d93a2-3bbc-487c-847c-73974dbf7aaa\"</p><ul><li style="float:none;" ng-repeat="op in operation.ids">name: {{op.name}}, id: {{op.id}}, version: {{op.version}}</li></ul>' +
+                '<p>Operation by ID, requesting \"8759654d-7f27-404b-9985-c8619378e485\"</p><ul><li style="float:none;" ng-repeat="op in operation.ids">name: {{op.name}}, id: {{op.id}}, version: {{op.version}}</li></ul>' +
                 '<p>Models</p><ul><li style="float:none;" ng-repeat="m in models">model: {{m.model}}, version: {{m.version}}, prevVersion: {{m.version}}</li></ul>' +
                 '<p>Model by name, requesting \"model1\"</p><ul><li style="float:none;" ng-repeat="m in models">model: {{m.model}}, version: {{m.version}}, prevVersion: {{m.version}}</li></ul>' +
                 '<p>Things</p><ul><li style="float:none;" ng-repeat="thing in things.ids" ng-bind="thing.name"></li></ul>' +
@@ -23,17 +23,11 @@ angular.module('spGuiApp')
       link: function postLink(scope, element, attrs) {
 
         scope.loadData = function() {
-
           scope.operations = spTalker.operations.get({model: 'model1'});
-
-          scope.operation = spTalker.operations.get({model: 'model1', op: '551d93a2-3bbc-487c-847c-73974dbf7aaa'});
-
+          scope.operation = spTalker.operations.get({model: 'model1', op: '8759654d-7f27-404b-9985-c8619378e485'});
           scope.models = spTalker.models.query();
-
           scope.model = spTalker.models.get({model: 'model1'});
-
           scope.things = spTalker.things.get({model: 'model1'});
-
           scope.thing = spTalker.things.get({model: 'model1'});
         };
 
@@ -50,7 +44,7 @@ angular.module('spGuiApp')
           var newOp = new spTalker.operations({model:'model1'});
           newOp.modelVersion = 1;
           newOp.items = [{"name": "Op " + Math.floor(Math.random()*1000), "conditions": [], "attributes": {}, "type": "Operation"}];
-          newOp.$save();
+          newOp.$save({id: '8759654d-7f27-404b-9985-c8619378e485'});
 
         };
 

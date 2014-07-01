@@ -15,7 +15,7 @@ $scope.windowCount = 1;
 $scope.windows = [];
 
 $scope.addWindow = function(type) {
-    $scope.windows.push({type: type, width: 'small', height: 'small', name: 'Window ' + $scope.windowCount});
+    $scope.windows.push({type: type, width: 'small', height: 'small', name: type + ' ' + $scope.windowCount});
     $scope.windowCount = $scope.windowCount + 1;
 };
 

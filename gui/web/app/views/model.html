@@ -7,7 +7,7 @@
 
   #sortable .panel-heading .glyphicon{
       padding:3px;
-      margin-left:5px;
+      margin-left:3px;
   }
 
   .sizeTransition {
@@ -38,14 +38,20 @@
 
 </style>
 <button type="button" class="btn btn-default" ng-click="addWindow('sop')"><span class="glyphicon glyphicon-plus"></span> sop</button>
-<button type="button" class="btn btn-default" ng-click="addWindow('opList')"><span class="glyphicon glyphicon-plus"></span> opList</button>
+<button type="button" class="btn btn-default" ng-click="addWindow('itemList')"><span class="glyphicon glyphicon-plus"></span> itemList</button>
+<button type="button" class="btn btn-default" ng-click="addWindow('restTest')"><span class="glyphicon glyphicon-plus"></span> restTest</button>
 
 <ul ui-sortable="sortableOptions" ng-model="windows" id="sortable" class="list-unstyled">
     <li class="panel panel-info sizeTransition" ng-repeat="window in windows" ng-class="{'col-md-5': window.width === 'small', 'col-md-12': window.width === 'large', 'smallHeight': window.height === 'small', 'largeHeight': window.height === 'large'}">
-        <div class="panel-heading"><span class="draggable" ng-bind="window.name"></span><span class="pull-right"><span ng-click="toggleWindowWidth(window)" class="btn btn-default glyphicon glyphicon-resize-full"></span><span ng-click="toggleWindowHeight(window)" class="btn btn-default glyphicon glyphicon-resize-full"></span><span ng-click="closeWindow(window)" class="btn btn-default glyphicon glyphicon-remove"></span></span></div>
+        <div class="panel-heading"><span class="draggable" ng-bind="window.name"></span><span class="pull-right">
+            <span ng-click="toggleWindowWidth(window)" class="btn btn-default glyphicon glyphicon-resize-full"></span>
+            <span ng-click="toggleWindowHeight(window)" class="btn btn-default glyphicon glyphicon-resize-full"></span>
+            <span ng-click="closeWindow(window)" class="btn btn-default glyphicon glyphicon-remove"></span></span>
+        </div>
         <div class="panel-body sizeTransition" ng-class="{'smallBodyHeight': window.height === 'small', 'largeBodyHeight': window.height === 'large'}" ng-switch on="window.type">
             <sop ng-switch-when="sop"></sop>
-            <oplist ng-switch-when="opList"></oplist>
+            <itemlist ng-switch-when="itemList"></itemlist>
+            <resttest ng-switch-when="restTest"></resttest>
         </div>
     </li>
 </ul>

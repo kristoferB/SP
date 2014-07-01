@@ -14,7 +14,8 @@ angular.module('spGuiApp')
   return {
     models: $resource(apiUrl + '/models/:model', { model:'@model' }),
     operations: $resource(apiUrl + '/models/:model/operations/:op', { model:'@model', op:'@op' }),
-    things: $resource(apiUrl + '/models/:model/things/:thing', { model:'@model', thing:'@thing' })
+    things: $resource(apiUrl + '/models/:model/things/:thing', { model:'@model', thing:'@thing' }),
+    items: $resource(apiUrl + '/models/:model/items', { model:'@model' })
   };
 
 }]);
