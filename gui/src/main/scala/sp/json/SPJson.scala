@@ -375,7 +375,7 @@ object SPJson extends DefaultJsonProtocol {
           t <- xs.get("type")
           attr <- xs.get("attributes")
         } yield {
-          val update = JsObject(attr.asJsObject.fields + ("basedOn" -> JsObject("id" -> id, "ver" -> ver)))
+          val update = JsObject(attr.asJsObject.fields + ("basedOn" -> JsObject("id" -> id, "version" -> ver)))
           println(s"add based on: ${JsObject(xs + ("attributes" -> update))}" )
           JsObject(xs + ("attributes" -> update))
         }

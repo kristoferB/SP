@@ -91,6 +91,7 @@ trait SPRoute extends HttpService {
       getSPIDS(GetIds(List(ID(id)), model))~
       post {
         entity(as[InclInfo]) { x =>
+          println(s"we got: $x")
           val uids = for {
             item <- x.items
             bo <- getBasedOn(item)
