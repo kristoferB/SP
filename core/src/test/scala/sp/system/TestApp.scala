@@ -43,7 +43,7 @@ class TestA(mh: ActorRef) extends Actor {
       case "things" => mh ! GetThings("test")
       case "diff" => mh ! GetDiff("test", 5)
       case "getIDs" =>
-      case x @ SPIDs(model, v, ids) => {
+      case x @ SPIDs(ids) => {
         println(x)
         if (ids.exists(_.id == o1.id)) for{o <- ids.find(_.id == o1.id)} yield(o1 = o)
       }

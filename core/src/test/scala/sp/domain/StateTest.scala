@@ -7,8 +7,8 @@ import org.scalatest._
  */
 class StateTest extends WordSpec with Matchers  {
 
-    val sv1: StateVariable = RestrictedIntRangeVariable("sv1", 1 to 10)
-    val sv2: StateVariable = RestrictedStringVariable("sv2", Set("1", "två", "tre"))
+//    val sv1: StateVariable = RestrictedIntRangeVariable("sv1", 1 to 10)
+//    val sv2: StateVariable = RestrictedStringVariable("sv2", Set("1", "två", "tre"))
 //    val initState = State(Map(sv1->1, sv2->"1"))
 
 

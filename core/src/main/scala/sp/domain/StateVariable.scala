@@ -1,17 +1,19 @@
 package sp.domain
 
-trait StateVariable {
-  val name: String
-  val attributes: SPAttributes
-  val id: ID
-}
+case class StateVariable(name: String, attributes: SPAttributes = SPAttributes(Map()), id: ID = ID.newID)
 
-case class IntVariable(name: String, id: ID = ID.newID, attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
-case class RestrictedIntRangeVariable(name: String, domain: Range, id: ID = ID.newID, attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
-case class RestrictedIntVariable(name: String, domain: Set[Int], id: ID = ID.newID, attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
-case class StringVariable(name: String, id: ID = ID.newID, attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
-case class RestrictedStringVariable(name: String, domain: Set[String], id: ID = ID.newID, attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
-case class BooleanVariable(name: String, id: ID = ID.newID, attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
+//trait StateVariable {
+//  val name: String
+//  val attributes: SPAttributes
+//
+//}
+//
+//case class IntVariable(name: String, attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
+//case class RestrictedIntRangeVariable(name: String, domain: Range, attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
+//case class RestrictedIntVariable(name: String, domain: Set[Int], attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
+//case class StringVariable(name: String, attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
+//case class RestrictedStringVariable(name: String, domain: Set[String], attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
+//case class BooleanVariable(name: String, attributes: SPAttributes = SPAttributes(Map())) extends StateVariable
 
 
 //

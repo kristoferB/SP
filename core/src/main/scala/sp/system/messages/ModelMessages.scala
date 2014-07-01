@@ -15,7 +15,7 @@ sealed trait ModelQuery extends ModelMessage
 sealed trait ModelUpdate extends ModelMessage
 
 // Model messages
-case class CreateModel(model: String) extends ModelMessage
+case class CreateModel(model: String, attributes: SPAttributes = SPAttributes(Map())) extends ModelMessage
 case object GetModels extends SPMessage
 
 case class GetIds(ids: List[ID], model: String) extends ModelQuery
@@ -35,7 +35,7 @@ object UpdateID {
 // API output
 
 // Replay Model Messages
-case class SPIDs(model: String, version: Long, ids: List[IDAble]) extends SPMessage
+case class SPIDs(ids: List[IDAble]) extends SPMessage
 case class ModelDiff(ids: List[IDAble],
                      model: String,
                      prevVersion: Long,
@@ -43,7 +43,7 @@ case class ModelDiff(ids: List[IDAble],
                      attributes: SPAttributes = SPAttributes(Map("time"->DatePrimitive.now))
                    ) extends SPMessage
 case class ModelInfos(models: List[ModelInfo])
-case class ModelInfo(model: String, version: Long)
+case class ModelInfo(model: String, version: Long, attributes: SPAttributes)
 
 
 

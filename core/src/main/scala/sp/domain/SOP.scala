@@ -6,7 +6,7 @@ trait SOP {
   def ++(sops: Seq[SOP]) = SOP.addChildren(this,sops)
   def modify(sops: Seq[SOP]) = SOP.modifySOP(this,sops)
   def <--(sops: Seq[SOP]) = modify(sops)
-  lazy val emptyChildren: Boolean = this == EmptySOP || children.isEmpty || children.contains(EmptySOP)
+  lazy val isEmpty: Boolean = (this == EmptySOP) || children.isEmpty || children.contains(EmptySOP)
 }
 
 
@@ -17,13 +17,7 @@ case class Arbitrary(children: SOP*) extends SOP
 case class Sequence(children: SOP*) extends SOP
 case class SometimeSequence(children: SOP*) extends SOP
 case class Other(children: SOP*) extends SOP
-case class Hierarchy(operation: Operation, child: SOP) extends SOP {
-  override def toString = child match {
-    case EmptySOP => operation.toString
-    case _ => "Hierarchy -" + operation.name +": "+ child
-  }
-  val children = Seq(child)
-} 
+case class Hierarchy(operation: ID, children: SOP*) extends SOP
 
 
 // Also create implicit conversion for operations
@@ -40,14 +34,14 @@ object SOP {
 //    val sops = children map (o => operationToSOP(o))
 //    apply(sops:_*)
 //  }
-  
+
   def addChildren(sop: SOP, children: Seq[SOP]): SOP = {
     sop match {
       case Hierarchy(o,child) => Hierarchy(o,addChildren(child, children))
       case _ => modifySOP(sop, sop.children ++ children)
     }
   }
-  
+
   def modifySOP(sop: SOP, children: Seq[SOP]): SOP = {
     sop match {
       case Hierarchy(o,child) => Hierarchy(o,modifySOP(child, children))
@@ -58,11 +52,11 @@ object SOP {
       case s: SometimeSequence => SometimeSequence(children:_*)
       case EmptySOP => apply(children:_*)
       case _ => apply(children:_*)
-    }    
+    }
   }
   
   
-  implicit def operationToSOP(o: Operation): SOP = Hierarchy(o,EmptySOP)
+  implicit def operationToSOP(o: Operation): SOP = Hierarchy(o.id,EmptySOP)
     
 }
 

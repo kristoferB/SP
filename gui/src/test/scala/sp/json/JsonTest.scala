@@ -35,6 +35,21 @@ class JsonTest extends WordSpec with Matchers  {
   val sop1 = SOP(Parallel(Sequence(o1, o2), Sequence(o1, o2)))
   val spec = SOPSpec(sop1, "label")
 
+  val attr = SPAttributes(Map(
+    "hej" -> "kalle",
+    "då" -> 1,
+    "tree" -> MapPrimitive(Map(
+      "in" -> "tree"
+    ))
+  ))
+  val attrjson = JsObject(
+    "hej" -> "kalle".toJson,
+    "då" -> 1.toJson,
+    "tree" -> JsObject(
+      "in" -> "tree".toJson
+    )
+  )
+
 
 
   "An IdAble" when {
@@ -66,8 +81,15 @@ class JsonTest extends WordSpec with Matchers  {
       }
     }
 
+  }
 
+  "An attribute" when {
+    "converted to json" should {
+      "return correct json" in {
+        assert(attr.toJson == attrjson)
 
+      }
+    }
   }
 
 }

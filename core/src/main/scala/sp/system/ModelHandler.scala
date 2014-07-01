@@ -3,6 +3,7 @@ package sp.system
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
+import sp.domain.SPAttributes
 import scala.concurrent.Future
 import akka.pattern.pipe
 import scala.concurrent.duration._
@@ -16,10 +17,10 @@ class ModelHandler extends EventsourcedProcessor {
   import context.dispatcher
   
   def receiveCommand = {
-    case CreateModel(name)=> {
+    case cm @ CreateModel(name, attr)=> {
       val reply = sender
       if (!modelMap.contains(name)){
-        persist(name){n =>
+        persist(cm){n =>
           addModel(n)
           modelMap(name).tell(GetModels, reply)
         }
@@ -39,15 +40,14 @@ class ModelHandler extends EventsourcedProcessor {
       } else reply ! ModelInfos(List[ModelInfo]())
   }
 
-  def addModel(name: String) = {
-    println(s"The modelService creates a new model called $name")
-    val newModelH = context.actorOf(sp.models.ModelActor.props(name), name)
-    modelMap += name -> newModelH
+  def addModel(cm: CreateModel) = {
+    println(s"The modelService creates a new model called $cm.name")
+    val newModelH = context.actorOf(sp.models.ModelActor.props(cm.model, cm.attributes), cm.model)
+    modelMap += cm.model -> newModelH
   }
 
   def receiveRecover = {
-    case name: String  => addModel(name)
-    case SnapshotOffer(_, snapshot: Any) => snapshot
+    case cm: CreateModel  => addModel(cm)
   }
 
 }

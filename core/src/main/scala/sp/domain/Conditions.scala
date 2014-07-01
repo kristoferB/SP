@@ -49,6 +49,8 @@ trait StateEvaluator
 case class SVIDEval(svid: ID) extends StateEvaluator
 case class ValueHolder(v: Any) extends StateEvaluator
 
+//TODO: add StateEvaluator for a+b, a+1 etc when nedded 140630
+
 
 
 

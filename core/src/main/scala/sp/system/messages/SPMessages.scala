@@ -11,3 +11,4 @@ object SPError {
 }
 case class SPErrorString(error: String) extends SPError
 case class UpdateError(yourModelVersion: Long, currentModelVersion: Long, conflicts: List[ID]) extends SPError
+case class MissingID(id: ID, model: String,  error: String = s"The Model does not contain that id")

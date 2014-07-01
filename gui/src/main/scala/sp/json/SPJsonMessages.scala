@@ -1,0 +1,31 @@
+package sp.json
+
+  import spray.json._
+  import sp.system.messages._
+
+/**
+ * Created by Kristofer on 2014-07-01.
+ */
+trait SPJsonMessages extends SPJsonDomain with SPJsonIDAble  {
+
+  import DefaultJsonProtocol._
+
+  implicit val cmFormat = jsonFormat2(CreateModel)
+  implicit val gidFormat = jsonFormat2(GetIds)
+  implicit val gopsFormat = jsonFormat1(GetOperations)
+  implicit val gtFormat = jsonFormat1(GetThings)
+  implicit val gspFormat = jsonFormat1(GetSpecs)
+  implicit val gqFormat = jsonFormat2(GetQuery)
+  implicit val gDiffFormat = jsonFormat2(GetDiff)
+
+  implicit val uidFormat = jsonFormat3(UpdateID.apply)
+  implicit val uidsFormat = jsonFormat3(UpdateIDs)
+
+  implicit val mdiffFormat = jsonFormat5(ModelDiff)
+  implicit val modelInfoFormat = jsonFormat3(ModelInfo)
+
+
+  implicit val esFormat = jsonFormat1(SPErrorString)
+  implicit val euFormat = jsonFormat3(UpdateError)
+
+}
