@@ -6,15 +6,16 @@
   }
 
   #sortable .panel-heading .glyphicon{
-      cursor: default;
       padding:3px;
       margin-left:5px;
   }
 
   .sizeTransition {
-      -webkit-transition: all ease-in-out 0.5s;
-      transition: all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+      -webkit-transition: width 0.5s, height 0.5s;
+      transition: width 0.5s, height 0.5s;
   }
+
+
 
   .smallHeight {
       height: 475px;
@@ -36,11 +37,15 @@
   #sortable li { margin: 3px 3px 3px 0; padding: 0px; float: left;   }
 
 </style>
-<span class="btn btn-default glyphicon glyphicon-plus" ng-click="addWindow()"></span>
+<button type="button" class="btn btn-default" ng-click="addWindow('sop')"><span class="glyphicon glyphicon-plus"></span> sop</button>
+<button type="button" class="btn btn-default" ng-click="addWindow('opList')"><span class="glyphicon glyphicon-plus"></span> opList</button>
 
-<ul id="sortable" class="list-unstyled">
+<ul ui-sortable="sortableOptions" ng-model="windows" id="sortable" class="list-unstyled">
     <li class="panel panel-info sizeTransition" ng-repeat="window in windows" ng-class="{'col-md-5': window.width === 'small', 'col-md-12': window.width === 'large', 'smallHeight': window.height === 'small', 'largeHeight': window.height === 'large'}">
         <div class="panel-heading"><span class="draggable" ng-bind="window.name"></span><span class="pull-right"><span ng-click="toggleWindowWidth(window)" class="btn btn-default glyphicon glyphicon-resize-full"></span><span ng-click="toggleWindowHeight(window)" class="btn btn-default glyphicon glyphicon-resize-full"></span><span ng-click="closeWindow(window)" class="btn btn-default glyphicon glyphicon-remove"></span></span></div>
-        <div class="panel-body sizeTransition" ng-class="{'smallBodyHeight': window.height === 'small', 'largeBodyHeight': window.height === 'large'}"><sop></sop></div>
+        <div class="panel-body sizeTransition" ng-class="{'smallBodyHeight': window.height === 'small', 'largeBodyHeight': window.height === 'large'}" ng-switch on="window.type">
+            <sop ng-switch-when="sop"></sop>
+            <oplist ng-switch-when="opList"></oplist>
+        </div>
     </li>
 </ul>

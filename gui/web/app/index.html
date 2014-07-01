@@ -32,10 +32,17 @@
             <a class="navbar-brand" href="#">Sequence Planner</a>
         </div>
         <div class="collapse navbar-collapse">
-          <ul class="nav nav-pills">
-            <li><a ng-href="#">File</a></li>
+          <ul class="nav navbar-nav ">
+            <li class="dropdown">
+              <a class="dropdown-toggle" data-toggle="dropdown">File<span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                  <li><a role="menuitem" tabindex="-1" ng-click="addWindow()">New SOP</a></li>
+                  <li><a role="menuitem" tabindex="-1" href="#">New OP-list</a></li>
+              </ul>
+            </li>
             <li><a ng-href="#">Edit</a></li>
             <li><a ng-href="#">Algorithms</a></li>
+
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -49,7 +56,7 @@
       </div>
     </div>
     
-    <div class="container">
+    <div class="container-full">
       <!--<div class="header">
         <ul class="nav nav-pills pull-right">
           <li class="active"><a ng-href="#">Home</a></li>
@@ -99,6 +106,7 @@
     <script src="bower_components/angular-dragdrop/src/angular-dragdrop.js"></script>
     <script src="bower_components/raphael/raphael.js"></script>
     <script src="bower_components/underscore/underscore.js"></script>
+    <script src="bower_components/angular-ui-sortable/sortable.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 
@@ -108,7 +116,10 @@
         <script src="scripts/controllers/model.js"></script>
         <script src="scripts/services/sopcalcer.js"></script>
         <script src="scripts/directives/sop.js"></script>
+
         <script src="scripts/services/sopdrawer.js"></script>
+        <script src="scripts/services/sptalker.js"></script>
+        <script src="scripts/directives/oplist.js"></script>
         <!-- endbuild -->
 </body>
 </html>

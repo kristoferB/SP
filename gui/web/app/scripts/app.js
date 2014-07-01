@@ -10,13 +10,13 @@
  */
 angular
   .module('spGuiApp', [
-    'ngAnimate',
     'ngCookies',
     'ngResource',
     'ngRoute',
     'ngSanitize',
     'ngTouch',
-    'ngDragDrop'
+    'ngDragDrop',
+    'ui.sortable'
   ])
   .config(function ($routeProvider) {
     $routeProvider
@@ -35,4 +35,4 @@ angular
       .otherwise({
         redirectTo: '/'
       });
-  });
+  })
