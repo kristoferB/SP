@@ -120,41 +120,41 @@ trait SPJsonDomain {
     }
     }
 
-  implicit val svFormat = jsonFormat3(StateVariable)
+  implicit val svFormat = jsonFormat2(StateVa)
 
 
-//  implicit val svintFormat = jsonFormat2(IntVariable)
-//  implicit val svrrintFormat = jsonFormat3(RestrictedIntRangeVariable)
-//  implicit val svrintFormat = jsonFormat3(RestrictedIntVariable)
-//  implicit val svstrFormat = jsonFormat2(StringVariable)
-//  implicit val svrestrFormat = jsonFormat3(RestrictedStringVariable)
-//  implicit val svboolFormat = jsonFormat2(BooleanVariable)
-//
-//  implicit object StateVariableFormat extends RootJsonFormat[StateVariable] {
-//    def write(x: StateVariable) = {
-//      JsObject()
-////      JsObject( x match {
-////        case x: IntVariable => x.toJson.asJsObject.fields + ("type"-> "StateVariable".toJson)
-////        case x: RestrictedIntRangeVariable => x.toJson.asJsObject.fields + ("type"-> "StateVariable".toJson)
-////        case x: RestrictedIntVariable => x.toJson.asJsObject.fields + ("type"-> "StateVariable".toJson)
-////        case x: StringVariable => x.toJson.asJsObject.fields + ("type"-> "StateVariable".toJson)
-////        case x: RestrictedStringVariable => x.toJson.asJsObject.fields + ("type"-> "StateVariable".toJson)
-////        case x: BooleanVariable => x.toJson.asJsObject.fields + ("type"-> "StateVariable".toJson)
-////      })
-//    }
-//    def read(value: JsValue) = {
-//      val obj = for {
-//        t <- value.asJsObject.fields.get("type")
-//      } yield t match {
-//          case JsString("StateVariable") => IntVariable("hej")
-//          case _ => throw new DeserializationException(s"StateVariable could not be read: $value")
-//        }
-//      obj match {
-//        case Some(o) => o
-//        case None => throw new DeserializationException(s"StateVariable could not be read: $value")
-//      }
-//    }
-//  }
+  implicit val svintFormat = jsonFormat2(IntVariable)
+  implicit val svrrintFormat = jsonFormat3(RestrictedIntRangeVariable)
+  implicit val svrintFormat = jsonFormat3(RestrictedIntVariable)
+  implicit val svstrFormat = jsonFormat2(StringVariable)
+  implicit val svrestrFormat = jsonFormat3(RestrictedStringVariable)
+  implicit val svboolFormat = jsonFormat2(BooleanVariable)
+
+  implicit object StateVariableFormat extends RootJsonFormat[StateVariable] {
+    def write(x: StateVariable) = {
+      JsObject()
+//      JsObject( x match {
+//        case x: IntVariable => x.toJson.asJsObject.fields + ("type"-> "StateVariable".toJson)
+//        case x: RestrictedIntRangeVariable => x.toJson.asJsObject.fields + ("type"-> "StateVariable".toJson)
+//        case x: RestrictedIntVariable => x.toJson.asJsObject.fields + ("type"-> "StateVariable".toJson)
+//        case x: StringVariable => x.toJson.asJsObject.fields + ("type"-> "StateVariable".toJson)
+//        case x: RestrictedStringVariable => x.toJson.asJsObject.fields + ("type"-> "StateVariable".toJson)
+//        case x: BooleanVariable => x.toJson.asJsObject.fields + ("type"-> "StateVariable".toJson)
+//      })
+    }
+    def read(value: JsValue) = {
+      val obj = for {
+        t <- value.asJsObject.fields.get("type")
+      } yield t match {
+          case JsString("StateVariable") => IntVariable("hej")
+          case _ => throw new DeserializationException(s"StateVariable could not be read: $value")
+        }
+      obj match {
+        case Some(o) => o
+        case None => throw new DeserializationException(s"StateVariable could not be read: $value")
+      }
+    }
+  }
 
 
 

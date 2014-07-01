@@ -14,10 +14,10 @@ import scala.concurrent.duration._
 
 
 // API classes
-case class IDSaver(id: ID,
+case class IDSaver(isa: String,
+                   id: ID,
                    version: Long,
                    name: String,
-                   isa: String,
                    attributes: SPAttributes,
                    conditions: Option[List[Condition]],
                    stateVariables: Option[List[StateVariable]],
@@ -80,28 +80,18 @@ trait SPRoute extends HttpService {
     path(JavaUUID){id =>
       getSPIDS(GetIds(List(ID(id)), model))~
       post {
-        entity(as[InclInfo]) { x =>
-          val uids = for {
-            item <- x.items
-            bo <- getBasedOn(item)
-          } yield (UpdateID(bo._1, bo._2, item))
-          if (uids.isEmpty) reject(MalformedRequestContentRejection("No version and id in the item"))
-          else {
-            toSP(UpdateIDs(model, x.modelVersion, uids),  {
-              case x: ModelDiff => complete(x)
+        entity(as[IDSaver]) { x =>
+          val upids = createUPIDs(List(x))
+          // Maybe req modelversion in the future
+          toSP(UpdateIDs(model, -1, upids),  {
+              case SPIDs(x) => complete(x)
             })
-          }
         }
       }
     } ~
     / {
       post {
-        entity(as[InclInfo]) { x =>
-          val uids = x.items map UpdateID.addNew
-          toSP(UpdateIDs(model, x.modelVersion, uids),  {
-            case x: ModelDiff => complete(x)
-          })
-        }
+        complete("soon supported")
       }
     }
   }
@@ -110,17 +100,6 @@ trait SPRoute extends HttpService {
     /{ get {toSP(mess, { case SPIDs(x) => complete(x)})}}
   }
 
-  def getBasedOn(x: IDAble) = {
-    println(s"getbasedon: $x")
-    for {
-      bo <- x.attributes.getAsMap("basedOn")
-      id <- bo.get("id").flatMap(_.asID)
-      v <- bo.get("version").flatMap(_.asLong)
-    } yield {
-      (id, v)
-    }
-
-  }
 
   def toSP(mess: Any, matchReply: PartialFunction[Any, Route]) = {
     onSuccess(modelHandler ? mess){evalReply{matchReply}}
@@ -139,4 +118,22 @@ trait SPRoute extends HttpService {
   def evalReply(pf: PartialFunction[Any, Route]) = {
     pf orElse replyMatcher
   }
+
+
+  def createUPIDs(ids: List[IDSaver]) = {
+    ids map{ x =>
+      val o = x.toJson.convertTo[IDAble]
+      UpdateID(x.id, x.version, o)
+    }
+  }
 }
+//  def getBasedOn(x: IDAble) = {
+//    println(s"getbasedon: $x")
+//    for {
+//      bo <- x.attributes.getAsMap("basedOn")
+//      id <- bo.get("id").flatMap(_.asID)
+//      v <- bo.get("version").flatMap(_.asLong)
+//    } yield {
+//      (id, v)
+//    }
+//  }

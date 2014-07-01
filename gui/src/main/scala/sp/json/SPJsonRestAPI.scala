@@ -10,6 +10,6 @@ trait SPJsonRestAPI extends SPJsonDomain with SPJsonIDAble {
 
     // REST API CLASSES
   import sp.server._
-  implicit val inclIFormat = jsonFormat2(InclInfo)
+  implicit val inclIFormat = jsonFormat8(IDSaver)
 
 }

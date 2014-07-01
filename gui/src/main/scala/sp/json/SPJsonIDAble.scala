@@ -5,6 +5,8 @@ package sp.json
   import DefaultJsonProtocol._
 
 trait SPJsonIDAble extends SPJsonDomain {
+   import SharedConvert._
+
 
 
   implicit object OperationJsonFormat extends RootJsonFormat[Operation] {
@@ -17,12 +19,12 @@ trait SPJsonIDAble extends SPJsonDomain {
       JsObject(map)
     }
     def read(value: JsValue) = {
-      val newV = filterAndUpdateIDAble(value.asJsObject).getOrElse(value)
-      newV.asJsObject.getFields("name", "conditions", "attributes") match {
-        case Seq(JsString(name), c: JsArray, a: JsObject) => {
+      value.asJsObject.getFields("name", "conditions", "attributes", "id") match {
+        case Seq(JsString(name), c: JsArray, a: JsObject, oid: JsString) => {
           val cond = List[Condition]() //c.elements map(_.asJsObject.convertTo[Condition])
           val attr = a.convertTo[SPAttributes]
-          Operation(name, cond, attr)
+          val myid = oid.convertTo[ID]
+          new Operation(name, cond, attr){override lazy val id = myid}
         }
       }
     }
@@ -38,12 +40,12 @@ trait SPJsonIDAble extends SPJsonDomain {
       JsObject(map)
     }
     def read(value: JsValue) = {
-      val newV = filterAndUpdateIDAble(value.asJsObject).getOrElse(value)
-      newV.asJsObject.getFields("name", "stateVariables", "attributes") match {
-        case Seq(JsString(name), c: JsArray, a: JsObject) => {
+      value.asJsObject.getFields("name", "stateVariables", "attributes", "id") match {
+        case Seq(JsString(name), c: JsArray, a: JsObject, oid: JsString) => {
           val sv = List[StateVariable]() //c.elements map(_.asJsObject.convertTo[StateVariable])
           val attr = a.convertTo[SPAttributes]
-          Thing(name, sv, attr)
+          val myid = oid.convertTo[ID]
+          new Thing(name, sv, attr){override lazy val id = myid}
         }
       }
     }
@@ -58,11 +60,11 @@ trait SPJsonIDAble extends SPJsonDomain {
       JsObject(map)
     }
     def read(value: JsValue) = {
-      val newV = filterAndUpdateIDAble(value.asJsObject).getOrElse(value)
-      newV.asJsObject.getFields("name", "attributes") match {
-        case Seq(JsString(name), a: JsObject) => {
+      value.asJsObject.getFields("name", "attributes", "id") match {
+        case Seq(JsString(name), a: JsObject, oid: JsString) => {
           val attr = a.convertTo[SPAttributes]
-          SPObject(name, attr)
+          val myid = oid.convertTo[ID]
+          new SPObject(name, attr){override lazy val id = myid}
         }
       }
     }
@@ -77,11 +79,11 @@ trait SPJsonIDAble extends SPJsonDomain {
       JsObject(map)
     }
     def read(value: JsValue) = {
-      val newV = filterAndUpdateIDAble(value.asJsObject).getOrElse(value)
-      newV.asJsObject.getFields("name", "attributes") match {
-        case Seq(JsString(name), a: JsObject) => {
+      value.asJsObject.getFields("name", "attributes", "id") match {
+        case Seq(JsString(name), a: JsObject, oid: JsString) => {
           val attr = a.convertTo[SPAttributes]
-          SPSpec(name, attr)
+          val myid = oid.convertTo[ID]
+          new SPSpec(name, attr){override lazy val id = myid}
         }
       }
     }
@@ -97,12 +99,12 @@ trait SPJsonIDAble extends SPJsonDomain {
       JsObject(map)
     }
     def read(value: JsValue) = {
-      val newV = filterAndUpdateIDAble(value.asJsObject).getOrElse(value)
-      newV.asJsObject.getFields("name", "sop", "attributes") match {
-        case Seq(JsString(label), s: JsObject, a: JsObject) => {
+      value.asJsObject.getFields("name", "sop", "attributes", "id") match {
+        case Seq(JsString(label), s: JsObject, a: JsObject, oid: JsString) => {
           val sop = s.convertTo[SOP]
           val attr = a.convertTo[SPAttributes]
-          SOPSpec(sop, label, attr)
+          val myid = oid.convertTo[ID]
+          new SOPSpec(sop, label, attr){override lazy val id = myid}
         }
       }
     }
@@ -118,22 +120,21 @@ trait SPJsonIDAble extends SPJsonDomain {
         case x: SPObject => x.toJson
         case x: SOPSpec => x.toJson
         case x: SPSpec => x.toJson
+        case x: StateVariable => x.toJson
         case x@_ => println(s"no match IDAble json write: $x"); JsObject(Map[String, JsValue]())
       }
     }
 
     def read(value: JsValue) = {
-      val newV = filterAndUpdateIDAble(value.asJsObject()).getOrElse(value.asJsObject())
       val obj = for {
         t <- value.asJsObject.fields.get("isa")
       } yield {
         t match {
-          case JsString("Operation") => newV.convertTo[Operation]
-          case JsString("Thing") => newV.convertTo[Thing]
-          case JsString("SPObject") => newV.convertTo[SPObject]
-          case JsString("SOPSpec") => newV.convertTo[SOPSpec]
-          case JsString("SPSpec") => newV.convertTo[SPSpec]
-
+          case JsString("Operation") => value.convertTo[Operation]
+          case JsString("Thing") => value.convertTo[Thing]
+          case JsString("SPObject") => value.convertTo[SPObject]
+          case JsString("SOPSpec") => value.convertTo[SOPSpec]
+          case JsString("SPSpec") => value.convertTo[SPSpec]
           case _ => throw new DeserializationException(s"IDAble could not be read: $value")
         }
       }
@@ -152,20 +153,23 @@ trait SPJsonIDAble extends SPJsonDomain {
         "attributes" -> x.attributes.toJson
       )
 
-      def filterAndUpdateIDAble(js: JsObject): Option[JsObject] = {
-        val xs = js.fields
-        for {
-          ver <- xs.get("version")
-          id <- xs.get("id")
-          t <- xs.get("isa")
-          attr <- xs.get("attributes")
-        } yield {
-          val update = JsObject(attr.asJsObject.fields + ("basedOn" -> JsObject("id" -> id, "ver" -> ver)))
-          println(s"add based on: ${JsObject(xs + ("attributes" -> update))}" )
-          JsObject(xs + ("attributes" -> update))
-        }
-      }
+//      def filterAndUpdateIDAble(js: JsObject): Option[JsObject] = {
+//        val xs = js.fields
+//        for {
+//          ver <- xs.get("version")
+//          id <- xs.get("id")
+//          t <- xs.get("isa")
+//          attr <- xs.get("attributes")
+//        } yield {
+//          val update = JsObject(attr.asJsObject.fields + ("basedOn" -> JsObject("id" -> id, "ver" -> ver)))
+//          println(s"add based on: ${JsObject(xs + ("attributes" -> update))}" )
+//          JsObject(xs + ("attributes" -> update))
+//        }
+//      }
 
 
 }
 
+    object SharedConvert {
+
+    }
