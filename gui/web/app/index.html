@@ -38,14 +38,13 @@
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown">File<span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu">
-                  <li><a role="menuitem" tabindex="-1" ng-click="addWindow('sop')">New SOP</a></li>
-                  <li><a role="menuitem" tabindex="-1" >New itemList</a></li>
+                  <li ng-show="location.path() == '/model' || location.path() == '/runtime'"><a role="menuitem" tabindex="-1" ng-click="broadcastEvent('newSopWindow')">New SOP</a></li>
+                  <li ng-show="location.path() == '/model' || location.path() == '/runtime'"><a role="menuitem" tabindex="-1" ng-click="broadcastEvent('newItemListWindow')">New itemList</a></li>
+                  <li ng-show="location.path() == '/model' || location.path() == '/runtime'"><a role="menuitem" tabindex="-1" ng-click="broadcastEvent('newRestTestWindow')">New restTest</a></li>
               </ul>
             </li>
             <li><a ng-href="#">Edit</a></li>
             <li><a ng-href="#">Algorithms</a></li>
-            <li>{{route}}</li>
-
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -120,6 +119,7 @@
         <script src="scripts/directives/resttest.js"></script>
 
         <script src="scripts/directives/window.js"></script>
+        <script src="scripts/services/windows.js"></script>
         <!-- endbuild -->
 </body>
 </html>

@@ -12,8 +12,19 @@ angular.module('spGuiApp')
       templateUrl: 'views/window.html',
       restrict: 'E',
       link: function postLink(scope, element, attrs) {
+        scope.addWindow = function(type) {
+          scope.windows.push({type: type, width: 'small', height: 'small', name: type, windowStorage: 'empty'});
+        };
 
-
+        scope.$on("newSopWindow", function() {
+          scope.addWindow('sop');
+        });
+        scope.$on("newItemListWindow", function() {
+          scope.addWindow('itemList');
+        });
+        scope.$on("newRestTestWindow", function() {
+          scope.addWindow('restTest');
+        });
 
         scope.closeWindow = function(window) {
           var index = scope.windows.indexOf(window);

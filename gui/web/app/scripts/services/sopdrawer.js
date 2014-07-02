@@ -19,16 +19,16 @@ angular.module('spGuiApp')
         'indexToInsertAt' : new Number(0)
       };
       
-    factory.calcAndDrawSop = function(sop, measures, paper, firstLoop) {
+    factory.calcAndDrawSop = function(sop, measures, paper, firstLoop, doRedraw) {
       sopCalcer.makeIt(sop, measures);
-      factory.drawSop(sop, measures, paper, firstLoop, sop);
+      factory.drawSop(sop, measures, paper, firstLoop, sop, doRedraw);
     };
     
-    factory.drawSop = function (sop, measures, paper, firstLoop, wholeSop) {
+    factory.drawSop = function (sop, measures, paper, firstLoop, wholeSop, doRedraw) {
       var animTime = measures.animTime, dir = measures.dir;
       
       for ( var n in sop.sop) {
-        factory.drawSop(sop.sop[n], measures, paper, false, wholeSop);
+        factory.drawSop(sop.sop[n], measures, paper, false, wholeSop, doRedraw);
         if(sop.type === 'Sequence') {
           factory.drawLine(sop.lines[n], measures, paper, sop, new Number(n)+1, 'red'); // Line after each op in sequence
         } else {
@@ -37,7 +37,7 @@ angular.module('spGuiApp')
         }
       }
       
-      if(typeof sop.drawn === 'undefined') {
+      if(typeof sop.drawn === 'undefined' || doRedraw) {
         sop.drawnSet = paper.set();
         sop.drawnShadowSet = paper.set();
         sop.moved = 0;
@@ -153,28 +153,18 @@ angular.module('spGuiApp')
     };
     
     factory.moveNode = function(draggedSop, expectSequence) {
-      console.log('draggedSop:');
-      console.log(draggedSop);
-      console.log('objToInsertIn:');
-      console.log(dragDropManager.objToInsertIn);
-      console.log('indexToInsertAt first:');
-      console.log(dragDropManager.indexToInsertAt);
-      
       draggedSop.moved = 1; // To fire animation even if the node's coordinates are calced to the same as before
       
       if(dragDropManager.objToInsertIn === draggedSop && dragDropManager.objToInsertIn.type === 'Hierarchy' ||
          dragDropManager.objToInsertIn === draggedSop.parentObject && draggedSop.parentObject.sop.length === 1) {
-        console.log('Same target as source. Return without change.');
+        //console.log('Same target as source. Return without change.');
         return;
       }
       
       var target, nodeToMove = draggedSop.parentObject.sop[draggedSop.parentObjectIndex];
       
-      console.log('nodeToMove:');
-      console.log(nodeToMove);
-      
       if(expectSequence === 'true' && dragDropManager.objToInsertIn.type !== 'Sequence') {
-        console.log('Sequence expected');
+        //console.log('Sequence expected');
         target = factory.wrapAsSequence(dragDropManager.objToInsertIn);
         dragDropManager.objToInsertIn.parentObject.sop.splice(dragDropManager.objToInsertIn.parentObjectIndex, 1, target);
       } else {
@@ -194,7 +184,7 @@ angular.module('spGuiApp')
       }
       
       if(draggedSop.parentObject.sop.length === 0) { // Remove empty Sequence classes left behind
-        console.log('Empty sequence class left. I remove it.');
+        //console.log('Empty sequence class left. I remove it.');
         draggedSop.parentObject.lines.forEach( function(line) {
           line.drawnLine.remove(); line.drawnShadow.remove();
         });
@@ -263,7 +253,7 @@ angular.module('spGuiApp')
             factory.moveNode(draggedSop, expectSequence);
             //factory.createSOP(wholeSop, measures, middle, origStart, paper, false, false, wholeSop, origStart);
             dragDropManager.droppable = false;
-            factory.calcAndDrawSop(wholeSop, measures, paper, true);
+            factory.calcAndDrawSop(wholeSop, measures, paper, true, false);
             $rootScope.$digest();
             
           } else {
@@ -294,7 +284,6 @@ angular.module('spGuiApp')
           }
           
           if(objDraggedOver.node.getAttribute('droppable') === 'true') {
-            console.log('Within');
             within = true;
             if(objDraggedOver.node.getAttribute('shadow') === 'true') {
               objDraggedOver.attr({opacity:0.5});

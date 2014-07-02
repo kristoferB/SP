@@ -88,7 +88,6 @@ angular.module('spGuiApp')
         sopis.width = sopis.height;
         sopis.height = tempw2;
       }
-      console.log(sop);
       return sopis;
     };
 
@@ -346,7 +345,6 @@ angular.module('spGuiApp')
 
       
       if(firstLoop === true) { // first launch only
-        console.log('first loop, draw a startline');
         sop.lines.push({ // the starting line above the whole SOP
           x1 : middle,
           y1 : start,

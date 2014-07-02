@@ -36,3 +36,6 @@ angular
         redirectTo: '/'
       });
   })
+  .run(function($rootScope, $location) {
+    $rootScope.location = $location;
+  });

@@ -8,12 +8,8 @@
  * Controller of the spGuiApp
  */
 angular.module('spGuiApp')
-.controller('ModelCtrl', function ($rootScope, $scope) {
+.controller('ModelCtrl', function ($rootScope, $scope, WindowService) {
 
-$scope.windows = [];
-
-    $scope.addWindow = function(type) {
-      $scope.windows.push({type: type, width: 'small', height: 'small', name: type});
-    };
+$scope.windows = WindowService.modelWindows;
 
 });

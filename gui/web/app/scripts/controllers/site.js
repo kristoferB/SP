@@ -8,7 +8,7 @@
  * Controller of the spGuiApp
  */
 angular.module('spGuiApp')
-  .controller('SiteCtrl', function ($scope, $routeParams, $location) {
+  .controller('SiteCtrl', function ($scope, $routeParams, $location, $rootScope) {
 
     $("[name='model-runtime-switch']").bootstrapSwitch('size', 'small');
     $("[name='model-runtime-switch']").bootstrapSwitch('offText', 'Model');
@@ -26,5 +26,9 @@ angular.module('spGuiApp')
       $location.replace();
       $scope.$apply();
     });
+
+    $scope.broadcastEvent = function(eventName) {
+      $rootScope.$broadcast(eventName);
+    };
 
   });
