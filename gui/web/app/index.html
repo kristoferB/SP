@@ -38,12 +38,13 @@
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown">File<span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu">
-                  <li><a role="menuitem" tabindex="-1" ng-click="addWindow()">New SOP</a></li>
-                  <li><a role="menuitem" tabindex="-1" href="#">New OP-list</a></li>
+                  <li><a role="menuitem" tabindex="-1" ng-click="addWindow('sop')">New SOP</a></li>
+                  <li><a role="menuitem" tabindex="-1" >New itemList</a></li>
               </ul>
             </li>
             <li><a ng-href="#">Edit</a></li>
             <li><a ng-href="#">Algorithms</a></li>
+            <li>{{route}}</li>
 
           </ul>
         </div><!--/.nav-collapse -->
@@ -113,10 +114,12 @@
         <script src="scripts/controllers/main.js"></script>
         <script src="scripts/controllers/model.js"></script>
         <script src="scripts/controllers/runtime.js"></script>
+        <script src="scripts/controllers/site.js"></script>
         <script src="scripts/directives/sop.js"></script>
         <script src="scripts/directives/itemlist.js"></script>
         <script src="scripts/directives/resttest.js"></script>
-        <script src="scripts/controllers/sitecontroller.js"></script>
+
+        <script src="scripts/directives/window.js"></script>
         <!-- endbuild -->
 </body>
 </html>

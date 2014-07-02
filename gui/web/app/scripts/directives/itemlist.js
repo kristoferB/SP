@@ -12,7 +12,6 @@ angular.module('spGuiApp')
   return {
     templateUrl: 'views/itemlist.html',
     restrict: 'E',
-    scope: {},
     link: function postLink(scope, element, attrs) {
 
       scope.loadData = function() {
