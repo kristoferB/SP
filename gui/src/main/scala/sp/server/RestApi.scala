@@ -3,7 +3,6 @@ package sp.server
 import sp.domain._
 import spray.routing._
 import sp.system.messages._
-import sp.system.SPActorSystem._
 import reflect.ClassTag
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.util.Timeout
@@ -15,16 +14,18 @@ import scala.concurrent.duration._
 
 // API classes
 case class IDSaver(isa: String,
-                   id: ID,
-                   version: Long,
                    name: String,
-                   attributes: SPAttributes,
+                   attributes: Option[SPAttributes],
+                   id: Option[ID],
+                   version: Option[Long],
+
                    conditions: Option[List[Condition]],
                    stateVariables: Option[List[StateVariable]],
                    sop: Option[SOP])
 
 
 trait SPRoute extends HttpService {
+  val modelHandler: ActorRef
 
   implicit val timeout = Timeout(3 seconds)
 
@@ -78,20 +79,27 @@ trait SPRoute extends HttpService {
 
   def IDHandler(model: String) = {
     path(JavaUUID){id =>
-      getSPIDS(GetIds(List(ID(id)), model))~
+      /{ get {toSP(GetIds(List(ID(id)), model), {
+        case SPIDs(x) => if (!x.isEmpty) complete(x.head) else complete(x)})}
+      }~
       post {
         entity(as[IDSaver]) { x =>
-          val upids = createUPIDs(List(x))
+          val upids = createUPIDs(List(x), Some(id))
           // Maybe req modelversion in the future
           toSP(UpdateIDs(model, -1, upids),  {
-              case SPIDs(x) => complete(x)
+              case SPIDs(x) => if (!x.isEmpty) complete(x.head) else complete(x)
             })
         }
       }
     } ~
     / {
       post {
-        complete("soon supported")
+        entity(as[List[IDSaver]]) { xs =>
+          val upids = createUPIDs(xs, None)
+          toSP(UpdateIDs(model, -1, upids), {
+            case SPIDs(x) => complete(x)
+          })
+        }
       }
     }
   }
@@ -120,10 +128,11 @@ trait SPRoute extends HttpService {
   }
 
 
-  def createUPIDs(ids: List[IDSaver]) = {
+  def createUPIDs(ids: List[IDSaver], maybeID: Option[ID]) = {
     ids map{ x =>
-      val o = x.toJson.convertTo[IDAble]
-      UpdateID(x.id, x.version, o)
+      val addID = x.copy(id = Some(x.id.getOrElse(maybeID.getOrElse(ID.newID))))
+      val o = addID.toJson.convertTo[IDAble]
+      UpdateID(x.id.getOrElse(o.id), x.version.getOrElse(o.version), o)
     }
   }
 }

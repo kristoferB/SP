@@ -120,7 +120,6 @@ trait SPJsonIDAble extends SPJsonDomain {
         case x: SPObject => x.toJson
         case x: SOPSpec => x.toJson
         case x: SPSpec => x.toJson
-        case x: StateVariable => x.toJson
         case x@_ => println(s"no match IDAble json write: $x"); JsObject(Map[String, JsValue]())
       }
     }
@@ -140,7 +139,7 @@ trait SPJsonIDAble extends SPJsonDomain {
       }
       obj match {
         case Some(o) => o
-        case None => throw new DeserializationException(s"IDAble could not be read: $value")
+        case None => throw new DeserializationException(s"IDAble missing isa field: $value")
       }
     }
   }

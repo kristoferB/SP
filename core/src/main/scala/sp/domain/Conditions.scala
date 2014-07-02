@@ -9,10 +9,9 @@ trait Condition {
   val attributes: SPAttributes
 }
 
-case class PropositionGuard(g: Proposition)
-case class Action[T](svid: ID, value: T)
-case class PropositionCondition(g: PropositionGuard,
-                                a: List[Action[_]],
+case class Action(svid: ID, value: SPAttributeValue)
+case class PropositionCondition(g: Proposition,
+                                a: List[Action],
                                 attributes: SPAttributes = SPAttributes(Map())) extends Condition {
   //TODO: Maybe change these def in conditions, else impl
   def guard = s => false;
@@ -33,21 +32,21 @@ sealed trait Proposition {
 //  }
 }
 
-sealed trait Operator extends Proposition
-sealed trait Atom extends Proposition
+//sealed trait Operator extends Proposition
+//sealed trait Atom extends Proposition
 
-case class AND(_1: Proposition, _2: Proposition) extends Operator
-case class OR(_1: Proposition, _2: Proposition) extends Operator
-case class NOT(p: Proposition) extends Operator
+case class AND(left: Proposition, right: Proposition) extends Proposition
+case class OR(left: Proposition, right: Proposition) extends Proposition
+case class NOT(p: Proposition) extends Proposition
 
 
-case class EQ(x: StateEvaluator, y: StateEvaluator) extends Atom
-case class NEQ(x: StateEvaluator, y: StateEvaluator) extends Atom
+case class EQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
+case class NEQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
 
 trait StateEvaluator
 
-case class SVIDEval(svid: ID) extends StateEvaluator
-case class ValueHolder(v: Any) extends StateEvaluator
+case class SVIDEval(v: ID) extends StateEvaluator
+case class ValueHolder(v: SPAttributeValue) extends StateEvaluator
 
 //TODO: add StateEvaluator for a+b, a+1 etc when nedded 140630
 

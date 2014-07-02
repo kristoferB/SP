@@ -8,6 +8,7 @@ import spray.routing._
  * Created by Kristofer on 2014-06-19.
  */
 class SPWebServer extends Actor with SPRoute {
+  override val modelHandler : ActorRef= sp.system.SPActorSystem.modelHandler
   def actorRefFactory = context
   def receive = runRoute(api ~ staticRoute)
   import sp.system._
