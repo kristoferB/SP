@@ -9,9 +9,7 @@
  */
 angular.module('spGuiApp')
   .controller('RuntimeCtrl', function ($scope) {
-    /*    
-    */
-    
-    //interactiveSopMaker.buildSop($scope.tryMe, measures, raphaelArea);
+
+    $scope.test = 1;
         
   });

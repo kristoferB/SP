@@ -14,8 +14,8 @@ $scope.windowCount = 1;
 
 $scope.windows = [];
 
-$scope.addWindow = function() {
-    $scope.windows.push({width: 'small', height: 'small', name: 'Window ' + $scope.windowCount});
+$scope.addWindow = function(type) {
+    $scope.windows.push({type: type, width: 'small', height: 'small', name: type + ' ' + $scope.windowCount});
     $scope.windowCount = $scope.windowCount + 1;
 };
 
@@ -42,7 +42,17 @@ $scope.toggleWindowHeight = function(window) {
     }
 };
 
-var panelList = $('#sortable');
+$scope.sortableOptions = {
+    /*start: function(event, ui) {
+        ui.item.removeClass('sizeTransition');
+    },
+    stop: function(event, ui) {
+        ui.item.addClass('sizeTransition');
+    },*/
+    handle: '.draggable'
+};
+
+/*var panelList = $('#sortable');
 
 panelList.sortable({
     // Only make the .panel-heading child elements support dragging.
@@ -62,6 +72,6 @@ panelList.sortable({
              // Persist the new indices.
         });
     }
-});
+});*/
 
 });

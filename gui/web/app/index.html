@@ -9,6 +9,7 @@
     <!-- build:css styles/vendor.css -->
     <!-- bower:css -->
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="bower_components/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css" />
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css(.tmp) styles/main.css -->
@@ -17,39 +18,39 @@
     
     <!-- endbuild -->
   </head>
-  <body ng-app="spGuiApp">
+  <body ng-app="spGuiApp" ng-controller="SiteCtrl">
     <!--[if lt IE 7]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
 
     <!-- Add your site or application content here -->
-    <div class="navbar navbar-inverse navbar-static-top" role="navigation">
+    <div class="navbar navbar-inverse navbar-static-top" role="navigation" >
       <div class="container-fluid">
         <div class="pull-right">
-            <object id="splogo"  style="height:34px" data="/images/splogo.svg" type="image/svg+xml"></object>
+            <input type="checkbox" name="model-runtime-switch">
+            <object id="splogo"  style="margin-left:20px; height:34px" data="/images/splogo.svg" type="image/svg+xml"></object>
         </div>
         <div class="navbar-header">
             <a class="navbar-brand" href="#">Sequence Planner</a>
         </div>
         <div class="collapse navbar-collapse">
-          <ul class="nav nav-pills">
-            <li><a ng-href="#">File</a></li>
+          <ul class="nav navbar-nav ">
+            <li class="dropdown">
+              <a class="dropdown-toggle" data-toggle="dropdown">File<span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                  <li><a role="menuitem" tabindex="-1" ng-click="addWindow()">New SOP</a></li>
+                  <li><a role="menuitem" tabindex="-1" href="#">New OP-list</a></li>
+              </ul>
+            </li>
             <li><a ng-href="#">Edit</a></li>
             <li><a ng-href="#">Algorithms</a></li>
-          </ul>
-        </div><!--/.nav-collapse -->
-      </div>
-      <div class="container-fluid">
-        <div class="collapse navbar-collapse">
-          <ul class="nav nav-pills">
-            <li><a ng-href="#/model">Model</a></li>
-            <li><a ng-href="#/runtime">Runtime</a></li>
+
           </ul>
         </div><!--/.nav-collapse -->
       </div>
     </div>
     
-    <div class="container">
+    <div class="container-full">
       <!--<div class="header">
         <ul class="nav nav-pills pull-right">
           <li class="active"><a ng-href="#">Home</a></li>
@@ -99,16 +100,23 @@
     <script src="bower_components/angular-dragdrop/src/angular-dragdrop.js"></script>
     <script src="bower_components/raphael/raphael.js"></script>
     <script src="bower_components/underscore/underscore.js"></script>
+    <script src="bower_components/angular-ui-sortable/sortable.js"></script>
+    <script src="bower_components/bootstrap-switch/dist/js/bootstrap-switch.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 
         <!-- build:js({.tmp,app}) scripts/scripts.js -->
         <script src="scripts/app.js"></script>
+        <script src="scripts/services/sopcalcer.js"></script>
+        <script src="scripts/services/sopdrawer.js"></script>
+        <script src="scripts/services/sptalker.js"></script>
         <script src="scripts/controllers/main.js"></script>
         <script src="scripts/controllers/model.js"></script>
-        <script src="scripts/services/sopcalcer.js"></script>
+        <script src="scripts/controllers/runtime.js"></script>
         <script src="scripts/directives/sop.js"></script>
-        <script src="scripts/services/sopdrawer.js"></script>
+        <script src="scripts/directives/itemlist.js"></script>
+        <script src="scripts/directives/resttest.js"></script>
+        <script src="scripts/controllers/sitecontroller.js"></script>
         <!-- endbuild -->
 </body>
 </html>
