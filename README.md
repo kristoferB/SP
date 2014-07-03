@@ -8,9 +8,15 @@ Pre:
 
 To init run from command:
 
-sbt compile
-
 cd gui/web
 npm install
 bower install
+grunt serve
+
+back to root folder
+
+sbt
+launch/run
+
+
 
