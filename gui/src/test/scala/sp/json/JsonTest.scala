@@ -17,7 +17,7 @@ class JsonTest extends WordSpec with Matchers  {
   val o1json = JsObject(
     "name" -> "o1".toJson,
     "id" -> fixid.toJson,
-    "type" -> "Operation".toJson,
+    "isa" -> "Operation".toJson,
     "conditions" -> List[String]().toJson,
     "version" -> (-1).toJson,
     "attributes" -> JsObject()
@@ -27,7 +27,7 @@ class JsonTest extends WordSpec with Matchers  {
   val t1json = JsObject(
     "name" -> "t1".toJson,
     "id" -> fixid.toJson,
-    "type" -> "Thing".toJson,
+    "isa" -> "Thing".toJson,
     "stateVariables" -> List[String]().toJson,
     "version" -> (-1).toJson,
     "attributes" -> JsObject()
@@ -49,6 +49,17 @@ class JsonTest extends WordSpec with Matchers  {
       "in" -> "tree".toJson
     )
   )
+
+  val guard =
+    AND(
+      OR(
+        EQ(SVIDEval(fixid), ValueHolder(SPAttributeValue(1))),
+        EQ(SVIDEval(fixid), ValueHolder(SPAttributeValue(2)))
+      ),
+      EQ(SVIDEval(fixid), ValueHolder(SPAttributeValue(1)))
+  )
+  val action = List(Action(fixid, SPAttributeValue(3)))
+  val prop = PropositionCondition(guard, action)
 
 
 
@@ -87,6 +98,28 @@ class JsonTest extends WordSpec with Matchers  {
     "converted to json" should {
       "return correct json" in {
         assert(attr.toJson == attrjson)
+
+      }
+    }
+    "converted from json" should {
+      "return correct attr" in {
+        assert(attr.toJson.convertTo[SPAttributes] == attr)
+
+      }
+    }
+  }
+
+  "An proposition condition" when {
+    "converted to json" should {
+      "return correct json" in {
+        println(s"prop conv: ${prop.toJson}")
+        assert(true)
+
+      }
+    }
+    "converted from json" should {
+      "return correct attr" in {
+        assert(attr.toJson.convertTo[SPAttributes] == attr)
 
       }
     }

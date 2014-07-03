@@ -19,13 +19,13 @@ trait SPJsonMessages extends SPJsonDomain with SPJsonIDAble  {
   implicit val gDiffFormat = jsonFormat2(GetDiff)
 
   implicit val uidFormat = jsonFormat3(UpdateID.apply)
-  implicit val uidsFormat = jsonFormat3(UpdateIDs)
+  implicit val uidsFormat = jsonFormat2(UpdateIDs)
 
   implicit val mdiffFormat = jsonFormat5(ModelDiff)
   implicit val modelInfoFormat = jsonFormat3(ModelInfo)
 
 
   implicit val esFormat = jsonFormat1(SPErrorString)
-  implicit val euFormat = jsonFormat3(UpdateError)
+  implicit val euFormat = jsonFormat2(UpdateError)
 
 }

@@ -51,6 +51,3 @@ case class ValueHolder(v: SPAttributeValue) extends StateEvaluator
 //TODO: add StateEvaluator for a+b, a+1 etc when nedded 140630
 
 
-
-
-

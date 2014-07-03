@@ -102,7 +102,7 @@ trait SPJsonDomain {
 
 
 
-    implicit object RangeFormat extends RootJsonFormat[Range] {
+  implicit object RangeFormat extends RootJsonFormat[Range] {
     def write(x: Range) = {
       JsObject(
         "start" -> x.start.toJson,
@@ -118,9 +118,28 @@ trait SPJsonDomain {
       }
 
     }
-    }
+  }
 
-  implicit val svFormat = jsonFormat3(StateVariable)
+  implicit object svFormat extends RootJsonFormat[StateVariable] {
+    def write(x: StateVariable) = {
+      JsObject(
+        "name" -> x.name.toJson,
+        "attributes" -> x.attributes.toJson,
+        "id" -> x.id.toJson
+      )
+    }
+    def read(value: JsValue) = value match {
+      case x: JsObject => {
+        val id = if (x.fields.contains("id")) x.fields("id").convertTo[ID] else ID.newID
+        value.asJsObject.getFields("name", "attributes") match {
+          case Seq(JsString(n), attr: JsObject) => StateVariable(n, attr.convertTo[SPAttributes], id)
+          case _ => throw new DeserializationException(s"can not convert the Statevariable from $x")
+        }
+      }
+      case _ => throw new DeserializationException("Object expected")
+    }
+  }
+
 
 
 

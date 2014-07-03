@@ -35,14 +35,14 @@ trait SPJsonIDAble extends SPJsonDomain {
       val map = List(
         "isa" -> "Thing".toJson,
         "name" -> x.name.toJson,
-        "stateVariables" -> List[String]().toJson //o.conditions.toJson
+        "stateVariables" -> x.stateVariables.toJson
       ) ++ idPart(x)
       JsObject(map)
     }
     def read(value: JsValue) = {
       value.asJsObject.getFields("name", "stateVariables", "attributes", "id") match {
         case Seq(JsString(name), c: JsArray, a: JsObject, oid: JsString) => {
-          val sv = List[StateVariable]() //c.elements map(_.asJsObject.convertTo[StateVariable])
+          val sv = c.elements map(_.asJsObject.convertTo[StateVariable])
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
           new Thing(name, sv, attr){override lazy val id = myid}

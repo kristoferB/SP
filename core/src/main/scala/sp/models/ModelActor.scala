@@ -11,24 +11,26 @@ import akka.persistence._
 class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor  {
 
   // A model state
-  case class ModelState(version: Long, idMap: Map[ID, IDAble], diff: List[ModelDiff], attributes: SPAttributes){
+  case class ModelState(version: Long, idMap: Map[ID, IDAble], diff: Map[Long, ModelDiff], attributes: SPAttributes){
     lazy val operations = idMap filter (_._2.isInstanceOf[Operation])
     lazy val things = idMap filter (_._2.isInstanceOf[Thing])
     lazy val specifications = idMap filter (_._2.isInstanceOf[Specification])
+    lazy val stateVariables = svs map (sv=> sv.id -> sv) toMap
+    private lazy val svs =  things flatMap(_.asInstanceOf[Thing].stateVariables)
   }
 
-  var state = ModelState(1, Map(),List(), attr)
+  var state = ModelState(1, Map(), Map(), attr)
 
 
   def receiveCommand = {
-    case UpdateIDs(m,v,ids) => {
+    case UpdateIDs(m, ids) => {
       val reply = sender
-      createDiff(m, v, ids) match {
+      createDiff(m, ids) match {
         case Left(diff) => {
           persist(diff)(d =>{
             updateState(d)
             //TODO: If we create new items, we should probably return that also 140630
-            reply ! SPIDs(diff.ids)
+            reply ! SPIDs(diff.items)
           })
         }
         case Right(error) => reply ! error
@@ -65,6 +67,13 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
           val res = state.things.values
           reply ! SPIDs(res.toList)
         }
+        case GetStateVariable(id,m) => {
+          if (!state.stateVariables.contains(id)) reply ! MissingID(id, m)
+          else {
+            val res = state.stateVariables(id)
+            reply ! SPSVs(List(res))
+          }
+        }
         case GetQuery(attr, _) => {
           println("GETQUERY NOT IMPLEMENTED in ModelActor")
         }
@@ -87,30 +96,29 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
    * is the same as in the model for all items, the model is updated. Else
    * the method returns a UpdateError
    * @param model The name of the model
-   * @param modelVersion The version that the updated items origin from
    * @param ids The new items to be updated or added
    * @return Either Left[ModelDiff] -> The model can be updated. Right[UpdateError]
    */
-  def createDiff(model: String, modelVersion: Long, ids: List[UpdateID]): Either[ModelDiff, UpdateError] = {
+  def createDiff(model: String, ids: List[UpdateID]): Either[ModelDiff, UpdateError] = {
     // Check if any item could not be updated and divide them
-    val updateMe = ids partition {case UpdateID(id,v, item) => {
+    val updateMe = ids partition {case UpdateID(id, v, item) => {
         val current = state.idMap.getOrElse(id, null)
         // TODO: also need to check so that the classes match. Impl when everything is working. 140627
         current == null || current.version <= v
       }
     }
     if (updateMe._2.isEmpty) {
-      val upd = updateMe._1 map (uid=> uid.updated.update(uid.id, uid.version))
-      Left(ModelDiff(upd, model, modelVersion, state.version+1))
+      val upd = updateMe._1 map (uid=> uid.item.update(uid.id, uid.version))
+      Left(ModelDiff(upd, model, state.version, state.version+1, SPAttributes(state.attributes.attrs + ("time"->DatePrimitive.now))))
     } else {
-      Right(UpdateError(modelVersion, state.version, updateMe._2 map(_.id)))
+      Right(UpdateError(state.version, updateMe._2 map(_.id)))
     }
   }
 
   def updateState(diff: ModelDiff) = {
-    val modelDiff = diff :: state.diff take(30)
-    val idm = diff.ids.map(x=> x.id -> x).toMap
-    state = ModelState(state.version+1, state.idMap ++ idm, modelDiff, state.attributes)
+    val diffMap = state.diff + (diff.currentVersion -> diff) filter(_._1 > state.version - 30)
+    val idm = diff.items.map(x=> x.id -> x).toMap
+    state = ModelState(state.version+1, state.idMap ++ idm, diffMap, diff.attributes)
   }
 
   /**
@@ -120,8 +128,8 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
    * @return The ModelDiff
    */
   def getDiff(fromV: Long) = {
-    val allDiffs = state.diff.filter(_.version > fromV).foldLeft(List[IDAble]())((res,md)=>{
-       md.ids ++ res
+    val allDiffs = state.diff.filter(_._1 > fromV).foldLeft(List[IDAble]())((res,md)=>{
+       md._2.items ++ res
     })
     ModelDiff(allDiffs, name, fromV, state.version)
   }

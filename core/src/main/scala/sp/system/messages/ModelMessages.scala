@@ -22,12 +22,13 @@ case class GetIds(ids: List[ID], model: String) extends ModelQuery
 case class GetOperations(model: String) extends ModelQuery
 case class GetThings(model: String)  extends ModelQuery
 case class GetSpecs(model: String)  extends ModelQuery
+case class GetStateVariable(sv: ID, model: String)  extends ModelQuery
 case class GetQuery(q: SPAttributes, model: String) extends ModelQuery // fix better later
 case class GetDiff(model: String, version: Long) extends ModelQuery
 case class GetModelInfo(model: String) extends ModelQuery
 
-case class UpdateIDs(model: String, version: Long, ids: List[UpdateID]) extends ModelUpdate
-case class UpdateID(id: ID, version: Long, updated: IDAble)
+case class UpdateIDs(model: String, items: List[UpdateID]) extends ModelUpdate
+case class UpdateID(id: ID, version: Long, item: IDAble)
 object UpdateID {
   def addNew(x: IDAble) = UpdateID(x.id, 0, x)
 }
@@ -35,11 +36,12 @@ object UpdateID {
 // API output
 
 // Replay Model Messages
-case class SPIDs(ids: List[IDAble]) extends SPMessage
-case class ModelDiff(ids: List[IDAble],
+case class SPIDs(items: List[IDAble]) extends SPMessage
+case class SPSVs(svs: List[StateVariable])
+case class ModelDiff(items: List[IDAble],
                      model: String,
-                     prevVersion: Long,
-                     version: Long,
+                     fromVersion: Long,
+                     currentVersion: Long,
                      attributes: SPAttributes = SPAttributes(Map("time"->DatePrimitive.now))
                    ) extends SPMessage
 case class ModelInfos(models: List[ModelInfo])

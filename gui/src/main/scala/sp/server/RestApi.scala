@@ -72,6 +72,11 @@ trait SPRoute extends HttpService {
             pathPrefix("items") {
               IDHandler(model) ~
                 getSPIDS(GetIds(List(), model))
+            } ~
+            path("statevariables" / JavaUUID) { id =>
+              /{ get {toSP(GetStateVariable(id, model), {
+                case SPSVs(x) => if (!x.isEmpty) complete(x.head) else complete(x)})}
+              }
             }
         }
     }
@@ -86,7 +91,7 @@ trait SPRoute extends HttpService {
         entity(as[IDSaver]) { x =>
           val upids = createUPIDs(List(x), Some(id))
           // Maybe req modelversion in the future
-          toSP(UpdateIDs(model, -1, upids),  {
+          toSP(UpdateIDs(model, upids),  {
               case SPIDs(x) => if (!x.isEmpty) complete(x.head) else complete(x)
             })
         }
@@ -96,7 +101,7 @@ trait SPRoute extends HttpService {
       post {
         entity(as[List[IDSaver]]) { xs =>
           val upids = createUPIDs(xs, None)
-          toSP(UpdateIDs(model, -1, upids), {
+          toSP(UpdateIDs(model, upids), {
             case SPIDs(x) => complete(x)
           })
         }
