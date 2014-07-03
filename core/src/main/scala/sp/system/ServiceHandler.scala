@@ -16,18 +16,9 @@ class ServiceHandler extends Actor{
       }
       else sender ! SPError(s"Service $service already registered")
     }
-//    case c: Calculate => forward(c)
-//    case c: CalculateToFuture => forward(Calculate(c.algorithm, c.parameters, sender))
-//    case RegisterActor(id, ref) => actors += (id -> ref)
-//  }
-//
-//  private def forward(calc: Calculate) = {
-//    log.debug("ServiceRouter received Serve for id: "+ calc.algorithm)
-//    if (actors.contains(calc.algorithm))
-//        actors(calc.algorithm) ! calc
-//      else {
-//    	  log.debug("ServiceRouter missing algorithm: "+ calc.algorithm)
-//    	  sender ! ServiceErrorString("ServiceRouter missing algorithm: "+ calc.algorithm)
-//      }
   }
+}
+
+object ServiceHandler {
+  def props = Props(classOf[ServiceHandler])
 }

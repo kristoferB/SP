@@ -8,5 +8,4 @@ import sp.domain.SPAttributes
  */
 
 case class RegisterService(service: String, ref: ActorRef) extends SPMessage
-
 case class Request(service: String, attributes: SPAttributes)

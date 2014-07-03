@@ -4,17 +4,51 @@ import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.event.Logging
+import sp.system.messages._
 import scala.concurrent.Future
 import akka.pattern.pipe
 import scala.concurrent.duration._
 
+//TODO: make persistent soon
+
 class RunTimeHandler extends Actor {
+  var kindMap: Map[String, RegisterRuntimeKind] = Map()
   private var runMap: Map[String, ActorRef] = Map()
   implicit val timeout = Timeout(5 seconds)
   import context.dispatcher
   val log = Logging(context.system, this)
 
   def receive = {
+    case kind @ RegisterRuntimeKind(name, _, _) => kindMap += name -> kind; sender ! kindMap(name)
+    case GetRuntimeKinds => {
+      val xs = kindMap map{case (name, kind) => RuntimeKindInfo(name, kind.attributes)}
+      sender ! RuntimeKindInfos(xs toList)
+    }
+    case cr @ CreateRuntime(kind, name, _, _) => {
+      val reply = sender
+      if (kindMap.contains(kind)){
+        if (!runMap.contains(name)){
+          val a = context.actorOf(kindMap(kind).props, name)
+          runMap += name -> a
+          a.tell(cr, reply)
+        } else reply ! SPError(s"runtime $name already exists")
+
+      } else {
+        reply ! SPError(s"$kind is not available as a runtime kind")
+      }
+    }
+    case GetRuntimes => {
+      val reply = sender
+      if (!runMap.isEmpty) {
+        val fList = Future.traverse(runMap.values)(x => (x ? GetRuntimes).mapTo[CreateRuntime]) map (_ toList)
+        fList map RuntimeInfos pipeTo reply
+      } else reply ! RuntimeInfos(List[CreateRuntime]())
+    }
+    case m: RuntimeMessage => {
+      if (runMap.contains(m.runtime)) runMap(m.runtime) forward m
+      else sender ! SPError(s"Runtime ${m.runtime} does not exist.")
+    }
+
 //    case CreateRuntime(name, rtype, model, tempid) => {
 //      val id = if (tempid == ID.empty) ID.newID else tempid
 //      if (!runMap.contains(id)) {
@@ -69,4 +103,8 @@ class RunTimeHandler extends Actor {
     case _ => println("not impl yet")
   }
 
+}
+
+object RunTimeHandler {
+  def props = Props(classOf[ModelHandler])
 }

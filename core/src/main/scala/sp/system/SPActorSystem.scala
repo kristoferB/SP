@@ -12,8 +12,10 @@ object SPActorSystem {
   // The actor system used by all parts of SP. Maybe we will allow remote actors in the future
   implicit val system = ActorSystem("sequenceplanner")
 
-  // temp test
   val modelHandler = system.actorOf(ModelHandler.props, "modelHandler")
+  val serviceHandler = system.actorOf(ServiceHandler.props, "serviceHandler")
+  val runtimeHandler = system.actorOf(RunTimeHandler.props, "runtimeHandler")
+
 
   val settings = SPSettings(system)
 
