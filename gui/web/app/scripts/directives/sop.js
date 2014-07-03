@@ -19,6 +19,8 @@ angular.module('spGuiApp')
       },
       link: function postLink(scope, element, attrs) {
 
+        var raphaelArea = Raphael(element[0],'100%','85%');
+
         scope.toggleDirection = function() {
           if (scope.storage.measures.dir === 'Hori') {
             scope.storage.measures.dir = 'Vert';
@@ -29,7 +31,7 @@ angular.module('spGuiApp')
         };
 
         scope.calcAndDrawSop = function(doRedraw) {
-          sopDrawer.calcAndDrawSop(scope.storage.tryMe, scope.storage.measures, scope.storage.raphaelArea, true, doRedraw);
+          sopDrawer.calcAndDrawSop(scope.storage.tryMe, scope.storage.measures, raphaelArea, true, doRedraw, scope);
         };
 
         if(scope.storage === 'empty') {
@@ -207,17 +209,29 @@ angular.module('spGuiApp')
                 } ]
               } ]
             }
-            ]},
-
-            deserializedSop : angular.fromJson(scope.storage.tryMe)
+            ]}
 
           }; // end of storage object
 
-        } else {
-          scope.storage.raphaelArea.remove();
-        }
+          var opList = [], anOp =
+            {
+              'type' : 'Hierarchy',
+              'sop' : [],
+              'operation':{
+                'name':'o10',
+                'id':'93b3d962-4bc1-47c3-9ba5-19b42d0630d6',
+                'More':'MUCH MORE',
+                'type':'Operation'
+              }
+            };
 
-        scope.storage.raphaelArea = Raphael(element[0],'100%','85%');
+          for(var i = 0; i < 20; i++) {
+            var opClone = jQuery.extend({}, anOp);
+            scope.storage.tryMe.sop[1].sop[3].sop[2].sop.push(opClone);
+          };
+
+          console.log(scope.storage.tryMe);
+        }
         scope.calcAndDrawSop(true);
 
       }

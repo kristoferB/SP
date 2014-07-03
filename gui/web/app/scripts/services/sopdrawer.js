@@ -8,7 +8,7 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-  .factory('sopDrawer', [ '$rootScope', 'sopCalcer', function ($rootScope, sopCalcer) {
+  .factory('sopDrawer', [ 'sopCalcer', function (sopCalcer) {
     // Service logic
     // ...
     var factory = {}, dragDropManager = {
@@ -19,16 +19,16 @@ angular.module('spGuiApp')
         'indexToInsertAt' : new Number(0)
       };
       
-    factory.calcAndDrawSop = function(sop, measures, paper, firstLoop, doRedraw) {
+    factory.calcAndDrawSop = function(sop, measures, paper, firstLoop, doRedraw, dirScope) {
       sopCalcer.makeIt(sop, measures);
-      factory.drawSop(sop, measures, paper, firstLoop, sop, doRedraw);
+      factory.drawSop(sop, measures, paper, firstLoop, sop, doRedraw, dirScope);
     };
     
-    factory.drawSop = function (sop, measures, paper, firstLoop, wholeSop, doRedraw) {
+    factory.drawSop = function (sop, measures, paper, firstLoop, wholeSop, doRedraw, dirScope) {
       var animTime = measures.animTime, dir = measures.dir;
       
       for ( var n in sop.sop) {
-        factory.drawSop(sop.sop[n], measures, paper, false, wholeSop, doRedraw);
+        factory.drawSop(sop.sop[n], measures, paper, false, wholeSop, doRedraw, dirScope);
         if(sop.type === 'Sequence') {
           factory.drawLine(sop.lines[n], measures, paper, sop, new Number(n)+1, 'red'); // Line after each op in sequence
         } else {
@@ -54,9 +54,10 @@ angular.module('spGuiApp')
           
           sop.setToDrag = paper.set();
           sop.setToDrag.push(sop.drawnRect); sop.setToDrag.push(sop.drawnText);
-          sop.setToDrag.toFront();
+
           sop.drawnText.toFront();
-          factory.makeDraggable(sop.setToDrag, sop.x, sop.y, sop, measures, paper, wholeSop);
+          sop.setToDrag.toFront();
+          factory.makeDraggable(sop.setToDrag, sop.x, sop.y, sop, measures, paper, wholeSop, dirScope);
           
         } else if (sop.type === 'Other') {
           sop.drawnRect = paper.rect(0, 0, sop.structMeasures.width, sop.structMeasures.height).attr({'fill':'#D8D8D8', 'fill-opacity':0.5, 'stroke':'black', 'stroke-width':0, 'rx':10, 'ry':10}).toBack();
@@ -90,21 +91,19 @@ angular.module('spGuiApp')
         
         sop.drawnSet.push(sop.drawnShadowSet);
         sop.drawnSet.transform('T' + sop.x + ',' + sop.y);
-        
-        $rootScope.$watch(function() { return sop.x+3*sop.y+5*sop.width+7*sop.height+9*sop.moved; }, function(newValues, oldValues) {
+
+        dirScope.$watch(function() { return sop.x+3*sop.y+5*sop.width+7*sop.height+9*sop.moved; }, function(newValues, oldValues) {
           if(newValues !== oldValues) {
+            console.log('Watch fired');
             //sop.structMeasures = factory.calcsop.structMeasures(sop, measures, para);
             if(sop.type === 'Sequence') { 
               //sop.drawnRect.animate({width:sop.structMeasures.width, height:sop.structMeasures.height}, animTime);
             } else if (sop.type === 'Hierarchy') {
-            
-              //alert('Watch fired');
-
               //sop.drawnSet.animate({transform:'T' + sop.x + ',' + sop.y}, animTime);
               sop.drawnRect.animate({width:sop.width, height:sop.height}, animTime);
               sop.drawnText.animate({text:sop.operation.name}, animTime);
               sop.drawnArrow.animate({path:sop.arrow}, animTime);
-              factory.makeDraggable(sop.setToDrag, sop.x, sop.y, sop, measures, paper, wholeSop);
+              factory.makeDraggable(sop.setToDrag, sop.x, sop.y, sop, measures, paper, wholeSop, dirScope);
               sop.moved = 0;
             
             } else if (sop.type === 'Other') {
@@ -204,7 +203,7 @@ angular.module('spGuiApp')
       return sequence;
     };
     
-    factory.makeDraggable = function(obj, originalx, originaly, draggedSop, measures, paper, wholeSop) {
+    factory.makeDraggable = function(obj, originalx, originaly, draggedSop, measures, paper, wholeSop, dirScope) {
       var
         within=false, 
         timeout,
@@ -253,8 +252,8 @@ angular.module('spGuiApp')
             factory.moveNode(draggedSop, expectSequence);
             //factory.createSOP(wholeSop, measures, middle, origStart, paper, false, false, wholeSop, origStart);
             dragDropManager.droppable = false;
-            factory.calcAndDrawSop(wholeSop, measures, paper, true, false);
-            $rootScope.$digest();
+            factory.calcAndDrawSop(wholeSop, measures, paper, true, false, dirScope);
+            dirScope.$digest();
             
           } else {
             obj.animate({transform:'T' + ox + ',' + oy},500);
@@ -315,8 +314,8 @@ angular.module('spGuiApp')
         line.drawnLine = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({stroke:lineColor}).toBack();
         line.drawnShadow = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({stroke:'#FF0000', 'stroke-width':30, opacity:0});
         factory.makeDroppable(tempSet.push(line.drawnShadow), true, objToInsertIn, indexToInsertAt, true);
-        
-        $rootScope.$watchCollection(function() { // Animate on change
+
+        /*dirScope.$watch(function() { // Animate on change
           return line.x1+line.y1+line.x2+line.y2;
         }, function(newValues, oldValues) {
           if(newValues !== oldValues) {
@@ -324,7 +323,7 @@ angular.module('spGuiApp')
             line.drawnShadow.attr({path:'M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2});
           }
         });
-        
+        */
         line.drawn = true;
       }
     };

@@ -8,7 +8,7 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-  .factory('sopCalcer', [ function ($rootScope) {
+  .factory('sopCalcer', [ function () {
     var factory = {};
     
     factory.calcStructMeasures = function(sop, measures, para) {

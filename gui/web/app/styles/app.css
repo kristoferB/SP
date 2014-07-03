@@ -1,4 +1,63 @@
 /* app css stylesheet */
 
+/*** for the Windows directive ***/
 
+/* show the move cursor as the user moves the mouse over the panel header.*/
+.draggable {
+    cursor: move;
+}
 
+.sizeTransition {
+    -webkit-transition: width 0.5s, height 0.5s;
+    transition: width 0.5s, height 0.5s;
+}
+
+.smallBodyHeight {
+    height: 390px;
+}
+
+.largeBodyHeight {
+    height: 826px;
+}
+
+#sortable {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+#sortable li { margin: 2px 0; padding: 0 2px; float: left;   }
+
+#sortable .panel-heading .glyphicon {
+    padding:3px;
+    margin-left:3px;
+}
+
+#sortable .panel {
+    background-color: transparent;
+}
+
+#sortable .panel .panel-body {
+    background-color: #4e5d6c;
+}
+
+/*** For the bootstrap-switch ***/
+
+.bootstrap-switch {
+    vertical-align: initial;
+}
+
+.bootstrap-switch.bootstrap-switch-small {
+    min-width: 100px;
+}
+
+.bootstrap-switch .bootstrap-switch-handle-on.bootstrap-switch-default,
+.bootstrap-switch .bootstrap-switch-handle-off.bootstrap-switch-default {
+    color: white;
+    background:#2b3e50;
+}
+
+.bootstrap-switch .bootstrap-switch-label {
+    background:#4e5d6c;
+}

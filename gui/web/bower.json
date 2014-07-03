@@ -16,7 +16,8 @@
     "raphael": "~2.1.2",
     "underscore": "~1.6.0",
     "angular-ui-sortable": "~0.12.8",
-    "bootstrap-switch": "~3.0.2"
+    "bootstrap-switch": "~3.0.2",
+    "raphael.json": "*"
   },
   "devDependencies": {
     "angular-mocks": "1.2.16",
