@@ -9,8 +9,11 @@
 angular.module('spGuiApp')
   .directive('windows', function () {
     return {
-      templateUrl: 'views/window.html',
+      templateUrl: 'views/windows.html',
       restrict: 'E',
+      scope: {
+        windows: '=windowArray'
+      },
       link: function postLink(scope, element, attrs) {
         scope.addWindow = function(type) {
           scope.windows.push({type: type, width: 'small', height: 'small', name: type, windowStorage: 'empty'});

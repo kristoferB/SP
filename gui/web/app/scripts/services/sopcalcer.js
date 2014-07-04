@@ -56,11 +56,13 @@ angular.module('spGuiApp')
           structMeasures.x12 = [structMeasures.y12, structMeasures.y12 = structMeasures.x12][0];
           structMeasures.x21 = [structMeasures.y21, structMeasures.y21 = structMeasures.x21][0];
           structMeasures.x22 = [structMeasures.y22, structMeasures.y22 = structMeasures.x22][0];
+
+          //structMeasures.y11 = [structMeasures.y12, structMeasures.y12 = structMeasures.y11][0];
         }
       }
       return structMeasures;
     };
-    
+
 
     factory.makeIt = function(sop, measures) {
       var mC = {
@@ -106,7 +108,7 @@ angular.module('spGuiApp')
         'dir' : measures.dir,
         'x' : 0,
         'y' : 0
-      }, drawHere, sub, n, structMeasures, drawnShadow1, drawnShadow2, drawnShadowSet, setToDrag, drawnSet, drawnText, drawnRect, drawnArrow, drawnLine1, drawnLine2, drawnLine3, drawnLine4, drawnLine5, x11, x12, x21, x22, x31, x32, x41, x42, y11, y12, y21, y22, width, height;
+      }, drawHere, sub;
       
       if(typeof sop.lines === 'undefined') {
         sop.lines = [];
@@ -134,16 +136,7 @@ angular.module('spGuiApp')
           result.height = this.calcOpHeigth(sop.operation, measures) + measures.margin;
           var arrow = measures.arrow; 
           if (start < measures.arrow) {arrow = 0;}
-          /* Save into separate arrays - deprecated
-          result.operations.push({
-            'name' : sop.operation.name,
-            'width' : result.width,
-            'height' : result.height - measures.margin,
-            'x' : (middle - (result.width / 2)),
-            'y' : start,
-            'arrow' : arrow,
-          }); */
-          
+
           // Save of Op measures straight into the SOP
           sop.width = result.width;
           sop.height = result.height - measures.margin;
@@ -162,45 +155,22 @@ angular.module('spGuiApp')
       } else if (sop.type === 'Sequence') {
         drawHere = start;
           
-        for ( n in sop.sop) {
-          //console.log('draw here first: ' + drawHere)
-          sub = this.createSOP(sop.sop[n], measures, middle, drawHere, sop, new Number(n), wholeSop, false);
-          //console.log(sub)
+        for ( var m in sop.sop) {
+          sub = this.createSOP(sop.sop[m], measures, middle, drawHere, sop, new Number(m), wholeSop, false);
           result = this.fillResult(result, sub);
-          
-          /* Deprecated
-          result.lines.push({
-            'x1' : middle,
-            'y1' : start + result.height + sub.height,
-            'x2' : 0,
-            'y2' : -measures.margin
-          });*/
-          
-          // Save of line points straight into the SOP
-          
-          /*if(n < sop.lines.length) {
-            sop.lines[n].x1 = middle;
-            sop.lines[n].y1 = start + result.height + sub.height - 1,
-            sop.lines[n].x2 = 0;
-            sop.lines[n].y2 = -measures.margin + 1;
-          } else {          */
-            sop.lines.push({
-              x1 : middle,
-              y1 : start + result.height + sub.height - 1,
-              x2 : 0,
-              y2 : -measures.margin + 1
-            });
-          //}
-          
-          
-          
-          //console.log('sub.height: ' + sub.height)
+
+          sop.lines.push({
+            x1 : middle,
+            y1 : start + result.height + sub.height - 1,
+            x2 : 0,
+            y2 : -measures.margin + 1
+          });
+
           result.height = (result.height + sub.height);
           if (result.width < sub.width) {result.width = sub.width;}
-          //console.log('draw here second: ' + drawHere)
-          //console.log('result.height: ' + result.height)
+
           drawHere = start + result.height;
-          //console.log('draw here second: ' + drawHere)
+
         }
         
       } else {  // Parallel, Alternative, Other or Arbitrary
@@ -215,44 +185,21 @@ angular.module('spGuiApp')
         } else {
           para = measures.para;
         }
-        for ( n in sop.sop) {
+        var sopLength = sop.sop.length;
+        for ( var n in sop.sop) {
+          if(measures.dir === 'Hori') {
+            n = sopLength - 1 - n;
+          }
           var subW = this.getWidth(sop.sop[n], measures);
           drawHere = drawHere + subW / 2;
           sub = this.createSOP(sop.sop[n], measures, drawHere, start + para + measures.margin, sop, new Number(n), wholeSop, false);
-          /* Deprecated
-          result.lines.push({
-            'x1' : drawHere,
-            'y1' : start + para,
-            'x2' : 0,
-            'y2' : measures.margin
-          });*/
-          
-          
-          /*sop.sop[o].x1 = drawHere;
-          sop.sop[o].y1 = start + para - 1;
-          sop.sop[o].x2 = 0;
-          sop.sop[o].y2 = measures.margin + 1;*/
-          
-          /*if(typeof sop.lines === 'undefined') {
-            sop.lines = [];
-          }*/
-          
-          // Save of line points straight into the SOP
-          /*if(o < sop.lines.length) {
-            sop.lines[o].x1 = drawHere;
-            sop.lines[o].y1 = start + para - 1;
-            sop.lines[o].x2 = 0;
-            sop.lines[o].y2 = measures.margin + 1;
-          } else {*/
-          
-          // The lines above the structs
-            sop.lines.push({
-              x1 : drawHere,
-              y1 : start + para - 1,
-              x2 : 0,
-              y2 : measures.margin + 1
-            });
-          //}
+
+          sop.lines.push({ // The lines above the structs
+            x1 : drawHere,
+            y1 : start + para - 1,
+            x2 : 0,
+            y2 : measures.margin + 1
+          });
           
           result = this.fillResult(result, sub);
           linepos.push({
@@ -264,12 +211,13 @@ angular.module('spGuiApp')
             result.height = sub.height + para + measures.margin;
           }
           drawHere = drawHere + subW / 2 + measures.margin;
-          if (n === 0) {
+
+          /*if (n === 0) { // These do nothing but destroying inverse vertical draw?
             lineMinusL = lineMinusL + subW / 2;
           }
           else if (n === sop.sop.length - 1) {
             lineMinusR = lineMinusR + subW / 2;
-          }
+          }*/
         }
         
         if(typeof sop.lines2 === 'undefined') {
@@ -277,55 +225,25 @@ angular.module('spGuiApp')
         } else {
           sop.lines2.forEach( function(line) {
             line.drawnLine.remove();
-            line.drawnShadow.remove();              
+            line.drawnShadow.remove();
           });
           sop.lines2 = [];
         }
         
         for ( var p in linepos) {
-          /* Deprecated
-          result.lines.push({
-            'x1' : linepos[p].x,
-            'y1' : linepos[p].startY,
-            'x2' : 0,
-            'y2' : (result.height - (linepos[p].startY - start))
-          });*/
-          
-          // Save of line points straight into the SOP
-          /*if(p < sop.lines2.length) {
-            sop.lines2[p].x1 = linepos[p].x;
-            sop.lines2[p].y1 = linepos[p].startY;
-            sop.lines2[p].x2 = 0;
-            sop.lines2[p].y2 = (result.height - (linepos[p].startY - start));
-          } else {*/
-          
+
           // The lines below the structs
-            sop.lines2.push({
-              x1 : linepos[p].x,
-              y1 : linepos[p].startY,
-              x2 : 0,
-              y2 : (result.height - (linepos[p].startY - start)),
-              subSopIndex : linepos[p].subSopIndex
-            });
-          //}
-          
-          
+          sop.lines2.push({
+            x1 : linepos[p].x,
+            y1 : linepos[p].startY,
+            x2 : 0,
+            y2 : (result.height - (linepos[p].startY - start)),
+            subSopIndex : linepos[p].subSopIndex
+          });
         }
         
         result.height = result.height + para + measures.margin;
-        /* Deprecated
-        result.structs.push({
-          'type' : sop.type,
-          'width' : result.width,
-          'height' : result.height,
-          'margin' : measures.margin,
-          'para' : para,
-          'lineL' : result.width / 2 - lineMinusL,
-          'lineR' : result.width / 2 - lineMinusR,
-          'x' : middle - (result.width / 2),
-          'y' : start
-        });*/
-        
+
         // Save of struct attributes straight into the SOP
         sop.width = result.width;
         sop.height = result.height;
@@ -342,7 +260,6 @@ angular.module('spGuiApp')
         sop.structMeasures = factory.calcStructMeasures(sop, measures, para);
 
       }
-
       
       if(firstLoop === true) { // first launch only
         sop.lines.push({ // the starting line above the whole SOP
@@ -351,13 +268,11 @@ angular.module('spGuiApp')
           x2 : 0,
           y2 : -(measures.margin+1)
         });
-        
       }
       
       result.x = middle - result.width / 2;
       result.y = start;
       return result;
-      
     };
 
     factory.fillResult = function(result, fill) {

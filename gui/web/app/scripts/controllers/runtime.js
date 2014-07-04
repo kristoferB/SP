@@ -8,8 +8,8 @@
  * Controller of the spGuiApp
  */
 angular.module('spGuiApp')
-  .controller('RuntimeCtrl', function ($scope) {
+  .controller('RuntimeCtrl', function ($scope, WindowService) {
 
-    $scope.test = 1;
+    $scope.windows = WindowService.runtimeWindows;
         
   });

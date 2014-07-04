@@ -27,7 +27,7 @@ angular.module('spGuiApp')
           } else {
             scope.storage.measures.dir = 'Hori';
           }
-          scope.calcAndDrawSop();
+          scope.calcAndDrawSop(false);
         };
 
         scope.calcAndDrawSop = function(doRedraw) {
@@ -213,7 +213,7 @@ angular.module('spGuiApp')
 
           }; // end of storage object
 
-          var opList = [], anOp =
+          /*var opList = [], anOp =
             {
               'type' : 'Hierarchy',
               'sop' : [],
@@ -228,9 +228,8 @@ angular.module('spGuiApp')
           for(var i = 0; i < 20; i++) {
             var opClone = jQuery.extend({}, anOp);
             scope.storage.tryMe.sop[1].sop[3].sop[2].sop.push(opClone);
-          };
+          };*/
 
-          console.log(scope.storage.tryMe);
         }
         scope.calcAndDrawSop(true);
 

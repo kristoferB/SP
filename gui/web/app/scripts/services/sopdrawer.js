@@ -43,10 +43,7 @@ angular.module('spGuiApp')
         sop.moved = 0;
         
         // Draw struct
-        if(sop.type === 'Sequence') { 
-          //sop.drawnRect = paper.rect(0, 0, sop.structMeasures.width, sop.structMeasures.height).attr({'fill':'#D8D8D8', 'fill-opacity':0.9, 'stroke':'black', 'stroke-width':0});
-          //sop.drawnSet.push(sop.drawnRect); factory.makeDroppable(sop.drawnRect, false, sop, 0);
-        } else if (sop.type === 'Hierarchy') {
+        if (sop.type === 'Hierarchy') {
           sop.drawnRect = paper.rect(0, 0, sop.width, sop.height).attr({fill:'#FFFFFF'});
           sop.drawnText = paper.text(sop.width / 2, sop.height / 2, sop.operation.name);
           sop.drawnArrow = paper.path(sop.arrow).attr({'fill':'black', 'stroke':'black', 'stroke-width':1}).toBack();
@@ -94,41 +91,32 @@ angular.module('spGuiApp')
 
         dirScope.$watch(function() { return sop.x+3*sop.y+5*sop.width+7*sop.height+9*sop.moved; }, function(newValues, oldValues) {
           if(newValues !== oldValues) {
-            console.log('Watch fired');
-            //sop.structMeasures = factory.calcsop.structMeasures(sop, measures, para);
-            if(sop.type === 'Sequence') { 
-              //sop.drawnRect.animate({width:sop.structMeasures.width, height:sop.structMeasures.height}, animTime);
-            } else if (sop.type === 'Hierarchy') {
-              //sop.drawnSet.animate({transform:'T' + sop.x + ',' + sop.y}, animTime);
-              sop.drawnRect.animate({width:sop.width, height:sop.height}, animTime);
-              sop.drawnText.animate({text:sop.operation.name}, animTime);
-              sop.drawnArrow.animate({path:sop.arrow}, animTime);
+
+            if (sop.type === 'Hierarchy') {
+              sop.drawnRect.animate({width: sop.width, height: sop.height}, animTime);
+              sop.drawnText.animate({text: sop.operation.name}, animTime);
+              sop.drawnArrow.attr({path: sop.arrow, transform: 'T' + sop.x + ',' + sop.y});
               factory.makeDraggable(sop.setToDrag, sop.x, sop.y, sop, measures, paper, wholeSop, dirScope);
               sop.moved = 0;
-            
-            } else if (sop.type === 'Other') {
-              sop.drawnRect.animate({width:sop.structMeasures.width, height:sop.structMeasures.height}, animTime);
-            } else if (sop.type === 'Parallel') {
-              sop.drawnLine1.animate({path:'M 0 0 l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height}, animTime);
-              sop.drawnLine2.animate({path:'M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height}, animTime);
-              sop.drawnLine3.animate({path:'M ' + sop.structMeasures.x31 + ' ' + sop.structMeasures.y31 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height}, animTime);
-              sop.drawnLine4.animate({path:'M ' + sop.structMeasures.x41 + ' ' + sop.structMeasures.y41 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height}, animTime);
-              sop.drawnShadow1.attr({path:'M ' + sop.structMeasures.x51 + ' ' + sop.structMeasures.y51 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height});
-              sop.drawnShadow2.attr({path:'M ' + sop.structMeasures.x61 + ' ' + sop.structMeasures.y61 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height});
-            } else if (sop.type === 'Arbitrary') {
-              sop.drawnLine1.animate({path:'M 0 0 l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height}, animTime);
-              sop.drawnLine2.animate({path:'M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height}, animTime);
-              sop.drawnLine3.animate({path:'M ' + sop.structMeasures.x31 + ' ' + sop.structMeasures.y31 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height}, animTime);
-              sop.drawnLine4.animate({path:'M ' + sop.structMeasures.x41 + ' ' + sop.structMeasures.y41 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height}, animTime);
-              sop.drawnShadow1.attr({path:'M ' + sop.structMeasures.x51 + ' ' + sop.structMeasures.y51 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height});
-              sop.drawnShadow2.attr({path:'M ' + sop.structMeasures.x61 + ' ' + sop.structMeasures.y61 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height});
-            } else if (sop.type === 'Alternative') {
-              sop.drawnLine1.animate({path:'M ' + sop.structMeasures.x11 + ' ' + sop.structMeasures.y11 + ' l ' + sop.structMeasures.x12 + ' ' + sop.structMeasures.y12}, animTime);
-              sop.drawnLine2.animate({path:'M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.x22 + ' ' + sop.structMeasures.y22}, animTime);
-              sop.drawnShadow1.attr({path:'M ' + sop.structMeasures.x11 + ' ' + sop.structMeasures.y11 + ' l ' + sop.structMeasures.x12 + ' ' + sop.structMeasures.y12});
-              sop.drawnShadow2.attr({path:'M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.x22 + ' ' + sop.structMeasures.y22});
+              sop.drawnSet.animate({transform: 'T' + sop.x + ',' + sop.y}, animTime);
+            } else {
+              if (sop.type === 'Other') {
+                sop.drawnRect.attr({width: sop.structMeasures.width, height: sop.structMeasures.height});
+              } else if (sop.type === 'Parallel' || sop.type === 'Arbitrary') {
+                sop.drawnLine1.attr({path: 'M 0 0 l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height});
+                sop.drawnLine2.attr({path: 'M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height});
+                sop.drawnLine3.attr({path: 'M ' + sop.structMeasures.x31 + ' ' + sop.structMeasures.y31 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height});
+                sop.drawnLine4.attr({path: 'M ' + sop.structMeasures.x41 + ' ' + sop.structMeasures.y41 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height});
+                sop.drawnShadow1.attr({path: 'M ' + sop.structMeasures.x51 + ' ' + sop.structMeasures.y51 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height});
+                sop.drawnShadow2.attr({path: 'M ' + sop.structMeasures.x61 + ' ' + sop.structMeasures.y61 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height});
+              } else if (sop.type === 'Alternative') {
+                sop.drawnLine1.attr({path: 'M ' + sop.structMeasures.x11 + ' ' + sop.structMeasures.y11 + ' l ' + sop.structMeasures.x12 + ' ' + sop.structMeasures.y12});
+                sop.drawnLine2.attr({path: 'M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.x22 + ' ' + sop.structMeasures.y22});
+                sop.drawnShadow1.attr({path: 'M ' + sop.structMeasures.x11 + ' ' + sop.structMeasures.y11 + ' l ' + sop.structMeasures.x12 + ' ' + sop.structMeasures.y12});
+                sop.drawnShadow2.attr({path: 'M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.x22 + ' ' + sop.structMeasures.y22});
+              }
+              sop.drawnSet.attr({transform: 'T' + sop.x + ',' + sop.y});
             }
-            sop.drawnSet.animate({transform:'T' + sop.x + ',' + sop.y}, animTime);
           }
         });
         sop.drawn = true;
