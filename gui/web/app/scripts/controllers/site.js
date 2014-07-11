@@ -8,7 +8,18 @@
  * Controller of the spGuiApp
  */
 angular.module('spGuiApp')
-  .controller('SiteCtrl', function ($scope, $routeParams, $location, $rootScope, spTalker, $modal) {
+  .controller('SiteCtrl', function ($scope, $routeParams, $location, $rootScope, spTalker, $modal, USER_ROLES, AuthService) {
+    $scope.currentUser = null;
+    $scope.userRoles = USER_ROLES;
+    $scope.isAuthorized = AuthService.isAuthorized;
+    $scope.isLoginPage = false;
+    $scope.setIsLoginPage = function (choice) {
+      $scope.isLoginPage = choice;
+    };
+    $scope.setCurrentUser = function (user) {
+      $scope.currentUser = user;
+    };
+
     $scope.headerUrl = 'views/header.html';
 
     $scope.$watch(
@@ -42,6 +53,15 @@ angular.module('spGuiApp')
         $scope.$apply();
       });
     };
+
+    document.addEventListener('invalid', (function(){
+      return function(e){
+        //prevent the browser from showing default error bubble/ hint
+        e.preventDefault();
+        // optionally fire off some custom validation handler
+        // myvalidationfunction();
+      };
+    })(), true);
 
     $scope.broadcastEvent = function(eventName) {
       $rootScope.$broadcast(eventName);

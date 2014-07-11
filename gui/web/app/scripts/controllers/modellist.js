@@ -7,7 +7,7 @@
  * # ModellistCtrl
  * Controller of the spGuiApp
  */
-  var ModellistCtrl = function ($scope, $modalInstance, spTalker, $modal) {
+  var ModellistCtrl = function ($scope, $modalInstance, spTalker, $modal, notificationService) {
     //$scope.models = spTalker.models;
 
     $scope.$watch(

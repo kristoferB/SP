@@ -45,7 +45,7 @@
 /*** For the bootstrap-switch ***/
 
 .bootstrap-switch {
-    vertical-align: initial;
+    margin-top: 7px;
 }
 
 .bootstrap-switch.bootstrap-switch-small {

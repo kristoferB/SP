@@ -30,6 +30,8 @@
       <div ng-view=""></div>
     </div>
 
+    <div login-dialog ng-if="!isLoginPage"></div>
+
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
      <script>
        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -92,6 +94,14 @@
         <script src="scripts/controllers/modellist.js"></script>
         <script src="scripts/controllers/createmodel.js"></script>
         <script src="scripts/directives/autofocus.js"></script>
+        <script src="scripts/directives/unique.js"></script>
+        <script src="scripts/controllers/login.js"></script>
+        <script src="scripts/services/auth_events.js"></script>
+        <script src="scripts/services/user_roles.js"></script>
+        <script src="scripts/services/authservice.js"></script>
+        <script src="scripts/services/session.js"></script>
+        <script src="scripts/services/authinterceptor.js"></script>
+        <script src="scripts/directives/logindialog.js"></script>
         <!-- endbuild -->
 </body>
 </html>
