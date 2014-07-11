@@ -13,12 +13,11 @@ angular.module('spGuiApp')
     templateUrl: 'views/itemlist.html',
     restrict: 'E',
     link: function postLink(scope, element, attrs) {
+      scope.items = spTalker.items;
 
       scope.loadData = function() {
-        scope.items = spTalker.items.get({model: 'model1'});
+        spTalker.refresh();
       };
-
-      scope.loadData();
 
     }
   };

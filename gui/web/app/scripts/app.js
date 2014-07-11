@@ -15,7 +15,9 @@ angular
     'ngRoute',
     'ngSanitize',
     'ngTouch',
-    'ui.sortable'
+    'ui.sortable',
+    'jlareau.pnotify',
+    'ui.bootstrap'
   ])
   .config(function ($routeProvider) {
     $routeProvider

@@ -8,24 +8,35 @@
  * Controller of the spGuiApp
  */
 angular.module('spGuiApp')
-  .controller('SiteCtrl', function ($scope, $routeParams, $location, $rootScope) {
+  .controller('SiteCtrl', function ($scope, $routeParams, $location, $rootScope, spTalker, $modal) {
+    $scope.headerUrl = 'views/header.html';
+    $scope.activeModel = spTalker.activeModel;
 
-    $("[name='model-runtime-switch']").bootstrapSwitch('size', 'small');
-    $("[name='model-runtime-switch']").bootstrapSwitch('offText', 'Model');
-    $("[name='model-runtime-switch']").bootstrapSwitch('onText', 'Runtime');
-    $("[name='model-runtime-switch']").bootstrapSwitch('offColor', 'default');
-    $("[name='model-runtime-switch']").bootstrapSwitch('onColor', 'default');
-    $("[name='model-runtime-switch']").bootstrapSwitch('state', false);
+    $scope.openModelList = function () {
+      var modalInstance = $modal.open({
+        templateUrl: 'views/modellist.html',
+        controller: ModellistCtrl
+      });
+    };
 
-    $("[name='model-runtime-switch']").on('switchChange.bootstrapSwitch', function(event, state) {
-      if (state === true) {
-        $location.path('/runtime');
-      } else {
-        $location.path('/model');
-      }
-      $location.replace();
-      $scope.$apply();
-    });
+    $scope.setupSwitch = function () {
+      $("[name='model-runtime-switch']").bootstrapSwitch('size', 'small');
+      $("[name='model-runtime-switch']").bootstrapSwitch('offText', 'Model');
+      $("[name='model-runtime-switch']").bootstrapSwitch('onText', 'Runtime');
+      $("[name='model-runtime-switch']").bootstrapSwitch('offColor', 'default');
+      $("[name='model-runtime-switch']").bootstrapSwitch('onColor', 'default');
+      $("[name='model-runtime-switch']").bootstrapSwitch('state', false);
+
+      $("[name='model-runtime-switch']").on('switchChange.bootstrapSwitch', function (event, state) {
+        if (state === true) {
+          $location.path('/runtime');
+        } else {
+          $location.path('/model');
+        }
+        $location.replace();
+        $scope.$apply();
+      });
+    };
 
     $scope.broadcastEvent = function(eventName) {
       $rootScope.$broadcast(eventName);
