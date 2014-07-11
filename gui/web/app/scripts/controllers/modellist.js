@@ -29,5 +29,6 @@
 
     $scope.setActiveModel = function (chosenModel) {
       spTalker.activeModel = chosenModel;
+      $scope.close();
     };
   };

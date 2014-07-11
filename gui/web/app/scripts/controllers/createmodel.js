@@ -15,7 +15,7 @@
       newModel.model = givenName;
       newModel.attributes = {};
       newModel.$save(function(savedModel, putResponseHeaders) {
-        notificationService.success('A new model was successfully created');
+        notificationService.success('A new model \"' + savedModel.model + '\" was successfully created');
         spTalker.models.push(savedModel);
         $scope.close();
       }, function(error) {

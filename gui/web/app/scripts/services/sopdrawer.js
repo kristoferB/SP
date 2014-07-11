@@ -46,7 +46,11 @@ angular.module('spGuiApp')
         if (sop.type === 'Hierarchy') {
           sop.drawnRect = paper.rect(0, 0, sop.width, sop.height).attr({fill:'#FFFFFF'});
           sop.drawnText = paper.text(sop.width / 2, sop.height / 2, sop.operation.name);
-          sop.drawnArrow = paper.path(sop.arrow).attr({'fill':'black', 'stroke':'black', 'stroke-width':1}).toBack();
+
+          sop.drawnArrow = paper.path(sop.arrow).attr({opacity:0, 'fill':'black', 'stroke':'black', 'stroke-width':1}).toBack();
+          var arrowAnim = Raphael.animation({opacity:1}, 0);
+          sop.drawnArrow.animate(arrowAnim.delay(animTime));
+
           sop.drawnSet.push(sop.drawnRect); sop.drawnSet.push(sop.drawnText); sop.drawnSet.push(sop.drawnArrow);
           
           sop.setToDrag = paper.set();
@@ -55,39 +59,67 @@ angular.module('spGuiApp')
           sop.drawnText.toFront();
           sop.setToDrag.toFront();
           factory.makeDraggable(sop.setToDrag, sop.x, sop.y, sop, measures, paper, wholeSop, dirScope);
+
+          sop.drawnSet.push(sop.drawnShadowSet);
+          sop.drawnSet.animate({transform:'T' + sop.x + ',' + sop.y}, animTime);
           
-        } else if (sop.type === 'Other') {
-          sop.drawnRect = paper.rect(0, 0, sop.structMeasures.width, sop.structMeasures.height).attr({'fill':'#D8D8D8', 'fill-opacity':0.5, 'stroke':'black', 'stroke-width':0, 'rx':10, 'ry':10}).toBack();
-          sop.drawnSet.push(sop.drawnRect); factory.makeDroppable(sop.drawnSet, false, sop, 0, false);
-        } else if (sop.type === 'Parallel') {
-          sop.drawnLine1 = paper.path('M 0 0 l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke':'#000000', 'stroke-width':2});
-          sop.drawnLine2 = paper.path('M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke':'#000000', 'stroke-width':2});
-          sop.drawnLine3 = paper.path('M ' + sop.structMeasures.x31 + ' ' + sop.structMeasures.y31 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke':'#000000', 'stroke-width':2});
-          sop.drawnLine4 = paper.path('M ' + sop.structMeasures.x41 + ' ' + sop.structMeasures.y41 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke':'#000000', 'stroke-width':2});
-          sop.drawnSet.push(sop.drawnLine1); sop.drawnSet.push(sop.drawnLine2); sop.drawnSet.push(sop.drawnLine3); sop.drawnSet.push(sop.drawnLine4);
-          sop.drawnShadow1 = paper.path('M ' + sop.structMeasures.x51 + ' ' + sop.structMeasures.y51 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({stroke:'#FF0000', 'stroke-width':10, opacity:0});
-          sop.drawnShadow2 = paper.path('M ' + sop.structMeasures.x61 + ' ' + sop.structMeasures.y61 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({stroke:'#FF0000', 'stroke-width':10, opacity:0});
-          sop.drawnShadowSet.push(sop.drawnShadow1); sop.drawnShadowSet.push(sop.drawnShadow2); factory.makeDroppable(sop.drawnShadowSet, true, sop, 0, false);
-        } else if (sop.type === 'Arbitrary') {
-          sop.drawnLine1 = paper.path('M 0 0 l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke':'#000000', 'stroke-width':2, 'stroke-dasharray':'- '});
-          sop.drawnLine2 = paper.path('M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke':'#000000', 'stroke-width':2, 'stroke-dasharray':'- '});
-          sop.drawnLine3 = paper.path('M ' + sop.structMeasures.x31 + ' ' + sop.structMeasures.y31 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke':'#000000', 'stroke-width':2, 'stroke-dasharray':'- '});
-          sop.drawnLine4 = paper.path('M ' + sop.structMeasures.x41 + ' ' + sop.structMeasures.y41 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke':'#000000', 'stroke-width':2, 'stroke-dasharray':'- '});
-          sop.drawnSet.push(sop.drawnLine1); sop.drawnSet.push(sop.drawnLine2); sop.drawnSet.push(sop.drawnLine3); sop.drawnSet.push(sop.drawnLine4);
-          sop.drawnShadow1 = paper.path('M ' + sop.structMeasures.x51 + ' ' + sop.structMeasures.y51 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({stroke:'#FF0000', 'stroke-width':10, opacity:0});
-          sop.drawnShadow2 = paper.path('M ' + sop.structMeasures.x61 + ' ' + sop.structMeasures.y61 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({stroke:'#FF0000', 'stroke-width':10, opacity:0});
-          sop.drawnShadowSet.push(sop.drawnShadow1); sop.drawnShadowSet.push(sop.drawnShadow2); factory.makeDroppable(sop.drawnShadowSet, true, sop, 0, false);
-        } else if (sop.type === 'Alternative') {
-          sop.drawnLine1 = paper.path('M ' + sop.structMeasures.x11 + ' ' + sop.structMeasures.y11 + ' l ' + sop.structMeasures.x12 + ' ' + sop.structMeasures.y12).attr({'stroke':'#000000', 'stroke-width':2});
-          sop.drawnLine2 = paper.path('M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.x22 + ' ' + sop.structMeasures.y22).attr({'stroke':'#000000', 'stroke-width':2});
-          sop.drawnSet.push(sop.drawnLine1); sop.drawnSet.push(sop.drawnLine2);
-          sop.drawnShadow1 = paper.path('M ' + sop.structMeasures.x11 + ' ' + sop.structMeasures.y11 + ' l ' + sop.structMeasures.x12 + ' ' + sop.structMeasures.y12).attr({'stroke':'#FF0000', 'stroke-width':10, 'opacity':0});
-          sop.drawnShadow2 = paper.path('M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.x22 + ' ' + sop.structMeasures.y22).attr({'stroke':'#FF0000', 'stroke-width':10, 'opacity':0});
-          sop.drawnShadowSet.push(sop.drawnShadow1); sop.drawnShadowSet.push(sop.drawnShadow2); factory.makeDroppable(sop.drawnShadowSet, true, sop, 0, false);
+        } else {
+          if (sop.type === 'Other') {
+            sop.drawnRect = paper.rect(0, 0, sop.structMeasures.width, sop.structMeasures.height).attr({'fill': '#D8D8D8', 'fill-opacity': 0.5, 'stroke': 'black', 'stroke-width': 0, 'rx': 10, 'ry': 10}).toBack();
+            sop.drawnSet.push(sop.drawnRect);
+            factory.makeDroppable(sop.drawnSet, false, sop, 0, false);
+          } else if (sop.type === 'Parallel') {
+            sop.drawnLine1 = paper.path('M 0 0 l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke': '#000000', 'stroke-width': 2});
+            sop.drawnLine2 = paper.path('M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke': '#000000', 'stroke-width': 2});
+            sop.drawnLine3 = paper.path('M ' + sop.structMeasures.x31 + ' ' + sop.structMeasures.y31 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke': '#000000', 'stroke-width': 2});
+            sop.drawnLine4 = paper.path('M ' + sop.structMeasures.x41 + ' ' + sop.structMeasures.y41 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke': '#000000', 'stroke-width': 2});
+            sop.drawnSet.push(sop.drawnLine1);
+            sop.drawnSet.push(sop.drawnLine2);
+            sop.drawnSet.push(sop.drawnLine3);
+            sop.drawnSet.push(sop.drawnLine4);
+            sop.drawnShadow1 = paper.path('M ' + sop.structMeasures.x51 + ' ' + sop.structMeasures.y51 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({stroke: '#FF0000', 'stroke-width': 10, opacity: 0});
+            sop.drawnShadow2 = paper.path('M ' + sop.structMeasures.x61 + ' ' + sop.structMeasures.y61 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({stroke: '#FF0000', 'stroke-width': 10, opacity: 0});
+            sop.drawnShadowSet.push(sop.drawnShadow1);
+            sop.drawnShadowSet.push(sop.drawnShadow2);
+            factory.makeDroppable(sop.drawnShadowSet, true, sop, 0, false);
+          } else if (sop.type === 'Arbitrary') {
+            sop.drawnLine1 = paper.path('M 0 0 l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke': '#000000', 'stroke-width': 2, 'stroke-dasharray': '- '});
+            sop.drawnLine2 = paper.path('M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke': '#000000', 'stroke-width': 2, 'stroke-dasharray': '- '});
+            sop.drawnLine3 = paper.path('M ' + sop.structMeasures.x31 + ' ' + sop.structMeasures.y31 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke': '#000000', 'stroke-width': 2, 'stroke-dasharray': '- '});
+            sop.drawnLine4 = paper.path('M ' + sop.structMeasures.x41 + ' ' + sop.structMeasures.y41 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({'stroke': '#000000', 'stroke-width': 2, 'stroke-dasharray': '- '});
+            sop.drawnSet.push(sop.drawnLine1);
+            sop.drawnSet.push(sop.drawnLine2);
+            sop.drawnSet.push(sop.drawnLine3);
+            sop.drawnSet.push(sop.drawnLine4);
+            sop.drawnShadow1 = paper.path('M ' + sop.structMeasures.x51 + ' ' + sop.structMeasures.y51 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({stroke: '#FF0000', 'stroke-width': 10, opacity: 0});
+            sop.drawnShadow2 = paper.path('M ' + sop.structMeasures.x61 + ' ' + sop.structMeasures.y61 + ' l ' + sop.structMeasures.width + ' ' + sop.structMeasures.height).attr({stroke: '#FF0000', 'stroke-width': 10, opacity: 0});
+            sop.drawnShadowSet.push(sop.drawnShadow1);
+            sop.drawnShadowSet.push(sop.drawnShadow2);
+            factory.makeDroppable(sop.drawnShadowSet, true, sop, 0, false);
+          } else if (sop.type === 'Alternative') {
+            sop.drawnLine1 = paper.path('M ' + sop.structMeasures.x11 + ' ' + sop.structMeasures.y11 + ' l ' + sop.structMeasures.x12 + ' ' + sop.structMeasures.y12).attr({'stroke': '#000000', 'stroke-width': 2});
+            sop.drawnLine2 = paper.path('M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.x22 + ' ' + sop.structMeasures.y22).attr({'stroke': '#000000', 'stroke-width': 2});
+            sop.drawnSet.push(sop.drawnLine1);
+            sop.drawnSet.push(sop.drawnLine2);
+            sop.drawnShadow1 = paper.path('M ' + sop.structMeasures.x11 + ' ' + sop.structMeasures.y11 + ' l ' + sop.structMeasures.x12 + ' ' + sop.structMeasures.y12).attr({'stroke': '#FF0000', 'stroke-width': 10, 'opacity': 0});
+            sop.drawnShadow2 = paper.path('M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.x22 + ' ' + sop.structMeasures.y22).attr({'stroke': '#FF0000', 'stroke-width': 10, 'opacity': 0});
+            sop.drawnShadowSet.push(sop.drawnShadow1);
+            sop.drawnShadowSet.push(sop.drawnShadow2);
+            factory.makeDroppable(sop.drawnShadowSet, true, sop, 0, false);
+          }
+
+          sop.drawnSet.forEach(
+            function(drawing) {
+              drawing.attr({opacity:0});
+              var structAnim = Raphael.animation({opacity:1}, 0);
+              drawing.animate(structAnim.delay(animTime));
+            }
+          );
+          sop.drawnShadowSet.transform('T' + sop.x + ',' + sop.y);
+          sop.drawnSet.transform('T' + sop.x + ',' + sop.y);
         }
         
-        sop.drawnSet.push(sop.drawnShadowSet);
-        sop.drawnSet.transform('T' + sop.x + ',' + sop.y);
+
 
         dirScope.$watch(function() { return sop.x+3*sop.y+5*sop.width+7*sop.height+9*sop.moved; }, function(newValues, oldValues) {
           if(newValues !== oldValues) {
@@ -95,7 +127,9 @@ angular.module('spGuiApp')
             if (sop.type === 'Hierarchy') {
               sop.drawnRect.animate({width: sop.width, height: sop.height}, animTime);
               sop.drawnText.animate({text: sop.operation.name}, animTime);
-              sop.drawnArrow.attr({path: sop.arrow, transform: 'T' + sop.x + ',' + sop.y});
+              var arrowAnim = Raphael.animation({opacity:1}, 0);
+              sop.drawnArrow.animate(arrowAnim.delay(animTime));
+              sop.drawnArrow.attr({opacity:0, path: sop.arrow, transform: 'T' + sop.x + ',' + sop.y});
               factory.makeDraggable(sop.setToDrag, sop.x, sop.y, sop, measures, paper, wholeSop, dirScope);
               sop.moved = 0;
               sop.drawnSet.animate({transform: 'T' + sop.x + ',' + sop.y}, animTime);
@@ -115,6 +149,14 @@ angular.module('spGuiApp')
                 sop.drawnShadow1.attr({path: 'M ' + sop.structMeasures.x11 + ' ' + sop.structMeasures.y11 + ' l ' + sop.structMeasures.x12 + ' ' + sop.structMeasures.y12});
                 sop.drawnShadow2.attr({path: 'M ' + sop.structMeasures.x21 + ' ' + sop.structMeasures.y21 + ' l ' + sop.structMeasures.x22 + ' ' + sop.structMeasures.y22});
               }
+              sop.drawnSet.forEach(
+                function(drawing) {
+                  drawing.attr({opacity:0});
+                  var structAnim = Raphael.animation({opacity:1}, 0);
+                  drawing.animate(structAnim.delay(animTime));
+                }
+              );
+              sop.drawnShadowSet.attr({transform: 'T' + sop.x + ',' + sop.y});
               sop.drawnSet.attr({transform: 'T' + sop.x + ',' + sop.y});
             }
           }
@@ -299,10 +341,11 @@ angular.module('spGuiApp')
       }
       
       if(typeof line.drawn === 'undefined') { // Draw
-        line.drawnLine = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({stroke:lineColor}).toBack();
+        line.drawnLine = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({opacity:0, stroke:lineColor}).toBack();
+        var lineAnim = Raphael.animation({opacity:1});
+        line.drawnLine.animate(lineAnim.delay(measures.animTime));
         line.drawnShadow = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({stroke:'#FF0000', 'stroke-width':30, opacity:0});
         factory.makeDroppable(tempSet.push(line.drawnShadow), true, objToInsertIn, indexToInsertAt, true);
-
         /*dirScope.$watch(function() { // Animate on change
           return line.x1+line.y1+line.x2+line.y2;
         }, function(newValues, oldValues) {

@@ -10,7 +10,12 @@
 angular.module('spGuiApp')
   .controller('SiteCtrl', function ($scope, $routeParams, $location, $rootScope, spTalker, $modal) {
     $scope.headerUrl = 'views/header.html';
-    $scope.activeModel = spTalker.activeModel;
+
+    $scope.$watch(
+      function() { return spTalker.activeModel; },
+      function(data) { $scope.activeModel = data; },
+      true
+    );
 
     $scope.openModelList = function () {
       var modalInstance = $modal.open({
