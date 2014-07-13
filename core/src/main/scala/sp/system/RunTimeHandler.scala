@@ -19,16 +19,19 @@ class RunTimeHandler extends Actor {
   val log = Logging(context.system, this)
 
   def receive = {
-    case kind @ RegisterRuntimeKind(name, _, _) => kindMap += name -> kind; sender ! kindMap(name)
+    case kind @ RegisterRuntimeKind(name, _, _) => {
+      kindMap += name -> kind
+      sender ! kindMap(name)
+    }
     case GetRuntimeKinds => {
       val xs = kindMap map{case (name, kind) => RuntimeKindInfo(name, kind.attributes)}
       sender ! RuntimeKindInfos(xs toList)
     }
-    case cr @ CreateRuntime(kind, name, _, _) => {
+    case cr @ CreateRuntime(kind, _, name, _) => {
       val reply = sender
       if (kindMap.contains(kind)){
         if (!runMap.contains(name)){
-          val a = context.actorOf(kindMap(kind).props, name)
+          val a = context.actorOf(kindMap(kind).props(cr), name)
           runMap += name -> a
           a.tell(cr, reply)
         } else reply ! SPError(s"runtime $name already exists")
@@ -48,6 +51,17 @@ class RunTimeHandler extends Actor {
       if (runMap.contains(m.runtime)) runMap(m.runtime) forward m
       else sender ! SPError(s"Runtime ${m.runtime} does not exist.")
     }
+
+
+    case _ => println("not impl yet")
+  }
+
+}
+
+object RunTimeHandler {
+  def props = Props(classOf[RunTimeHandler])
+}
+
 
 //    case CreateRuntime(name, rtype, model, tempid) => {
 //      val id = if (tempid == ID.empty) ID.newID else tempid
@@ -99,12 +113,3 @@ class RunTimeHandler extends Actor {
 //    //        modelMap = modelMap + (m.id.toString() -> newModelH)
 //    //        sender ! ModelUpdated
 //    //    } else sender ! ServiceErrorString("Model with that id already added. Use update messages instead")
-
-    case _ => println("not impl yet")
-  }
-
-}
-
-object RunTimeHandler {
-  def props = Props(classOf[ModelHandler])
-}

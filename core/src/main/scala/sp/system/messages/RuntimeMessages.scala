@@ -7,7 +7,7 @@ import sp.domain._
 
 
 // Send
-case class RegisterRuntimeKind(name: String, props: Props, attributes: SPAttributes)
+case class RegisterRuntimeKind(name: String, props: CreateRuntime => Props, attributes: SPAttributes)
 case object GetRuntimeKinds
 
 // receive
@@ -27,3 +27,6 @@ case class RuntimeInfos(runtimes: List[CreateRuntime])
 trait RuntimeMessage {
   val runtime: String
 }
+
+case class SimpleMessage(runtime: String, attributes: SPAttributes) extends RuntimeMessage
+

@@ -28,4 +28,9 @@ trait SPJsonMessages extends SPJsonDomain with SPJsonIDAble  {
   implicit val esFormat = jsonFormat1(SPErrorString)
   implicit val euFormat = jsonFormat2(UpdateError)
 
+  implicit val rtkiFormat = jsonFormat2(RuntimeKindInfo)
+  implicit val rtiFormat = jsonFormat4(CreateRuntime)
+  implicit val rSMFormat = jsonFormat2(SimpleMessage)
+
+
 }

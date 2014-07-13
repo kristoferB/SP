@@ -10,7 +10,7 @@ import akka.persistence._
 
 // API Inputs
 
-sealed trait ModelMessage { val model: String }
+sealed trait ModelMessage extends SPMessage { val model: String }
 sealed trait ModelQuery extends ModelMessage
 sealed trait ModelUpdate extends ModelMessage
 

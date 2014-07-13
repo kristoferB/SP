@@ -18,80 +18,103 @@ case class IDSaver(isa: String,
                    attributes: Option[SPAttributes],
                    id: Option[ID],
                    version: Option[Long],
-
                    conditions: Option[List[Condition]],
                    stateVariables: Option[List[StateVariable]],
                    sop: Option[SOP])
 
 
-trait SPRoute extends HttpService {
-  val modelHandler: ActorRef
-
-  implicit val timeout = Timeout(3 seconds)
 
   import spray.httpx.SprayJsonSupport._
   import spray.json._
   import sp.json.SPJson._
   import spray.httpx.encoding._
 
+
+trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI {
+  val modelHandler: ActorRef
+  val runtimeHandler: ActorRef
+
   val api = pathPrefix("api") {
     / {complete("Seqeunce Planner REST API")} ~
     encodeResponse(Gzip) {
-      path("models") {
-        get {
-          toSP(GetModels, {
-            case ModelInfos(list) => complete(list)
-          })
-        } ~
-          post {
-            entity(as[CreateModel]) { cmd =>
-              toSP(cmd, {
-                case x: ModelInfo => complete(x)
-              })
-            }
-          }
+      pathPrefix("models"){
+        modelapi
+      }~
+      pathPrefix("runtimes"){
+        runtimeapi
       } ~
-        pathPrefix("models" / Segment) { model =>
-          / {
-            toSP(GetModelInfo(model), {
-              case x: ModelInfo => complete(x)
-            })
-          } ~
-            pathPrefix("operations") {
-              IDHandler(model) ~
-                getSPIDS(GetOperations(model))
-            } ~
-            pathPrefix("things") {
-              IDHandler(model) ~
-                getSPIDS(GetThings(model))
-            } ~
-            pathPrefix("specs") {
-              IDHandler(model) ~
-                getSPIDS(GetSpecs(model))
-            } ~
-            pathPrefix("items") {
-              IDHandler(model) ~
-                getSPIDS(GetIds(List(), model))
-            } ~
-            path("statevariables" / JavaUUID) { id =>
-              /{ get {toSP(GetStateVariable(id, model), {
-                case SPSVs(x) => if (!x.isEmpty) complete(x.head) else complete(x)})}
-              }
-            }
-        }
+      path("services") {
+        //TODO: Fix service API
+        complete("services")
+      }
     }
   }
+}
 
-  def IDHandler(model: String) = {
+
+
+trait ModelAPI extends SPApiHelpers {
+  val modelHandler: ActorRef
+  private implicit val to = timeout
+
+  def modelapi =
+    /{
+      get {
+        callSP(GetModels, {
+          case ModelInfos(list) => complete(list)
+        })
+      } ~
+        post {
+          entity(as[CreateModel]) { cmd =>
+            callSP(cmd, {
+              case x: ModelInfo => complete(x)
+            })
+          }
+        }
+    } ~
+    pathPrefix(Segment) { model =>
+      / {
+        callSP(GetModelInfo(model), {
+          case x: ModelInfo => complete(x)
+        })
+      } ~
+      pathPrefix(Segment){ typeOfItems =>
+        IDHandler(model) ~
+        {typeOfItems match {
+          case "operations" => getSPIDS(GetOperations(model))
+          case "things" => getSPIDS(GetThings(model))
+          case "specs" => getSPIDS(GetSpecs(model))
+          case "items" => getSPIDS(GetIds(List(), model))
+          case "statevariables" => path(JavaUUID){ id =>
+            /{ get {callSP(GetStateVariable(id, model), {
+              case SPSVs(x) => if (!x.isEmpty) complete(x.head) else complete(x)})}
+            }
+          }
+        }}
+      }
+  }
+
+
+
+  private def getSPIDS(mess: ModelQuery) = {
+    /{ get {callSP(mess, { case SPIDs(x) => complete(x)})}}
+  }
+
+
+  private def callSP(mess: Any, matchReply: PartialFunction[Any, Route]) = {
+    onSuccess(modelHandler ? mess){evalReply{matchReply}}
+  }
+
+  private def IDHandler(model: String) = {
     path(JavaUUID){id =>
-      /{ get {toSP(GetIds(List(ID(id)), model), {
+      /{ get {callSP(GetIds(List(ID(id)), model), {
         case SPIDs(x) => if (!x.isEmpty) complete(x.head) else complete(x)})}
       }~
       post {
         entity(as[IDSaver]) { x =>
           val upids = createUPIDs(List(x), Some(id))
           // Maybe req modelversion in the future
-          toSP(UpdateIDs(model, upids),  {
+          callSP(UpdateIDs(model, upids),  {
               case SPIDs(x) => if (!x.isEmpty) complete(x.head) else complete(x)
             })
         }
@@ -101,7 +124,7 @@ trait SPRoute extends HttpService {
       post {
         entity(as[List[IDSaver]]) { xs =>
           val upids = createUPIDs(xs, None)
-          toSP(UpdateIDs(model, upids), {
+          callSP(UpdateIDs(model, upids), {
             case SPIDs(x) => complete(x)
           })
         }
@@ -109,16 +132,52 @@ trait SPRoute extends HttpService {
     }
   }
 
-  def getSPIDS(mess: ModelQuery) = {
-    /{ get {toSP(mess, { case SPIDs(x) => complete(x)})}}
+}
+
+
+
+
+
+trait RuntimeAPI extends SPApiHelpers {
+  val runtimeHandler: ActorRef
+  private implicit val to = timeout
+
+  def runtimeapi =
+        /{get{callSP(GetRuntimes, {
+            case RuntimeInfos(xs) => complete(xs) })
+        } ~
+          post { entity(as[CreateRuntime]) { cr =>
+            callSP(cr, {
+              case xs: CreateRuntime => complete(xs)
+            })}
+          }
+        } ~
+        pathPrefix(Segment){ rt =>
+          /{
+            post{ entity(as[SPAttributes]) { attr =>
+            callSP(SimpleMessage(rt, attr), {
+              case xs: SPAttributes => complete(xs)
+            })}
+
+            }
+          }
+        } ~
+        pathPrefix("kinds"){
+          /{get{callSP(GetRuntimeKinds, {
+            case RuntimeKindInfos(xs) => complete(xs)
+          })}}
+        }
+
+  private def callSP(mess: Any, matchReply: PartialFunction[Any, Route]) = {
+    onSuccess(runtimeHandler ? mess){evalReply{matchReply}}
   }
 
+}
 
-  def toSP(mess: Any, matchReply: PartialFunction[Any, Route]) = {
-    onSuccess(modelHandler ? mess){evalReply{matchReply}}
-  }
+trait SPApiHelpers extends HttpService {
 
-  // to cleanup the routing
+  val timeout = Timeout(3 seconds)
+    // to cleanup the routing
   def / = pathEndOrSingleSlash
 
 
@@ -132,7 +191,6 @@ trait SPRoute extends HttpService {
     pf orElse replyMatcher
   }
 
-
   def createUPIDs(ids: List[IDSaver], maybeID: Option[ID]) = {
     ids map{ x =>
       val addID = x.copy(id = Some(x.id.getOrElse(maybeID.getOrElse(ID.newID))))
@@ -141,6 +199,8 @@ trait SPRoute extends HttpService {
     }
   }
 }
+
+
 //  def getBasedOn(x: IDAble) = {
 //    println(s"getbasedon: $x")
 //    for {
