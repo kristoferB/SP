@@ -166,17 +166,17 @@ trait SPJsonDomain {
   }
 
 
-  implicit val andFormat: JsonFormat[AND] = lazyFormat(jsonFormat(AND, "left", "right"))
-  implicit val orFormat: JsonFormat[OR] = lazyFormat(jsonFormat(OR, "left", "right"))
+  implicit val andFormat: JsonFormat[AND] = lazyFormat(jsonFormat(AND, "props"))
+  implicit val orFormat: JsonFormat[OR] = lazyFormat(jsonFormat(OR, "props"))
   implicit val notFormat: JsonFormat[NOT] = lazyFormat(jsonFormat(NOT, "p"))
   implicit val eqFormat: JsonFormat[EQ] = lazyFormat(jsonFormat(EQ, "left", "right"))
   implicit val neqFormat: JsonFormat[NEQ] = lazyFormat(jsonFormat(NEQ, "left", "right"))
 
   implicit object PropositionFormat extends RootJsonFormat[Proposition] {
     def write(p: Proposition) = p match {
-      case x: AND => JsObject("isa"->"AND".toJson, "left"-> x.left.toJson, "right" -> x.right.toJson)
-      case x: OR => JsObject("isa"->"OR".toJson, "left"-> x.left.toJson, "right" -> x.right.toJson)
-      case x: NOT => JsObject("isa"->"NOT".toJson, "p"-> x.p.toJson)
+      case x: AND => JsObject("isa"->"AND".toJson, "props"-> x.props.toJson)
+      case x: OR => JsObject("isa"->"OR".toJson, "props"-> x.props.toJson)
+      case x: NOT => JsObject("isa"->"NOT".toJson, "prop"-> x.p.toJson)
       case x: EQ => JsObject("isa"->"EQ".toJson, "left"-> x.left.toJson, "right" -> x.right.toJson)
       case x: NEQ => JsObject("isa"->"NEQ".toJson, "left"-> x.left.toJson, "right" -> x.right.toJson)
       case _ => throw new SerializationException(s"Could not convert that type of proposition $p")
