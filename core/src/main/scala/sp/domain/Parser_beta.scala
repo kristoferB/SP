@@ -33,8 +33,8 @@ trait LogicalExpressionParser extends JavaTokenParsers with SPExpression {
     case Success(result, _) => Right(result)
     case failure: NoSuccess => Left(failure) //failure.toString = "["+failure.next.pos+"] error: "+failure.msg+"\n\n"+failure.next.pos.longString
   }
-  lazy val or: Parser[SPExpression] = and ~ rep(REG_EX_OR ~ and) ^^ { case f1 ~ temp => OR(f1 +: temp.map { case ~(_, f2) => f2 }) }
-  lazy val and: Parser[SPExpression] = not ~ rep(REG_EX_AND ~ not) ^^ { case f1 ~ temp => AND(f1 +: temp.map { case ~(_, f2) => f2 }) }
+  lazy val or: Parser[SPExpression] = and ~ rep(REG_EX_OR ~ and) ^^ { case f1 ~ temp => if(temp.isEmpty) f1 else OR(f1 +: temp.map { case ~(_, f2) => f2 }) }
+  lazy val and: Parser[SPExpression] = not ~ rep(REG_EX_AND ~ not) ^^ { case f1 ~ temp => if(temp.isEmpty) f1 else AND(f1 +: temp.map { case ~(_, f2) => f2 }) }
   lazy val not: Parser[SPExpression] = opt(REG_EX_NOT) ~ factor ^^ { case Some(_) ~ f => NOT(f); case None ~ f => f }
   lazy val factor: Parser[SPExpression] = literal | expression | "(" ~> or <~ ")" ^^ { case exp => exp }
   lazy val literal: Parser[SPExpression] = REG_EX_TRUE ^^ (_ => TRUE) | REG_EX_FALSE ^^ (_ => FALSE)

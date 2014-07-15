@@ -74,8 +74,8 @@ trait LogicalExpressionParser extends JavaTokenParsers with Regix {
     case Success(result, _) => Right(result)
     case failure: NoSuccess => Left(failure) //failure.toString = "["+failure.next.pos+"] error: "+failure.msg+"\n\n"+failure.next.pos.longString
   }
-  lazy val or: Parser[Proposition] = and ~ rep(REG_EX_OR ~ and) ^^ { case f1 ~ temp => OR(f1 +: temp.map { case ~(_, f2) => f2 }) }
-  lazy val and: Parser[Proposition] = not ~ rep(REG_EX_AND ~ not) ^^ { case f1 ~ temp => AND(f1 +: temp.map { case ~(_, f2) => f2 }) }
+  lazy val or: Parser[Proposition] = and ~ rep(REG_EX_OR ~ and) ^^ { case f1 ~ temp => if(temp.isEmpty) f1 else OR(f1 +: temp.map { case ~(_, f2) => f2 }) }
+  lazy val and: Parser[Proposition] = not ~ rep(REG_EX_AND ~ not) ^^ { case f1 ~ temp => if(temp.isEmpty) f1 else AND(f1 +: temp.map { case ~(_, f2) => f2 }) }
   lazy val not: Parser[Proposition] = opt(REG_EX_NOT) ~ factor ^^ { case Some(_) ~ f => NOT(f); case None ~ f => f }
   lazy val factor: Parser[Proposition] = expressionEQ | expressionNEQ | "(" ~> or <~ ")" ^^ { case exp => exp }
   lazy val expressionEQ: Parser[Proposition] = REX_EX_VARIABLE ~ REG_EX_OPERATOREQ ~ REG_EX_VALUE ^^ { case ~(~(var1, op), v) => EQ(SVNameEval(var1), ValueHolder(v)) }
@@ -105,7 +105,7 @@ object TestParser extends App with LogicalExpressionParser {
 //  println (test2)
 //  println(clean(test2))
 
-
+  //Updated the parser => This method is no longer need? /Patrik 140715
   def clean(ex: Either[TestParser.NoSuccess, Proposition]) = {
     def req(left: Proposition): Proposition = {
       left match {
