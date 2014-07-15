@@ -23,8 +23,7 @@ angular
     $routeProvider
       .when('/', {
         templateUrl: 'views/main.html',
-        controller: 'MainCtrl',
-        authorizedRoles: [USER_ROLES.all]
+        controller: 'MainCtrl'
       })
       .when('/model', {
         templateUrl: 'views/model.html',
@@ -49,18 +48,21 @@ angular
     ]);
   })
   .run(function ($rootScope, AUTH_EVENTS, AuthService) {
-    $rootScope.$on('$locationChangeStart', function (next, current) {
+    $rootScope.$on('$locationChangeStart', function (event, next, current) {
       var authorizedRoles = next.authorizedRoles;
       if (!AuthService.isAuthorized(authorizedRoles)) {
         event.preventDefault();
         if (AuthService.isAuthenticated()) {
           // user is not allowed
+          console.log('The current user is not allowed to access this page.');
           $rootScope.$broadcast(AUTH_EVENTS.notAuthorized);
         } else {
           // user is not logged in
+          console.log('No user is logged in.');
           $rootScope.$broadcast(AUTH_EVENTS.notAuthenticated);
         }
       }
+      $rootScope.vars.isLoginPage = false;
     });
   })
   .run(function($rootScope, $location) {
