@@ -17,6 +17,7 @@ angular.module('spGuiApp')
           419: AUTH_EVENTS.sessionTimeout,
           440: AUTH_EVENTS.sessionTimeout
         }[response.status], response);
+        console.log('Got a ' + response.status + ' status response');
         return $q.reject(response);
       }
     };

@@ -12,10 +12,16 @@ angular.module('spGuiApp')
     $scope.currentUser = null;
     $scope.userRoles = USER_ROLES;
     $scope.isAuthorized = AuthService.isAuthorized;
-    $scope.isLoginPage = false;
-    $scope.setIsLoginPage = function (choice) {
-      $scope.isLoginPage = choice;
+    $rootScope.vars = {
+      isLoginPage : false
     };
+
+    $scope.$watch(function() {
+        return $rootScope.vars.isLoginPage;
+      }, function(data) {
+          $scope.isLoginPage = data;
+      }, true);
+
     $scope.setCurrentUser = function (user) {
       $scope.currentUser = user;
     };

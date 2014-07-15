@@ -8,6 +8,6 @@
  * Controller of the spGuiApp
  */
 angular.module('spGuiApp')
-  .controller('MainCtrl', function ($scope) {
-    $scope.setIsLoginPage(true);
+  .controller('MainCtrl', function ($scope, $rootScope) {
+    $rootScope.vars.isLoginPage = true;
   });

@@ -13,7 +13,7 @@ angular.module('spGuiApp')
 
     authService.login = function (credentials) {
       return $http
-        .post('/login', credentials)
+        .post('/api/login', credentials)
         .then(function (res) {
           Session.create(res.id, res.user.id, res.user.role);
           return res.user;

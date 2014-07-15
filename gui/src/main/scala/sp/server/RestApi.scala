@@ -1,10 +1,12 @@
 package sp.server
 
 import sp.domain._
+import spray.http.{StatusCodes}
 import spray.routing._
+import spray.routing.authentication._
 import sp.system.messages._
-import reflect.ClassTag
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import akka.util.Timeout
 import akka.actor._
 import akka.pattern.ask
@@ -30,22 +32,45 @@ case class IDSaver(isa: String,
   import spray.httpx.encoding._
 
 
-trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI {
+
+
+
+trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI {
   val modelHandler: ActorRef
   val runtimeHandler: ActorRef
   val serviceHandler: ActorRef
 
+  def myUserPassAuthenticator(userPass: Option[UserPass]): Future[Option[String]] =
+    Future {
+      if (userPass.exists(up => up.user == "admin" && up.pass == "pass")) Some("John")
+      else None
+    }
+
+  // Handles AuthenticationRequiredRejection to omit the WWW-Authenticate header.
+  // The omit prevents the browser login dialog to open when the Basic HTTP Authentication repsonds with code "401: Unauthorized".
+  implicit val myRejectionHandler = RejectionHandler {
+    case AuthenticationFailedRejection(cause, challengeHeaders) :: _ =>
+      complete(StatusCodes.Unauthorized, "Wrong username and/or password.")
+  }
+
   val api = pathPrefix("api") {
-    / {complete("Seqeunce Planner REST API")} ~
+    / {complete("Sequence Planner REST API")} ~
     encodeResponse(Gzip) {
       pathPrefix("models"){
         modelapi
       }~
       pathPrefix("runtimes"){
         runtimeapi
-      } ~
-      pathPrefix("services") {
-        serviceapi
+      }~
+      path("services") {
+        //TODO: Fix service API
+        complete("services")
+      }~
+      // For tests during implementation of authentication and authorization
+      path("secured") {
+        authenticate(BasicAuth(myUserPassAuthenticator _, realm = "secured API")) { userName =>
+          complete(s"The user is '$userName'")
+        }
       }
     }
   }
