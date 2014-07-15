@@ -91,7 +91,7 @@ object TestParser extends App with LogicalExpressionParser {
       def waitEOF(): Unit = Console.readLine() match {
         case "" => ""
         case "exit" => ""
-        case str: String => println(clean(parseStr(str))); waitEOF()
+        case str: String => println(parseStr(str)); waitEOF()
       }
       waitEOF()
     }
@@ -105,20 +105,5 @@ object TestParser extends App with LogicalExpressionParser {
 //  println (test2)
 //  println(clean(test2))
 
-  //Updated the parser => This method is no longer need? /Patrik 140715
-  def clean(ex: Either[TestParser.NoSuccess, Proposition]) = {
-    def req(left: Proposition): Proposition = {
-      left match {
-        case OR(xs) => if (xs.size == 1) req(xs.head) else OR(xs map req)
-        case AND(xs) => if (xs.size == 1) req(xs.head) else AND(xs map req)
-        case NOT(x) => NOT(req(x))
-        case p: Proposition => p
-      }
-    }
-    ex match {
-        case Right(expr) => Right(req(expr))
-        case _ => ex
-      }
-  }
 
 }

@@ -16,6 +16,12 @@ class ServiceHandler extends Actor{
       }
       else sender ! SPError(s"Service $service already registered")
     }
+    case m: ServiceMessage => {
+      if (actors.contains(m.service))
+        actors(m.service).tell(m, sender)
+      else sender ! SPError(s"Service ${m.service} does not exists")
+    }
+    case GetServices => sender ! actors.keys.toList
   }
 }
 

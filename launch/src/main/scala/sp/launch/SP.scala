@@ -1,6 +1,7 @@
 package sp.launch
 
 import sp.domain.SPAttributes
+import sp.services.PropositionParser
 import sp.system.messages._
 
 /**
@@ -9,10 +10,16 @@ import sp.system.messages._
 object SP extends App {
   import sp.system.SPActorSystem._
 
-  // registrerar Daniel runtime
+  // Register Runtimes here
   runtimeHandler ! RegisterRuntimeKind("DanielRuntime",
                    sp.runtimes.DanielRuntime.props,
                    SPAttributes(Map("info"-> "En liten runtime")))
+
+
+  // Register services here
+  serviceHandler ! RegisterService("PropositionParser",
+    system.actorOf(PropositionParser.props, "PropositionParser"))
+
 
 
   // launch REST API

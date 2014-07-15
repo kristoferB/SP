@@ -145,11 +145,14 @@ trait SPJsonDomain {
 
   implicit val vHolderFormat = jsonFormat1(ValueHolder)
   implicit val svidEvalFormat = jsonFormat1(SVIDEval)
+  implicit val svnameEvalFormat = jsonFormat1(SVNameEval)
+
 
   implicit object StateEvalFormat extends RootJsonFormat[StateEvaluator] {
     def write(x: StateEvaluator) = x match {
       case p: SVIDEval => p.toJson
       case p: ValueHolder => p.toJson
+      case p: SVNameEval => p.toJson
       case _ => throw new SerializationException(s"Could not convert that type of condition $x")
     }
     def read(value: JsValue) = {

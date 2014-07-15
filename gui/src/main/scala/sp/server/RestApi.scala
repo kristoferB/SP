@@ -30,9 +30,10 @@ case class IDSaver(isa: String,
   import spray.httpx.encoding._
 
 
-trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI {
+trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI {
   val modelHandler: ActorRef
   val runtimeHandler: ActorRef
+  val serviceHandler: ActorRef
 
   val api = pathPrefix("api") {
     / {complete("Seqeunce Planner REST API")} ~
@@ -43,9 +44,8 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI {
       pathPrefix("runtimes"){
         runtimeapi
       } ~
-      path("services") {
-        //TODO: Fix service API
-        complete("services")
+      pathPrefix("services") {
+        serviceapi
       }
     }
   }
@@ -173,6 +173,37 @@ trait RuntimeAPI extends SPApiHelpers {
   }
 
 }
+
+
+
+trait ServiceAPI extends SPApiHelpers {
+  val serviceHandler: ActorRef
+  private implicit val to = timeout
+
+  def serviceapi =
+    /{ get { complete{
+      (serviceHandler ? GetServices).mapTo[List[String]]
+    }}} ~
+    pathPrefix(Segment){ service =>
+      post { entity(as[SPAttributes]) { attr =>
+        callSP(Request(service, attr), {
+          case p: Proposition => complete(p)
+          case a: SPAttributes => complete(a)
+          case SPIDs(x) => complete(x)
+          case SPSVs(x) => complete(x)
+        })
+      }}
+    }
+
+  private def callSP(mess: Any, matchReply: PartialFunction[Any, Route]) = {
+    onSuccess(serviceHandler ? mess){evalReply{matchReply}}
+  }
+
+}
+
+
+
+
 
 trait SPApiHelpers extends HttpService {
 
