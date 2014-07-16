@@ -35,7 +35,7 @@ case class IDSaver(isa: String,
 
 
 
-trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI {
+trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI {
   val modelHandler: ActorRef
   val runtimeHandler: ActorRef
   val serviceHandler: ActorRef
@@ -63,8 +63,7 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI {
         runtimeapi
       }~
       path("services") {
-        //TODO: Fix service API
-        complete("services")
+        serviceapi
       }~
       // For tests during implementation of authentication and authorization
       path("secured") {
