@@ -21,22 +21,22 @@ angular
   ])
   .config(function ($routeProvider, USER_ROLES) {
     $routeProvider
-      .when('/', {
+      /*.when('/', {
         templateUrl: 'views/main.html',
         controller: 'MainCtrl'
-      })
+      })*/
       .when('/model', {
         templateUrl: 'views/model.html',
         controller: 'ModelCtrl',
-        authorizedRoles: [USER_ROLES.admin, USER_ROLES.editor]
+        data: [USER_ROLES.admin, USER_ROLES.editor]
       })
       .when('/runtime', {
         templateUrl: 'views/runtime.html',
         controller: 'RuntimeCtrl',
-        authorizedRoles: [USER_ROLES.admin, USER_ROLES.editor]
+        data: [USER_ROLES.admin, USER_ROLES.editor]
       })
       .otherwise({
-        redirectTo: '/'
+        redirectTo: '/model'
       });
   })
   .config(function ($httpProvider) {
@@ -48,9 +48,11 @@ angular
     ]);
   })
   .run(function ($rootScope, AUTH_EVENTS, AuthService) {
-    $rootScope.$on('$locationChangeStart', function (event, next, current) {
-      var authorizedRoles = next.authorizedRoles;
+    $rootScope.$on('$routeChangeStart', function (event, next, current) {
+      var authorizedRoles = next.data;
+      console.log(authorizedRoles);
       if (!AuthService.isAuthorized(authorizedRoles)) {
+        console.log("Trying to prevent default");
         event.preventDefault();
         if (AuthService.isAuthenticated()) {
           // user is not allowed

@@ -15,6 +15,7 @@ object SPActorSystem {
   val modelHandler = system.actorOf(ModelHandler.props, "modelHandler")
   val serviceHandler = system.actorOf(ServiceHandler.props, "serviceHandler")
   val runtimeHandler = system.actorOf(RunTimeHandler.props, "runtimeHandler")
+  val userActor = system.actorOf(sp.users.UserActor.props, "userActor")
 
 
   val settings = SPSettings(system)

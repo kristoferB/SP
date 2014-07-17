@@ -37,7 +37,11 @@ module.exports = function (grunt) {
         files: ['<%= yeoman.app %>/scripts/{,*/}*.js'],
         tasks: ['newer:jshint:all'],
         options: {
-          livereload: '<%= connect.options.livereload %>'
+            livereload: {
+                port: 35729,
+                key: grunt.file.read('resources/livereload.key'),
+                cert: grunt.file.read('resources/livereload.crt')
+            }
         }
       },
       jsTest: {
@@ -53,7 +57,11 @@ module.exports = function (grunt) {
       },
       livereload: {
         options: {
-          livereload: '<%= connect.options.livereload %>'
+            livereload: {
+                port: 35729,
+                key: grunt.file.read('resources/livereload.key'),
+                cert: grunt.file.read('resources/livereload.crt')
+            }
         },
         files: [
           '<%= yeoman.app %>/{,*/}*.html',
@@ -66,14 +74,19 @@ module.exports = function (grunt) {
     // The actual grunt server settings
     connect: {
       options: {
-        port: 9000,
+        protocol:'https',
+        port: 8443,
+        key: grunt.file.read('resources/livereload.key'),
+        cert: grunt.file.read('resources/livereload.crt'),
         // Change this to '0.0.0.0' to access the server from outside.
         hostname: 'localhost',
-        livereload: 35729
+        livereload:true
+
       },
       proxies: [{
         context: '/api', // the context of the data service
         host: 'localhost', // wherever the data service is running
+        https:true,
         port: 8030 // the port that the data service is running on
       }],
       livereload: {

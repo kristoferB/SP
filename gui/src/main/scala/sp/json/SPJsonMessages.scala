@@ -32,5 +32,9 @@ trait SPJsonMessages extends SPJsonDomain with SPJsonIDAble  {
   implicit val rtiFormat = jsonFormat4(CreateRuntime)
   implicit val rSMFormat = jsonFormat2(SimpleMessage)
 
+  // UserActor Messages
+  implicit val userDetailFormat = jsonFormat2(UserDetails)
+  implicit val addUserFormat = jsonFormat3(AddUser)
+  implicit val userFormat = jsonFormat4(User)
 
 }

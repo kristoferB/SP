@@ -7,18 +7,21 @@
  * # loginDialog
  */
 angular.module('spGuiApp')
-  .directive('loginDialog', function (AUTH_EVENTS) {
+  .directive('loginDialog', ['AUTH_EVENTS', '$modal', function (AUTH_EVENTS, $modal) {
     return {
       restrict: 'A',
-      template: '<div ng-if="visible" ng-include src="\'views/loginform.html\'">',
+      template: '<div></div>',
       link: function (scope) {
-        var showDialog = function () {
-          scope.visible = true;
+
+        scope.openLoginDialog = function () {
+          $modal.open({
+            templateUrl: 'views/loginform.html',
+            controller: LoginCtrl
+          });
         };
 
-        scope.visible = false;
-        scope.$on(AUTH_EVENTS.notAuthenticated, showDialog);
-        scope.$on(AUTH_EVENTS.sessionTimeout, showDialog)
+        scope.$on(AUTH_EVENTS.notAuthenticated, scope.openLoginDialog);
+        scope.$on(AUTH_EVENTS.sessionTimeout, scope.openLoginDialog);
       }
     };
-  });
+  }]);

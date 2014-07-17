@@ -8,7 +8,7 @@
  * Controller of the spGuiApp
  */
 angular.module('spGuiApp')
-  .controller('SiteCtrl', function ($scope, $routeParams, $location, $rootScope, spTalker, $modal, USER_ROLES, AuthService) {
+  .controller('SiteCtrl', function ($scope, $routeParams, $location, $rootScope, spTalker, $modal, USER_ROLES, AuthService, Session) {
     $scope.currentUser = null;
     $scope.userRoles = USER_ROLES;
     $scope.isAuthorized = AuthService.isAuthorized;
@@ -22,9 +22,11 @@ angular.module('spGuiApp')
           $scope.isLoginPage = data;
       }, true);
 
-    $scope.setCurrentUser = function (user) {
-      $scope.currentUser = user;
-    };
+    $scope.$watch(function() {
+        return Session.id;
+    }, function(data) {
+        $scope.currentUser = [Session.userId, Session.userRole];
+    }, true);
 
     $scope.headerUrl = 'views/header.html';
 
@@ -40,6 +42,8 @@ angular.module('spGuiApp')
         controller: ModellistCtrl
       });
     };
+
+
 
     $scope.setupSwitch = function () {
       $("[name='model-runtime-switch']").bootstrapSwitch('size', 'small');

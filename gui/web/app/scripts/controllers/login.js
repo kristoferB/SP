@@ -7,18 +7,25 @@
  * # LoginCtrl
  * Controller of the spGuiApp
  */
-angular.module('spGuiApp')
-  .controller('LoginCtrl', function ($scope, $rootScope, AUTH_EVENTS, AuthService) {
+var LoginCtrl = function ($scope, $rootScope, AUTH_EVENTS, AuthService, $modalInstance) {
     $scope.credentials = {
       username: '',
       password: ''
     };
+
     $scope.login = function (credentials) {
       AuthService.login(credentials).then(function (user) {
         $rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
-        $scope.setCurrentUser(user);
+        $scope.close();
       }, function () {
         $rootScope.$broadcast(AUTH_EVENTS.loginFailed);
       });
     };
-  });
+
+    $scope.close = function () {
+        $modalInstance.dismiss('cancel');
+    };
+
+  };
+
+

@@ -26,6 +26,7 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
     case UpdateIDs(m, ids) => {
       val reply = sender
       createDiff(m, ids) match {
+        //TODO: Convention dictates that Left is used for failure and Right is used for success. Swap this below! DN 140717
         case Left(diff) => {
           persist(diff)(d =>{
             updateState(d)

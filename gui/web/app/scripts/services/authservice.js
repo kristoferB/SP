@@ -11,12 +11,16 @@ angular.module('spGuiApp')
   .factory('AuthService', function ($http, Session) {
     var authService = {};
 
+    $http.defaults.headers.common['Authorization'] = 'Basic ' + window.btoa('admin' + ':' + 'pass');
+
     authService.login = function (credentials) {
       return $http
         .post('/api/login', credentials)
         .then(function (res) {
-          Session.create(res.id, res.user.id, res.user.role);
-          return res.user;
+          var data = res.data;
+          console.log(data);
+          Session.create(data.id, data.id, data.role);
+          return data;
         });
     };
 

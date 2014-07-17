@@ -1,7 +1,7 @@
 package sp.server
 
 import sp.domain._
-import spray.http.{StatusCodes}
+import spray.http.{AllOrigins, StatusCodes, HttpHeaders}
 import spray.routing._
 import spray.routing.authentication._
 import sp.system.messages._
@@ -39,6 +39,12 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
   val modelHandler: ActorRef
   val runtimeHandler: ActorRef
   val serviceHandler: ActorRef
+  val userActor: ActorRef
+  private implicit val to = timeout
+
+  private def callSP(mess: Any, matchReply: PartialFunction[Any, Route]) = {
+    onSuccess(userActor ? mess){evalReply{matchReply}}
+  }
 
   def myUserPassAuthenticator(userPass: Option[UserPass]): Future[Option[String]] =
     Future {
@@ -53,22 +59,40 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
       complete(StatusCodes.Unauthorized, "Wrong username and/or password.")
   }
 
+  def returnUser(userName: String): UserDetails = {
+    return UserDetails(22, userName)
+  }
+
   val api = pathPrefix("api") {
     / {complete("Sequence Planner REST API")} ~
     encodeResponse(Gzip) {
       pathPrefix("models"){
-        modelapi
+          modelapi
       }~
       pathPrefix("runtimes"){
-        runtimeapi
+          runtimeapi
       }~
       path("services") {
         serviceapi
       }~
+      path("users") {
+        get {
+          callSP(GetUsers, {
+            case userMap: Map[String, User] => complete(userMap)
+          })
+        }~
+        post {
+          entity(as[AddUser]) { cmd =>
+            callSP(cmd, {
+              case createdUser: User => complete(createdUser)
+            })
+          }
+        }
+      }~
       // For tests during implementation of authentication and authorization
-      path("secured") {
-        authenticate(BasicAuth(myUserPassAuthenticator _, realm = "secured API")) { userName =>
-          complete(s"The user is '$userName'")
+      authenticate(BasicAuth(myUserPassAuthenticator _, realm = "secured API")) { userName =>
+        path("login") {
+          complete(returnUser(userName))
         }
       }
     }
@@ -88,13 +112,13 @@ trait ModelAPI extends SPApiHelpers {
           case ModelInfos(list) => complete(list)
         })
       } ~
-        post {
-          entity(as[CreateModel]) { cmd =>
-            callSP(cmd, {
-              case x: ModelInfo => complete(x)
-            })
-          }
+      post {
+        entity(as[CreateModel]) { cmd =>
+          callSP(cmd, {
+            case x: ModelInfo => complete(x)
+          })
         }
+      }
     } ~
     pathPrefix(Segment) { model =>
       / {
