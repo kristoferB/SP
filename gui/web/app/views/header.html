@@ -9,14 +9,14 @@
             <div class="collapse navbar-collapse">
                 <ul class="nav navbar-nav ">
                     <li><a ng-click="openModelList()">Active model: {{activeModel.model}}</a></li>
-                    <li ng-if="currentUser">
+                    <!--<li ng-if="currentUser">
                         <p>Welcome, {{ currentUser.name }}</p>
                         <p ng-switch on="currentUser.role">
                             <span ng-switch-when="userRoles.admin">You're admin.</span>
                             <span ng-switch-when="userRoles.editor">You're editor.</span>
                             <span ng-switch-default>You're something else.</span>
                         </p>
-                    </li>
+                    </li>-->
                     <li style="vertical-align: middle"><input type="checkbox" name="model-runtime-switch"></li>
                     <li><object id="splogo" style="margin-left:20px; margin-top:2px; height:34px" data="/images/splogo.svg" type="image/svg+xml"></object></li>
                 </ul>

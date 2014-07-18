@@ -42,6 +42,7 @@ angular.module('spGuiApp')
         controller: ModellistCtrl
       });
     };
+    $scope.openModelList();
 
 
 

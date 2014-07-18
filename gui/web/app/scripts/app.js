@@ -47,7 +47,7 @@ angular
       }
     ]);
   })
-  .run(function ($rootScope, AUTH_EVENTS, AuthService) {
+  /*.run(function ($rootScope, AUTH_EVENTS, AuthService) {
     $rootScope.$on('$routeChangeStart', function (event, next, current) {
       var authorizedRoles = next.data;
       console.log(authorizedRoles);
@@ -66,7 +66,7 @@ angular
       }
       $rootScope.vars.isLoginPage = false;
     });
-  })
+  })*/
   .run(function($rootScope, $location) {
     $rootScope.location = $location;
   });

@@ -13,18 +13,25 @@ angular.module('spGuiApp')
     activeModel: null,
     models: [],
     users: [],
+    operations: [],
+    items: [],
     model: $resource(apiUrl + '/models/', {}),
     user: $resource(apiUrl + '/users', {}),
-    operation: $resource(apiUrl + '/models/:model/operations/:op', { model: '@model', op: '@op' }),
+    operation: $resource(apiUrl + '/models/:model/operations', { model: '@model' }, {saveArray: {method: 'POST', isArray: true}}),
     thing: $resource(apiUrl + '/models/:model/things/:thing', { model: '@model', thing: '@thing' }),
-    item: $resource(apiUrl + '/models/:model/items', { model: '@model' })
+    item: $resource(apiUrl + '/models/:model/items', { model: '@model' }, {saveArray: {method: 'POST', isArray: true}})
   };
 
-  factory.loadAll = function() {
+  factory.loadModels = function() {
     factory.models = factory.model.query();
   };
 
-  //factory.loadAll();
+  factory.loadModels();
+
+  factory.loadAll = function() {
+    factory.loadModels();
+    factory.items = factory.item.query({model: factory.activeModel.model});
+  };
 
   /*$http.defaults.headers.common['Authorization'] = 'Basic ' + window.btoa('admin' + ':' + 'pass');
   $http({method: 'GET', url: 'api/secured'}).
@@ -39,7 +46,7 @@ angular.module('spGuiApp')
         // or server returns response with an error status.
     });*/
 
-    $http({method: 'POST', url: 'api/users', data: {userName: 'test', password: 'demo', name: 'Ben'}}).
+    /*$http({method: 'POST', url: 'api/users', data: {userName: 'test', password: 'demo', name: 'Ben'}}).
         success(function(data, status, headers, config) {
             console.log(data);
             // this callback will be called asynchronously
@@ -61,7 +68,7 @@ angular.module('spGuiApp')
             console.log(data);
             // called asynchronously if an error occurs
             // or server returns response with an error status.
-        });
+        });*/
 
 
 

@@ -61,3 +61,18 @@
 .bootstrap-switch .bootstrap-switch-label {
     background:#4e5d6c;
 }
+
+/*** For the itemList table ***/
+.odd-row {
+    background-color: #485563;
+}
+
+.table .table {
+    background-color: transparent;
+}
+
+.hiddenRow {padding: 0 !important;}
+
+.collapsed-row {margin: 0 0 5px 0px;}
+
+/*** Else ***/
