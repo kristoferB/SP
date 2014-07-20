@@ -135,9 +135,10 @@ trait ModelAPI extends SPApiHelpers {
           case "items" => getSPIDS(GetIds(List(), model))
           case "statevariables" => path(JavaUUID){ id =>
             /{ get {callSP(GetStateVariable(id, model), {
-              case SPSVs(x) => if (!x.isEmpty) complete(x.head) else complete(x)})}
+              case SPSVs(x) => if (x.size == 1) complete(x.head) else complete(x)})}
             }
           }
+          case _ => reject
         }}
       }
   }
@@ -156,14 +157,14 @@ trait ModelAPI extends SPApiHelpers {
   private def IDHandler(model: String) = {
     path(JavaUUID){id =>
       /{ get {callSP(GetIds(List(ID(id)), model), {
-        case SPIDs(x) => if (!x.isEmpty) complete(x.head) else complete(x)})}
+        case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)})}
       }~
       post {
         entity(as[IDSaver]) { x =>
           val upids = createUPIDs(List(x), Some(id))
           // Maybe req modelversion in the future
           callSP(UpdateIDs(model, upids),  {
-              case SPIDs(x) => if (!x.isEmpty) complete(x.head) else complete(x)
+              case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
             })
         }
       }
@@ -174,6 +175,12 @@ trait ModelAPI extends SPApiHelpers {
           val upids = createUPIDs(xs, None)
           callSP(UpdateIDs(model, upids), {
             case SPIDs(x) => complete(x)
+          })
+        } ~
+        entity(as[IDSaver]) { xs =>
+          val upids = createUPIDs(List(xs), None)
+          callSP(UpdateIDs(model, upids), {
+            case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
           })
         }
       }

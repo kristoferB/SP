@@ -33,8 +33,32 @@ trait SPJsonDomain {
         JsObject(res.fields + ("operation" -> o.toJson))
       } else res
     }
-    def read(value: JsValue) = throw new DeserializationException("Operation JsonParse not implemented")
-
+    def read(value: JsValue): SOP = value match {
+      case sop: JsObject => {
+        sop.getFields("isa", "sop") match {
+          case Seq(JsString("Parallel"), xs: JsArray) =>
+            Parallel((xs.elements map read):_*)
+          case Seq(JsString("Alternative"), xs: JsArray) =>
+            Alternative((xs.elements map read):_*)
+          case Seq(JsString("Arbitrary"), xs: JsArray) =>
+            Arbitrary((xs.elements map read):_*)
+          case Seq(JsString("Sequence"), xs: JsArray) =>
+            Sequence((xs.elements map read):_*)
+          case Seq(JsString("SometimeSequence"), xs: JsArray) =>
+            SometimeSequence((xs.elements map read):_*)
+          case Seq(JsString("Other"), xs: JsArray) =>
+            Other((xs.elements map read):_*)
+          case Seq(JsString("Hierarchy"),  xs: JsArray) => {
+            sop.fields.get("operation") match {
+              case Some(id) => Hierarchy(id.convertTo[ID], (xs.elements map read):_*)
+              case None => throw new DeserializationException(s"can not find field operation with id on Hierarchy: $value")
+            }
+          }
+          case _ => throw new DeserializationException(s"can not convert the SOP from $value")
+        }
+      }
+      case _ => throw new DeserializationException(s"can not convert the SOP from $value")
+    }
   }
 
 

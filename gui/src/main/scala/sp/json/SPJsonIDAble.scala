@@ -5,9 +5,6 @@ package sp.json
   import DefaultJsonProtocol._
 
 trait SPJsonIDAble extends SPJsonDomain {
-   import SharedConvert._
-
-
 
   implicit object OperationJsonFormat extends RootJsonFormat[Operation] {
     def write(x: Operation) = {
@@ -26,6 +23,7 @@ trait SPJsonIDAble extends SPJsonDomain {
           val myid = oid.convertTo[ID]
           new Operation(name, cond, attr){override lazy val id = myid}
         }
+        case _ => throw new DeserializationException(s"can not convert the Operation from $value")
       }
     }
   }
@@ -47,6 +45,7 @@ trait SPJsonIDAble extends SPJsonDomain {
           val myid = oid.convertTo[ID]
           new Thing(name, sv, attr){override lazy val id = myid}
         }
+          case _ => throw new DeserializationException(s"can not convert the Thing from $value")
       }
     }
   }
@@ -66,6 +65,7 @@ trait SPJsonIDAble extends SPJsonDomain {
           val myid = oid.convertTo[ID]
           new SPObject(name, attr){override lazy val id = myid}
         }
+        case _ => throw new DeserializationException(s"can not convert the SPObject from $value")
       }
     }
   }
@@ -78,13 +78,18 @@ trait SPJsonIDAble extends SPJsonDomain {
       ) ++ idPart(x)
       JsObject(map)
     }
+
     def read(value: JsValue) = {
       value.asJsObject.getFields("name", "attributes", "id") match {
         case Seq(JsString(name), a: JsObject, oid: JsString) => {
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
-          new SPSpec(name, attr){override lazy val id = myid}
+          new SPSpec(name, attr) {
+            override lazy val id = myid
+          }
         }
+        case _ => throw new DeserializationException(s"can not convert the SPSPec from $value")
+
       }
     }
   }
@@ -106,6 +111,8 @@ trait SPJsonIDAble extends SPJsonDomain {
           val myid = oid.convertTo[ID]
           new SOPSpec(sop, label, attr){override lazy val id = myid}
         }
+        case _ => throw new DeserializationException(s"can not convert the SOPSpec from $value")
+
       }
     }
   }
@@ -144,13 +151,13 @@ trait SPJsonIDAble extends SPJsonDomain {
     }
   }
 
+      def idPart(x: IDAble) = List(
+          "version" -> x.version.toJson,
+          "id" -> x.id.toJson,
+          "attributes" -> x.attributes.toJson
+        )
 
 
-    def idPart(x: IDAble) = List(
-        "version" -> x.version.toJson,
-        "id" -> x.id.toJson,
-        "attributes" -> x.attributes.toJson
-      )
 
 //      def filterAndUpdateIDAble(js: JsObject): Option[JsObject] = {
 //        val xs = js.fields
@@ -169,6 +176,5 @@ trait SPJsonIDAble extends SPJsonDomain {
 
 }
 
-    object SharedConvert {
 
-    }
+

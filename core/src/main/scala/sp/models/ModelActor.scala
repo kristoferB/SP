@@ -65,7 +65,7 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
           reply ! SPIDs(res.toList)
         }
         case get: GetSpecs => {
-          val res = state.things.values
+          val res = state.specifications.values
           reply ! SPIDs(res.toList)
         }
         case GetStateVariable(id,m) => {
