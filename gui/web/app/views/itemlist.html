@@ -1,58 +1,93 @@
 <div class="btn-toolbar" role="toolbar">
   <button type="button" class="btn btn-default" ng-click="refresh()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
-  <button type="button" class="btn btn-default" ng-click="createItem('Operation')"><span class="glyphicon glyphicon-asterisk"></span> Create Op</button>
-  <button type="button" class="btn btn-default" ng-click="createItem('Thing')"><span class="glyphicon glyphicon-asterisk"></span> Create Thing</button>
-  <button type="button" class="btn btn-default" ng-click="createItem('SOPSpec')"><span class="glyphicon glyphicon-asterisk"></span> Create SOPSpec</button>
-  <button type="button" class="btn btn-default" ng-click="createItem('SPObject')"><span class="glyphicon glyphicon-asterisk"></span> Create SPObject</button>
-  <button type="button" class="btn btn-default" ng-click="createItem('SPSpec')"><span class="glyphicon glyphicon-asterisk"></span> Create SPSpec</button>
+
+  <div class="btn-group" dropdown>
+    <button type="button" class="btn btn-default dropdown-toggle">
+      <span class="glyphicon glyphicon-asterisk"></span> Create <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" role="menu">
+      <li><a ng-click="createItem('Operation')">Operation</a></li>
+      <li><a ng-click="createItem('Thing')">Thing</a></li>
+      <li><a ng-click="createItem('SOPSpec')">SOPSpec</a></li>
+      <li><a ng-click="createItem('SPObject')">SPObject</a></li>
+      <li><a ng-click="createItem('SPSpec')">SPSpec</a></li>
+    </ul>
+  </div>
+
+  <div class="btn-group" dropdown>
+    <button type="button" class="btn btn-default dropdown-toggle">
+      <span class="glyphicon glyphicon-list-alt"></span> Columns <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" role="menu">
+      <li ng-repeat="column in showableColumns">
+        <input
+          type="checkbox"
+          name="selectedColumns[]"
+          value="{{column}}"
+          ng-checked="selection.indexOf(column) > -1"
+          ng-click="toggleSelection(column)"
+        />
+        <label>{{column}}</label><br />
+      </li>
+    </ul>
+  </div>
+
+
 </div>
 <div>
-    <table class="table">
-        <thead><tr><th class="col-md-2">Name</th><th class="col-md-2">Type</th></tr></thead>
-        <tbody>
-          <!--<tr ng-repeat="item in items" ng-init="row={expanded:false}">
-            <td>{{item.name}}</td>
-            <td>{{item.isa}}</td>
-            <td><span ng-click="row.mode='edit'" class="btn btn-default glyphicon glyphicon-pencil"></span></td>
-            <td><span ng-click="row.expanded=!row.expanded" class="btn btn-default glyphicon glyphicon-expand"></span></td>
-          </tr>
-          <tr ng-show="row.expanded===true" class="">
-            <td>id: xxxxxx-xxx-xxxxx</td>
-            <td>version: 1</td>
-            <td></td>
-            <td></td>
-          </tr>-->
-            <tr ng-repeat-start="item in items" data-toggle="collapse" data-target="#{{item.id}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-init="row={edit:false}">
-              <td>
-                <span ng-if="!row.edit">{{item.name}}</span>
-                <input ng-if="row.edit" name="opNameInput" type="text" ng-maxlength="30" unique="items" ng-disabled="!row.edit" class="form-control input-sm" auto-focus required ng-model="row.opNameModel" ng-init="row.opNameModel=item.name"/></td>
-              <td>{{item.isa}}</td>
-            </tr>
+  <table class="table">
+    <thead>
+      <tr>
+        <th ng-repeat="column in selection" class="col-md-2" ng-bind="column"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <!--<tr ng-repeat="item in items" ng-init="row={expanded:false}">
+        <td>{{item.name}}</td>
+        <td>{{item.isa}}</td>
+        <td><span ng-click="row.mode='edit'" class="btn btn-default glyphicon glyphicon-pencil"></span></td>
+        <td><span ng-click="row.expanded=!row.expanded" class="btn btn-default glyphicon glyphicon-expand"></span></td>
+      </tr>
+      <tr ng-show="row.expanded===true" class="">
+        <td>id: xxxxxx-xxx-xxxxx</td>
+        <td>version: 1</td>
+        <td></td>
+        <td></td>
+      </tr>-->
+        <tr ng-repeat-start="item in items" data-toggle="collapse" data-target="#{{item.id}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={edit:false}">
+          <!--<td>{{item.name}}</td>
+          <td>{{item.isa}}</td>-->
+          <td ng-repeat="column in selection" ng-bind="item[column]"></td>
+        </tr>
 
-            <tr ng-repeat-end ng-class-odd="'odd-row'" style="height: 0px;">
-              <td colspan="6" class="hiddenRow">
-                <div class="accordion-body collapse" id="{{item.id}}">
-                  <table class="table collapsed-row">
-                    <tbody>
-                      <tr>
-                        <td class="col-md-2">id: {{item.id}}</td>
-                        <td class="col-md-1">version: {{item.version}}</td>
-                        <td class="col-md-1" rowspan="2">
-                          <span ng-if="row.edit" ng-click="item.name = row.opNameModel; row.edit=false; " class="btn btn-default glyphicon glyphicon-floppy-disk"></span>
-                          <span ng-click="row.edit=!row.edit" class="btn btn-default glyphicon" ng-class="{true: 'glyphicon-remove', false: 'glyphicon-pencil'}[row.edit]"></span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>attributes: {{item.attributes}}</td>
-                        <td>conditions: {{item.conditions}}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </td>
-            </tr>
-        </tbody>
-    </table>
+        <tr ng-repeat-end ng-class-odd="'odd-row'" ng-class-even="'even-row'" style="height: 0px;">
+          <td colspan="6" class="hiddenRow">
+            <form>
+              <div class="accordion-body collapse" id="{{item.id}}">
+                <table class="table collapsed-row">
+                  <tbody>
+                    <tr ng-repeat="(key, prop) in item">
+                      <td class="col-md-1">{{key}}:</td>
+                      <td class="col-md-11">
+                        <span ng-hide="isEditAble(key) && row.edit">{{prop}}</span>
+                        <input ng-if="isEditAble(key) && row.edit" name="{{key}}Input" type="text" ng-maxlength="40" ng-disabled="!row.edit" class="form-control input-sm" required ng-model="item[key]" /></td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="2">
+                        <button ng-click="saveItem(item); row.edit=false;" type="submit" ng-if="row.edit" class="btn btn-default glyphicon glyphicon-floppy-disk"></button>
+                        <button ng-click="reReadFromServer(item); row.edit=false;" ng-if="row.edit" class="btn btn-default glyphicon glyphicon-remove"></button>
+                        <button ng-click="row.edit=true;" ng-if="!row.edit" class="btn btn-default glyphicon glyphicon-pencil"></button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </form>
+          </td>
+        </tr>
+    </tbody>
+  </table>
 </div>
 
 

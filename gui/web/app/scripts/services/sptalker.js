@@ -10,7 +10,7 @@
 angular.module('spGuiApp')
 .factory('spTalker', ['$resource', '$http', function ($resource, $http) {
   var apiUrl = '/api', factory = {
-    activeModel: null,
+    activeModel: {},
     models: [],
     users: [],
     operations: [],
@@ -18,9 +18,10 @@ angular.module('spGuiApp')
     model: $resource(apiUrl + '/models/', {}),
     user: $resource(apiUrl + '/users', {}),
     operation: $resource(apiUrl + '/models/:model/operations', { model: '@model' }, {saveArray: {method: 'POST', isArray: true}}),
-    thing: $resource(apiUrl + '/models/:model/things/:thing', { model: '@model', thing: '@thing' }),
-    item: $resource(apiUrl + '/models/:model/items', { model: '@model' }, {saveArray: {method: 'POST', isArray: true}})
+    thing: $resource(apiUrl + '/models/:model/things/:thing', { model: '@model', thing: '@thing' })
   };
+
+  factory.item = $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'});
 
   factory.loadModels = function() {
     factory.models = factory.model.query();
