@@ -14,20 +14,30 @@
     </ul>
   </div>
 
-  <div class="btn-group" dropdown>
+  <div class="btn-group" dropdown is-open="status.isopen">
     <button type="button" class="btn btn-default dropdown-toggle">
       <span class="glyphicon glyphicon-list-alt"></span> Columns <span class="caret"></span>
     </button>
     <ul class="dropdown-menu" role="menu">
-      <li ng-repeat="column in showableColumns">
+      <li ng-repeat="column in showableColumns" role="menuitem">
         <input
           type="checkbox"
           name="selectedColumns[]"
           value="{{column}}"
           ng-checked="selection.indexOf(column) > -1"
-          ng-click="toggleSelection(column)"
+          ng-click="toggleSelection(column, selection)"
         />
         <label>{{column}}</label><br />
+      </li>
+      <li ng-repeat="attrType in attributeTypes">
+        <input
+          type="checkbox"
+          name="selectedAttrColumns[]"
+          value="{{attrType}}"
+          ng-checked="attrSelection.indexOf(attrType) > -1"
+          ng-click="toggleSelection(attrType, attrSelection)"
+          />
+        <label>{{attrType}}</label><br />
       </li>
     </ul>
   </div>
@@ -38,7 +48,8 @@
   <table class="table">
     <thead>
       <tr>
-        <th ng-repeat="column in selection" class="col-md-2" ng-bind="column"></th>
+        <th ng-repeat="column in selection">{{column}}</th>
+        <th ng-repeat="attrColumn in attrSelection">{{attrColumn}}</th>
       </tr>
     </thead>
     <tbody>
@@ -57,28 +68,30 @@
         <tr ng-repeat-start="item in items" data-toggle="collapse" data-target="#{{item.id}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={edit:false}">
           <!--<td>{{item.name}}</td>
           <td>{{item.isa}}</td>-->
-          <td ng-repeat="column in selection" ng-bind="item[column]"></td>
+          <td ng-repeat="column in selection">{{item[column]}}</td>
+          <td ng-repeat="attrColumn in attrSelection">{{item['attributes'][attrColumn]}}</td>
         </tr>
 
         <tr ng-repeat-end ng-class-odd="'odd-row'" ng-class-even="'even-row'" style="height: 0px;">
-          <td colspan="6" class="hiddenRow">
-            <form>
+          <td colspan="99" class="hiddenRow">
+            <form class="form-inline">
               <div class="accordion-body collapse" id="{{item.id}}">
                 <table class="table collapsed-row">
                   <tbody>
                     <tr ng-repeat="(key, prop) in item">
                       <td class="col-md-1">{{key}}:</td>
-                      <td class="col-md-11">
-                        <span ng-hide="isEditAble(key) && row.edit">{{prop}}</span>
-                        <input ng-if="isEditAble(key) && row.edit" name="{{key}}Input" type="text" ng-maxlength="40" ng-disabled="!row.edit" class="form-control input-sm" required ng-model="item[key]" /></td>
+                      <td class="col-md-9">
+                        <span ng-if="isPlainlyEditable(key) && !row.edit || isJustViewable(key)">{{prop}}</span>
+                        <input ng-if="isPlainlyEditable(key) && row.edit" name="{{key}}Input" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item[key]" />
+                        <attr-grid ng-if="key==='attributes'" attr-obj="prop" edit="row.edit" attribute-types="attributeTypes"></attr-grid>
+                        <sv-grid ng-if="key==='stateVariables'" sv-array="prop" edit="row.edit" attribute-types="attributeTypes"></sv-grid>
                       </td>
-                    </tr>
-                    <tr>
-                      <td colspan="2">
+                      <td ng-if="$first" >
                         <button ng-click="saveItem(item); row.edit=false;" type="submit" ng-if="row.edit" class="btn btn-default glyphicon glyphicon-floppy-disk"></button>
                         <button ng-click="reReadFromServer(item); row.edit=false;" ng-if="row.edit" class="btn btn-default glyphicon glyphicon-remove"></button>
                         <button ng-click="row.edit=true;" ng-if="!row.edit" class="btn btn-default glyphicon glyphicon-pencil"></button>
                       </td>
+                      <td ng-if="!$first"></td>
                     </tr>
                   </tbody>
                 </table>

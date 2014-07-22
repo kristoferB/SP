@@ -13,20 +13,22 @@ angular.module('spGuiApp')
     restrict: 'E',
     link: function postLink(scope, element, attrs) {
       scope.items = [];
-      scope.showableColumns = ['name', 'isa', 'version']
-      scope.selection = ['name', 'isa'];
+      scope.showableColumns = ['name', 'isa', 'version', 'conditions', 'stateVariables', 'attributes']
+      scope.selection = ['name', 'isa', 'version'];
+      scope.attributeTypes = ['user', 'date', 'comment'];
+      scope.attrSelection = angular.copy(scope.attributeTypes);
 
-      scope.toggleSelection = function toggleSelection(column) {
-        var idx = scope.selection.indexOf(column);
+      scope.toggleSelection = function toggleSelection(column, selections) {
+        var idx = selections.indexOf(column);
 
         // is currently selected
         if (idx > -1) {
-          scope.selection.splice(idx, 1);
+          selections.splice(idx, 1);
         }
 
         // is newly selected
         else {
-          scope.selection.push(column);
+          selections.push(column);
         }
       };
 
@@ -94,8 +96,16 @@ angular.module('spGuiApp')
         item.$get({model: spTalker.activeModel.model});
       };
 
-      scope.isEditAble = function(key) {
-        return key !== 'id' && key !== 'version' && key !== 'isa';
+      scope.isJustViewable = function(key) {
+        return key === 'id' || key === 'version' || key === 'isa';
+      };
+
+      scope.isPlainlyEditable = function(key) {
+        return key !== 'id' && key !== 'version' && key !== 'isa' && key !== 'stateVariables' && key !== 'attributes';
+      };
+
+      scope.hasItsOwnEditor = function(key) {
+        return key === 'attributes' || key === 'stateVariables';
       };
 
       scope.refresh();

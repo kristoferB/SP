@@ -44,8 +44,6 @@ angular.module('spGuiApp')
     };
     $scope.openModelList();
 
-
-
     $scope.setupSwitch = function () {
       $("[name='model-runtime-switch']").bootstrapSwitch('size', 'small');
       $("[name='model-runtime-switch']").bootstrapSwitch('offText', 'Model');
