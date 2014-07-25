@@ -76,6 +76,7 @@ angular
       $rootScope.vars.isLoginPage = false;
     });
   })*/
+  .constant('NAME_PATTERN', /^[A-Za-z0-9_-][A-Za-z0-9_-]*$/)
   .run(function($rootScope, $location) {
     $rootScope.location = $location;
   });

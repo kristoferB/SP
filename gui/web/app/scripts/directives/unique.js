@@ -10,14 +10,17 @@ angular.module('spGuiApp')
   .directive('unique', function (){
     return {
       require: 'ngModel',
-      scope: { existingObjects: '=unique' },
+      scope: {
+        passedObj: '=unique'
+      },
       link: function(scope, elem, attr, ngModel) {
 
         function checkIfExists(viewValue){
           var exists = false;
-          scope.existingObjects.forEach(function(existingModel) {
-            if(viewValue === existingModel.model) {
+          scope.passedObj.existingObjects.forEach(function(existingObject) {
+            if((viewValue === existingObject[scope.passedObj.propKey]) && (scope.passedObj.editedObj !== existingObject)) {
               exists = true;
+              console.log('Does already exist');
             }
           });
           if(exists) {

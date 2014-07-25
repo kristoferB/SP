@@ -62,7 +62,7 @@
 
       <tr ng-repeat-end ng-class-odd="'odd-row'" ng-class-even="'even-row'" style="height: 0px;">
         <td colspan="99" class="hiddenRow">
-          <form class="form-inline">
+          <form class="form-inline" name="itemForm">
             <div class="accordion-body collapse" id="{{window.id}}{{item.id}}">
               <table class="table collapsed-row">
                 <tbody>
@@ -73,10 +73,10 @@
                       <input ng-if="isPlainlyEditable(key) && row.edit" name="{{key}}Input" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item[key]" />
                       <attr-grid ng-if="key==='attributes'" attr-obj="prop" edit="row.edit" attribute-types="attributeTypes"></attr-grid>
                       <sv-grid ng-if="key==='stateVariables'" sv-array="prop" edit="row.edit" attribute-types="attributeTypes"></sv-grid>
-                      <button ng-if="key==='sop'" ng-click="openSopInNewWindow(item)" class="btn btn-default glyphicon glyphicon-new-window"></button>
+                      <button ng-if="key==='sop'" ng-click="openSopInNewWindow(item)" class="btn btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
                     </td>
                     <td ng-if="$first" >
-                      <button ng-click="saveItem(item); row.edit=false;" type="submit" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                      <button ng-click="itemForm.$valid && saveItem(item, row)" type="submit" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
                       <button ng-click="reReadFromServer(item); row.edit=false;" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
                       <button ng-click="row.edit=true;" ng-if="!row.edit" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span> Edit</button>
                     </td>

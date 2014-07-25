@@ -1,16 +1,36 @@
+
 <table class="table-bordered" >
-  <tr class="form-inline" ng-repeat="sv in svArray">
-    <td>
-      <span ng-if="!edit">{{sv.name}}</span>
-      <input ng-if="edit" type="text" class="form-control input-sm" ng-model="sv.name" />
-    </td>
-    <td class="col-md-1">attrs:</td>
-    <td >
-      <attr-grid edit="edit" attr-obj="sv.attributes" attribute-types="attributeTypes"></attr-grid>
-    </td>
-    <td ng-if="edit">
-      <span ng-click="deleteSV(svArray,sv);" class="btn btn-default glyphicon glyphicon-minus"></span>
-    </td>
-  </tr>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>ID</th>
+      <th colspan="99">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="form-inline" ng-repeat="sv in svArray" ng-init="nameInputName = 'name' + sv.id">
+      <td>
+        <ng-form name="svNameForm">
+          <span ng-if="!edit">{{sv.name}}</span>
+          <input ng-if="edit" name="svName" type="text" ng-trim="false" ng-pattern="namePattern" ng-maxlength="30" required unique="{'existingObjects': svArray, editedObj: sv, 'propKey': 'name'}" class="form-control input-sm" ng-model="sv.name" /><br/>
+          <span class="error" ng-show="svNameForm.svName.$dirty && svNameForm.svName.$error.required">You have to choose a name.</span>
+          <span class="error" ng-show="svNameForm.svName.$error.pattern">No whitespace or special characters (except _ and -) are allowed.</span>
+          <span class="error" ng-show="svNameForm.svName.$error.unique">A stateVar with this name does already exist.</span>
+          <span class="error" ng-show="svNameForm.svName.$error.maxlength">Not too long, please.</span>
+        </ng-form>
+      </td>
+
+      <td>
+        {{sv.id}}
+      </td>
+
+      <td >
+        <attr-grid edit="edit" attr-obj="sv.attributes" attribute-types="attributeTypes"></attr-grid>
+      </td>
+      <td ng-if="edit">
+        <span ng-click="deleteSV(svArray,sv);" class="btn btn-default glyphicon glyphicon-minus"></span>
+      </td>
+    </tr>
+    </tbody>
 </table>
 <button ng-if="edit" type="button" class="btn btn-default" ng-click="svArray.push({name:'newVar', attributes:{}})"><span class="glyphicon glyphicon-plus"></span> New stateVar</button>

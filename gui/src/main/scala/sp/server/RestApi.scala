@@ -72,7 +72,7 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
       pathPrefix("runtimes"){
           runtimeapi
       }~
-      path("services") {
+      pathPrefix("services") {
         serviceapi
       }~
       path("users") {

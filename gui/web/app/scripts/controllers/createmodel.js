@@ -7,9 +7,10 @@
  * # CreatemodelCtrl
  * Controller of the spGuiApp
  */
-var CreatemodelCtrl = function ($scope, $modalInstance, spTalker, notificationService) {
+var CreatemodelCtrl = function ($scope, $modalInstance, spTalker, notificationService, NAME_PATTERN) {
   $scope.enteredModelName = '';
   $scope.existingModels = spTalker.models;
+  $scope.namePattern = NAME_PATTERN;
 
   $scope.saveModel = function(givenName) {
     var newModel = new spTalker.model();

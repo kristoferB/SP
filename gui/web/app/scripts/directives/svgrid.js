@@ -7,16 +7,18 @@
  * # attrGrid
  */
 angular.module('spGuiApp')
-  .directive('svGrid', function (RecursionHelper) {
+  .directive('svGrid', function (NAME_PATTERN) {
     return {
       restrict: 'E',
       scope: {
         svArray : '=',
         edit: '=',
-        attributeTypes: '='
+        attributeTypes: '=',
+        itemForm: '='
       },
       templateUrl: 'views/svgrid.html',
       controller: function($scope) {
+        $scope.namePattern = NAME_PATTERN;
 
         $scope.checkType = function(obj, type, aClass) {
           return typeof obj === type;
@@ -26,22 +28,6 @@ angular.module('spGuiApp')
           array.splice(array.indexOf(sv),1);
         };
       }
-      /*compile: function(element) {
-        // Use the compile function from the RecursionHelper,
-        // And return the linking function(s) which it returns
 
-        return RecursionHelper.compile(element);
-      }/*,
-      link: function postLink(scope, element, attrs) {
-
-        /*$http.get(tpl)
-          .then(function(response){
-            element.html($compile(response.data)(scope, function(cloned, scope){
-              element.append(cloned);
-            }));
-          });
-
-
-      }*/
     };
   });

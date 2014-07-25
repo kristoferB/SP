@@ -100,6 +100,12 @@ angular.module('spGuiApp')
           scope.storage.sopDef =
           {
             'isa' : 'Sequence',
+            'sop' : []
+          }
+
+          /*scope.storage.sopDef =
+          {
+            'isa' : 'Sequence',
             'sop' : [ {
               'isa' : 'Hierarchy',
               'sop' : [],
@@ -194,7 +200,7 @@ angular.module('spGuiApp')
                 } ]
               } ]
             } ]
-          };
+          };*/
 
         };
 

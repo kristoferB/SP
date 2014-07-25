@@ -7,7 +7,7 @@
  * # sop
  */
 angular.module('spGuiApp')
-.directive('itemlist', ['spTalker', 'notificationService', '$parse', function (spTalker, notificationService, $parse) {
+.directive('itemlist', ['spTalker', 'notificationService', '$parse', function (spTalker, notificationService, $parse, NAME_PATTERN) {
   return {
     templateUrl: 'views/itemlist.html',
     restrict: 'E',
@@ -20,12 +20,10 @@ angular.module('spGuiApp')
 
       scope.toggleSelection = function toggleSelection(column, selections) {
         var idx = selections.indexOf(column);
-
         // is currently selected
         if (idx > -1) {
           selections.splice(idx, 1);
         }
-
         // is newly selected
         else {
           selections.push(column);
@@ -40,11 +38,6 @@ angular.module('spGuiApp')
       };
 
       scope.createItem = function(type) {
-        /*var opArray = [{
-          isa : type,
-          name : type + ' ' + Math.floor(Math.random()*1000),
-          attributes : {}
-        }];*/
         var newItem = new spTalker.item({
           isa : type,
           name : type + ' ' + Math.floor(Math.random()*1000),
@@ -60,17 +53,11 @@ angular.module('spGuiApp')
           newItem.sop = {isa: 'Sequence', sop: []};
           newItem.version = 1;
         };
-        //console.log(angular.copy(newItem));
         newItem.$save(
           {model:spTalker.activeModel.model},
-          function(data, putResponseHeaders) { /*console.log(data); console.log(putResponseHeaders);*/ spTalker.items.unshift(data); },
+          function(data, putResponseHeaders) { spTalker.items.unshift(data); },
           function(error) { console.log(error); }
         );
-        /*spTalker.item.saveArray({model:spTalker.activeModel.model}, opArray,
-          function(data) { spTalker.items.push(data[0]); },
-          function(error) { console.log(error); }
-        );*/
-        //newOp.items = [{"name": "Op " , "conditions": [], "attributes": {}, "type": "Operation"}];
       };
 
       scope.refresh = function() {
@@ -78,9 +65,9 @@ angular.module('spGuiApp')
         scope.items = spTalker.items;
       };
 
-      scope.saveItem = function(item) {
-        console.log(item);
+      scope.saveItem = function(item, row) {
         spTalker.saveItem(item);
+        row.edit = false;
       };
 
       scope.reReadFromServer = function(item) {
