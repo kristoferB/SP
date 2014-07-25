@@ -47,6 +47,15 @@ angular
       }
     ]);
   })
+  .config(['notificationServiceProvider', function(notificationServiceProvider) {
+    notificationServiceProvider.setStack('bottom_right', 'stack-bottomright', {
+      dir1: 'up',
+      dir2: 'left',
+      push: 'top'
+    });
+
+    notificationServiceProvider.setDefaultStack('bottom_right');
+  }])
   /*.run(function ($rootScope, AUTH_EVENTS, AuthService) {
     $rootScope.$on('$routeChangeStart', function (event, next, current) {
       var authorizedRoles = next.data;

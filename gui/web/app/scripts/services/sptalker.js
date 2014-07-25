@@ -8,7 +8,7 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-.factory('spTalker', ['$resource', '$http', function ($resource, $http) {
+.factory('spTalker', ['$resource', '$http', 'notificationService', function ($resource, $http, notificationService) {
   var apiUrl = '/api', factory = {
     activeModel: {},
     models: [],
@@ -23,6 +23,23 @@ angular.module('spGuiApp')
 
   factory.item = $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'});
 
+  factory.getItemById = function(id) {
+    var result = $.grep(factory.items, function(e){ return e.id === id; });
+    if (result.length == 0) {
+      var error = 'Could not find any item with id ' + id + '. The requested action have most likely been aborted.';
+      console.log(error);
+      notificationService.error(error);
+      return {};
+    } else if (result.length == 1) {
+      return result[0];
+    } else {
+      var error = 'Found multiple items with id ' + id + '. The requested action have most likely been aborted.';
+      console.log(error);
+      notificationService.error(error);
+      return result[0];
+    }
+  };
+
   factory.loadModels = function() {
     factory.models = factory.model.query();
   };
@@ -32,6 +49,28 @@ angular.module('spGuiApp')
   factory.loadAll = function() {
     factory.loadModels();
     factory.items = factory.item.query({model: factory.activeModel.model});
+  };
+
+  factory.saveItem = function(item) {
+    factory.save(item);
+  };
+
+  factory.save = function(item) {
+    item.$save(
+      {model: factory.activeModel.model, id: item.id},
+      function (data, headers) {
+        notificationService.success(item.isa + ' \"' + item.name + '\" was successfully saved');
+      },
+      function (error) {
+        notificationService.error(item.isa + ' ' + item.name + ' could not be saved. ' + error.data);
+        console.log(error);
+        factory.reReadFromServer(item);
+      }
+    );
+  };
+
+  factory.reReadFromServer = function(item) {
+    item.$get({model: factory.activeModel.model});
   };
 
   /*$http.defaults.headers.common['Authorization'] = 'Basic ' + window.btoa('admin' + ':' + 'pass');

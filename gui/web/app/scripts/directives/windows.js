@@ -15,8 +15,14 @@ angular.module('spGuiApp')
         windows: '=windowArray'
       },
       link: function postLink(scope, element, attrs) {
-        scope.addWindow = function(type) {
-          scope.windows.push({type: type, width: 'small', height: 'small', name: type, windowStorage: 'empty'});
+        var noOfOpenedWindows = 0;
+
+        scope.addWindow = function(type, wStorage) {
+          if(typeof wStorage === 'undefined') {
+            wStorage = {};
+          }
+          noOfOpenedWindows++;
+          scope.windows.push({type: type, width: 'small', height: 'small', name: type, windowStorage: wStorage, id: type + noOfOpenedWindows});
         };
 
         scope.$on("newSopWindow", function() {

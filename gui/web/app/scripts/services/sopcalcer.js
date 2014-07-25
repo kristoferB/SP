@@ -8,38 +8,26 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-  .factory('sopCalcer', [ function () {
+  .factory('sopCalcer', [ 'spTalker', function (spTalker) {
     var factory = {};
     
     factory.calcStructMeasures = function(sop, measures, para) {
       var structMeasures = [];
       
-      if(sop.type === 'Sequence') { 
-        structMeasures.width = sop.width; structMeasures.height = sop.height;
+      if(sop.isa === 'Sequence') {
+        structMeasures.width = sop.clientSideAdditions.width; structMeasures.height = sop.clientSideAdditions.height;
         if(measures.dir === 'Hori') {
           structMeasures.width = [structMeasures.height, structMeasures.height = structMeasures.width][0];
         }
-      } else if (sop.type === 'Other') {
-        structMeasures.width = sop.width; structMeasures.height = sop.height-measures.margin;
+      } else if (sop.isa === 'Other') {
+        structMeasures.width = sop.clientSideAdditions.width; structMeasures.height = sop.clientSideAdditions.height-measures.margin;
         if(measures.dir === 'Hori') {
           structMeasures.width = [structMeasures.height, structMeasures.height = structMeasures.width][0];
         }
-      } else if (sop.type === 'Parallel') {
-        structMeasures.x21 = 0; structMeasures.y21 = para; structMeasures.x31 = 0; structMeasures.y31 = sop.height-measures.margin-para; 
-        structMeasures.x41 = 0; structMeasures.y41 = sop.height-measures.margin; structMeasures.width = sop.width; structMeasures.height = 0;
-        structMeasures.x51 = 0; structMeasures.y51 = para/2; structMeasures.x61 = 0; structMeasures.y61 = sop.height-measures.margin-para/2;
-        if(measures.dir === 'Hori') {
-          structMeasures.x21 = [structMeasures.y21, structMeasures.y21 = structMeasures.x21][0];
-          structMeasures.x31 = [structMeasures.y31, structMeasures.y31 = structMeasures.x31][0];
-          structMeasures.x41 = [structMeasures.y41, structMeasures.y41 = structMeasures.x41][0];
-          structMeasures.x51 = [structMeasures.y51, structMeasures.y51 = structMeasures.x51][0];
-          structMeasures.x61 = [structMeasures.y61, structMeasures.y61 = structMeasures.x61][0];
-          structMeasures.width = [structMeasures.height, structMeasures.height = structMeasures.width][0];
-        }
-      } else if (sop.type === 'Arbitrary') {
-        structMeasures.x21 = 0; structMeasures.y21 = para; structMeasures.x31 = 0; structMeasures.y31 = sop.height-measures.margin-para;
-        structMeasures.x41 = 0; structMeasures.y41 = sop.height-measures.margin; structMeasures.width = sop.width; structMeasures.height = 0;
-        structMeasures.x51 = 0; structMeasures.y51 = para/2; structMeasures.x61 = 0; structMeasures.y61 = sop.height-measures.margin-para/2;
+      } else if (sop.isa === 'Parallel' || sop.isa === 'Arbitrary') {
+        structMeasures.x21 = 0; structMeasures.y21 = para; structMeasures.x31 = 0; structMeasures.y31 = sop.clientSideAdditions.height-measures.margin-para;
+        structMeasures.x41 = 0; structMeasures.y41 = sop.clientSideAdditions.height-measures.margin; structMeasures.width = sop.clientSideAdditions.width; structMeasures.height = 0;
+        structMeasures.x51 = 0; structMeasures.y51 = para/2; structMeasures.x61 = 0; structMeasures.y61 = sop.clientSideAdditions.height-measures.margin-para/2;
         if(measures.dir === 'Hori') {
           structMeasures.x21 = [structMeasures.y21, structMeasures.y21 = structMeasures.x21][0];
           structMeasures.x31 = [structMeasures.y31, structMeasures.y31 = structMeasures.x31][0];
@@ -48,16 +36,14 @@ angular.module('spGuiApp')
           structMeasures.x61 = [structMeasures.y61, structMeasures.y61 = structMeasures.x61][0];
           structMeasures.width = [structMeasures.height, structMeasures.height = structMeasures.width][0];
         }
-      } else if (sop.type === 'Alternative') {
-        structMeasures.x11 = sop.width/2 - sop.lineL; structMeasures.y11 = 0; structMeasures.x12 = sop.lineL + sop.lineR; structMeasures.y12 = 0;
-        structMeasures.x21 = sop.width/2 - sop.lineL; structMeasures.y21 = sop.height - measures.margin; structMeasures.x22 = sop.lineL + sop.lineR; structMeasures.y22 = 0;
+      } else if (sop.isa === 'Alternative') {
+        structMeasures.x11 = sop.clientSideAdditions.width/2 - sop.clientSideAdditions.lineL; structMeasures.y11 = 0; structMeasures.x12 = sop.clientSideAdditions.lineL + sop.clientSideAdditions.lineR; structMeasures.y12 = 0;
+        structMeasures.x21 = sop.clientSideAdditions.width/2 - sop.clientSideAdditions.lineL; structMeasures.y21 = sop.clientSideAdditions.height - measures.margin; structMeasures.x22 = sop.clientSideAdditions.lineL + sop.clientSideAdditions.lineR; structMeasures.y22 = 0;
         if(measures.dir === 'Hori') {
           structMeasures.x11 = [structMeasures.y11, structMeasures.y11 = structMeasures.x11][0];
           structMeasures.x12 = [structMeasures.y12, structMeasures.y12 = structMeasures.x12][0];
           structMeasures.x21 = [structMeasures.y21, structMeasures.y21 = structMeasures.x21][0];
           structMeasures.x22 = [structMeasures.y22, structMeasures.y22 = structMeasures.x22][0];
-
-          //structMeasures.y11 = [structMeasures.y12, structMeasures.y12 = structMeasures.y11][0];
         }
       }
       return structMeasures;
@@ -79,8 +65,12 @@ angular.module('spGuiApp')
         mC.opW = mC.opH;
         mC.opH = tempw;
       }
+
+      if(typeof sop.clientSideAdditions === 'undefined') {
+        sop.clientSideAdditions = {};
+      }
       
-      sop.dir = mC.dir;
+      sop.clientSideAdditions.dir = mC.dir;
 
       var w = this.getWidth(sop, mC);
       var sopis = this.createSOP(sop, mC, w / 2, 0, false, 0, sop, true);
@@ -94,9 +84,14 @@ angular.module('spGuiApp')
     };
 
     factory.createSOP = function(sop, measures, middle, start, parentObject, parentObjectIndex, wholeSop, firstLoop) {
+      // Creating an empty object in each node to gather all additions made by sopCalcer and sopDrawer
+      if(typeof sop.clientSideAdditions === 'undefined') {
+        sop.clientSideAdditions = {};
+      }
+
       // Save of parent reference and array index into the JSON tree to enable localization on add/remove
-      sop.parentObject = parentObject;
-      sop.parentObjectIndex = new Number(parentObjectIndex);
+      sop.clientSideAdditions.parentObject = parentObject;
+      sop.clientSideAdditions.parentObjectIndex = new Number(parentObjectIndex);
       
       var result = {
         'operations' : [],
@@ -110,10 +105,10 @@ angular.module('spGuiApp')
         'y' : 0
       }, drawHere, sub;
       
-      if(typeof sop.lines === 'undefined') {
-        sop.lines = [];
+      if(typeof sop.clientSideAdditions.lines === 'undefined') {
+        sop.clientSideAdditions.lines = [];
       } else {
-        sop.lines.forEach( function(line) {
+        sop.clientSideAdditions.lines.forEach( function(line) {
           if(typeof line.drawnLine !== 'undefined') {
             line.drawnLine.remove();
           }
@@ -121,45 +116,46 @@ angular.module('spGuiApp')
             line.drawnShadow.remove();
           }
         });
-        sop.lines = [];
+        sop.clientSideAdditions.lines = [];
       }
       
       if(firstLoop === true) { // to make room for first line
         start = start + measures.margin;
       }
       
-      if (sop.type === 'Hierarchy') {
+      if (sop.isa === 'Hierarchy') {
+        var op = spTalker.getItemById(sop.operation);
         if (sop.sop.length > 0){
           console.log('sopHierarchy do not handle childs yet: ');
         } else {
-          result.width = this.calcOpWidth(sop.operation, measures);
-          result.height = this.calcOpHeigth(sop.operation, measures) + measures.margin;
+          result.width = this.calcOpWidth(op, measures);
+          result.height = this.calcOpHeigth(op, measures) + measures.margin;
           var arrow = measures.arrow; 
           if (start < measures.arrow) {arrow = 0;}
 
           // Save of Op measures straight into the SOP
-          sop.width = result.width;
-          sop.height = result.height - measures.margin;
-          sop.x = (middle - (result.width / 2));
-          sop.y = start;
-          sop.arrow = 'M ' + (result.width/2 - arrow) + ' ' + (-arrow) + ' l ' + arrow + ' ' + arrow + ' l ' + arrow + ' ' + -arrow + ' Z';
+          sop.clientSideAdditions.width = result.width;
+          sop.clientSideAdditions.height = result.height - measures.margin;
+          sop.clientSideAdditions.x = (middle - (result.width / 2));
+          sop.clientSideAdditions.y = start;
+          sop.clientSideAdditions.arrow = 'M ' + (result.width/2 - arrow) + ' ' + (-arrow) + ' l ' + arrow + ' ' + arrow + ' l ' + arrow + ' ' + -arrow + ' Z';
           
           // Swap width, height and x, y if Horizontal direction
           if(measures.dir === 'Hori') {
-            sop.height = [sop.width, sop.width = sop.height][0];
-            sop.x = [sop.y, sop.y = sop.x][0];
-            sop.arrow = 'M ' + (-arrow) + ' ' + (result.width/2 - arrow) + ' l ' + arrow + ' ' + arrow + ' l ' + -arrow + ' ' + arrow + ' Z';
+            sop.clientSideAdditions.height = [sop.clientSideAdditions.width, sop.clientSideAdditions.width = sop.clientSideAdditions.height][0];
+            sop.clientSideAdditions.x = [sop.clientSideAdditions.y, sop.clientSideAdditions.y = sop.clientSideAdditions.x][0];
+            sop.clientSideAdditions.arrow = 'M ' + (-arrow) + ' ' + (result.width/2 - arrow) + ' l ' + arrow + ' ' + arrow + ' l ' + -arrow + ' ' + arrow + ' Z';
           }
           
         }
-      } else if (sop.type === 'Sequence') {
+      } else if (sop.isa === 'Sequence') {
         drawHere = start;
           
         for ( var m in sop.sop) {
           sub = this.createSOP(sop.sop[m], measures, middle, drawHere, sop, new Number(m), wholeSop, false);
           result = this.fillResult(result, sub);
 
-          sop.lines.push({
+          sop.clientSideAdditions.lines.push({
             x1 : middle,
             y1 : start + result.height + sub.height - 1,
             x2 : 0,
@@ -180,7 +176,7 @@ angular.module('spGuiApp')
         var lineMinusL = measures.margin;
         var lineMinusR = measures.margin;
         var para;
-        if (sop.type === 'Alternative') {
+        if (sop.isa === 'Alternative') {
           para = 0;
         } else {
           para = measures.para;
@@ -194,7 +190,7 @@ angular.module('spGuiApp')
           drawHere = drawHere + subW / 2;
           sub = this.createSOP(sop.sop[n], measures, drawHere, start + para + measures.margin, sop, new Number(n), wholeSop, false);
 
-          sop.lines.push({ // The lines above the structs
+          sop.clientSideAdditions.lines.push({ // The lines above the structs
             x1 : drawHere,
             y1 : start + para - 1,
             x2 : 0,
@@ -220,20 +216,20 @@ angular.module('spGuiApp')
           }*/
         }
         
-        if(typeof sop.lines2 === 'undefined') {
-          sop.lines2 = [];
+        if(typeof sop.clientSideAdditions.lines2 === 'undefined') {
+          sop.clientSideAdditions.lines2 = [];
         } else {
-          sop.lines2.forEach( function(line) {
+          sop.clientSideAdditions.lines2.forEach( function(line) {
             line.drawnLine.remove();
             line.drawnShadow.remove();
           });
-          sop.lines2 = [];
+          sop.clientSideAdditions.lines2 = [];
         }
         
         for ( var p in linepos) {
 
           // The lines below the structs
-          sop.lines2.push({
+          sop.clientSideAdditions.lines2.push({
             x1 : linepos[p].x,
             y1 : linepos[p].startY,
             x2 : 0,
@@ -245,24 +241,24 @@ angular.module('spGuiApp')
         result.height = result.height + para + measures.margin;
 
         // Save of struct attributes straight into the SOP
-        sop.width = result.width;
-        sop.height = result.height;
-        sop.lineL = result.width / 2 - lineMinusL;
-        sop.lineR = result.width / 2 - lineMinusR;
-        sop.x = middle - (result.width / 2);
-        sop.y = start;
+        sop.clientSideAdditions.width = result.width;
+        sop.clientSideAdditions.height = result.height;
+        sop.clientSideAdditions.lineL = result.width / 2 - lineMinusL;
+        sop.clientSideAdditions.lineR = result.width / 2 - lineMinusR;
+        sop.clientSideAdditions.x = middle - (result.width / 2);
+        sop.clientSideAdditions.y = start;
         
         // Swap if horizontal direction
         if(measures.dir === 'Hori') {
-          sop.x = [sop.y, sop.y = sop.x][0];
+          sop.clientSideAdditions.x = [sop.clientSideAdditions.y, sop.clientSideAdditions.y = sop.clientSideAdditions.x][0];
         }
         
-        sop.structMeasures = factory.calcStructMeasures(sop, measures, para);
+        sop.clientSideAdditions.structMeasures = factory.calcStructMeasures(sop, measures, para);
 
       }
       
       if(firstLoop === true) { // first launch only
-        sop.lines.push({ // the starting line above the whole SOP
+        sop.clientSideAdditions.lines.push({ // the starting line above the whole SOP
           x1 : middle,
           y1 : start,
           x2 : 0,
@@ -290,9 +286,11 @@ angular.module('spGuiApp')
 
     factory.getWidth = function(sop, measures) {
       var w, nW;
-      if (sop.type === 'Hierarchy') {
-        return this.calcOpWidth(sop.operation, measures);
-      } else if (sop.type === 'Sequence') {
+      if (sop.isa === 'Hierarchy') {
+        // If the Op-def isn't included in the SOP-def, fetch the Op by ID and replace the ID with it
+        var op = spTalker.getItemById(sop.operation);
+        return this.calcOpWidth(op, measures);
+      } else if (sop.isa === 'Sequence') {
         w = 0;
         for (var n in sop.sop) {
           nW = this.getWidth(sop.sop[n], measures);

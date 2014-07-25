@@ -7,230 +7,197 @@
  * # sop
  */
 angular.module('spGuiApp')
-  .directive('sop', ['$rootScope', 'sopCalcer', 'sopDrawer', function ($rootScope, sopCalcer, sopDrawer) {
+  .directive('sop', ['$rootScope', 'sopCalcer', 'sopDrawer', 'notificationService', 'spTalker', function ($rootScope, sopCalcer, sopDrawer, notificationService, spTalker) {
     
     return {
       template: '<div>' +
-                '<button style="margin-left:10px;" class="btn btn-primary" ng-click="toggleDirection()">toggle direction</button>' +
+                '<button style="margin-left:10px;" class="btn btn-default" ng-click="toggleDirection()"><span class="glyphicon glyphicon-retweet"></span> Rotate</button>' +
+                '<button style="margin-left:10px;" class="btn btn-default" ng-click="saveSopSpec()"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>' +
                 '</div>',
       restrict: 'E',
       scope: {
-        storage : '=windowStorage'
+        storage : '=windowStorage',
+        saveItem : '='
       },
       link: function postLink(scope, element, attrs) {
 
         var raphaelArea = Raphael(element[0],'100%','85%');
 
         scope.toggleDirection = function() {
-          if (scope.storage.measures.dir === 'Hori') {
-            scope.storage.measures.dir = 'Vert';
+          if (scope.storage.dir === 'Hori') {
+            scope.storage.dir = 'Vert';
           } else {
-            scope.storage.measures.dir = 'Hori';
+            scope.storage.dir = 'Hori';
           }
           scope.calcAndDrawSop(false);
         };
 
-        scope.calcAndDrawSop = function(doRedraw) {
-          sopDrawer.calcAndDrawSop(scope.storage.tryMe, scope.storage.measures, raphaelArea, true, doRedraw, scope);
+        scope.saveSopSpec = function() {
+          if(typeof scope.storage.parentItem === 'undefined') {
+            notificationService.error('There\'s no SOPSpec item connected to this window.');
+          } else {
+            scope.storage.parentItem.sop = clone(scope.storage.sopDef);
+            //scope.removeClientSideAdditions(scope.storage.parentItem.sop);
+            spTalker.saveItem(scope.storage.parentItem);
+          }
         };
 
-        if(scope.storage === 'empty') {
+        function clone(obj) {
+          // Handle the 3 simple types, and null or undefined
+          if (null == obj || "object" != typeof obj) return obj;
 
-          scope.storage = {
+          // Handle Date
+          if (obj instanceof Date) {
+            var copy = new Date();
+            copy.setTime(obj.getTime());
+            return copy;
+          }
 
-            sop : {
-              'operations' : [],
-              'structs' : [],
-              'lines' : [],
-              'width' : 0,
-              'height' : 0,
-              'scale' : 100,
-              'dir' : 'Vert',
-              'x' : 0,
-              'y' : 0
-            },
+          // Handle Array
+          if (obj instanceof Array) {
+            var copy = [];
+            for (var i = 0, len = obj.length; i < len; i++) {
+              copy[i] = clone(obj[i]);
+            }
+            return copy;
+          }
 
-            measures : {
-              'margin' : 15,
-              'opH' : 50,
-              'opW' : 60,
-              'para' : 7,
-              'arrow' : 5,
-              'dir' : 'Vert',
-              'textScale': 6,
-              'animTime': 300
-            },
+          // Handle Object
+          if (obj instanceof Object) {
+            var copy = {};
+            for (var attr in obj) {
+              if (obj.hasOwnProperty(attr) && attr !== 'clientSideAdditions') copy[attr] = clone(obj[attr]);
+            }
+            return copy;
+          }
 
-            tryMe2 : {
-              'type' : 'Sequence',
-              'sop' : [ {
-                'type' : 'Hierarchy',
-                'sop' : [],
-                'operation': {
-                  'name':'o1',
-                  'id':'fff1b42b-6e63-4904-8184-13ecd6e313d8',
-                  'More':'MUCH MORE',
-                  'type':'Operation'
-                }
-              }, {
-                'type' : 'Hierarchy',
-                'sop' : [],
-                'operation': {
-                  'name':'o2',
-                  'id':'fff1b42b-6e63-4904-8184-13ecd6e313d8',
-                  'More':'MUCH MORE',
-                  'type':'Operation'
-                }
-              }, {
-                'type' : 'Parallel',
-                'sop' : [ {
-                  'type' : 'Hierarchy',
-                  'sop' : [],
-                  'operation':{
-                    'name':'o6',
-                    'id':'93b3d962-4bc1-47c3-9ba5-19b42d0630c3',
-                    'More':'MUCH MORE',
-                    'type':'Operation'
-                  }
-                }, {
-                  'type' : 'Hierarchy',
-                  'sop' : [],
-                  'operation':{
-                    'name':'o7',
-                    'id':'93b3d962-4bc1-47c3-9ba5-19b42d0630c4',
-                    'More':'MUCH MORE',
-                    'type':'Operation'
-                  }
-                }]}, {
-                'type' : 'Hierarchy',
-                'sop' : [],
-                'operation': {
-                  'name':'o3',
-                  'id':'fff1b42b-6e63-4904-8184-13ecd6e313d8',
-                  'More':'MUCH MORE',
-                  'type':'Operation'
-                }
-              }
-            ]},
+          throw new Error("Unable to copy obj! Its type isn't supported.");
+        };
 
-            tryMe : {
-            'type' : 'Sequence',
+        scope.removeClientSideAdditions = function(sop) {
+          //var r = $.Deferred();
+
+          if(typeof sop.clientSideAdditions !== 'undefined') {
+            delete sop.clientSideAdditions;
+          }
+          for(var n in sop.sop) {
+            scope.removeClientSideAdditions(sop.sop[n]);
+          }
+
+          //return r;
+        };
+
+        scope.calcAndDrawSop = function(doRedraw) {
+          sopDrawer.calcAndDrawSop(scope.storage.sopDef, scope.storage.dir, raphaelArea, true, doRedraw, scope);
+        };
+
+        if(typeof scope.storage.dir === 'undefined') {
+          scope.storage.dir = 'Vert';
+        };
+
+        if(typeof scope.storage.sopDef === 'undefined') {
+
+          scope.storage.sopDef =
+          {
+            'isa' : 'Sequence',
             'sop' : [ {
-              'type' : 'Hierarchy',
+              'isa' : 'Hierarchy',
               'sop' : [],
               'operation': {
                 'name':'o1',
                 'id':'fff1b42b-6e63-4904-8184-13ecd6e313d8',
                 'More':'MUCH MORE',
-                'type':'Operation'
+                'isa':'Operation'
               }
             }, {
-              'type' : 'Alternative',
+              'isa' : 'Alternative',
               'sop' : [ {
-                'type' : 'Hierarchy',
+                'isa' : 'Hierarchy',
                 'sop' : [],
                 'operation':{
                   'name':'o2',
                   'id':'93b3d962-4bc1-47c3-9ba5-19b42d0630c0',
                   'More':'MUCH MORE',
-                  'type':'Operation'
+                  'isa':'Operation'
                 }
               }, {
-                'type' : 'Hierarchy',
+                'isa' : 'Hierarchy',
                 'sop' : [],
                 'operation':{
                   'name':'o3',
                   'id':'93b3d962-4bc1-47c3-9ba5-19b42d0630c7',
                   'More':'MUCH MORE',
-                  'type':'Operation'
+                  'isa':'Operation'
                 }
               }, {
-                'type' : 'Other',
+                'isa' : 'Other',
                 'sop' : [ {
-                  'type' : 'Hierarchy',
+                  'isa' : 'Hierarchy',
                   'sop' : [],
                   'operation':{
                     'name':'o4 a long name and test',
                     'id':'93b3d962-4bc1-47c3-9ba5-19b42d0630c1',
                     'More':'MUCH MORE',
-                    'type':'Operation'
+                    'isa':'Operation'
                   }
                 }, {
-                  'type' : 'Hierarchy',
+                  'isa' : 'Hierarchy',
                   'sop' : [],
                   'operation':{
                     'name':'o5',
                     'id':'93b3d962-4bc1-47c3-9ba5-19b42d0630c2',
                     'More':'MUCH MORE',
-                    'type':'Operation'
+                    'isa':'Operation'
                   }
                 } ]
               }, {
-                'type' : 'Arbitrary',
+                'isa' : 'Arbitrary',
                 'sop' : [ {
-                  'type' : 'Hierarchy',
+                  'isa' : 'Hierarchy',
                   'sop' : [],
                   'operation':{
                     'name':'o6',
                     'id':'93b3d962-4bc1-47c3-9ba5-19b42d0630c3',
                     'More':'MUCH MORE',
-                    'type':'Operation'
+                    'isa':'Operation'
                   }
                 }, {
-                  'type' : 'Hierarchy',
+                  'isa' : 'Hierarchy',
                   'sop' : [],
                   'operation':{
                     'name':'o7',
                     'id':'93b3d962-4bc1-47c3-9ba5-19b42d0630c4',
                     'More':'MUCH MORE',
-                    'type':'Operation'
+                    'isa':'Operation'
                   }
                 }, {
-                  'type' : 'Sequence',
+                  'isa' : 'Sequence',
                   'sop' : [ {
-                    'type' : 'Hierarchy',
+                    'isa' : 'Hierarchy',
                     'sop' : [],
                     'operation':{
                       'name':'o8',
                       'id':'93b3d962-4bc1-47c3-9ba5-19b42d0630c5',
                       'More':'MUCH MORE',
-                      'type':'Operation'
+                      'isa':'Operation'
                     }
                   }, {
-                    'type' : 'Hierarchy',
+                    'isa' : 'Hierarchy',
                     'sop' : [],
                     'operation':{
                       'name':'o9',
                       'id':'93b3d962-4bc1-47c3-9ba5-19b42d0630c6',
                       'More':'MUCH MORE',
-                      'type':'Operation'
+                      'isa':'Operation'
                     }
                   } ]
                 } ]
               } ]
-            }
-            ]}
+            } ]
+          };
 
-          }; // end of storage object
+        };
 
-          /*var opList = [], anOp =
-            {
-              'type' : 'Hierarchy',
-              'sop' : [],
-              'operation':{
-                'name':'o10',
-                'id':'93b3d962-4bc1-47c3-9ba5-19b42d0630d6',
-                'More':'MUCH MORE',
-                'type':'Operation'
-              }
-            };
-
-          for(var i = 0; i < 20; i++) {
-            var opClone = jQuery.extend({}, anOp);
-            scope.storage.tryMe.sop[1].sop[3].sop[2].sop.push(opClone);
-          };*/
-
-        }
         scope.calcAndDrawSop(true);
 
       }

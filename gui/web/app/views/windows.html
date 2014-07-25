@@ -6,7 +6,7 @@
             <span ng-click="closeWindow(window)" class="btn btn-default glyphicon glyphicon-remove"></span></span>
         </div>
         <div class="panel-body sizeTransition" ng-class="{'smallBodyHeight': window.height === 'small', 'largeBodyHeight': window.height === 'large'}" ng-switch on="window.type">
-            <sop window-storage="window.windowStorage" ng-switch-when="sop"></sop>
+            <sop ng-switch-when="sop" window-storage="window.windowStorage" save-item="saveItem"></sop>
             <itemlist ng-switch-when="itemList"></itemlist>
             <resttest ng-switch-when="restTest"></resttest>
         </div>

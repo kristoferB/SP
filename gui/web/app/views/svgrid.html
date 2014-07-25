@@ -1,20 +1,16 @@
 <table class="table-bordered" >
   <tr class="form-inline" ng-repeat="sv in svArray">
-    <td class="col-md-1">
+    <td>
       <span ng-if="!edit">{{sv.name}}</span>
       <input ng-if="edit" type="text" class="form-control input-sm" ng-model="sv.name" />
     </td>
-    <td>attrs:</td>
-    <td class="col-md-11">
+    <td class="col-md-1">attrs:</td>
+    <td >
       <attr-grid edit="edit" attr-obj="sv.attributes" attribute-types="attributeTypes"></attr-grid>
     </td>
     <td ng-if="edit">
       <span ng-click="deleteSV(svArray,sv);" class="btn btn-default glyphicon glyphicon-minus"></span>
     </td>
   </tr>
-  <tr ng-if="edit">
-    <td colspan="2">
-      <button type="button" class="btn btn-default" ng-click="svArray.push({name:'newVar', attributes:{}})"><span class="glyphicon glyphicon-plus"></span> New stateVar</button>
-    </td>
-  </tr>
 </table>
+<button ng-if="edit" type="button" class="btn btn-default" ng-click="svArray.push({name:'newVar', attributes:{}})"><span class="glyphicon glyphicon-plus"></span> New stateVar</button>

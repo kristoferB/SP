@@ -73,27 +73,18 @@ angular.module('spGuiApp')
         //newOp.items = [{"name": "Op " , "conditions": [], "attributes": {}, "type": "Operation"}];
       };
 
-      scope.saveItem = function(item) {
-        item.$save(
-          {model: spTalker.activeModel.model, id: item.id},
-          function (data, headers) {
-            notificationService.success(item.isa + ' \"' + item.name + '\" was successfully saved');
-          },
-          function (error) {
-            notificationService.error(item.isa + ' ' + item.name + ' could not be saved. ' + error.data);
-            console.log(error);
-            scope.reReadFromServer(item);
-          }
-        );
-      };
-
       scope.refresh = function() {
         spTalker.loadAll();
         scope.items = spTalker.items;
       };
 
+      scope.saveItem = function(item) {
+        console.log(item);
+        spTalker.saveItem(item);
+      };
+
       scope.reReadFromServer = function(item) {
-        item.$get({model: spTalker.activeModel.model});
+        spTalker.reReadFromServer(item);
       };
 
       scope.isJustViewable = function(key) {
@@ -101,11 +92,19 @@ angular.module('spGuiApp')
       };
 
       scope.isPlainlyEditable = function(key) {
-        return key !== 'id' && key !== 'version' && key !== 'isa' && key !== 'stateVariables' && key !== 'attributes';
+        return key !== 'id' && key !== 'version' && key !== 'isa' && key !== 'stateVariables' && key !== 'attributes' && key !== 'sop';
       };
 
       scope.hasItsOwnEditor = function(key) {
-        return key === 'attributes' || key === 'stateVariables';
+        return key === 'attributes' || key === 'stateVariables' || key === 'sop';
+      };
+
+      scope.openSopInNewWindow = function(item) {
+        var windowStorage = {
+          sopDef : angular.copy(item.sop),
+          parentItem : item
+        };
+        scope.addWindow('sop', windowStorage, item);
       };
 
       scope.refresh();

@@ -2,7 +2,7 @@
 
   <tr class="form-inline" ng-repeat="(attr, attrVal) in attrObj">
     <td class="col-md-1">{{attr}}:</td>
-    <td class="col-md-11">
+    <td >
       <span ng-if="!edit && checkType(attrVal, 'string', String)">{{attrVal}}</span>
       <input ng-if="edit && checkType(attrVal, 'string', String)" type="text" class="form-control input-sm" ng-model="attrObj[attr]" />
       <attr-grid ng-if="!checkType(attrVal, 'string', String)" edit="edit" attr-obj="attrVal" attribute-types="attributeTypes"></attr-grid>
@@ -14,9 +14,11 @@
   <tr ng-if="edit">
     <td class="col-md-1"><label>add:</label></td>
     <td colspan="2">
+
       <select class="form-control input-sm"  ng-model="attrTypeToAdd" ng-options="attributeType for attributeType in attributeTypes" />
       <button type="button" class="btn btn-default" ng-click="attrObj[attrTypeToAdd] = ''">String</button>
       <button type="button" class="btn btn-default" ng-click="attrObj[attrTypeToAdd] = {}">Class</button>
+
     </td>
   </tr>
 </table>
