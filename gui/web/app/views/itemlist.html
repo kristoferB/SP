@@ -69,11 +69,12 @@
                   <tr ng-repeat="(key, prop) in item">
                     <td class="col-md-1">{{key}}:</td>
                     <td class="col-md-9">
-                      <span ng-if="isPlainlyEditable(key) && !row.edit || isJustViewable(key)">{{prop}}</span>
-                      <input ng-if="isPlainlyEditable(key) && row.edit" name="{{key}}Input" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item[key]" />
+                      <span ng-if="!hasItsOwnViewer(key) && !row.edit || !isEditable(key)">{{prop}}</span>
+                      <input ng-if="!hasItsOwnEditor(key) && isEditable(key) && row.edit" name="{{key}}Input" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item[key]" />
                       <attr-grid ng-if="key==='attributes'" attr-obj="prop" edit="row.edit" attribute-types="attributeTypes"></attr-grid>
                       <sv-grid ng-if="key==='stateVariables'" sv-array="prop" edit="row.edit" attribute-types="attributeTypes"></sv-grid>
                       <button ng-if="key==='sop'" ng-click="openSopInNewWindow(item)" class="btn btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
+                      <conditions ng-if="key==='conditions' && row.edit"></conditions>
                     </td>
                     <td ng-if="$first" >
                       <button ng-click="itemForm.$valid && saveItem(item, row)" type="submit" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>

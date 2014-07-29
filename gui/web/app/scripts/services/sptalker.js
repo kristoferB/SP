@@ -26,18 +26,22 @@ angular.module('spGuiApp')
   factory.getItemById = function(id) {
     var result = $.grep(factory.items, function(e){ return e.id === id; });
     if (result.length == 0) {
-      var error = 'Could not find any item with id ' + id + '. The requested action have most likely been aborted.';
+      var error = 'Could not find any item with id ' + id + '. The requested action has most likely been aborted.';
       console.log(error);
       notificationService.error(error);
       return {};
     } else if (result.length == 1) {
       return result[0];
     } else {
-      var error = 'Found multiple items with id ' + id + '. The requested action have most likely been aborted.';
-      console.log(error);
-      notificationService.error(error);
+      var error2 = 'Found multiple items with id ' + id + '. The requested action has most likely been aborted.';
+      console.log(error2);
+      notificationService.error(error2);
       return result[0];
     }
+  };
+
+  factory.parseProposition = function(proposition) {
+    return $http({method: 'POST', url: 'api/services/PropositionParser', data: {model: factory.activeModel.model, parse: proposition}})
   };
 
   factory.loadModels = function() {

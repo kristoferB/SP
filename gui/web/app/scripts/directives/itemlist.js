@@ -30,32 +30,23 @@ angular.module('spGuiApp')
         }
       };
 
-      scope.stringToVar = function(item, the_string) {
-        console.log(the_string);
-        var model = $parse(the_string);  // Get the model
-        console.log(model);
-        return model;
-      };
-
       scope.createItem = function(type) {
         var newItem = new spTalker.item({
           isa : type,
           name : type + ' ' + Math.floor(Math.random()*1000),
           attributes : {}
-        })
+        });
         if(type === 'Operation') {
           newItem.conditions = [];
-        };
-        if(type === 'Thing') {
+        } else if(type === 'Thing') {
           newItem.stateVariables = [];
-        };
-        if(type === 'SOPSpec') {
+        } else if(type === 'SOPSpec') {
           newItem.sop = {isa: 'Sequence', sop: []};
           newItem.version = 1;
-        };
+        }
         newItem.$save(
           {model:spTalker.activeModel.model},
-          function(data, putResponseHeaders) { spTalker.items.unshift(data); },
+          function(data) { spTalker.items.unshift(data); },
           function(error) { console.log(error); }
         );
       };
@@ -74,16 +65,16 @@ angular.module('spGuiApp')
         spTalker.reReadFromServer(item);
       };
 
-      scope.isJustViewable = function(key) {
-        return key === 'id' || key === 'version' || key === 'isa';
-      };
-
-      scope.isPlainlyEditable = function(key) {
-        return key !== 'id' && key !== 'version' && key !== 'isa' && key !== 'stateVariables' && key !== 'attributes' && key !== 'sop';
-      };
-
       scope.hasItsOwnEditor = function(key) {
-        return key === 'attributes' || key === 'stateVariables' || key === 'sop';
+        return key === 'attributes' || key === 'stateVariables' || key === 'sop' || key === 'conditions';
+      };
+
+      scope.hasItsOwnViewer = function(key) {
+        return key !== 'id' && key !== 'version' && key !== 'isa' && key !== 'conditions' && key!== 'name';
+      };
+
+      scope.isEditable = function(key) {
+        return key !== 'id' && key !== 'version' && key !== 'isa';
       };
 
       scope.openSopInNewWindow = function(item) {

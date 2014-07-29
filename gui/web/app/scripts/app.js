@@ -17,7 +17,8 @@ angular
     'ngTouch',
     'ui.sortable',
     'jlareau.pnotify',
-    'ui.bootstrap'
+    'ui.bootstrap',
+    'ngTextcomplete'
   ])
   .config(function ($routeProvider, USER_ROLES) {
     $routeProvider

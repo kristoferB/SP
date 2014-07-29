@@ -1,0 +1,10 @@
+<!--<ng-form name="conditionsForm">
+  <input name="conditionsInput" type="text" ng-model="conditionsModel" prop-parse="{item: item, key: key}" ng-trim="false" ng-maxlength="30" class="form-control input-sm" />
+  <span class="error" ng-show="conditionsForm.conditionsInput.$error.maxlength">Not too long, please.</span>
+  <br />serverResponse: <span class="glyphicon" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.conditionsInput.$error.propParse]"></span> {{parseResponse}}
+</ng-form>-->
+<ng-form name="conditionsForm">
+  <input name="conditionsInput" ng-model="conditionsModel" ng-trim="false" prop-parse="{item: item, key: key}" type="text" class="form-control input-sm" />
+  <span class="error" ng-show="conditionsForm.conditionsInput.$error.maxlength">Not too long, please.</span>
+  <br />serverResponse: <span class="glyphicon" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.conditionsInput.$error.propParse]"></span> {{parseResponse}}
+</ng-form>

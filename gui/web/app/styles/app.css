@@ -32,7 +32,7 @@
     width: 100%;
 }
 
-#sortable li { margin: 2px 0; padding: 0 2px; float: left;   }
+#sortable>li { margin: 2px 0; padding: 0 2px; float: left;   }
 
 #sortable .panel-heading .glyphicon {
     padding:3px;
@@ -83,5 +83,9 @@
 .hiddenRow {padding: 0 !important;}
 
 .collapsed-row {margin: 0 0 5px 0px;}
+
+table a, .table a {
+    text-decoration: none;
+}
 
 /*** Else ***/
