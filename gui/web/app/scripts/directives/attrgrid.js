@@ -18,6 +18,10 @@ angular.module('spGuiApp')
       templateUrl: 'views/attrgrid.html',
       controller: function($scope) {
 
+        if(typeof $scope.attrObj === 'undefined') {
+          $scope.attrObj = {};
+        }
+
         $scope.checkType = function(obj, type, aClass) {
           return typeof obj === type;
         };

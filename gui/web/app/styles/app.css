@@ -89,3 +89,15 @@ table a, .table a {
 }
 
 /*** Else ***/
+
+.btn {
+    margin: 2px;
+}
+
+.form-control {
+    margin: 2px;
+}
+
+.prop-parse {
+    margin-left: 10px;
+}

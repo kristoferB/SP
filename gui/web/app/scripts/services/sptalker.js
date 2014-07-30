@@ -8,20 +8,21 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-.factory('spTalker', ['$resource', '$http', 'notificationService', function ($resource, $http, notificationService) {
+.factory('spTalker', ['$resource', '$http', 'notificationService', '$filter', '$rootScope', function ($resource, $http, notificationService, $filter, $rootScope) {
   var apiUrl = '/api', factory = {
     activeModel: {},
     models: [],
     users: [],
     operations: [],
     items: [],
+    things: [],
+    thingsAsStrings: [],
+    item : $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'}),
     model: $resource(apiUrl + '/models/', {}),
     user: $resource(apiUrl + '/users', {}),
     operation: $resource(apiUrl + '/models/:model/operations', { model: '@model' }, {saveArray: {method: 'POST', isArray: true}}),
     thing: $resource(apiUrl + '/models/:model/things/:thing', { model: '@model', thing: '@thing' })
   };
-
-  factory.item = $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'});
 
   factory.getItemById = function(id) {
     var result = $.grep(factory.items, function(e){ return e.id === id; });
@@ -50,20 +51,41 @@ angular.module('spGuiApp')
 
   factory.loadModels();
 
+  var filterOutThings = function() {
+    factory.things = [];
+    factory.items.forEach(function(item) {
+      if(item.isa === 'Thing') {
+        factory.things.push(item)
+      }
+    });
+  };
+
+  var listThingsAsStrings = function() {
+    factory.thingsAsStrings = [];
+    factory.things.forEach(function(thing) {
+      factory.thingsAsStrings.push(thing.name);
+    });
+  };
+
+  var updateItemLists = function() {
+    filterOutThings();
+    listThingsAsStrings();
+  };
+
   factory.loadAll = function() {
     factory.loadModels();
-    factory.items = factory.item.query({model: factory.activeModel.model});
+    factory.items = factory.item.query({model: factory.activeModel.model}, function() {
+      updateItemLists();
+    });
+
   };
 
   factory.saveItem = function(item) {
-    factory.save(item);
-  };
-
-  factory.save = function(item) {
     item.$save(
       {model: factory.activeModel.model, id: item.id},
       function (data, headers) {
         notificationService.success(item.isa + ' \"' + item.name + '\" was successfully saved');
+        updateItemLists();
       },
       function (error) {
         notificationService.error(item.isa + ' ' + item.name + ' could not be saved. ' + error.data);

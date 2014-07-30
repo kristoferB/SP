@@ -70,7 +70,7 @@ angular.module('spGuiApp')
       };
 
       scope.hasItsOwnViewer = function(key) {
-        return key !== 'id' && key !== 'version' && key !== 'isa' && key !== 'conditions' && key!== 'name';
+        return key !== 'id' && key !== 'version' && key !== 'isa' && key !== 'name';
       };
 
       scope.isEditable = function(key) {

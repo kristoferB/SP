@@ -16,15 +16,16 @@ angular.module('spGuiApp')
       link: function postLink(scope, element, attrs, ngModel) {
 
         function parseProposition(viewValue){
+
           spTalker.parseProposition(viewValue)
             .success(function (data, status, headers, config) {
               if(typeof data === 'string' && viewValue !== '') {
                 ngModel.$setValidity('propParse',false);
               } else {
                 if(viewValue === '') {
-                  scope.passedObj.item[scope.passedObj.key] = []; // work-around to enable save of ops as long as backend doesn't accept anything else
+                  scope.passedObj.item[scope.passedObj.key][scope.passedObj.guardOrAction] = {}; // work-around to enable save of ops as long as backend doesn't accept anything else
                 } else {
-                  scope.passedObj.item[scope.passedObj.key] = data;
+                  scope.passedObj.item[scope.passedObj.key][scope.passedObj.guardOrAction] = data;
                 }
                 ngModel.$setValidity('propParse',true);
               }
