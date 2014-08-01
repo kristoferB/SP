@@ -17,12 +17,9 @@ trait SPJsonIDAble extends SPJsonDomain {
     }
 
     def read(value: JsValue) = {
-      println(s"converting operation: $value")
       value.asJsObject.getFields("name", "conditions", "attributes", "id") match {
         case Seq(JsString(name), c: JsArray, a: JsObject, oid: JsString) => {
-          println(s"$name $c")
           val cond = c.elements map (_.convertTo[Condition])
-          println(s"cond $cond")
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
           new Operation(name, cond, attr) {
@@ -141,7 +138,7 @@ trait SPJsonIDAble extends SPJsonDomain {
         case x: SPObject => x.toJson
         case x: SOPSpec => x.toJson
         case x: SPSpec => x.toJson
-        case x@_ => println(s"no match IDAble json write: $x"); JsObject(Map[String, JsValue]())
+        case x@_ => throw new SerializationException(s"can not convert the IDAble from $x")
       }
     }
 
