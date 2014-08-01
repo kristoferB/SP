@@ -171,13 +171,8 @@ trait ModelAPI extends SPApiHelpers {
     } ~
     / {
       post {
-        entity(as[List[IDSaver]]) { xs =>
-          val upids = createUPIDs(xs, None)
-          callSP(UpdateIDs(model, upids), {
-            case SPIDs(x) => complete(x)
-          })
-        } ~
         entity(as[IDSaver]) { xs =>
+          println(s"got item in IDHANdler $xs")
           val upids = createUPIDs(List(xs), None)
           callSP(UpdateIDs(model, upids), {
             case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)

@@ -175,20 +175,23 @@ trait SPJsonDomain {
   implicit object StateEvalFormat extends RootJsonFormat[StateEvaluator] {
     def write(x: StateEvaluator) = x match {
       case p: SVIDEval => p.toJson
-      case p: ValueHolder => p.toJson
-      case p: SVNameEval => p.toJson
-      case _ => throw new SerializationException(s"Could not convert that type of condition $x")
+      case p: ValueHolder => p.v.toJson
+      case p: SVNameEval => p.v.toJson
+      case _ => throw new SerializationException(s"Could not convert that type of StateEvaluator $x")
     }
     def read(value: JsValue) = {
-      value.asJsObject.getFields("v") match {
-        case Seq(v: JsValue) => {
-          v.convertTo[SPAttributeValue] match {
-            case IDPrimitive(id) => SVIDEval(id)
-            case a: SPAttributeValue => ValueHolder(a)
-          }
+      val res = value match {
+        case o: JsObject => {
+          if (o.fields.contains("v")) o.fields("v")
+          else if (o.fields.contains("id")) o.fields("id")
+          else value
         }
-        case _ => throw new DeserializationException("StateEvaluator expected")
+        case _ => value
       }
+     res.convertTo[SPAttributeValue] match {
+        case IDPrimitive(id) => SVIDEval(id)
+        case a: SPAttributeValue => ValueHolder(a)
+     }
     }
   }
 
@@ -228,7 +231,8 @@ trait SPJsonDomain {
     }
   }
 
-  implicit val actionFormat = jsonFormat2(Action)
+  implicit val actionFormat = jsonFormat3(Action)
+  implicit val guardFormat = jsonFormat2(Guard)
   implicit val pcFormat = jsonFormat3(PropositionCondition)
 
 

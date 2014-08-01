@@ -15,11 +15,46 @@ object Attribs {
       val listOfThings = attr.getAsList("resources") map(_.flatMap(_.asID))
       listOfThings map(ResoursAttrib)
     }
+    def saveResourceAttrib(ra: ResoursAttrib): SPAttributes = {
+      attr + ("resources" -> ListPrimitive(ra.resources map IDPrimitive))
+    }
   }
 
   implicit class getPAttr(attr: SPAttributes) {
     def getParentAttrib = {
       attr.getAsID("parent").map(ParentAttrib)
+    }
+    def saveParentAttrib(pa: ParentAttrib): SPAttributes = {
+      attr + ("parent" -> IDPrimitive(pa.parent))
+    }
+  }
+
+  implicit class getDomainAttr(attr: SPAttributes) {
+    def getDomainAttrib = {
+      val d = attr.getAttribute(List("domain", "list")) flatMap
+        (_.asList map DomainListAttrib)
+      val r = attr.getAttribute(List("domain", "range")) flatMap
+        extractRange
+      if (d.isEmpty) r else d
+    }
+    def saveParentAttrib(da: DomainAttrib): SPAttributes = {
+      val add: MapPrimitive = da match {
+        case DomainListAttrib(xs) => MapPrimitive(Map("list" ->  ListPrimitive(xs)))
+        case RangeAttrib(l,h) => MapPrimitive(Map("range" -> MapPrimitive(Map(
+          "lower" -> IntPrimitive(l),
+          "upper" -> IntPrimitive(h)
+        ))))
+      }
+      attr + ("domain" -> add)
+    }
+    def extractRange(v: SPAttributeValue) = {
+      for {
+        map <- v.asMap
+        low <- map.get("lower")
+        lower <- low.asInt
+        up <- map.get("upper")
+        upper <- up.asInt
+      } yield RangeAttrib(lower, upper)
     }
   }
 
@@ -31,10 +66,17 @@ object Attribs {
  */
 case class ResoursAttrib(resources: List[ID])
 
-
 /**
  * Used by objects that have a well defined parent like stateVariables
  * @param parent
  */
 case class ParentAttrib(parent: ID)
 
+/**
+ * Used by StateVariables to either have a list of possible values
+ * or a range for int values. If the stateVariables does not encode
+ * any domain, any value is allowed.
+ */
+sealed trait DomainAttrib
+case class DomainListAttrib(domain: List[SPAttributeValue]) extends DomainAttrib
+case class RangeAttrib(lower: Int, upper: Int) extends DomainAttrib

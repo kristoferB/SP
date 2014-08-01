@@ -4,19 +4,17 @@ package sp.domain
  * Created by Kristofer on 2014-06-10.
  */
 trait Condition {
-  def guard: State => Boolean
-  def action: State => State
   val attributes: SPAttributes
 }
 
-case class Action(svid: ID, value: SPAttributeValue)
-case class PropositionCondition(g: Proposition,
-                                a: List[Action],
+case class Guard(proposition: Proposition, attributes: SPAttributes = SPAttributes(Map()))
+case class Action(stateVariableID: ID, value: SPAttributeValue, attributes: SPAttributes = SPAttributes(Map()))
+case class PropositionCondition(guard: List[Guard],
+                                action: List[Action],
                                 attributes: SPAttributes = SPAttributes(Map())) extends Condition {
-  //TODO: Maybe change these def in conditions, else impl
-  def guard = s => false;
-  def action = s => s
 }
+
+
 
 
 
@@ -44,7 +42,7 @@ case class NEQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
 
 trait StateEvaluator
 
-case class SVIDEval(v: ID) extends StateEvaluator
+case class SVIDEval(id: ID) extends StateEvaluator
 case class SVNameEval(v: String) extends StateEvaluator
 case class ValueHolder(v: SPAttributeValue) extends StateEvaluator
 

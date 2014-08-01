@@ -1,8 +1,8 @@
 package sp.json
 
-  import sp.domain._
-  import spray.json._
-  import DefaultJsonProtocol._
+import sp.domain._
+import spray.json._
+import DefaultJsonProtocol._
 
 trait SPJsonIDAble extends SPJsonDomain {
 
@@ -11,17 +11,23 @@ trait SPJsonIDAble extends SPJsonDomain {
       val map = List(
         "isa" -> "Operation".toJson,
         "name" -> x.name.toJson,
-        "conditions" -> List[String]().toJson //o.conditions.toJson
+        "conditions" -> x.conditions.toJson
       ) ++ idPart(x)
       JsObject(map)
     }
+
     def read(value: JsValue) = {
+      println(s"converting operation: $value")
       value.asJsObject.getFields("name", "conditions", "attributes", "id") match {
         case Seq(JsString(name), c: JsArray, a: JsObject, oid: JsString) => {
-          val cond = List[Condition]() //c.elements map(_.asJsObject.convertTo[Condition])
+          println(s"$name $c")
+          val cond = c.elements map (_.convertTo[Condition])
+          println(s"cond $cond")
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
-          new Operation(name, cond, attr){override lazy val id = myid}
+          new Operation(name, cond, attr) {
+            override lazy val id = myid
+          }
         }
         case _ => throw new DeserializationException(s"can not convert the Operation from $value")
       }
@@ -37,15 +43,18 @@ trait SPJsonIDAble extends SPJsonDomain {
       ) ++ idPart(x)
       JsObject(map)
     }
+
     def read(value: JsValue) = {
       value.asJsObject.getFields("name", "stateVariables", "attributes", "id") match {
         case Seq(JsString(name), c: JsArray, a: JsObject, oid: JsString) => {
-          val sv = c.elements map(_.asJsObject.convertTo[StateVariable])
+          val sv = c.elements map (_.asJsObject.convertTo[StateVariable])
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
-          new Thing(name, sv, attr){override lazy val id = myid}
+          new Thing(name, sv, attr) {
+            override lazy val id = myid
+          }
         }
-          case _ => throw new DeserializationException(s"can not convert the Thing from $value")
+        case _ => throw new DeserializationException(s"can not convert the Thing from $value")
       }
     }
   }
@@ -58,12 +67,15 @@ trait SPJsonIDAble extends SPJsonDomain {
       ) ++ idPart(x)
       JsObject(map)
     }
+
     def read(value: JsValue) = {
       value.asJsObject.getFields("name", "attributes", "id") match {
         case Seq(JsString(name), a: JsObject, oid: JsString) => {
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
-          new SPObject(name, attr){override lazy val id = myid}
+          new SPObject(name, attr) {
+            override lazy val id = myid
+          }
         }
         case _ => throw new DeserializationException(s"can not convert the SPObject from $value")
       }
@@ -103,20 +115,22 @@ trait SPJsonIDAble extends SPJsonDomain {
       ) ++ idPart(x)
       JsObject(map)
     }
+
     def read(value: JsValue) = {
       value.asJsObject.getFields("name", "sop", "attributes", "id") match {
         case Seq(JsString(label), s: JsObject, a: JsObject, oid: JsString) => {
           val sop = s.convertTo[SOP]
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
-          new SOPSpec(sop, label, attr){override lazy val id = myid}
+          new SOPSpec(sop, label, attr) {
+            override lazy val id = myid
+          }
         }
         case _ => throw new DeserializationException(s"can not convert the SOPSpec from $value")
 
       }
     }
   }
-
 
 
   implicit object IDAbleJsonFormat extends RootJsonFormat[IDAble] {
@@ -132,46 +146,43 @@ trait SPJsonIDAble extends SPJsonDomain {
     }
 
     def read(value: JsValue) = {
-      val obj = for {
-        t <- value.asJsObject.fields.get("isa")
-      } yield {
-        t match {
-          case JsString("Operation") => value.convertTo[Operation]
-          case JsString("Thing") => value.convertTo[Thing]
-          case JsString("SPObject") => value.convertTo[SPObject]
-          case JsString("SOPSpec") => value.convertTo[SOPSpec]
-          case JsString("SPSpec") => value.convertTo[SPSpec]
-          case _ => throw new DeserializationException(s"IDAble could not be read: $value")
+      value match {
+        case obj: JsObject if obj.fields.contains("isa") => {
+          obj.fields("isa") match {
+            case JsString("Operation") => value.convertTo[Operation]
+            case JsString("Thing") => value.convertTo[Thing]
+            case JsString("SPObject") => value.convertTo[SPObject]
+            case JsString("SOPSpec") => value.convertTo[SOPSpec]
+            case JsString("SPSpec") => value.convertTo[SPSpec]
+            case res@_ =>
+              throw new DeserializationException(s"IDAble: isa $res does not match any of Operation, Thing, SPObject, SOPSpec or SPSpec")
+          }
         }
-      }
-      obj match {
-        case Some(o) => o
-        case None => throw new DeserializationException(s"IDAble missing isa field: $value")
+        case _ => throw new DeserializationException(s"IDAble missing isa field: $value")
       }
     }
   }
 
-      def idPart(x: IDAble) = List(
-          "version" -> x.version.toJson,
-          "id" -> x.id.toJson,
-          "attributes" -> x.attributes.toJson
-        )
+  def idPart(x: IDAble) = List(
+    "version" -> x.version.toJson,
+    "id" -> x.id.toJson,
+    "attributes" -> x.attributes.toJson
+  )
 
 
-
-//      def filterAndUpdateIDAble(js: JsObject): Option[JsObject] = {
-//        val xs = js.fields
-//        for {
-//          ver <- xs.get("version")
-//          id <- xs.get("id")
-//          t <- xs.get("isa")
-//          attr <- xs.get("attributes")
-//        } yield {
-//          val update = JsObject(attr.asJsObject.fields + ("basedOn" -> JsObject("id" -> id, "ver" -> ver)))
-//          println(s"add based on: ${JsObject(xs + ("attributes" -> update))}" )
-//          JsObject(xs + ("attributes" -> update))
-//        }
-//      }
+  //      def filterAndUpdateIDAble(js: JsObject): Option[JsObject] = {
+  //        val xs = js.fields
+  //        for {
+  //          ver <- xs.get("version")
+  //          id <- xs.get("id")
+  //          t <- xs.get("isa")
+  //          attr <- xs.get("attributes")
+  //        } yield {
+  //          val update = JsObject(attr.asJsObject.fields + ("basedOn" -> JsObject("id" -> id, "ver" -> ver)))
+  //          println(s"add based on: ${JsObject(xs + ("attributes" -> update))}" )
+  //          JsObject(xs + ("attributes" -> update))
+  //        }
+  //      }
 
 
 }

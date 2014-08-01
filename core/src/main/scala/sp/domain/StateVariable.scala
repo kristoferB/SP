@@ -2,6 +2,8 @@ package sp.domain
 
 case class StateVariable(name: String, attributes: SPAttributes = SPAttributes(Map()), id: ID = ID.newID)
 
+
+
 //trait StateVariable {
 //  val name: String
 //  val attributes: SPAttributes
