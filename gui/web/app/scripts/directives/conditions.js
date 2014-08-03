@@ -17,19 +17,14 @@ angular.module('spGuiApp')
         $scope.actionModel = '';
 
         var thingSuggestions = spTalker.thingsAsStrings,
-          stateVarSuggestions = [],
-          thingBehindCursor = '';
+          lastThingStringBehindCursor = '',
+          stateVarSuggestions = [];
 
         $scope.$watch(function() {
           return spTalker.thingsAsStrings
         }, function(newVal) {
             thingSuggestions = newVal;
         });
-
-        $scope.getThingBehindCursor = function(guardOrAction) {
-          var caretPos = getCaretPosition(document.getElementById(guardOrAction + 'Input-'+$scope.item.id));
-          thingBehindCursor = returnWord($scope.guardModel, caretPos);
-        };
 
         function getCaretPosition(ctrl) {
           var CaretPos = 0;   // IE Support
@@ -46,7 +41,6 @@ angular.module('spGuiApp')
         }
 
         function returnWord(text, caretPos) {
-          var index = text.indexOf(caretPos);
           var preText = text.substring(0, caretPos);
           var textSplitOnDots = preText.split(/\./g);
           textSplitOnDots.pop();
@@ -57,157 +51,67 @@ angular.module('spGuiApp')
           return '';
         }
 
-        $scope.$watch(function() {
-          return thingBehindCursor;
-        }, function(newVal, oldVal) {
-          if(newVal !== oldVal) {
-            getStateVarSuggestions(newVal);
-          }
-        });
-
-        var getStateVarSuggestions = function(thingString) {
-          var thing = spTalker.things.filter(function(thing) {
-            return thing.name.toLowerCase() === thingString.toLowerCase();
-          })[0];
-          stateVarSuggestions = [];
-          if(typeof thing !== 'undefined') {
-            thing.stateVariables.forEach(function (stateVar) {
-              stateVarSuggestions.push(stateVar.name);
-            });
-          }
-        };
-
-
-        //-- start of text-complete code --//
-        //-- thing-complete for guard --//
-
-        var guardInputElement = $element.find('.guard-input');
-        var guardThingComplete = new Textcomplete(guardInputElement, [
-          {
-            match: /(^|AND\s|OR\s|==\s|!=\s)([\w\-]*)$/i,
-            search: function(term, callback) {
-              callback($.map(thingSuggestions, function(suggestion) {
-                return suggestion.toLowerCase().indexOf(term.toLowerCase()) === 0 ? suggestion : null;
-              }));
-            },
-            index: 2,
-            replace: function(suggestion) {
-              return '$1' + suggestion;
+        function getStateVarSuggestions(guardOrAction) {
+          var caretPos = getCaretPosition(document.getElementById(guardOrAction + 'Input-'+$scope.item.id));
+          var newThingStringBehindCursor = returnWord($scope[guardOrAction + 'Model'], caretPos);
+          if(newThingStringBehindCursor !== lastThingStringBehindCursor) {
+            lastThingStringBehindCursor = newThingStringBehindCursor;
+            var thingBehindCursor = spTalker.things.filter(function (thing) {
+              return thing.name.toLowerCase() === lastThingStringBehindCursor.toLowerCase();
+            })[0];
+            stateVarSuggestions = [];
+            if (typeof thingBehindCursor !== 'undefined') {
+              thingBehindCursor.stateVariables.forEach(function (stateVar) {
+                stateVarSuggestions.push(stateVar.name);
+              });
             }
           }
-        ]);
+          return stateVarSuggestions;
+        }
 
-        $(guardThingComplete).on({
-          'textComplete:select': function (e, value) {
-            $scope.$apply(function() {
-              $scope.guardModel = value
-            })
-          },
-          'textComplete:show': function (e) {
-            $(this).data('autocompleting', true);
-          },
-          'textComplete:hide': function (e) {
-            $(this).data('autocompleting', false);
-          }
-        });
+        var guardInputElement = $element.find('.guard-input'),
+        actionInputElement = $element.find('.action-input'),
+        thingMatchExp = /(^|AND\s|OR\s|==\s|!=\s)([\w\-]*)$/i,
+        stateVarMatchExp = /(\w\.)([\w\-]*)$/i;
+        function getThingSuggestions() {
+          return thingSuggestions;
+        }
+        createAutoSuggestion(guardInputElement, $scope.guardModel, thingMatchExp, getThingSuggestions, '', '');
+        createAutoSuggestion(guardInputElement, $scope.guardModel, stateVarMatchExp, getStateVarSuggestions, 'guard', ' ');
+        createAutoSuggestion(actionInputElement, $scope.actionModel, thingMatchExp, getThingSuggestions, '', '');
+        createAutoSuggestion(actionInputElement, $scope.actionModel, stateVarMatchExp, getStateVarSuggestions, 'action', ' ');
 
-        //-- stateVar-complete for guard --//
-
-        var guardStateVarComplete = new Textcomplete(guardInputElement, [
-          {
-            match: /(\w\.)([\w\-]*)$/i,
-            search: function(term, callback) {
-              callback($.map(stateVarSuggestions, function(suggestion) {
-                return suggestion.toLowerCase().indexOf(term.toLowerCase()) === 0 ? suggestion : null;
-              }));
-            },
-            index: 2,
-            replace: function(suggestion) {
-              return '$1' + suggestion + ' ';
+        function createAutoSuggestion(inputElement, inputModel, matchExp, suggestionsFunc, funcParam, postReplace) {
+          var textComplete = new Textcomplete(inputElement, [
+            {
+              match: matchExp,
+              search: function(term, callback) {
+                callback($.map(suggestionsFunc(funcParam), function(suggestion) {
+                  return suggestion.toLowerCase().indexOf(term.toLowerCase()) === 0 ? suggestion : null;
+                }));
+              },
+              index: 2,
+              replace: function(suggestion) {
+                return '$1' + suggestion + postReplace;
+              }
             }
-          }
-        ]);
+          ]);
 
-        $(guardStateVarComplete).on({
-          'textComplete:select': function (e, value) {
-            $scope.$apply(function() {
-              $scope.guardModel = value
-            })
-          },
-          'textComplete:show': function (e) {
-            $(this).data('autocompleting', true);
-          },
-          'textComplete:hide': function (e) {
-            $(this).data('autocompleting', false);
-          }
-        });
-
-        //-- thing-complete for action --//
-
-        var actionInputElement = $element.find('.action-input');
-        var actionComplete = new Textcomplete(actionInputElement, [
-          {
-            match: /(^|AND\s|OR\s|==\s|!=\s)([\w\-]*)$/i,
-            search: function(term, callback) {
-              callback($.map(thingSuggestions, function(suggestion) {
-                return suggestion.toLowerCase().indexOf(term.toLowerCase()) === 0 ? suggestion : null;
-              }));
+          $(textComplete).on({
+            'textComplete:select': function (e, value) {
+              $scope.$apply(function() {
+                inputModel = value
+              })
             },
-            index: 2,
-            replace: function(suggestion) {
-              return '$1' + suggestion;
-            }
-          }
-        ]);
-
-        $(actionComplete).on({
-          'textComplete:select': function (e, value) {
-            $scope.$apply(function() {
-              $scope.actionModel = value
-            })
-          },
-          'textComplete:show': function (e) {
-            $(this).data('autocompleting', true);
-          },
-          'textComplete:hide': function (e) {
-            $(this).data('autocompleting', false);
-          }
-        });
-
-        //-- stateVar-complete for action --//
-
-        var actionStateVarComplete = new Textcomplete(actionInputElement, [
-          {
-            match: /(\w\.)([\w\-]*)$/i,
-            search: function(term, callback) {
-              callback($.map(stateVarSuggestions, function(suggestion) {
-                return suggestion.toLowerCase().indexOf(term.toLowerCase()) === 0 ? suggestion : null;
-              }));
+            'textComplete:show': function (e) {
+              $(this).data('autocompleting', true);
             },
-            index: 2,
-            replace: function(suggestion) {
-              return '$1' + suggestion + ' ';
+            'textComplete:hide': function (e) {
+              $(this).data('autocompleting', false);
             }
-          }
-        ]);
-
-        $(actionStateVarComplete).on({
-          'textComplete:select': function (e, value) {
-            $scope.$apply(function() {
-              $scope.actionModel = value
-            })
-          },
-          'textComplete:show': function (e) {
-            $(this).data('autocompleting', true);
-          },
-          'textComplete:hide': function (e) {
-            $(this).data('autocompleting', false);
-          }
-        });
-
-
-        //-- end of text-complete code --//
-
+          });
+        }
       }
+
     };
   });

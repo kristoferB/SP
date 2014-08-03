@@ -15,8 +15,53 @@ angular.module('spGuiApp')
       scope.items = [];
       scope.showableColumns = ['name', 'isa', 'version', 'conditions', 'stateVariables', 'attributes']
       scope.selection = ['name', 'isa', 'version'];
-      scope.attributeTypes = ['user', 'date', 'comment'];
+      scope.attributeTypes = ['user', 'date'];
       scope.attrSelection = angular.copy(scope.attributeTypes);
+      scope.predicate = 'isa';
+      scope.reverse = false;
+      scope.search = {name:'', attributes:{}};
+
+      scope.itemFilter = function (item) {
+        var qualifies = true;
+
+        function exploreItem(item, subItem, subSearch) {
+          //console.log('Utforskar ' + item.name);
+          var subSearchKeys = Object.keys(subSearch);
+          for(var i = 0; i < subSearchKeys.length; i++) {
+            var k = subSearchKeys[i], v = subSearch[k];
+            if( subItem.hasOwnProperty(k)) {
+              if(typeof v === 'string' || v instanceof String) {
+                //console.log(v + ' är en string');
+                if (subItem[k].toString().toLowerCase().indexOf(v.toLowerCase()) === (-1)) {
+                  //console.log(v + ' finns inte i item ' + item.name);
+                  qualifies = false;
+                  break
+                }
+              } else {
+                exploreItem(item, subItem[k], v);
+              }
+            } else if(v !== '') {
+              qualifies = false;
+              break
+            }
+          }
+        }
+
+        exploreItem(item, item, scope.search)
+        return qualifies;
+
+      };
+
+      scope.sort = function(column) {
+        console.log(column);
+        if(scope.predicate === column) {
+          scope.reverse = !(scope.reverse);
+        } else {
+          scope.predicate = column;
+          scope.reverse = false;
+        }
+
+      };
 
       scope.toggleSelection = function toggleSelection(column, selections) {
         var idx = selections.indexOf(column);

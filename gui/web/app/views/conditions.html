@@ -9,7 +9,7 @@
       <td class="col-md-1">guard: </td>
       <td ng-if="!row.edit">{{prop.g}}</td>
       <td ng-show="row.edit">
-        <input name="guardInput" id="guardInput-{{item.id}}" ng-model="guardModel" ng-trim="false" ng-change="getThingBehindCursor('guard')" prop-parse="{item: item, key: key, guardOrAction: 'g'}" type="text" class="guard-input form-control input-sm" />
+        <input name="guardInput" id="guardInput-{{item.id}}" ng-model="guardModel" ng-trim="false" prop-parse="{item: item, key: key, guardOrAction: 'g'}" type="text" class="guard-input form-control input-sm" />
         <span class="error" ng-show="conditionsForm.guardInput.$error.maxlength">Not too long, please.</span>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.guardInput.$error.propParse]"></span>
       </td>
@@ -18,7 +18,7 @@
       <td>action: </td>
       <td ng-if="!row.edit">{{prop.a}}</td>
       <td ng-show="row.edit">
-        <input name="actionInput" id="actionInput-{{item.id}}" ng-model="actionModel" ng-trim="false" ng-change="getThingBehindCursor('action')" prop-parse="{item: item, key: key, guardOrAction: 'a'}" type="text" class="action-input form-control input-sm" />
+        <input name="actionInput" id="actionInput-{{item.id}}" ng-model="actionModel" ng-trim="false" prop-parse="{item: item, key: key, guardOrAction: 'a'}" type="text" class="action-input form-control input-sm" />
         <span class="error" ng-show="conditionsForm.actionInput.$error.maxlength">Not too long, please.</span>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.actionInput.$error.propParse]"></span>
       </td>
