@@ -7,9 +7,8 @@ trait Condition {
   val attributes: SPAttributes
 }
 
-case class Guard(proposition: Proposition, attributes: SPAttributes = SPAttributes(Map()))
-case class Action(stateVariableID: ID, value: SPAttributeValue, attributes: SPAttributes = SPAttributes(Map()))
-case class PropositionCondition(guard: List[Guard],
+case class Action(stateVariableID: ID, value: SPAttributeValue)
+case class PropositionCondition(guard: Proposition,
                                 action: List[Action],
                                 attributes: SPAttributes = SPAttributes(Map())) extends Condition {
 }
