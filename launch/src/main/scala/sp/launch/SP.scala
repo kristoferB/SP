@@ -1,7 +1,7 @@
 package sp.launch
 
 import sp.domain.SPAttributes
-import sp.services.PropositionParser
+import sp.services.{PropositionParserActor, PropositionParser}
 import sp.system.messages._
 
 /**
@@ -18,7 +18,7 @@ object SP extends App {
 
   // Register services here
   serviceHandler ! RegisterService("PropositionParser",
-    system.actorOf(PropositionParser.props, "PropositionParser"))
+    system.actorOf(PropositionParserActor.props, "PropositionParser"))
 
 
 

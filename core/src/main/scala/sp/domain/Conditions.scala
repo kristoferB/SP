@@ -81,27 +81,27 @@ trait LogicalExpressionParser extends JavaTokenParsers with Regix {
 }
 
 
-object TestParser extends App with LogicalExpressionParser {
-  println("Welcome to the parser: Type an expression or enter for exit")
-  waitForString
-
-  private def waitForString    {
-      def waitEOF(): Unit = Console.readLine() match {
-        case "" => ""
-        case "exit" => ""
-        case str: String => println(parseStr(str)); waitEOF()
-      }
-      waitEOF()
-    }
-
-
-//  val tests = Seq(
-//    "true and (false or T)",
-//    "!(rt==5) And ty >=   			 true")
-//  tests.foreach(str => println(clean(parseStr(str))))
-//  val test2 = parseStr("true OR false OR true")
-//  println (test2)
-//  println(clean(test2))
-
-
-}
+//object TestParser extends App with LogicalExpressionParser {
+//  println("Welcome to the parser: Type an expression or enter for exit")
+//  waitForString
+//
+//  private def waitForString    {
+//      def waitEOF(): Unit = Console.readLine() match {
+//        case "" => ""
+//        case "exit" => ""
+//        case str: String => println(parseStr(str)); waitEOF()
+//      }
+//      waitEOF()
+//    }
+//
+//
+////  val tests = Seq(
+////    "true and (false or T)",
+////    "!(rt==5) And ty >=   			 true")
+////  tests.foreach(str => println(clean(parseStr(str))))
+////  val test2 = parseStr("true OR false OR true")
+////  println (test2)
+////  println(clean(test2))
+//
+//
+//}

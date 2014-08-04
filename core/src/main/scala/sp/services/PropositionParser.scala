@@ -3,6 +3,7 @@ package sp.services
 import akka.actor._
 import sp.domain._
 import sp.system.messages._
+import sp.domain.logic._
 
 /**
  * The service parse a string into a proposition and returns it.
@@ -12,11 +13,11 @@ import sp.system.messages._
  * If we need better performance from multiple requests in the future,
  * we can have multiple actors in a round robin.
 **/
-class PropositionParser extends Actor with LogicalExpressionParser {
+class PropositionParserActor extends Actor  {
   def receive = {
     case Request(_, attr) => {
       extract(attr) map{ res =>
-        parseStr(res._2) match {
+        PropositionParser.parseStr(res._2) match {
           case Left(failure) =>
             val errorMess = "["+failure.next.pos+"] error: "+failure.msg+"\n\n"+failure.next.pos.longString
             sender ! SPErrorString(errorMess)
@@ -39,6 +40,6 @@ class PropositionParser extends Actor with LogicalExpressionParser {
 
 }
 
-object PropositionParser{
-  def props = Props(classOf[PropositionParser])
+object PropositionParserActor{
+  def props = Props(classOf[PropositionParserActor])
 }

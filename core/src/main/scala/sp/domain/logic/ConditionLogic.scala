@@ -61,13 +61,34 @@ case object PropositionParser extends JavaTokenParsers {
   final lazy val REG_EX_OPERATOR = s"==|>=|<=|!=|:=|=|>|<".r
 
   final lazy val REG_EX_VALUE = s"\\w+".r
+  final lazy val REG_EX_UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}".r
 
 
   lazy val or: Parser[Proposition] = and ~ rep(REG_EX_OR ~ and) ^^ { case f1 ~ temp => if (temp.isEmpty) f1 else OR(f1 +: temp.map { case ~(_, f2) => f2})}
   lazy val and: Parser[Proposition] = not ~ rep(REG_EX_AND ~ not) ^^ { case f1 ~ temp => if (temp.isEmpty) f1 else AND(f1 +: temp.map { case ~(_, f2) => f2})}
   lazy val not: Parser[Proposition] = opt(REG_EX_NOT) ~ factor ^^ { case Some(_) ~ f => NOT(f); case None ~ f => f}
   lazy val factor: Parser[Proposition] = expressionEQ | expressionNEQ | "(" ~> or <~ ")" ^^ { case exp => exp}
-  lazy val expressionEQ: Parser[Proposition] = REX_EX_VARIABLE ~ REG_EX_OPERATOREQ ~ REG_EX_VALUE ^^ { case ~(~(var1, op), v) => EQ(SVNameEval(var1), ValueHolder(v))}
-  lazy val expressionNEQ: Parser[Proposition] = REX_EX_VARIABLE ~ REG_EX_OPERATORNEQ ~ REG_EX_VALUE ^^ { case ~(~(var1, op), v) => NEQ(SVNameEval(var1), ValueHolder(v))}
+  lazy val expressionEQ: Parser[Proposition] = stateEv ~ REG_EX_OPERATOREQ ~ stateEv ^^ { case ~(~(var1, op), v) => EQ(var1, v)}
+  lazy val expressionNEQ: Parser[Proposition] = stateEv  ~ REG_EX_OPERATORNEQ ~ stateEv ^^ { case ~(~(var1, op), v) => NEQ(var1, v)}
+  lazy val stateEv: Parser[StateEvaluator] = uuid | value
+  lazy val uuid: Parser[StateEvaluator] = REG_EX_UUID  ^^ { uuid => SVIDEval(ID.makeID(uuid).get)}
+  lazy val value: Parser[StateEvaluator] = REG_EX_VALUE ^^ {v => ValueHolder(StringPrimitive(v))}
 }
 
+//object TestParser extends App  {
+//  println("Welcome to the parser: Type an expression or enter for exit")
+//  waitForString
+//
+//  private def waitForString    {
+//      def waitEOF(): Unit = Console.readLine() match {
+//        case "" => ""
+//        case "exit" => ""
+//        case str: String => {
+//          println(PropositionParser.parseStr(str))
+//          println(PropositionParser.parseAll(PropositionParser.stateEv, str))
+//          waitEOF()
+//        }
+//      }
+//      waitEOF()
+//    }
+//}

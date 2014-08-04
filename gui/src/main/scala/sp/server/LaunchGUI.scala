@@ -27,12 +27,4 @@ object LaunchGUI extends MySslConfiguration {
 
 
   }
-   private def waitForExit() =
-    {
-      def waitEOF(): Unit = Console.readLine() match {
-        case "exit" => system.shutdown()
-        case _ => waitEOF()
-      }
-      waitEOF()
-    }
 }
