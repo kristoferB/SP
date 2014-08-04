@@ -64,9 +64,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr ng-repeat-start="item in items | orderBy:predicate:reverse | filter:itemFilter" data-toggle="collapse" data-target="#{{window.id}}{{item.id}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={edit:false}">
-        <!--<td>{{item.name}}</td>
-        <td>{{item.isa}}</td>-->
+      <tr ng-repeat-start="item in items | orderBy:predicate:reverse | filter:itemFilter" data-toggle="collapse" data-target="#{{window.id}}{{item.id}}" op-drag="item.id" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={edit:false}">
         <td ng-repeat="column in selection">{{item[column]}}</td>
         <td ng-repeat="attrColumn in attrSelection">{{item['attributes'][attrColumn]}}</td>
       </tr>
@@ -103,6 +101,3 @@
     </tbody>
   </table>
 </div>
-
-
-<!--ng-include="{'normal':'views/row_normal.html','expanded':'views/row_expanded.html','edit':'views/row_edit.html'}[row.mode]"-->

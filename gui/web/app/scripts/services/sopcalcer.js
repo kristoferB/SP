@@ -11,24 +11,24 @@ angular.module('spGuiApp')
   .factory('sopCalcer', [ 'spTalker', function (spTalker) {
     var factory = {};
     
-    factory.calcStructMeasures = function(sop, measures, para) {
+    factory.calcStructMeasures = function(sop, measures, para, wholeSop) {
       var structMeasures = [];
       
       if(sop.isa === 'Sequence') {
         structMeasures.width = sop.clientSideAdditions.width; structMeasures.height = sop.clientSideAdditions.height;
-        if(measures.dir === 'Hori') {
+        if(!wholeSop.clientSideAdditions.vertDir) {
           structMeasures.width = [structMeasures.height, structMeasures.height = structMeasures.width][0];
         }
       } else if (sop.isa === 'Other') {
         structMeasures.width = sop.clientSideAdditions.width; structMeasures.height = sop.clientSideAdditions.height-measures.margin;
-        if(measures.dir === 'Hori') {
+        if(!wholeSop.clientSideAdditions.vertDir) {
           structMeasures.width = [structMeasures.height, structMeasures.height = structMeasures.width][0];
         }
       } else if (sop.isa === 'Parallel' || sop.isa === 'Arbitrary') {
         structMeasures.x21 = 0; structMeasures.y21 = para; structMeasures.x31 = 0; structMeasures.y31 = sop.clientSideAdditions.height-measures.margin-para;
         structMeasures.x41 = 0; structMeasures.y41 = sop.clientSideAdditions.height-measures.margin; structMeasures.width = sop.clientSideAdditions.width; structMeasures.height = 0;
         structMeasures.x51 = 0; structMeasures.y51 = para/2; structMeasures.x61 = 0; structMeasures.y61 = sop.clientSideAdditions.height-measures.margin-para/2;
-        if(measures.dir === 'Hori') {
+        if(!wholeSop.clientSideAdditions.vertDir) {
           structMeasures.x21 = [structMeasures.y21, structMeasures.y21 = structMeasures.x21][0];
           structMeasures.x31 = [structMeasures.y31, structMeasures.y31 = structMeasures.x31][0];
           structMeasures.x41 = [structMeasures.y41, structMeasures.y41 = structMeasures.x41][0];
@@ -39,7 +39,7 @@ angular.module('spGuiApp')
       } else if (sop.isa === 'Alternative') {
         structMeasures.x11 = sop.clientSideAdditions.width/2 - sop.clientSideAdditions.lineL; structMeasures.y11 = 0; structMeasures.x12 = sop.clientSideAdditions.lineL + sop.clientSideAdditions.lineR; structMeasures.y12 = 0;
         structMeasures.x21 = sop.clientSideAdditions.width/2 - sop.clientSideAdditions.lineL; structMeasures.y21 = sop.clientSideAdditions.height - measures.margin; structMeasures.x22 = sop.clientSideAdditions.lineL + sop.clientSideAdditions.lineR; structMeasures.y22 = 0;
-        if(measures.dir === 'Hori') {
+        if(!wholeSop.clientSideAdditions.vertDir) {
           structMeasures.x11 = [structMeasures.y11, structMeasures.y11 = structMeasures.x11][0];
           structMeasures.x12 = [structMeasures.y12, structMeasures.y12 = structMeasures.x12][0];
           structMeasures.x21 = [structMeasures.y21, structMeasures.y21 = structMeasures.x21][0];
@@ -50,37 +50,35 @@ angular.module('spGuiApp')
     };
 
 
-    factory.makeIt = function(sop, measures) {
+    factory.makeIt = function(wholeSop, measures) {
       var mC = {
         'margin' : measures.margin,
         'opH' : measures.opH,
         'opW' : measures.opW,
         'para' : measures.para,
         'arrow' : measures.arrow,
-        'dir' : measures.dir,
         'textScale': measures.textScale
       };
-      if (mC.dir === 'Hori') {
+
+      if (!wholeSop.clientSideAdditions.vertDir) {
         var tempw = mC.opW;
         mC.opW = mC.opH;
         mC.opH = tempw;
       }
 
-      if(typeof sop.clientSideAdditions === 'undefined') {
-        sop.clientSideAdditions = {};
-      }
-      
-      sop.clientSideAdditions.dir = mC.dir;
+      var w = this.getWidth(wholeSop, mC, wholeSop.clientSideAdditions.vertDir);
+      var result = this.createSOP(wholeSop, mC, w / 2, 0, false, 0, wholeSop, true);
 
-      var w = this.getWidth(sop, mC);
-      var sopis = this.createSOP(sop, mC, w / 2, 0, false, 0, sop, true);
-
-      if (mC.dir === 'Hori') {
-        var tempw2 = sopis.width;
-        sopis.width = sopis.height;
-        sopis.height = tempw2;
+      result.height = result.height + 20; // To contain the ending line
+      if (!wholeSop.clientSideAdditions.vertDir) {
+        var tempw2 = result.width;
+        result.width = result.height;
+        result.height = tempw2;
       }
-      return sopis;
+
+      wholeSop.clientSideAdditions.width = result.width;
+      wholeSop.clientSideAdditions.height = result.height;
+
     };
 
     factory.createSOP = function(sop, measures, middle, start, parentObject, parentObjectIndex, wholeSop, firstLoop) {
@@ -100,7 +98,7 @@ angular.module('spGuiApp')
         'width' : 0,
         'height' : 0,
         'scale' : 100,
-        'dir' : measures.dir,
+        'dir' : wholeSop.clientSideAdditions.vertDir,
         'x' : 0,
         'y' : 0
       }, drawHere, sub;
@@ -128,8 +126,8 @@ angular.module('spGuiApp')
         if (sop.sop.length > 0){
           console.log('sopHierarchy do not handle childs yet: ');
         } else {
-          result.width = this.calcOpWidth(op, measures);
-          result.height = this.calcOpHeigth(op, measures) + measures.margin;
+          result.width = this.calcOpWidth(op, measures, wholeSop.clientSideAdditions.vertDir);
+          result.height = this.calcOpHeight(op, measures, wholeSop.clientSideAdditions.vertDir) + measures.margin;
           var arrow = measures.arrow; 
           if (start < measures.arrow) {arrow = 0;}
 
@@ -141,7 +139,7 @@ angular.module('spGuiApp')
           sop.clientSideAdditions.arrow = 'M ' + (result.width/2 - arrow) + ' ' + (-arrow) + ' l ' + arrow + ' ' + arrow + ' l ' + arrow + ' ' + -arrow + ' Z';
           
           // Swap width, height and x, y if Horizontal direction
-          if(measures.dir === 'Hori') {
+          if(!wholeSop.clientSideAdditions.vertDir) {
             sop.clientSideAdditions.height = [sop.clientSideAdditions.width, sop.clientSideAdditions.width = sop.clientSideAdditions.height][0];
             sop.clientSideAdditions.x = [sop.clientSideAdditions.y, sop.clientSideAdditions.y = sop.clientSideAdditions.x][0];
             sop.clientSideAdditions.arrow = 'M ' + (-arrow) + ' ' + (result.width/2 - arrow) + ' l ' + arrow + ' ' + arrow + ' l ' + -arrow + ' ' + arrow + ' Z';
@@ -170,7 +168,7 @@ angular.module('spGuiApp')
         }
         
       } else {  // Parallel, Alternative, Other or Arbitrary
-        result.width = this.getWidth(sop, measures);
+        result.width = this.getWidth(sop, measures, wholeSop.clientSideAdditions.vertDir);
         drawHere = middle - (result.width / 2) + measures.margin;
         var linepos = [];
         var lineMinusL = measures.margin;
@@ -183,10 +181,10 @@ angular.module('spGuiApp')
         }
         var sopLength = sop.sop.length;
         for ( var n in sop.sop) {
-          if(measures.dir === 'Hori') {
+          if(!wholeSop.clientSideAdditions.vertDir) {
             n = sopLength - 1 - n;
           }
-          var subW = this.getWidth(sop.sop[n], measures);
+          var subW = this.getWidth(sop.sop[n], measures, wholeSop.clientSideAdditions.vertDir);
           drawHere = drawHere + subW / 2;
           sub = this.createSOP(sop.sop[n], measures, drawHere, start + para + measures.margin, sop, new Number(n), wholeSop, false);
 
@@ -249,11 +247,11 @@ angular.module('spGuiApp')
         sop.clientSideAdditions.y = start;
         
         // Swap if horizontal direction
-        if(measures.dir === 'Hori') {
+        if(!wholeSop.clientSideAdditions.vertDir) {
           sop.clientSideAdditions.x = [sop.clientSideAdditions.y, sop.clientSideAdditions.y = sop.clientSideAdditions.x][0];
         }
         
-        sop.clientSideAdditions.structMeasures = factory.calcStructMeasures(sop, measures, para);
+        sop.clientSideAdditions.structMeasures = factory.calcStructMeasures(sop, measures, para, wholeSop);
 
       }
       
@@ -284,16 +282,16 @@ angular.module('spGuiApp')
       return result;
     };
 
-    factory.getWidth = function(sop, measures) {
+    factory.getWidth = function(sop, measures, vertDir) {
       var w, nW;
       if (sop.isa === 'Hierarchy') {
         // If the Op-def isn't included in the SOP-def, fetch the Op by ID and replace the ID with it
         var op = spTalker.getItemById(sop.operation);
-        return this.calcOpWidth(op, measures);
+        return this.calcOpWidth(op, measures, vertDir);
       } else if (sop.isa === 'Sequence') {
         w = 0;
         for (var n in sop.sop) {
-          nW = this.getWidth(sop.sop[n], measures);
+          nW = this.getWidth(sop.sop[n], measures, vertDir);
           if (nW > w) {
             w = nW;
           }
@@ -302,24 +300,24 @@ angular.module('spGuiApp')
       } else {
         w = measures.margin;
         for ( var o in sop.sop) {
-          nW = this.getWidth(sop.sop[o], measures);
+          nW = this.getWidth(sop.sop[o], measures, vertDir);
           w = w + nW + measures.margin;
         }
         return w;
       }
     };
     
-    factory.calcOpWidth = function(op, measures) {
+    factory.calcOpWidth = function(op, measures, vertDir) {
       var result = measures.opW;
-      if ((measures.dir === 'Vert') && ((measures.opW / op.name.length) < measures.textScale)) {
+      if (vertDir && ((measures.opW / op.name.length) < measures.textScale)) {
         result = measures.textScale * op.name.length;
       } 
       return result;
     };
     
-    factory.calcOpHeigth = function(op, measures) {
+    factory.calcOpHeight = function(op, measures, vertDir) {
       var result = measures.opH;
-      if (measures.dir === 'Hori' && ((measures.opH / op.name.length) < measures.textScale)) {
+      if (!vertDir && ((measures.opH / op.name.length) < measures.textScale)) {
         result = (measures.textScale * op.name.length);
       } 
       return result;

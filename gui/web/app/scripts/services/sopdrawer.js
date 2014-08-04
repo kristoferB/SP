@@ -9,8 +9,7 @@
  */
 angular.module('spGuiApp')
   .factory('sopDrawer', [ 'sopCalcer', 'spTalker', function (sopCalcer, spTalker) {
-    // Service logic
-    // ...
+
     var factory = {}, measures, dragDropManager = {
         'draggedObj' : false,
         'droppable' : false,
@@ -18,15 +17,15 @@ angular.module('spGuiApp')
         'objToInsertIn' : new Number(0),
         'indexToInsertAt' : new Number(0)
       };
-      
-    factory.calcAndDrawSop = function(sop, dir, paper, firstLoop, doRedraw, dirScope) {
+
+    factory.calcAndDrawSop = function(sop, paper, firstLoop, doRedraw, dirScope) {
+
       measures = {
           'margin' : 15,
           'opH' : 50,
           'opW' : 60,
           'para' : 7,
           'arrow' : 5,
-          'dir' : dir,
           'textScale': 6,
           'animTime': 300,
           'commonLineColor': 'white'
@@ -41,10 +40,10 @@ angular.module('spGuiApp')
       for ( var n in sop.sop) {
         factory.drawSop(sop.sop[n], measures, paper, false, wholeSop, doRedraw, dirScope);
         if(sop.isa === 'Sequence') {
-          factory.drawLine(sop.clientSideAdditions.lines[n], measures, paper, sop, new Number(n)+1, 'red', measures.commonLineColor); // Line after each op in sequence
+          factory.drawLine(sop.clientSideAdditions.lines[n], measures, paper, sop, new Number(n)+1, 'red', wholeSop, dirScope); // Line after each op in sequence
         } else {
-          factory.drawLine(sop.clientSideAdditions.lines[n], measures, paper, sop.sop[n], new Number(0), 'green', measures.commonLineColor); // Line above each struct
-          factory.drawLine(sop.clientSideAdditions.lines2[n], measures, paper, sop.sop[sop.clientSideAdditions.lines2[n].subSopIndex], 'last', 'blue', measures.commonLineColor); // Line after each struct
+          factory.drawLine(sop.clientSideAdditions.lines[n], measures, paper, sop.sop[n], new Number(0), 'green', wholeSop, dirScope); // Line above each struct
+          factory.drawLine(sop.clientSideAdditions.lines2[n], measures, paper, sop.sop[sop.clientSideAdditions.lines2[n].subSopIndex], 'last', 'blue', wholeSop, dirScope); // Line after each struct
         }
       }
       
@@ -71,7 +70,7 @@ angular.module('spGuiApp')
 
           sop.clientSideAdditions.drawnText.toFront();
           sop.clientSideAdditions.setToDrag.toFront();
-          factory.makeDraggable(sop.clientSideAdditions.setToDrag, sop.clientSideAdditions.x, sop.clientSideAdditions.y, sop, paper, wholeSop, dirScope);
+          factory.makeDraggable(sop.clientSideAdditions.setToDrag, sop.clientSideAdditions.x, sop.clientSideAdditions.y, sop, paper, wholeSop, dirScope, measures);
 
           sop.clientSideAdditions.drawnSet.push(sop.clientSideAdditions.drawnShadowSet);
           sop.clientSideAdditions.drawnSet.animate({transform:'T' + sop.clientSideAdditions.x + ',' + sop.clientSideAdditions.y}, animTime);
@@ -80,7 +79,7 @@ angular.module('spGuiApp')
           if (sop.isa === 'Other') {
             sop.clientSideAdditions.drawnRect = paper.rect(0, 0, sop.clientSideAdditions.structMeasures.width, sop.clientSideAdditions.structMeasures.height).attr({'fill': '#D8D8D8', 'fill-opacity': 0.5, 'stroke': measures.commonLineColor, 'stroke-width': 0, 'rx': 10, 'ry': 10}).toBack();
             sop.clientSideAdditions.drawnSet.push(sop.clientSideAdditions.drawnRect);
-            factory.makeDroppable(sop.drawnSet, false, sop, 0, false);
+            factory.makeDroppable(sop.drawnSet, false, sop, 0, false, wholeSop, dirScope, paper, measures);
           } else if (sop.isa === 'Alternative') {
             sop.clientSideAdditions.drawnLine1 = paper.path('M ' + sop.clientSideAdditions.structMeasures.x11 + ' ' + sop.clientSideAdditions.structMeasures.y11 + ' l ' + sop.clientSideAdditions.structMeasures.x12 + ' ' + sop.clientSideAdditions.structMeasures.y12).attr({'stroke': measures.commonLineColor});
             sop.clientSideAdditions.drawnLine2 = paper.path('M ' + sop.clientSideAdditions.structMeasures.x21 + ' ' + sop.clientSideAdditions.structMeasures.y21 + ' l ' + sop.clientSideAdditions.structMeasures.x22 + ' ' + sop.clientSideAdditions.structMeasures.y22).attr({'stroke': measures.commonLineColor});
@@ -90,7 +89,7 @@ angular.module('spGuiApp')
             sop.clientSideAdditions.drawnShadow2 = paper.path('M ' + sop.clientSideAdditions.structMeasures.x21 + ' ' + sop.clientSideAdditions.structMeasures.y21 + ' l ' + sop.clientSideAdditions.structMeasures.x22 + ' ' + sop.clientSideAdditions.structMeasures.y22).attr({'stroke': '#FF0000', 'stroke-width': 10, 'opacity': 0});
             sop.clientSideAdditions.drawnShadowSet.push(sop.clientSideAdditions.drawnShadow1);
             sop.clientSideAdditions.drawnShadowSet.push(sop.clientSideAdditions.drawnShadow2);
-            factory.makeDroppable(sop.clientSideAdditions.drawnShadowSet, true, sop, 0, false);
+            factory.makeDroppable(sop.clientSideAdditions.drawnShadowSet, true, sop, 0, false, wholeSop, dirScope, paper, measures);
           } else if (sop.isa === 'Parallel' || sop.isa === 'Arbitrary') {
             sop.clientSideAdditions.drawnLine1 = paper.path('M 0 0 l ' + sop.clientSideAdditions.structMeasures.width + ' ' + sop.clientSideAdditions.structMeasures.height).attr({'stroke': measures.commonLineColor});
             sop.clientSideAdditions.drawnLine2 = paper.path('M ' + sop.clientSideAdditions.structMeasures.x21 + ' ' + sop.clientSideAdditions.structMeasures.y21 + ' l ' + sop.clientSideAdditions.structMeasures.width + ' ' + sop.clientSideAdditions.structMeasures.height).attr({'stroke': measures.commonLineColor});
@@ -103,7 +102,7 @@ angular.module('spGuiApp')
             sop.clientSideAdditions.drawnShadow1 = paper.path('M ' + sop.clientSideAdditions.structMeasures.x51 + ' ' + sop.clientSideAdditions.structMeasures.y51 + ' l ' + sop.clientSideAdditions.structMeasures.width + ' ' + sop.clientSideAdditions.structMeasures.height).attr({stroke: '#FF0000', 'stroke-width': 10, opacity: 0});
             sop.clientSideAdditions.drawnShadow2 = paper.path('M ' + sop.clientSideAdditions.structMeasures.x61 + ' ' + sop.clientSideAdditions.structMeasures.y61 + ' l ' + sop.clientSideAdditions.structMeasures.width + ' ' + sop.clientSideAdditions.structMeasures.height).attr({stroke: '#FF0000', 'stroke-width': 10, opacity: 0});
             sop.clientSideAdditions.drawnShadowSet.push(sop.clientSideAdditions.drawnShadow1); sop.clientSideAdditions.drawnShadowSet.push(sop.clientSideAdditions.drawnShadow2);
-            factory.makeDroppable(sop.clientSideAdditions.drawnShadowSet, true, sop, 0, false);
+            factory.makeDroppable(sop.clientSideAdditions.drawnShadowSet, true, sop, 0, false, wholeSop, dirScope, paper, measures);
           }
 
           sop.clientSideAdditions.drawnSet.forEach(
@@ -128,7 +127,7 @@ angular.module('spGuiApp')
               var arrowAnim = Raphael.animation({opacity:1}, 0);
               sop.clientSideAdditions.drawnArrow.animate(arrowAnim.delay(animTime));
               sop.clientSideAdditions.drawnArrow.attr({opacity:0, path: sop.clientSideAdditions.arrow, transform: 'T' + sop.clientSideAdditions.x + ',' + sop.clientSideAdditions.y});
-              factory.makeDraggable(sop.clientSideAdditions.setToDrag, sop.clientSideAdditions.x, sop.clientSideAdditions.y, sop, paper, wholeSop, dirScope);
+              factory.makeDraggable(sop.clientSideAdditions.setToDrag, sop.clientSideAdditions.x, sop.clientSideAdditions.y, sop, paper, wholeSop, dirScope, measures);
               sop.clientSideAdditions.moved = 0;
               sop.clientSideAdditions.drawnSet.animate({transform: 'T' + sop.clientSideAdditions.x + ',' + sop.clientSideAdditions.y}, animTime);
             } else {
@@ -163,32 +162,63 @@ angular.module('spGuiApp')
       }
       
       if(firstLoop === true) {
-        factory.drawLine(sop.clientSideAdditions.lines[sop.clientSideAdditions.lines.length-1], measures, paper, sop, new Number(0), 'purple', measures.commonLineColor);
+        factory.drawLine(sop.clientSideAdditions.lines[sop.clientSideAdditions.lines.length-1], measures, paper, sop, new Number(0), 'purple', wholeSop, dirScope);
       }
       
     };
-    
-    factory.makeDroppable = function(drawnObjSet, shadow, objToInsertIn, indexToInsertAt, expectSequence) {
-      drawnObjSet.forEach( function(obj) {
-        obj.node.setAttribute('droppable', 'true');
-        obj.node.setAttribute('shadow', ''+shadow);
+
+    factory.makeDroppable = function(drawnObjSet, shadow, objToInsertIn, indexToInsertAt, expectSequence, wholeSop, dirScope, paper, measures) {
+
+      drawnObjSet.forEach( function(drawObj) {
+        var enter = function(ev) {
+            factory.highlightDroppable(drawObj);
+          },
+          allowdrop = function(ev) {
+            ev.preventDefault();
+          },
+          leave = function(ev) {
+            factory.removeHighlights(false);
+          },
+          dropped = function(ev) {
+            var id = ev.dataTransfer.getData('id'),
+            sopToInsert = {
+              isa: 'Hierarchy',
+              sop: [],
+              operation: id
+            };
+            factory.executeDrop(sopToInsert, wholeSop, dirScope, paper, measures, false)
+          };
+
+        drawObj.node.addEventListener('dragenter', enter, false);
+        drawObj.node.addEventListener('dragover', allowdrop, false);
+        drawObj.node.addEventListener('dragleave', leave, false);
+        drawObj.node.addEventListener('drop', dropped, false);
+        drawObj.node.setAttribute('droppable', 'true');
+        drawObj.node.setAttribute('shadow', ''+shadow);
         dragDropManager.objToInsertInArray.push(objToInsertIn);
-        obj.node.setAttribute('objToInsertInIndex', (dragDropManager.objToInsertInArray.length-1));
-        obj.node.setAttribute('indexToInsertAt', indexToInsertAt);
-        obj.node.setAttribute('expectSequence', expectSequence);
+        drawObj.node.setAttribute('objToInsertInIndex', (dragDropManager.objToInsertInArray.length-1));
+        drawObj.node.setAttribute('indexToInsertAt', indexToInsertAt);
+        drawObj.node.setAttribute('expectSequence', expectSequence);
       });
     };
-    
-    factory.moveNode = function(draggedSop, expectSequence) {
-      draggedSop.clientSideAdditions.moved = 1; // To fire animation even if the node's coordinates are calced to the same as before
+
+    factory.removeNode = function(draggedSop) {
+      draggedSop.clientSideAdditions.parentObject.sop.splice(draggedSop.clientSideAdditions.parentObjectIndex, 1); // Pop from the old position
+    };
+
+
+    factory.insertNode = function(draggedSop, expectSequence) {
+      if(draggedSop.clientSideAdditions) {
+        draggedSop.clientSideAdditions.moved = 1;
+      } // To fire animation even if the node's coordinates are calced to the same as before
       
       if(dragDropManager.objToInsertIn === draggedSop && dragDropManager.objToInsertIn.isa === 'Hierarchy' ||
-         dragDropManager.objToInsertIn === draggedSop.clientSideAdditions.parentObject && draggedSop.clientSideAdditions.parentObject.sop.length === 1) {
+        draggedSop.clientSideAdditions && dragDropManager.objToInsertIn === draggedSop.clientSideAdditions.parentObject && draggedSop.clientSideAdditions.parentObject.sop.length === 1) {
         //console.log('Same target as source. Return without change.');
         return;
       }
       
-      var target, nodeToMove = draggedSop.clientSideAdditions.parentObject.sop[draggedSop.clientSideAdditions.parentObjectIndex];
+      var target;
       
       if(expectSequence === 'true' && dragDropManager.objToInsertIn.isa !== 'Sequence') {
         //console.log('Sequence expected');
@@ -197,10 +227,8 @@ angular.module('spGuiApp')
       } else {
         target = dragDropManager.objToInsertIn;
       }
-      
-      draggedSop.clientSideAdditions.parentObject.sop.splice(draggedSop.clientSideAdditions.parentObjectIndex, 1); // Remove from the old position
-      
-      if(angular.equals(dragDropManager.objToInsertIn, draggedSop.clientSideAdditions.parentObject)) { // If move within the same SOP
+
+      if(draggedSop.clientSideAdditions && angular.equals(dragDropManager.objToInsertIn, draggedSop.clientSideAdditions.parentObject)) { // If move within the same SOP
         if(dragDropManager.indexToInsertAt > draggedSop.clientSideAdditions.parentObjectIndex ) {
           dragDropManager.indexToInsertAt = dragDropManager.indexToInsertAt - 1;
         }
@@ -210,7 +238,7 @@ angular.module('spGuiApp')
         dragDropManager.indexToInsertAt = target.sop.length;
       }
       
-      if(draggedSop.clientSideAdditions.parentObject.sop.length === 0) { // Remove empty Sequence classes left behind
+      if(draggedSop.clientSideAdditions && draggedSop.clientSideAdditions.parentObject.sop.length === 0) { // Remove empty Sequence classes left behind
         //console.log('Empty sequence class left. I remove it.');
         draggedSop.clientSideAdditions.parentObject.clientSideAdditions.lines.forEach( function(line) {
           line.drawnLine.remove(); line.drawnShadow.remove();
@@ -218,7 +246,7 @@ angular.module('spGuiApp')
         draggedSop.clientSideAdditions.parentObject.parentObject.sop.splice(draggedSop.clientSideAdditions.parentObject.clientSideAdditions.parentObjectIndex, 1)
       }
       
-      target.sop.splice(dragDropManager.indexToInsertAt, 0, nodeToMove); // Insertion at the new position
+      target.sop.splice(dragDropManager.indexToInsertAt, 0, draggedSop); // Insertion at the new position
       
     };
     
@@ -230,120 +258,125 @@ angular.module('spGuiApp')
       sequence.sop.push(node1);
       return sequence;
     };
+
+    factory.removeHighlights = function(within) {
+      if(!within) {
+        if(dragDropManager.droppable && dragDropManager.droppable.node.getAttribute('shadow') === 'true') {
+          dragDropManager.droppable.attr({opacity:0});
+        } else if (dragDropManager.droppable && dragDropManager.droppable.node.getAttribute('shadow') === 'false'){
+          dragDropManager.droppable.attr({'fill':'#D8D8D8'});
+        }
+        dragDropManager.droppable = false;
+      }
+    };
+
+    factory.executeDrop = function(draggedSop, wholeSop, dirScope, paper, measures, remove) {
+      var objToInsertInIndex = dragDropManager.droppable.node.getAttribute('objToInsertInIndex');
+      dragDropManager.objToInsertIn = dragDropManager.objToInsertInArray[objToInsertInIndex];
+      dragDropManager.indexToInsertAt = dragDropManager.droppable.node.getAttribute('indexToInsertAt');
+      var expectSequence = dragDropManager.droppable.node.getAttribute('expectSequence');
+      if(remove) {
+        factory.removeNode(draggedSop);
+      }
+      factory.insertNode(draggedSop, expectSequence);
+      factory.removeHighlights(false);
+      factory.calcAndDrawSop(wholeSop, paper, true, false, dirScope);
+      dirScope.$digest();
+    };
+
+    factory.highlightDroppable = function(objDraggedOver) {
+
+      if (dragDropManager.droppable !== objDraggedOver) {
+        if (dragDropManager.droppable && dragDropManager.droppable.node.getAttribute('shadow') === 'true') {
+          dragDropManager.droppable.attr({opacity: 0});
+        } else if (dragDropManager.droppable && dragDropManager.droppable.node.getAttribute('shadow') === 'false') {
+          dragDropManager.droppable.attr({'fill': '#D8D8D8'});
+        }
+        dragDropManager.droppable = objDraggedOver;
+      }
+
+      var within;
+      if (objDraggedOver.node.getAttribute('droppable') === 'true') {
+        within = true;
+        if (objDraggedOver.node.getAttribute('shadow') === 'true') {
+          objDraggedOver.attr({opacity: 0.5});
+        } else {
+          objDraggedOver.attr({'fill': '#FF0000'});
+        }
+      } else {
+        within = false;
+      }
+      return within;
+
+    };
     
-    factory.makeDraggable = function(obj, originalx, originaly, draggedSop, paper, wholeSop, dirScope) {
+    factory.makeDraggable = function(drawObj, originalx, originaly, draggedSop, paper, wholeSop, dirScope, measures) {
       var
-        within=false, 
-        timeout,
+        within=false,
         lx = 0, 
         ly = 0,
         ox = originalx,
         oy = originaly,
-      
-        start = function() {
-          obj.attr({opacity: 0.5});
-          dragDropManager.draggedObj = obj;
+
+        dragStart = function() {
+          drawObj.attr({opacity: 0.5});
         },
         
         move = function(dx, dy) {          
           lx = dx + ox;  // add the new change in x to the drag origin
           ly = dy + oy;  // do the same for y
-          obj.transform('T' + lx + ',' + ly);
-          
-          if(!within) {
-            if(dragDropManager.droppable && dragDropManager.droppable.node.getAttribute('shadow') === 'true') {
-              dragDropManager.droppable.attr({opacity:0});
-            } else if (dragDropManager.droppable && dragDropManager.droppable.node.getAttribute('shadow') === 'false'){
-              dragDropManager.droppable.attr({'fill':'#D8D8D8'});
-            }
-            dragDropManager.droppable = false;
-          }
-          
+          drawObj.transform('T' + lx + ',' + ly);
+          factory.removeHighlights(within);
           within = false;
-          
         },
         
         up = function() {
-          obj.attr({opacity: 1});
+          drawObj.attr({opacity: 1});
           if(dragDropManager.droppable) {
             ox = lx;
             oy = ly;
-            if(dragDropManager.droppable.node.getAttribute('shadow') === 'true') {
-              dragDropManager.droppable.attr({opacity:0});
-            } else {
-              dragDropManager.droppable.attr({'fill':'#D8D8D8'});
-            }
-            var objToInsertInIndex = dragDropManager.droppable.node.getAttribute('objToInsertInIndex');
-            dragDropManager.objToInsertIn = dragDropManager.objToInsertInArray[objToInsertInIndex];
-            dragDropManager.indexToInsertAt = dragDropManager.droppable.node.getAttribute('indexToInsertAt');
-            var expectSequence = dragDropManager.droppable.node.getAttribute('expectSequence');
-            factory.moveNode(draggedSop, expectSequence);
-            //factory.createSOP(wholeSop, measures, middle, origStart, paper, false, false, wholeSop, origStart);
-            dragDropManager.droppable = false;
-            factory.calcAndDrawSop(wholeSop, measures.dir, paper, true, false, dirScope);
-            dirScope.$digest();
-            
+            factory.executeDrop(draggedSop, wholeSop, dirScope, paper, measures, true);
           } else {
-            obj.animate({transform:'T' + ox + ',' + oy},500);
+            drawObj.animate({transform:'T' + ox + ',' + oy}, measures.animTime);
           }
-          dragDropManager.draggedObj = false;
-          
         },
         
         over = function() {
-          $('#paper').css('cursor','move');
+          $('.paper').css('cursor','move');
         },
         
         out = function() {
-          $('#paper').css('cursor','default');
+          $('.paper').css('cursor','default');
         },
-        
+
         dragOver = function(objDraggedOver) {
-          if(dragDropManager.droppable !== objDraggedOver) {
-          
-            if(dragDropManager.droppable && dragDropManager.droppable.node.getAttribute('shadow') === 'true') {
-              dragDropManager.droppable.attr({opacity:0});
-            } else if (dragDropManager.droppable && dragDropManager.droppable.node.getAttribute('shadow') === 'false'){
-              dragDropManager.droppable.attr({'fill':'#D8D8D8'});
-            }
-            
-            dragDropManager.droppable = objDraggedOver;
-          }
-          
-          if(objDraggedOver.node.getAttribute('droppable') === 'true') {
-            within = true;
-            if(objDraggedOver.node.getAttribute('shadow') === 'true') {
-              objDraggedOver.attr({opacity:0.5});
-            } else {
-              objDraggedOver.attr({'fill':'#FF0000'});
-            }
-          }
+          within = factory.highlightDroppable(objDraggedOver);
         };
-    
-      obj.undrag();
-      obj.unmouseover();
-      obj.unmouseout();
-      obj.drag(move, start, up);
-      obj.mouseover(over);
-      obj.mouseout(out);
-      obj.onDragOver(dragOver);
+
+      drawObj.undrag();
+      drawObj.unmouseover();
+      drawObj.unmouseout();
+      drawObj.drag(move, dragStart, up);
+      drawObj.mouseover(over);
+      drawObj.mouseout(out);
+      drawObj.onDragOver(dragOver);
     
     };
     
-    factory.drawLine = function(line, measures, paper, objToInsertIn, indexToInsertAt, typedependentLineColor, commonLineColor) {
+    factory.drawLine = function(line, measures, paper, objToInsertIn, indexToInsertAt, typeDependentLineColor, wholeSop, dirScope) {
       var tempSet = paper.set();
       
-      if(measures.dir === 'Hori') { // Swap x1,y1 and x2,y2 if Horizontal direction
+      if(!wholeSop.clientSideAdditions.vertDir) { // Swap x1,y1 and x2,y2 if Horizontal direction
         line.x1 = [line.y1, line.y1 = line.x1][0];
         line.x2 = [line.y2, line.y2 = line.x2][0];
       }
 
       if(typeof line.drawn === 'undefined') { // Draw
-        line.drawnLine = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({opacity:0, stroke:commonLineColor}).toBack();
+        line.drawnLine = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({opacity:0, stroke:measures.commonLineColor}).toBack();
         var lineAnim = Raphael.animation({opacity:1});
         line.drawnLine.animate(lineAnim.delay(measures.animTime));
         line.drawnShadow = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({stroke:'#FF0000', 'stroke-width':30, opacity:0});
-        factory.makeDroppable(tempSet.push(line.drawnShadow), true, objToInsertIn, indexToInsertAt, true);
+        factory.makeDroppable(tempSet.push(line.drawnShadow), true, objToInsertIn, indexToInsertAt, true, wholeSop, dirScope, paper, measures);
         /*dirScope.$watch(function() { // Animate on change
           return line.x1+line.y1+line.x2+line.y2;
         }, function(newValues, oldValues) {
