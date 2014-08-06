@@ -1,103 +1,114 @@
-<div class="btn-toolbar" role="toolbar">
-
-  <div class="btn-group" dropdown>
-    <button type="button" class="btn btn-default dropdown-toggle">
-      <span class="glyphicon glyphicon-asterisk"></span> Create <span class="caret"></span>
-    </button>
-    <ul class="dropdown-menu" role="menu">
-      <li><a ng-click="createItem('Operation')">Operation</a></li>
-      <li><a ng-click="createItem('Thing')">Thing</a></li>
-      <li><a ng-click="createItem('SOPSpec')">SOPSpec</a></li>
-      <li><a ng-click="createItem('SPObject')">SPObject</a></li>
-      <li><a ng-click="createItem('SPSpec')">SPSpec</a></li>
-    </ul>
-  </div>
-
-  <div class="btn-group" dropdown is-open="status.isopen">
-    <button type="button" class="btn btn-default dropdown-toggle">
-      <span class="glyphicon glyphicon-list-alt"></span> Columns <span class="caret"></span>
-    </button>
-    <ul class="dropdown-menu" role="menu">
-      <li ng-repeat="column in showableColumns" role="menuitem">
-        <input
-          type="checkbox"
-          name="selectedColumns[]"
-          value="{{column}}"
-          ng-checked="selection.indexOf(column) > -1"
-          ng-click="toggleSelection(column, selection)"
-        />
-        <label>{{column}}</label><br />
-      </li>
-      <li ng-repeat="attrType in attributeTypes">
-        <input
-          type="checkbox"
-          name="selectedAttrColumns[]"
-          value="{{attrType}}"
-          ng-checked="attrSelection.indexOf(attrType) > -1"
-          ng-click="toggleSelection(attrType, attrSelection)"
+<div class="header">
+  <div class="btn-toolbar" role="toolbar">
+     <div class="btn-group" dropdown>
+      <button type="button" class="btn btn-default dropdown-toggle">
+        <span class="glyphicon glyphicon-asterisk"></span> Create <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+        <li><a ng-click="createItem('Operation')" x-name="option">Operation</a></li>
+        <li><a ng-click="createItem('Thing')" x-name="option">Thing</a></li>
+        <li><a ng-click="createItem('SOPSpec')" x-name="option">SOPSpec</a></li>
+        <li><a ng-click="createItem('SPObject')" x-name="option">SPObject</a></li>
+        <li><a ng-click="createItem('SPSpec')" x-name="option">SPSpec</a></li>
+      </ul>
+    </div>
+    <div class="btn-group" dropdown is-open="status.isopen">
+      <button type="button" class="btn btn-default dropdown-toggle">
+        <span class="glyphicon glyphicon-list-alt"></span> Columns <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+        <li ng-repeat="column in showableColumns" role="menuitem">
+          <input
+            type="checkbox"
+            name="selectedColumns[]"
+            value="{{column}}"
+            ng-checked="selection.indexOf(column) > -1"
+            ng-click="toggleSelection(column, selection)"
           />
-        <label>{{attrType}}</label><br />
-      </li>
-    </ul>
-  </div>
-  <button type="button" class="btn btn-default" ng-click="refresh()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
-</div>
+          <label>{{column}}</label><br />
+        </li>
+        <li ng-repeat="attrType in attributeTypes">
+          <input
+            type="checkbox"
+            name="selectedAttrColumns[]"
+            value="{{attrType}}"
+            ng-checked="attrSelection.indexOf(attrType) > -1"
+            ng-click="toggleSelection(attrType, attrSelection)"
+            />
+          <label>{{attrType}}</label><br />
+        </li>
+      </ul>
+    </div>
+    <button type="button" class="btn btn-default" ng-click="refresh()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
+    <button type="button" class="btn btn-default" ng-click="showFilterInputs = !showFilterInputs"><span class="glyphicon glyphicon-filter"></span> Filter</button>
+  </div> <!-- end of toolbar -->
 
-<div>
-  <table class="table">
-    <thead>
-      <tr>
-        <th ng-repeat="column in selection">
-          <a ng-click="sort(column)">
-            <span class="glyphicon" ng-class="{'glyphicon-sort-by-alphabet': predicate === column && !reverse, 'glyphicon-sort-by-alphabet-alt': predicate === column && reverse}"></span>
-            {{column}}
-          </a><br />
-          <input ng-if="column !== 'stateVariables'" type="text" ng-model="search[column]" />
-        </th>
-        <th ng-repeat="attrColumn in attrSelection">
-          <a ng-click="sort('attributes.'+attrColumn)">
-            <span class="glyphicon" ng-class="{'glyphicon-sort-by-alphabet': predicate === ('attributes.'+attrColumn) && !reverse, 'glyphicon-sort-by-alphabet-alt': predicate === ('attributes.'+attrColumn) && reverse}"></span>
-            {{attrColumn}}
-          </a><br />
-          <input type="text" ng-model="search['attributes'][attrColumn]" />
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr ng-repeat-start="item in items | orderBy:predicate:reverse | filter:itemFilter" data-toggle="collapse" data-target="#{{window.id}}{{item.id}}" op-drag="item.id" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={edit:false}">
-        <td ng-repeat="column in selection">{{item[column]}}</td>
-        <td ng-repeat="attrColumn in attrSelection">{{item['attributes'][attrColumn]}}</td>
-      </tr>
+  <div class="item-table-header-wrapper">
+    <table class="table item-table">
+      <thead>
+        <tr>
+          <th ng-repeat="column in selection" >
+            <a ng-click="sort(column)">
+              <span class="glyphicon" ng-class="{'glyphicon-sort-by-alphabet': predicate === column && !reverse, 'glyphicon-sort-by-alphabet-alt': predicate === column && reverse}"></span>
+              {{column}}
+            </a><br />
+            <input ng-if="showFilterInputs && column !== 'stateVariables'" type="text" ng-model="search[column]" />
+          </th>
+          <th ng-repeat="attrColumn in attrSelection">
+            <a ng-click="sort('attributes.'+attrColumn)">
+              <span class="glyphicon" ng-class="{'glyphicon-sort-by-alphabet': predicate === ('attributes.'+attrColumn) && !reverse, 'glyphicon-sort-by-alphabet-alt': predicate === ('attributes.'+attrColumn) && reverse}"></span>
+              {{attrColumn}}
+            </a><br />
+            <input ng-if="showFilterInputs" type="text" ng-model="search['attributes'][attrColumn]" />
+          </th>
+        </tr>
+      </thead>
+    </table>
+  </div> <!-- end of fixed table header -->
+</div> <!-- end of header -->
 
-      <tr ng-repeat-end ng-class-odd="'odd-row'" ng-class-even="'even-row'" style="height: 0px;">
-        <td colspan="99" class="hiddenRow">
-          <form class="form-inline" name="itemForm">
-            <div class="accordion-body collapse" id="{{window.id}}{{item.id}}">
-              <table class="table collapsed-row">
-                <tbody>
-                  <tr ng-repeat="(key, prop) in item">
-                    <td class="col-md-1">{{key}}:</td>
-                    <td class="col-md-9">
-                      <span ng-if="!hasItsOwnViewer(key) && !row.edit || !isEditable(key)">{{prop}}</span>
-                      <input ng-if="!hasItsOwnEditor(key) && isEditable(key) && row.edit" name="{{key}}Input" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item[key]" />
-                      <attr-grid ng-if="key==='attributes'" attr-obj="prop" edit="row.edit" attribute-types="attributeTypes"></attr-grid>
-                      <sv-grid ng-if="key==='stateVariables'" sv-array="prop" edit="row.edit" attribute-types="attributeTypes"></sv-grid>
-                      <button ng-if="key==='sop'" ng-click="openSopInNewWindow(item)" class="btn btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
-                      <conditions ng-if="key==='conditions' && row.edit"></conditions>
-                    </td>
-                    <td ng-if="$first" >
-                      <button ng-click="itemForm.$valid && saveItem(item, row)" type="submit" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
-                      <button ng-click="reReadFromServer(item); row.edit=false;" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
-                      <button ng-click="row.edit=true;" ng-if="!row.edit" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span> Edit</button>
-                    </td>
-                    <td ng-if="!$first"></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </form>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+
+<div class="content">
+  <div class="content-wrapper">
+    <table class="table item-table">
+      <tbody>
+        <tr ng-repeat-start="item in items | orderBy:predicate:reverse | filter:itemFilter" data-toggle="collapse" data-target="#{{window.id}}{{item.id}}" op-drag="item.id" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={edit:false}">
+          <td ng-repeat="column in selection">{{item[column]}}</td>
+          <td ng-repeat="attrColumn in attrSelection">{{item['attributes'][attrColumn]}}</td>
+        </tr>
+
+        <tr ng-repeat-end ng-class-odd="'odd-row'" ng-class-even="'even-row'" style="height: 0px;">
+          <td colspan="99" class="hiddenRow">
+            <form class="form-inline" name="itemForm">
+              <div class="accordion-body collapse" id="{{window.id}}{{item.id}}">
+                <table class="table collapsed-row">
+                  <tbody>
+                    <tr>
+                      <td>editing: </td>
+                      <td>
+                        <button ng-click="itemForm.$valid && saveItem(item, row)" type="submit" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                        <button ng-click="reReadFromServer(item); row.edit=false;" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-remove stacked-buttons"></span> Cancel</button>
+                        <button ng-click="row.edit=true;" ng-if="!row.edit" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span> Edit</button>
+                      </td>
+                    </tr>
+                    <tr ng-repeat="(key, prop) in item">
+                      <td class="col-md-1">{{key}}:</td>
+                      <td class="col-md-9">
+                        <span ng-if="!hasItsOwnViewer(key) && !row.edit || !isEditable(key)">{{prop}}</span>
+                        <input ng-if="!hasItsOwnEditor(key) && isEditable(key) && row.edit" name="{{key}}Input" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item[key]" />
+                        <attr-grid ng-if="key==='attributes'" attr-obj="prop" edit="row.edit" attribute-types="attributeTypes"></attr-grid>
+                        <sv-grid ng-if="key==='stateVariables'" sv-array="prop" edit="row.edit" attribute-types="attributeTypes"></sv-grid>
+                        <button ng-if="key==='sop'" ng-click="openSopInNewWindow(item)" class="btn btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
+                        <conditions ng-if="key==='conditions' && row.edit"></conditions>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div> <!-- end of accordion-body -->
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div> <!-- end of content-wrapper -->
+</div> <!-- end of content -->

@@ -15,11 +15,12 @@ angular.module('spGuiApp')
       scope.items = [];
       scope.showableColumns = ['name', 'isa', 'version', 'conditions', 'stateVariables', 'attributes']
       scope.selection = ['name', 'isa', 'version'];
-      scope.attributeTypes = ['user', 'date'];
-      scope.attrSelection = angular.copy(scope.attributeTypes);
+      scope.attributeTypes = ['user', 'date', 'comment'];
+      scope.attrSelection = [];
       scope.predicate = 'isa';
       scope.reverse = false;
       scope.search = {name:'', attributes:{}};
+      scope.showFilterInputs = false;
 
       scope.itemFilter = function (item) {
         var qualifies = true;
@@ -53,14 +54,12 @@ angular.module('spGuiApp')
       };
 
       scope.sort = function(column) {
-        console.log(column);
         if(scope.predicate === column) {
           scope.reverse = !(scope.reverse);
         } else {
           scope.predicate = column;
-          scope.reverse = false;
+          scope.reverse = column === 'version';
         }
-
       };
 
       scope.toggleSelection = function toggleSelection(column, selections) {
@@ -91,8 +90,8 @@ angular.module('spGuiApp')
         }
         newItem.$save(
           {model:spTalker.activeModel.model},
-          function(data) { spTalker.items.unshift(data); },
-          function(error) { console.log(error); }
+          function(data) { spTalker.items.unshift(data); notificationService.success('A new ' + data.isa + ' with name ' + data.name + ' was successfully created.'); },
+          function(error) { console.log(error); notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.'); console.log(error); }
         );
       };
 
@@ -127,7 +126,7 @@ angular.module('spGuiApp')
           sopDef : angular.copy(item.sop),
           parentItem : item
         };
-        scope.addWindow('sop', windowStorage, item);
+        scope.addWindow('sopMaker', windowStorage, item);
       };
 
       scope.refresh();

@@ -11,6 +11,7 @@ angular.module('spGuiApp')
     return {
       templateUrl: 'views/windows.html',
       restrict: 'E',
+      replace: true,
       scope: {
         windows: '=windowArray'
       },
@@ -22,17 +23,14 @@ angular.module('spGuiApp')
             wStorage = {};
           }
           noOfOpenedWindows++;
-          scope.windows.push({type: type, width: 'small', height: 'small', name: type, windowStorage: wStorage, id: type + noOfOpenedWindows});
+          scope.windows.push({type: type, width: 1, height: 'small', name: type, windowStorage: wStorage, id: type + noOfOpenedWindows});
         };
 
         scope.$on("newSopWindow", function() {
-          scope.addWindow('sop');
+          scope.addWindow('sopMaker');
         });
         scope.$on("newItemListWindow", function() {
           scope.addWindow('itemList');
-        });
-        scope.$on("newRestTestWindow", function() {
-          scope.addWindow('restTest');
         });
 
         scope.closeWindow = function(window) {
@@ -40,11 +38,11 @@ angular.module('spGuiApp')
           scope.windows.splice(index, 1);
         };
 
-        scope.toggleWindowWidth = function(window) {
-          if(window.width === 'small'){
-            window.width = 'large';
-          } else {
-            window.width = 'small';
+        scope.changeWindowWidth = function(window, increase) {
+          if(increase && window.width !== 4){
+            window.width++;
+          } else if(!increase && window.width !== 1) {
+            window.width--;
           }
         };
 

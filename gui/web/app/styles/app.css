@@ -2,11 +2,6 @@
 
 /*** for the Windows directive ***/
 
-/* make window scrollable if overflow */
-.panel-body {
-    overflow-y: scroll;
-}
-
 /* show the move cursor as the user moves the mouse over the panel header.*/
 .draggable {
     cursor: move;
@@ -17,13 +12,8 @@
     transition: width 0.5s, height 0.5s;
 }
 
-.smallBodyHeight {
-    height: 390px;
-}
-
-.largeBodyHeight {
-    height: 826px;
-}
+.smallBodyHeight { height: 390px; }
+.largeBodyHeight { height: 826px; }
 
 #sortable {
     list-style-type: none;
@@ -41,10 +31,43 @@
 
 #sortable .panel {
     background-color: transparent;
+    display: table;
+    table-layout: fixed;
 }
 
 #sortable .panel .panel-body {
     border: 2px solid #4e5d6c;
+    height: 100%;
+}
+
+/*** To position toolbar and content in the Windows ***/
+
+.wrapper {
+    display: table;
+    table-layout: fixed;
+    height: 100%;
+    width: 100%;
+}
+.header, .footer {
+    display: table-row;
+
+}
+.content {
+    display: table-row;  /* height is dynamic, and will expand... */                     /* ...as content is added (won't scroll) */
+    height: 100%;
+    width: 100%;
+}
+
+.content-wrapper {
+    padding: 0;
+    margin: 0;
+    overflow: auto;
+    height: 100%;
+    width: 100%;
+}
+
+.sop {
+    float: left;
 }
 
 /*** For the bootstrap-switch ***/
@@ -68,12 +91,9 @@
 }
 
 /*** For the itemList table ***/
+
 .odd-row {
     background-color: #485563;
-}
-
-.even-row {
-    /*background-color: #4e5d6c;*/
 }
 
 .table .table {
@@ -82,22 +102,28 @@
 
 .hiddenRow {padding: 0 !important;}
 
-.collapsed-row {margin: 0 0 5px 0px;}
+.collapsed-row {margin: 0 0 5px 0;}
 
 table a, .table a {
     text-decoration: none;
 }
 
-/*** Else ***/
-
-.btn {
-    margin: 2px;
-}
-
-.form-control {
-    margin: 2px;
+.sv-table td, .attr-table td {
+    padding: 2px;
 }
 
 .prop-parse {
     margin-left: 10px;
 }
+
+/* static table header in the itemList */
+.item-table { table-layout: fixed; margin-bottom: 0; }
+.item-table>thead>tr>th,.item-table>tbody>tr>td { overflow: hidden; width: 50%; }
+.item-table-header-wrapper { margin-right: 18px; }
+
+/*** sopMaker ***/
+.sop-maker-toolbar {
+  margin-bottom: 10px;
+}
+
+/*** Else ***/

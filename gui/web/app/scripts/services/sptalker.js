@@ -88,7 +88,7 @@ angular.module('spGuiApp')
         updateItemLists();
       },
       function (error) {
-        notificationService.error(item.isa + ' ' + item.name + ' could not be saved. ' + error.data);
+        notificationService.error(item.isa + ' ' + item.name + ' could not be saved.');
         console.log(error);
         factory.reReadFromServer(item);
       }

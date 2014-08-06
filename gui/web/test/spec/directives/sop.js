@@ -12,5 +12,5 @@ describe('Directive: sop', function () {
     scope = $rootScope.$new();
   }));
 
-  
+
 });

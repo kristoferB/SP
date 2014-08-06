@@ -1,14 +1,17 @@
-<ul ui-sortable="sortableOptions" ng-model="windows" id="sortable" class="list-unstyled">
-    <li class="panel panel-default sizeTransition" ng-repeat="window in windows" ng-class="{'col-md-6': window.width === 'small', 'col-md-12': window.width === 'large'}">
-        <div class="panel-heading"><span class="draggable" ng-bind="window.name"></span><span class="pull-right">
-            <span ng-click="toggleWindowWidth(window)" class="btn btn-default glyphicon glyphicon-resize-full"></span>
-            <span ng-click="toggleWindowHeight(window)" class="btn btn-default glyphicon glyphicon-resize-full"></span>
-            <span ng-click="closeWindow(window)" class="btn btn-default glyphicon glyphicon-remove"></span></span>
-        </div>
-        <div class="panel-body sizeTransition" ng-class="{'smallBodyHeight': window.height === 'small', 'largeBodyHeight': window.height === 'large'}" ng-switch on="window.type">
-            <sop ng-switch-when="sop" window-storage="window.windowStorage" save-item="saveItem"></sop>
-            <itemlist ng-switch-when="itemList"></itemlist>
-            <resttest ng-switch-when="restTest"></resttest>
-        </div>
-    </li>
+<ul ui-sortable="sortableOptions" ng-model="windows" id="sortable" class="list-unstyled windows">
+  <li class="panel panel-default sizeTransition" ng-repeat="window in windows" ng-class="{'col-md-3': window.width === 1, 'col-md-6': window.width === 2, 'col-md-9': window.width === 3, 'col-md-12': window.width === 4, 'smallBodyHeight': window.height === 'small', 'largeBodyHeight': window.height === 'large'}">
+    <div class="panel-heading">
+      <span class="draggable pull-right" ng-bind="window.name"></span>
+      <span>
+        <span ng-click="closeWindow(window)" class="btn btn-default glyphicon glyphicon-remove"></span>
+        <span ng-click="changeWindowWidth(window, true)" class="btn btn-default glyphicon"><span class="glyphicon-plus" /></span>
+        <span ng-click="changeWindowWidth(window, false)" class="btn btn-default glyphicon"><span class="glyphicon-minus" /></span>
+        <span ng-click="toggleWindowHeight(window)" class="btn btn-default glyphicon glyphicon-resize-vertical"></span>
+      </span>
+    </div>
+    <div class="panel-body sizeTransition" ng-switch on="window.type">
+        <sopmaker ng-switch-when="sopMaker" window-storage="window.windowStorage" save-item="saveItem" class="wrapper"></sopmaker>
+        <itemlist ng-switch-when="itemList" class="wrapper"></itemlist>
+    </div>
+  </li>
 </ul>

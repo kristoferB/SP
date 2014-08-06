@@ -19,7 +19,6 @@ angular.module('spGuiApp')
       };
 
     factory.calcAndDrawSop = function(sop, paper, firstLoop, doRedraw, dirScope) {
-
       measures = {
           'margin' : 15,
           'opH' : 50,
