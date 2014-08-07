@@ -51,14 +51,14 @@ class JsonTest extends WordSpec with Matchers  {
   )
 
   val guard =
-    AND(
-      OR(
+    AND(List(
+      OR(List(
         EQ(SVIDEval(fixid), ValueHolder(SPAttributeValue(1))),
         EQ(SVIDEval(fixid), ValueHolder(SPAttributeValue(2)))
-      ),
-      EQ(SVIDEval(fixid), ValueHolder(SPAttributeValue(1)))
+      )),
+      EQ(SVIDEval(fixid), ValueHolder(SPAttributeValue(1))))
   )
-  val action = List(Action(fixid, SPAttributeValue(3)))
+  val action = List(Action(fixid, ValueHolder(3)))
   val prop = PropositionCondition(guard, action)
 
 

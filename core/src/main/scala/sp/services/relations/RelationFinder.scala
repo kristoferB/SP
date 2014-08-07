@@ -26,7 +26,7 @@ class RelationFinder extends Actor with RelationFinderAlgotithms {
   }
 }
 
-
+// test branching
 trait RelationFinderAlgotithms {
 
 
