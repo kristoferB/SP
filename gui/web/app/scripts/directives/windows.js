@@ -13,7 +13,8 @@ angular.module('spGuiApp')
       restrict: 'E',
       replace: true,
       scope: {
-        windows: '=windowArray'
+        windows: '=windowArray',
+        active: '='
       },
       link: function postLink(scope, element, attrs) {
         var noOfOpenedWindows = 0;
@@ -27,10 +28,14 @@ angular.module('spGuiApp')
         };
 
         scope.$on("newSopWindow", function() {
-          scope.addWindow('sopMaker');
+          if(scope.active) {
+            scope.addWindow('sopMaker');
+          }
         });
         scope.$on("newItemListWindow", function() {
-          scope.addWindow('itemList');
+          if(scope.active) {
+            scope.addWindow('itemList');
+          }
         });
 
         scope.closeWindow = function(window) {

@@ -1,5 +1,17 @@
 /* app css stylesheet */
 
+/*** nav bar ***/
+
+.navbar {
+    margin-bottom: 5px;
+}
+
+/*** tab navigation ***/
+
+.nav-tabs {
+    border-bottom-color: #4e5d6c;
+}
+
 /*** for the Windows directive ***/
 
 /* show the move cursor as the user moves the mouse over the panel header.*/
@@ -70,26 +82,6 @@
     float: left;
 }
 
-/*** For the bootstrap-switch ***/
-
-.bootstrap-switch {
-    margin-top: 7px;
-}
-
-.bootstrap-switch.bootstrap-switch-small {
-    min-width: 100px;
-}
-
-.bootstrap-switch .bootstrap-switch-handle-on.bootstrap-switch-default,
-.bootstrap-switch .bootstrap-switch-handle-off.bootstrap-switch-default {
-    color: white;
-    background:#2b3e50;
-}
-
-.bootstrap-switch .bootstrap-switch-label {
-    background:#4e5d6c;
-}
-
 /*** For the itemList table ***/
 
 .odd-row {
@@ -126,4 +118,4 @@ table a, .table a {
   margin-bottom: 10px;
 }
 
-/*** Else ***/
+/*** Other ***/

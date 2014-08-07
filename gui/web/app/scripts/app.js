@@ -26,18 +26,13 @@ angular
         templateUrl: 'views/main.html',
         controller: 'MainCtrl'
       })*/
-      .when('/model', {
-        templateUrl: 'views/model.html',
-        controller: 'ModelCtrl',
-        data: [USER_ROLES.admin, USER_ROLES.editor]
-      })
-      .when('/runtime', {
+      /*.when('/runtime', {
         templateUrl: 'views/runtime.html',
         controller: 'RuntimeCtrl',
         data: [USER_ROLES.admin, USER_ROLES.editor]
-      })
+      })*/
       .otherwise({
-        redirectTo: '/model'
+        redirectTo: '/'
       });
   })
   .config(function ($httpProvider) {

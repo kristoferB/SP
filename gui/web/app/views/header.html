@@ -17,7 +17,6 @@
                             <span ng-switch-default>You're something else.</span>
                         </p>
                     </li>-->
-                    <li style="vertical-align: middle"><input type="checkbox" name="model-runtime-switch"></li>
                     <li><object id="splogo" style="margin-left:20px; margin-top:2px; height:34px" data="/images/splogo.svg" type="image/svg+xml"></object></li>
                 </ul>
             </div><!--/.nav-collapse -->
@@ -31,8 +30,8 @@
                 <li class="btn-group" dropdown is-open="status.isopen">
                     <a class="dropdown-toggle">File <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
-                        <li ng-show="location.path() == '/model' || location.path() == '/runtime'"><a x-name="option" role="menuitem" tabindex="-1" ng-click="broadcastEvent('newSopWindow')">New SOP</a></li>
-                        <li ng-show="location.path() == '/model' || location.path() == '/runtime'"><a x-name="option" role="menuitem" tabindex="-1" ng-click="broadcastEvent('newItemListWindow')">New itemList</a></li>
+                        <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="broadcastEvent('newSopWindow')">New SOP</a></li>
+                        <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="broadcastEvent('newItemListWindow')">New itemList</a></li>
                     </ul>
                 </li>
                 <li><a href="#/model">Edit</a></li>

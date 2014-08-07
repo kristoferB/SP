@@ -12,6 +12,28 @@ angular.module('spGuiApp')
     $scope.currentUser = null;
     $scope.userRoles = USER_ROLES;
     $scope.isAuthorized = AuthService.isAuthorized;
+    $scope.noOfOpenedTabs = 0;
+    $scope.tabs = [];
+
+    $scope.addTab = function() {
+      var windowArray = [];
+      $scope.noOfOpenedTabs++;
+      $scope.tabs.push({title: 'Model ' + $scope.noOfOpenedTabs, windowArray: windowArray, active: true})
+    };
+
+    $scope.closeTab = function(tab) {
+      var index = $scope.tabs.indexOf(tab);
+      if(tab.windowArray.length > 0) {
+        if(confirm('You are about to close a tab with open windows inside. Sure?')) {
+          $scope.tabs.splice(index, 1);
+        }
+      } else {
+        $scope.tabs.splice(index, 1);
+      }
+    };
+
+    $scope.addTab();
+
     $rootScope.vars = {
       isLoginPage : false
     };
@@ -44,31 +66,10 @@ angular.module('spGuiApp')
     };
     $scope.openModelList();
 
-    $scope.setupSwitch = function () {
-      $("[name='model-runtime-switch']").bootstrapSwitch('size', 'small');
-      $("[name='model-runtime-switch']").bootstrapSwitch('offText', 'Model');
-      $("[name='model-runtime-switch']").bootstrapSwitch('onText', 'Runtime');
-      $("[name='model-runtime-switch']").bootstrapSwitch('offColor', 'default');
-      $("[name='model-runtime-switch']").bootstrapSwitch('onColor', 'default');
-      $("[name='model-runtime-switch']").bootstrapSwitch('state', false);
-
-      $("[name='model-runtime-switch']").on('switchChange.bootstrapSwitch', function (event, state) {
-        if (state === true) {
-          $location.path('/runtime');
-        } else {
-          $location.path('/model');
-        }
-        $location.replace();
-        $scope.$apply();
-      });
-    };
-
     document.addEventListener('invalid', (function(){
       return function(e){
-        //prevent the browser from showing default error bubble/ hint
+        //prevent the browser from showing default error bubbles/hints on input validation
         e.preventDefault();
-        // optionally fire off some custom validation handler
-        // myvalidationfunction();
       };
     })(), true);
 
