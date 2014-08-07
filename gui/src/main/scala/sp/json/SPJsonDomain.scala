@@ -155,12 +155,12 @@ trait SPJsonDomain {
     def read(value: JsValue) = value match {
       case x: JsObject => {
         val id = if (x.fields.contains("id")) x.fields("id").convertTo[ID] else ID.newID
-        value.asJsObject.getFields("name", "attributes") match {
+        x.getFields("name", "attributes") match {
           case Seq(JsString(n), attr: JsObject) => StateVariable(n, attr.convertTo[SPAttributes], id)
           case _ => throw new DeserializationException(s"can not convert the Statevariable from $x")
         }
       }
-      case _ => throw new DeserializationException("Object expected")
+      case _ => throw new DeserializationException(s"StateVariable Object expected: $value")
     }
   }
 
@@ -192,6 +192,36 @@ trait SPJsonDomain {
         case IDPrimitive(id) => SVIDEval(id)
         case a: SPAttributeValue => ValueHolder(a)
      }
+    }
+  }
+
+  implicit val vAssignFormat = jsonFormat1(ASSIGN)
+  implicit object StateUpdateFormat extends RootJsonFormat[StateUpdater] {
+    def write(x: StateUpdater) = x match {
+      case p: INCR => JsObject(Map("isa"->"INCR".toJson, "n"->p.n.toJson))
+      case p: DECR => JsObject(Map("isa"->"DECR".toJson, "n"->p.n.toJson))
+      case p: ValueHolder => p.v.toJson
+      case p: ASSIGN => p.toJson
+      case _ => throw new SerializationException(s"Could not convert that type of StateEvaluator $x")
+    }
+    def read(value: JsValue) = {
+      value match {
+        case o: JsObject => {
+          o.getFields("isa", "n", "id") match {
+            case Seq(JsString("INCR"), JsNumber(n)) => INCR(n.toInt)
+            case Seq(JsString("DECR"), JsNumber(n)) => DECR(n.toInt)
+            case Seq(id) => id.convertTo[SPAttributeValue] match {
+              case IDPrimitive(id) => ASSIGN(id)
+              case _ => throw new DeserializationException(s"StateUpdater expexted id, but got: $id in $value")
+            }
+            case _ => throw new DeserializationException(s"StateUpdater could not be read: $value")
+          }
+        }
+        case _ => value.convertTo[SPAttributeValue] match {
+              case IDPrimitive(id) => ASSIGN(id)
+              case a: SPAttributeValue => ValueHolder(a)
+            }
+      }
     }
   }
 

@@ -3,7 +3,8 @@ package sp.domain.logic
 import sp.domain._
 
 
-case object ConditionLogic {
+case object PropositionConditionLogic {
+
 
   /**
    * Evaluate Propositions by calling eval(proposition, state)
@@ -12,7 +13,7 @@ case object ConditionLogic {
     def eval(s: State): Boolean = {
       def req(p: Proposition): Boolean = {
         p match {
-          case AND(props) => !props.exists(x => !req(x))
+          case AND(props) => !props.exists(!req(_))
           case OR(props) => props exists req
           case NOT(prop) => !req(prop)
           case EQ(l, r) => getValue(l) == getValue(r)
@@ -28,11 +29,50 @@ case object ConditionLogic {
     }
   }
 
-  implicit class condLogic(c: Condition) {
-    def eval(s: State) = {
+  /**
+   * Condition logic
+   * @param cond: Condition, but must be of type PropositionCondition
+   */
+  implicit class condLogic(cond: Condition) {
+    val c = cond.asInstanceOf[PropositionCondition]
+    def eval(s: State) = c.guard.eval(s)
+    def next(s: State) = s.next(c.action map (a => a.stateVariableID -> a.nextValue(s)) toMap)
+    def inDomain(s: State, stateVars: Map[ID, StateVariable]) = {
+      !(c.action map(_.inDomain(s, stateVars)) exists (!_))
+    }
+  }
+
+  implicit class nextLogic(a: Action) {
+    def nextValue(s: State) = a.value match {
+      case ValueHolder(v) => v
+      case INCR(n) => SPAttributeValue(s(a.stateVariableID).asInt map (_ + n))
+      case DECR(n) => SPAttributeValue(s(a.stateVariableID).asInt map (_ - n))
+      case ASSIGN(id) => s(id)
+    }
+
+    def inDomain(s: State, stateVars: Map[ID, StateVariable]) = {
+      val next = nextValue(s)
+      val sv = stateVars(a.stateVariableID)
+
+      val checkDomain = sv.attributes.getAsList("domain") map (_.contains(next))
+      val checkBoolean = sv.attributes.getAsBool("boolean") map (b =>
+        next.isInstanceOf[BoolPrimitive] && b)
+      val checkRange = for {
+        range <- sv.attributes.getAsMap("range")
+        start <- range.get("start") flatMap (_.asInt)
+        end <- range.get("end") flatMap (_.asInt)
+        step <- range.get("step") flatMap (_.asInt)
+        nextInt <- next.asInt
+      } yield {
+        val r = start until end by step
+        r.contains(nextInt)
+      }
+
+      checkDomain getOrElse( checkRange getOrElse( checkBoolean getOrElse false))
 
     }
   }
+
 }
 
 
@@ -69,10 +109,10 @@ case object PropositionParser extends JavaTokenParsers {
   lazy val not: Parser[Proposition] = opt(REG_EX_NOT) ~ factor ^^ { case Some(_) ~ f => NOT(f); case None ~ f => f}
   lazy val factor: Parser[Proposition] = expressionEQ | expressionNEQ | "(" ~> or <~ ")" ^^ { case exp => exp}
   lazy val expressionEQ: Parser[Proposition] = stateEv ~ REG_EX_OPERATOREQ ~ stateEv ^^ { case ~(~(var1, op), v) => EQ(var1, v)}
-  lazy val expressionNEQ: Parser[Proposition] = stateEv  ~ REG_EX_OPERATORNEQ ~ stateEv ^^ { case ~(~(var1, op), v) => NEQ(var1, v)}
+  lazy val expressionNEQ: Parser[Proposition] = stateEv ~ REG_EX_OPERATORNEQ ~ stateEv ^^ { case ~(~(var1, op), v) => NEQ(var1, v)}
   lazy val stateEv: Parser[StateEvaluator] = uuid | value
-  lazy val uuid: Parser[StateEvaluator] = REG_EX_UUID  ^^ { uuid => SVIDEval(ID.makeID(uuid).get)}
-  lazy val value: Parser[StateEvaluator] = REG_EX_VALUE ^^ {v => ValueHolder(StringPrimitive(v))}
+  lazy val uuid: Parser[StateEvaluator] = REG_EX_UUID ^^ { uuid => SVIDEval(ID.makeID(uuid).get)}
+  lazy val value: Parser[StateEvaluator] = REG_EX_VALUE ^^ { v => ValueHolder(StringPrimitive(v))}
 }
 
 //object TestParser extends App  {

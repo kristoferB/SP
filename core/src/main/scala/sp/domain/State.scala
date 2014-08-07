@@ -3,14 +3,20 @@ package sp.domain
 
 trait State {
   def apply(id: ID): SPAttributeValue
-  def apply(idValueMap: (ID, SPAttributeValue)): State
+  def next(idValueMap: (ID, SPAttributeValue)): State
+  def next(idValueMap: Map[ID, SPAttributeValue]): State
   def get(id: ID): Option[SPAttributeValue]
+}
+
+object State {
+  def apply(state: Map[ID, SPAttributeValue]) = MapState(state)
 }
 
 case class MapState(state: Map[ID, SPAttributeValue]) extends State {
   def apply(id: ID): SPAttributeValue = state(id)
   def get(id: ID): Option[SPAttributeValue] = state.get(id)
-  def apply(idValueMap: (ID, SPAttributeValue)) = MapState(state + idValueMap)
+  def next(idValueMap: (ID, SPAttributeValue)) = MapState(state + idValueMap)
+  def next(idValueMap:  Map[ID, SPAttributeValue]) = MapState(state ++ idValueMap)
 }
 
 //TODO: Add logic somewere else, or when needed
