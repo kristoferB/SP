@@ -89,7 +89,7 @@ case object OperationLogic {
     }
 
     def kinds(state: SPAttributeValue) = {
-      if (state == init) Set("pre", "precondition", "")
+      if (state == init) Set("pre", "precondition", "post", "postcondition", "")
       else if (state == finished) Set("reset", "resetcondition")
       else throw new IllegalArgumentException(s"Can not understand operation state: $state")
     }

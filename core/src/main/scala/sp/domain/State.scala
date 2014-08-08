@@ -1,7 +1,7 @@
 package sp.domain
 
 
-trait State {
+sealed trait State {
   def apply(id: ID): SPAttributeValue
   def next(idValueMap: (ID, SPAttributeValue)): State
   def next(idValueMap: Map[ID, SPAttributeValue]): State
@@ -12,11 +12,35 @@ object State {
   def apply(state: Map[ID, SPAttributeValue]) = MapState(state)
 }
 
+trait States {
+  def apply(id: ID): Set[SPAttributeValue]
+  def get(id: ID): Option[Set[SPAttributeValue]]
+  def add(id: ID, value: SPAttributeValue): States
+  def add(id: ID, value: Set[SPAttributeValue]): States
+  def add(s: State): States
+}
+
 case class MapState(state: Map[ID, SPAttributeValue]) extends State {
   def apply(id: ID): SPAttributeValue = state(id)
   def get(id: ID): Option[SPAttributeValue] = state.get(id)
   def next(idValueMap: (ID, SPAttributeValue)) = MapState(state + idValueMap)
   def next(idValueMap:  Map[ID, SPAttributeValue]) = MapState(state ++ idValueMap)
+}
+
+case class MapStates(states: Map[ID, Set[SPAttributeValue]]) extends States {
+  def apply(id: ID): Set[SPAttributeValue] = states(id)
+  def get(id: ID): Option[Set[SPAttributeValue]] = states.get(id)
+  def add(id: ID, value: SPAttributeValue): States = add(id, Set(value))
+  def add(id: ID, value: Set[SPAttributeValue]): States = {
+    val xs = get(id).getOrElse(Set()) ++ value
+    MapStates(states + (id -> xs))
+  }
+  def add(s: State): States = {
+    val newMap = s.asInstanceOf[MapState].state map {case (id, set) =>
+      id -> (get(id).getOrElse(Set()) + set)
+    }
+    MapStates(states ++ newMap)
+  }
 }
 
 //TODO: Add logic somewere else, or when needed

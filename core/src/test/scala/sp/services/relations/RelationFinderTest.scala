@@ -11,21 +11,59 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
   "The RelationFinder" - {
     "when finding a path" - {
       "create a seq" in {
-        val res = runASeq(List(o2,o1), vm, state, _=> false)
+        val res = findASeq(Setup(List(o2,o1), vm, List(), state, _=> false))
         res.seq shouldEqual List(o1, o2)
       }
       "find no seq if no exists" in {
-        val res = runASeq(List(o2,o1), vm, state2, _=> false)
+        val res = findASeq(Setup(List(o2,o1), vm, List(), state2, _=> false))
         res.seq shouldEqual List()
       }
       "Stop when goal" in {
-        val res = runASeq(List(o2,o1), vm, state, _(v1.id) == SPAttributeValue(1))
+        val res = findASeq(Setup(List(o2,o1), vm, List(), state, _(v1.id) == SPAttributeValue(1)))
         res.seq shouldEqual List(o1)
       }
       "Parallel ops" in {
         val ops = (1 to 100) map {i =>  Operation(i.toString, List(noActionCond))} toList
-        val res = runASeq(ops, vm, state, _=>false)
+        val res = findASeq(Setup(ops, vm, List(), state, _=>false))
         res.seq.toSet shouldEqual ops.toSet
+      }
+    }
+    "When findWhenOperationsEnabled" - {
+      "it should find relations" in {
+        implicit val setup = Setup(List(o2,o1), vm, List(), state, _=> false)
+        val res = findWhenOperationsEnabled(10)
+        res.map(o2).pre(o1.id) shouldEqual Set(StringPrimitive("f"))
+        //res foreach(r =>println(s"${r._1.name} -> ${r._2.init.map(_._2.toString)} "))
+
+
+      }
+      "find paralell relations" in {
+        val ops = (1 to 10) map {i =>  Operation(i.toString, List(noActionCond))} toList
+        val res = findWhenOperationsEnabled(10, Set(ops.head))(Setup(ops, vm, List(), state, _=>false))
+        res.map(ops.head).pre(ops.tail.head.id) shouldEqual Set(StringPrimitive("i"), StringPrimitive("f"))
+      }
+      "should only return given ops" in {
+        val ops = (1 to 5) map {i =>  Operation(i.toString, List(noActionCond))} toList
+        val res1 = findWhenOperationsEnabled(10, Set(ops.head))(Setup(ops, vm, List(), state, _=>false))
+        val res2 = findWhenOperationsEnabled(10)(Setup(ops, vm, List(), state, _=>false))
+
+        res1.map.size shouldEqual 1
+        res2.map.size shouldEqual 5
+      }
+    }
+    "When finding operation relations" - {
+      "it should find Seqeunce SOP between ops" in {
+        implicit val setup = Setup(List(o2,o1), vm, List(), state, _=> false)
+        val res = findOperationRelations(10)
+        res.relations(OperationPair(o1.id,o2.id)) shouldEqual Sequence(o1, o2)
+      }
+      "it should find Paralell SOP between ops" in {
+        val ops = (1 to 10) map {i =>  Operation(i.toString, List(noActionCond))} toList
+        val o1 = ops.head
+        val o2 = ops.tail.head
+        implicit val setup = Setup(List(o1, o2), vm, List(), state, _=> false)
+        val res = findOperationRelations(10)
+        res.relations(OperationPair(o1.id,o2.id)) shouldEqual Parallel(o1, o2)
       }
     }
   }
