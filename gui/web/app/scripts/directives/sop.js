@@ -7,7 +7,7 @@
  * # sop
  */
 angular.module('spGuiApp')
-  .directive('sop', function (sopDrawer) {
+  .directive('sop', function (sopDrawer, $compile) {
     return {
       restrict: 'E',
       link: function postLink(scope, element, attrs) {

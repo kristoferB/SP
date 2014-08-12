@@ -24,8 +24,11 @@
     transition: width 0.5s, height 0.5s;
 }
 
-.smallBodyHeight { height: 390px; }
-.largeBodyHeight { height: 826px; }
+.smallPanelHeight { height: 410px; }
+.largePanelHeight { height: 825px; }
+
+.smallBodyHeight { height: 365px; }
+.largeBodyHeight { height: 780px; }
 
 #sortable {
     list-style-type: none;
@@ -34,7 +37,7 @@
     width: 100%;
 }
 
-#sortable>li { margin: 2px 0; padding: 0 2px; float: left;   }
+#sortable>li { margin: 5px 0 0 0; padding: 0 2px; float: left;   }
 
 #sortable .panel-heading .glyphicon {
     padding:3px;
@@ -43,13 +46,10 @@
 
 #sortable .panel {
     background-color: transparent;
-    display: table;
-    table-layout: fixed;
 }
 
 #sortable .panel .panel-body {
     border: 2px solid #4e5d6c;
-    height: 100%;
 }
 
 /*** To position toolbar and content in the Windows ***/

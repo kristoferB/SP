@@ -52,6 +52,9 @@ angular
 
     notificationServiceProvider.setDefaultStack('bottom_right');
   }])
+  .config(function($logProvider){
+    $logProvider.debugEnabled(true);
+  })
   /*.run(function ($rootScope, AUTH_EVENTS, AuthService) {
     $rootScope.$on('$routeChangeStart', function (event, next, current) {
       var authorizedRoles = next.data;

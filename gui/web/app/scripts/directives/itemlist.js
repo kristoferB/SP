@@ -13,7 +13,7 @@ angular.module('spGuiApp')
     restrict: 'E',
     link: function postLink(scope, element, attrs) {
       scope.items = [];
-      scope.showableColumns = ['name', 'isa', 'version', 'conditions', 'stateVariables', 'attributes']
+      scope.showableColumns = ['name', 'isa', 'version', 'conditions', 'stateVariables', 'attributes'];
       scope.selection = ['name', 'isa', 'version'];
       scope.attributeTypes = ['user', 'date', 'comment'];
       scope.attrSelection = [];

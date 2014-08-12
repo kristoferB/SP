@@ -13,8 +13,11 @@ angular.module('spGuiApp')
       template:
                 '<div class="header">' +
                   '<div class="btn-toolbar sop-maker-toolbar" role="toolbar">' +
-                    '<button style="margin-left:10px;" class="btn btn-default toggle-btn" ng-click="toggleDirection()"><span class="glyphicon glyphicon-retweet"></span> Rotate</button>' +
-                    '<button style="margin-left:10px;" class="btn btn-default" ng-click="saveSopSpec()"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>' +
+                    '<button class="btn btn-default toggle-btn" ng-click="toggleDirection()"><span class="glyphicon glyphicon-retweet"></span> Rotate</button>' +
+                    '<button class="btn btn-default" ng-click="saveSopSpec()"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>' +
+                    '<button class="btn btn-default" draggable="true" item-drag="{isa: \'Parallel\'}">Parallel</button>' +
+                    '<button class="btn btn-default" draggable="true" item-drag="{isa: \'Alternative\'}">Alternative</button>' +
+                    '<button class="btn btn-default" draggable="true" item-drag="{isa: \'Arbitrary\'}">Arbitrary</button>' +
                   '</div>' +
                 '</div>' +
                 '<div class="content">' +

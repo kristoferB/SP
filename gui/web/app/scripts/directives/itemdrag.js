@@ -2,22 +2,25 @@
 
 /**
  * @ngdoc directive
- * @name spGuiApp.directive:opDrag
+ * @name spGuiApp.directive:itemDrag
  * @description
- * # opDrag
+ * # itemDrag
  */
 angular.module('spGuiApp')
-  .directive('opDrag', function () {
+  .directive('itemDrag', function () {
     return {
       restrict: 'A',
       scope: {
-        id: '=opDrag'
+        data: '=itemDrag'
       },
       link: function postLink(scope, element, attrs) {
         function start(ev) {
-          ev.dataTransfer.setData('id', scope.id);
+          for(var key in scope.data) {
+            if (scope.data.hasOwnProperty(key)) {
+              ev.dataTransfer.setData(key, scope.data[key]);
+            }
+          }
         }
-
         element[0].addEventListener('dragstart', start, false);
       }
     };

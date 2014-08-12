@@ -72,7 +72,7 @@
   <div class="content-wrapper">
     <table class="table item-table">
       <tbody>
-        <tr ng-repeat-start="item in items | orderBy:predicate:reverse | filter:itemFilter" data-toggle="collapse" data-target="#{{window.id}}{{item.id}}" op-drag="item.id" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={edit:false}">
+        <tr ng-repeat-start="item in items | orderBy:predicate:reverse | filter:itemFilter" data-toggle="collapse" data-target="#{{window.id}}{{item.id}}" item-drag="{isa: 'Hierarchy', id: item.id}" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={edit:false}">
           <td ng-repeat="column in selection">{{item[column]}}</td>
           <td ng-repeat="attrColumn in attrSelection">{{item['attributes'][attrColumn]}}</td>
         </tr>

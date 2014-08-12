@@ -206,12 +206,6 @@ angular.module('spGuiApp')
           }
           drawHere = drawHere + subW / 2 + measures.margin;
 
-          /*if (n === 0) { // These do nothing but destroying inverse vertical draw?
-            lineMinusL = lineMinusL + subW / 2;
-          }
-          else if (n === sop.sop.length - 1) {
-            lineMinusR = lineMinusR + subW / 2;
-          }*/
         }
         
         if(typeof sop.clientSideAdditions.lines2 === 'undefined') {
@@ -235,7 +229,12 @@ angular.module('spGuiApp')
             subSopIndex : linepos[p].subSopIndex
           });
         }
-        
+
+        if(result.height === 0) { // Increasing width and height of empty struct
+          result.height = measures.margin;
+          result.width = measures.opW + lineMinusR + lineMinusL;
+        }
+
         result.height = result.height + para + measures.margin;
 
         // Save of struct attributes straight into the SOP
@@ -298,10 +297,15 @@ angular.module('spGuiApp')
         }
         return w;
       } else {
-        w = measures.margin;
+        w = 0;
         for ( var o in sop.sop) {
           nW = this.getWidth(sop.sop[o], measures, vertDir);
           w = w + nW + measures.margin;
+        }
+        if(w === 0) {
+          w = measures.opW + 2 * measures.margin;
+        } else {
+          w = w + measures.margin;
         }
         return w;
       }
