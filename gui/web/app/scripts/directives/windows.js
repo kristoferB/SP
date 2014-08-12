@@ -24,7 +24,7 @@ angular.module('spGuiApp')
             wStorage = {};
           }
           noOfOpenedWindows++;
-          scope.windows.push({type: type, width: 1, height: 'small', name: type, windowStorage: wStorage, id: type + noOfOpenedWindows});
+          scope.windows.push({type: type, width: 2, height: 'large', name: type, windowStorage: wStorage, id: type + noOfOpenedWindows});
         };
 
         scope.$on("newSopWindow", function() {

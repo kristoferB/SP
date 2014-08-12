@@ -61,9 +61,11 @@ angular.module('spGuiApp')
           var opContextMenu = {
             target:'#op-context-menu',
             onItem: function(context,e) {
-              factory.removeNode(sop, false);
-              factory.calcAndDrawSop(wholeSop, paper, true, false, dirScope);
-              dirScope.$digest();
+              if(e.target.getAttribute('id') === 'delete') {
+                factory.removeNode(sop, false);
+                 factory.calcAndDrawSop(wholeSop, paper, true, false, dirScope);
+                 dirScope.$digest();
+              }
             }
           };
 
