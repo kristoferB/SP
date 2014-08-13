@@ -22,6 +22,10 @@ angular.module('spGuiApp')
       scope.search = {name:'', attributes:{}};
       scope.showFilterInputs = false;
 
+      scope.addCondition = function(item) {
+        item.conditions.push({guard: {}, action: [], attributes: {}});
+      };
+
       scope.itemFilter = function (item) {
         var qualifies = true;
 

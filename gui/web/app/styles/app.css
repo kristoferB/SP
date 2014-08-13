@@ -1,5 +1,10 @@
 /* app css stylesheet */
 
+/*** all over the app ***/
+body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
 /*** nav bar ***/
 
 .navbar {
@@ -106,6 +111,18 @@ table a, .table a {
 
 .prop-parse {
     margin-left: 10px;
+}
+
+.guard-input {
+    width: 100% !important;
+}
+
+.action-input {
+    width: 100% !important;
+}
+
+.textcomplete-wrapper {
+    width: 80%;
 }
 
 /* static table header in the itemList */

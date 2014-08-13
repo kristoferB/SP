@@ -16,6 +16,10 @@ angular.module('spGuiApp')
         $scope.guardInput = '';
         $scope.actionModel = '';
 
+        $scope.removeCondition = function(item, condition) {
+          item.conditions.splice(item.conditions.indexOf(condition));
+        };
+
         var thingSuggestions = spTalker.thingsAsStrings,
           lastThingStringBehindCursor = '',
           stateVarSuggestions = [];
@@ -52,7 +56,7 @@ angular.module('spGuiApp')
         }
 
         function getStateVarSuggestions(guardOrAction) {
-          var caretPos = getCaretPosition(document.getElementById(guardOrAction + 'Input-'+$scope.item.id));
+          var caretPos = getCaretPosition(document.getElementById(guardOrAction + 'Input-'+$scope.item.id+'-'+$scope.$index));
           var newThingStringBehindCursor = returnWord($scope[guardOrAction + 'Model'], caretPos);
           if(newThingStringBehindCursor !== lastThingStringBehindCursor) {
             lastThingStringBehindCursor = newThingStringBehindCursor;
@@ -72,13 +76,14 @@ angular.module('spGuiApp')
         var guardInputElement = $element.find('.guard-input'),
         actionInputElement = $element.find('.action-input'),
         thingMatchExp = /(^|AND\s|OR\s|==\s|!=\s)([\w\-]*)$/i,
+        actionThingMatchExp = /(^|,\s)([\w\-]*)$/i,
         stateVarMatchExp = /(\w\.)([\w\-]*)$/i;
         function getThingSuggestions() {
           return thingSuggestions;
         }
         createAutoSuggestion(guardInputElement, $scope.guardModel, thingMatchExp, getThingSuggestions, '', '');
         createAutoSuggestion(guardInputElement, $scope.guardModel, stateVarMatchExp, getStateVarSuggestions, 'guard', ' ');
-        createAutoSuggestion(actionInputElement, $scope.actionModel, thingMatchExp, getThingSuggestions, '', '');
+        createAutoSuggestion(actionInputElement, $scope.actionModel, actionThingMatchExp, getThingSuggestions, '', '');
         createAutoSuggestion(actionInputElement, $scope.actionModel, stateVarMatchExp, getStateVarSuggestions, 'action', ' ');
 
         function createAutoSuggestion(inputElement, inputModel, matchExp, suggestionsFunc, funcParam, postReplace) {
