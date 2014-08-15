@@ -13,6 +13,7 @@ angular.module('spGuiApp')
     restrict: 'E',
     link: function postLink(scope, element, attrs) {
       scope.items = [];
+      scope.filteredItems = [];
       scope.showableColumns = ['name', 'isa', 'version', 'conditions', 'stateVariables', 'attributes'];
       scope.selection = ['name', 'isa', 'version'];
       scope.attributeTypes = ['user', 'date', 'comment'];
@@ -21,6 +22,65 @@ angular.module('spGuiApp')
       scope.reverse = false;
       scope.search = {name:'', attributes:{}};
       scope.showFilterInputs = false;
+      scope.checkUncheckAllModel = false;
+      scope.checkedItems = [];
+      scope.twoOrMoreOps = false;
+      scope.oneSOPSpec = false;
+
+      scope.viewRelation = function() {
+        alert('Not implemented yet');
+      };
+
+      scope.alterCheckedArray = function(item) {
+        var index = scope.checkedItems.indexOf(item);
+        if(index === -1) {
+          scope.checkedItems.push(item);
+        } else {
+          scope.checkedItems.splice(index, 1);
+        }
+        alterShownButtons(scope.checkedItems);
+      };
+
+      function alterShownButtons(checkedItems) {
+        scope.twoOrMoreOps = twoOrMoreOps(checkedItems);
+        if(scope.twoOrMoreOps) { return }
+        scope.oneSOPSpec = oneSOPSpec(checkedItems)
+
+      }
+
+      function oneSOPSpec(items) {
+        for(var i = 0; i < items.length; i++) {
+          if(items[i].isa !== 'SOPSpec') {
+            return false
+          }
+        }
+        return i === 1;
+      }
+
+      function twoOrMoreOps(items) {
+        for(var i = 0; i < items.length; i++) {
+          if(items[i].isa !== 'Operation') {
+            return false
+          }
+        }
+        return i > 1;
+      }
+
+      scope.checkUncheckAll = function() {
+        scope.filteredItems.forEach( function(item) {
+          item.checked = scope.checkUncheckAllModel;
+        });
+        if(scope.checkUncheckAllModel) {
+          scope.checkedItems = scope.filteredItems;
+        } else {
+          scope.checkedItems = [];
+        }
+        alterShownButtons(scope.checkedItems);
+      };
+
+      scope.stopPropagation = function(e) {
+        e.stopPropagation();
+      };
 
       scope.addCondition = function(item) {
         item.conditions.push({guard: {}, action: [], attributes: {}});
@@ -30,29 +90,36 @@ angular.module('spGuiApp')
         var qualifies = true;
 
         function exploreItem(item, subItem, subSearch) {
-          //console.log('Utforskar ' + item.name);
+          console.log('Utforskar ' + item.name);
           var subSearchKeys = Object.keys(subSearch);
           for(var i = 0; i < subSearchKeys.length; i++) {
             var k = subSearchKeys[i], v = subSearch[k];
             if( subItem.hasOwnProperty(k)) {
               if(typeof v === 'string' || v instanceof String) {
-                //console.log(v + ' är en string');
+                console.log(v + ' är en string');
                 if (subItem[k].toString().toLowerCase().indexOf(v.toLowerCase()) === (-1)) {
-                  //console.log(v + ' finns inte i item ' + item.name);
+                  console.log('String ' + v + ' finns inte i item ' + item.name);
+                  qualifies = false;
+                  break
+                }
+              } else if(typeof v === 'boolean' || v instanceof Boolean) {
+                console.log(v + ' är en boolean');
+                if (v === true && subItem[k] !== v) {
+                  console.log('Boolean ' + v + ' finns inte i item ' + item.name);
                   qualifies = false;
                   break
                 }
               } else {
                 exploreItem(item, subItem[k], v);
               }
-            } else if(v !== '') {
+            } else if((typeof v === 'string' || v instanceof String) && v !== '' || v === true) {
               qualifies = false;
               break
             }
           }
         }
 
-        exploreItem(item, item, scope.search)
+        exploreItem(item, item, scope.search);
         return qualifies;
 
       };
@@ -66,7 +133,7 @@ angular.module('spGuiApp')
         }
       };
 
-      scope.toggleSelection = function toggleSelection(column, selections) {
+      scope.toggleSelection = function toggleSelection(column, selections, $event) {
         var idx = selections.indexOf(column);
         // is currently selected
         if (idx > -1) {
@@ -76,6 +143,7 @@ angular.module('spGuiApp')
         else {
           selections.push(column);
         }
+        $event.stopPropagation();
       };
 
       scope.createItem = function(type) {
@@ -111,6 +179,10 @@ angular.module('spGuiApp')
 
       scope.reReadFromServer = function(item) {
         spTalker.reReadFromServer(item);
+      };
+
+      scope.shouldBeShown = function(key) {
+        return key !== 'checked';
       };
 
       scope.hasItsOwnEditor = function(key) {

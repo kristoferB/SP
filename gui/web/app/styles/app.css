@@ -128,7 +128,13 @@ table a, .table a {
 /* static table header in the itemList */
 .item-table { table-layout: fixed; margin-bottom: 0; }
 .item-table>thead>tr>th,.item-table>tbody>tr>td { overflow: hidden; width: 50%; }
+.item-table>thead>tr>.checkbox-column,.item-table>tbody>tr>.checkbox-column { width: 50px; }
 .item-table-header-wrapper { margin-right: 18px; }
+
+/* columns dropDown */
+ul.dropdown-menu-form {
+    padding: 5px 10px 0;
+}
 
 /*** sopMaker ***/
 .sop-maker-toolbar {

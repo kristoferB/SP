@@ -16,37 +16,41 @@
       <button type="button" class="btn btn-default dropdown-toggle">
         <span class="glyphicon glyphicon-list-alt"></span> Columns <span class="caret"></span>
       </button>
-      <ul class="dropdown-menu" role="menu">
+      <ul class="dropdown-menu dropdown-menu-form" role="menu">
         <li ng-repeat="column in showableColumns" role="menuitem">
-          <input
+          <label><input
             type="checkbox"
             name="selectedColumns[]"
             value="{{column}}"
             ng-checked="selection.indexOf(column) > -1"
-            ng-click="toggleSelection(column, selection)"
-          />
-          <label>{{column}}</label><br />
+            ng-click="toggleSelection(column, selection, $event)"
+          /> {{column}}</label>
         </li>
         <li ng-repeat="attrType in attributeTypes">
-          <input
+          <label><input
             type="checkbox"
             name="selectedAttrColumns[]"
             value="{{attrType}}"
             ng-checked="attrSelection.indexOf(attrType) > -1"
-            ng-click="toggleSelection(attrType, attrSelection)"
-            />
-          <label>{{attrType}}</label><br />
+            ng-click="toggleSelection(attrType, attrSelection, $event)"
+            /> {{attrType}}</label>
         </li>
       </ul>
     </div>
     <button type="button" class="btn btn-default" ng-click="refresh()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
     <button type="button" class="btn btn-default" ng-click="showFilterInputs = !showFilterInputs"><span class="glyphicon glyphicon-filter"></span> Filter</button>
+    <button type="button" class="btn btn-default" ng-click="viewRelation()" ng-show="twoOrMoreOps"><span class="glyphicon glyphicon-link"></span> View relation</button>
+    <button type="button" class="btn btn-default" ng-click="openSopInNewWindow(checkedItems[0])" ng-show="oneSOPSpec" ><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
   </div> <!-- end of toolbar -->
 
   <div class="item-table-header-wrapper">
     <table class="table item-table">
       <thead>
         <tr>
+          <th class="checkbox-column">
+              <input type="checkbox" ng-model="checkUncheckAllModel" ng-change="checkUncheckAll()" />
+              <br /><input ng-if="showFilterInputs" type="checkbox" ng-model="search['checked']" />
+          </th>
           <th ng-repeat="column in selection" >
             <a ng-click="sort(column)">
               <span class="glyphicon" ng-class="{'glyphicon-sort-by-alphabet': predicate === column && !reverse, 'glyphicon-sort-by-alphabet-alt': predicate === column && reverse}"></span>
@@ -72,7 +76,8 @@
   <div class="content-wrapper">
     <table class="table item-table">
       <tbody>
-        <tr ng-repeat-start="item in items | orderBy:predicate:reverse | filter:itemFilter" data-toggle="collapse" data-target="#{{window.id}}{{item.id}}" item-drag="{isa: 'Hierarchy', id: item.id}" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={edit:false}">
+        <tr ng-repeat-start="item in (filteredItems = (items | orderBy:predicate:reverse | filter:itemFilter))" data-toggle="collapse" data-target="#{{window.id}}{{item.id}}" item-drag="{isa: 'Hierarchy', id: item.id}" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={edit:false}">
+          <td class="checkbox-column"><input type="checkbox" ng-click="stopPropagation($event)" ng-model="item.checked" ng-change="alterCheckedArray(item)" /></td>
           <td ng-repeat="column in selection">{{item[column]}}</td>
           <td ng-repeat="attrColumn in attrSelection">{{item['attributes'][attrColumn]}}</td>
         </tr>
@@ -91,7 +96,7 @@
                         <button ng-click="row.edit=true;" ng-if="!row.edit" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span> Edit</button>
                       </td>
                     </tr>
-                    <tr ng-repeat="(key, prop) in item">
+                    <tr ng-repeat="(key, prop) in item" ng-if="shouldBeShown(key)">
                       <td class="col-md-1">{{key}}:</td>
                       <td class="col-md-9">
                         <span ng-if="!hasItsOwnViewer(key) && !row.edit || !isEditable(key)">{{prop}}</span>
