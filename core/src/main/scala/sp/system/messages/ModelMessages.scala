@@ -19,11 +19,12 @@ case class CreateModel(model: String, attributes: SPAttributes = SPAttributes(Ma
 case object GetModels extends SPMessage
 
 case class GetIds(ids: List[ID], model: String) extends ModelQuery
-case class GetOperations(model: String) extends ModelQuery
-case class GetThings(model: String)  extends ModelQuery
-case class GetSpecs(model: String)  extends ModelQuery
-case class GetStateVariable(sv: ID, model: String)  extends ModelQuery
-case class GetQuery(q: SPAttributes, model: String) extends ModelQuery // fix better later
+case class GetOperations(model: String, filter: IDAble => Boolean = _ => true) extends ModelQuery
+case class GetThings(model: String, filter: IDAble => Boolean = _ => true)  extends ModelQuery
+case class GetSpecs(model: String, filter: IDAble => Boolean = _ => true)  extends ModelQuery
+case class GetResults(model: String, filter: IDAble => Boolean = _ => true)  extends ModelQuery
+case class GetStateVariable(model: String, sv: ID)  extends ModelQuery
+case class GetQuery(model: String, queryString: String = "",  filter: IDAble => Boolean = _ => true) extends ModelQuery // fix better later
 case class GetDiff(model: String, version: Long) extends ModelQuery
 case class GetModelInfo(model: String) extends ModelQuery
 

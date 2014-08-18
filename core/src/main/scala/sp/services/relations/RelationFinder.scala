@@ -75,7 +75,7 @@ trait RelationFinderAlgotithms {
   }
 
   /**
-   * Findes when operations are enabled. The more iterations, the better
+   * Find when operations are enabled. The more iterations, the better
    * @param iterations No of random sequences that are generated
    * @param opsToTest The operations that are returned in the map
    * @param setMeUp The definition for the algorithm
@@ -111,10 +111,7 @@ trait RelationFinderAlgotithms {
   }
 
 
-  def findOperationRelations(iterations: Int, opsToTest: Set[Operation] = Set())(implicit setMeUp: Setup) = {
-    val myOps = if (opsToTest.isEmpty) setMeUp.ops.toSet else opsToTest
-    val sm = findWhenOperationsEnabled(iterations, myOps)
-
+  def findOperationRelations(sm: EnabledStatesMap) = {
     @tailrec
     def req(ops: List[Operation],
             map: Map[Operation, EnabledStates],
@@ -132,22 +129,25 @@ trait RelationFinderAlgotithms {
       }
     }
 
-    val rels = req(myOps toList, sm.map, Map())
+    val rels = req(sm.map.keys toList, sm.map, Map())
     RelationMap(rels, sm)
   }
 
-
+  //TODO: Fix to match three state as well
+  val opi = Set("i")
+  val opf = Set("f")
+  val opif = Set("i", "f")
   def matchOps(o1: Operation, o1State: EnabledStates, o2: Operation, o2State: EnabledStates): SOP = {
     val stateOfO2WhenO1Pre = o1State.pre(o2.id) flatMap (_.asString)
     val stateOfO1WhenO2pre = o2State.pre(o1.id) flatMap (_.asString)
     val pre = (stateOfO2WhenO1Pre, stateOfO1WhenO2pre)
 
-    if (pre ==(Set("i"), Set("i"))) Alternative(o1, o2)
-    else if (pre ==(Set("i"), Set("f"))) Sequence(o1, o2)
-    else if (pre ==(Set("f"), Set("i"))) Sequence(o2, o1)
-    else if (pre ==(Set("i", "f"), Set("f"))) SometimeSequence(o2, o1)
-    else if (pre ==(Set("i"), Set("i", "f"))) SometimeSequence(o1, o2)
-    else if (pre ==(Set("i", "f"), Set("i", "f"))) Parallel(o1, o2)
+    if (pre ==(opi, opi)) Alternative(o1, o2)
+    else if (pre ==(opi, opf)) Sequence(o1, o2)
+    else if (pre ==(opf, opi)) Sequence(o2, o1)
+    else if (pre ==(opif, opf)) SometimeSequence(o2, o1)
+    else if (pre ==(opi, opif)) SometimeSequence(o1, o2)
+    else if (pre ==(opif, opif)) Parallel(o1, o2)
     else Other(o1, o2)
   }
 

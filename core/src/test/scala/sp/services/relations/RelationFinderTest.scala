@@ -54,7 +54,8 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
     "When finding operation relations" - {
       "it should find Seqeunce SOP between ops" in {
         implicit val setup = Setup(List(o2, o1), vm, List(), state, _ => false)
-        val res = findOperationRelations(10)
+        val sm = findWhenOperationsEnabled(10)
+        val res = findOperationRelations(sm)
         res.relations(OperationPair(o1.id, o2.id)) shouldEqual Sequence(o1, o2)
       }
       "it should find Paralell SOP between ops" in {
@@ -62,7 +63,8 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
         val o1 = ops.head
         val o2 = ops.tail.head
         implicit val setup = Setup(List(o1, o2), vm, List(), state, _ => false)
-        val res = findOperationRelations(10)
+        val sm = findWhenOperationsEnabled(10)
+        val res = findOperationRelations(sm)
         res.relations(OperationPair(o1.id, o2.id)) shouldEqual Parallel(o1, o2)
       }
 
@@ -73,8 +75,26 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
         val o1 = Operation("o1", List(cond))
         val o2 = Operation("o2", List(cond))
         implicit val setup = Setup(List(o1, o2), vm, List(), state, _ => false)
-        val res = findOperationRelations(10)
+        val sm = findWhenOperationsEnabled(10)
+        val res = findOperationRelations(sm)
         res.relations(OperationPair(o1.id, o2.id)) shouldEqual Alternative(o1, o2)
+      }
+
+      "it should find Sometime in Sequence SOP between ops" in {
+        val cond = PropositionCondition(
+          EQ(SVIDEval(v1.id), ValueHolder(SPAttributeValue(0))),
+          List(Action(v1.id, ValueHolder(1))))
+        val cond2 = PropositionCondition(
+          EQ(SVIDEval(v1.id), ValueHolder(SPAttributeValue(1))),
+          List(Action(v1.id, ValueHolder(2))))
+        val o1 = Operation("o1", List(cond))
+        val o2 = Operation("o2", List(cond))
+        val o3 = Operation("o3", List(cond2))
+        implicit val setup = Setup(List(o1, o2, o3), vm, List(), state, _(v1.id) == SPAttributeValue(2))
+        val sm = findWhenOperationsEnabled(10)
+        val res = findOperationRelations(sm)
+        println(res)
+        res.relations(OperationPair(o1.id, o3.id)) shouldEqual SometimeSequence(o1, o3)
       }
     }
   }

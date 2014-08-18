@@ -1,5 +1,30 @@
 package sp.domain
 
+
+/**
+  * Attributes used by operations defining possible resources that can execute it
+ * @param resources
+ */
+case class ResoursAttrib(resources: List[ID])
+
+/**
+  * Used by objects that have a well defined parent like stateVariables
+ * @param parent
+ */
+case class ParentAttrib(parent: ID)
+
+/**
+  * Used by StateVariables to either have a list of possible values
+ * or a range for int values. If the stateVariables does not encode
+ * any domain, any value is allowed.
+ */
+sealed trait DomainAttrib
+case class DomainListAttrib(domain: List[SPAttributeValue]) extends DomainAttrib
+case class RangeAttrib(lower: Int, upper: Int) extends DomainAttrib
+
+
+
+
 /**
  * Include predefined attributes
  *
@@ -59,24 +84,3 @@ object Attribs {
   }
 
 }
-
-/**
- * Attributes used by operations defining possible resources that can execute it
- * @param resources
- */
-case class ResoursAttrib(resources: List[ID])
-
-/**
- * Used by objects that have a well defined parent like stateVariables
- * @param parent
- */
-case class ParentAttrib(parent: ID)
-
-/**
- * Used by StateVariables to either have a list of possible values
- * or a range for int values. If the stateVariables does not encode
- * any domain, any value is allowed.
- */
-sealed trait DomainAttrib
-case class DomainListAttrib(domain: List[SPAttributeValue]) extends DomainAttrib
-case class RangeAttrib(lower: Int, upper: Int) extends DomainAttrib
