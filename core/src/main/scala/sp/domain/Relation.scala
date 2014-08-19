@@ -4,7 +4,7 @@ case class EnabledStates(pre: States, post: States = MapStates(Map()))
 case class EnabledStatesMap(map: Map[Operation, EnabledStates])
 
 case class RelationMap(relations: Map[OperationPair, SOP], enabledStates: EnabledStatesMap) {
-
+  def apply(o1: ID, o2: ID) = relations(OperationPair(o1, o2))
 }
 
 case class OperationPair(o1: ID, o2: ID) {

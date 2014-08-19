@@ -29,6 +29,8 @@ object SOP {
     else if (children.size == 1) children.head
     else Parallel(children:_*) 
   }
+  def apply(op: Operation) = Hierarchy(op.id)
+  def apply(op: ID) = Hierarchy(op)
 
 //  def createFromOps(children: Seq[Operation]): SOP = {
 //    val sops = children map (o => operationToSOP(o))
