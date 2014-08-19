@@ -7,18 +7,18 @@
  * # sop
  */
 angular.module('spGuiApp')
-.directive('itemlist', ['spTalker', 'notificationService', '$parse', function (spTalker, notificationService, $parse, NAME_PATTERN) {
+.directive('itemlist', ['spTalker', 'notificationService', '$filter', function (spTalker, notificationService, $filter) {
   return {
     templateUrl: 'views/itemlist.html',
     restrict: 'E',
     link: function postLink(scope, element, attrs) {
-      scope.items = [];
+      scope.spTalker = spTalker;
       scope.filteredItems = [];
       scope.showableColumns = ['name', 'isa', 'version', 'conditions', 'stateVariables', 'attributes'];
       scope.selection = ['name', 'isa', 'version'];
       scope.attributeTypes = ['user', 'date', 'comment'];
       scope.attrSelection = [];
-      scope.predicate = 'isa';
+      scope.predicate = '';
       scope.reverse = false;
       scope.search = {name:'', attributes:{}};
       scope.showFilterInputs = false;
@@ -26,6 +26,38 @@ angular.module('spGuiApp')
       scope.checkedItems = [];
       scope.twoOrMoreOps = false;
       scope.oneSOPSpec = false;
+      scope.oneOrMoreItems = false;
+
+      scope.order = function() {
+        spTalker.items = $filter('orderBy')(spTalker.items, scope.predicate, scope.reverse);
+      };
+
+      scope.copyItems = function() {
+        function copyItem(item) {
+          var newItem = angular.copy(item);
+          delete newItem.id;
+          delete newItem.version;
+          newItem.name = newItem.name + '_copy';
+          var success = true;
+          newItem.$save(
+            {model:spTalker.activeModel.model},
+            function(data) { spTalker.items.unshift(data); },
+            function(error) { console.log(error); success = false; notificationService.error('Copying of ' + newItem.name + ' failed.'); }
+          );
+          return success;
+        }
+        var fullSuccess = true;
+        scope.checkedItems.forEach( function(item) {
+          if(!copyItem(item)) {
+            fullSuccess = false;
+          }
+        });
+        if(fullSuccess) {
+          notificationService.success('All of the selected items was successfully copied.');
+        } else {
+          notificationService.error('Copying failed for one or more of the selected items. See your browser\'s console for details.');
+        }
+      };
 
       scope.viewRelation = function() {
         alert('Not implemented yet');
@@ -42,10 +74,15 @@ angular.module('spGuiApp')
       };
 
       function alterShownButtons(checkedItems) {
+        scope.oneOrMoreItems = oneOrMoreItems(checkedItems);
+        if(!scope.oneOrMoreItems) { return }
         scope.twoOrMoreOps = twoOrMoreOps(checkedItems);
         if(scope.twoOrMoreOps) { return }
-        scope.oneSOPSpec = oneSOPSpec(checkedItems)
+        scope.oneSOPSpec = oneSOPSpec(checkedItems);
+      }
 
+      function oneOrMoreItems(checkedItems) {
+        return checkedItems.length > 0;
       }
 
       function oneSOPSpec(items) {
@@ -90,22 +127,22 @@ angular.module('spGuiApp')
         var qualifies = true;
 
         function exploreItem(item, subItem, subSearch) {
-          console.log('Utforskar ' + item.name);
+          //console.log('Utforskar ' + item.name);
           var subSearchKeys = Object.keys(subSearch);
           for(var i = 0; i < subSearchKeys.length; i++) {
             var k = subSearchKeys[i], v = subSearch[k];
             if( subItem.hasOwnProperty(k)) {
               if(typeof v === 'string' || v instanceof String) {
-                console.log(v + ' är en string');
+                //console.log(v + ' är en string');
                 if (subItem[k].toString().toLowerCase().indexOf(v.toLowerCase()) === (-1)) {
-                  console.log('String ' + v + ' finns inte i item ' + item.name);
+                  //console.log('String ' + v + ' finns inte i item ' + item.name);
                   qualifies = false;
                   break
                 }
               } else if(typeof v === 'boolean' || v instanceof Boolean) {
-                console.log(v + ' är en boolean');
+                //console.log(v + ' är en boolean');
                 if (v === true && subItem[k] !== v) {
-                  console.log('Boolean ' + v + ' finns inte i item ' + item.name);
+                  //console.log('Boolean ' + v + ' finns inte i item ' + item.name);
                   qualifies = false;
                   break
                 }
@@ -118,10 +155,8 @@ angular.module('spGuiApp')
             }
           }
         }
-
         exploreItem(item, item, scope.search);
         return qualifies;
-
       };
 
       scope.sort = function(column) {
@@ -131,7 +166,9 @@ angular.module('spGuiApp')
           scope.predicate = column;
           scope.reverse = column === 'version';
         }
+        scope.order(scope.predicate, scope.reverse);
       };
+      scope.sort('name');
 
       scope.toggleSelection = function toggleSelection(column, selections, $event) {
         var idx = selections.indexOf(column);
@@ -149,7 +186,7 @@ angular.module('spGuiApp')
       scope.createItem = function(type) {
         var newItem = new spTalker.item({
           isa : type,
-          name : type + ' ' + Math.floor(Math.random()*1000),
+          name : type + Math.floor(Math.random()*1000),
           attributes : {}
         });
         if(type === 'Operation') {
@@ -169,16 +206,17 @@ angular.module('spGuiApp')
 
       scope.refresh = function() {
         spTalker.loadAll();
-        scope.items = spTalker.items;
       };
 
       scope.saveItem = function(item, row) {
         spTalker.saveItem(item);
         row.edit = false;
+        scope.order();
       };
 
       scope.reReadFromServer = function(item) {
         spTalker.reReadFromServer(item);
+        scope.order();
       };
 
       scope.shouldBeShown = function(key) {
@@ -204,8 +242,6 @@ angular.module('spGuiApp')
         };
         scope.addWindow('sopMaker', windowStorage, item);
       };
-
-      scope.refresh();
 
     }
   };

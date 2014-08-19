@@ -8,13 +8,7 @@
  * Controller of the spGuiApp
  */
   var ModellistCtrl = function ($scope, $modalInstance, spTalker, $modal) {
-    //$scope.models = spTalker.models;
-
-    $scope.$watch(
-      function() { return spTalker.models; },
-      function(data) { $scope.models = data; },
-      true
-    );
+    $scope.models = spTalker.models;
 
     $scope.createModel = function () {
       var modalInstance = $modal.open({
@@ -28,7 +22,8 @@
     };
 
     $scope.setActiveModel = function (chosenModel) {
-      spTalker.activeModel = chosenModel;
+      angular.copy(chosenModel, spTalker.activeModel);
+      spTalker.loadAll();
       $scope.close();
     };
   };

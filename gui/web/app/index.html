@@ -52,7 +52,13 @@
       </ul>
     </div>
 
-    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
+    <div id="attr-context-menu">
+      <ul class="dropdown-menu" role="menu">
+        <li ng-repeat="attrTag in spTalker.activeSPSpec.attributes.attributeTags" role="presentation"><a id="{{spTalker.activeSPSpec.attributes.attributeTags.indexOf(attrTag)}}" role="menuitem" tabindex="-1" href="#">{{attrTag.tag}}</a></li>
+      </ul>
+    </div>
+
+    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID
      <script>
        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -61,7 +67,7 @@
 
        ga('create', 'UA-XXXXX-X');
        ga('send', 'pageview');
-    </script>
+    </script>-->
 
     <!--[if lt IE 9]>
     <script src="bower_components/es5-shim/es5-shim.js"></script>
@@ -125,6 +131,9 @@
         <script src="scripts/directives/propparse.js"></script>
         <script src="scripts/directives/itemdrag.js"></script>
         <script src="scripts/directives/sop.js"></script>
+        <script src="scripts/controllers/settings.js"></script>
+        <script src="scripts/directives/attrcontextmenu.js"></script>
+        <script src="scripts/directives/nowhitespace.js"></script>
         <!-- endbuild -->
 
 </body>

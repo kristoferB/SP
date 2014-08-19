@@ -15,20 +15,13 @@ angular.module('spGuiApp')
         $scope.guardModel = '';
         $scope.guardInput = '';
         $scope.actionModel = '';
-
-        $scope.removeCondition = function(item, condition) {
-          item.conditions.splice(item.conditions.indexOf(condition));
-        };
-
         var thingSuggestions = spTalker.thingsAsStrings,
           lastThingStringBehindCursor = '',
           stateVarSuggestions = [];
 
-        $scope.$watch(function() {
-          return spTalker.thingsAsStrings
-        }, function(newVal) {
-            thingSuggestions = newVal;
-        });
+        $scope.removeCondition = function(item, condition) {
+          item.conditions.splice(item.conditions.indexOf(condition));
+        };
 
         function getCaretPosition(ctrl) {
           var CaretPos = 0;   // IE Support

@@ -11,6 +11,7 @@ angular.module('spGuiApp')
 .factory('spTalker', ['$resource', '$http', 'notificationService', '$filter', '$rootScope', function ($resource, $http, notificationService, $filter, $rootScope) {
   var apiUrl = '/api', factory = {
     activeModel: {},
+    activeSPSpec: {},
     models: [],
     users: [],
     operations: [],
@@ -48,11 +49,12 @@ angular.module('spGuiApp')
   factory.loadModels = function() {
     factory.models = factory.model.query();
   };
-
   factory.loadModels();
 
   var filterOutThings = function() {
-    factory.things = [];
+    while(factory.things.length > 0) {
+      factory.things.pop();
+    }
     factory.items.forEach(function(item) {
       if(item.isa === 'Thing') {
         factory.things.push(item)
@@ -61,10 +63,13 @@ angular.module('spGuiApp')
   };
 
   var listThingsAsStrings = function() {
-    factory.thingsAsStrings = [];
+    while(factory.thingsAsStrings.length > 0) {
+      factory.thingsAsStrings.pop();
+    }
     factory.things.forEach(function(thing) {
       factory.thingsAsStrings.push(thing.name);
     });
+
   };
 
   var updateItemLists = function() {
@@ -74,13 +79,22 @@ angular.module('spGuiApp')
 
   factory.loadAll = function() {
     factory.loadModels();
-    factory.items = factory.item.query({model: factory.activeModel.model}, function() {
+    factory.item.query({model: factory.activeModel.model}, function(data) {
+      angular.copy(data, factory.items);
       updateItemLists();
     });
 
   };
 
   factory.saveItem = function(item) {
+    if(Object.keys(factory.activeModel).length === 0) {
+      notificationService.error('No active model chosen.');
+      return
+    }
+    if(typeof item === 'undefined' || Object.keys(item).length === 0) {
+      notificationService.error('No item chosen.');
+      return
+    }
     item.$save(
       {model: factory.activeModel.model, id: item.id},
       function (data, headers) {
@@ -96,7 +110,9 @@ angular.module('spGuiApp')
   };
 
   factory.reReadFromServer = function(item) {
-    item.$get({model: factory.activeModel.model});
+    item.$get({model: factory.activeModel.model}, function(data) {
+      angular.copy(data, item);
+    });
   };
 
   /*$http.defaults.headers.common['Authorization'] = 'Basic ' + window.btoa('admin' + ':' + 'pass');

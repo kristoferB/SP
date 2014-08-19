@@ -14,12 +14,16 @@ angular.module('spGuiApp')
     $scope.isAuthorized = AuthService.isAuthorized;
     $scope.noOfOpenedTabs = 0;
     $scope.tabs = [];
+    $scope.activeModel = spTalker.activeModel;
+    $scope.currentUser = [Session.userId, Session.userRole];
+    $scope.spTalker = spTalker;
 
     $scope.addTab = function() {
       var windowArray = [];
       $scope.noOfOpenedTabs++;
       $scope.tabs.push({title: 'Model ' + $scope.noOfOpenedTabs, windowArray: windowArray, active: true})
     };
+    $scope.addTab();
 
     $scope.closeTab = function(tab) {
       var index = $scope.tabs.indexOf(tab);
@@ -32,31 +36,30 @@ angular.module('spGuiApp')
       }
     };
 
-    $scope.addTab();
-
     $rootScope.vars = {
       isLoginPage : false
     };
+    $scope.isLoginPage = $rootScope.vars.isLoginPage;
 
-    $scope.$watch(function() {
+    /*$scope.$watch(function() {
         return $rootScope.vars.isLoginPage;
       }, function(data) {
           $scope.isLoginPage = data;
-      }, true);
+      }, true);*/
 
-    $scope.$watch(function() {
+    /*$scope.$watch(function() {
         return Session.id;
     }, function(data) {
         $scope.currentUser = [Session.userId, Session.userRole];
-    }, true);
+    }, true);*/
 
     $scope.headerUrl = 'views/header.html';
 
-    $scope.$watch(
+    /*$scope.$watch(
       function() { return spTalker.activeModel; },
       function(data) { $scope.activeModel = data; },
       true
-    );
+    );*/
 
     $scope.openModelList = function () {
       var modalInstance = $modal.open({
@@ -65,6 +68,13 @@ angular.module('spGuiApp')
       });
     };
     $scope.openModelList();
+
+    $scope.openSettings = function () {
+      var modalInstance = $modal.open({
+        templateUrl: 'views/settings.html',
+        controller: 'SettingsCtrl'
+      });
+    };
 
     document.addEventListener('invalid', (function(){
       return function(e){
