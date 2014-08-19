@@ -28,6 +28,7 @@ case class GetDiff(model: String, version: Long) extends ModelQuery
 case class GetModelInfo(model: String) extends ModelQuery
 
 case class UpdateIDs(model: String, items: List[UpdateID]) extends ModelUpdate
+case class UpdateModelInfo(model: String, newName: String, attr: SPAttributes) extends ModelUpdate
 case class UpdateID(id: ID, version: Long, item: IDAble)
 object UpdateID {
   def addNew(x: IDAble) = UpdateID(x.id, 0, x)
