@@ -27,16 +27,25 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
     case UpdateIDs(m, ids) => {
       val reply = sender
       createDiff(m, ids) match {
-        //TODO: Convention dictates that Left is used for failure and Right is used for success. Swap this below! DN 140717
-        case Left(diff) => {
+        case Right(diff) => {
           persist(diff)(d =>{
             updateState(d)
             //TODO: If we create new items, we should probably return that also 140630
             reply ! SPIDs(diff.items)
           })
         }
-        case Right(error) => reply ! error
+        case Left(error) => reply ! error
       }
+    }
+
+    case UpdateModelInfo(m, newName, attribute) => {
+      val reply = sender
+      val diff = ModelDiff(List(), m, state.version, state.version + 1, (attribute + ("time", DatePrimitive.now)))
+
+      persist(diff)( d => {
+          updateState(d)
+          reply ! ModelInfo(name, state.version, state.attributes)
+      })
     }
 
     /**
@@ -107,9 +116,9 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
    * the method returns a UpdateError
    * @param model The name of the model
    * @param ids The new items to be updated or added
-   * @return Either Left[ModelDiff] -> The model can be updated. Right[UpdateError]
+   * @return Either Right[ModelDiff] -> The model can be updated. Left[UpdateError]
    */
-  def createDiff(model: String, ids: List[UpdateID]): Either[ModelDiff, UpdateError] = {
+  def createDiff(model: String, ids: List[UpdateID]): Either[UpdateError, ModelDiff] = {
     // Check if any item could not be updated and divide them
     val updateMe = ids partition {case UpdateID(id, v, item) => {
         val current = state.idMap.getOrElse(id, null)
@@ -119,9 +128,9 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
     }
     if (updateMe._2.isEmpty) {
       val upd = updateMe._1 map (uid=> uid.item.update(uid.id, uid.version))
-      Left(ModelDiff(upd, model, state.version, state.version+1, SPAttributes(state.attributes.attrs + ("time"->DatePrimitive.now))))
+      Right(ModelDiff(upd, model, state.version, state.version+1, SPAttributes(state.attributes.attrs + ("time"->DatePrimitive.now))))
     } else {
-      Right(UpdateError(state.version, updateMe._2 map(_.id)))
+      Left(UpdateError(state.version, updateMe._2 map(_.id)))
     }
   }
 

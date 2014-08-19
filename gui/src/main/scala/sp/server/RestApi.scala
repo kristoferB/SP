@@ -122,9 +122,18 @@ trait ModelAPI extends SPApiHelpers {
     } ~
     pathPrefix(Segment) { model =>
       / {
-        callSP(GetModelInfo(model), {
-          case x: ModelInfo => complete(x)
-        })
+        get {
+          callSP(GetModelInfo(model), {
+            case x: ModelInfo => complete(x)
+          })
+        } ~
+        post {
+          entity(as[SPAttributes]) { attr =>
+            callSP(UpdateModelInfo(model, "", attr), {
+              case x: ModelInfo => complete(x)
+            })
+          }
+        }
       } ~
       pathPrefix(Segment){ typeOfItems =>
         IDHandler(model) ~
