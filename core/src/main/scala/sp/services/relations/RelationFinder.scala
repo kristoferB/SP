@@ -115,13 +115,13 @@ trait RelationFinderAlgotithms {
     @tailrec
     def req(ops: List[Operation],
             map: Map[Operation, EnabledStates],
-            res: Map[OperationPair, SOP] ): Map[OperationPair, SOP] = {
+            res: Map[Set[ID], SOP] ): Map[Set[ID], SOP] = {
       ops match {
         case Nil => res
         case o1 :: rest => {
           val o1State = map(o1)
           val update = map.foldLeft(res){case (aggr, (o2, o2State)) =>
-            if (o1 != o2 && !aggr.contains(OperationPair(o1.id, o2.id))) aggr + (OperationPair(o1.id, o2.id) -> matchOps(o1, o1State, o2, o2State))
+            if (o1 != o2 && !aggr.contains(Set[ID](o1.id, o2.id))) aggr + (Set[ID](o1.id, o2.id) -> matchOps(o1, o1State, o2, o2State))
             else aggr
           }
           req(rest, map, update)

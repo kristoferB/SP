@@ -56,7 +56,7 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
         implicit val setup = Setup(List(o2, o1), vm, List(), state, _ => false)
         val sm = findWhenOperationsEnabled(10)
         val res = findOperationRelations(sm)
-        res.relations(OperationPair(o1.id, o2.id)) shouldEqual Sequence(o1, o2)
+        res.relations(Set(o1.id, o2.id)) shouldEqual Sequence(o1, o2)
       }
       "it should find Paralell SOP between ops" in {
         val ops = (1 to 3) map { i => Operation(i.toString, List(noActionCond))} toList
@@ -65,7 +65,7 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
         implicit val setup = Setup(List(o1, o2), vm, List(), state, _ => false)
         val sm = findWhenOperationsEnabled(10)
         val res = findOperationRelations(sm)
-        res.relations(OperationPair(o1.id, o2.id)) shouldEqual Parallel(o1, o2)
+        res.relations(Set(o1.id, o2.id)) shouldEqual Parallel(o1, o2)
       }
 
       "it should find Alternative SOP between ops" in {
@@ -77,7 +77,7 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
         implicit val setup = Setup(List(o1, o2), vm, List(), state, _ => false)
         val sm = findWhenOperationsEnabled(10)
         val res = findOperationRelations(sm)
-        res.relations(OperationPair(o1.id, o2.id)) shouldEqual Alternative(o1, o2)
+        res.relations(Set(o1.id, o2.id)) shouldEqual Alternative(o1, o2)
       }
 
       "it should find Sometime in Sequence SOP between ops" in {
@@ -94,7 +94,7 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
         val sm = findWhenOperationsEnabled(10)
         val res = findOperationRelations(sm)
         println(res)
-        res.relations(OperationPair(o1.id, o3.id)) shouldEqual SometimeSequence(o1, o3)
+        res.relations(Set(o1.id, o3.id)) shouldEqual SometimeSequence(o1, o3)
       }
     }
   }
