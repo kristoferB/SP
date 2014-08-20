@@ -117,7 +117,12 @@ trait ModelAPI extends SPApiHelpers {
           callSP(cmd, {
             case x: ModelInfo => complete(x)
           })
-        }
+        } ~
+          entity(as[ModelInfo]) { mi =>
+            callSP(UpdateModelInfo(mi.model, "", mi.attributes), {
+              case x: ModelInfo => complete(x)
+            })
+          } 
       }
     } ~
     pathPrefix(Segment) { model =>
@@ -128,8 +133,8 @@ trait ModelAPI extends SPApiHelpers {
           })
         } ~
         post {
-          entity(as[SPAttributes]) { attr =>
-            callSP(UpdateModelInfo(model, "", attr), {
+          entity(as[ModelInfo]) { mi =>
+            callSP(UpdateModelInfo(model, "", mi.attributes), {
               case x: ModelInfo => complete(x)
             })
           }
