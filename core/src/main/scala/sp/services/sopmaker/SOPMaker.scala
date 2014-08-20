@@ -45,14 +45,23 @@ trait Groupify {
    * @return a sop containing the sops
    */
   def identifySOPRelation(sop1: SOP, sop2: SOP, relations: Map[Set[SOP], SOP]): SOP = {
-    val relationBetweenPairs = (for {
-      s1 <- {if (sop1.children.isEmpty) List(sop1) else sop1.children}
-      s2 <- {if (sop2.children.isEmpty) List(sop2) else sop2.children}
-    } yield relations(Set(s1, s2)).modify(List())) toSet
+    if (relations.contains(Set(sop1, sop2))) relations(Set(sop1, sop2))
+    else {
+      val relationBetweenPairs = (for {
+        s1 <- {if (sop1.children.isEmpty) List(sop1) else sop1.children}
+        s2 <- {if (sop2.children.isEmpty) List(sop2) else sop2.children}
+      } yield {
+        if (s1 == s2) Other()
+        else if (!relations.contains(Set(s1, s2))){
+          identifySOPRelation(s1, s2, relations).modify(List())
+        } else
+        relations(Set(s1, s2)).modify(List())
+      }) toSet
 
-    if (relationBetweenPairs.size == 1) relationBetweenPairs.head.modify(List(sop1, sop2))
-    else if (relationBetweenPairs == Set(Sequence(List()), SometimeSequence(List()))) Sequence(List(sop1, sop2))
-    else Other(sop1, sop2)
+      if (relationBetweenPairs.size == 1) relationBetweenPairs.head.modify(List(sop1, sop2))
+      else if (relationBetweenPairs == Set(Sequence(), SometimeSequence())) Sequence(sop1, sop2)
+      else Other(sop1, sop2)
+    }
   }
 
   /**
@@ -84,17 +93,25 @@ trait Groupify {
       x <- sops
       y <- sops
       rel <- relations.get(Set(x, y)) if relationToGroup(rel)
-    } yield (x, y)
+    } yield Set(x, y)
 
-    val mergeIntoGroups = relatedPairs map { case (sop1, sop2) =>
-      val othersThatContainsTheSops = relatedPairs filter (other => other._1 == sop1 || other._1 == sop2 || other._2 == sop1 || other._2 == sop2)
-      othersThatContainsTheSops.foldLeft(Set(sop1, sop2))((a, b) => a ++ Set(b._1, b._2))
+    def mergeTheGroups(theGroups: Set[Set[SOP]]): Set[Set[SOP]] = {
+      val merge = theGroups.foldLeft(Set[Set[SOP]]())({
+        (b, a) => {
+          val filter = b partition(!_.intersect(a).isEmpty)
+          val union = a ++ filter._1.foldLeft(Set[SOP]())(_ ++ _)
+          filter._2 + union
+        }
+      })
+      if (merge != theGroups) mergeTheGroups(merge)
+      else merge
     }
+    val mergeIntoGroups = mergeTheGroups(relatedPairs.toSet)
 
-    val sopsAddedToGroup = relatedPairs.foldLeft(Set[SOP]())((a, b) => a ++ Set(b._1, b._2))
+    val sopsAddedToGroup = relatedPairs.foldLeft(Set[SOP]())((a, b) => a ++ b)
     val sopsNotAddedToGroup = sops filter (!sopsAddedToGroup.contains(_))
 
-    val newGroups = mergeIntoGroups map (set => createSOP(set.toList))
+    val newGroups = mergeIntoGroups map (set => createSOP(set.toList)) toList
 
     newGroups ++ sopsNotAddedToGroup
 
