@@ -216,11 +216,27 @@ class SOPMakerGroupingTest extends FreeSpec with Matchers with Defs {
       }
 
   }
+    "When making sops" - {
+      "should create parallel and sequences" in {
+        val rels = Map(
+          o1o2 -> Parallel(so1, so2),
+          o1o3 -> Sequence(so1, so3),
+          o1o4 -> Sequence(so1, so4),
+          o2o3 -> Sequence(so2, so3),
+          o2o4 -> Sequence(so2, so4),
+          o3o4 -> Sequence(so3, so4)
+        )
+
+        val res = makeTheSop(List(o1, o2, o3, o4), rels)
+        res.head shouldEqual Sequence(List(Parallel(List(o1,o2)), o3, o4))
+
+      }
+    }
 
 }
 }
 
-trait Defs extends Groupify {
+trait Defs extends Groupify with MakeASop{
 
 
   val o1 = Operation("o1").id

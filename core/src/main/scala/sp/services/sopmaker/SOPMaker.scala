@@ -26,12 +26,12 @@ class SOPMaker extends Actor with MakeASop {
 }
 
 trait MakeASop extends Groupify with Sequencify {
-  def makeIt(ops: List[ID], relations: Map[Set[ID], SOP]) = {
+  def makeTheSop(ops: List[ID], relations: Map[Set[ID], SOP], base: SOP = EmptySOP) = {
     val sopOps = makeSOPsFromOpsID(ops)
     val groupAlternatives = groupify(sopOps, relations, _.isInstanceOf[Alternative], Alternative.apply)
     val groupParallel = groupify(groupAlternatives, relations, _.isInstanceOf[Parallel], Parallel.apply)
 
-    sequencify(Parallel(groupParallel:_*), relations)
+    sequencify(groupParallel, relations, base)
   }
 }
 
@@ -112,7 +112,7 @@ trait Groupify {
     val sopsAddedToGroup = relatedPairs.foldLeft(Set[SOP]())((a, b) => a ++ b)
     val sopsNotAddedToGroup = sops filter (!sopsAddedToGroup.contains(_))
 
-    val newGroups = mergeIntoGroups.map.(set => createSOP(set.toList)).toList
+    val newGroups = mergeIntoGroups.map(set => createSOP(set.toList)).toList
 
     newGroups ++ sopsNotAddedToGroup
 
@@ -131,20 +131,20 @@ trait Sequencify {
     override def toString = "emptyNode"
   }
 
-  def sequencify(sop: SOP, relations: Map[Set[ID], SOP], base: SOP = EmptySOP): SOP = {
-    val sopG = sop.modify(for {
-      s <- sop.children
-    } yield { if (s.isEmpty) s else sequencify(s, relations, base) })
+  def sequencify(sops: Seq[SOP], relations: Map[Set[ID], SOP], base: SOP = EmptySOP): List[SOP] = {
+    val updSops = sops map{
+      case s: SOP if s.isEmpty => s
+      case s: SOP => s.modify(sequencify(s.children, relations, base))
+    }
 
     val nodeRelations = (for {
-      x <- sopG.children
-      y <- sopG.children if x != y
+      x <- updSops
+      y <- updSops if x != y
     } yield Set(x, y) -> groupAlgo.identifySOPRelation(x, y, relations)).toMap
 
-    val node = align(sopG.children, nodeRelations, base)
+    val node = align(updSops, nodeRelations, base)
 
-    val finalSeq = sopify(node, nodeRelations)
-    sop.modify(finalSeq)
+    sopify(node, nodeRelations) toList
   }
 
   def align(nodes: Seq[SOP], rel: Map[Set[SOP], SOP],  base: SOP = EmptySOP) : Node = {

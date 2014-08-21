@@ -176,12 +176,12 @@ class SOPMakerSequenceTest extends FreeSpec with Matchers with Defs2 {
           o2o4 -> Parallel(so2, so4),
           o3o4 -> Parallel(so3, so4)
         )
-        val res = sequencify(Parallel(so1, so2, so3, so4), rels, so1)
-        res.children should contain allOf (so1, so2, so3, so4)
+        val res = sequencify(List(so1, so2, so3, so4), rels, so1)
+        res should contain allOf (so1, so2, so3, so4)
       }
       "return a straight sequence" in {
         printOps
-        val res = sequencify(Parallel(so1, so2, so3, so4), rels, so1)
+        val res = sequencify(List(so1, so2, so3, so4), rels, so1)
         res shouldEqual Parallel(List(Sequence(List(so1, so2, so3, so4):_*)):_*)
       }
       "return the independent sequences" in {
@@ -193,8 +193,8 @@ class SOPMakerSequenceTest extends FreeSpec with Matchers with Defs2 {
           o2o4 -> Parallel(so2, so4),
           o3o4 -> Sequence(so3, so4)
         )
-        val res = sequencify(Parallel(so1, so2, so3, so4), rels, so1)
-        res.children should contain allOf (
+        val res = sequencify(List(so1, so2, so3, so4), rels, so1)
+        res should contain allOf (
           Sequence(List(so1, so2):_*),
           Sequence(List(so3, so4):_*)
           )
