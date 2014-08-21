@@ -7,7 +7,7 @@ import sp.domain.logic.OperationLogic.EvaluateProp
 /**
  * Created by Kristofer on 2014-08-06.
  */
-class SOPMakerTest extends FreeSpec with Matchers with Defs {
+class SOPMakerGroupingTest extends FreeSpec with Matchers with Defs {
   "The SOPMaker" - {
     "when converting for grouping" - {
       "should convert ops to sop " in {
@@ -205,7 +205,7 @@ class SOPMakerTest extends FreeSpec with Matchers with Defs {
       "should group no alternative " in {
         val rels = Map(
           o1o2 -> Sequence(so1, so2),
-          o1o3 -> Sequence(so1, so3),
+          o1o3 -> Parallel(so1, so3),
           o1o4 -> Sequence(so1, so4),
           o2o3 -> Sequence(so2, so3),
           o2o4 -> Sequence(so2, so4),
