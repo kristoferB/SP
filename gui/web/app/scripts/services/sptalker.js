@@ -25,10 +25,27 @@ angular.module('spGuiApp')
     thing: $resource(apiUrl + '/models/:model/things/:thing', { model: '@model', thing: '@thing' })
   };
 
+  factory.updateModelAttributes = function(notifySuccess) {
+    var success = true;
+    $http({method: 'POST', url: 'api/models/' + factory.activeModel.model, data: factory.activeModel.attributes}).
+      success(function(data, status, headers, config) {
+        if(notifySuccess) {
+          notificationService.success('Model attributes were successfully updated.');
+        }
+        factory.loadModels();
+      }).
+      error(function(data, status, headers, config) {
+        console.log(data);
+        notificationService.error('Model attributes update failed. Please see console log for details.');
+        success = false;
+      });
+    return success;
+  };
+
   factory.getItemById = function(id) {
     var result = $.grep(factory.items, function(e){ return e.id === id; });
     if (result.length == 0) {
-      var error = 'Could not find any item with id ' + id + '. The requested action has most likely been aborted.';
+      var error = 'Could not find an item with id ' + id + '. The requested action has most likely been aborted.';
       console.log(error);
       notificationService.error(error);
       return {};
@@ -82,11 +99,38 @@ angular.module('spGuiApp')
     factory.item.query({model: factory.activeModel.model}, function(data) {
       angular.copy(data, factory.items);
       updateItemLists();
+      factory.activeSPSpec = factory.getItemById(factory.activeModel.attributes.activeSPSpec);
+      $rootScope.$broadcast('itemsQueried');
     });
+  };
 
+  factory.saveItems = function(items, notifySuccess) {
+    var success = true;
+    if(items.length === 0) {
+      notificationService.error('No items supplied to save.');
+      return false;
+    }
+    if(Object.keys(factory.activeModel).length === 0) {
+      notificationService.error('No active model chosen.');
+      return false;
+    }
+    $http({method: 'POST', url: 'api/models/' + factory.activeModel.model + '/items', data: items}).
+      success(function(data, status, headers, config) {
+        if(notifySuccess) {
+          notificationService.success(items.length + ' items were successfully saved.');
+        }
+        updateItemLists();
+      }).
+      error(function(data, status, headers, config) {
+        console.log(data);
+        notificationService.error('Items save failed. Please see console log for details.');
+        success = false;
+      });
+    return success;
   };
 
   factory.saveItem = function(item) {
+    var success = true;
     if(Object.keys(factory.activeModel).length === 0) {
       notificationService.error('No active model chosen.');
       return
@@ -104,9 +148,10 @@ angular.module('spGuiApp')
       function (error) {
         notificationService.error(item.isa + ' ' + item.name + ' could not be saved.');
         console.log(error);
-        factory.reReadFromServer(item);
+        success = false;
       }
     );
+    return success;
   };
 
   factory.reReadFromServer = function(item) {

@@ -22,15 +22,22 @@ angular.module('spGuiApp')
               return scope.values.edit
             },
             onItem: function (context, e) {
-              var index = e.target.getAttribute('id');
-              var attrTag = spTalker.activeSPSpec.attributes.attributeTags[index];
-              if(attrTag.type === 'string') {
-                scope.values.attrObj[attrTag.tag] = '';
-              } else {
-                scope.values.attrObj[attrTag.tag] = {};
-              }
+              var key = e.target.getAttribute('id');
+              scope.values.attrObj[key] = angular.copy(spTalker.activeSPSpec.attributes.attributeTags[key]);
+              replaceDates(scope.values.attrObj, key);
             }
           };
+        }
+
+        function replaceDates(obj, key) {
+          if (obj[key] instanceof Date) {
+            obj[key] = new Date();
+          }
+          for(var k in obj[key]) {
+            if(obj[key].hasOwnProperty(k)) {
+              replaceDates(obj[key], k);
+            }
+          }
         }
 
         element.contextmenu(attrContextMenu());

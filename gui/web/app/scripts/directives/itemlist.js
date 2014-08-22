@@ -32,6 +32,10 @@ angular.module('spGuiApp')
         spTalker.items = $filter('orderBy')(spTalker.items, scope.predicate, scope.reverse);
       };
 
+      scope.$on('itemsQueried', function(event) {
+        scope.order();
+      });
+
       scope.copyItems = function() {
         function copyItem(item) {
           var newItem = angular.copy(item);
@@ -206,6 +210,7 @@ angular.module('spGuiApp')
 
       scope.refresh = function() {
         spTalker.loadAll();
+        scope.order();
       };
 
       scope.saveItem = function(item, row) {

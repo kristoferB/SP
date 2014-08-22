@@ -14,7 +14,6 @@ angular.module('spGuiApp')
     $scope.isAuthorized = AuthService.isAuthorized;
     $scope.noOfOpenedTabs = 0;
     $scope.tabs = [];
-    $scope.activeModel = spTalker.activeModel;
     $scope.currentUser = [Session.userId, Session.userRole];
     $scope.spTalker = spTalker;
 

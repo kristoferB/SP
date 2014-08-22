@@ -5,39 +5,22 @@
   <table class="table">
     <tbody>
       <tr>
-        <td>SPSpec</td>
+        <td class="col-md-2">Active SPSpec</td>
         <td>
-          <label>Active: <select class="form-control input-sm" ng-model="spTalker.activeSPSpec" ng-options="item.name for item in spTalker.items | filter:{isa: 'SPSpec'}" ></select></label>
-          <button class="btn btn-default" ng-click="save()"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+          <label><select class="form-control input-sm" ng-model="spTalker.activeSPSpec" ng-options="spSpec.name for spSpec in (spSpecs.array = (spTalker.items | filter:{isa: 'SPSpec'}))" ></select></label>
         </td>
       </tr>
       <tr>
         <td>Attribute Tags</td>
         <td>
-          <table class="table">
-            <thead><tr><th>Tag</th><th>Type</th></tr></thead>
-              <tbody>
-                <tr ng-repeat="attributeTag in spTalker.activeSPSpec.attributes.attributeTags">
-                  <td>{{attributeTag.tag}}</td>
-                  <td>{{attributeTag.type}}</td>
-                  <td><button class="btn btn-sm btn-default glyphicon glyphicon-minus" ng-click="removeAttributeTag(attributeTag)"></button></td>
-                </tr>
-                <tr>
-                  <td colspan="3">
-                    <form name="attributeTagForm">
-                      <label>Tag: <input class="form-control input-sm" required type="text" ng-model="form.enteredAttributeTag" /></label>
-                      <label>Type: <select class="form-control input-sm" required ng-model="form.selectedAttributeType" ng-options="attributeType for attributeType in attributeTypes"></select></label>
-                      <button class="btn btn-default" ng-click="addAttributeTag()"><span class="glyphicon glyphicon-plus"></span> Add</button>
-                    </form>
-                  </td>
-                </tr>
-            </tbody>
-          </table>
+          <attr-tag-grid style="display: block;" attr-tags-obj="spTalker.activeSPSpec.attributes.attributeTags"></attr-tag-grid>
         </td>
       </tr>
     </tbody>
   </table>
 </div>
 <div class="modal-footer">
+  <button class="btn btn-primary" ng-click="save()"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+  <button class="btn btn-default" ng-click="reset()"><span class="glyphicon glyphicon-fast-backward"></span> Reset</button>
   <button class="btn btn-default" ng-click="close()"><span class="glyphicon glyphicon-remove"></span> Close</button>
 </div>

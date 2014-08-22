@@ -8,20 +8,13 @@
  * Controller of the spGuiApp
  */
 angular.module('spGuiApp')
-  .controller('SettingsCtrl', function ($scope, $modalInstance, spTalker) {
+  .controller('SettingsCtrl', function ($scope, $modalInstance, spTalker, notificationService) {
     $scope.attributeTypes = ['string', 'object'];
     $scope.spTalker = spTalker;
+    $scope.spSpecs = { array: [] };
     $scope.form = {
       enteredAttributeTag: '',
       selectedAttributeType: 'string'
-    };
-
-    $scope.addAttributeTag = function() {
-      if(typeof spTalker.activeSPSpec.attributes.attributeTags === 'undefined') {
-        spTalker.activeSPSpec.attributes.attributeTags = [];
-      }
-      spTalker.activeSPSpec.attributes.attributeTags.push({tag: $scope.form.enteredAttributeTag, type: $scope.form.selectedAttributeType});
-      $scope.form.enteredAttributeTag = '';
     };
 
     $scope.removeAttributeTag = function(tagToRemove) {
@@ -29,11 +22,29 @@ angular.module('spGuiApp')
       spTalker.activeSPSpec.attributes.attributeTags.splice(index, 1);
     };
 
-    $scope.close = function () {
+    $scope.save = function () {
+      var success = true;
+      if(!spTalker.saveItems($scope.spSpecs.array, false)) {
+        success = false;
+      }
+      spTalker.activeModel.attributes.activeSPSpec = spTalker.activeSPSpec.id;
+      if(!spTalker.updateModelAttributes(false)) {
+        success = false;
+      }
+      if(success) {
+        $scope.close();
+        notificationService.success('Settings saved.');
+      }
+    };
+
+    $scope.reset = function() {
+      $scope.spSpecs.array.forEach(function(spSpec) {
+        spTalker.reReadFromServer(spSpec);
+      });
+    };
+
+    $scope.close = function() {
       $modalInstance.dismiss('cancel');
     };
 
-    $scope.save = function () {
-      spTalker.saveItem(spTalker.activeSPSpec);
-    };
   });

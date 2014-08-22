@@ -141,4 +141,14 @@ ul.dropdown-menu-form {
   margin-bottom: 10px;
 }
 
+/*** Settings dialog ***/
+.sub-attr-tag-grid {
+    display: block;
+    margin-left: 20px;
+}
+
+.empty-attr-tag-obj {
+    margin-left: 20px;
+}
+
 /*** Other ***/

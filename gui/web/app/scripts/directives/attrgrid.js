@@ -17,7 +17,6 @@ angular.module('spGuiApp')
       },
       templateUrl: 'views/attrgrid.html',
       controller: function($scope) {
-
         $scope.isEmpty = function (obj) {
           return angular.equals({},obj);
         };
@@ -26,8 +25,11 @@ angular.module('spGuiApp')
           $scope.attrObj = {};
         }
 
-        $scope.checkType = function(obj, type, aClass) {
-          return typeof obj === type;
+        $scope.getType = function(obj) {
+          if(obj instanceof Date) {
+            return 'date';
+          }
+          return typeof obj;
         };
 
         $scope.deleteObjProp = function(obj, prop) {

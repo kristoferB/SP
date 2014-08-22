@@ -22,7 +22,7 @@
     };
 
     $scope.setActiveModel = function (chosenModel) {
-      angular.copy(chosenModel, spTalker.activeModel);
+      spTalker.activeModel = chosenModel;
       spTalker.loadAll();
       $scope.close();
     };
