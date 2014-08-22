@@ -23,6 +23,7 @@ case class DomainListAttrib(domain: List[SPAttributeValue]) extends DomainAttrib
 case class RangeAttrib(lower: Int, upper: Int) extends DomainAttrib
 
 
+case class VariableStateAttrib(id: ID, value: SPAttributeValue)
 
 
 /**
@@ -53,6 +54,27 @@ object Attribs {
       attr + ("parent" -> IDPrimitive(pa.parent))
     }
   }
+
+//  implicit class getVSAttr(attr: SPAttributes) {
+//    def getVariableStateAttr(key: String): Option[VariableStateAttrib] = {
+//      val list = for {
+//        li <- attr.getAsList(key)
+//        kv <- li
+//      } yield kv match {
+//        case MapPrimitive(keyValues) => {
+//          val id = keyValues.get("id") flatMap(_.asID)
+//          val value = keyValues.get("value")
+//         for {
+//            theID <- id
+//            theValue <- value
+//          } yield VariableStateAttrib(theID, theValue)
+//        }
+//        case _ => None
+//      }
+//
+//    list
+//    }
+//  }
 
   implicit class getDomainAttr(attr: SPAttributes) {
     def getDomainAttrib = {

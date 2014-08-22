@@ -15,19 +15,39 @@ import scala.annotation.tailrec
  *            that should be used. So add Specs
  *            before
  */
-case class FindRelations(ops: List[Operation], stateVars: Map[ID, StateVariable], init: State)
+case class FindRelations( ops: List[Operation],
+                          stateVars: Map[ID, StateVariable],
+                          init: State,
+                          groups: List[SPAttributeValue] = List(),
+                          iterations: Int = 100)
 
 
 class RelationFinder extends Actor with RelationFinderAlgotithms {
   def receive = {
-    case FindRelations(ops, svs, init) => {
-
+    case FindRelations(ops, svs, init, groups, itr) => {
+      implicit val setup = Setup(ops, svs, groups, init, _ => false)
+      val sm = findWhenOperationsEnabled(itr)
+      val res = findOperationRelations(sm)
+      sender ! res
     }
   }
 }
 
+object RelationFinder {
+  def props = Props(classOf[RelationFinder])
+}
+
 //TODO: Move these to domain.logic. RelationsLogic
 trait RelationFinderAlgotithms {
+
+  /**
+   *
+   * @param ops The operations that are part of the relation identification. Usually all operations
+   * @param stateVars All variables that are used by the operations
+   * @param groups The condition groups that should be used. If empty, all groups are used
+   * @param init The initial state
+   * @param goal The goal function, when the execution has reached the goal.
+   */
   case class Setup(ops: List[Operation],
               stateVars: Map[ID, StateVariable],
               groups: List[SPAttributeValue],

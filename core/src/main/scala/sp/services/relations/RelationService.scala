@@ -17,12 +17,18 @@ class RelationService extends Actor {
 
   def receive = {
     case Request(_, attr) => {
+      val reply = sender
       extract(attr) map { res =>
         val model = res._1
         val opIDs = res._2
 
         val ops = modelHandler ? GetIds(opIDs, model)
-        // get conds from specs
+        val modelInfo = modelHandler ? GetModelInfo(model)
+
+        // just one actor per request initially
+        val relationFinder = context.actorOf(RelationFinder.props)
+
+
 
       }
     }
@@ -32,7 +38,7 @@ class RelationService extends Actor {
     for {
       model <- attr.getAsString("model")
       ops <- attr.getAsList("operations") map( _.flatMap(_.asID))
-      //labels <- attr.getAsList("labels")
+      labels <- attr.getAsList("groups")
       // initial state
       // goal proposition
     } yield (model, ops)

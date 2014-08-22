@@ -228,7 +228,7 @@ class SOPMakerGroupingTest extends FreeSpec with Matchers with Defs {
         )
 
         val res = makeTheSop(List(o1, o2, o3, o4), rels)
-        res.head shouldEqual Sequence(List(Parallel(List(o1,o2)), o3, o4))
+        res.head shouldEqual Sequence(List(Parallel(List(so2,so1):_*), so3, so4):_*)
 
       }
     }

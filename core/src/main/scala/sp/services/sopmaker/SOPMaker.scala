@@ -15,12 +15,15 @@ import scala.annotation.tailrec
  *            that should be used. So add Specs
  *            before
  */
-case class MakeMeASOP(ops: List[ID], relations: RelationMap)
+case class MakeMeASOP(ops: List[ID], relations: RelationMap, base: ID)
 
 class SOPMaker extends Actor with MakeASop {
   def receive = {
-    case MakeMeASOP(ops, rels) => {
-
+    case MakeMeASOP(ops, rels, base) => {
+      val reply = sender
+      val baseSop = SOP(base)
+      val sop = makeTheSop(ops, rels.relations, baseSop)
+      reply ! sop
     }
   }
 }
