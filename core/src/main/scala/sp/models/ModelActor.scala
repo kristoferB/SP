@@ -17,7 +17,7 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
     lazy val specifications = idMap filter (_._2.isInstanceOf[Specification])
     lazy val results = idMap filter (_._2.isInstanceOf[Result])
     lazy val stateVariables = svs map (sv=> sv.id -> sv) toMap
-    private lazy val svs =  things flatMap(_.asInstanceOf[Thing].stateVariables)
+    private lazy val svs =  things flatMap(_._2.asInstanceOf[Thing].stateVariables)
   }
 
   var state = ModelState(1, Map(), Map(), attr)
@@ -89,6 +89,11 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
             reply ! SPSVs(List(res))
           }
         }
+        case GetStateVariables(m, f) => {
+          val res = state.stateVariables.values.toList filter f
+          reply ! SPSVs(res)
+        }
+
         case GetQuery(_, q, f) => {
           if (!q.isEmpty)
             println("QUEESRY STRING NOT IMPLEMENTED ModelActor")
