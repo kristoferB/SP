@@ -55,7 +55,7 @@ object Attribs {
   implicit class getStateAttr(attr: SPAttributes) {
     def getStateAttr(key: String): Option[State] = {
       attr.getAsList(key) map( li =>
-          MapState((li flatMap {
+          State((li flatMap {
             case MapPrimitive(keyValues) => {
               val id = keyValues.get("id") flatMap(_.asID)
               val value = keyValues.get("value")

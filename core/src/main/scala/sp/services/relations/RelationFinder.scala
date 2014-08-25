@@ -125,7 +125,7 @@ trait RelationFinderAlgotithms {
     }
 
 
-    val emptyStates = MapStates(setup.stateVars map (_._1 -> Set[SPAttributeValue]()))
+    val emptyStates = States(setup.stateVars map (_._1 -> Set[SPAttributeValue]()))
     val oie = EnabledStates(emptyStates, emptyStates)
     val startMap = {if (opsToTest.isEmpty) setup.ops else opsToTest}.map(_.id -> oie)
     req(iterations, EnabledStatesMap(startMap toMap))

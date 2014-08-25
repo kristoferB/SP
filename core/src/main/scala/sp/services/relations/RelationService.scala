@@ -23,6 +23,9 @@ class RelationService extends Actor {
       val params = extract(attr) map {
         case (model, opsID, init, groups, iterations, goal) =>
 
+          val currentRelations = (modelHandler ? GetResults(model, _.isInstanceOf[RelationResult])).
+            mapTo[List[RelationResult]] map(_.sortWith(_.modelVersion > _.modelVersion))
+
           val opsF = modelHandler ? GetIds(opsID, model)
           val modelInfoF = modelHandler ? GetModelInfo(model)
           val svsF = modelHandler ? GetStateVariables(model)
