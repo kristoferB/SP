@@ -5,7 +5,7 @@
       <span ng-if="!edit && type === 'string'">{{attrVal}}</span>
       <input ng-if="edit && type === 'string'" type="text" class="form-control input-sm" ng-model="attrObj[attr]" />
       <span ng-if="!edit && type === 'date' ">{{attrVal | date:'yyyy-MM-dd HH:mm:ss'}}</span>
-      <input ng-if="edit && type === 'date'" id="datetimeInput" name="datetimeInput" type="datetime-local" class="form-control input-sm" ng-model="attrVal" />
+      <input ng-if="edit && type === 'date'" id="datetimeInput" name="datetimeInput" type="datetime-local" class="form-control input-sm" ng-model="attrObj[attr]" />
       <attr-grid ng-if="type === 'object'" edit="edit" attr-obj="attrVal" attribute-types="attributeTypes"></attr-grid>
     </td>
     <td ng-if="edit">

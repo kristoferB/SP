@@ -29,18 +29,26 @@ angular
           if (!ngModel || attrs.type != "datetime-local") return;
 
           // Using AngularJS built in date filter, convert our date to RFC 3339
-          ngModel.$formatters = [function(value) {
+          function formatDateTime(value) {
             return value && angular.isDate(value)
-              ? $filter('date')(value, "yyyy-MM-dd'T'hh:mm:ss")
+              ? $filter('date')(value, "yyyy-MM-dd'T'HH:mm:ss")
               : '';
-          }];
+          }
+
+          ngModel.$formatters.unshift(formatDateTime);
 
           // Convert the string value to Date object.
-          ngModel.$parsers = [function(value) {
-            return value && angular.isString(value)
-              ? new Date(value)
-              : null;
-          }];
+          function parseDateTime(value) {
+            if(value && angular.isString(value)) {
+              var date = new Date(value);
+              date.setTime( date.getTime() + date.getTimezoneOffset()*60*1000 );
+              return date;
+            } else {
+              return undefined;
+            }
+          }
+
+          ngModel.$parsers.unshift(parseDateTime);
         }
       };
     }
@@ -124,7 +132,7 @@ function convertDateStringsToDates(input) {
     var match;
     // Check for string properties which look like dates.
     if (typeof value === "string" && (match = value.match(regexIso8601))) {
-      var milliseconds = Date.parse(match[0])
+      var milliseconds = Date.parse(match[0]);
       if (!isNaN(milliseconds)) {
         input[key] = new Date(milliseconds);
       }

@@ -144,6 +144,7 @@ angular.module('spGuiApp')
       function (data, headers) {
         notificationService.success(item.isa + ' \"' + item.name + '\" was successfully saved');
         updateItemLists();
+        angular.copy(data, item);
       },
       function (error) {
         notificationService.error(item.isa + ' ' + item.name + ' could not be saved.');
