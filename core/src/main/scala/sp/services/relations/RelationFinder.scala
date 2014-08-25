@@ -19,13 +19,14 @@ case class FindRelations( ops: List[Operation],
                           stateVars: Map[ID, StateVariable],
                           init: State,
                           groups: List[SPAttributeValue] = List(),
-                          iterations: Int = 100)
+                          iterations: Int = 100,
+                          goal: State => Boolean = _ => true)
 
 
 class RelationFinder extends Actor with RelationFinderAlgotithms {
   def receive = {
-    case FindRelations(ops, svs, init, groups, itr) => {
-      implicit val setup = Setup(ops, svs, groups, init, _ => false)
+    case FindRelations(ops, svs, init, groups, itr, goal) => {
+      implicit val setup = Setup(ops, svs, groups, init, goal)
       val sm = findWhenOperationsEnabled(itr)
       val res = findOperationRelations(sm)
       sender ! res
@@ -111,7 +112,7 @@ trait RelationFinderAlgotithms {
         val seqRes = findASeq(setup)
         val updateMap = seqRes.stateMap.foldLeft(esm.map)((m,sm)=> {
           val checkThese = if (!opsToTest.isEmpty) sm._2 filter opsToTest.contains else sm._2
-          val updatedOps = checkThese.map(o => o -> mergeAState(o, m(o), sm._1)).toMap
+          val updatedOps = checkThese.map(o => o.id -> mergeAState(o, m(o.id), sm._1)).toMap
           m ++ updatedOps
         })
         req(n-1, EnabledStatesMap(updateMap))
@@ -126,22 +127,22 @@ trait RelationFinderAlgotithms {
 
     val emptyStates = MapStates(setup.stateVars map (_._1 -> Set[SPAttributeValue]()))
     val oie = EnabledStates(emptyStates, emptyStates)
-    val startMap = {if (opsToTest.isEmpty) setup.ops else opsToTest}.map(_ -> oie)
+    val startMap = {if (opsToTest.isEmpty) setup.ops else opsToTest}.map(_.id -> oie)
     req(iterations, EnabledStatesMap(startMap toMap))
   }
 
 
   def findOperationRelations(sm: EnabledStatesMap) = {
     @tailrec
-    def req(ops: List[Operation],
-            map: Map[Operation, EnabledStates],
+    def req(ops: List[ID],
+            map: Map[ID, EnabledStates],
             res: Map[Set[ID], SOP] ): Map[Set[ID], SOP] = {
       ops match {
         case Nil => res
         case o1 :: rest => {
           val o1State = map(o1)
           val update = map.foldLeft(res){case (aggr, (o2, o2State)) =>
-            if (o1 != o2 && !aggr.contains(Set[ID](o1.id, o2.id))) aggr + (Set[ID](o1.id, o2.id) -> matchOps(o1, o1State, o2, o2State))
+            if (o1 != o2 && !aggr.contains(Set[ID](o1, o2))) aggr + (Set[ID](o1, o2) -> matchOps(o1, o1State, o2, o2State))
             else aggr
           }
           req(rest, map, update)
@@ -157,9 +158,9 @@ trait RelationFinderAlgotithms {
   val opi = Set("i")
   val opf = Set("f")
   val opif = Set("i", "f")
-  def matchOps(o1: Operation, o1State: EnabledStates, o2: Operation, o2State: EnabledStates): SOP = {
-    val stateOfO2WhenO1Pre = o1State.pre(o2.id) flatMap (_.asString)
-    val stateOfO1WhenO2pre = o2State.pre(o1.id) flatMap (_.asString)
+  def matchOps(o1: ID, o1State: EnabledStates, o2: ID, o2State: EnabledStates): SOP = {
+    val stateOfO2WhenO1Pre = o1State.pre(o2) flatMap (_.asString)
+    val stateOfO1WhenO2pre = o2State.pre(o1) flatMap (_.asString)
     val pre = (stateOfO2WhenO1Pre, stateOfO1WhenO2pre)
 
     if (pre ==(opi, opi)) Alternative(o1, o2)

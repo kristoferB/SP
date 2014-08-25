@@ -32,7 +32,7 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
       "it should find relations" in {
         implicit val setup = Setup(List(o2, o1), vm, List(), state, _ => false)
         val res = findWhenOperationsEnabled(10)
-        res.map(o2).pre(o1.id) shouldEqual Set(StringPrimitive("f"))
+        res.map(o2.id).pre(o1.id) shouldEqual Set(StringPrimitive("f"))
         //res foreach(r =>println(s"${r._1.name} -> ${r._2.init.map(_._2.toString)} "))
 
 
@@ -40,7 +40,7 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
       "find paralell relations" in {
         val ops = (1 to 10) map { i => Operation(i.toString, List(noActionCond))} toList
         val res = findWhenOperationsEnabled(10, Set(ops.head))(Setup(ops, vm, List(), state, _ => false))
-        res.map(ops.head).pre(ops.tail.head.id) shouldEqual Set(StringPrimitive("i"), StringPrimitive("f"))
+        res.map(ops.head.id).pre(ops.tail.head.id) shouldEqual Set(StringPrimitive("i"), StringPrimitive("f"))
       }
       "should only return given ops" in {
         val ops = (1 to 5) map { i => Operation(i.toString, List(noActionCond))} toList

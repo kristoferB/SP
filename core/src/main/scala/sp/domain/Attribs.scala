@@ -23,9 +23,6 @@ case class DomainListAttrib(domain: List[SPAttributeValue]) extends DomainAttrib
 case class RangeAttrib(lower: Int, upper: Int) extends DomainAttrib
 
 
-case class VariableStateAttrib(id: ID, value: SPAttributeValue)
-
-
 /**
  * Include predefined attributes
  *
@@ -55,26 +52,23 @@ object Attribs {
     }
   }
 
-//  implicit class getVSAttr(attr: SPAttributes) {
-//    def getVariableStateAttr(key: String): Option[VariableStateAttrib] = {
-//      val list = for {
-//        li <- attr.getAsList(key)
-//        kv <- li
-//      } yield kv match {
-//        case MapPrimitive(keyValues) => {
-//          val id = keyValues.get("id") flatMap(_.asID)
-//          val value = keyValues.get("value")
-//         for {
-//            theID <- id
-//            theValue <- value
-//          } yield VariableStateAttrib(theID, theValue)
-//        }
-//        case _ => None
-//      }
-//
-//    list
-//    }
-//  }
+  implicit class getStateAttr(attr: SPAttributes) {
+    def getStateAttr(key: String): Option[State] = {
+      attr.getAsList(key) map( li =>
+          MapState((li flatMap {
+            case MapPrimitive(keyValues) => {
+              val id = keyValues.get("id") flatMap(_.asID)
+              val value = keyValues.get("value")
+              for {
+                theID <- id
+                theValue <- value
+              } yield theID -> theValue
+            }
+            case _ => None
+          }).toMap)
+        )
+    }
+  }
 
   implicit class getDomainAttr(attr: SPAttributes) {
     def getDomainAttrib = {
@@ -104,5 +98,27 @@ object Attribs {
       } yield RangeAttrib(lower, upper)
     }
   }
+
+
+  //TODO: Fix this later but we probably need HList 140825
+//  case class AttribExtractor[T](extr: SPAttributes => Option[T], mess: String)
+//
+//  implicit class getOrFailAttr(attr: SPAttributes) {
+//    def extract(List[AttribExtractor]): Either[String, Map] = {
+//      attr.getAsList(key) map( li =>
+//        MapState((li flatMap {
+//          case MapPrimitive(keyValues) => {
+//            val id = keyValues.get("id") flatMap(_.asID)
+//            val value = keyValues.get("value")
+//            for {
+//              theID <- id
+//              theValue <- value
+//            } yield theID -> theValue
+//          }
+//          case _ => None
+//        }).toMap)
+//        )
+//    }
+//  }
 
 }

@@ -278,7 +278,9 @@ trait SPJsonDomain {
 
 
 
-
+  implicit val enabledStateFormat = jsonFormat2(EnabledStates)
+  implicit val enabledStateMapFormat = jsonFormat1(EnabledStatesMap)
+  implicit val relationMapFormat = jsonFormat2(RelationMap)
 
 
 

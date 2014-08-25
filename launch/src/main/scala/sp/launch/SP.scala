@@ -12,13 +12,19 @@ object SP extends App {
 
   // Register Runtimes here
   runtimeHandler ! RegisterRuntimeKind("DanielRuntime",
-                   sp.runtimes.DanielRuntime.props,
-                   SPAttributes(Map("info"-> "En liten runtime")))
+  sp.runtimes.DanielRuntime.props,
+  SPAttributes(Map("info"-> "En liten runtime")))
 
 
   // Register services here
   serviceHandler ! RegisterService("PropositionParser",
-    system.actorOf(PropositionParserActor.props, "PropositionParser"))
+  system.actorOf(PropositionParserActor.props, "PropositionParser"))
+
+
+  import sp.services.relations._
+  serviceHandler ! RegisterService("RelationService",
+    system.actorOf(RelationService.props, "RelationService"))
+
 
 
 

@@ -24,6 +24,7 @@ case class GetThings(model: String, filter: IDAble => Boolean = _ => true)  exte
 case class GetSpecs(model: String, filter: IDAble => Boolean = _ => true)  extends ModelQuery
 case class GetResults(model: String, filter: IDAble => Boolean = _ => true)  extends ModelQuery
 case class GetStateVariable(model: String, sv: ID)  extends ModelQuery
+case class GetStateVariables(model: String, filter: StateVariable => Boolean = _ => true)  extends ModelQuery
 case class GetQuery(model: String, queryString: String = "",  filter: IDAble => Boolean = _ => true) extends ModelQuery // fix better later
 case class GetDiff(model: String, version: Long) extends ModelQuery
 case class GetModelInfo(model: String) extends ModelQuery

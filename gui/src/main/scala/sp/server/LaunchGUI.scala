@@ -9,7 +9,7 @@ import sp.system.SPActorSystem._
  * Used by the SP launcher file
  * Created by Kristofer on 2014-06-19.
  */
-object LaunchGUI extends MySslConfiguration {
+object LaunchGUI {//extends MySslConfiguration {
   def launch = {
 
     val interface = settings.interface

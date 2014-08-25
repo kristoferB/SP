@@ -130,6 +130,35 @@ trait SPJsonIDAble extends SPJsonDomain {
   }
 
 
+  implicit val vRelResultFormat = jsonFormat5(RelationResult)
+  implicit object ResultJsonFormat extends RootJsonFormat[Result] {
+    def write(x: Result) = {
+      x match {
+        case x: RelationResult => {
+          val obj = x.toJson.asJsObject.fields + "isa" -> "RelationResult".toJson
+          JsObject(obj)
+        }
+        case x@_ => throw new SerializationException(s"can not convert the Result from $x")
+      }
+    }
+
+    def read(value: JsValue) = {
+      value match {
+        case obj: JsObject if obj.fields.contains("isa") => {
+          obj.fields("isa") match {
+            case JsString("RelationResult") => {
+              obj.convertTo[RelationResult]
+            }
+            case res@_ =>
+              throw new DeserializationException(s"isa $res does not match RelationResult")
+          }
+        }
+        case _ => throw new DeserializationException(s"Result missing isa field: $value")
+      }
+    }
+  }
+
+
   implicit object IDAbleJsonFormat extends RootJsonFormat[IDAble] {
     def write(x: IDAble) = {
       x match {

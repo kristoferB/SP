@@ -59,6 +59,7 @@ object SOP {
   
   
   implicit def operationToSOP(o: Operation): SOP = Hierarchy(o.id,EmptySOP)
-    
+  implicit def operationIDToSOP(o: ID): SOP = Hierarchy(o,EmptySOP)
+
 }
 
