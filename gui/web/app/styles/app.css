@@ -32,8 +32,8 @@ body {
 .smallPanelHeight { height: 410px; }
 .largePanelHeight { height: 825px; }
 
-.smallBodyHeight { height: 365px; }
-.largeBodyHeight { height: 780px; }
+.smallBodyHeight { height: 350px; }
+.largeBodyHeight { height: 760px; }
 
 #sortable {
     list-style-type: none;
@@ -42,7 +42,11 @@ body {
     width: 100%;
 }
 
-#sortable>li { margin: 5px 0 0 0; padding: 0 2px; float: left;   }
+#sortable>li { margin: 0; padding: 0; float: left; }
+
+.panel {
+    margin: 5px;
+}
 
 #sortable .panel-heading .glyphicon {
     padding:3px;
@@ -51,10 +55,12 @@ body {
 
 #sortable .panel {
     background-color: transparent;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    border: 1px solid transparent;
 }
 
 #sortable .panel .panel-body {
-    border: 2px solid #4e5d6c;
+    background-color: #4e5d6c;
 }
 
 /*** To position toolbar and content in the Windows ***/
@@ -88,6 +94,15 @@ body {
 }
 
 /*** For the itemList table ***/
+
+.table-bordered > thead > tr > th,
+.table-bordered > tbody > tr > th,
+.table-bordered > tfoot > tr > th,
+.table-bordered > thead > tr > td,
+.table-bordered > tbody > tr > td,
+.table-bordered > tfoot > tr > td {
+    border-color: #a5a5a5;
+}
 
 .odd-row {
     background-color: #485563;
