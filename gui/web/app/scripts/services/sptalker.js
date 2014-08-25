@@ -19,27 +19,10 @@ angular.module('spGuiApp')
     things: [],
     thingsAsStrings: [],
     item : $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'}),
-    model: $resource(apiUrl + '/models/', {}),
+    model: $resource(apiUrl + '/models/:model', { model: '@model' }),
     user: $resource(apiUrl + '/users', {}),
     operation: $resource(apiUrl + '/models/:model/operations', { model: '@model' }, {saveArray: {method: 'POST', isArray: true}}),
     thing: $resource(apiUrl + '/models/:model/things/:thing', { model: '@model', thing: '@thing' })
-  };
-
-  factory.updateModelAttributes = function(notifySuccess) {
-    var success = true;
-    $http({method: 'POST', url: 'api/models/' + factory.activeModel.model, data: factory.activeModel.attributes}).
-      success(function(data, status, headers, config) {
-        if(notifySuccess) {
-          notificationService.success('Model attributes were successfully updated.');
-        }
-        factory.loadModels();
-      }).
-      error(function(data, status, headers, config) {
-        console.log(data);
-        notificationService.error('Model attributes update failed. Please see console log for details.');
-        success = false;
-      });
-    return success;
   };
 
   factory.getItemById = function(id) {
