@@ -25,6 +25,10 @@ angular.module('spGuiApp')
     thing: $resource(apiUrl + '/models/:model/things/:thing', { model: '@model', thing: '@thing' })
   };
 
+  if(sessionStorage.activeModel) {
+    factory.activeModel = JSON.parse(sessionStorage.activeModel);
+  }
+
   factory.getItemById = function(id) {
     var result = $.grep(factory.items, function(e){ return e.id === id; });
     if (result.length == 0) {
@@ -86,6 +90,10 @@ angular.module('spGuiApp')
       $rootScope.$broadcast('itemsQueried');
     });
   };
+
+  if(Object.keys(factory.activeModel).length > 0) {
+    factory.loadAll();
+  }
 
   factory.saveItems = function(items, notifySuccess) {
     var success = true;

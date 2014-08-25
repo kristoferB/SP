@@ -20,11 +20,8 @@ angular.module('spGuiApp')
         var noOfOpenedWindows = 0;
 
         scope.addWindow = function(type, wStorage) {
-          if(typeof wStorage === 'undefined') {
-            wStorage = {};
-          }
           noOfOpenedWindows++;
-          scope.windows.push({type: type, width: 2, height: 'large', name: type, windowStorage: wStorage, id: type + noOfOpenedWindows});
+          scope.windows.push({type: type, width: 2, height: 'large', name: type, id: type + noOfOpenedWindows, storage: wStorage});
         };
 
         scope.$on("newSopWindow", function() {
@@ -60,12 +57,6 @@ angular.module('spGuiApp')
         };
 
         scope.sortableOptions = {
-          /*start: function(event, ui) {
-           ui.item.removeClass('sizeTransition');
-           },
-           stop: function(event, ui) {
-           ui.item.addClass('sizeTransition');
-           },*/
           handle: '.draggable'
         };
 

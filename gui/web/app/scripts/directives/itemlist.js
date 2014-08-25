@@ -242,10 +242,9 @@ angular.module('spGuiApp')
 
       scope.openSopInNewWindow = function(item) {
         var windowStorage = {
-          sopDef : angular.copy(item.sop),
-          parentItem : item
+          sopSpecId: item.id
         };
-        scope.addWindow('sopMaker', windowStorage, item);
+        scope.addWindow('sopMaker', windowStorage);
       };
 
     }

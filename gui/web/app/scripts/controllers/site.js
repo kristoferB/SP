@@ -17,12 +17,22 @@ angular.module('spGuiApp')
     $scope.currentUser = [Session.userId, Session.userRole];
     $scope.spTalker = spTalker;
 
+    if(sessionStorage.tabs) {
+      angular.copy(JSON.parse(sessionStorage.tabs), $scope.tabs);
+    }
+
+    $scope.$watch(
+      function() { return $scope.tabs },
+      function() {
+        sessionStorage.tabs = JSON.stringify($scope.tabs);
+        console.log('Session saved');
+      }, true);
+
     $scope.addTab = function() {
       var windowArray = [];
       $scope.noOfOpenedTabs++;
-      $scope.tabs.push({title: 'Model ' + $scope.noOfOpenedTabs, windowArray: windowArray, active: true})
+      $scope.tabs.push({title: 'Model ' + $scope.noOfOpenedTabs, windowArray: windowArray, active: true});
     };
-    $scope.addTab();
 
     $scope.closeTab = function(tab) {
       var index = $scope.tabs.indexOf(tab);
@@ -66,7 +76,10 @@ angular.module('spGuiApp')
         controller: ModellistCtrl
       });
     };
-    $scope.openModelList();
+
+    if(Object.keys(spTalker.activeModel).length === 0) {
+      $scope.openModelList();
+    }
 
     $scope.openSettings = function () {
       var modalInstance = $modal.open({
