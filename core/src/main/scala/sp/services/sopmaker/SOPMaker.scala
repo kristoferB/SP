@@ -1,6 +1,7 @@
 package sp.services.sopmaker
 
 import akka.actor._
+import sp.domain
 import sp.domain._
 
 import scala.annotation.tailrec
@@ -15,17 +16,21 @@ import scala.annotation.tailrec
  *            that should be used. So add Specs
  *            before
  */
-case class MakeMeASOP(ops: List[ID], relations: RelationMap, base: ID)
+case class MakeMeASOP(ops: List[ID], relations: RelationMap, base: Option[ID])
 
 class SOPMaker extends Actor with MakeASop {
   def receive = {
     case MakeMeASOP(ops, rels, base) => {
       val reply = sender
-      val baseSop = SOP(base)
+      val baseSop = (base map SOP.apply).getOrElse(EmptySOP)
       val sop = makeTheSop(ops, rels.relations, baseSop)
       reply ! sop
     }
   }
+}
+
+object SOPMaker {
+  def props = Props(classOf[SOPMaker])
 }
 
 trait MakeASop extends Groupify with Sequencify {

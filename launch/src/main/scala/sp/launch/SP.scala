@@ -22,8 +22,12 @@ object SP extends App {
 
 
   import sp.services.relations._
-  serviceHandler ! RegisterService("RelationService",
-    system.actorOf(RelationService.props, "RelationService"))
+  serviceHandler ! RegisterService("Relations",
+    system.actorOf(RelationService.props, "Relations"))
+
+  import sp.services.sopmaker._
+  serviceHandler ! RegisterService("SopMaker",
+    system.actorOf(SOPMakerService.props(modelHandler), "SOPMaker"))
 
 
 

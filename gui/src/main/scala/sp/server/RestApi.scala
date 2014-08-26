@@ -256,6 +256,7 @@ trait ServiceAPI extends SPApiHelpers {
           case r: Result => complete(r)
           case SPIDs(x) => complete(x)
           case SPSVs(x) => complete(x)
+          case item: IDAble => complete(item)
         })
       }}
     }

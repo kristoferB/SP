@@ -7,7 +7,7 @@ trait Specification extends IDAble {
   val name: String
 }
 
-case class SOPSpec(sop: SOP, name: String, attributes: SPAttributes = SPAttributes(Map())) extends Specification {
+case class SOPSpec(sop: List[SOP], name: String, attributes: SPAttributes = SPAttributes(Map())) extends Specification {
   override def update(currentID: ID, currentVersion: Long): IDAble = {
       new SOPSpec(sop, name, attributes){
         override lazy val id = currentID

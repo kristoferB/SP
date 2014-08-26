@@ -115,8 +115,8 @@ trait SPJsonIDAble extends SPJsonDomain {
 
     def read(value: JsValue) = {
       value.asJsObject.getFields("name", "sop", "attributes", "id") match {
-        case Seq(JsString(label), s: JsObject, a: JsObject, oid: JsString) => {
-          val sop = s.convertTo[SOP]
+        case Seq(JsString(label), s: JsValue, a: JsObject, oid: JsString) => {
+          val sop = if(s.isInstanceOf[JsArray]) s.asInstanceOf[JsArray].elements.map(_.convertTo[SOP]) else List(s.convertTo[SOP])
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
           new SOPSpec(sop, label, attr) {
@@ -152,7 +152,7 @@ trait SPJsonIDAble extends SPJsonDomain {
             override lazy val id = myid
           }
         }
-        case _ => throw new DeserializationException(s"can not convert the SOPSpec from $value")
+        case _ => throw new DeserializationException(s"can not convert the RelationResult from $value")
 
       }
     }
@@ -196,6 +196,7 @@ trait SPJsonIDAble extends SPJsonDomain {
         case x: SPObject => x.toJson
         case x: SOPSpec => x.toJson
         case x: SPSpec => x.toJson
+        case x: Result => x.toJson
         case x@_ => throw new SerializationException(s"can not convert the IDAble from $x")
       }
     }

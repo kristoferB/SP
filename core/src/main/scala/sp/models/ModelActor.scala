@@ -17,7 +17,7 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
     lazy val specifications = idMap filter (_._2.isInstanceOf[Specification])
     lazy val results = idMap filter (_._2.isInstanceOf[Result])
     lazy val stateVariables = svs map (sv=> sv.id -> sv) toMap
-    private lazy val svs =  things flatMap(_._2.asInstanceOf[Thing].stateVariables)
+    lazy val svs =  things flatMap(_._2.asInstanceOf[Thing].stateVariables)
   }
 
   var state = ModelState(1, Map(), Map(), attr)
