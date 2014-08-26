@@ -26,7 +26,7 @@
             ng-click="toggleSelection(column, selection, $event)"
           /> {{column}}</label>
         </li>
-        <li ng-repeat="attrType in attributeTypes">
+        <li ng-repeat="(attrType, value) in spTalker.activeSPSpec.attributes.attributeTags">
           <label><input
             type="checkbox"
             name="selectedAttrColumns[]"

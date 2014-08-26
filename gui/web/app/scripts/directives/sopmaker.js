@@ -47,7 +47,6 @@ angular.module('spGuiApp')
 
         function getSopDefAndDraw() {
           sopSpec = spTalker.getItemById(scope.windowStorage.sopSpecId);
-          console.log(sopSpec);
           angular.copy(sopSpec.sop, scope.sopDef);
           scope.sopDef.clientSideAdditions = { vertDir: true };
           scope.$broadcast('drawSop');

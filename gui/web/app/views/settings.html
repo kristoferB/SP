@@ -7,7 +7,7 @@
       <tr>
         <td class="col-md-2">Active SPSpec</td>
         <td>
-          <label><select class="form-control input-sm" ng-model="spTalker.activeSPSpec" ng-options="spSpec.name for spSpec in (spSpecs.array = (spTalker.items | filter:{isa: 'SPSpec'}))" ></select></label>
+          <label><select class="form-control input-sm" ng-change="activeSPSpecChange()" ng-model="spTalker.activeSPSpec" ng-options="spSpec.name for spSpec in (spSpecs.array = (spTalker.items | filter:{isa: 'SPSpec'}))" ></select></label>
         </td>
       </tr>
       <tr>

@@ -9,24 +9,37 @@
  */
 angular.module('spGuiApp')
 .factory('spTalker', ['$resource', '$http', 'notificationService', '$filter', '$rootScope', function ($resource, $http, notificationService, $filter, $rootScope) {
-  var apiUrl = '/api', factory = {
-    activeModel: {},
-    activeSPSpec: {},
-    models: [],
-    users: [],
-    operations: [],
-    items: [],
-    things: [],
-    thingsAsStrings: [],
-    item : $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'}),
-    model: $resource(apiUrl + '/models/:model', { model: '@model' }),
-    user: $resource(apiUrl + '/users', {}),
-    operation: $resource(apiUrl + '/models/:model/operations', { model: '@model' }, {saveArray: {method: 'POST', isArray: true}}),
-    thing: $resource(apiUrl + '/models/:model/things/:thing', { model: '@model', thing: '@thing' })
-  };
+  var apiUrl = '/api',
+    dummySPSpec = {
+      id: 0,
+      attributes: {
+        attributeTags: {}
+      }
+    },
+    factory = {
+      activeModel: {},
+      activeSPSpec: dummySPSpec,
+      models: [],
+      users: [],
+      operations: [],
+      items: [],
+      things: [],
+      thingsAsStrings: [],
+      item : $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'}),
+      model: $resource(apiUrl + '/models/:model', { model: '@model' }),
+      user: $resource(apiUrl + '/users', {}),
+      operation: $resource(apiUrl + '/models/:model/operations', { model: '@model' }, {saveArray: {method: 'POST', isArray: true}}),
+      thing: $resource(apiUrl + '/models/:model/things/:thing', { model: '@model', thing: '@thing' })
+    };
 
   if(sessionStorage.activeModel) {
-    factory.activeModel = JSON.parse(sessionStorage.activeModel);
+    var model = JSON.parse(sessionStorage.activeModel);
+    factory.model.get({model: model.model}, function(model) {
+      factory.activeModel = model;
+      factory.loadAll();
+    });
+  } else {
+    $rootScope.$broadcast('noActiveModel');
   }
 
   factory.getItemById = function(id) {

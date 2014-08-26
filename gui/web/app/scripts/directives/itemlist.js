@@ -14,9 +14,8 @@ angular.module('spGuiApp')
     link: function postLink(scope, element, attrs) {
       scope.spTalker = spTalker;
       scope.filteredItems = [];
-      scope.showableColumns = ['name', 'isa', 'version', 'conditions', 'stateVariables', 'attributes'];
+      scope.showableColumns = ['name', 'isa', 'version', 'conditions', 'stateVariables'];
       scope.selection = ['name', 'isa', 'version'];
-      scope.attributeTypes = ['user', 'date', 'comment'];
       scope.attrSelection = [];
       scope.predicate = '';
       scope.reverse = false;
@@ -28,11 +27,30 @@ angular.module('spGuiApp')
       scope.oneSOPSpec = false;
       scope.oneOrMoreItems = false;
 
+      function uncheckUnavailableAttributes(attributeTagsObject) {
+        scope.attrSelection.forEach(function (selectedAttribute) {
+          if (!(selectedAttribute in attributeTagsObject)) {
+            scope.toggleSelection(selectedAttribute, scope.attrSelection);
+          }
+        })
+      }
+
+      scope.$watch(
+        function() { return spTalker.activeSPSpec.attributes.attributeTags },
+        function(data) {
+          if (typeof data !== 'undefined') {
+            scope.attrSelection.length = 0;
+          } else {
+            uncheckUnavailableAttributes(data);
+          }
+        },
+        false);
+
       scope.order = function() {
         spTalker.items = $filter('orderBy')(spTalker.items, scope.predicate, scope.reverse);
       };
 
-      scope.$on('itemsQueried', function(event) {
+      scope.$on('itemsQueried', function() {
         scope.order();
       });
 
@@ -61,6 +79,7 @@ angular.module('spGuiApp')
         } else {
           notificationService.error('Copying failed for one or more of the selected items. See your browser\'s console for details.');
         }
+        scope.order();
       };
 
       scope.viewRelation = function() {
@@ -184,7 +203,9 @@ angular.module('spGuiApp')
         else {
           selections.push(column);
         }
-        $event.stopPropagation();
+        if($event) {
+          $event.stopPropagation();
+        }
       };
 
       scope.createItem = function(type) {
@@ -206,6 +227,7 @@ angular.module('spGuiApp')
           function(data) { spTalker.items.unshift(data); notificationService.success('A new ' + data.isa + ' with name ' + data.name + ' was successfully created.'); },
           function(error) { console.log(error); notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.'); console.log(error); }
         );
+        scope.order();
       };
 
       scope.refresh = function() {

@@ -12,14 +12,16 @@ angular.module('spGuiApp')
     $scope.attributeTypes = ['string', 'object'];
     $scope.spTalker = spTalker;
     $scope.spSpecs = { array: [] };
-    $scope.form = {
-      enteredAttributeTag: '',
-      selectedAttributeType: 'string'
-    };
 
     $scope.removeAttributeTag = function(tagToRemove) {
       var index = spTalker.activeSPSpec.attributes.attributeTags.indexOf(tagToRemove);
       spTalker.activeSPSpec.attributes.attributeTags.splice(index, 1);
+    };
+
+    $scope.activeSPSpecChange = function() {
+      if(typeof spTalker.activeSPSpec.attributes.attributeTags === 'undefined') {
+        spTalker.activeSPSpec.attributes.attributeTags = {};
+      }
     };
 
     $scope.save = function () {
@@ -28,7 +30,6 @@ angular.module('spGuiApp')
         success = false;
       }
       spTalker.activeModel.attributes.activeSPSpec = spTalker.activeSPSpec.id;
-      console.log(spTalker.activeModel.attributes.activeSPSpec);
       spTalker.activeModel.$save({model: spTalker.activeModel.model}, function(data) {}, function(error) {
         console.log(error);
         notificationService.error('An error occurred during save of the active model. Please see your browser console for details.');

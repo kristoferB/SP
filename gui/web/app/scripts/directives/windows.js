@@ -26,7 +26,7 @@ angular.module('spGuiApp')
 
         scope.$on("newSopWindow", function() {
           if(scope.active) {
-            scope.addWindow('sopMaker');
+            scope.addWindow('sopMaker', {});
           }
         });
         scope.$on("newItemListWindow", function() {

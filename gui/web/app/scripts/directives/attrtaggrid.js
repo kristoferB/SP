@@ -20,10 +20,6 @@ angular.module('spGuiApp')
           return angular.equals({},obj);
         };
 
-        if(typeof $scope.attrTagsObj === 'undefined') {
-          $scope.attrTagsObj = {};
-        }
-
         $scope.checkType = function(obj, type) {
           return typeof obj === type;
         };

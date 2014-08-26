@@ -25,7 +25,6 @@ angular.module('spGuiApp')
       function() { return $scope.tabs },
       function() {
         sessionStorage.tabs = JSON.stringify($scope.tabs);
-        console.log('Session saved');
       }, true);
 
     $scope.addTab = function() {
@@ -77,9 +76,9 @@ angular.module('spGuiApp')
       });
     };
 
-    if(Object.keys(spTalker.activeModel).length === 0) {
+    $scope.$on('noActiveModel', function() {
       $scope.openModelList();
-    }
+    });
 
     $scope.openSettings = function () {
       var modalInstance = $modal.open({
