@@ -23,7 +23,7 @@
 
     $scope.setActiveModel = function (chosenModel) {
       spTalker.activeModel = chosenModel;
-      sessionStorage.activeModel = JSON.stringify(chosenModel);
+      sessionStorage.activeModel = angular.toJson(chosenModel);
       spTalker.loadAll();
       $scope.close();
     };

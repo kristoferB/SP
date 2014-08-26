@@ -7,13 +7,14 @@
  * # sop
  */
 angular.module('spGuiApp')
-.directive('itemlist', ['spTalker', 'notificationService', '$filter', function (spTalker, notificationService, $filter) {
+.directive('itemlist', ['spTalker', 'notificationService', '$filter', 'itemListSvc', function (spTalker, notificationService, $filter, itemListSvc) {
   return {
     templateUrl: 'views/itemlist.html',
     restrict: 'E',
     link: function postLink(scope, element, attrs) {
       scope.spTalker = spTalker;
-      scope.filteredItems = [];
+      scope.itemListSvc = itemListSvc;
+      scope.filteredAndOrderedItems = [];
       scope.showableColumns = ['name', 'isa', 'version', 'conditions', 'stateVariables'];
       scope.selection = ['name', 'isa', 'version'];
       scope.attrSelection = [];
@@ -35,6 +36,32 @@ angular.module('spGuiApp')
         })
       }
 
+      scope.order = function(filteredItems) {
+        var itemsToOrder;
+        if(typeof filteredItems === 'undefined') {
+          itemsToOrder = scope.filteredAndOrderedItems;
+        } else {
+          itemsToOrder = filteredItems;
+        }
+        scope.filteredAndOrderedItems = $filter('orderBy')(itemsToOrder, scope.predicate, scope.reverse);
+      };
+
+      scope.getFilterAndOrderItems = function() {
+        var filteredItems = $filter('filter')(spTalker.items, itemFilter);
+        scope.order(filteredItems);
+      };
+      scope.getFilterAndOrderItems();
+
+      scope.$on('itemsQueried', function() {
+        scope.getFilterAndOrderItems();
+      });
+
+      scope.$watch(
+        function() { return scope.search; },
+        function() { scope.getFilterAndOrderItems(); },
+        true
+      );
+
       scope.$watch(
         function() { return spTalker.activeSPSpec.attributes.attributeTags },
         function(data) {
@@ -45,14 +72,6 @@ angular.module('spGuiApp')
           }
         },
         false);
-
-      scope.order = function() {
-        spTalker.items = $filter('orderBy')(spTalker.items, scope.predicate, scope.reverse);
-      };
-
-      scope.$on('itemsQueried', function() {
-        scope.order();
-      });
 
       scope.copyItems = function() {
         function copyItem(item) {
@@ -79,7 +98,7 @@ angular.module('spGuiApp')
         } else {
           notificationService.error('Copying failed for one or more of the selected items. See your browser\'s console for details.');
         }
-        scope.order();
+        scope.getFilterAndOrderItems();
       };
 
       scope.viewRelation = function() {
@@ -127,26 +146,18 @@ angular.module('spGuiApp')
       }
 
       scope.checkUncheckAll = function() {
-        scope.filteredItems.forEach( function(item) {
+        scope.filteredAndOrderedItems.forEach( function(item) {
           item.checked = scope.checkUncheckAllModel;
         });
         if(scope.checkUncheckAllModel) {
-          scope.checkedItems = scope.filteredItems;
+          scope.checkedItems = scope.filteredAndOrderedItems;
         } else {
           scope.checkedItems = [];
         }
         alterShownButtons(scope.checkedItems);
       };
 
-      scope.stopPropagation = function(e) {
-        e.stopPropagation();
-      };
-
-      scope.addCondition = function(item) {
-        item.conditions.push({guard: {}, action: [], attributes: {}});
-      };
-
-      scope.itemFilter = function (item) {
+      function itemFilter(item) {
         var qualifies = true;
 
         function exploreItem(item, subItem, subSearch) {
@@ -180,7 +191,7 @@ angular.module('spGuiApp')
         }
         exploreItem(item, item, scope.search);
         return qualifies;
-      };
+      }
 
       scope.sort = function(column) {
         if(scope.predicate === column) {
@@ -208,65 +219,8 @@ angular.module('spGuiApp')
         }
       };
 
-      scope.createItem = function(type) {
-        var newItem = new spTalker.item({
-          isa : type,
-          name : type + Math.floor(Math.random()*1000),
-          attributes : {}
-        });
-        if(type === 'Operation') {
-          newItem.conditions = [];
-        } else if(type === 'Thing') {
-          newItem.stateVariables = [];
-        } else if(type === 'SOPSpec') {
-          newItem.sop = {isa: 'Sequence', sop: []};
-          newItem.version = 1;
-        }
-        newItem.$save(
-          {model:spTalker.activeModel.model},
-          function(data) { spTalker.items.unshift(data); notificationService.success('A new ' + data.isa + ' with name ' + data.name + ' was successfully created.'); },
-          function(error) { console.log(error); notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.'); console.log(error); }
-        );
-        scope.order();
-      };
-
       scope.refresh = function() {
         spTalker.loadAll();
-        scope.order();
-      };
-
-      scope.saveItem = function(item, row) {
-        spTalker.saveItem(item);
-        row.edit = false;
-        scope.order();
-      };
-
-      scope.reReadFromServer = function(item) {
-        spTalker.reReadFromServer(item);
-        scope.order();
-      };
-
-      scope.shouldBeShown = function(key) {
-        return key !== 'checked';
-      };
-
-      scope.hasItsOwnEditor = function(key) {
-        return key === 'attributes' || key === 'stateVariables' || key === 'sop' || key === 'conditions';
-      };
-
-      scope.hasItsOwnViewer = function(key) {
-        return key !== 'id' && key !== 'version' && key !== 'isa' && key !== 'name';
-      };
-
-      scope.isEditable = function(key) {
-        return key !== 'id' && key !== 'version' && key !== 'isa';
-      };
-
-      scope.openSopInNewWindow = function(item) {
-        var windowStorage = {
-          sopSpecId: item.id
-        };
-        scope.addWindow('sopMaker', windowStorage);
       };
 
     }

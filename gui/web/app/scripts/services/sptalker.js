@@ -33,13 +33,14 @@ angular.module('spGuiApp')
     };
 
   if(sessionStorage.activeModel) {
-    var model = JSON.parse(sessionStorage.activeModel);
+    factory.activeModel = { loading: 'please wait' };
+    var model = angular.fromJson(sessionStorage.activeModel);
     factory.model.get({model: model.model}, function(model) {
       factory.activeModel = model;
       factory.loadAll();
+    }, function(error) {
+      console.log(error);
     });
-  } else {
-    $rootScope.$broadcast('noActiveModel');
   }
 
   factory.getItemById = function(id) {
@@ -103,10 +104,6 @@ angular.module('spGuiApp')
       $rootScope.$broadcast('itemsQueried');
     });
   };
-
-  if(Object.keys(factory.activeModel).length > 0) {
-    factory.loadAll();
-  }
 
   factory.saveItems = function(items, notifySuccess) {
     var success = true;

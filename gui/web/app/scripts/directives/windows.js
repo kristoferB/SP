@@ -17,11 +17,18 @@ angular.module('spGuiApp')
         active: '='
       },
       link: function postLink(scope, element, attrs) {
-        var noOfOpenedWindows = 0;
+        var noOfOpenedWindows;
+
+        if(sessionStorage.noOfOpenedWindows) {
+          noOfOpenedWindows = angular.fromJson(sessionStorage.noOfOpenedWindows);
+        } else {
+          noOfOpenedWindows = 0
+        }
 
         scope.addWindow = function(type, wStorage) {
           noOfOpenedWindows++;
           scope.windows.push({type: type, width: 2, height: 'large', name: type, id: type + noOfOpenedWindows, storage: wStorage});
+          sessionStorage.noOfOpenedWindows = angular.toJson(noOfOpenedWindows);
         };
 
         scope.$on("newSopWindow", function() {

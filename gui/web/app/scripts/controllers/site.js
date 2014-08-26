@@ -76,9 +76,9 @@ angular.module('spGuiApp')
       });
     };
 
-    $scope.$on('noActiveModel', function() {
+    if(Object.keys(spTalker.activeModel).length === 0) {
       $scope.openModelList();
-    });
+    }
 
     $scope.openSettings = function () {
       var modalInstance = $modal.open({
