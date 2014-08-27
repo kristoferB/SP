@@ -26,7 +26,7 @@ angular.module('spGuiApp')
       things: [],
       thingsAsStrings: [],
       item : $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'}),
-      model: $resource(apiUrl + '/models/:model', { model: '@model' }),
+      model: $resource(apiUrl + '/models/:modelID', { modelID: '@modelID' }),
       user: $resource(apiUrl + '/users', {}),
       operation: $resource(apiUrl + '/models/:model/operations', { model: '@model' }, {saveArray: {method: 'POST', isArray: true}}),
       thing: $resource(apiUrl + '/models/:model/things/:thing', { model: '@model', thing: '@thing' })
@@ -35,7 +35,7 @@ angular.module('spGuiApp')
   if(sessionStorage.activeModel) {
     factory.activeModel = { loading: 'please wait' };
     var model = angular.fromJson(sessionStorage.activeModel);
-    factory.model.get({model: model.model}, function(model) {
+    factory.model.get({modelID: model.model}, function(model) {
       factory.activeModel = model;
       factory.loadAll();
     }, function(error) {

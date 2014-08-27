@@ -39,8 +39,8 @@ module.exports = function (grunt) {
         options: {
             livereload: {
                 port: 35729,
-                key: grunt.file.read('resources/livereload.key'),
-                cert: grunt.file.read('resources/livereload.crt')
+                //key: grunt.file.read('resources/livereload.key'),
+                //cert: grunt.file.read('resources/livereload.crt')
             }
         }
       },
@@ -59,8 +59,8 @@ module.exports = function (grunt) {
         options: {
             livereload: {
                 port: 35729,
-                key: grunt.file.read('resources/livereload.key'),
-                cert: grunt.file.read('resources/livereload.crt')
+                //key: grunt.file.read('resources/livereload.key'),
+                //cert: grunt.file.read('resources/livereload.crt')
             }
         },
         files: [
@@ -74,10 +74,10 @@ module.exports = function (grunt) {
     // The actual grunt server settings
     connect: {
       options: {
-        protocol:'https',
+        protocol:'http',
         port: 8443,
-        key: grunt.file.read('resources/livereload.key'),
-        cert: grunt.file.read('resources/livereload.crt'),
+        //key: grunt.file.read('resources/livereload.key'),
+        //cert: grunt.file.read('resources/livereload.crt'),
         // Change this to '0.0.0.0' to access the server from outside.
         hostname: 'localhost',
         livereload:true
@@ -85,8 +85,8 @@ module.exports = function (grunt) {
       },
       proxies: [{
         context: '/api', // the context of the data service
-        host: 'localhost', // wherever the data service is running
-        https:true,
+        host: '0.0.0.0', // wherever the data service is running
+        https:false,
         port: 8030 // the port that the data service is running on
       }],
       livereload: {

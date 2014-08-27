@@ -30,6 +30,7 @@ case class GetDiff(model: String, version: Long) extends ModelQuery
 case class GetModelInfo(model: String) extends ModelQuery
 
 case class UpdateIDs(model: String, items: List[UpdateID]) extends ModelUpdate
+case class DeleteIDs(model: String, items: List[ID]) extends ModelUpdate
 case class UpdateModelInfo(model: String, newName: String, attr: SPAttributes) extends ModelUpdate
 case class UpdateID(id: ID, version: Long, item: IDAble)
 object UpdateID {
@@ -41,7 +42,8 @@ object UpdateID {
 // Replay Model Messages
 case class SPIDs(items: List[IDAble]) extends SPMessage
 case class SPSVs(svs: List[StateVariable])
-case class ModelDiff(items: List[IDAble],
+case class ModelDiff(updatedItems: List[IDAble],
+                     deletedItems: List[IDAble],
                      model: String,
                      fromVersion: Long,
                      currentVersion: Long,

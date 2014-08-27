@@ -21,7 +21,7 @@ trait SPJsonMessages extends SPJsonDomain with SPJsonIDAble  {
   implicit val uidFormat = jsonFormat3(UpdateID.apply)
   implicit val uidsFormat = jsonFormat2(UpdateIDs)
 
-  implicit val mdiffFormat = jsonFormat5(ModelDiff)
+  implicit val mdiffFormat = jsonFormat6(ModelDiff)
   implicit val modelInfoFormat = jsonFormat3(ModelInfo)
 
 

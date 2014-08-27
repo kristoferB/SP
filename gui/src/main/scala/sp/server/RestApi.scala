@@ -181,6 +181,12 @@ trait ModelAPI extends SPApiHelpers {
               case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
             })
         }
+      } ~
+      delete {
+        val delMe = DeleteIDs(model, List(id))
+        callSP(delMe,  {
+          case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
+        })
       }
     } ~
     / {
