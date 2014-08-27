@@ -34,6 +34,9 @@ class SOPMakerService(modelHandler: ActorRef) extends Actor {
                 val rels = relsIdAble map (_.asInstanceOf[RelationResult]) sortWith (_.modelVersion > _.modelVersion)
                 if (rels.isEmpty)
                   reply ! SPError("Relations must be identified before SOP creation")
+
+                else if (!{opsID.foldLeft(true)((res, id) => res && (rels.head.relationMap.enabledStates.map.contains(id)))})
+                  reply ! SPError("Some operation id's are not in the relation map")
                 else {
                   val sopmakers = context.actorOf(SOPMaker.props)
 
