@@ -30,7 +30,7 @@ angular.module('spGuiApp')
         success = false;
       }
       spTalker.activeModel.attributes.activeSPSpec = spTalker.activeSPSpec.id;
-      spTalker.activeModel.$save({model: spTalker.activeModel.model}, function(data) {}, function(error) {
+      spTalker.activeModel.$save({modelID: spTalker.activeModel.model}, function(data) {}, function(error) {
         console.log(error);
         notificationService.error('An error occurred during save of the active model. Please see your browser console for details.');
         success = false;
