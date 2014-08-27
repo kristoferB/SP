@@ -5,11 +5,11 @@
         <span class="glyphicon glyphicon-asterisk"></span> Create <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" role="menu">
-        <li><a ng-click="createItem('Operation')" x-name="option">Operation</a></li>
-        <li><a ng-click="createItem('Thing')" x-name="option">Thing</a></li>
-        <li><a ng-click="createItem('SOPSpec')" x-name="option">SOPSpec</a></li>
-        <li><a ng-click="createItem('SPObject')" x-name="option">SPObject</a></li>
-        <li><a ng-click="createItem('SPSpec')" x-name="option">SPSpec</a></li>
+        <li><a ng-click="itemListSvc.createItem('Operation', getFilterAndOrderItems)" x-name="option">Operation</a></li>
+        <li><a ng-click="itemListSvc.createItem('Thing', getFilterAndOrderItems)" x-name="option">Thing</a></li>
+        <li><a ng-click="itemListSvc.createItem('SOPSpec', getFilterAndOrderItems)" x-name="option">SOPSpec</a></li>
+        <li><a ng-click="itemListSvc.createItem('SPObject', getFilterAndOrderItems)" x-name="option">SPObject</a></li>
+        <li><a ng-click="itemListSvc.createItem('SPSpec', getFilterAndOrderItems)" x-name="option">SPSpec</a></li>
       </ul>
     </div>
     <div class="btn-group" dropdown is-open="status.isopen">
@@ -26,7 +26,7 @@
             ng-click="toggleSelection(column, selection, $event)"
           /> {{column}}</label>
         </li>
-        <li ng-repeat="attrType in attributeTypes">
+        <li ng-repeat="(attrType, value) in spTalker.activeSPSpec.attributes.attributeTags">
           <label><input
             type="checkbox"
             name="selectedAttrColumns[]"
@@ -39,6 +39,7 @@
     </div>
     <button type="button" class="btn btn-default" ng-click="refresh()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
     <button type="button" class="btn btn-default" ng-click="showFilterInputs = !showFilterInputs"><span class="glyphicon glyphicon-filter"></span> Filter</button>
+    <button type="button" class="btn btn-default" ng-click="copyItems()" ng-show="oneOrMoreItems"><span class="glyphicon glyphicon-file"></span> Copy</button>
     <button type="button" class="btn btn-default" ng-click="viewRelation()" ng-show="twoOrMoreOps"><span class="glyphicon glyphicon-link"></span> View relation</button>
     <button type="button" class="btn btn-default" ng-click="openSopInNewWindow(checkedItems[0])" ng-show="oneSOPSpec" ><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
   </div> <!-- end of toolbar -->
@@ -74,47 +75,6 @@
 
 <div class="content">
   <div class="content-wrapper">
-    <table class="table item-table">
-      <tbody>
-        <tr ng-repeat-start="item in (filteredItems = (items | orderBy:predicate:reverse | filter:itemFilter))" data-toggle="collapse" data-target="#{{window.id}}{{item.id}}" item-drag="{isa: 'Hierarchy', id: item.id}" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={edit:false}">
-          <td class="checkbox-column"><input type="checkbox" ng-click="stopPropagation($event)" ng-model="item.checked" ng-change="alterCheckedArray(item)" /></td>
-          <td ng-repeat="column in selection">{{item[column]}}</td>
-          <td ng-repeat="attrColumn in attrSelection">{{item['attributes'][attrColumn]}}</td>
-        </tr>
-
-        <tr ng-repeat-end ng-class-odd="'odd-row'" ng-class-even="'even-row'" style="height: 0px;">
-          <td colspan="99" class="hiddenRow">
-            <form class="form-inline" name="itemForm">
-              <div class="accordion-body collapse" id="{{window.id}}{{item.id}}">
-                <table class="table collapsed-row">
-                  <tbody>
-                    <tr>
-                      <td>editing: </td>
-                      <td>
-                        <button ng-click="itemForm.$valid && saveItem(item, row)" type="submit" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
-                        <button ng-click="reReadFromServer(item); row.edit=false;" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-remove stacked-buttons"></span> Cancel</button>
-                        <button ng-click="row.edit=true;" ng-if="!row.edit" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span> Edit</button>
-                      </td>
-                    </tr>
-                    <tr ng-repeat="(key, prop) in item" ng-if="shouldBeShown(key)">
-                      <td class="col-md-1">{{key}}:</td>
-                      <td class="col-md-9">
-                        <span ng-if="!hasItsOwnViewer(key) && !row.edit || !isEditable(key)">{{prop}}</span>
-                        <input ng-if="!hasItsOwnEditor(key) && isEditable(key) && row.edit" name="{{key}}Input" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item[key]" />
-                        <attr-grid ng-if="key==='attributes'" attr-obj="prop" edit="row.edit" attribute-types="attributeTypes"></attr-grid>
-                        <sv-grid ng-if="key==='stateVariables'" sv-array="prop" edit="row.edit" attribute-types="attributeTypes"></sv-grid>
-                        <button ng-if="key==='sop'" ng-click="openSopInNewWindow(item)" class="btn btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
-                        <conditions ng-if="key==='conditions'" ng-repeat="condition in item.conditions"></conditions>
-                        <button ng-if="key==='conditions' && row.edit" class="btn btn-default" ng-click="addCondition(item)"><span class="glyphicon glyphicon-plus"></span> Add condition</button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div> <!-- end of accordion-body -->
-            </form>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <item-table items="filteredAndOrderedItems" parent-id="window.id" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" add-window="addWindow" get-filter-and-order-items="getFilterAndOrderItems"></item-table>
   </div> <!-- end of content-wrapper -->
 </div> <!-- end of content -->

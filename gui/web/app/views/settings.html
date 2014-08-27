@@ -1,0 +1,26 @@
+<div class="modal-header">
+    <h3 class="modal-title">Settings</h3>
+</div>
+<div class="modal-body">
+  <table class="table">
+    <tbody>
+      <tr>
+        <td class="col-md-2">Active SPSpec</td>
+        <td>
+          <label><select class="form-control input-sm" ng-change="activeSPSpecChange()" ng-model="spTalker.activeSPSpec" ng-options="spSpec.name for spSpec in (spSpecs.array = (spTalker.items | filter:{isa: 'SPSpec'}))" ></select></label>
+        </td>
+      </tr>
+      <tr>
+        <td>Attribute Tags</td>
+        <td>
+          <attr-tag-grid style="display: block;" attr-tags-obj="spTalker.activeSPSpec.attributes.attributeTags"></attr-tag-grid>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" ng-click="save()"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+  <button class="btn btn-default" ng-click="reset()"><span class="glyphicon glyphicon-fast-backward"></span> Reset</button>
+  <button class="btn btn-default" ng-click="close()"><span class="glyphicon glyphicon-remove"></span> Close</button>
+</div>

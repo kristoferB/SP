@@ -27,23 +27,50 @@ angular.module('spGuiApp')
                 '</div>',
       restrict: 'E',
       scope: {
-        storage: '=windowStorage',
-        saveItem: '=',
-        windowId: '='
+        windowStorage: '='
       },
       link: function postLink(scope, element, attrs) {
 
+        var sopSpec;
+        scope.sopDef = {
+          'isa' : 'Sequence',
+          'sop' : [],
+          'clientSideAdditions': {
+            vertDir: true
+          }
+        };
+
         scope.toggleDirection = function() {
-          scope.storage.sopDef.clientSideAdditions.vertDir = !scope.storage.sopDef.clientSideAdditions.vertDir;
+          scope.sopDef.clientSideAdditions.vertDir = !scope.sopDef.clientSideAdditions.vertDir;
           scope.$broadcast('redrawSop');
         };
 
+        function getSopDefAndDraw() {
+          sopSpec = spTalker.getItemById(scope.windowStorage.sopSpecId);
+          angular.copy(sopSpec.sop, scope.sopDef);
+          scope.sopDef.clientSideAdditions = { vertDir: true };
+          scope.$broadcast('drawSop');
+        }
+
+        if(typeof scope.windowStorage.sopSpecId === 'undefined') {
+          scope.$broadcast('drawSop');
+        } else {
+          if(spTalker.items.length === 0) {
+            var listener = scope.$on('itemsQueried', function () {
+              getSopDefAndDraw();
+              listener();
+            });
+          } else {
+            getSopDefAndDraw();
+          }
+        }
+
         scope.saveSopSpec = function() {
-          if(typeof scope.storage.parentItem === 'undefined') {
+          if(typeof sopSpec === 'undefined') {
             notificationService.error('There\'s no SOPSpec item connected to this window.');
           } else {
-            scope.storage.parentItem.sop = clone(scope.storage.sopDef);
-            spTalker.saveItem(scope.storage.parentItem);
+            sopSpec.sop = clone(scope.sopDef);
+            spTalker.saveItem(sopSpec);
           }
         };
 
@@ -71,20 +98,6 @@ angular.module('spGuiApp')
           throw new Error("Unable to copy obj! Its type isn't supported.");
         }
 
-        if(typeof scope.storage.sopDef === 'undefined') {
-          scope.storage.sopDef =
-          {
-            'isa' : 'Sequence',
-            'sop' : []
-          };
-        }
-
-        if(typeof scope.storage.sopDef.clientSideAdditions === 'undefined') {
-          scope.storage.sopDef.clientSideAdditions = {};
-          scope.storage.sopDef.clientSideAdditions.vertDir = true;
-        }
-
-        scope.$broadcast('drawSop');
       }
     };
   }]);

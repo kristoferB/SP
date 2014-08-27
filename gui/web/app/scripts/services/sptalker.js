@@ -9,25 +9,44 @@
  */
 angular.module('spGuiApp')
 .factory('spTalker', ['$resource', '$http', 'notificationService', '$filter', '$rootScope', function ($resource, $http, notificationService, $filter, $rootScope) {
-  var apiUrl = '/api', factory = {
-    activeModel: {},
-    models: [],
-    users: [],
-    operations: [],
-    items: [],
-    things: [],
-    thingsAsStrings: [],
-    item : $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'}),
-    model: $resource(apiUrl + '/models/', {}),
-    user: $resource(apiUrl + '/users', {}),
-    operation: $resource(apiUrl + '/models/:model/operations', { model: '@model' }, {saveArray: {method: 'POST', isArray: true}}),
-    thing: $resource(apiUrl + '/models/:model/things/:thing', { model: '@model', thing: '@thing' })
-  };
+  var apiUrl = '/api',
+    dummySPSpec = {
+      id: 0,
+      attributes: {
+        attributeTags: {}
+      }
+    },
+    factory = {
+      activeModel: {},
+      activeSPSpec: dummySPSpec,
+      models: [],
+      users: [],
+      operations: [],
+      items: [],
+      things: [],
+      thingsAsStrings: [],
+      item : $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'}),
+      model: $resource(apiUrl + '/models/:model', { model: '@model' }),
+      user: $resource(apiUrl + '/users', {}),
+      operation: $resource(apiUrl + '/models/:model/operations', { model: '@model' }, {saveArray: {method: 'POST', isArray: true}}),
+      thing: $resource(apiUrl + '/models/:model/things/:thing', { model: '@model', thing: '@thing' })
+    };
+
+  if(sessionStorage.activeModel) {
+    factory.activeModel = { loading: 'please wait' };
+    var model = angular.fromJson(sessionStorage.activeModel);
+    factory.model.get({model: model.model}, function(model) {
+      factory.activeModel = model;
+      factory.loadAll();
+    }, function(error) {
+      console.log(error);
+    });
+  }
 
   factory.getItemById = function(id) {
     var result = $.grep(factory.items, function(e){ return e.id === id; });
     if (result.length == 0) {
-      var error = 'Could not find any item with id ' + id + '. The requested action has most likely been aborted.';
+      var error = 'Could not find an item with id ' + id + '. The requested action has most likely been aborted.';
       console.log(error);
       notificationService.error(error);
       return {};
@@ -48,11 +67,12 @@ angular.module('spGuiApp')
   factory.loadModels = function() {
     factory.models = factory.model.query();
   };
-
   factory.loadModels();
 
   var filterOutThings = function() {
-    factory.things = [];
+    while(factory.things.length > 0) {
+      factory.things.pop();
+    }
     factory.items.forEach(function(item) {
       if(item.isa === 'Thing') {
         factory.things.push(item)
@@ -61,10 +81,13 @@ angular.module('spGuiApp')
   };
 
   var listThingsAsStrings = function() {
-    factory.thingsAsStrings = [];
+    while(factory.thingsAsStrings.length > 0) {
+      factory.thingsAsStrings.pop();
+    }
     factory.things.forEach(function(thing) {
       factory.thingsAsStrings.push(thing.name);
     });
+
   };
 
   var updateItemLists = function() {
@@ -74,29 +97,69 @@ angular.module('spGuiApp')
 
   factory.loadAll = function() {
     factory.loadModels();
-    factory.items = factory.item.query({model: factory.activeModel.model}, function() {
+    factory.item.query({model: factory.activeModel.model}, function(data) {
+      angular.copy(data, factory.items);
       updateItemLists();
+      factory.activeSPSpec = factory.getItemById(factory.activeModel.attributes.activeSPSpec);
+      $rootScope.$broadcast('itemsQueried');
     });
+  };
 
+  factory.saveItems = function(items, notifySuccess) {
+    var success = true;
+    if(items.length === 0) {
+      notificationService.error('No items supplied to save.');
+      return false;
+    }
+    if(Object.keys(factory.activeModel).length === 0) {
+      notificationService.error('No active model chosen.');
+      return false;
+    }
+    $http({method: 'POST', url: 'api/models/' + factory.activeModel.model + '/items', data: items}).
+      success(function(data, status, headers, config) {
+        if(notifySuccess) {
+          notificationService.success(items.length + ' items were successfully saved.');
+        }
+        updateItemLists();
+      }).
+      error(function(data, status, headers, config) {
+        console.log(data);
+        notificationService.error('Items save failed. Please see console log for details.');
+        success = false;
+      });
+    return success;
   };
 
   factory.saveItem = function(item) {
+    var success = true;
+    if(Object.keys(factory.activeModel).length === 0) {
+      notificationService.error('No active model chosen.');
+      return
+    }
+    if(typeof item === 'undefined' || Object.keys(item).length === 0) {
+      notificationService.error('No item chosen.');
+      return
+    }
     item.$save(
       {model: factory.activeModel.model, id: item.id},
       function (data, headers) {
         notificationService.success(item.isa + ' \"' + item.name + '\" was successfully saved');
         updateItemLists();
+        angular.copy(data, item);
       },
       function (error) {
         notificationService.error(item.isa + ' ' + item.name + ' could not be saved.');
         console.log(error);
-        factory.reReadFromServer(item);
+        success = false;
       }
     );
+    return success;
   };
 
   factory.reReadFromServer = function(item) {
-    item.$get({model: factory.activeModel.model});
+    item.$get({model: factory.activeModel.model}, function(data) {
+      angular.copy(data, item);
+    });
   };
 
   /*$http.defaults.headers.common['Authorization'] = 'Basic ' + window.btoa('admin' + ':' + 'pass');

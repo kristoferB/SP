@@ -7,7 +7,7 @@
  * # sop
  */
 angular.module('spGuiApp')
-  .directive('sop', function (sopDrawer, $compile) {
+  .directive('sop', function (sopDrawer) {
     return {
       restrict: 'E',
       link: function postLink(scope, element, attrs) {
@@ -22,17 +22,17 @@ angular.module('spGuiApp')
         });
 
         scope.calcAndDrawSop = function(newDraw) {
-          sopDrawer.calcAndDrawSop(scope.storage.sopDef, paper, true, newDraw, scope);
+          sopDrawer.calcAndDrawSop(scope.sopDef, paper, true, newDraw, scope);
         };
 
         scope.$watch(
-          function() { return scope.storage.sopDef.clientSideAdditions.width + scope.storage.sopDef.clientSideAdditions.height },
+          function() { return scope.sopDef.clientSideAdditions.width + scope.sopDef.clientSideAdditions.height },
           function() {
             var squareSideLength;
-            if(scope.storage.sopDef.clientSideAdditions.width > scope.storage.sopDef.clientSideAdditions.height) {
-              squareSideLength = scope.storage.sopDef.clientSideAdditions.width;
+            if(scope.sopDef.clientSideAdditions.width > scope.sopDef.clientSideAdditions.height) {
+              squareSideLength = scope.sopDef.clientSideAdditions.width;
             } else {
-              squareSideLength = scope.storage.sopDef.clientSideAdditions.height;
+              squareSideLength = scope.sopDef.clientSideAdditions.height;
             }
             paper.setSize(squareSideLength, squareSideLength);
           }, true);

@@ -17,19 +17,23 @@ angular.module('spGuiApp')
         active: '='
       },
       link: function postLink(scope, element, attrs) {
-        var noOfOpenedWindows = 0;
+        var noOfOpenedWindows;
+
+        if(sessionStorage.noOfOpenedWindows) {
+          noOfOpenedWindows = angular.fromJson(sessionStorage.noOfOpenedWindows);
+        } else {
+          noOfOpenedWindows = 0
+        }
 
         scope.addWindow = function(type, wStorage) {
-          if(typeof wStorage === 'undefined') {
-            wStorage = {};
-          }
           noOfOpenedWindows++;
-          scope.windows.push({type: type, width: 2, height: 'large', name: type, windowStorage: wStorage, id: type + noOfOpenedWindows});
+          scope.windows.push({type: type, width: 2, height: 'large', name: type, id: type + noOfOpenedWindows, storage: wStorage});
+          sessionStorage.noOfOpenedWindows = angular.toJson(noOfOpenedWindows);
         };
 
         scope.$on("newSopWindow", function() {
           if(scope.active) {
-            scope.addWindow('sopMaker');
+            scope.addWindow('sopMaker', {});
           }
         });
         scope.$on("newItemListWindow", function() {
@@ -60,12 +64,6 @@ angular.module('spGuiApp')
         };
 
         scope.sortableOptions = {
-          /*start: function(event, ui) {
-           ui.item.removeClass('sizeTransition');
-           },
-           stop: function(event, ui) {
-           ui.item.addClass('sizeTransition');
-           },*/
           handle: '.draggable'
         };
 

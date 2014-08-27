@@ -17,13 +17,19 @@ angular.module('spGuiApp')
       },
       templateUrl: 'views/attrgrid.html',
       controller: function($scope) {
+        $scope.isEmpty = function (obj) {
+          return angular.equals({},obj);
+        };
 
         if(typeof $scope.attrObj === 'undefined') {
           $scope.attrObj = {};
         }
 
-        $scope.checkType = function(obj, type, aClass) {
-          return typeof obj === type;
+        $scope.getType = function(obj) {
+          if(obj instanceof Date) {
+            return 'date';
+          }
+          return typeof obj;
         };
 
         $scope.deleteObjProp = function(obj, prop) {
@@ -35,17 +41,7 @@ angular.module('spGuiApp')
         // And return the linking function(s) which it returns
 
         return RecursionHelper.compile(element);
-      }/*,
-      link: function postLink(scope, element, attrs) {
+      }
 
-        /*$http.get(tpl)
-          .then(function(response){
-            element.html($compile(response.data)(scope, function(cloned, scope){
-              element.append(cloned);
-            }));
-          });
-
-
-      }*/
     };
   });
