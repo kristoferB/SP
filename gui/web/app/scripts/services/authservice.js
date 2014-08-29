@@ -8,7 +8,7 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-  .factory('AuthService', function ($http, Session) {
+  .factory('AuthService', ['$http', 'Session', function ($http, Session) {
     var authService = {};
 
     $http.defaults.headers.common['Authorization'] = 'Basic ' + window.btoa('admin' + ':' + 'pass');
@@ -37,4 +37,4 @@ angular.module('spGuiApp')
     };
 
     return authService;
-  });
+  }]);

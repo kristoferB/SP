@@ -17,6 +17,13 @@ angular.module('spGuiApp')
       },
       templateUrl: 'views/attrgrid.html',
       controller: function($scope) {
+        $scope.toAttrContextMenu = function() {
+          return {
+            attrObj: $scope.attrObj,
+            edit: $scope.edit
+          }
+        };
+
         $scope.isEmpty = function (obj) {
           return _.isEmpty(obj)
         };

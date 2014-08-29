@@ -11,7 +11,8 @@ angular.module('spGuiApp')
     return {
       restrict: 'A',
       scope: {
-        values: '=attrContextMenu'
+        attrObj: '=',
+        edit:  '='
       },
       link: function postLink(scope, element) {
 
@@ -19,7 +20,7 @@ angular.module('spGuiApp')
           return {
             target:'#attr-context-menu',
             before: function (e, context) {
-              return scope.values.edit
+              return scope.edit
             },
             onItem: function (context, e) {
               var key = e.target.getAttribute('id');
@@ -31,10 +32,10 @@ angular.module('spGuiApp')
               } else {
                 replaceDates(value)
               }
-              if (_.isArray(scope.values.attrObj)) {
-                scope.values.attrObj.push(value)
+              if (_.isArray(scope.attrObj)) {
+                scope.attrObj.push(value)
               } else {
-                scope.values.attrObj[key] = value
+                scope.attrObj[key] = value
               }
             }
           };

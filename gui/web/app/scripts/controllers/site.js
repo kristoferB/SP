@@ -17,6 +17,10 @@ angular.module('spGuiApp')
     $scope.currentUser = [Session.userId, Session.userRole];
     $scope.spTalker = spTalker;
 
+    if(sessionStorage.noOfOpenedTabs) {
+      $scope.noOfOpenedTabs = angular.fromJson(sessionStorage.noOfOpenedTabs);
+    }
+
     if(sessionStorage.tabs) {
       angular.copy(JSON.parse(sessionStorage.tabs), $scope.tabs);
     }
@@ -31,7 +35,12 @@ angular.module('spGuiApp')
       var windowArray = [];
       $scope.noOfOpenedTabs++;
       $scope.tabs.push({title: 'Model ' + $scope.noOfOpenedTabs, windowArray: windowArray, active: true});
+      sessionStorage.noOfOpenedTabs = $scope.noOfOpenedTabs;
     };
+
+    if($scope.noOfOpenedTabs === 0) {
+      $scope.addTab();
+    }
 
     $scope.closeTab = function(tab) {
       var index = $scope.tabs.indexOf(tab);
