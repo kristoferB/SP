@@ -30,6 +30,7 @@ var CreatemodelCtrl = function ($scope, $modalInstance, spTalker, notificationSe
   function createDefaultSPSpec() {
 
     function onItemCreationSuccess(data) {
+      spTalker.activeSPSpec = data;
       spTalker.activeModel.attributes.activeSPSpec = data.id;
       spTalker.activeModel.$save();
       $scope.close();

@@ -102,9 +102,9 @@ angular.module('spGuiApp')
     factory.item.query({model: factory.activeModel.model}, function(data) {
       console.log('Items loaded');
       angular.copy(data, factory.items);
+      factory.activeSPSpec = factory.getItemById(factory.activeModel.attributes.activeSPSpec);
       updateItemLists();
       $rootScope.$broadcast('itemsQueried');
-      factory.activeSPSpec = factory.getItemById(factory.activeModel.attributes.activeSPSpec);
     });
   };
 
