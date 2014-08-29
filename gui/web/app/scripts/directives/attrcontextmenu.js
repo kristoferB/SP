@@ -23,19 +23,31 @@ angular.module('spGuiApp')
             },
             onItem: function (context, e) {
               var key = e.target.getAttribute('id');
-              scope.values.attrObj[key] = angular.copy(spTalker.activeSPSpec.attributes.attributeTags[key]);
-              replaceDates(scope.values.attrObj, key);
+              var value = angular.copy(spTalker.activeSPSpec.attributes.attributeTags[key]);
+              console.log(value)
+              if (value instanceof Date) {
+                value = new Date()
+                console.log("new date "+ value)
+              } else {
+                replaceDates(value)
+              }
+              if (_.isArray(scope.values.attrObj)) {
+                scope.values.attrObj.push(value)
+              } else {
+                scope.values.attrObj[key] = value
+              }
             }
           };
         }
 
-        function replaceDates(obj, key) {
-          if (obj[key] instanceof Date) {
-            obj[key] = new Date();
-          }
-          for(var k in obj[key]) {
-            if(obj[key].hasOwnProperty(k)) {
-              replaceDates(obj[key], k);
+        function replaceDates(obj) {
+          for(var k in obj) {
+            if(obj.hasOwnProperty(k)) {
+              if (obj[k]  instanceof Date){
+                obj[k] = new Date();
+              } else {
+                replaceDates(obj[k]);
+              }
             }
           }
         }

@@ -102,7 +102,13 @@ trait SPJsonDomain {
       }
       case JsBoolean(x) => BoolPrimitive(x)
       case JsArray(xs) => ListPrimitive(xs map (_.convertTo[SPAttributeValue]))
-      case JsObject(kvs) => MapPrimitive(kvs map {case (k,v)=> k->v.convertTo[SPAttributeValue]})
+      case JsObject(kvs) => kvs.toList match{
+        case ("itemID", JsString(value)) :: Nil =>  ID.makeID(value) match {
+            case Some(id) => IDPrimitive(id)
+            case None => StringPrimitive(value)
+          }
+        case _ => MapPrimitive(kvs map {case (k,v)=> k->v.convertTo[SPAttributeValue]})
+      }
       case JsNull => OptionAsPrimitive(None)
       case _ => throw new DeserializationException("can not convert to SPAttribute: "+value)
     }

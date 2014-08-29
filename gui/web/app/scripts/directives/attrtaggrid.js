@@ -17,7 +17,7 @@ angular.module('spGuiApp')
       controller: function($scope) {
 
         $scope.isEmpty = function (obj) {
-          return angular.equals({},obj);
+          return _.isEmpty(obj)
         };
 
         $scope.checkType = function(obj, type) {

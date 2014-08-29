@@ -41,6 +41,12 @@ angular.module('spGuiApp')
             scope.addWindow('itemList');
           }
         });
+        //TODO: We need to handle algorithms in a more generic way (load from server) KB 140828
+        scope.$on("identifyRelations", function() {
+          if(scope.active) {
+            scope.addWindow('identifyRelations');
+          }
+        });
 
         scope.closeWindow = function(window) {
           var index = scope.windows.indexOf(window);

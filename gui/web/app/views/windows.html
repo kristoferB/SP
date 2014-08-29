@@ -13,6 +13,7 @@
       <div class="panel-body sizeTransition" ng-switch on="window.type" ng-class="{'smallBodyHeight': window.height === 'small', 'largeBodyHeight': window.height === 'large'}">
           <sopmaker ng-switch-when="sopMaker" window-storage="window.storage" class="wrapper"></sopmaker>
           <itemlist ng-switch-when="itemList" class="wrapper"></itemlist>
+          <relationident ng-switch-when="identifyRelations" class="wrapper"></relationident>
       </div>
     </div>
   </li>

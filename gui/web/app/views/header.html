@@ -27,7 +27,7 @@
         </div>
         <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav ">
-                <li class="btn-group" dropdown is-open="status.isopen">
+                <li class="btn-group" dropdown is-open="status.fileisopen">
                     <a class="dropdown-toggle">File <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
                         <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="broadcastEvent('newSopWindow')">New SOP</a></li>
@@ -36,7 +36,12 @@
                     </ul>
                 </li>
                 <li><a href="#/model">Edit</a></li>
-                <li><a href="#/runtime">Algorithms</a></li>
+                <li class="btn-group" dropdown is-open="status.algoisopen">
+                    <a class="dropdown-toggle">Algorithms <span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="broadcastEvent('identifyRelations')">Identify Relations</a></li>
+                    </ul>
+                </li>
             </ul>
         </div><!--/.nav-collapse -->
     </div>

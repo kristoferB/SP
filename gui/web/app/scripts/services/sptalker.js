@@ -60,8 +60,26 @@ angular.module('spGuiApp')
     }
   };
 
+  //TODO: Handle services in a general way. Retrieve possible services from server
   factory.parseProposition = function(proposition) {
-    return $http({method: 'POST', url: 'api/services/PropositionParser', data: {model: factory.activeModel.model, parse: proposition}})
+    return $http({
+      method: 'POST',
+      url: 'api/services/PropositionParser',
+      data: {
+        model: factory.activeModel.model,
+        parse: proposition
+      }})
+  };
+
+  factory.findRelations = function(ops, initState) {
+    return $http({
+      method: 'POST',
+      url: 'api/services/Relations',
+      data: {
+        model: factory.activeModel.model,
+        operations: ops,
+        initstate: initState
+      }})
   };
 
   factory.loadModels = function() {

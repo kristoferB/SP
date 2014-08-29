@@ -47,23 +47,27 @@ class RelationService extends Actor {
                 val svs = svsIDAble map (_.asInstanceOf[StateVariable])
                 val olderRels = olderRelsIDAble map (_.asInstanceOf[RelationResult]) sortWith (_.modelVersion > _.modelVersion)
 
-                val stateVarsMap = svs map (sv => sv.id -> sv) toMap
-                val goalfunction: State => Boolean = if (goal == None) (s: State) => false else (s: State) => s == goal.get
+                if (olderRels.nonEmpty && olderRels.head.modelVersion == mVersion) reply ! olderRels.head
+                else {
 
-                // just one actor per request initially
-                val relationFinder = context.actorOf(RelationFinder.props)
-                val inputToAlgo = FindRelations(ops, stateVarsMap, init, groups, iterations, goalfunction)
+                  val stateVarsMap = svs map (sv => sv.id -> sv) toMap
+                  val goalfunction: State => Boolean = if (goal == None) (s: State) => false else (s: State) => s == goal.get
 
-                //TODO: Handle long running algorithms better
-                val answer = relationFinder ? inputToAlgo
-                answer onComplete {
-                  case Success(res: RelationMap) => {
-                    val relation = RelationResult("RelationMap", res, model, mVersion)
-                    reply ! relation
-                    modelHandler ! UpdateIDs(model, List(UpdateID(relation.id, -1, relation)))
+                  // just one actor per request initially
+                  val relationFinder = context.actorOf(RelationFinder.props)
+                  val inputToAlgo = FindRelations(ops, stateVarsMap, init, groups, iterations, goalfunction)
+
+                  //TODO: Handle long running algorithms better
+                  val answer = relationFinder ? inputToAlgo
+                  answer onComplete {
+                    case Success(res: RelationMap) => {
+                      val relation = RelationResult("RelationMap", res, model, mVersion + 1)
+                      reply ! relation
+                      modelHandler ! UpdateIDs(model, List(UpdateID(relation.id, -1, relation)))
+                    }
+                    case Success(res) => println("WHAT IS THIS RELATION FINDER RETURNS: " + res)
+                    case Failure(error) => reply ! SPError(error.getMessage)
                   }
-                  case Success(res) => println("WHAT IS THIS RELATION FINDER RETURNS: " + res)
-                  case Failure(error) => reply ! SPError(error.getMessage)
                 }
               }
               //TODO: This error handling should also be part of the general solution when extracting
