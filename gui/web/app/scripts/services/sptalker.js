@@ -8,7 +8,7 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-.factory('spTalker', ['$resource', '$http', 'notificationService', '$filter', '$rootScope', function ($resource, $http, notificationService, $filter, $rootScope) {
+.factory('spTalker', ['$rootScope', '$resource', '$http', 'notificationService', '$filter', function ($rootScope, $resource, $http, notificationService, $filter) {
   var apiUrl = '/api',
     dummySPSpec = {
       id: 0,
@@ -96,12 +96,15 @@ angular.module('spGuiApp')
   };
 
   factory.loadAll = function() {
+    console.log('Loading models');
     factory.loadModels();
+    console.log('Loading items');
     factory.item.query({model: factory.activeModel.model}, function(data) {
+      console.log('Items loaded');
       angular.copy(data, factory.items);
       updateItemLists();
-      factory.activeSPSpec = factory.getItemById(factory.activeModel.attributes.activeSPSpec);
       $rootScope.$broadcast('itemsQueried');
+      factory.activeSPSpec = factory.getItemById(factory.activeModel.attributes.activeSPSpec);
     });
   };
 
@@ -145,7 +148,7 @@ angular.module('spGuiApp')
       function (data, headers) {
         notificationService.success(item.isa + ' \"' + item.name + '\" was successfully saved');
         updateItemLists();
-        angular.copy(data, item);
+        //angular.copy(data, item);
       },
       function (error) {
         notificationService.error(item.isa + ' ' + item.name + ' could not be saved.');
@@ -155,6 +158,37 @@ angular.module('spGuiApp')
     );
     return success;
   };
+
+    factory.createItem = function(type, successHandler) {
+
+      var newItem = new factory.item({
+        isa : type,
+        name : type + Math.floor(Math.random()*1000),
+        attributes : {}
+      });
+      if(type === 'Operation') {
+        newItem.conditions = [];
+      } else if(type === 'Thing') {
+        newItem.stateVariables = [];
+      } else if(type === 'SOPSpec') {
+        newItem.sop = {isa: 'Sequence', sop: []};
+        newItem.version = 1;
+      } else if(type === 'SPSpec') {
+        newItem.attributes = {
+          atrributeTags: []
+        }
+      }
+      newItem.$save(
+        {model:factory.activeModel.model},
+        function(data) {
+          factory.items.unshift(data);
+          notificationService.success('A new ' + data.isa + ' with name ' + data.name + ' was successfully created.');
+          successHandler(data);
+        },
+        function(error) { console.log(error); notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.'); console.log(error); }
+      );
+
+    };
 
   factory.reReadFromServer = function(item) {
     item.$get({model: factory.activeModel.model}, function(data) {

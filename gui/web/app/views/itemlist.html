@@ -5,11 +5,11 @@
         <span class="glyphicon glyphicon-asterisk"></span> Create <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" role="menu">
-        <li><a ng-click="itemListSvc.createItem('Operation', getFilterAndOrderItems)" x-name="option">Operation</a></li>
-        <li><a ng-click="itemListSvc.createItem('Thing', getFilterAndOrderItems)" x-name="option">Thing</a></li>
-        <li><a ng-click="itemListSvc.createItem('SOPSpec', getFilterAndOrderItems)" x-name="option">SOPSpec</a></li>
-        <li><a ng-click="itemListSvc.createItem('SPObject', getFilterAndOrderItems)" x-name="option">SPObject</a></li>
-        <li><a ng-click="itemListSvc.createItem('SPSpec', getFilterAndOrderItems)" x-name="option">SPSpec</a></li>
+        <li><a ng-click="itemListSvc.createItem('Operation')" x-name="option">Operation</a></li>
+        <li><a ng-click="itemListSvc.createItem('Thing')" x-name="option">Thing</a></li>
+        <li><a ng-click="itemListSvc.createItem('SOPSpec')" x-name="option">SOPSpec</a></li>
+        <li><a ng-click="itemListSvc.createItem('SPObject')" x-name="option">SPObject</a></li>
+        <li><a ng-click="itemListSvc.createItem('SPSpec')" x-name="option">SPSpec</a></li>
       </ul>
     </div>
     <div class="btn-group" dropdown is-open="status.isopen">
@@ -66,6 +66,7 @@
             </a><br />
             <input ng-if="showFilterInputs" type="text" ng-model="search['attributes'][attrColumn]" />
           </th>
+          <th>Info</th>
         </tr>
       </thead>
     </table>
@@ -75,6 +76,6 @@
 
 <div class="content">
   <div class="content-wrapper">
-    <item-table items="filteredAndOrderedItems" parent-id="window.id" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" add-window="addWindow" get-filter-and-order-items="getFilterAndOrderItems"></item-table>
+    <item-table parent-item="spTalker.activeModel" recieved-items="filteredAndOrderedItems" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" add-window="addWindow" get-filter-and-order-items="getFilterAndOrderItems"></item-table>
   </div> <!-- end of content-wrapper -->
 </div> <!-- end of content -->

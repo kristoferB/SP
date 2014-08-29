@@ -2,16 +2,16 @@
   "name": "sp-gui",
   "version": "0.0.0",
   "dependencies": {
-    "angular": "1.2.20",
+    "angular": "1.2.23",
     "json3": "~3.3.1",
     "es5-shim": "~3.1.0",
     "bootstrap": "~3.1.1",
-    "angular-resource": "1.2.20",
-    "angular-cookies": "1.2.20",
-    "angular-sanitize": "1.2.20",
-    "angular-animate": "1.2.20",
-    "angular-touch": "1.2.20",
-    "angular-route": "1.2.20",
+    "angular-resource": "1.2.23",
+    "angular-cookies": "1.2.23",
+    "angular-sanitize": "1.2.23",
+    "angular-animate": "1.2.23",
+    "angular-touch": "1.2.23",
+    "angular-route": "1.2.23",
     "raphael": "~2.1.2",
     "angular-ui-sortable": "~0.12.8",
     "angular-pnotify": "~0.0.5",
@@ -21,8 +21,8 @@
     "bootstrap-contextmenu": "~0.2.0"
   },
   "devDependencies": {
-    "angular-mocks": "1.2.20",
-    "angular-scenario": "1.2.20"
+    "angular-mocks": "1.2.23",
+    "angular-scenario": "1.2.23"
   },
   "appPath": "app"
 }

@@ -8,7 +8,7 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-  .factory('AuthInterceptor', function ($rootScope, $q, AUTH_EVENTS) {
+  .factory('AuthInterceptor', ['$rootScope', '$q', 'AUTH_EVENTS', function ($rootScope, $q, AUTH_EVENTS) {
     return {
       responseError: function (response) {
         /*$rootScope.$broadcast({
@@ -21,4 +21,4 @@ angular.module('spGuiApp')
         return $q.reject(response);
       }
     };
-  });
+  }]);

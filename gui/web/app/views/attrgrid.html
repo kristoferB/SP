@@ -1,4 +1,4 @@
-<table class="table-bordered attr-table" ng-init="attrTypeToAdd = attributeTypes[0]" attr-context-menu="{attrObj: attrObj, edit: edit}">
+<table class="table-bordered attr-table" ng-init="attrTypeToAdd = attributeTypes[0]" attr-context-menu="toAttrContextMenu">
   <tr class="form-inline" ng-repeat="(attr, attrVal) in attrObj" ng-init="type = getType(attrVal)">
     <td class="col-md-1">{{attr}}:</td>
     <td>

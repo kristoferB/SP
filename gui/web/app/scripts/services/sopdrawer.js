@@ -41,7 +41,7 @@ angular.module('spGuiApp')
         if(sop.isa === 'Sequence') {
           factory.drawLine(sop.clientSideAdditions.lines[n], measures, paper, sop, new Number(n)+1, 'red', wholeSop, dirScope); // Line after each op in sequence
         } else {
-          factory.drawLine(sop.clientSideAdditions.lines[n], measures, paper, sop.sop[n], new Number(0), 'green', wholeSop, dirScope); // Line above each struct
+          factory.drawLine(sop.clientSideAdditions.lines[n], measures, paper, sop.sop[n], new Number(0), 'yellow', wholeSop, dirScope); // Line above each struct
           factory.drawLine(sop.clientSideAdditions.lines2[n], measures, paper, sop.sop[sop.clientSideAdditions.lines2[n].subSopIndex], 'last', 'blue', wholeSop, dirScope); // Line after each struct
         }
       }

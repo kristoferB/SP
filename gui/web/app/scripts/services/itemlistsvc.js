@@ -8,41 +8,64 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-  .factory('itemListSvc', function (spTalker, notificationService) {
+  .factory('itemListSvc', ['$rootScope', 'spTalker', 'notificationService', '$timeout', function($rootScope, spTalker, notificationService, $timeout) {
 
     var factory = {};
 
-    factory.saveItem = function(item, row, order) {
+    factory.getChildren = function(parentItem, childrenArray) {
+      while(childrenArray.length > 0) {
+        childrenArray.pop()
+      }
+      if(typeof parentItem.attributes.children !== 'undefined') {
+        console.log('parentItem have children');
+        parentItem.attributes.children.forEach(function(childId) {
+          console.log(childId);
+          childrenArray.push(spTalker.getItemById(childId));
+        });
+      }
+    };
+
+    factory.expandChildren = function(row) {
+      row.infoIsCollapsed = true;
+      row.loadChildren = true;
+      $timeout( function() {
+        row.expandChildren = !row.expandChildren;
+      });
+    };
+
+    factory.saveItem = function(item, row) {
       spTalker.saveItem(item);
       row.edit = false;
-      order();
     };
 
-    factory.reReadFromServer = function(item, row, getFilterAndOrderItems) {
+    factory.reReadFromServer = function(item, row) {
       spTalker.reReadFromServer(item);
       row.edit=false;
-      getFilterAndOrderItems();
     };
 
-    factory.createItem = function(type, getFilterAndOrderItems) {
-      var newItem = new spTalker.item({
-        isa : type,
-        name : type + Math.floor(Math.random()*1000),
-        attributes : {}
-      });
-      if(type === 'Operation') {
-        newItem.conditions = [];
-      } else if(type === 'Thing') {
-        newItem.stateVariables = [];
-      } else if(type === 'SOPSpec') {
-        newItem.sop = {isa: 'Sequence', sop: []};
-        newItem.version = 1;
+    factory.createItem = function(type, parentItem) {
+
+      function onItemCreationSuccess(data) {
+        var parent;
+        if(typeof parentItem === 'undefined') {
+          parent = spTalker.activeModel;
+          if(typeof parent.attributes.children === 'undefined') {
+            parent.attributes.children = [];
+          }
+          parent.attributes.children.push(data.id);
+          parent.$save({modelID: spTalker.activeModel.model});
+        } else {
+          parent = parentItem;
+          if(typeof parent.attributes.children === 'undefined') {
+            parent.attributes.children = [];
+          }
+          parent.attributes.children.push(data.id);
+          spTalker.saveItem(parent);
+        }
+        $rootScope.$broadcast('itemsQueried');
       }
-      newItem.$save(
-        {model:spTalker.activeModel.model},
-        function(data) { spTalker.items.unshift(data); notificationService.success('A new ' + data.isa + ' with name ' + data.name + ' was successfully created.'); getFilterAndOrderItems(); },
-        function(error) { console.log(error); notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.'); console.log(error); }
-      );
+
+      spTalker.createItem(type, onItemCreationSuccess);
     };
 
     factory.addCondition = function(item) {
@@ -78,4 +101,4 @@ angular.module('spGuiApp')
 
     return factory;
 
-  });
+  }]);
