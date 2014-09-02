@@ -13,30 +13,24 @@ angular.module('spGuiApp')
       restrict: 'E',
       scope: {
         parentItem: '=',
-        recievedItems: '=',
+        servedItems: '=',
         alterCheckedArray: '=',
         selection: '=',
         attrSelection: '=',
-        addWindow: '=',
-        getFilterAndOrderItems: '='
+        addWindow: '='
       },
       controller: function($scope) {
         $scope.itemListSvc = itemListSvc;
         $scope.items = [];
 
-        $scope.$on('itemsQueried', function($event) {
-          console.log('itemTable recieved itemsQueried event');
+        $scope.$on('itemsQueried', function() {
           itemListSvc.getChildren($scope.parentItem, $scope.items);
-          $scope.getFilterAndOrderItems();
         });
 
-        if(typeof $scope.recievedItems === 'undefined') {
-          console.log($scope.recievedItems);
+        if(typeof $scope.servedItems === 'undefined') {
           itemListSvc.getChildren($scope.parentItem, $scope.items);
-          console.log($scope.items);
         } else {
-          console.log($scope.recievedItems);
-          $scope.items = $scope.recievedItems;
+          $scope.items = $scope.servedItems;
         }
 
       },

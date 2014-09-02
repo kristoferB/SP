@@ -7,7 +7,7 @@
  * # sop
  */
 angular.module('spGuiApp')
-.directive('itemlist', ['spTalker', 'notificationService', '$filter', 'itemListSvc', function (spTalker, notificationService, $filter, itemListSvc) {
+.directive('itemlist', ['spTalker', 'notificationService', '$filter', 'itemListSvc', '$timeout', function (spTalker, notificationService, $filter, itemListSvc, $timeout) {
   return {
     templateUrl: 'views/itemlist.html',
     restrict: 'E',
@@ -18,7 +18,7 @@ angular.module('spGuiApp')
       $scope.showableColumns = ['name', 'isa', 'version', 'conditions', 'stateVariables'];
       $scope.selection = ['name', 'isa', 'version'];
       $scope.attrSelection = [];
-      $scope.predicate = '';
+      $scope.predicate = 'name';
       $scope.reverse = false;
       $scope.search = {name: '', attributes: {}};
       $scope.showFilterInputs = false;
@@ -36,43 +36,36 @@ angular.module('spGuiApp')
         })
       }
 
-      $scope.order = function (filteredItems) {
-        console.log('ordering');
-        var itemsToOrder;
-        if (typeof filteredItems === 'undefined') {
-          itemsToOrder = $scope.filteredAndOrderedItems;
-        } else {
-          itemsToOrder = filteredItems;
+      var filtered;
+
+      function getFilterAndOrderItems() {
+        var children = [];
+        itemListSvc.getChildren(spTalker.activeModel, children);
+        filtered = $filter('filter')(children, itemFilter);
+        $timeout(order);
+      }
+
+      function order() {
+        var ordered = $filter('orderBy')(filtered, $scope.predicate, $scope.reverse);
+        while($scope.filteredAndOrderedItems.length > 0) {
+          $scope.filteredAndOrderedItems.pop()
         }
-        $scope.filteredAndOrderedItems = $filter('orderBy')(itemsToOrder, $scope.predicate, $scope.reverse);
-        console.log($scope.filteredAndOrderedItems);
-      };
+        while(ordered.length > 0) {
+          $scope.filteredAndOrderedItems.unshift(ordered.pop());
+        }
+      }
 
-      $scope.getFilterAndOrderItems = function () {
-        console.log('getting, filtering');
-        itemListSvc.getChildren(spTalker.activeModel, $scope.filteredAndOrderedItems);
-        console.log($scope.filteredAndOrderedItems);
-        var filteredItems = $filter('filter')($scope.filteredAndOrderedItems, itemFilter);
-        $scope.order(filteredItems);
-      };
+      if(spTalker.itemsRead) {
+        getFilterAndOrderItems();
+      }
 
-      $scope.$on('itemsQueried', function($event) {
-        $scope.getFilterAndOrderItems();
+      $scope.$on('itemsQueried', function() {
+        getFilterAndOrderItems();
       });
-
-      /*if(spTalker.itemsQueried) {
-        $scope.getFilterAndOrderItems();
-      }*/
-
-      /*$scope.$watch(function() { return spTalker.items }, function (newVal, oldVal) {
-        if(newVal !== oldVal) {
-          $scope.getFilterAndOrderItems();
-        }
-      }, true);*/
 
       $scope.$watch(
         function() { return $scope.search; },
-        function(newVal, oldVal) { if(newVal !== oldVal) { $scope.getFilterAndOrderItems(); } },
+        function(newVal, oldVal) { if(newVal !== oldVal) { getFilterAndOrderItems(); } },
         true
       );
 
@@ -112,7 +105,7 @@ angular.module('spGuiApp')
         } else {
           notificationService.error('Copying failed for one or more of the selected items. See your browser\'s console for details.');
         }
-        $scope.getFilterAndOrderItems();
+        getFilterAndOrderItems();
       };
 
       $scope.viewRelation = function() {
@@ -214,7 +207,7 @@ angular.module('spGuiApp')
           $scope.predicate = column;
           $scope.reverse = column === 'version';
         }
-        $scope.order();
+        order();
       };
 
       $scope.toggleSelection = function toggleSelection(column, selections, $event) {

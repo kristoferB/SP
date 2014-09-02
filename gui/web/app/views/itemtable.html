@@ -31,8 +31,8 @@
                   <input no-whitespace name="textInput" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item[key]" />
                   <span class="error" ng-show="textForm.textInput.$error.nowhitespace"><br />Whitespace is not allowed here.</span>
                 </ng-form>
-                <attr-grid ng-if="key==='attributes'" attr-obj="prop" edit="row.edit" attribute-types="attributeTypes"></attr-grid>
-                <sv-grid ng-if="key==='stateVariables'" sv-array="prop" edit="row.edit" attribute-types="attributeTypes"></sv-grid>
+                <attr-grid ng-if="key==='attributes'" attr-obj="prop" edit="row.edit"></attr-grid>
+                <sv-grid ng-if="key==='stateVariables'" sv-array="prop" edit="row.edit"></sv-grid>
                 <button ng-if="key==='sop'" ng-click="itemListSvc.openSopInNewWindow(item, addWindow)" class="btn btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
                 <conditions ng-if="key==='conditions'" ng-repeat="condition in item.conditions"></conditions>
                 <button ng-if="key==='conditions' && row.edit" class="btn btn-default" ng-click="itemListSvc.addCondition(item)"><span class="glyphicon glyphicon-plus"></span> Add condition</button>
@@ -49,7 +49,7 @@
     <td colspan="99" class="hiddenRow">
       <form class="form-inline" name="itemForm">
         <div style="margin-left: 5%;" ng-if="row.loadChildren" collapse="!(row.expandChildren && row.loadChildren)">
-          <item-table parent-item="item" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" add-window="addWindow" get-filter-and-order-items="getFilterAndOrderItems"></item-table>
+          <item-table parent-item="item" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" add-window="addWindow"></item-table>
         </div> <!-- end of accordion-body -->
       </form>
     </td>

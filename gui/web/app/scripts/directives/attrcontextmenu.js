@@ -11,7 +11,8 @@ angular.module('spGuiApp')
     return {
       restrict: 'A',
       scope: {
-        values: '=attrContextMenu'
+        attrObj: '=',
+        edit: '='
       },
       link: function postLink(scope, element) {
 
@@ -19,12 +20,12 @@ angular.module('spGuiApp')
           return {
             target:'#attr-context-menu',
             before: function (e, context) {
-              return scope.values.edit
+              return scope.edit
             },
             onItem: function (context, e) {
               var key = e.target.getAttribute('id');
-              scope.values.attrObj[key] = angular.copy(spTalker.activeSPSpec.attributes.attributeTags[key]);
-              replaceDates(scope.values.attrObj, key);
+              scope.attrObj[key] = angular.copy(spTalker.activeSPSpec.attributes.attributeTags[key]);
+              replaceDates(scope.attrObj, key);
             }
           };
         }

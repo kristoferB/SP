@@ -12,15 +12,10 @@ angular.module('spGuiApp')
       restrict: 'E',
       scope: {
         attrObj : '=',
-        edit: '=',
-        attributeTypes: '='
+        edit: '='
       },
       templateUrl: 'views/attrgrid.html',
       controller: function($scope) {
-        $scope.toAttrContextMenu = {
-          attrObj: $scope.attrObj,
-          edit: $scope.edit
-        };
 
         $scope.isEmpty = function (obj) {
           return angular.equals({},obj);

@@ -23,6 +23,7 @@ angular.module('spGuiApp')
       users: [],
       operations: [],
       items: [],
+      itemsRead: false,
       things: [],
       thingsAsStrings: [],
       item : $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'}),
@@ -96,15 +97,13 @@ angular.module('spGuiApp')
   };
 
   factory.loadAll = function() {
-    console.log('Loading models');
     factory.loadModels();
-    console.log('Loading items');
     factory.item.query({model: factory.activeModel.model}, function(data) {
-      console.log('Items loaded');
       angular.copy(data, factory.items);
       factory.activeSPSpec = factory.getItemById(factory.activeModel.attributes.activeSPSpec);
       updateItemLists();
       $rootScope.$broadcast('itemsQueried');
+      factory.itemsRead = true;
     });
   };
 
@@ -148,7 +147,7 @@ angular.module('spGuiApp')
       function (data, headers) {
         notificationService.success(item.isa + ' \"' + item.name + '\" was successfully saved');
         updateItemLists();
-        //angular.copy(data, item);
+        angular.copy(data, item);
       },
       function (error) {
         notificationService.error(item.isa + ' ' + item.name + ' could not be saved.');
@@ -175,7 +174,7 @@ angular.module('spGuiApp')
         newItem.version = 1;
       } else if(type === 'SPSpec') {
         newItem.attributes = {
-          atrributeTags: []
+          attributeTags: {}
         }
       }
       newItem.$save(

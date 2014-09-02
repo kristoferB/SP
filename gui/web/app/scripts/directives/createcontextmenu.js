@@ -7,7 +7,7 @@
  * # attrContextMenu
  */
 angular.module('spGuiApp')
-  .directive('createContextMenu', function ($rootScope, spTalker, itemListSvc) {
+  .directive('createContextMenu', function (itemListSvc) {
     return {
       restrict: 'A',
       link: function postLink(scope, element) {
@@ -17,7 +17,7 @@ angular.module('spGuiApp')
             target:'#create-context-menu',
             onItem: function (context, e) {
               var key = e.target.getAttribute('id');
-              itemListSvc.createItem(key, scope.item, $rootScope);
+              itemListSvc.createItem(key, scope.item);
             }
           };
         }
