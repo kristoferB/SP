@@ -7,7 +7,7 @@
  * # sop
  */
 angular.module('spGuiApp')
-.directive('itemlist', ['spTalker', 'notificationService', '$filter', 'itemListSvc', '$timeout', function (spTalker, notificationService, $filter, itemListSvc, $timeout) {
+.directive('itemlist', function (spTalker, notificationService, $filter, itemListSvc, $timeout) {
   return {
     templateUrl: 'views/itemlist.html',
     restrict: 'E',
@@ -231,4 +231,4 @@ angular.module('spGuiApp')
 
     }
   };
-}]);
+});

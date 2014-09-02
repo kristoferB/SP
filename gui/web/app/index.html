@@ -32,13 +32,13 @@
       <tabset>
         <tab ng-repeat="tab in tabs" active="tab.active">
           <tab-heading>
-            <span class="glyphicon glyphicon-remove" ng-click="closeTab(tab)"></span> {{tab.title}}
+            <span style="font-size: 0.9em;" class="glyphicon glyphicon-remove" ng-click="closeTab(tab)"></span> {{tab.title}}
           </tab-heading>
           <windows window-array="tab.windowArray" active="tab.active"></windows>
         </tab>
         <tab active="tab.active" ng-click="addTab()">
           <tab-heading>
-            <span class="glyphicon glyphicon-plus"></span>
+            <span style="font-size: 0.9em;" class="glyphicon glyphicon-plus"></span>
           </tab-heading>
         </tab>
       </tabset>

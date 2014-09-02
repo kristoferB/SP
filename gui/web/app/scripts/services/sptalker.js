@@ -107,7 +107,7 @@ angular.module('spGuiApp')
     });
   };
 
-  factory.saveItems = function(items, notifySuccess) {
+  factory.saveItems = function(items, notifySuccess, successHandler) {
     var success = true;
     if(items.length === 0) {
       notificationService.error('No items supplied to save.');
@@ -117,14 +117,19 @@ angular.module('spGuiApp')
       notificationService.error('No active model chosen.');
       return false;
     }
-    $http({method: 'POST', url: 'api/models/' + factory.activeModel.model + '/items', data: items}).
-      success(function(data, status, headers, config) {
+    $http({method: 'POST', url: 'api/models/' + factory.activeModel.model + '/items', data: items})
+      .success(function(data) {
+        data.forEach( function(itemData) {
+          var item = factory.getItemById(itemData.id);
+          angular.copy(itemData, item);
+        });
         if(notifySuccess) {
           notificationService.success(items.length + ' items were successfully saved.');
         }
         updateItemLists();
-      }).
-      error(function(data, status, headers, config) {
+        successHandler(data);
+      })
+      .error(function(data) {
         console.log(data);
         notificationService.error('Items save failed. Please see console log for details.');
         success = false;
@@ -132,7 +137,7 @@ angular.module('spGuiApp')
     return success;
   };
 
-  factory.saveItem = function(item) {
+  factory.saveItem = function(item, showSuccessNotifications, successHandler) {
     var success = true;
     if(Object.keys(factory.activeModel).length === 0) {
       notificationService.error('No active model chosen.');
@@ -144,10 +149,17 @@ angular.module('spGuiApp')
     }
     item.$save(
       {model: factory.activeModel.model, id: item.id},
-      function (data, headers) {
-        notificationService.success(item.isa + ' \"' + item.name + '\" was successfully saved');
+      function (data) {
+        if(showSuccessNotifications) {
+          notificationService.success(item.isa + ' \"' + item.name + '\" was successfully saved');
+        }
+        if(data !== item) {
+          angular.copy(data, item);
+        }
         updateItemLists();
-        angular.copy(data, item);
+        if(successHandler) {
+          successHandler(data);
+        }
       },
       function (error) {
         notificationService.error(item.isa + ' ' + item.name + ' could not be saved.');
@@ -158,36 +170,79 @@ angular.module('spGuiApp')
     return success;
   };
 
-    factory.createItem = function(type, successHandler) {
-
-      var newItem = new factory.item({
-        isa : type,
-        name : type + Math.floor(Math.random()*1000),
-        attributes : {}
-      });
-      if(type === 'Operation') {
-        newItem.conditions = [];
-      } else if(type === 'Thing') {
-        newItem.stateVariables = [];
-      } else if(type === 'SOPSpec') {
-        newItem.sop = {isa: 'Sequence', sop: []};
-        newItem.version = 1;
-      } else if(type === 'SPSpec') {
-        newItem.attributes = {
-          attributeTags: {}
-        }
+  factory.createItem = function(type, successHandler) {
+    var newItem = new factory.item({
+      isa : type,
+      name : type + Math.floor(Math.random()*1000),
+      attributes : {
+        children: []
       }
-      newItem.$save(
+    });
+    if(type === 'Operation') {
+      newItem.conditions = [];
+    } else if(type === 'Thing') {
+      newItem.stateVariables = [];
+    } else if(type === 'SOPSpec') {
+      newItem.sop = {isa: 'Sequence', sop: []};
+      newItem.version = 1;
+    } else if(type === 'SPSpec') {
+      newItem.attributes.attributeTags = {}
+    }
+    newItem.$save(
+      {model:factory.activeModel.model},
+      function(data) {
+        factory.items.unshift(data);
+        notificationService.success('A new ' + data.isa + ' with name ' + data.name + ' was successfully created.');
+        successHandler(data);
+      },
+      function(error) { console.log(error); notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.'); console.log(error); }
+    );
+
+  };
+
+  factory.deleteItem = function(itemToDelete) {
+    // remove item from parent items
+    factory.items.forEach( function(item) {
+      var index = item.attributes.children.indexOf(itemToDelete.id);
+      if(index !== -1) {
+        item.attributes.children.splice(index, 1);
+        factory.saveItem(item, false);
+      }
+    });
+
+    removeItemFromModel();
+
+    function removeItemFromModel() {
+      var index = factory.activeModel.attributes.children.indexOf(itemToDelete.id);
+      if(index >= 0) {
+        factory.activeModel.attributes.children.splice(index, 1);
+        factory.activeModel.$save(
+          {modelID: factory.activeModel.model},
+          function() {
+            removeItemFromServer();
+          }
+        );
+      } else {
+        removeItemFromServer();
+      }
+    }
+
+    function removeItemFromServer() {
+      itemToDelete.$delete(
         {model:factory.activeModel.model},
         function(data) {
-          factory.items.unshift(data);
-          notificationService.success('A new ' + data.isa + ' with name ' + data.name + ' was successfully created.');
-          successHandler(data);
+          var index = factory.items.indexOf(itemToDelete);
+          factory.items.splice(index, 1);
+          notificationService.success(data.isa + ' ' + data.name + ' was successfully deleted.');
+          $rootScope.$broadcast('itemsQueried');
         },
-        function(error) { console.log(error); notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.'); console.log(error); }
+        function(error) {
+          console.log(error);
+          notificationService.error(itemToDelete.isa + ' ' + itemToDelete.name + ' could not be deleted from the server. Check your browser\'s error console for details.');
+        }
       );
-
-    };
+    }
+  };
 
   factory.reReadFromServer = function(item) {
     item.$get({model: factory.activeModel.model}, function(data) {

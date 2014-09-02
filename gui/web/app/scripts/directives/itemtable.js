@@ -22,6 +22,7 @@ angular.module('spGuiApp')
       controller: function($scope) {
         $scope.itemListSvc = itemListSvc;
         $scope.items = [];
+        $scope.spTalker = spTalker;
 
         $scope.$on('itemsQueried', function() {
           itemListSvc.getChildren($scope.parentItem, $scope.items);

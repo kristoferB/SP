@@ -9,7 +9,7 @@
         <span class="error" ng-show="conditionsForm.guardInput.$error.maxlength"><br />Not too long, please.</span>
         <span class="error" ng-show="conditionsForm.guardInput.$dirty && conditionsForm.guardInput.$error.required"><br />At least one guard is required.</span>
       </td>
-      <td rowspan="3"><button ng-if="row.edit" class="btn btn-default" ng-click="removeCondition(item, condition)"><span class="glyphicon glyphicon-minus"></span></button></td>
+      <td rowspan="3"><button ng-if="row.edit" class="btn btn-sm btn-default" ng-click="removeCondition(item, condition)"><span class="glyphicon glyphicon-minus"></span></button></td>
     </tr>
     <tr>
       <td>action: </td>

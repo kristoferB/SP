@@ -28,15 +28,15 @@
         <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav ">
                 <li class="btn-group" dropdown is-open="status.isopen">
-                    <a class="dropdown-toggle">File <span class="caret"></span></a>
+                    <a class="dropdown-toggle"><span class="glyphicon glyphicon-file"></span> File <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
-                        <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="broadcastEvent('newSopWindow')">New SOP</a></li>
-                        <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="broadcastEvent('newItemListWindow')">New itemList</a></li>
-                        <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="openSettings()">Settings</a></li>
+                        <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="broadcastEvent('newSopWindow')"><span class="glyphicon glyphicon-th-large"></span> SOP-maker</a></li>
+                        <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="broadcastEvent('newItemListWindow')"><span class="glyphicon glyphicon-list"></span> Itemlist</a></li>
+                        <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="openSettings()"><span class="glyphicon glyphicon-wrench"></span> Settings</a></li>
                     </ul>
                 </li>
-                <li><a href="#/model">Edit</a></li>
-                <li><a href="#/runtime">Algorithms</a></li>
+                <li><a href="#/model"><span class="glyphicon glyphicon-edit"></span> Edit</a></li>
+                <li><a href="#/runtime"><span class="glyphicon glyphicon-stats"></span> Algorithms</a></li>
             </ul>
         </div><!--/.nav-collapse -->
     </div>
