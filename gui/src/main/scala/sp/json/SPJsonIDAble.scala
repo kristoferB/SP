@@ -108,15 +108,15 @@ trait SPJsonIDAble extends SPJsonDomain {
       val map = List(
         "isa" -> "SOPSpec".toJson,
         "name" -> x.name.toJson,
-        "sop" -> x.sop.toJson //o.conditions.toJson
+        "sop" -> x.sop.toJson
       ) ++ idPart(x)
       JsObject(map)
     }
 
     def read(value: JsValue) = {
       value.asJsObject.getFields("name", "sop", "attributes", "id") match {
-        case Seq(JsString(label), s: JsObject, a: JsObject, oid: JsString) => {
-          val sop = s.convertTo[SOP]
+        case Seq(JsString(label), s: JsValue, a: JsObject, oid: JsString) => {
+          val sop = if(s.isInstanceOf[JsArray]) s.asInstanceOf[JsArray].elements.map(_.convertTo[SOP]) else List(s.convertTo[SOP])
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
           new SOPSpec(sop, label, attr) {
@@ -125,6 +125,64 @@ trait SPJsonIDAble extends SPJsonDomain {
         }
         case _ => throw new DeserializationException(s"can not convert the SOPSpec from $value")
 
+      }
+    }
+  }
+
+  implicit object RelationResultJsonFormat extends RootJsonFormat[RelationResult] {
+    def write(x: RelationResult) = {
+      val map = List(
+        "isa" -> "RelationResult".toJson,
+        "name" -> x.name.toJson,
+        "relationmap" -> x.relationMap.toJson,
+        "model" -> x.model.toJson,
+        "modelVersion" -> x.modelVersion.toJson
+      ) ++ idPart(x)
+      JsObject(map)
+    }
+
+    def read(value: JsValue) = {
+      value.asJsObject.getFields("name", "relationmap", "model", "version", "attributes", "id") match {
+        case Seq(JsString(name), rel: JsObject, JsString(model), version: JsNumber, a: JsObject, id: JsString) => {
+          val relMap = rel.convertTo[RelationMap]
+          val attr = a.convertTo[SPAttributes]
+          val modelV = version.convertTo[Long]
+          val myid = id.convertTo[ID]
+          new RelationResult(name, relMap, model, modelV, attr) {
+            override lazy val id = myid
+          }
+        }
+        case _ => throw new DeserializationException(s"can not convert the RelationResult from $value")
+
+      }
+    }
+  }
+
+
+
+
+  implicit object ResultJsonFormat extends RootJsonFormat[Result] {
+    def write(x: Result) = {
+      x match {
+        case x: RelationResult => {
+          x.toJson
+        }
+        case x@_ => throw new SerializationException(s"can not convert the Result from $x")
+      }
+    }
+
+    def read(value: JsValue) = {
+      value match {
+        case obj: JsObject if obj.fields.contains("isa") => {
+          obj.fields("isa") match {
+            case JsString("RelationResult") => {
+              obj.convertTo[RelationResult]
+            }
+            case res@_ =>
+              throw new DeserializationException(s"isa $res does not match RelationResult")
+          }
+        }
+        case _ => throw new DeserializationException(s"Result missing isa field: $value")
       }
     }
   }
@@ -138,6 +196,7 @@ trait SPJsonIDAble extends SPJsonDomain {
         case x: SPObject => x.toJson
         case x: SOPSpec => x.toJson
         case x: SPSpec => x.toJson
+        case x: Result => x.toJson
         case x@_ => throw new SerializationException(s"can not convert the IDAble from $x")
       }
     }
@@ -151,6 +210,7 @@ trait SPJsonIDAble extends SPJsonDomain {
             case JsString("SPObject") => value.convertTo[SPObject]
             case JsString("SOPSpec") => value.convertTo[SOPSpec]
             case JsString("SPSpec") => value.convertTo[SPSpec]
+            case JsString("RelationResult") => value.convertTo[RelationResult]
             case res@_ =>
               throw new DeserializationException(s"IDAble: isa $res does not match any of Operation, Thing, SPObject, SOPSpec or SPSpec")
           }

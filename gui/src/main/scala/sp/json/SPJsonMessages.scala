@@ -12,10 +12,10 @@ trait SPJsonMessages extends SPJsonDomain with SPJsonIDAble  {
 
   implicit val cmFormat = jsonFormat2(CreateModel)
   implicit val gidFormat = jsonFormat2(GetIds)
-  implicit val gopsFormat = jsonFormat1(GetOperations)
-  implicit val gtFormat = jsonFormat1(GetThings)
-  implicit val gspFormat = jsonFormat1(GetSpecs)
-  implicit val gqFormat = jsonFormat2(GetQuery)
+//  implicit val gopsFormat = jsonFormat1(GetOperations)
+//  implicit val gtFormat = jsonFormat1(GetThings)
+//  implicit val gspFormat = jsonFormat1(GetSpecs)
+//  implicit val gqFormat = jsonFormat2(GetQuery)
   implicit val gDiffFormat = jsonFormat2(GetDiff)
 
   implicit val uidFormat = jsonFormat3(UpdateID.apply)

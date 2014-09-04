@@ -278,9 +278,26 @@ trait SPJsonDomain {
 
 
 
+  implicit val stateFormat = jsonFormat1(State)
+  implicit val statesFormat = jsonFormat1(States)
+  implicit val enabledStateFormat = jsonFormat2(EnabledStates)
+  implicit val enabledStateMapFormat = jsonFormat1(EnabledStatesMap)
 
-
-
+  implicit object relationMapFormat extends RootJsonFormat[RelationMap] {
+    def write(x: RelationMap) = {
+      val remap = x.relations map{
+        case (ops, sop) =>
+          val opsArray = ops.toJson
+          JsObject("operations" -> opsArray, "sop" -> sop.toJson)
+      }
+      JsObject(
+        "relationmap" -> JsArray(remap.toList),
+        "enabledMap" -> x.enabledStates.toJson)
+    }
+    def read(value: JsValue) = {
+      throw new DeserializationException(s"Can not deserilize relation maps")
+    }
+  }
 
 
 

@@ -148,7 +148,7 @@ trait ModelAPI extends SPApiHelpers {
           case "specs" => getSPIDS(GetSpecs(model))
           case "items" => getSPIDS(GetIds(List(), model))
           case "statevariables" => path(JavaUUID){ id =>
-            /{ get {callSP(GetStateVariable(id, model), {
+            /{ get {callSP(GetStateVariable(model, id), {
               case SPSVs(x) => if (x.size == 1) complete(x.head) else complete(x)})}
             }
           }
@@ -264,8 +264,10 @@ trait ServiceAPI extends SPApiHelpers {
         callSP(Request(service, attr), {
           case p: Proposition => complete(p)
           case a: SPAttributes => complete(a)
+          case r: Result => complete(r)
           case SPIDs(x) => complete(x)
           case SPSVs(x) => complete(x)
+          case item: IDAble => complete(item)
         })
       }}
     }

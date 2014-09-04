@@ -15,19 +15,40 @@ import scala.annotation.tailrec
  *            that should be used. So add Specs
  *            before
  */
-case class FindRelations(ops: List[Operation], stateVars: Map[ID, StateVariable], init: State)
+case class FindRelations( ops: List[Operation],
+                          stateVars: Map[ID, StateVariable],
+                          init: State,
+                          groups: List[SPAttributeValue] = List(),
+                          iterations: Int = 100,
+                          goal: State => Boolean = _ => true)
 
 
 class RelationFinder extends Actor with RelationFinderAlgotithms {
   def receive = {
-    case FindRelations(ops, svs, init) => {
-
+    case FindRelations(ops, svs, init, groups, itr, goal) => {
+      implicit val setup = Setup(ops, svs, groups, init, goal)
+      val sm = findWhenOperationsEnabled(itr)
+      val res = findOperationRelations(sm)
+      sender ! res
     }
   }
 }
 
+object RelationFinder {
+  def props = Props(classOf[RelationFinder])
+}
+
 //TODO: Move these to domain.logic. RelationsLogic
 trait RelationFinderAlgotithms {
+
+  /**
+   *
+   * @param ops The operations that are part of the relation identification. Usually all operations
+   * @param stateVars All variables that are used by the operations
+   * @param groups The condition groups that should be used. If empty, all groups are used
+   * @param init The initial state
+   * @param goal The goal function, when the execution has reached the goal.
+   */
   case class Setup(ops: List[Operation],
               stateVars: Map[ID, StateVariable],
               groups: List[SPAttributeValue],
@@ -75,7 +96,7 @@ trait RelationFinderAlgotithms {
   }
 
   /**
-   * Findes when operations are enabled. The more iterations, the better
+   * Find when operations are enabled. The more iterations, the better
    * @param iterations No of random sequences that are generated
    * @param opsToTest The operations that are returned in the map
    * @param setMeUp The definition for the algorithm
@@ -91,7 +112,7 @@ trait RelationFinderAlgotithms {
         val seqRes = findASeq(setup)
         val updateMap = seqRes.stateMap.foldLeft(esm.map)((m,sm)=> {
           val checkThese = if (!opsToTest.isEmpty) sm._2 filter opsToTest.contains else sm._2
-          val updatedOps = checkThese.map(o => o -> mergeAState(o, m(o), sm._1)).toMap
+          val updatedOps = checkThese.map(o => o.id -> mergeAState(o, m(o.id), sm._1)).toMap
           m ++ updatedOps
         })
         req(n-1, EnabledStatesMap(updateMap))
@@ -104,27 +125,24 @@ trait RelationFinderAlgotithms {
     }
 
 
-    val emptyStates = MapStates(setup.stateVars map (_._1 -> Set[SPAttributeValue]()))
+    val emptyStates = States(setup.stateVars map (_._1 -> Set[SPAttributeValue]()))
     val oie = EnabledStates(emptyStates, emptyStates)
-    val startMap = {if (opsToTest.isEmpty) setup.ops else opsToTest}.map(_ -> oie)
+    val startMap = {if (opsToTest.isEmpty) setup.ops else opsToTest}.map(_.id -> oie)
     req(iterations, EnabledStatesMap(startMap toMap))
   }
 
 
-  def findOperationRelations(iterations: Int, opsToTest: Set[Operation] = Set())(implicit setMeUp: Setup) = {
-    val myOps = if (opsToTest.isEmpty) setMeUp.ops.toSet else opsToTest
-    val sm = findWhenOperationsEnabled(iterations, myOps)
-
+  def findOperationRelations(sm: EnabledStatesMap) = {
     @tailrec
-    def req(ops: List[Operation],
-            map: Map[Operation, EnabledStates],
-            res: Map[OperationPair, SOP] ): Map[OperationPair, SOP] = {
+    def req(ops: List[ID],
+            map: Map[ID, EnabledStates],
+            res: Map[Set[ID], SOP] ): Map[Set[ID], SOP] = {
       ops match {
         case Nil => res
         case o1 :: rest => {
           val o1State = map(o1)
           val update = map.foldLeft(res){case (aggr, (o2, o2State)) =>
-            if (o1 != o2 && !aggr.contains(OperationPair(o1.id, o2.id))) aggr + (OperationPair(o1.id, o2.id) -> matchOps(o1, o1State, o2, o2State))
+            if (o1 != o2 && !aggr.contains(Set[ID](o1, o2))) aggr + (Set[ID](o1, o2) -> matchOps(o1, o1State, o2, o2State))
             else aggr
           }
           req(rest, map, update)
@@ -132,22 +150,25 @@ trait RelationFinderAlgotithms {
       }
     }
 
-    val rels = req(myOps toList, sm.map, Map())
+    val rels = req(sm.map.keys toList, sm.map, Map())
     RelationMap(rels, sm)
   }
 
-
-  def matchOps(o1: Operation, o1State: EnabledStates, o2: Operation, o2State: EnabledStates): SOP = {
-    val stateOfO2WhenO1Pre = o1State.pre(o2.id) flatMap (_.asString)
-    val stateOfO1WhenO2pre = o2State.pre(o1.id) flatMap (_.asString)
+  //TODO: Fix to match three state as well
+  val opi = Set("i")
+  val opf = Set("f")
+  val opif = Set("i", "f")
+  def matchOps(o1: ID, o1State: EnabledStates, o2: ID, o2State: EnabledStates): SOP = {
+    val stateOfO2WhenO1Pre = o1State.pre(o2) flatMap (_.asString)
+    val stateOfO1WhenO2pre = o2State.pre(o1) flatMap (_.asString)
     val pre = (stateOfO2WhenO1Pre, stateOfO1WhenO2pre)
 
-    if (pre ==(Set("i"), Set("i"))) Alternative(o1, o2)
-    else if (pre ==(Set("i"), Set("f"))) Sequence(o1, o2)
-    else if (pre ==(Set("f"), Set("i"))) Sequence(o2, o1)
-    else if (pre ==(Set("i", "f"), Set("f"))) SometimeSequence(o2, o1)
-    else if (pre ==(Set("i"), Set("i", "f"))) SometimeSequence(o1, o2)
-    else if (pre ==(Set("i", "f"), Set("i", "f"))) Parallel(o1, o2)
+    if (pre ==(opi, opi)) Alternative(o1, o2)
+    else if (pre ==(opi, opf)) Sequence(o1, o2)
+    else if (pre ==(opf, opi)) Sequence(o2, o1)
+    else if (pre ==(opif, opf)) SometimeSequence(o2, o1)
+    else if (pre ==(opi, opif)) SometimeSequence(o1, o2)
+    else if (pre ==(opif, opif)) Parallel(o1, o2)
     else Other(o1, o2)
   }
 

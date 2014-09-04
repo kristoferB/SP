@@ -15,8 +15,9 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
     lazy val operations = idMap filter (_._2.isInstanceOf[Operation])
     lazy val things = idMap filter (_._2.isInstanceOf[Thing])
     lazy val specifications = idMap filter (_._2.isInstanceOf[Specification])
+    lazy val results = idMap filter (_._2.isInstanceOf[Result])
     lazy val stateVariables = svs map (sv=> sv.id -> sv) toMap
-    private lazy val svs =  things flatMap(_.asInstanceOf[Thing].stateVariables)
+    lazy val svs =  things flatMap(_._2.asInstanceOf[Thing].stateVariables)
   }
 
   var state = ModelState(1, Map(), Map(), attr)
@@ -76,27 +77,40 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
             reply ! SPIDs(res)
           }
         }
-        case get: GetOperations => {
-          val res = state.operations.values
+        case GetOperations(_, f) => {
+          val res = state.operations.values filter f
           reply ! SPIDs(res.toList)
         }
-        case get: GetThings => {
-          val res = state.things.values
+        case GetThings(_, f) => {
+          val res = state.things.values filter f
           reply ! SPIDs(res.toList)
         }
-        case get: GetSpecs => {
-          val res = state.specifications.values
+        case GetSpecs(_, f) => {
+          val res = state.specifications.values filter f
           reply ! SPIDs(res.toList)
         }
-        case GetStateVariable(id,m) => {
+        case GetResults(_, f) => {
+          val res = state.results.values filter f
+          reply ! SPIDs(res.toList)
+        }
+        case GetStateVariable(m, id) => {
           if (!state.stateVariables.contains(id)) reply ! MissingID(id, m)
           else {
             val res = state.stateVariables(id)
             reply ! SPSVs(List(res))
           }
         }
-        case GetQuery(attr, _) => {
-          println("GETQUERY NOT IMPLEMENTED in ModelActor")
+        case GetStateVariables(m, f) => {
+          val res = state.stateVariables.values.toList filter f
+          reply ! SPSVs(res)
+        }
+
+        case GetQuery(_, q, f) => {
+          if (!q.isEmpty)
+            println("QUEESRY STRING NOT IMPLEMENTED ModelActor")
+
+          val res = state.idMap.values filter f
+          reply ! SPIDs(res.toList)
         }
         case GetDiff(_,v) => reply ! getDiff(v)
         case x: GetModelInfo => reply ! ModelInfo(name, state.version, state.attributes)
