@@ -26,13 +26,13 @@ angular.module('spGuiApp')
         };
 
         scope.$watch(
-          function() { return scope.sopDef.clientSideAdditions.width + scope.sopDef.clientSideAdditions.height },
+          function() { return scope.sopDef[0].clientSideAdditions.width + scope.sopDef[0].clientSideAdditions.height },
           function() {
             var squareSideLength;
-            if(scope.sopDef.clientSideAdditions.width > scope.sopDef.clientSideAdditions.height) {
-              squareSideLength = scope.sopDef.clientSideAdditions.width;
+            if(scope.sopDef[0].clientSideAdditions.width > scope.sopDef[0].clientSideAdditions.height) {
+              squareSideLength = scope.sopDef[0].clientSideAdditions.width;
             } else {
-              squareSideLength = scope.sopDef.clientSideAdditions.height;
+              squareSideLength = scope.sopDef[0].clientSideAdditions.height;
             }
             paper.setSize(squareSideLength, squareSideLength);
           }, true);

@@ -11,24 +11,24 @@ angular.module('spGuiApp')
   .factory('sopCalcer', [ 'spTalker', function (spTalker) {
     var factory = {};
     
-    factory.calcStructMeasures = function(sop, measures, para, wholeSop) {
+    factory.calcStructMeasures = function(sop, measures, para, allSops) {
       var structMeasures = [];
       
       if(sop.isa === 'Sequence') {
         structMeasures.width = sop.clientSideAdditions.width; structMeasures.height = sop.clientSideAdditions.height;
-        if(!wholeSop.clientSideAdditions.vertDir) {
+        if(!allSops[0].clientSideAdditions.vertDir) {
           structMeasures.width = [structMeasures.height, structMeasures.height = structMeasures.width][0];
         }
       } else if (sop.isa === 'Other') {
         structMeasures.width = sop.clientSideAdditions.width; structMeasures.height = sop.clientSideAdditions.height-measures.margin;
-        if(!wholeSop.clientSideAdditions.vertDir) {
+        if(!allSops[0].clientSideAdditions.vertDir) {
           structMeasures.width = [structMeasures.height, structMeasures.height = structMeasures.width][0];
         }
       } else if (sop.isa === 'Parallel' || sop.isa === 'Arbitrary') {
         structMeasures.x21 = 0; structMeasures.y21 = para; structMeasures.x31 = 0; structMeasures.y31 = sop.clientSideAdditions.height-measures.margin-para;
         structMeasures.x41 = 0; structMeasures.y41 = sop.clientSideAdditions.height-measures.margin; structMeasures.width = sop.clientSideAdditions.width; structMeasures.height = 0;
         structMeasures.x51 = 0; structMeasures.y51 = para/2; structMeasures.x61 = 0; structMeasures.y61 = sop.clientSideAdditions.height-measures.margin-para/2;
-        if(!wholeSop.clientSideAdditions.vertDir) {
+        if(!allSops[0].clientSideAdditions.vertDir) {
           structMeasures.x21 = [structMeasures.y21, structMeasures.y21 = structMeasures.x21][0];
           structMeasures.x31 = [structMeasures.y31, structMeasures.y31 = structMeasures.x31][0];
           structMeasures.x41 = [structMeasures.y41, structMeasures.y41 = structMeasures.x41][0];
@@ -39,7 +39,7 @@ angular.module('spGuiApp')
       } else if (sop.isa === 'Alternative') {
         structMeasures.x11 = sop.clientSideAdditions.width/2 - sop.clientSideAdditions.lineL; structMeasures.y11 = 0; structMeasures.x12 = sop.clientSideAdditions.lineL + sop.clientSideAdditions.lineR; structMeasures.y12 = 0;
         structMeasures.x21 = sop.clientSideAdditions.width/2 - sop.clientSideAdditions.lineL; structMeasures.y21 = sop.clientSideAdditions.height - measures.margin; structMeasures.x22 = sop.clientSideAdditions.lineL + sop.clientSideAdditions.lineR; structMeasures.y22 = 0;
-        if(!wholeSop.clientSideAdditions.vertDir) {
+        if(!allSops[0].clientSideAdditions.vertDir) {
           structMeasures.x11 = [structMeasures.y11, structMeasures.y11 = structMeasures.x11][0];
           structMeasures.x12 = [structMeasures.y12, structMeasures.y12 = structMeasures.x12][0];
           structMeasures.x21 = [structMeasures.y21, structMeasures.y21 = structMeasures.x21][0];
@@ -50,7 +50,7 @@ angular.module('spGuiApp')
     };
 
 
-    factory.makeIt = function(wholeSop, measures) {
+    factory.makeIt = function(sops, measures) {
       var mC = {
         'margin' : measures.margin,
         'opH' : measures.opH,
@@ -60,28 +60,47 @@ angular.module('spGuiApp')
         'textScale': measures.textScale
       };
 
-      if (!wholeSop.clientSideAdditions.vertDir) {
+      if (!sops[0].clientSideAdditions.vertDir) { // Swap ops minimum width and height if horizontal dir
         var tempw = mC.opW;
         mC.opW = mC.opH;
         mC.opH = tempw;
       }
 
-      var w = this.getWidth(wholeSop, mC, wholeSop.clientSideAdditions.vertDir);
-      var result = this.createSOP(wholeSop, mC, w / 2, 0, false, 0, wholeSop, true);
+      var sopWidth = 0,
+        sopHeight = 0;
 
-      result.height = result.height + 20; // To contain the ending line
-      if (!wholeSop.clientSideAdditions.vertDir) {
-        var tempw2 = result.width;
-        result.width = result.height;
-        result.height = tempw2;
+      for(var i = 0; i < sops.length; i++) {
+        var j;
+        if(sops[0].clientSideAdditions.vertDir) {
+          j = i;
+        } else {
+          j = sops.length - 1 - i; // To avoid flip on SOP direction animation
+        }
+        var w = factory.getWidth(sops[j], mC, sops[0].clientSideAdditions.vertDir);
+        if(w < mC.opW) {
+          w = mC.opW;
+        }
+        var result = factory.createSOP(sops[j], mC, sopWidth + w / 2, 0, false, 0, sops, true);
+        if(result.height > sopHeight) {
+          sopHeight = result.height;
+        }
+        sopWidth += (w + mC.margin);
       }
 
-      wholeSop.clientSideAdditions.width = result.width;
-      wholeSop.clientSideAdditions.height = result.height;
+      sopHeight = sopHeight + 20; // To contain the ending line
+
+      if (!sops[0].clientSideAdditions.vertDir) { // Swap SOP width and height if horizontal dir
+        var tempw2 = sopWidth;
+        sopWidth = sopHeight;
+        sopHeight = tempw2;
+      }
+
+      sops[0].clientSideAdditions.width = sopWidth;
+      sops[0].clientSideAdditions.height = sopHeight;
 
     };
 
-    factory.createSOP = function(sop, measures, middle, start, parentObject, parentObjectIndex, wholeSop, firstLoop) {
+    factory.createSOP = function(sop, measures, middle, start, parentObject, parentObjectIndex, allSops, firstLoop) {
       // Creating an empty object in each node to gather all additions made by sopCalcer and sopDrawer
       if(typeof sop.clientSideAdditions === 'undefined') {
         sop.clientSideAdditions = {};
@@ -98,22 +117,12 @@ angular.module('spGuiApp')
         'width' : 0,
         'height' : 0,
         'scale' : 100,
-        'dir' : wholeSop.clientSideAdditions.vertDir,
+        'dir' : allSops[0].clientSideAdditions.vertDir,
         'x' : 0,
         'y' : 0
       }, drawHere, sub;
       
       if(typeof sop.clientSideAdditions.lines === 'undefined') {
-        sop.clientSideAdditions.lines = [];
-      } else {
-        sop.clientSideAdditions.lines.forEach( function(line) {
-          if(typeof line.drawnLine !== 'undefined') {
-            line.drawnLine.remove();
-          }
-          if(typeof line.drawnShadow !== 'undefined') {
-            line.drawnShadow.remove();
-          }
-        });
         sop.clientSideAdditions.lines = [];
       }
       
@@ -126,8 +135,8 @@ angular.module('spGuiApp')
         if (sop.sop.length > 0){
           console.log('sopHierarchy do not handle childs yet: ');
         } else {
-          result.width = this.calcOpWidth(op, measures, wholeSop.clientSideAdditions.vertDir);
-          result.height = this.calcOpHeight(op, measures, wholeSop.clientSideAdditions.vertDir) + measures.margin;
+          result.width = this.calcOpWidth(op, measures, allSops[0].clientSideAdditions.vertDir);
+          result.height = this.calcOpHeight(op, measures, allSops[0].clientSideAdditions.vertDir) + measures.margin;
           var arrow = measures.arrow; 
           if (start < measures.arrow) {arrow = 0;}
 
@@ -139,7 +148,7 @@ angular.module('spGuiApp')
           sop.clientSideAdditions.arrow = 'M ' + (result.width/2 - arrow) + ' ' + (-arrow) + ' l ' + arrow + ' ' + arrow + ' l ' + arrow + ' ' + -arrow + ' Z';
           
           // Swap width, height and x, y if Horizontal direction
-          if(!wholeSop.clientSideAdditions.vertDir) {
+          if(!allSops[0].clientSideAdditions.vertDir) {
             sop.clientSideAdditions.height = [sop.clientSideAdditions.width, sop.clientSideAdditions.width = sop.clientSideAdditions.height][0];
             sop.clientSideAdditions.x = [sop.clientSideAdditions.y, sop.clientSideAdditions.y = sop.clientSideAdditions.x][0];
             sop.clientSideAdditions.arrow = 'M ' + (-arrow) + ' ' + (result.width/2 - arrow) + ' l ' + arrow + ' ' + arrow + ' l ' + -arrow + ' ' + arrow + ' Z';
@@ -150,7 +159,7 @@ angular.module('spGuiApp')
         drawHere = start;
           
         for ( var m in sop.sop) {
-          sub = this.createSOP(sop.sop[m], measures, middle, drawHere, sop, new Number(m), wholeSop, false);
+          sub = this.createSOP(sop.sop[m], measures, middle, drawHere, sop, new Number(m), allSops, false);
           result = this.fillResult(result, sub);
 
           sop.clientSideAdditions.lines.push({
@@ -168,7 +177,7 @@ angular.module('spGuiApp')
         }
         
       } else {  // Parallel, Alternative, Other or Arbitrary
-        result.width = this.getWidth(sop, measures, wholeSop.clientSideAdditions.vertDir);
+        result.width = this.getWidth(sop, measures, allSops[0].clientSideAdditions.vertDir);
         drawHere = middle - (result.width / 2) + measures.margin;
         var linepos = [];
         var lineMinusL = measures.margin;
@@ -181,12 +190,12 @@ angular.module('spGuiApp')
         }
         var sopLength = sop.sop.length;
         for ( var n in sop.sop) {
-          if(!wholeSop.clientSideAdditions.vertDir) {
+          if(!allSops[0].clientSideAdditions.vertDir) {
             n = sopLength - 1 - n;
           }
-          var subW = this.getWidth(sop.sop[n], measures, wholeSop.clientSideAdditions.vertDir);
+          var subW = this.getWidth(sop.sop[n], measures, allSops[0].clientSideAdditions.vertDir);
           drawHere = drawHere + subW / 2;
-          sub = this.createSOP(sop.sop[n], measures, drawHere, start + para + measures.margin, sop, new Number(n), wholeSop, false);
+          sub = this.createSOP(sop.sop[n], measures, drawHere, start + para + measures.margin, sop, new Number(n), allSops, false);
 
           sop.clientSideAdditions.lines.push({ // The lines above the structs
             x1 : drawHere,
@@ -246,11 +255,11 @@ angular.module('spGuiApp')
         sop.clientSideAdditions.y = start;
         
         // Swap if horizontal direction
-        if(!wholeSop.clientSideAdditions.vertDir) {
+        if(!allSops[0].clientSideAdditions.vertDir) {
           sop.clientSideAdditions.x = [sop.clientSideAdditions.y, sop.clientSideAdditions.y = sop.clientSideAdditions.x][0];
         }
         
-        sop.clientSideAdditions.structMeasures = factory.calcStructMeasures(sop, measures, para, wholeSop);
+        sop.clientSideAdditions.structMeasures = factory.calcStructMeasures(sop, measures, para, allSops);
 
       }
       

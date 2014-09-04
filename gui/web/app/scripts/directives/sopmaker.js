@@ -15,6 +15,7 @@ angular.module('spGuiApp')
                   '<div class="btn-toolbar sop-maker-toolbar" role="toolbar">' +
                     '<button class="btn btn-default toggle-btn" ng-click="toggleDirection()"><span class="glyphicon glyphicon-retweet"></span> Rotate</button>' +
                     '<button class="btn btn-default" ng-click="saveSopSpec()"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>' +
+                    '<button class="btn btn-default" ng-click="addSop()"><span class="glyphicon glyphicon-plus"></span> Add sequence</button>' +
                     '<button class="btn btn-default" draggable="true" item-drag="{isa: \'Parallel\'}">Parallel</button>' +
                     '<button class="btn btn-default" draggable="true" item-drag="{isa: \'Alternative\'}">Alternative</button>' +
                     '<button class="btn btn-default" draggable="true" item-drag="{isa: \'Arbitrary\'}">Arbitrary</button>' +
@@ -32,28 +33,42 @@ angular.module('spGuiApp')
       link: function postLink(scope, element, attrs) {
 
         var sopSpec;
-        scope.sopDef = {
-          'isa' : 'Sequence',
-          'sop' : [],
-          'clientSideAdditions': {
-            vertDir: true
-          }
+        scope.sopDef = [{
+          isa : 'Sequence',
+          sop : [],
+          clientSideAdditions: { vertDir: true }
+        }];
+
+        scope.addSop = function() {
+          scope.sopDef.push({
+              'isa' : 'Sequence',
+              'sop' : []
+            }
+          );
+          reDraw();
         };
 
         scope.toggleDirection = function() {
-          scope.sopDef.clientSideAdditions.vertDir = !scope.sopDef.clientSideAdditions.vertDir;
-          scope.$broadcast('redrawSop');
+          scope.sopDef[0].clientSideAdditions.vertDir = !scope.sopDef[0].clientSideAdditions.vertDir;
+          reDraw();
         };
+
+        function draw() {
+          scope.$broadcast('drawSop');
+        }
+
+        function reDraw() {
+          scope.$broadcast('redrawSop');
+        }
 
         function getSopDefAndDraw() {
           sopSpec = spTalker.getItemById(scope.windowStorage.sopSpecId);
           angular.copy(sopSpec.sop, scope.sopDef);
-          scope.sopDef.clientSideAdditions = { vertDir: true };
-          scope.$broadcast('drawSop');
+          draw();
         }
 
         if(typeof scope.windowStorage.sopSpecId === 'undefined') {
-          scope.$broadcast('drawSop');
+          draw();
         } else {
           if(spTalker.items.length === 0) {
             var listener = scope.$on('itemsQueried', function () {

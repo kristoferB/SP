@@ -183,8 +183,10 @@ angular.module('spGuiApp')
     } else if(type === 'Thing') {
       newItem.stateVariables = [];
     } else if(type === 'SOPSpec') {
-      newItem.sop = {isa: 'Sequence', sop: []};
-      newItem.version = 1;
+      newItem.sop = {
+        isa: 'Sequence',
+        sop: []
+      };
     } else if(type === 'SPSpec') {
       newItem.attributes.attributeTags = {}
     }
