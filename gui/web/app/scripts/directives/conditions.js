@@ -11,7 +11,12 @@ angular.module('spGuiApp')
     return {
       templateUrl: 'views/conditions.html',
       restrict: 'E',
+      scope: {
+        conditions: '=',
+        edit: '='
+      },
       link: function($scope, $element) {
+
         $scope.guardModel = '';
         $scope.guardInput = '';
         $scope.actionModel = '';
@@ -19,9 +24,85 @@ angular.module('spGuiApp')
           lastThingStringBehindCursor = '',
           stateVarSuggestions = [];
 
-        $scope.removeCondition = function(item, condition) {
-          item.conditions.splice(item.conditions.indexOf(condition));
+        $scope.removeCondition = function(index) {
+          $scope.conditions.splice(index);
         };
+
+        $scope.guardAsText = function(condition){
+          return propToText(condition.guard)
+        }
+
+        $scope.actionAsText = function(condition){
+          console.log(condition)
+          return actionFormatter(condition.action)
+        }
+
+        // Maybe move these to service. Taken from propparser when testing
+        function propToText(prop) {
+          var operator;
+          if(prop.isa === 'EQ' || prop.isa === 'NEQ') {
+            var left = handleProp(prop.left),
+              right = handleProp(prop.right);
+            if(prop.isa === 'EQ') {
+              operator = ' == ';
+            } else {
+              operator = ' != ';
+            }
+            return left + operator + right;
+          } else if(prop.isa === 'AND' || prop.isa === 'OR') {
+            operator = ' ' + prop.isa + ' ';
+            var line = '';
+            for(var i = 0; i < prop.props.length; i++) {
+              if(i > 0) {
+                line = line + operator;
+              }
+              line = line + handleProp(prop.props[i]);
+            }
+            return line;
+          } else if(prop.isa === 'NOT') {
+            return '!' + handleProp(prop.p);
+          } else {
+            return '';
+          }
+        }
+        function handleProp(prop) {
+          if(prop.hasOwnProperty('id')) {
+            return getThingAndStateVarAsStringFromId(prop.id);
+          } else if(prop.hasOwnProperty('isa')) {
+            return '(' + propToText(prop) + ')';
+          } else {
+            return prop;
+          }
+        }
+        function getThingAndStateVarAsStringFromId(idSearchedFor) {
+          var matchingThingName = false, matchingStateVarName = '';
+          spTalker.things.forEach(function(thing) {
+            if(matchingThingName) {
+              return;
+            }
+            thing.stateVariables.forEach(function(stateVariable) {
+              if(stateVariable.id === idSearchedFor) {
+                matchingStateVarName = stateVariable.name;
+                matchingThingName = thing.name;
+              }
+            })
+          });
+          return matchingThingName + '.' + matchingStateVarName;
+        }
+        function actionFormatter(action) {
+          var  textLine = '';
+
+          for(var i = 0; i < action.length; i++) {
+            if(i > 0) {
+              textLine = textLine + '; ';
+            }
+            textLine = getThingAndStateVarAsStringFromId(action[i].stateVariableID) + ' = ' + action.value;
+          }
+          return textLine;
+        }
+
+
+
 
         function getCaretPosition(ctrl) {
           var CaretPos = 0;   // IE Support

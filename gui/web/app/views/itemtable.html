@@ -15,29 +15,50 @@
         <div collapse="row.infoIsCollapsed">
           <table class="table">
             <tbody>
+            <tr ng-if="row.edit">
+                <td class="col-md-1">name:</td>
+                <td class="col-md-9" ng-if="row.edit">
+                    <ng-form name="textForm">
+                        <input no-whitespace name="textInput" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item.name" />
+                        <span class="error" ng-show="textForm.textInput.$error.nowhitespace"><br />Whitespace is not allowed here.</span>
+                    </ng-form>
+                </td>
+            </tr>
+
+            <tr ng-repeat="(key, prop) in item | filterElements">
+                <td class="col-md-1" >{{key}}:</td>
+                <td class="col-md-9">
+                    <attr-grid attr-obj="item" key="key" edit="row.edit"></attr-grid>
+                </td>
+            </tr>
+            <tr ng-repeat="(key, prop) in item.attributes">
+                <td class="col-md-1">{{key}}</td>
+                <td class="col-md-9">
+                    <attr-grid key="key" attr-obj="item.attributes" edit="row.edit"></attr-grid>
+                </td>
+            </tr>
             <tr>
-              <td>editing: </td>
-              <td>
-                <button ng-click="itemForm.$valid && itemListSvc.saveItem(item, row)" type="submit" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
-                <button ng-click="itemListSvc.reReadFromServer(item, row)" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-remove stacked-buttons"></span> Cancel</button>
-                <button ng-click="row.edit=true;" ng-if="!row.edit" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span> Edit</button>
-              </td>
+                <td class="col-md-1">type:</td>
+                <td class="col-md-9">{{item.isa}}</td>
             </tr>
-            <tr ng-repeat="(key, prop) in item" ng-if="itemListSvc.shouldBeShown(key)">
-              <td class="col-md-1">{{key}}:</td>
-              <td class="col-md-9">
-                <span ng-if="!itemListSvc.hasItsOwnViewer(key) && !row.edit || !itemListSvc.isEditable(key)">{{prop}}</span>
-                <ng-form ng-if="!itemListSvc.hasItsOwnEditor(key) && itemListSvc.isEditable(key) && row.edit" name="textForm">
-                  <input no-whitespace name="textInput" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item[key]" />
-                  <span class="error" ng-show="textForm.textInput.$error.nowhitespace"><br />Whitespace is not allowed here.</span>
-                </ng-form>
-                <attr-grid ng-if="key==='attributes'" attr-obj="prop" edit="row.edit" attribute-types="attributeTypes"></attr-grid>
-                <sv-grid ng-if="key==='stateVariables'" sv-array="prop" edit="row.edit" attribute-types="attributeTypes"></sv-grid>
-                <button ng-if="key==='sop'" ng-click="itemListSvc.openSopInNewWindow(item, addWindow)" class="btn btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
-                <conditions ng-if="key==='conditions'" ng-repeat="condition in item.conditions"></conditions>
-                <button ng-if="key==='conditions' && row.edit" class="btn btn-default" ng-click="itemListSvc.addCondition(item)"><span class="glyphicon glyphicon-plus"></span> Add condition</button>
-              </td>
+            <tr>
+                <td class="col-md-1">id:</td>
+                <td class="col-md-9">{{item.id}}</td>
             </tr>
+            <tr>
+                <td class="col-md-1">version:</td>
+                <td class="col-md-9">{{item.version}}</td>
+            </tr>
+            <tr>
+                <td>editing: </td>
+                <td>
+                    <button ng-click="itemForm.$valid && itemListSvc.saveItem(item, row)" type="submit" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                    <button ng-click="itemListSvc.reReadFromServer(item, row)" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-remove stacked-buttons"></span> Cancel</button>
+                    <button ng-click="row.edit=true;" ng-if="!row.edit" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span> Edit</button>
+                </td>
+            </tr>
+
+
             </tbody>
           </table>
         </div> <!-- end of accordion-body -->

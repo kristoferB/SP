@@ -195,9 +195,9 @@ angular.module('spGuiApp')
 
           for(var i = 0; i < actions.length; i++) {
             if(i > 0) {
-              textLine = textLine + ', ';
+              textLine = textLine + '; ';
             }
-            textLine = textLine + getThingAndStateVarAsStringFromId(actions[i].stateVariableID) + ' -> ' + actions[i].value;
+            textLine = textLine + getThingAndStateVarAsStringFromId(actions[i].stateVariableID) + ' = ' + actions[i].value;
           }
           return textLine;
         }

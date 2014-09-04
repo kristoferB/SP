@@ -7,13 +7,13 @@
  * # attrGrid
  */
 angular.module('spGuiApp')
-  .directive('attrGrid', function (RecursionHelper) {
+  .directive('attrGrid', function (RecursionHelper, itemListSvc, spTalker) {
     return {
       restrict: 'E',
       scope: {
         attrObj : '=',
         edit: '=',
-        attributeTypes: '='
+        key: '='
       },
       templateUrl: 'views/attrgrid.html',
       controller: function($scope) {
@@ -24,21 +24,29 @@ angular.module('spGuiApp')
           }
         };
 
+        $scope.itemListSvc = itemListSvc;
+
         $scope.isEmpty = function (obj) {
           return _.isEmpty(obj)
         };
 
-        if(typeof $scope.attrObj === 'undefined') {
-          $scope.attrObj = {};
-        }
+//        if(typeof $scope.attrObj[$scope.key] === 'undefined') {
+//          $scope.attrObj[$scope.key] = {};
+//        }
 
         $scope.isArray = function(){
-          var res = angular.isArray($scope.attrObj)
+          var res = angular.isArray($scope.attrObj[$scope.key])
           return res
         }
 
 
-        $scope.getType = function(obj) {
+        $scope.getType = function(obj, key) {
+          if (key == "conditions" || key == "stateVariables" || key == "sop"){
+            return key
+          }
+          if (_.isEmpty(obj) || _.isUndefined(obj)){
+            return 'empty'
+          }
           if(obj instanceof Date) {
             return 'date';
           }
@@ -49,9 +57,16 @@ angular.module('spGuiApp')
           if (angular.isDefined(obj.emptyItem)){
             return 'item'
           }
+          if (_.isArray(obj)){
+            return 'array'
+          }
 
           return typeof obj;
         };
+
+        $scope.getName = function(id){
+          return spTalker.getItemName(id)
+        }
 
 
         $scope.deleteObjProp = function(obj, prop) {

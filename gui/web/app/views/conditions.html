@@ -1,30 +1,60 @@
-<ng-form name="conditionsForm">
-  <table class="table">
+<table class="table attr-table" ng-if="!edit">
     <tr>
-      <td class="col-md-1">guard: </td>
-      <td>
-        <input ng-disabled="!row.edit" required name="guardInput" id="guardInput-{{item.id}}-{{$index}}" ng-model="guardModel" ng-trim="false" prop-parse="{condition: condition, guardOrAction: 'guard'}" class="guard-input form-control input-sm" type="text"/>
+        <td class="col-md-1">guard: </td>
+        <td class="col-md-9" >
+            <table class="table attr-table">
+            <tr ng-repeat="cond in conditions">
+                <td class="col-md-6">{{guardAsText(cond)}}</td>
+                <td class="col-md-1"><span>{{cond.attributes.kind}}</span></td>
+                <td class="col-md-1"><span>{{cond.attributes.group}}</span></td>
+            </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td class="col-md-1">action: </td>
+        <td class="col-md-9" >
+            <table class="table attr-table">
+            <tr ng-repeat="cond in conditions">
+                <td class="col-md-6">{{actionAsText(cond)}}</td>
+                <td class="col-md-1"><span>{{cond.attributes.kind}}</span></td>
+                <td class="col-md-1"><span>{{cond.attributes.group}}</span></td>
+            </tr>
+            </table>
+        </td>
+    </tr>
+
+</table>
+
+
+<ng-form ng-if="edit" name="conditionsForm" ng-repeat="condition in conditions">
+    <table class="table attr-table">
+        <tr>
+            <td>kind: </td>
+            <td><attr-grid attr-obj="condition.attributes"  key="'kind'" edit="edit"></attr-grid></td>
+            <td>group: </td>
+            <td><attr-grid attr-obj="condition.attributes" edit="edit" key="'group'"></attr-grid></td>
+        </tr>
+        <tr>
+        <td class="col-md-1">guard: </td>
+        <td>
+          <input required name="guardInput" id="guardInput-{{item.id}}-{{$index}}" ng-model="guardModel" ng-trim="false" prop-parse="{condition: condition, guardOrAction: 'guard'}" class="guard-input form-control input-sm" type="text"/>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.guardInput.$error.nameToIds]"></span>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.guardInput.$error.propParse]"></span>
         <span class="error" ng-show="conditionsForm.guardInput.$error.maxlength"><br />Not too long, please.</span>
         <span class="error" ng-show="conditionsForm.guardInput.$dirty && conditionsForm.guardInput.$error.required"><br />At least one guard is required.</span>
       </td>
-      <td rowspan="3"><button ng-if="row.edit" class="btn btn-default" ng-click="removeCondition(item, condition)"><span class="glyphicon glyphicon-minus"></span></button></td>
+      <td rowspan="3"><button ng-if="edit" class="btn btn-default" ng-click="removeCondition($index)"><span class="glyphicon glyphicon-minus"></span></button></td>
     </tr>
-    <tr>
+        <tr>
       <td>action: </td>
       <td>
-        <input ng-disabled="!row.edit" required name="actionInput" id="actionInput-{{item.id}}-{{$index}}" ng-model="actionModel" ng-trim="false" prop-parse="{condition: condition, guardOrAction: 'action'}" type="text" class="action-input form-control input-sm" />
+        <input ng-disabled="!edit" required name="actionInput" id="actionInput-{{item.id}}-{{$index}}" ng-model="actionModel" ng-trim="false" prop-parse="{condition: condition, guardOrAction: 'action'}" type="text" class="action-input form-control input-sm" />
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.actionInput.$error.nameToIds]"></span>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.actionInput.$error.actionParse]"></span>
         <span class="error" ng-show="conditionsForm.actionInput.$dirty && conditionsForm.actionInput.$error.required"><br />At least one action is required.</span>
         <span class="error" ng-show="conditionsForm.actionInput.$error.maxlength"><br/>Not too long, please.</span>
       </td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>attributes: </td>
-      <td><attr-grid attr-obj="condition.attributes" edit="row.edit" attribute-types="attributeTypes"></attr-grid></td>
       <td></td>
     </tr>
   </table>
