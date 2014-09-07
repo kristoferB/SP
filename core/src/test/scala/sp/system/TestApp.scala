@@ -47,7 +47,7 @@ class TestA(mh: ActorRef) extends Actor {
         println(x)
         if (ids.exists(_.id == o1.id)) for{o <- ids.find(_.id == o1.id)} yield(o1 = o)
       }
-      case x @ ModelDiff(ids, model, prevV, v, t) => println(x)
+      case x @ ModelDiff(ids, del, model, prevV, v, t) => println(x)
       case x: Any => println(x)
     }
   }

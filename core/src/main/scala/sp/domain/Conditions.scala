@@ -24,32 +24,41 @@ sealed trait Proposition
 
 
 case class AND(props: List[Proposition]) extends Proposition {
-  override def toString = StrMaker.makeStr(props, "&&")
+  //override def toString = StrMaker.makeStr(props, "&&")
 }
 case class OR(props: List[Proposition]) extends Proposition{
-  override def toString = StrMaker.makeStr(props, "||")
+  //override def toString = StrMaker.makeStr(props, "||")
 }
 case class NOT(p: Proposition) extends Proposition {
-  override def toString = s"!$p"
+  //override def toString = s"!$p"
 }
 
 case class EQ(left: StateEvaluator, right: StateEvaluator) extends Proposition {
-  override def toString = s"$left == $right "
+  //override def toString = s"$left == $right "
 }
 case class NEQ(left: StateEvaluator, right: StateEvaluator) extends Proposition {
-  override def toString = s"$left != $right "
+  //override def toString = s"$left != $right "
 }
+
+// dummy Propositions used in algorithms
+case object AlwaysTrue extends Proposition
+case object AlwaysFalse extends Proposition
+
 
 trait StateEvaluator
+object StateEvaluator {
+  implicit def idToSE(id: ID) = SVIDEval(id)
+  implicit def strToSE(value: String) = ValueHolder(value)
+}
 
 case class SVIDEval(id: ID) extends StateEvaluator {
-  override def toString = id.toString
+  //override def toString = id.toString
 }
 case class SVNameEval(v: String) extends StateEvaluator {
-  override def toString = v
+  //override def toString = v
 }
 case class ValueHolder(v: SPAttributeValue) extends StateEvaluator with StateUpdater {
-  override def toString = v.toString
+  //override def toString = v.toString
 }
 
 //TODO: add StateEvaluator for a+b, a+1 etc when nedded 140630

@@ -18,6 +18,8 @@ case object PropositionConditionLogic {
           case NOT(prop) => !req(prop)
           case EQ(l, r) => getValue(l) == getValue(r)
           case NEQ(l, r) => getValue(l) != getValue(r)
+          case AlwaysTrue => true
+          case AlwaysFalse => false
         }
       }
       def getValue(se: StateEvaluator): SPAttributeValue = se match {
