@@ -71,4 +71,17 @@ case class SPAttributes(attrs: Map[String, SPAttributeValue]) {
   }
 }
 
+object SPAttributes {
+  def -> (keyValues: (String, SPAttributeValue)*): SPAttributes = {
+    val map = keyValues.toMap
+    apply(map)
+  }
+}
+
+object Attr {
+  def apply(keyValues: (String, SPAttributeValue)*): SPAttributes = {
+    val map = keyValues.toMap
+    SPAttributes(map)
+  }
+}
 

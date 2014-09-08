@@ -22,8 +22,8 @@ case object SOPLogic {
     }
   }
 
-  def extractOperationCondition(sops: List[SOP], group: String, getAllConditions: Boolean = false): Map[ID, Condition] = {
-    extractOperationCondition(Parallel(sops),group, getAllConditions)
+  def extractOperationConditions(sops: List[SOP], group: String, getAllConditions: Boolean = false): Map[ID, Condition] = {
+    extractOperationCondition(Parallel(sops:_*),group, getAllConditions)
   }
 
   /**

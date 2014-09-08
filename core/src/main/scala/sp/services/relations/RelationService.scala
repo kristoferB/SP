@@ -5,6 +5,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import sp.domain._
 import sp.system.messages._
+import sp.services.specificationconverters._
 
 import scala.concurrent.duration._
 import scala.util._
@@ -12,7 +13,7 @@ import scala.util._
 /**
  * Created by Kristofer on 2014-08-04.
  */
-class RelationService extends Actor {
+class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditionsFromSpecService: String) extends Actor {
 
   import sp.system.SPActorSystem._
 
@@ -33,6 +34,8 @@ class RelationService extends Actor {
           val modelInfoF = modelHandler ? GetModelInfo(model)
           val svsF = modelHandler ? GetStateVariables(model)
           val currentRelationsF = (modelHandler ? GetResults(model, _.isInstanceOf[RelationResult]))
+          val specsCondsF = serviceHandler ? Request(conditionsFromSpecService, Attr("model"-> model))
+
           //            .mapTo[List[RelationResult]] map (_.sortWith(_.modelVersion > _.modelVersion))
 
           val resultFuture = for {
@@ -40,9 +43,17 @@ class RelationService extends Actor {
             modelInfoAnswer <- modelInfoF
             stateVarsAnswer <- svsF
             currentRelAnswer <- currentRelationsF
+            specsConds <- specsCondsF
+
           } yield {
-            List(opsAnswer, modelInfoAnswer, stateVarsAnswer, currentRelAnswer) match {
-              case SPIDs(opsIDAble) :: ModelInfo(_, mVersion, _) :: SPSVs(svsIDAble) :: SPIDs(olderRelsIDAble) :: Nil => {
+            List(opsAnswer, modelInfoAnswer, stateVarsAnswer, currentRelAnswer, specsConds) match {
+              case SPIDs(opsIDAble) ::
+                ModelInfo(_, mVersion, _) ::
+                SPSVs(svsIDAble) ::
+                SPIDs(olderRelsIDAble) ::
+                ConditionsFromSpecs(condMap) ::
+                Nil => {
+
                 val ops = opsIDAble map (_.asInstanceOf[Operation])
                 val svs = svsIDAble map (_.asInstanceOf[StateVariable])
                 val olderRels = olderRelsIDAble map (_.asInstanceOf[RelationResult]) sortWith (_.modelVersion > _.modelVersion)
@@ -53,9 +64,18 @@ class RelationService extends Actor {
                   val stateVarsMap = svs map (sv => sv.id -> sv) toMap
                   val goalfunction: State => Boolean = if (goal == None) (s: State) => false else (s: State) => s == goal.get
 
+                  val filterCondMap = condMap.map { case (id, conds) =>
+                    val filtered = conds.filter(c => groups.contains(c.attributes.getAsString("group")))
+                    id -> filtered
+                  }
+                  val updatedOps = ops.map{ o =>
+                    val updatedConds = filterCondMap.getOrElse(o.id, List[Condition]()) ++ o.conditions
+                    o.copy(conditions = updatedConds)
+                  }
+
                   // just one actor per request initially
                   val relationFinder = context.actorOf(RelationFinder.props)
-                  val inputToAlgo = FindRelations(ops, stateVarsMap, init, groups, iterations, goalfunction)
+                  val inputToAlgo = FindRelations(updatedOps, stateVarsMap, init, groups, iterations, goalfunction)
 
                   //TODO: Handle long running algorithms better
                   val answer = relationFinder ? inputToAlgo
@@ -113,5 +133,6 @@ class RelationService extends Actor {
 
 
 object RelationService{
-  def props = Props(classOf[RelationService])
+  def props(modelHandler: ActorRef, serviceHandler: ActorRef, conditionsFromSpecService: String) = Props(classOf[RelationService], serviceHandler, modelHandler, conditionsFromSpecService)
+
 }

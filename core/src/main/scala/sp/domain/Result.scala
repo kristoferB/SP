@@ -23,16 +23,3 @@ case class RelationResult(name: String,
   }
 }
 
-case class ConditionResult(name: String,
-                          conditionMap: Map[ID, Condition],
-                          model: String,
-                          modelVersion: Long,
-                          attributes: SPAttributes = SPAttributes(Map())
-                           ) extends Result {
-  override def update(currentID: ID, currentVersion: Long): IDAble = {
-    new ConditionResult(name, conditionMap, model, modelVersion, attributes){
-      override lazy val id = currentID
-      override lazy val version = currentVersion + 1
-    }
-  }
-}

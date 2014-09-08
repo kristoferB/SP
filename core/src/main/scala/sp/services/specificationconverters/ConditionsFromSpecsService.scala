@@ -9,6 +9,9 @@ import sp.system.messages._
 import scala.concurrent.duration._
 import scala.util._
 
+
+case class ConditionsFromSpecs(map: Map[ID, List[Condition]])
+
 /**
  * Created by Kristofer on 2014-09-04.
  */
@@ -32,9 +35,10 @@ class ConditionsFromSpecsService(modelHandler: ActorRef) extends Actor {
               val conds = sopSpecs map{spec =>
                 val sop = spec.sop
                 val group = spec.name
-                extractOperationCondition(sop, group)
+                extractOperationConditions(sop, group)
               }
               val fold = mergeConditionMaps(conds)
+              reply ! ConditionsFromSpecs(fold)
 
             case error: SPErrorString => reply !  error
           }

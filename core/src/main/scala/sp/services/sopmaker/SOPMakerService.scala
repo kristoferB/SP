@@ -23,7 +23,7 @@ class SOPMakerService(modelHandler: ActorRef) extends Actor {
       extract(attr) match {
         case Some((model, opsID, base)) => {
           val modelInfoF = modelHandler ? GetModelInfo(model)
-          val currentRelationsF = (modelHandler ? GetResults(model, _.isInstanceOf[RelationResult]))
+          val currentRelationsF = modelHandler ? GetResults(model, _.isInstanceOf[RelationResult])
 
           val resultFuture = for {
             modelInfoAnswer <- modelInfoF

@@ -27,9 +27,12 @@ object SP extends App {
 
   import sp.services.sopmaker._
   serviceHandler ! RegisterService("SopMaker",
-    system.actorOf(SOPMakerService.props(modelHandler), "SOPMaker"))
+    system.actorOf(SOPMakerService.props(modelHandler, serviceHandler, "ConditionsFromSpecsService"), "SOPMaker"))
 
 
+  import sp.services.specificationconverters._
+  serviceHandler ! RegisterService("ConditionsFromSpecsService",
+    system.actorOf(ConditionsFromSpecsService.props(modelHandler), "ConditionsFromSpecsService"))
 
 
   // launch REST API
