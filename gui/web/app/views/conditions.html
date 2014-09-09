@@ -1,9 +1,9 @@
 <ng-form name="conditionsForm">
   <table class="table">
-    <tr>
+    <tr ng-init="guardOrAction = 'guard'">
       <td class="col-md-1">guard: </td>
       <td>
-        <input ng-disabled="!row.edit" required name="guardInput" id="guardInput-{{item.id}}-{{$index}}" ng-model="guardModel" ng-trim="false" prop-parse="{condition: condition, guardOrAction: 'guard'}" class="guard-input form-control input-sm" type="text"/>
+        <input ng-disabled="!row.edit" required name="guardInput" ng-model="guardModel" ng-trim="false" condition-suggestions prop-parse class="guard-input form-control input-sm" type="text"/>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.guardInput.$error.nameToIds]"></span>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.guardInput.$error.propParse]"></span>
         <span class="error" ng-show="conditionsForm.guardInput.$error.maxlength"><br />Not too long, please.</span>
@@ -11,10 +11,10 @@
       </td>
       <td rowspan="3"><button ng-if="row.edit" class="btn btn-sm btn-default" ng-click="removeCondition(item, condition)"><span class="glyphicon glyphicon-minus"></span></button></td>
     </tr>
-    <tr>
+    <tr ng-init="guardOrAction = 'action'">
       <td>action: </td>
       <td>
-        <input ng-disabled="!row.edit" required name="actionInput" id="actionInput-{{item.id}}-{{$index}}" ng-model="actionModel" ng-trim="false" prop-parse="{condition: condition, guardOrAction: 'action'}" type="text" class="action-input form-control input-sm" />
+        <input ng-disabled="!row.edit" required name="actionInput" ng-model="actionModel" ng-trim="false" condition-suggestions prop-parse type="text" class="action-input form-control input-sm" />
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.actionInput.$error.nameToIds]"></span>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.actionInput.$error.actionParse]"></span>
         <span class="error" ng-show="conditionsForm.actionInput.$dirty && conditionsForm.actionInput.$error.required"><br />At least one action is required.</span>

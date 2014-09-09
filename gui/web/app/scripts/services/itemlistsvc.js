@@ -32,13 +32,19 @@ angular.module('spGuiApp')
     };
 
     factory.saveItem = function(item, row) {
-      spTalker.saveItem(item);
+      spTalker.saveItem(item, true);
       row.edit = false;
     };
 
     factory.reReadFromServer = function(item, row) {
       spTalker.reReadFromServer(item);
       row.edit=false;
+    };
+
+    factory.deleteItem = function(item) {
+      if(confirm('You are about to delete ' + item.name + ' from server. Are you sure?')) {
+        spTalker.deleteItem(item);
+      }
     };
 
     factory.createItem = function(type, parentItem) {

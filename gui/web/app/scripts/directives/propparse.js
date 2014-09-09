@@ -10,13 +10,11 @@ angular.module('spGuiApp')
   .directive('propParse', function (spTalker) {
     return {
       require: 'ngModel',
-      scope: {
-        passedObj: '=propParse'
-      },
       link: function postLink(scope, element, attrs, ngModel) {
         var thingAndStateVarMatchExp = /([\w]*\.[\w]*)/gi,
           thingMatchExp = /([\w]*)\./i,
-          stateVarMatchExp = /\.([\w]*)/i;
+          stateVarMatchExp = /\.([\w]*)/i,
+          guardOrAction = scope.guardOrAction;
 
         function namesToId(viewValue) {
           var internalCopy = angular.copy(viewValue),
@@ -25,11 +23,7 @@ angular.module('spGuiApp')
           internalCopy = internalCopy.replace(thingAndStateVarMatchExp, function (thingAndStateVarString) {
             var thingString = thingMatchExp.exec(thingAndStateVarString)[1],
               stateVarString = stateVarMatchExp.exec(thingAndStateVarString)[1];
-            console.log(thingString);
-            console.log(stateVarString);
-            var thing = spTalker.things.filter(function (aThing) {
-              return aThing.name.toLowerCase() === thingString.toLowerCase();
-            })[0];
+            var thing = spTalker.thingsByName[thingString.toLowerCase()];
             if (typeof thing !== 'undefined') {
               if(typeof stateVarString !== 'undefined') {
                 var stateVar = thing.stateVariables.filter(function (aStateVar) {
@@ -55,13 +49,11 @@ angular.module('spGuiApp')
             ngModel.$setValidity('nameToIds',false);
           }
 
-          if(scope.passedObj.guardOrAction === 'guard') {
+          if(guardOrAction === 'guard') {
             parseTextAsProp(internalCopy);
           } else {
             parseTextAsAction(internalCopy);
           }
-
-          console.log(internalCopy);
 
           return viewValue;
         }
@@ -92,27 +84,23 @@ angular.module('spGuiApp')
             actions.push(action);
           }
           if(valid) {
-            console.log('Valid action');
-            console.log(actions);
             ngModel.$setValidity('actionParse', true);
-            scope.passedObj.condition.action = actions;
+            scope.condition.action = actions;
           } else {
-            console.log('Invalid action');
             ngModel.$setValidity('actionParse', false);
           }
         }
 
         function parseTextAsProp(viewValue){
           spTalker.parseProposition(viewValue)
-            .success(function (data, status, headers, config) {
+            .success(function (data) {
               if(typeof data === 'string' && viewValue !== '') {
                 ngModel.$setValidity('propParse',false);
               } else {
                 if(typeof viewValue === 'undefined' || viewValue === '') {
-                  scope.passedObj.condition[scope.passedObj.guardOrAction] = {isa:'EQ', right: true, left: true}; // work-around to enable save of ops as long as backend doesn't accept anything else
+                  scope.condition['guard'] = {isa:'EQ', right: true, left: true}; // work-around to enable save of ops as long as backend doesn't accept anything else
                 } else {
-                  scope.passedObj.condition[scope.passedObj.guardOrAction] = data;
-                  console.log(data);
+                  scope.condition['guard'] = data;
                 }
                 ngModel.$setValidity('propParse',true);
               }
@@ -128,8 +116,8 @@ angular.module('spGuiApp')
 
 
         function propFormatter(viewValue) {
-          if(scope.passedObj.condition.hasOwnProperty(scope.passedObj.guardOrAction)) {
-            var data = scope.passedObj.condition[scope.passedObj.guardOrAction];
+          if(scope.condition.hasOwnProperty('guard')) {
+            var data = scope.condition['guard'];
             return propToText(data);
           }
           return '';
@@ -137,17 +125,19 @@ angular.module('spGuiApp')
 
         function getThingAndStateVarAsStringFromId(idSearchedFor) {
           var matchingThingName = false, matchingStateVarName = '';
-          spTalker.things.forEach(function(thing) {
+          for(var id in spTalker.things) {
             if(matchingThingName) {
-              return;
+              break;
             }
-            thing.stateVariables.forEach(function(stateVariable) {
-              if(stateVariable.id === idSearchedFor) {
-                matchingStateVarName = stateVariable.name;
-                matchingThingName = thing.name;
-              }
-            })
-          });
+            if(spTalker.things.hasOwnProperty(id)) {
+              spTalker.things[id].stateVariables.forEach(function(stateVariable) {
+                if(stateVariable.id === idSearchedFor) {
+                  matchingStateVarName = stateVariable.name;
+                  matchingThingName = spTalker.things[id].name;
+                }
+              })
+            }
+          }
           return matchingThingName + '.' + matchingStateVarName;
         }
 
@@ -190,7 +180,7 @@ angular.module('spGuiApp')
         }
 
         function actionFormatter(viewValue) {
-          var actions = scope.passedObj.condition.action,
+          var actions = scope.condition.action,
             textLine = '';
 
           for(var i = 0; i < actions.length; i++) {
@@ -203,7 +193,7 @@ angular.module('spGuiApp')
         }
 
         //For model -> DOM validation
-        if(scope.passedObj.guardOrAction === 'guard') {
+        if(scope.guardOrAction === 'guard') {
           ngModel.$formatters.unshift(propFormatter);
         } else {
           ngModel.$formatters.unshift(actionFormatter);

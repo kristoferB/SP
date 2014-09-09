@@ -22,10 +22,10 @@ angular.module('spGuiApp')
       models: [],
       users: [],
       operations: [],
-      items: [],
+      items: {},
       itemsRead: false,
-      things: [],
-      thingsAsStrings: [],
+      things: {},
+      thingsByName: {},
       item : $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'}),
       model: $resource(apiUrl + '/models/:modelID', { modelID: '@modelID' }),
       user: $resource(apiUrl + '/users', {}),
@@ -45,7 +45,8 @@ angular.module('spGuiApp')
   }
 
   factory.getItemById = function(id) {
-    var result = $.grep(factory.items, function(e){ return e.id === id; });
+    return factory.items[id];
+    /*var result = $.grep(factory.items, function(e){ return e.id === id; });
     if (result.length == 0) {
       var error = 'Could not find an item with id ' + id + '. The requested action has most likely been aborted.';
       console.log(error);
@@ -58,7 +59,7 @@ angular.module('spGuiApp')
       console.log(error2);
       notificationService.error(error2);
       return result[0];
-    }
+    }*/
   };
 
   factory.parseProposition = function(proposition) {
@@ -71,35 +72,33 @@ angular.module('spGuiApp')
   factory.loadModels();
 
   var filterOutThings = function() {
-    while(factory.things.length > 0) {
-      factory.things.pop();
-    }
-    factory.items.forEach(function(item) {
-      if(item.isa === 'Thing') {
-        factory.things.push(item)
+    for(var thingID in factory.things) {
+      if (factory.things.hasOwnProperty(thingID)) {
+        delete factory.thingsByName[factory.items[thingID].name];
+        delete factory.things[thingID];
       }
-    });
-  };
-
-  var listThingsAsStrings = function() {
-    while(factory.thingsAsStrings.length > 0) {
-      factory.thingsAsStrings.pop();
     }
-    factory.things.forEach(function(thing) {
-      factory.thingsAsStrings.push(thing.name);
-    });
-
+    for(var id in factory.items) {
+      if (factory.items.hasOwnProperty(id)) {
+        if (factory.items[id].isa === 'Thing') {
+          factory.things[id] = factory.items[id];
+          factory.thingsByName[factory.items[id].name.toLowerCase()] = factory.items[id];
+        }
+      }
+    }
   };
 
   var updateItemLists = function() {
     filterOutThings();
-    listThingsAsStrings();
   };
 
   factory.loadAll = function() {
     factory.loadModels();
-    factory.item.query({model: factory.activeModel.model}, function(data) {
-      angular.copy(data, factory.items);
+    factory.item.query({model: factory.activeModel.model}, function(items) {
+      //angular.copy(items, factory.items);
+      items.forEach(function(item) {
+        factory.items[item.id] = item;
+      });
       factory.activeSPSpec = factory.getItemById(factory.activeModel.attributes.activeSPSpec);
       updateItemLists();
       $rootScope.$broadcast('itemsQueried');
@@ -153,9 +152,9 @@ angular.module('spGuiApp')
         if(showSuccessNotifications) {
           notificationService.success(item.isa + ' \"' + item.name + '\" was successfully saved');
         }
-        if(data !== item) {
+        /*if(data !== item) {
           angular.copy(data, item);
-        }
+        }*/
         updateItemLists();
         if(successHandler) {
           successHandler(data);
@@ -183,34 +182,35 @@ angular.module('spGuiApp')
     } else if(type === 'Thing') {
       newItem.stateVariables = [];
     } else if(type === 'SOPSpec') {
-      newItem.sop = {
+      newItem.sop = [{
         isa: 'Sequence',
         sop: []
-      };
+      }];
     } else if(type === 'SPSpec') {
       newItem.attributes.attributeTags = {}
     }
     newItem.$save(
       {model:factory.activeModel.model},
       function(data) {
-        factory.items.unshift(data);
+        factory.items[data.id] = data;
         notificationService.success('A new ' + data.isa + ' with name ' + data.name + ' was successfully created.');
         successHandler(data);
       },
       function(error) { console.log(error); notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.'); console.log(error); }
     );
-
   };
 
   factory.deleteItem = function(itemToDelete) {
     // remove item from parent items
-    factory.items.forEach( function(item) {
-      var index = item.attributes.children.indexOf(itemToDelete.id);
-      if(index !== -1) {
-        item.attributes.children.splice(index, 1);
-        factory.saveItem(item, false);
+    for(var id in factory.items) {
+      if(factory.items.hasOwnProperty(id)) {
+        var index = factory.items[id].attributes.children.indexOf(itemToDelete.id);
+        if (index !== -1) {
+          factory.items[id].attributes.children.splice(index, 1);
+          factory.saveItem(factory.items[id], false);
+        }
       }
-    });
+    }
 
     removeItemFromModel();
 
@@ -233,8 +233,7 @@ angular.module('spGuiApp')
       itemToDelete.$delete(
         {model:factory.activeModel.model},
         function(data) {
-          var index = factory.items.indexOf(itemToDelete);
-          factory.items.splice(index, 1);
+          delete factory.items[data.id];
           notificationService.success(data.isa + ' ' + data.name + ' was successfully deleted.');
           $rootScope.$broadcast('itemsQueried');
         },
@@ -247,9 +246,7 @@ angular.module('spGuiApp')
   };
 
   factory.reReadFromServer = function(item) {
-    item.$get({model: factory.activeModel.model}, function(data) {
-      angular.copy(data, item);
-    });
+    item.$get({model: factory.activeModel.model});
   };
 
   /*$http.defaults.headers.common['Authorization'] = 'Basic ' + window.btoa('admin' + ':' + 'pass');

@@ -18,10 +18,8 @@ angular.module('spGuiApp')
         function noWhitespace(viewValue){
 
           if(noWhitespacePattern.test(viewValue)) {
-            console.log('Whitespace found');
             ngModel.$setValidity('nowhitespace',false);
           } else {
-            console.log('No whitespace found');
             ngModel.$setValidity('nowhitespace',true);
           }
 

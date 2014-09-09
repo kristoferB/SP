@@ -28,9 +28,9 @@
         <attr-grid edit="edit" attr-obj="sv.attributes" attribute-types="attributeTypes"></attr-grid>
       </td>
       <td ng-if="edit">
-        <span ng-click="deleteSV(svArray,sv);" class="btn btn-default glyphicon glyphicon-minus"></span>
+        <span ng-click="deleteSV(svArray,sv);" class="btn btn-sm btn-default glyphicon glyphicon-minus"></span>
       </td>
     </tr>
     </tbody>
 </table>
-<button ng-if="edit" type="button" class="btn btn-default" ng-click="svArray.push({name:'newVar', attributes:{}})"><span class="glyphicon glyphicon-plus"></span> New stateVar</button>
+<button ng-if="edit" type="button" class="btn btn-sm btn-default" ng-click="svArray.push({name:'newVar', attributes:{}})"><span class="glyphicon glyphicon-plus"></span> New stateVar</button>

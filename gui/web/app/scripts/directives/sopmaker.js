@@ -30,26 +30,25 @@ angular.module('spGuiApp')
       scope: {
         windowStorage: '='
       },
-      link: function postLink(scope, element, attrs) {
+      link: function postLink(scope) {
 
-        var sopSpec;
-        scope.sopDef = [{
-          isa : 'Sequence',
-          sop : [],
-          clientSideAdditions: { vertDir: true }
-        }];
+        var sopSpecSource;
+        scope.sopSpecCopy = {
+          vertDir: true,
+          sop: []
+        };
 
         scope.addSop = function() {
-          scope.sopDef.push({
-              'isa' : 'Sequence',
-              'sop' : []
+          scope.sopSpecCopy.sop.push({
+              isa: 'Sequence',
+              sop: []
             }
           );
           reDraw();
         };
 
         scope.toggleDirection = function() {
-          scope.sopDef[0].clientSideAdditions.vertDir = !scope.sopDef[0].clientSideAdditions.vertDir;
+          scope.sopSpecCopy.vertDir = !scope.sopSpecCopy.vertDir;
           reDraw();
         };
 
@@ -62,8 +61,9 @@ angular.module('spGuiApp')
         }
 
         function getSopDefAndDraw() {
-          sopSpec = spTalker.getItemById(scope.windowStorage.sopSpecId);
-          angular.copy(sopSpec.sop, scope.sopDef);
+          sopSpecSource = spTalker.getItemById(scope.windowStorage.sopSpecId);
+          angular.copy(sopSpecSource, scope.sopSpecCopy);
+          scope.sopSpecCopy.vertDir = true;
           draw();
         }
 
@@ -81,11 +81,11 @@ angular.module('spGuiApp')
         }
 
         scope.saveSopSpec = function() {
-          if(typeof sopSpec === 'undefined') {
+          if(typeof sopSpecSource === 'undefined') {
             notificationService.error('There\'s no SOPSpec item connected to this window.');
           } else {
-            sopSpec.sop = clone(scope.sopDef);
-            spTalker.saveItem(sopSpec);
+            sopSpecSource.sop = clone(scope.sopSpecCopy.sop);
+            spTalker.saveItem(sopSpecSource, true);
           }
         };
 
