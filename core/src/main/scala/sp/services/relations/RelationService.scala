@@ -54,6 +54,13 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
                 ConditionsFromSpecs(condMap) ::
                 Nil => {
 
+//                println(s"relationsSerice got:")
+//                println(s"ops: $opsIDAble ")
+//                println(s"mVersion: $mVersion ")
+//                println(s"svsIdAble: $svsIDAble ")
+//                println(s"olderRels: $olderRelsIDAble ")
+//                println(s"condMap: $condMap ")
+
                 val ops = opsIDAble map (_.asInstanceOf[Operation])
                 val svs = svsIDAble map (_.asInstanceOf[StateVariable])
                 val olderRels = olderRelsIDAble map (_.asInstanceOf[RelationResult]) sortWith (_.modelVersion > _.modelVersion)
@@ -61,21 +68,31 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
                 if (olderRels.nonEmpty && olderRels.head.modelVersion == mVersion) reply ! olderRels.head
                 else {
 
-                  val stateVarsMap = svs map (sv => sv.id -> sv) toMap
-                  val goalfunction: State => Boolean = if (goal == None) (s: State) => false else (s: State) => s == goal.get
+                  val stateVarsMap = svs.map(sv => sv.id -> sv).toMap ++ createOpsStateVars(ops)
+                  val goalfunction: State => Boolean = if (goal == None) (s: State) => false else (s: State) => {
+                    val g = goal.get
+                    g.state.forall{case (sv, value) => s(sv) == value}
+                  }
 
                   val filterCondMap = condMap.map { case (id, conds) =>
-                    val filtered = conds.filter(c => groups.contains(c.attributes.getAsString("group")))
+                    val filtered = if (groups.isEmpty) conds else conds.filter(c => groups.contains(c.attributes.getAsString("group")))
                     id -> filtered
                   }
                   val updatedOps = ops.map{ o =>
                     val updatedConds = filterCondMap.getOrElse(o.id, List[Condition]()) ++ o.conditions
-                    o.copy(conditions = updatedConds)
+                    val id = o.id
+                    val version = o.version
+                    o.copy(conditions = updatedConds).update(id, version).asInstanceOf[Operation]
                   }
+
+                  println(s"updated ops: $updatedOps")
+
+                  println(s"init: $init")
+                  println(s"added: ${addOpsToState(updatedOps, init)}")
 
                   // just one actor per request initially
                   val relationFinder = context.actorOf(RelationFinder.props)
-                  val inputToAlgo = FindRelations(updatedOps, stateVarsMap, init, groups, iterations, goalfunction)
+                  val inputToAlgo = FindRelations(updatedOps, stateVarsMap ++ createOpsStateVars(updatedOps), addOpsToState(updatedOps, init), groups, iterations, goalfunction)
 
                   //TODO: Handle long running algorithms better
                   val answer = relationFinder ? inputToAlgo
@@ -128,6 +145,25 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
       s"groups(optional): ${attr.getAsList("groups")}" + "\n" +
       s"goal(optional): ${attr.getStateAttr("goal")}" + "\n" +
       s"iterations(optional): ${attr.getAsInt("iteration")}")
+  }
+
+  /**
+   * Adds opertion init state ("i") to a state
+   * @param ops
+   * @param state
+   * @return an updated state object
+   */
+  def addOpsToState(ops: List[Operation], state: State) = {
+    state.next(ops.map(_.id -> StringPrimitive("i")).toMap)
+  }
+
+  /**
+   * Adds opertion statevariables to the stateVarMap
+   * @param ops The operations
+   * @return a stateVar map
+   */
+  def createOpsStateVars(ops: List[Operation]) = {
+    ops.map(o => o.id -> StateVariable.operationVariable(o)).toMap
   }
 }
 
