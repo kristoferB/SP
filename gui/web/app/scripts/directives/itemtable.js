@@ -34,6 +34,22 @@ angular.module('spGuiApp')
           $scope.items = $scope.servedItems;
         }
 
+        $scope.filterKey = function(key){
+          return key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes'
+        }
+
+        $scope.isAttributesEmpty = function(item) {
+          return _.isEmpty(item.attributes)
+        }
+
+        $scope.objectify = function(key, value) {
+            var obj = {}
+            obj[key] = value
+            return obj
+        }
+
+
+
       },
       compile: function(element) {
         return RecursionHelper.compile(element);

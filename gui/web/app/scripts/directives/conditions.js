@@ -11,7 +11,12 @@ angular.module('spGuiApp')
     return {
       templateUrl: 'views/conditions.html',
       restrict: 'E',
+      scope: {
+        conditions: '=',
+        edit: '='
+      },
       link: function($scope, $element) {
+
         $scope.guardModel = '';
         $scope.guardInput = '';
         $scope.actionModel = '';

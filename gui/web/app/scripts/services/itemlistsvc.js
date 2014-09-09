@@ -75,9 +75,11 @@ angular.module('spGuiApp')
       spTalker.createItem(type, onItemCreationSuccess);
     };
 
-    factory.addCondition = function(item) {
-      item.conditions.push({guard: {}, action: [], attributes: {}});
+    factory.addCondition = function(cond) {
+      cond.push({guard: {}, action: [], attributes: {}});
+      console.log("add condition" + cond)
     };
+
 
     factory.stopPropagation = function(e) {
       e.stopPropagation();
@@ -88,7 +90,7 @@ angular.module('spGuiApp')
     };
 
     factory.hasItsOwnEditor = function(key) {
-      return key === 'attributes' || key === 'stateVariables' || key === 'sop' || key === 'conditions';
+      return key === 'stateVariables' || key === 'sop' || key === 'conditions';
     };
 
     factory.hasItsOwnViewer = function(key) {
@@ -109,3 +111,14 @@ angular.module('spGuiApp')
     return factory;
 
   }]);
+
+angular.module('spGuiApp').filter('filterElements', function () {
+  return function (input) {
+    var filteredInput ={};
+    angular.forEach(input, function(value, key){
+      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes'){
+        filteredInput[key]= value;
+      }
+    });
+    return filteredInput;
+  }});

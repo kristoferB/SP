@@ -63,19 +63,19 @@ angular.module('spGuiApp')
             valid = true, actions = [];
           for(var i = 0; i < words.length; i++) {
             var action = {};
-            if(typeof words[i] === 'string' && words[i] !== '->') {
+            if(typeof words[i] === 'string' && words[i] !== '=') {
               action.stateVariableID = words[i];
             } else {
               valid = false;
               break;
             }
             i++;
-            if(typeof words[i] !== 'string' || words[i] !== '->') {
+            if(typeof words[i] !== 'string' || words[i] !== '=') {
               valid = false;
               break;
             }
             i++;
-            if(typeof words[i] === 'string' && words[i] !== '->' && words[i].length > 0) {
+            if(typeof words[i] === 'string' && words[i] !== '=' && words[i].length > 0) {
               action.value = words[i].replace(',', '');
             } else {
               valid = false;
@@ -185,9 +185,9 @@ angular.module('spGuiApp')
 
           for(var i = 0; i < actions.length; i++) {
             if(i > 0) {
-              textLine = textLine + ', ';
+              textLine = textLine + '; ';
             }
-            textLine = textLine + getThingAndStateVarAsStringFromId(actions[i].stateVariableID) + ' -> ' + actions[i].value;
+            textLine = textLine + getThingAndStateVarAsStringFromId(actions[i].stateVariableID) + ' = ' + actions[i].value;
           }
           return textLine;
         }
