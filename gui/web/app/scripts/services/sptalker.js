@@ -65,9 +65,9 @@ angular.module('spGuiApp')
   factory.getItemName = function(id) {
     var item =  _.find(factory.items, function(item) {
       return item.id == id
-    })
+    });
     return item.name
-  }
+  };
 
   //TODO: Handle services in a general way. Retrieve possible services from server
   factory.parseProposition = function(proposition) {

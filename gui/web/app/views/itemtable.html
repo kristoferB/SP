@@ -34,13 +34,13 @@
             <tr ng-repeat="(key, prop) in item | filterElements">
                 <td class="col-md-1" >{{key}}:</td>
                 <td class="col-md-9">
-                    <attr-grid attr-obj="item" key="key" edit="row.edit"></attr-grid>
+                    <attr-grid attr-obj="item" key="key" edit="row.edit" item="item" add-window="addWindow"></attr-grid>
                 </td>
             </tr>
             <tr ng-repeat="(key, prop) in item.attributes">
                 <td class="col-md-1">{{key}}</td>
                 <td class="col-md-9">
-                    <attr-grid key="key" attr-obj="item.attributes" edit="row.edit"></attr-grid>
+                    <attr-grid key="key" attr-obj="item.attributes" edit="row.edit" item="item" add-window="addWindow"></attr-grid>
                 </td>
             </tr>
             <tr>
@@ -54,14 +54,6 @@
             <tr>
                 <td class="col-md-1">version:</td>
                 <td class="col-md-9">{{item.version}}</td>
-            </tr>
-            <tr>
-                <td>editing: </td>
-                <td>
-                    <button ng-click="itemForm.$valid && itemListSvc.saveItem(item, row)" type="submit" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
-                    <button ng-click="itemListSvc.reReadFromServer(item, row)" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-remove stacked-buttons"></span> Cancel</button>
-                    <button ng-click="row.edit=true;" ng-if="!row.edit" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span> Edit</button>
-                </td>
             </tr>
 
 

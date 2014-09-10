@@ -4,7 +4,7 @@
         <td class="col-md-9" >
             <table class="table attr-table">
             <tr ng-repeat="cond in conditions">
-                <td class="col-md-6">{{guardAsText(cond)}}</td>
+                <td class="col-md-6">{{itemSvc.guardAsText(cond.guard)}}</td>
                 <td class="col-md-1"><span>{{cond.attributes.kind}}</span></td>
                 <td class="col-md-1"><span>{{cond.attributes.group}}</span></td>
             </tr>
@@ -16,7 +16,7 @@
         <td class="col-md-9" >
             <table class="table attr-table">
             <tr ng-repeat="cond in conditions">
-                <td class="col-md-6">{{actionAsText(cond)}}</td>
+                <td class="col-md-6">{{itemSvc.actionAsText(cond.action)}}</td>
                 <td class="col-md-1"><span>{{cond.attributes.kind}}</span></td>
                 <td class="col-md-1"><span>{{cond.attributes.group}}</span></td>
             </tr>
@@ -44,7 +44,7 @@
         <span class="error" ng-show="conditionsForm.guardInput.$error.maxlength"><br />Not too long, please.</span>
         <span class="error" ng-show="conditionsForm.guardInput.$dirty && conditionsForm.guardInput.$error.required"><br />At least one guard is required.</span>
       </td>
-      <td rowspan="3"><button ng-if="edit" class="btn btn-default" ng-click="removeCondition($index)"><span class="glyphicon glyphicon-minus"></span></button></td>
+      <td rowspan="3"><button ng-if="edit" class="btn btn-sm btn-default" ng-click="removeCondition($index)"><span class="glyphicon glyphicon-minus"></span></button></td>
     </tr>
     <tr ng-init="guardOrAction = 'action'">
       <td>action: </td>

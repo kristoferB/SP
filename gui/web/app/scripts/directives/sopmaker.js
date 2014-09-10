@@ -70,7 +70,7 @@ angular.module('spGuiApp')
         if(typeof scope.windowStorage.sopSpecId === 'undefined') {
           draw();
         } else {
-          if(spTalker.items.length === 0) {
+          if(Object.keys(spTalker.items).length === 0) {
             var listener = scope.$on('itemsQueried', function () {
               getSopDefAndDraw();
               listener();
