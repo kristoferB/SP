@@ -16,12 +16,12 @@ var CreatemodelCtrl = function ($scope, $modalInstance, spTalker, notificationSe
     var newModel = new spTalker.model();
     newModel.model = givenName;
     newModel.attributes = {};
-    newModel.$save(function(savedModel, putResponseHeaders) {
+    newModel.$save(function(savedModel) {
       notificationService.success('A new model \"' + savedModel.model + '\" was successfully created');
       spTalker.models.push(savedModel);
       spTalker.activeModel = savedModel;
       createDefaultSPSpec();
-    }, function(error) {
+    }, function() {
       notificationService.error('The model creation failed.');
     });
     $scope.modelName = '';
@@ -31,14 +31,17 @@ var CreatemodelCtrl = function ($scope, $modalInstance, spTalker, notificationSe
 
     function onItemCreationSuccess(data) {
       spTalker.activeModel.attributes.activeSPSpec = data.id;
-      spTalker.activeModel.$save();
-      $scope.close();
+      spTalker.activeModel.attributes.children = [data.id];
+      spTalker.activeModel.$save({modelID: spTalker.activeModel.model}, function(data) {
+        notificationService.success('The new model ' + data.model + ' was successfully saved.');
+        $modalInstance.close(data);
+      });
     }
 
     spTalker.createItem('SPSpec', onItemCreationSuccess);
   }
 
-  $scope.close = function () {
+  $scope.dismiss = function () {
     $modalInstance.dismiss('cancel');
   };
 };

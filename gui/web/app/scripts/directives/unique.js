@@ -20,7 +20,6 @@ angular.module('spGuiApp')
           scope.passedObj.existingObjects.forEach(function(existingObject) {
             if((viewValue === existingObject[scope.passedObj.propKey]) && (scope.passedObj.editedObj !== existingObject)) {
               exists = true;
-              console.log('Does already exist');
             }
           });
           if(exists) {

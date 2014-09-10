@@ -22,7 +22,7 @@ case class IDSaver(isa: String,
                    version: Option[Long],
                    conditions: Option[List[Condition]],
                    stateVariables: Option[List[StateVariable]],
-                   sop: Option[SOP])
+                   sop: Option[List[SOP]])
 
 
 

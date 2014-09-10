@@ -13,7 +13,9 @@ angular.module('spGuiApp')
       scope: {
         attrObj : '=',
         edit: '=',
-        key: '='
+        key: '=',
+        item: '=',
+        addWindow: '='
       },
       templateUrl: 'views/attrgrid.html',
       controller: function($scope) {
@@ -30,19 +32,16 @@ angular.module('spGuiApp')
           return _.isEmpty(obj)
         };
 
-//        if(typeof $scope.attrObj[$scope.key] === 'undefined') {
-//          $scope.attrObj[$scope.key] = {};
-//        }
-
         $scope.isArray = function(){
-          var res = angular.isArray($scope.attrObj[$scope.key])
-          return res
-        }
-
+          return angular.isArray($scope.attrObj[$scope.key]);
+        };
 
         $scope.getType = function(obj, key) {
           if (key == "conditions" || key == "stateVariables" || key == "sop"){
             return key
+          }
+          if (_.isArray(obj)){
+            return 'array'
           }
           if (_.isEmpty(obj) || _.isUndefined(obj)){
             return 'empty'
@@ -57,16 +56,13 @@ angular.module('spGuiApp')
           if (angular.isDefined(obj.emptyItem)){
             return 'item'
           }
-          if (_.isArray(obj)){
-            return 'array'
-          }
 
           return typeof obj;
         };
 
         $scope.getName = function(id){
           return spTalker.getItemName(id)
-        }
+        };
 
 
         $scope.deleteObjProp = function(obj, prop) {

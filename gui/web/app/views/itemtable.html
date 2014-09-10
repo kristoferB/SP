@@ -6,12 +6,18 @@
     <td class="checkbox-column"><input type="checkbox" ng-click="itemListSvc.stopPropagation($event)" ng-model="item.checked" ng-change="alterCheckedArray(item)" /></td>
     <td ng-repeat="column in selection">{{item[column]}}</td>
     <td ng-repeat="attrColumn in attrSelection">{{item['attributes'][attrColumn]}}</td>
-    <td><button class="btn btn-xs btn-default" ng-click="row.expandChildren = false; row.infoIsCollapsed = !row.infoIsCollapsed; itemListSvc.stopPropagation($event);"><span class="glyphicon glyphicon-info-sign"></span></button></td>
+    <td>
+      <button class="btn btn-xs btn-default" ng-click="row.expandChildren = false; row.infoIsCollapsed = !row.infoIsCollapsed; itemListSvc.stopPropagation($event);" ng-if="!row.edit"><span class="glyphicon glyphicon-info-sign"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="row.expandChildren = false; row.infoIsCollapsed = false; row.edit=true; itemListSvc.stopPropagation($event);" ng-if="!row.edit" ><span class="glyphicon glyphicon-edit"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemForm.$valid && itemListSvc.saveItem(item, row); itemListSvc.stopPropagation($event);" ng-if="row.edit" type="submit"><span class="glyphicon glyphicon-floppy-disk"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemListSvc.reReadFromServer(item, row); itemListSvc.stopPropagation($event);" ng-if="row.edit" ><span class="glyphicon glyphicon-remove"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemListSvc.deleteItem(item); itemListSvc.stopPropagation($event);" ng-if="!row.edit"><span class="glyphicon glyphicon-remove"></span></button>
+    </td>
   </tr>
 
   <tr ng-class-odd="'odd-row'" ng-class-even="'even-row'">
     <td colspan="99" class="hiddenRow">
-      <form class="form-inline" name="itemForm">
+      <form class="form-inline" name="itemForm" ng-submit="itemForm.$valid && itemListSvc.saveItem(item, row);">
         <div collapse="row.infoIsCollapsed">
           <table class="table">
             <tbody>
@@ -28,13 +34,13 @@
             <tr ng-repeat="(key, prop) in item | filterElements">
                 <td class="col-md-1" >{{key}}:</td>
                 <td class="col-md-9">
-                    <attr-grid attr-obj="item" key="key" edit="row.edit"></attr-grid>
+                    <attr-grid attr-obj="item" key="key" edit="row.edit" item="item" add-window="addWindow"></attr-grid>
                 </td>
             </tr>
             <tr ng-repeat="(key, prop) in item.attributes">
                 <td class="col-md-1">{{key}}</td>
                 <td class="col-md-9">
-                    <attr-grid key="key" attr-obj="item.attributes" edit="row.edit"></attr-grid>
+                    <attr-grid key="key" attr-obj="item.attributes" edit="row.edit" item="item" add-window="addWindow"></attr-grid>
                 </td>
             </tr>
             <tr>
@@ -49,14 +55,6 @@
                 <td class="col-md-1">version:</td>
                 <td class="col-md-9">{{item.version}}</td>
             </tr>
-            <tr>
-                <td>editing: </td>
-                <td>
-                    <button ng-click="itemForm.$valid && itemListSvc.saveItem(item, row)" type="submit" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
-                    <button ng-click="itemListSvc.reReadFromServer(item, row)" ng-if="row.edit" class="btn btn-default"><span class="glyphicon glyphicon-remove stacked-buttons"></span> Cancel</button>
-                    <button ng-click="row.edit=true;" ng-if="!row.edit" class="btn btn-default"><span class="glyphicon glyphicon-pencil"></span> Edit</button>
-                </td>
-            </tr>
 
 
             </tbody>
@@ -70,7 +68,7 @@
     <td colspan="99" class="hiddenRow">
       <form class="form-inline" name="itemForm">
         <div style="margin-left: 5%;" ng-if="row.loadChildren" collapse="!(row.expandChildren && row.loadChildren)">
-          <item-table parent-item="item" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" add-window="addWindow" get-filter-and-order-items="getFilterAndOrderItems"></item-table>
+          <item-table parent-item="item" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" add-window="addWindow"></item-table>
         </div> <!-- end of accordion-body -->
       </form>
     </td>

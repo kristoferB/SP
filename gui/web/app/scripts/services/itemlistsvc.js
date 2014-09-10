@@ -17,9 +17,7 @@ angular.module('spGuiApp')
         childrenArray.pop()
       }
       if(typeof parentItem.attributes.children !== 'undefined') {
-        console.log('parentItem have children');
         parentItem.attributes.children.forEach(function(childId) {
-          console.log(childId);
           childrenArray.push(spTalker.getItemById(childId));
         });
       }
@@ -34,13 +32,19 @@ angular.module('spGuiApp')
     };
 
     factory.saveItem = function(item, row) {
-      spTalker.saveItem(item);
+      spTalker.saveItem(item, true);
       row.edit = false;
     };
 
     factory.reReadFromServer = function(item, row) {
       spTalker.reReadFromServer(item);
       row.edit=false;
+    };
+
+    factory.deleteItem = function(item) {
+      if(confirm('You are about to delete ' + item.name + ' from server. Are you sure?')) {
+        spTalker.deleteItem(item);
+      }
     };
 
     factory.createItem = function(type, parentItem) {
@@ -53,7 +57,9 @@ angular.module('spGuiApp')
             parent.attributes.children = [];
           }
           parent.attributes.children.push(data.id);
-          parent.$save({modelID: spTalker.activeModel.model});
+          parent.$save({modelID: spTalker.activeModel.model}, function() {
+            $rootScope.$broadcast('itemsQueried');
+          });
         } else {
           parent = parentItem;
           if(typeof parent.attributes.children === 'undefined') {
@@ -61,8 +67,9 @@ angular.module('spGuiApp')
           }
           parent.attributes.children.push(data.id);
           spTalker.saveItem(parent);
+          $rootScope.$broadcast('itemsQueried');
         }
-        $rootScope.$broadcast('itemsQueried');
+
       }
 
       spTalker.createItem(type, onItemCreationSuccess);
