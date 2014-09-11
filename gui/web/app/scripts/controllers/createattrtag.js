@@ -8,7 +8,7 @@ angular.module('spGuiApp')
       {value: '', label: 'String'},
       {value: false, label: 'Boolean'},
       {value: 0, label: 'Number'},
-      {value: {itemID: ""}, label: 'Item'},
+      {value: {itemid: ''}, label: 'Item'},
       {value: [], label: 'List'},
       {value: {}, label: 'Map'},
       {value: new Date(), label: 'Date'}

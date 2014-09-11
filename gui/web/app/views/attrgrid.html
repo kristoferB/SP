@@ -19,12 +19,13 @@
   <span ng-if="!edit && type === 'date' ">{{attrObj[key] | date:'yyyy-MM-dd HH:mm:ss'}}</span>
   <input ng-if="edit && type === 'date'" id="datetimeInput" step=1 name="datetimeInput" type="datetime-local" class="form-control input-sm" ng-model="attrObj[key]" />
 
-  <sv-grid ng-if="type==='stateVariables'" sv-array="prop" edit="row.edit" attribute-types="attributeTypes"></sv-grid>
+  <sv-grid ng-if="type==='stateVariables'" sv-array="attrObj[key]" edit="edit"></sv-grid>
 
-  <button ng-if="type==='sop'" ng-click="itemListSvc.openSopInNewWindow(item, addWindow)" class="btn btn-sm btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
+  <button ng-if="type==='sop'" ng-click="itemListSvc.openSopInNewWindow(attrObj, addWindow)" class="btn btn-sm btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
 
   <conditions ng-if="type==='conditions'" conditions="attrObj[key]" edit="edit"></conditions>
   <button ng-if="type==='conditions' && edit" class="btn btn-sm btn-default" ng-click="itemListSvc.addCondition(attrObj[key])"><span class="glyphicon glyphicon-plus"></span> Add condition</button>
+
 
   <table ng-if="type === 'object'">
       <tr class="form-inline" ng-repeat="(attr, attrVal) in attrObj[key]">
@@ -41,6 +42,7 @@
               <attr-grid edit="edit" attr-obj="attrObj[key]"  key="$index"></attr-grid>
           </td>
       </tr>
+      <tr ng-if="attrObj[key].length === 0"><td>no elements found</td></tr>
   </table>
 
 </span>

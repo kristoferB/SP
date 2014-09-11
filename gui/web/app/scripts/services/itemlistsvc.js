@@ -75,11 +75,28 @@ angular.module('spGuiApp')
       spTalker.createItem(type, onItemCreationSuccess);
     };
 
-    factory.addCondition = function(cond) {
-      cond.push({guard: {}, action: [], attributes: {}});
-      console.log("add condition" + cond)
+    factory.addCondition = function(condArray) {
+      condArray.push({guard: {}, action: [], attributes: {kind: '', group: ''}});
     };
 
+    factory.addStateVar = function(svArray, type) {
+      var stateVar = {
+        name: 'newVar',
+        attributes: {}
+      };
+      if(type === 'domain') {
+        stateVar.attributes[type] = ['home', 'flexlink'];
+      } else if(type === 'range') {
+        stateVar.attributes[type] = {
+          start: 0,
+          end: 2,
+          step: 1
+        };
+      } else if(type === 'boolean') {
+        stateVar.attributes[type] = true;
+      }
+      svArray.push(stateVar);
+    };
 
     factory.stopPropagation = function(e) {
       e.stopPropagation();

@@ -14,11 +14,11 @@ angular.module('spGuiApp')
         attrObj : '=',
         edit: '=',
         key: '=',
-        item: '=',
         addWindow: '='
       },
       templateUrl: 'views/attrgrid.html',
       controller: function($scope) {
+
         $scope.toAttrContextMenu = function() {
           return {
             attrObj: $scope.attrObj,
@@ -37,27 +37,24 @@ angular.module('spGuiApp')
         };
 
         $scope.getType = function(obj, key) {
-          if (key == "conditions" || key == "stateVariables" || key == "sop"){
-            return key
+          var type;
+          if (key == "conditions" || key == "stateVariables" || key == "sop") {
+            type = key;
+          } else if (_.isArray(obj)) {
+            type = 'array';
+          } else if(obj instanceof Date) {
+            type = 'date';
+          } else if (_.isObject(obj) && (_.isEmpty(obj) || _.isUndefined(obj))) {
+            type = 'empty';
+          } else if (typeof obj === 'string' &&
+            /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(obj)) {
+            type = 'item';
+          /* } else if (angular.isDefined(obj.emptyItem)) {
+            type = 'item'; */
+          } else {
+            type = typeof obj;
           }
-          if (_.isArray(obj)){
-            return 'array'
-          }
-          if (_.isEmpty(obj) || _.isUndefined(obj)){
-            return 'empty'
-          }
-          if(obj instanceof Date) {
-            return 'date';
-          }
-          if (typeof obj == 'string' &&
-            /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(obj)){
-            return 'item'
-          }
-          if (angular.isDefined(obj.emptyItem)){
-            return 'item'
-          }
-
-          return typeof obj;
+          return type;
         };
 
         $scope.getName = function(id){
