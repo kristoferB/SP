@@ -19,10 +19,10 @@ angular.module('spGuiApp')
         function attrContextMenu() {
           return {
             target:'#attr-context-menu',
-            before: function (e, context) {
+            before: function(e, context) {
               return scope.edit
             },
-            onItem: function (context, e) {
+            onItem: function(context, e) {
               var key = e.target.getAttribute('id');
               scope.attrObj[key] = angular.copy(spTalker.activeSPSpec.attributes.attributeTags[key]);
               replaceDates(scope.attrObj, key);
@@ -31,7 +31,7 @@ angular.module('spGuiApp')
         }
 
         function replaceDates(obj, key) {
-          if (obj[key] instanceof Date) {
+          if(obj[key] instanceof Date) {
             obj[key] = new Date();
           }
           for(var k in obj[key]) {

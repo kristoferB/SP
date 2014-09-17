@@ -4,7 +4,8 @@
     <tr>
       <th>Name</th>
       <th>ID</th>
-      <th colspan="99">Attributes</th>
+      <th>Domain</th>
+      <th ng-if="edit">Remove</th>
     </tr>
   </thead>
   <tbody>
@@ -19,18 +20,41 @@
           <span class="error" ng-show="svNameForm.svName.$error.maxlength">Not too long, please.</span>
         </ng-form>
       </td>
-
       <td>
         {{sv.id}}
       </td>
-
-      <td >
-        <attr-grid edit="edit" attr-obj="sv.attributes" attribute-types="attributeTypes"></attr-grid>
+      <td ng-if="exists(sv.attributes.domain)">
+        <attr-grid attr-obj="sv.attributes" key="'domain'" edit="edit"></attr-grid>
       </td>
+      <td ng-if="exists(sv.attributes.range)">
+        <table>
+          <tr>
+            <td>start:</td>
+            <td><input ng-if="edit" type="number" required class="form-control input-sm" ng-model="sv.attributes.range.start" step="{{sv.attributes.range.step}}" /><span ng-if="!edit">{{sv.attributes.range.start}}</span><br /></td>
+          </tr>
+          <tr>
+            <td>end:</td>
+            <td><input ng-if="edit" type="number" required class="form-control input-sm" ng-model="sv.attributes.range.end" step="{{sv.attributes.range.step}}" /><span ng-if="!edit">{{sv.attributes.range.end}}</span><br /></td>
+          </tr>
+          <tr>
+            <td>step:</td>
+            <td><input ng-if="edit" type="number" required class="form-control input-sm" ng-model="sv.attributes.range.step" step="0.1" /><span ng-if="!edit">{{sv.attributes.range.step}}</span><br /></td>
+          </tr>
+        </table>
+      </td>
+      <td ng-if="exists(sv.attributes.boolean)">boolean</td>
       <td ng-if="edit">
-        <span ng-click="deleteSV(svArray,sv);" class="btn btn-sm btn-default glyphicon glyphicon-minus"></span>
+        <span ng-click="deleteSV(svArray, sv);" class="btn btn-sm btn-default glyphicon glyphicon-minus"></span>
       </td>
     </tr>
     </tbody>
 </table>
-<button ng-if="edit" type="button" class="btn btn-sm btn-default" ng-click="svArray.push({name:'newVar', attributes:{}})"><span class="glyphicon glyphicon-plus"></span> New stateVar</button>
+
+<div ng-if="edit" class="btn-group" dropdown>
+  <button type="button" class="btn btn-sm btn-default dropdown-toggle">
+    <span class="glyphicon glyphicon-plus"></span> Add stateVariable <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" role="menu">
+    <li ng-repeat="type in ['domain', 'range', 'boolean']" ng-click="itemListSvc.addStateVar(svArray, type)"><a href="#">{{type}}</a></li>
+  </ul>
+</div>

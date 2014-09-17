@@ -22,8 +22,8 @@ angular.module('spGuiApp')
         scope.actionModel = '';
         scope.itemSvc = itemSvc;
 
-        scope.removeCondition = function(item, condition) {
-          item.conditions.splice(item.conditions.indexOf(condition));
+        scope.removeCondition = function($index) {
+          scope.conditions.splice($index, 1);
         };
 
 

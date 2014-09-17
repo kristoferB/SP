@@ -49,8 +49,8 @@
       <thead>
         <tr>
           <th class="checkbox-column">
-              <input type="checkbox" ng-model="checkUncheckAllModel" ng-change="checkUncheckAll()" />
-              <br /><input ng-if="showFilterInputs" type="checkbox" ng-model="search['checked']" />
+            <input type="checkbox" ng-model="checkUncheckAllModel" ng-change="checkUncheckAll()" />
+            <br /><input ng-if="showFilterInputs" type="checkbox" ng-model="search['checked']" />
           </th>
           <th ng-repeat="column in selection" >
             <a ng-click="sort(column)">

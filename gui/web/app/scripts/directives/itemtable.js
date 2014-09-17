@@ -24,6 +24,22 @@ angular.module('spGuiApp')
         $scope.items = [];
         $scope.spTalker = spTalker;
 
+        $scope.addAttribute = function(attrObj, key, value) {
+          attrObj[key] = angular.copy(value);
+          replaceDates(attrObj, key);
+        };
+
+        function replaceDates(obj, key) {
+          if(obj[key] instanceof Date) {
+            obj[key] = new Date();
+          }
+          for(var k in obj[key]) {
+            if(obj[key].hasOwnProperty(k)) {
+              replaceDates(obj[key], k);
+            }
+          }
+        }
+
         $scope.$on('itemsQueried', function() {
           itemListSvc.getChildren($scope.parentItem, $scope.items);
         });
@@ -36,19 +52,17 @@ angular.module('spGuiApp')
 
         $scope.filterKey = function(key){
           return key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes'
-        }
+        };
 
         $scope.isAttributesEmpty = function(item) {
           return _.isEmpty(item.attributes)
-        }
+        };
 
         $scope.objectify = function(key, value) {
-            var obj = {}
-            obj[key] = value
+            var obj = {};
+            obj[key] = value;
             return obj
         }
-
-
 
       },
       compile: function(element) {
