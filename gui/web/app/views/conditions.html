@@ -33,7 +33,7 @@
     <tr ng-init="guardOrAction = 'guard'">
       <td>guard: </td>
       <td>
-        <input name="guardInput" class="guard-input form-control input-sm" ng-model="guardModel" required condition-suggestions prop-parse ng-trim="false" type="text"/>
+        <input autocomplete="off" name="guardInput" class="guard-input form-control input-sm" ng-model="guardModel" required condition-suggestions prop-parse ng-trim="false" type="text"/>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.guardInput.$error.nameToIds]"></span>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.guardInput.$error.propParse]"></span>
         <span class="error" ng-show="conditionsForm.guardInput.$error.maxlength"><br />Not too long, please.</span>
@@ -43,7 +43,7 @@
     <tr ng-init="guardOrAction = 'action'">
       <td>action: </td>
       <td>
-        <input name="actionInput" class="action-input form-control input-sm" ng-model="actionModel" required condition-suggestions prop-parse ng-trim="false" type="text" ng-disabled="!edit"/>
+        <input autocomplete="off" name="actionInput" class="action-input form-control input-sm" ng-model="actionModel" required condition-suggestions prop-parse ng-trim="false" type="text" ng-disabled="!edit"/>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.actionInput.$error.nameToIds]"></span>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.actionInput.$error.actionParse]"></span>
         <span class="error" ng-show="conditionsForm.actionInput.$dirty && conditionsForm.actionInput.$error.required"><br />At least one action is required.</span>
