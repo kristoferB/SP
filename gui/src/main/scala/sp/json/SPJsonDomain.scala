@@ -89,7 +89,10 @@ trait SPJsonDomain {
           case None => {
             ID.makeID(x) match {
               case Some(id) => IDPrimitive(id)
-              case None => StringPrimitive(x)
+              case None => {
+                if (x == "true" || x == "false") BoolPrimitive(x.toBoolean)
+                else StringPrimitive(x)
+              }
             }
           }
         }
@@ -247,7 +250,6 @@ trait SPJsonDomain {
       case x: NEQ => JsObject("isa"->"NEQ".toJson, "left"-> x.left.toJson, "right" -> x.right.toJson)
       case AlwaysTrue => JsObject("isa"->"alwaysTrue".toJson)
       case AlwaysFalse => JsObject("isa"->"alwaysFalse".toJson)
-      case x: NEQ => JsObject("isa"->"NEQ".toJson, "left"-> x.left.toJson, "right" -> x.right.toJson)
       case _ => throw new SerializationException(s"Could not convert that type of proposition $p")
     }
     def read(value: JsValue) = {

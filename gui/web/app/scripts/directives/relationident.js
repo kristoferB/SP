@@ -14,24 +14,22 @@ angular.module('spGuiApp')
       link: function postLink(scope, element, attrs) {
 
           scope.findrelations = function(){
-            var ops = spTalker.items.filter(function(item) {
-              return item.isa == 'Operation'
-            }).map(function(item) {
-              return item.id
-            });
+
+            var ops = [];
+            _.each(spTalker.items, function(value, key){
+              if (value.isa == "Operation") ops.push(key)
+            })
 
             var svs = [];
-            spTalker.items.forEach(function(item){
-              if (item.isa == 'Thing'){
-                svs.push({id: item.id, value: 0 })
+            _.each(spTalker.items, function(value, key){
+              if (value.isa == "Thing") {
+                svs.push({id: key, value: false })
                 // allow for user to set initstate instead of this
-                item.stateVariables.forEach(function(sv){
-                  svs.push({id: sv.id, value: 0 })
+                _.each(value.stateVariables, function(sv){
+                  svs.push({id: sv.id, value: false })
                 })
               }
             })
-
-            console.log(svs)
 
             var res = spTalker.findRelations(ops, svs)
             res.success(function (data, status, headers, config) {

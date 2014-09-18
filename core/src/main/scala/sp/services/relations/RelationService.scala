@@ -169,6 +169,6 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
 
 
 object RelationService{
-  def props(modelHandler: ActorRef, serviceHandler: ActorRef, conditionsFromSpecService: String) = Props(classOf[RelationService], serviceHandler, modelHandler, conditionsFromSpecService)
+  def props(modelHandler: ActorRef, serviceHandler: ActorRef, conditionsFromSpecService: String) = Props(classOf[RelationService], modelHandler, serviceHandler, conditionsFromSpecService)
 
 }

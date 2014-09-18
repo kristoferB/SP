@@ -16,17 +16,20 @@ import sp.domain.logic._
 class PropositionParserActor extends Actor  {
   def receive = {
     case Request(_, attr) => {
-      extract(attr) map{ res =>
-        PropositionParser.parseStr(res._2) match {
-          case Left(failure) =>
-            val errorMess = "["+failure.next.pos+"] error: "+failure.msg+"\n\n"+failure.next.pos.longString
-            sender ! SPErrorString(errorMess)
-          case Right(prop) => {
-            //TODO: fill in the ids
-            sender ! prop
+      extract(attr) match {
+
+        case Some(res) => {
+          PropositionParser.parseStr(res._2) match {
+            case Left(failure) =>
+              val errorMess = "[" + failure.next.pos + "] error: " + failure.msg + "\n\n" + failure.next.pos.longString
+              sender ! SPErrorString(errorMess)
+            case Right(prop) => {
+              //TODO: fill in the ids
+              sender ! prop
+            }
           }
         }
-
+        case None => sender ! errorMessage(attr)
       }
     }
   }
@@ -37,6 +40,12 @@ class PropositionParserActor extends Actor  {
       parse <- attr.getAsString("parse")
     } yield (model, parse)
   }
+
+      def errorMessage(attr: SPAttributes) = {
+        SPError("The request is missing parameters: \n" +
+          s"model: ${attr.getAsString("model")}" + "\n" +
+          s"parse: ${attr.getAsString("parse")}" )
+      }
 
 }
 
