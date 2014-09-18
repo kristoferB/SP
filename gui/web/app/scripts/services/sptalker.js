@@ -24,6 +24,7 @@ angular.module('spGuiApp')
       operations: [],
       items: {},
       itemsRead: false,
+      spSpecs: {},
       things: {},
       thingsByName: {},
       item : $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'}),
@@ -46,24 +47,35 @@ angular.module('spGuiApp')
 
   factory.getItemById = function(id) {
     return factory.items[id];
-    /*var result = $.grep(factory.items, function(e){ return e.id === id; });
-    if (result.length == 0) {
-      var error = 'Could not find an item with id ' + id + '. The requested action has most likely been aborted.';
-      console.log(error);
-      notificationService.error(error);
-      return {};
-    } else if (result.length == 1) {
-      return result[0];
-    } else {
-      var error2 = 'Found multiple items with id ' + id + '. The requested action has most likely been aborted.';
-      console.log(error2);
-      notificationService.error(error2);
-      return result[0];
-    }*/
   };
 
+  factory.getItemName = function(id) {
+    var item =  _.find(factory.items, function(item) {
+      return item.id == id
+    });
+    return item.name
+  };
+
+  //TODO: Handle services in a general way. Retrieve possible services from server
   factory.parseProposition = function(proposition) {
-    return $http({method: 'POST', url: 'api/services/PropositionParser', data: {model: factory.activeModel.model, parse: proposition}})
+    return $http({
+      method: 'POST',
+      url: 'api/services/PropositionParser',
+      data: {
+        model: factory.activeModel.model,
+        parse: proposition
+      }})
+  };
+
+  factory.findRelations = function(ops, initState) {
+    return $http({
+      method: 'POST',
+      url: 'api/services/Relations',
+      data: {
+        model: factory.activeModel.model,
+        operations: ops,
+        initstate: initState
+      }})
   };
 
   factory.loadModels = function() {
@@ -71,31 +83,39 @@ angular.module('spGuiApp')
   };
   factory.loadModels();
 
-  var filterOutThings = function() {
-    for(var thingID in factory.things) {
-      if (factory.things.hasOwnProperty(thingID)) {
-        delete factory.thingsByName[factory.items[thingID].name];
-        delete factory.things[thingID];
-      }
-    }
-    for(var id in factory.items) {
-      if (factory.items.hasOwnProperty(id)) {
-        if (factory.items[id].isa === 'Thing') {
-          factory.things[id] = factory.items[id];
-          factory.thingsByName[factory.items[id].name.toLowerCase()] = factory.items[id];
+  function emptyMaps(mapsToEmpty) {
+    for(var i = 0; i < mapsToEmpty.length; i++) {
+      for(var itemID in mapsToEmpty[i]) {
+        if (mapsToEmpty[i].hasOwnProperty(itemID)) {
+          delete mapsToEmpty[i][itemID];
         }
       }
     }
-  };
+  }
 
-  var updateItemLists = function() {
-    filterOutThings();
-  };
+  function filterOutItems() {
+    emptyMaps([factory.things, factory.thingsByName, factory.spSpecs]);
+
+    for(var id in factory.items) {
+      if (factory.items.hasOwnProperty(id)) {
+        if(factory.items[id].isa === 'Thing') {
+          factory.things[id] = factory.items[id];
+          factory.thingsByName[factory.items[id].name.toLowerCase()] = factory.items[id];
+        } else if(factory.items[id].isa === 'SPSpec') {
+          factory.spSpecs[id] = factory.items[id];
+        }
+      }
+    }
+
+  }
+
+  function updateItemLists() {
+    filterOutItems();
+  }
 
   factory.loadAll = function() {
     factory.loadModels();
     factory.item.query({model: factory.activeModel.model}, function(items) {
-      //angular.copy(items, factory.items);
       items.forEach(function(item) {
         factory.items[item.id] = item;
       });
@@ -107,26 +127,38 @@ angular.module('spGuiApp')
   };
 
   factory.saveItems = function(items, notifySuccess, successHandler) {
-    var success = true;
-    if(items.length === 0) {
-      notificationService.error('No items supplied to save.');
-      return false;
+    var success = true,
+      itemsArray = [];
+    if(items instanceof Array) {
+      if(itemsArray.length === 0) {
+        notificationService.error('No items supplied to save.');
+        return false;
+      }
+      itemsArray = items;
+    } else {
+      for(var id in items) {
+        if(items.hasOwnProperty(id)) {
+          itemsArray.push(items[id]);
+        }
+      }
     }
     if(Object.keys(factory.activeModel).length === 0) {
       notificationService.error('No active model chosen.');
       return false;
     }
-    $http({method: 'POST', url: 'api/models/' + factory.activeModel.model + '/items', data: items})
+    $http({method: 'POST', url: 'api/models/' + factory.activeModel.model + '/items', data: itemsArray})
       .success(function(data) {
         data.forEach( function(itemData) {
           var item = factory.getItemById(itemData.id);
           angular.copy(itemData, item);
         });
         if(notifySuccess) {
-          notificationService.success(items.length + ' items were successfully saved.');
+          notificationService.success(itemsArray.length + ' items were successfully saved.');
         }
         updateItemLists();
-        successHandler(data);
+        if(successHandler) {
+          successHandler(data);
+        }
       })
       .error(function(data) {
         console.log(data);
@@ -152,9 +184,6 @@ angular.module('spGuiApp')
         if(showSuccessNotifications) {
           notificationService.success(item.isa + ' \"' + item.name + '\" was successfully saved');
         }
-        /*if(data !== item) {
-          angular.copy(data, item);
-        }*/
         updateItemLists();
         if(successHandler) {
           successHandler(data);

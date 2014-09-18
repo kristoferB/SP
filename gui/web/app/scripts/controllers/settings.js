@@ -9,9 +9,8 @@
  */
 angular.module('spGuiApp')
   .controller('SettingsCtrl', function ($scope, $modalInstance, spTalker, notificationService) {
-    $scope.attributeTypes = ['string', 'object'];
     $scope.spTalker = spTalker;
-    $scope.spSpecs = { array: [] };
+    $scope.attributeTypes = ['string', 'object'];
 
     $scope.removeAttributeTag = function(tagToRemove) {
       var index = spTalker.activeSPSpec.attributes.attributeTags.indexOf(tagToRemove);
@@ -26,7 +25,7 @@ angular.module('spGuiApp')
 
     $scope.save = function () {
       var success = true;
-      if(!spTalker.saveItems($scope.spSpecs.array, false)) {
+      if(!spTalker.saveItems(spTalker.spSpecs, false)) {
         success = false;
       }
       spTalker.activeModel.attributes.activeSPSpec = spTalker.activeSPSpec.id;
@@ -42,9 +41,11 @@ angular.module('spGuiApp')
     };
 
     $scope.reset = function() {
-      $scope.spSpecs.array.forEach(function(spSpec) {
-        spTalker.reReadFromServer(spSpec);
-      });
+      for(var id in spTalker.spSpecs) {
+        if(spTalker.spSpecs.hasOwnProperty(id)) {
+          spTalker.reReadFromServer(spTalker.spSpecs[id]);
+        }
+      }
     };
 
     $scope.close = function() {

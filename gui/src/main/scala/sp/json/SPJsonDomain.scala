@@ -89,7 +89,10 @@ trait SPJsonDomain {
           case None => {
             ID.makeID(x) match {
               case Some(id) => IDPrimitive(id)
-              case None => StringPrimitive(x)
+              case None => {
+                if (x == "true" || x == "false") BoolPrimitive(x.toBoolean)
+                else StringPrimitive(x)
+              }
             }
           }
         }
@@ -102,7 +105,13 @@ trait SPJsonDomain {
       }
       case JsBoolean(x) => BoolPrimitive(x)
       case JsArray(xs) => ListPrimitive(xs map (_.convertTo[SPAttributeValue]))
-      case JsObject(kvs) => MapPrimitive(kvs map {case (k,v)=> k->v.convertTo[SPAttributeValue]})
+      case JsObject(kvs) => kvs.toList match{
+        case ("itemID", JsString(value)) :: Nil =>  ID.makeID(value) match {
+            case Some(id) => IDPrimitive(id)
+            case None => StringPrimitive(value)
+          }
+        case _ => MapPrimitive(kvs map {case (k,v)=> k->v.convertTo[SPAttributeValue]})
+      }
       case JsNull => OptionAsPrimitive(None)
       case _ => throw new DeserializationException("can not convert to SPAttribute: "+value)
     }
@@ -239,6 +248,8 @@ trait SPJsonDomain {
       case x: NOT => JsObject("isa"->"NOT".toJson, "prop"-> x.p.toJson)
       case x: EQ => JsObject("isa"->"EQ".toJson, "left"-> x.left.toJson, "right" -> x.right.toJson)
       case x: NEQ => JsObject("isa"->"NEQ".toJson, "left"-> x.left.toJson, "right" -> x.right.toJson)
+      case AlwaysTrue => JsObject("isa"->"alwaysTrue".toJson)
+      case AlwaysFalse => JsObject("isa"->"alwaysFalse".toJson)
       case _ => throw new SerializationException(s"Could not convert that type of proposition $p")
     }
     def read(value: JsValue) = {

@@ -7,17 +7,23 @@
  * # conditions
  */
 angular.module('spGuiApp')
-  .directive('conditions', function () {
+  .directive('conditions', function (itemSvc) {
     return {
       templateUrl: 'views/conditions.html',
       restrict: 'E',
-      link: function($scope, $element) {
-        $scope.guardModel = '';
-        $scope.guardInput = '';
-        $scope.actionModel = '';
+      scope: {
+        conditions: '=',
+        edit: '='
+      },
+      link: function(scope) {
 
-        $scope.removeCondition = function(item, condition) {
-          item.conditions.splice(item.conditions.indexOf(condition));
+        scope.guardModel = '';
+        scope.guardInput = '';
+        scope.actionModel = '';
+        scope.itemSvc = itemSvc;
+
+        scope.removeCondition = function($index) {
+          scope.conditions.splice($index, 1);
         };
 
 

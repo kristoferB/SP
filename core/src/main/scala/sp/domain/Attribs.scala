@@ -68,6 +68,13 @@ object Attribs {
           }).toMap)
         )
     }
+    def addStateAttr(key: String, state: State): SPAttributes = {
+      val map = state.state.map{case (id, value) =>
+        MapPrimitive(Map("id"->IDPrimitive(id), "value" -> value))
+      }
+      val t = key -> map.toList
+      attr + (key, map.toList)
+    }
   }
 
   implicit class getDomainAttr(attr: SPAttributes) {

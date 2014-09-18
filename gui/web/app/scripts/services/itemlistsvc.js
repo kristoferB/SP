@@ -75,8 +75,27 @@ angular.module('spGuiApp')
       spTalker.createItem(type, onItemCreationSuccess);
     };
 
-    factory.addCondition = function(item) {
-      item.conditions.push({guard: {}, action: [], attributes: {}});
+    factory.addCondition = function(condArray) {
+      condArray.push({guard: {}, action: [], attributes: {kind: '', group: ''}});
+    };
+
+    factory.addStateVar = function(svArray, type) {
+      var stateVar = {
+        name: 'newVar',
+        attributes: {}
+      };
+      if(type === 'domain') {
+        stateVar.attributes[type] = ['home', 'flexlink'];
+      } else if(type === 'range') {
+        stateVar.attributes[type] = {
+          start: 0,
+          end: 2,
+          step: 1
+        };
+      } else if(type === 'boolean') {
+        stateVar.attributes[type] = true;
+      }
+      svArray.push(stateVar);
     };
 
     factory.stopPropagation = function(e) {
@@ -88,7 +107,7 @@ angular.module('spGuiApp')
     };
 
     factory.hasItsOwnEditor = function(key) {
-      return key === 'attributes' || key === 'stateVariables' || key === 'sop' || key === 'conditions';
+      return key === 'stateVariables' || key === 'sop' || key === 'conditions';
     };
 
     factory.hasItsOwnViewer = function(key) {
@@ -109,3 +128,14 @@ angular.module('spGuiApp')
     return factory;
 
   }]);
+
+angular.module('spGuiApp').filter('filterElements', function () {
+  return function (input) {
+    var filteredInput ={};
+    angular.forEach(input, function(value, key){
+      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes'){
+        filteredInput[key]= value;
+      }
+    });
+    return filteredInput;
+  }});

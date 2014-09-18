@@ -63,11 +63,11 @@ trait RelationFinderAlgotithms {
    * Finds a random seq of operations from the initial state
    * until a goal is reached or no operations are enabled
    *
-   * @param setMeUp
+   * @param setup
    * @return
    */
-  def findASeq(setMeUp: Setup) = {
-    val setup = prepairSetup(setMeUp)
+  def findASeq(setup: Setup) = {
+    //val setup = prepairSetup(setMeUp)
     val ops = setup.ops
     val stateVars = setup.stateVars
     val init = setup.init
@@ -99,11 +99,12 @@ trait RelationFinderAlgotithms {
    * Find when operations are enabled. The more iterations, the better
    * @param iterations No of random sequences that are generated
    * @param opsToTest The operations that are returned in the map
-   * @param setMeUp The definition for the algorithm
+   * @param setup The definition for the algorithm
    * @return
    */
-  def findWhenOperationsEnabled(iterations: Int, opsToTest: Set[Operation] = Set())(implicit setMeUp: Setup) = {
-    val setup = prepairSetup(setMeUp)
+  def findWhenOperationsEnabled(iterations: Int, opsToTest: Set[Operation] = Set())(implicit setup: Setup) = {
+    //val setup = prepairSetup(setMeUp)
+
 
     @tailrec
     def req(n: Int, esm: EnabledStatesMap): EnabledStatesMap  = {
@@ -180,7 +181,6 @@ trait RelationFinderAlgotithms {
    */
   def prepairSetup(setup: Setup) = {
     if (setup.ops.isEmpty) setup
-    else if (setup.stateVars.contains(setup.ops.head.id)) setup
     else {
       val opSV  = setup.ops.map(o => o.id -> StateVariable.operationVariable(o)).toMap
       val startState = setup.init.next(setup.ops.map(_.id -> StringPrimitive("i")).toMap)
@@ -188,6 +188,25 @@ trait RelationFinderAlgotithms {
       setup.copy(stateVars = upSV, init = startState)
     }
 
+  }
+
+  /**
+   * Adds opertion init state ("i") to a state
+   * @param ops
+   * @param state
+   * @return an updated state object
+   */
+  def addOpsToState(ops: List[Operation], state: State) = {
+    state.next(ops.map(_.id -> StringPrimitive("i")).toMap)
+  }
+
+  /**
+   * Adds opertion statevariables to the stateVarMap
+   * @param ops The operations
+   * @return a stateVar map
+   */
+  def createOpsStateVars(ops: List[Operation]) = {
+    ops.map(o => o.id -> StateVariable.operationVariable(o)).toMap
   }
 
   

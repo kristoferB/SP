@@ -1,18 +1,48 @@
-<table class="table-bordered attr-table" attr-context-menu attr-obj="attrObj" edit="edit">
-  <tr class="form-inline" ng-repeat="(attr, attrVal) in attrObj" ng-init="type = getType(attrVal)">
-    <td class="col-md-1">{{attr}}:</td>
-    <td>
-      <span ng-if="!edit && type === 'string'">{{attrVal}}</span>
-      <input ng-if="edit && type === 'string'" type="text" class="form-control input-sm" ng-model="attrObj[attr]" />
-      <span ng-if="!edit && type === 'date' ">{{attrVal | date:'yyyy-MM-dd HH:mm:ss'}}</span>
-      <input ng-if="edit && type === 'date'" id="datetimeInput" step=1 name="datetimeInput" type="datetime-local" class="form-control input-sm" ng-model="attrObj[attr]" />
-      <attr-grid ng-if="type === 'object'" edit="edit" attr-obj="attrVal"></attr-grid>
-    </td>
-    <td ng-if="edit">
-      <span ng-click="deleteObjProp(attrObj,attr);" class="btn btn-sm btn-default glyphicon glyphicon-minus"></span>
-    </td>
-  </tr>
-  <tr ng-show="isEmpty(attrObj)">
-    <td>None</td>
-  </tr>
-</table>
+
+<span ng-init="type = getType(attrObj[key], key)">
+
+  <span ng-if="!edit && type === 'string'">{{attrObj[key]}}</span>
+  <input ng-if="edit && type === 'string'" type="text" class="form-control input-sm" ng-model="attrObj[key]" />
+
+  <span ng-if="!edit && type === 'empty'">{{attrObj[key]}}</span>
+  <input ng-if="edit && type === 'empty'" type="text" class="form-control input-sm" ng-model="attrObj[key]" />
+
+  <span ng-if="!edit && type === 'number'">{{attrObj[key]}}</span>
+  <input ng-if="edit && type === 'number'" type="number" class="form-control input-sm" ng-model="attrObj[key]" />
+
+  <span ng-if="!edit && type === 'boolean'">{{attrObj[key]}}</span>
+  <input ng-if="edit && type === 'boolean'" type="checkbox" class="form-control input-sm" ng-model="attrObj[key]" />
+
+  <span ng-if="!edit && type === 'item'">{{getName(attrObj[key])}} - <small>({{attrObj[key]}})</small></span>
+  <input ng-if="edit && type === 'item'" type="text" class="form-control input-sm" ng-model="attrObj[key]" />
+
+  <span ng-if="!edit && type === 'date' ">{{attrObj[key] | date:'yyyy-MM-dd HH:mm:ss'}}</span>
+  <input ng-if="edit && type === 'date'" id="datetimeInput" step=1 name="datetimeInput" type="datetime-local" class="form-control input-sm" ng-model="attrObj[key]" />
+
+  <sv-grid ng-if="type==='stateVariables'" sv-array="attrObj[key]" edit="edit"></sv-grid>
+
+  <button ng-if="type==='sop'" ng-click="itemListSvc.openSopInNewWindow(attrObj, addWindow)" class="btn btn-sm btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
+
+  <conditions ng-if="type==='conditions'" conditions="attrObj[key]" edit="edit"></conditions>
+  <button ng-if="type==='conditions' && edit" class="btn btn-sm btn-default" ng-click="itemListSvc.addCondition(attrObj[key])"><span class="glyphicon glyphicon-plus"></span> Add condition</button>
+
+
+  <table ng-if="type === 'object'">
+      <tr class="form-inline" ng-repeat="(attr, attrVal) in attrObj[key]">
+          <td class="col-md-1">{{attr}}: </td>
+          <td class="col-md-9">
+              <attr-grid edit="edit" attr-obj="attrObj[key]" key="attr"></attr-grid>
+          </td>
+      </tr>
+  </table>
+  <table ng-if="type === 'array'">
+      <tr class="form-inline" ng-repeat="elem in attrObj[key]">
+          <td class="col-md-1">{{$index+1}}: </td>
+          <td class="col-md-9">
+              <attr-grid edit="edit" attr-obj="attrObj[key]"  key="$index"></attr-grid>
+          </td>
+      </tr>
+      <tr ng-if="attrObj[key].length === 0"><td>no elements found</td></tr>
+  </table>
+
+</span>

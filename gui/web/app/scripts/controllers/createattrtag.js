@@ -6,8 +6,12 @@ angular.module('spGuiApp')
   .controller('CreateAttrTagCtrl', function ($scope, $modalInstance, attrTagObj) {
     $scope.attrTagTypes = [
       {value: '', label: 'String'},
-      {value: new Date(), label: 'Date'},
-      {value: {}, label: 'Object'}
+      {value: false, label: 'Boolean'},
+      {value: 0, label: 'Number'},
+      {value: {itemid: ''}, label: 'Item'},
+      {value: [], label: 'List'},
+      {value: {}, label: 'Map'},
+      {value: new Date(), label: 'Date'}
     ];
 
     $scope.forms = {

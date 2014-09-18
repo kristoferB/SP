@@ -5,6 +5,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import sp.domain._
 import sp.system.messages._
+import sp.services.specificationconverters._
 
 import scala.concurrent.duration._
 import scala.util._
@@ -12,7 +13,7 @@ import scala.util._
 /**
  * Created by Kristofer on 2014-08-04.
  */
-class RelationService extends Actor {
+class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditionsFromSpecService: String) extends Actor {
 
   import sp.system.SPActorSystem._
 
@@ -33,6 +34,8 @@ class RelationService extends Actor {
           val modelInfoF = modelHandler ? GetModelInfo(model)
           val svsF = modelHandler ? GetStateVariables(model)
           val currentRelationsF = (modelHandler ? GetResults(model, _.isInstanceOf[RelationResult]))
+          val specsCondsF = serviceHandler ? Request(conditionsFromSpecService, Attr("model"-> model))
+
           //            .mapTo[List[RelationResult]] map (_.sortWith(_.modelVersion > _.modelVersion))
 
           val resultFuture = for {
@@ -40,30 +43,68 @@ class RelationService extends Actor {
             modelInfoAnswer <- modelInfoF
             stateVarsAnswer <- svsF
             currentRelAnswer <- currentRelationsF
+            specsConds <- specsCondsF
+
           } yield {
-            List(opsAnswer, modelInfoAnswer, stateVarsAnswer, currentRelAnswer) match {
-              case SPIDs(opsIDAble) :: ModelInfo(_, mVersion, _) :: SPSVs(svsIDAble) :: SPIDs(olderRelsIDAble) :: Nil => {
+            List(opsAnswer, modelInfoAnswer, stateVarsAnswer, currentRelAnswer, specsConds) match {
+              case SPIDs(opsIDAble) ::
+                ModelInfo(_, mVersion, _) ::
+                SPSVs(svsIDAble) ::
+                SPIDs(olderRelsIDAble) ::
+                ConditionsFromSpecs(condMap) ::
+                Nil => {
+
+//                println(s"relationsSerice got:")
+//                println(s"ops: $opsIDAble ")
+//                println(s"mVersion: $mVersion ")
+//                println(s"svsIdAble: $svsIDAble ")
+//                println(s"olderRels: $olderRelsIDAble ")
+//                println(s"condMap: $condMap ")
+
                 val ops = opsIDAble map (_.asInstanceOf[Operation])
                 val svs = svsIDAble map (_.asInstanceOf[StateVariable])
                 val olderRels = olderRelsIDAble map (_.asInstanceOf[RelationResult]) sortWith (_.modelVersion > _.modelVersion)
 
-                val stateVarsMap = svs map (sv => sv.id -> sv) toMap
-                val goalfunction: State => Boolean = if (goal == None) (s: State) => false else (s: State) => s == goal.get
+                if (olderRels.nonEmpty && olderRels.head.modelVersion == mVersion) reply ! olderRels.head
+                else {
 
-                // just one actor per request initially
-                val relationFinder = context.actorOf(RelationFinder.props)
-                val inputToAlgo = FindRelations(ops, stateVarsMap, init, groups, iterations, goalfunction)
-
-                //TODO: Handle long running algorithms better
-                val answer = relationFinder ? inputToAlgo
-                answer onComplete {
-                  case Success(res: RelationMap) => {
-                    val relation = RelationResult("RelationMap", res, model, mVersion)
-                    reply ! relation
-                    modelHandler ! UpdateIDs(model, List(UpdateID(relation.id, -1, relation)))
+                  val stateVarsMap = svs.map(sv => sv.id -> sv).toMap ++ createOpsStateVars(ops)
+                  val goalfunction: State => Boolean = if (goal == None) (s: State) => false else (s: State) => {
+                    val g = goal.get
+                    g.state.forall{case (sv, value) => s(sv) == value}
                   }
-                  case Success(res) => println("WHAT IS THIS RELATION FINDER RETURNS: " + res)
-                  case Failure(error) => reply ! SPError(error.getMessage)
+
+                  val filterCondMap = condMap.map { case (id, conds) =>
+                    val filtered = if (groups.isEmpty) conds else conds.filter(c => groups.contains(c.attributes.getAsString("group")))
+                    id -> filtered
+                  }
+                  val updatedOps = ops.map{ o =>
+                    val updatedConds = filterCondMap.getOrElse(o.id, List[Condition]()) ++ o.conditions
+                    val id = o.id
+                    val version = o.version
+                    o.copy(conditions = updatedConds).update(id, version).asInstanceOf[Operation]
+                  }
+
+                  println(s"updated ops: $updatedOps")
+
+                  println(s"init: $init")
+                  println(s"added: ${addOpsToState(updatedOps, init)}")
+
+                  // just one actor per request initially
+                  val relationFinder = context.actorOf(RelationFinder.props)
+                  val inputToAlgo = FindRelations(updatedOps, stateVarsMap ++ createOpsStateVars(updatedOps), addOpsToState(updatedOps, init), groups, iterations, goalfunction)
+
+                  //TODO: Handle long running algorithms better
+                  val answer = relationFinder ? inputToAlgo
+                  answer onComplete {
+                    case Success(res: RelationMap) => {
+                      val relation = RelationResult("RelationMap", res, model, mVersion + 1)
+                      reply ! relation
+                      modelHandler ! UpdateIDs(model, List(UpdateID(relation.id, -1, relation)))
+                    }
+                    case Success(res) => println("WHAT IS THIS RELATION FINDER RETURNS: " + res)
+                    case Failure(error) => reply ! SPError(error.getMessage)
+                  }
                 }
               }
               //TODO: This error handling should also be part of the general solution when extracting
@@ -105,9 +146,29 @@ class RelationService extends Actor {
       s"goal(optional): ${attr.getStateAttr("goal")}" + "\n" +
       s"iterations(optional): ${attr.getAsInt("iteration")}")
   }
+
+  /**
+   * Adds opertion init state ("i") to a state
+   * @param ops
+   * @param state
+   * @return an updated state object
+   */
+  def addOpsToState(ops: List[Operation], state: State) = {
+    state.next(ops.map(_.id -> StringPrimitive("i")).toMap)
+  }
+
+  /**
+   * Adds opertion statevariables to the stateVarMap
+   * @param ops The operations
+   * @return a stateVar map
+   */
+  def createOpsStateVars(ops: List[Operation]) = {
+    ops.map(o => o.id -> StateVariable.operationVariable(o)).toMap
+  }
 }
 
 
 object RelationService{
-  def props = Props(classOf[RelationService])
+  def props(modelHandler: ActorRef, serviceHandler: ActorRef, conditionsFromSpecService: String) = Props(classOf[RelationService], modelHandler, serviceHandler, conditionsFromSpecService)
+
 }

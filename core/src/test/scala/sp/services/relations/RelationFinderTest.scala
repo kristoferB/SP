@@ -11,26 +11,26 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
   "The RelationFinder" - {
     "when finding a path" - {
       "create a seq" in {
-        val res = findASeq(Setup(List(o2, o1), vm, List(), state, _ => false))
+        val res = findASeq(prepairSetup(Setup(List(o2, o1), vm, List(), state, _ => false)))
         res.seq shouldEqual List(o1, o2)
       }
       "find no seq if no exists" in {
-        val res = findASeq(Setup(List(o2, o1), vm, List(), state2, _ => false))
+        val res = findASeq(prepairSetup(Setup(List(o2, o1), vm, List(), state2, _ => false)))
         res.seq shouldEqual List()
       }
       "Stop when goal" in {
-        val res = findASeq(Setup(List(o2, o1), vm, List(), state, _(v1.id) == SPAttributeValue(1)))
+        val res = findASeq(prepairSetup(Setup(List(o2, o1), vm, List(), state, _(v1.id) == SPAttributeValue(1))))
         res.seq shouldEqual List(o1)
       }
       "Parallel ops" in {
         val ops = (1 to 100) map { i => Operation(i.toString, List(noActionCond))} toList
-        val res = findASeq(Setup(ops, vm, List(), state, _ => false))
+        val res = findASeq(prepairSetup(Setup(ops, vm, List(), state, _ => false)))
         res.seq.toSet shouldEqual ops.toSet
       }
     }
     "When findWhenOperationsEnabled" - {
       "it should find relations" in {
-        implicit val setup = Setup(List(o2, o1), vm, List(), state, _ => false)
+        implicit val setup = prepairSetup(Setup(List(o2, o1), vm, List(), state, _ => false))
         val res = findWhenOperationsEnabled(10)
         res.map(o2.id).pre(o1.id) shouldEqual Set(StringPrimitive("f"))
         //res foreach(r =>println(s"${r._1.name} -> ${r._2.init.map(_._2.toString)} "))
@@ -39,13 +39,13 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
       }
       "find paralell relations" in {
         val ops = (1 to 10) map { i => Operation(i.toString, List(noActionCond))} toList
-        val res = findWhenOperationsEnabled(10, Set(ops.head))(Setup(ops, vm, List(), state, _ => false))
+        val res = findWhenOperationsEnabled(10, Set(ops.head))(prepairSetup(Setup(ops, vm, List(), state, _ => false)))
         res.map(ops.head.id).pre(ops.tail.head.id) shouldEqual Set(StringPrimitive("i"), StringPrimitive("f"))
       }
       "should only return given ops" in {
         val ops = (1 to 5) map { i => Operation(i.toString, List(noActionCond))} toList
-        val res1 = findWhenOperationsEnabled(10, Set(ops.head))(Setup(ops, vm, List(), state, _ => false))
-        val res2 = findWhenOperationsEnabled(10)(Setup(ops, vm, List(), state, _ => false))
+        val res1 = findWhenOperationsEnabled(10, Set(ops.head))(prepairSetup(Setup(ops, vm, List(), state, _ => false)))
+        val res2 = findWhenOperationsEnabled(10)(prepairSetup(Setup(ops, vm, List(), state, _ => false)))
 
         res1.map.size shouldEqual 1
         res2.map.size shouldEqual 5
@@ -53,7 +53,7 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
     }
     "When finding operation relations" - {
       "it should find Seqeunce SOP between ops" in {
-        implicit val setup = Setup(List(o2, o1), vm, List(), state, _ => false)
+        implicit val setup = prepairSetup(Setup(List(o2, o1), vm, List(), state, _ => false))
         val sm = findWhenOperationsEnabled(10)
         val res = findOperationRelations(sm)
         res.relations(Set(o1.id, o2.id)) shouldEqual Sequence(o1, o2)
@@ -62,7 +62,7 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
         val ops = (1 to 3) map { i => Operation(i.toString, List(noActionCond))} toList
         val o1 = ops.head
         val o2 = ops.tail.head
-        implicit val setup = Setup(List(o1, o2), vm, List(), state, _ => false)
+        implicit val setup = prepairSetup(Setup(List(o1, o2), vm, List(), state, _ => false))
         val sm = findWhenOperationsEnabled(10)
         val res = findOperationRelations(sm)
         res.relations(Set(o1.id, o2.id)) shouldEqual Parallel(o1, o2)
@@ -74,7 +74,7 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
           List(Action(v1.id, ValueHolder(1))))
         val o1 = Operation("o1", List(cond))
         val o2 = Operation("o2", List(cond))
-        implicit val setup = Setup(List(o1, o2), vm, List(), state, _ => false)
+        implicit val setup = prepairSetup(Setup(List(o1, o2), vm, List(), state, _ => false))
         val sm = findWhenOperationsEnabled(10)
         val res = findOperationRelations(sm)
         res.relations(Set(o1.id, o2.id)) shouldEqual Alternative(o1, o2)
@@ -90,10 +90,9 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
         val o1 = Operation("o1", List(cond))
         val o2 = Operation("o2", List(cond))
         val o3 = Operation("o3", List(cond2))
-        implicit val setup = Setup(List(o1, o2, o3), vm, List(), state, _(v1.id) == SPAttributeValue(2))
+        implicit val setup = prepairSetup(Setup(List(o1, o2, o3), vm, List(), state, _(v1.id) == SPAttributeValue(2)))
         val sm = findWhenOperationsEnabled(10)
         val res = findOperationRelations(sm)
-        println(res)
         res.relations(Set(o1.id, o3.id)) shouldEqual SometimeSequence(o1, o3)
       }
     }

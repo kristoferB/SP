@@ -33,7 +33,7 @@ class JsonTest extends WordSpec with Matchers  {
     "attributes" -> JsObject()
   )
   val sop1 = SOP(Parallel(Sequence(o1, o2), Sequence(o1, o2)))
-  val spec = SOPSpec(sop1, "label")
+  val spec = SOPSpec(List(sop1), "label")
 
   val attr = SPAttributes(Map(
     "hej" -> "kalle",
