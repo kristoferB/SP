@@ -71,7 +71,6 @@ angular.module('spGuiApp')
           spTalker.saveItem(parent);
           $rootScope.$broadcast('itemsQueried');
         }
-
       }
 
       spTalker.createItem(type, onItemCreationSuccess);

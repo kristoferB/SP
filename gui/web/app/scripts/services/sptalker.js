@@ -198,26 +198,32 @@ angular.module('spGuiApp')
     return success;
   };
 
-  factory.createItem = function(type, successHandler) {
-    var newItem = new factory.item({
-      isa : type,
-      name : type + Math.floor(Math.random()*1000),
-      attributes : {
-        children: []
+  factory.createItem = function(type, successHandler, readyMadeItem, errorHandler) {
+    var newItem;
+    if(typeof readyMadeItem === 'undefined') {
+      newItem = new factory.item({
+        isa : type,
+        name : type + Math.floor(Math.random()*1000),
+        attributes : {
+          children: []
+        }
+      });
+      if(type === 'Operation') {
+        newItem.conditions = [];
+      } else if(type === 'Thing') {
+        newItem.stateVariables = [];
+      } else if(type === 'SOPSpec') {
+        newItem.sop = [{
+          isa: 'Sequence',
+          sop: []
+        }];
+      } else if(type === 'SPSpec') {
+        newItem.attributes.attributeTags = {}
       }
-    });
-    if(type === 'Operation') {
-      newItem.conditions = [];
-    } else if(type === 'Thing') {
-      newItem.stateVariables = [];
-    } else if(type === 'SOPSpec') {
-      newItem.sop = [{
-        isa: 'Sequence',
-        sop: []
-      }];
-    } else if(type === 'SPSpec') {
-      newItem.attributes.attributeTags = {}
+    } else {
+      newItem = readyMadeItem;
     }
+
     newItem.$save(
       {model:factory.activeModel.model},
       function(data) {
@@ -226,7 +232,11 @@ angular.module('spGuiApp')
         updateItemLists();
         successHandler(data);
       },
-      function(error) { console.log(error); notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.'); console.log(error); }
+      function(error) {
+        console.log(error);
+        notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.');
+        errorHandler(error);
+      }
     );
   };
 

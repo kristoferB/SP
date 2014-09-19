@@ -7,7 +7,7 @@
  * # sop
  */
 angular.module('spGuiApp')
-.directive('itemlist', function (spTalker, notificationService, $filter, itemListSvc, $timeout, ITEM_KINDS) {
+.directive('itemlist', function (spTalker, notificationService, $filter, itemListSvc, $timeout, ITEM_KINDS, $rootScope) {
   return {
     templateUrl: 'views/itemlist.html',
     restrict: 'E',
@@ -82,17 +82,28 @@ angular.module('spGuiApp')
         false);
 
       $scope.copyItems = function() {
+        var noOfItemsToCopy = $scope.checkedItems.length,
+          noOfItemsCopied = 0;
+
         function copyItem(item) {
           var newItem = angular.copy(item);
           delete newItem.id;
           delete newItem.version;
           newItem.name = newItem.name + '_copy';
           var success = true;
-          newItem.$save(
-            {model:spTalker.activeModel.model},
-            function(data) { spTalker.items.unshift(data); },
-            function(error) { console.log(error); success = false; notificationService.error('Copying of ' + newItem.name + ' failed.'); }
-          );
+          function successHandler(data) {
+            spTalker.activeModel.attributes.children.unshift(data.id);
+            noOfItemsCopied += 1;
+            if(noOfItemsCopied === noOfItemsToCopy) {
+              spTalker.activeModel.$save({modelID: spTalker.activeModel.model}, function() {
+                $rootScope.$broadcast('itemsQueried');
+              }, function() { fullSuccess = false; });
+            }
+          }
+          function errorHandler() {
+            success = false;
+          }
+          spTalker.createItem('', successHandler, newItem, errorHandler);
           return success;
         }
         var fullSuccess = true;
