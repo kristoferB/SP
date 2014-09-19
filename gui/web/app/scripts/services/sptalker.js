@@ -233,10 +233,12 @@ angular.module('spGuiApp')
     // remove item from parent items
     for(var id in factory.items) {
       if(factory.items.hasOwnProperty(id)) {
-        var index = factory.items[id].attributes.children.indexOf(itemToDelete.id);
-        if (index !== -1) {
-          factory.items[id].attributes.children.splice(index, 1);
-          factory.saveItem(factory.items[id], false);
+        if(factory.items[id].attributes.hasOwnProperty('children')) {
+          var index = factory.items[id].attributes.children.indexOf(itemToDelete.id);
+          if (index !== -1) {
+            factory.items[id].attributes.children.splice(index, 1);
+            factory.saveItem(factory.items[id], false);
+          }
         }
       }
     }
