@@ -7,7 +7,7 @@
  * # sop
  */
 angular.module('spGuiApp')
-.directive('itemlist', function (spTalker, notificationService, $filter, itemListSvc, $timeout) {
+.directive('itemlist', function (spTalker, notificationService, $filter, itemListSvc, $timeout, ITEM_KINDS) {
   return {
     templateUrl: 'views/itemlist.html',
     restrict: 'E',
@@ -27,6 +27,7 @@ angular.module('spGuiApp')
       $scope.twoOrMoreOps = false;
       $scope.oneSOPSpec = false;
       $scope.oneOrMoreItems = false;
+      $scope.itemKinds = ITEM_KINDS;
 
       function uncheckUnavailableAttributes(attributeTagsObject) {
         $scope.attrSelection.forEach(function (selectedAttribute) {

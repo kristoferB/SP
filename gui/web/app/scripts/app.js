@@ -109,6 +109,7 @@ angular
     });
   })*/
   .constant('NAME_PATTERN', /^[A-Za-z0-9_-][A-Za-z0-9_-]*$/)
+  .constant('ITEM_KINDS', ['Operation', 'Thing', 'SOPSpec', 'SPObject', 'SPSpec'])
   .run(function($rootScope, $location) {
     $rootScope.location = $location;
   })

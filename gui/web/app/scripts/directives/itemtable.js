@@ -7,7 +7,7 @@
  * # itemTable
  */
 angular.module('spGuiApp')
-  .directive('itemTable', function (itemListSvc, spTalker, RecursionHelper) {
+  .directive('itemTable', function (itemListSvc, spTalker, RecursionHelper, ITEM_KINDS) {
     return {
       templateUrl: 'views/itemtable.html',
       restrict: 'E',
@@ -23,6 +23,7 @@ angular.module('spGuiApp')
         $scope.itemListSvc = itemListSvc;
         $scope.items = [];
         $scope.spTalker = spTalker;
+        $scope.itemKinds = ITEM_KINDS;
 
         $scope.addAttribute = function(attrObj, key, value) {
           attrObj[key] = angular.copy(value);
