@@ -25,6 +25,10 @@ angular.module('spGuiApp')
         $scope.spTalker = spTalker;
         $scope.itemKinds = ITEM_KINDS;
 
+        $scope.removeAttribute = function(attrObj, key) {
+          delete attrObj[key];
+        };
+
         $scope.addAttribute = function(attrObj, key, value) {
           attrObj[key] = angular.copy(value);
           replaceDates(attrObj, key);

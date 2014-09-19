@@ -51,7 +51,9 @@ angular.module('spGuiApp')
 
       function onItemCreationSuccess(data) {
         var parent;
-        if(typeof parentItem === 'undefined') {
+        if(type === 'SPSpec') {
+          $rootScope.$broadcast('itemsQueried');
+        } else if(typeof parentItem === 'undefined') {
           parent = spTalker.activeModel;
           if(typeof parent.attributes.children === 'undefined') {
             parent.attributes.children = [];
@@ -133,7 +135,7 @@ angular.module('spGuiApp').filter('filterElements', function () {
   return function (input) {
     var filteredInput ={};
     angular.forEach(input, function(value, key){
-      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes'){
+      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes' && key !== 'children' && key !== 'attributeTags'){
         filteredInput[key]= value;
       }
     });
