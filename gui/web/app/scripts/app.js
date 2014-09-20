@@ -110,6 +110,7 @@ angular
   })*/
   .constant('NAME_PATTERN', /^[A-Za-z0-9_-][A-Za-z0-9_-]*$/)
   .constant('ITEM_KINDS', ['Operation', 'Thing', 'SOPSpec', 'SPObject', 'SPSpec'])
+  .constant('SV_KINDS', ['domain', 'range', 'boolean'])
   .run(function($rootScope, $location) {
     $rootScope.location = $location;
   })

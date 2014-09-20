@@ -29,13 +29,13 @@ angular.module('spGuiApp')
       $scope.oneOrMoreItems = false;
       $scope.itemKinds = ITEM_KINDS;
 
-      function uncheckUnavailableAttributes(attributeTagsObject) {
-        $scope.attrSelection.forEach(function (selectedAttribute) {
-          if (!(selectedAttribute in attributeTagsObject)) {
-            $scope.toggleSelection(selectedAttribute, $scope.attrSelection);
-          }
-        })
+      if(spTalker.itemsRead) {
+        getFilterAndOrderItems();
       }
+
+      $scope.$on('itemsQueried', function() {
+        getFilterAndOrderItems();
+      });
 
       var filtered;
 
@@ -56,14 +56,6 @@ angular.module('spGuiApp')
         }
       }
 
-      if(spTalker.itemsRead) {
-        getFilterAndOrderItems();
-      }
-
-      $scope.$on('itemsQueried', function() {
-        getFilterAndOrderItems();
-      });
-
       $scope.$watch(
         function() { return $scope.search; },
         function(newVal, oldVal) { if(newVal !== oldVal) { getFilterAndOrderItems(); } },
@@ -80,6 +72,14 @@ angular.module('spGuiApp')
           }
         },
         false);
+
+      function uncheckUnavailableAttributes(attributeTagsObject) {
+        $scope.attrSelection.forEach(function (selectedAttribute) {
+          if (!(selectedAttribute in attributeTagsObject)) {
+            $scope.toggleSelection(selectedAttribute, $scope.attrSelection);
+          }
+        })
+      }
 
       $scope.copyItems = function() {
         var noOfItemsToCopy = $scope.checkedItems.length,

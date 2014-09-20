@@ -2,24 +2,28 @@
   <tbody>
   <tr ng-if="items.length === 0"><td colspan="99">There are no items to show.</td></tr>
 
-  <tr ng-repeat-start="item in items track by item.id" ng-click="itemListSvc.expandChildren(row)" item-drag="{isa: 'Hierarchy', id: item.id}" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={dropdownOpen: false, edit: false, loadChildren: false, expandChildren: false, infoIsCollapsed: true, children: []}">
-    <td class="checkbox-column"><input type="checkbox" ng-click="itemListSvc.stopPropagation($event)" ng-model="item.checked" ng-change="alterCheckedArray(item)" /></td>
+  <tr ng-repeat-start="item in items track by item.id" ng-click="item.attributes.isa !== 'StateVariable' && itemListSvc.expandChildren(row)" item-drag="{isa: 'Hierarchy', id: item.id}" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={dropdownOpen: false, edit: false, loadChildren: false, expandChildren: false, infoIsCollapsed: true, children: []}">
+    <td class="checkbox-column"><input type="checkbox" ng-disabled="item.attributes.isa === 'StateVariable'" ng-click="itemListSvc.stopPropagation($event)" ng-model="item.checked" ng-change="alterCheckedArray(item)" /></td>
     <td ng-repeat="column in selection">{{item[column]}}</td>
     <td ng-repeat="attrColumn in attrSelection">{{item['attributes'][attrColumn]}}</td>
     <td class="item-table-buttons">
       <button class="btn btn-xs btn-default" ng-click="row.expandChildren = false; row.infoIsCollapsed = !row.infoIsCollapsed; itemListSvc.stopPropagation($event);" ng-if="!row.edit"><span class="glyphicon glyphicon-info-sign"></span></button>
-      <div class="btn-group" dropdown ng-if="!row.edit" is-open="row.dropdownOpen">
+      <button class="btn btn-xs btn-default" ng-click="row.expandChildren = false; row.infoIsCollapsed = false; row.edit=true; itemListSvc.stopPropagation($event);" ng-if="!row.edit" ><span class="glyphicon glyphicon-edit"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemForm.$valid && itemListSvc.saveItem(item, row); itemListSvc.stopPropagation($event);" ng-if="row.edit && item.attributes.isa !== 'StateVariable'" type="submit"><span class="glyphicon glyphicon-floppy-disk"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemForm.$valid && itemListSvc.saveItem(parentItem, row); itemListSvc.stopPropagation($event);" ng-if="row.edit && item.attributes.isa === 'StateVariable'" type="submit"><span class="glyphicon glyphicon-floppy-disk"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemListSvc.reReadFromServer(item, row); itemListSvc.stopPropagation($event);" ng-if="row.edit && item.attributes.isa !== 'StateVariable'" ><span class="glyphicon glyphicon-remove"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemListSvc.reReadFromServer(parentItem, row); itemListSvc.stopPropagation($event);" ng-if="row.edit && item.attributes.isa === 'StateVariable'" ><span class="glyphicon glyphicon-remove"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemListSvc.deleteItem(item); itemListSvc.stopPropagation($event);" ng-if="!row.edit && item.attributes.isa !== 'StateVariable'"><span class="glyphicon glyphicon-remove"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemListSvc.deleteStateVar(parentItem, item); itemListSvc.stopPropagation($event);" ng-if="!row.edit && item.attributes.isa === 'StateVariable'"><span class="glyphicon glyphicon-remove"></span></button>
+      <div class="btn-group" dropdown ng-if="!row.edit && item.attributes.isa !== 'StateVariable'" is-open="row.dropdownOpen">
         <button class="btn btn-xs btn-default dropdown-toggle" ng-click="itemListSvc.stopPropagation($event);">
           <span class="glyphicon glyphicon-plus"></span>
         </button>
         <ul class="dropdown-menu" role="menu">
+          <li role="presentation" ng-if="item.isa === 'Thing'" ng-click="itemListSvc.addStateVar(item); row.dropdownOpen = false; itemListSvc.stopPropagation($event);"><a x-name="option">StateVar</a></li>
           <li role="presentation" ng-repeat="itemKind in itemKinds" ng-click="itemListSvc.createItem(itemKind, item); row.dropdownOpen = false; itemListSvc.stopPropagation($event);"><a x-name="option">{{itemKind}}</a></li>
         </ul>
       </div>
-      <button class="btn btn-xs btn-default" ng-click="row.expandChildren = false; row.infoIsCollapsed = false; row.edit=true; itemListSvc.stopPropagation($event);" ng-if="!row.edit" ><span class="glyphicon glyphicon-edit"></span></button>
-      <button class="btn btn-xs btn-default" ng-click="itemForm.$valid && itemListSvc.saveItem(item, row); itemListSvc.stopPropagation($event);" ng-if="row.edit" type="submit"><span class="glyphicon glyphicon-floppy-disk"></span></button>
-      <button class="btn btn-xs btn-default" ng-click="itemListSvc.reReadFromServer(item, row); itemListSvc.stopPropagation($event);" ng-if="row.edit" ><span class="glyphicon glyphicon-remove"></span></button>
-      <button class="btn btn-xs btn-default" ng-click="itemListSvc.deleteItem(item); itemListSvc.stopPropagation($event);" ng-if="!row.edit"><span class="glyphicon glyphicon-remove"></span></button>
     </td>
   </tr>
 
@@ -37,6 +41,14 @@
                     <input no-whitespace name="textInput" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item.name" />
                     <span class="error" ng-show="textForm.textInput.$error.nowhitespace"><br />Whitespace is not allowed here.</span>
                   </ng-form>
+                </td>
+              </tr>
+
+              <tr ng-if="item.attributes.isa === 'StateVariable'">
+                <td>kind:</td>
+                <td ng-init="row.svKind = itemListSvc.findOutSVKind(item)">
+                  <span ng-if="!row.edit">{{row.svKind}}</span>
+                  <select ng-if="row.edit" class="form-control input-sm" ng-model="row.svKind" ng-options="svKind as svKind for svKind in svKinds" ng-change="itemListSvc.svKindChange(item, row.svKind)"></select>
                 </td>
               </tr>
 
@@ -65,13 +77,14 @@
 
               <tr>
                 <td class="col-md-1">type:</td>
-                <td class="col-md-9">{{item.isa}}</td>
+                <td class="col-md-9" ng-if="item.attributes.isa !== 'StateVariable'">{{item.isa}}</td>
+                <td class="col-md-9" ng-if="item.attributes.isa === 'StateVariable'">{{item.attributes.isa}}</td>
               </tr>
               <tr>
                 <td class="col-md-1">id:</td>
                 <td class="col-md-9">{{item.id}}</td>
               </tr>
-              <tr>
+              <tr ng-if="item.attributes.isa !== 'StateVariable'">
                 <td class="col-md-1">version:</td>
                 <td class="col-md-9">{{item.version}}</td>
               </tr>
@@ -106,5 +119,6 @@
       </form>
     </td>
   </tr>
+
   </tbody>
 </table>

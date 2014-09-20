@@ -19,8 +19,6 @@
   <span ng-if="!edit && type === 'date' ">{{attrObj[key] | date:'yyyy-MM-dd HH:mm:ss'}}</span>
   <input ng-if="edit && type === 'date'" id="datetimeInput" step=1 name="datetimeInput" type="datetime-local" class="form-control input-sm" ng-model="attrObj[key]" />
 
-  <sv-grid ng-if="type==='stateVariables'" sv-array="attrObj[key]" edit="edit"></sv-grid>
-
   <button ng-if="type==='sop'" ng-click="itemListSvc.openSopInNewWindow(attrObj, addWindow)" class="btn btn-sm btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
 
   <conditions ng-if="type==='conditions'" conditions="attrObj[key]" edit="edit"></conditions>

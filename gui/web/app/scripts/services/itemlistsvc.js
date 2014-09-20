@@ -12,6 +12,33 @@ angular.module('spGuiApp')
 
     var factory = {};
 
+    factory.findOutSVKind = function(item) {
+      if(item.attributes.domain !== 'undefined') {
+        return 'domain';
+      } else if(item.attributes.range !== 'undefined') {
+        return 'range';
+      } else if(item.attributes.boolean !== 'undefined') {
+        return 'boolean';
+      }
+    };
+
+    factory.svKindChange = function(sv, kind) {
+      delete sv.attributes.domain;
+      delete sv.attributes.range;
+      delete sv.attributes.boolean;
+      if(kind === 'domain') {
+        sv.attributes[kind] = ['home', 'flexlink'];
+      } else if(kind === 'range') {
+        sv.attributes[kind] = {
+          start: 0,
+          end: 2,
+          step: 1
+        };
+      } else if(kind === 'boolean') {
+        sv.attributes[kind] = true;
+      }
+    };
+
     factory.getChildren = function(parentItem, childrenArray) {
       while(childrenArray.length > 0) {
         childrenArray.pop()
@@ -20,6 +47,11 @@ angular.module('spGuiApp')
         parentItem.attributes.children.forEach(function(childId) {
           childrenArray.push(spTalker.getItemById(childId));
         });
+      }
+      if(parentItem.isa === 'Thing') {
+        parentItem.stateVariables.forEach(function(sv) {
+          childrenArray.push(sv);
+        })
       }
     };
 
@@ -41,8 +73,8 @@ angular.module('spGuiApp')
       row.edit=false;
     };
 
-    factory.deleteItem = function(item) {
-      if(confirm('You are about to delete ' + item.name + ' from server. Are you sure?')) {
+    factory.deleteItem = function(item, sv) {
+      if(confirm('You are about to delete ' + item.name + ' completely. Are you sure?')) {
         spTalker.deleteItem(item);
       }
     };
@@ -80,23 +112,21 @@ angular.module('spGuiApp')
       condArray.push({guard: {}, action: [], attributes: {kind: '', group: ''}});
     };
 
-    factory.addStateVar = function(svArray, type) {
+    factory.addStateVar = function(thing) {
       var stateVar = {
-        name: 'newVar',
-        attributes: {}
+        name: 'stateVar' + Math.floor(Math.random()*1000),
+        attributes: { isa: 'StateVariable' }
       };
-      if(type === 'domain') {
-        stateVar.attributes[type] = ['home', 'flexlink'];
-      } else if(type === 'range') {
-        stateVar.attributes[type] = {
-          start: 0,
-          end: 2,
-          step: 1
-        };
-      } else if(type === 'boolean') {
-        stateVar.attributes[type] = true;
+      stateVar.attributes['domain'] = ['home', 'flexlink'];
+      thing.stateVariables.push(stateVar);
+      spTalker.saveItem(thing, false);
+    };
+
+    factory.deleteStateVar = function(thing, stateVar) {
+      if(confirm('You are about to delete StateVar ' + stateVar.name + ' from Thing ' + thing.name + '. Are you sure?')) {
+        thing.stateVariables.splice(thing.stateVariables.indexOf(stateVar),1);
+        spTalker.saveItem(thing, false);
       }
-      svArray.push(stateVar);
     };
 
     factory.stopPropagation = function(e) {
@@ -134,7 +164,7 @@ angular.module('spGuiApp').filter('filterElements', function () {
   return function (input) {
     var filteredInput ={};
     angular.forEach(input, function(value, key){
-      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes' && key !== 'children' && key !== 'attributeTags'){
+      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes' && key !== 'children' && key !== 'attributeTags' && key !== 'stateVariables'){
         filteredInput[key]= value;
       }
     });

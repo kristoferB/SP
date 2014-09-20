@@ -188,6 +188,7 @@ angular.module('spGuiApp')
         if(successHandler) {
           successHandler(data);
         }
+        $rootScope.$broadcast('itemsQueried');
       },
       function (error) {
         notificationService.error(item.isa + ' ' + item.name + ' could not be saved.');
@@ -231,6 +232,7 @@ angular.module('spGuiApp')
         notificationService.success('A new ' + data.isa + ' with name ' + data.name + ' was successfully created.');
         updateItemLists();
         successHandler(data);
+        $rootScope.$broadcast('itemsQueried');
       },
       function(error) {
         console.log(error);
@@ -288,7 +290,9 @@ angular.module('spGuiApp')
   };
 
   factory.reReadFromServer = function(item) {
-    item.$get({model: factory.activeModel.model});
+    item.$get({model: factory.activeModel.model}, function() {
+      $rootScope.$broadcast('itemsQueried');
+    });
   };
 
   /*$http.defaults.headers.common['Authorization'] = 'Basic ' + window.btoa('admin' + ':' + 'pass');
