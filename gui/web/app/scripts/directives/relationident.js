@@ -26,7 +26,9 @@ angular.module('spGuiApp')
                 svs.push({id: key, value: false })
                 // allow for user to set initstate instead of this
                 _.each(value.stateVariables, function(sv){
-                  svs.push({id: sv.id, value: false })
+                  var initValue = false
+                  if (!_.isUndefined(id.init)) initValue = id.init;
+                  svs.push({id: sv.id, value: initValue })
                 })
               }
             })
