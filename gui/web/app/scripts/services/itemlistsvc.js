@@ -12,6 +12,31 @@ angular.module('spGuiApp')
 
     var factory = {};
 
+    factory.removeAttribute = function(attrObj, key) {
+      if(attrObj instanceof Array) {
+        var index = attrObj.indexOf(key);
+        attrObj.splice(index, 1);
+      } else {
+        delete attrObj[key];
+      }
+    };
+
+    factory.addAttribute = function(attrObj, key, value) {
+      attrObj[key] = angular.copy(value);
+      replaceDates(attrObj, key);
+    };
+
+    function replaceDates(obj, key) {
+      if(obj[key] instanceof Date) {
+        obj[key] = new Date();
+      }
+      for(var k in obj[key]) {
+        if(obj[key].hasOwnProperty(k)) {
+          replaceDates(obj[key], k);
+        }
+      }
+    }
+
     factory.findOutSVKind = function(item) {
       if(item.attributes.domain !== 'undefined') {
         return 'domain';

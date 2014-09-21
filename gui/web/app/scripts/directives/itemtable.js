@@ -26,25 +26,7 @@ angular.module('spGuiApp')
         $scope.itemKinds = ITEM_KINDS;
         $scope.svKinds = SV_KINDS;
 
-        $scope.removeAttribute = function(attrObj, key) {
-          delete attrObj[key];
-        };
 
-        $scope.addAttribute = function(attrObj, key, value) {
-          attrObj[key] = angular.copy(value);
-          replaceDates(attrObj, key);
-        };
-
-        function replaceDates(obj, key) {
-          if(obj[key] instanceof Date) {
-            obj[key] = new Date();
-          }
-          for(var k in obj[key]) {
-            if(obj[key].hasOwnProperty(k)) {
-              replaceDates(obj[key], k);
-            }
-          }
-        }
 
         $scope.$on('itemsQueried', function() {
           itemListSvc.getChildren($scope.parentItem, $scope.items);

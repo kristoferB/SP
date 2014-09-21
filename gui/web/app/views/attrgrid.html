@@ -1,4 +1,3 @@
-
 <span ng-init="type = getType(attrObj[key], key)">
 
   <span ng-if="!edit && type === 'string'">{{attrObj[key]}}</span>
@@ -24,23 +23,27 @@
   <conditions ng-if="type==='conditions'" conditions="attrObj[key]" edit="edit"></conditions>
   <button ng-if="type==='conditions' && edit" class="btn btn-sm btn-default" ng-click="itemListSvc.addCondition(attrObj[key])"><span class="glyphicon glyphicon-plus"></span> Add condition</button>
 
-
   <table ng-if="type === 'object'">
-      <tr class="form-inline" ng-repeat="(attr, attrVal) in attrObj[key]">
-          <td class="col-md-1">{{attr}}: </td>
-          <td class="col-md-9">
-              <attr-grid edit="edit" attr-obj="attrObj[key]" key="attr"></attr-grid>
-          </td>
-      </tr>
+    <tr class="form-inline" ng-repeat="(attr, attrVal) in attrObj[key]">
+      <td class="col-md-1">
+        <deleteable-key attr-obj="attrObj[key]" element="attr" key="attr" edit="edit"></deleteable-key>
+      </td>
+      <td class="col-md-9">
+        <attr-grid edit="edit" attr-obj="attrObj[key]" key="attr"></attr-grid>
+      </td>
+    </tr>
   </table>
+
   <table ng-if="type === 'array'">
-      <tr class="form-inline" ng-repeat="elem in attrObj[key]">
-          <td class="col-md-1">{{$index+1}}: </td>
-          <td class="col-md-9">
-              <attr-grid edit="edit" attr-obj="attrObj[key]"  key="$index"></attr-grid>
-          </td>
-      </tr>
-      <tr ng-if="attrObj[key].length === 0"><td>no elements found</td></tr>
+    <tr class="form-inline" ng-repeat="elem in attrObj[key] track by $index">
+      <td class="col-md-1">
+        <deleteable-key attr-obj="attrObj[key]" key="$index+1" element="elem" edit="edit"></deleteable-key>
+      </td>
+      <td class="col-md-9">
+        <attr-grid edit="edit" attr-obj="attrObj[key]" key="$index"></attr-grid>
+      </td>
+    </tr>
+    <tr ng-if="attrObj[key].length === 0"><td>no elements found</td></tr>
   </table>
 
 </span>
