@@ -8,11 +8,12 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-  .factory('itemListSvc', ['$rootScope', 'spTalker', 'notificationService', '$timeout', function($rootScope, spTalker, notificationService, $timeout) {
+  .factory('itemListSvc', ['$rootScope', 'spTalker', 'notificationService', '$timeout', 'SV_KINDS', function($rootScope, spTalker, notificationService, $timeout, SV_KINDS) {
 
     var factory = {};
 
-    factory.removeAttribute = function(attrObj, key) {
+    factory.removeAttribute = function(attrObj, key, menu) {
+      menu.isOpen = false;
       if(attrObj instanceof Array) {
         var index = attrObj.indexOf(key);
         attrObj.splice(index, 1);
@@ -38,12 +39,12 @@ angular.module('spGuiApp')
     }
 
     factory.findOutSVKind = function(item) {
-      if(item.attributes.domain !== 'undefined') {
-        return 'domain';
-      } else if(item.attributes.range !== 'undefined') {
-        return 'range';
-      } else if(item.attributes.boolean !== 'undefined') {
-        return 'boolean';
+      if(typeof item.attributes.domain !== 'undefined') {
+        return SV_KINDS[0];
+      } else if(typeof item.attributes.range !== 'undefined') {
+        return SV_KINDS[1];
+      } else if(typeof item.attributes.boolean !== 'undefined') {
+        return SV_KINDS[2];
       }
     };
 

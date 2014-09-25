@@ -20,6 +20,10 @@ angular.module('spGuiApp')
       controller: function($scope) {
         $scope.itemListSvc = itemListSvc;
 
+        $scope.addElementToArray = function(array) {
+          array.push('');
+        };
+
         $scope.isEmpty = function (obj) {
           return _.isEmpty(obj)
         };

@@ -23,7 +23,7 @@
   <conditions ng-if="type==='conditions'" conditions="attrObj[key]" edit="edit"></conditions>
   <button ng-if="type==='conditions' && edit" class="btn btn-sm btn-default" ng-click="itemListSvc.addCondition(attrObj[key])"><span class="glyphicon glyphicon-plus"></span> Add condition</button>
 
-  <table ng-if="type === 'object'">
+  <table class="element-list" ng-if="type === 'object'">
     <tr class="form-inline" ng-repeat="(attr, attrVal) in attrObj[key]">
       <td class="col-md-1">
         <deleteable-key attr-obj="attrObj[key]" element="attr" key="attr" edit="edit"></deleteable-key>
@@ -34,7 +34,8 @@
     </tr>
   </table>
 
-  <table ng-if="type === 'array'">
+  <table class="element-list" ng-if="type === 'array'">
+    <tr ng-if="edit"><td colspan="2"><button class="btn btn-default btn-sm" ng-click="addElementToArray(attrObj[key])"><span class="glyphicon glyphicon-plus"></span> Add row</button></td></tr>
     <tr class="form-inline" ng-repeat="elem in attrObj[key] track by $index">
       <td class="col-md-1">
         <deleteable-key attr-obj="attrObj[key]" key="$index+1" element="elem" edit="edit"></deleteable-key>

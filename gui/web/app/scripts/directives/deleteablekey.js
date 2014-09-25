@@ -19,6 +19,9 @@ angular.module('spGuiApp')
       },
       link: function postLink(scope, element, attrs) {
         scope.itemListSvc = itemListSvc;
+        scope.menu = {
+          isOpen: false
+        };
       }
     };
   });

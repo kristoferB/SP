@@ -131,7 +131,7 @@ table a, .table a {
     text-decoration: none;
 }
 
-.sv-table td, .attr-table td {
+.element-list td {
     padding: 2px;
 }
 
