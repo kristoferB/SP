@@ -46,9 +46,9 @@
 
               <tr ng-if="item.attributes.isa === 'StateVariable'">
                 <td>kind:</td>
-                <td ng-init="row.svKind = itemListSvc.findOutSVKind(item)">
-                  <span ng-if="!row.edit">{{row.svKind}}</span>
-                  <select ng-if="row.edit" class="form-control input-sm" ng-model="row.svKind" ng-options="svKind as svKind for svKind in svKinds" ng-change="itemListSvc.svKindChange(item, row.svKind)"></select>
+                <td>
+                  <span ng-if="!row.edit">{{item.attributes.svKind}}</span>
+                  <select ng-if="row.edit" class="form-control input-sm" ng-model="item.attributes.svKind" ng-options="svKind as svKind for svKind in svKinds" ng-change="itemListSvc.svKindChange(item)"></select>
                 </td>
               </tr>
 

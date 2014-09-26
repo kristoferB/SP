@@ -38,17 +38,8 @@ angular.module('spGuiApp')
       }
     }
 
-    factory.findOutSVKind = function(item) {
-      if(typeof item.attributes.domain !== 'undefined') {
-        return SV_KINDS[0];
-      } else if(typeof item.attributes.range !== 'undefined') {
-        return SV_KINDS[1];
-      } else if(typeof item.attributes.boolean !== 'undefined') {
-        return SV_KINDS[2];
-      }
-    };
-
-    factory.svKindChange = function(sv, kind) {
+    factory.svKindChange = function(sv) {
+      var kind = sv.attributes.svKind;
       delete sv.attributes.domain;
       delete sv.attributes.range;
       delete sv.attributes.boolean;
@@ -190,7 +181,7 @@ angular.module('spGuiApp').filter('filterElements', function () {
   return function (input) {
     var filteredInput ={};
     angular.forEach(input, function(value, key){
-      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes' && key !== 'children' && key !== 'attributeTags' && key !== 'stateVariables'){
+      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes' && key !== 'children' && key !== 'attributeTags' && key !== 'stateVariables' && key !== 'svKind'){
         filteredInput[key]= value;
       }
     });

@@ -26,8 +26,6 @@ angular.module('spGuiApp')
         $scope.itemKinds = ITEM_KINDS;
         $scope.svKinds = SV_KINDS;
 
-
-
         $scope.$on('itemsQueried', function() {
           itemListSvc.getChildren($scope.parentItem, $scope.items);
         });
