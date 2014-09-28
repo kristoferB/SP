@@ -17,7 +17,8 @@ angular.module('spGuiApp')
         alterCheckedArray: '=',
         selection: '=',
         attrSelection: '=',
-        addWindow: '='
+        addWindow: '=',
+        itemListScope: '='
       },
       controller: function($scope) {
         $scope.itemListSvc = itemListSvc;
@@ -25,6 +26,16 @@ angular.module('spGuiApp')
         $scope.spTalker = spTalker;
         $scope.itemKinds = ITEM_KINDS;
         $scope.svKinds = SV_KINDS;
+
+        $scope.addItemExpandListener = function(item, row) {
+          $scope.$on('show-info-' + item.id, function() {
+            row.infoIsCollapsed = false;
+            row.edit = true;
+          });
+          $scope.$on('show-children-' + item.id, function() {
+            itemListSvc.expandChildren(row, false);
+          });
+        };
 
         $scope.$on('itemsQueried', function() {
           itemListSvc.getChildren($scope.parentItem, $scope.items);

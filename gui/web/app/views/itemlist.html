@@ -5,7 +5,7 @@
         <span class="glyphicon glyphicon-asterisk"></span> Create <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" role="menu">
-        <li ng-repeat="itemKind in itemKinds"><a ng-click="itemListSvc.createItem(itemKind)" x-name="option">{{itemKind}}</a></li>
+        <li ng-repeat="itemKind in itemKinds"><a ng-click="itemListSvc.createItem(itemKind, false, thisScope)" x-name="option">{{itemKind}}</a></li>
       </ul>
     </div>
     <div class="btn-group" dropdown is-open="status.isopen">
@@ -36,8 +36,17 @@
     <button type="button" class="btn btn-default" ng-click="refresh()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
     <button type="button" class="btn btn-default" ng-click="showFilterInputs = !showFilterInputs"><span class="glyphicon glyphicon-filter"></span> Filter</button>
     <button type="button" class="btn btn-default" ng-click="copyItems()" ng-show="oneOrMoreItems"><span class="glyphicon glyphicon-file"></span> Copy</button>
+    <button type="button" class="btn btn-default" ng-click="deleteItems()" ng-show="oneOrMoreItems"><span class="glyphicon glyphicon-remove"></span> Delete</button>
     <button type="button" class="btn btn-default" ng-click="viewRelation()" ng-show="twoOrMoreOps"><span class="glyphicon glyphicon-link"></span> View relation</button>
     <button type="button" class="btn btn-default" ng-click="openSopInNewWindow(checkedItems[0])" ng-show="oneSOPSpec" ><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
+    <div class="btn-group" dropdown>
+      <button type="button" class="btn btn-default dropdown-toggle">
+        <span class="glyphicon glyphicon-globe"></span> Mode <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+        <li ng-repeat="listMode in listModes"><a ng-click="setListMode(listMode)" x-name="option">{{listMode}}</a></li>
+      </ul>
+    </div>
   </div> <!-- end of toolbar -->
 
   <div class="item-table-header-wrapper">
@@ -72,6 +81,6 @@
 
 <div class="content">
   <div class="content-wrapper">
-    <item-table parent-item="spTalker.activeModel" served-items="filteredAndOrderedItems" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" add-window="addWindow"></item-table>
+    <item-table parent-item="spTalker.activeModel" served-items="filteredAndOrderedItems" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" add-window="addWindow" item-list-scope="thisScope"></item-table>
   </div> <!-- end of content-wrapper -->
 </div> <!-- end of content -->

@@ -2,7 +2,7 @@
   <tbody>
   <tr ng-if="items.length === 0"><td colspan="99">There are no items to show.</td></tr>
 
-  <tr ng-repeat-start="item in items track by item.id" ng-click="item.attributes.isa !== 'StateVariable' && itemListSvc.expandChildren(row)" item-drag="{isa: 'Hierarchy', id: item.id}" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={dropdownOpen: false, loadChildren: false, edit: false, expandChildren: false, infoIsCollapsed: true, children: []}">
+  <tr ng-repeat-start="item in items track by item.id" ng-click="item.attributes.isa !== 'StateVariable' && itemListSvc.expandChildren(row, true)" item-drag="{isa: 'Hierarchy', id: item.id}" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={dropdownOpen: false, loadChildren: false, edit: false, expandChildren: false, infoIsCollapsed: true, children: [] }; addItemExpandListener(item, row);">
     <td class="checkbox-column"><input type="checkbox" ng-disabled="item.attributes.isa === 'StateVariable'" ng-click="itemListSvc.stopPropagation($event)" ng-model="item.checked" ng-change="alterCheckedArray(item)" /></td>
     <td ng-repeat="column in selection">{{item[column]}}</td>
     <td ng-repeat="attrColumn in attrSelection">{{item['attributes'][attrColumn]}}</td>
@@ -30,7 +30,7 @@
                 <td class="col-md-1">name:</td>
                 <td class="col-md-9" ng-if="row.edit">
                   <ng-form name="textForm">
-                    <input no-whitespace name="textInput" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item.name" />
+                    <input no-whitespace name="textInput" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item.name" auto-focus />
                     <span class="error" ng-show="textForm.textInput.$error.nowhitespace"><br />Whitespace is not allowed here.</span>
                   </ng-form>
                 </td>
@@ -99,7 +99,7 @@
     <td colspan="99" class="hiddenRow">
       <form class="form-inline" name="itemForm">
         <div style="margin-left: 5%;" ng-if="row.loadChildren" collapse="!(row.expandChildren && row.loadChildren)">
-          <item-table parent-item="item" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" add-window="addWindow"></item-table>
+          <item-table parent-item="item" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" add-window="addWindow" item-list-scope="itemListScope"></item-table>
         </div> <!-- end of accordion-body -->
       </form>
     </td>

@@ -188,7 +188,7 @@ angular.module('spGuiApp')
         if(successHandler) {
           successHandler(data);
         }
-        $rootScope.$broadcast('itemsQueried');
+
       },
       function (error) {
         notificationService.error(item.isa + ' ' + item.name + ' could not be saved.');
@@ -210,7 +210,7 @@ angular.module('spGuiApp')
         }
       });
       if(type === 'Operation') {
-        newItem.conditions = [];
+        newItem.conditions = [{guard: {isa:'EQ', right: true, left: true}, action: [], attributes: {kind: 'pre', group: ''}}];
       } else if(type === 'Thing') {
         newItem.stateVariables = [];
       } else if(type === 'SOPSpec') {
@@ -242,7 +242,9 @@ angular.module('spGuiApp')
     );
   };
 
-  factory.deleteItem = function(itemToDelete) {
+  factory.deleteItem = function(itemToDelete, notifySuccess) {
+    var success = true;
+
     // remove item from parent items
     for(var id in factory.items) {
       if(factory.items.hasOwnProperty(id)) {
@@ -266,6 +268,10 @@ angular.module('spGuiApp')
           {modelID: factory.activeModel.model},
           function() {
             removeItemFromServer();
+          },
+          function(error) {
+            console.log(error);
+            success = false;
           }
         );
       } else {
@@ -278,15 +284,20 @@ angular.module('spGuiApp')
         {model:factory.activeModel.model},
         function(data) {
           delete factory.items[data.id];
-          notificationService.success(data.isa + ' ' + data.name + ' was successfully deleted.');
+          if(notifySuccess) {
+            notificationService.success(data.isa + ' ' + data.name + ' was successfully deleted.');
+          }
           $rootScope.$broadcast('itemsQueried');
         },
         function(error) {
           console.log(error);
           notificationService.error(itemToDelete.isa + ' ' + itemToDelete.name + ' could not be deleted from the server. Check your browser\'s error console for details.');
+          success = false;
         }
       );
     }
+
+    return success;
   };
 
   factory.reReadFromServer = function(item) {

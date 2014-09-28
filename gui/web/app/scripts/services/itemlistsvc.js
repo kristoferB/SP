@@ -72,11 +72,16 @@ angular.module('spGuiApp')
       }
     };
 
-    factory.expandChildren = function(row) {
+    factory.expandChildren = function(row, collapseIfExpanded) {
       row.infoIsCollapsed = true;
       row.loadChildren = true;
       $timeout( function() {
-        row.expandChildren = !row.expandChildren;
+        if(collapseIfExpanded) {
+          row.expandChildren = !row.expandChildren;
+        } else {
+          row.expandChildren = true;
+        }
+
       });
     };
 
@@ -96,13 +101,12 @@ angular.module('spGuiApp')
       }
     };
 
-    factory.createItem = function(type, parentItem) {
-
+    factory.createItem = function(type, parentItem, itemListScope) {
       function onItemCreationSuccess(data) {
         var parent;
         if(type === 'SPSpec') {
           $rootScope.$broadcast('itemsQueried');
-        } else if(typeof parentItem === 'undefined') {
+        } else if(parentItem === false) {
           parent = spTalker.activeModel;
           if(typeof parent.attributes.children === 'undefined') {
             parent.attributes.children = [];
@@ -120,29 +124,53 @@ angular.module('spGuiApp')
           spTalker.saveItem(parent);
           $rootScope.$broadcast('itemsQueried');
         }
+        console.log(itemListScope);
+        $timeout(function() {
+          if(parentItem) {
+            itemListScope.$broadcast('show-children-' + parentItem.id);
+          }
+          $timeout(function() {
+            itemListScope.$broadcast('show-info-' + data.id);
+          });
+        });
       }
       spTalker.createItem(type, onItemCreationSuccess);
     };
 
     factory.addCondition = function(condArray) {
-      condArray.push({guard: {}, action: [], attributes: {kind: '', group: ''}});
+      condArray.push({guard: {}, action: [], attributes: {kind: 'pre', group: ''}});
     };
 
-    factory.addStateVar = function(thing) {
+    factory.addStateVar = function(thing, itemListScope) {
       var stateVar = {
         name: 'stateVar' + Math.floor(Math.random()*1000),
         attributes: { isa: 'StateVariable' }
       };
       stateVar.attributes.domain = ['home', 'flexlink'];
       stateVar.attributes.svKind = 'domain';
-      thing.stateVariables.push(stateVar);
-      spTalker.saveItem(thing, false);
+      thing.stateVariables.unshift(stateVar);
+
+      function successHandler(data) {
+        $rootScope.$broadcast('itemsQueried');
+        $timeout(function() {
+          itemListScope.$broadcast('show-children-' + thing.id);
+          $timeout(function() {
+            itemListScope.$broadcast('show-info-' + data.stateVariables[0].id);
+          });
+        });
+      }
+
+      spTalker.saveItem(thing, false, successHandler);
+
     };
 
     factory.deleteStateVar = function(thing, stateVar) {
+      function successHandler() {
+        $rootScope.$broadcast('itemsQueried');
+      }
       if(confirm('You are about to delete StateVar ' + stateVar.name + ' from Thing ' + thing.name + '. Are you sure?')) {
         thing.stateVariables.splice(thing.stateVariables.indexOf(stateVar),1);
-        spTalker.saveItem(thing, false);
+        spTalker.saveItem(thing, false, successHandler);
       }
     };
 

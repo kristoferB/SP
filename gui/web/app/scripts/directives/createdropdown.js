@@ -30,9 +30,9 @@ angular.module('spGuiApp')
           onItem: function(context,e) {
             var key = e.target.getAttribute('id');
             if(key === 'StateVariable') {
-              itemListSvc.addStateVar(scope.item);
+              itemListSvc.addStateVar(scope.item, scope.itemListScope);
             } else {
-              itemListSvc.createItem(key, scope.item);
+              itemListSvc.createItem(key, scope.item, scope.itemListScope);
             }
           }
         });

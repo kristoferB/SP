@@ -28,23 +28,37 @@ angular.module('spGuiApp')
       $scope.oneSOPSpec = false;
       $scope.oneOrMoreItems = false;
       $scope.itemKinds = ITEM_KINDS;
-
-      if(spTalker.itemsRead) {
-        getFilterAndOrderItems();
-      }
-
-      $scope.$on('itemsQueried', function() {
-        getFilterAndOrderItems();
-      });
+      $scope.listModes = ['Hierarchy', 'Flat'];
+      $scope.chosenListMode = $scope.listModes[0];
+      $scope.thisScope = $scope;
 
       var filtered;
 
-      function getFilterAndOrderItems() {
+      $scope.getFilterAndOrderItems = function() {
         var children = [];
-        itemListSvc.getChildren(spTalker.activeModel, children);
+        if($scope.chosenListMode === $scope.listModes[0]) {
+          itemListSvc.getChildren(spTalker.activeModel, children);
+        } else {
+          children = $.map(spTalker.items, function(value) {
+            return [value];
+          });
+        }
         filtered = $filter('filter')(children, itemFilter);
         $timeout(order);
+      };
+
+      $scope.setListMode = function(listMode) {
+        $scope.chosenListMode = listMode;
+        $scope.getFilterAndOrderItems();
+      };
+
+      if(spTalker.itemsRead) {
+        $scope.getFilterAndOrderItems();
       }
+
+      $scope.$on('itemsQueried', function() {
+        $scope.getFilterAndOrderItems();
+      });
 
       function order() {
         var ordered = $filter('orderBy')(filtered, $scope.predicate, $scope.reverse);
@@ -54,11 +68,12 @@ angular.module('spGuiApp')
         while(ordered.length > 0) {
           $scope.filteredAndOrderedItems.unshift(ordered.pop());
         }
+        $scope.$broadcast('itemsOrdered');
       }
 
       $scope.$watch(
         function() { return $scope.search; },
-        function(newVal, oldVal) { if(newVal !== oldVal) { getFilterAndOrderItems(); } },
+        function(newVal, oldVal) { if(newVal !== oldVal) { $scope.getFilterAndOrderItems(); } },
         true
       );
 
@@ -117,7 +132,26 @@ angular.module('spGuiApp')
         } else {
           notificationService.error('Copying failed for one or more of the selected items. See your browser\'s console for details.');
         }
-        getFilterAndOrderItems();
+        $scope.getFilterAndOrderItems();
+      };
+
+      $scope.deleteItems = function() {
+
+        if(confirm('You are about to delete the selected items completely. Are you sure?')) {
+          var fullSuccess = true;
+          $scope.checkedItems.forEach( function(item) {
+            if(!spTalker.deleteItem(item)) {
+              fullSuccess = false;
+            }
+          });
+          if(fullSuccess) {
+            $scope.checkUncheckAllModel = false;
+            $scope.checkUncheckAll();
+            notificationService.success('The selected items was successfully deleted.')
+          } else {
+            notificationService.error('An error occurred. Please check your browser\'s console for details.');
+          }
+        }
       };
 
       $scope.viewRelation = function() {
