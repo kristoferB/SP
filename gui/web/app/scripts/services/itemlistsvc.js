@@ -8,7 +8,7 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-  .factory('itemListSvc', ['$rootScope', 'spTalker', 'notificationService', '$timeout', 'SV_KINDS', function($rootScope, spTalker, notificationService, $timeout, SV_KINDS) {
+  .factory('itemListSvc', ['$rootScope', 'spTalker', 'notificationService', '$timeout', 'SV_KINDS', function($rootScope, spTalker, notificationService, $timeout) {
 
     var factory = {};
 
@@ -87,10 +87,10 @@ angular.module('spGuiApp')
 
     factory.reReadFromServer = function(item, row) {
       spTalker.reReadFromServer(item);
-      row.edit=false;
+      row.edit = false;
     };
 
-    factory.deleteItem = function(item, sv) {
+    factory.deleteItem = function(item) {
       if(confirm('You are about to delete ' + item.name + ' completely. Are you sure?')) {
         spTalker.deleteItem(item);
       }
@@ -121,7 +121,6 @@ angular.module('spGuiApp')
           $rootScope.$broadcast('itemsQueried');
         }
       }
-
       spTalker.createItem(type, onItemCreationSuccess);
     };
 
@@ -134,7 +133,8 @@ angular.module('spGuiApp')
         name: 'stateVar' + Math.floor(Math.random()*1000),
         attributes: { isa: 'StateVariable' }
       };
-      stateVar.attributes['domain'] = ['home', 'flexlink'];
+      stateVar.attributes.domain = ['home', 'flexlink'];
+      stateVar.attributes.svKind = 'domain';
       thing.stateVariables.push(stateVar);
       spTalker.saveItem(thing, false);
     };
@@ -181,7 +181,7 @@ angular.module('spGuiApp').filter('filterElements', function () {
   return function (input) {
     var filteredInput ={};
     angular.forEach(input, function(value, key){
-      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes' && key !== 'children' && key !== 'attributeTags' && key !== 'stateVariables' && key !== 'svKind'){
+      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes' && key !== 'children' && key !== 'attributeTags' && key !== 'stateVariables' && key !== 'svKind' && key !== 'boolean'){
         filteredInput[key]= value;
       }
     });

@@ -53,6 +53,17 @@
       </ul>
     </div>
 
+    <div id="create-context-menu">
+      <ul class="dropdown-menu" role="menu">
+        <li ng-show="currentItemIsAThing" role="presentation"><a id="StateVariable" role="menuitem" tabindex="-1" href="#">StateVariable</a></li>
+        <li role="presentation"><a id="Operation" role="menuitem" tabindex="-1" href="#">Operation</a></li>
+        <li role="presentation"><a id="Thing" role="menuitem" tabindex="-1" href="#">Thing</a></li>
+        <li role="presentation"><a id="SOPSpec" role="menuitem" tabindex="-1" href="#">SOPSpec</a></li>
+        <li role="presentation"><a id="SPObject" role="menuitem" tabindex="-1" href="#">SPObject</a></li>
+        <li role="presentation"><a id="SPSpec" role="menuitem" tabindex="-1" href="#">SPSpec</a></li>
+      </ul>
+    </div>
+
     <!--[if lt IE 9]>
     <script src="bower_components/es5-shim/es5-shim.js"></script>
     <script src="bower_components/json3/lib/json3.min.js"></script>
@@ -125,6 +136,7 @@
         <script src="scripts/directives/relationident.js"></script>
         <script src="scripts/services/itemsvc.js"></script>
         <script src="scripts/directives/deleteablekey.js"></script>
+        <script src="scripts/directives/createdropdown.js"></script>
         <!-- endbuild -->
 </body>
 </html>

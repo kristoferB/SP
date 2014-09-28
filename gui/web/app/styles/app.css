@@ -99,10 +99,6 @@ body {
 
 /*** itemTable ***/
 
-.item-table-buttons {
-    overflow: visible !important;
-}
-
 .table-bordered > thead > tr > th,
 .table-bordered > tbody > tr > th,
 .table-bordered > tfoot > tr > th,
