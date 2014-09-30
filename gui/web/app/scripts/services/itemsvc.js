@@ -50,7 +50,11 @@ angular.module('spGuiApp')
         } else {
           operator = ' != ';
         }
-        return left + operator + right;
+        if(left === right) {
+          return '';
+        } else {
+          return left + operator + right;
+        }
       } else if(prop.isa === 'AND' || prop.isa === 'OR') {
         operator = ' ' + prop.isa + ' ';
         var line = '';

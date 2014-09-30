@@ -2,7 +2,7 @@
   <tbody>
   <tr ng-if="items.length === 0"><td colspan="99">There are no items to show.</td></tr>
 
-  <tr ng-repeat-start="item in items track by item.id" ng-click="item.attributes.isa !== 'StateVariable' && itemListSvc.expandChildren(row, true)" item-drag="{isa: 'Hierarchy', id: item.id}" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={dropdownOpen: false, loadChildren: false, edit: false, expandChildren: false, infoIsCollapsed: true, children: [] }; addItemExpandListener(item, row);">
+  <tr ng-repeat-start="item in items track by item.id" scroll-if="row.edit === true" ng-click="item.attributes.isa !== 'StateVariable' && itemListSvc.expandChildren(row, true)" item-drag="{isa: 'Hierarchy', id: item.id}" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={dropdownOpen: false, loadChildren: false, edit: false, expandChildren: false, infoIsCollapsed: true, children: [] }; addItemExpandListener(item, row);">
     <td class="checkbox-column"><input type="checkbox" ng-disabled="item.attributes.isa === 'StateVariable'" ng-click="itemListSvc.stopPropagation($event)" ng-model="item.checked" ng-change="alterCheckedArray(item)" /></td>
     <td ng-repeat="column in selection">{{item[column]}}</td>
     <td ng-repeat="attrColumn in attrSelection">{{item['attributes'][attrColumn]}}</td>
