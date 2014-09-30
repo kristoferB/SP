@@ -11,32 +11,33 @@ angular.module('spGuiApp')
   return {
     templateUrl: 'views/itemlist.html',
     restrict: 'E',
-    controller: function($scope) {
-      $scope.filteredAndOrderedItems = [];
-      $scope.spTalker = spTalker;
-      $scope.itemListSvc = itemListSvc;
-      $scope.showableColumns = ['name', 'isa', 'version', 'conditions', 'stateVariables'];
-      $scope.selection = ['name', 'isa', 'version'];
-      $scope.attrSelection = [];
-      $scope.predicate = 'name';
-      $scope.reverse = false;
-      $scope.search = {name: '', attributes: {}};
-      $scope.showFilterInputs = false;
-      $scope.checkUncheckAllModel = false;
-      $scope.checkedItems = [];
-      $scope.twoOrMoreOps = false;
-      $scope.oneSOPSpec = false;
-      $scope.oneOrMoreItems = false;
-      $scope.itemKinds = ITEM_KINDS;
-      $scope.listModes = ['Hierarchy', 'Flat'];
-      $scope.chosenListMode = $scope.listModes[0];
-      $scope.thisScope = $scope;
+    link: function postLink(scope, element, attrs) {
+      scope.filteredAndOrderedItems = [];
+      scope.spTalker = spTalker;
+      scope.itemListSvc = itemListSvc;
+      scope.showableColumns = ['name', 'isa', 'version', 'conditions', 'stateVariables'];
+      scope.selection = ['name', 'isa', 'version'];
+      scope.attrSelection = [];
+      scope.predicate = 'name';
+      scope.reverse = false;
+      scope.search = {name: '', attributes: {}};
+      scope.showFilterInputs = false;
+      scope.checkUncheckAllModel = false;
+      scope.checkedItems = [];
+      scope.twoOrMoreOps = false;
+      scope.oneSOPSpec = false;
+      scope.oneOrMoreItems = false;
+      scope.itemKinds = ITEM_KINDS;
+      scope.listModes = ['Hierarchy', 'Flat'];
+      scope.chosenListMode = scope.listModes[0];
+      scope.thisScope = scope;
+      scope.contentWrapper = element[0].children[1].children[0];
 
       var filtered;
 
-      $scope.getFilterAndOrderItems = function() {
+      scope.getFilterAndOrderItems = function() {
         var children = [];
-        if($scope.chosenListMode === $scope.listModes[0]) {
+        if(scope.chosenListMode === scope.listModes[0]) {
           itemListSvc.getChildren(spTalker.activeModel, children);
         } else {
           children = $.map(spTalker.items, function(value) {
@@ -47,41 +48,41 @@ angular.module('spGuiApp')
         $timeout(order);
       };
 
-      $scope.setListMode = function(listMode) {
-        $scope.chosenListMode = listMode;
-        $scope.getFilterAndOrderItems();
+      scope.setListMode = function(listMode) {
+        scope.chosenListMode = listMode;
+        scope.getFilterAndOrderItems();
       };
 
       if(spTalker.itemsRead) {
-        $scope.getFilterAndOrderItems();
+        scope.getFilterAndOrderItems();
       }
 
-      $scope.$on('itemsQueried', function() {
-        $scope.getFilterAndOrderItems();
+      scope.$on('itemsQueried', function() {
+        scope.getFilterAndOrderItems();
       });
 
       function order() {
-        var ordered = $filter('orderBy')(filtered, $scope.predicate, $scope.reverse);
-        while($scope.filteredAndOrderedItems.length > 0) {
-          $scope.filteredAndOrderedItems.pop()
+        var ordered = $filter('orderBy')(filtered, scope.predicate, scope.reverse);
+        while(scope.filteredAndOrderedItems.length > 0) {
+          scope.filteredAndOrderedItems.pop()
         }
         while(ordered.length > 0) {
-          $scope.filteredAndOrderedItems.unshift(ordered.pop());
+          scope.filteredAndOrderedItems.unshift(ordered.pop());
         }
-        $scope.$broadcast('itemsOrdered');
+        scope.$broadcast('itemsOrdered');
       }
 
-      $scope.$watch(
-        function() { return $scope.search; },
-        function(newVal, oldVal) { if(newVal !== oldVal) { $scope.getFilterAndOrderItems(); } },
+      scope.$watch(
+        function() { return scope.search; },
+        function(newVal, oldVal) { if(newVal !== oldVal) { scope.getFilterAndOrderItems(); } },
         true
       );
 
-      $scope.$watch(
+      scope.$watch(
         function() { return spTalker.activeSPSpec.attributes.attributeTags },
         function(data) {
           if (typeof data !== 'undefined') {
-            $scope.attrSelection.length = 0;
+            scope.attrSelection.length = 0;
           } else {
             uncheckUnavailableAttributes(data);
           }
@@ -89,15 +90,15 @@ angular.module('spGuiApp')
         false);
 
       function uncheckUnavailableAttributes(attributeTagsObject) {
-        $scope.attrSelection.forEach(function (selectedAttribute) {
+        scope.attrSelection.forEach(function (selectedAttribute) {
           if (!(selectedAttribute in attributeTagsObject)) {
-            $scope.toggleSelection(selectedAttribute, $scope.attrSelection);
+            scope.toggleSelection(selectedAttribute, scope.attrSelection);
           }
         })
       }
 
-      $scope.copyItems = function() {
-        var noOfItemsToCopy = $scope.checkedItems.length,
+      scope.copyItems = function() {
+        var noOfItemsToCopy = scope.checkedItems.length,
           noOfItemsCopied = 0;
 
         function copyItem(item) {
@@ -122,7 +123,7 @@ angular.module('spGuiApp')
           return success;
         }
         var fullSuccess = true;
-        $scope.checkedItems.forEach( function(item) {
+        scope.checkedItems.forEach( function(item) {
           if(!copyItem(item)) {
             fullSuccess = false;
           }
@@ -132,21 +133,21 @@ angular.module('spGuiApp')
         } else {
           notificationService.error('Copying failed for one or more of the selected items. See your browser\'s console for details.');
         }
-        $scope.getFilterAndOrderItems();
+        scope.getFilterAndOrderItems();
       };
 
-      $scope.deleteItems = function() {
+      scope.deleteItems = function() {
 
         if(confirm('You are about to delete the selected items completely. Are you sure?')) {
           var fullSuccess = true;
-          $scope.checkedItems.forEach( function(item) {
+          scope.checkedItems.forEach( function(item) {
             if(!spTalker.deleteItem(item)) {
               fullSuccess = false;
             }
           });
           if(fullSuccess) {
-            $scope.checkUncheckAllModel = false;
-            $scope.checkUncheckAll();
+            scope.checkUncheckAllModel = false;
+            scope.checkUncheckAll();
             notificationService.success('The selected items was successfully deleted.')
           } else {
             notificationService.error('An error occurred. Please check your browser\'s console for details.');
@@ -154,26 +155,26 @@ angular.module('spGuiApp')
         }
       };
 
-      $scope.viewRelation = function() {
+      scope.viewRelation = function() {
         alert('Not implemented yet');
       };
 
-      $scope.alterCheckedArray = function(item) {
-        var index = $scope.checkedItems.indexOf(item);
+      scope.alterCheckedArray = function(item) {
+        var index = scope.checkedItems.indexOf(item);
         if(index === -1) {
-          $scope.checkedItems.push(item);
+          scope.checkedItems.push(item);
         } else {
-          $scope.checkedItems.splice(index, 1);
+          scope.checkedItems.splice(index, 1);
         }
-        alterShownButtons($scope.checkedItems);
+        alterShownButtons(scope.checkedItems);
       };
 
       function alterShownButtons(checkedItems) {
-        $scope.oneOrMoreItems = oneOrMoreItems(checkedItems);
-        if(!$scope.oneOrMoreItems) { return }
-        $scope.twoOrMoreOps = twoOrMoreOps(checkedItems);
-        if($scope.twoOrMoreOps) { return }
-        $scope.oneSOPSpec = oneSOPSpec(checkedItems);
+        scope.oneOrMoreItems = oneOrMoreItems(checkedItems);
+        if(!scope.oneOrMoreItems) { return }
+        scope.twoOrMoreOps = twoOrMoreOps(checkedItems);
+        if(scope.twoOrMoreOps) { return }
+        scope.oneSOPSpec = oneSOPSpec(checkedItems);
       }
 
       function oneOrMoreItems(checkedItems) {
@@ -198,16 +199,16 @@ angular.module('spGuiApp')
         return i > 1;
       }
 
-      $scope.checkUncheckAll = function() {
-        $scope.filteredAndOrderedItems.forEach( function(item) {
-          item.checked = $scope.checkUncheckAllModel;
+      scope.checkUncheckAll = function() {
+        scope.filteredAndOrderedItems.forEach( function(item) {
+          item.checked = scope.checkUncheckAllModel;
         });
-        if($scope.checkUncheckAllModel) {
-          $scope.checkedItems = $scope.filteredAndOrderedItems;
+        if(scope.checkUncheckAllModel) {
+          scope.checkedItems = scope.filteredAndOrderedItems;
         } else {
-          $scope.checkedItems = [];
+          scope.checkedItems = [];
         }
-        alterShownButtons($scope.checkedItems);
+        alterShownButtons(scope.checkedItems);
       };
 
       function itemFilter(item) {
@@ -242,21 +243,21 @@ angular.module('spGuiApp')
             }
           }
         }
-        exploreItem(item, item, $scope.search);
+        exploreItem(item, item, scope.search);
         return qualifies;
       }
 
-      $scope.sort = function(column) {
-        if($scope.predicate === column) {
-          $scope.reverse = !($scope.reverse);
+      scope.sort = function(column) {
+        if(scope.predicate === column) {
+          scope.reverse = !(scope.reverse);
         } else {
-          $scope.predicate = column;
-          $scope.reverse = column === 'version';
+          scope.predicate = column;
+          scope.reverse = column === 'version';
         }
         order();
       };
 
-      $scope.toggleSelection = function toggleSelection(column, selections, $event) {
+      scope.toggleSelection = function toggleSelection(column, selections, $event) {
         var idx = selections.indexOf(column);
         // is currently selected
         if (idx > -1) {
@@ -271,7 +272,7 @@ angular.module('spGuiApp')
         }
       };
 
-      $scope.refresh = function() {
+      scope.refresh = function() {
         spTalker.loadAll();
       };
 

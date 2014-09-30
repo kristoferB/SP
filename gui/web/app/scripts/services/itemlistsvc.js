@@ -88,11 +88,13 @@ angular.module('spGuiApp')
     factory.saveItem = function(item, row) {
       spTalker.saveItem(item, true);
       row.edit = false;
+      row.infoIsCollapsed = true;
     };
 
     factory.reReadFromServer = function(item, row) {
       spTalker.reReadFromServer(item);
       row.edit = false;
+      row.infoIsCollapsed = true;
     };
 
     factory.deleteItem = function(item) {
