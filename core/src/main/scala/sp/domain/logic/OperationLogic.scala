@@ -32,7 +32,8 @@ case object OperationLogic {
 
     private def filterConds(opState: SPAttributeValue, conds: List[Condition])(implicit props: EvaluateProp) = {
       val kinds = props.defs.kinds(opState)
-      val groupCond = filter("group", conds, props.groups + "")
+      val groups = if (props.groups.isEmpty) props.groups else props.groups + ""
+      val groupCond = filter("group", conds, groups)
       filter("kind", groupCond, kinds)
     }
 

@@ -85,10 +85,9 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
                     o.copy(conditions = updatedConds).update(id, version).asInstanceOf[Operation]
                   }
 
-                  println(s"updated ops: $updatedOps")
-
-                  println(s"init: $init")
-                  println(s"added: ${addOpsToState(updatedOps, init)}")
+//                  println(s"updated ops: $updatedOps")
+//                  println(s"init: $init")
+//                  println(s"added: ${addOpsToState(updatedOps, init)}")
 
                   // just one actor per request initially
                   val relationFinder = context.actorOf(RelationFinder.props)
@@ -101,9 +100,10 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
                       val relation = RelationResult("RelationMap", res, model, mVersion + 1)
                       reply ! relation
                       modelHandler ! UpdateIDs(model, List(UpdateID(relation.id, -1, relation)))
+                      relationFinder ! PoisonPill
                     }
-                    case Success(res) => println("WHAT IS THIS RELATION FINDER RETURNS: " + res)
-                    case Failure(error) => reply ! SPError(error.getMessage)
+                    case Success(res) => println("WHAT IS THIS RELATION FINDER RETURNS: " + res); relationFinder ! PoisonPill
+                    case Failure(error) => reply ! SPError(error.getMessage); relationFinder ! PoisonPill
                   }
                 }
               }
