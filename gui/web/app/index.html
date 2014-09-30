@@ -55,6 +55,7 @@
 
     <div id="create-context-menu">
       <ul class="dropdown-menu" role="menu">
+        <li ng-show="currentItemIsAThing" role="presentation"><a id="StateVariable" role="menuitem" tabindex="-1" href="#">StateVariable</a></li>
         <li role="presentation"><a id="Operation" role="menuitem" tabindex="-1" href="#">Operation</a></li>
         <li role="presentation"><a id="Thing" role="menuitem" tabindex="-1" href="#">Thing</a></li>
         <li role="presentation"><a id="SOPSpec" role="menuitem" tabindex="-1" href="#">SOPSpec</a></li>
@@ -121,22 +122,21 @@
         <script src="scripts/services/authinterceptor.js"></script>
         <script src="scripts/directives/logindialog.js"></script>
         <script src="scripts/directives/attrgrid.js"></script>
-        <script src="scripts/directives/svgrid.js"></script>
         <script src="scripts/services/recursionhelper.js"></script>
         <script src="scripts/directives/conditions.js"></script>
         <script src="scripts/directives/propparse.js"></script>
         <script src="scripts/directives/itemdrag.js"></script>
         <script src="scripts/directives/soppaper.js"></script>
         <script src="scripts/controllers/settings.js"></script>
-        <script src="scripts/directives/attrcontextmenu.js"></script>
         <script src="scripts/directives/nowhitespace.js"></script>
         <script src="scripts/directives/attrtaggrid.js"></script>
         <script src="scripts/controllers/createattrtag.js"></script>
         <script src="scripts/directives/itemtable.js"></script>
-        <script src="scripts/directives/createcontextmenu.js"></script>
         <script src="scripts/directives/conditionsuggestions.js"></script>
         <script src="scripts/directives/relationident.js"></script>
         <script src="scripts/services/itemsvc.js"></script>
+        <script src="scripts/directives/deleteablekey.js"></script>
+        <script src="scripts/directives/createdropdown.js"></script>
         <!-- endbuild -->
 </body>
 </html>

@@ -5,6 +5,10 @@ body {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+.dropdown-menu {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
 /*** nav bar ***/
 
 .navbar {
@@ -93,7 +97,7 @@ body {
     float: left;
 }
 
-/*** For the itemList table ***/
+/*** itemTable ***/
 
 .table-bordered > thead > tr > th,
 .table-bordered > tbody > tr > th,
@@ -112,7 +116,10 @@ body {
     background-color: transparent;
 }
 
-.hiddenRow {padding: 0 !important;}
+.hiddenRow {
+    padding: 0 !important;
+    overflow: visible !important;
+}
 
 .collapsed-row {margin: 0 0 5px 0;}
 
@@ -120,7 +127,7 @@ table a, .table a {
     text-decoration: none;
 }
 
-.sv-table td, .attr-table td {
+.element-list td {
     padding: 2px;
 }
 

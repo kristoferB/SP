@@ -31,7 +31,7 @@ var CreatemodelCtrl = function ($scope, $modalInstance, spTalker, notificationSe
 
     function onItemCreationSuccess(data) {
       spTalker.activeModel.attributes.activeSPSpec = data.id;
-      spTalker.activeModel.attributes.children = [data.id];
+      spTalker.activeModel.attributes.children = [];
       spTalker.activeModel.$save({modelID: spTalker.activeModel.model}, function(data) {
         notificationService.success('The new model ' + data.model + ' was successfully saved.');
         $modalInstance.close(data);

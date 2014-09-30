@@ -7,7 +7,7 @@
  * # sop
  */
 angular.module('spGuiApp')
-.directive('itemlist', function (spTalker, notificationService, $filter, itemListSvc, $timeout) {
+.directive('itemlist', function (spTalker, notificationService, $filter, itemListSvc, $timeout, ITEM_KINDS, $rootScope) {
   return {
     templateUrl: 'views/itemlist.html',
     restrict: 'E',
@@ -27,23 +27,38 @@ angular.module('spGuiApp')
       $scope.twoOrMoreOps = false;
       $scope.oneSOPSpec = false;
       $scope.oneOrMoreItems = false;
-
-      function uncheckUnavailableAttributes(attributeTagsObject) {
-        $scope.attrSelection.forEach(function (selectedAttribute) {
-          if (!(selectedAttribute in attributeTagsObject)) {
-            $scope.toggleSelection(selectedAttribute, $scope.attrSelection);
-          }
-        })
-      }
+      $scope.itemKinds = ITEM_KINDS;
+      $scope.listModes = ['Hierarchy', 'Flat'];
+      $scope.chosenListMode = $scope.listModes[0];
+      $scope.thisScope = $scope;
 
       var filtered;
 
-      function getFilterAndOrderItems() {
+      $scope.getFilterAndOrderItems = function() {
         var children = [];
-        itemListSvc.getChildren(spTalker.activeModel, children);
+        if($scope.chosenListMode === $scope.listModes[0]) {
+          itemListSvc.getChildren(spTalker.activeModel, children);
+        } else {
+          children = $.map(spTalker.items, function(value) {
+            return [value];
+          });
+        }
         filtered = $filter('filter')(children, itemFilter);
         $timeout(order);
+      };
+
+      $scope.setListMode = function(listMode) {
+        $scope.chosenListMode = listMode;
+        $scope.getFilterAndOrderItems();
+      };
+
+      if(spTalker.itemsRead) {
+        $scope.getFilterAndOrderItems();
       }
+
+      $scope.$on('itemsQueried', function() {
+        $scope.getFilterAndOrderItems();
+      });
 
       function order() {
         var ordered = $filter('orderBy')(filtered, $scope.predicate, $scope.reverse);
@@ -53,19 +68,12 @@ angular.module('spGuiApp')
         while(ordered.length > 0) {
           $scope.filteredAndOrderedItems.unshift(ordered.pop());
         }
+        $scope.$broadcast('itemsOrdered');
       }
-
-      if(spTalker.itemsRead) {
-        getFilterAndOrderItems();
-      }
-
-      $scope.$on('itemsQueried', function() {
-        getFilterAndOrderItems();
-      });
 
       $scope.$watch(
         function() { return $scope.search; },
-        function(newVal, oldVal) { if(newVal !== oldVal) { getFilterAndOrderItems(); } },
+        function(newVal, oldVal) { if(newVal !== oldVal) { $scope.getFilterAndOrderItems(); } },
         true
       );
 
@@ -80,18 +88,37 @@ angular.module('spGuiApp')
         },
         false);
 
+      function uncheckUnavailableAttributes(attributeTagsObject) {
+        $scope.attrSelection.forEach(function (selectedAttribute) {
+          if (!(selectedAttribute in attributeTagsObject)) {
+            $scope.toggleSelection(selectedAttribute, $scope.attrSelection);
+          }
+        })
+      }
+
       $scope.copyItems = function() {
+        var noOfItemsToCopy = $scope.checkedItems.length,
+          noOfItemsCopied = 0;
+
         function copyItem(item) {
           var newItem = angular.copy(item);
           delete newItem.id;
           delete newItem.version;
           newItem.name = newItem.name + '_copy';
           var success = true;
-          newItem.$save(
-            {model:spTalker.activeModel.model},
-            function(data) { spTalker.items.unshift(data); },
-            function(error) { console.log(error); success = false; notificationService.error('Copying of ' + newItem.name + ' failed.'); }
-          );
+          function successHandler(data) {
+            spTalker.activeModel.attributes.children.unshift(data.id);
+            noOfItemsCopied += 1;
+            if(noOfItemsCopied === noOfItemsToCopy) {
+              spTalker.activeModel.$save({modelID: spTalker.activeModel.model}, function() {
+                $rootScope.$broadcast('itemsQueried');
+              }, function() { fullSuccess = false; });
+            }
+          }
+          function errorHandler() {
+            success = false;
+          }
+          spTalker.createItem('', successHandler, newItem, errorHandler);
           return success;
         }
         var fullSuccess = true;
@@ -105,7 +132,26 @@ angular.module('spGuiApp')
         } else {
           notificationService.error('Copying failed for one or more of the selected items. See your browser\'s console for details.');
         }
-        getFilterAndOrderItems();
+        $scope.getFilterAndOrderItems();
+      };
+
+      $scope.deleteItems = function() {
+
+        if(confirm('You are about to delete the selected items completely. Are you sure?')) {
+          var fullSuccess = true;
+          $scope.checkedItems.forEach( function(item) {
+            if(!spTalker.deleteItem(item)) {
+              fullSuccess = false;
+            }
+          });
+          if(fullSuccess) {
+            $scope.checkUncheckAllModel = false;
+            $scope.checkUncheckAll();
+            notificationService.success('The selected items was successfully deleted.')
+          } else {
+            notificationService.error('An error occurred. Please check your browser\'s console for details.');
+          }
+        }
       };
 
       $scope.viewRelation = function() {

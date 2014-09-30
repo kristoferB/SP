@@ -7,7 +7,7 @@
  * # itemTable
  */
 angular.module('spGuiApp')
-  .directive('itemTable', function (itemListSvc, spTalker, RecursionHelper) {
+  .directive('itemTable', function (itemListSvc, spTalker, RecursionHelper, ITEM_KINDS, SV_KINDS) {
     return {
       templateUrl: 'views/itemtable.html',
       restrict: 'E',
@@ -17,28 +17,25 @@ angular.module('spGuiApp')
         alterCheckedArray: '=',
         selection: '=',
         attrSelection: '=',
-        addWindow: '='
+        addWindow: '=',
+        itemListScope: '='
       },
       controller: function($scope) {
         $scope.itemListSvc = itemListSvc;
         $scope.items = [];
         $scope.spTalker = spTalker;
+        $scope.itemKinds = ITEM_KINDS;
+        $scope.svKinds = SV_KINDS;
 
-        $scope.addAttribute = function(attrObj, key, value) {
-          attrObj[key] = angular.copy(value);
-          replaceDates(attrObj, key);
+        $scope.addItemExpandListener = function(item, row) {
+          $scope.$on('show-info-' + item.id, function() {
+            row.infoIsCollapsed = false;
+            row.edit = true;
+          });
+          $scope.$on('show-children-' + item.id, function() {
+            itemListSvc.expandChildren(row, false);
+          });
         };
-
-        function replaceDates(obj, key) {
-          if(obj[key] instanceof Date) {
-            obj[key] = new Date();
-          }
-          for(var k in obj[key]) {
-            if(obj[key].hasOwnProperty(k)) {
-              replaceDates(obj[key], k);
-            }
-          }
-        }
 
         $scope.$on('itemsQueried', function() {
           itemListSvc.getChildren($scope.parentItem, $scope.items);

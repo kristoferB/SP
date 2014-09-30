@@ -188,6 +188,7 @@ angular.module('spGuiApp')
         if(successHandler) {
           successHandler(data);
         }
+
       },
       function (error) {
         notificationService.error(item.isa + ' ' + item.name + ' could not be saved.');
@@ -198,45 +199,61 @@ angular.module('spGuiApp')
     return success;
   };
 
-  factory.createItem = function(type, successHandler) {
-    var newItem = new factory.item({
-      isa : type,
-      name : type + Math.floor(Math.random()*1000),
-      attributes : {
-        children: []
+  factory.createItem = function(type, successHandler, readyMadeItem, errorHandler) {
+    var newItem;
+    if(typeof readyMadeItem === 'undefined') {
+      newItem = new factory.item({
+        isa : type,
+        name : type + Math.floor(Math.random()*1000),
+        attributes : {
+          children: []
+        }
+      });
+      if(type === 'Operation') {
+        newItem.conditions = [{guard: {isa:'EQ', right: true, left: true}, action: [], attributes: {kind: 'pre', group: ''}}];
+      } else if(type === 'Thing') {
+        newItem.stateVariables = [];
+      } else if(type === 'SOPSpec') {
+        newItem.sop = [{
+          isa: 'Sequence',
+          sop: []
+        }];
+      } else if(type === 'SPSpec') {
+        newItem.attributes.attributeTags = {}
       }
-    });
-    if(type === 'Operation') {
-      newItem.conditions = [];
-    } else if(type === 'Thing') {
-      newItem.stateVariables = [];
-    } else if(type === 'SOPSpec') {
-      newItem.sop = [{
-        isa: 'Sequence',
-        sop: []
-      }];
-    } else if(type === 'SPSpec') {
-      newItem.attributes.attributeTags = {}
+    } else {
+      newItem = readyMadeItem;
     }
+
     newItem.$save(
       {model:factory.activeModel.model},
       function(data) {
         factory.items[data.id] = data;
         notificationService.success('A new ' + data.isa + ' with name ' + data.name + ' was successfully created.');
+        updateItemLists();
         successHandler(data);
+        $rootScope.$broadcast('itemsQueried');
       },
-      function(error) { console.log(error); notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.'); console.log(error); }
+      function(error) {
+        console.log(error);
+        notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.');
+        errorHandler(error);
+      }
     );
   };
 
-  factory.deleteItem = function(itemToDelete) {
+  factory.deleteItem = function(itemToDelete, notifySuccess) {
+    var success = true;
+
     // remove item from parent items
     for(var id in factory.items) {
       if(factory.items.hasOwnProperty(id)) {
-        var index = factory.items[id].attributes.children.indexOf(itemToDelete.id);
-        if (index !== -1) {
-          factory.items[id].attributes.children.splice(index, 1);
-          factory.saveItem(factory.items[id], false);
+        if(factory.items[id].attributes.hasOwnProperty('children')) {
+          var index = factory.items[id].attributes.children.indexOf(itemToDelete.id);
+          if (index !== -1) {
+            factory.items[id].attributes.children.splice(index, 1);
+            factory.saveItem(factory.items[id], false);
+          }
         }
       }
     }
@@ -251,6 +268,10 @@ angular.module('spGuiApp')
           {modelID: factory.activeModel.model},
           function() {
             removeItemFromServer();
+          },
+          function(error) {
+            console.log(error);
+            success = false;
           }
         );
       } else {
@@ -263,19 +284,26 @@ angular.module('spGuiApp')
         {model:factory.activeModel.model},
         function(data) {
           delete factory.items[data.id];
-          notificationService.success(data.isa + ' ' + data.name + ' was successfully deleted.');
+          if(notifySuccess) {
+            notificationService.success(data.isa + ' ' + data.name + ' was successfully deleted.');
+          }
           $rootScope.$broadcast('itemsQueried');
         },
         function(error) {
           console.log(error);
           notificationService.error(itemToDelete.isa + ' ' + itemToDelete.name + ' could not be deleted from the server. Check your browser\'s error console for details.');
+          success = false;
         }
       );
     }
+
+    return success;
   };
 
   factory.reReadFromServer = function(item) {
-    item.$get({model: factory.activeModel.model});
+    item.$get({model: factory.activeModel.model}, function() {
+      $rootScope.$broadcast('itemsQueried');
+    });
   };
 
   /*$http.defaults.headers.common['Authorization'] = 'Basic ' + window.btoa('admin' + ':' + 'pass');

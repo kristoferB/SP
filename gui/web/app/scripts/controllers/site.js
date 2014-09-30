@@ -16,6 +16,16 @@ angular.module('spGuiApp')
     $scope.tabs = [];
     $scope.currentUser = [Session.userId, Session.userRole];
     $scope.spTalker = spTalker;
+    $scope.currentItemIsAThing =  false;
+
+    $scope.$on('isAThing', function() {
+      $scope.currentItemIsAThing =  true;
+      $scope.$digest();
+    });
+    $scope.$on('isNotAThing', function() {
+      $scope.currentItemIsAThing =  false;
+      $scope.$digest();
+    });
 
     if(sessionStorage.noOfOpenedTabs) {
       $scope.noOfOpenedTabs = angular.fromJson(sessionStorage.noOfOpenedTabs);
