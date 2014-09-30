@@ -86,6 +86,9 @@ angular.module('spGuiApp')
           if(valid) {
             ngModel.$setValidity('actionParse', true);
             scope.condition.action = actions;
+          } else if(viewValue === '') {
+            ngModel.$setValidity('actionParse', true);
+            scope.condition.action = [];
           } else {
             ngModel.$setValidity('actionParse', false);
           }

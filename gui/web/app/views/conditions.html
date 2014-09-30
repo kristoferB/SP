@@ -1,5 +1,5 @@
 <table class="table attr-table" ng-if="!edit">
-    <tr ng-repeat="cond in conditions">
+    <tr ng-repeat="cond in conditions | filter:emptyGuard">
       <td class="col-md-1"><span ng-if="$first">guard:</span></td>
       <td class="col-md-1"><span>{{cond.attributes.kind}}</span></td>
       <td class="col-md-1"><span>{{cond.attributes.group}}</span></td>
@@ -33,20 +33,20 @@
     <tr ng-init="guardOrAction = 'guard'">
       <td>guard: </td>
       <td>
-        <input autocomplete="off" name="guardInput" class="guard-input form-control input-sm" ng-model="guardModel" required condition-suggestions prop-parse ng-trim="false" type="text"/>
+        <input autocomplete="off" name="guardInput" class="guard-input form-control input-sm" ng-model="guardModel" condition-suggestions prop-parse ng-trim="false" type="text"/>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.guardInput.$error.nameToIds]"></span>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.guardInput.$error.propParse]"></span>
         <span class="error" ng-show="conditionsForm.guardInput.$error.maxlength"><br />Not too long, please.</span>
-        <span class="error" ng-show="conditionsForm.guardInput.$dirty && conditionsForm.guardInput.$error.required"><br />At least one guard is required.</span>
+        <!--<span class="error" ng-show="conditionsForm.guardInput.$dirty && conditionsForm.guardInput.$error.required"><br />At least one guard is required.</span>-->
       </td>
     </tr>
     <tr ng-init="guardOrAction = 'action'">
       <td>action: </td>
       <td>
-        <input autocomplete="off" name="actionInput" class="action-input form-control input-sm" ng-model="actionModel" required condition-suggestions prop-parse ng-trim="false" type="text" ng-disabled="!edit"/>
+        <input autocomplete="off" name="actionInput" class="action-input form-control input-sm" ng-model="actionModel" condition-suggestions prop-parse ng-trim="false" type="text" ng-disabled="!edit"/>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.actionInput.$error.nameToIds]"></span>
         <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.actionInput.$error.actionParse]"></span>
-        <span class="error" ng-show="conditionsForm.actionInput.$dirty && conditionsForm.actionInput.$error.required"><br />At least one action is required.</span>
+        <!--<span class="error" ng-show="conditionsForm.actionInput.$dirty && conditionsForm.actionInput.$error.required"><br />At least one action is required.</span>-->
         <span class="error" ng-show="conditionsForm.actionInput.$error.maxlength"><br/>Not too long, please.</span>
       </td>
     </tr>
