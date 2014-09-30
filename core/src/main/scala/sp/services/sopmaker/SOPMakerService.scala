@@ -17,6 +17,8 @@ class SOPMakerService(modelHandler: ActorRef) extends Actor {
 
   import context.dispatcher
 
+  val sopmakers = context.actorOf(SOPMaker.props)
+
   def receive = {
     case Request(_, attr) => {
       val reply = sender
@@ -38,7 +40,7 @@ class SOPMakerService(modelHandler: ActorRef) extends Actor {
                 else if (!{opsID.foldLeft(true)((res, id) => res && (rels.head.relationMap.enabledStates.map.contains(id)))})
                   reply ! SPError("Some operation id's are not in the relation map")
                 else {
-                  val sopmakers = context.actorOf(SOPMaker.props)
+
 
                   //TODO: Validate version on model when relation was created.
                   val relsMap = rels.head.relationMap

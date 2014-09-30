@@ -26,7 +26,7 @@ object SP extends App {
     system.actorOf(RelationService.props(modelHandler, serviceHandler, "ConditionsFromSpecsService"), "Relations"))
 
   import sp.services.sopmaker._
-  serviceHandler ! RegisterService("SopMaker",
+  serviceHandler ! RegisterService("SOPMaker",
     system.actorOf(SOPMakerService.props(modelHandler), "SOPMaker"))
 
 

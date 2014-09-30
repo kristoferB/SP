@@ -7,10 +7,13 @@
  * # relationident
  */
 angular.module('spGuiApp')
-  .directive('relationident', ['spTalker', function (spTalker) {
+  .directive('relationident', ['spTalker', 'itemListSvc', function (spTalker, itemListSvc) {
     return {
       templateUrl: 'views/relationview.html',
       restrict: 'E',
+      scope: {
+        addWindow: '='
+      },
       link: function postLink(scope, element, attrs) {
 
           scope.findrelations = function(){
@@ -41,14 +44,15 @@ angular.module('spGuiApp')
             })
 
             var resSOP = spTalker.getSOP(ops)
-            res.success(function (data, status, headers, config) {
-              var sop = data.relationmap.relationmap.map(function(item){
-                return item.sop
-              })
+            resSOP.success(function (data, status, headers, config) {
+              console.log(data);
+                var windowStorage = {
+                  sopSpec: data
+                };
+                scope.addWindow('sopMaker', windowStorage);
 
-              console.log(sop);
+
             })
-
           }
 
         scope.relations = [];

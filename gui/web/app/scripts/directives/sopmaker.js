@@ -60,25 +60,26 @@ angular.module('spGuiApp')
           scope.$broadcast('redrawSop');
         }
 
-        function getSopDefAndDraw() {
-          sopSpecSource = spTalker.getItemById(scope.windowStorage.sopSpecId);
-          angular.copy(sopSpecSource, scope.sopSpecCopy);
+        function getSopDefAndDraw(spec) {
+          angular.copy(spec, scope.sopSpecCopy);
           scope.sopSpecCopy.vertDir = true;
           draw();
         }
 
-        if(typeof scope.windowStorage.sopSpecId === 'undefined') {
-          draw();
-        } else {
+        if (!_.isUndefined(scope.windowStorage.sopSpecId)){
           if(Object.keys(spTalker.items).length === 0) {
             var listener = scope.$on('itemsQueried', function () {
-              getSopDefAndDraw();
+              getSopDefAndDraw(spTalker.getItemById(scope.windowStorage.sopSpecId));
               listener();
             });
           } else {
-            getSopDefAndDraw();
+            getSopDefAndDraw(spTalker.getItemById(scope.windowStorage.sopSpecId));
           }
-        }
+        } else if (!_.isUndefined(scope.windowStorage.sopSpec)){
+          getSopDefAndDraw(scope.windowStorage.sopSpec)
+        } else
+          draw();
+
 
         scope.saveSopSpec = function() {
           if(typeof sopSpecSource === 'undefined') {
