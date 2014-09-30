@@ -43,17 +43,33 @@ angular.module('spGuiApp')
               })
             })
 
-            var resSOP = spTalker.getSOP(ops)
-            resSOP.success(function (data, status, headers, config) {
-              console.log(data);
-                var windowStorage = {
-                  sopSpec: data
-                };
-                scope.addWindow('sopMaker', windowStorage);
-
-
-            })
           }
+
+        scope.getSOP = function(){
+          scope.sopError = "";
+          var ops = [];
+          _.each(spTalker.items, function(value, key){
+            if (value.isa == "Operation") ops.push(key)
+          })
+
+          var resSOP = spTalker.getSOP(ops)
+          resSOP.success(function (data, status, headers, config) {
+            console.log(data);
+            if (!_.isUndefined(data.sop)){
+              var windowStorage = {
+                sopSpec: data
+              };
+              scope.addWindow('sopMaker', windowStorage);
+            }
+            else {
+              scope.sopError = data
+            }
+
+
+          })
+
+
+        }
 
         scope.relations = [];
 

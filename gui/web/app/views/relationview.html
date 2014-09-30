@@ -1,6 +1,7 @@
 <div class="header">
   <div class="btn-toolbar" role="toolbar">
     <button type="button" class="btn btn-default" ng-click="findrelations()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
+    <button type="button" class="btn btn-default" ng-click="getSOP()"><span class="glyphicon glyphicon-refresh"></span> show sop</button>
   </div> <!-- end of toolbar -->
 
 </div> <!-- end of header -->
@@ -8,6 +9,8 @@
 
 <div class="content">
   <div class="content-wrapper">
+      <div>{{soperror}}</div>
+
       <div>The relations found:</div>
       <div ng-repeat="sop in relations">
           <div>{{sop.isa}}: {{getOpsFromSOP(sop)}} </div>
