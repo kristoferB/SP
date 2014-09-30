@@ -27,7 +27,7 @@ angular.module('spGuiApp')
                 // allow for user to set initstate instead of this
                 _.each(value.stateVariables, function(sv){
                   var initValue = false
-                  if (!_.isUndefined(id.init)) initValue = id.init;
+                  if (!_.isUndefined(sv.init)) initValue = sv.init;
                   svs.push({id: sv.id, value: initValue })
                 })
               }
@@ -38,6 +38,15 @@ angular.module('spGuiApp')
               scope.relations = data.relationmap.relationmap.map(function(item){
                 return item.sop
               })
+            })
+
+            var resSOP = spTalker.getSOP(ops)
+            res.success(function (data, status, headers, config) {
+              var sop = data.relationmap.relationmap.map(function(item){
+                return item.sop
+              })
+
+              console.log(sop);
             })
 
           }

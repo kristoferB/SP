@@ -78,6 +78,17 @@ angular.module('spGuiApp')
       }})
   };
 
+  factory.getSOP = function(ops, base) {
+    return $http({
+      method: 'POST',
+      url: 'api/services/SOPMaker',
+      data: {
+        model: factory.activeModel.model,
+        operations: ops,
+        base: base
+      }})
+  };
+
   factory.loadModels = function() {
     factory.models = factory.model.query();
   };
