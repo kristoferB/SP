@@ -8,7 +8,7 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-  .factory('sopCalcer', [ 'spTalker', function (spTalker) {
+  .factory('sopCalcer', [ 'spTalker', 'itemSvc', function (spTalker, itemSvc) {
     var factory = {};
     
     factory.calcStructMeasures = function(sop, measures, para, sopSpecCopy) {
@@ -49,7 +49,6 @@ angular.module('spGuiApp')
       return structMeasures;
     };
 
-
     factory.makeIt = function(sopSpecCopy, measures) {
       var mC = {
         'margin' : measures.margin,
@@ -57,7 +56,9 @@ angular.module('spGuiApp')
         'opW' : measures.opW,
         'para' : measures.para,
         'arrow' : measures.arrow,
-        'textScale': measures.textScale
+        'textScale': measures.textScale,
+        'condLineHeight': measures.condLineHeight,
+        'nameLineHeight': measures.nameLineHeight
       };
 
       if (!sopSpecCopy.vertDir) { // Swap ops minimum width and height if horizontal dir
@@ -102,11 +103,6 @@ angular.module('spGuiApp')
     };
 
     factory.createSOP = function(sequence, measures, middle, start, parentObject, parentObjectIndex, sopSpecCopy, firstLoop) {
-      // Creating an empty object in each node to gather all additions made by sopCalcer and sopDrawer
-      if(typeof sequence.clientSideAdditions === 'undefined') {
-        sequence.clientSideAdditions = {};
-      }
-
       // Save of parent reference and array index into the JSON tree to enable localization on add/remove
       sequence.clientSideAdditions.parentObject = parentObject;
       sequence.clientSideAdditions.parentObjectIndex = new Number(parentObjectIndex);
@@ -136,8 +132,9 @@ angular.module('spGuiApp')
         if (sequence.sop.length > 0){
           console.log('sopHierarchy do not handle childs yet: ');
         } else {
-          result.width = this.calcOpWidth(op, measures, sopSpecCopy.vertDir);
-          result.height = this.calcOpHeight(op, measures, sopSpecCopy.vertDir) + measures.margin;
+
+          result.width = this.calcOpWidth(op, measures, sopSpecCopy.vertDir, sequence);
+          result.height = this.calcOpHeight(op, measures, sopSpecCopy.vertDir, sequence) + measures.margin;
           var arrow = measures.arrow; 
           if (start < measures.arrow) {arrow = 0;}
 
@@ -293,10 +290,71 @@ angular.module('spGuiApp')
 
     factory.getWidth = function(sop, measures, vertDir) {
       var w, nW;
+
+      // Creating an empty object in each node to gather all additions made by sopCalcer and sopDrawer
+      if(typeof sop.clientSideAdditions === 'undefined') {
+        sop.clientSideAdditions = {};
+      }
+
       if (sop.isa === 'Hierarchy') {
         // If the Op-def isn't included in the SOP-def, fetch the Op by ID and replace the ID with it
         var op = spTalker.getItemById(sop.operation);
-        return this.calcOpWidth(op, measures, vertDir);
+
+        // pick the specially prepared conditions in sop if present
+        var conditions;
+        if(sop.conditions) {
+          conditions = sop.conditions;
+        } else {
+          conditions = op.conditions;
+        }
+
+        // convert proposition format to text and put it in the sop
+
+        var kinds = ['preGuards', 'postGuards', 'preActions', 'postActions'];
+
+        kinds.forEach(function(kind) {
+          sop.clientSideAdditions[kind] = [];
+        });
+
+        for(var i = 0; i < conditions.length; i++) {
+          if (conditions[i].attributes.kind === 'pre') {
+            var preGuardAsText = itemSvc.guardAsText(conditions[i].guard);
+            if (preGuardAsText !== '') {
+              sop.clientSideAdditions[kinds[0]].push(preGuardAsText);
+            }
+            var preActionAsText = itemSvc.actionAsText(conditions[i].action);
+            if (preActionAsText !== '') {
+              sop.clientSideAdditions[kinds[2]].push(preActionAsText);
+            }
+          } else if(conditions[i].attributes.kind === 'post') {
+            var postGuardAsText = itemSvc.guardAsText(conditions[i].guard);
+            if (postGuardAsText !== '') {
+              sop.clientSideAdditions[kinds[1]].push(postGuardAsText);
+            }
+            var postActionAsText = itemSvc.actionAsText(conditions[i].action);
+            if (postActionAsText !== '') {
+              sop.clientSideAdditions[kinds[3]].push(postActionAsText);
+            }
+          }
+        }
+        // Place out and-operators if multiple guards or actions
+        kinds.forEach(function(kind) {
+          for(var j = 0; j < sop.clientSideAdditions[kind].length-1; j++) {
+            sop.clientSideAdditions[kind][j] = sop.clientSideAdditions[kind][j] + ' ^';
+          }
+        });
+        // Place out guard-action separating slash on correct place if needed
+        for(var k = 0; k <= 1; k++) {
+          var noOfGuards = sop.clientSideAdditions[kinds[k]].length;
+          var noOfActions = sop.clientSideAdditions[kinds[k+2]].length;
+          if(noOfGuards > 0) {
+            sop.clientSideAdditions[kinds[k]][noOfGuards-1] = sop.clientSideAdditions[kinds[k]][noOfGuards-1] + ' /';
+          } else if(noOfActions > 0) {
+            sop.clientSideAdditions[kinds[k+2]][noOfActions-1] = '/ ' + sop.clientSideAdditions[kinds[k+2]][noOfActions-1];
+          }
+        }
+
+        return this.calcOpWidth(op, measures, vertDir, sop);
       } else if (sop.isa === 'Sequence') {
         w = 0;
         for (var n in sop.sop) {
@@ -321,21 +379,40 @@ angular.module('spGuiApp')
       }
     };
     
-    factory.calcOpWidth = function(op, measures, vertDir) {
-      var result = measures.opW;
-      if (vertDir && ((measures.opW / op.name.length) < measures.textScale)) {
-        result = measures.textScale * op.name.length;
-      } 
-      return result;
+    factory.calcOpWidth = function(op, measures, vertDir, struct) {
+      var longestString = longestConditionString(struct, op);
+      var summedTextHeight = sumTextHeight(struct, measures);
+      if (vertDir && (measures.opW / longestString.length) < measures.textScale) {
+        return measures.textScale * longestString.length;
+      } else if(!vertDir && summedTextHeight > measures.opW) {
+        return summedTextHeight;
+      } else {
+        return measures.opW;
+      }
     };
     
-    factory.calcOpHeight = function(op, measures, vertDir) {
-      var result = measures.opH;
-      if (!vertDir && ((measures.opH / op.name.length) < measures.textScale)) {
-        result = (measures.textScale * op.name.length);
-      } 
-      return result;
+    factory.calcOpHeight = function(op, measures, vertDir, struct) {
+      var longestString = longestConditionString(struct, op, measures);
+      var summedTextHeight = sumTextHeight(struct, measures);
+      if (vertDir && summedTextHeight > measures.opH) {
+        return summedTextHeight;
+      } else if(!vertDir && (measures.opH / longestString.length) < measures.textScale) {
+        return measures.textScale * longestString.length;
+      } else {
+        return measures.opH;
+      }
     };
+
+    function longestConditionString(struct, op) {
+      var textStrings = struct.clientSideAdditions.preGuards.concat(struct.clientSideAdditions.preActions, struct.clientSideAdditions.postGuards, struct.clientSideAdditions.postActions);
+      textStrings.push(op.name);
+      return textStrings.reduce(function (a, b) { return a.length > b.length ? a : b; });
+    }
+
+    function sumTextHeight(struct, measures) {
+      var noOfTextStrings = 1 + struct.clientSideAdditions.preGuards.length + struct.clientSideAdditions.preActions.length + struct.clientSideAdditions.postGuards.length + struct.clientSideAdditions.postActions.length;
+      return noOfTextStrings * measures.condLineHeight + measures.nameLineHeight;
+    }
 
     return factory;
   }]);

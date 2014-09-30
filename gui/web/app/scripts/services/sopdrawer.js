@@ -8,7 +8,7 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-  .factory('sopDrawer', [ 'sopCalcer', 'spTalker', '$compile', function (sopCalcer, spTalker, $compile) {
+  .factory('sopDrawer', [ 'sopCalcer', 'spTalker', function (sopCalcer, spTalker) {
 
     var factory = {}, measures, dragDropManager = {
         'draggedObj' : false,
@@ -27,7 +27,9 @@ angular.module('spGuiApp')
           'arrow' : 5,
           'textScale': 6,
           'animTime': 300,
-          'commonLineColor': 'white'
+          'commonLineColor': 'white',
+          'condLineHeight': 12,
+          'nameLineHeight': 50
       };
 
       sopSpecCopy.sop.forEach(function(sequence) {
@@ -69,6 +71,16 @@ angular.module('spGuiApp')
       }
     }
 
+    function drawConditions(struct, array, string, ystart, paper, measures) {
+      for(var j = 0; j < array.length; j++) {
+        struct.clientSideAdditions[string + j] = paper.text(struct.clientSideAdditions.width / 2, ystart + measures.condLineHeight*j, array[j]);
+        struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions[string + j]);
+        struct.clientSideAdditions.setToDrag.push(struct.clientSideAdditions[string + j]);
+        struct.clientSideAdditions[string + j].toFront();
+      }
+      return j;
+    }
+
     factory.drawSop = function (struct, measures, paper, firstLoop, sopSpecCopy, doRedraw, dirScope, sequence) {
       var animTime = measures.animTime;
       
@@ -89,10 +101,11 @@ angular.module('spGuiApp')
         
         // Draw struct
         if (struct.isa === 'Hierarchy') {
+          struct.clientSideAdditions.setToDrag = paper.set();
           var op = spTalker.getItemById(struct.operation);
 
           struct.clientSideAdditions.drawnRect = paper.rect(0, 0, struct.clientSideAdditions.width, struct.clientSideAdditions.height, 5).attr({fill:'#FFFFFF', 'stroke-width':0});
-          struct.clientSideAdditions.drawnText = paper.text(struct.clientSideAdditions.width / 2, struct.clientSideAdditions.height / 2, op.name);
+          struct.clientSideAdditions.drawnText = paper.text(struct.clientSideAdditions.width / 2, (struct.clientSideAdditions.preGuards.length + struct.clientSideAdditions.preActions.length + 1) * measures.condLineHeight + (measures.nameLineHeight-measures.condLineHeight) / 2, op.name).attr({'font-weight': 'bold'});
 
           var opContextMenu = {
             target:'#op-context-menu',
@@ -118,13 +131,28 @@ angular.module('spGuiApp')
           var arrowAnim = Raphael.animation({opacity:1}, 0);
           struct.clientSideAdditions.drawnArrow.animate(arrowAnim.delay(animTime));
 
-          struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnRect); struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnText); struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnArrow);
-          
-          struct.clientSideAdditions.setToDrag = paper.set();
-          struct.clientSideAdditions.setToDrag.push(struct.clientSideAdditions.drawnRect); struct.clientSideAdditions.setToDrag.push(struct.clientSideAdditions.drawnText);
+          struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnRect, struct.clientSideAdditions.drawnText, struct.clientSideAdditions.drawnArrow);
+          struct.clientSideAdditions.setToDrag.push(struct.clientSideAdditions.drawnRect, struct.clientSideAdditions.drawnText);
 
-          struct.clientSideAdditions.drawnText.toFront();
-          struct.clientSideAdditions.setToDrag.toFront();
+          struct.clientSideAdditions.drawnText.toFront(); struct.clientSideAdditions.setToDrag.toFront();
+
+          var preGuardYPos = measures.condLineHeight,
+            preActionYPos = preGuardYPos + struct.clientSideAdditions.preGuards.length * measures.condLineHeight,
+            preLineYPos = preActionYPos + struct.clientSideAdditions.preActions.length * measures.condLineHeight,
+            postGuardYPos = preLineYPos + measures.nameLineHeight,
+            postLineYPos = postGuardYPos - measures.condLineHeight,
+            postActionYPos = postGuardYPos + struct.clientSideAdditions.postGuards.length * measures.condLineHeight;
+
+          drawConditions(struct, struct.clientSideAdditions.preGuards, 'drawnPreGuard', preGuardYPos, paper, measures);
+          drawConditions(struct, struct.clientSideAdditions.preActions, 'drawnPreAction', preActionYPos, paper, measures);
+          drawConditions(struct, struct.clientSideAdditions.postGuards, 'drawnPostGuard', postGuardYPos, paper, measures);
+          drawConditions(struct, struct.clientSideAdditions.postActions, 'drawnPostAction', postActionYPos, paper, measures);
+
+          struct.clientSideAdditions.drawnPreLine = paper.path('M0,' + preLineYPos + ' l' + struct.clientSideAdditions.width + ',0');
+          struct.clientSideAdditions.drawnPostLine = paper.path('M0,' + postLineYPos + ' l' + struct.clientSideAdditions.width + ',0');
+          struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnPreLine, struct.clientSideAdditions.drawnPostLine);
+          struct.clientSideAdditions.setToDrag.push(struct.clientSideAdditions.drawnPreLine, struct.clientSideAdditions.drawnPostLine);
+
           factory.makeDraggable(struct.clientSideAdditions.setToDrag, struct.clientSideAdditions.x, struct.clientSideAdditions.y, struct, paper, sopSpecCopy, dirScope, measures);
 
           struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnShadowSet);

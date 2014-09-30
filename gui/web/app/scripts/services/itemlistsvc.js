@@ -126,7 +126,6 @@ angular.module('spGuiApp')
           spTalker.saveItem(parent);
           $rootScope.$broadcast('itemsQueried');
         }
-        console.log(itemListScope);
         $timeout(function() {
           if(parentItem) {
             itemListScope.$broadcast('show-children-' + parentItem.id);
