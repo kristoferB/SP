@@ -77,8 +77,9 @@ angular.module('spGuiApp')
           }
         } else if (!_.isUndefined(scope.windowStorage.sopSpec)){
           getSopDefAndDraw(scope.windowStorage.sopSpec)
-        } else
+        } else {
           draw();
+        }
 
 
         scope.saveSopSpec = function() {
