@@ -6,9 +6,37 @@ package sp.domain.logic
 object IDAbleLogic {
 
   import sp.domain._
+  import sp.system.messages._
 
-  def deleteAnID(id: ID, ids: List[IDAble]) = {
+  def removeID(id: ID, ids: List[IDAble]) = {
+    def removeFrom(item: IDAble): Option[UpdateID] = {
+      val newItem = item match {
+        case x: Operation => removeIDFromOperation(id, x)
+        case x: Thing => removeIDFromThing(id, x)
+        case x: SPObject => removeIDFromSPObject(id, x)
+        case x: SPSpec => removeIDFromSPSpec(id, x)
+        case x: SOPSpec => removeIDFromSOPSpec(id, x)
+        case _ => item
+      }
+      if (newItem == item) None
+      else {
+        Some(UpdateID(item.id, item.version, newItem))
+      }
+    }
 
+    ids flatMap removeFrom
+  }
+
+
+
+
+  def removeIDFromThing(id: ID, th: Thing): Thing = {
+    val newAttr = removeIDFromAttribute(id, th.attributes)
+    val newSV = th.stateVariables flatMap(sv => removeIDFromStateVariable(id, sv))
+    if (newAttr == th.attributes && newSV == th.stateVariables)
+      th
+    else
+      th.copy(stateVariables = newSV, attributes = newAttr)
   }
 
   def removeIDFromOperation(id: ID, op: Operation): Operation = {
@@ -19,6 +47,70 @@ object IDAbleLogic {
       op
     else
       op.copy(conditions = newCond, attributes = newAttr)
+  }
+
+  def removeIDFromSPObject(id: ID, obj: SPObject): SPObject = {
+    val newAttr = removeIDFromAttribute(id, obj.attributes)
+    if (newAttr == obj.attributes)
+      obj
+    else
+      obj.copy(attributes = newAttr)
+  }
+  def removeIDFromSPSpec(id: ID, obj: SPSpec): SPSpec = {
+    val newAttr = removeIDFromAttribute(id, obj.attributes)
+    if (newAttr == obj.attributes)
+      obj
+    else
+      obj.copy(attributes = newAttr)
+  }
+
+  def removeIDFromSOPSpec(id: ID, obj: SOPSpec): SOPSpec = {
+    val newAttr = removeIDFromAttribute(id, obj.attributes)
+    val newSOP = obj.sop flatMap(sop => removeIDFromSOP(id, sop))
+
+    if (newAttr == obj.attributes && newSOP == obj.sop)
+      obj
+    else
+      obj.copy(sop = newSOP, attributes = newAttr)
+  }
+
+  def removeIDFromSOP(id: ID, sop: SOP): Option[SOP] = {
+    def filter(xs: Seq[SOP]) = {
+      val t = xs flatMap(x => removeIDFromSOP(id, x))
+      if (t == xs) xs else t
+    }
+
+    sop match {
+      case Hierarchy(opid, x) => {
+        if (opid == id) None
+        else {
+          removeIDFromSOP(id, x) match {
+            case Some(s) => if (s == x) Some(sop) else Some(Hierarchy(id, s))
+            case None => Some(Hierarchy(id, EmptySOP))
+          }
+        }
+      }
+      case EmptySOP => Some(EmptySOP)
+      case _ => {
+        val newChildren = filter(sop.children)
+        if (newChildren == sop.children)
+          Some(sop)
+        else if (newChildren.isEmpty)
+          None
+        else if (newChildren.size == 1)
+          Some(newChildren.head)
+        else
+          Some(sop.modify(newChildren))
+      }
+    }
+  }
+
+  def removeIDFromStateVariable(id: ID, sv: StateVariable): Option[StateVariable] = {
+    if (sv.id == id) None
+    else {
+      val newAttr = removeIDFromAttribute(id, sv.attributes)
+      Some(sv.copy(attributes = newAttr))
+    }
   }
 
   def removeIDFromCondition(id: ID, cond: Condition): Condition = {

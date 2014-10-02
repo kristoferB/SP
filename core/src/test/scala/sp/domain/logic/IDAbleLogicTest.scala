@@ -1,6 +1,7 @@
 package sp.domain.logic
 
 import org.scalatest._
+import sp.system.messages.UpdateID
 
 /**
  * Created by kristofer on 01/10/14.
@@ -168,6 +169,147 @@ class IDAbleLogicTest extends FreeSpec with Matchers {
 
           removeIDFromCondition(id, c) shouldEqual res
         }
+      }
+    }
+    "Removing IDs from Operation" - {
+      "should not change the operation if no id" - {
+        "for empty operation" in {
+          val empty = Operation("hej")
+          removeIDFromOperation(id, empty) shouldEqual empty
+        }
+        "for simple operation" in {
+          val o = Operation("hej", List(PropositionCondition(EQ(otherid, ValueHolder(1)), List(Action(otherid, ValueHolder(1))))), Attr("hej"-> 1))
+          removeIDFromOperation(id, o) shouldEqual o
+        }
+        "for complex operations" in {
+          val o = Operation("hej",
+            List(PropositionCondition(
+              AND(List(EQ(otherid, ValueHolder("1")), OR(List(EQ(otherid, ValueHolder("1")))))),
+              List(Action(otherid, ValueHolder(1))),
+              Attr("hej"->MapPrimitive(Map("hej"->otherid)))
+            )),
+            Attr("hej"-> 1, "nej"->otherid))
+
+          removeIDFromOperation(id, o) shouldEqual o
+        }
+      }
+      "should remove props if include id" - {
+        "for an operation" in {
+          val o = Operation("hej",
+            List(PropositionCondition(
+              AND(List(EQ(id, ValueHolder("1")), OR(List(EQ(otherid, ValueHolder("1")))))),
+              List(Action(otherid, ValueHolder(1)), Action(id, ValueHolder(1))),
+              Attr("hej"->MapPrimitive(Map("hej"->id)))
+            )),
+            Attr("hej"-> 1, "nej"->id))
+          val res = Operation("hej",
+            List(PropositionCondition(
+              AND(List(OR(List(EQ(otherid, ValueHolder("1")))))),
+              List(Action(otherid, ValueHolder(1))),
+              Attr("hej"->MapPrimitive(Map()))
+            )),
+            Attr("hej"-> 1))
+
+          removeIDFromOperation(id, o).update(o.id, o.version) shouldEqual res.update(o.id, o.version)
+        }
+      }
+    }
+    "Removing IDs from Thing" - {
+      "should not change the thing if no id" - {
+        "for empty thing" in {
+          val empty = Thing("hej")
+          removeIDFromThing(id, empty) shouldEqual empty
+        }
+        "for simple thing" in {
+          val t = Thing("hej", List(StateVariable("hej", Attr(), otherid)), Attr("hej"-> 1))
+          removeIDFromThing(id, t) shouldEqual t
+        }
+        "for complex things" in {
+          val t = Thing("hej", List(StateVariable("hej", Attr("hej" -> otherid), otherid)), Attr("hej"-> ListPrimitive(List(otherid))))
+
+          removeIDFromThing(id, t) shouldEqual t
+        }
+      }
+      "should remove props if include id" - {
+        "for an thing" in {
+          val t = Thing("hej", List(
+            StateVariable("hej", Attr("hej" -> otherid, "nej"->id), otherid),
+            StateVariable("hej", Attr("hej" -> otherid), id)
+          ),
+            Attr("hej"-> ListPrimitive(List(otherid, id))))
+
+          val res = Thing("hej", List(
+            StateVariable("hej", Attr("hej" -> otherid), otherid)
+          ),
+            Attr("hej"-> ListPrimitive(List(otherid))))
+
+          removeIDFromThing(id, t).update(t.id, t.version) shouldEqual res.update(t.id, t.version)
+        }
+      }
+    }
+    "Removing IDs from SOP" - {
+      "should not change the sop if no id" - {
+        "for empty sop" in {
+          val empty = Parallel()
+          removeIDFromSOP(id, empty).get shouldEqual empty
+        }
+        "for simple sop" in {
+          val t = Parallel(otherid, otherid)
+          removeIDFromSOP(id, t).get shouldEqual t
+        }
+        "for complex sop" in {
+          val t = Parallel(
+            otherid,
+            otherid,
+            Sequence(Parallel(otherid, otherid, otherid), otherid, otherid)
+          )
+
+          removeIDFromSOP(id, t).get shouldEqual t
+        }
+      }
+      "should remove props if include id" - {
+        "return none if all is removed" in {
+          val t = Parallel(id, id)
+          removeIDFromSOP(id, t) shouldEqual None
+        }
+
+        "for a sop" in {
+          val t = Parallel(
+            otherid,
+            id,
+            Sequence(Parallel(id, id, id), otherid, otherid)
+          )
+
+          val res = Parallel(
+            otherid,
+            Sequence(otherid, otherid)
+          )
+
+          removeIDFromSOP(id, t).get shouldEqual res
+        }
+      }
+    }
+    "Removing IDs from List of IDAbles" - {
+      "should not change the items if no id" - {
+        val o = Operation("hej", List(PropositionCondition(EQ(otherid, ValueHolder(1)), List(Action(otherid, ValueHolder(1))))), Attr("hej"-> 1))
+        val s = SOPSpec(List(Parallel(otherid, otherid)), "hej")
+        val t = Thing("hej", List(StateVariable("hej", Attr(), otherid)), Attr("hej"-> 1))
+
+        removeID(id, List(o, s, t)) shouldEqual List()
+      }
+      "should return updated items if id" - {
+        val o = Operation("hej", List(PropositionCondition(EQ(otherid, ValueHolder(1)), List(Action(otherid, ValueHolder(1))))), Attr("hej"-> 1, "resource"->id))
+        val s = SOPSpec(List(Parallel(otherid, otherid)), "hej")
+        val t = Thing("hej", List(StateVariable("hej", Attr(), id)), Attr("hej"-> 1))
+
+        val res = List(UpdateID(t.id, t.version, Thing(
+          "hej", List(), Attr("hej"-> 1))
+        ))
+
+        val test = removeID(id, List(o, s, t))
+        println(test)
+
+        removeID(id, List(o, s, t)).head.id shouldEqual o.id
       }
     }
   }
