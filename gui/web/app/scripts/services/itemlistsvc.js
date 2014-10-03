@@ -60,10 +60,12 @@ angular.module('spGuiApp')
       while(childrenArray.length > 0) {
         childrenArray.pop()
       }
-      if(typeof parentItem.attributes.children !== 'undefined') {
-        parentItem.attributes.children.forEach(function(childId) {
-          childrenArray.push(spTalker.getItemById(childId));
-        });
+      if(typeof parentItem.attributes !== 'undefined') {
+        if (typeof parentItem.attributes.children !== 'undefined') {
+          parentItem.attributes.children.forEach(function (childId) {
+            childrenArray.push(spTalker.getItemById(childId));
+          });
+        }
       }
       if(parentItem.isa === 'Thing') {
         parentItem.stateVariables.forEach(function(sv) {
