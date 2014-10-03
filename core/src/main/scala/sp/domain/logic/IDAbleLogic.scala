@@ -8,7 +8,7 @@ object IDAbleLogic {
   import sp.domain._
   import sp.system.messages._
 
-  def removeID(id: ID, ids: List[IDAble]) = {
+  def removeID(id: Set[ID], ids: List[IDAble]) = {
     def removeFrom(item: IDAble): Option[UpdateID] = {
       val newItem = item match {
         case x: Operation => removeIDFromOperation(id, x)
@@ -24,13 +24,15 @@ object IDAbleLogic {
       }
     }
 
-    ids flatMap removeFrom
+    val t = ids flatMap removeFrom
+    println(s"removeID: $t")
+    t
   }
 
 
 
 
-  def removeIDFromThing(id: ID, th: Thing): Thing = {
+  def removeIDFromThing(id: Set[ID], th: Thing): Thing = {
     val newAttr = removeIDFromAttribute(id, th.attributes)
     val newSV = th.stateVariables flatMap(sv => removeIDFromStateVariable(id, sv))
     if (newAttr == th.attributes && newSV == th.stateVariables)
@@ -39,7 +41,7 @@ object IDAbleLogic {
       th.copy(stateVariables = newSV, attributes = newAttr)
   }
 
-  def removeIDFromOperation(id: ID, op: Operation): Operation = {
+  def removeIDFromOperation(id: Set[ID], op: Operation): Operation = {
     val newAttr = removeIDFromAttribute(id, op.attributes)
     val removeIt = removeIDFromCondition(id, (_: Condition))
     val newCond = op.conditions map removeIt
@@ -49,14 +51,14 @@ object IDAbleLogic {
       op.copy(conditions = newCond, attributes = newAttr)
   }
 
-  def removeIDFromSPObject(id: ID, obj: SPObject): SPObject = {
+  def removeIDFromSPObject(id: Set[ID], obj: SPObject): SPObject = {
     val newAttr = removeIDFromAttribute(id, obj.attributes)
     if (newAttr == obj.attributes)
       obj
     else
       obj.copy(attributes = newAttr)
   }
-  def removeIDFromSPSpec(id: ID, obj: SPSpec): SPSpec = {
+  def removeIDFromSPSpec(id: Set[ID], obj: SPSpec): SPSpec = {
     val newAttr = removeIDFromAttribute(id, obj.attributes)
     if (newAttr == obj.attributes)
       obj
@@ -64,30 +66,31 @@ object IDAbleLogic {
       obj.copy(attributes = newAttr)
   }
 
-  def removeIDFromSOPSpec(id: ID, obj: SOPSpec): SOPSpec = {
+  def removeIDFromSOPSpec(id: Set[ID], obj: SOPSpec): SOPSpec = {
+    println(s"id: $id,  a sopspec to check: $obj")
     val newAttr = removeIDFromAttribute(id, obj.attributes)
     val newSOP = obj.sop flatMap(sop => removeIDFromSOP(id, sop))
-
     if (newAttr == obj.attributes && newSOP == obj.sop)
       obj
     else
       obj.copy(sop = newSOP, attributes = newAttr)
   }
 
-  def removeIDFromSOP(id: ID, sop: SOP): Option[SOP] = {
+  def removeIDFromSOP(id: Set[ID], sop: SOP): Option[SOP] = {
     def filter(xs: Seq[SOP]) = {
+      println(s"id: $id, \n filter: $xs")
       val t = xs flatMap(x => removeIDFromSOP(id, x))
+      println(s"res: $t")
       if (t == xs) xs else t
     }
 
-    sop match {
-      case Hierarchy(opid, x) => {
-        if (opid == id) None
+    val t = sop match {
+      case h: Hierarchy => {
+        if (id.contains(h.operation)) None
         else {
-          removeIDFromSOP(id, x) match {
-            case Some(s) => if (s == x) Some(sop) else Some(Hierarchy(id, s))
-            case None => Some(Hierarchy(id, EmptySOP))
-          }
+          val newChildren = filter(h.children)
+          if (newChildren == sop.children) Some(h)
+          else Some(h.modify(newChildren))
         }
       }
       case EmptySOP => Some(EmptySOP)
@@ -103,17 +106,22 @@ object IDAbleLogic {
           Some(sop.modify(newChildren))
       }
     }
+
+    println(s"sop before: $sop")
+    println(s"sop after: $t")
+
+    t
   }
 
-  def removeIDFromStateVariable(id: ID, sv: StateVariable): Option[StateVariable] = {
-    if (sv.id == id) None
+  def removeIDFromStateVariable(id: Set[ID], sv: StateVariable): Option[StateVariable] = {
+    if (id.contains(sv.id)) None
     else {
       val newAttr = removeIDFromAttribute(id, sv.attributes)
       Some(sv.copy(attributes = newAttr))
     }
   }
 
-  def removeIDFromCondition(id: ID, cond: Condition): Condition = {
+  def removeIDFromCondition(id: Set[ID], cond: Condition): Condition = {
     cond match {
       case c @ PropositionCondition(guard, action, attr) => {
         val newGuard = removeIDFromProposition(id, guard)
@@ -125,14 +133,14 @@ object IDAbleLogic {
     }
   }
 
-  def removeIDFromProposition(id: ID, prop: Proposition): Proposition = {
+  def removeIDFromProposition(id: Set[ID], prop: Proposition): Proposition = {
     def clean(xs: List[Proposition], make: List[Proposition] => Proposition) = xs match {
       case Nil => None
       case _ => Some(make(xs))
     }
     def removeIDFromStateEvaluator(sv: StateEvaluator): Option[StateEvaluator] = {
       sv match {
-        case SVIDEval(svid) => if (id == svid) None else Some(sv)
+        case SVIDEval(svid) => if (id.contains(svid)) None else Some(sv)
         case ValueHolder(v) => {
           removeIDFromAttrValue(id, v) map ValueHolder
         }
@@ -168,31 +176,31 @@ object IDAbleLogic {
   }
 
 
-  def removeIDFromAction(id: ID, actions: List[Action]): List[Action] = {
+  def removeIDFromAction(id: Set[ID], actions: List[Action]): List[Action] = {
     actions flatMap {
       case a @ Action(svid, ValueHolder(v)) => {
         val newV = removeIDFromAttrValue(id, v)
-        if (svid == id || newV == None) None
+        if (id.contains(svid) || newV == None) None
         else Some(Action(svid, ValueHolder(newV.get)))
       }
       case a @ Action(svid, ASSIGN(assignID)) => {
-        if (svid == id || assignID == id) None
+        if (id.contains(svid) || id.contains(assignID)) None
         else Some(a)
       }
       case a @ Action(svid, _) => {
-        if (svid == id) None
+        if (id.contains(svid)) None
         else Some(a)
       }
     }
   }
 
-  def removeIDFromAttribute(id: ID, attr: SPAttributes): SPAttributes = {
+  def removeIDFromAttribute(id: Set[ID], attr: SPAttributes): SPAttributes = {
     val updated = reqRemoveFromAttr(id, attr.attrs)
     if (updated == attr.attrs) attr else SPAttributes(updated)
   }
-  def removeIDFromAttrValue(id: ID, attrVal: SPAttributeValue): Option[SPAttributeValue] = {
+  def removeIDFromAttrValue(id: Set[ID], attrVal: SPAttributeValue): Option[SPAttributeValue] = {
     attrVal match {
-      case IDPrimitive(x) => if (x == id) None else Some(attrVal)
+      case IDPrimitive(x) => if (id.contains(x)) None else Some(attrVal)
       case MapPrimitive(x) => {
         val upd = reqRemoveFromAttr(id, x)
         Some(MapPrimitive(upd))
@@ -205,7 +213,7 @@ object IDAbleLogic {
       case _ => Some(attrVal)
     }
   }
-  private def reqRemoveFromAttr(id: ID, keyVal: Map[String, SPAttributeValue]): Map[String, SPAttributeValue] = {
+  private def reqRemoveFromAttr(id: Set[ID], keyVal: Map[String, SPAttributeValue]): Map[String, SPAttributeValue] = {
     val markID = keyVal map { case (key, attr) =>
       val newAttr = removeIDFromAttrValue(id, attr)
       newAttr match {

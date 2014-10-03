@@ -46,7 +46,7 @@ object SOP {
 
   def modifySOP(sop: SOP, children: Seq[SOP]): SOP = {
     sop match {
-      case Hierarchy(o,child) => Hierarchy(o,modifySOP(child, children))
+      case s: Hierarchy => Hierarchy(s.operation, children:_*)
       case s: Parallel => Parallel(children:_*)
       case s: Alternative => Alternative(children:_*)
       case s: Arbitrary => Arbitrary(children:_*)

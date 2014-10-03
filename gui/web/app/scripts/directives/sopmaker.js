@@ -67,13 +67,14 @@ angular.module('spGuiApp')
         }
 
         if (!_.isUndefined(scope.windowStorage.sopSpecId)){
+          sopSpecSource = spTalker.getItemById(scope.windowStorage.sopSpecId)
           if(Object.keys(spTalker.items).length === 0) {
             var listener = scope.$on('itemsQueried', function () {
-              getSopDefAndDraw(spTalker.getItemById(scope.windowStorage.sopSpecId));
+              getSopDefAndDraw(sopSpecSource);
               listener();
             });
           } else {
-            getSopDefAndDraw(spTalker.getItemById(scope.windowStorage.sopSpecId));
+            getSopDefAndDraw(sopSpecSource);
           }
         } else if (!_.isUndefined(scope.windowStorage.sopSpec)){
           getSopDefAndDraw(scope.windowStorage.sopSpec)
