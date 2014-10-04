@@ -8,22 +8,8 @@ import akka.persistence._
 /**
  * Created by Kristofer on 2014-06-12.
  */
-class ModelActor(model: ID) extends PersistentActor  {
+class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
   override def persistenceId = model.toString()
-
-  
-  // A model state
-  case class ModelState(version: Long, idMap: Map[ID, IDAble], diff: Map[Long, ModelDiff], attributes: SPAttributes, name: String){
-    lazy val operations = idMap filter (_._2.isInstanceOf[Operation])
-    lazy val things = idMap filter (_._2.isInstanceOf[Thing])
-    lazy val specifications = idMap filter (_._2.isInstanceOf[Specification])
-    lazy val results = idMap filter (_._2.isInstanceOf[Result])
-    lazy val stateVariables = svs map (sv=> sv.id -> sv) toMap
-    lazy val svs =  things flatMap(_._2.asInstanceOf[Thing].stateVariables)
-  }
-
-  var state = ModelState(1, Map(), Map(), Attr(), "noName")
-
 
   def receiveCommand = {
     case UpdateIDs(m, ids) => {
@@ -64,59 +50,10 @@ class ModelActor(model: ID) extends PersistentActor  {
     /**
      * TODO: This is a temporary solution. When we go more production
      * the Query should be in a separate actor. 140630
+     * Query handled in trait below
      */
     case mess: ModelQuery => {
-      val reply = sender
-      mess match {
-        case GetIds(_, ids) => {
-          if (ids.isEmpty) reply ! SPIDs(state.idMap.values.toList)
-          else {
-            ids foreach(id=> if (!state.idMap.contains(id)) reply ! MissingID(id, model))
-            val res = for {
-              i <- ids
-              x <- state.idMap.get(i)
-            } yield x
-            reply ! SPIDs(res)
-          }
-        }
-        case GetOperations(_, f) => {
-          val res = state.operations.values filter f
-          reply ! SPIDs(res.toList)
-        }
-        case GetThings(_, f) => {
-          val res = state.things.values filter f
-          reply ! SPIDs(res.toList)
-        }
-        case GetSpecs(_, f) => {
-          val res = state.specifications.values filter f
-          reply ! SPIDs(res.toList)
-        }
-        case GetResults(_, f) => {
-          val res = state.results.values filter f
-          reply ! SPIDs(res.toList)
-        }
-        case GetStateVariable(m, id) => {
-          if (!state.stateVariables.contains(id)) reply ! MissingID(id, m)
-          else {
-            val res = state.stateVariables(id)
-            reply ! SPSVs(List(res))
-          }
-        }
-        case GetStateVariables(m, f) => {
-          val res = state.stateVariables.values.toList filter f
-          reply ! SPSVs(res)
-        }
-
-        case GetQuery(_, q, f) => {
-          if (!q.isEmpty)
-            println("Query STRING NOT IMPLEMENTED ModelActor")
-
-          val res = state.idMap.values filter f
-          reply ! SPIDs(res.toList)
-        }
-        case GetDiff(_,v) => reply ! getDiff(v)
-        case x: GetModelInfo => reply ! getModelInfo
-      }
+      queryMessage(sender, mess)
     }
     case "printState" => println(s"$model: $state")
     case "snapshot" => saveSnapshot(state)
@@ -124,9 +61,97 @@ class ModelActor(model: ID) extends PersistentActor  {
   }
 
   def receiveRecover = {
-    case d: ModelDiff  => updateState(d)
+    case d: ModelDiff  => {
+      updateState(d)
+    }
     case SnapshotOffer(_, snapshot: ModelState) => state = snapshot
   }
+
+}
+
+object ModelActor{
+  def props(model: ID) = Props(classOf[ModelActor], model)
+}
+
+trait ModelActorState  {
+  val model: ID
+  //def persist[A](event: A)(handler: A ⇒ Unit)
+
+  private val noDiffInMemory = 50;
+
+  // A model state
+  case class ModelState(version: Long, idMap: Map[ID, IDAble], diff: Map[Long, ModelDiff], attributes: SPAttributes, name: String){
+    lazy val operations = idMap filter (_._2.isInstanceOf[Operation])
+    lazy val things = idMap filter (_._2.isInstanceOf[Thing])
+    lazy val specifications = idMap filter (_._2.isInstanceOf[Specification])
+    lazy val results = idMap filter (_._2.isInstanceOf[Result])
+    lazy val stateVariables = svs map (sv=> sv.id -> sv) toMap
+    lazy val svs =  things flatMap(_._2.asInstanceOf[Thing].stateVariables)
+  }
+
+  var state = ModelState(1, Map(), Map(), Attr(), "noName")
+
+
+  def queryMessage(reply: ActorRef, mess: ModelQuery) = {
+    mess match {
+      case GetIds(_, ids) => {
+        if (ids.isEmpty) reply ! SPIDs(state.idMap.values.toList)
+        else {
+          ids foreach(id=> if (!state.idMap.contains(id)) reply ! MissingID(id, model))
+          val res = for {
+            i <- ids
+            x <- state.idMap.get(i)
+          } yield x
+          reply ! SPIDs(res)
+        }
+      }
+      case GetOperations(_, f) => {
+        val res = state.operations.values filter f
+        reply ! SPIDs(res.toList)
+      }
+      case GetThings(_, f) => {
+        val res = state.things.values filter f
+        reply ! SPIDs(res.toList)
+      }
+      case GetSpecs(_, f) => {
+        val res = state.specifications.values filter f
+        reply ! SPIDs(res.toList)
+      }
+      case GetResults(_, f) => {
+        val res = state.results.values filter f
+        reply ! SPIDs(res.toList)
+      }
+      case GetStateVariable(m, id) => {
+        if (!state.stateVariables.contains(id)) reply ! MissingID(id, m)
+        else {
+          val res = state.stateVariables(id)
+          reply ! SPSVs(List(res))
+        }
+      }
+      case GetStateVariables(m, f) => {
+        val res = state.stateVariables.values.toList filter f
+        reply ! SPSVs(res)
+      }
+
+      case GetQuery(_, q, f) => {
+        if (!q.isEmpty)
+          println("Query STRING NOT IMPLEMENTED ModelActor")
+
+        val res = state.idMap.values filter f
+        reply ! SPIDs(res.toList)
+      }
+
+      case GetDiffFrom(_,v) => reply ! getDiff(v)
+      case GetDiff(_,v) => {
+        if (state.diff.contains(v))
+          reply ! state.diff(v)
+        else
+          reply ! SPError(s"The model only stores $noDiffInMemory in memory. Use the view instead")
+      }
+      case x: GetModelInfo => reply ! getModelInfo
+    }
+  }
+
 
   /**
    * Checks if the model can be updated. If the version defined in UpdateID
@@ -139,10 +164,10 @@ class ModelActor(model: ID) extends PersistentActor  {
 
     // Check if any item could not be updated and divide them
     val updateMe = ids partition {case UpdateID(id, v, item) => {
-        val current = state.idMap.getOrElse(id, null)
-        // TODO: also need to check so that the classes match. Impl when everything is working. 140627
-        current == null || current.version <= v
-      }
+      val current = state.idMap.getOrElse(id, null)
+      // TODO: also need to check so that the classes match. Impl when everything is working. 140627
+      current == null || current.version <= v
+    }
     }
 
     if (updateMe._2.isEmpty) {
@@ -171,7 +196,7 @@ class ModelActor(model: ID) extends PersistentActor  {
   }
 
   def updateState(diff: ModelDiff) = {
-    val diffMap = state.diff + (diff.currentVersion -> diff) filter(_._1 > state.version - 30)
+    val diffMap = state.diff + (diff.currentVersion -> diff) filter(_._1 > state.version - noDiffInMemory)
     val idm = diff.updatedItems.map(x=> x.id -> x).toMap
     val allItems = (state.idMap ++ idm) filter(kv => !diff.deletedItems.contains(kv._2))
     state = ModelState(state.version+1, allItems, diffMap, diff.attributes, diff.name)
@@ -185,34 +210,54 @@ class ModelActor(model: ID) extends PersistentActor  {
    */
   def getDiff(fromV: Long) = {
     val allDiffs = state.diff.filter(_._1 > fromV).foldLeft(List[IDAble]())((res,md)=>{
-       md._2.updatedItems ++ res
+      md._2.updatedItems ++ res
     })
     val allDels = state.diff.filter(_._1 > fromV).foldLeft(List[IDAble]())((res,md)=>{
-       md._2.deletedItems ++ res
+      md._2.deletedItems ++ res
     })
     ModelDiff(model, allDiffs, allDels, fromV, state.version, state.name, state.attributes)
   }
 
   def updateItemsDueToDelete(dels: Set[ID]): List[UpdateID] = {
     val items = state.idMap.filterKeys(k => !dels.contains(k)).values
-    println("deleting")
-    println(s"DELS: $dels")
-
-
-    val t = sp.domain.logic.IDAbleLogic.removeID(dels, items.toList)
-    println(s"need update: $t")
-    t
+    sp.domain.logic.IDAbleLogic.removeID(dels, items.toList)
   }
 
   // When we need more things here, let us move this to another actor
   def query(mess: ModelQuery) = {
 
   }
-  
+
   def getModelInfo = ModelInfo(model, state.name, state.version, state.attributes)
+
 
 }
 
-object ModelActor{
-  def props(model: ID) = Props(classOf[ModelActor], model)
+class ModelView(val model: ID, version: Long, name: String) extends PersistentView with ModelActorState {
+  override def persistenceId: String = model.toString()
+  override def viewId: String = ID.newID.toString()
+
+  override def preStart() {
+    self ! Recover(toSequenceNr = version-1)
+  }
+  def recoveryCompleted(): Unit = {
+    state = state.copy(name = name)
+  }
+  override def autoUpdate = false
+
+  def receive = {
+    case d: ModelDiff  => updateState(d)
+    case SnapshotOffer(_, snapshot: ModelState) => state = snapshot
+    case mess: ModelQuery => {
+      queryMessage(sender, mess)
+    }
+    case GetModels => sender ! getModelInfo
+    case m: ModelUpdate => sender ! SPError("You are in view mode and can not change. Switch to a model")
+
+  }
+}
+
+object ModelView {
+  def props(model: ID, version: Long, name: String) =
+    Props(classOf[ModelView], model, version, name)
 }

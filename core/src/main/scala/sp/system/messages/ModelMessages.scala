@@ -28,6 +28,7 @@ case class GetStateVariable(model: ID, sv: ID)  extends ModelQuery
 case class GetStateVariables(model: ID, filter: StateVariable => Boolean = _ => true)  extends ModelQuery
 case class GetQuery(model: ID, queryString: String = "",  filter: IDAble => Boolean = _ => true) extends ModelQuery // fix better later
 case class GetDiff(model: ID, version: Long) extends ModelQuery
+case class GetDiffFrom(model: ID, version: Long) extends ModelQuery
 case class GetModelInfo(model: ID) extends ModelQuery
 
 case class UpdateIDs(model: ID, items: List[UpdateID]) extends ModelUpdate
@@ -53,6 +54,9 @@ case class ModelDiff(model: ID,
                    ) extends SPMessage
 case class ModelInfos(models: List[ModelInfo])
 case class ModelInfo(model: ID, name: String, version: Long, attributes: SPAttributes)
+
+// View Messages
+case class CreateView(model: ID, version: Long) extends SPMessage
 
 
 

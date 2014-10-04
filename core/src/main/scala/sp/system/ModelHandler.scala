@@ -14,10 +14,12 @@ import sp.domain._
 
 class ModelHandler extends PersistentActor {
   override def persistenceId = "modelhandler"
-  private var modelMap: Map[ID, ActorRef] = Map()
   implicit val timeout = Timeout(1 seconds)
   import context.dispatcher
-  
+
+  private var modelMap: Map[ID, ActorRef] = Map()
+  private var viewMap: Map[String, ActorRef] = Map()
+
   def receiveCommand = {
     case cm @ CreateModel(id, name, attr)=> {
       val reply = sender
@@ -34,6 +36,18 @@ class ModelHandler extends PersistentActor {
       else sender ! SPError(s"Model ${m.model} does not exist.")
     }
 
+    case (m: ModelMessage, v: Long) => {
+      val viewName = viewNameMaker(m.model, v)
+      if (!viewMap.contains(viewName)) {
+        val viewID = ID.newID
+        println(s"The modelService creates a new view for ${m.model} version: ${v}")
+        val view = context.actorOf(sp.models.ModelView.props(m.model, v, viewName))
+        viewMap += viewName -> view
+      }
+      viewMap(viewName).tell(m, sender)
+    }
+
+
     case GetModels =>
       val reply = sender
       if (!modelMap.isEmpty){
@@ -48,6 +62,8 @@ class ModelHandler extends PersistentActor {
     newModelH ! UpdateModelInfo(cm.model, cm.name, cm.attributes)
     modelMap += cm.model -> newModelH
   }
+
+  def viewNameMaker(id: ID, v: Long) = id.toString() + " - Version: " + v
 
   def receiveRecover = {
     case cm: CreateModel  => addModel(cm)

@@ -68,13 +68,13 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
     encodeResponse(Gzip) {
       pathPrefix("models"){
           modelapi
-      }~
+      } ~
       pathPrefix("runtimes"){
           runtimeapi
-      }~
+      } ~
       pathPrefix("services") {
         serviceapi
-      }~
+      } ~
       path("users") {
         get {
           callSP(GetUsers, {
@@ -126,6 +126,38 @@ trait ModelAPI extends SPApiHelpers {
       }
     } ~
     pathPrefix(JavaUUID) { model =>
+      parameter('version.as[Long]){ version =>
+        pathPrefix(Segment){ typeOfItems =>
+          typeOfItems match {
+            case "diff" => {
+              /{ get {callSP(GetDiff(model, version), {
+                case x: ModelDiff => complete(x)})}
+              }
+            }
+            case "diffFrom" => {
+              /{ get {callSP(GetDiffFrom(model, version), {
+                case x: ModelDiff => complete(x)})}
+              }
+            }
+            case _ => {
+              path(JavaUUID){ id =>
+                /{ get {callSP((GetIds(model, List(ID(id))), version), {
+                  case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)})}
+                }
+              } ~
+                /{ get {callSP((GetIds(model, List()), version), { case SPIDs(x) => complete(x)})}}
+            }
+          }
+
+        } ~
+        / {
+          get {
+            callSP((GetModelInfo(model), version), {
+              case x: ModelInfo => complete(x)
+            })
+          }
+        }
+      } ~
       / {
         get {
           callSP(GetModelInfo(model), {
@@ -158,7 +190,6 @@ trait ModelAPI extends SPApiHelpers {
   }
 
 
-
   private def getSPIDS(mess: ModelQuery) = {
     /{ get {callSP(mess, { case SPIDs(x) => complete(x)})}}
   }
@@ -172,7 +203,7 @@ trait ModelAPI extends SPApiHelpers {
     path(JavaUUID){id =>
       /{ get {callSP(GetIds(model, List(ID(id))), {
         case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)})}
-      }~
+      } ~
       post {
         entity(as[IDSaver]) { x =>
           val upids = createUPIDs(List(x), Some(id))
