@@ -39,11 +39,11 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
   val modelHandler: ActorRef
   val runtimeHandler: ActorRef
   val serviceHandler: ActorRef
-  val userActor: ActorRef
+  val userHandler: ActorRef
   private implicit val to = timeout
 
   private def callSP(mess: Any, matchReply: PartialFunction[Any, Route]) = {
-    onSuccess(userActor ? mess){evalReply{matchReply}}
+    onSuccess(userHandler ? mess){evalReply{matchReply}}
   }
 
   def myUserPassAuthenticator(userPass: Option[UserPass]): Future[Option[String]] =
@@ -113,19 +113,19 @@ trait ModelAPI extends SPApiHelpers {
         })
       } ~
       post {
-        entity(as[CreateModel]) { cmd =>
-          callSP(cmd, {
+        entity(as[CreateModelNewID]) { cmd =>
+          callSP(CreateModel(ID.newID, cmd.name, cmd.attributes), {
             case x: ModelInfo => complete(x)
           })
         } ~
           entity(as[ModelInfo]) { mi =>
-            callSP(UpdateModelInfo(mi.model, "", mi.attributes), {
+            callSP(UpdateModelInfo(mi.model, mi.name, mi.attributes), {
               case x: ModelInfo => complete(x)
             })
           } 
       }
     } ~
-    pathPrefix(Segment) { model =>
+    pathPrefix(JavaUUID) { model =>
       / {
         get {
           callSP(GetModelInfo(model), {
@@ -134,7 +134,7 @@ trait ModelAPI extends SPApiHelpers {
         } ~
         post {
           entity(as[ModelInfo]) { mi =>
-            callSP(UpdateModelInfo(model, "", mi.attributes), {
+            callSP(UpdateModelInfo(model, mi.name, mi.attributes), {
               case x: ModelInfo => complete(x)
             })
           }
@@ -146,7 +146,7 @@ trait ModelAPI extends SPApiHelpers {
           case "operations" => getSPIDS(GetOperations(model))
           case "things" => getSPIDS(GetThings(model))
           case "specs" => getSPIDS(GetSpecs(model))
-          case "items" => getSPIDS(GetIds(List(), model))
+          case "items" => getSPIDS(GetIds(model, List()))
           case "statevariables" => path(JavaUUID){ id =>
             /{ get {callSP(GetStateVariable(model, id), {
               case SPSVs(x) => if (x.size == 1) complete(x.head) else complete(x)})}
@@ -168,9 +168,9 @@ trait ModelAPI extends SPApiHelpers {
     onSuccess(modelHandler ? mess){evalReply{matchReply}}
   }
 
-  private def IDHandler(model: String) = {
+  private def IDHandler(model: ID) = {
     path(JavaUUID){id =>
-      /{ get {callSP(GetIds(List(ID(id)), model), {
+      /{ get {callSP(GetIds(model, List(ID(id))), {
         case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)})}
       }~
       post {

@@ -19,8 +19,8 @@ object LaunchGUI {//extends MySslConfiguration {
 
     IO(Http) ! Http.Bind(service, interface, port)
 
-    Console.println(s"Server started ${system.name}, $interface:$port")
-    Console.println("Type `exit` to exit....")
+    println(s"Server started ${system.name}, $interface:$port")
+    println("Type `exit` to exit....")
 
     Console.readLine() // wait for enter to exit
     system.shutdown()

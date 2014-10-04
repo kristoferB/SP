@@ -33,21 +33,22 @@ class TestApp extends App {
 class TestA(mh: ActorRef) extends Actor {
     import sp.domain._
     var o1: IDAble = Operation("o1")
-    val model = CreateModel("test")
+    val mid = sp.domain.ID.newID
+    val model = CreateModel(mid, "test")
     def receive = {
       case "createM" => mh ! model
-      case "newop" => mh ! UpdateIDs("test",  List(UpdateID.addNew(Operation("random"))))
-      case "updateOp" => mh ! UpdateIDs("test",  List(UpdateID.addNew(o1)))
-      case "op1" => mh ! GetIds(List(o1.id), "test")
-      case "ops" => mh ! GetOperations("test")
-      case "things" => mh ! GetThings("test")
-      case "diff" => mh ! GetDiff("test", 5)
+      case "newop" => mh ! UpdateIDs(mid,  List(UpdateID.addNew(Operation("random"))))
+      case "updateOp" => mh ! UpdateIDs(mid,   List(UpdateID.addNew(o1)))
+      case "op1" => mh ! GetIds(mid, List(o1.id))
+      case "ops" => mh ! GetOperations(mid)
+      case "things" => mh ! GetThings(mid)
+      case "diff" => mh ! GetDiff(mid, 5)
       case "getIDs" =>
       case x @ SPIDs(ids) => {
         println(x)
         if (ids.exists(_.id == o1.id)) for{o <- ids.find(_.id == o1.id)} yield(o1 = o)
       }
-      case x @ ModelDiff(ids, del, model, prevV, v, t) => println(x)
+      case x @ ModelDiff(mid, ids, del, model, prevV, v, t) => println(x)
       case x: Any => println(x)
     }
   }

@@ -10,21 +10,23 @@ import scala.concurrent.duration._
 import sp.system.messages._
 import akka.persistence._
 
+import sp.domain._
 
-class ModelHandler extends EventsourcedProcessor {
-  private var modelMap: Map[String, ActorRef] = Map()
+class ModelHandler extends PersistentActor {
+  override def persistenceId = "modelhandler"
+  private var modelMap: Map[ID, ActorRef] = Map()
   implicit val timeout = Timeout(1 seconds)
   import context.dispatcher
   
   def receiveCommand = {
-    case cm @ CreateModel(name, attr)=> {
+    case cm @ CreateModel(id, name, attr)=> {
       val reply = sender
-      if (!modelMap.contains(name)){
+      if (!modelMap.contains(id)){
         persist(cm){n =>
           addModel(n)
-          modelMap(name).tell(GetModels, reply)
+          modelMap(id).tell(GetModels, reply)
         }
-      } else modelMap(name).tell(GetModels, reply)
+      } else modelMap(id).tell(GetModels, reply)
     }
 
     case m: ModelMessage => {
@@ -41,8 +43,9 @@ class ModelHandler extends EventsourcedProcessor {
   }
 
   def addModel(cm: CreateModel) = {
-    println(s"The modelService creates a new model called $cm.name")
-    val newModelH = context.actorOf(sp.models.ModelActor.props(cm.model, cm.attributes), cm.model)
+    println(s"The modelService creates a new model called ${cm.name} id: ${cm.model}")
+    val newModelH = context.actorOf(sp.models.ModelActor.props(cm.model))
+    newModelH ! UpdateModelInfo(cm.model, cm.name, cm.attributes)
     modelMap += cm.model -> newModelH
   }
 

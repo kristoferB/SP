@@ -13,19 +13,22 @@ object Dependencies {
   def runtime   (deps: ModuleID*): Seq[ModuleID] = deps map (_ % "runtime")
   def container (deps: ModuleID*): Seq[ModuleID] = deps map (_ % "container")
 
+  val akkaActor     = "com.typesafe.akka"    %%  "akka-actor"                  % "2.3.6"
+  val akkaSlf4j     = "com.typesafe.akka"    %%  "akka-slf4j"                  % "2.3.6"
+  val akkaTestKit   = "com.typesafe.akka"    %%  "akka-testkit"                % "2.3.6" % "test"
+  val akkaPersistence= "com.typesafe.akka"    %% "akka-persistence-experimental"% "2.3.6"
+  val parboiled     = "org.parboiled"        %%  "parboiled-scala"             % "1.1.6"
+  val shapeless     = "com.chuusai"          %%  "shapeless"                   % "1.2.4"
+  val scalatest     = "org.scalatest"        %%  "scalatest"                   % "2.2.1"
+  //val specs2        = "org.specs2"           %%  "specs2"                      % "2.4.6"
+  val sprayJson     = "io.spray"             %%  "spray-json"                  % "1.2.5"
+  val logback       = "ch.qos.logback"       %   "logback-classic"             % "1.1.1"
 
-  val akkaActor     = "com.typesafe.akka"                       %%  "akka-actor"                  % "2.3.3"
-  val akkaSlf4j     = "com.typesafe.akka"                       %%  "akka-slf4j"                  % "2.3.3"
-  val akkaTestKit   = "com.typesafe.akka"                       %%  "akka-testkit"                % "2.3.3"
-  val akkaPersistence= "com.typesafe.akka"                       %% "akka-persistence-experimental"% "2.3.3"
-  val parboiled     = "org.parboiled"                           %%  "parboiled-scala"             % "1.1.6"
-  val shapeless     = "com.chuusai"                             %%  "shapeless"                   % "1.2.4"
-  val scalatest     = "org.scalatest"                           %%  "scalatest"                   % "2.1.7"
-  val specs2        = "org.specs2"                              %%  "specs2"                      % "2.3.10"
-  val sprayJson     = "io.spray"                                %%  "spray-json"                  % "1.2.5"
-  val logback       = "ch.qos.logback"                          %   "logback-classic"             % "1.1.1"
-
+  val sprayCan =  "io.spray" %% "spray-can" % "1.3.1"
+  val sprayRouting ="io.spray" %% "spray-routing" % "1.3.1"
+  val sprayTest ="io.spray" %% "spray-testkit" % "1.3.1" % "test"
   
-  val nscalatime = "com.github.nscala-time" %% "nscala-time" % "1.2.0"
+  val nscalatime = "com.github.nscala-time" %% "nscala-time" % "1.4.0"
+  //val parser =  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.2"
 
 }

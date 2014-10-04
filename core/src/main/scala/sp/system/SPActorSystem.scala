@@ -15,9 +15,15 @@ object SPActorSystem {
   val modelHandler = system.actorOf(ModelHandler.props, "modelHandler")
   val serviceHandler = system.actorOf(ServiceHandler.props, "serviceHandler")
   val runtimeHandler = system.actorOf(RunTimeHandler.props, "runtimeHandler")
-  val userActor = system.actorOf(sp.users.UserActor.props, "userActor")
+  val userHandler = system.actorOf(sp.users.UserHandler.props, "userHandler")
 
 
   val settings = SPSettings(system)
 
+}
+
+class a extends Actor {
+  def receive = {
+    case _ =>
+  }
 }

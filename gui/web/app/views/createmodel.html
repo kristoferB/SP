@@ -3,7 +3,7 @@
 </div>
 <form name="createModelForm">
 <div class="modal-body">
-        Name of new model: <input name="modelName" type="text" ng-trim="false" ng-pattern="namePattern" ng-maxlength="30" unique="{existingObjects: existingModels, editedObj: null, propKey: 'model'}" class="form-control" auto-focus required ng-model="enteredModelName"/>
+        Name of new model: <input name="modelName" type="text"   class="form-control" auto-focus required ng-model="enteredModelName"/>
         <span class="error" ng-show="createModelForm.modelName.$dirty && createModelForm.modelName.$error.required">You have to choose a name.</span>
         <span class="error" ng-show="createModelForm.modelName.$error.pattern">No whitespace or special characters (except _ and -) are allowed.</span>
         <span class="error" ng-show="createModelForm.modelName.$error.unique">A model with this name does already exist.</span>

@@ -8,7 +8,10 @@ import akka.actor.Props
 import akka.persistence._
 import sp.system.messages._
 
-class UserActor() extends EventsourcedProcessor  {
+class UserHandler() extends PersistentActor  {
+  override def persistenceId = "UserHandler"
+
+
   case class UserMapState(userMap: Map[String,User] = Map()) {
     def updateUser(user: User): Map[String, User] = userMap + (user.id + "" -> user)
     def addUser(userToAdd: AddUser): Map[String, User] = userMap + (9 + "" -> User(9, userToAdd.userName, userToAdd.password, userToAdd.name))
@@ -64,6 +67,6 @@ class UserActor() extends EventsourcedProcessor  {
   }
 }
 
-object UserActor {
-  def props = Props(classOf[UserActor])
+object UserHandler {
+  def props = Props(classOf[UserHandler])
 }

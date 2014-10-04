@@ -32,7 +32,7 @@ class SOPMakerService(modelHandler: ActorRef) extends Actor {
             currentRelAnswer <- currentRelationsF
           } yield {
             List(modelInfoAnswer, currentRelAnswer) match {
-              case ModelInfo(_, mVersion, _) :: SPIDs(relsIdAble) :: Nil => {
+              case ModelInfo(_, _, mVersion, _) :: SPIDs(relsIdAble) :: Nil => {
                 val rels = relsIdAble map (_.asInstanceOf[RelationResult]) sortWith (_.modelVersion > _.modelVersion)
                 if (rels.isEmpty)
                   reply ! SPError("Relations must be identified before SOP creation")
@@ -76,7 +76,7 @@ class SOPMakerService(modelHandler: ActorRef) extends Actor {
 
   def extract(attr: SPAttributes) = {
     for {
-      model <- attr.getAsString("model")
+      model <- attr.getAsID("model")
       ops <- attr.getAsList("operations") map( _.flatMap(_.asID))
     } yield {
       val base = attr.getAsID("base")
@@ -86,7 +86,7 @@ class SOPMakerService(modelHandler: ActorRef) extends Actor {
 
   def errorMessage(attr: SPAttributes) = {
     SPError("The request is missing parameters: \n" +
-      s"model: ${attr.getAsString("model")}" + "\n" +
+      s"model: ${attr.getAsID("model")}" + "\n" +
       s"ops: ${attr.getAsList("operations") map (_.flatMap(_.asID))}" )
   }
 }

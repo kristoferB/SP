@@ -8,7 +8,7 @@ trait SPJsonIDAble extends SPJsonDomain {
 
   implicit object OperationJsonFormat extends RootJsonFormat[Operation] {
     def write(x: Operation) = {
-      val map = List(
+      val map = Map(
         "isa" -> "Operation".toJson,
         "name" -> x.name.toJson,
         "conditions" -> x.conditions.toJson
@@ -19,7 +19,7 @@ trait SPJsonIDAble extends SPJsonDomain {
     def read(value: JsValue) = {
       value.asJsObject.getFields("name", "conditions", "attributes", "id") match {
         case Seq(JsString(name), c: JsArray, a: JsObject, oid: JsString) => {
-          val cond = c.elements map (_.convertTo[Condition])
+          val cond = c.elements map (_.convertTo[Condition]) toList
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
           new Operation(name, cond, attr) {
@@ -33,7 +33,7 @@ trait SPJsonIDAble extends SPJsonDomain {
 
   implicit object ThingJsonFormat extends RootJsonFormat[Thing] {
     def write(x: Thing) = {
-      val map = List(
+      val map = Map(
         "isa" -> "Thing".toJson,
         "name" -> x.name.toJson,
         "stateVariables" -> x.stateVariables.toJson
@@ -44,7 +44,7 @@ trait SPJsonIDAble extends SPJsonDomain {
     def read(value: JsValue) = {
       value.asJsObject.getFields("name", "stateVariables", "attributes", "id") match {
         case Seq(JsString(name), c: JsArray, a: JsObject, oid: JsString) => {
-          val sv = c.elements map (_.asJsObject.convertTo[StateVariable])
+          val sv = c.elements map (_.asJsObject.convertTo[StateVariable]) toList
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
           new Thing(name, sv, attr) {
@@ -58,7 +58,7 @@ trait SPJsonIDAble extends SPJsonDomain {
 
   implicit object SPObjectJsonFormat extends RootJsonFormat[SPObject] {
     def write(x: SPObject) = {
-      val map = List(
+      val map = Map(
         "isa" -> "SPObject".toJson,
         "name" -> x.name.toJson
       ) ++ idPart(x)
@@ -81,7 +81,7 @@ trait SPJsonIDAble extends SPJsonDomain {
 
   implicit object SPSpecJsonFormat extends RootJsonFormat[SPSpec] {
     def write(x: SPSpec) = {
-      val map = List(
+      val map = Map(
         "isa" -> "SPSpec".toJson,
         "name" -> x.name.toJson
       ) ++ idPart(x)
@@ -105,7 +105,7 @@ trait SPJsonIDAble extends SPJsonDomain {
 
   implicit object SOPSpecJsonFormat extends RootJsonFormat[SOPSpec] {
     def write(x: SOPSpec) = {
-      val map = List(
+      val map = Map(
         "isa" -> "SOPSpec".toJson,
         "name" -> x.name.toJson,
         "sop" -> x.sop.toJson
@@ -116,7 +116,7 @@ trait SPJsonIDAble extends SPJsonDomain {
     def read(value: JsValue) = {
       value.asJsObject.getFields("name", "sop", "attributes", "id") match {
         case Seq(JsString(label), s: JsValue, a: JsObject, oid: JsString) => {
-          val sop = if(s.isInstanceOf[JsArray]) s.asInstanceOf[JsArray].elements.map(_.convertTo[SOP]) else List(s.convertTo[SOP])
+          val sop = if(s.isInstanceOf[JsArray]) s.asInstanceOf[JsArray].elements.map(_.convertTo[SOP]).toList else List(s.convertTo[SOP])
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
           new SOPSpec(sop, label, attr) {
@@ -131,7 +131,7 @@ trait SPJsonIDAble extends SPJsonDomain {
 
   implicit object RelationResultJsonFormat extends RootJsonFormat[RelationResult] {
     def write(x: RelationResult) = {
-      val map = List(
+      val map = Map(
         "isa" -> "RelationResult".toJson,
         "name" -> x.name.toJson,
         "relationmap" -> x.relationMap.toJson,
@@ -143,12 +143,13 @@ trait SPJsonIDAble extends SPJsonDomain {
 
     def read(value: JsValue) = {
       value.asJsObject.getFields("name", "relationmap", "model", "version", "attributes", "id") match {
-        case Seq(JsString(name), rel: JsObject, JsString(model), version: JsNumber, a: JsObject, id: JsString) => {
+        case Seq(JsString(name), rel: JsObject, model:JsString, version: JsNumber, a: JsObject, id: JsString) => {
           val relMap = rel.convertTo[RelationMap]
           val attr = a.convertTo[SPAttributes]
+          val mid = model.convertTo[ID]
           val modelV = version.convertTo[Long]
           val myid = id.convertTo[ID]
-          new RelationResult(name, relMap, model, modelV, attr) {
+          new RelationResult(name, relMap, mid, modelV, attr) {
             override lazy val id = myid
           }
         }

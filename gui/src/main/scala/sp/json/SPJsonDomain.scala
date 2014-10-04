@@ -104,7 +104,7 @@ trait SPJsonDomain {
         else StringPrimitive(x.toString)
       }
       case JsBoolean(x) => BoolPrimitive(x)
-      case JsArray(xs) => ListPrimitive(xs map (_.convertTo[SPAttributeValue]))
+      case JsArray(xs) => ListPrimitive(xs map (_.convertTo[SPAttributeValue]) toList)
       case JsObject(kvs) => kvs.toList match{
         case ("itemID", JsString(value)) :: Nil =>  ID.makeID(value) match {
             case Some(id) => IDPrimitive(id)

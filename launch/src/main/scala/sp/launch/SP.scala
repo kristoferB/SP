@@ -38,4 +38,7 @@ object SP extends App {
   // launch REST API
   sp.server.LaunchGUI.launch
 
+  //val m = modelHandler ! "hej"
+
+
 }

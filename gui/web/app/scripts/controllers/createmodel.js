@@ -14,10 +14,10 @@ var CreatemodelCtrl = function ($scope, $modalInstance, spTalker, notificationSe
 
   $scope.saveModel = function(givenName) {
     var newModel = new spTalker.model();
-    newModel.model = givenName;
+    newModel.name = givenName;
     newModel.attributes = {};
     newModel.$save(function(savedModel) {
-      notificationService.success('A new model \"' + savedModel.model + '\" was successfully created');
+      notificationService.success('A new model \"' + savedModel.name + '\" was successfully created');
       spTalker.models.push(savedModel);
       spTalker.activeModel = savedModel;
       createDefaultSPSpec();

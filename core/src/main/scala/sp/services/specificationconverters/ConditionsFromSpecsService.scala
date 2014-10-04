@@ -58,7 +58,7 @@ class ConditionsFromSpecsService(modelHandler: ActorRef) extends Actor {
 
   def extract(attr: SPAttributes) = {
     for {
-      model <- attr.getAsString("model")
+      model <- attr.getAsID("model")
     } yield {
       val ops = (attr.getAsList("operations") map( _.flatMap(_.asID))).getOrElse(List[ID]())
       (model, ops)
@@ -67,7 +67,7 @@ class ConditionsFromSpecsService(modelHandler: ActorRef) extends Actor {
 
   def errorMessage(attr: SPAttributes) = {
     SPError("The request is missing parameters: \n" +
-      s"model: ${attr.getAsString("model")}" + "\n" +
+      s"model: ${attr.getAsID("model")}" + "\n" +
       s"ops: ${attr.getAsList("operations") map (_.flatMap(_.asID))}" )
   }
 }

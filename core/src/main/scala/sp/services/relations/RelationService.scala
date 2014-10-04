@@ -30,7 +30,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
 
           // Retreive from model
           // todo: Handle this in a more general way soon
-          val opsF = modelHandler ? GetIds(opsID, model)
+          val opsF = modelHandler ? GetIds(model, opsID)
           val modelInfoF = modelHandler ? GetModelInfo(model)
           val svsF = modelHandler ? GetStateVariables(model)
           val currentRelationsF = (modelHandler ? GetResults(model, _.isInstanceOf[RelationResult]))
@@ -48,7 +48,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
           } yield {
             List(opsAnswer, modelInfoAnswer, stateVarsAnswer, currentRelAnswer, specsConds) match {
               case SPIDs(opsIDAble) ::
-                ModelInfo(_, mVersion, _) ::
+                ModelInfo(_, _ , mVersion, _) ::
                 SPSVs(svsIDAble) ::
                 SPIDs(olderRelsIDAble) ::
                 ConditionsFromSpecs(condMap) ::
@@ -126,7 +126,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
   //TODO: I will fix this in a more general way so we can return errors if something is missing (probably using HList)
   def extract(attr: SPAttributes) = {
     for {
-      model <- attr.getAsString("model")
+      model <- attr.getAsID("model")
       ops <- attr.getAsList("operations") map( _.flatMap(_.asID))
       initState <- attr.getStateAttr("initstate")
     } yield {
@@ -139,7 +139,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
 
   def errorMessage(attr: SPAttributes) = {
     SPError("The request is missing parameters: \n" +
-      s"model: ${attr.getAsString("model")}" + "\n" +
+      s"model: ${attr.getAsID("model")}" + "\n" +
       s"ops: ${attr.getAsList("operations") map (_.flatMap(_.asID))}" + "\n" +
       s"initstate: ${attr.getStateAttr("initstate")}" + "\n" +
       s"groups(optional): ${attr.getAsList("groups")}" + "\n" +

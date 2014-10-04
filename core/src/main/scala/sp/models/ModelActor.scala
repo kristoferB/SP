@@ -8,10 +8,12 @@ import akka.persistence._
 /**
  * Created by Kristofer on 2014-06-12.
  */
-class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor  {
+class ModelActor(model: ID) extends PersistentActor  {
+  override def persistenceId = model.toString()
 
+  
   // A model state
-  case class ModelState(version: Long, idMap: Map[ID, IDAble], diff: Map[Long, ModelDiff], attributes: SPAttributes){
+  case class ModelState(version: Long, idMap: Map[ID, IDAble], diff: Map[Long, ModelDiff], attributes: SPAttributes, name: String){
     lazy val operations = idMap filter (_._2.isInstanceOf[Operation])
     lazy val things = idMap filter (_._2.isInstanceOf[Thing])
     lazy val specifications = idMap filter (_._2.isInstanceOf[Specification])
@@ -20,13 +22,13 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
     lazy val svs =  things flatMap(_._2.asInstanceOf[Thing].stateVariables)
   }
 
-  var state = ModelState(1, Map(), Map(), attr)
+  var state = ModelState(1, Map(), Map(), Attr(), "noName")
 
 
   def receiveCommand = {
     case UpdateIDs(m, ids) => {
       val reply = sender
-      createDiffUpd(m, ids) match {
+      createDiffUpd(ids) match {
         case Right(diff) => {
           persist(diff)(d =>{
             updateState(d)
@@ -38,7 +40,7 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
     }
     case DeleteIDs(m, dels) => {
       val reply = sender
-      createDiffDel(m, dels.toSet) match {
+      createDiffDel(dels.toSet) match {
         case Right(diff) => {
           persist(diff)(d =>{
             updateState(d)
@@ -51,11 +53,11 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
 
     case UpdateModelInfo(m, newName, attribute) => {
       val reply = sender
-      val diff = ModelDiff(List(), List(), m, state.version, state.version + 1, (attribute + ("time", DatePrimitive.now)))
+      val diff = ModelDiff(model, List(), List(), state.version, state.version + 1, newName, (attribute + ("time", DatePrimitive.now)))
 
       persist(diff)( d => {
           updateState(d)
-          reply ! ModelInfo(name, state.version, state.attributes)
+          reply ! getModelInfo
       })
     }
 
@@ -66,10 +68,10 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
     case mess: ModelQuery => {
       val reply = sender
       mess match {
-        case GetIds(ids, m) => {
+        case GetIds(_, ids) => {
           if (ids.isEmpty) reply ! SPIDs(state.idMap.values.toList)
           else {
-            ids foreach(id=> if (!state.idMap.contains(id)) reply ! MissingID(id, m))
+            ids foreach(id=> if (!state.idMap.contains(id)) reply ! MissingID(id, model))
             val res = for {
               i <- ids
               x <- state.idMap.get(i)
@@ -113,12 +115,12 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
           reply ! SPIDs(res.toList)
         }
         case GetDiff(_,v) => reply ! getDiff(v)
-        case x: GetModelInfo => reply ! ModelInfo(name, state.version, state.attributes)
+        case x: GetModelInfo => reply ! getModelInfo
       }
     }
-    case "printState" => println(s"$name: $state")
+    case "printState" => println(s"$model: $state")
     case "snapshot" => saveSnapshot(state)
-    case GetModels => sender ! ModelInfo(name, state.version, state.attributes)
+    case GetModels => sender ! getModelInfo
   }
 
   def receiveRecover = {
@@ -130,11 +132,10 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
    * Checks if the model can be updated. If the version defined in UpdateID
    * is the same as in the model for all items, the model is updated. Else
    * the method returns a UpdateError
-   * @param model The name of the model
    * @param ids The new items to be updated or added
    * @return Either Right[ModelDiff] -> The model can be updated. Left[UpdateError]
    */
-  def createDiffUpd(model: String, ids: List[UpdateID]): Either[UpdateError, ModelDiff] = {
+  def createDiffUpd(ids: List[UpdateID]): Either[UpdateError, ModelDiff] = {
 
     // Check if any item could not be updated and divide them
     val updateMe = ids partition {case UpdateID(id, v, item) => {
@@ -146,7 +147,7 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
 
     if (updateMe._2.isEmpty) {
       val upd = updateMe._1 map (uid=> uid.item.update(uid.id, uid.version))
-      Right(ModelDiff(upd, List(), model, state.version, state.version + 1, SPAttributes(state.attributes.attrs + ("time" -> DatePrimitive.now))))
+      Right(ModelDiff(model, upd, List(), state.version, state.version + 1, state.name, SPAttributes(state.attributes.attrs + ("time" -> DatePrimitive.now))))
 
     } else {
       Left(UpdateError(state.version, updateMe._2 map(_.id)))
@@ -155,17 +156,16 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
 
   /**
    * Checks if the model can be updated by deleting.
-   * @param model The name of the model
    * @param delete The ids to be deleted
    * @return Either Right[ModelDiff] -> The model can be updated. Left[UpdateError]
    */
-  def createDiffDel(model: String, delete: Set[ID]): Either[UpdateError, ModelDiff] = {
+  def createDiffDel(delete: Set[ID]): Either[UpdateError, ModelDiff] = {
     val upds = updateItemsDueToDelete(delete)
     val upd = upds map (uid=> uid.item.update(uid.id, uid.version))
     val del = (state.idMap filter( kv =>  delete.contains(kv._1))).values
     if (delete.nonEmpty && del.isEmpty) Left(UpdateError(state.version, delete.toList))
     else {
-      Right(ModelDiff(upd, del.toList, model, state.version, state.version + 1, SPAttributes(state.attributes.attrs + ("time" -> DatePrimitive.now))))
+      Right(ModelDiff(model, upd, del.toList, state.version, state.version + 1, state.name, SPAttributes(state.attributes.attrs + ("time" -> DatePrimitive.now))))
 
     }
   }
@@ -174,7 +174,7 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
     val diffMap = state.diff + (diff.currentVersion -> diff) filter(_._1 > state.version - 30)
     val idm = diff.updatedItems.map(x=> x.id -> x).toMap
     val allItems = (state.idMap ++ idm) filter(kv => !diff.deletedItems.contains(kv._2))
-    state = ModelState(state.version+1, allItems, diffMap, diff.attributes)
+    state = ModelState(state.version+1, allItems, diffMap, diff.attributes, diff.name)
   }
 
   /**
@@ -190,7 +190,7 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
     val allDels = state.diff.filter(_._1 > fromV).foldLeft(List[IDAble]())((res,md)=>{
        md._2.deletedItems ++ res
     })
-    ModelDiff(allDiffs, allDels, name, fromV, state.version)
+    ModelDiff(model, allDiffs, allDels, fromV, state.version, state.name, state.attributes)
   }
 
   def updateItemsDueToDelete(dels: Set[ID]): List[UpdateID] = {
@@ -208,9 +208,11 @@ class ModelActor(name: String, attr: SPAttributes) extends EventsourcedProcessor
   def query(mess: ModelQuery) = {
 
   }
+  
+  def getModelInfo = ModelInfo(model, state.name, state.version, state.attributes)
 
 }
 
 object ModelActor{
-  def props(name: String, attr: SPAttributes) = Props(classOf[ModelActor], name, attr)
+  def props(model: ID) = Props(classOf[ModelActor], model)
 }

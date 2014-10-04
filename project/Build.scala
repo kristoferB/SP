@@ -19,20 +19,33 @@ object Build extends Build {
     akkaTestKit,
     nscalatime)
 
+  lazy val coreDepend = Seq(akkaPersistence)
+    //parser)
+
+
+  lazy val sprayDepend = Seq(
+    sprayCan,
+    sprayRouting,
+    sprayJson)
+
   lazy val root = project.in( file(".") )
     .aggregate(core, gui)
     .settings(basicSettings: _*)
+    .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
 
 
   lazy val core = project.in(file("core"))
     .settings(basicSettings: _*)
-    .settings(libraryDependencies ++= (defaultDepend :+ akkaPersistence))
+    .settings(libraryDependencies ++= (defaultDepend ++ coreDepend))
+    .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
 
 
   lazy val gui = project.in(file("gui"))
     .dependsOn(core)
     .settings(basicSettings: _*)
-    .settings(libraryDependencies ++= (defaultDepend :+ sprayJson))
+    .settings(libraryDependencies ++= (defaultDepend ++ sprayDepend))
+    .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
+    
 
   lazy val launch = project.in(file("launch"))
     .dependsOn(core, gui)
