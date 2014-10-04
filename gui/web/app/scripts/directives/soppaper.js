@@ -22,7 +22,7 @@ angular.module('spGuiApp')
         });
 
         scope.calcAndDrawSop = function(newDraw) {
-          sopDrawer.calcAndDrawSop(scope.sopSpecCopy, paper, true, newDraw, scope);
+          sopDrawer.calcAndDrawSop(scope.sopSpecCopy, paper, true, newDraw, scope, scope.windowStorage.editable);
         };
 
         scope.$watch(

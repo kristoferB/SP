@@ -304,7 +304,7 @@ angular.module('spGuiApp')
         var conditions;
         if(sop.conditions) {
           conditions = sop.conditions;
-        } else {
+        } else if(op.conditions) {
           conditions = op.conditions;
         }
 

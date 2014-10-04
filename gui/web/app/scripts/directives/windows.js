@@ -27,11 +27,16 @@ angular.module('spGuiApp')
 
         scope.addWindow = function(type, wStorage) {
           noOfOpenedWindows++;
+          if(type === 'sopViewer') {
+            wStorage.editable = false;
+          } else if(type === 'sopMaker') {
+            wStorage.editable = true;
+          }
           scope.windows.push({type: type, width: 2, height: 'large', name: type, id: type + noOfOpenedWindows, storage: wStorage});
           sessionStorage.noOfOpenedWindows = angular.toJson(noOfOpenedWindows);
         };
 
-        scope.$on("newSopWindow", function() {
+        scope.$on("newSopMakerWindow", function() {
           if(scope.active) {
             scope.addWindow('sopMaker', {});
           }

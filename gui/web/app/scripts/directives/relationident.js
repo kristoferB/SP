@@ -21,7 +21,7 @@ angular.module('spGuiApp')
             var ops = [];
             _.each(spTalker.items, function(value, key){
               if (value.isa == "Operation") ops.push(key)
-            })
+            });
 
             var svs = [];
             _.each(spTalker.items, function(value, key){
@@ -34,50 +34,46 @@ angular.module('spGuiApp')
                   svs.push({id: sv.id, value: initValue })
                 })
               }
-            })
+            });
 
-            var res = spTalker.findRelations(ops, svs)
+            var res = spTalker.findRelations(ops, svs);
             res.success(function (data, status, headers, config) {
               scope.relations = data.relationmap.relationmap.map(function(item){
                 return item.sop
               })
             })
 
-          }
+          };
 
         scope.getSOP = function(){
           scope.sopError = "";
           var ops = [];
           _.each(spTalker.items, function(value, key){
             if (value.isa == "Operation") ops.push(key)
-          })
+          });
 
-          var resSOP = spTalker.getSOP(ops)
+          var resSOP = spTalker.getSOP(ops);
           resSOP.success(function (data, status, headers, config) {
             console.log(data);
             if (!_.isUndefined(data.sop)){
               var windowStorage = {
                 sopSpec: data
               };
-              scope.addWindow('sopMaker', windowStorage);
+              scope.addWindow('sopViewer', windowStorage);
             }
             else {
               scope.sopError = data
             }
-
-
           })
-
-
-        }
+        };
 
         scope.relations = [];
 
         scope.getOpsFromSOP = function(sop) {
-          var o1 = scope.getOp(sop.sop[0].operation)
-          var o2 = scope.getOp(sop.sop[1].operation)
+          var o1 = scope.getOp(sop.sop[0].operation);
+          var o2 = scope.getOp(sop.sop[1].operation);
           return o1.name + "->" + o2.name
-        }
+        };
 
         scope.getOp = function(id) {
           return spTalker.getItemById(id)
