@@ -1,6 +1,9 @@
 package sp.models
 
 import akka.actor._
+import akka.pattern.ask
+import akka.util.Timeout
+import scala.concurrent.duration._
 import sp.domain._
 import sp.system.messages._
 import akka.persistence._
@@ -10,6 +13,9 @@ import akka.persistence._
  */
 class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
   override def persistenceId = model.toString()
+  implicit val timeout = Timeout(7 seconds)
+  import context.dispatcher
+
 
   def receiveCommand = {
     case UpdateIDs(m, ids) => {
@@ -44,6 +50,43 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       persist(diff)( d => {
           updateState(d)
           reply ! getModelInfo
+      })
+    }
+
+    case Revert(_, v) => {
+      val reply = sender
+      val view = context.actorOf(sp.models.ModelView.props(model, v, "modelReverter"))
+      val infoF = view ? GetModels
+      val itemsF = view ? GetIds(model, List())
+      for {
+        info <- infoF.mapTo[ModelInfo]
+        items <- itemsF.mapTo[SPIDs]
+      } yield {
+        val itemMap = items.items.map(x=> x.id -> x) toMap
+        val upd = itemMap.filter{case (id, x) =>
+          !state.idMap.contains(id) ||
+          state.idMap(id).version != x.version
+        }
+        val del = state.idMap.filter{case (id, x) =>
+          !itemMap.contains(id)
+        }
+        val diff = ModelDiff(
+          model,
+          upd.values.toList,
+          del.values.toList,
+          state.version,
+          state.version + 1,
+          info.name,
+          SPAttributes(info.attributes.attrs + ("time" -> DatePrimitive.now))
+        )
+        self ! (diff, reply)
+      }
+    }
+
+    case (diff: ModelDiff, reply: ActorRef) => {
+      persist(diff)(d =>{
+        updateState(d)
+        reply ! getModelInfo
       })
     }
 
@@ -233,6 +276,9 @@ trait ModelActorState  {
 
 }
 
+
+
+
 class ModelView(val model: ID, version: Long, name: String) extends PersistentView with ModelActorState {
   override def persistenceId: String = model.toString()
   override def viewId: String = ID.newID.toString()
@@ -240,20 +286,29 @@ class ModelView(val model: ID, version: Long, name: String) extends PersistentVi
   override def preStart() {
     self ! Recover(toSequenceNr = version-1)
   }
-  def recoveryCompleted(): Unit = {
-    state = state.copy(name = name)
-  }
+
   override def autoUpdate = false
 
   def receive = {
-    case d: ModelDiff  => updateState(d)
-    case SnapshotOffer(_, snapshot: ModelState) => state = snapshot
+    case d: ModelDiff  => {
+      updateState(d)
+    }
+    case SnapshotOffer(_, snapshot: ModelState) => {
+      state = snapshot
+    }
     case mess: ModelQuery => {
       queryMessage(sender, mess)
     }
-    case GetModels => sender ! getModelInfo
+    case GetModels => {
+      sender ! getModelInfo
+    }
     case m: ModelUpdate => sender ! SPError("You are in view mode and can not change. Switch to a model")
 
+  }
+
+  def fixModelName = {
+    if (name != "modelReverter")
+      state = state.copy(name = name)
   }
 }
 

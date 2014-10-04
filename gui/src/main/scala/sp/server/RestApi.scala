@@ -139,6 +139,12 @@ trait ModelAPI extends SPApiHelpers {
                 case x: ModelDiff => complete(x)})}
               }
             }
+
+            case "revert" => {
+              /{ get {callSP(Revert(model, version), {
+                case x: ModelInfo => complete(x)})}
+              }
+            }
             case _ => {
               path(JavaUUID){ id =>
                 /{ get {callSP((GetIds(model, List(ID(id))), version), {

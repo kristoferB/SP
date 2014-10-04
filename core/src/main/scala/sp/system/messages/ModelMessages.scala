@@ -38,6 +38,7 @@ case class UpdateID(id: ID, version: Long, item: IDAble)
 object UpdateID {
   def addNew(x: IDAble) = UpdateID(x.id, 0, x)
 }
+case class Revert(model: ID, toVersion: Long) extends ModelUpdate
 
 // API output
 
@@ -55,8 +56,6 @@ case class ModelDiff(model: ID,
 case class ModelInfos(models: List[ModelInfo])
 case class ModelInfo(model: ID, name: String, version: Long, attributes: SPAttributes)
 
-// View Messages
-case class CreateView(model: ID, version: Long) extends SPMessage
 
 
 

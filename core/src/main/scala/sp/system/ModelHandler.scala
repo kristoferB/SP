@@ -39,7 +39,6 @@ class ModelHandler extends PersistentActor {
     case (m: ModelMessage, v: Long) => {
       val viewName = viewNameMaker(m.model, v)
       if (!viewMap.contains(viewName)) {
-        val viewID = ID.newID
         println(s"The modelService creates a new view for ${m.model} version: ${v}")
         val view = context.actorOf(sp.models.ModelView.props(m.model, v, viewName))
         viewMap += viewName -> view
