@@ -141,7 +141,7 @@ trait ModelAPI extends SPApiHelpers {
             }
 
             case "revert" => {
-              /{ get {callSP(Revert(model, version), {
+              /{ post {callSP(Revert(model, version), {
                 case x: ModelInfo => complete(x)})}
               }
             }
