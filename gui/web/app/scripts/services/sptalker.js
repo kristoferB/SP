@@ -242,13 +242,18 @@ angular.module('spGuiApp')
         factory.items[data.id] = data;
         notificationService.success('A new ' + data.isa + ' with name ' + data.name + ' was successfully created.');
         updateItemLists();
-        successHandler(data);
-        $rootScope.$broadcast('itemsQueried');
+        if(successHandler) {
+          successHandler(data);
+        } else {
+          $rootScope.$broadcast('itemsQueried');
+        }
       },
       function(error) {
         console.log(error);
         notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.');
-        errorHandler(error);
+        if(errorHandler) {
+          errorHandler(error);
+        }
       }
     );
   };

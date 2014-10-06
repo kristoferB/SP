@@ -7,18 +7,18 @@
  * # sop
  */
 angular.module('spGuiApp')
-  .directive('sopmaker', ['sopCalcer', 'sopDrawer', 'notificationService', 'spTalker', function (sopCalcer, sopDrawer, notificationService, spTalker) {
+  .directive('sopmaker', ['sopCalcer', 'sopDrawer', 'notificationService', 'spTalker', '$modal', '$rootScope', function (sopCalcer, sopDrawer, notificationService, spTalker, $modal, $rootScope) {
     
     return {
       template:
                 '<div class="header">' +
                   '<div class="btn-toolbar sop-maker-toolbar" role="toolbar">' +
                     '<button class="btn btn-default toggle-btn" ng-click="toggleDirection()"><span class="glyphicon glyphicon-retweet"></span> Rotate</button>' +
-                    '<button class="btn btn-default" ng-click="saveSopSpec()"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>' +
-                    '<button class="btn btn-default" ng-click="addSop()"><span class="glyphicon glyphicon-plus"></span> Add sequence</button>' +
-                    '<button class="btn btn-default" draggable="true" item-drag="{isa: \'Parallel\'}">Parallel</button>' +
-                    '<button class="btn btn-default" draggable="true" item-drag="{isa: \'Alternative\'}">Alternative</button>' +
-                    '<button class="btn btn-default" draggable="true" item-drag="{isa: \'Arbitrary\'}">Arbitrary</button>' +
+                    '<button class="btn btn-default" ng-if="windowStorage.editable" ng-click="saveSopSpec()"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>' +
+                    '<button class="btn btn-default" ng-if="windowStorage.editable" ng-click="addSop()"><span class="glyphicon glyphicon-plus"></span> Add sequence</button>' +
+                    '<button class="btn btn-default" ng-if="windowStorage.editable" draggable="true" item-drag="{isa: \'Parallel\'}">Parallel</button>' +
+                    '<button class="btn btn-default" ng-if="windowStorage.editable" draggable="true" item-drag="{isa: \'Alternative\'}">Alternative</button>' +
+                    '<button class="btn btn-default" ng-if="windowStorage.editable" draggable="true" item-drag="{isa: \'Arbitrary\'}">Arbitrary</button>' +
                   '</div>' +
                 '</div>' +
                 '<div class="content">' +
@@ -66,31 +66,60 @@ angular.module('spGuiApp')
           draw();
         }
 
-        if (!_.isUndefined(scope.windowStorage.sopSpecId)){
-          sopSpecSource = spTalker.getItemById(scope.windowStorage.sopSpecId)
-          if(Object.keys(spTalker.items).length === 0) {
-            var listener = scope.$on('itemsQueried', function () {
-              getSopDefAndDraw(sopSpecSource);
-              listener();
-            });
-          } else {
-            getSopDefAndDraw(sopSpecSource);
-          }
-        } else if (!_.isUndefined(scope.windowStorage.sopSpec)){
-          getSopDefAndDraw(scope.windowStorage.sopSpec)
+        if(Object.keys(spTalker.items).length === 0) {
+          var listener = scope.$on('itemsQueried', function () {
+            listener();
+            drawStoredSop();
+          });
         } else {
-          draw();
+          drawStoredSop();
         }
 
+        function drawStoredSop() {
+          if (!_.isUndefined(scope.windowStorage.sopSpecId)){
+            sopSpecSource = spTalker.getItemById(scope.windowStorage.sopSpecId);
+            getSopDefAndDraw(sopSpecSource);
+          } else if (!_.isUndefined(scope.windowStorage.sopSpec)){
+            getSopDefAndDraw(scope.windowStorage.sopSpec);
+          } else {
+            draw();
+          }
+        }
 
         scope.saveSopSpec = function() {
           if(typeof sopSpecSource === 'undefined') {
-            notificationService.error('There\'s no SOPSpec item connected to this window.');
+            saveSopSpecAs();
           } else {
             sopSpecSource.sop = clone(scope.sopSpecCopy.sop);
             spTalker.saveItem(sopSpecSource, true);
           }
         };
+
+        function saveSopSpecAs() {
+          var modalInstance = $modal.open({
+            templateUrl: 'views/createsopspec.html',
+            controller: 'CreateSopSpecCtrl'
+          });
+
+          modalInstance.result.then(function(givenName) {
+            var newSOPSpec = new spTalker.item();
+            newSOPSpec.name = givenName;
+            newSOPSpec.isa = 'SOPSpec';
+            newSOPSpec.sop = clone(scope.sopSpecCopy.sop);
+            newSOPSpec.attributes = {
+              children: []
+            };
+            function successHandler(data) {
+              scope.windowStorage.sopSpecId = data.id;
+              sopSpecSource = data;
+              spTalker.activeModel.attributes.children.push(data.id);
+              spTalker.activeModel.$save({modelID: spTalker.activeModel.model}, function() {
+                $rootScope.$broadcast('itemsQueried');
+              });
+            }
+            spTalker.createItem('SOPSpec', successHandler, newSOPSpec, false);
+          });
+        }
 
         function clone(obj) { // Handle the 3 simple types, and null or undefined
           var copy;

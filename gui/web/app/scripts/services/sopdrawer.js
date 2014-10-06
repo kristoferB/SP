@@ -18,7 +18,7 @@ angular.module('spGuiApp')
         'indexToInsertAt' : new Number(0)
       };
 
-    factory.calcAndDrawSop = function(sopSpecCopy, paper, firstLoop, doRedraw, dirScope) {
+    factory.calcAndDrawSop = function(sopSpecCopy, paper, firstLoop, doRedraw, dirScope, editable) {
       measures = {
           'margin' : 15,
           'opH' : 50,
@@ -39,7 +39,7 @@ angular.module('spGuiApp')
       sopCalcer.makeIt(sopSpecCopy, measures);
 
       sopSpecCopy.sop.forEach(function(sequence) {
-        factory.drawSop(sequence, measures, paper, firstLoop, sopSpecCopy, doRedraw, dirScope, sequence);
+        factory.drawSop(sequence, measures, paper, firstLoop, sopSpecCopy, doRedraw, dirScope, sequence, editable);
       });
     };
 
@@ -81,16 +81,16 @@ angular.module('spGuiApp')
       return j;
     }
 
-    factory.drawSop = function (struct, measures, paper, firstLoop, sopSpecCopy, doRedraw, dirScope, sequence) {
+    factory.drawSop = function (struct, measures, paper, firstLoop, sopSpecCopy, doRedraw, dirScope, sequence, editable) {
       var animTime = measures.animTime;
       
       for ( var n in struct.sop) {
-        factory.drawSop(struct.sop[n], measures, paper, false, sopSpecCopy, doRedraw, dirScope, sequence);
+        factory.drawSop(struct.sop[n], measures, paper, false, sopSpecCopy, doRedraw, dirScope, sequence, editable);
         if(struct.isa === 'Sequence') {
-          factory.drawLine(struct.clientSideAdditions.lines[n], measures, paper, struct, new Number(n)+1, 'red', sopSpecCopy, dirScope); // Line after each op in sequence
+          factory.drawLine(struct.clientSideAdditions.lines[n], measures, paper, struct, new Number(n)+1, 'red', sopSpecCopy, dirScope, editable); // Line after each op in sequence
         } else {
-          factory.drawLine(struct.clientSideAdditions.lines[n], measures, paper, struct.sop[n], new Number(0), 'yellow', sopSpecCopy, dirScope); // Line above each struct
-          factory.drawLine(struct.clientSideAdditions.lines2[n], measures, paper, struct.sop[struct.clientSideAdditions.lines2[n].subSopIndex], 'last', 'blue', sopSpecCopy, dirScope); // Line after each struct
+          factory.drawLine(struct.clientSideAdditions.lines[n], measures, paper, struct.sop[n], new Number(0), 'yellow', sopSpecCopy, dirScope, editable); // Line above each struct
+          factory.drawLine(struct.clientSideAdditions.lines2[n], measures, paper, struct.sop[struct.clientSideAdditions.lines2[n].subSopIndex], 'last', 'blue', sopSpecCopy, dirScope, editable); // Line after each struct
         }
       }
       
@@ -107,25 +107,26 @@ angular.module('spGuiApp')
           struct.clientSideAdditions.drawnRect = paper.rect(0, 0, struct.clientSideAdditions.width, struct.clientSideAdditions.height, 5).attr({fill:'#FFFFFF', 'stroke-width':0});
           struct.clientSideAdditions.drawnText = paper.text(struct.clientSideAdditions.width / 2, (struct.clientSideAdditions.preGuards.length + struct.clientSideAdditions.preActions.length + 1) * measures.condLineHeight + (measures.nameLineHeight-measures.condLineHeight) / 2, op.name).attr({'font-weight': 'bold'});
 
-          var opContextMenu = {
-            target:'#op-context-menu',
-            onItem: function(context,e) {
-              if(e.target.getAttribute('id') === 'remove-op') {
-                factory.removeNode(struct, false);
-                factory.calcAndDrawSop(sopSpecCopy, paper, true, false, dirScope);
-                dirScope.$digest();
-              } else if(e.target.getAttribute('id') === 'remove-sequence') {
-                unregisterDrawings(sequence, false);
-                sopSpecCopy.sop.splice(sopSpecCopy.sop.indexOf(sequence), 1);
-                factory.calcAndDrawSop(sopSpecCopy, paper, true, false, dirScope);
-                dirScope.$digest();
+          if(editable) {
+            var opContextMenu = {
+              target: '#op-context-menu',
+              onItem: function (context, e) {
+                if (e.target.getAttribute('id') === 'remove-op') {
+                  factory.removeNode(struct, false);
+                  factory.calcAndDrawSop(sopSpecCopy, paper, true, false, dirScope, true);
+                  dirScope.$digest();
+                } else if (e.target.getAttribute('id') === 'remove-sequence') {
+                  unregisterDrawings(sequence, false);
+                  sopSpecCopy.sop.splice(sopSpecCopy.sop.indexOf(sequence), 1);
+                  factory.calcAndDrawSop(sopSpecCopy, paper, true, false, dirScope, true);
+                  dirScope.$digest();
+                }
+                e.preventDefault();
               }
-              e.preventDefault();
-            }
-          };
-
-          angular.element(struct.clientSideAdditions.drawnRect.node).contextmenu(opContextMenu);
-          angular.element(struct.clientSideAdditions.drawnText.node).contextmenu(opContextMenu);
+            };
+            angular.element(struct.clientSideAdditions.drawnRect.node).contextmenu(opContextMenu);
+            angular.element(struct.clientSideAdditions.drawnText.node).contextmenu(opContextMenu);
+          }
 
           struct.clientSideAdditions.drawnArrow = paper.path(struct.clientSideAdditions.arrow).attr({opacity:0, 'fill':measures.commonLineColor, 'stroke-width':0}).toBack();
           var arrowAnim = Raphael.animation({opacity:1}, 0);
@@ -153,7 +154,9 @@ angular.module('spGuiApp')
           struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnPreLine, struct.clientSideAdditions.drawnPostLine);
           struct.clientSideAdditions.setToDrag.push(struct.clientSideAdditions.drawnPreLine, struct.clientSideAdditions.drawnPostLine);
 
-          factory.makeDraggable(struct.clientSideAdditions.setToDrag, struct.clientSideAdditions.x, struct.clientSideAdditions.y, struct, paper, sopSpecCopy, dirScope, measures);
+          if(editable) {
+            factory.makeDraggable(struct.clientSideAdditions.setToDrag, struct.clientSideAdditions.x, struct.clientSideAdditions.y, struct, paper, sopSpecCopy, dirScope, measures, editable);
+          }
 
           struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnShadowSet);
           struct.clientSideAdditions.drawnSet.animate({transform:'T' + struct.clientSideAdditions.x + ',' + struct.clientSideAdditions.y}, animTime);
@@ -162,7 +165,9 @@ angular.module('spGuiApp')
           if (struct.isa === 'Other') {
             struct.clientSideAdditions.drawnRect = paper.rect(0, 0, struct.clientSideAdditions.structMeasures.width, struct.clientSideAdditions.structMeasures.height).attr({'fill': '#D8D8D8', 'fill-opacity': 0.5, 'stroke': measures.commonLineColor, 'stroke-width': 0, 'rx': 10, 'ry': 10}).toBack();
             struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnRect);
-            factory.makeDroppable(struct.drawnSet, false, struct, 0, false, sopSpecCopy, dirScope, paper, measures);
+            if(editable) {
+              factory.makeDroppable(struct.drawnSet, false, struct, 0, false, sopSpecCopy, dirScope, paper, measures);
+            }
           } else if (struct.isa === 'Alternative') {
             struct.clientSideAdditions.drawnLine1 = paper.path('M ' + struct.clientSideAdditions.structMeasures.x11 + ' ' + struct.clientSideAdditions.structMeasures.y11 + ' l ' + struct.clientSideAdditions.structMeasures.x12 + ' ' + struct.clientSideAdditions.structMeasures.y12).attr({'stroke': measures.commonLineColor});
             struct.clientSideAdditions.drawnLine2 = paper.path('M ' + struct.clientSideAdditions.structMeasures.x21 + ' ' + struct.clientSideAdditions.structMeasures.y21 + ' l ' + struct.clientSideAdditions.structMeasures.x22 + ' ' + struct.clientSideAdditions.structMeasures.y22).attr({'stroke': measures.commonLineColor});
@@ -172,7 +177,9 @@ angular.module('spGuiApp')
             struct.clientSideAdditions.drawnShadow2 = paper.path('M ' + struct.clientSideAdditions.structMeasures.x21 + ' ' + struct.clientSideAdditions.structMeasures.y21 + ' l ' + struct.clientSideAdditions.structMeasures.x22 + ' ' + struct.clientSideAdditions.structMeasures.y22).attr({'stroke': '#FF0000', 'stroke-width': 10, 'opacity': 0});
             struct.clientSideAdditions.drawnShadowSet.push(struct.clientSideAdditions.drawnShadow1);
             struct.clientSideAdditions.drawnShadowSet.push(struct.clientSideAdditions.drawnShadow2);
-            factory.makeDroppable(struct.clientSideAdditions.drawnShadowSet, true, struct, 0, false, sopSpecCopy, dirScope, paper, measures);
+            if(editable) {
+              factory.makeDroppable(struct.clientSideAdditions.drawnShadowSet, true, struct, 0, false, sopSpecCopy, dirScope, paper, measures);
+            }
           } else if (struct.isa === 'Parallel' || struct.isa === 'Arbitrary') {
             struct.clientSideAdditions.drawnLine1 = paper.path('M 0 0 l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height).attr({'stroke': measures.commonLineColor});
             struct.clientSideAdditions.drawnLine2 = paper.path('M ' + struct.clientSideAdditions.structMeasures.x21 + ' ' + struct.clientSideAdditions.structMeasures.y21 + ' l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height).attr({'stroke': measures.commonLineColor});
@@ -185,7 +192,9 @@ angular.module('spGuiApp')
             struct.clientSideAdditions.drawnShadow1 = paper.path('M ' + struct.clientSideAdditions.structMeasures.x51 + ' ' + struct.clientSideAdditions.structMeasures.y51 + ' l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height).attr({stroke: '#FF0000', 'stroke-width': 10, opacity: 0});
             struct.clientSideAdditions.drawnShadow2 = paper.path('M ' + struct.clientSideAdditions.structMeasures.x61 + ' ' + struct.clientSideAdditions.structMeasures.y61 + ' l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height).attr({stroke: '#FF0000', 'stroke-width': 10, opacity: 0});
             struct.clientSideAdditions.drawnShadowSet.push(struct.clientSideAdditions.drawnShadow1); struct.clientSideAdditions.drawnShadowSet.push(struct.clientSideAdditions.drawnShadow2);
-            factory.makeDroppable(struct.clientSideAdditions.drawnShadowSet, true, struct, 0, false, sopSpecCopy, dirScope, paper, measures);
+            if(editable) {
+              factory.makeDroppable(struct.clientSideAdditions.drawnShadowSet, true, struct, 0, false, sopSpecCopy, dirScope, paper, measures);
+            }
           }
 
           struct.clientSideAdditions.drawnSet.forEach(
@@ -198,19 +207,20 @@ angular.module('spGuiApp')
           struct.clientSideAdditions.drawnShadowSet.transform('T' + struct.clientSideAdditions.x + ',' + struct.clientSideAdditions.y);
           struct.clientSideAdditions.drawnSet.transform('T' + struct.clientSideAdditions.x + ',' + struct.clientSideAdditions.y);
         }
-        
 
-
-        dirScope.$watch(function() { return struct.clientSideAdditions.x+3*struct.clientSideAdditions.y+5*struct.clientSideAdditions.width+7*struct.clientSideAdditions.height+9*struct.clientSideAdditions.moved; }, function(newValues, oldValues) {
-          if(newValues !== oldValues) {
-
+        dirScope.$watch(function () {
+          return struct.clientSideAdditions.x + 3 * struct.clientSideAdditions.y + 5 * struct.clientSideAdditions.width + 7 * struct.clientSideAdditions.height + 9 * struct.clientSideAdditions.moved;
+        }, function (newValues, oldValues) {
+          if (newValues !== oldValues) {
             if (struct.isa === 'Hierarchy') {
               struct.clientSideAdditions.drawnRect.animate({width: struct.clientSideAdditions.width, height: struct.clientSideAdditions.height}, animTime);
               struct.clientSideAdditions.drawnText.animate({text: op.name}, animTime);
-              var arrowAnim = Raphael.animation({opacity:1}, 0);
+              var arrowAnim = Raphael.animation({opacity: 1}, 0);
               struct.clientSideAdditions.drawnArrow.animate(arrowAnim.delay(animTime));
-              struct.clientSideAdditions.drawnArrow.attr({opacity:0, path: struct.clientSideAdditions.arrow, transform: 'T' + struct.clientSideAdditions.x + ',' + struct.clientSideAdditions.y});
-              factory.makeDraggable(struct.clientSideAdditions.setToDrag, struct.clientSideAdditions.x, struct.clientSideAdditions.y, struct, paper, sopSpecCopy, dirScope, measures);
+              struct.clientSideAdditions.drawnArrow.attr({opacity: 0, path: struct.clientSideAdditions.arrow, transform: 'T' + struct.clientSideAdditions.x + ',' + struct.clientSideAdditions.y});
+              if(editable) {
+                factory.makeDraggable(struct.clientSideAdditions.setToDrag, struct.clientSideAdditions.x, struct.clientSideAdditions.y, struct, paper, sopSpecCopy, dirScope, measures);
+              }
               struct.clientSideAdditions.moved = 0;
               struct.clientSideAdditions.drawnSet.animate({transform: 'T' + struct.clientSideAdditions.x + ',' + struct.clientSideAdditions.y}, animTime);
             } else {
@@ -230,9 +240,9 @@ angular.module('spGuiApp')
                 struct.clientSideAdditions.drawnShadow2.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x21 + ' ' + struct.clientSideAdditions.structMeasures.y21 + ' l ' + struct.clientSideAdditions.structMeasures.x22 + ' ' + struct.clientSideAdditions.structMeasures.y22});
               }
               struct.clientSideAdditions.drawnSet.forEach(
-                function(drawing) {
-                  drawing.attr({opacity:0});
-                  var structAnim = Raphael.animation({opacity:1}, 0);
+                function (drawing) {
+                  drawing.attr({opacity: 0});
+                  var structAnim = Raphael.animation({opacity: 1}, 0);
                   drawing.animate(structAnim.delay(animTime));
                 }
               );
@@ -241,16 +251,17 @@ angular.module('spGuiApp')
             }
           }
         });
+
         struct.clientSideAdditions.drawn = true;
       }
       
       if(firstLoop === true) {
-        factory.drawLine(struct.clientSideAdditions.lines[struct.clientSideAdditions.lines.length-1], measures, paper, struct, new Number(0), 'purple', sopSpecCopy, dirScope);
+        factory.drawLine(struct.clientSideAdditions.lines[struct.clientSideAdditions.lines.length-1], measures, paper, struct, new Number(0), 'purple', sopSpecCopy, dirScope, editable);
       }
       
     };
 
-    factory.makeDroppable = function(drawnObjSet, shadow, objToInsertIn, indexToInsertAt, expectSequence, sopSpecCopy, dirScope, paper, measures) {
+    factory.makeDroppable = function(drawnObjSet, shadow, objToInsertIn, indexToInsertAt, expectSequence, sopSpecCopy, dirScope, paper, measures, editable) {
 
       drawnObjSet.forEach( function(drawObj) {
         var enter = function(ev) {
@@ -370,7 +381,7 @@ angular.module('spGuiApp')
           factory.removeNode(node, true);
         }
         factory.insertNode(node, expectSequence);
-        factory.calcAndDrawSop(sopSpecCopy, paper, true, false, dirScope);
+        factory.calcAndDrawSop(sopSpecCopy, paper, true, false, dirScope, true);
       }
       dirScope.$digest();
     };
@@ -454,7 +465,7 @@ angular.module('spGuiApp')
     
     };
     
-    factory.drawLine = function(line, measures, paper, objToInsertIn, indexToInsertAt, typeDependentLineColor, sopSpecCopy, dirScope) {
+    factory.drawLine = function(line, measures, paper, objToInsertIn, indexToInsertAt, typeDependentLineColor, sopSpecCopy, dirScope, editable) {
       var tempSet = paper.set();
       
       if(!sopSpecCopy.vertDir) { // Swap x1,y1 and x2,y2 if Horizontal direction
@@ -467,7 +478,9 @@ angular.module('spGuiApp')
         var lineAnim = Raphael.animation({opacity:1});
         line.drawnLine.animate(lineAnim.delay(measures.animTime));
         line.drawnShadow = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({stroke:'#FF0000', 'stroke-width':30, opacity:0});
-        factory.makeDroppable(tempSet.push(line.drawnShadow), true, objToInsertIn, indexToInsertAt, true, sopSpecCopy, dirScope, paper, measures);
+        if(editable) {
+          factory.makeDroppable(tempSet.push(line.drawnShadow), true, objToInsertIn, indexToInsertAt, true, sopSpecCopy, dirScope, paper, measures);
+        }
         /*dirScope.$watch(function() { // Animate on change
           return line.x1+line.y1+line.x2+line.y2;
         }, function(newValues, oldValues) {
