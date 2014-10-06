@@ -29,8 +29,8 @@ trait SPJsonDomain {
         "sop" -> JsArray(sop.children.filter(_ != EmptySOP) map (c => write(c)) toList)
       )
       if (sop.isInstanceOf[Hierarchy]) {
-        val o = sop.asInstanceOf[Hierarchy].operation
-        JsObject(res.fields + ("operation" -> o.toJson))
+        val h = sop.asInstanceOf[Hierarchy]
+        JsObject(res.fields ++ Map("operation" -> h.operation.toJson, "conditions"->h.conditions.toJson))
       } else res
     }
     def read(value: JsValue): SOP = value match {
@@ -50,7 +50,11 @@ trait SPJsonDomain {
             Other((xs.elements map read):_*)
           case Seq(JsString("Hierarchy"),  xs: JsArray) => {
             sop.fields.get("operation") match {
-              case Some(id) => Hierarchy(id.convertTo[ID], (xs.elements map read):_*)
+              case Some(id) => {
+                val conds = if (sop.fields.contains("conditions"))
+                  sop.fields("conditions").convertTo[List[Condition]] else List()
+                Hierarchy(id.convertTo[ID], conds, (xs.elements map read):_*)
+              }
               case None => throw new DeserializationException(s"can not find field operation with id on Hierarchy: $value")
             }
           }

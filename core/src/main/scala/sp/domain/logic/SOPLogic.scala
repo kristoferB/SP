@@ -166,4 +166,135 @@ case object SOPLogic {
     }
   }
 
+
+  /**
+   * This method takes a sop and extract all relations defined by that SOP
+   * @param sops
+   */
+  def extractRelations(sops: List[SOP]): Map[Set[ID], SOP] = {
+    val result: Map[Set[ID], SOP] = (sops match {
+      case Nil => Map()
+      case EmptySOP :: Nil => Map()
+      case x :: xs => {
+       val reqChildren = x.children map extractOps toList
+       val relMap = foldThem(x, reqChildren)
+       val chMap = extractRelations(x.children.toList)
+       val rest = extractRelations(xs)
+       relMap ++ chMap ++ rest
+      }
+    })
+    result.filter(kv => !kv._2.isInstanceOf[Parallel])
+  }
+
+  def extractOps(sop: SOP): List[ID] = {
+    def extr(xs: Seq[SOP]): List[ID] = xs flatMap extractOps toList
+
+    sop match {
+      case x: Hierarchy => x.operation :: extr(x.children)
+      case x: SOP => extr(x.children)
+    }
+  }
+
+  def foldThem(parent: SOP, children: List[List[ID]]):Map[Set[ID], SOP] = {
+    children match {
+      case Nil => Map()
+      case x :: Nil => Map()
+      case x :: xs => {
+        val map = for {
+          head <- x
+          other <- xs.flatten
+        } yield (Set(head, other)-> parent.modify(Seq(head, other)))
+        map.toMap ++ foldThem(parent, xs)
+      }
+    }
+  }
+
+
+
+
+  def addMissingRelations(sops: List[SOP], relations: Map[Set[ID], SOP]): List[SOP] = {
+    val sopRels = extractRelations(sops)
+    val ops = sops flatMap getAllOperations
+    val missing = (for {
+      o1 <- ops
+      o2 <- ops if (o1 != o2 && !sopRels.contains(Set(o1, o2)))
+      rel <- relations.get(Set(o1, o2))
+    } yield Set(o1, o2) -> rel).toMap
+    val cond = makeProps(missing)
+
+    val otherOps = relations.keys flatMap(_ map(id => id)) filter(id => !ops.contains(id)) toSet
+    val missingOthers = (for {
+      o1 <- ops
+      o2 <- otherOps
+      rel <- relations.get(Set(o1, o2))
+    } yield Set(o1, o2) -> rel).toMap
+    val otherCond = makeProps(missingOthers)
+
+    val conds = makeConds(cond, otherCond)
+
+    println(s"conds: $cond")
+
+    sops map(updateSOP(_, conds))
+  }
+
+  def makeProps(missing: Map[Set[ID], SOP]): Map[ID, Proposition] = {
+    val res = missing.toList flatMap {
+      case (_, s: Parallel) => List()
+      case (_, s: Alternative) => {
+        val temp = relOrder(s).map{case (id1, id2) => List(id1 -> EQ(id2, "i"), id2 -> EQ(id1, "i"))}
+        temp.getOrElse(List())
+      }
+      case (_, s: Sequence) => {
+        val temp = relOrder(s).map{case (id1, id2) => List(id2 -> EQ(id1, "f"))}
+        temp.getOrElse(List())
+      }
+      case (_, s: SometimeSequence) => {
+        val temp = relOrder(s).map{case (id1, id2) => List(id2 -> OR(List(EQ(id1, "i"), EQ(id1, "f"))))}
+        temp.getOrElse(List())
+      }
+    }
+
+    res.foldLeft(Map[ID, AND]()){case (aggr, (id, prop)) =>
+      if (!aggr.contains(id)) aggr + (id -> AND(List(prop)))
+      else aggr + (id -> AND(prop :: aggr(id).props))
+    }
+  }
+
+  def makeConds(c1: Map[ID, Proposition], c2: Map[ID, Proposition]): Map[ID, List[Condition]] = {
+    c1 map{ case (id, prop) =>
+      val cond1 = PropositionCondition(prop, List(), Attr(
+        "kind" -> "precondition",
+        "group" -> "sop"
+      ))
+      id -> {
+        if (c2.contains(id)){
+          List(cond1, PropositionCondition(c2(id), List(), Attr(
+            "kind" -> "precondition",
+            "group" -> "other"
+          )))
+        } else List(cond1)
+      }
+    }
+  }
+
+  def updateSOP(sop: SOP, conds: Map[ID, List[Condition]]): SOP = {
+    val updCh = sop.children.map(updateSOP(_, conds))
+    val updSOP = if (updCh == sop.children) sop else sop.modify(updCh)
+    updSOP match {
+      case h: Hierarchy => {
+        if (conds.contains(h.operation)){
+          Hierarchy(h.operation, conds(h.operation), updCh:_*)
+        } else updSOP
+      }
+      case _ => updSOP
+    }
+  }
+
+  def relOrder(sop: SOP): Option[(ID, ID)] = {
+    sop.children.toList match {
+      case (h1: Hierarchy) :: (h2: Hierarchy) :: Nil => Some(h1.operation, h2.operation)
+      case _ => None
+    }
+  }
+
 }

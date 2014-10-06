@@ -3,6 +3,7 @@ package sp.services.sopmaker
 import akka.actor._
 import sp.domain
 import sp.domain._
+import sp.domain.logic.SOPLogic
 
 import scala.annotation.tailrec
 
@@ -34,12 +35,16 @@ object SOPMaker {
 }
 
 trait MakeASop extends Groupify with Sequencify {
+  import SOPLogic._
   def makeTheSop(ops: List[ID], relations: Map[Set[ID], SOP], base: SOP = EmptySOP) = {
     val sopOps = makeSOPsFromOpsID(ops)
     val groupAlternatives = groupify(sopOps, relations, _.isInstanceOf[Alternative], Alternative.apply)
     val groupParallel = groupify(groupAlternatives, relations, _.isInstanceOf[Parallel], Parallel.apply)
 
-    sequencify(groupParallel, relations, base)
+    val result = sequencify(groupParallel, relations, base)
+
+    addMissingRelations(result, relations)
+
   }
 }
 
@@ -62,19 +67,20 @@ trait Groupify {
       s1 <- sop1s
       s2 <- sop2s
     } yield {
+
       if (s1 == s2) Other()
       else {
         relations(Set(s1, s2)) match {
-          case x: Sequence => if (x.children.head == s1) Sequence(sop1, sop2) else Sequence(sop2, sop1)
-          case x: SometimeSequence => if (x.children.head == s1) SometimeSequence(sop1, sop2) else SometimeSequence(sop2, sop1)
-          case x: SOP => x.modify(List(sop1, sop2))
+          case x: Sequence => if (x.children.head.asInstanceOf[Hierarchy].operation == s1) Sequence(sop1, sop2) else Sequence(sop2, sop1)
+          case x: SometimeSequence => if (x.children.head.asInstanceOf[Hierarchy].operation == s1) SometimeSequence(sop1, sop2) else SometimeSequence(sop2, sop1)
+          case x: SOP => {x.modify(List(sop1, sop2)) }
         }
       }
     }).toSet
 
     relationBetweenPairs.toList match {
       case x :: Nil => x
-      case x :: y :: Nil if instanceOfSequence(x) && instanceOfSequence(y) => Sequence(x.children.head, x.children.tail.head)
+      case x :: y :: Nil if instanceOfSequence(x, y) => Sequence(x.children.head, x.children.tail.head)
       case _ => Other(sop1, sop2)
     }
 
@@ -87,7 +93,11 @@ trait Groupify {
     }
   }
 
-  private def instanceOfSequence(s: SOP): Boolean = s.isInstanceOf[Sequence] || s.isInstanceOf[SometimeSequence]
+  private def instanceOfSequence(s1: SOP, s2: SOP): Boolean = {
+    (s1.isInstanceOf[Sequence] && s2.isInstanceOf[SometimeSequence] ||
+    s1.isInstanceOf[SometimeSequence] && s2.isInstanceOf[Sequence]) &&
+    s1.children.head == s2.children.head
+  }
 
 
 
@@ -150,6 +160,8 @@ trait Sequencify {
       y <- updSops if x != y
     } yield Set(x, y) -> groupAlgo.identifySOPRelation(x, y, relations)).toMap
 
+    //
+
     val node = align(updSops, nodeRelations, base)
 
     sopify(node, nodeRelations) toList
@@ -163,8 +175,9 @@ trait Sequencify {
       case x :: xs => {
         // here we need a heuristic to guide the sequences. i.e. maybe not use x as base
         // or maybe the user can add the base first when sending in the SOP?
-        val set = if (nodes.contains(base)) nodes filter (_ != base) else xs
-        val b = if (set == xs) x else base
+        val gotBase = nodes.contains(base)
+        val set = if (gotBase) nodes.filter(_ != base) else xs
+        val b = if (gotBase) base else x
 
         val preSuccOther = set.foldLeft((List[SOP](), List[SOP](), List[SOP]())){
           case ((pre, succ, other), n) => {
@@ -269,3 +282,4 @@ trait Sequencify {
 
 
 }
+

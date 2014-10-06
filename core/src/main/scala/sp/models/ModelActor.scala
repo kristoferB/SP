@@ -229,11 +229,12 @@ trait ModelActorState  {
    */
   def createDiffDel(delete: Set[ID]): Either[UpdateError, ModelDiff] = {
     val upds = updateItemsDueToDelete(delete)
+    val modelAttr = sp.domain.logic.IDAbleLogic.removeIDFromAttribute(delete, state.attributes)
     val upd = upds map (uid=> uid.item.update(uid.id, uid.version))
     val del = (state.idMap filter( kv =>  delete.contains(kv._1))).values
     if (delete.nonEmpty && del.isEmpty) Left(UpdateError(state.version, delete.toList))
     else {
-      Right(ModelDiff(model, upd, del.toList, state.version, state.version + 1, state.name, SPAttributes(state.attributes.attrs + ("time" -> DatePrimitive.now))))
+      Right(ModelDiff(model, upd, del.toList, state.version, state.version + 1, state.name, SPAttributes(modelAttr.attrs + ("time" -> DatePrimitive.now))))
 
     }
   }

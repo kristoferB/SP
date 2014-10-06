@@ -267,34 +267,41 @@ class SOPLogicTest extends FreeSpec with Matchers {
         val propMap = Map(o2.id -> Set(EQ(o1.id, "f")), o3.id -> Set(AND(List(EQ(o1.id, "f"), EQ(o2.id, "f")))))
         findOpProps(Sequence(o1, o2, o3), Map(), true) shouldEqual propMap
       }
-//      "it should add proposition when complex SOP" in {
-//        val sop = Parallel(Sequence(o1, o2), Alternative(o3, Arbitrary(Sequence(o4, o5), o6)))
-//        val propMap = Map(
-//          o2.id -> Set(EQ(o1.id, "f")),
-//          o5.id -> Set(EQ(o4.id, "f")),
-//          o3.id -> Set(AND(List(EQ(o4.id, "i"), EQ(o6.id, "i")))),
-//          o4.id -> Set(EQ(o3.id, "i"), OR(List(EQ(o6.id, "i"), EQ(o6.id, "f")))),
-//          o6.id -> Set(EQ(o3.id, "i"), OR(List(EQ(o4.id, "i"), EQ(o5.id, "f"))))
-//        )
-//        findOpProps(sop, Map()) shouldEqual propMap
-//      }
-//      "it should add proposition when complex SOP 2" in {
-//        val sop = Alternative(o3, Arbitrary(Sequence(o4, o5), o6))
-//        val propMap = Map(
-//          o5.id -> Set(EQ(o4.id, "f")),
-//          o3.id -> Set(AND(List(EQ(o4.id, "i"), EQ(o6.id, "i")))),
-//          o4.id -> Set(EQ(o3.id, "i"), OR(List(EQ(o6.id, "i"), EQ(o6.id, "f")))),
-//          o6.id -> Set(EQ(o3.id, "i"), OR(List(EQ(o4.id, "i"), EQ(o5.id, "f"))))
-//        )
-//        val res = findOpProps(sop, Map())
-//        res shouldEqual propMap
-//
-//        //        println(s"o6: ${res(o6.id)}")
-//        //        println(s"o6*: ${propMap(o6.id)}")
-//        //        println(s"equal: ${res(o6.id) == propMap(o6.id)}")
-//
-//      }
 
+    }
+
+  }
+
+  "When extracting relations from sops" - {
+    "it should find for a sequence" in {
+      val ops = List((o1.name, o1.id), (o2.name, o2.id), (o3.name, o3.id), (o4.name, o4.id))
+      val seq = Sequence(o1, o2, o3, o4)
+
+      val rel = extractRelations(List(seq))
+      rel(Set(o1.id, o2.id)) shouldEqual Sequence(o1, o2)
+      rel(Set(o2.id, o4.id)) shouldEqual Sequence(o2, o4)
+      rel(Set(o1.id, o4.id)) shouldEqual Sequence(o1, o4)
+      rel(Set(o3.id, o1.id)) shouldEqual Sequence(o1, o3)
+    }
+    "it should find for Parallel" in {
+      val ops = List((o1.name, o1.id), (o2.name, o2.id), (o3.name, o3.id), (o4.name, o4.id))
+      val seq = Parallel(o1, o2, o3, o4)
+
+      val rel = extractRelations(List(seq))
+      rel(Set(o1.id, o2.id)) shouldBe a [Parallel]
+      rel(Set(o2.id, o4.id)) shouldBe a [Parallel]
+      rel(Set(o1.id, o4.id)) shouldBe a [Parallel]
+      rel(Set(o3.id, o1.id)) shouldBe a [Parallel]
+    }
+    "it should find for Req 1" in {
+      val ops = List((o1.name, o1.id), (o2.name, o2.id), (o3.name, o3.id), (o4.name, o4.id), (o4.name, o4.id))
+      val seq = Parallel(Sequence(o1, Alternative(o2, o6)), Alternative(Sequence(o3, o4), o5))
+
+      val rel = extractRelations(List(seq))
+      rel(Set(o1.id, o6.id)) shouldEqual Sequence(o1, o6)
+      rel(Set(o2.id, o6.id)) shouldBe a [Alternative]
+      rel(Set(o1.id, o4.id)) shouldBe a [Parallel]
+      rel(Set(o3.id, o5.id)) shouldBe a [Alternative]
     }
 
   }

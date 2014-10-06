@@ -17,7 +17,11 @@ case class Arbitrary(children: SOP*) extends SOP
 case class Sequence(children: SOP*) extends SOP
 case class SometimeSequence(children: SOP*) extends SOP
 case class Other(children: SOP*) extends SOP
-case class Hierarchy(operation: ID, children: SOP*) extends SOP
+case class Hierarchy(operation: ID, conditions: List[Condition], children: SOP*) extends SOP
+
+object Hierarchy{
+  def apply(id: ID): Hierarchy = Hierarchy(id, List())
+}
 
 
 // Also create implicit conversion for operations
@@ -39,14 +43,14 @@ object SOP {
 
   def addChildren(sop: SOP, children: Seq[SOP]): SOP = {
     sop match {
-      case Hierarchy(o,child) => Hierarchy(o,addChildren(child, children))
+      case Hierarchy(o,conds, child) => Hierarchy(o,conds, addChildren(child, children))
       case _ => modifySOP(sop, sop.children ++ children)
     }
   }
 
   def modifySOP(sop: SOP, children: Seq[SOP]): SOP = {
     sop match {
-      case s: Hierarchy => Hierarchy(s.operation, children:_*)
+      case s: Hierarchy => Hierarchy(s.operation, s.conditions, children:_*)
       case s: Parallel => Parallel(children:_*)
       case s: Alternative => Alternative(children:_*)
       case s: Arbitrary => Arbitrary(children:_*)
@@ -58,8 +62,8 @@ object SOP {
   }
   
   
-  implicit def operationToSOP(o: Operation): SOP = Hierarchy(o.id,EmptySOP)
-  implicit def operationIDToSOP(o: ID): SOP = Hierarchy(o,EmptySOP)
+  implicit def operationToSOP(o: Operation): SOP = Hierarchy(o.id)
+  implicit def operationIDToSOP(o: ID): SOP = Hierarchy(o)
 
 }
 
