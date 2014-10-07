@@ -16,7 +16,7 @@ import scala.annotation.tailrec
  *            before
  */
 case class FindRelations( ops: List[Operation],
-                          stateVars: Map[ID, StateVariable],
+                          stateVars: Map[ID, SPAttributeValue => Boolean],
                           init: State,
                           groups: List[SPAttributeValue] = List(),
                           iterations: Int = 100,
@@ -50,7 +50,7 @@ trait RelationFinderAlgotithms {
    * @param goal The goal function, when the execution has reached the goal.
    */
   case class Setup(ops: List[Operation],
-              stateVars: Map[ID, StateVariable],
+              stateVars: Map[ID, SPAttributeValue => Boolean],
               groups: List[SPAttributeValue],
               init: State,
               goal: State => Boolean)
@@ -182,8 +182,9 @@ trait RelationFinderAlgotithms {
   def prepairSetup(setup: Setup) = {
     if (setup.ops.isEmpty) setup
     else {
-      val opSV  = setup.ops.map(o => o.id -> StateVariable.operationVariable(o)).toMap
-      val startState = setup.init.next(setup.ops.map(_.id -> StringPrimitive("i")).toMap)
+      import sp.domain.logic.OperationLogic._
+      val opSV  = createOpsStateVars(setup.ops)
+      val startState = setup.init.next(setup.ops.map(_.id -> OperationState.init).toMap)
       val upSV = setup.stateVars ++ opSV
       setup.copy(stateVars = upSV, init = startState)
     }
@@ -206,7 +207,9 @@ trait RelationFinderAlgotithms {
    * @return a stateVar map
    */
   def createOpsStateVars(ops: List[Operation]) = {
-    ops.map(o => o.id -> StateVariable.operationVariable(o)).toMap
+    import sp.domain.logic.OperationLogic._
+    val matchFunction = OperationState.domain.contains(_)
+    ops.map(o => o.id -> matchFunction).toMap
   }
 
   

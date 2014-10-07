@@ -18,9 +18,9 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
 
 
   def receiveCommand = {
-    case UpdateIDs(m, ids) => {
+    case UpdateIDs(m, v, ids) => {
       val reply = sender
-      createDiffUpd(ids) match {
+      createDiffUpd(ids, v) match {
         case Right(diff) => {
           persist(diff)(d =>{
             updateState(d)
@@ -43,7 +43,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       }
     }
 
-    case UpdateModelInfo(m, newName, attribute) => {
+    case ModelInfo(m, newName, v, attribute) => {
       val reply = sender
       val diff = ModelDiff(model, List(), List(), state.version, state.version + 1, newName, (attribute + ("time", DatePrimitive.now)))
 
@@ -64,8 +64,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       } yield {
         val itemMap = items.items.map(x=> x.id -> x) toMap
         val upd = itemMap.filter{case (id, x) =>
-          !state.idMap.contains(id) ||
-          state.idMap(id).version != x.version
+          !state.idMap.contains(id)
         }
         val del = state.idMap.filter{case (id, x) =>
           !itemMap.contains(id)
@@ -128,8 +127,7 @@ trait ModelActorState  {
     lazy val things = idMap filter (_._2.isInstanceOf[Thing])
     lazy val specifications = idMap filter (_._2.isInstanceOf[Specification])
     lazy val results = idMap filter (_._2.isInstanceOf[Result])
-    lazy val stateVariables = svs map (sv=> sv.id -> sv) toMap
-    lazy val svs =  things flatMap(_._2.asInstanceOf[Thing].stateVariables)
+    lazy val items = idMap.values.toSet
   }
 
   var state = ModelState(1, Map(), Map(), Attr(), "noName")
@@ -164,18 +162,6 @@ trait ModelActorState  {
         val res = state.results.values filter f
         reply ! SPIDs(res.toList)
       }
-      case GetStateVariable(m, id) => {
-        if (!state.stateVariables.contains(id)) reply ! MissingID(id, m)
-        else {
-          val res = state.stateVariables(id)
-          reply ! SPSVs(List(res))
-        }
-      }
-      case GetStateVariables(m, f) => {
-        val res = state.stateVariables.values.toList filter f
-        reply ! SPSVs(res)
-      }
-
       case GetQuery(_, q, f) => {
         if (!q.isEmpty)
           println("Query STRING NOT IMPLEMENTED ModelActor")
@@ -203,22 +189,25 @@ trait ModelActorState  {
    * @param ids The new items to be updated or added
    * @return Either Right[ModelDiff] -> The model can be updated. Left[UpdateError]
    */
-  def createDiffUpd(ids: List[UpdateID]): Either[UpdateError, ModelDiff] = {
+  def createDiffUpd(ids: List[IDAble], modelVersion: Long): Either[UpdateError, ModelDiff] = {
 
-    // Check if any item could not be updated and divide them
-    val updateMe = ids partition {case UpdateID(id, v, item) => {
-      val current = state.idMap.getOrElse(id, null)
-      // TODO: also need to check so that the classes match. Impl when everything is working. 140627
-      current == null || current.version <= v
-    }
-    }
+    val conflicts = if (modelVersion < state.version) {
+      val diff = getDiff(modelVersion)
+      val changedIds = diff.updatedItems map(_.id)
+      ids.map(_.id).filter(changedIds.contains)
+    } else List()
 
-    if (updateMe._2.isEmpty) {
-      val upd = updateMe._1 map (uid=> uid.item.update(uid.id, uid.version))
-      Right(ModelDiff(model, upd, List(), state.version, state.version + 1, state.name, SPAttributes(state.attributes.attrs + ("time" -> DatePrimitive.now))))
-
+    if (conflicts.isEmpty) {
+      val upd = ids filter(!state.items.contains(_))
+      Right(ModelDiff(model,
+        upd,
+        List(),
+        state.version,
+        state.version + 1,
+        state.name,
+        SPAttributes(state.attributes.attrs + ("time" -> DatePrimitive.now))))
     } else {
-      Left(UpdateError(state.version, updateMe._2 map(_.id)))
+      Left(UpdateError(state.version, conflicts))
     }
   }
 
@@ -228,9 +217,8 @@ trait ModelActorState  {
    * @return Either Right[ModelDiff] -> The model can be updated. Left[UpdateError]
    */
   def createDiffDel(delete: Set[ID]): Either[UpdateError, ModelDiff] = {
-    val upds = updateItemsDueToDelete(delete)
+    val upd = updateItemsDueToDelete(delete)
     val modelAttr = sp.domain.logic.IDAbleLogic.removeIDFromAttribute(delete, state.attributes)
-    val upd = upds map (uid=> uid.item.update(uid.id, uid.version))
     val del = (state.idMap filter( kv =>  delete.contains(kv._1))).values
     if (delete.nonEmpty && del.isEmpty) Left(UpdateError(state.version, delete.toList))
     else {
@@ -262,7 +250,7 @@ trait ModelActorState  {
     ModelDiff(model, allDiffs, allDels, fromV, state.version, state.name, state.attributes)
   }
 
-  def updateItemsDueToDelete(dels: Set[ID]): List[UpdateID] = {
+  def updateItemsDueToDelete(dels: Set[ID]): List[IDAble] = {
     val items = state.idMap.filterKeys(k => !dels.contains(k)).values
     sp.domain.logic.IDAbleLogic.removeID(dels, items.toList)
   }

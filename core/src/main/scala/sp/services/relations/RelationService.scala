@@ -32,7 +32,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
           // todo: Handle this in a more general way soon
           val opsF = modelHandler ? GetIds(model, opsID)
           val modelInfoF = modelHandler ? GetModelInfo(model)
-          val svsF = modelHandler ? GetStateVariables(model)
+          val svsF = modelHandler ? GetThings(model)
           val currentRelationsF = (modelHandler ? GetResults(model, _.isInstanceOf[RelationResult]))
           val specsCondsF = serviceHandler ? Request(conditionsFromSpecService, Attr("model"-> model))
 
@@ -49,7 +49,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
             List(opsAnswer, modelInfoAnswer, stateVarsAnswer, currentRelAnswer, specsConds) match {
               case SPIDs(opsIDAble) ::
                 ModelInfo(_, _ , mVersion, _) ::
-                SPSVs(svsIDAble) ::
+                SPIDs(svsIDAble) ::
                 SPIDs(olderRelsIDAble) ::
                 ConditionsFromSpecs(condMap) ::
                 Nil => {
@@ -62,13 +62,14 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
 //                println(s"condMap: $condMap ")
 
                 val ops = opsIDAble map (_.asInstanceOf[Operation])
-                val svs = svsIDAble map (_.asInstanceOf[StateVariable])
+                val svs = svsIDAble map (_.asInstanceOf[Thing])
                 val olderRels = olderRelsIDAble map (_.asInstanceOf[RelationResult]) sortWith (_.modelVersion > _.modelVersion)
 
                 if (olderRels.nonEmpty && olderRels.head.modelVersion == mVersion) reply ! olderRels.head
                 else {
 
-                  val stateVarsMap = svs.map(sv => sv.id -> sv).toMap ++ createOpsStateVars(ops)
+                  import sp.domain.logic.StateVariableLogic._
+                  val stateVarsMap = svs.map(sv => sv.id -> sv.inDomain).toMap ++ createOpsStateVars(ops)
                   val goalfunction: State => Boolean = if (goal == None) (s: State) => false else (s: State) => {
                     val g = goal.get
                     g.state.forall{case (sv, value) => s(sv) == value}
@@ -80,9 +81,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
                   }
                   val updatedOps = ops.map{ o =>
                     val updatedConds = filterCondMap.getOrElse(o.id, List[Condition]()) ++ o.conditions
-                    val id = o.id
-                    val version = o.version
-                    o.copy(conditions = updatedConds).update(id, version).asInstanceOf[Operation]
+                    o.copy(conditions = updatedConds)
                   }
 
 //                  println(s"updated ops: $updatedOps")
@@ -99,7 +98,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
                     case Success(res: RelationMap) => {
                       val relation = RelationResult("RelationMap", res, model, mVersion + 1)
                       reply ! relation
-                      modelHandler ! UpdateIDs(model, List(UpdateID(relation.id, -1, relation)))
+                      modelHandler ! UpdateIDs(model, mVersion, List(relation))
                       relationFinder ! PoisonPill
                     }
                     case Success(res) => println("WHAT IS THIS RELATION FINDER RETURNS: " + res); relationFinder ! PoisonPill
@@ -163,7 +162,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
    * @return a stateVar map
    */
   def createOpsStateVars(ops: List[Operation]) = {
-    ops.map(o => o.id -> StateVariable.operationVariable(o)).toMap
+    ops.map(o => o.id -> sp.domain.logic.OperationLogic.OperationState.inDomain).toMap
   }
 }
 

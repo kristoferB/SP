@@ -5,7 +5,7 @@ import sp.domain._
 case object OperationLogic {
 
   case class EvaluateProp(
-    stateVars: Map[ID, StateVariable],
+    stateVars: Map[ID, SPAttributeValue => Boolean],
     groups: Set[SPAttributeValue],
     defs: OperationStateDefinition = TwoStateDefinition
   )
@@ -43,6 +43,17 @@ case object OperationLogic {
         (set contains res) || set.isEmpty
       })
     }
+
+    def inDomain = OperationState.inDomain
+  }
+
+
+  object OperationState {
+    val init: SPAttributeValue = "i"
+    val executing: SPAttributeValue = "e"
+    val finished: SPAttributeValue = "f"
+    val domain = Set(init, executing, finished)
+    def inDomain = domain.contains(_)
   }
 
 
@@ -57,9 +68,7 @@ case object OperationLogic {
 
 
   case object ThreeStateDefinition extends OperationStateDefinition{
-    val init: SPAttributeValue = "i"
-    val executing: SPAttributeValue = "e"
-    val finished: SPAttributeValue = "f"
+    import OperationState._
     def domain = List(init, executing, finished)
 
     def completed(state: SPAttributeValue) = {
@@ -81,8 +90,7 @@ case object OperationLogic {
   }
 
   case object TwoStateDefinition extends OperationStateDefinition{
-    val init: SPAttributeValue = "i"
-    val finished: SPAttributeValue = "f"
+    import OperationState._
     def domain = List(init, finished)
 
     def completed(state: SPAttributeValue) = {

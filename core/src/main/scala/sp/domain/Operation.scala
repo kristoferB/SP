@@ -5,17 +5,10 @@ package sp.domain
  */
 case class Operation(name: String,
                      conditions: List[Condition] = List(),
-                     attributes: SPAttributes = SPAttributes(Map()))
+                     attributes: SPAttributes = SPAttributes(Map()),
+                     id: ID = ID.newID)
         extends IDAble {
 
-
-  //override def valueInDomain(v: Any): Boolean = v.isInstanceOf[OpLocation]
-  override def update(currentID: ID, currentVersion: Long): IDAble = {
-    new Operation(name, conditions, attributes){
-      override lazy val id = currentID
-      override lazy val version = currentVersion + 1
-    }
-  }
 }
 //
 //trait OpLocation

@@ -37,8 +37,8 @@ class TestA(mh: ActorRef) extends Actor {
     val model = CreateModel(mid, "test")
     def receive = {
       case "createM" => mh ! model
-      case "newop" => mh ! UpdateIDs(mid,  List(UpdateID.addNew(Operation("random"))))
-      case "updateOp" => mh ! UpdateIDs(mid,   List(UpdateID.addNew(o1)))
+      case "newop" => mh ! UpdateIDs(mid, 1,  List(Operation("kalle")))
+      case "updateOp" => mh ! UpdateIDs(mid, 1,  List(Operation("hej")))
       case "op1" => mh ! GetIds(mid, List(o1.id))
       case "ops" => mh ! GetOperations(mid)
       case "things" => mh ! GetThings(mid)

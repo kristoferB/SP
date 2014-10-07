@@ -50,7 +50,7 @@ class SOPMakerService(modelHandler: ActorRef) extends Actor {
                   result onComplete{
                     case Success(res: List[_]) => {
                       val sops = res map(_.asInstanceOf[SOP])
-                      reply ! SOPSpec(sops, "a SOP")
+                      reply ! SOPSpec("a SOP", sops)
                     }
                     case Success(res) => println("WHAT IS THIS RELATION FINDER RETURNS: " + res)
                     case Failure(error) => reply ! SPError(error.getMessage)

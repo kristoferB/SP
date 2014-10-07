@@ -9,6 +9,7 @@ import sp.domain._
 class PropositionConditionLogicTest extends WordSpec with Matchers {
 
   import PropositionConditionLogic._
+  import StateVariableLogic._
 
   private val range = MapPrimitive(Map("start"-> SPAttributeValue(0), "end"-> SPAttributeValue(3), "step" ->  SPAttributeValue(1)))
   private val domain = ListPrimitive(List(StringPrimitive("hej"), StringPrimitive("då")))
@@ -16,10 +17,14 @@ class PropositionConditionLogicTest extends WordSpec with Matchers {
   private val attrR = SPAttributes(Map("range"-> range))
   private val attrB = SPAttributes(Map("boolean"-> true))
 
-  val v1 = StateVariable("v1", attrR)
-  val v2 = StateVariable("v2", attrD)
-  val v3 = StateVariable("v2", attrB)
-  val vm = Map(v1.id->v1, v2.id->v2, v3.id->v3)
+  val sv1 = StateVarInfo(DomainList(List("hej", "då")))
+  val sv2 = StateVarInfo(DomainRange(new Range(0, 3, 1)))
+  val sv3 = StateVarInfo(DomainBool)
+
+  val v1 = Thing("v1").addStateVar(sv2)
+  val v2 = Thing("v2").addStateVar(sv1)
+  val v3 = Thing("v2").addStateVar(sv3)
+  val vm = Map(v1.id->v1.inDomain, v2.id->v2.inDomain, v3.id->v3.inDomain)
   val state = State(Map(v1.id -> 0, v2.id -> "hej", v3.id -> false ))
   val state2 = State(Map(v1.id -> 2, v2.id -> "då", v3.id -> false ))
 
@@ -116,7 +121,7 @@ class PropositionConditionLogicTest extends WordSpec with Matchers {
         assert(c.next(state)(v1.id) == IntPrimitive(-1))
       }
       "Action Assign" in {
-        val v4 = StateVariable("v1", attrR)
+        val v4 = Thing("v4").addStateVar(sv2)
         val newState = State(Map(v1.id -> 1, v4.id -> 3 , v2.id -> "då", v3.id -> true ))
         val c = PropositionCondition(eq, List(Action(v1.id, ASSIGN(v4.id))))
         assert(c.next(newState)(v1.id) == IntPrimitive(3))

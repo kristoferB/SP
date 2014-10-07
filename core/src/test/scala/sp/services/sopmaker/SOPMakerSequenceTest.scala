@@ -9,198 +9,198 @@ import sp.domain.logic.OperationLogic.EvaluateProp
  */
 class SOPMakerSequenceTest extends FreeSpec with Matchers with Defs2 {
   "The SOPMaker" - {
-//    "when aligning" - {
-//      "should checkIfSeq returns correct " in {
-//        assert(checkIfSeq(so1, so3, Sequence(so1, so3)))
-//        assert(!checkIfSeq(so3, so1, Sequence(so1, so3)))
-//        assert(checkIfSeq(so1, so3, SometimeSequence(so1, so3)))
-//        assert(!checkIfSeq(so3, so1, SometimeSequence(so1, so3)))
-//      }
-//      "should return empty node if seq is empty" in {
-//        val res = align(Seq(), Map())
-//        res shouldBe emptyNode
-//      }
-//      "should return no seq if no seq" in {
-//        val rels: Map[Set[SOP], SOP] = Map(
-//          so1o2 -> Parallel(so1, so2),
-//          so1o3 -> Parallel(so1, so3),
-//          so1o4 -> Parallel(so1, so4),
-//          so2o3 -> Parallel(so2, so3),
-//          so2o4 -> Parallel(so2, so4),
-//          so3o4 -> Parallel(so3, so4)
-//        )
-//
-//        val res = align(Seq(so1, so2, so3, so4), rels, so1)
-//        res.s shouldBe so1
-//        List(res.other.s) should contain oneOf (so2, so3, so4)
-//        List(res.other.other.s) should contain oneOf (so2, so3, so4)
-//        List(res.other.other.other.s) should contain oneOf (so2, so3, so4)
-//      }
-//      "should use base" in {
-//        val res = align(Seq(so1, so2, so3, so4), rels, so4)
-//        res.s shouldBe so4
-//      }
-//      "should sort the aligned nodes" in {
-//        val rels: Map[Set[SOP], SOP] = Map(
-//          so1o2 -> Sequence(so1, so2),
-//          so1o3 -> Sequence(so1, so3),
-//          so1o4 -> Sequence(so1, so4),
-//          so2o3 -> Sequence(so2, so3),
-//          so2o4 -> Sequence(so2, so4),
-//          so3o4 -> Sequence(so3, so4)
-//        )
-//        val res = align(Seq(so1, so2, so3, so4), rels, so1)
-//        val sorted = sortNodes(res)
-//        opSeq(sorted.head) shouldEqual "o1o2o3o4"
-//      }
-//      "should creat seq 1" in {
-//        val rels: Map[Set[SOP], SOP] = Map(
-//          so1o2 -> Sequence(so1, so2),
-//          so1o3 -> Parallel(so1, so3),
-//          so1o4 -> Parallel(so1, so4),
-//          so2o3 -> Parallel(so2, so3),
-//          so2o4 -> Parallel(so2, so4),
-//          so3o4 -> Sequence(so3, so4)
-//        )
-//        val res = align(Seq(so1, so2, so3, so4), rels, so1)
-//        val sorted = sortNodes(res) map opSeq
-//        sorted should contain allOf ("o1o2", "o3o4")
-//      }
-//      "should creat seq 2" in {
-//        val rels: Map[Set[SOP], SOP] = Map(
-//          so1o2 -> SometimeSequence(so1, so2),
-//          so1o3 -> Parallel(so1, so3),
-//          so1o4 -> Parallel(so1, so4),
-//          so2o3 -> Parallel(so2, so3),
-//          so2o4 -> Parallel(so2, so4),
-//          so3o4 -> SometimeSequence(so3, so4)
-//        )
-//        val res = align(Seq(so1, so2, so3, so4), rels, so1)
-//        val sorted = sortNodes(res) map opSeq
-//        sorted should contain allOf ("o1o2", "o3o4")
-//      }
-//    }
-//    "when sopifying" - {
-//      "should return empty if empty input" in {
-//        val node = emptyNode
-//        val res = sopify(node, Map())
-//        res shouldEqual List(EmptySOP)
-//      }
-//      "should return return single sop" in {
-//        val node = Node(so1, emptyNode, emptyNode, emptyNode)
-//        val res = sopify(node, Map())
-//        res shouldEqual List(so1)
-//      }
-//      "should return return sequence sop" in {
-//        val rels: Map[Set[SOP], SOP] = Map(
-//          so1o2 -> Sequence(so1, so2),
-//          so1o3 -> Parallel(so1, so3),
-//          so1o4 -> Parallel(so1, so4),
-//          so2o3 -> Parallel(so2, so3),
-//          so2o4 -> Parallel(so2, so4),
-//          so3o4 -> SometimeSequence(so3, so4)
-//        )
-//
-//        val node2 = Node(so2, emptyNode, emptyNode, emptyNode)
-//        val node = Node(so1, emptyNode, node2, emptyNode)
-//        val res = sopify(node, rels)
-//        res shouldEqual List(Sequence(so1, so2))
-//      }
-//      "should return sometime sequence sop" in {
-//        val rels: Map[Set[SOP], SOP] = Map(
-//          so1o2 -> Sequence(so1, so2),
-//          so1o3 -> Sequence(so1, so3),
-//          so1o4 -> Sequence(so1, so4),
-//          so2o3 -> SometimeSequence(so2, so3),
-//          so2o4 -> Sequence(so2, so4),
-//          so3o4 -> Sequence(so3, so4)
-//        )
-//
-//        val node4 = Node(so4, emptyNode, emptyNode, emptyNode)
-//        val node3 = Node(so3, emptyNode, node4, emptyNode)
-//        val node2 = Node(so2, emptyNode, node3, emptyNode)
-//        val node = Node(so1, emptyNode, node2, emptyNode)
-//        val res = sopify(node, rels)
-//        res shouldEqual List(Sequence(so1, SometimeSequence(so2, so3), so4))
-//      }
-//      "should return return sometime sequence sop 2" in {
-//        val rels: Map[Set[SOP], SOP] = Map(
-//          so1o2 -> Sequence(so1, so2),
-//          so1o3 -> Sequence(so1, so3),
-//          so1o4 -> Sequence(so1, so4),
-//          so2o3 -> SometimeSequence(so2, so3),
-//          so2o4 -> SometimeSequence(so2, so4),
-//          so3o4 -> SometimeSequence(so3, so4)
-//        )
-//
-//        val node4 = Node(so4, emptyNode, emptyNode, emptyNode)
-//        val node3 = Node(so3, emptyNode, node4, emptyNode)
-//        val node2 = Node(so2, emptyNode, node3, emptyNode)
-//        val node = Node(so1, emptyNode, node2, emptyNode)
-//        val res = sopify(node, rels)
-//        res shouldEqual List(Sequence(so1, SometimeSequence(so2, so3, so4)))
-//      }
-//      "should return return sometime sequence sop 3" in {
-//        val rels: Map[Set[SOP], SOP] = Map(
-//          so1o2 -> SometimeSequence(so1, so2),
-//          so1o3 -> SometimeSequence(so1, so3),
-//          so1o4 -> SometimeSequence(so1, so4),
-//          so2o3 -> SometimeSequence(so2, so3),
-//          so2o4 -> SometimeSequence(so2, so4),
-//          so3o4 -> SometimeSequence(so3, so4)
-//        )
-//
-//        val node4 = Node(so4, emptyNode, emptyNode, emptyNode)
-//        val node3 = Node(so3, emptyNode, node4, emptyNode)
-//        val node2 = Node(so2, emptyNode, node3, emptyNode)
-//        val node = Node(so1, emptyNode, node2, emptyNode)
-//        val res = sopify(node, rels)
-//        res shouldEqual List(SometimeSequence(so1, so2, so3, so4))
-//      }
-//    }
-//    "when sequencifying" - {
-//      val rels: Map[Set[ID], SOP] = Map(
-//        o1o2 -> Sequence(so1, so2),
-//        o1o3 -> Sequence(so1, so3),
-//        o1o4 -> Sequence(so1, so4),
-//        o2o3 -> Sequence(so2, so3),
-//        o2o4 -> Sequence(so2, so4),
-//        o3o4 -> Sequence(so3, so4)
-//      )
-//      "return the same if no sequences" in {
-//        val rels: Map[Set[ID], SOP] = Map(
-//          o1o2 -> Parallel(so1, so2),
-//          o1o3 -> Parallel(so1, so3),
-//          o1o4 -> Parallel(so1, so4),
-//          o2o3 -> Parallel(so2, so3),
-//          o2o4 -> Parallel(so2, so4),
-//          o3o4 -> Parallel(so3, so4)
-//        )
-//        val res = sequencify(List(so1, so2, so3, so4), rels, so1)
-//        res should contain allOf (so1, so2, so3, so4)
-//      }
-//      "return a straight sequence" in {
-//        printOps
-//        val res = sequencify(List(so1, so2, so3, so4), rels, so1)
-//        res shouldEqual List(Sequence(List(so1, so2, so3, so4):_*))
-//      }
-//      "return the independent sequences" in {
-//        val rels: Map[Set[ID], SOP] = Map(
-//          o1o2 -> Sequence(so1, so2),
-//          o1o3 -> Parallel(so1, so3),
-//          o1o4 -> Parallel(so1, so4),
-//          o2o3 -> Parallel(so2, so3),
-//          o2o4 -> Parallel(so2, so4),
-//          o3o4 -> Sequence(so3, so4)
-//        )
-//        val res = sequencify(List(so1, so2, so3, so4), rels, so1)
-//        res should contain allOf (
-//          Sequence(List(so1, so2):_*),
-//          Sequence(List(so3, so4):_*)
-//          )
-//
-//      }
-//    }
+    "when aligning" - {
+      "should checkIfSeq returns correct " in {
+        assert(checkIfSeq(so1, so3, Sequence(so1, so3)))
+        assert(!checkIfSeq(so3, so1, Sequence(so1, so3)))
+        assert(checkIfSeq(so1, so3, SometimeSequence(so1, so3)))
+        assert(!checkIfSeq(so3, so1, SometimeSequence(so1, so3)))
+      }
+      "should return empty node if seq is empty" in {
+        val res = align(Seq(), Map())
+        res shouldBe emptyNode
+      }
+      "should return no seq if no seq" in {
+        val rels: Map[Set[SOP], SOP] = Map(
+          so1o2 -> Parallel(so1, so2),
+          so1o3 -> Parallel(so1, so3),
+          so1o4 -> Parallel(so1, so4),
+          so2o3 -> Parallel(so2, so3),
+          so2o4 -> Parallel(so2, so4),
+          so3o4 -> Parallel(so3, so4)
+        )
+
+        val res = align(Seq(so1, so2, so3, so4), rels, so1)
+        res.s shouldBe so1
+        List(res.other.s) should contain oneOf (so2, so3, so4)
+        List(res.other.other.s) should contain oneOf (so2, so3, so4)
+        List(res.other.other.other.s) should contain oneOf (so2, so3, so4)
+      }
+      "should use base" in {
+        val res = align(Seq(so1, so2, so3, so4), rels, so4)
+        res.s shouldBe so4
+      }
+      "should sort the aligned nodes" in {
+        val rels: Map[Set[SOP], SOP] = Map(
+          so1o2 -> Sequence(so1, so2),
+          so1o3 -> Sequence(so1, so3),
+          so1o4 -> Sequence(so1, so4),
+          so2o3 -> Sequence(so2, so3),
+          so2o4 -> Sequence(so2, so4),
+          so3o4 -> Sequence(so3, so4)
+        )
+        val res = align(Seq(so1, so2, so3, so4), rels, so1)
+        val sorted = sortNodes(res)
+        opSeq(sorted.head) shouldEqual "o1o2o3o4"
+      }
+      "should creat seq 1" in {
+        val rels: Map[Set[SOP], SOP] = Map(
+          so1o2 -> Sequence(so1, so2),
+          so1o3 -> Parallel(so1, so3),
+          so1o4 -> Parallel(so1, so4),
+          so2o3 -> Parallel(so2, so3),
+          so2o4 -> Parallel(so2, so4),
+          so3o4 -> Sequence(so3, so4)
+        )
+        val res = align(Seq(so1, so2, so3, so4), rels, so1)
+        val sorted = sortNodes(res) map opSeq
+        sorted should contain allOf ("o1o2", "o3o4")
+      }
+      "should creat seq 2" in {
+        val rels: Map[Set[SOP], SOP] = Map(
+          so1o2 -> SometimeSequence(so1, so2),
+          so1o3 -> Parallel(so1, so3),
+          so1o4 -> Parallel(so1, so4),
+          so2o3 -> Parallel(so2, so3),
+          so2o4 -> Parallel(so2, so4),
+          so3o4 -> SometimeSequence(so3, so4)
+        )
+        val res = align(Seq(so1, so2, so3, so4), rels, so1)
+        val sorted = sortNodes(res) map opSeq
+        sorted should contain allOf ("o1o2", "o3o4")
+      }
+    }
+    "when sopifying" - {
+      "should return empty if empty input" in {
+        val node = emptyNode
+        val res = sopify(node, Map())
+        res shouldEqual List(EmptySOP)
+      }
+      "should return return single sop" in {
+        val node = Node(so1, emptyNode, emptyNode, emptyNode)
+        val res = sopify(node, Map())
+        res shouldEqual List(so1)
+      }
+      "should return return sequence sop" in {
+        val rels: Map[Set[SOP], SOP] = Map(
+          so1o2 -> Sequence(so1, so2),
+          so1o3 -> Parallel(so1, so3),
+          so1o4 -> Parallel(so1, so4),
+          so2o3 -> Parallel(so2, so3),
+          so2o4 -> Parallel(so2, so4),
+          so3o4 -> SometimeSequence(so3, so4)
+        )
+
+        val node2 = Node(so2, emptyNode, emptyNode, emptyNode)
+        val node = Node(so1, emptyNode, node2, emptyNode)
+        val res = sopify(node, rels)
+        res shouldEqual List(Sequence(so1, so2))
+      }
+      "should return sometime sequence sop" in {
+        val rels: Map[Set[SOP], SOP] = Map(
+          so1o2 -> Sequence(so1, so2),
+          so1o3 -> Sequence(so1, so3),
+          so1o4 -> Sequence(so1, so4),
+          so2o3 -> SometimeSequence(so2, so3),
+          so2o4 -> Sequence(so2, so4),
+          so3o4 -> Sequence(so3, so4)
+        )
+
+        val node4 = Node(so4, emptyNode, emptyNode, emptyNode)
+        val node3 = Node(so3, emptyNode, node4, emptyNode)
+        val node2 = Node(so2, emptyNode, node3, emptyNode)
+        val node = Node(so1, emptyNode, node2, emptyNode)
+        val res = sopify(node, rels)
+        res shouldEqual List(Sequence(so1, SometimeSequence(so2, so3), so4))
+      }
+      "should return return sometime sequence sop 2" in {
+        val rels: Map[Set[SOP], SOP] = Map(
+          so1o2 -> Sequence(so1, so2),
+          so1o3 -> Sequence(so1, so3),
+          so1o4 -> Sequence(so1, so4),
+          so2o3 -> SometimeSequence(so2, so3),
+          so2o4 -> SometimeSequence(so2, so4),
+          so3o4 -> SometimeSequence(so3, so4)
+        )
+
+        val node4 = Node(so4, emptyNode, emptyNode, emptyNode)
+        val node3 = Node(so3, emptyNode, node4, emptyNode)
+        val node2 = Node(so2, emptyNode, node3, emptyNode)
+        val node = Node(so1, emptyNode, node2, emptyNode)
+        val res = sopify(node, rels)
+        res shouldEqual List(Sequence(so1, SometimeSequence(so2, so3, so4)))
+      }
+      "should return return sometime sequence sop 3" in {
+        val rels: Map[Set[SOP], SOP] = Map(
+          so1o2 -> SometimeSequence(so1, so2),
+          so1o3 -> SometimeSequence(so1, so3),
+          so1o4 -> SometimeSequence(so1, so4),
+          so2o3 -> SometimeSequence(so2, so3),
+          so2o4 -> SometimeSequence(so2, so4),
+          so3o4 -> SometimeSequence(so3, so4)
+        )
+
+        val node4 = Node(so4, emptyNode, emptyNode, emptyNode)
+        val node3 = Node(so3, emptyNode, node4, emptyNode)
+        val node2 = Node(so2, emptyNode, node3, emptyNode)
+        val node = Node(so1, emptyNode, node2, emptyNode)
+        val res = sopify(node, rels)
+        res shouldEqual List(SometimeSequence(so1, so2, so3, so4))
+      }
+    }
+    "when sequencifying" - {
+      val rels: Map[Set[ID], SOP] = Map(
+        o1o2 -> Sequence(so1, so2),
+        o1o3 -> Sequence(so1, so3),
+        o1o4 -> Sequence(so1, so4),
+        o2o3 -> Sequence(so2, so3),
+        o2o4 -> Sequence(so2, so4),
+        o3o4 -> Sequence(so3, so4)
+      )
+      "return the same if no sequences" in {
+        val rels: Map[Set[ID], SOP] = Map(
+          o1o2 -> Parallel(so1, so2),
+          o1o3 -> Parallel(so1, so3),
+          o1o4 -> Parallel(so1, so4),
+          o2o3 -> Parallel(so2, so3),
+          o2o4 -> Parallel(so2, so4),
+          o3o4 -> Parallel(so3, so4)
+        )
+        val res = sequencify(List(so1, so2, so3, so4), rels, so1)
+        res should contain allOf (so1, so2, so3, so4)
+      }
+      "return a straight sequence" in {
+        printOps
+        val res = sequencify(List(so1, so2, so3, so4), rels, so1)
+        res shouldEqual List(Sequence(List(so1, so2, so3, so4):_*))
+      }
+      "return the independent sequences" in {
+        val rels: Map[Set[ID], SOP] = Map(
+          o1o2 -> Sequence(so1, so2),
+          o1o3 -> Parallel(so1, so3),
+          o1o4 -> Parallel(so1, so4),
+          o2o3 -> Parallel(so2, so3),
+          o2o4 -> Parallel(so2, so4),
+          o3o4 -> Sequence(so3, so4)
+        )
+        val res = sequencify(List(so1, so2, so3, so4), rels, so1)
+        res should contain allOf (
+          Sequence(List(so1, so2):_*),
+          Sequence(List(so3, so4):_*)
+          )
+
+      }
+    }
     "testing" in {
       val rels: Map[Set[ID], SOP] = Map(
         o1o2 -> Sequence(so1, so2),

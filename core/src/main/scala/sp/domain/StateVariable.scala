@@ -1,19 +1,19 @@
 package sp.domain
 
-case class StateVariable(name: String, attributes: SPAttributes = SPAttributes(Map()), id: ID = ID.newID)
-
-case object StateVariable {
-
-  def apply(o: Operation): StateVariable = operationVariable(o)
-  def apply(t: Thing): StateVariable = thingVariable(t)
-
-  //val operationDomain = ListPrimitive(List(StringPrimitive("i"), StringPrimitive("e"), StringPrimitive("f")))
-  private val attr = SPAttributes(Map())
-  implicit def operationVariable(o: Operation) = StateVariable(o.name, attr, o.id)
-
-  private val attrT = SPAttributes(Map("boolean"-> true))
-  implicit def thingVariable(t: Thing) = StateVariable(t.name, attrT, t.id)
-}
+//case class StateVariable(name: String, attributes: SPAttributes = SPAttributes(Map()), id: ID = ID.newID)
+//
+//case object StateVariable {
+//
+//  def apply(o: Operation): StateVariable = operationVariable(o)
+//  def apply(t: Thing): StateVariable = thingVariable(t)
+//
+//  //val operationDomain = ListPrimitive(List(StringPrimitive("i"), StringPrimitive("e"), StringPrimitive("f")))
+//  private val attr = SPAttributes(Map())
+//  implicit def operationVariable(o: Operation) = StateVariable(o.name, attr, o.id)
+//
+//  private val attrT = SPAttributes(Map("boolean"-> true))
+//  implicit def thingVariable(t: Thing) = StateVariable(t.name, attrT, t.id)
+//}
 
 
 //trait StateVariable {

@@ -14,15 +14,14 @@ import scala.concurrent.duration._
 
 
 
-// API classes
-case class IDSaver(isa: String,
-                   name: String,
-                   attributes: Option[SPAttributes],
-                   id: Option[ID],
-                   version: Option[Long],
-                   conditions: Option[List[Condition]],
-                   stateVariables: Option[List[StateVariable]],
-                   sop: Option[List[SOP]])
+//// API classes
+//case class IDSaver(isa: String,
+//                   name: String,
+//                   attributes: Option[SPAttributes],
+//                   id: Option[ID],
+//                   version: Option[Long],
+//                   conditions: Option[List[Condition]],
+//                   sop: Option[List[SOP]])
 
 
 
@@ -119,49 +118,71 @@ trait ModelAPI extends SPApiHelpers {
           })
         } ~
           entity(as[ModelInfo]) { mi =>
-            callSP(UpdateModelInfo(mi.model, mi.name, mi.attributes), {
+            callSP(mi, {
               case x: ModelInfo => complete(x)
             })
           } 
       }
     } ~
     pathPrefix(JavaUUID) { model =>
-      parameter('version.as[Long]){ version =>
-        pathPrefix(Segment){ typeOfItems =>
-          typeOfItems match {
-            case "diff" => {
-              /{ get {callSP(GetDiff(model, version), {
-                case x: ModelDiff => complete(x)})}
-              }
-            }
-            case "diffFrom" => {
-              /{ get {callSP(GetDiffFrom(model, version), {
-                case x: ModelDiff => complete(x)})}
-              }
-            }
-
-            case "revert" => {
-              /{ post {callSP(Revert(model, version), {
-                case x: ModelInfo => complete(x)})}
-              }
-            }
-            case _ => {
-              path(JavaUUID){ id =>
-                /{ get {callSP((GetIds(model, List(ID(id))), version), {
-                  case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)})}
+      pathPrefix("history"){
+        parameter('version.as[Long]) { version =>
+          pathPrefix(Segment) { typeOfItems =>
+            typeOfItems match {
+              case "diff" => {
+                / {
+                  get {
+                    callSP(GetDiff(model, version), {
+                      case x: ModelDiff => complete(x)
+                    })
+                  }
                 }
-              } ~
-                /{ get {callSP((GetIds(model, List()), version), { case SPIDs(x) => complete(x)})}}
-            }
-          }
+              }
+              case "diffFrom" => {
+                / {
+                  get {
+                    callSP(GetDiffFrom(model, version), {
+                      case x: ModelDiff => complete(x)
+                    })
+                  }
+                }
+              }
 
-        } ~
-        / {
-          get {
-            callSP((GetModelInfo(model), version), {
-              case x: ModelInfo => complete(x)
-            })
-          }
+              case "revert" => {
+                / {
+                  post {
+                    callSP(Revert(model, version), {
+                      case x: ModelInfo => complete(x)
+                    })
+                  }
+                }
+              }
+              case _ => {
+                path(JavaUUID) { id =>
+                  / {
+                    get {
+                      callSP((GetIds(model, List(ID(id))), version), {
+                        case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
+                      })
+                    }
+                  }
+                } ~
+                  / {
+                    get {
+                      callSP((GetIds(model, List()), version), { case SPIDs(x) => complete(x)})
+                    }
+                  }
+              }
+            }
+
+          } ~
+            / {
+              get {
+                callSP((GetModelInfo(model), version), {
+                  case x: ModelInfo => complete(x)
+                })
+              }
+            }
         }
       } ~
       / {
@@ -172,7 +193,7 @@ trait ModelAPI extends SPApiHelpers {
         } ~
         post {
           entity(as[ModelInfo]) { mi =>
-            callSP(UpdateModelInfo(model, mi.name, mi.attributes), {
+            callSP(mi, {
               case x: ModelInfo => complete(x)
             })
           }
@@ -185,11 +206,6 @@ trait ModelAPI extends SPApiHelpers {
           case "things" => getSPIDS(GetThings(model))
           case "specs" => getSPIDS(GetSpecs(model))
           case "items" => getSPIDS(GetIds(model, List()))
-          case "statevariables" => path(JavaUUID){ id =>
-            /{ get {callSP(GetStateVariable(model, id), {
-              case SPSVs(x) => if (x.size == 1) complete(x.head) else complete(x)})}
-            }
-          }
           case _ => reject
         }}
       }
@@ -211,36 +227,36 @@ trait ModelAPI extends SPApiHelpers {
         case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)})}
       } ~
       post {
-        entity(as[IDSaver]) { x =>
-          val upids = createUPIDs(List(x), Some(id))
-          // Maybe req modelversion in the future
-          callSP(UpdateIDs(model, upids),  {
+        parameter('version.as[Long]) { version =>
+          entity(as[IDAble]) { x =>
+            callSP(UpdateIDs(model, version, List(x)), {
               case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
             })
-        }
-      } ~
-      delete {
-        val delMe = DeleteIDs(model, List(id))
-        callSP(delMe,  {
-          case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
-        })
+          }
+        } ~
+          delete {
+            val delMe = DeleteIDs(model, List(id))
+            callSP(delMe, {
+              case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
+            })
+          }
       }
     } ~
     / {
+      parameter('version.as[Long]) { version =>
       post {
-        entity(as[List[IDSaver]]) { xs =>
-          val upids = createUPIDs(xs, None)
-          callSP(UpdateIDs(model, upids), {
+        entity(as[List[IDAble]]) { xs =>
+          callSP(UpdateIDs(model, version, xs), {
             case SPIDs(x) => complete(x)
           })
         } ~
-        entity(as[IDSaver]) { xs =>
-          val upids = createUPIDs(List(xs), None)
-          callSP(UpdateIDs(model, upids), {
+        entity(as[IDAble]) { xs =>
+          callSP(UpdateIDs(model, version, List(xs)), {
             case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
           })
         }
       }
+    }
     }
   }
 
@@ -303,7 +319,6 @@ trait ServiceAPI extends SPApiHelpers {
           case a: SPAttributes => complete(a)
           case r: Result => complete(r)
           case SPIDs(x) => complete(x)
-          case SPSVs(x) => complete(x)
           case item: IDAble => complete(item)
         })
       }}
@@ -327,6 +342,10 @@ trait SPApiHelpers extends HttpService {
 
 
   def replyMatcher: PartialFunction[Any, Route] = {
+    case x: ModelInfo => complete(x)
+    case ModelInfos(list) => complete(list)
+    case x: ModelDiff => complete(x)
+    case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
     case e: SPErrorString => complete(e.error)
     case e: UpdateError => complete(e)
     case a: Any  => complete("reply from application is not converted: " +a.toString)
@@ -336,13 +355,6 @@ trait SPApiHelpers extends HttpService {
     pf orElse replyMatcher
   }
 
-  def createUPIDs(ids: List[IDSaver], maybeID: Option[ID]) = {
-    ids map{ x =>
-      val addID = x.copy(id = Some(x.id.getOrElse(maybeID.getOrElse(ID.newID))))
-      val o = addID.toJson.convertTo[IDAble]
-      UpdateID(x.id.getOrElse(o.id), x.version.getOrElse(o.version), o)
-    }
-  }
 }
 
 

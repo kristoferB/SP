@@ -8,7 +8,7 @@ trait Condition {
 }
 
 
-case class Action(stateVariableID: ID, value: StateUpdater)
+case class Action(id: ID, value: StateUpdater)
 case class PropositionCondition(guard: Proposition,
                                 action: List[Action],
                                 attributes: SPAttributes = SPAttributes(Map())) extends Condition {

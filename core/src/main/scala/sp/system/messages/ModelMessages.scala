@@ -24,27 +24,20 @@ case class GetOperations(model: ID, filter: IDAble => Boolean = _ => true) exten
 case class GetThings(model: ID, filter: IDAble => Boolean = _ => true)  extends ModelQuery
 case class GetSpecs(model: ID, filter: IDAble => Boolean = _ => true)  extends ModelQuery
 case class GetResults(model: ID, filter: IDAble => Boolean = _ => true)  extends ModelQuery
-case class GetStateVariable(model: ID, sv: ID)  extends ModelQuery
-case class GetStateVariables(model: ID, filter: StateVariable => Boolean = _ => true)  extends ModelQuery
 case class GetQuery(model: ID, queryString: String = "",  filter: IDAble => Boolean = _ => true) extends ModelQuery // fix better later
 case class GetDiff(model: ID, version: Long) extends ModelQuery
 case class GetDiffFrom(model: ID, version: Long) extends ModelQuery
 case class GetModelInfo(model: ID) extends ModelQuery
 
-case class UpdateIDs(model: ID, items: List[UpdateID]) extends ModelUpdate
+case class UpdateIDs(model: ID, modelVersion: Long, items: List[IDAble]) extends ModelUpdate
 case class DeleteIDs(model: ID, items: List[ID]) extends ModelUpdate
-case class UpdateModelInfo(model: ID, newName: String, attr: SPAttributes) extends ModelUpdate
-case class UpdateID(id: ID, version: Long, item: IDAble)
-object UpdateID {
-  def addNew(x: IDAble) = UpdateID(x.id, 0, x)
-}
+
 case class Revert(model: ID, toVersion: Long) extends ModelUpdate
 
 // API output
 
 // Replay Model Messages
 case class SPIDs(items: List[IDAble]) extends SPMessage
-case class SPSVs(svs: List[StateVariable])
 case class ModelDiff(model: ID,
                      updatedItems: List[IDAble],
                      deletedItems: List[IDAble],

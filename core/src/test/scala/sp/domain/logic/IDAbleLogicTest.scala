@@ -1,7 +1,7 @@
 package sp.domain.logic
 
 import org.scalatest._
-import sp.system.messages.UpdateID
+import sp.system.messages._
 
 /**
  * Created by kristofer on 01/10/14.
@@ -222,29 +222,29 @@ class IDAbleLogicTest extends FreeSpec with Matchers {
           removeIDFromThing(ids, empty) shouldEqual empty
         }
         "for simple thing" in {
-          val t = Thing("hej", List(StateVariable("hej", Attr(), otherid)), Attr("hej"-> 1))
+          val t = Thing("hej", Attr("hej"-> 1))
           removeIDFromThing(ids, t) shouldEqual t
         }
         "for complex things" in {
-          val t = Thing("hej", List(StateVariable("hej", Attr("hej" -> otherid), otherid)), Attr("hej"-> ListPrimitive(List(otherid))))
+          val t = Thing("hej", Attr("hej"-> ListPrimitive(List(otherid))))
 
           removeIDFromThing(ids, t) shouldEqual t
         }
       }
       "should remove props if include id" - {
         "for an thing" in {
-          val t = Thing("hej", List(
-            StateVariable("hej", Attr("hej" -> otherid, "nej"->id), otherid),
-            StateVariable("hej", Attr("hej" -> otherid), id)
-          ),
-            Attr("hej"-> ListPrimitive(List(otherid, id))))
+          val tid = ID.newID
+          val t = Thing("hej",
+            Attr("hej"-> ListPrimitive(List(otherid, tid))),
+            tid
+          )
 
-          val res = Thing("hej", List(
-            StateVariable("hej", Attr("hej" -> otherid), otherid)
-          ),
-            Attr("hej"-> ListPrimitive(List(otherid))))
+          val res = Thing("hej",
+            Attr("hej"-> ListPrimitive(List(otherid))),
+            tid
+          )
 
-          Thing.unapply(removeIDFromThing(ids, t)) shouldEqual Thing.unapply(res)
+          removeIDFromThing(ids, t) shouldEqual res
         }
       }
     }
@@ -294,7 +294,7 @@ class IDAbleLogicTest extends FreeSpec with Matchers {
             id
           ))
 
-          val res = Hierarchy(otherid, EmptySOP)
+          val res = Hierarchy(otherid)
 
           removeIDFromSOP(ids, t).get shouldEqual res
         }
@@ -303,32 +303,29 @@ class IDAbleLogicTest extends FreeSpec with Matchers {
     "Removing IDs from List of IDAbles" - {
       "should not change the items if no id" - {
         val o = Operation("hej", List(PropositionCondition(EQ(otherid, ValueHolder(1)), List(Action(otherid, ValueHolder(1))))), Attr("hej"-> 1))
-        val s = SOPSpec(List(Parallel(otherid, otherid)), "hej")
-        val t = Thing("hej", List(StateVariable("hej", Attr(), otherid)), Attr("hej"-> 1))
+        val s = SOPSpec("hej", List(Parallel(otherid, otherid)))
+        val t = Thing("hej", Attr("hej"-> 1))
 
         removeID(ids, List(o, s, t)) shouldEqual List()
       }
       "should return updated items if id" - {
+        val tid = ID.newID
         val o = Operation("hej", List(PropositionCondition(EQ(otherid, ValueHolder(1)), List(Action(otherid, ValueHolder(1))))), Attr("hej"-> 1))
-        val s = SOPSpec(List(Parallel(otherid, otherid)), "hej")
-        val t = Thing("hej", List(StateVariable("hej", Attr(), id)), Attr("hej"-> 1))
+        val s = SOPSpec("hej", List(Parallel(otherid, otherid)))
+        val t = Thing("hej", Attr("hej"-> 1, "nej"-> id), tid)
 
-        val res = Thing.unapply(Thing("hej", List(), Attr("hej"-> 1)))
+        val res = Thing("hej", Attr("hej"-> 1), tid)
 
-
-        val test = removeID(ids, List(o, s, t))
-        Thing.unapply(removeID(ids, List(o, s, t)).head.item.asInstanceOf[Thing]) shouldEqual res
+        removeID(ids, List(o, s, t)) shouldEqual res
       }
       "should return updated items if id 2" - {
         val o = Operation("hej", List(PropositionCondition(EQ(otherid, ValueHolder(1)), List(Action(otherid, ValueHolder(1))))), Attr("hej"-> 1, "resource"->otherid))
-        val s = SOPSpec(List(Parallel(otherid, otherid, id)), "hej")
-        val t = Thing("hej", List(StateVariable("hej", Attr(), otherid)), Attr("hej"-> 1))
+        val s = SOPSpec("hej", List(Parallel(otherid, otherid, id)))
+        val t = Thing("hej", Attr("hej"-> 1))
 
-        val res = SOPSpec.unapply(SOPSpec(List(Parallel(otherid, otherid)), "hej"))
+        val res = s.copy(sop = List(Parallel(otherid, otherid)))
 
-
-        val test = removeID(ids, List(o, s, t))
-        SOPSpec.unapply(removeID(ids, List(o, s, t)).head.item.asInstanceOf[SOPSpec]) shouldEqual res
+        removeID(ids, List(o, s, t)) shouldEqual res
       }
     }
   }

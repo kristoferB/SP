@@ -9,18 +9,17 @@ object IDAbleLogic {
   import sp.system.messages._
 
   def removeID(id: Set[ID], ids: List[IDAble]) = {
-    def removeFrom(item: IDAble): Option[UpdateID] = {
+    def removeFrom(item: IDAble): Option[IDAble] = {
       val newItem = item match {
         case x: Operation => removeIDFromOperation(id, x)
         case x: Thing => removeIDFromThing(id, x)
-        case x: SPObject => removeIDFromSPObject(id, x)
         case x: SPSpec => removeIDFromSPSpec(id, x)
         case x: SOPSpec => removeIDFromSOPSpec(id, x)
         case _ => item
       }
       if (newItem == item) None
       else {
-        Some(UpdateID(item.id, item.version, newItem))
+        Some(newItem)
       }
     }
 
@@ -34,11 +33,10 @@ object IDAbleLogic {
 
   def removeIDFromThing(id: Set[ID], th: Thing): Thing = {
     val newAttr = removeIDFromAttribute(id, th.attributes)
-    val newSV = th.stateVariables flatMap(sv => removeIDFromStateVariable(id, sv))
-    if (newAttr == th.attributes && newSV == th.stateVariables)
+    if (newAttr == th.attributes)
       th
     else
-      th.copy(stateVariables = newSV, attributes = newAttr)
+      th.copy(attributes = newAttr)
   }
 
   def removeIDFromOperation(id: Set[ID], op: Operation): Operation = {
@@ -51,13 +49,6 @@ object IDAbleLogic {
       op.copy(conditions = newCond, attributes = newAttr)
   }
 
-  def removeIDFromSPObject(id: Set[ID], obj: SPObject): SPObject = {
-    val newAttr = removeIDFromAttribute(id, obj.attributes)
-    if (newAttr == obj.attributes)
-      obj
-    else
-      obj.copy(attributes = newAttr)
-  }
   def removeIDFromSPSpec(id: Set[ID], obj: SPSpec): SPSpec = {
     val newAttr = removeIDFromAttribute(id, obj.attributes)
     if (newAttr == obj.attributes)
@@ -113,13 +104,6 @@ object IDAbleLogic {
     t
   }
 
-  def removeIDFromStateVariable(id: Set[ID], sv: StateVariable): Option[StateVariable] = {
-    if (id.contains(sv.id)) None
-    else {
-      val newAttr = removeIDFromAttribute(id, sv.attributes)
-      Some(sv.copy(attributes = newAttr))
-    }
-  }
 
   def removeIDFromCondition(id: Set[ID], cond: Condition): Condition = {
     cond match {

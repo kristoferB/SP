@@ -37,18 +37,18 @@ class RelationServiceTest extends TestKit(ActorSystem("test")) with FreeSpecLike
       val rls = system.actorOf(RelationService.props(mh, sh, "condService"))
       val attr = Attr("model"->"test", "operations"->ListPrimitive(List(o1.id, o2.id))).addStateAttr("initstate", state)
       rls ! Request("RelationFinder", attr)
-      expectMsgPF(1 second){case RelationResult(name, rels, model, mversion, attr) => true}
+      expectMsgPF(1 second){case RelationResult(name, rels, model, mversion, attr, id) => true}
     }
     "find rels unsing SOPSpecs" in {
       val sop = Sequence(o3, o4)
-      val spec = SOPSpec(List(sop), "spec")
+      val spec = SOPSpec("spec", List(sop))
       val mh = system.actorOf(Props(classOf[TestModel], List(o3,o4), ModelInfo(mid, "test", 1, Attr()), List(v1,v2,v3), List(spec), false))
       val sh = mh
       val rls = system.actorOf(RelationService.props(mh, sh, "condService"))
       val attr = Attr("model"->"test", "operations"->ListPrimitive(List(o3.id, o4.id))).addStateAttr("initstate", state)
       rls ! Request("RelationFinder", attr)
       expectMsgPF(1 second){
-        case RelationResult(name, rels, model, mversion, attr) if rels.relations(Set(o3.id,o4.id)).isInstanceOf[Sequence] =>
+        case RelationResult(name, rels, model, mversion, attr, id) if rels.relations(Set(o3.id,o4.id)).isInstanceOf[Sequence] =>
           println("relations between o3 - o4: " + rels.relations(Set(o3.id, o4.id)))
       }
     }
@@ -62,9 +62,16 @@ object TestThings {
   val attrR = SPAttributes(Map("range" -> range))
   val attrB = SPAttributes(Map("boolean" -> true))
 
-  val v1 = StateVariable("v1", attrR)
-  val v2 = StateVariable("v2", attrD)
-  val v3 = StateVariable("v3", attrB)
+  import sp.domain.logic.StateVariableLogic._
+  import sp.domain.logic.OperationLogic._
+
+  val sv1 = StateVarInfo(DomainList(List("hej", "då")))
+  val sv2 = StateVarInfo(DomainRange(new Range(0, 3, 1)))
+  val sv3 = StateVarInfo(DomainBool)
+
+  val v1 = Thing("v1").addStateVar(sv2)
+  val v2 = Thing("v2").addStateVar(sv1)
+  val v3 = Thing("v2").addStateVar(sv3)
 
 
   val eq = EQ(SVIDEval(v1.id), ValueHolder(SPAttributeValue(0)))
@@ -88,14 +95,13 @@ object TestThings {
   val state = State(Map(v1.id -> 0, v2.id -> "hej", v3.id -> false, o1.id -> "i", o2.id -> "i"))
   val state2 = State(Map(v1.id -> 2, v2.id -> "då", v3.id -> false, o1.id -> "i", o2.id -> "i"))
 
-  val vm: Map[ID, StateVariable] =
-    Map(v1.id -> v1, v2.id -> v2, v3.id -> v3, o1.id -> o1, o2.id -> o2)
+  val vm=Map(v1.id -> v1.inDomain, v2.id -> v2.inDomain, v3.id -> v3.inDomain, o1.id -> o1.inDomain, o2.id -> o2.inDomain)
+
 }
 
 
 class TestModel(ops: List[Operation],
                 modelInfo: ModelInfo,
-                stateVars: List[StateVariable],
                 specs: List[SOPSpec],
                 fail: Boolean) extends Actor {
 
@@ -104,7 +110,6 @@ class TestModel(ops: List[Operation],
   def receive = {
     case x: GetIds => sender ! SPIDs(ops)
     case x: GetModelInfo => sender ! modelInfo
-    case x: GetStateVariables => sender ! SPSVs(stateVars)
     case GetResults(_, f) => sender ! SPIDs(specs filter f)
     case x: Request => sender ! ConditionsFromSpecs(Map(o4.id->List(PropositionCondition(EQ(o3.id, "f"), List()))))
     case x @ _ => //println("TestModel got: " + x)

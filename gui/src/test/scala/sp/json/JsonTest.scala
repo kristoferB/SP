@@ -13,7 +13,7 @@ class JsonTest extends WordSpec with Matchers  {
 
   val fixid = ID(java.util.UUID.fromString("3a0bad18-a4c2-4764-9d5a-b57d6579da24"))
 
-  val o1 = new Operation("o1"){override lazy val id = fixid}
+  val o1 = new Operation("o1", List(), Attr(), fixid)
   val o1json = JsObject(
     "name" -> "o1".toJson,
     "id" -> fixid.toJson,
@@ -23,7 +23,7 @@ class JsonTest extends WordSpec with Matchers  {
     "attributes" -> JsObject()
   )
   val o2 = Operation("o2")
-  val t1 = new Thing("t1"){override lazy val id = fixid}
+  val t1 = new Thing("t1", Attr(), fixid)
   val t1json = JsObject(
     "name" -> "t1".toJson,
     "id" -> fixid.toJson,
@@ -33,7 +33,7 @@ class JsonTest extends WordSpec with Matchers  {
     "attributes" -> JsObject()
   )
   val sop1 = SOP(Parallel(Sequence(o1, o2), Sequence(o1, o2)))
-  val spec = SOPSpec(List(sop1), "label")
+  val spec = SOPSpec( "label", List(sop1))
 
   val attr = SPAttributes(Map(
     "hej" -> "kalle",

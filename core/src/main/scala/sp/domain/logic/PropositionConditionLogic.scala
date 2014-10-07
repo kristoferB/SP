@@ -38,39 +38,40 @@ case object PropositionConditionLogic {
   implicit class condLogic(cond: Condition) {
     val c = cond.asInstanceOf[PropositionCondition]
     def eval(s: State) = c.guard.eval(s)
-    def next(s: State) = s.next(c.action map (a => a.stateVariableID -> a.nextValue(s)) toMap)
-    def inDomain(s: State, stateVars: Map[ID, StateVariable]) = {
-      !(c.action map(_.inDomain(s, stateVars)) exists (!_))
+    def next(s: State) = s.next(c.action map (a => a.id -> a.nextValue(s)) toMap)
+    def inDomain(s: State, stateVars: Map[ID, SPAttributeValue => Boolean]) = {
+      !(c.action map(_.inDomain(s, stateVars)) exists(!_))
     }
   }
 
   implicit class nextLogic(a: Action) {
     def nextValue(s: State) = a.value match {
       case ValueHolder(v) => v
-      case INCR(n) => SPAttributeValue(s(a.stateVariableID).asInt map (_ + n))
-      case DECR(n) => SPAttributeValue(s(a.stateVariableID).asInt map (_ - n))
+      case INCR(n) => SPAttributeValue(s(a.id).asInt map (_ + n))
+      case DECR(n) => SPAttributeValue(s(a.id).asInt map (_ - n))
       case ASSIGN(id) => s(id)
     }
 
-    def inDomain(s: State, stateVars: Map[ID, StateVariable]) = {
+    def inDomain(s: State, stateVars: Map[ID, SPAttributeValue => Boolean]): Boolean = {
       val next = nextValue(s)
-      val sv = stateVars(a.stateVariableID)
+      val sv = stateVars(a.id)
+      stateVars(a.id)(next)
 
-      val checkDomain = sv.attributes.getAsList("domain") map (_.contains(next))
-      val checkBoolean = sv.attributes.getAsBool("boolean") map (b =>
-        next.isInstanceOf[BoolPrimitive] && b)
-      val checkRange = for {
-        range <- sv.attributes.getAsMap("range")
-        start <- range.get("start") flatMap (_.asInt)
-        end <- range.get("end") flatMap (_.asInt)
-        step <- range.get("step") flatMap (_.asInt)
-        nextInt <- next.asInt
-      } yield {
-        val r = start until end by step
-        r.contains(nextInt)
-      }
-
-      checkDomain getOrElse( checkRange getOrElse( checkBoolean getOrElse false))
+//      val checkDomain = sv.attributes.getAsList("domain") map (_.contains(next))
+//      val checkBoolean = sv.attributes.getAsBool("boolean") map (b =>
+//        next.isInstanceOf[BoolPrimitive] && b)
+//      val checkRange = for {
+//        range <- sv.attributes.getAsMap("range")
+//        start <- range.get("start") flatMap (_.asInt)
+//        end <- range.get("end") flatMap (_.asInt)
+//        step <- range.get("step") flatMap (_.asInt)
+//        nextInt <- next.asInt
+//      } yield {
+//        val r = start until end by step
+//        r.contains(nextInt)
+//      }
+//
+//      checkDomain getOrElse( checkRange getOrElse( checkBoolean getOrElse false))
 
     }
   }

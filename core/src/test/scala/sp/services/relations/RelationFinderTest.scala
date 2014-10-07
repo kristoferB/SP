@@ -106,9 +106,16 @@ trait Defs extends RelationFinderAlgotithms {
   private val attrR = SPAttributes(Map("range" -> range))
   private val attrB = SPAttributes(Map("boolean" -> true))
 
-  val v1 = StateVariable("v1", attrR)
-  val v2 = StateVariable("v2", attrD)
-  val v3 = StateVariable("v2", attrB)
+  import sp.domain.logic.StateVariableLogic._
+  import sp.domain.logic.OperationLogic._
+
+  val sv1 = StateVarInfo(DomainList(List("hej", "då")))
+  val sv2 = StateVarInfo(DomainRange(new Range(0, 3, 1)))
+  val sv3 = StateVarInfo(DomainBool)
+
+  val v1 = Thing("v1").addStateVar(sv2)
+  val v2 = Thing("v2").addStateVar(sv1)
+  val v3 = Thing("v2").addStateVar(sv3)
 
 
   val eq = EQ(SVIDEval(v1.id), ValueHolder(SPAttributeValue(0)))
@@ -130,6 +137,5 @@ trait Defs extends RelationFinderAlgotithms {
   val state = State(Map(v1.id -> 0, v2.id -> "hej", v3.id -> false, o1.id -> "i", o2.id -> "i"))
   val state2 = State(Map(v1.id -> 2, v2.id -> "då", v3.id -> false, o1.id -> "i", o2.id -> "i"))
 
-  val vm: Map[ID, StateVariable] =
-    Map(v1.id -> v1, v2.id -> v2, v3.id -> v3, o1.id -> o1, o2.id -> o2)
+  val vm=Map(v1.id -> v1.inDomain, v2.id -> v2.inDomain, v3.id -> v3.inDomain, o1.id -> o1.inDomain, o2.id -> o2.inDomain)
 }

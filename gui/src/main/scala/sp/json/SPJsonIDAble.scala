@@ -22,9 +22,7 @@ trait SPJsonIDAble extends SPJsonDomain {
           val cond = c.elements map (_.convertTo[Condition]) toList
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
-          new Operation(name, cond, attr) {
-            override lazy val id = myid
-          }
+          Operation(name, cond, attr, myid)
         }
         case _ => throw new DeserializationException(s"can not convert the Operation from $value")
       }
@@ -35,31 +33,6 @@ trait SPJsonIDAble extends SPJsonDomain {
     def write(x: Thing) = {
       val map = Map(
         "isa" -> "Thing".toJson,
-        "name" -> x.name.toJson,
-        "stateVariables" -> x.stateVariables.toJson
-      ) ++ idPart(x)
-      JsObject(map)
-    }
-
-    def read(value: JsValue) = {
-      value.asJsObject.getFields("name", "stateVariables", "attributes", "id") match {
-        case Seq(JsString(name), c: JsArray, a: JsObject, oid: JsString) => {
-          val sv = c.elements map (_.asJsObject.convertTo[StateVariable]) toList
-          val attr = a.convertTo[SPAttributes]
-          val myid = oid.convertTo[ID]
-          new Thing(name, sv, attr) {
-            override lazy val id = myid
-          }
-        }
-        case _ => throw new DeserializationException(s"can not convert the Thing from $value")
-      }
-    }
-  }
-
-  implicit object SPObjectJsonFormat extends RootJsonFormat[SPObject] {
-    def write(x: SPObject) = {
-      val map = Map(
-        "isa" -> "SPObject".toJson,
         "name" -> x.name.toJson
       ) ++ idPart(x)
       JsObject(map)
@@ -67,14 +40,12 @@ trait SPJsonIDAble extends SPJsonDomain {
 
     def read(value: JsValue) = {
       value.asJsObject.getFields("name", "attributes", "id") match {
-        case Seq(JsString(name), a: JsObject, oid: JsString) => {
+        case Seq(JsString(name), c: JsArray, a: JsObject, oid: JsString) => {
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
-          new SPObject(name, attr) {
-            override lazy val id = myid
-          }
+          Thing(name,attr, myid)
         }
-        case _ => throw new DeserializationException(s"can not convert the SPObject from $value")
+        case _ => throw new DeserializationException(s"can not convert the Thing from $value")
       }
     }
   }
@@ -93,9 +64,7 @@ trait SPJsonIDAble extends SPJsonDomain {
         case Seq(JsString(name), a: JsObject, oid: JsString) => {
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
-          new SPSpec(name, attr) {
-            override lazy val id = myid
-          }
+          SPSpec(name, attr, myid)
         }
         case _ => throw new DeserializationException(s"can not convert the SPSPec from $value")
 
@@ -119,9 +88,7 @@ trait SPJsonIDAble extends SPJsonDomain {
           val sop = if(s.isInstanceOf[JsArray]) s.asInstanceOf[JsArray].elements.map(_.convertTo[SOP]).toList else List(s.convertTo[SOP])
           val attr = a.convertTo[SPAttributes]
           val myid = oid.convertTo[ID]
-          new SOPSpec(sop, label, attr) {
-            override lazy val id = myid
-          }
+          SOPSpec(label, sop, attr, myid)
         }
         case _ => throw new DeserializationException(s"can not convert the SOPSpec from $value")
 
@@ -149,9 +116,7 @@ trait SPJsonIDAble extends SPJsonDomain {
           val mid = model.convertTo[ID]
           val modelV = version.convertTo[Long]
           val myid = id.convertTo[ID]
-          new RelationResult(name, relMap, mid, modelV, attr) {
-            override lazy val id = myid
-          }
+          RelationResult(name, relMap, mid, modelV, attr, myid)
         }
         case _ => throw new DeserializationException(s"can not convert the RelationResult from $value")
 
@@ -194,7 +159,6 @@ trait SPJsonIDAble extends SPJsonDomain {
       x match {
         case x: Operation => x.toJson
         case x: Thing => x.toJson
-        case x: SPObject => x.toJson
         case x: SOPSpec => x.toJson
         case x: SPSpec => x.toJson
         case x: Result => x.toJson
@@ -208,7 +172,6 @@ trait SPJsonIDAble extends SPJsonDomain {
           obj.fields("isa") match {
             case JsString("Operation") => value.convertTo[Operation]
             case JsString("Thing") => value.convertTo[Thing]
-            case JsString("SPObject") => value.convertTo[SPObject]
             case JsString("SOPSpec") => value.convertTo[SOPSpec]
             case JsString("SPSpec") => value.convertTo[SPSpec]
             case JsString("RelationResult") => value.convertTo[RelationResult]
@@ -222,7 +185,6 @@ trait SPJsonIDAble extends SPJsonDomain {
   }
 
   def idPart(x: IDAble) = List(
-    "version" -> x.version.toJson,
     "id" -> x.id.toJson,
     "attributes" -> x.attributes.toJson
   )
