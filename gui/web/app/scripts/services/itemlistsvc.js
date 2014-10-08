@@ -63,7 +63,18 @@ angular.module('spGuiApp')
       if(typeof parentItem.attributes !== 'undefined') {
         if (typeof parentItem.attributes.children !== 'undefined') {
           parentItem.attributes.children.forEach(function (childId) {
-            childrenArray.push(spTalker.getItemById(childId));
+            var child = spTalker.getItemById(childId);
+            if(typeof child === 'undefined') {
+              var parentName;
+              if(typeof parentItem.name === 'undefined') {
+                parentName = 'Model ' + parentItem.model;
+              } else {
+                parentName = 'Item ' + parentItem.name;
+              }
+              console.log(parentName + ' contains a reference to a child with id ' + childId + ' which doesn\'t exist');
+            } else {
+              childrenArray.push(child);
+            }
           });
         }
       }
@@ -101,7 +112,7 @@ angular.module('spGuiApp')
 
     factory.deleteItem = function(item) {
       if(confirm('You are about to delete ' + item.name + ' completely. Are you sure?')) {
-        spTalker.deleteItem(item);
+        spTalker.deleteItem(item, true);
       }
     };
 

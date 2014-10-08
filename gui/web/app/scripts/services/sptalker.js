@@ -127,6 +127,9 @@ angular.module('spGuiApp')
   factory.loadAll = function() {
     factory.loadModels();
     factory.item.query({model: factory.activeModel.model}, function(items) {
+      Object.keys(factory.items).forEach(function(id) {
+        delete factory.items[id];
+      });
       items.forEach(function(item) {
         factory.items[item.id] = item;
       });
@@ -261,7 +264,7 @@ angular.module('spGuiApp')
   factory.deleteItem = function(itemToDelete, notifySuccess) {
     var success = true;
 
-    // remove item from parent items
+    /*// remove item from parent items
     for(var id in factory.items) {
       if(factory.items.hasOwnProperty(id)) {
         if(factory.items[id].attributes.hasOwnProperty('children')) {
@@ -293,17 +296,20 @@ angular.module('spGuiApp')
       } else {
         removeItemFromServer();
       }
-    }
+    }*/
+
+    removeItemFromServer();
 
     function removeItemFromServer() {
       itemToDelete.$delete(
         {model:factory.activeModel.model},
         function(data) {
-          delete factory.items[data.id];
+          //delete factory.items[data.id];
           if(notifySuccess) {
             notificationService.success(data.isa + ' ' + data.name + ' was successfully deleted.');
           }
-          $rootScope.$broadcast('itemsQueried');
+          //$rootScope.$broadcast('itemsQueried');
+          //factory.loadAll();
         },
         function(error) {
           console.log(error);
