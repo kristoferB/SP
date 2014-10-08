@@ -156,7 +156,9 @@ trait ModelAPI extends SPApiHelpers {
 
   private def IDHandler(model: ID) = {
     path(JavaUUID){id =>
-      /{ get {callSP(GetIds(model, List(ID(id))))}}
+      /{ get {callSP(GetIds(model, List(ID(id))))} ~
+        delete { callSP(DeleteIDs(model, List(id))) }
+      }
     } ~
     post {
       entity(as[IDAble]) { xs => callSP(UpdateIDs(model, -1, List(xs))) } ~
@@ -259,6 +261,7 @@ trait SPApiHelpers extends HttpService {
     case item: IDAble => complete(item)
     case e: SPErrorString => complete(e)
     case e: UpdateError => complete(e)
+    case MissingID(id, model, mess) => complete(StatusCodes.NotFound, s"id: $id $mess")
     case a: Any  => complete("reply from application is not converted: " +a.toString)
   }
 
