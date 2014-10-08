@@ -97,8 +97,9 @@ angular.module('spGuiApp')
         function parseTextAsProp(viewValue){
           spTalker.parseProposition(viewValue)
             .success(function (data) {
-              if(typeof data === 'string' && viewValue !== '') {
+              if((_.has(data, 'error') ||  typeof data === 'string') && viewValue !== '') {
                 ngModel.$setValidity('propParse',false);
+                console.log(data)
               } else {
                 if(typeof viewValue === 'undefined' || viewValue === '') {
                   scope.condition['guard'] = {isa:'EQ', right: true, left: true}; // work-around to enable save of ops as long as backend doesn't accept anything else

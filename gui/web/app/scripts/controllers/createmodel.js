@@ -34,6 +34,8 @@ var CreatemodelCtrl = function ($scope, $modalInstance, spTalker, notificationSe
       spTalker.activeModel.attributes.children = [];
       spTalker.activeModel.$save({modelID: spTalker.activeModel.model}, function(data) {
         notificationService.success('The new model ' + data.model + ' was successfully saved.');
+        console.log("The model with children")
+        console.log(data)
         $modalInstance.close(data);
       });
     }

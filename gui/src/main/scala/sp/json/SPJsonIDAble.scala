@@ -17,11 +17,14 @@ trait SPJsonIDAble extends SPJsonDomain {
     }
 
     def read(value: JsValue) = {
-      value.asJsObject.getFields("name", "conditions", "attributes", "id") match {
-        case Seq(JsString(name), c: JsArray, a: JsObject, oid: JsString) => {
+      val myid = {
+        if (value.asJsObject.fields.contains("id")) value.asJsObject.fields("id").convertTo[ID]
+        else ID.newID
+      }
+      value.asJsObject.getFields("name", "conditions", "attributes") match {
+        case Seq(JsString(name), c: JsArray, a: JsObject) => {
           val cond = c.elements map (_.convertTo[Condition]) toList
           val attr = a.convertTo[SPAttributes]
-          val myid = oid.convertTo[ID]
           Operation(name, cond, attr, myid)
         }
         case _ => throw new DeserializationException(s"can not convert the Operation from $value")
@@ -39,10 +42,13 @@ trait SPJsonIDAble extends SPJsonDomain {
     }
 
     def read(value: JsValue) = {
-      value.asJsObject.getFields("name", "attributes", "id") match {
-        case Seq(JsString(name), c: JsArray, a: JsObject, oid: JsString) => {
+      val myid = {
+        if (value.asJsObject.fields.contains("id")) value.asJsObject.fields("id").convertTo[ID]
+        else ID.newID
+      }
+      value.asJsObject.getFields("name", "attributes") match {
+        case Seq(JsString(name), a: JsObject) => {
           val attr = a.convertTo[SPAttributes]
-          val myid = oid.convertTo[ID]
           Thing(name,attr, myid)
         }
         case _ => throw new DeserializationException(s"can not convert the Thing from $value")
@@ -60,10 +66,13 @@ trait SPJsonIDAble extends SPJsonDomain {
     }
 
     def read(value: JsValue) = {
-      value.asJsObject.getFields("name", "attributes", "id") match {
-        case Seq(JsString(name), a: JsObject, oid: JsString) => {
+      val myid = {
+        if (value.asJsObject.fields.contains("id")) value.asJsObject.fields("id").convertTo[ID]
+        else ID.newID
+      }
+      value.asJsObject.getFields("name", "attributes") match {
+        case Seq(JsString(name), a: JsObject) => {
           val attr = a.convertTo[SPAttributes]
-          val myid = oid.convertTo[ID]
           SPSpec(name, attr, myid)
         }
         case _ => throw new DeserializationException(s"can not convert the SPSPec from $value")
@@ -83,11 +92,14 @@ trait SPJsonIDAble extends SPJsonDomain {
     }
 
     def read(value: JsValue) = {
-      value.asJsObject.getFields("name", "sop", "attributes", "id") match {
-        case Seq(JsString(label), s: JsValue, a: JsObject, oid: JsString) => {
+      val myid = {
+        if (value.asJsObject.fields.contains("id")) value.asJsObject.fields("id").convertTo[ID]
+        else ID.newID
+      }
+      value.asJsObject.getFields("name", "sop", "attributes") match {
+        case Seq(JsString(label), s: JsValue, a: JsObject) => {
           val sop = if(s.isInstanceOf[JsArray]) s.asInstanceOf[JsArray].elements.map(_.convertTo[SOP]).toList else List(s.convertTo[SOP])
           val attr = a.convertTo[SPAttributes]
-          val myid = oid.convertTo[ID]
           SOPSpec(label, sop, attr, myid)
         }
         case _ => throw new DeserializationException(s"can not convert the SOPSpec from $value")
@@ -109,13 +121,16 @@ trait SPJsonIDAble extends SPJsonDomain {
     }
 
     def read(value: JsValue) = {
-      value.asJsObject.getFields("name", "relationmap", "model", "version", "attributes", "id") match {
-        case Seq(JsString(name), rel: JsObject, model:JsString, version: JsNumber, a: JsObject, id: JsString) => {
+      val myid = {
+        if (value.asJsObject.fields.contains("id")) value.asJsObject.fields("id").convertTo[ID]
+        else ID.newID
+      }
+      value.asJsObject.getFields("name", "relationmap", "model", "version", "attributes") match {
+        case Seq(JsString(name), rel: JsObject, model:JsString, version: JsNumber, a: JsObject) => {
           val relMap = rel.convertTo[RelationMap]
           val attr = a.convertTo[SPAttributes]
           val mid = model.convertTo[ID]
           val modelV = version.convertTo[Long]
-          val myid = id.convertTo[ID]
           RelationResult(name, relMap, mid, modelV, attr, myid)
         }
         case _ => throw new DeserializationException(s"can not convert the RelationResult from $value")

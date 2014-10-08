@@ -30,9 +30,10 @@ case class GetDiffFrom(model: ID, version: Long) extends ModelQuery
 case class GetModelInfo(model: ID) extends ModelQuery
 
 case class UpdateIDs(model: ID, modelVersion: Long, items: List[IDAble]) extends ModelUpdate
+case class UpdateModelInfo(model: ID, info: ModelInfo) extends ModelUpdate
 case class DeleteIDs(model: ID, items: List[ID]) extends ModelUpdate
-
 case class Revert(model: ID, toVersion: Long) extends ModelUpdate
+
 
 // API output
 

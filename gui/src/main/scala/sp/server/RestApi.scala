@@ -65,35 +65,29 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
   val api = pathPrefix("api") {
     / {complete("Sequence Planner REST API")} ~
     encodeResponse(Gzip) {
-      pathPrefix("models"){
-          modelapi
-      } ~
-      pathPrefix("runtimes"){
-          runtimeapi
-      } ~
-      pathPrefix("services") {
-        serviceapi
-      } ~
-      path("users") {
-        get {
-          callSP(GetUsers, {
-            case userMap: Map[String, User] => complete(userMap)
-          })
-        }~
-        post {
-          entity(as[AddUser]) { cmd =>
-            callSP(cmd, {
-              case createdUser: User => complete(createdUser)
-            })
-          }
-        }
-      }~
-      // For tests during implementation of authentication and authorization
-      authenticate(BasicAuth(myUserPassAuthenticator _, realm = "secured API")) { userName =>
-        path("login") {
-          complete(returnUser(userName))
-        }
-      }
+      pathPrefix("models"){ modelapi } ~
+      pathPrefix("runtimes"){ runtimeapi } ~
+      pathPrefix("services") { serviceapi } //~
+//      path("users") {
+//        get {
+//          callSP(GetUsers, {
+//            case userMap: Map[String, User] => complete(userMap)
+//          })
+//        }~
+//        post {
+//          entity(as[AddUser]) { cmd =>
+//            callSP(cmd, {
+//              case createdUser: User => complete(createdUser)
+//            })
+//          }
+//        }
+//      } ~
+//      // For tests during implementation of authentication and authorization
+//      authenticate(BasicAuth(myUserPassAuthenticator _, realm = "secured API")) { userName =>
+//        path("login") {
+//          complete(returnUser(userName))
+//        }
+//      }
     }
   }
 }
@@ -105,159 +99,72 @@ trait ModelAPI extends SPApiHelpers {
   private implicit val to = timeout
 
   def modelapi =
-    /{
-      get {
-        callSP(GetModels, {
-          case ModelInfos(list) => complete(list)
-        })
-      } ~
+    / {
+      get {callSP(GetModels) } ~
       post {
-        entity(as[CreateModelNewID]) { cmd =>
-          callSP(CreateModel(ID.newID, cmd.name, cmd.attributes), {
-            case x: ModelInfo => complete(x)
-          })
-        } ~
-          entity(as[ModelInfo]) { mi =>
-            callSP(mi, {
-              case x: ModelInfo => complete(x)
-            })
-          } 
+        updateModelInfo ~
+        entity(as[CreateModelNewID]) { cmd => callSP(CreateModel(ID.newID, cmd.name, cmd.attributes))}
       }
     } ~
     pathPrefix(JavaUUID) { model =>
+      / {
+        get { callSP(GetModelInfo(model)) } ~
+        post { updateModelInfo }
+      } ~
+      pathPrefix(Segment){ typeOfItems =>
+        IDHandler(model) ~
+          {typeOfItems match {
+            case "operations" => getSPIDS(GetOperations(model))
+            case "things" => getSPIDS(GetThings(model))
+            case "specs" => getSPIDS(GetSpecs(model))
+            case "items" => getSPIDS(GetIds(model, List()))
+            case _ => reject
+          }}
+      } ~
       pathPrefix("history"){
         parameter('version.as[Long]) { version =>
           pathPrefix(Segment) { typeOfItems =>
             typeOfItems match {
-              case "diff" => {
-                / {
-                  get {
-                    callSP(GetDiff(model, version), {
-                      case x: ModelDiff => complete(x)
-                    })
-                  }
-                }
-              }
-              case "diffFrom" => {
-                / {
-                  get {
-                    callSP(GetDiffFrom(model, version), {
-                      case x: ModelDiff => complete(x)
-                    })
-                  }
-                }
-              }
-
-              case "revert" => {
-                / {
-                  post {
-                    callSP(Revert(model, version), {
-                      case x: ModelInfo => complete(x)
-                    })
-                  }
-                }
-              }
+              case "diff" => { / { callSP(GetDiff(model, version)) }}
+              case "diffFrom" => { / { callSP(GetDiffFrom(model, version)) }}
+              case "revert" => { / {callSP(Revert(model, version)) } }
               case _ => {
+                / { get { callSP((GetIds(model, List()), version)) } } ~
                 path(JavaUUID) { id =>
-                  / {
-                    get {
-                      callSP((GetIds(model, List(ID(id))), version), {
-                        case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
-                      })
-                    }
-                  }
-                } ~
-                  / {
-                    get {
-                      callSP((GetIds(model, List()), version), { case SPIDs(x) => complete(x)})
-                    }
-                  }
+                  / { get {callSP((GetIds(model, List(ID(id))), version))}}
+                }
               }
             }
-
           } ~
-            / {
-              get {
-                callSP((GetModelInfo(model), version), {
-                  case x: ModelInfo => complete(x)
-                })
-              }
-            }
+          / { get { callSP((GetModelInfo(model), version))} }
         }
-      } ~
-      / {
-        get {
-          callSP(GetModelInfo(model), {
-            case x: ModelInfo => complete(x)
-          })
-        } ~
-        post {
-          entity(as[ModelInfo]) { mi =>
-            callSP(mi, {
-              case x: ModelInfo => complete(x)
-            })
-          }
-        }
-      } ~
-      pathPrefix(Segment){ typeOfItems =>
-        IDHandler(model) ~
-        {typeOfItems match {
-          case "operations" => getSPIDS(GetOperations(model))
-          case "things" => getSPIDS(GetThings(model))
-          case "specs" => getSPIDS(GetSpecs(model))
-          case "items" => getSPIDS(GetIds(model, List()))
-          case _ => reject
-        }}
       }
-  }
+    }
 
 
   private def getSPIDS(mess: ModelQuery) = {
     /{ get {callSP(mess, { case SPIDs(x) => complete(x)})}}
   }
 
+  def updateModelInfo = entity(as[ModelInfo]) {info => callSP(UpdateModelInfo(info.model, info))}
 
-  private def callSP(mess: Any, matchReply: PartialFunction[Any, Route]) = {
+
+  private def callSP(mess: Any, matchReply: PartialFunction[Any, Route] = {PartialFunction.empty}) = {
+    println(s"Sending from route: $mess")
     onSuccess(modelHandler ? mess){evalReply{matchReply}}
   }
 
   private def IDHandler(model: ID) = {
     path(JavaUUID){id =>
-      /{ get {callSP(GetIds(model, List(ID(id))), {
-        case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)})}
-      } ~
-      post {
-        parameter('version.as[Long]) { version =>
-          entity(as[IDAble]) { x =>
-            callSP(UpdateIDs(model, version, List(x)), {
-              case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
-            })
-          }
-        } ~
-          delete {
-            val delMe = DeleteIDs(model, List(id))
-            callSP(delMe, {
-              case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
-            })
-          }
-      }
+      /{ get {callSP(GetIds(model, List(ID(id))))}}
     } ~
-    / {
-      parameter('version.as[Long]) { version =>
-      post {
-        entity(as[List[IDAble]]) { xs =>
-          callSP(UpdateIDs(model, version, xs), {
-            case SPIDs(x) => complete(x)
-          })
-        } ~
-        entity(as[IDAble]) { xs =>
-          callSP(UpdateIDs(model, version, List(xs)), {
-            case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
-          })
-        }
+    post {
+      entity(as[IDAble]) { xs => callSP(UpdateIDs(model, -1, List(xs))) } ~
+      entity(as[List[IDAble]]) { xs =>
+        callSP(UpdateIDs(model, -1, xs), { case SPIDs(x) => complete(x) })
       }
     }
-    }
+
   }
 
 }
@@ -346,7 +253,11 @@ trait SPApiHelpers extends HttpService {
     case ModelInfos(list) => complete(list)
     case x: ModelDiff => complete(x)
     case SPIDs(x) => if (x.size == 1) complete(x.head) else complete(x)
-    case e: SPErrorString => complete(e.error)
+    case p: Proposition => complete(p)
+    case a: SPAttributes => complete(a)
+    case r: Result => complete(r)
+    case item: IDAble => complete(item)
+    case e: SPErrorString => complete(e)
     case e: UpdateError => complete(e)
     case a: Any  => complete("reply from application is not converted: " +a.toString)
   }

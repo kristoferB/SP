@@ -78,11 +78,6 @@ angular.module('spGuiApp')
           });
         }
       }
-      if(parentItem.isa === 'Thing') {
-        parentItem.stateVariables.forEach(function(sv) {
-          childrenArray.push(sv);
-        })
-      }
     };
 
     factory.expandChildren = function(row, collapseIfExpanded) {

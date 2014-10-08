@@ -39,6 +39,7 @@ angular.module('spGuiApp')
     var model = angular.fromJson(sessionStorage.activeModel);
     factory.model.get({modelID: model.model}, function(model) {
       factory.activeModel = model;
+      console.log(model);
       factory.loadAll();
     }, function(error) {
       console.log(error);
@@ -50,9 +51,7 @@ angular.module('spGuiApp')
   };
 
   factory.getItemName = function(id) {
-    var item =  _.find(factory.items, function(item) {
-      return item.id == id
-    });
+    var item =  factory.items[id]
     return item.name
   };
 

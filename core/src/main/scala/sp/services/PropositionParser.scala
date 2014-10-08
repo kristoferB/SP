@@ -36,14 +36,14 @@ class PropositionParserActor extends Actor  {
 
   def extract(attr: SPAttributes) = {
     for {
-      model <- attr.getAsString("model")
+      model <- attr.getAsID("model")
       parse <- attr.getAsString("parse")
     } yield (model, parse)
   }
 
       def errorMessage(attr: SPAttributes) = {
         SPError("The request is missing parameters: \n" +
-          s"model: ${attr.getAsString("model")}" + "\n" +
+          s"model: ${attr.getAsID("model")}" + "\n" +
           s"parse: ${attr.getAsString("parse")}" )
       }
 

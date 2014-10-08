@@ -16,9 +16,10 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
   implicit val timeout = Timeout(7 seconds)
   import context.dispatcher
 
-
   def receiveCommand = {
-    case UpdateIDs(m, v, ids) => {
+    case mess @ _ if {println(s"model got: $mess from $sender"); false} => Unit
+    case upd @ UpdateIDs(m, v, ids) => {
+      println(s"update me: $upd")
       val reply = sender
       createDiffUpd(ids, v) match {
         case Right(diff) => {
@@ -43,7 +44,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       }
     }
 
-    case ModelInfo(m, newName, v, attribute) => {
+    case UpdateModelInfo(_, ModelInfo(m, newName, v, attribute)) => {
       val reply = sender
       val diff = ModelDiff(model, List(), List(), state.version, state.version + 1, newName, (attribute + ("time", DatePrimitive.now)))
 
@@ -191,11 +192,11 @@ trait ModelActorState  {
    */
   def createDiffUpd(ids: List[IDAble], modelVersion: Long): Either[UpdateError, ModelDiff] = {
 
-    val conflicts = if (modelVersion < state.version) {
-      val diff = getDiff(modelVersion)
-      val changedIds = diff.updatedItems map(_.id)
-      ids.map(_.id).filter(changedIds.contains)
-    } else List()
+    val conflicts = List() //if (modelVersion < state.version || modelVersion != -1) {
+//      val diff = getDiff(modelVersion)
+//      val changedIds = diff.updatedItems map(_.id)
+//      ids.map(_.id).filter(changedIds.contains)
+//    } else List()
 
     if (conflicts.isEmpty) {
       val upd = ids filter(!state.items.contains(_))
