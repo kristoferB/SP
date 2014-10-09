@@ -18,13 +18,16 @@
   <span ng-if="!edit && type === 'date' ">{{attrObj[key] | date:'yyyy-MM-dd HH:mm:ss'}}</span>
   <input ng-if="edit && type === 'date'" id="datetimeInput" step=1 name="datetimeInput" type="datetime-local" class="form-control input-sm" ng-model="attrObj[key]" />
 
+  <span ng-if="!edit && type === 'kind'">{{attrObj[key]}}</span>
+  <select ng-if="edit && type === 'kind'" class="form-control input-sm" ng-model="attrObj[key]" ng-options="svKind as svKind for svKind in svKinds" ng-change="spTalker.svKindChange(attrObj, false)"></select>
+
   <button ng-if="type==='sop'" ng-click="itemListSvc.openSopInNewWindow(attrObj, addWindow)" class="btn btn-sm btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
 
   <conditions ng-if="type==='conditions'" conditions="attrObj[key]" edit="edit"></conditions>
   <button ng-if="type==='conditions' && edit" class="btn btn-sm btn-default" ng-click="itemListSvc.addCondition(attrObj[key])"><span class="glyphicon glyphicon-plus"></span> Add condition</button>
 
   <table class="element-list" ng-if="type === 'object'">
-    <tr class="form-inline" ng-repeat="(attr, attrVal) in attrObj[key]">
+    <tr class="form-inline" ng-repeat="(attr, attrVal) in attrObj[key] | filterElements">
       <td class="col-md-1">
         <deleteable-key attr-obj="attrObj[key]" element="attr" key="attr" edit="edit"></deleteable-key>
       </td>

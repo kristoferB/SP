@@ -15,8 +15,8 @@ angular.module('spGuiApp')
       $scope.filteredAndOrderedItems = [];
       $scope.spTalker = spTalker;
       $scope.itemListSvc = itemListSvc;
-      $scope.showableColumns = ['name', 'isa', 'version', 'conditions', 'stateVariables'];
-      $scope.selection = ['name', 'isa', 'version'];
+      $scope.showableColumns = ['name', 'isa', 'conditions', 'stateVariables'];
+      $scope.selection = ['name', 'isa'];
       $scope.attrSelection = [];
       $scope.predicate = 'name';
       $scope.reverse = false;
@@ -37,7 +37,7 @@ angular.module('spGuiApp')
       $scope.getFilterAndOrderItems = function() {
         var children = [];
         if($scope.chosenListMode === $scope.listModes[0]) {
-          itemListSvc.getChildren(spTalker.activeModel, children);
+          itemListSvc.getChildren(spTalker.activeSPSpec, children);
         } else {
           children = $.map(spTalker.items, function(value) {
             return [value];
@@ -107,12 +107,12 @@ angular.module('spGuiApp')
           newItem.name = newItem.name + '_copy';
           var success = true;
           function successHandler(data) {
-            spTalker.activeModel.attributes.children.unshift(data.id);
+            spTalker.activeSPSpec.attributes.children.unshift(data.id);
             noOfItemsCopied += 1;
             if(noOfItemsCopied === noOfItemsToCopy) {
-              spTalker.activeModel.$save({modelID: spTalker.activeModel.model}, function() {
+              spTalker.saveItem(spTalker.activeSPSpec, false, function() {
                 $rootScope.$broadcast('itemsQueried');
-              }, function() { fullSuccess = false; });
+              })
             }
           }
           function errorHandler() {

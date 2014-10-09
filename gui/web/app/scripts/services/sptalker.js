@@ -8,7 +8,7 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-.factory('spTalker', ['$rootScope', '$resource', '$http', 'notificationService', '$filter', function ($rootScope, $resource, $http, notificationService, $filter) {
+.factory('spTalker', ['$rootScope', '$resource', '$http', 'notificationService', '$timeout', function ($rootScope, $resource, $http, notificationService, $timeout) {
   var apiUrl = '/api',
     dummySPSpec = {
       id: 0,
@@ -19,7 +19,7 @@ angular.module('spGuiApp')
     factory = {
       activeModel: {},
       activeSPSpec: dummySPSpec,
-      models: [],
+      models: {},
       users: [],
       operations: [],
       items: {},
@@ -39,7 +39,6 @@ angular.module('spGuiApp')
     var model = angular.fromJson(sessionStorage.activeModel);
     factory.model.get({modelID: model.model}, function(model) {
       factory.activeModel = model;
-      console.log(model);
       factory.loadAll();
     }, function(error) {
       console.log(error);
@@ -51,7 +50,7 @@ angular.module('spGuiApp')
   };
 
   factory.getItemName = function(id) {
-    var item =  factory.items[id]
+    var item =  factory.items[id];
     return item.name
   };
 
@@ -89,7 +88,11 @@ angular.module('spGuiApp')
   };
 
   factory.loadModels = function() {
-    factory.models = factory.model.query();
+    factory.model.query(function(models) {
+      models.forEach(function(model) {
+        factory.models[model.model] = model;
+      });
+    });
   };
   factory.loadModels();
 
@@ -134,7 +137,9 @@ angular.module('spGuiApp')
       });
       factory.activeSPSpec = factory.getItemById(factory.activeModel.attributes.activeSPSpec);
       updateItemLists();
-      $rootScope.$broadcast('itemsQueried');
+      $timeout(function() {
+        $rootScope.$broadcast('itemsQueried');
+      });
       factory.itemsRead = true;
     });
   };
@@ -212,6 +217,44 @@ angular.module('spGuiApp')
     return success;
   };
 
+  factory.svKindChange = function(sv, newItem) {
+    var kind = sv.kind;
+    delete sv.domain;
+    delete sv.range;
+    delete sv.boolean;
+    delete sv.init;
+    delete sv.goal;
+
+    function addSVKindAttributes() {
+      if(kind === 'domain') {
+        sv[kind] = ['home', 'flexlink'];
+        sv.init = 'home';
+        sv.goal = 'flexlink';
+      } else if(kind === 'range') {
+        sv[kind] = {
+          start: 0,
+          end: 2,
+          step: 1
+        };
+        sv.init = 0;
+        sv.goal = 2
+      } else if(kind === 'boolean') {
+        sv[kind] = true;
+        sv.init = false;
+        sv.goal = true;
+      }
+    }
+
+    if(newItem) {
+      addSVKindAttributes();
+    } else {
+      $timeout(function() {
+        addSVKindAttributes();
+      });
+    }
+
+  };
+
   factory.createItem = function(type, successHandler, readyMadeItem, errorHandler) {
     var newItem;
     if(typeof readyMadeItem === 'undefined') {
@@ -225,7 +268,10 @@ angular.module('spGuiApp')
       if(type === 'Operation') {
         newItem.conditions = [{guard: {isa:'EQ', right: true, left: true}, action: [], attributes: {kind: 'pre', group: ''}}];
       } else if(type === 'Thing') {
-        newItem.stateVariables = [];
+        newItem.attributes.stateVariable =  {
+          kind: 'range'
+        };
+        factory.svKindChange(newItem.attributes.stateVariable, true);
       } else if(type === 'SOPSpec') {
         newItem.sop = [{
           isa: 'Sequence',
@@ -308,7 +354,7 @@ angular.module('spGuiApp')
             notificationService.success(data.isa + ' ' + data.name + ' was successfully deleted.');
           }
           //$rootScope.$broadcast('itemsQueried');
-          //factory.loadAll();
+          factory.loadAll();
         },
         function(error) {
           console.log(error);

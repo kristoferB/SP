@@ -7,7 +7,7 @@
  * # itemTable
  */
 angular.module('spGuiApp')
-  .directive('itemTable', function (itemListSvc, spTalker, RecursionHelper, ITEM_KINDS, SV_KINDS) {
+  .directive('itemTable', function (itemListSvc, spTalker, RecursionHelper, ITEM_KINDS) {
     return {
       templateUrl: 'views/itemtable.html',
       restrict: 'E',
@@ -25,7 +25,6 @@ angular.module('spGuiApp')
         $scope.items = [];
         $scope.spTalker = spTalker;
         $scope.itemKinds = ITEM_KINDS;
-        $scope.svKinds = SV_KINDS;
 
         $scope.addItemExpandListener = function(item, row) {
           $scope.$on('show-info-' + item.id, function() {

@@ -12,7 +12,7 @@ angular.module('spGuiApp')
       require: 'ngModel',
       link: function postLink(scope, element, attrs, ngModel) {
         var thingAndStateVarMatchExp = /([\w]*\.[\w]*)/gi,
-          thingMatchExp = /([\w]*)\./i,
+          thingMatchExp = /([\w]*)/i,
           stateVarMatchExp = /\.([\w]*)/i,
           guardOrAction = scope.guardOrAction;
 
@@ -20,23 +20,24 @@ angular.module('spGuiApp')
           var internalCopy = angular.copy(viewValue),
             valid = true;
 
-          internalCopy = internalCopy.replace(thingAndStateVarMatchExp, function (thingAndStateVarString) {
-            var thingString = thingMatchExp.exec(thingAndStateVarString)[1],
-              stateVarString = stateVarMatchExp.exec(thingAndStateVarString)[1];
+          internalCopy = internalCopy.replace(thingMatchExp, function (thingAndStateVarString) {
+            var thingString = thingMatchExp.exec(thingAndStateVarString)[1];
+              //stateVarString = stateVarMatchExp.exec(thingAndStateVarString)[1];
             var thing = spTalker.thingsByName[thingString.toLowerCase()];
             if (typeof thing !== 'undefined') {
-              if(typeof stateVarString !== 'undefined') {
-                var stateVar = thing.stateVariables.filter(function (aStateVar) {
+              //if(typeof stateVarString !== 'undefined') {
+                var stateVar = thing;
+                /*var stateVar = thing.stateVariables.filter(function (aStateVar) {
                   return aStateVar.name.toLowerCase() === stateVarString.toLowerCase();
-                })[0];
+                })[0];*/
                 if (typeof stateVar !== 'undefined') {
                   return stateVar.id;
                 } else {
                   valid = false;
                 }
-              } else {
-                valid = false;
-              }
+              //} else {
+              //  valid = false;
+              //}
             } else {
               valid = false;
             }

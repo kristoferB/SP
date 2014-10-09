@@ -8,7 +8,7 @@
  * Controller of the spGuiApp
  */
   var ModellistCtrl = function ($scope, $modalInstance, spTalker, $modal, notificationService) {
-    $scope.models = spTalker.models;
+    $scope.spTalker = spTalker;
 
     $scope.createModel = function () {
       var modalInstance = $modal.open({
@@ -29,7 +29,7 @@
       spTalker.activeModel = chosenModel;
       sessionStorage.activeModel = angular.toJson(chosenModel);
       spTalker.loadAll();
-      notificationService.success('Model ' + chosenModel.model + ' is now set as active.');
+      notificationService.success('Model ' + chosenModel.name + ' is now set as active.');
       $modalInstance.close();
     };
   };

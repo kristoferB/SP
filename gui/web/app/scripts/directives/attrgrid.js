@@ -7,7 +7,7 @@
  * # attrGrid
  */
 angular.module('spGuiApp')
-  .directive('attrGrid', function (RecursionHelper, itemListSvc, spTalker) {
+  .directive('attrGrid', function (RecursionHelper, itemListSvc, spTalker, SV_KINDS) {
     return {
       restrict: 'E',
       scope: {
@@ -19,6 +19,8 @@ angular.module('spGuiApp')
       templateUrl: 'views/attrgrid.html',
       controller: function($scope) {
         $scope.itemListSvc = itemListSvc;
+        $scope.svKinds = SV_KINDS;
+        $scope.spTalker = spTalker;
 
         $scope.addElementToArray = function(array) {
           array.push('');
@@ -34,7 +36,7 @@ angular.module('spGuiApp')
 
         $scope.getType = function(obj, key) {
           var type;
-          if (key == "conditions" || key == "stateVariables" || key == "sop") {
+          if (key === 'conditions' || key === 'stateVariables' || key === 'sop' || key === 'kind') {
             type = key;
           } else if (_.isArray(obj)) {
             type = 'array';

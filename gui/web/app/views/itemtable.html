@@ -36,14 +36,6 @@
                 </td>
               </tr>
 
-              <tr ng-if="item.attributes.isa === 'StateVariable'">
-                <td>kind:</td>
-                <td>
-                  <span ng-if="!row.edit">{{item.attributes.svKind}}</span>
-                  <select ng-if="row.edit" class="form-control input-sm" ng-model="item.attributes.svKind" ng-options="svKind as svKind for svKind in svKinds" ng-change="itemListSvc.svKindChange(item)"></select>
-                </td>
-              </tr>
-
               <tr ng-repeat="(key, prop) in item | filterElements">
                 <td class="col-md-1" >{{key}}:</td>
                 <td class="col-md-9">
@@ -62,16 +54,11 @@
 
               <tr>
                 <td class="col-md-1">type:</td>
-                <td class="col-md-9" ng-if="item.attributes.isa !== 'StateVariable'">{{item.isa}}</td>
-                <td class="col-md-9" ng-if="item.attributes.isa === 'StateVariable'">{{item.attributes.isa}}</td>
+                <td class="col-md-9">{{item.isa}}</td>
               </tr>
               <tr>
                 <td class="col-md-1">id:</td>
                 <td class="col-md-9">{{item.id}}</td>
-              </tr>
-              <tr ng-if="item.attributes.isa !== 'StateVariable'">
-                <td class="col-md-1">version:</td>
-                <td class="col-md-9">{{item.version}}</td>
               </tr>
 
               <tr ng-if="row.edit">

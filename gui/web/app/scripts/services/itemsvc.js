@@ -79,7 +79,8 @@ angular.module('spGuiApp')
         if(i > 0) {
           textLine = textLine + '; ';
         }
-        textLine = textLine + getThingAndStateVarAsStringFromId(action[i].stateVariableID) + ' = ' + action[i].value;
+        textLine = textLine + spTalker.getItemById(action[i].stateVariableID).name + ' = ' + action[i].value;
+        //textLine = textLine + getThingAndStateVarAsStringFromId(action[i].stateVariableID) + ' = ' + action[i].value;
       }
       return textLine;
     };

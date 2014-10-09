@@ -7,7 +7,7 @@
  * # createDropdown
  */
 angular.module('spGuiApp')
-  .directive('createDropdown', function (itemListSvc, $rootScope) {
+  .directive('createDropdown', function (itemListSvc) {
     return {
       restrict: 'A',
       link: function postLink(scope, element) {
@@ -19,14 +19,6 @@ angular.module('spGuiApp')
           } )
           .contextmenu({
           target:'#create-context-menu',
-          before: function(e, context) {
-            if(scope.item.isa === 'Thing') {
-              $rootScope.$broadcast('isAThing');
-            } else {
-              $rootScope.$broadcast('isNotAThing');
-            }
-            return true;
-          },
           onItem: function(context,e) {
             var key = e.target.getAttribute('id');
             if(key === 'StateVariable') {

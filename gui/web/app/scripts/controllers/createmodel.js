@@ -18,7 +18,7 @@ var CreatemodelCtrl = function ($scope, $modalInstance, spTalker, notificationSe
     newModel.attributes = {};
     newModel.$save(function(savedModel) {
       notificationService.success('A new model \"' + savedModel.name + '\" was successfully created');
-      spTalker.models.push(savedModel);
+      spTalker.models[savedModel.model] = savedModel;
       spTalker.activeModel = savedModel;
       createDefaultSPSpec();
     }, function() {
@@ -29,14 +29,12 @@ var CreatemodelCtrl = function ($scope, $modalInstance, spTalker, notificationSe
 
   function createDefaultSPSpec() {
 
-    function onItemCreationSuccess(data) {
-      spTalker.activeModel.attributes.activeSPSpec = data.id;
+    function onItemCreationSuccess(spSpec) {
+      spTalker.activeModel.attributes.activeSPSpec = spSpec.id;
       spTalker.activeModel.attributes.children = [];
-      spTalker.activeModel.$save({modelID: spTalker.activeModel.model}, function(data) {
-        notificationService.success('The new model ' + data.model + ' was successfully saved.');
-        console.log("The model with children")
-        console.log(data)
-        $modalInstance.close(data);
+      spTalker.activeModel.$save({modelID: spTalker.activeModel.model}, function(model) {
+        notificationService.success('The new model ' + model.name + ' was successfully saved.');
+        $modalInstance.close(model);
       });
     }
 
