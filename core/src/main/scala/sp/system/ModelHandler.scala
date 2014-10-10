@@ -60,7 +60,7 @@ class ModelHandler extends PersistentActor {
   def addModel(cm: CreateModel) = {
     println(s"The modelService creates a new model called ${cm.name} id: ${cm.model}")
     val newModelH = context.actorOf(sp.models.ModelActor.props(cm.model))
-    newModelH ! ModelInfo(cm.model, cm.name, 0, cm.attributes)
+    newModelH ! UpdateModelInfo(cm.model, ModelInfo(cm.model, cm.name, 0, cm.attributes))
     modelMap += cm.model -> newModelH
   }
 
