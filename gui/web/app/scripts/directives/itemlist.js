@@ -28,28 +28,27 @@ angular.module('spGuiApp')
       $scope.oneSOPSpec = false;
       $scope.oneOrMoreItems = false;
       $scope.itemKinds = ITEM_KINDS;
-      $scope.listModes = ['Hierarchy', 'Flat'];
-      $scope.chosenListMode = $scope.listModes[0];
       $scope.thisScope = $scope;
+      $scope.rootItem = spTalker.activeModel;
 
       var filtered;
 
+      $scope.alterRootItem = function(spSpec) {
+        $scope.rootItem = spSpec;
+        $scope.getFilterAndOrderItems();
+      };
+
       $scope.getFilterAndOrderItems = function() {
         var children = [];
-        if($scope.chosenListMode === $scope.listModes[0]) {
-          itemListSvc.getChildren(spTalker.activeSPSpec, children);
-        } else {
+        if($scope.rootItem === spTalker.activeModel) {
           children = $.map(spTalker.items, function(value) {
             return [value];
           });
+        } else {
+          itemListSvc.getChildren($scope.rootItem, children);
         }
         filtered = $filter('filter')(children, itemFilter);
         $timeout(order);
-      };
-
-      $scope.setListMode = function(listMode) {
-        $scope.chosenListMode = listMode;
-        $scope.getFilterAndOrderItems();
       };
 
       if(spTalker.itemsRead) {
@@ -78,7 +77,7 @@ angular.module('spGuiApp')
       );
 
       $scope.$watch(
-        function() { return spTalker.activeSPSpec.attributes.attributeTags },
+        function() { return spTalker.activeModel.attributes.attributeTags },
         function(data) {
           if (typeof data !== 'undefined') {
             $scope.attrSelection.length = 0;

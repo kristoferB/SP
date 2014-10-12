@@ -9,12 +9,9 @@
     <td class="item-table-buttons">
       <button class="btn btn-xs btn-default" ng-click="itemListSvc.stopPropagation($event); row.expandChildren = false; row.infoIsCollapsed = !row.infoIsCollapsed;" ng-if="!row.edit"><span class="glyphicon glyphicon-info-sign"></span></button>
       <button class="btn btn-xs btn-default" ng-click="row.expandChildren = false; row.infoIsCollapsed = false; row.edit=true; itemListSvc.stopPropagation($event);" ng-if="!row.edit" ><span class="glyphicon glyphicon-edit"></span></button>
-      <button class="btn btn-xs btn-default" ng-click="itemForm.$valid && itemListSvc.saveItem(item, row); itemListSvc.stopPropagation($event);" ng-if="row.edit && item.attributes.isa !== 'StateVariable'" type="submit"><span class="glyphicon glyphicon-floppy-disk"></span></button>
-      <button class="btn btn-xs btn-default" ng-click="itemForm.$valid && itemListSvc.saveItem(parentItem, row); itemListSvc.stopPropagation($event);" ng-if="row.edit && item.attributes.isa === 'StateVariable'" type="submit"><span class="glyphicon glyphicon-floppy-disk"></span></button>
-      <button class="btn btn-xs btn-default" ng-click="itemListSvc.reReadFromServer(item, row); itemListSvc.stopPropagation($event);" ng-if="row.edit && item.attributes.isa !== 'StateVariable'" ><span class="glyphicon glyphicon-remove"></span></button>
-      <button class="btn btn-xs btn-default" ng-click="itemListSvc.reReadFromServer(parentItem, row); itemListSvc.stopPropagation($event);" ng-if="row.edit && item.attributes.isa === 'StateVariable'" ><span class="glyphicon glyphicon-remove"></span></button>
-      <button class="btn btn-xs btn-default" ng-click="itemListSvc.deleteItem(item); itemListSvc.stopPropagation($event);" ng-if="!row.edit && item.attributes.isa !== 'StateVariable'"><span class="glyphicon glyphicon-remove"></span></button>
-      <button class="btn btn-xs btn-default" ng-click="itemListSvc.deleteStateVar(parentItem, item); itemListSvc.stopPropagation($event);" ng-if="!row.edit && item.attributes.isa === 'StateVariable'"><span class="glyphicon glyphicon-remove"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemForm.$valid && itemListSvc.saveItem(item, row); itemListSvc.stopPropagation($event);" ng-if="row.edit" type="submit"><span class="glyphicon glyphicon-floppy-disk"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemListSvc.reReadFromServer(item, row); itemListSvc.stopPropagation($event);" ng-if="row.edit" ><span class="glyphicon glyphicon-remove"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemListSvc.deleteItem(item); itemListSvc.stopPropagation($event);" ng-if="!row.edit"><span class="glyphicon glyphicon-remove"></span></button>
       <button class="btn btn-xs btn-default" create-dropdown><span class="glyphicon glyphicon-plus"></span></button>
     </td>
   </tr>
@@ -69,7 +66,7 @@
                       <span class="glyphicon glyphicon-plus"></span> Add attribute <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu" role="menu">
-                      <li ng-repeat="(key, value) in spTalker.activeSPSpec.attributes.attributeTags" ng-click="itemListSvc.addAttribute(item.attributes, key, value)"><a href="#">{{key}}</a></li>
+                      <li ng-repeat="(key, value) in spTalker.activeModel.attributes.attributeTags" ng-click="itemListSvc.addAttribute(item.attributes, key, value)"><a href="#">{{key}}</a></li>
                     </ul>
                   </div>
                 </td>

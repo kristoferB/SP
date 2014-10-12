@@ -5,15 +5,9 @@
   <table class="table">
     <tbody>
       <tr>
-        <td class="col-md-2">Active SPSpec</td>
-        <td>
-          <label><select class="form-control input-sm" ng-change="activeSPSpecChange()" ng-model="spTalker.activeSPSpec" ng-options="spSpec as spSpec.name for (id, spSpec) in spTalker.spSpecs" ></select></label>
-        </td>
-      </tr>
-      <tr>
         <td>Attribute Tags</td>
         <td>
-          <attr-tag-grid style="display: block;" attr-tags-obj="spTalker.activeSPSpec.attributes.attributeTags"></attr-tag-grid>
+          <attr-tag-grid style="display: block;" attr-tags-obj="spTalker.activeModel.attributes.attributeTags"></attr-tag-grid>
         </td>
       </tr>
     </tbody>

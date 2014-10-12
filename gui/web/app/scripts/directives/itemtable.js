@@ -27,21 +27,31 @@ angular.module('spGuiApp')
         $scope.itemKinds = ITEM_KINDS;
 
         $scope.addItemExpandListener = function(item, row) {
-          $scope.$on('show-info-' + item.id, function() {
+          $scope.$on('show-info-' + item.id, function(event) {
+            if(event.defaultPrevented) { // to avoid enter edit mode in two places at one time
+              return;
+            }
+            event.preventDefault();
             row.infoIsCollapsed = false;
             row.edit = true;
+
           });
-          $scope.$on('show-children-' + item.id, function() {
+          $scope.$on('show-children-' + item.id, function(event) {
+            if(event.defaultPrevented) {
+              return;
+            }
+            event.preventDefault();
             itemListSvc.expandChildren(row, false);
           });
         };
 
-        $scope.$on('itemsQueried', function() {
-          itemListSvc.getChildren($scope.parentItem, $scope.items);
-        });
-
         if(typeof $scope.servedItems === 'undefined') {
-          itemListSvc.getChildren($scope.parentItem, $scope.items);
+          if(spTalker.itemsRead) {
+            itemListSvc.getChildren($scope.parentItem, $scope.items);
+          }
+          $scope.$on('itemsQueried', function() {
+            itemListSvc.getChildren($scope.parentItem, $scope.items);
+          });
         } else {
           $scope.items = $scope.servedItems;
         }

@@ -10,15 +10,8 @@
 angular.module('spGuiApp')
 .factory('spTalker', ['$rootScope', '$resource', '$http', 'notificationService', '$timeout', function ($rootScope, $resource, $http, notificationService, $timeout) {
   var apiUrl = '/api',
-    dummySPSpec = {
-      id: 0,
-      attributes: {
-        attributeTags: {}
-      }
-    },
     factory = {
       activeModel: {},
-      activeSPSpec: dummySPSpec,
       models: {},
       users: [],
       operations: [],
@@ -28,7 +21,7 @@ angular.module('spGuiApp')
       things: {},
       thingsByName: {},
       item : $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'}),
-      model: $resource(apiUrl + '/models/:modelID', { modelID: '@modelID' }),
+      model: $resource(apiUrl + '/models/:model', { model: '@model' }),
       user: $resource(apiUrl + '/users', {}),
       operation: $resource(apiUrl + '/models/:model/operations', { model: '@model' }, {saveArray: {method: 'POST', isArray: true}}),
       thing: $resource(apiUrl + '/models/:model/things/:thing', { model: '@model', thing: '@thing' })
@@ -37,7 +30,7 @@ angular.module('spGuiApp')
   if(sessionStorage.activeModel) {
     factory.activeModel = { loading: 'please wait' };
     var model = angular.fromJson(sessionStorage.activeModel);
-    factory.model.get({modelID: model.model}, function(model) {
+    factory.model.get({model: model.model}, function(model) {
       factory.activeModel = model;
       factory.loadAll();
     }, function(error) {
@@ -135,7 +128,6 @@ angular.module('spGuiApp')
       items.forEach(function(item) {
         factory.items[item.id] = item;
       });
-      factory.activeSPSpec = factory.getItemById(factory.activeModel.attributes.activeSPSpec);
       updateItemLists();
       $timeout(function() {
         $rootScope.$broadcast('itemsQueried');
@@ -277,8 +269,6 @@ angular.module('spGuiApp')
           isa: 'Sequence',
           sop: []
         }];
-      } else if(type === 'SPSpec') {
-        newItem.attributes.attributeTags = {}
       }
     } else {
       newItem = readyMadeItem;

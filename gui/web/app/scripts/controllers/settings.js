@@ -13,22 +13,12 @@ angular.module('spGuiApp')
     $scope.attributeTypes = ['string', 'object'];
 
     $scope.removeAttributeTag = function(tagToRemove) {
-      var index = spTalker.activeSPSpec.attributes.attributeTags.indexOf(tagToRemove);
-      spTalker.activeSPSpec.attributes.attributeTags.splice(index, 1);
-    };
-
-    $scope.activeSPSpecChange = function() {
-      if(typeof spTalker.activeSPSpec.attributes.attributeTags === 'undefined') {
-        spTalker.activeSPSpec.attributes.attributeTags = {};
-      }
+      var index = spTalker.activeModel.attributes.attributeTags.indexOf(tagToRemove);
+      spTalker.activeModel.attributes.attributeTags.splice(index, 1);
     };
 
     $scope.save = function () {
       var success = true;
-      if(!spTalker.saveItems(spTalker.spSpecs, false)) {
-        success = false;
-      }
-      spTalker.activeModel.attributes.activeSPSpec = spTalker.activeSPSpec.id;
       spTalker.activeModel.$save({modelID: spTalker.activeModel.model}, function(data) {}, function(error) {
         console.log(error);
         notificationService.error('An error occurred during save of the active model. Please see your browser console for details.');
@@ -41,11 +31,7 @@ angular.module('spGuiApp')
     };
 
     $scope.reset = function() {
-      for(var id in spTalker.spSpecs) {
-        if(spTalker.spSpecs.hasOwnProperty(id)) {
-          spTalker.reReadFromServer(spTalker.spSpecs[id]);
-        }
-      }
+      spTalker.activeModel.$get();
     };
 
     $scope.close = function() {

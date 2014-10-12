@@ -3,9 +3,9 @@
 </div>
 <div class="modal-body">
     <table class="table table-hover">
-        <thead><tr><th>Name</th><th>Version</th></tr></thead>
+        <thead><tr><th>Name</th><th>ID</th><th>Version</th></tr></thead>
         <tbody>
-        <tr ng-repeat="(id, model) in spTalker.models" ng-click="setActiveModel(model)"><td>{{model.name}}</td><td>{{model.version}}</td></tr>
+        <tr ng-repeat="(id, model) in spTalker.models" ng-click="setActiveModel(model)"><td>{{model.name}}</td><td>{{model.model}}</td><td>{{model.version}}</td></tr>
         </tbody>
     </table>
 </div>
