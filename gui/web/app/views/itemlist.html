@@ -45,7 +45,7 @@
         <span class="glyphicon glyphicon-map-marker"></span> Root <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" role="menu">
-        <li><a ng-click="alterRootItem(spTalker.activeModel)" x-name="option">{{spTalker.activeModel.model}}</a></li>
+        <li><a ng-click="alterRootItem(spTalker.activeModel)" x-name="option">{{spTalker.activeModel.name}}</a></li>
         <li ng-repeat="(id, spSpec) in spTalker.spSpecs"><a ng-click="alterRootItem(spSpec)" x-name="option">{{spSpec.name}}</a></li>
       </ul>
     </div>

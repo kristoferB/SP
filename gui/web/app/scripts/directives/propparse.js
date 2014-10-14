@@ -7,41 +7,63 @@
  * # propParse
  */
 angular.module('spGuiApp')
-  .directive('propParse', function (spTalker, itemSvc) {
+  .directive('propParse', function (spTalker, itemSvc, itemListSvc) {
     return {
       require: 'ngModel',
       link: function postLink(scope, element, attrs, ngModel) {
         var thingAndStateVarMatchExp = /([\w]*\.[\w]*)/gi,
           thingMatchExp = /([\w]*)/i,
           stateVarMatchExp = /\.([\w]*)/i,
+          wordMatchExp = /\b[a-zA-Z0-9.]+\b/gi,
           guardOrAction = scope.guardOrAction;
 
         function namesToId(viewValue) {
           var internalCopy = angular.copy(viewValue),
             valid = true;
 
-          internalCopy = internalCopy.replace(thingMatchExp, function (thingAndStateVarString) {
-            var thingString = thingMatchExp.exec(thingAndStateVarString)[1];
-              //stateVarString = stateVarMatchExp.exec(thingAndStateVarString)[1];
-            var thing = spTalker.thingsByName[thingString.toLowerCase()];
-            if (typeof thing !== 'undefined') {
-              //if(typeof stateVarString !== 'undefined') {
-                var stateVar = thing;
-                /*var stateVar = thing.stateVariables.filter(function (aStateVar) {
-                  return aStateVar.name.toLowerCase() === stateVarString.toLowerCase();
-                })[0];*/
-                if (typeof stateVar !== 'undefined') {
-                  return stateVar.id;
-                } else {
-                  valid = false;
-                }
-              //} else {
-              //  valid = false;
-              //}
+          internalCopy = internalCopy.replace(wordMatchExp, function(word) {
+            var id;
+
+            if(thingAndStateVarMatchExp.test(word)) {
+              id = resolveDotSeparatedWords(word);
             } else {
-              valid = false;
+              id = resolveWord(word);
             }
-            return '';
+
+            if(id) {
+              return id;
+            } else {
+              return word;
+            }
+
+            function resolveWord(word) {
+              var thing = spTalker.thingsAndOpsByName[word.toLowerCase()];
+              if (typeof thing !== 'undefined') {
+                return thing.id;
+              }
+              return false;
+            }
+
+            function resolveDotSeparatedWords(dotSeparatedWords) {
+              var wordBeforeDot = thingMatchExp.exec(dotSeparatedWords)[1],
+                wordAfterDot = stateVarMatchExp.exec(dotSeparatedWords)[1];
+              var thing = spTalker.thingsAndOpsByName[wordBeforeDot.toLowerCase()];
+              if (typeof thing !== 'undefined') {
+                if(typeof wordAfterDot !== 'undefined') {
+                  var children = [];
+                  itemListSvc.getChildren(thing, children);
+                  var stateVar = children.filter(function (child) {
+                    return child.isa === 'Thing' && child.name.toLowerCase() === wordAfterDot.toLowerCase();
+                  })[0];
+                  if (typeof stateVar !== 'undefined') {
+                    return stateVar.id;
+                  }
+                }
+              }
+              valid = false;
+              return false;
+            }
+
           });
 
           if(valid) {
@@ -57,6 +79,7 @@ angular.module('spGuiApp')
           }
 
           return viewValue;
+
         }
 
         function parseTextAsAction(viewValue) {
@@ -65,7 +88,7 @@ angular.module('spGuiApp')
           for(var i = 0; i < words.length; i++) {
             var action = {};
             if(typeof words[i] === 'string' && words[i] !== '=') {
-              action.stateVariableID = words[i];
+              action.id = words[i];
             } else {
               valid = false;
               break;
@@ -100,12 +123,11 @@ angular.module('spGuiApp')
             .success(function (data) {
               if((_.has(data, 'error') ||  typeof data === 'string') && viewValue !== '') {
                 ngModel.$setValidity('propParse',false);
-                console.log(data)
               } else {
                 if(typeof viewValue === 'undefined' || viewValue === '') {
                   scope.condition['guard'] = {isa:'EQ', right: true, left: true}; // work-around to enable save of ops as long as backend doesn't accept anything else
                 } else {
-                  scope.condition['guard'] = data;
+                  scope.condition.guard = data;
                 }
                 ngModel.$setValidity('propParse',true);
               }

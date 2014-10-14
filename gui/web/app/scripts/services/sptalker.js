@@ -19,7 +19,7 @@ angular.module('spGuiApp')
       itemsRead: false,
       spSpecs: {},
       things: {},
-      thingsByName: {},
+      thingsAndOpsByName: {},
       item : $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'}),
       model: $resource(apiUrl + '/models/:model', { model: '@model' }),
       user: $resource(apiUrl + '/users', {}),
@@ -100,13 +100,15 @@ angular.module('spGuiApp')
   }
 
   function filterOutItems() {
-    emptyMaps([factory.things, factory.thingsByName, factory.spSpecs]);
+    emptyMaps([factory.things, factory.thingsAndOpsByName, factory.spSpecs]);
 
     for(var id in factory.items) {
       if (factory.items.hasOwnProperty(id)) {
-        if(factory.items[id].isa === 'Thing') {
-          factory.things[id] = factory.items[id];
-          factory.thingsByName[factory.items[id].name.toLowerCase()] = factory.items[id];
+        if(factory.items[id].isa === 'Thing' || factory.items[id].isa === 'Operation') {
+          factory.thingsAndOpsByName[factory.items[id].name.toLowerCase()] = factory.items[id];
+          if(factory.items[id].isa === 'Thing') {
+            factory.things[id] = factory.items[id];
+          }
         } else if(factory.items[id].isa === 'SPSpec') {
           factory.spSpecs[id] = factory.items[id];
         }
@@ -247,14 +249,15 @@ angular.module('spGuiApp')
 
   };
 
-  factory.createItem = function(type, successHandler, readyMadeItem, errorHandler) {
+  factory.createItem = function(type, successHandler, readyMadeItem, errorHandler, parent) {
     var newItem;
-    if(typeof readyMadeItem === 'undefined') {
+    if(typeof readyMadeItem === 'undefined' || !readyMadeItem) {
       newItem = new factory.item({
         isa : type,
         name : type + Math.floor(Math.random()*1000),
         attributes : {
-          children: []
+          children: [],
+          parent: parent.id
         }
       });
       if(type === 'Operation') {
@@ -298,40 +301,6 @@ angular.module('spGuiApp')
 
   factory.deleteItem = function(itemToDelete, notifySuccess) {
     var success = true;
-
-    /*// remove item from parent items
-    for(var id in factory.items) {
-      if(factory.items.hasOwnProperty(id)) {
-        if(factory.items[id].attributes.hasOwnProperty('children')) {
-          var index = factory.items[id].attributes.children.indexOf(itemToDelete.id);
-          if (index !== -1) {
-            factory.items[id].attributes.children.splice(index, 1);
-            factory.saveItem(factory.items[id], false);
-          }
-        }
-      }
-    }
-
-    removeItemFromModel();
-
-    function removeItemFromModel() {
-      var index = factory.activeModel.attributes.children.indexOf(itemToDelete.id);
-      if(index >= 0) {
-        factory.activeModel.attributes.children.splice(index, 1);
-        factory.activeModel.$save(
-          {modelID: factory.activeModel.model},
-          function() {
-            removeItemFromServer();
-          },
-          function(error) {
-            console.log(error);
-            success = false;
-          }
-        );
-      } else {
-        removeItemFromServer();
-      }
-    }*/
 
     removeItemFromServer();
 

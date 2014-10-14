@@ -12,27 +12,19 @@ angular.module('spGuiApp')
 
     var factory = {};
 
-    function getThingAndStateVarAsStringFromId(idSearchedFor) {
-      var matchingThingName = false, matchingStateVarName = '';
-      for(var id in spTalker.things) {
-        if(matchingThingName) {
-          break;
-        }
-        if(spTalker.things.hasOwnProperty(id)) {
-          spTalker.things[id].stateVariables.forEach(function(stateVariable) {
-            if(stateVariable.id === idSearchedFor) {
-              matchingStateVarName = stateVariable.name;
-              matchingThingName = spTalker.things[id].name;
-            }
-          })
-        }
+    function getNameFromId(id) {
+      var item = spTalker.items[id];
+      var parentToItem = spTalker.items[item.attributes.parent];
+      if(parentToItem === spTalker.activeModel || !parentToItem) {
+        return spTalker.items[id].name;
+      } else {
+        return parentToItem.name + '.' + spTalker.items[id].name
       }
-      return matchingThingName + '.' + matchingStateVarName;
     }
 
     function handleProp(prop) {
       if(prop.hasOwnProperty('id')) {
-        return getThingAndStateVarAsStringFromId(prop.id);
+        return getNameFromId(prop.id);
       } else if(prop.hasOwnProperty('isa')) {
         return '(' + factory.guardAsText(prop) + ')';
       } else {
@@ -79,8 +71,7 @@ angular.module('spGuiApp')
         if(i > 0) {
           textLine = textLine + '; ';
         }
-        textLine = textLine + spTalker.getItemById(action[i].stateVariableID).name + ' = ' + action[i].value;
-        //textLine = textLine + getThingAndStateVarAsStringFromId(action[i].stateVariableID) + ' = ' + action[i].value;
+        textLine = textLine + getNameFromId(action[i].id) + ' = ' + action[i].value;
       }
       return textLine;
     };

@@ -1,15 +1,15 @@
 <table class="table attr-table" ng-if="!edit">
-    <tr ng-repeat="cond in conditions | filter:emptyGuard">
+    <tr ng-repeat="cond in conditions | filter:emptyGuard" ng-init="guardAsText = itemSvc.guardAsText(cond.guard)">
       <td class="col-md-1"><span ng-if="$first">guard:</span></td>
       <td class="col-md-1"><span>{{cond.attributes.kind}}</span></td>
       <td class="col-md-1"><span>{{cond.attributes.group}}</span></td>
-      <td>{{itemSvc.guardAsText(cond.guard)}}</td>
+      <td>{{guardAsText}}</td>
     </tr>
-    <tr ng-repeat="cond in conditions">
+    <tr ng-repeat="cond in conditions" ng-init="actionAsText = itemSvc.actionAsText(cond.action)">
       <td><span ng-if="$first">action:</span></td>
       <td><span>{{cond.attributes.kind}}</span></td>
       <td><span>{{cond.attributes.group}}</span></td>
-      <td>{{itemSvc.actionAsText(cond.action)}}</td>
+      <td>{{actionAsText}}</td>
     </tr>
 </table>
 

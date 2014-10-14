@@ -7,7 +7,7 @@
  * # conditionSuggestions
  */
 angular.module('spGuiApp')
-  .directive('conditionSuggestions', function (spTalker, Textcomplete) {
+  .directive('conditionSuggestions', function (spTalker, Textcomplete, itemListSvc) {
     return {
       restrict: 'A',
       scope: {
@@ -43,18 +43,20 @@ angular.module('spGuiApp')
           return '';
         }
 
-        //document.getElementById(guardOrAction + 'Input-'+scope.item.id+'-'+scope.$index)
-
         function getStateVarSuggestions() {
           var caretPos = getCaretPosition(element[0]);
           var newThingStringBehindCursor = returnWord(scope.ngModel, caretPos);
           if(newThingStringBehindCursor !== lastThingStringBehindCursor) {
             lastThingStringBehindCursor = newThingStringBehindCursor;
-            var thingBehindCursor = spTalker.thingsByName[lastThingStringBehindCursor];
+            var thingBehindCursor = spTalker.thingsAndOpsByName[lastThingStringBehindCursor];
             stateVarSuggestions = [];
             if (typeof thingBehindCursor !== 'undefined') {
-              thingBehindCursor.stateVariables.forEach(function (stateVar) {
-                stateVarSuggestions.push(stateVar.name);
+              var children = [];
+              itemListSvc.getChildren(thingBehindCursor, children);
+              children.forEach(function (child) {
+                if(child.isa === 'Thing') {
+                  stateVarSuggestions.push(child.name);
+                }
               });
             }
           }
@@ -65,7 +67,7 @@ angular.module('spGuiApp')
           actionThingMatchExp = /(^|,\s)([\w\-]*)$/i,
           stateVarMatchExp = /(\w\.)([\w\-]*)$/i;
         function getThingSuggestions() {
-          return Object.keys(spTalker.thingsByName);
+          return Object.keys(spTalker.thingsAndOpsByName);
         }
 
         if(scope.guard) {
