@@ -13,18 +13,11 @@ var CreatemodelCtrl = function ($scope, $modalInstance, spTalker, notificationSe
   $scope.namePattern = NAME_PATTERN;
 
   $scope.saveModel = function(givenName) {
-    var newModel = new spTalker.model();
-    newModel.name = givenName;
-    newModel.attributes = { attributeTags: {}, children: [] };
-    newModel.$save(function(savedModel) {
-      notificationService.success('A new model \"' + savedModel.name + '\" was successfully created');
-      spTalker.models[savedModel.model] = savedModel;
-      spTalker.activeModel = savedModel;
-      $modalInstance.close(savedModel);
-    }, function() {
-      notificationService.error('The model creation failed.');
-    });
-    $scope.modelName = '';
+    function successHandler(createdModel) {
+      $scope.modelName = '';
+      $modalInstance.close(createdModel);
+    }
+    spTalker.createModel(givenName, successHandler);
   };
 
    $scope.dismiss = function () {

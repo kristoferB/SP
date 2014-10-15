@@ -19,24 +19,8 @@ angular.module('spGuiApp')
       itemsRead: false,
       spSpecs: {},
       things: {},
-      thingsAndOpsByName: {},
-      item : $resource(apiUrl + '/models/:model/items/:id', { model: '@model', id: '@id'}),
-      model: $resource(apiUrl + '/models/:model', { model: '@model' }),
-      user: $resource(apiUrl + '/users', {}),
-      operation: $resource(apiUrl + '/models/:model/operations', { model: '@model' }, {saveArray: {method: 'POST', isArray: true}}),
-      thing: $resource(apiUrl + '/models/:model/things/:thing', { model: '@model', thing: '@thing' })
+      thingsAndOpsByName: {}
     };
-
-  if(sessionStorage.activeModel) {
-    factory.activeModel = { loading: 'please wait' };
-    var model = angular.fromJson(sessionStorage.activeModel);
-    factory.model.get({model: model.model}, function(model) {
-      factory.activeModel = model;
-      factory.loadAll();
-    }, function(error) {
-      console.log(error);
-    });
-  }
 
   factory.getItemById = function(id) {
     return factory.items[id];
@@ -44,7 +28,14 @@ angular.module('spGuiApp')
 
   factory.getItemName = function(id) {
     var item =  factory.items[id];
-    return item.name
+    if(item) {
+      return item.name
+    }
+    var model = factory.models[id];
+    if(model) {
+      return model.name
+    }
+    return 'no name';
   };
 
   //TODO: Handle services in a general way. Retrieve possible services from server
@@ -80,14 +71,87 @@ angular.module('spGuiApp')
       }})
   };
 
-  factory.loadModels = function() {
-    factory.model.query(function(models) {
-      models.forEach(function(model) {
+  factory.createModel = function(name, successHandler) {
+    var newModel = {
+      name: name,
+      attributes: {
+        attributeTags: {},
+        children: []
+      }
+    };
+    $http.post(apiUrl + '/models', newModel).
+      success(function(model) {
+        notificationService.success('A new model \"' + model.name + '\" was successfully created');
         factory.models[model.model] = model;
+        if(successHandler) {
+          successHandler(model);
+        }
+      }).
+      error(function() {
+        notificationService.error('The model creation failed.');
       });
-    });
   };
-  factory.loadModels();
+
+  function loadModels() {
+    $http.get(apiUrl + '/models').
+      success(function(models) {
+        models.forEach(function(model) {
+          factory.models[model.model] = model;
+        });
+      });
+  }
+  loadModels();
+
+  factory.loadModel = function(id) {
+    $http.get(apiUrl + '/models/' + id).
+      success(function(model) {
+        factory.activeModel = model;
+        factory.loadAll();
+      });
+  };
+
+  if(sessionStorage.activeModel) {
+    factory.activeModel = { loading: 'please wait' };
+    var model = angular.fromJson(sessionStorage.activeModel);
+    factory.loadModel(model.model);
+  }
+
+  factory.saveModel = function(model, successHandler) {
+    $http.post(apiUrl + '/models/' + model.model, model).
+      success(function() {
+        if(successHandler) {
+          successHandler();
+        }
+      }).
+      error(function(error) {
+        console.log(error);
+        notificationService.error('An error occurred during save of the active model. Please see your browser console for details.');
+      })
+  };
+
+  factory.loadItems = function() {
+    $http.get(apiUrl + '/models/' + factory.activeModel.model + '/items').
+      success(function(items) {
+        Object.keys(factory.items).forEach(function(id) {
+          delete factory.items[id];
+        });
+        items.forEach(function(item) {
+          factory.items[item.id] = item;
+        });
+        updateItemLists();
+        factory.itemsRead = true;
+        $rootScope.$broadcast('itemsQueried');
+      });
+  };
+
+  function updateItemLists() {
+    filterOutItems();
+  }
+
+  factory.loadAll = function() {
+    loadModels();
+    factory.loadItems();
+  };
 
   function emptyMaps(mapsToEmpty) {
     for(var i = 0; i < mapsToEmpty.length; i++) {
@@ -101,7 +165,6 @@ angular.module('spGuiApp')
 
   function filterOutItems() {
     emptyMaps([factory.things, factory.thingsAndOpsByName, factory.spSpecs]);
-
     for(var id in factory.items) {
       if (factory.items.hasOwnProperty(id)) {
         if(factory.items[id].isa === 'Thing' || factory.items[id].isa === 'Operation') {
@@ -114,62 +177,34 @@ angular.module('spGuiApp')
         }
       }
     }
-
   }
-
-  function updateItemLists() {
-    filterOutItems();
-  }
-
-  factory.loadAll = function() {
-    factory.loadModels();
-    factory.item.query({model: factory.activeModel.model}, function(items) {
-      Object.keys(factory.items).forEach(function(id) {
-        delete factory.items[id];
-      });
-      items.forEach(function(item) {
-        factory.items[item.id] = item;
-      });
-      updateItemLists();
-      $timeout(function() {
-        $rootScope.$broadcast('itemsQueried');
-      });
-      factory.itemsRead = true;
-    });
-  };
 
   factory.saveItems = function(items, notifySuccess, successHandler) {
-    var success = true,
-      itemsArray = [];
+    var success = true;
     if(items instanceof Array) {
-      if(itemsArray.length === 0) {
+      if(items.length === 0) {
         notificationService.error('No items supplied to save.');
         return false;
-      }
-      itemsArray = items;
-    } else {
-      for(var id in items) {
-        if(items.hasOwnProperty(id)) {
-          itemsArray.push(items[id]);
-        }
       }
     }
     if(Object.keys(factory.activeModel).length === 0) {
       notificationService.error('No active model chosen.');
       return false;
     }
-    $http({method: 'POST', url: 'api/models/' + factory.activeModel.model + '/items', data: itemsArray})
-      .success(function(data) {
-        data.forEach( function(itemData) {
-          var item = factory.getItemById(itemData.id);
-          angular.copy(itemData, item);
-        });
+    $http({method: 'POST', url: 'api/models/' + factory.activeModel.model + '/items', data: items})
+      .success(function(savedItems) {
         if(notifySuccess) {
-          notificationService.success(itemsArray.length + ' items were successfully saved.');
+          if(savedItems.length === 0) {
+            notificationService.info('No changes found to save.');
+          } else if(savedItems.length === 1) {
+            notificationService.success(savedItems[0].isa + ' \"' + savedItems[0].name + '\" was successfully saved.');
+          } else {
+            notificationService.success(savedItems.length + ' items were successfully saved.');
+          }
         }
         updateItemLists();
         if(successHandler) {
-          successHandler(data);
+          successHandler(savedItems);
         }
       })
       .error(function(data) {
@@ -180,35 +215,10 @@ angular.module('spGuiApp')
     return success;
   };
 
-  factory.saveItem = function(item, showSuccessNotifications, successHandler) {
-    var success = true;
-    if(Object.keys(factory.activeModel).length === 0) {
-      notificationService.error('No active model chosen.');
-      return
-    }
-    if(typeof item === 'undefined' || Object.keys(item).length === 0) {
-      notificationService.error('No item chosen.');
-      return
-    }
-    item.$save(
-      {model: factory.activeModel.model, id: item.id},
-      function (data) {
-        if(showSuccessNotifications) {
-          notificationService.success(item.isa + ' \"' + item.name + '\" was successfully saved');
-        }
-        updateItemLists();
-        if(successHandler) {
-          successHandler(data);
-        }
-
-      },
-      function (error) {
-        notificationService.error(item.isa + ' ' + item.name + ' could not be saved.');
-        console.log(error);
-        success = false;
-      }
-    );
-    return success;
+  factory.saveItem = function(item, notifySuccess, successHandler) {
+    var items = [];
+    items.push(item);
+    factory.saveItems(items, notifySuccess, successHandler);
   };
 
   factory.svKindChange = function(sv, newItem) {
@@ -252,14 +262,16 @@ angular.module('spGuiApp')
   factory.createItem = function(type, successHandler, readyMadeItem, errorHandler, parent) {
     var newItem;
     if(typeof readyMadeItem === 'undefined' || !readyMadeItem) {
-      newItem = new factory.item({
+      newItem = {
         isa : type,
         name : type + Math.floor(Math.random()*1000),
         attributes : {
-          children: [],
-          parent: parent.id
+          children: []
         }
-      });
+      };
+      if(parent) {
+        newItem.attributes.parent = parent.id;
+      }
       if(type === 'Operation') {
         newItem.conditions = [{guard: {isa:'EQ', right: true, left: true}, action: [], attributes: {kind: 'pre', group: ''}}];
       } else if(type === 'Thing') {
@@ -277,59 +289,51 @@ angular.module('spGuiApp')
       newItem = readyMadeItem;
     }
 
-    newItem.$save(
-      {model:factory.activeModel.model},
-      function(data) {
-        factory.items[data.id] = data;
-        notificationService.success('A new ' + data.isa + ' with name ' + data.name + ' was successfully created.');
+    $http.post(apiUrl + '/models/' + factory.activeModel.model + '/items', newItem).
+      success(function(createdItem) {
+        factory.items[createdItem.id] = createdItem;
+        notificationService.success('A new ' + createdItem.isa + ' with name ' + createdItem.name + ' was successfully created.');
         updateItemLists();
         if(successHandler) {
-          successHandler(data);
+          successHandler(createdItem);
         } else {
           $rootScope.$broadcast('itemsQueried');
         }
-      },
-      function(error) {
+      }).
+      error(function(error) {
         console.log(error);
         notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.');
         if(errorHandler) {
           errorHandler(error);
         }
-      }
-    );
+      });
   };
 
   factory.deleteItem = function(itemToDelete, notifySuccess) {
     var success = true;
 
-    removeItemFromServer();
-
-    function removeItemFromServer() {
-      itemToDelete.$delete(
-        {model:factory.activeModel.model},
-        function(data) {
-          //delete factory.items[data.id];
-          if(notifySuccess) {
-            notificationService.success(data.isa + ' ' + data.name + ' was successfully deleted.');
-          }
-          //$rootScope.$broadcast('itemsQueried');
-          factory.loadAll();
-        },
-        function(error) {
-          console.log(error);
-          notificationService.error(itemToDelete.isa + ' ' + itemToDelete.name + ' could not be deleted from the server. Check your browser\'s error console for details.');
-          success = false;
+    $http.delete(apiUrl + '/models/' + factory.activeModel.model + '/items/' + itemToDelete.id).
+      success(function(deletedItem) {
+        if(notifySuccess) {
+          notificationService.success(deletedItem.isa + ' ' + deletedItem.name + ' was successfully deleted.');
         }
-      );
-    }
+        factory.loadAll();
+      }).
+      error(function(error) {
+        console.log(error);
+        notificationService.error(itemToDelete.isa + ' ' + itemToDelete.name + ' could not be deleted from the server. Check your browser\'s error console for details.');
+        success = false;
+      });
 
     return success;
   };
 
   factory.reReadFromServer = function(item) {
-    item.$get({model: factory.activeModel.model}, function() {
-      $rootScope.$broadcast('itemsQueried');
-    });
+    $http.get(apiUrl + '/models/' + factory.activeModel.model + '/items/' + item.id).
+      success(function(readItem) {
+        factory.items[readItem.id] = readItem;
+        $rootScope.$broadcast('itemsQueried');
+      });
   };
 
   /*$http.defaults.headers.common['Authorization'] = 'Basic ' + window.btoa('admin' + ':' + 'pass');

@@ -29,7 +29,7 @@ angular.module('spGuiApp')
       $scope.oneOrMoreItems = false;
       $scope.itemKinds = ITEM_KINDS;
       $scope.thisScope = $scope;
-      $scope.rootItem = spTalker.activeModel;
+      $scope.rootItem = false;
 
       var filtered;
 
@@ -40,12 +40,12 @@ angular.module('spGuiApp')
 
       $scope.getFilterAndOrderItems = function() {
         var children = [];
-        if($scope.rootItem === spTalker.activeModel) {
+        if($scope.rootItem) {
+          itemListSvc.getChildren($scope.rootItem, children);
+        } else {
           children = $.map(spTalker.items, function(value) {
             return [value];
           });
-        } else {
-          itemListSvc.getChildren($scope.rootItem, children);
         }
         filtered = $filter('filter')(children, itemFilter);
         $timeout(order);

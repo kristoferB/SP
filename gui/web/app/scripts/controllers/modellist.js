@@ -28,8 +28,8 @@
     $scope.setActiveModel = function (chosenModel) {
       spTalker.activeModel = chosenModel;
       sessionStorage.activeModel = angular.toJson(chosenModel);
-      spTalker.loadAll();
-      notificationService.success('Model ' + chosenModel.name + ' is now set as active.');
       $modalInstance.close();
+      spTalker.loadItems();
+      notificationService.success('Model ' + chosenModel.name + ' is now set as active.');
     };
   };

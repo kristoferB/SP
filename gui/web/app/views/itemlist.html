@@ -6,7 +6,7 @@
       </button>
       <ul class="dropdown-menu" role="menu">
         <li ng-repeat="itemKind in itemKinds"><a ng-click="itemListSvc.createItem(itemKind, rootItem, thisScope)" x-name="option">{{itemKind}}</a></li>
-        <li ng-if="rootItem === spTalker.activeModel"><a ng-click="itemListSvc.createItem('SPSpec', false, thisScope)" x-name="option">SPSpec</a></li>
+        <li ng-if="rootItem === false"><a ng-click="itemListSvc.createItem('SPSpec', false, thisScope)" x-name="option">SPSpec</a></li>
       </ul>
     </div>
     <div class="btn-group" dropdown is-open="status.isopen">
@@ -45,7 +45,7 @@
         <span class="glyphicon glyphicon-map-marker"></span> Root <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" role="menu">
-        <li><a ng-click="alterRootItem(spTalker.activeModel)" x-name="option">{{spTalker.activeModel.name}}</a></li>
+        <li><a ng-click="alterRootItem(false)" x-name="option">{{spTalker.activeModel.name}}</a></li>
         <li ng-repeat="(id, spSpec) in spTalker.spSpecs"><a ng-click="alterRootItem(spSpec)" x-name="option">{{spSpec.name}}</a></li>
       </ul>
     </div>

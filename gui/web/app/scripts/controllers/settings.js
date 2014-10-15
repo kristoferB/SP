@@ -18,20 +18,15 @@ angular.module('spGuiApp')
     };
 
     $scope.save = function () {
-      var success = true;
-      spTalker.activeModel.$save({modelID: spTalker.activeModel.model}, function(data) {}, function(error) {
-        console.log(error);
-        notificationService.error('An error occurred during save of the active model. Please see your browser console for details.');
-        success = false;
-      });
-      if(success) {
+      function successHandler() {
         $scope.close();
         notificationService.success('Settings saved.');
       }
+      spTalker.saveModel(spTalker.activeModel, successHandler);
     };
 
     $scope.reset = function() {
-      spTalker.activeModel.$get();
+      spTalker.loadModel(spTalker.activeModel.model);
     };
 
     $scope.close = function() {

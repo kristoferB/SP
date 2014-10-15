@@ -95,7 +95,7 @@ angular.module('spGuiApp')
 
     factory.createItem = function(type, parentItem, itemListScope) {
       function onItemCreationSuccess(data) {
-        if(type === 'SPSpec') {
+        if(type === 'SPSpec' || !parentItem) {
           $rootScope.$broadcast('itemsQueried');
         } else {
           if(typeof parentItem.attributes.children === 'undefined') {
