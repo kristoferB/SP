@@ -144,3 +144,32 @@ function convertDateStringsToDates(input) {
     }
   }
 }
+
+angular.module('spGuiApp').filter('filterElements', function () {
+  return function (input) {
+    var filteredInput ={};
+    angular.forEach(input, function(value, key){
+      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes' && key !== 'children' && key !== 'attributeTags' && key !== 'boolean' && key !== 'parent'){
+        filteredInput[key]= value;
+      }
+    });
+    return filteredInput;
+  }});
+
+angular.module('spGuiApp').filter('with', function() { // works on objects/maps like the built in 'filter' works on arrays
+  return function(items, search) {
+    var result = {};
+    angular.forEach(items, function(item, id) {
+      var valid = true;
+      angular.forEach(search, function(value, key) {
+        if (!item.hasOwnProperty(key) || item[key] !== value) {
+          valid = false;
+        }
+      });
+      if(valid) {
+        result[id] = item;
+      }
+    });
+    return result;
+  };
+});

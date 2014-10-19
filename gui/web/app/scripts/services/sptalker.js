@@ -26,6 +26,28 @@ angular.module('spGuiApp')
     return factory.items[id];
   };
 
+  factory.getItemsByIds = function(ids) {
+    var items = {};
+    if(typeof ids === 'Array') {
+      ids.forEach(function(id) {
+        handleID(id);
+      })
+    } else {
+      ids.forEach(function(value, id) {
+        handleID(id);
+      })
+    }
+
+    function handleID(id) {
+      var item = factory.getItemById(id);
+      if(item) {
+        items[id] = item;
+      }
+    }
+
+    return items;
+  };
+
   factory.getItemName = function(id) {
     var item =  factory.items[id];
     if(item) {
@@ -49,14 +71,16 @@ angular.module('spGuiApp')
       }})
   };
 
-  factory.findRelations = function(ops, initState) {
+  factory.findRelations = function(ops, initState, groups, goalState) {
     return $http({
       method: 'POST',
       url: 'api/services/Relations',
       data: {
         model: factory.activeModel.model,
         operations: ops,
-        initstate: initState
+        initstate: initState,
+        groups: groups,
+        goal: goalState
       }})
   };
 
@@ -76,7 +100,7 @@ angular.module('spGuiApp')
       name: name,
       attributes: {
         attributeTags: {},
-        children: []
+        conditionGroups: []
       }
     };
     $http.post(apiUrl + '/models', newModel).

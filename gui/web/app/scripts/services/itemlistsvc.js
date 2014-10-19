@@ -78,7 +78,6 @@ angular.module('spGuiApp')
     factory.saveItem = function(item, row) {
       spTalker.saveItem(item, true);
       row.edit = false;
-      row.infoIsCollapsed = true;
     };
 
     factory.reReadFromServer = function(item, row) {
@@ -119,7 +118,11 @@ angular.module('spGuiApp')
     };
 
     factory.addCondition = function(condArray) {
-      condArray.push({guard: {}, action: [], attributes: {kind: 'pre', group: ''}});
+      var group = '';
+      if(spTalker.activeModel.attributes.conditionGroups.length > 0) {
+        group = spTalker.activeModel.attributes.conditionGroups[0];
+      }
+      condArray.push({guard: {}, action: [], attributes: {kind: 'pre', group: group}});
     };
 
     factory.stopPropagation = function(e) {
@@ -152,14 +155,3 @@ angular.module('spGuiApp')
     return factory;
 
   }]);
-
-angular.module('spGuiApp').filter('filterElements', function () {
-  return function (input) {
-    var filteredInput ={};
-    angular.forEach(input, function(value, key){
-      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes' && key !== 'children' && key !== 'attributeTags' && key !== 'boolean' && key !== 'parent'){
-        filteredInput[key]= value;
-      }
-    });
-    return filteredInput;
-  }});

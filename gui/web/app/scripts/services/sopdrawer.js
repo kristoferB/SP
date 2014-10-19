@@ -16,9 +16,9 @@ angular.module('spGuiApp')
         'objToInsertInArray' : [],
         'objToInsertIn' : new Number(0),
         'indexToInsertAt' : new Number(0)
-      };
+    };
 
-    factory.calcAndDrawSop = function(sopSpecCopy, paper, firstLoop, doRedraw, dirScope, editable) {
+    factory.calcAndDrawSop = function(dirScope, paper, firstLoop, doRedraw) {
       measures = {
           'margin' : 15,
           'opH' : 50,
@@ -32,19 +32,20 @@ angular.module('spGuiApp')
           'nameLineHeight': 50
       };
 
-      sopSpecCopy.sop.forEach(function(sequence) {
+      dirScope.sopSpecCopy.sop.forEach(function(sequence) {
         unregisterDrawings(sequence, true);
       });
 
-      sopCalcer.makeIt(sopSpecCopy, measures);
+      sopCalcer.makeIt(dirScope, measures);
 
-      sopSpecCopy.sop.forEach(function(sequence) {
-        factory.drawSop(sequence, measures, paper, firstLoop, sopSpecCopy, doRedraw, dirScope, sequence, editable);
+      dirScope.sopSpecCopy.sop.forEach(function(sequence) {
+        factory.drawSop(sequence, measures, paper, firstLoop, doRedraw, dirScope, sequence);
       });
     };
 
     function unregisterDrawings(struct, justLines) {
       if(typeof struct.clientSideAdditions !== 'undefined') {
+
         if(typeof struct.clientSideAdditions.lines !== 'undefined') {
           struct.clientSideAdditions.lines.forEach(function(line) {
             if (typeof line.drawnLine !== 'undefined') {
@@ -56,6 +57,7 @@ angular.module('spGuiApp')
           });
           struct.clientSideAdditions.lines = [];
         }
+
         if(!justLines) {
           for(var propertyName in struct.clientSideAdditions) {
             if(struct.clientSideAdditions.hasOwnProperty(propertyName)) {
@@ -66,31 +68,34 @@ angular.module('spGuiApp')
           }
         }
       }
+
       for(var i = 0; i < struct.sop.length; i++) {
         unregisterDrawings(struct.sop[i], justLines);
       }
     }
 
     function drawConditions(struct, array, string, ystart, paper, measures) {
+      struct.clientSideAdditions[string] = [];
       for(var j = 0; j < array.length; j++) {
-        struct.clientSideAdditions[string + j] = paper.text(struct.clientSideAdditions.width / 2, ystart + measures.condLineHeight*j, array[j]);
-        struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions[string + j]);
-        struct.clientSideAdditions.setToDrag.push(struct.clientSideAdditions[string + j]);
-        struct.clientSideAdditions[string + j].toFront();
+        var condition = paper.text(struct.clientSideAdditions.width / 2, ystart + measures.condLineHeight*j, array[j]);
+        struct.clientSideAdditions[string].push(condition);
+        struct.clientSideAdditions.drawnSet.push(condition);
+        struct.clientSideAdditions.setToDrag.push(condition);
+        condition.toFront();
       }
       return j;
     }
 
-    factory.drawSop = function (struct, measures, paper, firstLoop, sopSpecCopy, doRedraw, dirScope, sequence, editable) {
+    factory.drawSop = function (struct, measures, paper, firstLoop, doRedraw, dirScope, sequence) {
       var animTime = measures.animTime;
       
       for ( var n in struct.sop) {
-        factory.drawSop(struct.sop[n], measures, paper, false, sopSpecCopy, doRedraw, dirScope, sequence, editable);
+        factory.drawSop(struct.sop[n], measures, paper, false, doRedraw, dirScope, sequence);
         if(struct.isa === 'Sequence') {
-          factory.drawLine(struct.clientSideAdditions.lines[n], measures, paper, struct, new Number(n)+1, 'red', sopSpecCopy, dirScope, editable); // Line after each op in sequence
+          factory.drawLine(struct.clientSideAdditions.lines[n], measures, paper, struct, new Number(n)+1, 'red', dirScope); // Line after each op in sequence
         } else {
-          factory.drawLine(struct.clientSideAdditions.lines[n], measures, paper, struct.sop[n], new Number(0), 'yellow', sopSpecCopy, dirScope, editable); // Line above each struct
-          factory.drawLine(struct.clientSideAdditions.lines2[n], measures, paper, struct.sop[struct.clientSideAdditions.lines2[n].subSopIndex], 'last', 'blue', sopSpecCopy, dirScope, editable); // Line after each struct
+          factory.drawLine(struct.clientSideAdditions.lines[n], measures, paper, struct.sop[n], new Number(0), 'yellow', dirScope); // Line above each struct
+          factory.drawLine(struct.clientSideAdditions.lines2[n], measures, paper, struct.sop[struct.clientSideAdditions.lines2[n].subSopIndex], 'last', 'blue', dirScope); // Line after each struct
         }
       }
       
@@ -107,18 +112,18 @@ angular.module('spGuiApp')
           struct.clientSideAdditions.drawnRect = paper.rect(0, 0, struct.clientSideAdditions.width, struct.clientSideAdditions.height, 5).attr({fill:'#FFFFFF', 'stroke-width':0});
           struct.clientSideAdditions.drawnText = paper.text(struct.clientSideAdditions.width / 2, (struct.clientSideAdditions.preGuards.length + struct.clientSideAdditions.preActions.length + 1) * measures.condLineHeight + (measures.nameLineHeight-measures.condLineHeight) / 2, op.name).attr({'font-weight': 'bold'});
 
-          if(editable) {
+          if(dirScope.windowStorage.editable) {
             var opContextMenu = {
               target: '#op-context-menu',
               onItem: function (context, e) {
                 if (e.target.getAttribute('id') === 'remove-op') {
                   factory.removeNode(struct, false);
-                  factory.calcAndDrawSop(sopSpecCopy, paper, true, false, dirScope, true);
+                  factory.calcAndDrawSop(dirScope, paper, true, false, true);
                   dirScope.$digest();
                 } else if (e.target.getAttribute('id') === 'remove-sequence') {
                   unregisterDrawings(sequence, false);
-                  sopSpecCopy.sop.splice(sopSpecCopy.sop.indexOf(sequence), 1);
-                  factory.calcAndDrawSop(sopSpecCopy, paper, true, false, dirScope, true);
+                  dirScope.sopSpecCopy.sop.splice(dirScope.sopSpecCopy.sop.indexOf(sequence), 1);
+                  factory.calcAndDrawSop(dirScope, paper, true, false, true);
                   dirScope.$digest();
                 }
                 e.preventDefault();
@@ -144,18 +149,18 @@ angular.module('spGuiApp')
             postLineYPos = postGuardYPos - measures.condLineHeight,
             postActionYPos = postGuardYPos + struct.clientSideAdditions.postGuards.length * measures.condLineHeight;
 
-          drawConditions(struct, struct.clientSideAdditions.preGuards, 'drawnPreGuard', preGuardYPos, paper, measures);
-          drawConditions(struct, struct.clientSideAdditions.preActions, 'drawnPreAction', preActionYPos, paper, measures);
-          drawConditions(struct, struct.clientSideAdditions.postGuards, 'drawnPostGuard', postGuardYPos, paper, measures);
-          drawConditions(struct, struct.clientSideAdditions.postActions, 'drawnPostAction', postActionYPos, paper, measures);
+          drawConditions(struct, struct.clientSideAdditions.preGuards, 'drawnPreGuards', preGuardYPos, paper, measures);
+          drawConditions(struct, struct.clientSideAdditions.preActions, 'drawnPreActions', preActionYPos, paper, measures);
+          drawConditions(struct, struct.clientSideAdditions.postGuards, 'drawnPostGuards', postGuardYPos, paper, measures);
+          drawConditions(struct, struct.clientSideAdditions.postActions, 'drawnPostActions', postActionYPos, paper, measures);
 
           struct.clientSideAdditions.drawnPreLine = paper.path('M0,' + preLineYPos + ' l' + struct.clientSideAdditions.width + ',0');
           struct.clientSideAdditions.drawnPostLine = paper.path('M0,' + postLineYPos + ' l' + struct.clientSideAdditions.width + ',0');
           struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnPreLine, struct.clientSideAdditions.drawnPostLine);
           struct.clientSideAdditions.setToDrag.push(struct.clientSideAdditions.drawnPreLine, struct.clientSideAdditions.drawnPostLine);
 
-          if(editable) {
-            factory.makeDraggable(struct.clientSideAdditions.setToDrag, struct.clientSideAdditions.x, struct.clientSideAdditions.y, struct, paper, sopSpecCopy, dirScope, measures, editable);
+          if(dirScope.windowStorage.editable) {
+            factory.makeDraggable(struct.clientSideAdditions.setToDrag, struct.clientSideAdditions.x, struct.clientSideAdditions.y, struct, paper, dirScope, measures);
           }
 
           struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnShadowSet);
@@ -165,20 +170,21 @@ angular.module('spGuiApp')
           if (struct.isa === 'Other') {
             struct.clientSideAdditions.drawnRect = paper.rect(0, 0, struct.clientSideAdditions.structMeasures.width, struct.clientSideAdditions.structMeasures.height).attr({'fill': '#D8D8D8', 'fill-opacity': 0.5, 'stroke': measures.commonLineColor, 'stroke-width': 0, 'rx': 10, 'ry': 10}).toBack();
             struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnRect);
-            if(editable) {
-              factory.makeDroppable(struct.drawnSet, false, struct, 0, false, sopSpecCopy, dirScope, paper, measures);
+            if(dirScope.windowStorage.editable) {
+              factory.makeDroppable(struct.drawnSet, false, struct, 0, false, dirScope, paper, measures);
             }
           } else if (struct.isa === 'Alternative') {
             struct.clientSideAdditions.drawnLine1 = paper.path('M ' + struct.clientSideAdditions.structMeasures.x11 + ' ' + struct.clientSideAdditions.structMeasures.y11 + ' l ' + struct.clientSideAdditions.structMeasures.x12 + ' ' + struct.clientSideAdditions.structMeasures.y12).attr({'stroke': measures.commonLineColor});
             struct.clientSideAdditions.drawnLine2 = paper.path('M ' + struct.clientSideAdditions.structMeasures.x21 + ' ' + struct.clientSideAdditions.structMeasures.y21 + ' l ' + struct.clientSideAdditions.structMeasures.x22 + ' ' + struct.clientSideAdditions.structMeasures.y22).attr({'stroke': measures.commonLineColor});
-            struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnLine1);
-            struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnLine2);
-            struct.clientSideAdditions.drawnShadow1 = paper.path('M ' + struct.clientSideAdditions.structMeasures.x11 + ' ' + struct.clientSideAdditions.structMeasures.y11 + ' l ' + struct.clientSideAdditions.structMeasures.x12 + ' ' + struct.clientSideAdditions.structMeasures.y12).attr({'stroke': '#FF0000', 'stroke-width': 10, 'opacity': 0});
-            struct.clientSideAdditions.drawnShadow2 = paper.path('M ' + struct.clientSideAdditions.structMeasures.x21 + ' ' + struct.clientSideAdditions.structMeasures.y21 + ' l ' + struct.clientSideAdditions.structMeasures.x22 + ' ' + struct.clientSideAdditions.structMeasures.y22).attr({'stroke': '#FF0000', 'stroke-width': 10, 'opacity': 0});
-            struct.clientSideAdditions.drawnShadowSet.push(struct.clientSideAdditions.drawnShadow1);
-            struct.clientSideAdditions.drawnShadowSet.push(struct.clientSideAdditions.drawnShadow2);
-            if(editable) {
-              factory.makeDroppable(struct.clientSideAdditions.drawnShadowSet, true, struct, 0, false, sopSpecCopy, dirScope, paper, measures);
+            struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnLine1, struct.clientSideAdditions.drawnLine2);
+            if(dirScope.sopSpecCopy.vertDir) {
+              struct.clientSideAdditions.drawnShadow = paper.rect(struct.clientSideAdditions.structMeasures.x11, struct.clientSideAdditions.structMeasures.y11, struct.clientSideAdditions.structMeasures.x12, struct.clientSideAdditions.structMeasures.y21).attr({fill: '#FF0000', opacity: 0});
+            } else {
+              struct.clientSideAdditions.drawnShadow = paper.rect(struct.clientSideAdditions.structMeasures.x11, struct.clientSideAdditions.structMeasures.y11, struct.clientSideAdditions.structMeasures.x21, struct.clientSideAdditions.structMeasures.y22).attr({fill: '#FF0000', opacity: 0});
+            }
+            struct.clientSideAdditions.drawnShadowSet.push(struct.clientSideAdditions.drawnShadow);
+            if(dirScope.windowStorage.editable) {
+              factory.makeDroppable(struct.clientSideAdditions.drawnShadowSet, true, struct, 0, false, dirScope, paper, measures);
             }
           } else if (struct.isa === 'Parallel' || struct.isa === 'Arbitrary') {
             struct.clientSideAdditions.drawnLine1 = paper.path('M 0 0 l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height).attr({'stroke': measures.commonLineColor});
@@ -189,11 +195,15 @@ angular.module('spGuiApp')
             if (struct.isa === 'Arbitrary') {
               struct.clientSideAdditions.drawnSet.attr({'stroke-dasharray': '- '});
             }
-            struct.clientSideAdditions.drawnShadow1 = paper.path('M ' + struct.clientSideAdditions.structMeasures.x51 + ' ' + struct.clientSideAdditions.structMeasures.y51 + ' l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height).attr({stroke: '#FF0000', 'stroke-width': 10, opacity: 0});
-            struct.clientSideAdditions.drawnShadow2 = paper.path('M ' + struct.clientSideAdditions.structMeasures.x61 + ' ' + struct.clientSideAdditions.structMeasures.y61 + ' l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height).attr({stroke: '#FF0000', 'stroke-width': 10, opacity: 0});
-            struct.clientSideAdditions.drawnShadowSet.push(struct.clientSideAdditions.drawnShadow1); struct.clientSideAdditions.drawnShadowSet.push(struct.clientSideAdditions.drawnShadow2);
-            if(editable) {
-              factory.makeDroppable(struct.clientSideAdditions.drawnShadowSet, true, struct, 0, false, sopSpecCopy, dirScope, paper, measures);
+            if(dirScope.sopSpecCopy.vertDir) {
+              struct.clientSideAdditions.drawnShadow = paper.rect(0, 0, struct.clientSideAdditions.structMeasures.width, struct.clientSideAdditions.structMeasures.y41).attr({fill: '#FF0000', opacity: 0});
+            } else {
+              struct.clientSideAdditions.drawnShadow = paper.rect(0, 0, struct.clientSideAdditions.structMeasures.x41, struct.clientSideAdditions.structMeasures.height).attr({fill: '#FF0000', opacity: 0});
+            }
+
+            struct.clientSideAdditions.drawnShadowSet.push(struct.clientSideAdditions.drawnShadow);
+            if(dirScope.windowStorage.editable) {
+              factory.makeDroppable(struct.clientSideAdditions.drawnShadowSet, true, struct, 0, false, dirScope, paper, measures);
             }
           }
 
@@ -218,8 +228,8 @@ angular.module('spGuiApp')
               var arrowAnim = Raphael.animation({opacity: 1}, 0);
               struct.clientSideAdditions.drawnArrow.animate(arrowAnim.delay(animTime));
               struct.clientSideAdditions.drawnArrow.attr({opacity: 0, path: struct.clientSideAdditions.arrow, transform: 'T' + struct.clientSideAdditions.x + ',' + struct.clientSideAdditions.y});
-              if(editable) {
-                factory.makeDraggable(struct.clientSideAdditions.setToDrag, struct.clientSideAdditions.x, struct.clientSideAdditions.y, struct, paper, sopSpecCopy, dirScope, measures);
+              if(dirScope.windowStorage.editable) {
+                factory.makeDraggable(struct.clientSideAdditions.setToDrag, struct.clientSideAdditions.x, struct.clientSideAdditions.y, struct, paper, dirScope, measures);
               }
               struct.clientSideAdditions.moved = 0;
               struct.clientSideAdditions.drawnSet.animate({transform: 'T' + struct.clientSideAdditions.x + ',' + struct.clientSideAdditions.y}, animTime);
@@ -227,17 +237,23 @@ angular.module('spGuiApp')
               if (struct.isa === 'Other') {
                 struct.clientSideAdditions.drawnRect.attr({width: struct.clientSideAdditions.structMeasures.width, height: struct.clientSideAdditions.structMeasures.height});
               } else if (struct.isa === 'Parallel' || struct.isa === 'Arbitrary') {
-                struct.clientSideAdditions.drawnLine1.attr({path: 'M 0 0 l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height});
-                struct.clientSideAdditions.drawnLine2.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x21 + ' ' + struct.clientSideAdditions.structMeasures.y21 + ' l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height});
-                struct.clientSideAdditions.drawnLine3.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x31 + ' ' + struct.clientSideAdditions.structMeasures.y31 + ' l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height});
-                struct.clientSideAdditions.drawnLine4.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x41 + ' ' + struct.clientSideAdditions.structMeasures.y41 + ' l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height});
-                struct.clientSideAdditions.drawnShadow1.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x51 + ' ' + struct.clientSideAdditions.structMeasures.y51 + ' l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height});
-                struct.clientSideAdditions.drawnShadow2.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x61 + ' ' + struct.clientSideAdditions.structMeasures.y61 + ' l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height});
+                if(dirScope.sopSpecCopy.vertDir) {
+                  struct.clientSideAdditions.drawnShadow.attr({x: 0, y: 0, width: struct.clientSideAdditions.structMeasures.width, height: struct.clientSideAdditions.structMeasures.y41}).toBack();
+                } else {
+                  struct.clientSideAdditions.drawnShadow.attr({x: 0, y: 0, width: struct.clientSideAdditions.structMeasures.x41, height: struct.clientSideAdditions.structMeasures.height}).toBack();
+                }
+                struct.clientSideAdditions.drawnLine1.attr({path: 'M 0 0 l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height}).toBack();
+                struct.clientSideAdditions.drawnLine2.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x21 + ' ' + struct.clientSideAdditions.structMeasures.y21 + ' l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height}).toBack();
+                struct.clientSideAdditions.drawnLine3.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x31 + ' ' + struct.clientSideAdditions.structMeasures.y31 + ' l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height}).toBack();
+                struct.clientSideAdditions.drawnLine4.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x41 + ' ' + struct.clientSideAdditions.structMeasures.y41 + ' l ' + struct.clientSideAdditions.structMeasures.width + ' ' + struct.clientSideAdditions.structMeasures.height}).toBack();
               } else if (struct.isa === 'Alternative') {
-                struct.clientSideAdditions.drawnLine1.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x11 + ' ' + struct.clientSideAdditions.structMeasures.y11 + ' l ' + struct.clientSideAdditions.structMeasures.x12 + ' ' + struct.clientSideAdditions.structMeasures.y12});
-                struct.clientSideAdditions.drawnLine2.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x21 + ' ' + struct.clientSideAdditions.structMeasures.y21 + ' l ' + struct.clientSideAdditions.structMeasures.x22 + ' ' + struct.clientSideAdditions.structMeasures.y22});
-                struct.clientSideAdditions.drawnShadow1.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x11 + ' ' + struct.clientSideAdditions.structMeasures.y11 + ' l ' + struct.clientSideAdditions.structMeasures.x12 + ' ' + struct.clientSideAdditions.structMeasures.y12});
-                struct.clientSideAdditions.drawnShadow2.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x21 + ' ' + struct.clientSideAdditions.structMeasures.y21 + ' l ' + struct.clientSideAdditions.structMeasures.x22 + ' ' + struct.clientSideAdditions.structMeasures.y22});
+                if(dirScope.sopSpecCopy.vertDir) {
+                  struct.clientSideAdditions.drawnShadow.attr({x: struct.clientSideAdditions.structMeasures.x11, y: struct.clientSideAdditions.structMeasures.y11, width: struct.clientSideAdditions.structMeasures.x12, height: struct.clientSideAdditions.structMeasures.y21}).toBack();
+                } else {
+                  struct.clientSideAdditions.drawnShadow.attr({x: struct.clientSideAdditions.structMeasures.x11, y: struct.clientSideAdditions.structMeasures.y11, width: struct.clientSideAdditions.structMeasures.x21, height: struct.clientSideAdditions.structMeasures.y22}).toBack();
+                }
+                struct.clientSideAdditions.drawnLine1.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x11 + ' ' + struct.clientSideAdditions.structMeasures.y11 + ' l ' + struct.clientSideAdditions.structMeasures.x12 + ' ' + struct.clientSideAdditions.structMeasures.y12}).toBack();
+                struct.clientSideAdditions.drawnLine2.attr({path: 'M ' + struct.clientSideAdditions.structMeasures.x21 + ' ' + struct.clientSideAdditions.structMeasures.y21 + ' l ' + struct.clientSideAdditions.structMeasures.x22 + ' ' + struct.clientSideAdditions.structMeasures.y22}).toBack();
               }
               struct.clientSideAdditions.drawnSet.forEach(
                 function (drawing) {
@@ -256,12 +272,12 @@ angular.module('spGuiApp')
       }
       
       if(firstLoop === true) {
-        factory.drawLine(struct.clientSideAdditions.lines[struct.clientSideAdditions.lines.length-1], measures, paper, struct, new Number(0), 'purple', sopSpecCopy, dirScope, editable);
+        factory.drawLine(struct.clientSideAdditions.lines[struct.clientSideAdditions.lines.length-1], measures, paper, struct, new Number(0), 'purple', dirScope);
       }
       
     };
 
-    factory.makeDroppable = function(drawnObjSet, shadow, objToInsertIn, indexToInsertAt, expectSequence, sopSpecCopy, dirScope, paper, measures, editable) {
+    factory.makeDroppable = function(drawnObjSet, shadow, objToInsertIn, indexToInsertAt, expectSequence, dirScope, paper, measures) {
 
       drawnObjSet.forEach( function(drawObj) {
         var enter = function(ev) {
@@ -282,7 +298,7 @@ angular.module('spGuiApp')
             if(isa === 'Hierarchy') {
               sopToInsert.operation = ev.dataTransfer.getData('id');
             }
-            factory.executeDrop(sopToInsert, sopSpecCopy, dirScope, paper, measures, false)
+            factory.executeDrop(sopToInsert, dirScope, paper, measures, false)
           };
 
         drawObj.node.addEventListener('dragenter', enter, false);
@@ -370,7 +386,7 @@ angular.module('spGuiApp')
       }
     };
 
-    factory.executeDrop = function(node, sopSpecCopy, dirScope, paper, measures, remove) {
+    factory.executeDrop = function(node, dirScope, paper, measures, remove) {
       var objToInsertInIndex = dragDropManager.droppable.node.getAttribute('objToInsertInIndex');
       dragDropManager.objToInsertIn = dragDropManager.objToInsertInArray[objToInsertInIndex];
       dragDropManager.indexToInsertAt = dragDropManager.droppable.node.getAttribute('indexToInsertAt');
@@ -381,7 +397,7 @@ angular.module('spGuiApp')
           factory.removeNode(node, true);
         }
         factory.insertNode(node, expectSequence);
-        factory.calcAndDrawSop(sopSpecCopy, paper, true, false, dirScope, true);
+        factory.calcAndDrawSop(dirScope, paper, true, false, true);
       }
       dirScope.$digest();
     };
@@ -412,7 +428,7 @@ angular.module('spGuiApp')
 
     };
     
-    factory.makeDraggable = function(drawObj, originalx, originaly, draggedSop, paper, allSops, dirScope, measures) {
+    factory.makeDraggable = function(drawObj, originalx, originaly, draggedSop, paper, dirScope, measures) {
       var
         within=false,
         lx = 0, 
@@ -437,7 +453,7 @@ angular.module('spGuiApp')
           if(dragDropManager.droppable) {
             ox = lx;
             oy = ly;
-            factory.executeDrop(draggedSop, allSops, dirScope, paper, measures, true);
+            factory.executeDrop(draggedSop, dirScope, paper, measures, true);
           } else {
             drawObj.animate({transform:'T' + ox + ',' + oy}, measures.animTime);
           }
@@ -465,21 +481,21 @@ angular.module('spGuiApp')
     
     };
     
-    factory.drawLine = function(line, measures, paper, objToInsertIn, indexToInsertAt, typeDependentLineColor, sopSpecCopy, dirScope, editable) {
+    factory.drawLine = function(line, measures, paper, objToInsertIn, indexToInsertAt, typeDependentLineColor, dirScope) {
       var tempSet = paper.set();
       
-      if(!sopSpecCopy.vertDir) { // Swap x1,y1 and x2,y2 if Horizontal direction
+      if(!dirScope.sopSpecCopy.vertDir) { // Swap x1,y1 and x2,y2 if Horizontal direction
         line.x1 = [line.y1, line.y1 = line.x1][0];
         line.x2 = [line.y2, line.y2 = line.x2][0];
       }
 
       if(typeof line.drawn === 'undefined') { // Draw
-        line.drawnLine = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({opacity:0, stroke:typeDependentLineColor}).toBack();
+        line.drawnLine = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({opacity: 0, stroke: measures.commonLineColor}).toBack();
         var lineAnim = Raphael.animation({opacity:1});
         line.drawnLine.animate(lineAnim.delay(measures.animTime));
-        line.drawnShadow = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({stroke:'#FF0000', 'stroke-width':30, opacity:0});
-        if(editable) {
-          factory.makeDroppable(tempSet.push(line.drawnShadow), true, objToInsertIn, indexToInsertAt, true, sopSpecCopy, dirScope, paper, measures);
+        line.drawnShadow = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({stroke: '#FF0000', 'stroke-width': 30, opacity: 0});
+        if(dirScope.windowStorage.editable) {
+          factory.makeDroppable(tempSet.push(line.drawnShadow), true, objToInsertIn, indexToInsertAt, true, dirScope, paper, measures);
         }
         /*dirScope.$watch(function() { // Animate on change
           return line.x1+line.y1+line.x2+line.y2;

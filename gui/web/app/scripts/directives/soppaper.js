@@ -21,8 +21,12 @@ angular.module('spGuiApp')
           scope.calcAndDrawSop(true);
         });
 
+        scope.$on('clearPaper', function() {
+          paper.clear();
+        });
+
         scope.calcAndDrawSop = function(newDraw) {
-          sopDrawer.calcAndDrawSop(scope.sopSpecCopy, paper, true, newDraw, scope, scope.windowStorage.editable);
+          sopDrawer.calcAndDrawSop(scope, paper, true, newDraw);
         };
 
         scope.$watch(

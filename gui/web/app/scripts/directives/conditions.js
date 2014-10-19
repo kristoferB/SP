@@ -7,7 +7,7 @@
  * # conditions
  */
 angular.module('spGuiApp')
-  .directive('conditions', function (itemSvc) {
+  .directive('conditions', function (itemSvc, spTalker) {
     return {
       templateUrl: 'views/conditions.html',
       restrict: 'E',
@@ -16,7 +16,7 @@ angular.module('spGuiApp')
         edit: '='
       },
       link: function(scope) {
-
+        scope.spTalker = spTalker;
         scope.guardModel = '';
         scope.guardInput = '';
         scope.actionModel = '';

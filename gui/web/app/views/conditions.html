@@ -28,7 +28,7 @@
     </tr>
     <tr>
       <td>group: </td>
-      <td><attr-grid attr-obj="condition.attributes" edit="edit" key="'group'"></attr-grid></td>
+      <td><select class="form-control input-sm" ng-model="condition.attributes.group" ng-options="group for group in spTalker.activeModel.attributes.conditionGroups"></select></td>
     </tr>
     <tr ng-init="guardOrAction = 'guard'">
       <td>guard: </td>

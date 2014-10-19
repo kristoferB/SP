@@ -10,6 +10,26 @@
           <attr-tag-grid style="display: block;" attr-tags-obj="spTalker.activeModel.attributes.attributeTags"></attr-tag-grid>
         </td>
       </tr>
+      <tr>
+        <td>Condition groups</td>
+        <td>
+          <table>
+            <tbody>
+              <tr ng-repeat="group in spTalker.activeModel.attributes.conditionGroups">
+                <td>{{group}}</td><td><button class="btn btn-sm btn-default" ng-click="removeConditionGroup(group)"><span class="glyphicon glyphicon-minus"></span></button></td>
+              </tr>
+              <tr>
+                <td colspan="2">
+                  <form class="form-inline" name="conditionGroupForm">
+                    <input class="form-control input-sm" required type="text" ng-model="newConditionGroup">
+                    <button class="btn btn-sm btn-default" ng-click="conditionGroupForm.$valid && addConditionGroup()"><span class="glyphicon glyphicon-plus"></span> Add</button>
+                  </form>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
     </tbody>
   </table>
 </div>

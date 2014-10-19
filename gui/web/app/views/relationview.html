@@ -1,17 +1,59 @@
 <div class="header">
   <div class="btn-toolbar" role="toolbar">
-    <button type="button" class="btn btn-default" ng-click="findrelations()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
+    <button type="button" class="btn btn-default" ng-click="findRelations()"><span class="glyphicon glyphicon-refresh"></span> Identify</button>
     <button type="button" class="btn btn-default" ng-click="getSOP()"><span class="glyphicon glyphicon-new-window"></span> sopViewer</button>
   </div> <!-- end of toolbar -->
 </div> <!-- end of header -->
 
 <div class="content">
   <div class="content-wrapper">
-      <div>{{soperror}}</div>
-      <div>The relations found:</div>
-      <div ng-repeat="sop in relations">
-          <div>{{sop.isa}}: {{getOpsFromSOP(sop)}} </div>
+
+      Operations
+      <div class="relation-item-table">
+        <table class="table">
+          <thead><tr><th style="width: 60px;">Select</th><th>Name</th></tr></thead>
+          <tbody>
+          <tr ng-repeat="(id, op) in spTalker.items | with: { isa: 'Operation' }" ng-class-odd="'odd-row'">
+            <td style="width: 60px;"><input type="checkbox" ng-model="opSelection[id]"></td><td>{{op.name}}</td>
+          </tr>
+          </tbody>
+        </table>
       </div>
+
+      Condition groups
+      <table class="table"><thead><tr><th style="width: 60px;">Select</th><th>Name</th></tr></thead></table>
+      <div class="relation-item-table">
+        <table class="table">
+          <tbody>
+          <tr ng-repeat="group in spTalker.activeModel.attributes.conditionGroups" ng-class-odd="'odd-row'">
+            <td style="width: 60px;"><input type="checkbox" ng-model="groupSelection[group]"></td><td>{{group}}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+
+      State variables
+      <div class="relation-item-table">
+        <table class="table">
+          <thead><tr><th style="width: 34%;">Name</th><th style="width: 33%;">Init</th><th style="width: 33%;">Goal</th></tr></thead>
+          <tbody>
+            <tr ng-repeat="(id, thing) in (things = (spTalker.items | with: { isa: 'Thing' }))" ng-class-odd="'odd-row'">
+              <!--<td><input type="checkbox" ng-model="thingSelection[id]"></td>-->
+              <td>{{thing.name}}</td>
+              <td><input class="form-control input-sm" type="text" ng-model="initState[id]"></td>
+              <td><input class="form-control input-sm" type="text" ng-model="goalState[id]"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+
+    <div>{{soperror}}</div>
+    <div>Found relations</div>
+    <div ng-repeat="sop in relations">
+        <div>{{sop.isa}}: {{getOpsFromSOP(sop)}}</div>
+    </div>
 
   </div> <!-- end of content-wrapper -->
 </div> <!-- end of content -->
