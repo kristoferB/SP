@@ -9,6 +9,10 @@ body {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
 }
 
+.table {
+    margin-bottom: 0;
+}
+
 /*** nav bar ***/
 
 .navbar {
@@ -95,6 +99,12 @@ body {
 
 .sop {
     float: left;
+}
+
+/*** relationIdent ***/
+
+.relation-item-table {
+    height: 130px;
 }
 
 /*** itemTable ***/
