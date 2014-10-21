@@ -2,7 +2,10 @@
   <tbody>
   <tr ng-if="items.length === 0"><td colspan="99">There are no items to show.</td></tr>
 
-  <tr ng-repeat-start="item in items track by item.id" scroll-if="row.edit === true" ng-click="item.attributes.isa !== 'StateVariable' && itemListSvc.expandChildren(row, true)" item-drag="{isa: 'Hierarchy', id: item.id}" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'" ng-init="row={dropdownOpen: false, loadChildren: false, edit: false, expandChildren: false, infoIsCollapsed: true, children: [] }; addItemExpandListener(item, row);">
+  <tr ng-repeat-start="item in items track by item.id" scroll-if="row.edit === true" ng-click="item.attributes.isa !== 'StateVariable' && itemListSvc.expandChildren(row, true)"
+      item-drag="{isa: 'Hierarchy', id: item.id}" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'"
+      ng-init="row={dropdownOpen: false, loadChildren: false, edit: false, expandChildren: false, infoIsCollapsed: true, children: [] }; addItemExpandListener(item, row);">
+
     <td class="checkbox-column"><input type="checkbox" ng-click="itemListSvc.stopPropagation($event)" ng-model="item.checked" ng-change="alterCheckedArray(item)" /></td>
     <td ng-repeat="column in selection">{{item[column]}}</td>
     <td ng-repeat="attrColumn in attrSelection">{{item['attributes'][attrColumn]}}</td>
@@ -12,7 +15,7 @@
       <button class="btn btn-xs btn-default" ng-click="itemForm.$valid && itemListSvc.saveItem(item, row); itemListSvc.stopPropagation($event);" ng-if="row.edit" type="submit"><span class="glyphicon glyphicon-floppy-disk"></span></button>
       <button class="btn btn-xs btn-default" ng-click="itemListSvc.reReadFromServer(item, row); itemListSvc.stopPropagation($event);" ng-if="row.edit" ><span class="glyphicon glyphicon-remove"></span></button>
       <button class="btn btn-xs btn-default" ng-click="itemListSvc.deleteItem(item); itemListSvc.stopPropagation($event);" ng-if="!row.edit"><span class="glyphicon glyphicon-remove"></span></button>
-      <button class="btn btn-xs btn-default" create-dropdown><span class="glyphicon glyphicon-plus"></span></button>
+      <button class="btn btn-xs btn-default" ng-if="!row.edit" create-dropdown><span class="glyphicon glyphicon-plus"></span></button>
     </td>
   </tr>
 
@@ -36,7 +39,7 @@
               <tr ng-repeat="(key, prop) in item | filterElements">
                 <td class="col-md-1" >{{key}}:</td>
                 <td class="col-md-9">
-                  <attr-grid attr-obj="item" key="key" edit="row.edit" add-window="addWindow"></attr-grid>
+                  <attr-grid attr-obj="item" key="key" edit="row.edit" add-window="addWindow" level=1></attr-grid>
                 </td>
               </tr>
 
@@ -45,7 +48,7 @@
                   <deleteable-key attr-obj="item.attributes" element="key" key="key" edit="row.edit"></deleteable-key>
                 </td>
                 <td class="col-md-9">
-                  <attr-grid key="key" attr-obj="item.attributes" edit="row.edit" add-window="addWindow"></attr-grid>
+                  <attr-grid key="key" attr-obj="item.attributes" edit="row.edit" add-window="addWindow" level=1></attr-grid>
                 </td>
               </tr>
 

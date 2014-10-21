@@ -28,7 +28,7 @@ angular.module('spGuiApp')
 
   factory.getItemsByIds = function(ids) {
     var items = {};
-    if(typeof ids === 'Array') {
+    if(typeof ids === 'Array' || ids instanceof Array) {
       ids.forEach(function(id) {
         handleID(id);
       })

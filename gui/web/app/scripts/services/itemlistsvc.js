@@ -83,7 +83,6 @@ angular.module('spGuiApp')
     factory.reReadFromServer = function(item, row) {
       spTalker.reReadFromServer(item);
       row.edit = false;
-      row.infoIsCollapsed = true;
     };
 
     factory.deleteItem = function(item) {

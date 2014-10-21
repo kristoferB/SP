@@ -14,13 +14,23 @@ angular.module('spGuiApp')
         attrObj : '=',
         edit: '=',
         key: '=',
-        addWindow: '='
+        addWindow: '=',
+        level: '='
       },
       templateUrl: 'views/attrgrid.html',
       controller: function($scope) {
         $scope.itemListSvc = itemListSvc;
         $scope.svKinds = SV_KINDS;
         $scope.spTalker = spTalker;
+
+        $scope.isNonEmptyArrayOrObj = function(attrVal) {
+          var type = $scope.getType(attrVal);
+          if(type === 'array') {
+            return attrVal.length > 0
+          } else if(type === 'object') {
+            return Object.keys(attrVal).length > 0
+          }
+        };
 
         $scope.addElementToArray = function(array) {
           array.push('');
