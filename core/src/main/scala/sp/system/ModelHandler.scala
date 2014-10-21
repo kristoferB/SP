@@ -21,7 +21,7 @@ class ModelHandler extends PersistentActor {
   private var viewMap: Map[String, ActorRef] = Map()
 
   def receiveCommand = {
-    case mess @ _ if {println(s"handler got: $mess from $sender"); false} => Unit
+    //case mess @ _ if {println(s"handler got: $mess from $sender"); false} => Unit
 
     case cm @ CreateModel(id, name, attr)=> {
       val reply = sender

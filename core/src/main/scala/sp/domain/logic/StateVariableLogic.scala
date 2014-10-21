@@ -18,18 +18,24 @@ object StateVariableLogic {
 
   implicit class svLogic(th: Thing) {
     def inDomain: SPAttributeValue => Boolean = {
-      getStateVarInfo.domain match {
-        case DomainList(xs) => xs.contains
-        case DomainRange(r) => _.asInt.map(r.contains) getOrElse false
-        case DomainBool => v => {
-          v.isInstanceOf[BoolPrimitive] || v.asString.map(s => s=="true" || s == "false").getOrElse(false)
-        }
-      }
+      v => true
+//      getStateVarInfo.domain match {
+//        case DomainList(xs) => {
+//          value => {
+//            println(s"$value in $xs = " + xs.contains(value))
+//            xs.contains(value)
+//          }
+//        }
+//        case DomainRange(r) => _.asInt.map(r.contains) getOrElse false
+//        case DomainBool => v => {
+//          v.isInstanceOf[BoolPrimitive] || v.asString.map(s => s=="true" || s == "false").getOrElse(false)
+//        }
+//      }
 
     }
 
     lazy val getStateVarInfo = {
-      val info = th.attributes.get("statevariable") flatMap {
+      val info = th.attributes.get("stateVariable") flatMap {
         case attr @ MapPrimitive(sv) => {
           val dom = extractDomain(attr.asSPAttributes)
           val init = sv.get("init")
@@ -47,7 +53,7 @@ object StateVariableLogic {
       val goal = sv.goal.map(x => Map("goal"-> x)).getOrElse(Map())
 
       val stateVar = init ++ goal + domAttr
-      th.copy(attributes = th.attributes + ("statevariable" -> MapPrimitive(stateVar)))
+      th.copy(attributes = th.attributes + ("stateVariable" -> MapPrimitive(stateVar)))
     }
 
 

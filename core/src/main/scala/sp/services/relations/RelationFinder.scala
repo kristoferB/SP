@@ -27,6 +27,10 @@ class RelationFinder extends Actor with RelationFinderAlgotithms {
   def receive = {
     case FindRelations(ops, svs, init, groups, itr, goal) => {
       implicit val setup = Setup(ops, svs, groups, init, goal)
+      println(s"init: $init")
+      println(s"goal: $goal")
+      println(s"groups: $groups")
+      ops.foreach(o => println(o.name + " " + o.id + " " + o.conditions))
       val sm = findWhenOperationsEnabled(itr)
       val res = findOperationRelations(sm)
       sender ! res
@@ -80,6 +84,9 @@ trait RelationFinderAlgotithms {
     @tailrec
     def req(ops: IndexedSeq[Operation], s: State, seq: IndexedSeq[Operation], stateMap: Map[State, IndexedSeq[Operation]]): SeqResult = {
       val enabled = ops.filter(o => o.eval(s))
+//      println(s"ENABLED: ${ops}")
+//      println(s"STATE: ${s} = ${goal(s)}")
+
       if (enabled.isEmpty || goal(s)){
         SeqResult(seq.reverse toList, s, stateMap)
       }
@@ -156,6 +163,7 @@ trait RelationFinderAlgotithms {
   }
 
   //TODO: Fix to match three state as well
+  // TODO: Temporary disabled sometimeSeq
   val opi = Set("i")
   val opf = Set("f")
   val opif = Set("i", "f")
@@ -167,8 +175,8 @@ trait RelationFinderAlgotithms {
     if (pre ==(opi, opi)) Alternative(o1, o2)
     else if (pre ==(opi, opf)) Sequence(o1, o2)
     else if (pre ==(opf, opi)) Sequence(o2, o1)
-    else if (pre ==(opif, opf)) SometimeSequence(o2, o1)
-    else if (pre ==(opi, opif)) SometimeSequence(o1, o2)
+    else if (pre ==(opif, opf)) Sequence(o2, o1) //SometimeSequence(o2, o1)
+    else if (pre ==(opi, opif)) Sequence(o1, o2) //SometimeSequence(o1, o2)
     else if (pre ==(opif, opif)) Parallel(o1, o2)
     else Other(o1, o2)
   }

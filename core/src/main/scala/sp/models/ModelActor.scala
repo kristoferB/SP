@@ -17,9 +17,9 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
   import context.dispatcher
 
   def receiveCommand = {
-    case mess @ _ if {println(s"model got: $mess from $sender"); false} => Unit
+    //case mess @ _ if {println(s"model got: $mess from $sender"); false} => Unit
     case upd @ UpdateIDs(m, v, ids) => {
-      println(s"update me: $upd")
+      //println(s"update me: $upd")
       val reply = sender
       createDiffUpd(ids, v) match {
         case Right(diff) => {

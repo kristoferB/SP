@@ -153,7 +153,7 @@ trait ModelAPI extends SPApiHelpers {
 
 
   private def callSP(mess: Any, matchReply: PartialFunction[Any, Route] = {PartialFunction.empty}) = {
-    println(s"Sending from route: $mess")
+    //println(s"Sending from route: $mess")
     onSuccess(modelHandler ? mess){evalReply{matchReply}}
   }
 
@@ -230,7 +230,6 @@ trait ServiceAPI extends SPApiHelpers {
           val file = value.get("file") map { f =>
             val fileAsString = f.entity.asString
             val nameAsString = f.filename
-            println(s"filename $nameAsString")
             val attr = Attr("file" -> fileAsString, "name"-> SPAttributeValue(nameAsString))
             callSP(Request(service, attr), {
               case s: String => complete(s)

@@ -70,15 +70,26 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
 
                   import sp.domain.logic.StateVariableLogic._
                   val stateVarsMap = svs.map(sv => sv.id -> sv.inDomain).toMap ++ createOpsStateVars(ops)
-                  val goalfunction: State => Boolean = if (goal == None) (s: State) => false else (s: State) => {
-                    val g = goal.get
-                    g.state.forall{case (sv, value) => s(sv) == value}
+                  val goalState = goal.getOrElse(State(Map()))
+                  val goalfunction: State => Boolean = (s: State) => {
+                    goalState.state.nonEmpty &&
+                      goalState.state.forall{case (sv, value) => s(sv) == value}
                   }
 
+                  println(s"GOAL STATE: $goal")
+                  println(s"conditions from spec $condMap")
+
+                  val temp = IDPrimitive(ID.newID)
                   val filterCondMap = condMap.map { case (id, conds) =>
-                    val filtered = if (groups.isEmpty) conds else conds.filter(c => groups.contains(c.attributes.getAsString("group")))
+                    val filtered = if (groups.isEmpty) conds else conds.filter(c => {
+                      val group = c.attributes.get("group").getOrElse(temp)
+                      groups.contains(group) || group == temp
+                    })
                     id -> filtered
                   }
+
+                  println(s"filterCondMap $filterCondMap")
+
                   val updatedOps = ops.map{ o =>
                     val updatedConds = filterCondMap.getOrElse(o.id, List[Condition]()) ++ o.conditions
                     o.copy(conditions = updatedConds)

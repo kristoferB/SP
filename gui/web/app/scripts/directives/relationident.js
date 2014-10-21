@@ -66,7 +66,7 @@ angular.module('spGuiApp')
             var goalValue = false;
             if(scope.goalState[id] && scope.goalState[id] !== '')
               goalValue = scope.goalState[id];
-            goalState.push({id: id, goal: goalValue });
+            goalState.push({id: id, value: goalValue });
           });
 
           if(operations.length === 0) {
