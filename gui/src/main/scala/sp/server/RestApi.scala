@@ -11,6 +11,7 @@ import akka.util.Timeout
 import akka.actor._
 import akka.pattern.ask
 import scala.concurrent.duration._
+import spray.httpx.encoding._
 
 
 
@@ -25,10 +26,7 @@ import scala.concurrent.duration._
 
 
 
-  import spray.httpx.SprayJsonSupport._
-  import spray.json._
-  import sp.json.SPJson._
-  import spray.httpx.encoding._
+
 
 
 
@@ -67,7 +65,7 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
     encodeResponse(Gzip) {
       pathPrefix("models"){ modelapi } ~
       pathPrefix("runtimes"){ runtimeapi } ~
-      pathPrefix("services") { serviceapi } //~
+      pathPrefix("services") { serviceapi }  //~
 //      path("users") {
 //        get {
 //          callSP(GetUsers, {
@@ -91,6 +89,11 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
     }
   }
 }
+
+
+import spray.httpx.SprayJsonSupport._
+import spray.json._
+import sp.json.SPJson._
 
 
 
@@ -221,6 +224,25 @@ trait ServiceAPI extends SPApiHelpers {
     /{ get { complete{
       (serviceHandler ? GetServices).mapTo[List[String]]
     }}} ~
+    path(Segment / "import") { service =>
+      post {
+        entity(as[spray.http.MultipartFormData]){ value =>
+          val file = value.get("file") map { f =>
+            val fileAsString = f.entity.asString
+            val nameAsString = f.filename
+            println(s"filename $nameAsString")
+            val attr = Attr("file" -> fileAsString, "name"-> SPAttributeValue(nameAsString))
+            callSP(Request(service, attr), {
+              case s: String => complete(s)
+            })
+          }
+          file match {
+            case Some(r) => r
+            case None => complete(SPErrorString("Could not find a file in the body: " + value))
+          }
+        }
+      }
+    } ~
     pathPrefix(Segment){ service =>
       post { entity(as[SPAttributes]) { attr =>
         callSP(Request(service, attr), {

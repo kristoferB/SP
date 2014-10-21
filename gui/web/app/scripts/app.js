@@ -18,7 +18,8 @@ angular
     'ui.sortable',
     'jlareau.pnotify',
     'ui.bootstrap',
-    'ngTextcomplete'
+    'ngTextcomplete',
+    'angularFileUpload'
   ])
   .directive('input', ['$filter',
     function($filter) {

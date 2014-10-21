@@ -34,6 +34,10 @@ object SP extends App {
   serviceHandler ! RegisterService("ConditionsFromSpecsService",
     system.actorOf(ConditionsFromSpecsService.props(modelHandler), "ConditionsFromSpecsService"))
 
+  import sp.areus._
+  serviceHandler ! RegisterService("DelmiaV5Service",
+    system.actorOf(DelmiaV5Service.props(modelHandler), "DelmiaV5Service"))
+
 
   // launch REST API
   sp.server.LaunchGUI.launch

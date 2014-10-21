@@ -2,6 +2,7 @@
   "name": "sp-gui",
   "version": "0.0.0",
   "dependencies": {
+    "ng-file-upload-shim": "~1.6.12",
     "angular": "1.2.24",
     "json3": "~3.3.1",
     "es5-shim": "~3.1.0",
@@ -19,7 +20,8 @@
     "ng-grid": "~2.0.11",
     "ng-textcomplete": "~0.5.0",
     "bootstrap-contextmenu": "~0.2.0",
-    "underscore": "~1.7.0"
+    "underscore": "~1.7.0",
+    "ng-file-upload": "~1.6.12"
   },
   "devDependencies": {
     "angular-mocks": "1.2.24",

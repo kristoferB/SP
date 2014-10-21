@@ -1,0 +1,822 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<OLPData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="D:\Apps\DassaultSystemes\B19\win_b64\startup\Olp\XSchemas\Upload.xsd">
+    <Resource ResourceType="Robot" id="_969752288">
+        <GeneralInfo>
+            <ResourceName>irb6700_270_270_MH.1</ResourceName>
+            <MaxSpeed Units="m/s">1.5</MaxSpeed>
+            <NumberOfRobotAxes>6</NumberOfRobotAxes>
+            <NumberOfAuxiliaryAxes>0</NumberOfAuxiliaryAxes>
+            <NumberOfExternalAxes>0</NumberOfExternalAxes>
+            <NumberOfPositionerAxes>0</NumberOfPositionerAxes>
+            <DownloadCoordinates>RobotBase</DownloadCoordinates>
+            <SelectPartsOnUpload>false</SelectPartsOnUpload>
+            <Platform>Windows</Platform>
+        </GeneralInfo>
+        <Controller>
+            <ToolProfileList>
+                <CurrentToolProfile>Default</CurrentToolProfile>
+                <ToolProfile>
+                    <Name>Default</Name>
+                    <ToolType>OnRobot</ToolType>
+                    <TCPOffset>
+                        <TCPPosition Units="m" X="0" Y="0" Z="0"/>
+                        <TCPOrientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </TCPOffset>
+                    <Mass MassValue="0" Units="kg"/>
+                    <Centroid>
+                        <CentroidPosition Cx="0" Cy="0" Cz="0" Units="m"/>
+                    </Centroid>
+                    <Inertia Ixx="0" Ixy="0" Iyy="0" Iyz="0" Izx="0" Izz="0" Units="kg-m^2"/>
+                </ToolProfile>
+            </ToolProfileList>
+            <MotionProfileList>
+                <CurrentMotionProfile>Default</CurrentMotionProfile>
+                <MotionProfile>
+                    <Name>Default</Name>
+                    <MotionBasis>Percent</MotionBasis>
+                    <Speed Units="%" Value="50"/>
+                    <Accel Units="%" Value="100"/>
+                    <AngularSpeedValue Units="%" Value="100"/>
+                    <AngularAccelValue Units="%" Value="100"/>
+                </MotionProfile>
+            </MotionProfileList>
+            <AccuracyProfileList>
+                <CurrentAccuracyProfile>Default</CurrentAccuracyProfile>
+                <AccuracyProfile>
+                    <Name>Default</Name>
+                    <FlyByMode>Off</FlyByMode>
+                    <AccuracyType>Speed</AccuracyType>
+                    <AccuracyValue Units="%" Value="0"/>
+                </AccuracyProfile>
+            </AccuracyProfileList>
+            <ObjectFrameProfileList>
+                <CurrentObjectFrameProfile>Default</CurrentObjectFrameProfile>
+                <ObjectFrameProfile ApplyOffsetToTags="Off">
+                    <Name>Default</Name>
+                    <ObjectFrame ReferenceFrame="World">
+                        <ObjectFramePosition Units="m" X="0" Y="0" Z="0"/>
+                        <ObjectFrameOrientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </ObjectFrame>
+                </ObjectFrameProfile>
+                <ObjectFrameProfile ApplyOffsetToTags="Off">
+                    <Name>W4711_uframe</Name>
+                    <ObjectFrame ReferenceFrame="World">
+                        <ObjectFramePosition Units="m" X="0.6262457733" Y="-1.005811539" Z="0"/>
+                        <ObjectFrameOrientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </ObjectFrame>
+                </ObjectFrameProfile>
+                <ObjectFrameProfile ApplyOffsetToTags="Off">
+                    <Name>W4711</Name>
+                    <ObjectFrame ReferenceFrame="World">
+                        <ObjectFramePosition Units="m" X="1.059099276" Y="-0.6319290237" Z="0"/>
+                        <ObjectFrameOrientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </ObjectFrame>
+                </ObjectFrameProfile>
+            </ObjectFrameProfileList>
+        </Controller>
+        <ParameterList/>
+        <ActivityList Task="Schedule_A">
+            <AttributeList/>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_963664064">
+                <ActivityName>CallTask.1</ActivityName>
+                <CallName>Seg1_2</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_969757568">
+                <ActivityName>CallTask.2</ActivityName>
+                <CallName>Seg2</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_969758688">
+                <ActivityName>CallTask.3</ActivityName>
+                <CallName>Seg3</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_969793536">
+                <ActivityName>CallTask.4</ActivityName>
+                <CallName>Seg4</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_969759808">
+                <ActivityName>CallTask.5</ActivityName>
+                <CallName>Seg5</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_969760256">
+                <ActivityName>CallTask.6</ActivityName>
+                <CallName>Seg6</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+        </ActivityList>
+        <ActivityList Task="Schedule_B">
+            <AttributeList/>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_969854240">
+                <ActivityName>CallTask.1</ActivityName>
+                <CallName>Seg1_2</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_969770080">
+                <ActivityName>CallTask.2</ActivityName>
+                <CallName>Seg2</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_969770976">
+                <ActivityName>CallTask.3</ActivityName>
+                <CallName>Seg3</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+        </ActivityList>
+        <ActivityList Task="Schedule_C">
+            <AttributeList/>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_969774624">
+                <ActivityName>CallTask.1</ActivityName>
+                <CallName>Seg1_2</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_969776416">
+                <ActivityName>CallTask.2</ActivityName>
+                <CallName>Seg2</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_962412256">
+                <ActivityName>CallTask.8</ActivityName>
+                <CallName>VIA_Seg02_Seg04</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_962123296">
+                <ActivityName>CallTask.4</ActivityName>
+                <CallName>Seg4</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_962121728">
+                <ActivityName>CallTask.6</ActivityName>
+                <CallName>Seg6</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+        </ActivityList>
+        <ActivityList Task="Schedule_D">
+            <AttributeList/>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_962344032">
+                <ActivityName>CallTask.1</ActivityName>
+                <CallName>Seg1_2</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBIgpCallRobotTask" id="_962345824">
+                <ActivityName>CallTask.5</ActivityName>
+                <CallName>Seg5</CallName>
+                <DownloadStyle>Subroutine</DownloadStyle>
+                <AttributeList/>
+            </Activity>
+        </ActivityList>
+        <ActivityList Task="Seg1_2">
+            <AttributeList/>
+            <Activity ActivityType="DNBRobotMotionActivity" Operation="SWP2" id="_962127616">
+                <OperationAttributeList/>
+                <ActivityName>RobotMotion.1</ActivityName>
+                <MotionAttributes>
+                    <MotionProfile>Default</MotionProfile>
+                    <ToolProfile>Default</ToolProfile>
+                    <AccuracyProfile>Default</AccuracyProfile>
+                    <ObjectFrameProfile>Default</ObjectFrameProfile>
+                    <MotionType>Joint</MotionType>
+                </MotionAttributes>
+                <Target Default="Cartesian" ViaPoint="false">
+                    <BaseWRTWorld>
+                        <Position Units="m" X="0" Y="0" Z="0"/>
+                        <Orientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </BaseWRTWorld>
+                    <CartesianTarget Status="WithinReach">
+                        <Position Units="m" X="1.9239836" Y="-0.3978797912" Z="1.991069963"/>
+                        <Orientation Pitch="121.2650479" Roll="18.0299194" Units="deg" Yaw="15.54795328"/>
+                        <Config Name="Config_1"/>
+                        <Tag TagGroup="TagGroup1.1">SWP2</Tag>
+                    </CartesianTarget>
+                    <JointTarget>
+                        <Joint DOFNumber="1" JointName="Joint 1" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-170.0000156" Status="WithinReach"
+                                        UpperTravelLimit="170.0000156">-14.00771364
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="2" JointName="Joint 2" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-64.99977003" Status="WithinReach"
+                                        UpperTravelLimit="85.00000778">4.642496381
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="3" JointName="Joint 3" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-180.0000771" Status="WithinReach"
+                                        UpperTravelLimit="69.9999727">-7.482430091
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="4" JointName="Joint 4" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-300.0001286" Status="WithinReach"
+                                        UpperTravelLimit="300.0001286">21.1792316
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="5" JointName="Joint 5" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-120.0002806" Status="WithinReach"
+                                        UpperTravelLimit="120.0002806">35.46561559
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="6" JointName="Joint 6" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-217.8430344" Status="WithinReach"
+                                        UpperTravelLimit="218.893048">-33.86818053
+                            </JointValue>
+                        </Joint>
+                    </JointTarget>
+                </Target>
+                <AttributeList/>
+            </Activity>
+        </ActivityList>
+        <ActivityList Task="Seg2">
+            <AttributeList/>
+            <Activity ActivityType="DNBRobotMotionActivity" Operation="SWP3" id="_963441536">
+                <OperationAttributeList/>
+                <ActivityName>RobotMotion.7</ActivityName>
+                <MotionAttributes>
+                    <MotionProfile>Default</MotionProfile>
+                    <ToolProfile>Default</ToolProfile>
+                    <AccuracyProfile>Default</AccuracyProfile>
+                    <ObjectFrameProfile>Default</ObjectFrameProfile>
+                    <MotionType>Joint</MotionType>
+                </MotionAttributes>
+                <Target Default="Cartesian" ViaPoint="false">
+                    <BaseWRTWorld>
+                        <Position Units="m" X="0" Y="0" Z="0"/>
+                        <Orientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </BaseWRTWorld>
+                    <CartesianTarget Status="WithinReach">
+                        <Position Units="m" X="1.93086049" Y="-0.4823883637" Z="2.002981023"/>
+                        <Orientation Pitch="121.2650427" Roll="18.02990643" Units="deg" Yaw="15.54793811"/>
+                        <Config Name="Config_1"/>
+                        <Tag TagGroup="TagGroup1.1">SWP3</Tag>
+                    </CartesianTarget>
+                    <JointTarget>
+                        <Joint DOFNumber="1" JointName="Joint 1" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-170.0000156" Status="WithinReach"
+                                        UpperTravelLimit="170.0000156">-16.76016827
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="2" JointName="Joint 2" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-64.99977003" Status="WithinReach"
+                                        UpperTravelLimit="85.00000778">6.271352733
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="3" JointName="Joint 3" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-180.0000771" Status="WithinReach"
+                                        UpperTravelLimit="69.9999727">-9.82812392
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="4" JointName="Joint 4" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-300.0001286" Status="WithinReach"
+                                        UpperTravelLimit="300.0001286">24.40179176
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="5" JointName="Joint 5" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-120.0002806" Status="WithinReach"
+                                        UpperTravelLimit="120.0002806">37.19174671
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="6" JointName="Joint 6" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-217.4495057" Status="WithinReach"
+                                        UpperTravelLimit="218.4880483">-37.67662821
+                            </JointValue>
+                        </Joint>
+                    </JointTarget>
+                </Target>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBRobotMotionActivity" Operation="SWP3.1" id="_962363616">
+                <OperationAttributeList/>
+                <ActivityName>RobotMotion.9</ActivityName>
+                <MotionAttributes>
+                    <MotionProfile>Default</MotionProfile>
+                    <ToolProfile>Default</ToolProfile>
+                    <AccuracyProfile>Default</AccuracyProfile>
+                    <ObjectFrameProfile>Default</ObjectFrameProfile>
+                    <MotionType>Joint</MotionType>
+                </MotionAttributes>
+                <Target Default="Cartesian" ViaPoint="true">
+                    <BaseWRTWorld>
+                        <Position Units="m" X="0" Y="0" Z="0"/>
+                        <Orientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </BaseWRTWorld>
+                    <CartesianTarget Status="WithinReach">
+                        <Position Units="m" X="1.943328805" Y="-0.5057023577" Z="2.024576566"/>
+                        <Orientation Pitch="121.2650415" Roll="18.02990356" Units="deg" Yaw="15.54793475"/>
+                        <Config Name="Config_1"/>
+                        <Tag TagGroup="TagGroup1.1">VIA1</Tag>
+                    </CartesianTarget>
+                    <JointTarget>
+                        <Joint DOFNumber="1" JointName="Joint 1" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-170.0000156" Status="WithinReach"
+                                        UpperTravelLimit="170.0000156">-17.39451952
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="2" JointName="Joint 2" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-64.99977003" Status="WithinReach"
+                                        UpperTravelLimit="85.00000778">7.514937514
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="3" JointName="Joint 3" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-180.0000771" Status="WithinReach"
+                                        UpperTravelLimit="69.9999727">-12.25029093
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="4" JointName="Joint 4" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-300.0001286" Status="WithinReach"
+                                        UpperTravelLimit="300.0001286">24.56014273
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="5" JointName="Joint 5" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-120.0002806" Status="WithinReach"
+                                        UpperTravelLimit="120.0002806">38.52654913
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="6" JointName="Joint 6" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-217.1271183" Status="WithinReach"
+                                        UpperTravelLimit="218.1661769">-37.81908803
+                            </JointValue>
+                        </Joint>
+                    </JointTarget>
+                </Target>
+                <AttributeList/>
+            </Activity>
+        </ActivityList>
+        <ActivityList Task="Seg3">
+            <AttributeList/>
+            <Activity ActivityType="DNBRobotMotionActivity" Operation="SWP4" id="_963395072">
+                <OperationAttributeList/>
+                <ActivityName>RobotMotion.8</ActivityName>
+                <MotionAttributes>
+                    <MotionProfile>Default</MotionProfile>
+                    <ToolProfile>Default</ToolProfile>
+                    <AccuracyProfile>Default</AccuracyProfile>
+                    <ObjectFrameProfile>Default</ObjectFrameProfile>
+                    <MotionType>Joint</MotionType>
+                </MotionAttributes>
+                <Target Default="Cartesian" ViaPoint="false">
+                    <BaseWRTWorld>
+                        <Position Units="m" X="0" Y="0" Z="0"/>
+                        <Orientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </BaseWRTWorld>
+                    <CartesianTarget Status="WithinReach">
+                        <Position Units="m" X="1.939120908" Y="-0.5838990496" Z="2.01728844"/>
+                        <Orientation Pitch="121.2650362" Roll="18.02989201" Units="deg" Yaw="15.54792124"/>
+                        <Config Name="Config_1"/>
+                        <Tag TagGroup="TagGroup1.1">SWP4</Tag>
+                    </CartesianTarget>
+                    <JointTarget>
+                        <Joint DOFNumber="1" JointName="Joint 1" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-170.0000156" Status="WithinReach"
+                                        UpperTravelLimit="170.0000156">-19.93384156
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="2" JointName="Joint 2" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-64.99977003" Status="WithinReach"
+                                        UpperTravelLimit="85.00000778">8.521908564
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="3" JointName="Joint 3" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-180.0000771" Status="WithinReach"
+                                        UpperTravelLimit="69.9999727">-13.04194126
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="4" JointName="Joint 4" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-300.0001286" Status="WithinReach"
+                                        UpperTravelLimit="300.0001286">27.69048697
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="5" JointName="Joint 5" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-120.0002806" Status="WithinReach"
+                                        UpperTravelLimit="120.0002806">39.44819942
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="6" JointName="Joint 6" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-216.8950764" Status="WithinReach"
+                                        UpperTravelLimit="217.9397819">-41.58208134
+                            </JointValue>
+                        </Joint>
+                    </JointTarget>
+                </Target>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBRobotMotionActivity" Operation="SWP5" id="_963354336">
+                <OperationAttributeList/>
+                <ActivityName>RobotMotion.9</ActivityName>
+                <MotionAttributes>
+                    <MotionProfile>Default</MotionProfile>
+                    <ToolProfile>Default</ToolProfile>
+                    <AccuracyProfile>Default</AccuracyProfile>
+                    <ObjectFrameProfile>Default</ObjectFrameProfile>
+                    <MotionType>Joint</MotionType>
+                </MotionAttributes>
+                <Target Default="Cartesian" ViaPoint="false">
+                    <BaseWRTWorld>
+                        <Position Units="m" X="0" Y="0" Z="0"/>
+                        <Orientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </BaseWRTWorld>
+                    <CartesianTarget Status="WithinReach">
+                        <Position Units="m" X="1.947116258" Y="-0.6821525803" Z="2.031136775"/>
+                        <Orientation Pitch="121.2650299" Roll="18.02987926" Units="deg" Yaw="15.54790633"/>
+                        <Config Name="Config_1"/>
+                        <Tag TagGroup="TagGroup1.1">SWP5</Tag>
+                    </CartesianTarget>
+                    <JointTarget>
+                        <Joint DOFNumber="1" JointName="Joint 1" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-170.0000156" Status="WithinReach"
+                                        UpperTravelLimit="170.0000156">-22.86006137
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="2" JointName="Joint 2" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-64.99977003" Status="WithinReach"
+                                        UpperTravelLimit="85.00000778">11.01197479
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="3" JointName="Joint 3" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-180.0000771" Status="WithinReach"
+                                        UpperTravelLimit="69.9999727">-16.60506095
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="4" JointName="Joint 4" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-300.0001286" Status="WithinReach"
+                                        UpperTravelLimit="300.0001286">30.31468028
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="5" JointName="Joint 5" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-120.0002806" Status="WithinReach"
+                                        UpperTravelLimit="120.0002806">41.80050434
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="6" JointName="Joint 6" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-216.2668367" Status="WithinReach"
+                                        UpperTravelLimit="217.3477711">-44.69864666
+                            </JointValue>
+                        </Joint>
+                    </JointTarget>
+                </Target>
+                <AttributeList/>
+            </Activity>
+        </ActivityList>
+        <ActivityList Task="Seg4">
+            <AttributeList/>
+            <Activity ActivityType="DNBRobotMotionActivity" Operation="SWP6" id="_963295872">
+                <OperationAttributeList/>
+                <ActivityName>RobotMotion.10</ActivityName>
+                <MotionAttributes>
+                    <MotionProfile>Default</MotionProfile>
+                    <ToolProfile>Default</ToolProfile>
+                    <AccuracyProfile>Default</AccuracyProfile>
+                    <ObjectFrameProfile>Default</ObjectFrameProfile>
+                    <MotionType>Joint</MotionType>
+                </MotionAttributes>
+                <Target Default="Cartesian" ViaPoint="false">
+                    <BaseWRTWorld>
+                        <Position Units="m" X="0" Y="0" Z="0"/>
+                        <Orientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </BaseWRTWorld>
+                    <CartesianTarget Status="WithinReach">
+                        <Position Units="m" X="1.953542492" Y="-0.7611236335" Z="2.042267345"/>
+                        <Orientation Pitch="121.2650248" Roll="18.02986986" Units="deg" Yaw="15.54789533"/>
+                        <Config Name="Config_1"/>
+                        <Tag TagGroup="TagGroup1.1">SWP6</Tag>
+                    </CartesianTarget>
+                    <JointTarget>
+                        <Joint DOFNumber="1" JointName="Joint 1" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-170.0000156" Status="WithinReach"
+                                        UpperTravelLimit="170.0000156">-25.10503788
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="2" JointName="Joint 2" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-64.99977003" Status="WithinReach"
+                                        UpperTravelLimit="85.00000778">13.24614956
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="3" JointName="Joint 3" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-180.0000771" Status="WithinReach"
+                                        UpperTravelLimit="69.9999727">-19.83144365
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="4" JointName="Joint 4" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-300.0001286" Status="WithinReach"
+                                        UpperTravelLimit="300.0001286">32.06049099
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="5" JointName="Joint 5" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-120.0002806" Status="WithinReach"
+                                        UpperTravelLimit="120.0002806">43.80547481
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="6" JointName="Joint 6" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-215.6891433" Status="WithinReach"
+                                        UpperTravelLimit="216.8286319">-46.75307083
+                            </JointValue>
+                        </Joint>
+                    </JointTarget>
+                </Target>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBRobotMotionActivity" Operation="SWP7" id="_963287904">
+                <OperationAttributeList/>
+                <ActivityName>RobotMotion.11</ActivityName>
+                <MotionAttributes>
+                    <MotionProfile>Default</MotionProfile>
+                    <ToolProfile>Default</ToolProfile>
+                    <AccuracyProfile>Default</AccuracyProfile>
+                    <ObjectFrameProfile>Default</ObjectFrameProfile>
+                    <MotionType>Joint</MotionType>
+                </MotionAttributes>
+                <Target Default="Cartesian" ViaPoint="false">
+                    <BaseWRTWorld>
+                        <Position Units="m" X="0" Y="0" Z="0"/>
+                        <Orientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </BaseWRTWorld>
+                    <CartesianTarget Status="WithinReach">
+                        <Position Units="m" X="2.020719418" Y="-0.7392575038" Z="2.158620074"/>
+                        <Orientation Pitch="121.2650284" Roll="18.02987646" Units="deg" Yaw="15.54790312"/>
+                        <Config Name="Config_1"/>
+                        <Tag TagGroup="TagGroup1.1">SWP7</Tag>
+                    </CartesianTarget>
+                    <JointTarget>
+                        <Joint DOFNumber="1" JointName="Joint 1" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-170.0000156" Status="WithinReach"
+                                        UpperTravelLimit="170.0000156">-23.60575956
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="2" JointName="Joint 2" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-64.99977003" Status="WithinReach"
+                                        UpperTravelLimit="85.00000778">18.66774552
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="3" JointName="Joint 3" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-180.0000771" Status="WithinReach"
+                                        UpperTravelLimit="69.9999727">-32.48860508
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="4" JointName="Joint 4" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-300.0001286" Status="WithinReach"
+                                        UpperTravelLimit="300.0001286">27.18912794
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="5" JointName="Joint 5" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-120.0002806" Status="WithinReach"
+                                        UpperTravelLimit="120.0002806">49.3727873
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="6" JointName="Joint 6" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-213.8685594" Status="WithinReach"
+                                        UpperTravelLimit="215.3312809">-40.0637813
+                            </JointValue>
+                        </Joint>
+                    </JointTarget>
+                </Target>
+                <AttributeList/>
+            </Activity>
+        </ActivityList>
+        <ActivityList Task="Seg5">
+            <AttributeList/>
+            <Activity ActivityType="DNBRobotMotionActivity" Operation="VIA_.1" id="_967740256">
+                <OperationAttributeList/>
+                <ActivityName>RobotMotion.13.1.1</ActivityName>
+                <MotionAttributes>
+                    <MotionProfile>Default</MotionProfile>
+                    <ToolProfile>Default</ToolProfile>
+                    <AccuracyProfile>Default</AccuracyProfile>
+                    <ObjectFrameProfile>Default</ObjectFrameProfile>
+                    <MotionType>Joint</MotionType>
+                </MotionAttributes>
+                <Target Default="Cartesian" ViaPoint="true">
+                    <BaseWRTWorld>
+                        <Position Units="m" X="0" Y="0" Z="0"/>
+                        <Orientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </BaseWRTWorld>
+                    <CartesianTarget Status="WithinReach">
+                        <Position Units="m" X="2.010737352" Y="-0.6164898022" Z="2.141311489"/>
+                        <Orientation Pitch="121.2651941" Roll="18.02970047" Units="deg" Yaw="15.54769434"/>
+                        <Config Name="Config_1"/>
+                        <Tag TagGroup="TagGroup1.1">ViaPoint1</Tag>
+                    </CartesianTarget>
+                    <JointTarget>
+                        <Joint DOFNumber="1" JointName="Joint 1" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-170.0000156" Status="WithinReach"
+                                        UpperTravelLimit="170.0000156">-20.13286662
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="2" JointName="Joint 2" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-64.99977003" Status="WithinReach"
+                                        UpperTravelLimit="85.00000778">14.9646161
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="3" JointName="Joint 3" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-180.0000771" Status="WithinReach"
+                                        UpperTravelLimit="69.9999727">-26.83572512
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="4" JointName="Joint 4" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-300.0001286" Status="WithinReach"
+                                        UpperTravelLimit="300.0001286">24.41786735
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="5" JointName="Joint 5" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-120.0002806" Status="WithinReach"
+                                        UpperTravelLimit="120.0002806">46.14335969
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="6" JointName="Joint 6" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-214.9644045" Status="WithinReach"
+                                        UpperTravelLimit="216.2087091">-37.09212802
+                            </JointValue>
+                        </Joint>
+                    </JointTarget>
+                </Target>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBRobotMotionActivity" Operation="SWP8" id="_963229440">
+                <OperationAttributeList/>
+                <ActivityName>RobotMotion.12</ActivityName>
+                <MotionAttributes>
+                    <MotionProfile>Default</MotionProfile>
+                    <ToolProfile>Default</ToolProfile>
+                    <AccuracyProfile>Default</AccuracyProfile>
+                    <ObjectFrameProfile>Default</ObjectFrameProfile>
+                    <MotionType>Joint</MotionType>
+                </MotionAttributes>
+                <Target Default="Cartesian" ViaPoint="false">
+                    <BaseWRTWorld>
+                        <Position Units="m" X="0" Y="0" Z="0"/>
+                        <Orientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </BaseWRTWorld>
+                    <CartesianTarget Status="WithinReach">
+                        <Position Units="m" X="2.006857065" Y="-0.5689049943" Z="2.134609708"/>
+                        <Orientation Pitch="121.2650389" Roll="18.02989777" Units="deg" Yaw="15.54792803"/>
+                        <Config Name="Config_1"/>
+                        <Tag TagGroup="TagGroup1.1">SWP8</Tag>
+                    </CartesianTarget>
+                    <JointTarget>
+                        <Joint DOFNumber="1" JointName="Joint 1" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-170.0000156" Status="WithinReach"
+                                        UpperTravelLimit="170.0000156">-18.73100171
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="2" JointName="Joint 2" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-64.99977003" Status="WithinReach"
+                                        UpperTravelLimit="85.00000778">13.70230825
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="3" JointName="Joint 3" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-180.0000771" Status="WithinReach"
+                                        UpperTravelLimit="69.9999727">-24.92715397
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="4" JointName="Joint 4" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-300.0001286" Status="WithinReach"
+                                        UpperTravelLimit="300.0001286">23.16073934
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="5" JointName="Joint 5" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-120.0002806" Status="WithinReach"
+                                        UpperTravelLimit="120.0002806">44.99775259
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="6" JointName="Joint 6" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-215.3265511" Status="WithinReach"
+                                        UpperTravelLimit="216.5142943">-35.69733539
+                            </JointValue>
+                        </Joint>
+                    </JointTarget>
+                </Target>
+                <AttributeList/>
+            </Activity>
+        </ActivityList>
+        <ActivityList Task="Seg6">
+            <AttributeList/>
+            <Activity ActivityType="DNBRobotMotionActivity" Operation="SWP9" id="_963252672">
+                <OperationAttributeList/>
+                <ActivityName>RobotMotion.13</ActivityName>
+                <MotionAttributes>
+                    <MotionProfile>Default</MotionProfile>
+                    <ToolProfile>Default</ToolProfile>
+                    <AccuracyProfile>Default</AccuracyProfile>
+                    <ObjectFrameProfile>Default</ObjectFrameProfile>
+                    <MotionType>Joint</MotionType>
+                </MotionAttributes>
+                <Target Default="Cartesian" ViaPoint="false">
+                    <BaseWRTWorld>
+                        <Position Units="m" X="0" Y="0" Z="0"/>
+                        <Orientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </BaseWRTWorld>
+                    <CartesianTarget Status="WithinReach">
+                        <Position Units="m" X="1.997057999" Y="-0.448486105" Z="2.117637252"/>
+                        <Orientation Pitch="121.2650461" Roll="18.02991481" Units="deg" Yaw="15.54794795"/>
+                        <Config Name="Config_1"/>
+                        <Tag TagGroup="TagGroup1.1">SWP9</Tag>
+                    </CartesianTarget>
+                    <JointTarget>
+                        <Joint DOFNumber="1" JointName="Joint 1" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-170.0000156" Status="WithinReach"
+                                        UpperTravelLimit="170.0000156">-15.04983589
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="2" JointName="Joint 2" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-64.99977003" Status="WithinReach"
+                                        UpperTravelLimit="85.00000778">10.89322866
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="3" JointName="Joint 3" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-180.0000771" Status="WithinReach"
+                                        UpperTravelLimit="69.9999727">-20.68387749
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="4" JointName="Joint 4" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-300.0001286" Status="WithinReach"
+                                        UpperTravelLimit="300.0001286">19.50224063
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="5" JointName="Joint 5" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-120.0002806" Status="WithinReach"
+                                        UpperTravelLimit="120.0002806">42.34418681
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="6" JointName="Joint 6" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-216.1140936" Status="WithinReach"
+                                        UpperTravelLimit="217.2082422">-31.56987088
+                            </JointValue>
+                        </Joint>
+                    </JointTarget>
+                </Target>
+                <AttributeList/>
+            </Activity>
+            <Activity ActivityType="DNBRobotMotionActivity" Operation="SWP10" id="_963588768">
+                <OperationAttributeList/>
+                <ActivityName>RobotMotion.14</ActivityName>
+                <MotionAttributes>
+                    <MotionProfile>Default</MotionProfile>
+                    <ToolProfile>Default</ToolProfile>
+                    <AccuracyProfile>Default</AccuracyProfile>
+                    <ObjectFrameProfile>Default</ObjectFrameProfile>
+                    <MotionType>Joint</MotionType>
+                </MotionAttributes>
+                <Target Default="Cartesian" ViaPoint="false">
+                    <BaseWRTWorld>
+                        <Position Units="m" X="0" Y="0" Z="0"/>
+                        <Orientation Pitch="0" Roll="0" Units="deg" Yaw="0"/>
+                    </BaseWRTWorld>
+                    <CartesianTarget Status="WithinReach">
+                        <Position Units="m" X="1.986176798" Y="-0.3147695838" Z="2.098790553"/>
+                        <Orientation Pitch="121.2650536" Roll="18.02993561" Units="deg" Yaw="15.54797227"/>
+                        <Config Name="Config_1"/>
+                        <Tag TagGroup="TagGroup1.1">SWP10</Tag>
+                    </CartesianTarget>
+                    <JointTarget>
+                        <Joint DOFNumber="1" JointName="Joint 1" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-170.0000156" Status="WithinReach"
+                                        UpperTravelLimit="170.0000156">-10.75539974
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="2" JointName="Joint 2" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-64.99977003" Status="WithinReach"
+                                        UpperTravelLimit="85.00000778">8.375036627
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="3" JointName="Joint 3" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-180.0000771" Status="WithinReach"
+                                        UpperTravelLimit="69.9999727">-16.82513099
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="4" JointName="Joint 4" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-300.0001286" Status="WithinReach"
+                                        UpperTravelLimit="300.0001286">14.61909384
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="5" JointName="Joint 5" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-120.0002806" Status="WithinReach"
+                                        UpperTravelLimit="120.0002806">39.81666254
+                            </JointValue>
+                        </Joint>
+                        <Joint DOFNumber="6" JointName="Joint 6" JointType="Rotational" Units="deg">
+                            <JointValue LowerTravelLimit="-216.8001147" Status="WithinReach"
+                                        UpperTravelLimit="217.848365">-25.99851987
+                            </JointValue>
+                        </Joint>
+                    </JointTarget>
+                </Target>
+                <AttributeList/>
+            </Activity>
+        </ActivityList>
+    </Resource>
+</OLPData>

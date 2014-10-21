@@ -48,9 +48,14 @@ object Build extends Build {
     
 
   lazy val launch = project.in(file("launch"))
-    .dependsOn(core, gui)
+    .dependsOn(core, gui, extensions)
     .settings(basicSettings: _*)
     .settings(libraryDependencies ++= (defaultDepend :+ akkaPersistence))
+
+  lazy val extensions = project.in(file("extensions"))
+    .dependsOn(core)
+    .settings(basicSettings: _*)
+    .settings(libraryDependencies ++= (defaultDepend))
 
   //run in Compile <<= (run in Compile in launch)
 	

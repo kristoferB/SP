@@ -25,7 +25,8 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
         case Right(diff) => {
           persist(diff)(d =>{
             updateState(d)
-            reply ! SPIDs(diff.updatedItems)
+            //reply ! SPIDs(diff.updatedItems)
+            reply ! SPIDs(ids)
           })
         }
         case Left(error) => reply ! error

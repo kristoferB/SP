@@ -89,6 +89,14 @@ angular.module('spGuiApp')
       $scope.openModelList();
     }
 
+    $scope.openFileUpload = function () {
+      var modalInstance = $modal.open({
+        templateUrl: 'views/loadfile.html',
+        controller: 'LoadfileCtrl'
+      });
+    };
+
+
     $scope.openSettings = function () {
       var modalInstance = $modal.open({
         templateUrl: 'views/settings.html',
@@ -106,5 +114,11 @@ angular.module('spGuiApp')
     $scope.broadcastEvent = function(eventName) {
       $rootScope.$broadcast(eventName);
     };
+
+
+
+
+
+
 
   });
