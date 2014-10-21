@@ -24,12 +24,14 @@ angular.module('spGuiApp')
         scope.latestMapVersion = 0;
 
         scope.getLatestMapVersion = function() {
+          var latestMapVersion = 0;
           var relationMaps = $filter('with')(spTalker.items, { isa: 'RelationResult' });
           _.each(relationMaps, function(relationMap){
-            if(relationMap.modelVersion > scope.latestMapVersion) {
-              scope.latestMapVersion = relationMap.modelVersion
+            if(relationMap.modelVersion > latestMapVersion) {
+              latestMapVersion = relationMap.modelVersion
             }
           });
+          scope.latestMapVersion = latestMapVersion;
         };
 
         if(spTalker.itemsRead) {
@@ -59,15 +61,11 @@ angular.module('spGuiApp')
             var initValue = false;
             if(scope.initState[id] && scope.initState[id] !== '')
               initValue = scope.initState[id];
-            /*else if (angular.isDefined(thing.attributes.stateVariable.init))
-              initValue = thing.attributes.stateVariable.init;*/
             initState.push({id: id, value: initValue });
 
             var goalValue = false;
             if(scope.goalState[id] && scope.goalState[id] !== '')
               goalValue = scope.goalState[id];
-            else if (!_.isUndefined(thing.attributes.stateVariable.goal))
-              goalValue = thing.attributes.stateVariable.goal;
             goalState.push({id: id, goal: goalValue });
           });
 
@@ -84,6 +82,7 @@ angular.module('spGuiApp')
             scope.relations = data.relationmap.relationmap.map(function(item){
               return item.sop
             })
+            spTalker.loadItems();
           });
           res.error(function(data) {
             console.log(data);

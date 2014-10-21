@@ -7,59 +7,60 @@
 
 <div class="content">
   <div class="content-wrapper">
-    <p><small>The latest map was generated on model version {{latestMapVersion}}.<br />
+    <p ng-if="latestMapVersion > 0"><small>The latest map was generated on model version {{latestMapVersion}}.<br />
     The current model version is {{spTalker.activeModel.version}}.</small></p>
+    <p ng-if="latestMapVersion === 0"><small>There is no generated map available.</small></p>
 
-    <div>
+    <div style="overflow: hidden;">
 
-    <h4>Options</h4>
+      <h4>Options</h4>
 
-    <div class="col-md-6">
-      <h5>Operations</h5>
-      <table class="table"><thead><tr><th style="width: 60px;">Select</th><th>Name</th></tr></thead></table>
-      <div class="relation-item-table">
-        <table class="table">
-          <tbody>
-          <tr ng-repeat="(id, op) in spTalker.items | with: { isa: 'Operation' }" ng-class-odd="'odd-row'">
-            <td style="width: 60px;"><input type="checkbox" ng-model="opSelection[id]"></td><td>{{op.name}}</td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="col-md-6">
-      <h5>Groups</h5>
-      <table class="table"><thead><tr><th style="width: 60px;">Select</th><th>Name</th></tr></thead></table>
-      <div class="relation-item-table">
-        <table class="table">
-          <tbody>
-          <tr ng-repeat="group in spTalker.activeModel.attributes.conditionGroups" ng-class-odd="'odd-row'">
-            <td style="width: 60px;"><input type="checkbox" ng-model="groupSelection[group]"></td><td>{{group}}</td>
-          </tr>
-          <tr ng-repeat="sopSpec in spTalker.items | with: { isa: 'SOPSpec' }" ng-class-odd="'odd-row'">
-            <td style="width: 60px;"><input type="checkbox" ng-model="groupSelection[sopSpec.name]"></td><td>{{sopSpec.name}}</td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="col-md-12">
-      <h5>Init and goal</h5>
-      <table class="table"><thead><tr><th style="width: 34%;">Statevar</th><th style="width: 33%;">Init</th><th style="width: 33%;">Goal</th></tr></thead></table>
-      <div class="relation-item-table">
-        <table class="table">
-          <tbody>
-            <tr ng-repeat="(id, thing) in (things = (spTalker.items | with: { isa: 'Thing' }))" ng-class-odd="'odd-row'">
-              <td style="width: 34%;">{{thing.name}}</td>
-              <td style="width: 33%;"><input class="form-control input-sm" type="text" ng-init="initState[id] = thing.attributes.stateVariable.init" ng-model="initState[id]"></td>
-              <td style="width: 33%;"><input class="form-control input-sm" type="text" ng-init="goalState[id] = thing.attributes.stateVariable.goal" ng-model="goalState[id]"></td>
+      <div class="col-md-6">
+        <h5>Operations</h5>
+        <table class="table"><thead><tr><th style="width: 60px;">Select</th><th>Name</th></tr></thead></table>
+        <div class="relation-item-table">
+          <table class="table">
+            <tbody>
+            <tr ng-repeat="(id, op) in spTalker.items | with: { isa: 'Operation' }" ng-class-odd="'odd-row'">
+              <td style="width: 60px;"><input type="checkbox" ng-init="opSelection[id] = true" ng-model="opSelection[id]"></td><td>{{op.name}}</td>
             </tr>
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+
+      <div class="col-md-6">
+        <h5>Groups</h5>
+        <table class="table"><thead><tr><th style="width: 60px;">Select</th><th>Name</th></tr></thead></table>
+        <div class="relation-item-table">
+          <table class="table">
+            <tbody>
+            <tr ng-repeat="group in spTalker.activeModel.attributes.conditionGroups" ng-class-odd="'odd-row'">
+              <td style="width: 60px;"><input type="checkbox" ng-init="groupSelection[group] = true" ng-model="groupSelection[group]"></td><td>{{group}}</td>
+            </tr>
+            <tr ng-repeat="sopSpec in spTalker.items | with: { isa: 'SOPSpec' }" ng-class-odd="'odd-row'">
+              <td style="width: 60px;"><input type="checkbox" ng-init="groupSelection[sopSpec.name] = true" ng-model="groupSelection[sopSpec.name]"></td><td>{{sopSpec.name}}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="col-md-12">
+        <h5>Init and goal</h5>
+        <table class="table"><thead><tr><th style="width: 34%;">Statevar</th><th style="width: 33%;">Init</th><th style="width: 33%;">Goal</th></tr></thead></table>
+        <div class="relation-item-table">
+          <table class="table">
+            <tbody>
+              <tr ng-repeat="(id, thing) in (things = (spTalker.items | with: { isa: 'Thing' }))" ng-class-odd="'odd-row'">
+                <td style="width: 34%;">{{thing.name}}</td>
+                <td style="width: 33%;"><input class="form-control input-sm" type="text" ng-init="initState[id] = thing.attributes.stateVariable.init" ng-model="initState[id]"></td>
+                <td style="width: 33%;"><input class="form-control input-sm" type="text" ng-init="goalState[id] = thing.attributes.stateVariable.goal" ng-model="goalState[id]"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
     </div>
 

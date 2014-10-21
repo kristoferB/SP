@@ -134,6 +134,17 @@ angular.module('spGuiApp')
       });
   };
 
+  factory.refreshModelInfo = function() {
+    $http.get(apiUrl + '/models/' + factory.activeModel.model).
+      success(function(model) {
+        angular.copy(model, factory.activeModel);
+      });
+  };
+
+  $rootScope.$on('itemsQueried', function() {
+    factory.refreshModelInfo();
+  });
+
   if(sessionStorage.activeModel) {
     factory.activeModel = { loading: 'please wait' };
     var model = angular.fromJson(sessionStorage.activeModel);
@@ -170,6 +181,7 @@ angular.module('spGuiApp')
 
   function updateItemLists() {
     filterOutItems();
+    factory.refreshModelInfo();
   }
 
   factory.loadAll = function() {

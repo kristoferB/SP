@@ -104,10 +104,15 @@ body {
 /*** relationIdent ***/
 
 .relation-item-table {
-    height: 130px;
+    height: 150px;
+    overflow: auto;
 }
 
 /*** itemTable ***/
+
+.item-info-table td {
+    vertical-align: top;
+}
 
 .table-bordered > thead > tr > th,
 .table-bordered > tbody > tr > th,
