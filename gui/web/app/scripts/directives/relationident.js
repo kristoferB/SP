@@ -25,7 +25,6 @@ angular.module('spGuiApp')
 
         scope.getLatestMapVersion = function() {
           var relationMaps = $filter('with')(spTalker.items, { isa: 'RelationResult' });
-          console.log(relationMaps);
           _.each(relationMaps, function(relationMap){
             if(relationMap.modelVersion > scope.latestMapVersion) {
               scope.latestMapVersion = relationMap.modelVersion
@@ -60,8 +59,8 @@ angular.module('spGuiApp')
             var initValue = false;
             if(scope.initState[id] && scope.initState[id] !== '')
               initValue = scope.initState[id];
-            else if (angular.isDefined(thing.attributes.stateVariable.init))
-              initValue = thing.attributes.stateVariable.init;
+            /*else if (angular.isDefined(thing.attributes.stateVariable.init))
+              initValue = thing.attributes.stateVariable.init;*/
             initState.push({id: id, value: initValue });
 
             var goalValue = false;

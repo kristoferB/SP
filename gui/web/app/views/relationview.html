@@ -37,6 +37,9 @@
           <tr ng-repeat="group in spTalker.activeModel.attributes.conditionGroups" ng-class-odd="'odd-row'">
             <td style="width: 60px;"><input type="checkbox" ng-model="groupSelection[group]"></td><td>{{group}}</td>
           </tr>
+          <tr ng-repeat="sopSpec in spTalker.items | with: { isa: 'SOPSpec' }" ng-class-odd="'odd-row'">
+            <td style="width: 60px;"><input type="checkbox" ng-model="groupSelection[sopSpec.name]"></td><td>{{sopSpec.name}}</td>
+          </tr>
           </tbody>
         </table>
       </div>
@@ -50,8 +53,8 @@
           <tbody>
             <tr ng-repeat="(id, thing) in (things = (spTalker.items | with: { isa: 'Thing' }))" ng-class-odd="'odd-row'">
               <td style="width: 34%;">{{thing.name}}</td>
-              <td style="width: 33%;"><input class="form-control input-sm" type="text" ng-model="initState[id]"></td>
-              <td style="width: 33%;"><input class="form-control input-sm" type="text" ng-model="goalState[id]"></td>
+              <td style="width: 33%;"><input class="form-control input-sm" type="text" ng-init="initState[id] = thing.attributes.stateVariable.init" ng-model="initState[id]"></td>
+              <td style="width: 33%;"><input class="form-control input-sm" type="text" ng-init="goalState[id] = thing.attributes.stateVariable.goal" ng-model="goalState[id]"></td>
             </tr>
           </tbody>
         </table>
