@@ -13,6 +13,10 @@ body {
     margin-bottom: 0;
 }
 
+input {
+    color: #ebebeb;
+}
+
 /*** nav bar ***/
 
 .navbar {

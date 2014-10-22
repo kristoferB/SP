@@ -22,6 +22,24 @@ angular.module('spGuiApp')
         scope.initState = {};
         scope.goalState = {};
         scope.latestMapVersion = 0;
+        scope.checkAllOps = true;
+        scope.checkAllGroups = true;
+
+        scope.correctCheckAllBox = function(itemCheckModels, checkAllModel) {
+          var checked = true;
+          angular.forEach(itemCheckModels, function(itemCheckModel, id) {
+            if(!itemCheckModel) {
+              checked = false;
+            }
+          });
+          scope[checkAllModel] = checked;
+        };
+
+        scope.checkUncheckAll = function(models, checked) {
+          angular.forEach(models, function(model, id) {
+            models[id] = checked;
+          });
+        };
 
         scope.getLatestMapVersion = function() {
           var latestMapVersion = 0;
@@ -55,8 +73,6 @@ angular.module('spGuiApp')
             if(selected) groups.push(group);
           });
 
-          console.log(scope.initState, scope.goalState);
-
           _.each(scope.things, function(thing, id){
             var initValue = false;
             if(scope.initState[id] && scope.initState[id] !== '')
@@ -69,21 +85,25 @@ angular.module('spGuiApp')
           });
 
           if(operations.length === 0) {
-            notificationService.info('You have to pick at least one operation.');
+            notificationService.info('You have to pick at least one operation to generate a RelationMap.');
             return
           }
 
-          console.log(operations, initState, groups, goalState);
-
           var res = spTalker.findRelations(operations, initState, groups, goalState);
           res.success(function (data) {
-            console.log(data);
+            if(angular.isDefined(data.error)) {
+              notificationService.info(data.error);
+              return
+            }
+            notificationService.success('A RelationMap was successfully generated.');
+
             scope.relations = data.relationmap.relationmap.map(function(item){
               return item.sop
-            })
+            });
             spTalker.loadItems();
           });
           res.error(function(data) {
+            notificationService.error('Something went wrong while generating the RelationMap. Please check your browser\'s console for details');
             console.log(data);
           });
 
@@ -97,11 +117,16 @@ angular.module('spGuiApp')
             if(checked) operations.push(id);
           });
 
+          if(operations.length === 0) {
+            notificationService.info('You have to pick at least one operation to generate a SOP.');
+            return
+          }
+
           var resSOP = spTalker.getSOP(operations);
 
           resSOP.success(function (data) {
             if(angular.isDefined(data.error)) {
-              notificationService.error(data.error);
+              notificationService.info(data.error);
             }
             if (!_.isUndefined(data.sop)){
               var windowStorage = {
@@ -112,7 +137,11 @@ angular.module('spGuiApp')
             else {
               scope.sopError = data
             }
-          })
+          });
+          resSOP.error(function (data) {
+            console.log(data);
+            notificationService.error('Something went wrong while generating the SOP. Please check your browser\'s console for details');
+          });
 
         };
 

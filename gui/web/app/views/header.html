@@ -28,13 +28,13 @@
       <div class="collapse navbar-collapse">
         <ul class="nav navbar-nav ">
           <li class="btn-group" dropdown is-open="status.isopen">
-            <a class="dropdown-toggle"><span class="glyphicon glyphicon-file"></span> File <span class="caret"></span></a>
+            <a class="dropdown-toggle"><span class="glyphicon glyphicon-folder-close"></span> File <span class="caret"></span></a>
             <ul class="dropdown-menu" role="menu">
               <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="openFileUpload()"><span class="glyphicon glyphicon-import"></span> Import Model</a></li>
             </ul>
           </li>
           <li class="btn-group" dropdown is-open="status.editisopen">
-            <a class="dropdown-toggle"><span class="glyphicon glyphicon-file"></span> View <span class="caret"></span></a>
+            <a class="dropdown-toggle"><span class="glyphicon glyphicon-search"></span> View <span class="caret"></span></a>
             <ul class="dropdown-menu" role="menu">
               <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="broadcastEvent('newSopMakerWindow')"><span class="glyphicon glyphicon-th-large"></span> SOP-maker</a></li>
               <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="broadcastEvent('newItemListWindow')"><span class="glyphicon glyphicon-list"></span> Itemlist</a></li>

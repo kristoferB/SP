@@ -17,12 +17,19 @@
 
       <div class="col-md-6">
         <h5>Operations</h5>
-        <table class="table"><thead><tr><th style="width: 60px;">Select</th><th>Name</th></tr></thead></table>
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width: 60px;"><input type="checkbox" ng-model="checkAllOps" ng-change="checkUncheckAll(opSelection, checkAllOps)"></th>
+              <th>Name</th>
+            </tr>
+          </thead>
+        </table>
         <div class="relation-item-table">
           <table class="table">
             <tbody>
             <tr ng-repeat="(id, op) in spTalker.items | with: { isa: 'Operation' }" ng-class-odd="'odd-row'">
-              <td style="width: 60px;"><input type="checkbox" ng-init="opSelection[id] = true" ng-model="opSelection[id]"></td><td>{{op.name}}</td>
+              <td style="width: 60px;"><input type="checkbox" ng-init="opSelection[id] = true" ng-model="opSelection[id]" ng-change="correctCheckAllBox(opSelection, 'checkAllOps')"></td><td>{{op.name}}</td>
             </tr>
             </tbody>
           </table>
@@ -31,15 +38,15 @@
 
       <div class="col-md-6">
         <h5>Groups</h5>
-        <table class="table"><thead><tr><th style="width: 60px;">Select</th><th>Name</th></tr></thead></table>
+        <table class="table"><thead><tr><th style="width: 60px;"><input type="checkbox" ng-model="checkAllGroups" ng-change="checkUncheckAll(groupSelection, checkAllGroups)"></th><th>Name</th></tr></thead></table>
         <div class="relation-item-table">
           <table class="table">
             <tbody>
             <tr ng-repeat="group in spTalker.activeModel.attributes.conditionGroups" ng-class-odd="'odd-row'">
-              <td style="width: 60px;"><input type="checkbox" ng-init="groupSelection[group] = true" ng-model="groupSelection[group]"></td><td>{{group}}</td>
+              <td style="width: 60px;"><input type="checkbox" ng-init="groupSelection[group] = true" ng-model="groupSelection[group]" ng-change="correctCheckAllBox(groupSelection, 'checkAllGroups')"></td><td>{{group}}</td>
             </tr>
             <tr ng-repeat="sopSpec in spTalker.items | with: { isa: 'SOPSpec' }" ng-class-odd="'odd-row'">
-              <td style="width: 60px;"><input type="checkbox" ng-init="groupSelection[sopSpec.name] = true" ng-model="groupSelection[sopSpec.name]"></td><td>{{sopSpec.name}}</td>
+              <td style="width: 60px;"><input type="checkbox" ng-init="groupSelection[sopSpec.name] = true" ng-model="groupSelection[sopSpec.name]" ng-change="correctCheckAllBox(groupSelection, 'checkAllGroups')"></td><td>{{sopSpec.name}}</td>
             </tr>
             </tbody>
           </table>
