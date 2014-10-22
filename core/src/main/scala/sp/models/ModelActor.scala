@@ -191,7 +191,7 @@ trait ModelActorState  {
    * @param ids The new items to be updated or added
    * @return Either Right[ModelDiff] -> The model can be updated. Left[UpdateError]
    */
-  def createDiffUpd(ids: List[IDAble], modelVersion: Long): Either[UpdateError, ModelDiff] = {
+  def createDiffUpd(ids: List[IDAble], modelVersion: Long): Either[SPError, ModelDiff] = {
 
     val conflicts = List() //if (modelVersion < state.version || modelVersion != -1) {
 //      val diff = getDiff(modelVersion)
@@ -201,13 +201,16 @@ trait ModelActorState  {
 
     if (conflicts.isEmpty) {
       val upd = ids filter(!state.items.contains(_))
-      Right(ModelDiff(model,
-        upd,
-        List(),
-        state.version,
-        state.version + 1,
-        state.name,
-        SPAttributes(state.attributes.attrs + ("time" -> DatePrimitive.now))))
+      if (upd.isEmpty) Left(SPError("No changes identified"))
+      else {
+        Right(ModelDiff(model,
+          upd,
+          List(),
+          state.version,
+          state.version + 1,
+          state.name,
+          state.attributes + ("time" -> DatePrimitive.now)))
+      }
     } else {
       Left(UpdateError(state.version, conflicts))
     }
@@ -218,14 +221,13 @@ trait ModelActorState  {
    * @param delete The ids to be deleted
    * @return Either Right[ModelDiff] -> The model can be updated. Left[UpdateError]
    */
-  def createDiffDel(delete: Set[ID]): Either[UpdateError, ModelDiff] = {
+  def createDiffDel(delete: Set[ID]): Either[SPError, ModelDiff] = {
     val upd = updateItemsDueToDelete(delete)
     val modelAttr = sp.domain.logic.IDAbleLogic.removeIDFromAttribute(delete, state.attributes)
     val del = (state.idMap filter( kv =>  delete.contains(kv._1))).values
     if (delete.nonEmpty && del.isEmpty) Left(UpdateError(state.version, delete.toList))
     else {
       Right(ModelDiff(model, upd, del.toList, state.version, state.version + 1, state.name, SPAttributes(modelAttr.attrs + ("time" -> DatePrimitive.now))))
-
     }
   }
 

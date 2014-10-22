@@ -13,7 +13,7 @@ import scala.concurrent.duration._
  * Created by Kristofer on 2014-08-04.
  */
 class SOPMakerService(modelHandler: ActorRef) extends Actor {
-  private implicit val to = Timeout(1 seconds)
+  private implicit val to = Timeout(20 seconds)
 
   import context.dispatcher
 
@@ -50,6 +50,7 @@ class SOPMakerService(modelHandler: ActorRef) extends Actor {
                   result onComplete{
                     case Success(res: List[_]) => {
                       val sops = res map(_.asInstanceOf[SOP])
+                      println("WE HAVE A SOP: "+ sops)
                       reply ! SOPSpec("a SOP", sops)
                     }
                     case Success(res) => println("WHAT IS THIS RELATION FINDER RETURNS: " + res)

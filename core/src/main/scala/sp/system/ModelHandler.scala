@@ -67,7 +67,11 @@ class ModelHandler extends PersistentActor {
   def viewNameMaker(id: ID, v: Long) = id.toString() + " - Version: " + v
 
   def receiveRecover = {
-    case cm: CreateModel  => addModel(cm)
+    case cm: CreateModel  => {
+      println(s"The modelService creates a new model called ${cm.name} id: ${cm.model}")
+      val newModelH = context.actorOf(sp.models.ModelActor.props(cm.model))
+      modelMap += cm.model -> newModelH
+    }
   }
 
 }
