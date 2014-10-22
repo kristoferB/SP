@@ -101,6 +101,21 @@ body {
     float: left;
 }
 
+/*** ganttSchedule ***/
+
+.gantt-background-row-alt {
+    background-color: #485563;
+}
+
+.gantt-task-info {
+    color: #000000;
+}
+
+.gantt-task-content {
+    color: #000000;
+}
+
+
 /*** relationIdent ***/
 
 .relation-item-table {

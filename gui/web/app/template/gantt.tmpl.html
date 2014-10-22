@@ -61,7 +61,7 @@
                       ng-click="raiseColumnDateClickedEvent($event, c)"
                       ng-dblclick="raiseColumnDateDblClickedEvent($event, c)"
                       gantt-right-click="raiseColumnDateContextMenuEvent($event, c)">
-                    {{ headerFormatDay && (c.date | ganttDate:headerFormatDay) || (viewScale === 'hour' && (c.date | ganttDate: 'dd EEEE') || (c.date | ganttDate:'dd')) }}
+
                 </span>
             </div>
             <div class="gantt-head-row" ng-if="gantt.headers.hour !== undefined">

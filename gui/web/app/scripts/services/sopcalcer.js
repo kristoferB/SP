@@ -223,8 +223,10 @@ angular.module('spGuiApp')
           }
           drawHere = drawHere + subW / 2 + measures.margin;
 
-          if(sequence.isa === 'Alternative' && n === 0) lineMinusL = lineMinusL + subW/2;
-          if(sequence.isa === 'Alternative' && n === sopLength - 1) lineMinusR = lineMinusR + subW/2;
+          if(sequence.isa === 'Alternative' && sopLength > 1) { // shorten the horizontal lines if more than one op in an alternative struct
+            if(n === 0) lineMinusL = lineMinusL + subW/2;
+            else if(n === sopLength - 1) lineMinusR = lineMinusR + subW/2;
+          }
 
         }
         
@@ -289,13 +291,13 @@ angular.module('spGuiApp')
     };
 
     factory.fillResult = function(result, fill) {
-      for ( var q in fill.operations) {
+      for ( var q = 0; q < fill.operations.length; q++) {
         result.operations.push(fill.operations[q]);
       }
-      for ( var r in fill.structs) {
+      for ( var r = 0; r < fill.structs.length; r++) {
         result.structs.push(fill.structs[r]);
       }
-      for ( var s in fill.lines) {
+      for ( var s = 0; s < fill.lines.length; s++) {
         result.lines.push(fill.lines[s]);
       }
       return result;

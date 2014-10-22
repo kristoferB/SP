@@ -14,8 +14,8 @@ angular.module('spGuiApp')
         'draggedObj' : false,
         'droppable' : false,
         'objToInsertInArray' : [],
-        'objToInsertIn' : new Number(0),
-        'indexToInsertAt' : new Number(0)
+        'objToInsertIn' : 0,
+        'indexToInsertAt' : 0
     };
 
     factory.calcAndDrawSop = function(dirScope, paper, firstLoop, doRedraw) {
@@ -89,12 +89,12 @@ angular.module('spGuiApp')
     factory.drawSop = function (struct, measures, paper, firstLoop, doRedraw, dirScope, sequence) {
       var animTime = measures.animTime;
       
-      for ( var n in struct.sop) {
+      for (var n = 0; n < struct.sop.length; n++) {
         factory.drawSop(struct.sop[n], measures, paper, false, doRedraw, dirScope, sequence);
         if(struct.isa === 'Sequence') {
-          factory.drawLine(struct.clientSideAdditions.lines[n], measures, paper, struct, new Number(n)+1, 'red', dirScope); // Line after each op in sequence
+          factory.drawLine(struct.clientSideAdditions.lines[n], measures, paper, struct, n+1, 'red', dirScope); // Line after each op in sequence
         } else {
-          factory.drawLine(struct.clientSideAdditions.lines[n], measures, paper, struct.sop[n], new Number(0), 'yellow', dirScope); // Line above each struct
+          factory.drawLine(struct.clientSideAdditions.lines[n], measures, paper, struct.sop[n], 0, 'yellow', dirScope); // Line above each struct
           factory.drawLine(struct.clientSideAdditions.lines2[n], measures, paper, struct.sop[struct.clientSideAdditions.lines2[n].subSopIndex], 'last', 'blue', dirScope); // Line after each struct
         }
       }
@@ -272,7 +272,7 @@ angular.module('spGuiApp')
       }
       
       if(firstLoop === true) {
-        factory.drawLine(struct.clientSideAdditions.lines[struct.clientSideAdditions.lines.length-1], measures, paper, struct, new Number(0), 'purple', dirScope);
+        factory.drawLine(struct.clientSideAdditions.lines[struct.clientSideAdditions.lines.length-1], measures, paper, struct, 0, 'purple', dirScope);
       }
       
     };

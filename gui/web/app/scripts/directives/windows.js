@@ -34,7 +34,7 @@ angular.module('spGuiApp')
             wStorage.editable = true;
           } else if(type === 'identifyRelations') {
             width = 1;
-          } else if(type === 'ganttSchedule') {
+          } else if(type === 'schedule') {
             height = 'small';
           }
 
@@ -54,7 +54,7 @@ angular.module('spGuiApp')
         });
         scope.$on("newGanttScheduleWindow", function() {
           if(scope.active) {
-            scope.addWindow('ganttSchedule');
+            scope.addWindow('schedule');
           }
         });
         //TODO: We need to handle algorithms in a more generic way (load from server) KB 140828
