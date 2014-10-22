@@ -8,7 +8,7 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-  .factory('sopCalcer', [ 'spTalker', 'itemSvc', function (spTalker, itemSvc) {
+  .factory('sopCalcer', [ 'spTalker', 'itemSvc', '$filter', function (spTalker, itemSvc, $filter) {
     var factory = {};
     
     factory.calcStructMeasures = function(sop, measures, para, dirScope) {
@@ -77,11 +77,14 @@ angular.module('spGuiApp')
         } else {
           j = dirScope.sopSpecCopy.sop.length - 1 - i; // To avoid flip on SOP direction animation
         }
-        var w = factory.getWidth(dirScope.sopSpecCopy.sop[j], mC, dirScope);
+        var w = factory.getWidth(dirScope.sopSpecCopy.sop[j], mC, dirScope, true);
         if(w < mC.opW) {
           w = mC.opW;
         }
         var result = factory.createSOP(dirScope.sopSpecCopy.sop[j], mC, sopWidth + w / 2, 0, false, 0, dirScope, true);
+        /*var rawCopy = {};
+        angular.copy(dirScope.sopSpecCopy, rawCopy);
+        console.log(rawCopy);*/
         if(result.height > sopHeight) {
           sopHeight = result.height;
         }
@@ -105,7 +108,7 @@ angular.module('spGuiApp')
     factory.createSOP = function(sequence, measures, middle, start, parentObject, parentObjectIndex, dirScope, firstLoop) {
       // Save of parent reference and array index into the JSON tree to enable localization on add/remove
       sequence.clientSideAdditions.parentObject = parentObject;
-      sequence.clientSideAdditions.parentObjectIndex = new Number(parentObjectIndex);
+      sequence.clientSideAdditions.parentObjectIndex = parentObjectIndex;
 
       var result = {
         'operations' : [],
@@ -130,7 +133,13 @@ angular.module('spGuiApp')
       if (sequence.isa === 'Hierarchy') {
         var op = spTalker.getItemById(sequence.operation);
         if (sequence.sop.length > 0){
-          console.log('sopHierarchy do not handle childs yet: ');
+          console.log('hierarchy children not supported yet');
+          /*sub = this.createSOP(sequence.sop, measures, middle, start, sequence, 0, dirScope, false);
+          result = this.fillResult(result, sub);
+
+          result.height = (result.height + sub.height);
+          if (result.width < sub.width) {result.width = sub.width;}*/
+
         } else {
 
           result.width = this.calcOpWidth(op, measures, dirScope, sequence);
@@ -155,9 +164,9 @@ angular.module('spGuiApp')
         }
       } else if (sequence.isa === 'Sequence') {
         drawHere = start;
-          
-        for ( var m in sequence.sop) {
-          sub = this.createSOP(sequence.sop[m], measures, middle, drawHere, sequence, new Number(m), dirScope, false);
+
+        for (var m = 0; m < sequence.sop.length; m++) {
+          sub = this.createSOP(sequence.sop[m], measures, middle, drawHere, sequence, m, dirScope, false);
           result = this.fillResult(result, sub);
 
           sequence.clientSideAdditions.lines.push({
@@ -175,7 +184,8 @@ angular.module('spGuiApp')
         }
         
       } else {  // Parallel, Alternative, Other or Arbitrary
-        result.width = this.getWidth(sequence, measures, dirScope);
+
+        result.width = this.getWidth(sequence, measures, dirScope, false);
         drawHere = middle - (result.width / 2) + measures.margin;
         var linepos = [];
         var lineMinusL = measures.margin;
@@ -187,13 +197,13 @@ angular.module('spGuiApp')
           para = measures.para;
         }
         var sopLength = sequence.sop.length;
-        for ( var n in sequence.sop) {
+        for (var n = 0; n < sopLength; n++) {
           if(!dirScope.sopSpecCopy.vertDir) {
             n = sopLength - 1 - n;
           }
-          var subW = this.getWidth(sequence.sop[n], measures, dirScope);
+          var subW = this.getWidth(sequence.sop[n], measures, dirScope, false);
           drawHere = drawHere + subW / 2;
-          sub = this.createSOP(sequence.sop[n], measures, drawHere, start + para + measures.margin, sequence, new Number(n), dirScope, false);
+          sub = this.createSOP(sequence.sop[n], measures, drawHere, start + para + measures.margin, sequence, n, dirScope, false);
 
           sequence.clientSideAdditions.lines.push({ // The lines above the structs
             x1 : drawHere,
@@ -206,12 +216,15 @@ angular.module('spGuiApp')
           linepos.push({
             'x' : drawHere,
             'startY' : start + para + sub.height,
-            'subSopIndex' : new Number(n)
+            'subSopIndex' : n
           });
           if (result.height < (sub.height + para + measures.margin)) {
             result.height = sub.height + para + measures.margin;
           }
           drawHere = drawHere + subW / 2 + measures.margin;
+
+          if(sequence.isa === 'Alternative' && n === 0) lineMinusL = lineMinusL + subW/2;
+          if(sequence.isa === 'Alternative' && n === sopLength - 1) lineMinusR = lineMinusR + subW/2;
 
         }
         
@@ -288,7 +301,7 @@ angular.module('spGuiApp')
       return result;
     };
 
-    factory.getWidth = function(sop, measures, dirScope) {
+    factory.getWidth = function(sop, measures, dirScope, firstLaunch) {
       var w, nW;
 
       // Creating an empty object in each node to gather all additions made by sopCalcer and sopDrawer
@@ -297,70 +310,25 @@ angular.module('spGuiApp')
       }
 
       if (sop.isa === 'Hierarchy') {
-        // If the Op-def isn't included in the SOP-def, fetch the Op by ID and replace the ID with it
         var op = spTalker.getItemById(sop.operation);
 
-        // pick the specially prepared conditions in sop if present
-        var conditions;
-        if(dirScope.windowStorage.viewAllConditions && op.conditions) {
-          conditions = op.conditions;
-        } else if(sop.conditions) {
-          conditions = sop.conditions;
-        } else {
-          conditions = [];
+        if(firstLaunch) {
+          //handleHierarchy(op, sop);
+          addConditions(op, sop, dirScope);
         }
 
-        // convert proposition format to text and put it in the sop
+        /*if(sop.sop.length > 0) {
+          return this.getWidth(sop.sop, measures, dirScope, firstLaunch);
+        } else {*/
+          return this.calcOpWidth(op, measures, dirScope, sop);
+        //}
 
-        var kinds = ['preGuards', 'postGuards', 'preActions', 'postActions'];
+      }
 
-        kinds.forEach(function(kind) {
-          sop.clientSideAdditions[kind] = [];
-        });
-
-        for(var i = 0; i < conditions.length; i++) {
-          if (conditions[i].attributes.kind === 'pre') {
-            var preGuardAsText = itemSvc.guardAsText(conditions[i].guard);
-            if (preGuardAsText !== '') {
-              sop.clientSideAdditions[kinds[0]].push(preGuardAsText);
-            }
-            var preActionAsText = itemSvc.actionAsText(conditions[i].action);
-            if (preActionAsText !== '') {
-              sop.clientSideAdditions[kinds[2]].push(preActionAsText);
-            }
-          } else if(conditions[i].attributes.kind === 'post') {
-            var postGuardAsText = itemSvc.guardAsText(conditions[i].guard);
-            if (postGuardAsText !== '') {
-              sop.clientSideAdditions[kinds[1]].push(postGuardAsText);
-            }
-            var postActionAsText = itemSvc.actionAsText(conditions[i].action);
-            if (postActionAsText !== '') {
-              sop.clientSideAdditions[kinds[3]].push(postActionAsText);
-            }
-          }
-        }
-        // Place out and-operators if multiple guards or actions
-        kinds.forEach(function(kind) {
-          for(var j = 0; j < sop.clientSideAdditions[kind].length-1; j++) {
-            sop.clientSideAdditions[kind][j] = sop.clientSideAdditions[kind][j] + ' ^';
-          }
-        });
-        // Place out guard-action separating slash on correct place if needed
-        for(var k = 0; k <= 1; k++) {
-          var noOfGuards = sop.clientSideAdditions[kinds[k]].length;
-          var noOfActions = sop.clientSideAdditions[kinds[k+2]].length;
-          if(noOfGuards > 0) {
-            sop.clientSideAdditions[kinds[k]][noOfGuards-1] = sop.clientSideAdditions[kinds[k]][noOfGuards-1] + ' /';
-          } else if(noOfActions > 0) {
-            sop.clientSideAdditions[kinds[k+2]][noOfActions-1] = '/ ' + sop.clientSideAdditions[kinds[k+2]][noOfActions-1];
-          }
-        }
-
-        return this.calcOpWidth(op, measures, dirScope, sop);
-      } else if (sop.isa === 'Sequence') {
+      if (sop.isa === 'Sequence') {
         w = 0;
         for (var n in sop.sop) {
-          nW = this.getWidth(sop.sop[n], measures, dirScope);
+          nW = this.getWidth(sop.sop[n], measures, dirScope, firstLaunch);
           if (nW > w) {
             w = nW;
           }
@@ -369,7 +337,7 @@ angular.module('spGuiApp')
       } else {
         w = 0;
         for ( var o in sop.sop) {
-          nW = this.getWidth(sop.sop[o], measures, dirScope);
+          nW = this.getWidth(sop.sop[o], measures, dirScope, firstLaunch);
           w = w + nW + measures.margin;
         }
         if(w === 0) {
@@ -380,6 +348,48 @@ angular.module('spGuiApp')
         return w;
       }
     };
+
+    function handleHierarchy(op, sop) {
+      if(typeof sop.sop === 'String') {
+        console.log('trying to get sopSpec by id');
+        var sopSpec = spTalker.getItemById(sop.sop);
+        if(sopSpec) {
+         sop.sop = sopSpec.sop;
+        }
+      } else if(sop.sop.length === 0) {
+        console.log('adding fake sop');
+        sop.sop = {
+          isa: "Sequence",
+          sop: [
+              {
+                isa: "Hierarchy",
+                sop: [],
+                operation: "24285cc2-c608-47bf-8883-1ee8404d6ae1",
+                conditions: []
+              },
+              {
+                isa: "Hierarchy",
+                sop: [],
+                operation: "24285cc2-c608-47bf-8883-1ee8404d6ae1",
+                conditions: []
+              }
+            ]
+        };
+
+        /*var children = spTalker.getItemsByIds(op.attributes.children);
+        var childOps = $filter('with')(children, {isa: 'Operation'});
+        var childOpIds = Object.keys(childOps);
+        console.log(childOpIds);
+        if(childOpIds.length > 0) {
+          var result = spTalker.getSOP(childOpIds);
+          result.success(function(data) {
+            console.log(data);
+            console.log(sop);
+            sop.sop = data.sop;
+          });
+        }*/
+      }
+    }
     
     factory.calcOpWidth = function(op, measures, dirScope, struct) {
       var longestString = longestConditionString(struct, op);
@@ -404,6 +414,64 @@ angular.module('spGuiApp')
         return measures.opH;
       }
     };
+
+    function addConditions(op, sop, dirScope) {
+      // pick the specially prepared conditions in sop if present
+      var conditions;
+      if(dirScope.windowStorage.viewAllConditions && op.conditions) {
+        conditions = op.conditions;
+      } else if(sop.conditions) {
+        conditions = sop.conditions;
+      } else {
+        conditions = [];
+      }
+
+      // convert proposition format to text and put it in the sop
+
+      var kinds = ['preGuards', 'postGuards', 'preActions', 'postActions'];
+
+      kinds.forEach(function(kind) {
+        sop.clientSideAdditions[kind] = [];
+      });
+
+      for(var i = 0; i < conditions.length; i++) {
+        if (conditions[i].attributes.kind === 'pre') {
+          var preGuardAsText = itemSvc.guardAsText(conditions[i].guard);
+          if (preGuardAsText !== '') {
+            sop.clientSideAdditions[kinds[0]].push(preGuardAsText);
+          }
+          var preActionAsText = itemSvc.actionAsText(conditions[i].action);
+          if (preActionAsText !== '') {
+            sop.clientSideAdditions[kinds[2]].push(preActionAsText);
+          }
+        } else if(conditions[i].attributes.kind === 'post') {
+          var postGuardAsText = itemSvc.guardAsText(conditions[i].guard);
+          if (postGuardAsText !== '') {
+            sop.clientSideAdditions[kinds[1]].push(postGuardAsText);
+          }
+          var postActionAsText = itemSvc.actionAsText(conditions[i].action);
+          if (postActionAsText !== '') {
+            sop.clientSideAdditions[kinds[3]].push(postActionAsText);
+          }
+        }
+      }
+      // Place out and-operators if multiple guards or actions
+      kinds.forEach(function(kind) {
+        for(var j = 0; j < sop.clientSideAdditions[kind].length-1; j++) {
+          sop.clientSideAdditions[kind][j] = sop.clientSideAdditions[kind][j] + ' ^';
+        }
+      });
+      // Place out guard-action separating slash on correct place if needed
+      for(var k = 0; k <= 1; k++) {
+        var noOfGuards = sop.clientSideAdditions[kinds[k]].length;
+        var noOfActions = sop.clientSideAdditions[kinds[k+2]].length;
+        if(noOfGuards > 0) {
+          sop.clientSideAdditions[kinds[k]][noOfGuards-1] = sop.clientSideAdditions[kinds[k]][noOfGuards-1] + ' /';
+        } else if(noOfActions > 0) {
+          sop.clientSideAdditions[kinds[k+2]][noOfActions-1] = '/ ' + sop.clientSideAdditions[kinds[k+2]][noOfActions-1];
+        }
+      }
+    }
 
     function longestConditionString(struct, op) {
       var textStrings = struct.clientSideAdditions.preGuards.concat(struct.clientSideAdditions.preActions, struct.clientSideAdditions.postGuards, struct.clientSideAdditions.postActions);
