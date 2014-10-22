@@ -198,12 +198,13 @@ angular.module('spGuiApp')
         }
         var sopLength = sequence.sop.length;
         for (var n = 0; n < sopLength; n++) {
+          var o = n;
           if(!dirScope.sopSpecCopy.vertDir) {
-            n = sopLength - 1 - n;
+            o = sopLength - 1 - n;
           }
-          var subW = this.getWidth(sequence.sop[n], measures, dirScope, false);
+          var subW = this.getWidth(sequence.sop[o], measures, dirScope, false);
           drawHere = drawHere + subW / 2;
-          sub = this.createSOP(sequence.sop[n], measures, drawHere, start + para + measures.margin, sequence, n, dirScope, false);
+          sub = this.createSOP(sequence.sop[o], measures, drawHere, start + para + measures.margin, sequence, o, dirScope, false);
 
           sequence.clientSideAdditions.lines.push({ // The lines above the structs
             x1 : drawHere,
@@ -216,7 +217,7 @@ angular.module('spGuiApp')
           linepos.push({
             'x' : drawHere,
             'startY' : start + para + sub.height,
-            'subSopIndex' : n
+            'subSopIndex' : o
           });
           if (result.height < (sub.height + para + measures.margin)) {
             result.height = sub.height + para + measures.margin;
@@ -224,8 +225,8 @@ angular.module('spGuiApp')
           drawHere = drawHere + subW / 2 + measures.margin;
 
           if(sequence.isa === 'Alternative' && sopLength > 1) { // shorten the horizontal lines if more than one op in an alternative struct
-            if(n === 0) lineMinusL = lineMinusL + subW/2;
-            else if(n === sopLength - 1) lineMinusR = lineMinusR + subW/2;
+            if(o === 0) lineMinusL = lineMinusL + subW/2;
+            else if(o === sopLength - 1) lineMinusR = lineMinusR + subW/2;
           }
 
         }
@@ -240,7 +241,7 @@ angular.module('spGuiApp')
           sequence.clientSideAdditions.lines2 = [];
         }
         
-        for ( var p in linepos) {
+        for (var p = 0; p < linepos.length; p++) {
 
           // The lines below the structs
           sequence.clientSideAdditions.lines2.push({
@@ -291,13 +292,13 @@ angular.module('spGuiApp')
     };
 
     factory.fillResult = function(result, fill) {
-      for ( var q = 0; q < fill.operations.length; q++) {
+      for(var q = 0; q < fill.operations.length; q++) {
         result.operations.push(fill.operations[q]);
       }
-      for ( var r = 0; r < fill.structs.length; r++) {
+      for(var r = 0; r < fill.structs.length; r++) {
         result.structs.push(fill.structs[r]);
       }
-      for ( var s = 0; s < fill.lines.length; s++) {
+      for(var s = 0; s < fill.lines.length; s++) {
         result.lines.push(fill.lines[s]);
       }
       return result;
@@ -329,7 +330,7 @@ angular.module('spGuiApp')
 
       if (sop.isa === 'Sequence') {
         w = 0;
-        for (var n in sop.sop) {
+        for (var n = 0; n < sop.sop.length; n++) {
           nW = this.getWidth(sop.sop[n], measures, dirScope, firstLaunch);
           if (nW > w) {
             w = nW;
@@ -338,7 +339,7 @@ angular.module('spGuiApp')
         return w;
       } else {
         w = 0;
-        for ( var o in sop.sop) {
+        for (var o = 0; o < sop.sop.length; o++) {
           nW = this.getWidth(sop.sop[o], measures, dirScope, firstLaunch);
           w = w + nW + measures.margin;
         }
