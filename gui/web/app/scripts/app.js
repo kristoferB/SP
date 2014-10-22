@@ -19,7 +19,8 @@ angular
     'jlareau.pnotify',
     'ui.bootstrap',
     'ngTextcomplete',
-    'angularFileUpload'
+    'angularFileUpload',
+    'gantt'
   ])
   .directive('input', ['$filter',
     function($filter) {

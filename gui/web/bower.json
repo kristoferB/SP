@@ -21,7 +21,8 @@
     "ng-textcomplete": "~0.5.0",
     "bootstrap-contextmenu": "~0.2.0",
     "underscore": "~1.7.0",
-    "ng-file-upload": "~1.6.12"
+    "ng-file-upload": "~1.6.12",
+    "angular-gantt": "~0.6.4"
   },
   "devDependencies": {
     "angular-mocks": "1.2.24",

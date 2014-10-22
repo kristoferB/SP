@@ -26,13 +26,19 @@ angular.module('spGuiApp')
         }
 
         scope.addWindow = function(type, wStorage) {
+          var width = 2, height = 'large';
           noOfOpenedWindows++;
           if(type === 'sopViewer') {
             wStorage.editable = false;
           } else if(type === 'sopMaker') {
             wStorage.editable = true;
+          } else if(type === 'identifyRelations') {
+            width = 1;
+          } else if(type === 'ganttSchedule') {
+            height = 'small';
           }
-          scope.windows.push({type: type, width: 2, height: 'large', name: type, id: type + noOfOpenedWindows, storage: wStorage});
+
+          scope.windows.push({type: type, width: width, height: height, name: type, id: type + noOfOpenedWindows, storage: wStorage});
           sessionStorage.noOfOpenedWindows = angular.toJson(noOfOpenedWindows);
         };
 
@@ -44,6 +50,11 @@ angular.module('spGuiApp')
         scope.$on("newItemListWindow", function() {
           if(scope.active) {
             scope.addWindow('itemList');
+          }
+        });
+        scope.$on("newGanttScheduleWindow", function() {
+          if(scope.active) {
+            scope.addWindow('ganttSchedule');
           }
         });
         //TODO: We need to handle algorithms in a more generic way (load from server) KB 140828

@@ -1,0 +1,11 @@
+<div class="header">
+  <div class="btn-toolbar" role="toolbar">
+    <button type="button" class="btn btn-default" ng-disabled="!ganttInitialized" ng-click="addSamples()"><span class="glyphicon glyphicon-refresh"></span> Load</button>
+  </div> <!-- end of toolbar -->
+</div> <!-- end of header -->
+
+<div class="content">
+  <div class="content-wrapper">
+    <gantt load-data="loadData = fn" load-timespans="loadTimespans = fn" view-scale="'hour'" on-gantt-ready="ganttInitialized()" center-date="scrollToDate = fn"></gantt>
+  </div> <!-- end of content-wrapper -->
+</div> <!-- end of content -->
