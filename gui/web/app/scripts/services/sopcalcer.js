@@ -230,6 +230,11 @@ angular.module('spGuiApp')
           }
 
         }
+
+        // Swap if horizontal direction
+        if(!dirScope.sopSpecCopy.vertDir) {
+          lineMinusL = [lineMinusR, lineMinusR = lineMinusL][0];
+        }
         
         if(typeof sequence.clientSideAdditions.lines2 === 'undefined') {
           sequence.clientSideAdditions.lines2 = [];
