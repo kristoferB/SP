@@ -2,33 +2,33 @@
   <tbody>
   <tr ng-if="items.length === 0"><td colspan="99">There are no items to show.</td></tr>
 
-  <tr ng-repeat-start="item in items track by item.id" scroll-if="row.edit === true" ng-click="item.attributes.isa !== 'StateVariable' && itemListSvc.expandChildren(row, true)"
+  <tr ng-repeat-start="item in items track by item.id" scroll-if="rowSettings[item.id].edit === true" ng-click="item.attributes.isa !== 'StateVariable' && itemListSvc.expandChildren(rowSettings[item.id], true)"
       item-drag="{isa: 'Hierarchy', id: item.id}" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'"
-      ng-init="row={dropdownOpen: false, loadChildren: false, edit: false, expandChildren: false, infoIsCollapsed: true, children: [] }; addItemExpandListener(item, row);">
+      ng-init="rowSettings[item.id] = {dropdownOpen: false, loadChildren: false, edit: false, expandChildren: false, infoIsCollapsed: true}; addItemExpandListener(item, rowSettings[item.id]);">
 
     <td class="checkbox-column"><input type="checkbox" ng-click="itemListSvc.stopPropagation($event)" ng-model="item.checked" ng-change="alterCheckedArray(item)" /></td>
     <td ng-repeat="column in selection">{{item[column]}}</td>
     <td ng-repeat="attrColumn in attrSelection">{{item['attributes'][attrColumn]}}</td>
     <td class="item-table-buttons">
-      <button class="btn btn-xs btn-default" ng-click="itemListSvc.stopPropagation($event); row.expandChildren = false; row.infoIsCollapsed = !row.infoIsCollapsed;" ng-if="!row.edit"><span class="glyphicon glyphicon-info-sign"></span></button>
-      <button class="btn btn-xs btn-default" ng-click="row.expandChildren = false; row.infoIsCollapsed = false; row.edit=true; itemListSvc.stopPropagation($event);" ng-if="!row.edit" ><span class="glyphicon glyphicon-edit"></span></button>
-      <button class="btn btn-xs btn-default" ng-click="itemForm.$valid && itemListSvc.saveItem(item, row); itemListSvc.stopPropagation($event);" ng-if="row.edit" type="submit"><span class="glyphicon glyphicon-floppy-disk"></span></button>
-      <button class="btn btn-xs btn-default" ng-click="itemListSvc.reReadFromServer(item, row); itemListSvc.stopPropagation($event);" ng-if="row.edit" ><span class="glyphicon glyphicon-remove"></span></button>
-      <button class="btn btn-xs btn-default" ng-click="itemListSvc.deleteItem(item); itemListSvc.stopPropagation($event);" ng-if="!row.edit"><span class="glyphicon glyphicon-remove"></span></button>
-      <button class="btn btn-xs btn-default" ng-if="!row.edit" create-dropdown><span class="glyphicon glyphicon-plus"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemListSvc.stopPropagation($event); rowSettings[item.id].expandChildren = false; rowSettings[item.id].infoIsCollapsed = !rowSettings[item.id].infoIsCollapsed;" ng-if="!rowSettings[item.id].edit"><span class="glyphicon glyphicon-info-sign"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="rowSettings[item.id].expandChildren = false; rowSettings[item.id].infoIsCollapsed = false; rowSettings[item.id].edit=true; itemListSvc.stopPropagation($event);" ng-if="!rowSettings[item.id].edit" ><span class="glyphicon glyphicon-edit"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemForm.$valid && itemListSvc.saveItem(item, rowSettings[item.id]); itemListSvc.stopPropagation($event);" ng-if="rowSettings[item.id].edit" type="submit"><span class="glyphicon glyphicon-floppy-disk"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemListSvc.reReadFromServer(item, rowSettings[item.id]); itemListSvc.stopPropagation($event);" ng-if="rowSettings[item.id].edit" ><span class="glyphicon glyphicon-remove"></span></button>
+      <button class="btn btn-xs btn-default" ng-click="itemListSvc.deleteItem(item); itemListSvc.stopPropagation($event);" ng-if="!rowSettings[item.id].edit"><span class="glyphicon glyphicon-remove"></span></button>
+      <button class="btn btn-xs btn-default" ng-if="!rowSettings[item.id].edit" create-dropdown><span class="glyphicon glyphicon-plus"></span></button>
     </td>
   </tr>
 
   <tr ng-class-odd="'odd-row'" ng-class-even="'even-row'">
     <td colspan="99" class="hiddenRow">
       <form class="form-inline" name="itemForm">
-        <div collapse="row.infoIsCollapsed">
+        <div collapse="rowSettings[item.id].infoIsCollapsed">
           <table class="table item-info-table">
             <tbody>
 
-              <tr ng-if="row.edit">
+              <tr ng-if="rowSettings[item.id].edit">
                 <td class="col-md-1">name:</td>
-                <td class="col-md-9" ng-if="row.edit">
+                <td class="col-md-9" ng-if="rowSettings[item.id].edit">
                   <ng-form name="textForm">
                     <input no-whitespace name="textInput" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item.name" auto-focus />
                     <span class="error" ng-show="textForm.textInput.$error.nowhitespace"><br />Whitespace is not allowed here.</span>
@@ -39,16 +39,16 @@
               <tr ng-repeat="(key, prop) in item | filterElements">
                 <td class="col-md-1" >{{key}}:</td>
                 <td class="col-md-9">
-                  <attr-grid attr-obj="item" key="key" edit="row.edit" add-window="addWindow" level=1></attr-grid>
+                  <attr-grid attr-obj="item" key="key" edit="rowSettings[item.id].edit" add-window="addWindow" level=1></attr-grid>
                 </td>
               </tr>
 
               <tr ng-repeat="(key, prop) in item.attributes | filterElements">
                 <td class="col-md-1">
-                  <deleteable-key attr-obj="item.attributes" element="key" key="key" edit="row.edit"></deleteable-key>
+                  <deleteable-key attr-obj="item.attributes" element="key" key="key" edit="rowSettings[item.id].edit"></deleteable-key>
                 </td>
                 <td class="col-md-9">
-                  <attr-grid key="key" attr-obj="item.attributes" edit="row.edit" add-window="addWindow" level=1></attr-grid>
+                  <attr-grid key="key" attr-obj="item.attributes" edit="rowSettings[item.id].edit" add-window="addWindow" level=1></attr-grid>
                 </td>
               </tr>
 
@@ -61,7 +61,7 @@
                 <td class="col-md-9">{{item.id}}</td>
               </tr>
 
-              <tr ng-if="row.edit">
+              <tr ng-if="rowSettings[item.id].edit">
                 <td></td>
                 <td>
                   <div class="btn-group" dropdown>
@@ -85,7 +85,7 @@
   <tr ng-repeat-end ng-class-odd="'odd-row'" ng-class-even="'even-row'">
     <td colspan="99" class="hiddenRow">
       <form class="form-inline" name="itemForm">
-        <div style="margin-left: 5%;" ng-if="row.loadChildren" collapse="!(row.expandChildren && row.loadChildren)">
+        <div style="margin-left: 5%;" ng-if="rowSettings[item.id].loadChildren" collapse="!(rowSettings[item.id].expandChildren && rowSettings[item.id].loadChildren)">
           <item-table parent-item="item" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" add-window="addWindow" item-list-scope="itemListScope"></item-table>
         </div> <!-- end of accordion-body -->
       </form>

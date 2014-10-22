@@ -33,6 +33,10 @@ angular.module('spGuiApp')
 
       var filtered;
 
+      $scope.collapseAll = function() {
+        $scope.$broadcast('collapseAll');
+      };
+
       $scope.alterRootItem = function(spSpec) {
         $scope.rootItem = spSpec;
         $scope.getFilterAndOrderItems();

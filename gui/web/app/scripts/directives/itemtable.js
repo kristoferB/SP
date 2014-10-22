@@ -25,6 +25,15 @@ angular.module('spGuiApp')
         $scope.items = [];
         $scope.spTalker = spTalker;
         $scope.itemKinds = ITEM_KINDS;
+        $scope.rowSettings = {};
+
+        $scope.$on('collapseAll', function() {
+          angular.forEach($scope.rowSettings, function(rowSetting) {
+            rowSetting.edit = false;
+            rowSetting.infoIsCollapsed = true;
+            rowSetting.expandChildren = false;
+          });
+        });
 
         $scope.addItemExpandListener = function(item, row) {
           $scope.$on('show-info-' + item.id, function(event) {
