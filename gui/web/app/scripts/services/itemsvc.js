@@ -14,12 +14,13 @@ angular.module('spGuiApp')
 
     function getNameFromId(id) {
       var item = spTalker.items[id];
-      var parentToItem = spTalker.items[item.attributes.parent];
-      if(parentToItem === spTalker.activeModel || !parentToItem) {
-        return spTalker.items[id].name;
-      } else {
-        return parentToItem.name + '.' + spTalker.items[id].name
-      }
+      return item.name + "("+id+")";
+//      var parentToItem = spTalker.items[item.attributes.parent];
+//      if(parentToItem === spTalker.activeModel || !parentToItem) {
+//        return spTalker.items[id].name;
+//      } else {
+//        return parentToItem.name + '.' + spTalker.items[id].name
+//      }
     }
 
     function handleProp(prop) {

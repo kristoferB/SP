@@ -312,7 +312,7 @@ angular.module('spGuiApp')
         newItem.conditions = [{guard: {isa:'EQ', right: true, left: true}, action: [], attributes: {kind: 'pre', group: ''}}];
       } else if(type === 'Thing') {
         newItem.attributes.stateVariable =  {
-          kind: 'range'
+          kind: 'boolean'
         };
         factory.svKindChange(newItem.attributes.stateVariable, true);
       } else if(type === 'SOPSpec') {

@@ -8,7 +8,7 @@
  * Controller of the spGuiApp
  */
 angular.module('spGuiApp')
-  .controller('LoadfileCtrl', function ($scope, $modalInstance, $upload) {
+  .controller('LoadfileCtrl', function ($scope, $modalInstance, $upload, spTalker) {
 
 
 
@@ -34,6 +34,7 @@ angular.module('spGuiApp')
         }).success(function(data, status, headers, config) {
           // file is uploaded successfully
           console.log(data);
+          spTalker.loadModel(data)
           $modalInstance.close("")
         });
         //.error(...)
