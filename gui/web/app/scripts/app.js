@@ -164,8 +164,18 @@ angular.module('spGuiApp').filter('with', function() { // works on objects/maps 
     angular.forEach(items, function(item, id) {
       var valid = true;
       angular.forEach(search, function(value, key) {
-        if (!item.hasOwnProperty(key) || item[key] !== value) {
-          valid = false;
+        if(value instanceof Array) { // to enable accepting of alternative item key values, like isa: Thing || Operation
+          var arrayValid = false;
+          angular.forEach(value, function(element) {
+            if (item.hasOwnProperty(key) && item[key] === element) {
+              arrayValid = true;
+            }
+          });
+          valid = arrayValid;
+        } else {
+          if (!item.hasOwnProperty(key) || item[key] !== value) {
+            valid = false;
+          }
         }
       });
       if(valid) {

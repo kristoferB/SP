@@ -8,7 +8,7 @@
  */
 angular.module('spGuiApp')
   .directive('sopmaker', ['sopCalcer', 'sopDrawer', 'notificationService', 'spTalker', '$modal', '$rootScope', function (sopCalcer, sopDrawer, notificationService, spTalker, $modal, $rootScope) {
-    
+
     return {
       template:
                 '<div class="header">' +
@@ -109,22 +109,20 @@ angular.module('spGuiApp')
           });
 
           modalInstance.result.then(function(givenName) {
-            var newSOPSpec = new spTalker.item();
-            newSOPSpec.name = givenName;
-            newSOPSpec.isa = 'SOPSpec';
-            newSOPSpec.sop = clone(scope.sopSpecCopy.sop);
-            newSOPSpec.attributes = {
-              children: []
+            var newSOPSpec = {
+              name: givenName,
+              isa: 'SOPSpec',
+              sop: clone(scope.sopSpecCopy.sop),
+              attributes: {
+                children: []
+              }
             };
             function successHandler(data) {
               scope.windowStorage.sopSpecId = data.id;
               sopSpecSource = data;
-              spTalker.activeModel.attributes.children.push(data.id);
-              spTalker.activeModel.$save({modelID: spTalker.activeModel.model}, function() {
-                $rootScope.$broadcast('itemsQueried');
-              });
+              $rootScope.$broadcast('itemsQueried');
             }
-            spTalker.createItem('SOPSpec', successHandler, newSOPSpec, false);
+            spTalker.createItem('SOPSpec', successHandler, newSOPSpec, false, false);
           });
         }
 

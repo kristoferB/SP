@@ -23,7 +23,7 @@
 
   <button ng-if="type==='sop'" ng-click="itemListSvc.openSopInNewWindow(attrObj, addWindow)" class="btn btn-sm btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
 
-  <conditions ng-if="type==='conditions'" conditions="attrObj[key]" edit="edit"></conditions>
+  <conditions ng-if="type === 'conditions'" conditions="attrObj[key]" edit="edit"></conditions>
   <button ng-if="type==='conditions' && edit" class="btn btn-sm btn-default" ng-click="itemListSvc.addCondition(attrObj[key])"><span class="glyphicon glyphicon-plus"></span> Add condition</button>
 
   <table class="element-list" ng-if="type === 'object'">

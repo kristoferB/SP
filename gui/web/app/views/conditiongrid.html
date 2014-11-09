@@ -1,0 +1,18 @@
+<table ng-class="{'guard-grid': (row.type !== 'value' && row.type !== 'id')}">
+  <tr>
+    <td><select class="form-control input-sm" ng-model="row.type" ng-change="changeType(parent, key, row.type)" ng-options="operator for operator in operators(parentOperator)"></select></td>
+    <td>
+      <table ng-if="isDefined(parent[key].isa)">
+        <tr ng-repeat="side in sides" ng-if="parent[key].isa === 'EQ' || parent[key].isa === 'NEQ'">
+          <td><condition-grid parent="parent[key]" key="side" parent-operator="row.type"></condition-grid></td>
+        </tr>
+        <tr ng-repeat="prop in parent[key].props track by $index" ng-if="parent[key].isa === 'AND' || parent[key].isa === 'OR'">
+          <td><condition-grid parent="parent[key].props" key="$index" parent-operator="row.type"></condition-grid></td><td><button class="btn btn-default btn-sm" ng-click="removeProp(parent[key].props, $index)"><span class="glyphicon glyphicon-minus"></span></button></td>
+        </tr>
+        <tr ng-if="parent[key].isa === 'AND' || parent[key].isa === 'OR'"><td><button class="btn btn-default btn-sm" ng-click="addProp(parent[key].props)"><span class="glyphicon glyphicon-plus"></span> Add prop</button></td></tr>
+      </table>
+      <input ng-if="!isDefined(parent[key].isa) && !isDefined(parent[key].id)" class="form-control input-sm" ng-model="parent[key]" type="text" />
+      <select ng-if="isDefined(parent[key].id)" class="form-control input-sm" ng-model="parent[key].id" ng-options="id as item.name for (id, item) in spTalker.items | with: { isa: ['Thing', 'Operation'] }"></select>
+    </td>
+  </tr>
+</table>

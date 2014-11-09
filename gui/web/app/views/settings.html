@@ -11,7 +11,16 @@
         </td>
       </tr>
       <tr>
-        <td>Condition groups</td>
+        <td>Condition Input Mode</td>
+        <td>
+          <form>
+            <input type="radio" ng-model="spTalker.activeModel.attributes.conditionInputMode" value="grid"> Grid <br/>
+            <input type="radio" ng-model="spTalker.activeModel.attributes.conditionInputMode" value="text"> Text
+          </form>
+        </td>
+      </tr>
+      <tr>
+        <td>Condition Groups</td>
         <td>
           <table>
             <tbody>

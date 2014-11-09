@@ -100,7 +100,8 @@ angular.module('spGuiApp')
       name: name,
       attributes: {
         attributeTags: {},
-        conditionGroups: []
+        conditionGroups: ['default'],
+        conditionInputMode: 'grid'
       }
     };
     $http.post(apiUrl + '/models', newModel).
@@ -227,6 +228,7 @@ angular.module('spGuiApp')
       notificationService.error('No active model chosen.');
       return false;
     }
+    console.log(items);
     $http({method: 'POST', url: 'api/models/' + factory.activeModel.model + '/items', data: items})
       .success(function(savedItems) {
         if(notifySuccess) {

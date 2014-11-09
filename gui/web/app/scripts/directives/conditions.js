@@ -22,6 +22,15 @@ angular.module('spGuiApp')
         scope.actionModel = '';
         scope.itemSvc = itemSvc;
 
+        scope.addAction = function(condition) {
+          condition.action.push({id: '', value: ''});
+        };
+
+        scope.removeAction = function(condition, action) {
+          var index = condition.action.indexOf(action);
+          condition.action.splice(index, 1);
+        };
+
         scope.emptyGuard = {
           guard: {isa:'EQ', right: true, left: true}
         };
