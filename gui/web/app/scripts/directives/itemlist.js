@@ -11,12 +11,16 @@ angular.module('spGuiApp')
   return {
     templateUrl: 'views/itemlist.html',
     restrict: 'E',
+    scope: {
+      windowStorage: '=',
+      addWindow: '='
+    },
     controller: function($scope) {
       $scope.filteredAndOrderedItems = [];
       $scope.spTalker = spTalker;
       $scope.itemListSvc = itemListSvc;
-      $scope.showableColumns = ['name', 'isa', 'conditions', 'stateVariables'];
-      $scope.selection = ['name', 'isa'];
+      $scope.showableColumns = ['name', 'conditions'];
+      $scope.selection = ['name'];
       $scope.attrSelection = [];
       $scope.predicate = 'name';
       $scope.reverse = false;
@@ -30,6 +34,10 @@ angular.module('spGuiApp')
       $scope.itemKinds = ITEM_KINDS;
       $scope.thisScope = $scope;
       $scope.rootItem = false;
+
+      if($scope.windowStorage.itemTree) {
+
+      }
 
       var filtered;
 

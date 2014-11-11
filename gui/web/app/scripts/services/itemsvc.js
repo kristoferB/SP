@@ -12,6 +12,56 @@ angular.module('spGuiApp')
 
     var factory = {};
 
+    factory.selectedItemsHistory = [];
+    factory.indexOfViewedItem = -1;
+
+    factory.cleanHistoryFromID = function(id) {
+      var index = 0;
+      while(index !== -1) {
+        index = factory.selectedItemsHistory.indexOf(id);
+        if(index !== -1) {
+          factory.selectedItemsHistory.splice(index, 1);
+          if(index <= factory.indexOfViewedItem) {
+            factory.indexOfViewedItem -= 1;
+          }
+        }
+      }
+    };
+
+    factory.selectItemId = function(id) {
+      factory.selectedItemsHistory.splice(factory.indexOfViewedItem + 1, 0, id);
+      factory.selectedItemsHistory = factory.selectedItemsHistory.slice(0, factory.indexOfViewedItem + 2);
+      factory.indexOfViewedItem += 1;
+    };
+
+    factory.addAttribute = function(attrObj, key, value) {
+      attrObj[key] = angular.copy(value);
+      replaceDates(attrObj, key);
+    };
+
+    function replaceDates(obj, key) {
+      if(obj[key] instanceof Date) {
+        obj[key] = new Date();
+      }
+      for(var k in obj[key]) {
+        if(obj[key].hasOwnProperty(k)) {
+          replaceDates(obj[key], k);
+        }
+      }
+    }
+
+    factory.reReadFromServer = function(item, row) {
+      spTalker.reReadFromServer(item);
+      row.edit = false;
+    };
+
+    factory.deleteItem = function(item) {
+      if(confirm('You are about to delete ' + item.name + ' completely. Are you sure?')) {
+        factory.cleanHistoryFromID(item.id);
+        spTalker.deleteItem(item, true);
+      }
+    };
+
     function getNameFromId(id) {
       var item = spTalker.items[id];
       return item.name + "("+id+")";

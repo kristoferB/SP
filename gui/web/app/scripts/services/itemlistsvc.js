@@ -8,7 +8,7 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-  .factory('itemListSvc', ['$rootScope', 'spTalker', 'notificationService', '$timeout', 'SV_KINDS', function($rootScope, spTalker, notificationService, $timeout) {
+  .factory('itemListSvc', ['$rootScope', 'itemSvc', 'spTalker', 'notificationService', '$timeout', 'SV_KINDS', function($rootScope, itemSvc, spTalker, notificationService, $timeout) {
 
     var factory = {};
 
@@ -21,22 +21,6 @@ angular.module('spGuiApp')
         delete attrObj[key];
       }
     };
-
-    factory.addAttribute = function(attrObj, key, value) {
-      attrObj[key] = angular.copy(value);
-      replaceDates(attrObj, key);
-    };
-
-    function replaceDates(obj, key) {
-      if(obj[key] instanceof Date) {
-        obj[key] = new Date();
-      }
-      for(var k in obj[key]) {
-        if(obj[key].hasOwnProperty(k)) {
-          replaceDates(obj[key], k);
-        }
-      }
-    }
 
     factory.getChildren = function(parentItem, childrenArray) {
       while(childrenArray.length > 0) {
@@ -80,17 +64,6 @@ angular.module('spGuiApp')
       row.edit = false;
     };
 
-    factory.reReadFromServer = function(item, row) {
-      spTalker.reReadFromServer(item);
-      row.edit = false;
-    };
-
-    factory.deleteItem = function(item) {
-      if(confirm('You are about to delete ' + item.name + ' completely. Are you sure?')) {
-        spTalker.deleteItem(item, true);
-      }
-    };
-
     factory.createItem = function(type, parentItem, itemListScope) {
       function onItemCreationSuccess(data) {
         if(type === 'SPSpec' || !parentItem) {
@@ -104,14 +77,20 @@ angular.module('spGuiApp')
             $rootScope.$broadcast('itemsQueried');
           });
         }
-        $timeout(function () {
-          if(parentItem) {
-            itemListScope.$broadcast('show-children-' + parentItem.id);
-          }
+        if(itemListScope.windowStorage.itemTree) {
+          itemSvc.selectItemId(data.id);
+          $rootScope.$broadcast('edit-in-item-explorer');
+        } else {
           $timeout(function () {
-            itemListScope.$broadcast('show-info-' + data.id);
-          });
-        }, 100);
+            if(parentItem) {
+              itemListScope.$broadcast('show-children-' + parentItem.id);
+            }
+            $timeout(function () {
+              itemListScope.$broadcast('show-info-' + data.id);
+            });
+          }, 200);
+        }
+
       }
       spTalker.createItem(type, onItemCreationSuccess, null, false, parentItem);
     };

@@ -7,7 +7,7 @@
  * # itemTable
  */
 angular.module('spGuiApp')
-  .directive('itemTable', function (itemListSvc, spTalker, RecursionHelper, ITEM_KINDS) {
+  .directive('itemTable', function (itemListSvc, spTalker, RecursionHelper, ITEM_KINDS, itemSvc) {
     return {
       templateUrl: 'views/itemtable.html',
       restrict: 'E',
@@ -22,6 +22,7 @@ angular.module('spGuiApp')
       },
       controller: function($scope) {
         $scope.itemListSvc = itemListSvc;
+        $scope.itemSvc = itemSvc;
         $scope.items = [];
         $scope.spTalker = spTalker;
         $scope.itemKinds = ITEM_KINDS;
@@ -34,6 +35,11 @@ angular.module('spGuiApp')
             rowSetting.expandChildren = false;
           });
         });
+
+        $scope.haveChildren = function(id) {
+          var item = spTalker.getItemById(id);
+          return item && item.attributes.children && item.attributes.children.length > 0;
+        };
 
         $scope.addItemExpandListener = function(item, row) {
           $scope.$on('show-info-' + item.id, function(event) {

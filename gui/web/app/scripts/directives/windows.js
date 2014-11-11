@@ -32,6 +32,15 @@ angular.module('spGuiApp')
             wStorage.editable = false;
           } else if(type === 'sopMaker') {
             wStorage.editable = true;
+          } else if(type === 'itemTree') {
+            wStorage.itemTree = true;
+            width = 0;
+          } else if(type === 'itemList') {
+            wStorage.itemTree = false;
+          } else if(type === 'itemExplorer') {
+            wStorage.editable = true;
+            width = 2;
+            height = 'large';
           } else if(type === 'identifyRelations') {
             width = 1;
           } else if(type === 'schedule') {
@@ -49,7 +58,17 @@ angular.module('spGuiApp')
         });
         scope.$on("newItemListWindow", function() {
           if(scope.active) {
-            scope.addWindow('itemList');
+            scope.addWindow('itemList', {});
+          }
+        });
+        scope.$on("newItemTreeWindow", function() {
+          if(scope.active) {
+            scope.addWindow('itemTree', {});
+          }
+        });
+        scope.$on("newItemExplorerWindow", function() {
+          if(scope.active) {
+            scope.addWindow('itemExplorer', {});
           }
         });
         scope.$on("newGanttScheduleWindow", function() {
@@ -72,7 +91,7 @@ angular.module('spGuiApp')
         scope.changeWindowWidth = function(window, increase) {
           if(increase && window.width !== 4){
             window.width++;
-          } else if(!increase && window.width !== 1) {
+          } else if(!increase && window.width !== 0) {
             window.width--;
           }
         };

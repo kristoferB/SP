@@ -59,7 +59,7 @@ angular.module('spGuiApp')
 
         $scope.changeType = function(parent, key, type) {
           if(type === 'value')
-            parent[key] = 'value';
+            parent[key] = true;
           else if(type === 'id')
             parent[key] = { id: ''};
           else if(type === 'EQ' || type === 'NEQ') {
@@ -69,7 +69,7 @@ angular.module('spGuiApp')
               parent[key] = {
                 isa: type,
                 left: {id: ''},
-                right: 'true'
+                right: true
               };
             }
           } else { // AND, OR
