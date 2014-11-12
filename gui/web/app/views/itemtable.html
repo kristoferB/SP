@@ -34,60 +34,6 @@
       <form class="form-inline" name="itemForm">
         <div collapse="rowSettings[item.id].infoIsCollapsed">
           <item-info item="item" edit="rowSettings[item.id].edit" add-window="addWindow" show-item-name="false"></item-info>
-          <!--<table class="table item-info-table">
-            <tbody>
-
-              <tr ng-if="rowSettings[item.id].edit">
-                <td class="col-md-1">name:</td>
-                <td class="col-md-9" ng-if="rowSettings[item.id].edit">
-                  <ng-form name="textForm">
-                    <input no-whitespace name="textInput" type="text" ng-maxlength="40" class="form-control input-sm" ng-model="item.name" auto-focus />
-                    <span class="error" ng-show="textForm.textInput.$error.nowhitespace"><br />Whitespace is not allowed here.</span>
-                  </ng-form>
-                </td>
-              </tr>
-
-              <tr ng-repeat="(key, prop) in item | filterElements">
-                <td class="col-md-1" >{{key}}:</td>
-                <td class="col-md-9">
-                  <attr-grid attr-obj="item" key="key" edit="rowSettings[item.id].edit" add-window="addWindow" level=1></attr-grid>
-                </td>
-              </tr>
-
-              <tr ng-repeat="(key, prop) in item.attributes | filterElements">
-                <td class="col-md-1">
-                  <deleteable-key attr-obj="item.attributes" element="key" key="key" edit="rowSettings[item.id].edit"></deleteable-key>
-                </td>
-                <td class="col-md-9">
-                  <attr-grid key="key" attr-obj="item.attributes" edit="rowSettings[item.id].edit" add-window="addWindow" level=1></attr-grid>
-                </td>
-              </tr>
-
-              <tr>
-                <td class="col-md-1">type:</td>
-                <td class="col-md-9">{{item.isa}}</td>
-              </tr>
-              <tr>
-                <td class="col-md-1">id:</td>
-                <td class="col-md-9">{{item.id}}</td>
-              </tr>
-
-              <tr ng-if="rowSettings[item.id].edit">
-                <td></td>
-                <td>
-                  <div class="btn-group" dropdown>
-                    <button type="button" class="btn btn-sm btn-default dropdown-toggle">
-                      <span class="glyphicon glyphicon-plus"></span> Add attribute <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu" role="menu">
-                      <li ng-repeat="(key, value) in spTalker.activeModel.attributes.attributeTags" ng-click="itemListSvc.addAttribute(item.attributes, key, value)"><a href="#">{{key}}</a></li>
-                    </ul>
-                  </div>
-                </td>
-              </tr>
-
-            </tbody>
-          </table>-->
         </div> <!-- end of accordion-body -->
       </form>
     </td>

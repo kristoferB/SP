@@ -3,13 +3,13 @@
     <div class="panel panel-default">
       <div class="panel-heading">
         <span class="draggable pull-right">
-          <span class="glyphicon" ng-class="{sopMaker: 'glyphicon-th-large', sopViewer: 'glyphicon-th-large', itemList: 'glyphicon-list', itemTree: 'glyphicon-tree-deciduous', itemExplorer: 'glyphicon-zoom-in', identifyRelations: 'glyphicon-link', ganttSchedule: 'glyphicon-tasks'}[window.type]"></span> {{window.name}}
+          <span class="glyphicon" ng-class="{sopMaker: 'glyphicon-th-large', sopViewer: 'glyphicon-th-large', itemList: 'glyphicon-list', itemTree: 'glyphicon-tree-deciduous', itemExplorer: 'glyphicon-search', identifyRelations: 'glyphicon-link', ganttSchedule: 'glyphicon-tasks'}[window.type]"></span> {{window.name}}
         </span>
         <span>
-          <span ng-click="closeWindow(window)" class="btn btn-default glyphicon glyphicon-remove"></span>
-          <span ng-click="changeWindowWidth(window, true)" class="btn btn-default glyphicon"><span class="glyphicon-plus" /></span>
-          <span ng-click="changeWindowWidth(window, false)" class="btn btn-default glyphicon"><span class="glyphicon-minus" /></span>
-          <span ng-click="toggleWindowHeight(window)" class="btn btn-default glyphicon glyphicon-resize-vertical"></span>
+          <span ng-click="closeWindow(window)" class="btn btn-default glyphicon glyphicon-remove" title="Close window"></span>
+          <span ng-click="changeWindowWidth(window, true)" class="btn btn-default glyphicon"><span class="glyphicon-plus" title="Increase window width"/></span>
+          <span ng-click="changeWindowWidth(window, false)" class="btn btn-default glyphicon"><span class="glyphicon-minus" title="Decrease window width"/></span>
+          <span ng-click="toggleWindowHeight(window)" class="btn btn-default glyphicon glyphicon-resize-vertical" title="Toggle window height"></span>
         </span>
       </div>
       <div class="panel-body sizeTransition" ng-switch on="window.type" ng-class="{'smallBodyHeight': window.height === 'small', 'largeBodyHeight': window.height === 'large'}">

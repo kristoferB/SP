@@ -135,6 +135,27 @@ angular.module('spGuiApp')
       });
   };
 
+  factory.getModelVersionDiff = function(versionNo) {
+    var diff = {};
+    $http.get(apiUrl + '/models/' + factory.activeModel.model + '/history/diff?version=' + versionNo).
+      success(function(versionInfo) {
+        angular.copy(versionInfo, diff);
+      });
+    return diff;
+  };
+
+  factory.revertModel = function(versionNo) {
+    $http.get(apiUrl + '/models/' + factory.activeModel.model + '/history/revert?version=' + versionNo).
+      success(function(model) {
+        notificationService.success('Model ' + model.name + ' was reverted to version ' + versionNo);
+        factory.loadAll();
+      }).
+      error(function(error) {
+        console.log(error);
+        notificationService.error('Revert failed');
+      })
+  };
+
   factory.refreshModelInfo = function() {
     $http.get(apiUrl + '/models/' + factory.activeModel.model).
       success(function(model) {
@@ -336,6 +357,7 @@ angular.module('spGuiApp')
         } else {
           $rootScope.$broadcast('itemsQueried');
         }
+        loadModels();
       }).
       error(function(error) {
         console.log(error);

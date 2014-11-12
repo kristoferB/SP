@@ -33,13 +33,13 @@
       <tabset>
         <tab ng-repeat="tab in tabs" active="tab.active">
           <tab-heading>
-            <span style="font-size: 0.9em;" class="glyphicon glyphicon-remove" ng-click="closeTab(tab)"></span> {{tab.title}}
+            <span style="font-size: 0.9em;" class="glyphicon glyphicon-remove" ng-click="closeTab(tab)" title="Close tab"></span> {{tab.title}}
           </tab-heading>
           <windows window-array="tab.windowArray" active="tab.active"></windows>
         </tab>
         <tab active="tab.active" ng-click="addTab()">
           <tab-heading>
-            <span style="font-size: 0.9em;" class="glyphicon glyphicon-plus"></span>
+            <span style="font-size: 0.9em;" class="glyphicon glyphicon-plus" title="New tab"></span>
           </tab-heading>
         </tab>
       </tabset>
@@ -148,6 +148,7 @@
         <script src="scripts/directives/conditiongrid.js"></script>
         <script src="scripts/directives/itemexplorer.js"></script>
         <script src="scripts/directives/iteminfo.js"></script>
+        <script src="scripts/controllers/modelhistory.js"></script>
         <!-- endbuild -->
 </body>
 </html>

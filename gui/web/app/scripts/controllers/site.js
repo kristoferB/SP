@@ -72,16 +72,17 @@ angular.module('spGuiApp')
 
     $scope.headerUrl = 'views/header.html';
 
-    /*$scope.$watch(
-      function() { return spTalker.activeModel; },
-      function(data) { $scope.activeModel = data; },
-      true
-    );*/
-
     $scope.openModelList = function () {
       var modalInstance = $modal.open({
         templateUrl: 'views/modellist.html',
         controller: ModellistCtrl
+      });
+    };
+
+    $scope.openModelHistory = function () {
+      var modalInstance = $modal.open({
+        templateUrl: 'views/modelhistory.html',
+        controller: 'ModelhistoryCtrl'
       });
     };
 

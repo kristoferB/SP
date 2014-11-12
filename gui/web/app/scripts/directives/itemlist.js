@@ -35,10 +35,6 @@ angular.module('spGuiApp')
       $scope.thisScope = $scope;
       $scope.rootItem = false;
 
-      if($scope.windowStorage.itemTree) {
-
-      }
-
       var filtered;
 
       $scope.collapseAll = function() {
