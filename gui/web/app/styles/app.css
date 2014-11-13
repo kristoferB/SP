@@ -105,6 +105,14 @@ input {
     float: left;
 }
 
+/*** modals ***/
+
+.modal-list-scroll-pane {
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+
 /*** ganttSchedule ***/
 
 .gantt-background-row-alt {
@@ -128,6 +136,11 @@ input {
 }
 
 /*** itemTable ***/
+
+.rowselected {
+  font-weight: bold;
+  text-decoration: underline;
+}
 
 .item-info-table td {
     vertical-align: top;

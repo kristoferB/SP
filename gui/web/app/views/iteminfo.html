@@ -15,7 +15,7 @@
     <tr ng-repeat="(key, prop) in item | filterElements">
       <td class="col-md-1" >{{key}}:</td>
       <td class="col-md-9">
-        <attr-grid attr-obj="item" key="key" edit="edit" add-window="addWindow" level=1></attr-grid>
+        <attr-grid attr-obj="item" key="key" edit="edit" level=1 item="item"></attr-grid>
       </td>
     </tr>
 
@@ -24,7 +24,7 @@
         <deleteable-key attr-obj="item.attributes" element="key" key="key" edit="edit"></deleteable-key>
       </td>
       <td class="col-md-9">
-        <attr-grid key="key" attr-obj="item.attributes" edit="edit" add-window="addWindow" level=1></attr-grid>
+        <attr-grid key="key" attr-obj="item.attributes" edit="edit" level=1 item="item"></attr-grid>
       </td>
     </tr>
 

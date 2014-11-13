@@ -14,7 +14,6 @@ angular.module('spGuiApp')
       scope: {
         item: '=',
         edit: '=',
-        addWindow: '=',
         showItemName: '='
       },
       link: function postLink(scope, element, attrs) {

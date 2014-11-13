@@ -7,21 +7,22 @@
  * # attrGrid
  */
 angular.module('spGuiApp')
-  .directive('attrGrid', function (RecursionHelper, itemListSvc, spTalker, SV_KINDS) {
+  .directive('attrGrid', function (RecursionHelper, itemListSvc, tabSvc, spTalker, SV_KINDS) {
     return {
       restrict: 'E',
       scope: {
         attrObj : '=',
         edit: '=',
         key: '=',
-        addWindow: '=',
-        level: '='
+        level: '=',
+        item: '='
       },
       templateUrl: 'views/attrgrid.html',
       controller: function($scope) {
         $scope.itemListSvc = itemListSvc;
         $scope.svKinds = SV_KINDS;
         $scope.spTalker = spTalker;
+        $scope.tabSvc = tabSvc;
 
         $scope.isNonEmptyArrayOrObj = function(attrVal) {
           var type = $scope.getType(attrVal);

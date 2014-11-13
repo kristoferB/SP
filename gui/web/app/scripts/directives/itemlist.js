@@ -7,13 +7,12 @@
  * # sop
  */
 angular.module('spGuiApp')
-.directive('itemlist', function (spTalker, notificationService, $filter, itemListSvc, $timeout, ITEM_KINDS, $rootScope) {
+.directive('itemlist', function (spTalker, notificationService, $filter, itemListSvc, tabSvc, $timeout, ITEM_KINDS, $rootScope) {
   return {
     templateUrl: 'views/itemlist.html',
     restrict: 'E',
     scope: {
-      windowStorage: '=',
-      addWindow: '='
+      windowStorage: '='
     },
     controller: function($scope) {
       $scope.filteredAndOrderedItems = [];
@@ -34,6 +33,7 @@ angular.module('spGuiApp')
       $scope.itemKinds = ITEM_KINDS;
       $scope.thisScope = $scope;
       $scope.rootItem = false;
+      $scope.tabSvc = tabSvc;
 
       var filtered;
 

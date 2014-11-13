@@ -7,13 +7,10 @@
  * # relationident
  */
 angular.module('spGuiApp')
-  .directive('relationident', ['spTalker', 'notificationService', '$filter', function (spTalker, notificationService, $filter) {
+  .directive('relationident', ['spTalker', 'notificationService', '$filter', 'tabSvc', function (spTalker, tabSvc, notificationService, $filter) {
     return {
       templateUrl: 'views/relationview.html',
       restrict: 'E',
-      scope: {
-        addWindow: '='
-      },
       link: function postLink(scope) {
         scope.spTalker = spTalker;
         scope.groupSelection = {};
@@ -132,7 +129,7 @@ angular.module('spGuiApp')
               var windowStorage = {
                 sopSpec: data
               };
-              scope.addWindow('sopViewer', windowStorage);
+              tabSvc.newWindow('sopViewer', windowStorage);
             }
             else {
               scope.sopError = data

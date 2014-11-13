@@ -78,7 +78,7 @@ angular.module('spGuiApp')
           });
         }
         if(itemListScope.windowStorage.itemTree) {
-          itemSvc.selectItemId(data.id);
+          itemSvc.selectItemId(data.id, itemListScope);
           $rootScope.$broadcast('edit-in-item-explorer');
         } else {
           $timeout(function () {
@@ -121,13 +121,6 @@ angular.module('spGuiApp')
 
     factory.isEditable = function(key) {
       return key !== 'id' && key !== 'version' && key !== 'isa';
-    };
-
-    factory.openSopInNewWindow = function(item, addWindow) {
-      var windowStorage = {
-        sopSpecId: item.id
-      };
-      addWindow('sopMaker', windowStorage);
     };
 
     return factory;

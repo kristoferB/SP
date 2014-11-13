@@ -5,7 +5,7 @@
   <tr ng-repeat-start="item in items track by item.id" scroll-if="rowSettings[item.id].edit === true"
       item-drag="{isa: 'Hierarchy', id: item.id}" ng-attr-draggable="{{(item.isa === 'Operation') ? 'true' : 'false'}}" class="accordion-toggle" ng-class-odd="'odd-row'" ng-class-even="'even-row'"
       ng-init="rowSettings[item.id] = {dropdownOpen: false, loadChildren: false, edit: false, expandChildren: false, infoIsCollapsed: true}; addItemExpandListener(item, rowSettings[item.id]);"
-      ng-click="itemSvc.selectItemId(item.id)">
+      ng-click="itemSvc.selectItemId(item.id, itemListScope)" ng-class="{rowselected: itemListScope.windowStorage.selectedItemID === item.id}">
 
     <td class="expand-column"><span ng-if="haveChildren(item.id)" ng-click="itemListSvc.stopPropagation($event); itemListSvc.expandChildren(rowSettings[item.id], true)" class="glyphicon" ng-class="{true:'glyphicon-minus', false:'glyphicon-plus'}[rowSettings[item.id].expandChildren]"></span></td>
     <td class="checkbox-column"><input type="checkbox" ng-click="itemListSvc.stopPropagation($event)" ng-model="item.checked" ng-change="alterCheckedArray(item)" /></td>
@@ -33,7 +33,7 @@
     <td colspan="99" class="hiddenRow">
       <form class="form-inline" name="itemForm">
         <div collapse="rowSettings[item.id].infoIsCollapsed">
-          <item-info item="item" edit="rowSettings[item.id].edit" add-window="addWindow" show-item-name="false"></item-info>
+          <item-info item="item" edit="rowSettings[item.id].edit" show-item-name="false"></item-info>
         </div> <!-- end of accordion-body -->
       </form>
     </td>
@@ -43,7 +43,7 @@
     <td colspan="99" class="hiddenRow">
       <form class="form-inline" name="itemForm">
         <div style="margin-left: 5%;" ng-if="rowSettings[item.id].loadChildren" collapse="!(rowSettings[item.id].expandChildren && rowSettings[item.id].loadChildren)">
-          <item-table parent-item="item" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" add-window="addWindow" item-list-scope="itemListScope"></item-table>
+          <item-table parent-item="item" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" item-list-scope="itemListScope"></item-table>
         </div> <!-- end of accordion-body -->
       </form>
     </td>

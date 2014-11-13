@@ -31,13 +31,13 @@
 
     <div class="container-full">
       <tabset>
-        <tab ng-repeat="tab in tabs" active="tab.active">
+        <tab ng-repeat="tab in tabSvc.tabs" active="tab.active">
           <tab-heading>
-            <span style="font-size: 0.9em;" class="glyphicon glyphicon-remove" ng-click="closeTab(tab)" title="Close tab"></span> {{tab.title}}
+            <span style="font-size: 0.9em;" class="glyphicon glyphicon-remove" ng-click="tabSvc.closeTab(tab)" title="Close tab"></span> {{tab.title}}
           </tab-heading>
           <windows window-array="tab.windowArray" active="tab.active"></windows>
         </tab>
-        <tab active="tab.active" ng-click="addTab()">
+        <tab active="tab.active" ng-click="tabSvc.addTab()">
           <tab-heading>
             <span style="font-size: 0.9em;" class="glyphicon glyphicon-plus" title="New tab"></span>
           </tab-heading>
@@ -149,6 +149,7 @@
         <script src="scripts/directives/itemexplorer.js"></script>
         <script src="scripts/directives/iteminfo.js"></script>
         <script src="scripts/controllers/modelhistory.js"></script>
+        <script src="scripts/services/tabsvc.js"></script>
         <!-- endbuild -->
 </body>
 </html>

@@ -17,7 +17,6 @@ angular.module('spGuiApp')
         alterCheckedArray: '=',
         selection: '=',
         attrSelection: '=',
-        addWindow: '=',
         itemListScope: '='
       },
       controller: function($scope) {

@@ -8,50 +8,13 @@
  * Controller of the spGuiApp
  */
 angular.module('spGuiApp')
-  .controller('SiteCtrl', function ($scope, $routeParams, $location, $rootScope, spTalker, $modal, USER_ROLES, AuthService, Session) {
+  .controller('SiteCtrl', function ($scope, $rootScope, tabSvc, spTalker, $modal, USER_ROLES, AuthService, Session) {
     $scope.currentUser = null;
     $scope.userRoles = USER_ROLES;
     $scope.isAuthorized = AuthService.isAuthorized;
-    $scope.noOfOpenedTabs = 0;
-    $scope.tabs = [];
     $scope.currentUser = [Session.userId, Session.userRole];
     $scope.spTalker = spTalker;
-
-    if(sessionStorage.noOfOpenedTabs) {
-      $scope.noOfOpenedTabs = angular.fromJson(sessionStorage.noOfOpenedTabs);
-    }
-
-    if(sessionStorage.tabs) {
-      angular.copy(JSON.parse(sessionStorage.tabs), $scope.tabs);
-    }
-
-    $scope.$watch(
-      function() { return $scope.tabs },
-      function() {
-        sessionStorage.tabs = JSON.stringify($scope.tabs);
-      }, true);
-
-    $scope.addTab = function() {
-      var windowArray = [];
-      $scope.noOfOpenedTabs++;
-      $scope.tabs.push({title: 'Model ' + $scope.noOfOpenedTabs, windowArray: windowArray, active: true});
-      sessionStorage.noOfOpenedTabs = $scope.noOfOpenedTabs;
-    };
-
-    if($scope.noOfOpenedTabs === 0) {
-      $scope.addTab();
-    }
-
-    $scope.closeTab = function(tab) {
-      var index = $scope.tabs.indexOf(tab);
-      if(tab.windowArray.length > 0) {
-        if(confirm('You are about to close a tab with open windows inside. Sure?')) {
-          $scope.tabs.splice(index, 1);
-        }
-      } else {
-        $scope.tabs.splice(index, 1);
-      }
-    };
+    $scope.tabSvc = tabSvc;
 
     $rootScope.vars = {
       isLoginPage : false
@@ -97,7 +60,6 @@ angular.module('spGuiApp')
       });
     };
 
-
     $scope.openSettings = function () {
       var modalInstance = $modal.open({
         templateUrl: 'views/settings.html',
@@ -115,11 +77,5 @@ angular.module('spGuiApp')
     $scope.broadcastEvent = function(eventName) {
       $rootScope.$broadcast(eventName);
     };
-
-
-
-
-
-
 
   });

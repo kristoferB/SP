@@ -15,6 +15,14 @@ angular.module('spGuiApp')
     factory.selectedItemsHistory = [];
     factory.indexOfViewedItem = -1;
 
+    if(sessionStorage.selectedItemsHistory) {
+      angular.copy(JSON.parse(sessionStorage.selectedItemsHistory), factory.selectedItemsHistory);
+    }
+
+    if(sessionStorage.indexOfViewedItem) {
+      factory.indexOfViewedItem = sessionStorage.indexOfViewedItem;
+    }
+
     factory.cleanHistoryFromID = function(id) {
       var index = 0;
       while(index !== -1) {
@@ -28,10 +36,13 @@ angular.module('spGuiApp')
       }
     };
 
-    factory.selectItemId = function(id) {
+    factory.selectItemId = function(id, itemListScope) {
       factory.selectedItemsHistory.splice(factory.indexOfViewedItem + 1, 0, id);
       factory.selectedItemsHistory = factory.selectedItemsHistory.slice(0, factory.indexOfViewedItem + 2);
       factory.indexOfViewedItem += 1;
+      itemListScope.windowStorage.selectedItemID = id;
+      sessionStorage.selectedItemsHistory = JSON.stringify(factory.selectedItemsHistory);
+      sessionStorage.indexOfViewedItem = factory.indexOfViewedItem;
     };
 
     factory.addAttribute = function(attrObj, key, value) {

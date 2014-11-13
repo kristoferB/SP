@@ -12,24 +12,28 @@ angular.module('spGuiApp')
       templateUrl: 'views/itemexplorer.html',
       restrict: 'E',
       scope: {
-        windowStorage: '=',
-        addWindow: '='
+        windowStorage: '='
       },
-      link: function postLink(scope, element, attrs) {
+      link: function postLink(scope) {
         scope.itemSvc = itemSvc;
         scope.edit = false;
         scope.spTalker = spTalker;
+        scope.explorerMode = typeof scope.windowStorage.itemID === 'undefined';
 
-        scope.$on('edit-in-item-explorer', function() {
-          scope.edit = true;
-        });
+        if(scope.explorerMode) {
+          scope.$on('edit-in-item-explorer', function() {
+            scope.edit = true;
+          });
+        }
 
         scope.goBack = function() {
           itemSvc.indexOfViewedItem -= 1;
+          sessionStorage.indexOfViewedItem = itemSvc.indexOfViewedItem;
         };
 
         scope.goForward = function() {
           itemSvc.indexOfViewedItem += 1;
+          sessionStorage.indexOfViewedItem = itemSvc.indexOfViewedItem;
         };
 
         scope.saveItem = function() {

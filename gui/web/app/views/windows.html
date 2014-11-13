@@ -3,7 +3,7 @@
     <div class="panel panel-default">
       <div class="panel-heading">
         <span class="draggable pull-right">
-          <span class="glyphicon" ng-class="{sopMaker: 'glyphicon-th-large', sopViewer: 'glyphicon-th-large', itemList: 'glyphicon-list', itemTree: 'glyphicon-tree-deciduous', itemExplorer: 'glyphicon-search', identifyRelations: 'glyphicon-link', ganttSchedule: 'glyphicon-tasks'}[window.type]"></span> {{window.name}}
+          <span class="glyphicon" ng-class="{sopMaker: 'glyphicon-th-large', sopViewer: 'glyphicon-th-large', itemList: 'glyphicon-list', itemTree: 'glyphicon-tree-deciduous', itemExplorer: 'glyphicon-search', itemInfo: 'glyphicon-info-sign', identifyRelations: 'glyphicon-link', ganttSchedule: 'glyphicon-tasks'}[window.type]"></span> {{window.name}}
         </span>
         <span>
           <span ng-click="closeWindow(window)" class="btn btn-default glyphicon glyphicon-remove" title="Close window"></span>
@@ -15,10 +15,11 @@
       <div class="panel-body sizeTransition" ng-switch on="window.type" ng-class="{'smallBodyHeight': window.height === 'small', 'largeBodyHeight': window.height === 'large'}">
         <sopmaker ng-switch-when="sopMaker" window-storage="window.storage" class="wrapper"></sopmaker>
         <sopmaker ng-switch-when="sopViewer" window-storage="window.storage" class="wrapper"></sopmaker>
-        <itemlist ng-switch-when="itemList" window-storage="window.storage" add-window="addWindow" class="wrapper"></itemlist>
-        <itemlist ng-switch-when="itemTree" window-storage="window.storage" add-window="addWindow" class="wrapper"></itemlist>
-        <item-explorer ng-switch-when="itemExplorer" class="wrapper" window-storage="window.storage" add-window="addWindow"></item-explorer>
-        <relationident ng-switch-when="identifyRelations" class="wrapper" add-window="addWindow"></relationident>
+        <itemlist ng-switch-when="itemList" window-storage="window.storage" class="wrapper"></itemlist>
+        <itemlist ng-switch-when="itemTree" window-storage="window.storage" class="wrapper"></itemlist>
+        <item-explorer ng-switch-when="itemExplorer" window-storage="window.storage" class="wrapper"></item-explorer>
+        <item-explorer ng-switch-when="itemInfo" window-storage="window.storage" class="wrapper"></item-explorer>
+        <relationident ng-switch-when="identifyRelations" class="wrapper" ></relationident>
         <gantt-schedule ng-switch-when="schedule" class="wrapper"></gantt-schedule>
       </div>
     </div>

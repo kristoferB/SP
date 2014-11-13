@@ -41,7 +41,8 @@
     <button type="button" class="btn btn-default" ng-click="copyItems()" ng-show="oneOrMoreItems"><span class="glyphicon glyphicon-file" title="Copy selected"></span></button>
     <button type="button" class="btn btn-default" ng-click="deleteItems()" ng-show="oneOrMoreItems"><span class="glyphicon glyphicon-trash" title="Delete selected"></span></button>
     <button type="button" class="btn btn-default" ng-click="viewRelation()" ng-show="twoOrMoreOps"><span class="glyphicon glyphicon-link" title="View relations"></span></button>
-    <button type="button" class="btn btn-default" ng-click="openSopInNewWindow(checkedItems[0])" ng-show="oneSOPSpec" ><span class="glyphicon glyphicon-new-window" title="Open in SOP-Viewer"></span></button>
+    <button type="button" class="btn btn-default" ng-click="tabSvc.newWindow('itemInfo', {itemID: windowStorage.selectedItemID})" ng-if="windowStorage.selectedItemID"><span class="glyphicon glyphicon-info-sign" title="Open item details in new window"></span></button>
+    <button type="button" class="btn btn-default" ng-click="tabSvc.newWindow('sopMaker', {sopSpecId: checkedItems[0]})" ng-show="oneSOPSpec" ><span class="glyphicon glyphicon-th-large" title="View SOP in sopMaker"></span></button>
     <div class="btn-group" dropdown>
       <button type="button" class="btn btn-default dropdown-toggle" title="Root">
         <span class="glyphicon glyphicon-map-marker"></span> <span class="caret"></span>
@@ -94,6 +95,6 @@
 
 <div class="content">
   <div class="content-wrapper">
-    <item-table parent-item="spTalker.activeSPSpec" served-items="filteredAndOrderedItems" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" add-window="addWindow" item-list-scope="thisScope"></item-table>
+    <item-table parent-item="spTalker.activeSPSpec" served-items="filteredAndOrderedItems" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" item-list-scope="thisScope"></item-table>
   </div> <!-- end of content-wrapper -->
 </div> <!-- end of content -->

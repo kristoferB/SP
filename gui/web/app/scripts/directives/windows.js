@@ -7,7 +7,7 @@
  * # window
  */
 angular.module('spGuiApp')
-  .directive('windows', function () {
+  .directive('windows', function (tabSvc) {
     return {
       templateUrl: 'views/windows.html',
       restrict: 'E',
@@ -16,7 +16,7 @@ angular.module('spGuiApp')
         windows: '=windowArray',
         active: '='
       },
-      link: function postLink(scope, element, attrs) {
+      link: function postLink(scope) {
         var noOfOpenedWindows;
 
         if(sessionStorage.noOfOpenedWindows) {
@@ -37,10 +37,9 @@ angular.module('spGuiApp')
             width = 0;
           } else if(type === 'itemList') {
             wStorage.itemTree = false;
-          } else if(type === 'itemExplorer') {
-            wStorage.editable = true;
-            width = 2;
-            height = 'large';
+          } else if(type === 'itemExplorer' || type === 'itemInfo') {
+            width = 1;
+            height = 'small';
           } else if(type === 'identifyRelations') {
             width = 1;
           } else if(type === 'schedule') {
@@ -51,37 +50,13 @@ angular.module('spGuiApp')
           sessionStorage.noOfOpenedWindows = angular.toJson(noOfOpenedWindows);
         };
 
-        scope.$on("newSopMakerWindow", function() {
+        scope.$on('newWindow', function() {
           if(scope.active) {
-            scope.addWindow('sopMaker', {});
+            scope.addWindow(tabSvc.typeOfNewWindow, tabSvc.dataForNewWindow);
           }
         });
-        scope.$on("newItemListWindow", function() {
-          if(scope.active) {
-            scope.addWindow('itemList', {});
-          }
-        });
-        scope.$on("newItemTreeWindow", function() {
-          if(scope.active) {
-            scope.addWindow('itemTree', {});
-          }
-        });
-        scope.$on("newItemExplorerWindow", function() {
-          if(scope.active) {
-            scope.addWindow('itemExplorer', {});
-          }
-        });
-        scope.$on("newGanttScheduleWindow", function() {
-          if(scope.active) {
-            scope.addWindow('schedule');
-          }
-        });
+
         //TODO: We need to handle algorithms in a more generic way (load from server) KB 140828
-        scope.$on("identifyRelations", function() {
-          if(scope.active) {
-            scope.addWindow('identifyRelations');
-          }
-        });
 
         scope.closeWindow = function(window) {
           var index = scope.windows.indexOf(window);
