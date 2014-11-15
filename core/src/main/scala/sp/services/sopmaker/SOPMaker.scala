@@ -38,7 +38,8 @@ trait MakeASop extends Groupify with Sequencify {
   import SOPLogic._
   def makeTheSop(ops: List[ID], relations: Map[Set[ID], SOP], base: SOP = EmptySOP) = {
     val sopOps = makeSOPsFromOpsID(ops)
-    val groupAlternatives = groupify(sopOps, relations, _.isInstanceOf[Alternative], Alternative.apply)
+    val groupOthers = groupify(sopOps, relations, _.isInstanceOf[Other], Other.apply)
+    val groupAlternatives = groupify(groupOthers, relations, _.isInstanceOf[Alternative], Alternative.apply)
     val groupParallel = groupify(groupAlternatives, relations, _.isInstanceOf[Parallel], Parallel.apply)
 
     val result = sequencify(groupParallel, relations, base)

@@ -7,3 +7,6 @@ case class RelationMap(relations: Map[Set[ID], SOP], enabledStates: EnabledState
   def apply(o1: ID, o2: ID) = relations(Set(o1, o2))
 }
 
+
+case class NoRelations(sequences: Set[List[ID]], states: Set[State], finalState: States)
+

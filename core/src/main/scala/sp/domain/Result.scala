@@ -11,7 +11,8 @@ trait Result extends IDAble {
 }
 
 case class RelationResult(name: String,
-                          relationMap: RelationMap,
+                          relationMap: Option[RelationMap],
+                          noRelations: Option[NoRelations],
                           model: ID,
                           modelVersion: Long,
                           attributes: SPAttributes = SPAttributes(Map()),

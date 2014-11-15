@@ -22,6 +22,7 @@ case class FindRelations( ops: List[Operation],
                           iterations: Int = 100,
                           goal: State => Boolean = _ => true)
 
+case class FindRelationResult(map: Option[RelationMap], deadlocks: Option[NoRelations])
 
 class RelationFinder extends Actor with RelationFinderAlgotithms {
   def receive = {
@@ -32,8 +33,8 @@ class RelationFinder extends Actor with RelationFinderAlgotithms {
       println(s"groups: $groups")
       ops.foreach(o => println(o.name + " " + o.id + " " + o.conditions))
       val sm = findWhenOperationsEnabled(itr)
-      val res = findOperationRelations(sm)
-      sender ! res
+      val relM = sm._1 map findOperationRelations
+      sender ! FindRelationResult(relM, sm._2)
     }
   }
 }
@@ -61,6 +62,7 @@ trait RelationFinderAlgotithms {
 
 
   case class SeqResult(seq: List[Operation], goalState: State, stateMap: Map[State, IndexedSeq[Operation]])
+  case class NoSeqResult(Seq: List[Operation], finalState: State, opsLeft: IndexedSeq[Operation])
 
 
   /**
@@ -82,14 +84,14 @@ trait RelationFinderAlgotithms {
     implicit val props = EvaluateProp(stateVars, groups.toSet)
 
     @tailrec
-    def req(ops: IndexedSeq[Operation], s: State, seq: IndexedSeq[Operation], stateMap: Map[State, IndexedSeq[Operation]]): SeqResult = {
+    def req(ops: IndexedSeq[Operation],
+            s: State, seq: IndexedSeq[Operation],
+            stateMap: Map[State, IndexedSeq[Operation]]): Either[NoSeqResult, SeqResult] = {
       val enabled = ops.filter(o => o.eval(s))
-//      println(s"ENABLED: ${ops}")
-//      println(s"STATE: ${s} = ${goal(s)}")
-
-      if (enabled.isEmpty || goal(s)){
-        SeqResult(seq.reverse toList, s, stateMap)
-      }
+      if (ops.isEmpty || goal(s)){
+        Right(SeqResult(seq.reverse toList, s, stateMap))
+      } else if (enabled.isEmpty)
+        Left(NoSeqResult(seq.reverse toList, s, ops))
       else {
         val i = scala.util.Random.nextInt(enabled.size)
         val o = enabled(i)
@@ -114,16 +116,25 @@ trait RelationFinderAlgotithms {
 
 
     @tailrec
-    def req(n: Int, esm: EnabledStatesMap): EnabledStatesMap  = {
-      if (n <= 0) esm
+    def req(n: Int, esm: EnabledStatesMap, deadLocks: NoRelations): (EnabledStatesMap, NoRelations)  = {
+      if (n <= 0) (esm, deadLocks)
       else {
-        val seqRes = findASeq(setup)
-        val updateMap = seqRes.stateMap.foldLeft(esm.map)((m,sm)=> {
-          val checkThese = if (!opsToTest.isEmpty) sm._2 filter opsToTest.contains else sm._2
-          val updatedOps = checkThese.map(o => o.id -> mergeAState(o, m(o.id), sm._1)).toMap
-          m ++ updatedOps
-        })
-        req(n-1, EnabledStatesMap(updateMap))
+        findASeq(setup) match {
+          case Left(noSeq) => {
+            val idSeq = noSeq.Seq map(_.id)
+            val newSeqs = if (deadLocks.sequences.size > 10) deadLocks.sequences else deadLocks.sequences + idSeq
+            val newStates = if (deadLocks.states.size > 10) deadLocks.states else deadLocks.states + noSeq.finalState
+            req(n-1, esm, NoRelations(newSeqs, newStates, deadLocks.finalState.add(noSeq.finalState)))
+          }
+          case Right(seqRes) => {
+            val updateMap = seqRes.stateMap.foldLeft(esm.map)((m,sm)=> {
+              val checkThese = if (!opsToTest.isEmpty) sm._2 filter opsToTest.contains else sm._2
+              val updatedOps = checkThese.map(o => o.id -> mergeAState(o, m(o.id), sm._1)).toMap
+              m ++ updatedOps
+            })
+            req(n-1, EnabledStatesMap(updateMap), deadLocks)
+          }
+        }
       }
     }
     def mergeAState(o: Operation, e: EnabledStates, s: State) = {
@@ -136,7 +147,10 @@ trait RelationFinderAlgotithms {
     val emptyStates = States(setup.stateVars map (_._1 -> Set[SPAttributeValue]()))
     val oie = EnabledStates(emptyStates, emptyStates)
     val startMap = {if (opsToTest.isEmpty) setup.ops else opsToTest}.map(_.id -> oie)
-    req(iterations, EnabledStatesMap(startMap toMap))
+    val res = req(iterations, EnabledStatesMap(startMap toMap), NoRelations(Set(), Set(), emptyStates))
+    val enM = if (res._1 == startMap.toMap) None else Some(res._1)
+    val noRes = if (res._2.sequences.isEmpty) None else Some(res._2)
+    (enM, noRes)
   }
 
 

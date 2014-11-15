@@ -21,6 +21,7 @@ angular.module('spGuiApp')
         scope.latestMapVersion = 0;
         scope.checkAllOps = true;
         scope.checkAllGroups = true;
+        scope.relationMap = {};
 
         scope.correctCheckAllBox = function(itemCheckModels, checkAllModel) {
           var checked = true;
@@ -80,25 +81,29 @@ angular.module('spGuiApp')
               goalState.push({id: id, value: scope.goalState[id] });
 
           });
+          console.log("test")
 
           if(operations.length === 0) {
             notificationService.info('You have to pick at least one operation to generate a RelationMap.');
             return
           }
-
           var res = spTalker.findRelations(operations, initState, groups, goalState);
+
+
           res.success(function (data) {
+            console.log(data);
             if(angular.isDefined(data.error)) {
               notificationService.info(data.error);
               return
             }
-            notificationService.success('A RelationMap was successfully generated.');
+            //notificationService.success('A RelationMap was successfully generated.');
 
             scope.relations = data.relationmap.relationmap.map(function(item){
               return item.sop
             });
             spTalker.loadItems();
           });
+
           res.error(function(data) {
             notificationService.error('Something went wrong while generating the RelationMap. Please check your browser\'s console for details');
             console.log(data);

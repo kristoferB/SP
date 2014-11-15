@@ -12,11 +12,12 @@ class RelationFinderTest extends FreeSpec with Matchers with Defs {
     "when finding a path" - {
       "create a seq" in {
         val res = findASeq(prepairSetup(Setup(List(o2, o1), vm, List(), state, _ => false)))
-        res.seq shouldEqual List(o1, o2)
+        res should be ('right)
+        res.right map(x => x.seq shouldEqual List(o1, o2))
       }
       "find no seq if no exists" in {
         val res = findASeq(prepairSetup(Setup(List(o2, o1), vm, List(), state2, _ => false)))
-        res.seq shouldEqual List()
+        res should be ('left)
       }
       "Stop when goal" in {
         val res = findASeq(prepairSetup(Setup(List(o2, o1), vm, List(), state, _(v1.id) == SPAttributeValue(1))))

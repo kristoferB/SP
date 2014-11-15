@@ -126,13 +126,13 @@ trait SPJsonIDAble extends SPJsonDomain {
         else ID.newID
       }
       value.asJsObject.getFields("name", "relationmap", "model", "version", "attributes") match {
-        case Seq(JsString(name), rel: JsObject, model:JsString, version: JsNumber, a: JsObject) => {
-          val relMap = rel.convertTo[RelationMap]
-          val attr = a.convertTo[SPAttributes]
-          val mid = model.convertTo[ID]
-          val modelV = version.convertTo[Long]
-          RelationResult(name, relMap, mid, modelV, attr, myid)
-        }
+//        case Seq(JsString(name), rel: JsObject, model:JsString, version: JsNumber, a: JsObject) => {
+//          val relMap = rel.convertTo[RelationMap]
+//          val attr = a.convertTo[SPAttributes]
+//          val mid = model.convertTo[ID]
+//          val modelV = version.convertTo[Long]
+//          RelationResult(name, relMap, mid, modelV, attr, myid)
+//        }
         case _ => throw new DeserializationException(s"can not convert the RelationResult from $value")
 
       }

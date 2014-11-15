@@ -4,6 +4,7 @@ import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
 import sp.domain._
+import sp.domain.logic.StateLogic
 import sp.system.messages._
 import sp.services.specificationconverters._
 
@@ -68,12 +69,13 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
                 if (olderRels.nonEmpty && olderRels.head.modelVersion == mVersion) reply ! olderRels.head
                 else {
 
+
                   import sp.domain.logic.StateVariableLogic._
                   val stateVarsMap = svs.map(sv => sv.id -> sv.inDomain).toMap ++ createOpsStateVars(ops)
                   val goalState = goal.getOrElse(State(Map()))
                   val goalfunction: State => Boolean = (s: State) => {
                     goalState.state.nonEmpty &&
-                      goalState.state.forall{case (sv, value) => s(sv) == value}
+                    goalState.state.forall{case (sv, value) => s(sv) == value}
                   }
 
                   println(s"GOAL STATE: $goal")
@@ -95,19 +97,29 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
                     o.copy(conditions = updatedConds)
                   }
 
-//                  println(s"updated ops: $updatedOps")
-//                  println(s"init: $init")
-//                  println(s"added: ${addOpsToState(updatedOps, init)}")
+                  //                  println(s"updated ops: $updatedOps")
+                  //                  println(s"init: $init")
+                  //                  println(s"added: ${addOpsToState(updatedOps, init)}")
 
                   // just one actor per request initially
                   val relationFinder = context.actorOf(RelationFinder.props)
                   val inputToAlgo = FindRelations(updatedOps, stateVarsMap ++ createOpsStateVars(updatedOps), addOpsToState(updatedOps, init), groups, iterations, goalfunction)
 
+                  val relID = if (olderRels.nonEmpty) olderRels.head.id else ID.newID
+                  val attr = Attr(
+                    "settings" -> MapPrimitive(Map(
+                      "goal" -> StateLogic.convertStateToListPrimitive(goalState),
+                      "init" -> StateLogic.convertStateToListPrimitive(init),
+                      "groups" -> ListPrimitive(groups),
+                      "operations" -> ListPrimitive(opsID.map(IDPrimitive.apply))
+                    ))
+                  )
+
                   //TODO: Handle long running algorithms better
                   val answer = relationFinder ? inputToAlgo
                   answer onComplete {
-                    case Success(res: RelationMap) => {
-                      val relation = RelationResult("RelationMap", res, model, mVersion + 1)
+                    case Success(res: FindRelationResult) => {
+                      val relation = RelationResult("RelationMap", res.map, res.deadlocks, model, mVersion + 1, attr, relID)
                       reply ! relation
                       modelHandler ! UpdateIDs(model, mVersion, List(relation))
                       relationFinder ! PoisonPill

@@ -36,25 +36,29 @@ class SOPMakerService(modelHandler: ActorRef) extends Actor {
                 val rels = relsIdAble map (_.asInstanceOf[RelationResult]) sortWith (_.modelVersion > _.modelVersion)
                 if (rels.isEmpty)
                   reply ! SPError("Relations must be identified before SOP creation")
+                else if (rels.head.relationMap == None)
+                  reply ! SPError("No Relations in the latest relationmap, fix the logic")
 
-                else if (!{opsID.foldLeft(true)((res, id) => res && (rels.head.relationMap.enabledStates.map.contains(id)))})
-                  reply ! SPError("Some operation id's are not in the relation map")
                 else {
-
-
                   //TODO: Validate version on model when relation was created.
-                  val relsMap = rels.head.relationMap
-                  val makeMeASop = MakeMeASOP(opsID, relsMap, base)
-                  val result = sopmakers ? makeMeASop
+                  val relsMap = rels.head.relationMap.get
 
-                  result onComplete{
-                    case Success(res: List[_]) => {
-                      val sops = res map(_.asInstanceOf[SOP])
-                      println("WE HAVE A SOP: "+ sops)
-                      reply ! SOPSpec("a SOP", sops)
+
+                  if (!{opsID.foldLeft(true)((res, id) => res && (relsMap.enabledStates.map.contains(id)))})
+                    reply ! SPError("Some operation id's are not in the relation map")
+                  else {
+                    val makeMeASop = MakeMeASOP(opsID, relsMap, base)
+                    val result = sopmakers ? makeMeASop
+
+                    result onComplete{
+                      case Success(res: List[_]) => {
+                        val sops = res map(_.asInstanceOf[SOP])
+                        println("WE HAVE A SOP: "+ sops)
+                        reply ! SOPSpec("a SOP", sops)
+                      }
+                      case Success(res) => println("WHAT IS THIS RELATION FINDER RETURNS: " + res)
+                      case Failure(error) => reply ! SPError(error.getMessage)
                     }
-                    case Success(res) => println("WHAT IS THIS RELATION FINDER RETURNS: " + res)
-                    case Failure(error) => reply ! SPError(error.getMessage)
                   }
                 }
               }

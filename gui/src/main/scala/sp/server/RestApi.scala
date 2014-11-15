@@ -121,6 +121,7 @@ trait ModelAPI extends SPApiHelpers {
             case "things" => getSPIDS(GetThings(model))
             case "specs" => getSPIDS(GetSpecs(model))
             case "items" => getSPIDS(GetIds(model, List()))
+            case "results" => getSPIDS(GetResults(model))
             case _ => reject
           }}
       } ~
