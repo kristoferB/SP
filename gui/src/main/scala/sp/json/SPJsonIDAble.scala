@@ -108,15 +108,20 @@ trait SPJsonIDAble extends SPJsonDomain {
     }
   }
 
+
+  implicit val svnoRelation = jsonFormat3(NoRelations)
   implicit object RelationResultJsonFormat extends RootJsonFormat[RelationResult] {
     def write(x: RelationResult) = {
+      val options =
+        x.relationMap.map(v => List(("relationmap" -> v.toJson))).getOrElse(List[(String, JsValue)]()) ++
+        x.deadlocks.map(v => List(("deadlocks" -> v.toJson))).getOrElse(List[(String, JsValue)]())
+
       val map = Map(
         "isa" -> "RelationResult".toJson,
         "name" -> x.name.toJson,
-        "relationmap" -> x.relationMap.toJson,
         "model" -> x.model.toJson,
         "modelVersion" -> x.modelVersion.toJson
-      ) ++ idPart(x)
+      ) ++ idPart(x) ++ options.toMap
       JsObject(map)
     }
 

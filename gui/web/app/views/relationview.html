@@ -7,15 +7,9 @@
 
 <div class="content">
   <div class="content-wrapper">
-    <p ng-if="latestMapVersion > 0"><small>The latest map was generated on model version {{latestMapVersion}}.<br />
-    The current model version is {{spTalker.activeModel.version}}.</small></p>
-    <p ng-if="latestMapVersion === 0"><small>There is no generated map available.</small></p>
-
     <div style="overflow: hidden;">
 
       <h4>Options</h4>
-
-      <div></div>
 
       <div class="col-md-6">
         <h5>Operations</h5>
@@ -73,11 +67,29 @@
 
     </div>
 
+      <div class="col-md-12">
+          <h5>Relations</h5>
+          <div class="relation-item-table">
+              <table class="table">
+                  <tbody>
+                  <tr ng-repeat="(id, rel) in spTalker.items | with: { isa: 'RelationResult' } | orderBy: rel.modelVersion:false" ng-class-odd="'odd-row'">
+                      <td ng-click="viewRelationMap(rel)" style="width: 60px;">
+                          {{rel.name}} - {{rel.modelVersion}}
+                      </td>
+                  </tr>
+                  </tbody>
+              </table>
+          </div>
+      </div>
+
     <div>{{soperror}}</div>
     <h4>Found relations</h4>
     <div ng-repeat="sop in relations">
         {{sop.isa}}: {{getOpsFromSOP(sop)}}
     </div>
-
+      <h4>Found deadlocks</h4>
+      <div ng-repeat="(k, v) in deadlocks">
+          {{getOp(k).name}}: {{v}}
+      </div>
   </div> <!-- end of content-wrapper -->
 </div> <!-- end of content -->

@@ -147,8 +147,9 @@ trait RelationFinderAlgotithms {
     val emptyStates = States(setup.stateVars map (_._1 -> Set[SPAttributeValue]()))
     val oie = EnabledStates(emptyStates, emptyStates)
     val startMap = {if (opsToTest.isEmpty) setup.ops else opsToTest}.map(_.id -> oie)
-    val res = req(iterations, EnabledStatesMap(startMap toMap), NoRelations(Set(), Set(), emptyStates))
-    val enM = if (res._1 == startMap.toMap) None else Some(res._1)
+    val emptyEnabledStates = EnabledStatesMap(startMap toMap)
+    val res = req(iterations, emptyEnabledStates, NoRelations(Set(), Set(), emptyStates))
+    val enM = if (res._1 == emptyEnabledStates) None else Some(res._1)
     val noRes = if (res._2.sequences.isEmpty) None else Some(res._2)
     (enM, noRes)
   }

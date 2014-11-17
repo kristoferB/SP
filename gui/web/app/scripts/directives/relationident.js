@@ -18,10 +18,8 @@ angular.module('spGuiApp')
         scope.things = {};
         scope.initState = {};
         scope.goalState = {};
-        scope.latestMapVersion = 0;
         scope.checkAllOps = true;
         scope.checkAllGroups = true;
-        scope.relationMap = {};
 
         scope.correctCheckAllBox = function(itemCheckModels, checkAllModel) {
           var checked = true;
@@ -39,24 +37,6 @@ angular.module('spGuiApp')
           });
         };
 
-        scope.getLatestMapVersion = function() {
-          var latestMapVersion = 0;
-          var relationMaps = $filter('with')(spTalker.items, { isa: 'RelationResult' });
-          _.each(relationMaps, function(relationMap){
-            if(relationMap.modelVersion > latestMapVersion) {
-              latestMapVersion = relationMap.modelVersion
-            }
-          });
-          scope.latestMapVersion = latestMapVersion;
-        };
-
-        if(spTalker.itemsRead) {
-          scope.getLatestMapVersion();
-        }
-
-        scope.$on('itemsQueried', function() {
-          scope.getLatestMapVersion();
-        });
 
         scope.findRelations = function(){
 
@@ -84,31 +64,46 @@ angular.module('spGuiApp')
           console.log("test")
 
           if(operations.length === 0) {
-            notificationService.info('You have to pick at least one operation to generate a RelationMap.');
+            //notificationService.info('You have to pick at least one operation to generate a RelationMap.');
             return
           }
           var res = spTalker.findRelations(operations, initState, groups, goalState);
 
 
           res.success(function (data) {
+            console.log("Relation identification:")
             console.log(data);
             if(angular.isDefined(data.error)) {
-              notificationService.info(data.error);
+              //notificationService.info(data.error);
               return
             }
             //notificationService.success('A RelationMap was successfully generated.');
 
-            scope.relations = data.relationmap.relationmap.map(function(item){
-              return item.sop
-            });
+
+            scope.viewRelationMap(data);
             spTalker.loadItems();
           });
 
           res.error(function(data) {
-            notificationService.error('Something went wrong while generating the RelationMap. Please check your browser\'s console for details');
+            //notificationService.error('Something went wrong while generating the RelationMap. Please check your browser\'s console for details');
             console.log(data);
           });
 
+        };
+
+        scope.viewRelationMap = function(relMap) {
+          if(angular.isDefined(relMap.relationmap)) {
+            scope.relations = relMap.relationmap.relationmap.map(function(item){
+              return item.sop
+            });
+          } else {scope.relations = []}
+
+          if(angular.isDefined(relMap.deadlocks)) {
+            scope.deadlocks = relMap.deadlocks.finalState.states;
+          } else {scope.deadlocks = {}}
+
+          console.log("deadlocks")
+          console.log(scope.deadlocks)
         };
 
         scope.getSOP = function(){
@@ -120,7 +115,7 @@ angular.module('spGuiApp')
           });
 
           if(operations.length === 0) {
-            notificationService.info('You have to pick at least one operation to generate a SOP.');
+            //notificationService.info('You have to pick at least one operation to generate a SOP.');
             return
           }
 
@@ -128,7 +123,7 @@ angular.module('spGuiApp')
 
           resSOP.success(function (data) {
             if(angular.isDefined(data.error)) {
-              notificationService.info(data.error);
+              //notificationService.info(data.error);
             }
             if (!_.isUndefined(data.sop)){
               var windowStorage = {
@@ -142,12 +137,13 @@ angular.module('spGuiApp')
           });
           resSOP.error(function (data) {
             console.log(data);
-            notificationService.error('Something went wrong while generating the SOP. Please check your browser\'s console for details');
+            //notificationService.error('Something went wrong while generating the SOP. Please check your browser\'s console for details');
           });
 
         };
 
         scope.relations = [];
+        scope.deadlocks = {}
 
         scope.getOpsFromSOP = function(sop) {
           var o1 = scope.getOp(sop.sop[0].operation);
@@ -158,6 +154,7 @@ angular.module('spGuiApp')
         scope.getOp = function(id) {
           return spTalker.getItemById(id)
         }
+
 
       }
     };

@@ -75,7 +75,7 @@ angular.module('spGuiApp')
 
     function getNameFromId(id) {
       var item = spTalker.items[id];
-      return item.name + "("+id+")";
+      return item.name //+ "("+id+")";
 //      var parentToItem = spTalker.items[item.attributes.parent];
 //      if(parentToItem === spTalker.activeModel || !parentToItem) {
 //        return spTalker.items[id].name;

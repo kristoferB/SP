@@ -64,7 +64,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
 
                 val ops = opsIDAble map (_.asInstanceOf[Operation])
                 val svs = svsIDAble map (_.asInstanceOf[Thing])
-                val olderRels = olderRelsIDAble map (_.asInstanceOf[RelationResult]) sortWith (_.modelVersion > _.modelVersion)
+                val olderRels = List[RelationResult]() //olderRelsIDAble map (_.asInstanceOf[RelationResult]) sortWith (_.modelVersion > _.modelVersion)
 
                 if (olderRels.nonEmpty && olderRels.head.modelVersion == mVersion) reply ! olderRels.head
                 else {
