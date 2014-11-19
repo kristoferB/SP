@@ -7,7 +7,7 @@
  * # relationident
  */
 angular.module('spGuiApp')
-  .directive('relationident', function (spTalker, tabSvc, notificationService, $filter) {
+  .directive('relationident', function (spTalker, tabSvc, notificationService) {
     return {
       templateUrl: 'views/relationview.html',
       restrict: 'E',
@@ -61,10 +61,10 @@ angular.module('spGuiApp')
               goalState.push({id: id, value: scope.goalState[id] });
 
           });
-          console.log("test")
+          console.log("test");
 
           if(operations.length === 0) {
-            //notificationService.info('You have to pick at least one operation to generate a RelationMap.');
+            notificationService.info('You have to pick at least one operation to generate a RelationMap.');
             return
           }
           var res = spTalker.findRelations(operations, initState, groups, goalState);
@@ -74,10 +74,10 @@ angular.module('spGuiApp')
             console.log("Relation identification:")
             console.log(data);
             if(angular.isDefined(data.error)) {
-              //notificationService.info(data.error);
+              notificationService.info(data.error);
               return
             }
-            //notificationService.success('A RelationMap was successfully generated.');
+            notificationService.success('A RelationMap was successfully generated.');
 
 
             scope.viewRelationMap(data);
@@ -85,7 +85,7 @@ angular.module('spGuiApp')
           });
 
           res.error(function(data) {
-            //notificationService.error('Something went wrong while generating the RelationMap. Please check your browser\'s console for details');
+            notificationService.error('Something went wrong while generating the RelationMap. Please check your browser\'s console for details');
             console.log(data);
           });
 
@@ -114,7 +114,7 @@ angular.module('spGuiApp')
           });
 
           if(operations.length === 0) {
-            //notificationService.info('You have to pick at least one operation to generate a SOP.');
+            notificationService.info('You have to pick at least one operation to generate a SOP.');
             return
           }
 
@@ -125,10 +125,10 @@ angular.module('spGuiApp')
           var resSOP = spTalker.getSOP(operations, scope.selectedMap.id );
 
           resSOP.success(function (data) {
-            console.log("sop")
-            console.log(data)
+            console.log("sop");
+            console.log(data);
             if(angular.isDefined(data.error)) {
-              //notificationService.info(data.error);
+              notificationService.info(data.error);
             }
             if (!_.isUndefined(data.sop)){
               var windowStorage = {
@@ -143,14 +143,14 @@ angular.module('spGuiApp')
           });
           resSOP.error(function (data) {
             console.log(data);
-            //notificationService.error('Something went wrong while generating the SOP. Please check your browser\'s console for details');
+            notificationService.error('Something went wrong while generating the SOP. Please check your browser\'s console for details');
           });
 
         };
 
         scope.selectedMap = {};
         scope.relations = [];
-        scope.deadlocks = {}
+        scope.deadlocks = {};
 
         scope.getOpsFromSOP = function(sop) {
           var o1 = scope.getOp(sop.sop[0].operation);

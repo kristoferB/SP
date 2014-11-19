@@ -10,10 +10,10 @@
 angular.module('spGuiApp')
   .factory('sopCalcer', [ 'spTalker', 'itemSvc', '$filter', function (spTalker, itemSvc, $filter) {
     var factory = {};
-    
+
     factory.calcStructMeasures = function(sop, measures, para, dirScope) {
       var structMeasures = [];
-      
+
       if(sop.isa === 'Sequence') {
         structMeasures.width = sop.clientSideAdditions.width; structMeasures.height = sop.clientSideAdditions.height;
         if(!dirScope.sopSpecCopy.vertDir) {
@@ -121,15 +121,15 @@ angular.module('spGuiApp')
         'x' : 0,
         'y' : 0
       }, drawHere, sub;
-      
+
       if(typeof sequence.clientSideAdditions.lines === 'undefined') {
         sequence.clientSideAdditions.lines = [];
       }
-      
+
       if(firstLoop === true) { // to make room for first line
         start = start + measures.margin;
       }
-      
+
       if (sequence.isa === 'Hierarchy') {
         var op = spTalker.getItemById(sequence.operation);
         if (sequence.sop.length > 0){
@@ -144,7 +144,7 @@ angular.module('spGuiApp')
 
           result.width = this.calcOpWidth(op, measures, dirScope, sequence);
           result.height = this.calcOpHeight(op, measures, dirScope, sequence) + measures.margin;
-          var arrow = measures.arrow; 
+          var arrow = measures.arrow;
           if (start < measures.arrow) {arrow = 0;}
 
           // Save of Op measures straight into the SOP
@@ -153,14 +153,14 @@ angular.module('spGuiApp')
           sequence.clientSideAdditions.x = (middle - (result.width / 2));
           sequence.clientSideAdditions.y = start;
           sequence.clientSideAdditions.arrow = 'M ' + (result.width/2 - arrow) + ' ' + (-arrow) + ' l ' + arrow + ' ' + arrow + ' l ' + arrow + ' ' + -arrow + ' Z';
-          
+
           // Swap width, height and x, y if Horizontal direction
           if(!dirScope.sopSpecCopy.vertDir) {
             sequence.clientSideAdditions.height = [sequence.clientSideAdditions.width, sequence.clientSideAdditions.width = sequence.clientSideAdditions.height][0];
             sequence.clientSideAdditions.x = [sequence.clientSideAdditions.y, sequence.clientSideAdditions.y = sequence.clientSideAdditions.x][0];
             sequence.clientSideAdditions.arrow = 'M ' + (-arrow) + ' ' + (result.width/2 - arrow) + ' l ' + arrow + ' ' + arrow + ' l ' + -arrow + ' ' + arrow + ' Z';
           }
-          
+
         }
       } else if (sequence.isa === 'Sequence') {
         drawHere = start;
@@ -182,7 +182,7 @@ angular.module('spGuiApp')
           drawHere = start + result.height;
 
         }
-        
+
       } else {  // Parallel, Alternative, Other or Arbitrary
 
         result.width = this.getWidth(sequence, measures, dirScope, false);
@@ -212,7 +212,7 @@ angular.module('spGuiApp')
             x2 : 0,
             y2 : measures.margin + 1
           });
-          
+
           result = this.fillResult(result, sub);
           linepos.push({
             'x' : drawHere,
@@ -235,7 +235,7 @@ angular.module('spGuiApp')
         if(!dirScope.sopSpecCopy.vertDir) {
           lineMinusL = [lineMinusR, lineMinusR = lineMinusL][0];
         }
-        
+
         if(typeof sequence.clientSideAdditions.lines2 === 'undefined') {
           sequence.clientSideAdditions.lines2 = [];
         } else {
@@ -245,7 +245,7 @@ angular.module('spGuiApp')
           });
           sequence.clientSideAdditions.lines2 = [];
         }
-        
+
         for (var p = 0; p < linepos.length; p++) {
 
           // The lines below the structs
@@ -272,16 +272,16 @@ angular.module('spGuiApp')
         sequence.clientSideAdditions.lineR = result.width / 2 - lineMinusR;
         sequence.clientSideAdditions.x = middle - (result.width / 2);
         sequence.clientSideAdditions.y = start;
-        
+
         // Swap if horizontal direction
         if(!dirScope.sopSpecCopy.vertDir) {
           sequence.clientSideAdditions.x = [sequence.clientSideAdditions.y, sequence.clientSideAdditions.y = sequence.clientSideAdditions.x][0];
         }
-        
+
         sequence.clientSideAdditions.structMeasures = factory.calcStructMeasures(sequence, measures, para, dirScope);
 
       }
-      
+
       if(firstLoop === true) { // first launch only
         sequence.clientSideAdditions.lines.push({ // the starting line above the whole SOP
           x1 : middle,
@@ -290,7 +290,7 @@ angular.module('spGuiApp')
           y2 : -(measures.margin+1)
         });
       }
-      
+
       result.x = middle - result.width / 2;
       result.y = start;
       return result;
@@ -398,7 +398,7 @@ angular.module('spGuiApp')
         }*/
       }
     }
-    
+
     factory.calcOpWidth = function(op, measures, dirScope, struct) {
       var longestString = longestConditionString(struct, op);
       var summedTextHeight = sumTextHeight(struct, measures);
@@ -410,7 +410,7 @@ angular.module('spGuiApp')
         return measures.opW;
       }
     };
-    
+
     factory.calcOpHeight = function(op, measures, dirScope, struct) {
       var longestString = longestConditionString(struct, op, measures);
       var summedTextHeight = sumTextHeight(struct, measures);
@@ -425,13 +425,16 @@ angular.module('spGuiApp')
 
     function addConditions(op, sop, dirScope) {
       // pick the specially prepared conditions in sop if present
-      var conditions;
+      var conditions = [];
       if(dirScope.windowStorage.viewAllConditions && op.conditions) {
-        conditions = op.conditions;
-      } else if(sop.conditions) {
-        conditions = sop.conditions;
-      } else {
-        conditions = [];
+        op.conditions.forEach(function(opCond) {
+          conditions.push(opCond);
+        });
+      }
+      if(sop.conditions) {
+        sop.conditions.forEach(function(sopCond) {
+          conditions.push(sopCond);
+        });
       }
 
       // convert proposition format to text and put it in the sop

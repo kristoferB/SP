@@ -96,11 +96,7 @@ angular.module('spGuiApp')
     };
 
     factory.addCondition = function(condArray) {
-      var group = 'default';
-      if(spTalker.activeModel.attributes.conditionGroups.length > 0 && spTalker.activeModel.attributes.conditionGroups.indexOf('default') === -1) {
-        group = spTalker.activeModel.attributes.conditionGroups[0];
-      }
-      condArray.push({guard: { isa: 'EQ', left: {id: ''}, right: 2 }, action: [], attributes: {kind: 'pre', group: group}});
+      condArray.push({guard: { isa: 'EQ', left: {id: ''}, right: 2 }, action: [], attributes: {kind: 'pre', group: 'default'}});
     };
 
     factory.stopPropagation = function(e) {

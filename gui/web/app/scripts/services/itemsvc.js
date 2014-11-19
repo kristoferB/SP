@@ -16,11 +16,12 @@ angular.module('spGuiApp')
     factory.indexOfViewedItem = -1;
 
     if(sessionStorage.selectedItemsHistory) {
-      angular.copy(JSON.parse(sessionStorage.selectedItemsHistory), factory.selectedItemsHistory);
+      var history = JSON.parse(sessionStorage.selectedItemsHistory);
+      angular.copy(history, factory.selectedItemsHistory);
     }
 
     if(sessionStorage.indexOfViewedItem) {
-      factory.indexOfViewedItem = sessionStorage.indexOfViewedItem;
+      factory.indexOfViewedItem = +sessionStorage.indexOfViewedItem;
     }
 
     factory.cleanHistoryFromID = function(id) {
@@ -37,6 +38,9 @@ angular.module('spGuiApp')
     };
 
     factory.selectItemId = function(id, itemListScope) {
+      if(factory.selectedItemsHistory[factory.indexOfViewedItem] === id) {
+        return;
+      }
       factory.selectedItemsHistory.splice(factory.indexOfViewedItem + 1, 0, id);
       factory.selectedItemsHistory = factory.selectedItemsHistory.slice(0, factory.indexOfViewedItem + 2);
       factory.indexOfViewedItem += 1;
@@ -75,13 +79,11 @@ angular.module('spGuiApp')
 
     function getNameFromId(id) {
       var item = spTalker.items[id];
-      return item.name //+ "("+id+")";
-//      var parentToItem = spTalker.items[item.attributes.parent];
-//      if(parentToItem === spTalker.activeModel || !parentToItem) {
-//        return spTalker.items[id].name;
-//      } else {
-//        return parentToItem.name + '.' + spTalker.items[id].name
-//      }
+      if(item) {
+        return item.name;
+      } else {
+        return '';
+      }
     }
 
     function handleProp(prop) {
