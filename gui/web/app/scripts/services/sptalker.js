@@ -84,13 +84,14 @@ angular.module('spGuiApp')
       }})
   };
 
-  factory.getSOP = function(ops, base) {
+  factory.getSOP = function(ops, relationResultID, base) {
     return $http({
       method: 'POST',
       url: 'api/services/SOPMaker',
       data: {
         model: factory.activeModel.model,
         operations: ops,
+        relations: relationResultID,
         base: base
       }})
   };

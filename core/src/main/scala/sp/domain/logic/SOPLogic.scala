@@ -240,6 +240,7 @@ case object SOPLogic {
   def makeProps(missing: Map[Set[ID], SOP]): Map[ID, Proposition] = {
     val res = missing.toList flatMap {
       case (_, s: Parallel) => List()
+      case (_, s: Other) => List()
       case (_, s: Alternative) => {
         val temp = relOrder(s).map{case (id1, id2) => List(id1 -> EQ(id2, "i"), id2 -> EQ(id1, "i"))}
         temp.getOrElse(List())

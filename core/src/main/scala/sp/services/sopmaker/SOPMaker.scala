@@ -38,10 +38,12 @@ trait MakeASop extends Groupify with Sequencify {
   import SOPLogic._
   def makeTheSop(ops: List[ID], relations: Map[Set[ID], SOP], base: SOP = EmptySOP) = {
     val sopOps = makeSOPsFromOpsID(ops)
+
     val groupOthers = groupify(sopOps, relations, _.isInstanceOf[Other], Other.apply)
+
+
     val groupAlternatives = groupify(groupOthers, relations, _.isInstanceOf[Alternative], Alternative.apply)
     val groupParallel = groupify(groupAlternatives, relations, _.isInstanceOf[Parallel], Parallel.apply)
-
     val result = sequencify(groupParallel, relations, base)
 
     addMissingRelations(result, relations)
@@ -68,7 +70,6 @@ trait Groupify {
       s1 <- sop1s
       s2 <- sop2s
     } yield {
-
       if (s1 == s2) Other()
       else {
         relations(Set(s1, s2)) match {
@@ -89,7 +90,7 @@ trait Groupify {
 
   def extractOps(sop: SOP): List[ID] = {
     sop match {
-      case x: Hierarchy => List(x.operation) // does not need to digg since the op is included in the relationMap
+      case x: Hierarchy => List(x.operation) // does not need to dig since the op is included in the relationMap
       case x: SOP => x.children flatMap extractOps toList
     }
   }
@@ -111,9 +112,9 @@ trait Groupify {
 
     val relatedPairs = for {
       x <- sops
-      y <- sops if x!=y
-      rel <- Some(identifySOPRelation(x, y, relations)) if relationToGroup(rel)
+      y <- sops if x!=y && relationToGroup(identifySOPRelation(x, y, relations))
     } yield Set(x, y)
+
 
     def mergeTheGroups(theGroups: Set[Set[SOP]]): Set[Set[SOP]] = {
       val merge = theGroups.foldLeft(Set[Set[SOP]]())({

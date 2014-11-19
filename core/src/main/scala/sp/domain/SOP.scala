@@ -52,6 +52,7 @@ object SOP {
     sop match {
       case s: Hierarchy => Hierarchy(s.operation, s.conditions, children:_*)
       case s: Parallel => Parallel(children:_*)
+      case s: Other => Other(children:_*)
       case s: Alternative => Alternative(children:_*)
       case s: Arbitrary => Arbitrary(children:_*)
       case s: Sequence => Sequence(children:_*)

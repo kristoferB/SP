@@ -65,31 +65,36 @@
         </div>
       </div>
 
+        <h4>Relation maps</h4>
+
+        <div class="col-md-6">
+            <h5>Relations</h5>
+            <div class="relation-item-table">
+                <table class="table">
+                    <tbody>
+                    <tr ng-repeat="(id, rel) in spTalker.items | with: { isa: 'RelationResult' } | orderBy: rel.modelVersion:false" ng-class-odd="'odd-row'">
+                        <td ng-click="viewRelationMap(rel)" style="width: 60px;">
+                            {{rel.name}} - {{rel.modelVersion}}
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div>{{soperror}}</div>
+            <h5>Found relations</h5>
+            <div ng-repeat="sop in relations">
+                {{sop.isa}}: {{getOpsFromSOP(sop)}}
+            </div>
+            <h5>Found deadlocks</h5>
+            <div ng-repeat="(k, v) in deadlocks">
+                {{getOp(k).name}}: {{v}}
+            </div>
+            <div>{{selectedMap.attributes.settings}}</div>
+        </div>
     </div>
 
-      <div class="col-md-12">
-          <h5>Relations</h5>
-          <div class="relation-item-table">
-              <table class="table">
-                  <tbody>
-                  <tr ng-repeat="(id, rel) in spTalker.items | with: { isa: 'RelationResult' } | orderBy: rel.modelVersion:false" ng-class-odd="'odd-row'">
-                      <td ng-click="viewRelationMap(rel)" style="width: 60px;">
-                          {{rel.name}} - {{rel.modelVersion}}
-                      </td>
-                  </tr>
-                  </tbody>
-              </table>
-          </div>
-      </div>
-
-    <div>{{soperror}}</div>
-    <h4>Found relations</h4>
-    <div ng-repeat="sop in relations">
-        {{sop.isa}}: {{getOpsFromSOP(sop)}}
-    </div>
-      <h4>Found deadlocks</h4>
-      <div ng-repeat="(k, v) in deadlocks">
-          {{getOp(k).name}}: {{v}}
-      </div>
   </div> <!-- end of content-wrapper -->
 </div> <!-- end of content -->

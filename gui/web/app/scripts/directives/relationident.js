@@ -7,7 +7,7 @@
  * # relationident
  */
 angular.module('spGuiApp')
-  .directive('relationident', ['spTalker', 'notificationService', '$filter', 'tabSvc', function (spTalker, tabSvc, notificationService, $filter) {
+  .directive('relationident', function (spTalker, tabSvc, notificationService, $filter) {
     return {
       templateUrl: 'views/relationview.html',
       restrict: 'E',
@@ -102,8 +102,7 @@ angular.module('spGuiApp')
             scope.deadlocks = relMap.deadlocks.finalState.states;
           } else {scope.deadlocks = {}}
 
-          console.log("deadlocks")
-          console.log(scope.deadlocks)
+          scope.selectedMap = relMap;
         };
 
         scope.getSOP = function(){
@@ -119,9 +118,15 @@ angular.module('spGuiApp')
             return
           }
 
-          var resSOP = spTalker.getSOP(operations);
+          if(!angular.isDefined(scope.selectedMap)) {
+            return
+          }
+
+          var resSOP = spTalker.getSOP(operations, scope.selectedMap.id );
 
           resSOP.success(function (data) {
+            console.log("sop")
+            console.log(data)
             if(angular.isDefined(data.error)) {
               //notificationService.info(data.error);
             }
@@ -129,6 +134,7 @@ angular.module('spGuiApp')
               var windowStorage = {
                 sopSpec: data
               };
+
               tabSvc.newWindow('sopViewer', windowStorage);
             }
             else {
@@ -142,6 +148,7 @@ angular.module('spGuiApp')
 
         };
 
+        scope.selectedMap = {};
         scope.relations = [];
         scope.deadlocks = {}
 
@@ -158,4 +165,4 @@ angular.module('spGuiApp')
 
       }
     };
-  }]);
+  });

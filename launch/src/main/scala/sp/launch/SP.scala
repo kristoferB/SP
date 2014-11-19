@@ -11,8 +11,8 @@ object SP extends App {
   import sp.system.SPActorSystem._
 
   // Register Runtimes here
-  runtimeHandler ! RegisterRuntimeKind("DanielRuntime",
-  sp.runtimes.DanielRuntime.props,
+  runtimeHandler ! RegisterRuntimeKind("SimulationRuntime",
+  sp.runtimes.SimulationRuntime.props,
   SPAttributes(Map("info"-> "En liten runtime")))
 
 
