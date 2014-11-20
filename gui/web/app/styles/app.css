@@ -193,27 +193,27 @@ input {
 .collapsed-row {margin: 0 0 5px 0;}
 
 table a, .table a {
-    text-decoration: none;
+  text-decoration: none;
 }
 
 .element-list td {
-    padding: 2px;
+  padding: 2px;
 }
 
 .prop-parse {
-    margin-left: 10px;
+  margin-left: 10px;
 }
 
 .guard-input {
-    width: 100% !important;
+  width: 100% !important;
 }
 
 .action-input {
-    width: 100% !important;
+  width: 100% !important;
 }
 
 .textcomplete-wrapper {
-    width: 80%;
+  width: 80%;
 }
 
 /* static table header in the itemList */

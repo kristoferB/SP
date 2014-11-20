@@ -30,6 +30,8 @@ angular.module('spGuiApp')
           noOfOpenedWindows++;
           if(type === 'sopViewer') {
             wStorage.editable = false;
+            width = 1;
+            height = 'small';
           } else if(type === 'sopMaker') {
             wStorage.editable = true;
           } else if(type === 'itemTree') {

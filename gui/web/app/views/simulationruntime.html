@@ -14,7 +14,7 @@
     </div>
     <div class="col-md-6">
       <h4>Operations</h4>
-      <table class="table">
+      <table class="table table-bordered">
         <thead><th>Name</th><th>State</th></thead>
         <tbody>
           <tr ng-repeat="(id, op) in spTalker.items | with: { isa: 'Operation' }" ng-init="currentStates[op.id] = 'i'" ng-click="enabled.indexOf(op.id) === -1 || executeOp(op.id)" ng-disabled="enabled.indexOf(op.id) === -1" ng-class="{'op-enabled': (currentStates[op.id] === 'i' && enabled.indexOf(op.id) > -1), 'op-disabled': (currentStates[op.id] === 'i' && enabled.indexOf(op.id) === -1), 'op-finished': (currentStates[op.id] === 'f')}">

@@ -13,9 +13,9 @@ angular.module('spGuiApp')
       template:
                 '<div class="header">' +
                   '<div class="btn-toolbar sop-maker-toolbar" role="toolbar">' +
-                    '<button class="btn btn-default toggle-btn" ng-click="toggleDirection()"><span class="glyphicon glyphicon-retweet"></span> Rotate</button>' +
-                    '<button class="btn btn-default" ng-if="windowStorage.editable" ng-click="saveSopSpec()"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>' +
-                    '<button class="btn btn-default" ng-if="windowStorage.editable" ng-click="addSop()"><span class="glyphicon glyphicon-plus"></span> Add sequence</button>' +
+                    '<button class="btn btn-default toggle-btn" ng-click="toggleDirection()" title="Rotate"><span class="glyphicon glyphicon-retweet"></span></button>' +
+                    '<button class="btn btn-default" ng-if="windowStorage.editable" ng-click="saveSopSpec()" title="Save"><span class="glyphicon glyphicon-floppy-disk"></span></button>' +
+                    '<button class="btn btn-default" ng-if="windowStorage.editable" ng-click="addSop()"><span class="glyphicon glyphicon-plus" title="Add sequence"></span></button>' +
                     '<button class="btn btn-default" ng-if="windowStorage.editable" draggable="true" item-drag="{isa: \'Parallel\'}">Parallel</button>' +
                     '<button class="btn btn-default" ng-if="windowStorage.editable" draggable="true" item-drag="{isa: \'Alternative\'}">Alternative</button>' +
                     '<button class="btn btn-default" ng-if="windowStorage.editable" draggable="true" item-drag="{isa: \'Arbitrary\'}">Arbitrary</button>' +
@@ -88,6 +88,9 @@ angular.module('spGuiApp')
             getSopDefAndDraw(sopSpecSource);
           } else if (!_.isUndefined(scope.windowStorage.sopSpec)){
             getSopDefAndDraw(scope.windowStorage.sopSpec);
+          } else if(!_.isUndefined(scope.windowStorage.sopDef)) {
+            scope.sopSpecCopy.sop.push(angular.copy(scope.windowStorage.sopDef));
+            draw();
           } else {
             draw();
           }
