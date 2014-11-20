@@ -20,7 +20,7 @@ angular.module('spGuiApp')
                     '<button class="btn btn-default" ng-if="windowStorage.editable" draggable="true" item-drag="{isa: \'Alternative\'}">Alternative</button>' +
                     '<button class="btn btn-default" ng-if="windowStorage.editable" draggable="true" item-drag="{isa: \'Arbitrary\'}">Arbitrary</button>' +
                     '<button class="btn btn-default" ng-if="windowStorage.editable" draggable="true" item-drag="{isa: \'Other\'}">Other</button>' +
-                    '<label><input type="checkbox" ng-model="windowStorage.viewAllConditions" ng-change="clearAndDrawFromScratch()"/>View all conditions</label>' +
+                    '<label><input type="checkbox" ng-model="windowStorage.viewAllConditions" ng-change="clearAndDrawFromScratch()"/> Fetch conditions from items</label>' +
                   '</div>' +
                 '</div>' +
                 '<div class="content">' +

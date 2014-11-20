@@ -127,6 +127,19 @@ input {
     color: #000000;
 }
 
+/*** simulationRuntime ***/
+
+.op-enabled {
+  background-color: #219161;
+}
+
+.op-disabled {
+  background-color: #B94A48;
+}
+
+.op-finished {
+  background-color: #026890;
+}
 
 /*** relationIdent ***/
 
@@ -137,7 +150,7 @@ input {
 
 /*** itemTable ***/
 
-.rowselected {
+.rowselected>.underline-it {
   font-weight: bold;
   text-decoration: underline;
 }

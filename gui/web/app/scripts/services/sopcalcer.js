@@ -430,8 +430,7 @@ angular.module('spGuiApp')
         op.conditions.forEach(function(opCond) {
           conditions.push(opCond);
         });
-      }
-      if(sop.conditions) {
+      } else if(sop.conditions) {
         sop.conditions.forEach(function(sopCond) {
           conditions.push(sopCond);
         });

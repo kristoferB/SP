@@ -17,8 +17,8 @@
       <span ng-switch-when="RelationResult" class="glyphicon glyphicon-link" title="RelationResult"></span>
       <span ng-switch-when="SPObject" class="glyphicon glyphicon-gift" title="SPObject"></span>
     </td>
-    <td ng-repeat="column in selection">{{item[column]}}</td>
-    <td ng-repeat="attrColumn in attrSelection">{{item['attributes'][attrColumn]}}</td>
+    <td ng-repeat="column in selection" class="underline-it">{{item[column]}}</td>
+    <td ng-repeat="attrColumn in attrSelection" class="underline-it">{{item['attributes'][attrColumn]}}</td>
     <td class="item-table-buttons" ng-if="!itemListScope.windowStorage.itemTree">
       <button class="btn btn-xs btn-default" ng-click="itemListSvc.stopPropagation($event); rowSettings[item.id].expandChildren = false; rowSettings[item.id].infoIsCollapsed = !rowSettings[item.id].infoIsCollapsed;" ng-if="!rowSettings[item.id].edit" title="Show properties"><span class="glyphicon glyphicon-info-sign"></span></button>
       <button class="btn btn-xs btn-default" ng-click="rowSettings[item.id].expandChildren = false; rowSettings[item.id].infoIsCollapsed = false; rowSettings[item.id].edit=true; itemListSvc.stopPropagation($event);" ng-if="!rowSettings[item.id].edit" title="Edit"><span class="glyphicon glyphicon-edit"></span></button>

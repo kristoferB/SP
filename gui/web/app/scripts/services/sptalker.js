@@ -22,6 +22,34 @@ angular.module('spGuiApp')
       thingsAndOpsByName: {}
     };
 
+  factory.createRuntime = function() {
+    return $http({
+      method: 'POST',
+      url: apiUrl + '/runtimes',
+      data: {
+        kind: 'SimulationRuntime',
+        model: factory.activeModel.model,
+        name: 'sm' + Math.floor(Math.random()*1000)
+      }})
+  };
+
+  factory.updateState = function(runtimeName, currentOpStates, idOfOpToExecute) {
+    if(typeof runtimeName === 'undefined' || runtimeName === '') {
+      notificationService.info('You have to supply a runtime name.');
+    }
+    var newState = {
+      model: factory.activeModel.model,
+      state: currentOpStates
+    };
+    if(typeof idOfOpToExecute !== 'undefined' && idOfOpToExecute !== '') {
+      newState.execute = idOfOpToExecute;
+    }
+    return $http({
+      method: 'POST',
+      url: apiUrl + '/runtimes/' + runtimeName,
+      data: newState});
+  };
+
   factory.getItemById = function(id) {
     return factory.items[id];
   };
@@ -258,7 +286,7 @@ angular.module('spGuiApp')
           } else if(savedItems.length === 1) {
             notificationService.success(savedItems[0].isa + ' \"' + savedItems[0].name + '\" was successfully saved.');
           } else {
-            notificationService.success(savedItems.length + ' items were successfully saved.');
+            notificationService.success(items.length + ' items were successfully saved.');
           }
         }
         updateItemLists();
