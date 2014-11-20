@@ -28,31 +28,31 @@ class RelationServiceTest extends TestKit(ActorSystem("test")) with FreeSpecLike
 
   import Attribs._
 
-  "The relation service" - {
-    val mid = ID.newID
-
-    "find rels simple" in {
-      val mh = system.actorOf(Props(classOf[TestModel], List(o1,o2), ModelInfo(mid, "test", 1, Attr()), List(v1,v2,v3), List(), false))
-      val sh = mh
-      val rls = system.actorOf(RelationService.props(mh, sh, "condService"))
-      val attr = Attr("model"->"test", "operations"->ListPrimitive(List(o1.id, o2.id))).addStateAttr("initstate", state)
-      rls ! Request("RelationFinder", attr)
-      expectMsgPF(1 second){case RelationResult(name, rels, model, mversion, attr, id) => true}
-    }
-    "find rels unsing SOPSpecs" in {
-      val sop = Sequence(o3, o4)
-      val spec = SOPSpec("spec", List(sop))
-      val mh = system.actorOf(Props(classOf[TestModel], List(o3,o4), ModelInfo(mid, "test", 1, Attr()), List(v1,v2,v3), List(spec), false))
-      val sh = mh
-      val rls = system.actorOf(RelationService.props(mh, sh, "condService"))
-      val attr = Attr("model"->"test", "operations"->ListPrimitive(List(o3.id, o4.id))).addStateAttr("initstate", state)
-      rls ! Request("RelationFinder", attr)
-      expectMsgPF(1 second){
-        case RelationResult(name, rels, model, mversion, attr, id) if rels.relations(Set(o3.id,o4.id)).isInstanceOf[Sequence] =>
-          println("relations between o3 - o4: " + rels.relations(Set(o3.id, o4.id)))
-      }
-    }
-  }
+//  "The relation service" - {
+//    val mid = ID.newID
+//
+//    "find rels simple" in {
+//      val mh = system.actorOf(Props(classOf[TestModel], List(o1,o2), ModelInfo(mid, "test", 1, Attr()), List(v1,v2,v3), List(), false))
+//      val sh = mh
+//      val rls = system.actorOf(RelationService.props(mh, sh, "condService"))
+//      val attr = Attr("model"->"test", "operations"->ListPrimitive(List(o1.id, o2.id))).addStateAttr("initstate", state)
+//      rls ! Request("RelationFinder", attr)
+//      expectMsgPF(1 second){case RelationResult(name, rels, model, mversion, attr, id) => true}
+//    }
+//    "find rels unsing SOPSpecs" in {
+//      val sop = Sequence(o3, o4)
+//      val spec = SOPSpec("spec", List(sop))
+//      val mh = system.actorOf(Props(classOf[TestModel], List(o3,o4), ModelInfo(mid, "test", 1, Attr()), List(v1,v2,v3), List(spec), false))
+//      val sh = mh
+//      val rls = system.actorOf(RelationService.props(mh, sh, "condService"))
+//      val attr = Attr("model"->"test", "operations"->ListPrimitive(List(o3.id, o4.id))).addStateAttr("initstate", state)
+//      rls ! Request("RelationFinder", attr)
+//      expectMsgPF(1 second){
+//        case RelationResult(name, rels, model, mversion, attr, id) if rels.relations(Set(o3.id,o4.id)).isInstanceOf[Sequence] =>
+//          println("relations between o3 - o4: " + rels.relations(Set(o3.id, o4.id)))
+//      }
+//    }
+//  }
 }
 
 object TestThings {

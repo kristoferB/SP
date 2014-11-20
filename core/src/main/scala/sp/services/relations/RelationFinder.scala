@@ -24,7 +24,7 @@ case class FindRelations( ops: List[Operation],
 
 case class FindRelationResult(map: Option[RelationMap], deadlocks: Option[NoRelations])
 
-class RelationFinder extends Actor with RelationFinderAlgotithms {
+class RelationFinder extends Actor with RelationFinderAlgorithms {
   def receive = {
     case FindRelations(ops, svs, init, groups, itr, goal) => {
       implicit val setup = Setup(ops, svs, groups, init, goal)
@@ -44,7 +44,7 @@ object RelationFinder {
 }
 
 //TODO: Move these to domain.logic. RelationsLogic
-trait RelationFinderAlgotithms {
+trait RelationFinderAlgorithms {
 
   /**
    *
@@ -190,7 +190,7 @@ trait RelationFinderAlgotithms {
     if (pre ==(opi, opi)) Alternative(o1, o2)
     else if (pre ==(opi, opf)) Sequence(o1, o2)
     else if (pre ==(opf, opi)) Sequence(o2, o1)
-    else if (pre ==(opif, opf)) Sequence(o2, o1) //SometimeSequence(o2, o1)
+    else if (pre ==(opif, opi)) Sequence(o2, o1) //SometimeSequence(o2, o1)
     else if (pre ==(opi, opif)) Sequence(o1, o2) //SometimeSequence(o1, o2)
     else if (pre ==(opif, opif)) Parallel(o1, o2)
     else Other(o1, o2)

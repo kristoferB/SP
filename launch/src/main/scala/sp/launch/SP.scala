@@ -38,6 +38,11 @@ object SP extends App {
   serviceHandler ! RegisterService("DelmiaV5Service",
     system.actorOf(DelmiaV5Service.props(modelHandler), "DelmiaV5Service"))
 
+  import sp.merger._
+  serviceHandler ! RegisterService("ProductAbilityMerger",
+    system.actorOf(ProductAbilityMerger.props(modelHandler), "ProductAbilityMerger"))
+
+
 
   // launch REST API
   sp.server.LaunchGUI.launch
