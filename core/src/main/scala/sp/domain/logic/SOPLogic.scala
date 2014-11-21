@@ -264,13 +264,13 @@ case object SOPLogic {
   def makeConds(c1: Map[ID, Proposition], c2: Map[ID, Proposition]): Map[ID, List[Condition]] = {
     c1 map{ case (id, prop) =>
       val cond1 = PropositionCondition(prop, List(), Attr(
-        "kind" -> "precondition",
+        "kind" -> "pre",
         "group" -> "sop"
       ))
       id -> {
         if (c2.contains(id)){
           List(cond1, PropositionCondition(c2(id), List(), Attr(
-            "kind" -> "precondition",
+            "kind" -> "pre",
             "group" -> "other"
           )))
         } else List(cond1)
