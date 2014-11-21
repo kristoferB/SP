@@ -38,13 +38,18 @@ angular.module('spGuiApp')
     };
 
     factory.selectItemId = function(id, itemListScope) {
+      if(itemListScope.windowStorage.selectedItemID === id) {
+        itemListScope.windowStorage.selectedItemID = '';
+        return;
+      } else {
+        itemListScope.windowStorage.selectedItemID = id;
+      }
       if(factory.selectedItemsHistory[factory.indexOfViewedItem] === id) {
         return;
       }
       factory.selectedItemsHistory.splice(factory.indexOfViewedItem + 1, 0, id);
       factory.selectedItemsHistory = factory.selectedItemsHistory.slice(0, factory.indexOfViewedItem + 2);
       factory.indexOfViewedItem += 1;
-      itemListScope.windowStorage.selectedItemID = id;
       sessionStorage.selectedItemsHistory = JSON.stringify(factory.selectedItemsHistory);
       sessionStorage.indexOfViewedItem = factory.indexOfViewedItem;
     };

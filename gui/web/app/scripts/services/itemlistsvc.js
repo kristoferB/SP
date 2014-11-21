@@ -64,16 +64,22 @@ angular.module('spGuiApp')
       row.edit = false;
     };
 
-    factory.createItem = function(type, parentItem, itemListScope) {
+    factory.createItem = function(type, rootItem, itemListScope) {
       function onItemCreationSuccess(data) {
-        if(type === 'SPSpec' || !parentItem) {
+        var parent;
+        if(spTalker.getItemById(itemListScope.windowStorage.selectedItemID)) {
+          parent = spTalker.getItemById(itemListScope.windowStorage.selectedItemID);
+        } else {
+          parent = rootItem;
+        }
+        if (type === 'SPSpec' || (!parent && !rootItem)) {
           $rootScope.$broadcast('itemsQueried');
         } else {
-          if(typeof parentItem.attributes.children === 'undefined') {
-            parentItem.attributes.children = [];
+          if(typeof parent.attributes.children === 'undefined') {
+            parent.attributes.children = [];
           }
-          parentItem.attributes.children.push(data.id);
-          spTalker.saveItem(parentItem, false, function() {
+          parent.attributes.children.push(data.id);
+          spTalker.saveItem(parent, false, function() {
             $rootScope.$broadcast('itemsQueried');
           });
         }
@@ -82,8 +88,8 @@ angular.module('spGuiApp')
           $rootScope.$broadcast('edit-in-item-explorer');
         } else {
           $timeout(function () {
-            if(parentItem) {
-              itemListScope.$broadcast('show-children-' + parentItem.id);
+            if(parent) {
+              itemListScope.$broadcast('show-children-' + parent.id);
             }
             $timeout(function () {
               itemListScope.$broadcast('show-info-' + data.id);
@@ -92,7 +98,7 @@ angular.module('spGuiApp')
         }
 
       }
-      spTalker.createItem(type, onItemCreationSuccess, null, false, parentItem);
+      spTalker.createItem(type, onItemCreationSuccess, null, false, rootItem);
     };
 
     factory.addCondition = function(condArray) {
