@@ -96,7 +96,7 @@ angular.module('spGuiApp')
     };
 
     factory.addCondition = function(condArray) {
-      condArray.push({guard: { isa: 'EQ', left: {id: ''}, right: 2 }, action: [], attributes: {kind: 'pre', group: 'default'}});
+      condArray.push({guard: { isa: 'EQ', left: {id: ''}, right: '' }, action: [], attributes: {kind: 'pre', group: 'default'}});
     };
 
     factory.stopPropagation = function(e) {
