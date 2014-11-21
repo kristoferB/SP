@@ -37,6 +37,13 @@ angular.module('spGuiApp')
           });
         };
 
+        scope.toggleGoal = function() {
+          console.log("hej")
+          _.each(scope.goalState, function(goal, id){
+            scope.goalState[id] = '';
+          })
+        }
+
 
         scope.findRelations = function(){
 

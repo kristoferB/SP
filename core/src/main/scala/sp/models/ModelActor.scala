@@ -66,7 +66,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       } yield {
         val itemMap = items.items.map(x=> x.id -> x) toMap
         val upd = itemMap.filter{case (id, x) =>
-          !state.idMap.contains(id)
+          !state.idMap.contains(id) || state.idMap(id) != x
         }
         val del = state.idMap.filter{case (id, x) =>
           !itemMap.contains(id)
