@@ -16,11 +16,22 @@ angular.module('spGuiApp')
         scope.spTalker = spTalker;
         scope.enabled = [];
 
+        scope.resetStates = function() {
+          Object.keys(scope.things).forEach(function(id) {
+            scope.currentStates[id] = scope.things[id].attributes.stateVariable.init;
+          });
+          Object.keys(scope.ops).forEach(function(id) {
+            scope.currentStates[id] = 'i';
+          });
+          scope.executeOp();
+        };
+
         scope.createRuntime = function() {
           spTalker.createRuntime()
             .success(function(runtime) {
               scope.runtimeName = runtime.name;
               notificationService.success('A new runtime \"' + runtime.name + '\" was successfully created');
+              scope.resetStates();
               scope.executeOp();
             })
             .error(function() {

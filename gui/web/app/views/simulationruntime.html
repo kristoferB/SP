@@ -1,3 +1,11 @@
+<div class="header">
+  <div class="btn-toolbar" role="toolbar">
+    <div class="btn-group">
+      <button class="btn btn-default" ng-click="resetStates()" title="Reset to initial state"><span class="glyphicon glyphicon-fast-backward"></span></button>
+    </div> <!-- end of btn-group -->
+  </div> <!-- end of toolbar -->
+</div> <!-- end of header -->
+
 <div class="content">
   <div class="content-wrapper">
     <div class="col-md-12"><h3>Runtime {{runtimeName}}</h3></div>
@@ -6,7 +14,7 @@
       <table class="table">
         <thead><th>Name</th><th>State</th></thead>
         <tbody>
-          <tr ng-repeat="(id, thing) in spTalker.items | with: { isa: 'Thing' }" ng-init="currentStates[thing.id] = thing.attributes.stateVariable.init">
+          <tr ng-repeat="(id, thing) in (things = (spTalker.items | with: { isa: 'Thing' }))">
             <td>{{thing.name}}</td><td>{{currentStates[thing.id]}}</td>
           </tr>
         </tbody>
@@ -17,7 +25,7 @@
       <table class="table table-bordered">
         <thead><th>Name</th><th>State</th></thead>
         <tbody>
-          <tr ng-repeat="(id, op) in spTalker.items | with: { isa: 'Operation' }" ng-init="currentStates[op.id] = 'i'" ng-click="enabled.indexOf(op.id) === -1 || executeOp(op.id)" ng-disabled="enabled.indexOf(op.id) === -1" ng-class="{'op-enabled': (currentStates[op.id] === 'i' && enabled.indexOf(op.id) > -1), 'op-disabled': (currentStates[op.id] === 'i' && enabled.indexOf(op.id) === -1), 'op-finished': (currentStates[op.id] === 'f')}">
+          <tr ng-repeat="(id, op) in (ops = (spTalker.items | with: { isa: 'Operation' }))" ng-click="enabled.indexOf(op.id) === -1 || executeOp(op.id)" ng-disabled="enabled.indexOf(op.id) === -1" ng-class="{'op-enabled': (currentStates[op.id] === 'i' && enabled.indexOf(op.id) > -1), 'op-disabled': (currentStates[op.id] === 'i' && enabled.indexOf(op.id) === -1), 'op-finished': (currentStates[op.id] === 'f')}">
             <td>{{op.name}}</td><td>{{currentStates[op.id]}}</td>
           </tr>
         </tbody>
