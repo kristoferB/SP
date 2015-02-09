@@ -47,9 +47,21 @@ sealed abstract class SPAttributeValue {
     case MapPrimitive(m) => Some(m)
     case _ => None
   }
-  
-  
-  
+
+  def asDef(d: DefinitionPrimitive): Option[SPAttributeValue] = SPAttributeValue.this match {
+    case x: StringPrimitive if d.definition == "String" => Some(x)
+    case x: IntPrimitive if d.definition == "Integer" => Some(x)
+    case x: LongPrimitive if d.definition == "Long" => Some(x)
+    case x: DoublePrimitive if d.definition == "Double" => Some(x)
+    case x: DatePrimitive if d.definition == "Date" => Some(x)
+    case x: IDPrimitive if d.definition == "ID" => Some(x)
+    case x: ListPrimitive if d.definition == "List" => Some(x)
+    case x: MapPrimitive if d.definition == "Map" => Some(x)
+    case _ => None
+  }
+
+
+
   def +(lv: SPAttributeValue) = SPAttributeValue(exp(this) ++ exp(lv))
   
   private def exp(lv: SPAttributeValue): List[SPAttributeValue] = lv match{
@@ -71,6 +83,7 @@ case class OptionAsPrimitive(value: Option[SPAttributeValue]) extends SPAttribut
 case class MapPrimitive(value: Map[String, SPAttributeValue]) extends SPAttributeValue {
   def asSPAttributes = SPAttributes(value)
 }
+case class DefinitionPrimitive(definition: String, default: Option[SPAttributeValue] = None) extends SPAttributeValue
 
 
 object SPAttributeValue{

@@ -66,7 +66,7 @@ trait SPJsonDomain {
   }
 
 
-
+    implicit val defFormat = jsonFormat2(DefinitionPrimitive)
     implicit object SPAttributeValueFormat extends RootJsonFormat[SPAttributeValue] {
     def write(x: SPAttributeValue) = {
       x match {
@@ -84,6 +84,7 @@ trait SPJsonDomain {
             case Some(d) => d.toJson
             case None => JsNull
           }
+          case d: DefinitionPrimitive => d.toJson
       }
     }
     def read(value: JsValue) = value match {
@@ -114,6 +115,12 @@ trait SPJsonDomain {
             case Some(id) => IDPrimitive(id)
             case None => StringPrimitive(value)
           }
+        case ("definition", JsString(valueType)) :: Nil => {
+          DefinitionPrimitive(valueType)
+        }
+        case ("definition", JsString(valueType)) :: ("default", _) :: Nil => {
+          JsObject(kvs).convertTo[DefinitionPrimitive]
+        }
         case _ => MapPrimitive(kvs map {case (k,v)=> k->v.convertTo[SPAttributeValue]})
       }
       case JsNull => OptionAsPrimitive(None)
