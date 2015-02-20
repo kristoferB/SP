@@ -150,9 +150,17 @@ input {
 
 /*** itemTable ***/
 
+.attr-table {
+  width:inherit;
+}
+
 .rowselected>.underline-it {
   font-weight: bold;
   text-decoration: underline;
+}
+
+.item-info-container {
+  margin-left: 71px;
 }
 
 .item-info-table td {
