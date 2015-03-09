@@ -3,7 +3,14 @@
 </div>
 <div class="modal-body">
     <div>
-        <input type="file" ng-file-select="onFileSelect($files)">
+
+
+      <select ng-options="t as t.name for t in filetypes" ng-model="filetype">
+      </select>
+
+      <div ng-repeat="f in filetypes">{{f.name}}</div>
+
+        <input type="file" ng-file-select="onFileSelect($files, 'ImportKUKAFileService')">
         <!--<input type="file" ng-file-select="onFileSelect($files)" multiple accept="image/*">-->
         <!--<div class="button" ng-file-select="onFileSelect($files)" data-multiple="true"></div>-->
         <!--<div ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="optional-css-class-name-or-function"-->
@@ -13,7 +20,7 @@
         <!--<button ng-click="upload.abort()">Cancel Upload</button>-->
     </div>
 </div>
-<div class="modal-footer">
-    <button class="btn btn-primary" ng-click=""><span class="glyphicon glyphicon-asterisk"></span> Create Model</button>
-    <button class="btn btn-default" ng-click=""><span class="glyphicon glyphicon-remove"></span> Close</button>
-</div>
+<!--<div class="modal-footer">-->
+    <!--<button class="btn btn-primary" ng-click=""><span class="glyphicon glyphicon-asterisk"></span> Create Model</button>-->
+    <!--<button class="btn btn-default" ng-click=""><span class="glyphicon glyphicon-remove"></span> Close</button>-->
+<!--</div>-->

@@ -10,15 +10,26 @@
 angular.module('spGuiApp')
   .controller('LoadfileCtrl', function ($scope, $modalInstance, $upload, spTalker) {
 
+    // Get these from the services in the future
+    $scope.filetypes = [
+      {name: 'Kuka logfile', service: 'ImportKUKAFileService'},
+      {name: 'Delmia v5', service: 'DelmiaV5Service'}
+    ];
+    $scope.filetype = $scope.filetypes[0]
+
+
+
 
 
     // test
     $scope.onFileSelect = function($files) {
       //$files: an array of files selected, each file has name, size, and type.
+
+
       for (var i = 0; i < $files.length; i++) {
         var file = $files[i];
         $scope.upload = $upload.upload({
-          url: 'api/services/DelmiaV5Service/import', //upload.php script, node.js route, or servlet url
+          url: 'api/services/'+$scope.filetype.service+'/import', //upload.php script, node.js route, or servlet url
           //method: 'POST' or 'PUT',
           //headers: {'header-key': 'header-value'},
           //withCredentials: true,
@@ -34,7 +45,7 @@ angular.module('spGuiApp')
         }).success(function(data, status, headers, config) {
           // file is uploaded successfully
           console.log(data);
-          spTalker.loadModel(data)
+          //spTalker.loadModel(data)
           $modalInstance.close("")
         });
         //.error(...)
