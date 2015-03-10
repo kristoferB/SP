@@ -43,18 +43,18 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
     onSuccess(userHandler ? mess){evalReply{matchReply}}
   }
 
-  def myUserPassAuthenticator(userPass: Option[UserPass]): Future[Option[String]] =
+  /*def myUserPassAuthenticator(userPass: Option[UserPass]): Future[Option[String]] =
     Future {
       if (userPass.exists(up => up.user == "admin" && up.pass == "pass")) Some("John")
       else None
-    }
+    }*/
 
   // Handles AuthenticationRequiredRejection to omit the WWW-Authenticate header.
   // The omit prevents the browser login dialog to open when the Basic HTTP Authentication repsonds with code "401: Unauthorized".
-  implicit val myRejectionHandler = RejectionHandler {
+  /*implicit val myRejectionHandler = RejectionHandler {
     case AuthenticationFailedRejection(cause, challengeHeaders) :: _ =>
       complete(StatusCodes.Unauthorized, "Wrong username and/or password.")
-  }
+  }*/
 
   def returnUser(userName: String): UserDetails = {
     return UserDetails(22, userName)
@@ -94,7 +94,6 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
 import spray.httpx.SprayJsonSupport._
 import spray.json._
 import sp.json.SPJson._
-
 
 
 trait ModelAPI extends SPApiHelpers {

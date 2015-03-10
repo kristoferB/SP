@@ -10,7 +10,7 @@ object BuildSettings {
     version               := VERSION,
     organization          := "se.sekvensa",
     description           := "Sequence Planner",
-    scalaVersion          := "2.10.4",
+    scalaVersion          := "2.10.5",
     resolvers             ++= Dependencies.resolutionRepos,
     scalacOptions         := Seq(
       "-encoding", "utf8",

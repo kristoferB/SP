@@ -5,7 +5,6 @@ import Keys._
 object Build extends Build {
   import BuildSettings._
   import Dependencies._
-  import spray.revolver.RevolverPlugin._
 
   // configure prompt to show current project
   override lazy val settings = super.settings :+ {
@@ -23,8 +22,7 @@ object Build extends Build {
     //parser)
 
 
-  lazy val sprayDepend = Seq(
-    sprayCan,
+  lazy val sprayDepend = Seq(sprayCan,
     sprayRouting,
     sprayJson)
 
