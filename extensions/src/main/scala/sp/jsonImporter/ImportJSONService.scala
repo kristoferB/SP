@@ -1,19 +1,17 @@
 package sp.jsonImporter
 
 import akka.actor._
-import akka.util.Timeout
-import sp.domain._
 import sp.system.messages._
-
+import sp.domain._
+import akka.pattern.ask
+import akka.util.Timeout
 import scala.concurrent.duration._
-
 
 /**
  * To import operations and things from json
  */
 class ImportJSONService(modelHandler: ActorRef) extends Actor {
   implicit val timeout = Timeout(1 seconds)
-
 
   def receive = {
     case Request(_, attr) => {
@@ -22,6 +20,24 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
         case Some((file, name)) => {
 
           println(s"I got the file in importJSON: $file")
+
+          println(name)
+
+          /*
+          Add the operations and thins from json
+           */
+
+          val items: List[IDAble] = List()
+
+          val id = ID.newID
+          val n = name.flatMap(_.asString).getOrElse("noName")
+          for {
+            model <- (modelHandler ? CreateModel(id, n, Attr("attributeTags" -> MapPrimitive(Map()), "conditionGroups" -> ListPrimitive(List())))).mapTo[ModelInfo]
+            items <- modelHandler ? UpdateIDs(id, model.version, items.toList)
+          } yield {
+            println(s"MADE IT: $model")
+            reply ! model.model.toString
+          }
 
         }
         case None => sender ! errorMessage(attr)
@@ -40,41 +56,6 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
       s"file: ${attr.getAsString("file")}" + "\n" +
       s"Request: ${attr}")
   }
-
-
-  import scala.xml._
-
-  def toAttr(n: Node): SPAttributeValue = {
-    val attr = n.attributes.asAttrMap.map { case (k, v) => k -> StringPrimitive(v)}
-    val value: SPAttributeValue = {
-      if (n.child.count(_.isInstanceOf[Text]) == 1) {
-        val value = StringPrimitive(n.text)
-        if (attr.isEmpty) value
-        else MapPrimitive(attr + ("value" -> value))
-      }
-      else {
-        val children = n.child //.filter(n => n.isInstanceOf[Text] || n.isInstanceOf[Elem])
-        val fold = children.foldLeft(Map[String, List[SPAttributeValue]]()) {
-            case (aggr, e: Elem) => {
-              val newAttr = toAttr(e)
-              val prev = aggr.getOrElse(e.label, List())
-              val xs = if (newAttr != MapPrimitive(Map())) newAttr :: prev else prev
-              aggr + (e.label -> xs)
-            }
-            case (aggr, t: Text) => aggr
-          }
-
-        val map = fold collect {
-          case (k, x :: Nil) => k -> x
-          case (k, x :: xs) => k -> ListPrimitive(x :: xs)
-        }
-        MapPrimitive(map ++ attr)
-      }
-
-    }
-    value
-  }
-
 
 }
 
