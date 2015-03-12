@@ -12,6 +12,7 @@ import scala.concurrent.duration._
  */
 class ImportJSONService(modelHandler: ActorRef) extends Actor {
   implicit val timeout = Timeout(1 seconds)
+  import context.dispatcher
 
   def receive = {
     case Request(_, attr) => {

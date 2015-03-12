@@ -13,7 +13,8 @@ angular.module('spGuiApp')
     // Get these from the services in the future
     $scope.filetypes = [
       {name: 'Kuka logfile', service: 'ImportKUKAFileService'},
-      {name: 'Delmia v5', service: 'DelmiaV5Service'}
+      {name: 'Delmia v5', service: 'DelmiaV5Service'},
+      {name: 'Ops and things from JSON', service: 'ImportJSONService'}
     ];
     $scope.filetype = $scope.filetypes[0]
 
