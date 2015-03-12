@@ -6,12 +6,17 @@ import sp.domain._
 import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent.duration._
+import spray.json._
+import sp.json._
+import sp.json.SPJson._
+
 
 /**
  * To import operations and things from json
  */
 class ImportJSONService(modelHandler: ActorRef) extends Actor {
   implicit val timeout = Timeout(1 seconds)
+
   import context.dispatcher
 
   def receive = {
@@ -20,15 +25,9 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
       extract(attr) match {
         case Some((file, name)) => {
 
-          println(s"I got the file in importJSON: $file")
+          println(s"Name: $name")
 
-          println(name)
-
-          /*
-          Add the operations and thins from json
-           */
-
-          val items: List[IDAble] = List()
+          val items: List[IDAble] = JsonParser(s"$file").convertTo[List[IDAble]]
 
           val id = ID.newID
           val n = name.flatMap(_.asString).getOrElse("noName")

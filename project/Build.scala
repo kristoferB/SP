@@ -53,7 +53,7 @@ object Build extends Build {
     .settings(libraryDependencies ++= (defaultDepend :+ akkaPersistence))
 
   lazy val extensions = project.in(file("extensions"))
-    .dependsOn(core)
+    .dependsOn(core, gui)
     .settings(basicSettings: _*)
     .settings(libraryDependencies ++= (defaultDepend))
 
