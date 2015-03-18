@@ -22,16 +22,29 @@ class ImportKUKAFileService(modelHandler: ActorRef) extends Actor {
     case Request(_, attr) => {
       val reply = sender
       extract(attr) match {
-        case Some((file, name)) => {
+        case Some((file, name, model)) => {
+          println(s"I got the file in importKUKA")
 
-          println(s"I got the file in importKUKA: $file")
+          val trajectory = extractTrajectory(file)
 
+          val operationName = name.flatMap(_.asString).getOrElse("robotOP").replaceAll("\\.[^.]*$", "")
 
+          val energy = {
+            val joints = List(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+            val sum = trajectory.foldLeft(joints)((a, b) => {
+              val current = b.asMap.flatMap(_.get("current")).flatMap(_.asList).map(_.flatMap(_.asDouble)).getOrElse(joints)
+              current.zip(a).foldLeft(List[Double]())((res, z)=> res :+ ((z._1^2) + z._2^2))
+            })
+          }
+          val attrib = Attr("trajectory"-> MapPrimitive(Map("samples" -> ListPrimitive(trajectory))))
 
+          val op = Operation(operationName, List(), attrib)
+          val res = modelHandler ? UpdateIDs(model, -1, List(op))
 
+          reply ! "yes"
 
         }
-        case None => sender ! errorMessage(attr)
+        case None => reply ! errorMessage(attr)
       }
     }
   }
@@ -39,7 +52,8 @@ class ImportKUKAFileService(modelHandler: ActorRef) extends Actor {
   def extract(attr: SPAttributes) = {
     for {
       file <- attr.getAsString("file")
-    } yield (file, attr.get("name"))
+      model <- attr.getAsID("model")
+    } yield (file, attr.get("name"), model)
   }
 
   def errorMessage(attr: SPAttributes) = {
@@ -47,39 +61,30 @@ class ImportKUKAFileService(modelHandler: ActorRef) extends Actor {
       s"file: ${attr.getAsString("file")}" + "\n" +
       s"Request: ${attr}" )
   }
+  
+  def extractTrajectory(file: String): List[SPAttributeValue] = {
+    val lines = file.lines.toList.map(_.trim.split("""\s+""").toList )
+    val numbs = lines.map(_.flatMap(parseDouble)).filterNot(_.isEmpty)
+    val joints = numbs.map(_.slice(6, 12))
+    val energy = numbs.map(_.slice(0, 6))
 
+    val zip = joints zip energy zip (1 to joints.size)
 
-  import scala.xml._
-
-  def toAttr(n : Node): SPAttributeValue = {
-    val attr = n.attributes.asAttrMap.map{case (k, v) => k -> StringPrimitive(v)}
-    val value: SPAttributeValue = {
-      if (n.child.count(_.isInstanceOf[Text]) == 1) {
-        val value = StringPrimitive(n.text)
-        if (attr.isEmpty) value
-        else MapPrimitive(attr + ("value"->value))
+    zip.map {
+      case ((position, energy), sample) => {
+        MapPrimitive(Map(
+          "sample"-> IntPrimitive(sample),
+          "position"-> ListPrimitive(position.map(DoublePrimitive.apply)),
+          "current"-> ListPrimitive(energy.map(DoublePrimitive.apply))
+        ))
       }
-      else {
-        val children = n.child //.filter(n => n.isInstanceOf[Text] || n.isInstanceOf[Elem])
-        val fold = children.foldLeft(Map[String,List[SPAttributeValue]]()){
-            case (aggr, e: Elem) => {
-              val newAttr = toAttr(e)
-              val prev = aggr.getOrElse(e.label, List())
-              val xs = if (newAttr != MapPrimitive(Map())) newAttr :: prev else prev
-              aggr + (e.label -> xs)
-            }
-            case (aggr, t: Text) => aggr
-          }
-
-        val map = fold collect {
-          case (k, x :: Nil)  =>  k -> x
-          case (k, x :: xs) => k -> ListPrimitive(x :: xs)
-        }
-        MapPrimitive(map ++ attr)
-      }
-
     }
-    value
+  }
+
+  def parseDouble(s: String) = try { Some(s.toDouble) } catch { case _:Throwable => None }
+
+  implicit class ExtraDouble(d: Double) {
+    def ^(n: Int) = scala.math.pow(d, n)
   }
 
 
