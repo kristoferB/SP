@@ -1,0 +1,731 @@
+<?xml version="1.0"?>
+<SimulationResults>
+	<KR30-3>
+		<MainProg>
+			<TimeStamp time="0.0">
+				<Joints values="j1=0.000 j2=-90.000 j3=90.000 j4=0.000 j5=0.000 j6=0.000"/>
+				<Position values="tcpX=1340.000 tcpY=0.000 tcpz=1810.000 tcpYaw=0.000 tcpPitch=90.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=0.000"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+		</MainProg>
+		<Sequence1>
+			<TimeStamp time="0.1">
+				<Joints values="j1=0.000 j2=-90.000 j3=90.000 j4=0.000 j5=0.000 j6=0.000"/>
+				<Position values="tcpX=1340.000 tcpY=0.000 tcpz=1810.000 tcpYaw=0.000 tcpPitch=90.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=0.000"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.2">
+				<Joints values="j1=-0.900 j2=-90.900 j3=90.900 j4=0.000 j5=0.129 j6=0.000"/>
+				<Position values="tcpX=1326.485 tcpY=20.838 tcpz=1809.513 tcpYaw=-0.000 tcpPitch=90.129 tcpRoll=0.900 "/>
+				<Speed values="tcpSpeed=248.420"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.3">
+				<Joints values="j1=-2.812 j2=-93.600 j3=93.399 j4=0.000 j5=0.262 j6=0.000"/>
+				<Position values="tcpX=1284.564 tcpY=63.096 tcpz=1811.024 tcpYaw=-0.000 tcpPitch=90.061 tcpRoll=2.812 "/>
+				<Speed values="tcpSpeed=595.427"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.4">
+				<Joints values="j1=-4.728 j2=-96.568 j3=96.022 j4=0.000 j5=0.396 j6=0.000"/>
+				<Position values="tcpX=1237.134 tcpY=102.315 tcpz=1812.665 tcpYaw=0.000 tcpPitch=89.851 tcpRoll=4.728 "/>
+				<Speed values="tcpSpeed=615.671"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.5">
+				<Joints values="j1=-5.899 j2=-97.747 j3=97.201 j4=0.000 j5=0.530 j6=0.000"/>
+				<Position values="tcpX=1217.525 tcpY=125.801 tcpz=1810.090 tcpYaw=0.000 tcpPitch=89.984 tcpRoll=5.899 "/>
+				<Speed values="tcpSpeed=307.038"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.6">
+				<Joints values="j1=-5.921 j2=-97.768 j3=97.223 j4=0.000 j5=0.546 j6=0.000"/>
+				<Position values="tcpX=1217.162 tcpY=126.227 tcpz=1810.000 tcpYaw=-5.921 tcpPitch=90.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=5.669"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.7">
+				<Joints values="j1=-5.921 j2=-97.768 j3=97.223 j4=0.000 j5=0.546 j6=0.000"/>
+				<Position values="tcpX=1217.162 tcpY=126.227 tcpz=1810.000 tcpYaw=-5.921 tcpPitch=90.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=0.000"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.8">
+				<Joints values="j1=-6.391 j2=-97.125 j3=96.680 j4=0.000 j5=1.188 j6=0.643"/>
+				<Position values="tcpX=1225.730 tcpY=137.303 tcpz=1807.610 tcpYaw=40.885 tcpPitch=90.982 tcpRoll=47.280 "/>
+				<Speed values="tcpSpeed=142.055"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.9">
+				<Joints values="j1=-7.126 j2=-94.704 j3=95.757 j4=0.000 j5=3.513 j6=3.064"/>
+				<Position values="tcpX=1262.450 tcpY=157.819 tcpz=1778.511 tcpYaw=33.797 tcpPitch=95.497 tcpRoll=41.045 "/>
+				<Speed values="tcpSpeed=511.467"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.0">
+				<Joints values="j1=-7.860 j2=-91.200 j3=94.835 j4=0.000 j5=6.243 j6=7.285"/>
+				<Position values="tcpX=1314.755 tcpY=181.495 tcpz=1728.371 tcpYaw=36.063 tcpPitch=102.253 tcpRoll=44.553 "/>
+				<Speed values="tcpSpeed=762.264"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.1">
+				<Joints values="j1=-8.594 j2=-87.685 j3=93.912 j4=0.000 j5=8.974 j6=13.307"/>
+				<Position values="tcpX=1363.788 tcpY=206.103 tcpz=1674.928 tcpYaw=40.267 tcpPitch=110.099 tcpRoll=50.644 "/>
+				<Speed values="tcpSpeed=765.896"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.2">
+				<Joints values="j1=-9.328 j2=-84.170 j3=92.990 j4=0.000 j5=11.705 j6=21.128"/>
+				<Position values="tcpX=1409.196 tcpY=231.470 tcpz=1618.561 tcpYaw=43.915 tcpPitch=119.124 tcpRoll=57.110 "/>
+				<Speed values="tcpSpeed=766.979"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.3">
+				<Joints values="j1=-10.062 j2=-80.656 j3=92.068 j4=0.000 j5=14.435 j6=30.749"/>
+				<Position values="tcpX=1450.821 tcpY=257.439 tcpz=1559.492 tcpYaw=46.544 tcpPitch=129.336 tcpRoll=63.827 "/>
+				<Speed values="tcpSpeed=767.866"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.4">
+				<Joints values="j1=-10.796 j2=-77.141 j3=91.145 j4=0.000 j5=17.166 j6=42.170"/>
+				<Position values="tcpX=1488.523 tcpY=283.848 tcpz=1497.947 tcpYaw=47.979 tcpPitch=140.643 tcpRoll=71.052 "/>
+				<Speed values="tcpSpeed=768.546"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.5">
+				<Joints values="j1=-11.530 j2=-73.626 j3=90.223 j4=0.000 j5=19.897 j6=55.391"/>
+				<Position values="tcpX=1522.189 tcpY=310.530 tcpz=1434.163 tcpYaw=-131.950 tcpPitch=27.168 tcpRoll=-100.783 "/>
+				<Speed values="tcpSpeed=769.012"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.6">
+				<Joints values="j1=-12.264 j2=-70.111 j3=89.300 j4=0.000 j5=22.627 j6=70.413"/>
+				<Position values="tcpX=1551.721 tcpY=337.320 tcpz=1368.377 tcpYaw=-133.518 tcpPitch=14.469 tcpRoll=-91.082 "/>
+				<Speed values="tcpSpeed=769.257"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.7">
+				<Joints values="j1=-12.998 j2=-66.597 j3=88.378 j4=0.000 j5=25.358 j6=86.943"/>
+				<Position values="tcpX=1577.047 tcpY=364.046 tcpz=1300.834 tcpYaw=-137.180 tcpPitch=2.079 tcpRoll=-79.243 "/>
+				<Speed values="tcpSpeed=769.276"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.8">
+				<Joints values="j1=-13.733 j2=-63.082 j3=87.456 j4=0.000 j5=28.089 j6=102.318"/>
+				<Position values="tcpX=1598.114 tcpY=390.542 tcpz=1231.778 tcpYaw=-143.105 tcpPitch=-7.468 tcpRoll=-66.444 "/>
+				<Speed values="tcpSpeed=769.064"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.9">
+				<Joints values="j1=-14.467 j2=-59.567 j3=86.533 j4=0.000 j5=30.819 j6=115.892"/>
+				<Position values="tcpX=1614.892 tcpY=416.639 tcpz=1161.455 tcpYaw=-150.454 tcpPitch=-13.461 tcpRoll=-53.207 "/>
+				<Speed values="tcpSpeed=768.619"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.0">
+				<Joints values="j1=-15.201 j2=-56.052 j3=85.611 j4=0.000 j5=33.550 j6=127.666"/>
+				<Position values="tcpX=1627.369 tcpY=442.172 tcpz=1090.113 tcpYaw=-158.127 tcpPitch=-16.045 tcpRoll=-40.253 "/>
+				<Speed values="tcpSpeed=767.940"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.1">
+				<Joints values="j1=-15.935 j2=-52.538 j3=84.688 j4=0.000 j5=36.281 j6=137.641"/>
+				<Position values="tcpX=1635.554 tcpY=466.978 tcpz=1017.996 tcpYaw=-165.086 tcpPitch=-15.762 tcpRoll=-28.500 "/>
+				<Speed values="tcpSpeed=767.026"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.2">
+				<Joints values="j1=-16.669 j2=-49.023 j3=83.766 j4=0.000 j5=39.011 j6=145.815"/>
+				<Position values="tcpX=1639.476 tcpY=490.902 tcpz=945.346 tcpYaw=-170.702 tcpPitch=-13.381 tcpRoll=-18.609 "/>
+				<Speed values="tcpSpeed=765.880"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.3">
+				<Joints values="j1=-17.403 j2=-45.508 j3=82.844 j4=0.000 j5=41.742 j6=152.189"/>
+				<Position values="tcpX=1639.183 tcpY=513.788 tcpz=872.402 tcpYaw=-174.855 tcpPitch=-9.648 tcpRoll=-10.842 "/>
+				<Speed values="tcpSpeed=764.506"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.4">
+				<Joints values="j1=-18.137 j2=-41.993 j3=81.921 j4=0.000 j5=44.473 j6=156.764"/>
+				<Position values="tcpX=1634.738 tcpY=535.493 tcpz=799.399 tcpYaw=-177.785 tcpPitch=-5.144 tcpRoll=-5.199 "/>
+				<Speed values="tcpSpeed=762.908"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.5">
+				<Joints values="j1=-18.871 j2=-39.226 j3=80.999 j4=0.000 j5=47.000 j6=159.538"/>
+				<Position values="tcpX=1627.777 tcpY=556.405 tcpz=744.438 tcpYaw=-179.571 tcpPitch=-1.150 tcpRoll=-1.595 "/>
+				<Speed values="tcpSpeed=592.148"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.6">
+				<Joints values="j1=-19.485 j2=-38.252 j3=80.276 j4=0.000 j5=47.974 j6=160.512"/>
+				<Position values="tcpX=1625.006 tcpY=574.953 tcpz=730.018 tcpYaw=-179.999 tcpPitch=-0.001 tcpRoll=-0.003 "/>
+				<Speed values="tcpSpeed=236.574"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.7">
+				<Joints values="j1=-19.486 j2=-38.250 j3=80.275 j4=0.000 j5=47.976 j6=160.514"/>
+				<Position values="tcpX=1625.000 tcpY=575.000 tcpz=730.000 tcpYaw=-180.000 tcpPitch=-0.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=0.504"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.8">
+				<Joints values="j1=-19.486 j2=-37.847 j3=80.347 j4=0.000 j5=47.499 j6=160.514"/>
+				<Position values="tcpX=1625.000 tcpY=575.000 tcpz=719.430 tcpYaw=-180.000 tcpPitch=-0.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=105.696"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.9">
+				<Joints values="j1=-19.486 j2=-36.746 j3=80.493 j4=0.000 j5=46.253 j6=160.514"/>
+				<Position values="tcpX=1625.000 tcpY=575.000 tcpz=691.274 tcpYaw=-180.000 tcpPitch=-0.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=281.560"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.0">
+				<Joints values="j1=-19.486 j2=-36.296 j3=80.533 j4=0.000 j5=45.763 j6=160.514"/>
+				<Position values="tcpX=1625.000 tcpY=575.000 tcpz=680.000 tcpYaw=-180.000 tcpPitch=-0.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=112.744"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.1">
+				<Joints values="j1=-19.486 j2=-36.764 j3=80.491 j4=0.000 j5=46.273 j6=160.514"/>
+				<Position values="tcpX=1625.000 tcpY=575.000 tcpz=691.728 tcpYaw=-180.000 tcpPitch=-0.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=117.278"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.2">
+				<Joints values="j1=-19.486 j2=-37.863 j3=80.344 j4=0.000 j5=47.519 j6=160.514"/>
+				<Position values="tcpX=1625.000 tcpY=575.000 tcpz=719.861 tcpYaw=-180.000 tcpPitch=-0.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=281.328"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.3">
+				<Joints values="j1=-19.486 j2=-38.250 j3=80.275 j4=-0.000 j5=47.976 j6=160.514"/>
+				<Position values="tcpX=1625.000 tcpY=575.000 tcpz=730.000 tcpYaw=-180.000 tcpPitch=-0.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=101.394"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.4">
+				<Joints values="j1=-19.483 j2=-38.254 j3=80.278 j4=-0.000 j5=47.972 j6=160.517"/>
+				<Position values="tcpX=1625.014 tcpY=574.898 tcpz=730.039 tcpYaw=-179.999 tcpPitch=-0.003 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=1.101"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.5">
+				<Joints values="j1=-18.473 j2=-39.263 j3=81.288 j4=-0.000 j5=46.962 j6=161.527"/>
+				<Position values="tcpX=1628.840 tcpY=544.147 tcpz=741.748 tcpYaw=-179.679 tcpPitch=-0.961 tcpRoll=-0.003 "/>
+				<Speed values="tcpSpeed=331.262"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.6">
+				<Joints values="j1=-15.663 j2=-41.395 j3=84.098 j4=-0.000 j5=45.049 j6=164.337"/>
+				<Position values="tcpX=1632.301 tcpY=457.686 tcpz=757.631 tcpYaw=-179.393 tcpPitch=-2.165 tcpRoll=-0.011 "/>
+				<Speed values="tcpSpeed=879.765"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.7">
+				<Joints values="j1=-11.053 j2=-43.542 j3=88.641 j4=-0.000 j5=43.136 j6=168.947"/>
+				<Position values="tcpX=1622.246 tcpY=316.899 tcpz=752.170 tcpYaw=-179.661 tcpPitch=-1.733 tcpRoll=-0.005 "/>
+				<Speed values="tcpSpeed=1412.511"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3_2" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="3.8">
+				<Joints values="j1=-4.643 j2=-45.690 j3=93.661 j4=-0.000 j5=41.223 j6=175.357"/>
+				<Position values="tcpX=1597.596 tcpY=129.759 tcpz=741.229 tcpYaw=-179.935 tcpPitch=-0.803 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=1890.730"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3_2" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3_2" node="A3"/>
+					<Collision component="KR 30-3_2" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="3.9">
+				<Joints values="j1=3.520 j2=-47.837 j3=98.680 j4=-0.000 j5=39.310 j6=183.520"/>
+				<Position values="tcpX=1547.394 tcpY=-95.193 tcpz=730.769 tcpYaw=-179.991 tcpPitch=0.153 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=2307.225"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3_2" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3_2" node="A3"/>
+					<Collision component="KR 30-3_2" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.0">
+				<Joints values="j1=11.154 j2=-49.984 j3=103.700 j4=-0.000 j5=37.397 j6=191.154"/>
+				<Position values="tcpX=1467.151 tcpY=-289.281 tcpz=720.838 tcpYaw=-179.785 tcpPitch=1.092 tcpRoll=0.002 "/>
+				<Speed values="tcpSpeed=2102.570"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3_2" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3_2" node="A3"/>
+					<Collision component="KR 30-3_2" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.1">
+				<Joints values="j1=16.988 j2=-52.132 j3=108.718 j4=-0.000 j5=35.484 j6=196.988"/>
+				<Position values="tcpX=1375.470 tcpY=-420.204 tcpz=711.507 tcpYaw=-179.395 tcpPitch=1.980 tcpRoll=0.010 "/>
+				<Speed values="tcpSpeed=1601.034"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3_2" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3_2" node="A3"/>
+					<Collision component="KR 30-3_2" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.2">
+				<Joints values="j1=21.022 j2=-54.279 j3=112.752 j4=-0.000 j5=33.571 j6=201.022"/>
+				<Position values="tcpX=1299.898 tcpY=-499.546 tcpz=712.062 tcpYaw=-179.267 tcpPitch=1.908 tcpRoll=0.012 "/>
+				<Speed values="tcpSpeed=1095.747"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3_2" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3_2" node="A3"/>
+					<Collision component="KR 30-3_2" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.3">
+				<Joints values="j1=23.255 j2=-56.243 j3=114.985 j4=-0.000 j5=31.751 j6=203.255"/>
+				<Position values="tcpX=1258.966 tcpY=-541.034 tcpz=725.959 tcpYaw=-179.805 tcpPitch=0.454 tcpRoll=0.001 "/>
+				<Speed values="tcpSpeed=599.152"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3_2" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3_2" node="A3"/>
+					<Collision component="KR 30-3_2" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.4">
+				<Joints values="j1=23.749 j2=-56.737 j3=115.479 j4=-0.000 j5=31.257 j6=203.749"/>
+				<Position values="tcpX=1250.000 tcpY=-550.000 tcpz=730.000 tcpYaw=-180.000 tcpPitch=0.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=133.082"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3_2" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3_2" node="A3"/>
+					<Collision component="KR 30-3_2" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.5">
+				<Joints values="j1=23.749 j2=-56.696 j3=115.485 j4=-0.000 j5=31.211 j6=203.749"/>
+				<Position values="tcpX=1250.000 tcpY=-550.000 tcpz=729.228 tcpYaw=-180.000 tcpPitch=0.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=7.715"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3_2" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3_2" node="A3"/>
+					<Collision component="KR 30-3_2" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.6">
+				<Joints values="j1=23.749 j2=-55.771 j3=115.596 j4=-0.000 j5=30.175 j6=203.749"/>
+				<Position values="tcpX=1250.000 tcpY=-550.000 tcpz=711.771 tcpYaw=-180.000 tcpPitch=0.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=174.575"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3_2" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3_2" node="A3"/>
+					<Collision component="KR 30-3_2" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.7">
+				<Joints values="j1=23.749 j2=-54.349 j3=115.714 j4=-0.000 j5=28.635 j6=203.749"/>
+				<Position values="tcpX=1250.000 tcpY=-550.000 tcpz=685.472 tcpYaw=-180.000 tcpPitch=0.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=262.987"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3_2" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3_2" node="A3"/>
+					<Collision component="KR 30-3_2" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.8">
+				<Joints values="j1=23.749 j2=-54.110 j3=115.728 j4=-0.000 j5=28.381 j6=203.749"/>
+				<Position values="tcpX=1250.000 tcpY=-550.000 tcpz=681.106 tcpYaw=-180.000 tcpPitch=0.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=43.658"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3_2" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3_2" node="A3"/>
+					<Collision component="KR 30-3_2" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.9">
+				<Joints values="j1=23.749 j2=-55.124 j3=115.657 j4=-0.000 j5=29.467 j6=203.749"/>
+				<Position values="tcpX=1250.000 tcpY=-550.000 tcpz=699.741 tcpYaw=-180.000 tcpPitch=0.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=186.342"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3_2" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3_2" node="A3"/>
+					<Collision component="KR 30-3_2" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="5.0">
+				<Joints values="j1=23.749 j2=-56.490 j3=115.512 j4=-0.000 j5=30.978 j6=203.749"/>
+				<Position values="tcpX=1250.000 tcpY=-550.000 tcpz=725.309 tcpYaw=-180.000 tcpPitch=0.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=255.687"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3_2" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3_2" node="A3"/>
+					<Collision component="KR 30-3_2" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+		</Sequence1>
+	</KR30-3>
+	<KR30-3_2>
+		<MainProg>
+			<TimeStamp time="0.0">
+				<Joints values="j1=0.000 j2=-90.000 j3=90.000 j4=0.000 j5=0.000 j6=0.000"/>
+				<Position values="tcpX=1340.000 tcpY=0.000 tcpz=1810.000 tcpYaw=0.000 tcpPitch=90.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=0.000"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+		</MainProg>
+		<Sequence1>
+			<TimeStamp time="0.1">
+				<Joints values="j1=0.000 j2=-90.000 j3=90.000 j4=0.000 j5=0.000 j6=-0.000"/>
+				<Position values="tcpX=1340.000 tcpY=0.000 tcpz=1810.000 tcpYaw=0.000 tcpPitch=90.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=0.000"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.2">
+				<Joints values="j1=0.000 j2=-90.900 j3=90.900 j4=0.000 j5=0.168 j6=-0.000"/>
+				<Position values="tcpX=1326.648 tcpY=0.000 tcpz=1809.397 tcpYaw=-0.000 tcpPitch=90.168 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=133.656"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.3">
+				<Joints values="j1=0.000 j2=-93.600 j3=93.467 j4=0.000 j5=0.344 j6=-0.000"/>
+				<Position values="tcpX=1286.288 tcpY=0.000 tcpz=1809.599 tcpYaw=-0.000 tcpPitch=90.211 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=403.605"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.4">
+				<Joints values="j1=0.000 j2=-97.158 j3=96.371 j4=0.000 j5=0.521 j6=-0.000"/>
+				<Position values="tcpX=1232.015 tcpY=0.000 tcpz=1815.406 tcpYaw=0.000 tcpPitch=89.734 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=545.833"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.5">
+				<Joints values="j1=0.000 j2=-99.054 j3=98.267 j4=0.000 j5=0.698 j6=-0.000"/>
+				<Position values="tcpX=1204.174 tcpY=0.000 tcpz=1810.917 tcpYaw=0.000 tcpPitch=89.911 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=282.000"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.6">
+				<Joints values="j1=0.000 j2=-99.329 j3=98.543 j4=0.000 j5=0.787 j6=-0.000"/>
+				<Position values="tcpX=1200.141 tcpY=0.000 tcpz=1810.000 tcpYaw=0.000 tcpPitch=90.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=41.363"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.7">
+				<Joints values="j1=0.000 j2=-99.329 j3=98.543 j4=0.000 j5=0.787 j6=-0.000"/>
+				<Position values="tcpX=1200.141 tcpY=0.000 tcpz=1810.000 tcpYaw=0.000 tcpPitch=90.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=0.000"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.8">
+				<Joints values="j1=-0.180 j2=-99.329 j3=98.543 j4=0.000 j5=0.787 j6=-0.000"/>
+				<Position values="tcpX=1200.135 tcpY=3.763 tcpz=1810.000 tcpYaw=-0.180 tcpPitch=90.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=37.633"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="0.9">
+				<Joints values="j1=-1.884 j2=-99.329 j3=98.543 j4=0.000 j5=0.787 j6=-0.000"/>
+				<Position values="tcpX=1199.492 tcpY=39.454 tcpz=1810.000 tcpYaw=-1.884 tcpPitch=90.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=356.963"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.0">
+				<Joints values="j1=-3.962 j2=-99.329 j3=98.543 j4=0.000 j5=0.787 j6=-0.000"/>
+				<Position values="tcpX=1197.273 tcpY=82.915 tcpz=1810.000 tcpYaw=-3.962 tcpPitch=90.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=435.179"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.1">
+				<Joints values="j1=-4.361 j2=-99.329 j3=98.543 j4=0.000 j5=0.787 j6=-0.000"/>
+				<Position values="tcpX=1196.666 tcpY=91.263 tcpz=1810.000 tcpYaw=-4.361 tcpPitch=90.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=83.699"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.2">
+				<Joints values="j1=-4.361 j2=-99.329 j3=98.543 j4=0.000 j5=0.787 j6=-0.000"/>
+				<Position values="tcpX=1196.666 tcpY=91.263 tcpz=1810.000 tcpYaw=-4.361 tcpPitch=90.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=0.000"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.3">
+				<Joints values="j1=-4.461 j2=-99.229 j3=98.643 j4=0.000 j5=0.887 j6=-0.100"/>
+				<Position values="tcpX=1198.505 tcpY=93.512 tcpz=1806.486 tcpYaw=-18.435 tcpPitch=90.317 tcpRoll=-13.974 "/>
+				<Speed values="tcpSpeed=45.594"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.4">
+				<Joints values="j1=-5.962 j2=-97.728 j3=99.846 j4=0.000 j5=2.387 j6=-1.601"/>
+				<Position values="tcpX=1223.314 tcpY=127.755 tcpz=1758.521 tcpYaw=-19.521 tcpPitch=94.781 tcpRoll=-13.622 "/>
+				<Speed values="tcpSpeed=639.436"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.5">
+				<Joints values="j1=-8.444 j2=-94.428 j3=101.213 j4=0.000 j5=5.688 j6=-4.576"/>
+				<Position values="tcpX=1267.859 tcpY=188.216 tcpz=1672.852 tcpYaw=-19.832 tcpPitch=103.273 tcpRoll=-11.889 "/>
+				<Speed values="tcpSpeed=1139.247"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.6">
+				<Joints values="j1=-10.928 j2=-89.327 j3=102.579 j4=0.000 j5=9.945 j6=-7.694"/>
+				<Position values="tcpX=1323.204 tcpY=255.479 tcpz=1551.146 tcpYaw=-17.349 tcpPitch=114.372 tcpRoll=-8.003 "/>
+				<Speed values="tcpSpeed=1496.652"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.7">
+				<Joints values="j1=-13.412 j2=-82.427 j3=103.946 j4=0.000 j5=14.202 j6=-10.812"/>
+				<Position values="tcpX=1377.455 tcpY=328.458 tcpz=1392.440 tcpYaw=-14.620 tcpPitch=127.112 tcpRoll=-4.701 "/>
+				<Speed values="tcpSpeed=1829.124"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.8">
+				<Joints values="j1=-15.896 j2=-73.932 j3=105.312 j4=0.000 j5=18.459 j6=-13.930"/>
+				<Position values="tcpX=1414.235 tcpY=402.744 tcpz=1198.675 tcpYaw=-11.483 tcpPitch=141.247 tcpRoll=-2.084 "/>
+				<Speed values="tcpSpeed=2107.508"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="1.9">
+				<Joints values="j1=-18.380 j2=-66.449 j3=106.679 j4=0.000 j5=22.717 j6=-17.048"/>
+				<Position values="tcpX=1410.803 tcpY=468.759 tcpz=1023.897 tcpYaw=-8.515 tcpPitch=154.225 tcpRoll=-0.619 "/>
+				<Speed values="tcpSpeed=1868.613"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.0">
+				<Joints values="j1=-20.864 j2=-60.765 j3=108.045 j4=0.000 j5=26.974 j6=-20.166"/>
+				<Position values="tcpX=1377.440 tcpY=524.994 tcpz=889.053 tcpYaw=-5.552 tcpPitch=165.242 tcpRoll=-0.021 "/>
+				<Speed values="tcpSpeed=1498.610"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.1">
+				<Joints values="j1=-23.348 j2=-56.882 j3=109.411 j4=0.000 j5=30.781 j6=-23.278"/>
+				<Position values="tcpX=1329.569 tcpY=573.914 tcpz=795.483 tcpYaw=-2.654 tcpPitch=173.857 tcpRoll=-0.073 "/>
+				<Speed values="tcpSpeed=1159.318"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.2">
+				<Joints values="j1=-25.362 j2=-54.799 j3=110.768 j4=0.000 j5=32.864 j6=-25.362"/>
+				<Position values="tcpX=1285.411 tcpY=609.303 tcpz=741.182 tcpYaw=-0.500 tcpPitch=178.946 tcpRoll=-0.005 "/>
+				<Speed values="tcpSpeed=784.278"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.3">
+				<Joints values="j1=-25.750 j2=-54.410 j3=111.157 j4=0.000 j5=33.253 j6=-25.750"/>
+				<Position values="tcpX=1275.000 tcpY=615.000 tcpz=730.000 tcpYaw=-0.000 tcpPitch=180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=163.057"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.4">
+				<Joints values="j1=-25.750 j2=-54.343 j3=111.167 j4=0.000 j5=33.176 j6=-25.750"/>
+				<Position values="tcpX=1275.000 tcpY=615.000 tcpz=728.650 tcpYaw=-0.000 tcpPitch=180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=13.504"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.5">
+				<Joints values="j1=-25.750 j2=-53.363 j3=111.285 j4=0.000 j5=32.078 j6=-25.750"/>
+				<Position values="tcpX=1275.000 tcpY=615.000 tcpz=709.268 tcpYaw=-0.000 tcpPitch=180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=193.815"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.6">
+				<Joints values="j1=-25.750 j2=-52.072 j3=111.392 j4=0.000 j5=30.680 j6=-25.750"/>
+				<Position values="tcpX=1275.000 tcpY=615.000 tcpz=684.226 tcpYaw=0.000 tcpPitch=-180.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=250.426"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.7">
+				<Joints values="j1=-25.750 j2=-51.945 j3=111.400 j4=0.000 j5=30.545 j6=-25.750"/>
+				<Position values="tcpX=1275.000 tcpY=615.000 tcpz=681.784 tcpYaw=-0.000 tcpPitch=180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=24.418"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.8">
+				<Joints values="j1=-25.750 j2=-53.009 j3=111.320 j4=0.000 j5=31.689 j6=-25.750"/>
+				<Position values="tcpX=1275.000 tcpY=615.000 tcpz=702.342 tcpYaw=-0.000 tcpPitch=180.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=205.582"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="2.9">
+				<Joints values="j1=-25.750 j2=-54.233 j3=111.182 j4=0.000 j5=33.051 j6=-25.750"/>
+				<Position values="tcpX=1275.000 tcpY=615.000 tcpz=726.458 tcpYaw=-0.000 tcpPitch=180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=241.158"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.0">
+				<Joints values="j1=-25.750 j2=-54.410 j3=111.157 j4=0.000 j5=33.253 j6=-25.750"/>
+				<Position values="tcpX=1275.000 tcpY=615.000 tcpz=730.000 tcpYaw=-0.000 tcpPitch=180.000 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=35.424"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.1">
+				<Joints values="j1=-25.572 j2=-54.232 j3=110.979 j4=0.000 j5=33.431 j6=-25.572"/>
+				<Position values="tcpX=1278.367 tcpY=611.730 tcpz=728.459 tcpYaw=0.077 tcpPitch=-179.839 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=49.402"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.2">
+				<Joints values="j1=-23.871 j2=-52.683 j3=109.278 j4=0.000 j5=34.894 j6=-23.871"/>
+				<Position values="tcpX=1310.757 tcpY=580.061 tcpz=716.355 tcpYaw=0.603 tcpPitch=-178.638 tcpRoll=-0.007 "/>
+				<Speed values="tcpSpeed=468.884"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.3">
+				<Joints values="j1=-20.370 j2=-50.823 j3=105.792 j4=0.000 j5=36.570 j6=-20.370"/>
+				<Position values="tcpX=1379.783 tcpY=512.322 tcpz=715.757 tcpYaw=0.536 tcpPitch=-178.558 tcpRoll=-0.007 "/>
+				<Speed values="tcpSpeed=967.139"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.4">
+				<Joints values="j1=-15.069 j2=-48.962 j3=101.620 j4=0.000 j5=38.245 j6=-15.069"/>
+				<Position values="tcpX=1465.862 tcpY=394.677 tcpz=722.183 tcpYaw=0.235 tcpPitch=-179.128 tcpRoll=-0.002 "/>
+				<Speed values="tcpSpeed=1459.150"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.5">
+				<Joints values="j1=-7.968 j2=-47.101 j3=97.448 j4=0.000 j5=39.920 j6=-7.968"/>
+				<Position values="tcpX=1547.629 tcpY=216.632 tcpz=728.871 tcpYaw=0.037 tcpPitch=-179.735 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=1960.375"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.6">
+				<Joints values="j1=0.328 j2=-45.241 j3=93.276 j4=0.000 j5=41.596 j6=0.328"/>
+				<Position values="tcpX=1605.701 tcpY=-9.190 tcpz=735.799 tcpYaw=0.002 tcpPitch=179.632 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=2332.717"/>
+				<Collisions value="False"/>
+			</TimeStamp>
+			<TimeStamp time="3.7">
+				<Joints values="j1=7.142 j2=-43.380 j3=89.105 j4=0.000 j5=43.271 j6=7.142"/>
+				<Position values="tcpX=1634.258 tcpY=-204.779 tcpz=742.947 tcpYaw=0.125 tcpPitch=179.004 tcpRoll=0.001 "/>
+				<Speed values="tcpSpeed=1977.924"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="3.8">
+				<Joints values="j1=12.156 j2=-41.519 j3=84.934 j4=0.000 j5=44.947 j6=12.156"/>
+				<Position values="tcpX=1648.768 tcpY=-355.164 tcpz=750.279 tcpYaw=0.345 tcpPitch=178.398 tcpRoll=0.005 "/>
+				<Speed values="tcpSpeed=1512.608"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="3.9">
+				<Joints values="j1=15.371 j2=-39.659 j3=81.720 j4=0.000 j5=46.622 j6=15.371"/>
+				<Position values="tcpX=1652.906 tcpY=-454.376 tcpz=745.846 tcpYaw=0.349 tcpPitch=178.730 tcpRoll=0.004 "/>
+				<Speed values="tcpSpeed=993.977"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.0">
+				<Joints values="j1=16.785 j2=-38.302 j3=80.305 j4=0.000 j5=47.923 j6=16.785"/>
+				<Position values="tcpX=1650.202 tcpY=-497.752 tcpz=730.856 tcpYaw=0.021 tcpPitch=179.930 tcpRoll=0.000 "/>
+				<Speed values="tcpSpeed=459.726"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3" node="A4"/>
+					<Collision component="KR 30-3" node="A5"/>
+					<Collision component="KR 30-3" node="A6"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.1">
+				<Joints values="j1=16.858 j2=-38.228 j3=80.232 j4=0.000 j5=47.996 j6=16.858"/>
+				<Position values="tcpX=1650.000 tcpY=-500.000 tcpz=730.000 tcpYaw=-0.000 tcpPitch=-180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=24.138"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3" node="A4"/>
+					<Collision component="KR 30-3" node="A5"/>
+					<Collision component="KR 30-3" node="A6"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.2">
+				<Joints values="j1=16.858 j2=-38.005 j3=80.273 j4=0.000 j5=47.732 j6=16.858"/>
+				<Position values="tcpX=1650.000 tcpY=-500.000 tcpz=724.132 tcpYaw=-0.000 tcpPitch=-180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=58.676"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3" node="A4"/>
+					<Collision component="KR 30-3" node="A5"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.3">
+				<Joints values="j1=16.858 j2=-36.972 j3=80.424 j4=0.000 j5=46.548 j6=16.858"/>
+				<Position values="tcpX=1650.000 tcpY=-500.000 tcpz=697.527 tcpYaw=-0.000 tcpPitch=-180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=266.054"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3" node="A4"/>
+					<Collision component="KR 30-3" node="A5"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.4">
+				<Joints values="j1=16.858 j2=-36.300 j3=80.488 j4=0.000 j5=45.812 j6=16.858"/>
+				<Position values="tcpX=1650.000 tcpY=-500.000 tcpz=680.633 tcpYaw=-0.000 tcpPitch=-180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=168.944"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.5">
+				<Joints values="j1=16.858 j2=-36.544 j3=80.468 j4=0.000 j5=46.077 j6=16.858"/>
+				<Position values="tcpX=1650.000 tcpY=-500.000 tcpz=686.738 tcpYaw=-0.000 tcpPitch=-180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=61.056"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.6">
+				<Joints values="j1=16.858 j2=-37.611 j3=80.338 j4=0.000 j5=47.273 j6=16.858"/>
+				<Position values="tcpX=1650.000 tcpY=-500.000 tcpz=713.896 tcpYaw=-0.000 tcpPitch=-180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=271.574"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.7">
+				<Joints values="j1=16.858 j2=-38.214 j3=80.235 j4=0.000 j5=47.979 j6=16.858"/>
+				<Position values="tcpX=1650.000 tcpY=-500.000 tcpz=729.613 tcpYaw=-0.000 tcpPitch=-180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=157.177"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+		</Sequence1>
+		<MainProg>
+			<TimeStamp time="4.8">
+				<Joints values="j1=16.858 j2=-38.228 j3=80.232 j4=0.000 j5=47.996 j6=16.858"/>
+				<Position values="tcpX=1650.000 tcpY=-500.000 tcpz=730.000 tcpYaw=-0.000 tcpPitch=-180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=3.867"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="4.9">
+				<Joints values="j1=16.858 j2=-38.228 j3=80.232 j4=0.000 j5=47.996 j6=16.858"/>
+				<Position values="tcpX=1650.000 tcpY=-500.000 tcpz=730.000 tcpYaw=-0.000 tcpPitch=-180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=0.000"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+			<TimeStamp time="5.0">
+				<Joints values="j1=16.858 j2=-38.228 j3=80.232 j4=0.000 j5=47.996 j6=16.858"/>
+				<Position values="tcpX=1650.000 tcpY=-500.000 tcpz=730.000 tcpYaw=-0.000 tcpPitch=-180.000 tcpRoll=-0.000 "/>
+				<Speed values="tcpSpeed=0.000"/>
+				<Collisions value="True">
+					<Collision component="KR 30-3" node="Sweep_Sequence1"/>
+					<Collision component="KR 30-3" node="A4"/>
+				</Collisions>
+			</TimeStamp>
+		</MainProg>
+	</KR30-3_2>
+</SimulationResults>

@@ -37,7 +37,7 @@ class DelmiaV5Service(modelHandler: ActorRef) extends Actor {
 
             import sp.domain._
 
-            val ops = opsXML flatMap {n =>
+            val ops = opsXML flatMap  {n =>
               val name = n.attribute("Task").map(_.toString).getOrElse("noName")
               val nOP = Operation(name)
               val opChildren = n.child.collect {
