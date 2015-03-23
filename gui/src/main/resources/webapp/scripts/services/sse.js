@@ -9,11 +9,14 @@
  */
 angular.module("spGuiApp")
 .factory('sse', function ($rootScope) {
-  var sse = new EventSource("/eventsource"),
-    factory = {};
+    var factory = {};
 
     factory.addSSEListener = function(eventName, callback) {
       console.log("Adding an SSE listener");
+      var sse = new EventSource("/sse");
+      sse.onmessage = function(e) {
+        console.log(e.data);
+      };
       sse.addEventListener(eventName, function() {
         var args = arguments;
         $rootScope.$apply(function () {
@@ -21,6 +24,7 @@ angular.module("spGuiApp")
         });
       });
     };
+
 
     return factory;
 });
