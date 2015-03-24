@@ -1,0 +1,49 @@
+<div class="header">
+  <div class="btn-toolbar" role="toolbar">
+    <div class="btn-group">
+      <button class="btn btn-default" ng-click="getRuntimeKinds()" title="Refresh Runtime Kinds List"><span class="glyphicon glyphicon-refresh"></span></button>
+      <button class="btn btn-default" ng-click="getRuntimes()" title="Refresh Started Runtimes List"><span class="glyphicon glyphicon-refresh"></span></button>
+    </div> <!-- end of btn-group -->
+  </div> <!-- end of toolbar -->
+</div> <!-- end of header -->
+
+<div class="content">
+  <div class="content-wrapper">
+    <div class="col-md-12">
+      <h3>Runtime Kinds</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Info</th>
+            <th>Create new</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="runtimeKind in runtimeKinds">
+            <td>{{runtimeKind.name}}</td>
+            <td>{{runtimeKind.attributes.info}}</td>
+            <td><button class="btn btn-xs btn-default" ng-click="createRuntime(runtimeKind.name)"><span class="glyphicon glyphicon-asterisk" title="Create new {{runtimeKind.name}}" ></span></button></td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Started Runtimes</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Kind</th>
+            <th>Connect</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="runtime in runtimes">
+            <td>{{runtime.name}}</td>
+            <td>{{runtime.kind}}</td>
+            <td><button class="btn btn-xs btn-default" ng-click="openRuntime(runtime.kind, runtime.name)"><span class="glyphicon glyphicon-new-window" title="Open {{runtime.name}}" ></span></button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div> <!-- end of content-wrapper -->
+</div> <!-- end of content -->

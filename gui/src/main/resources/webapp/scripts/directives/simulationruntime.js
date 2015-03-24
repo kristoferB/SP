@@ -11,6 +11,9 @@ angular.module('spGuiApp')
     return {
       templateUrl: 'views/simulationruntime.html',
       restrict: 'E',
+      scope: {
+        ws: '=windowStorage'
+      },
       link: function postLink(scope) {
         scope.currentStates = {};
         scope.spTalker = spTalker;
@@ -26,26 +29,26 @@ angular.module('spGuiApp')
           scope.executeOp();
         };
 
-        scope.createRuntime = function() {
-          spTalker.createRuntime()
-            .success(function(runtime) {
-              scope.runtimeName = runtime.name;
-              notificationService.success('A new runtime \"' + runtime.name + '\" was successfully created');
-              scope.resetStates();
-              scope.executeOp();
-            })
-            .error(function() {
-              notificationService.error('The runtime creation failed.');
-            });
-        };
-        scope.createRuntime();
-
         scope.executeOp = function(idOfOpToExecute) {
           var currentStates = [];
           Object.keys(scope.currentStates).forEach(function(id) {
             currentStates.push({id: id, value: scope.currentStates[id]});
           });
-          spTalker.updateState(scope.runtimeName, currentStates, idOfOpToExecute)
+
+            if(typeof scope.ws.runtimeName === 'undefined' || scope.ws.runtimeName === '') {
+              notificationService.info('You have to supply a runtime name.');
+            }
+            var newState = {
+              model: spTalker.activeModel.model,
+              state: currentStates
+            };
+            if(typeof idOfOpToExecute !== 'undefined' && idOfOpToExecute !== '') {
+              newState.execute = idOfOpToExecute;
+            }
+            $http({
+              method: 'POST',
+              url: API_URL + '/runtimes/' + scope.ws.runtimeName,
+              data: newState})
             .success(function(response) {
               if(angular.isDefined(response.error)) {
                 console.log(response);
