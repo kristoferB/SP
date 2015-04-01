@@ -12,8 +12,8 @@ import sp.domain.logic._
  * "parse" -> "the string to parse" e.g. r1.tool==kalle AND r2 = false
  * If we need better performance from multiple requests in the future,
  * we can have multiple actors in a round robin.
-**/
-class PropositionParserActor extends Actor  {
+ **/
+class PropositionParserActor extends Actor {
   def receive = {
     case Request(_, attr) => {
       extract(attr) match {
@@ -41,14 +41,14 @@ class PropositionParserActor extends Actor  {
     } yield (model, parse)
   }
 
-      def errorMessage(attr: SPAttributes) = {
-        SPError("The request is missing parameters: \n" +
-          s"model: ${attr.getAsID("model")}" + "\n" +
-          s"parse: ${attr.getAsString("parse")}" )
-      }
+  def errorMessage(attr: SPAttributes) = {
+    SPError("The request is missing parameters: \n" +
+      s"model: ${attr.getAsID("model")}" + "\n" +
+      s"parse: ${attr.getAsString("parse")}")
+  }
 
 }
 
-object PropositionParserActor{
+object PropositionParserActor {
   def props = Props(classOf[PropositionParserActor])
 }
