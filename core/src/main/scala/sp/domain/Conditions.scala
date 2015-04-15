@@ -7,6 +7,7 @@ trait Condition {
   val attributes: SPAttributes
 }
 
+//TODO No new id should be created. This is a quick fix :)
 case class Action(id: ID, value: StateUpdater)
 
 case class PropositionCondition(guard: Proposition,

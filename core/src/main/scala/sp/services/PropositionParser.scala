@@ -19,7 +19,7 @@ class PropositionParserActor extends Actor {
       extract(attr) match {
 
         case Some(res) => {
-          PropositionParser.parseStr(res._2) match {
+          PropositionParser().parseStr(res._2) match {
             case Left(failure) =>
               val errorMess = "[" + failure.next.pos + "] error: " + failure.msg + "\n\n" + failure.next.pos.longString
               sender ! SPErrorString(errorMess)

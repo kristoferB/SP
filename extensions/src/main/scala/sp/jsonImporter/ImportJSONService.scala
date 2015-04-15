@@ -1,7 +1,7 @@
 package sp.jsonImporter
 
 import akka.actor._
-import sp.domain.logic.PropositionParser
+import sp.domain.logic.{PropositionConditionLogic, ActionParser, PropositionParser}
 import sp.system.ServiceHandler
 import sp.system.messages._
 import sp.domain._
@@ -28,18 +28,23 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
 
           println(s"Name: $name")
 
-          val items: List[IDAble] = JsonParser(s"$file").convertTo[List[IDAble]]
+          val idables: List[IDAble] = JsonParser(s"$file").convertTo[List[IDAble]]
 
           val id = ID.newID
           val n = name.flatMap(_.asString).getOrElse("noName")
           for {
             model <- (modelHandler ? CreateModel(id, n, Attr("attributeTags" -> MapPrimitive(Map()), "conditionGroups" -> ListPrimitive(List())))).mapTo[ModelInfo]
-            items <- (modelHandler ? UpdateIDs(id, model.version, items.toList)).mapTo[SPIDs]
-            ops <- (modelHandler ? GetOperations(id)).mapTo[SPIDs]
-            newOps = ops.items.map(_.asInstanceOf[Operation]).map(parseGuardActionToPropositionCondition)
-            items2 <- (modelHandler ? (UpdateIDs(id, model.version + 1, newOps))).mapTo[SPIDs]
+            _ <- modelHandler ? UpdateIDs(id, model.version, idables)
+            SPIDs(opsToBe) <- (modelHandler ? GetOperations(id)).mapTo[SPIDs]
+            opsWithConditionsAdded = opsToBe.map(_.asInstanceOf[Operation]).flatMap(op => parseGuardActionToPropositionCondition(op,idables))
+            _ <-  modelHandler ? (UpdateIDs(id, model.version, opsWithConditionsAdded))
+            SPIDs(thingsToBe) <- (modelHandler ? GetThings(id)).mapTo[SPIDs]
+            things = thingsToBe.map(_.asInstanceOf[Thing])
+            initState = getInitState(things)
+
           } yield {
             println(s"MADE IT: $model")
+            println(opsWithConditionsAdded.map(o => s"${o.name} ${PropositionConditionLogic.propLogic(o.conditions.head.asInstanceOf[PropositionCondition].guard).eval_int(initState.get)}").mkString("\n"))
 
             reply ! model.model.toString
           }
@@ -50,17 +55,49 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
     }
   }
 
-  def parseGuardActionToPropositionCondition(op: Operation): Operation = {
-    def getGuard(str: String) = for {
+  def parseGuardActionToPropositionCondition(op: Operation, idablesToParseFromString: List[IDAble]): Option[Operation] = {
+    def getGuard(str: String) = (for {
       guard <- op.attributes.get(str)
       guardAsString <- guard.asString
-    } yield PropositionParser.parseStr(guardAsString) match {
-        case Right(p) => p
-        case _ => AlwaysFalse
+    } yield PropositionParser(idablesToParseFromString).parseStr(guardAsString) match {
+        case Right(p) => Some(p)
+        case Left(f) => {
+          println(s"PropositionParser failed on guard: $guardAsString. Failure message: $f");
+          None
+        }
+      }).flatten
+    def getAction(str: String) = for {
+      actions <- op.attributes.get(str)
+      actionsList <- actions.asList
+      actionsAsString = actionsList.flatMap(_.asString)
+    } yield actionsAsString.map { action => ActionParser(idablesToParseFromString).parseStr(action) match {
+        case Right(a) => Some(a)
+        case Left(f) => {
+          println(s"ActionParser failed on action: $action. Failure message: $f");
+          None
+        }
       }
-    val preGuard = getGuard("preGuard").get
-    val postGuard = getGuard("postGuard").get
-    Operation(name = op.name, conditions = List(PropositionCondition(preGuard, List()), PropositionCondition(postGuard, List())), attributes = op.attributes)
+      }.flatten
+
+    return for {
+      preGuard <- getGuard("preGuard")
+      preAction <- getAction("preAction")
+      postGuard <- getGuard("postGuard")
+      postAction <- getAction("postAction")
+    } yield {
+        op.copy(conditions = List(PropositionCondition(preGuard, preAction, SPAttributes(Map("kind" -> "preconditon"))),
+          PropositionCondition(postGuard, postAction, SPAttributes(Map("kind" -> "postconditon")))))
+      }
+  }
+
+  def getInitState(things: List[Thing]): Option[State] = {
+    val idOptionInitValueList = things.map { v => v.id -> v.attributes.get("init") }
+    if (idOptionInitValueList.contains(None)) {
+      println(s"Init values could not be extracted from the things." +
+        s"At least the thing ${idOptionInitValueList.filter(kv => kv._2.isEmpty).head} lacks attribute 'init'")
+      None
+    }
+    else Some(State(idOptionInitValueList.map { case (k, v) => k -> v.get }.toMap))
   }
 
   def extract(attr: SPAttributes) = {
