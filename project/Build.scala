@@ -55,7 +55,7 @@ object Build extends Build {
   lazy val extensions = project.in(file("extensions"))
     .dependsOn(core, gui)
     .settings(basicSettings: _*)
-    .settings(libraryDependencies ++= (defaultDepend))
+    .settings(libraryDependencies ++= (defaultDepend ++ Seq(breeze)))
 
   //run in Compile <<= (run in Compile in launch)
 	

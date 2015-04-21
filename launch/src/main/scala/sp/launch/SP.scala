@@ -41,6 +41,9 @@ object SP extends App {
   serviceHandler ! RegisterService("ImportKUKAFileService",
     system.actorOf(ImportKUKAFileService.props(modelHandler), "ImportKUKAFileService"))
 
+  serviceHandler ! RegisterService("VCImportService",
+    system.actorOf(VCImportService.props(modelHandler), "VCImportService"))
+
   import sp.jsonImporter._
   serviceHandler ! RegisterService("ImportJSONService",
     system.actorOf(ImportJSONService.props(modelHandler), "ImportJSONService"))

@@ -4,7 +4,8 @@ object Dependencies {
 
   val resolutionRepos = Seq(
     "spray repo" at "http://repo.spray.io/",
-    "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/"
+    "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/",
+    "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
   )
   
   def compile   (deps: ModuleID*): Seq[ModuleID] = deps map (_ % "compile")
@@ -23,6 +24,9 @@ object Dependencies {
   //val specs2        = "org.specs2"           %%  "specs2"                      % "2.4.6"
   val sprayJson     = "io.spray"             %%  "spray-json"                  % "1.2.5"
   val logback       = "ch.qos.logback"       %   "logback-classic"             % "1.1.1"
+
+  val breeze = "org.scalanlp" %% "breeze" % "0.10"
+  //val breezeNative = "org.scalanlp" %% "breeze-natives" % "0.10"
 
   val sprayCan =  "io.spray" %% "spray-can" % "1.3.1"
   val sprayRouting ="io.spray" %% "spray-routing" % "1.3.1"
