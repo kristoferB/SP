@@ -44,7 +44,13 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
 
           } yield {
             println(s"MADE IT: $model")
-            println(opsWithConditionsAdded.map(o => s"${o.name} ${PropositionConditionLogic.propLogic(o.conditions.head.asInstanceOf[PropositionCondition].guard).eval_int(initState.get)}").mkString("\n"))
+            println(opsWithConditionsAdded.map(o => s"${o.name} ${
+              import PropositionConditionLogic._
+
+              val preGuard = o.conditions.head.asInstanceOf[PropositionCondition].guard
+
+              preGuard.eval(initState.get)
+            }").mkString("\n"))
 
             reply ! model.model.toString
           }

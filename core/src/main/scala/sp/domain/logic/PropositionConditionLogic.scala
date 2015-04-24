@@ -8,36 +8,33 @@ case object PropositionConditionLogic {
    * Evaluate Propositions by calling eval(proposition, state)
    */
   implicit class propLogic(iProp: Proposition) {
-    def eval(state: State): Boolean = {
-      def req(prop: Proposition): Boolean = prop match {
-        case AND(ps) => !ps.exists(!req(_))
-        case OR(ps) => ps.exists(req)
-        case NOT(p) => !req(p)
-        case EQ(l, r) => getValue(l) == getValue(r)
-        case NEQ(l, r) => getValue(l) != getValue(r)
-        case AlwaysTrue => true
-        case AlwaysFalse => false
-      }
 
-      def getValue(se: StateEvaluator): SPAttributeValue = se match {
-        case SVIDEval(id) => state(id)
-        case ValueHolder(v) => v
-        // does not handle SVNameEval
+    private implicit class inequalityAttributes(l: SPAttributeValue) {
+      def >(r: SPAttributeValue) = {
+        (l, r) match {
+          case (IntPrimitive(li), IntPrimitive(ri)) => li > ri
+          case (LongPrimitive(li), LongPrimitive(ri)) => li > ri
+          case (DoublePrimitive(li), DoublePrimitive(ri)) => li > ri
+          case _ => false
+        }
       }
-      req(iProp)
+      def <(r: SPAttributeValue) = (r > l)
+      def >=(r: SPAttributeValue) = (l > r) || (l == r)
+      def <=(r: SPAttributeValue) = (r > l) || (l == r)
     }
 
-    def eval_int(state: State): Option[Boolean] = {
+    def eval(state: State): Boolean = {
+      //Option[Boolean] = {
       def req(prop: Proposition): Option[Boolean] = prop match {
         case AND(ps) => listBooleanEval(ps, list => !list.flatten.contains(false))
         case OR(ps) => listBooleanEval(ps, list => list.flatten.contains(true))
         case NOT(p) => for {b <- req(p)} yield !b
-        case EQ(l, r) => numberEval(l, r, _ == _)
-        case NEQ(l, r) => numberEval(l, r, _ != _)
-        case GREQ(l, r) => numberEval(l, r, _ >= _)
-        case LEEQ(l, r) => numberEval(l, r, _ <= _)
-        case GR(l, r) => numberEval(l, r, _ > _)
-        case LE(l, r) => numberEval(l, r, _ < _)
+        case EQ(l, r) => valueEval(l, r, _ == _)
+        case NEQ(l, r) => valueEval(l, r, _ != _)
+        case GREQ(l, r) => valueEval(l, r, _ >= _)
+        case LEEQ(l, r) => valueEval(l, r, _ <= _)
+        case GR(l, r) => valueEval(l, r, _ > _)
+        case LE(l, r) => valueEval(l, r, _ < _)
         case AlwaysTrue => Some(true)
         case AlwaysFalse => Some(false)
       }
@@ -46,22 +43,28 @@ case object PropositionConditionLogic {
         val psOptionValues = ps.map(req)
         if (psOptionValues.contains(None)) None else Some(e(psOptionValues))
       }
-      def numberEval(l: StateEvaluator, r: StateEvaluator, e: (Int, Int) => Boolean) = (for {
-        left <- getValue(l)
-        right <- getValue(r)
-      } yield e(left, right) ) match {
-        case ok @ Some(_) => ok
-        case _ => {println(s"Problem to do int evaluation for $l and $r with function $e") ; None}
+
+      def valueEval(l: StateEvaluator, r: StateEvaluator, e: (SPAttributeValue, SPAttributeValue) => Boolean) = {
+        def getValue(se: StateEvaluator): Option[SPAttributeValue] = se match {
+          case SVIDEval(id) => state.get(id)
+          case ValueHolder(v) => Some(v)
+          case _ => None
+          // does not handle SVNameEval
+        }
+        (for {
+          left <- getValue(l)
+          right <- getValue(r)
+        } yield e(left, right)) match {
+          case ok@Some(_) => ok
+          case _ => {
+            println(s"Problem to do evaluation for $l and $r with function $e");
+            None
+          }
+        }
       }
 
-      def getValue(se: StateEvaluator): Option[Int] = se match {
-        case SVIDEval(id) => state(id).asInt
-        case ValueHolder(v) => v.asInt
-        case _ => None
-        // does not handle SVNameEval
-      }
-
-      req(iProp)
+      //Methods starts
+      req(iProp).getOrElse(false)
     }
   }
 
@@ -191,15 +194,18 @@ case class ActionParser(idablesToParseFromString: List[IDAble] = List()) extends
 
 trait BaseParser extends JavaTokenParsers {
   final lazy val REG_EX_UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}".r
-  final lazy val REG_EX_STRINGVALUE = s"\\w+".r //http://www.autohotkey.com/docs/misc/RegEx-QuickRef.htm
+  final lazy val REG_EX_STRINGVALUE = s"\\w+".r
+  //http://www.autohotkey.com/docs/misc/RegEx-QuickRef.htm
   final lazy val REG_EX_INTVALUE = s"\\d+".r
   final lazy val REG_EX_TRUE = s"true|TRUE|T".r
   final lazy val REG_EX_FALSE = s"false|FALSE|F".r
 
-  def uuid[T](parserFunction: String => T) = REG_EX_UUID ^^ { parserFunction }
+  def uuid[T](parserFunction: String => T) = REG_EX_UUID ^^ {
+    parserFunction
+  }
   lazy val intValue = REG_EX_INTVALUE ^^ { v => ValueHolder(IntPrimitive(Integer.parseInt(v))) }
-  final lazy val trueValue = REG_EX_TRUE ^^ { v => ValueHolder(StringPrimitive("TRUE")) }
-  final lazy val falseValue = REG_EX_FALSE ^^ { v => ValueHolder(StringPrimitive("FALSE")) }
+  final lazy val trueValue = REG_EX_TRUE ^^ { v => ValueHolder(BoolPrimitive(true)) }
+  final lazy val falseValue = REG_EX_FALSE ^^ { v => ValueHolder(BoolPrimitive(false)) }
 
   val idablesToParseFromString: List[IDAble]
   lazy val spidMap = idablesToParseFromString.map(item => item.name -> item.id).toMap
