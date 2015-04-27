@@ -30,10 +30,14 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
 
           val idables: List[IDAble] = JsonParser(s"$file").convertTo[List[IDAble]]
 
+          println(idables)
+
           val id = ID.newID
           val n = name.flatMap(_.asString).getOrElse("noName")
+
           for {
-            model <- (modelHandler ? CreateModel(id, n, Attr("attributeTags" -> MapPrimitive(Map()), "conditionGroups" -> ListPrimitive(List())))).mapTo[ModelInfo]
+            model2 <- (modelHandler ? CreateModel(id, n, Attr("attributeTags" -> MapPrimitive(Map()), "conditionGroups" -> ListPrimitive(List()))))
+            model = {if (model2.isInstanceOf[SPError])println(s"FEL $model2"); model2.asInstanceOf[ModelInfo]}
             _ <- modelHandler ? UpdateIDs(id, model.version, idables)
             SPIDs(opsToBe) <- (modelHandler ? GetOperations(id)).mapTo[SPIDs]
             opsWithConditionsAdded = opsToBe.map(_.asInstanceOf[Operation]).flatMap(op => parseGuardActionToPropositionCondition(op,idables))
