@@ -95,6 +95,9 @@ trait SPJsonDomain {
               case Some(id) => IDPrimitive(id)
               case None => {
                 if (x == "true" || x == "false") BoolPrimitive(x.toBoolean)
+                else if ({try{ JsNumber(x);true;} catch {case e: NumberFormatException => false}}){
+                  read(JsNumber(x))
+                }
                 else StringPrimitive(x)
               }
             }

@@ -95,8 +95,8 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
       postGuard <- getGuard("postGuard")
       postAction <- getAction("postAction")
     } yield {
-        op.copy(conditions = List(PropositionCondition(preGuard, preAction, SPAttributes(Map("kind" -> "preconditon"))),
-          PropositionCondition(postGuard, postAction, SPAttributes(Map("kind" -> "postconditon")))))
+        op.copy(conditions = List(PropositionCondition(preGuard, preAction, SPAttributes(Map("kind" -> "precondition"))),
+          PropositionCondition(postGuard, postAction, SPAttributes(Map("kind" -> "postcondition")))))
       }
   }
 
