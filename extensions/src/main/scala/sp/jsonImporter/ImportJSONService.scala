@@ -7,6 +7,7 @@ import sp.system.messages._
 import sp.domain._
 import akka.pattern.ask
 import akka.util.Timeout
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import spray.json._
 import sp.json._
@@ -30,18 +31,25 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
 
           val idables: List[IDAble] = JsonParser(s"$file").convertTo[List[IDAble]]
 
-          println(idables)
-
           val id = ID.newID
           val n = name.flatMap(_.asString).getOrElse("noName")
 
+          def futureWithErrorSupport[T](f: Future[Any]): Future[T] =
+            for {
+              obj <- f
+            } yield {
+              if (obj.isInstanceOf[SPError]) println(s"Error $obj") else println(s"ok with $f")
+              obj.asInstanceOf[T]
+            }
+
           for {
-            model2 <- (modelHandler ? CreateModel(id, n, Attr("attributeTags" -> MapPrimitive(Map()), "conditionGroups" -> ListPrimitive(List()))))
-            model = {if (model2.isInstanceOf[SPError])println(s"FEL $model2"); model2.asInstanceOf[ModelInfo]}
-            _ <- modelHandler ? UpdateIDs(id, model.version, idables)
-            SPIDs(opsToBe) <- (modelHandler ? GetOperations(id)).mapTo[SPIDs]
-            opsWithConditionsAdded = opsToBe.map(_.asInstanceOf[Operation]).flatMap(op => parseGuardActionToPropositionCondition(op,idables))
-            _ <-  modelHandler ? (UpdateIDs(id, model.version, opsWithConditionsAdded))
+            model <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(id, n, Attr("attributeTags" -> MapPrimitive(Map()), "conditionGroups" -> ListPrimitive(List()))))
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(id, model.version, idables))
+            //            SPIDs(opsToBe) <- (modelHandler ? GetOperations(id)).mapTo[SPIDs]
+            SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(id))
+
+            opsWithConditionsAdded = opsToBe.map(_.asInstanceOf[Operation]).flatMap(op => parseGuardActionToPropositionCondition(op, idables))
+            _ <- modelHandler ? (UpdateIDs(id, model.version, opsWithConditionsAdded))
             SPIDs(thingsToBe) <- (modelHandler ? GetThings(id)).mapTo[SPIDs]
             things = thingsToBe.map(_.asInstanceOf[Thing])
             initState = getInitState(things)
