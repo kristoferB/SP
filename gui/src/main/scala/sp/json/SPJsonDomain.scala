@@ -1,8 +1,5 @@
 package sp.json
 
-
-
-
 trait SPJsonDomain {
 
   import sp.domain._
@@ -75,7 +72,7 @@ trait SPJsonDomain {
           case LongPrimitive(x) => x.toJson
           case DoublePrimitive(x) => x.toJson
           case BoolPrimitive(x) => x.toJson
-          case DatePrimitive(x) => x.toString().toJson
+          case DatePrimitive(x) => x.toString("yyyy-MM-dd'T'HH:mm:ss").toJson //x.toString("yyyy-MM-dd'T'HH:mm:ssZZ").toJson To add timezon
           case DurationPrimitive(x) => x.getMillis().toJson
           case IDPrimitive(x) => x.toJson
           case ListPrimitive(x) => x.toJson

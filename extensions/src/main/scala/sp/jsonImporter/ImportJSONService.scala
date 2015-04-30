@@ -1,8 +1,7 @@
 package sp.jsonImporter
 
 import akka.actor._
-import sp.domain.logic.{PropositionConditionLogic, ActionParser, PropositionParser}
-import sp.system.ServiceHandler
+import sp.domain.logic.{ ActionParser, PropositionParser}
 import sp.system.messages._
 import sp.domain._
 import akka.pattern.ask
@@ -10,7 +9,6 @@ import akka.util.Timeout
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import spray.json._
-import sp.json._
 import sp.json.SPJson._
 
 /**
@@ -27,31 +25,26 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
       extract(attr) match {
         case Some((file, name)) => {
 
-//          println(s"Name: $name")
-
-          val idables: List[IDAble] = JsonParser(s"$file").convertTo[List[IDAble]]
-
-          val idForModel = ID.newID
-
-          def futureWithErrorSupport[T](f: Future[Any]): Future[T] =
-            for {
-              obj <- f
-            } yield {
-              if (obj.isInstanceOf[SPError]) println(s"Error $obj")
-              obj.asInstanceOf[T]
-            }
+          //          println(s"Name: $name")
 
           for {
-            model <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(idForModel, name.flatMap(_.asString).getOrElse("noName"), Attr("attributeTags" -> MapPrimitive(Map()), "conditionGroups" -> ListPrimitive(List()))))
-            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(idForModel, model.version, idables))
-            SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(idForModel))
+          //Creates a model and updates the model with "idables" parsed from the given json file
+            modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(model = ID.newID,
+              name = name.flatMap(_.asString).getOrElse("noName"),
+              attributes = SPAttributes(Map("attributeTags" -> MapPrimitive(Map()),
+                "conditionGroups" -> ListPrimitive(List())))))
+            idables = JsonParser(file).convertTo[List[IDAble]]
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = idables))
+
+            //Update the operations in the model with "conditions" connected to the parsed "idables"
+            SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
             opsWithConditionsAdded = opsToBe.map(_.asInstanceOf[Operation]).flatMap(op => parseAttributesToPropositionCondition(op, idables))
-            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(idForModel, model.version, opsWithConditionsAdded))
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = opsWithConditionsAdded))
 
           } yield {
-            println(s"MADE IT: $model")
-//            println(opsWithConditionsAdded.map(_.name).mkString("\n"))
-            reply ! model.model.toString
+            println(s"MADE IT: $modelInfo")
+            //            println(opsWithConditionsAdded.map(_.name).mkString("\n"))
+            reply ! modelInfo.model.toString
           }
 
         }
@@ -59,6 +52,14 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
       }
     }
   }
+
+  def futureWithErrorSupport[T](f: Future[Any]): Future[T] =
+    for {
+      obj <- f
+    } yield {
+      if (obj.isInstanceOf[SPError]) println(s"Error $obj")
+      obj.asInstanceOf[T]
+    }
 
   def parseAttributesToPropositionCondition(op: Operation, idablesToParseFromString: List[IDAble]): Option[Operation] = {
     def getGuard(str: String) = (for {
