@@ -132,7 +132,7 @@ trait ModelActorState  {
     lazy val items = idMap.values.toSet
   }
 
-  var state = ModelState(1, Map(), Map(), Attr(), "noName")
+  var state = ModelState(0, Map(), Map(), Attr(), "noName")
 
 
   def queryMessage(reply: ActorRef, mess: ModelQuery) = {
