@@ -151,7 +151,7 @@ angular.module('spGuiApp').filter('filterElements', function () {
   return function (input) {
     var filteredInput ={};
     angular.forEach(input, function(value, key){
-      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes' && key !== 'children' && key !== 'attributeTags' && key !== 'boolean' && key !== 'parent'){
+      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' ){
         filteredInput[key]= value;
       }
     });
