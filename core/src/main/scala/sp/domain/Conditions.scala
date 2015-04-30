@@ -8,6 +8,14 @@ trait Condition {
 }
 
 case class Action(id: ID, value: StateUpdater)
+object Action {
+  def parseStr(str: String, idables: List[IDAble] = List()): Option[Action] = {
+    val propParser = sp.domain.logic.ActionParser(idables)
+    propParser.parseStr(str).right.toOption
+  }
+
+  implicit def strToProp(str: String)(implicit idables: List[IDAble] = List()): Action = parseStr(str, idables).get
+}
 
 case class PropositionCondition(guard: Proposition,
                                 action: List[Action],
@@ -17,6 +25,15 @@ case class PropositionCondition(guard: Proposition,
 // propositional logic conditions
 
 sealed trait Proposition
+
+object Proposition {
+  def parseStr(str: String, idables: List[IDAble] = List()): Option[Proposition] = {
+    val propParser = sp.domain.logic.PropositionParser(idables)
+    propParser.parseStr(str).right.toOption
+  }
+
+  implicit def strToProp(str: String)(implicit idables: List[IDAble] = List()): Proposition = parseStr(str, idables).get
+}
 
 case class AND(props: List[Proposition]) extends Proposition {
   //override def toString = StrMaker.makeStr(props, "&&")

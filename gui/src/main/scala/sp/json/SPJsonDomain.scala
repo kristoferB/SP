@@ -265,8 +265,8 @@ trait SPJsonDomain {
     }
   }
 
-  implicit val actionFormat = jsonFormat2(Action)
-  implicit val pcFormat = jsonFormat3(PropositionCondition)
+  implicit val actionFormat = jsonFormat2(Action.apply)
+  implicit val pcFormat = jsonFormat3(PropositionCondition.apply)
 
 
 
