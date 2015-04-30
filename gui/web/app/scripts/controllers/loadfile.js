@@ -15,7 +15,7 @@ angular.module('spGuiApp')
       {name: 'Kuka logfile', service: 'ImportKUKAFileService'},
       {name: 'VC 3DCreate', service: 'VCImportService'},
       {name: 'Delmia v5', service: 'DelmiaV5Service'},
-      {name: 'Ops and things from JSON', service: 'ImportJSONService'}
+      {name: 'JSON', service: 'ImportJSONService'}
     ];
 
     $scope.filetype = $scope.filetypes[1]

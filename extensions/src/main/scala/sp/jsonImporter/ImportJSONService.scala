@@ -27,43 +27,30 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
       extract(attr) match {
         case Some((file, name)) => {
 
-          println(s"Name: $name")
+//          println(s"Name: $name")
 
           val idables: List[IDAble] = JsonParser(s"$file").convertTo[List[IDAble]]
 
-          val id = ID.newID
-          val n = name.flatMap(_.asString).getOrElse("noName")
+          val idForModel = ID.newID
 
           def futureWithErrorSupport[T](f: Future[Any]): Future[T] =
             for {
               obj <- f
             } yield {
-              if (obj.isInstanceOf[SPError]) println(s"Error $obj") else println(s"ok with $f")
+              if (obj.isInstanceOf[SPError]) println(s"Error $obj")
               obj.asInstanceOf[T]
             }
 
           for {
-            model <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(id, n, Attr("attributeTags" -> MapPrimitive(Map()), "conditionGroups" -> ListPrimitive(List()))))
-            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(id, model.version, idables))
-            //            SPIDs(opsToBe) <- (modelHandler ? GetOperations(id)).mapTo[SPIDs]
-            SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(id))
-
-            opsWithConditionsAdded = opsToBe.map(_.asInstanceOf[Operation]).flatMap(op => parseGuardActionToPropositionCondition(op, idables))
-            _ <- modelHandler ? (UpdateIDs(id, model.version, opsWithConditionsAdded))
-            SPIDs(thingsToBe) <- (modelHandler ? GetThings(id)).mapTo[SPIDs]
-            things = thingsToBe.map(_.asInstanceOf[Thing])
-            initState = getInitState(things)
+            model <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(idForModel, name.flatMap(_.asString).getOrElse("noName"), Attr("attributeTags" -> MapPrimitive(Map()), "conditionGroups" -> ListPrimitive(List()))))
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(idForModel, model.version, idables))
+            SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(idForModel))
+            opsWithConditionsAdded = opsToBe.map(_.asInstanceOf[Operation]).flatMap(op => parseAttributesToPropositionCondition(op, idables))
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(idForModel, model.version, opsWithConditionsAdded))
 
           } yield {
             println(s"MADE IT: $model")
-            println(opsWithConditionsAdded.map(o => s"${o.name} ${
-              import PropositionConditionLogic._
-
-              val preGuard = o.conditions.head.asInstanceOf[PropositionCondition].guard
-
-              preGuard.eval(initState.get)
-            }").mkString("\n"))
-
+//            println(opsWithConditionsAdded.map(_.name).mkString("\n"))
             reply ! model.model.toString
           }
 
@@ -73,14 +60,14 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
     }
   }
 
-  def parseGuardActionToPropositionCondition(op: Operation, idablesToParseFromString: List[IDAble]): Option[Operation] = {
+  def parseAttributesToPropositionCondition(op: Operation, idablesToParseFromString: List[IDAble]): Option[Operation] = {
     def getGuard(str: String) = (for {
       guard <- op.attributes.get(str)
       guardAsString <- guard.asString
     } yield PropositionParser(idablesToParseFromString).parseStr(guardAsString) match {
         case Right(p) => Some(p)
         case Left(f) => {
-          println(s"PropositionParser failed on guard: $guardAsString. Failure message: $f");
+          println(s"PropositionParser failed for operation ${op.name} on guard: $guardAsString. Failure message: $f")
           None
         }
       }).flatten
@@ -91,7 +78,7 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
     } yield actionsAsString.map { action => ActionParser(idablesToParseFromString).parseStr(action) match {
         case Right(a) => Some(a)
         case Left(f) => {
-          println(s"ActionParser failed on action: $action. Failure message: $f");
+          println(s"ActionParser failed for operation ${op.name} on action: $action. Failure message: $f")
           None
         }
       }
@@ -106,16 +93,6 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
         op.copy(conditions = List(PropositionCondition(preGuard, preAction, SPAttributes(Map("kind" -> "precondition"))),
           PropositionCondition(postGuard, postAction, SPAttributes(Map("kind" -> "postcondition")))))
       }
-  }
-
-  def getInitState(things: List[Thing]): Option[State] = {
-    val idOptionInitValueList = things.map { v => v.id -> v.attributes.get("init") }
-    if (idOptionInitValueList.contains(None)) {
-      println(s"Init values could not be extracted from the things." +
-        s"At least the thing ${idOptionInitValueList.filter(kv => kv._2.isEmpty).head} lacks attribute 'init'")
-      None
-    }
-    else Some(State(idOptionInitValueList.map { case (k, v) => k -> v.get }.toMap))
   }
 
   def extract(attr: SPAttributes) = {
