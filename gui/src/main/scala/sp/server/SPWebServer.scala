@@ -1,10 +1,9 @@
 package sp.server
 
 import akka.actor._
+import sp.opc.ServerSideEventsDirectives._
 import spray.routing._
 
-import ServerSideEventsDirectives._
-import ServerSideEventsDirectives.RegisterClosedHandler
 import spray.http.HttpHeaders.RawHeader
 
 /**
@@ -29,15 +28,13 @@ class SPWebServer extends Actor with SPRoute {
   }
 
   def idToInt(x: Any): Int = x match {
-    case Some(y: String) => {
-      y.toInt
-    }
+    case Some(y: String) => y.toInt
     case None => 0
   }
 
   val sseProcessor = actorRefFactory.actorOf(Props { new Actor {
     def receive = {
-      case (channel: ActorRef, lastEventID: Option[String]) =>
+      case (channel: ActorRef, lastEventID: Any) =>
         // Print LastEventID if present
         //lastEventID.foreach(lei => println(s"LastEventID: $lei"))
 

@@ -1,6 +1,9 @@
 package sp.server
 
 import sp.domain._
+import sp.opc.ServerSideEventsDirectives
+import ServerSideEventsDirectives._
+import spray.http.HttpHeaders.RawHeader
 import spray.http.{AllOrigins, StatusCodes, HttpHeaders}
 import spray.routing._
 import spray.routing.authentication._
@@ -199,6 +202,17 @@ trait RuntimeAPI extends SPApiHelpers {
               case xs: SPAttributes => complete(xs)
             })}
 
+            }
+          } ~
+          path("sse") {
+            respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
+              sse { (channel, lastEventID) =>
+                // Register a closed event handler
+                channel ! RegisterClosedHandler( () => println("Connection closed !!!") )
+
+                // Use the channel
+                runtimeHandler ! SubscribeToSSE(rt, channel, lastEventID)
+              }
             }
           }
         } ~

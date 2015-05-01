@@ -6,22 +6,28 @@ import sp.system.messages._
 import akka.pattern.ask
 import akka.util._
 import scala.concurrent.Future
-import scala.concurrent.duration._
+import java.util.concurrent.TimeUnit
 
 /**
- * Exempel på en runtime eller service.
- *
- * Skicka en SimpleMessage med attribute till den som ser ut:
- * "name" -> "Kristofer",
- * "operation" -> {"id" -> ID(UUID)}
+ * Send a SimpleMessage to it that looks like:
+ * "name" -> "SimulationRuntime728",
+ * "attr" -> {
+ *   "model" -> "MyModel21",
+ *   "state" -> { //the current state of ops and variables is supplied on every execute call
+ *     {id: "ebd1f370-e053-11e4-b571-0800200c9a66", value: "i"}, //operation
+ *     {id: "7b8b9f20-e054-11e4-b571-0800200c9a66", value: 7}, //integer variable
+ *     {id: "93e4af30-e054-11e4-b571-0800200c9a66", value: "home"} //string variable
+ *   },
+ *   "execute" -> "ebd1f370-e053-11e4-b571-0800200c9a66" //id of an op to execute
+ * }
  */
 class SimulationRuntime(about: CreateRuntime) extends Actor {
   import sp.domain.logic.StateLogic._
-  private implicit val to = Timeout(20 seconds)
   import context.dispatcher
-
-
   import sp.system.SPActorSystem._
+
+  private implicit val to = Timeout(20, TimeUnit.SECONDS)
+
   def receive = {
     case SimpleMessage(_, attr) => {
       val reply = sender
@@ -43,7 +49,6 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
         } yield {
           import sp.domain.logic.OperationLogic._
           import sp.domain.logic.StateVariableLogic._
-
 
           val stateVars = things.map(sv => sv.id -> sv.inDomain).toMap ++ createOpsStateVars(ops)
           implicit val props = EvaluateProp(stateVars, Set())

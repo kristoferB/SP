@@ -13,7 +13,11 @@ object SP extends App {
   // Register Runtimes here
   runtimeHandler ! RegisterRuntimeKind("SimulationRuntime",
   sp.runtimes.SimulationRuntime.props,
-  SPAttributes(Map("info"-> "En liten runtime")))
+  SPAttributes(Map("info"-> "Simulate system behavior by executing operations")))
+
+  runtimeHandler ! RegisterRuntimeKind("PLCRuntime",
+    sp.runtimes.SimulationRuntime.props,
+    SPAttributes(Map("info"-> "Show status of and control a PLC")))
 
 
   // Register services here
