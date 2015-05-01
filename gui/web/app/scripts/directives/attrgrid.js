@@ -30,7 +30,7 @@ angular.module('spGuiApp')
             return attrVal.length > 0
           } else if(type === 'object') {
             return Object.keys(attrVal).length > 0
-          }
+          } else return false;
         };
 
         $scope.addElementToArray = function(array) {
@@ -53,7 +53,7 @@ angular.module('spGuiApp')
             type = 'array';
           } else if(obj instanceof Date) {
             type = 'date';
-          } else if (_.isObject(obj) && (_.isEmpty(obj) || _.isUndefined(obj))) {
+          } else if ((_.isEmpty(obj) || _.isUndefined(obj))) {
             type = 'empty';
           } else if (typeof obj === 'string' &&
             /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(obj)) {
