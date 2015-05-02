@@ -4,20 +4,24 @@
 <div class="modal-body">
     <div>
 
+      <h4>1. Select file type</h4>
+      <select class="form-control" ng-options="t as t.name for t in filetypes" ng-model="filetype" />
 
-      <select ng-options="t as t.name for t in filetypes" ng-model="filetype">
-      </select>
+      <h5>Supported file types</h5>
+      <ul>
+        <li ng-repeat="f in filetypes">{{f.name}}</li>
+      </ul>
 
-      <div ng-repeat="f in filetypes">{{f.name}}</div>
+      <h4>2. Select file</h4>
 
-        <input type="file" ng-file-select="onFileSelect($files)">
-        <!--<input type="file" ng-file-select="onFileSelect($files)" multiple accept="image/*">-->
-        <!--<div class="button" ng-file-select="onFileSelect($files)" data-multiple="true"></div>-->
-        <!--<div ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="optional-css-class-name-or-function"-->
-             <!--ng-show="dropSupported">drop files here</div>-->
-        <!--<div ng-file-drop-available="dropSupported=true"-->
-             <!--ng-show="!dropSupported">HTML5 Drop File is not supported!</div>-->
-        <!--<button ng-click="upload.abort()">Cancel Upload</button>-->
+      <input type="file" ng-file-select="onFileSelect($files)">
+      <!--<input type="file" ng-file-select="onFileSelect($files)" multiple accept="image/*">-->
+      <!--<div class="button" ng-file-select="onFileSelect($files)" data-multiple="true"></div>-->
+      <!--<div ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="optional-css-class-name-or-function"-->
+           <!--ng-show="dropSupported">drop files here</div>-->
+      <!--<div ng-file-drop-available="dropSupported=true"-->
+           <!--ng-show="!dropSupported">HTML5 Drop File is not supported!</div>-->
+      <!--<button ng-click="upload.abort()">Cancel Upload</button>-->
     </div>
 </div>
 <!--<div class="modal-footer">-->
