@@ -13,7 +13,7 @@ angular.module('spGuiApp')
     $scope.rowSettings = {};
     $scope.spTalker = spTalker;
 
-    for(var i = spTalker.activeModel.version; (spTalker.activeModel.version - i) < 50 && i > 1; i--) {
+    for(var i = spTalker.activeModel.version; (spTalker.activeModel.version - i) < 50 && i >= 1; i--) {
       var ver = {no: i, diff: spTalker.getModelVersionDiff(i)};
       $scope.modelVersions.push(ver);
     }
