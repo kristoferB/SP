@@ -194,7 +194,7 @@ case class ActionParser(idablesToParseFromString: List[IDAble] = List()) extends
 
 trait BaseParser extends JavaTokenParsers {
   final lazy val REG_EX_UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}".r
-  final lazy val REG_EX_STRINGVALUE = s"\\w+".r
+  final lazy val REG_EX_STRINGVALUE = s"(\\p{L}|\\w)+".r
   //http://www.autohotkey.com/docs/misc/RegEx-QuickRef.htm
   final lazy val REG_EX_INTVALUE = s"\\d+".r
   final lazy val REG_EX_TRUE = s"true|TRUE|T".r

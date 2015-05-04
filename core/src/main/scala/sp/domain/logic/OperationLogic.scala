@@ -13,7 +13,7 @@ case object OperationLogic {
   implicit class opLogic(o: Operation) {
     import PropositionConditionLogic._
     def eval(s: State)(implicit props: EvaluateProp) = {
-      
+
       val opState = s(o.id)
       if (props.defs.completed(opState)) false
       else {
