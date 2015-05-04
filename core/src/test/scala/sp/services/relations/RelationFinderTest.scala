@@ -9,23 +9,66 @@ import sp.domain.logic.PropositionConditionLogic
  * Created by Kristofer on 2014-08-06.
  */
 class RelationFinderTest extends FreeSpec with Matchers with Defs {
-  "The RelationFinder" - {
-    "when finding a path" - {
-      "create a seq" in {
+  "Sequence finder" - {
+    "Should find" - {
+      "a sequence" in {
         val res = findASeq(prepairSetup(Setup(List(o2, o1), vm, List(), state, _ => false)))
         res should be ('right)
         res.right map(x => x.seq shouldEqual List(o1, o2))
       }
+      "parallel" in {
+        val setup = prepairSetup(Setup(List(o1, o3, o4, Operation("hej"), Operation("då")), vm, List(), state, _ => false))
+        val res = findASeq(setup)
+        res should be ('right)
+        //println(res.right.get.seq.map(_.name))
+        //println(arbitraryFinder(res.right.get.seq, setup))
+        res.right map(x => x.seq should contain inOrder (o3, o4))
+      }
+      "no seq" in {
+        val res = findASeq(prepairSetup(Setup(List(o2, o4), vm, List(), state2, _ => false)))
+        res should be ('left)
+        //println(res)
+        //res.right map(x => x.seq shouldEqual List(o1, o3))
+      }
     }
-//    "When findWhenOperationsEnabled" - {
-//      "it should find relations" in {
-//        implicit val setup = prepairSetup(Setup(List(o2, o1), vm, List(), state, _ => false))
-//        val res = findWhenOperationsEnabled(10)
-//        res.map(o2.id).pre(o1.id) shouldEqual Set(StringPrimitive("f"))
-//        //res foreach(r =>println(s"${r._1.name} -> ${r._2.init.map(_._2.toString)} "))
-//
-//
-//      }
+    "Should find arbitrary" - {
+      "find arbitrary when sequence" in {
+        val setup = prepairSetup(Setup(List(o2, o1, o3), vm, List(), state, _ => false))
+        val res = arbitraryFinder(Seq(o1, o3, o2), setup)
+        println(res)
+
+        res.head shouldEqual Set(o1.id, o2.id)
+      }
+      "Do not find arbitrary for two operations" in {
+        val setup = prepairSetup(Setup(List(o2, o1, o3), vm, List(), state, _ => false))
+        val res = arbitraryFinder(Seq(o1, o2, o3), setup)
+        println(res)
+
+        res shouldEqual Set(Set(o1.id, o2.id))
+      }
+      "Find arbitrary for two operations" in {
+        val setup = prepairSetup(Setup(List(o2, o1, o3), vm, List(), state, _ => false))
+        val res = arbitraryFinder(Seq(o5, o1, o2, o3), setup)
+        println(res)
+
+        res.head shouldEqual Set(o2.id, o5.id)
+      }
+    }
+    "When findWhenOperationsEnabled" - {
+      "it should find relations" in {
+        implicit val setup = prepairSetup(Setup(List(o2, o1, o5), vm, List(), state, _ => false))
+        val res = findWhenOperationsEnabled(10)._1.get
+        println("find when ops enabled: "+res.arbiMap)
+        //res foreach(r =>println(s"${r._1.name} -> ${r._2.init.map(_._2.toString)} "))
+        val opRels = findOperationRelations(res)
+        println(s"rels: ${opRels.relations}")
+
+        val toArbi = changeParaToArbi(opRels, res)
+        println(s"toArbi: $toArbi")
+
+
+      }
+    }
 //      "find paralell relations" in {
 //        val ops = (1 to 10) map { i => Operation(i.toString, List(noActionCond))} toList
 //        val res = findWhenOperationsEnabled(10, Set(ops.head))(prepairSetup(Setup(ops, vm, List(), state, _ => false)))
@@ -104,7 +147,7 @@ trait Defs extends RelationFinderAlgorithms {
 
   val v1 = Thing("v1").addStateVar(sv1)
   val v2 = Thing("v2").addStateVar(sv2)
-  val v3 = Thing("v2").addStateVar(sv3)
+  val v3 = Thing("v3").addStateVar(sv3)
 
 
   val propParser = sp.domain.logic.PropositionParser(List(v1, v2, v3))
@@ -117,8 +160,8 @@ trait Defs extends RelationFinderAlgorithms {
   val o1Post = PropositionCondition("v1 == 1", List("v1 = 2"), SPAttributes(Map("kind"->"postcondition")))
   val o1 = Operation("o1", List(o1Pre, o1Post))
 
-  val o2Pre = PropositionCondition("v1 == 2", List("v1 := 3"), SPAttributes(Map("kind"->"precondition")))
-  val o2Post = PropositionCondition("v1 == 3", List("v1 = 4"), SPAttributes(Map("kind"->"postcondition")))
+  val o2Pre = PropositionCondition("v1 == 2 && v3 == false", List("v1 := 3", "v3 = true"), SPAttributes(Map("kind"->"precondition")))
+  val o2Post = PropositionCondition("v1 == 3", List("v1 = 4", "v3 = false"), SPAttributes(Map("kind"->"postcondition")))
   val o2 = Operation("o2", List(o2Pre, o2Post))
 
   val o3Pre = PropositionCondition("v2 == hej", List(), SPAttributes(Map("kind"->"precondition")))
@@ -128,12 +171,16 @@ trait Defs extends RelationFinderAlgorithms {
   val o4Pre = PropositionCondition("v2 == då && v1 == 2", List("v1 := 4"), SPAttributes(Map("kind"->"precondition")))
   val o4Post = PropositionCondition(AlwaysTrue, List("v2 = klar"), SPAttributes(Map("kind"->"postcondition")))
   val o4 = Operation("o4", List(o4Pre, o4Post))
+
+  val o5Pre = PropositionCondition("v3 == false", List("v3 = true"), SPAttributes(Map("kind"->"precondition")))
+  val o5Post = PropositionCondition(AlwaysTrue, List("v3 = false"), SPAttributes(Map("kind"->"postcondition")))
+  val o5 = Operation("o5", List(o5Pre, o5Post))
   
 
 
 
-  val state = State(Map(v1.id -> 0, v2.id -> "hej", v3.id -> false, o1.id -> "i", o2.id -> "i", o3.id -> "i", o4.id -> "i"))
-  val state2 = State(Map(v1.id -> 2, v2.id -> "då", v3.id -> false, o1.id -> "i", o2.id -> "i", o3.id -> "i", o4.id -> "i"))
+  val state = State(Map(v1.id -> 0, v2.id -> "hej", v3.id -> false, o1.id -> "i", o2.id -> "i", o3.id -> "i", o4.id -> "i", o5.id -> "i"))
+  val state2 = State(Map(v1.id -> 2, v2.id -> "då", v3.id -> false, o1.id -> "i", o2.id -> "i", o3.id -> "i", o4.id -> "i", o5.id -> "i"))
 
-  val vm=Map(v1.id -> v1.inDomain, v2.id -> v2.inDomain, v3.id -> v3.inDomain, o1.id -> o1.inDomain, o2.id -> o2.inDomain, o3.id -> o3.inDomain, o4.id -> o4.inDomain)
+  val vm: Map[ID, (SPAttributeValue)=>Boolean]=Map(v1.id -> v1.inDomain, v2.id -> v2.inDomain, v3.id -> v3.inDomain, o1.id -> o1.inDomain, o2.id -> o2.inDomain, o3.id -> o3.inDomain, o4.id -> o4.inDomain, o5.id -> o5.inDomain)
 }

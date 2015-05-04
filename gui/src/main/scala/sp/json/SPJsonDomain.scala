@@ -285,7 +285,7 @@ trait SPJsonDomain {
   implicit val stateFormat = jsonFormat1(State)
   implicit val statesFormat = jsonFormat1(States)
   implicit val enabledStateFormat = jsonFormat2(EnabledStates)
-  implicit val enabledStateMapFormat = jsonFormat1(EnabledStatesMap)
+  implicit val enabledStateMapFormat = jsonFormat2(EnabledStatesMap)
 
   implicit object relationMapFormat extends RootJsonFormat[RelationMap] {
     def write(x: RelationMap) = {

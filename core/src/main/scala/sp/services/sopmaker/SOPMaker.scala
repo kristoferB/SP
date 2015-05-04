@@ -43,7 +43,7 @@ trait MakeASop extends Groupify with Sequencify {
 
 
     val groupAlternatives = groupify(groupOthers, relations, _.isInstanceOf[Alternative], Alternative.apply)
-    val groupParallel = groupify(groupAlternatives, relations, _.isInstanceOf[Parallel], Parallel.apply)
+    val groupParallel = groupify(groupAlternatives, relations, x => x.isInstanceOf[Parallel] || x.isInstanceOf[Arbitrary], Parallel.apply)
     val result = sequencify(groupParallel, relations, base)
 
     addMissingRelations(result, relations)

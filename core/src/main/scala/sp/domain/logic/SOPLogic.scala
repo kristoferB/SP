@@ -245,6 +245,10 @@ case object SOPLogic {
         val temp = relOrder(s).map{case (id1, id2) => List(id1 -> EQ(id2, "i"), id2 -> EQ(id1, "i"))}
         temp.getOrElse(List())
       }
+      case (_, s: Arbitrary) => {
+        val temp = relOrder(s).map{case (id1, id2) => List(id1 -> NEQ(id2, "e"), id2 -> NEQ(id1, "e"))}
+        temp.getOrElse(List())
+      }
       case (_, s: Sequence) => {
         val temp = relOrder(s).map{case (id1, id2) => List(id2 -> EQ(id1, "f"))}
         temp.getOrElse(List())
