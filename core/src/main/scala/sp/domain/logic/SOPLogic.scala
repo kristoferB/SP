@@ -220,7 +220,7 @@ case object SOPLogic {
       o2 <- ops if (o1 != o2 && !sopRels.contains(Set(o1, o2)))
       rel <- relations.get(Set(o1, o2))
     } yield Set(o1, o2) -> rel).toMap
-    val cond = makeProps(missing)
+    val cond = makeProps(missing, relations)
 
     val otherOps = relations.keys flatMap(_ map(id => id)) filter(id => !ops.contains(id)) toSet
     val missingOthers = (for {
@@ -228,7 +228,7 @@ case object SOPLogic {
       o2 <- otherOps
       rel <- relations.get(Set(o1, o2))
     } yield Set(o1, o2) -> rel).toMap
-    val otherCond = makeProps(missingOthers)
+    val otherCond = makeProps(missingOthers, relations)
 
     val conds = makeConds(cond, otherCond)
 
@@ -237,12 +237,16 @@ case object SOPLogic {
     sops map(updateSOP(_, conds))
   }
 
-  def makeProps(missing: Map[Set[ID], SOP]): Map[ID, Proposition] = {
+  def makeProps(missing: Map[Set[ID], SOP], relations: Map[Set[ID], SOP]): Map[ID, Proposition] = {
     val res = missing.toList flatMap {
       case (_, s: Parallel) => List()
       case (_, s: Other) => List()
       case (_, s: Alternative) => {
         val temp = relOrder(s).map{case (id1, id2) => List(id1 -> EQ(id2, "i"), id2 -> EQ(id1, "i"))}
+        temp.getOrElse(List())
+      }
+      case (_, s: Arbitrary) => {
+        val temp = relOrder(s).map{case (id1, id2) => List(id1 -> NEQ(id2, "e"), id2 -> NEQ(id1, "e"))}
         temp.getOrElse(List())
       }
       case (_, s: Sequence) => {
@@ -255,11 +259,41 @@ case object SOPLogic {
       }
     }
 
-    res.foldLeft(Map[ID, AND]()){case (aggr, (id, prop)) =>
+    val temp = res.foldLeft(Map[ID, AND]()){case (aggr, (id, prop)) =>
       if (!aggr.contains(id)) aggr + (id -> AND(List(prop)))
       else aggr + (id -> AND(prop :: aggr(id).props))
     }
+
+    val filteredMap = temp.map{case (id, and) =>
+      val seqs = and.props.flatMap{
+        case EQ(SVIDEval(id), ValueHolder(StringPrimitive("f"))) => Some(id)
+        case _ => None
+      }
+
+      val removeIds = for {
+        id1 <- seqs
+        id2 <- seqs
+        rels <- relations.get(Set(id1, id2)) if rels == Sequence(id1, id2)
+      } yield {
+        println(s"remove $id1")
+        id1
+      }
+
+
+        val filteredProps = and.props.filterNot{
+          case EQ(SVIDEval(id), _) => removeIds.contains(id)
+          case _ => false
+        }
+        id -> AND(filteredProps)
+    }
+
+    println(s"temp: $temp" )
+    println(s"Filtered: $filteredMap" )
+
+    filteredMap
+
   }
+
 
   def makeConds(c1: Map[ID, Proposition], c2: Map[ID, Proposition]): Map[ID, List[Condition]] = {
     c1 map{ case (id, prop) =>

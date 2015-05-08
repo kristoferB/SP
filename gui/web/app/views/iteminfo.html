@@ -2,7 +2,7 @@
   <tbody>
 
     <tr ng-if="showItemName || edit">
-      <td class="col-md-1">name:</td>
+      <td class="col-md-1">{{item.isa}}:</td>
       <td class="col-md-9" ng-if="!edit">{{item.name}}</td>
       <td class="col-md-9" ng-if="edit">
         <ng-form name="textForm">
@@ -11,34 +11,23 @@
         </ng-form>
       </td>
     </tr>
-
-    <tr ng-repeat="(key, prop) in item | filterElements">
-      <td class="col-md-1" >{{key}}:</td>
-      <td class="col-md-9">
-        <attr-grid attr-obj="item" key="key" edit="edit" level=1 item="item"></attr-grid>
-      </td>
-    </tr>
-
-    <tr ng-repeat="(key, prop) in item.attributes | filterElements">
-      <td class="col-md-1">
-        <deleteable-key attr-obj="item.attributes" element="key" key="key" edit="edit"></deleteable-key>
-      </td>
-      <td class="col-md-9">
-        <attr-grid key="key" attr-obj="item.attributes" edit="edit" level=1 item="item"></attr-grid>
-      </td>
-    </tr>
-
-    <tr>
-      <td class="col-md-1">type:</td>
-      <td class="col-md-9">{{item.isa}}</td>
-    </tr>
     <tr>
       <td class="col-md-1">id:</td>
       <td class="col-md-9">{{item.id}}</td>
     </tr>
 
+    <tr ng-repeat="(key, prop) in item | filterElements">
+      <td class="col-md-1" >
+        {{key}}:
+      </td>
+      <td class="col-md-9">
+        <attr-grid attr-obj="item" key="key" edit="edit" level=1 item="item"></attr-grid>
+      </td>
+    </tr>
+
+
+
     <tr ng-if="edit">
-      <td></td>
       <td>
         <div class="btn-group" dropdown>
           <button type="button" class="btn btn-sm btn-default dropdown-toggle">

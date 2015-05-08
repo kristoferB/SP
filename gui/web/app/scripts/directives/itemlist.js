@@ -16,8 +16,11 @@ angular.module('spGuiApp')
     },
     controller: function($scope) {
       $scope.filteredAndOrderedItems = [];
+
       $scope.spTalker = spTalker;
       $scope.itemListSvc = itemListSvc;
+      $scope.tabSvc = tabSvc;
+
       $scope.showableColumns = ['name', 'conditions'];
       $scope.selection = ['name'];
       $scope.attrSelection = [];
@@ -33,9 +36,6 @@ angular.module('spGuiApp')
       $scope.itemKinds = ITEM_KINDS;
       $scope.thisScope = $scope;
       $scope.rootItem = false;
-      $scope.tabSvc = tabSvc;
-
-      var filtered;
 
       $scope.collapseAll = function() {
         $scope.$broadcast('collapseAll');
@@ -46,8 +46,49 @@ angular.module('spGuiApp')
         $scope.getFilterAndOrderItems();
       };
 
+      // Pagination
+      $scope.currentPage = 0;
+      $scope.pageSize = 20;
+      $scope.pageSizes = [10, 20, 50, 100];
+      $scope.numberOfPages = 0;
+
+      function paginate() {
+        $timeout(setProperPage);
+        $timeout(startFrom);
+        $timeout(limitTo);
+        $timeout(serveResult);
+      }
+
+      function setProperPage() {
+        if($scope.currentPage > 0 && $scope.currentPage >= $scope.numberOfPages) {
+          $scope.currentPage = $scope.numberOfPages - 1;
+        }
+      }
+
+      $scope.firstPage = function() {
+        $scope.currentPage = 0;
+        paginate();
+      };
+
+      $scope.previousPage = function() {
+        $scope.currentPage = $scope.currentPage - 1;
+        paginate();
+      };
+
+      $scope.nextPage = function() {
+        $scope.currentPage = $scope.currentPage + 1;
+        paginate();
+      };
+
+      $scope.lastPage = function() {
+        $scope.currentPage = $scope.numberOfPages-1;
+        paginate();
+      };
+
+      var children, filtered, ordered, startedFrom, limited;
+
       $scope.getFilterAndOrderItems = function() {
-        var children = [];
+        children = [];
         if($scope.rootItem) {
           itemListSvc.getChildren($scope.rootItem, children);
         } else {
@@ -55,8 +96,10 @@ angular.module('spGuiApp')
             return [value];
           });
         }
-        filtered = $filter('filter')(children, itemFilter);
+        $timeout(filter);
         $timeout(order);
+        paginate();
+        $scope.$broadcast('itemsOrdered');
       };
 
       if(spTalker.itemsRead) {
@@ -67,15 +110,30 @@ angular.module('spGuiApp')
         $scope.getFilterAndOrderItems();
       });
 
+      function filter() {
+        filtered = $filter('filter')(children, itemFilter);
+        $scope.numberOfPages = Math.ceil(filtered.length/$scope.pageSize);
+      }
+
       function order() {
-        var ordered = $filter('orderBy')(filtered, $scope.predicate, $scope.reverse);
+        ordered = $filter('orderBy')(filtered, $scope.predicate, $scope.reverse);
+      }
+
+      function startFrom() {
+        startedFrom = ordered.slice($scope.currentPage * $scope.pageSize);
+      }
+
+      function limitTo() {
+        limited = $filter('limitTo')(startedFrom, $scope.pageSize);
+      }
+
+      function serveResult() {
         while($scope.filteredAndOrderedItems.length > 0) {
           $scope.filteredAndOrderedItems.pop()
         }
-        while(ordered.length > 0) {
-          $scope.filteredAndOrderedItems.unshift(ordered.pop());
+        while(limited.length > 0) {
+          $scope.filteredAndOrderedItems.unshift(limited.pop());
         }
-        $scope.$broadcast('itemsOrdered');
       }
 
       $scope.$watch(
@@ -260,7 +318,7 @@ angular.module('spGuiApp')
           $scope.predicate = column;
           $scope.reverse = column === 'version';
         }
-        order();
+        $scope.getFilterAndOrderItems();
       };
 
       $scope.toggleSelection = function toggleSelection(column, selections, $event) {

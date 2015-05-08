@@ -27,7 +27,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
     case Request(_, attr) => {
       val reply = sender
       extract(attr) match {
-        case Some((model, opsID, init, groups, iterations, goal)) => {
+        case Some((model, opsID, init, groups, iterations, goal, duplicate)) => {
 
           // Retreive from model
           // todo: Handle this in a more general way soon
@@ -63,11 +63,26 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
 //                println(s"condMap: $condMap ")
 
                 val ops = opsIDAble map (_.asInstanceOf[Operation])
+                // test for duplication of operations
+                val opsWithDuplicate = if (duplicate > 1){
+                  val svAttr = Attr("stateVariable"->MapPrimitive(Map(
+                    "range"-> MapPrimitive(Map("start"->0, "end"-> duplicate, "step"->1)),
+                    "init" -> 0
+                  )))
+                  val countVars = ops.map(o => o -> Thing(o.name+"Counter", svAttr)) toMap
+                  val newOps = ops.map{ o =>
+                    
+                  }
+                } else ops
+
+
+
                 val svs = svsIDAble map (_.asInstanceOf[Thing])
                 val olderRels = List[RelationResult]() //olderRelsIDAble map (_.asInstanceOf[RelationResult]) sortWith (_.modelVersion > _.modelVersion)
 
                 if (olderRels.nonEmpty && olderRels.head.modelVersion == mVersion) reply ! olderRels.head
                 else {
+
 
 
                   import sp.domain.logic.StateVariableLogic._
@@ -155,7 +170,8 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
       val groups = attr.getAsList("groups").getOrElse(List())
       val goalState = attr.getStateAttr("goal")
       val iterations = attr.getAsInt("iteration").getOrElse(100)
-      (model, ops, initState, groups, iterations, goalState)
+      val duplicate = attr.getAsInt("duplicate").getOrElse(1)
+      (model, ops, initState, groups, iterations, goalState, duplicate)
     }
   }
 

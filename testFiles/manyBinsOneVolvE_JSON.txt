@@ -1,0 +1,304 @@
+[ {
+  "isa" : "Thing",
+  "name" : "vBins",
+  "attributes" : {
+    "low" : "0",
+    "high" : "4",
+    "markings" : "(vBins==1)",
+    "stateVariable" : {
+      "domain" : [ "undefined", "local", "server", "serverToLocal", "undefToLocal" ],
+      "init" : "0",
+      "goal" : "1"
+    }
+  }
+}, {
+  "isa" : "Thing",
+  "name" : "vVolvE_pos",
+  "attributes" : {
+    "low" : "0",
+    "high" : "8",
+    "markings" : "(vVolvE_pos==5)",
+    "stateVariable" : {
+      "domain" : [ "atLift", "onLift_To_atLift", "atLift_To_onLift", "atLiftLoading", "atLiftUnLoading", "onLift", "inArea_init", "inArea_mid", "inArea_last" ],
+      "init" : "5",
+      "goal" : "5"
+    }
+  }
+}, {
+  "isa" : "Thing",
+  "name" : "vStopPos",
+  "attributes" : {
+    "low" : "0",
+    "high" : "2",
+    "markings" : "(vStopPos==1)",
+    "stateVariable" : {
+      "domain" : [ "undefined", "local", "beingProvided" ],
+      "init" : "0",
+      "goal" : "1"
+    }
+  }
+}, {
+  "isa" : "Thing",
+  "name" : "vVolvE_car",
+  "attributes" : {
+    "low" : "0",
+    "high" : "2",
+    "markings" : "(vVolvE_car==0)",
+    "stateVariable" : {
+      "domain" : [ "empty", "emptyBin", "fullBin" ],
+      "init" : "0",
+      "goal" : "0"
+    }
+  }
+}, {
+  "isa" : "Thing",
+  "name" : "vStopZon",
+  "attributes" : {
+    "low" : "0",
+    "high" : "3",
+    "markings" : "(vStopZon==1)",
+    "stateVariable" : {
+      "domain" : [ "undefined", "local", "server", "serverToLocal" ],
+      "init" : "2",
+      "goal" : "1"
+    }
+  }
+}, {
+  "isa" : "Thing",
+  "name" : "vQuad",
+  "attributes" : {
+    "low" : "0",
+    "high" : "5",
+    "markings" : "(vQuad==5)",
+    "stateVariable" : {
+      "domain" : [ "planningFlight", "flightPrepared", "detectingBins", "flightPerformed", "providingBinPos", "idle" ],
+      "init" : "5",
+      "goal" : "5"
+    }
+  }
+}, {
+  "isa" : "Thing",
+  "name" : "vPaths",
+  "attributes" : {
+    "low" : "0",
+    "high" : "2",
+    "markings" : "(vPaths==1)",
+    "stateVariable" : {
+      "domain" : [ "undefined", "local", "beingProvided" ],
+      "init" : "0",
+      "goal" : "1"
+    }
+  }
+}, {
+  "isa" : "Thing",
+  "name" : "vLift_car",
+  "attributes" : {
+    "low" : "0",
+    "high" : "3",
+    "markings" : "(vLift_car==3)",
+    "stateVariable" : {
+      "domain" : [ "empty", "emptyBin", "fullBin", "VolvE" ],
+      "init" : "3",
+      "goal" : "3"
+    }
+  }
+}, {
+  "isa" : "Thing",
+  "name" : "vTruck_pos",
+  "attributes" : {
+    "low" : "0",
+    "high" : "2",
+    "markings" : "(vTruck_pos==1)",
+    "stateVariable" : {
+      "domain" : [ "onItsWayToStopZon", "stoppedInStopZon", "somewhere" ],
+      "init" : "2",
+      "goal" : "1"
+    }
+  }
+}, {
+  "isa" : "Thing",
+  "name" : "vMap",
+  "attributes" : {
+    "low" : "0",
+    "high" : "3",
+    "markings" : "(vMap==1)",
+    "stateVariable" : {
+      "domain" : [ "undefined", "local", "server", "serverToLocal" ],
+      "init" : "2",
+      "goal" : "1"
+    }
+  }
+}, {
+  "isa" : "Thing",
+  "name" : "vLift_pos",
+  "attributes" : {
+    "low" : "0",
+    "high" : "1",
+    "markings" : "(vLift_pos==1)",
+    "stateVariable" : {
+      "domain" : [ "processing", "bottom" ],
+      "init" : "1",
+      "goal" : "1"
+    }
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "detectBins_Quad",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vQuad==1)",
+    "preAction" : [ "vQuad=2" ],
+    "postGuard" : "(vQuad==2)",
+    "postAction" : [ "vQuad=3" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "calcPaths_PP",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vPaths==0)&(vStopPos==1)&(vMap==1)&(vBins==1)",
+    "preAction" : [ "vPaths=2" ],
+    "postGuard" : "(vPaths==2)",
+    "postAction" : [ "vPaths=1" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "emptyBin_Lift",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "((vLift_pos==1)&(vLift_car==2)) & (vVolvE_pos == 0)",
+    "preAction" : [ "vLift_pos=0", "vLift_car=1" ],
+    "postGuard" : "(vLift_pos==0)&(vLift_car==1)",
+    "postAction" : [ "vLift_pos=1" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "unloadItself_VolvE",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vVolvE_pos==5)&(vLift_car==3)&(vTruck_pos==1)",
+    "preAction" : [ "vVolvE_pos=1", "vLift_car=0" ],
+    "postGuard" : "(vVolvE_pos==1)&(vLift_car==0)",
+    "postAction" : [ "vVolvE_pos=0" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "executePath_init_VolvE",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "((vVolvE_pos==0)&(vVolvE_car==0)&(vPaths==1)) & (vLift_car == 0)",
+    "preAction" : [ "vVolvE_pos=6", "vVolvE_car=2" ],
+    "postGuard" : "(vVolvE_pos==6)&(vVolvE_car==2)",
+    "postAction" : [ "vVolvE_pos=0" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "provideBinPos_Quad",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "((vBins==0)) & ((vQuad==3))",
+    "preAction" : [ "vQuad=4", "vBins=4" ],
+    "postGuard" : "((vBins==4)) & ((vQuad==4))",
+    "postAction" : [ "vQuad=5", "vBins=1" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "unloadBin_VolvE",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vVolvE_pos==0)&(vVolvE_car==2)&(vLift_car==0)",
+    "preAction" : [ "vVolvE_pos=4", "vVolvE_car=0", "vLift_car=2" ],
+    "postGuard" : "(vVolvE_pos==4)&(vVolvE_car==0)&(vLift_car==2)",
+    "postAction" : [ "vVolvE_pos=0" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "executePath_last_VolvE",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vVolvE_pos==0)&(vVolvE_car==1)&(vPaths==1)",
+    "preAction" : [ "vVolvE_pos=8", "vVolvE_car=0" ],
+    "postGuard" : "(vVolvE_pos==8)&(vVolvE_car==0)",
+    "postAction" : [ "vVolvE_pos=0" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "getStopPos_Truck",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vStopPos==0)&(vTruck_pos==1)",
+    "preAction" : [ "vStopPos=2" ],
+    "postGuard" : "(vStopPos==2)",
+    "postAction" : [ "vStopPos=1" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "loadItself_VolvE",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vVolvE_pos==0)&(vLift_car==0)&(vVolvE_car==0)",
+    "preAction" : [ "vVolvE_pos=2", "vLift_car=3" ],
+    "postGuard" : "(vVolvE_pos==2)&(vLift_car==3)",
+    "postAction" : [ "vVolvE_pos=5" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "executePath_mid_VolvE",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vVolvE_pos==0)&(vVolvE_car==1)&(vPaths==1)",
+    "preAction" : [ "vVolvE_pos=7", "vVolvE_car=2" ],
+    "postGuard" : "(vVolvE_pos==7)&(vVolvE_car==2)",
+    "postAction" : [ "vVolvE_pos=0" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "getMap_Remote",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "((vMap==2)) & ((vLift_car != 3 | (vVolvE_pos != 5 | (vTruck_pos != 2 | vStopZon != 3))))",
+    "preAction" : [ "vMap=3" ],
+    "postGuard" : "(vMap==3)",
+    "postAction" : [ "vMap=1" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "planFlight_Quad",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vQuad==5)&(vMap==1)&(vStopPos==1)&(vBins!=1)",
+    "preAction" : [ "vQuad=0" ],
+    "postGuard" : "(vQuad==0)",
+    "postAction" : [ "vQuad=1" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "getStopZon_Remote",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "((vStopZon==2)) & (vMap != 3)",
+    "preAction" : [ "vStopZon=3" ],
+    "postGuard" : "(vStopZon==3)",
+    "postAction" : [ "vStopZon=1" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "loadBin_VolvE",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "((vVolvE_pos==0)&(vVolvE_car==0)&(vLift_car==1)) & (vLift_pos == 1)",
+    "preAction" : [ "vVolvE_pos=3", "vVolvE_car=1", "vLift_car=0" ],
+    "postGuard" : "(vVolvE_pos==3)&(vVolvE_car==1)&(vLift_car==0)",
+    "postAction" : [ "vVolvE_pos=0" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "position_Truck",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vTruck_pos==2)&(vStopZon==1)",
+    "preAction" : [ "vTruck_pos=0" ],
+    "postGuard" : "(vTruck_pos==0)",
+    "postAction" : [ "vTruck_pos=1" ]
+  }
+} ]

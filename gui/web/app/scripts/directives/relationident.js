@@ -59,12 +59,13 @@ angular.module('spGuiApp')
           });
 
           _.each(scope.things, function(thing, id){
-            var initValue = false;
-            if(scope.initState[id] && scope.initState[id] !== '')
+            var initValue = 0;
+            if(scope.initState[id] !== '')
               initValue = scope.initState[id];
+            else console.log("non init value " + scope.initState[id])
             initState.push({id: id, value: initValue });
 
-            if(scope.goalState[id] && scope.goalState[id] !== '')
+            if(scope.goalState[id] !== '')
               goalState.push({id: id, value: scope.goalState[id] });
 
           });

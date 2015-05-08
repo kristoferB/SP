@@ -132,7 +132,7 @@ trait ModelActorState  {
     lazy val items = idMap.values.toSet
   }
 
-  var state = ModelState(1, Map(), Map(), Attr(), "noName")
+  var state = ModelState(0, Map(), Map(), Attr(), "noName")
 
 
   def queryMessage(reply: ActorRef, mess: ModelQuery) = {
@@ -277,7 +277,7 @@ class ModelView(val model: ID, version: Long, name: String) extends PersistentVi
   override def viewId: String = ID.newID.toString()
 
   override def preStart() {
-    self ! Recover(toSequenceNr = version-1)
+    self ! Recover(toSequenceNr = version)
   }
 
   override def autoUpdate = false

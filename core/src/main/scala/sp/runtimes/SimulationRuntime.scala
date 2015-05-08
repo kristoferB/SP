@@ -46,7 +46,7 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
 
 
           val stateVars = things.map(sv => sv.id -> sv.inDomain).toMap ++ createOpsStateVars(ops)
-          implicit val props = EvaluateProp(stateVars, Set())
+          implicit val props = EvaluateProp(stateVars, Set(), ThreeStateDefinition)
 
           val newState = (for {
             id <- attr.getAsID("execute")

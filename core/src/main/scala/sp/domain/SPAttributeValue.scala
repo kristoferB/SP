@@ -3,7 +3,6 @@ package sp.domain
 // wrapper for jodatime
 import com.github.nscala_time.time.Imports._
 
-
 sealed abstract class SPAttributeValue {
   def asString: Option[String] = SPAttributeValue.this match {
     case StringPrimitive(s) => Some(s)

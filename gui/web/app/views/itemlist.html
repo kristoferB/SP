@@ -36,7 +36,7 @@
       </ul>
     </div>
     <!--<button type="button" class="btn btn-default" ng-click="refresh()" title="Refresh"><span class="glyphicon glyphicon-refresh"></span></button>-->
-    <button type="button" class="btn btn-default" ng-click="showFilterInputs = !showFilterInputs" title="Filter"><span class="glyphicon glyphicon-filter"></span></button>
+    <button type="button" class="btn btn-default" ng-click="showFilterInputs = !showFilterInputs; search = {name: '', attributes: {}};" title="Filter"><span class="glyphicon glyphicon-filter"></span></button>
     <button type="button" class="btn btn-default" ng-click="collapseAll()"><span class="glyphicon glyphicon-align-justify" title="Collapse all"></span></button>
     <button type="button" class="btn btn-default" ng-click="copyItems()" ng-show="oneOrMoreItems"><span class="glyphicon glyphicon-file" title="Copy selected"></span></button>
     <button type="button" class="btn btn-default" ng-click="deleteItems()" ng-show="oneOrMoreItems"><span class="glyphicon glyphicon-trash" title="Delete selected"></span></button>
@@ -69,21 +69,21 @@
               <span class="glyphicon" ng-class="{'glyphicon-sort-by-alphabet': predicate === 'isa' && !reverse, 'glyphicon-sort-by-alphabet-alt': predicate === 'isa' && reverse}"></span>
               isa
             </a><br />
-            <input ng-if="showFilterInputs" type="text" ng-model="search['isa']" />
+            <input class="form-control input-sm" ng-if="showFilterInputs" type="text" ng-model="search['isa']" />
           </th>
           <th ng-repeat="column in selection" >
             <a ng-click="sort(column)">
               <span class="glyphicon" ng-class="{'glyphicon-sort-by-alphabet': predicate === column && !reverse, 'glyphicon-sort-by-alphabet-alt': predicate === column && reverse}"></span>
               {{column}}
             </a><br />
-            <input ng-if="showFilterInputs && column !== 'stateVariables'" type="text" ng-model="search[column]" />
+            <input class="form-control input-sm" ng-if="showFilterInputs && column !== 'stateVariables'" type="text" ng-model="search[column]" />
           </th>
           <th ng-repeat="attrColumn in attrSelection">
             <a ng-click="sort('attributes.'+attrColumn)">
               <span class="glyphicon" ng-class="{'glyphicon-sort-by-alphabet': predicate === ('attributes.'+attrColumn) && !reverse, 'glyphicon-sort-by-alphabet-alt': predicate === ('attributes.'+attrColumn) && reverse}"></span>
               {{attrColumn}}
             </a><br />
-            <input ng-if="showFilterInputs" type="text" ng-model="search['attributes'][attrColumn]" />
+            <input class="form-control input-sm" ng-if="showFilterInputs" type="text" ng-model="search['attributes'][attrColumn]" />
           </th>
           <th ng-if="!windowStorage.itemTree">actions</th>
         </tr>
@@ -98,3 +98,12 @@
     <item-table parent-item="spTalker.activeSPSpec" served-items="filteredAndOrderedItems" alter-checked-array="alterCheckedArray" selection="selection" attr-selection="attrSelection" item-list-scope="thisScope"></item-table>
   </div> <!-- end of content-wrapper -->
 </div> <!-- end of content -->
+
+<div style="margin-top: 10px;" class="text-center">
+  <button class="btn btn-default" ng-disabled="currentPage == 0" ng-click="firstPage()">First</button>
+  <button class="btn btn-default glyphicon glyphicon-chevron-left" ng-disabled="currentPage == 0" ng-click="previousPage()"></button>
+  {{currentPage+1}}/{{numberOfPages}}
+  <button class="btn btn-default glyphicon glyphicon-chevron-right" ng-disabled="currentPage >= numberOfPages - 1" ng-click="nextPage()"></button>
+  <button class="btn btn-default" ng-disabled="currentPage >= numberOfPages - 1" ng-click="lastPage()">Last</button>
+  <select class="form-control input-sm pull-right" style="width:auto;" ng-options="p as p for p in pageSizes" ng-model="pageSize" ng-change="getFilterAndOrderItems()" ></select>
+</div>

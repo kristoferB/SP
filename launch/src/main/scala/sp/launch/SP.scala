@@ -38,6 +38,16 @@ object SP extends App {
   serviceHandler ! RegisterService("DelmiaV5Service",
     system.actorOf(DelmiaV5Service.props(modelHandler), "DelmiaV5Service"))
 
+  serviceHandler ! RegisterService("ImportKUKAFileService",
+    system.actorOf(ImportKUKAFileService.props(modelHandler), "ImportKUKAFileService"))
+
+  serviceHandler ! RegisterService("VCImportService",
+    system.actorOf(VCImportService.props(modelHandler), "VCImportService"))
+
+  import sp.jsonImporter._
+  serviceHandler ! RegisterService("ImportJSONService",
+    system.actorOf(ImportJSONService.props(modelHandler), "ImportJSONService"))
+
   import sp.merger._
   serviceHandler ! RegisterService("ProductAbilityMerger",
     system.actorOf(ProductAbilityMerger.props(modelHandler), "ProductAbilityMerger"))

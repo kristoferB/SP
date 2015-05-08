@@ -1,8 +1,5 @@
 package sp.json
 
-
-
-
 trait SPJsonDomain {
 
   import sp.domain._
@@ -75,7 +72,7 @@ trait SPJsonDomain {
           case LongPrimitive(x) => x.toJson
           case DoublePrimitive(x) => x.toJson
           case BoolPrimitive(x) => x.toJson
-          case DatePrimitive(x) => x.toString().toJson
+          case DatePrimitive(x) => x.toString("yyyy-MM-dd'T'HH:mm:ss").toJson //x.toString("yyyy-MM-dd'T'HH:mm:ssZZ").toJson To add timezon
           case DurationPrimitive(x) => x.getMillis().toJson
           case IDPrimitive(x) => x.toJson
           case ListPrimitive(x) => x.toJson
@@ -96,6 +93,9 @@ trait SPJsonDomain {
               case Some(id) => IDPrimitive(id)
               case None => {
                 if (x == "true" || x == "false") BoolPrimitive(x.toBoolean)
+                else if ({try{ JsNumber(x);true;} catch {case e: NumberFormatException => false}}){
+                  read(JsNumber(x))
+                }
                 else StringPrimitive(x)
               }
             }
@@ -240,6 +240,10 @@ trait SPJsonDomain {
       case x: NOT => JsObject("isa"->"NOT".toJson, "prop"-> x.p.toJson)
       case x: EQ => JsObject("isa"->"EQ".toJson, "left"-> x.left.toJson, "right" -> x.right.toJson)
       case x: NEQ => JsObject("isa"->"NEQ".toJson, "left"-> x.left.toJson, "right" -> x.right.toJson)
+      case x: GREQ => JsObject("isa"->"GREQ".toJson, "left"-> x.left.toJson, "right" -> x.right.toJson)
+      case x: LEEQ => JsObject("isa"->"LEEQ".toJson, "left"-> x.left.toJson, "right" -> x.right.toJson)
+      case x: GR => JsObject("isa"->"GR".toJson, "left"-> x.left.toJson, "right" -> x.right.toJson)
+      case x: LE => JsObject("isa"->"LE".toJson, "left"-> x.left.toJson, "right" -> x.right.toJson)
       case AlwaysTrue => JsObject("isa"->"alwaysTrue".toJson)
       case AlwaysFalse => JsObject("isa"->"alwaysFalse".toJson)
       case _ => throw new SerializationException(s"Could not convert that type of proposition $p")
@@ -253,7 +257,11 @@ trait SPJsonDomain {
           case JsString("OR") => value.convertTo[OR]
           case JsString("NOT") => value.convertTo[NOT]
           case JsString("EQ") => value.convertTo[EQ]
-          case JsString("NEW") => value.convertTo[NEQ]
+          case JsString("NEQ") => value.convertTo[NEQ]
+//          case JsString("GREQ") => value.convertTo[GREQ]
+//          case JsString("LEEQ") => value.convertTo[LEEQ]
+//          case JsString("GR") => value.convertTo[GR]
+//          case JsString("LE") => value.convertTo[LE]
           case _ => throw new DeserializationException(s"IDAble could not be read: $value")
         }
       }
@@ -264,8 +272,8 @@ trait SPJsonDomain {
     }
   }
 
-  implicit val actionFormat = jsonFormat2(Action)
-  implicit val pcFormat = jsonFormat3(PropositionCondition)
+  implicit val actionFormat = jsonFormat2(Action.apply)
+  implicit val pcFormat = jsonFormat3(PropositionCondition.apply)
 
 
 
@@ -284,7 +292,7 @@ trait SPJsonDomain {
   implicit val stateFormat = jsonFormat1(State)
   implicit val statesFormat = jsonFormat1(States)
   implicit val enabledStateFormat = jsonFormat2(EnabledStates)
-  implicit val enabledStateMapFormat = jsonFormat1(EnabledStatesMap)
+  implicit val enabledStateMapFormat = jsonFormat2(EnabledStatesMap)
 
   implicit object relationMapFormat extends RootJsonFormat[RelationMap] {
     def write(x: RelationMap) = {

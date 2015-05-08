@@ -1,0 +1,77 @@
+[ {
+  "isa" : "Thing",
+  "name" : "vA",
+  "attributes" : {
+    "low" : "0",
+    "high" : "6",
+    "markings" : "(vA==6)",
+    "stateVariable" : {
+      "domain" : [ "0", "1", "2", "3", "4", "5", "6" ],
+      "init" : "0",
+      "goal" : "6"
+    }
+  }
+}, {
+  "isa" : "Thing",
+  "name" : "vB",
+  "attributes" : {
+    "low" : "0",
+    "high" : "4",
+    "markings" : "(vB==4)",
+    "stateVariable" : {
+      "domain" : [ "0", "1", "2", "3", "4" ],
+      "init" : "0",
+      "goal" : "4"
+    }
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "one_Alpha",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vA==0)",
+    "preAction" : [ "vA=1" ],
+    "postGuard" : "(vA==1)",
+    "postAction" : [ "vA=2" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "two_Alpha",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "((vA==2)) & (vB != 3)",
+    "preAction" : [ "vA=3" ],
+    "postGuard" : "(vA==3)",
+    "postAction" : [ "vA=4" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "one_Beta",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vB==0)",
+    "preAction" : [ "vB=1" ],
+    "postGuard" : "(vB==1)",
+    "postAction" : [ "vB=2" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "two_Beta",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "((vB==2)) & (vA != 3)",
+    "preAction" : [ "vB=3" ],
+    "postGuard" : "(vB==3)",
+    "postAction" : [ "vB=4" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "three_Alpha",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vA==4)",
+    "preAction" : [ "vA=5" ],
+    "postGuard" : "(vA==5)",
+    "postAction" : [ "vA=6" ]
+  }
+} ]
