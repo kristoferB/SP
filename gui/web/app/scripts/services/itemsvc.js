@@ -103,13 +103,21 @@ angular.module('spGuiApp')
 
     factory.guardAsText = function(prop) {
       var operator;
-      if(prop.isa === 'EQ' || prop.isa === 'NEQ') {
+      if(prop.isa === 'EQ' || prop.isa === 'NEQ' || prop.isa === 'GREQ' || prop.isa === 'LEEQ' || prop.isa === 'GR' || prop.isa === 'LE') {
         var left = handleProp(prop.left),
           right = handleProp(prop.right);
         if(prop.isa === 'EQ') {
           operator = ' == ';
-        } else {
+        } else if(prop.isa === 'NEQ') {
           operator = ' != ';
+        } else if(prop.isa === 'GREQ') {
+          operator = ' >= ';
+        } else if(prop.isa === 'LEEQ') {
+          operator = ' <= ';
+        } else if(prop.isa === 'GR') {
+          operator = ' > ';
+        } else { //prop.isa === 'LE')
+          operator = ' < ';
         }
         if(left === right) {
           return '';

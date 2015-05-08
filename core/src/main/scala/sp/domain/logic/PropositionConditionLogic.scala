@@ -220,7 +220,7 @@ trait BaseParser extends JavaTokenParsers {
 //      case "" =>
 //      case "exit" =>
 //      case str: String => {
-//        println(PropositionParser.parseStr(str))
+//        println(PropositionParser().parseStr(str))
 //        //          println(PropositionParser.parseAll(PropositionParser.stateEv, str))
 //        waitEOF()
 //      }
