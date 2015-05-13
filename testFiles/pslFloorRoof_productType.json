@@ -3,11 +3,11 @@
   "name" : "vKUKA_pos",
   "attributes" : {
     "low" : "0",
-    "high" : "10",
+    "high" : "8",
     "markings" : "(vKUKA_pos==4)",
     "stateVariable" : {
-      "domain" : [ "atPallet", "atPalletWorking", "atFixture", "atFixtureWorking", "atComplete", "atStart", "startToPallet", "palletToFixture", "fixtureToStart", "fixtureToPallet", "fixtureToComplete" ],
-      "init" : "5",
+      "domain" : [ "atPallet", "atPalletWorking", "atFixture", "atFixtureWorking", "atInit", "initToPallet", "palletToFixture", "fixtureToPallet", "fixtureToInit" ],
+      "init" : "4",
       "goal" : "4"
     }
   }
@@ -16,11 +16,11 @@
   "name" : "vABB_pos",
   "attributes" : {
     "low" : "0",
-    "high" : "10",
+    "high" : "8",
     "markings" : "(vABB_pos==4)",
     "stateVariable" : {
-      "domain" : [ "atPallet", "atPalletWorking", "atFixture", "atFixtureWorking", "atComplete", "atStart", "startToPallet", "palletToFixture", "fixtureToStart", "fixtureToPallet", "fixtureToComplete" ],
-      "init" : "5",
+      "domain" : [ "atPallet", "atPalletWorking", "atFixture", "atFixtureWorking", "atInit", "initToPallet", "palletToFixture", "fixtureToPallet", "fixtureToInit" ],
+      "init" : "4",
       "goal" : "4"
     }
   }
@@ -65,73 +65,33 @@
   }
 }, {
   "isa" : "Operation",
-  "name" : "gripRoof_ABB",
+  "name" : "fixtureToPallet_KUKA",
   "conditions" : [ ],
   "attributes" : {
-    "preGuard" : "(((vABB_car==0)) & ((vABB_pos==0))) & (((((((vKUKA_pos<4 | vKUKA_pos>9)) & vKUKA_pos != 0 & vKUKA_pos != 2) | (vKUKA_car != 0 | vFixture_car != 2)) & vKUKA_pos != 1) & (vKUKA_pos != 10 | vFixture_car != 2)))",
-    "preAction" : [ "vABB_pos=1", "vABB_car=1" ],
-    "postGuard" : "((vABB_car==1)) & ((vABB_pos==1))",
-    "postAction" : [ "vABB_pos=0" ]
-  }
-}, {
-  "isa" : "Operation",
-  "name" : "palletToFixture_ABB",
-  "conditions" : [ ],
-  "attributes" : {
-    "preGuard" : "(vABB_pos==0)",
-    "preAction" : [ "vABB_pos=7" ],
-    "postGuard" : "(vABB_pos==7)",
-    "postAction" : [ "vABB_pos=2" ]
-  }
-}, {
-  "isa" : "Operation",
-  "name" : "startToPallet_KUKA",
-  "conditions" : [ ],
-  "attributes" : {
-    "preGuard" : "(vKUKA_pos==5)",
-    "preAction" : [ "vKUKA_pos=6" ],
-    "postGuard" : "(vKUKA_pos==6)",
+    "preGuard" : "(vKUKA_pos==2)",
+    "preAction" : [ "vKUKA_pos=7" ],
+    "postGuard" : "(vKUKA_pos==7)",
     "postAction" : [ "vKUKA_pos=0" ]
   }
 }, {
   "isa" : "Operation",
-  "name" : "fixtureToStart_KUKA",
+  "name" : "fixtureToInit_ABB",
   "conditions" : [ ],
   "attributes" : {
-    "preGuard" : "(vKUKA_pos==2)",
-    "preAction" : [ "vKUKA_pos=8" ],
-    "postGuard" : "(vKUKA_pos==8)",
-    "postAction" : [ "vKUKA_pos=5" ]
-  }
-}, {
-  "isa" : "Operation",
-  "name" : "startToPallet_ABB",
-  "conditions" : [ ],
-  "attributes" : {
-    "preGuard" : "(vABB_pos==5)",
-    "preAction" : [ "vABB_pos=6" ],
-    "postGuard" : "(vABB_pos==6)",
-    "postAction" : [ "vABB_pos=0" ]
-  }
-}, {
-  "isa" : "Operation",
-  "name" : "fixtureToComplete_KUKA",
-  "conditions" : [ ],
-  "attributes" : {
-    "preGuard" : "((vKUKA_pos==2)) & (vFixture_car != 0)",
-    "preAction" : [ "vKUKA_pos=10" ],
-    "postGuard" : "(vKUKA_pos==10)",
-    "postAction" : [ "vKUKA_pos=4" ]
-  }
-}, {
-  "isa" : "Operation",
-  "name" : "fixtureToComplete_ABB",
-  "conditions" : [ ],
-  "attributes" : {
-    "preGuard" : "((vABB_pos==2)) & ((((((vKUKA_pos>=4 & vKUKA_pos<=9)) | vKUKA_pos == 0 | vKUKA_pos == 2) & (vKUKA_car == 0 & vFixture_car == 2)) | (vKUKA_pos == 10 & vFixture_car == 2)))",
-    "preAction" : [ "vABB_pos=10" ],
-    "postGuard" : "(vABB_pos==10)",
+    "preGuard" : "(vABB_pos==2)",
+    "preAction" : [ "vABB_pos=8" ],
+    "postGuard" : "(vABB_pos==8)",
     "postAction" : [ "vABB_pos=4" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "gripRoof_ABB",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(((vABB_car==0)) & ((vABB_pos==0))) & (((vFixture_car != 0 | (vKUKA_car != 1 | vKUKA_pos != 1)) & vFixture_car != 2))",
+    "preAction" : [ "vABB_pos=1", "vABB_car=1" ],
+    "postGuard" : "((vABB_car==1)) & ((vABB_pos==1))",
+    "postAction" : [ "vABB_pos=0" ]
   }
 }, {
   "isa" : "Operation",
@@ -139,8 +99,8 @@
   "conditions" : [ ],
   "attributes" : {
     "preGuard" : "(vABB_pos==2)",
-    "preAction" : [ "vABB_pos=9" ],
-    "postGuard" : "(vABB_pos==9)",
+    "preAction" : [ "vABB_pos=7" ],
+    "postGuard" : "(vABB_pos==7)",
     "postAction" : [ "vABB_pos=0" ]
   }
 }, {
@@ -149,19 +109,49 @@
   "conditions" : [ ],
   "attributes" : {
     "preGuard" : "(vKUKA_pos==0)",
-    "preAction" : [ "vKUKA_pos=7" ],
-    "postGuard" : "(vKUKA_pos==7)",
+    "preAction" : [ "vKUKA_pos=6" ],
+    "postGuard" : "(vKUKA_pos==6)",
     "postAction" : [ "vKUKA_pos=2" ]
   }
 }, {
   "isa" : "Operation",
-  "name" : "fixtureToPallet_KUKA",
+  "name" : "gripFloor_KUKA",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(((vKUKA_car==0)) & ((vKUKA_pos==0))) & ((((vABB_pos>=4) | vABB_pos == 0 | vABB_pos == 2) & vFixture_car == 0))",
+    "preAction" : [ "vKUKA_pos=1", "vKUKA_car=1" ],
+    "postGuard" : "((vKUKA_car==1)) & ((vKUKA_pos==1))",
+    "postAction" : [ "vKUKA_pos=0" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "palletToFixture_ABB",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vABB_pos==0)",
+    "preAction" : [ "vABB_pos=6" ],
+    "postGuard" : "(vABB_pos==6)",
+    "postAction" : [ "vABB_pos=2" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "initToPallet_ABB",
+  "conditions" : [ ],
+  "attributes" : {
+    "preGuard" : "(vABB_pos==4)",
+    "preAction" : [ "vABB_pos=5" ],
+    "postGuard" : "(vABB_pos==5)",
+    "postAction" : [ "vABB_pos=0" ]
+  }
+}, {
+  "isa" : "Operation",
+  "name" : "fixtureToInit_KUKA",
   "conditions" : [ ],
   "attributes" : {
     "preGuard" : "(vKUKA_pos==2)",
-    "preAction" : [ "vKUKA_pos=9" ],
-    "postGuard" : "(vKUKA_pos==9)",
-    "postAction" : [ "vKUKA_pos=0" ]
+    "preAction" : [ "vKUKA_pos=8" ],
+    "postGuard" : "(vKUKA_pos==8)",
+    "postAction" : [ "vKUKA_pos=4" ]
   }
 }, {
   "isa" : "Operation",
@@ -185,22 +175,12 @@
   }
 }, {
   "isa" : "Operation",
-  "name" : "gripFloor_KUKA",
+  "name" : "initToPallet_KUKA",
   "conditions" : [ ],
   "attributes" : {
-    "preGuard" : "(((vKUKA_car==0)) & ((vKUKA_pos==0))) & ((vFixture_car == 0 & ((vABB_pos>=4) | vABB_pos == 0 | vABB_pos == 2)))",
-    "preAction" : [ "vKUKA_pos=1", "vKUKA_car=1" ],
-    "postGuard" : "((vKUKA_car==1)) & ((vKUKA_pos==1))",
+    "preGuard" : "(vKUKA_pos==4)",
+    "preAction" : [ "vKUKA_pos=5" ],
+    "postGuard" : "(vKUKA_pos==5)",
     "postAction" : [ "vKUKA_pos=0" ]
-  }
-}, {
-  "isa" : "Operation",
-  "name" : "fixtureToStart_ABB",
-  "conditions" : [ ],
-  "attributes" : {
-    "preGuard" : "(vABB_pos==2)",
-    "preAction" : [ "vABB_pos=8" ],
-    "postGuard" : "(vABB_pos==8)",
-    "postAction" : [ "vABB_pos=5" ]
   }
 } ]
