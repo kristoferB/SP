@@ -1,7 +1,7 @@
 package sp.jsonImporter
 
 import akka.actor._
-import sp.domain.logic.{ ActionParser, PropositionParser}
+import sp.domain.logic.{ActionParser, PropositionParser}
 import sp.system.messages._
 import sp.domain._
 import akka.pattern.ask
@@ -25,14 +25,12 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
       extract(attr) match {
         case Some((file, name)) => {
 
-          //          println(s"Name: $name")
+          println(s"Name: $name")
 
           for {
           //Creates a model and updates the model with "idables" parsed from the given json file
             modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(model = ID.newID,
-              name = name.flatMap(_.asString).getOrElse("noName"),
-              attributes = SPAttributes(Map("attributeTags" -> MapPrimitive(Map()),
-                "conditionGroups" -> ListPrimitive(List())))))
+              name = name.flatMap(_.asString).getOrElse("noName")))
             idables = JsonParser(file).convertTo[List[IDAble]]
             _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = idables))
 
