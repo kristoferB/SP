@@ -42,11 +42,6 @@ abstract class ServiceHelper(modelHandler: ActorRef) extends Actor {
    */
   val interface: Map[String, SPAttributeValue]
 
-  /**
-   * List attributes that is either one ID or a list of IDs that
-   * should be fetched from the model.
-   */
-  val fetchedFromModel: List[String]
 
 
 
