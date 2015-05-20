@@ -226,14 +226,6 @@ trait ServiceAPI extends SPApiHelpers {
     /{ get { complete{
       (serviceHandler ? GetServices).mapTo[List[String]]
     }}} ~
-      path(Segment) { serviceName =>
-        get {
-          (serviceHandler ! Request(service = serviceName, attributes = SPAttributes(Map())) )
-          complete {
-            serviceName
-          }
-        }
-      } ~
       path(Segment / "import") { service =>
         post {
           entity(as[spray.http.MultipartFormData]){ value =>

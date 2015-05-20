@@ -1,6 +1,7 @@
 package sp.virtcom
 
 import akka.actor._
+import sp.domain.Operation
 import sp.system.messages._
 import akka.pattern.ask
 import akka.util.Timeout
@@ -13,7 +14,6 @@ import scala.concurrent.duration._
  *
  * To add a new service:
  * Register the service (actor) to SP (actor system) [sp.launch.SP]
- * Make service selectable from gui [web/app/scripts/controllers/serviceMeny.js]
  */
 class CreateManufOpsFromProdOpsService(modelHandler: ActorRef) extends Actor {
   implicit val timeout = Timeout(1 seconds)
@@ -21,15 +21,19 @@ class CreateManufOpsFromProdOpsService(modelHandler: ActorRef) extends Actor {
   import context.dispatcher
 
   def receive = {
-    case Request(_, attr) => {
+    case Request(service, attr) => {
+      println(s"service: $service")
 
       for {
-      //Get all models in SP
-        ModelInfos(modelInfoList) <- futureWithErrorSupport[ModelInfos](modelHandler ? GetModels)
+        id <- attr.getAsID("activeModelID")
+//        modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
+        newOps = List(Operation("IamTheNewOp"))
+//        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = newOps))
 
       } yield {
-        println(s"Models in SP: ${modelInfoList.map(_.name).mkString("\n")} $attr")
+        sender ! "done"
       }
+
 
     }
 

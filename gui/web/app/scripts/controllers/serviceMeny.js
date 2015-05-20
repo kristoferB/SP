@@ -8,22 +8,22 @@
  * Controller of the spGuiApp
  */
 angular.module('spGuiApp')
-  .controller('ServiceMenyCtrl', function ($scope, $modalInstance, $http) {
+  .controller('ServiceMenyCtrl', function ($scope, $modalInstance, $http, spTalker, notificationService) {
 
-    // Get these from the services in the future
-    $scope.services = [
-      {name: 'Model Transformation', service: 'CreateManufOpsFromProdOpsService'},
-      {name: 'A service with no registered actor', service: 'Buu'}
-    ];
+    $scope.services = [];
+    getServices();
 
     $scope.onServiceSelect = function(obj) {
-      $http.get('api/services/'+obj.service).success(function(dataFromServer)  {
-        console.log("dataFromServer: " + dataFromServer)
-      }).error(function(dataFromServer) {
-        console.log("Problem to get data");
-        console.log("dataFromServer: " + dataFromServer)
-      });
+      spTalker.postService(obj);
       $modalInstance.close("")
+    };
+
+    function getServices() {
+      $http.get('api/services').success(function(dataFromServer)  {
+        $scope.services = dataFromServer;
+      }).error(function(dataFromServer) {
+        notificationService.error('Services could not be loaded. \n' + dataFromServer);
+      });
     };
 
   });

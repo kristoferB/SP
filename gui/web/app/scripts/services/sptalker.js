@@ -124,6 +124,19 @@ angular.module('spGuiApp')
       }})
   };
 
+  factory.postService = function(service) {
+    $http({
+      method: 'POST',
+      url: 'api/services/'+service,
+      data: {
+        activeModelID: factory.activeModel.model
+      }}).success(function(dataFromServer)  {
+        notificationService.success('Service ' + service + ' has been executed.');
+      }).error(function(dataFromServer) {
+       notificationService.error('Service ' + obj + ' could not be executed. \n' + dataFromServer);
+    });
+  };
+
   factory.createModel = function(name, successHandler) {
     var newModel = {
       name: name,

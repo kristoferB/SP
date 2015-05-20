@@ -1,14 +1,13 @@
 <div class="modal-header">
-    <h3 class="modal-title">Service Meny</h3>
+    <h3 class="modal-title">Select service to execute</h3>
 </div>
 <div class="modal-body">
-    <div>
 
-      <h4>Select service to execute</h4>
-      <ul class="list-group">
-        <li class="list-group-item" ng-repeat="obj in services">{{obj.name}}<a ng-click="onServiceSelect(obj)"><span class="glyphicon glyphicon-send"></span></a></li>
-      </ul>
+  <table class="table table-hover">
+    <tbody>
+    <tr ng-repeat="obj in services" ng-click="onServiceSelect(obj)"><td>{{obj}}</td></tr>
+    </tbody>
+  </table>
 
-    </div>
 </div>
 
