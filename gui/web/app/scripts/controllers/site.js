@@ -60,6 +60,13 @@ angular.module('spGuiApp')
       });
     };
 
+    $scope.openServiceMeny = function () {
+      var modalInstance = $modal.open({
+        templateUrl: 'views/serviceMeny.html',
+        controller: 'ServiceMenyCtrl'
+      });
+    };
+
     $scope.openSettings = function () {
       var modalInstance = $modal.open({
         templateUrl: 'views/settings.html',

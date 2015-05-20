@@ -2,6 +2,7 @@ package sp.server
 
 import sp.domain._
 import spray.http.{AllOrigins, StatusCodes, HttpHeaders}
+import spray.routing.PathMatchers.Segment
 import spray.routing._
 import spray.routing.authentication._
 import sp.system.messages._
@@ -225,6 +226,14 @@ trait ServiceAPI extends SPApiHelpers {
     /{ get { complete{
       (serviceHandler ? GetServices).mapTo[List[String]]
     }}} ~
+      path(Segment) { serviceName =>
+        get {
+          (serviceHandler ! Request(service = serviceName, attributes = SPAttributes(Map())) )
+          complete {
+            serviceName
+          }
+        }
+      } ~
       path(Segment / "import") { service =>
         post {
           entity(as[spray.http.MultipartFormData]){ value =>
