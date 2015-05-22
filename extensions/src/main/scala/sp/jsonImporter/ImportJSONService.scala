@@ -6,7 +6,6 @@ import sp.system.messages._
 import sp.domain._
 import akka.pattern.ask
 import akka.util.Timeout
-import scala.concurrent.Future
 import scala.concurrent.duration._
 import spray.json._
 import sp.json.SPJson._
@@ -14,7 +13,7 @@ import sp.json.SPJson._
 /**
  * To import operations and things from json
  */
-class ImportJSONService(modelHandler: ActorRef) extends Actor {
+class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSupportTrait {
   implicit val timeout = Timeout(1 seconds)
 
   import context.dispatcher
@@ -27,11 +26,12 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
 
           println(s"Name: $name")
 
+          val idables = JsonParser(file).convertTo[List[IDAble]]
+
           for {
           //Creates a model and updates the model with "idables" parsed from the given json file
-            modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(model = ID.newID,
+            modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(
               name = name.flatMap(_.asString).getOrElse("noName")))
-            idables = JsonParser(file).convertTo[List[IDAble]]
             _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = idables))
 
             //Update the operations in the model with "conditions" connected to the parsed "idables"
@@ -50,14 +50,6 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor {
       }
     }
   }
-
-  def futureWithErrorSupport[T](f: Future[Any]): Future[T] =
-    for {
-      obj <- f
-    } yield {
-      if (obj.isInstanceOf[SPError]) println(s"Error $obj")
-      obj.asInstanceOf[T]
-    }
 
   def parseAttributesToPropositionCondition(op: Operation, idablesToParseFromString: List[IDAble]): Option[Operation] = {
     def getGuard(str: String) = (for {

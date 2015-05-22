@@ -64,10 +64,9 @@ object SP extends App {
   serviceHandler ! RegisterService("CreateManufOpsFromProdOpsService",
     system.actorOf(CreateManufOpsFromProdOpsService.props(modelHandler), "CreateManufOpsFromProdOpsService"))
 
-
   //  //Preload model from json-importer
-  //  val file = Source.fromFile("C:/Users/patrik/Box Sync/ModelsForROAR/pslFloorRoof_JSON.txt").getLines().mkString("\n")
-  //  jsonActor ! Request("someString", SPAttributes(Map("file" -> file, "name" -> "preloadedModel")))
+//    val file = Source.fromFile("C:/Users/patrik/Box Sync/ModelsForROAR/pslFloorRoof_JSON.json").getLines().mkString("\n")
+//    jsonActor ! Request("someString", SPAttributes(Map("file" -> file, "name" -> "preloadedModel")))
 
   // launch REST API
   sp.server.LaunchGUI.launch

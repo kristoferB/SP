@@ -131,7 +131,7 @@ angular.module('spGuiApp')
       data: {
         activeModelID: factory.activeModel.model
       }}).success(function(dataFromServer)  {
-        notificationService.success('Service ' + service + ' has been executed.');
+        notificationService.success('Service ' + service + ' has been executed.\n' + dataFromServer);
       }).error(function(dataFromServer) {
        notificationService.error('Service ' + obj + ' could not be executed. \n' + dataFromServer);
     });
