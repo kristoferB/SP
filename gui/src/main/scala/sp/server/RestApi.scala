@@ -2,6 +2,7 @@ package sp.server
 
 import sp.domain._
 import spray.http.{AllOrigins, StatusCodes, HttpHeaders}
+import spray.routing.PathMatchers.Segment
 import spray.routing._
 import spray.routing.authentication._
 import sp.system.messages._

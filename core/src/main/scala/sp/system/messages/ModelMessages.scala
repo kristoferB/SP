@@ -15,8 +15,8 @@ sealed trait ModelQuery extends ModelMessage
 sealed trait ModelUpdate extends ModelMessage
 
 // Model messages
-case class CreateModel(model: ID, name: String, attributes: SPAttributes = SPAttributes(Map())) extends ModelMessage
-case class CreateModelNewID(name: String, attributes: SPAttributes = SPAttributes(Map()))
+case class CreateModel(model: ID = ID.newID, name: String, attributes: SPAttributes = SPAttributes(Map())) extends ModelMessage
+case class CreateModelNewID(name: String, attributes: SPAttributes = SPAttributes(Map())) //Problem to use this on the scala side. 150522 Patrik
 case object GetModels extends SPMessage
 
 case class GetIds(model: ID, ids: List[ID]) extends ModelQuery
