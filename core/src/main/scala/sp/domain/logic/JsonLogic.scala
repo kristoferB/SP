@@ -42,8 +42,9 @@ trait JsonLogics {
       classOf[INCR],
       classOf[DECR],
       classOf[ASSIGN],
+      classOf[ValueHolder],
+      classOf[SVIDEval],
       classOf[PropositionCondition]
-
     ))
   }
   def jsonFormats = new JsonFormats {}

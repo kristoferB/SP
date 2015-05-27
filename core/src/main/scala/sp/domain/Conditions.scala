@@ -23,7 +23,7 @@ case class PropositionCondition(guard: Proposition,
                                 attributes: SPAttributes = SPAttributes()) extends Condition {
 }
 
-// propositional logic conditions
+
 
 sealed trait Proposition
 
@@ -36,41 +36,15 @@ object Proposition {
   implicit def strToProp(str: String)(implicit idables: List[IDAble] = List()): Proposition = parseStr(str, idables).get
 }
 
-case class AND(props: List[Proposition]) extends Proposition {
-  //override def toString = StrMaker.makeStr(props, "&&")
-}
-
-case class OR(props: List[Proposition]) extends Proposition {
-  //override def toString = StrMaker.makeStr(props, "||")
-}
-
-case class NOT(p: Proposition) extends Proposition {
-  //override def toString = s"!$p"
-}
-
-case class EQ(left: StateEvaluator, right: StateEvaluator) extends Proposition {
-  //override def toString = s"$left == $right "
-}
-
-case class NEQ(left: StateEvaluator, right: StateEvaluator) extends Proposition {
-  //override def toString = s"$left != $right "
-}
-
-case class GREQ(left: StateEvaluator, right: StateEvaluator) extends Proposition {
-  //override def toString = s"$left >= $right "
-}
-
-case class LEEQ(left: StateEvaluator, right: StateEvaluator) extends Proposition {
-  //override def toString = s"$left <= $right "
-}
-
-case class GR(left: StateEvaluator, right: StateEvaluator) extends Proposition {
-  //override def toString = s"$left > $right "
-}
-
-case class LE(left: StateEvaluator, right: StateEvaluator) extends Proposition {
-  //override def toString = s"$left < $right "
-}
+case class AND(props: List[Proposition]) extends Proposition
+case class OR(props: List[Proposition]) extends Proposition
+case class NOT(p: Proposition) extends Proposition
+case class EQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
+case class NEQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
+case class GREQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
+case class LEEQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
+case class GR(left: StateEvaluator, right: StateEvaluator) extends Proposition
+case class LE(left: StateEvaluator, right: StateEvaluator) extends Proposition
 
 // dummy Propositions used in algorithms
 case object AlwaysTrue extends Proposition

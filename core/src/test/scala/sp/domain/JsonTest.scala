@@ -57,24 +57,32 @@ class JsonTest extends FreeSpec with Matchers  {
     }
 
 
-    val id1 = ID.newID
-    val id2 = ID.newID
-    val guard: Proposition = AND(List(
-      OR(List(EQ(id1, "1"), GREQ(20, id2)))
-    ))
-    val action = List(Action(id1, INCR(2)), Action(id2, ASSIGN(id1)))
-    val cond = PropositionCondition(guard, action, SPAttributes(("hej",1), "ja"->2))
-
     "when converting conditions" in {
+      val id1 = ID.newID
+      val id2 = ID.newID
+      val guard: Proposition = AND(List(
+        OR(List(EQ(id1, "1"), GREQ(20, id2)))
+      ))
+      val action = List(Action(id1, INCR(2)), Action(id2, ASSIGN(id1)))
+      val cond = PropositionCondition(guard, action, SPAttributes(("hej",1), "ja"->2))
       val json = Extraction.decompose(cond)
       val str = write(json)
-      println(writePretty(json))
+      //println(writePretty(json))
       val r = read[Condition](str)
-      println("")
-      println(r)
-
+      r shouldEqual cond
     }
 
+    "when converting sops" in {
+      val sop = Parallel(
+        Sequence(Hierarchy(ID.newID), Hierarchy(ID.newID)),
+        Alternative(Hierarchy(ID.newID),Hierarchy(ID.newID))
+      )
+      val json = Extraction.decompose(sop)
+      val str = write(json)
+      println(writePretty(json))
+      val r = read[SOP](str)
+      r shouldEqual sop
+    }
 
   }
 
