@@ -9,8 +9,8 @@ import org.scalatest.Matchers
 import org.scalatest.BeforeAndAfterAll
 import akka.testkit.ImplicitSender
 import com.typesafe.config._
-import sp.domain.SPAttributes
 import sp.system.messages._
+import sp.domain._
 
 /**
  * Created by Kristofer on 2014-06-17.
@@ -37,7 +37,7 @@ class ModelHandlerTest(_system: ActorSystem) extends TestKit(_system) with Impli
     "create a new model and return success" in {
       val mid = sp.domain.ID.newID
       mh ! CreateModel(mid, "test2")
-      expectMsg(ModelInfo(mid, "test2", 1, SPAttributes(Map())))
+      expectMsg(ModelInfo(mid, "test2", 1, SPAttributes()))
     }
   }
 }

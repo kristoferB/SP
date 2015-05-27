@@ -6,6 +6,7 @@ import akka.util.Timeout
 import scala.concurrent.duration._
 import sp.domain._
 import sp.system.messages._
+import sp.domain.Logic._
 import akka.persistence._
 
 /**
@@ -14,6 +15,7 @@ import akka.persistence._
 class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
   override def persistenceId = model.toString()
   implicit val timeout = Timeout(7 seconds)
+  implicit val f = jsonFormats
   import context.dispatcher
 
   def receiveCommand = {
@@ -47,7 +49,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
 
     case UpdateModelInfo(_, ModelInfo(m, newName, v, attribute)) => {
       val reply = sender
-      val diff = ModelDiff(model, List(), List(), state.version, state.version + 1, newName, (attribute + ("time", DatePrimitive.now)))
+      val diff = ModelDiff(model, List(), List(), state.version, state.version + 1, newName, attribute.addTimeStamp)
 
       persist(diff)( d => {
           updateState(d)
@@ -78,7 +80,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
           state.version,
           state.version + 1,
           info.name,
-          SPAttributes(info.attributes.attrs + ("time" -> DatePrimitive.now))
+          info.attributes.addTimeStamp
         )
         self ! (diff, reply)
       }
@@ -132,7 +134,7 @@ trait ModelActorState  {
     lazy val items = idMap.values.toSet
   }
 
-  var state = ModelState(0, Map(), Map(), Attr(), "noName")
+  var state = ModelState(0, Map(), Map(), SPAttributes(), "noName")
 
 
   def queryMessage(reply: ActorRef, mess: ModelQuery) = {
@@ -209,7 +211,7 @@ trait ModelActorState  {
           state.version,
           state.version + 1,
           state.name,
-          state.attributes + ("time" -> DatePrimitive.now)))
+          state.attributes.addTimeStamp))
       }
     } else {
       Left(UpdateError(state.version, conflicts))
@@ -227,7 +229,7 @@ trait ModelActorState  {
     val del = (state.idMap filter( kv =>  delete.contains(kv._1))).values
     if (delete.nonEmpty && del.isEmpty) Left(UpdateError(state.version, delete.toList))
     else {
-      Right(ModelDiff(model, upd, del.toList, state.version, state.version + 1, state.name, SPAttributes(modelAttr.attrs + ("time" -> DatePrimitive.now))))
+      Right(ModelDiff(model, upd, del.toList, state.version, state.version + 1, state.name, modelAttr.addTimeStamp))
     }
   }
 

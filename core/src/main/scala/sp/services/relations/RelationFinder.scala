@@ -2,6 +2,7 @@ package sp.services.relations
 
 import akka.actor._
 import sp.domain._
+import sp.domain.Logic._
 
 import scala.annotation.tailrec
 
@@ -16,9 +17,9 @@ import scala.annotation.tailrec
  *            before
  */
 case class FindRelations( ops: List[Operation],
-                          stateVars: Map[ID, SPAttributeValue => Boolean],
+                          stateVars: Map[ID, SPValue => Boolean],
                           init: State,
-                          groups: List[SPAttributeValue] = List(),
+                          groups: List[SPValue] = List(),
                           iterations: Int = 100,
                           goal: State => Boolean = _ => true)
 
@@ -59,8 +60,8 @@ trait RelationFinderAlgorithms {
    * @param goal The goal function, when the execution has reached the goal.
    */
   case class Setup(ops: List[Operation],
-              stateVars: Map[ID, SPAttributeValue => Boolean],
-              groups: List[SPAttributeValue],
+              stateVars: Map[ID, SPValue => Boolean],
+              groups: List[SPValue],
               init: State,
               goal: State => Boolean)
 
@@ -183,7 +184,7 @@ trait RelationFinderAlgorithms {
     }
 
 
-    val emptyStates = States(setup.stateVars map (_._1 -> Set[SPAttributeValue]()))
+    val emptyStates = States(setup.stateVars map (_._1 -> Set[SPValue]()))
     val oie = EnabledStates(emptyStates, emptyStates)
     val startMap = {if (opsToTest.isEmpty) setup.ops else opsToTest}.map(_.id -> oie)
     val emptyEnabledStates = EnabledStatesMap(startMap toMap)
@@ -222,8 +223,9 @@ trait RelationFinderAlgorithms {
   val opf = Set("f")
   val opif = Set("i", "f")
   def matchOps(o1: ID, o1State: EnabledStates, o2: ID, o2State: EnabledStates): SOP = {
-    val stateOfO2WhenO1Pre = o1State.pre(o2) flatMap (_.asString)
-    val stateOfO1WhenO2pre = o2State.pre(o1) flatMap (_.asString)
+    implicit val f = jsonFormats
+    val stateOfO2WhenO1Pre = o1State.pre(o2) flatMap (_.getAs[String])
+    val stateOfO1WhenO2pre = o2State.pre(o1) flatMap (_.getAs[String])
     val pre = (stateOfO2WhenO1Pre, stateOfO1WhenO2pre)
 
     if (pre ==(opi, opi)) Alternative(o1, o2)
@@ -273,7 +275,8 @@ trait RelationFinderAlgorithms {
    * @return an updated state object
    */
   def addOpsToState(ops: List[Operation], state: State) = {
-    state.next(ops.map(_.id -> StringPrimitive("i")).toMap)
+    val i: SPValue = "i"
+    state.next(ops.map(_.id -> i).toMap)
   }
 
   /**

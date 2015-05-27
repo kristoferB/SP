@@ -3,7 +3,8 @@ package sp.services
 import akka.actor._
 import sp.domain._
 import sp.system.messages._
-import sp.domain.logic._
+import sp.domain.logic.PropositionParser
+import sp.domain.Logic._
 
 /**
  * The service parse a string into a proposition and returns it.
@@ -14,6 +15,7 @@ import sp.domain.logic._
  * we can have multiple actors in a round robin.
  **/
 class PropositionParserActor extends Actor {
+
   def receive = {
     case Request(_, attr) => {
       extract(attr) match {
@@ -34,17 +36,19 @@ class PropositionParserActor extends Actor {
     }
   }
 
+  implicit val f = sp.domain.Logic.jsonFormats
+
   def extract(attr: SPAttributes) = {
     for {
-      model <- attr.getAsID("model")
-      parse <- attr.getAsString("parse")
+      model <- attr.getAs[ID]("model")
+      parse <- attr.getAs[String]("parse")
     } yield (model, parse)
   }
 
   def errorMessage(attr: SPAttributes) = {
     SPError("The request is missing parameters: \n" +
-      s"model: ${attr.getAsID("model")}" + "\n" +
-      s"parse: ${attr.getAsString("parse")}")
+      s"model: ${attr.getAs[ID]("model")}" + "\n" +
+      s"parse: ${attr.getAs[String]("parse")}")
   }
 
 }

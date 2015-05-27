@@ -2,6 +2,7 @@ package sp.domain.logic
 
 import org.scalatest._
 import sp.domain._
+import sp.domain.Logic._
 
 /**
  * Created by kristofer on 05/09/14.
@@ -205,14 +206,14 @@ class SOPLogicTest extends FreeSpec with Matchers {
       }
       "it should return a condition for sequence" in {
         val expectedRes = Map(o2.id -> PropositionCondition(
-          EQ(o1.id, "f"), List(), SPAttributes(Map("group" -> "g1", "kind"-> "precondition")))
+          EQ(o1.id, "f"), List(), SPAttributes("group" -> "g1", "kind"-> "precondition"))
         )
         extractOperationCondition(sopSeq, "g1") shouldEqual expectedRes
       }
       "it should return a condition for alternatives" in {
         val expectedRes = Map(
-          o2.id -> PropositionCondition(EQ(o1.id, "i"), List(), SPAttributes(Map("group" -> "g1", "kind"-> "precondition"))),
-          o1.id -> PropositionCondition(EQ(o2.id, "i"), List(), SPAttributes(Map("group" -> "g1", "kind"-> "precondition")))
+          o2.id -> PropositionCondition(EQ(o1.id, "i"), List(), SPAttributes("group" -> "g1", "kind"-> "precondition")),
+          o1.id -> PropositionCondition(EQ(o2.id, "i"), List(), SPAttributes("group" -> "g1", "kind"-> "precondition"))
         )
         extractOperationCondition(sopAlt, "g1") shouldEqual expectedRes
       }

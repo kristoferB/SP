@@ -16,7 +16,7 @@ import scala.concurrent.duration._
  * "operation" -> {"id" -> ID(UUID)}
  */
 class SimulationRuntime(about: CreateRuntime) extends Actor {
-  import sp.domain.logic.StateLogic._
+  import sp.domain.Logic._
   private implicit val to = Timeout(20 seconds)
   import context.dispatcher
 
@@ -26,48 +26,50 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
     case SimpleMessage(_, attr) => {
       val reply = sender
 
+      implicit val f = sp.domain.Logic.jsonFormats
+
       //val attr = extractAttributes(attr)
-      val modelE = either(attr.getAsID("model"), "missing property model: ID")
-      val stateE = either(attr.getStateAttr("state"), "missing property state: State object")
+      val modelE = either(attr.getAs[ID]("model"), "missing property model: ID")
+      val stateE = either(attr.getAs[State]("state"), "missing property state: State object")
 
-      val res = for {
-        model <- modelE.right
-        state <- stateE.right
-      } yield {
-        val opsF = (modelHandler ? GetOperations(model)).mapTo[SPIDs] map(_.items.map(_.asInstanceOf[Operation]))
-        val thingsF = (modelHandler ? GetThings(model)).mapTo[SPIDs] map(_.items.map(_.asInstanceOf[Thing]))
-
-        for {
-          ops <- opsF
-          things <- thingsF
-        } yield {
-          import sp.domain.logic.OperationLogic._
-          import sp.domain.logic.StateVariableLogic._
-
-
-          val stateVars = things.map(sv => sv.id -> sv.inDomain).toMap ++ createOpsStateVars(ops)
-          implicit val props = EvaluateProp(stateVars, Set(), ThreeStateDefinition)
-
-          val newState = (for {
-            id <- attr.getAsID("execute")
-            o <- ops.find(_.id == id)
-          } yield o next state) getOrElse(state)
-
-          val enabled = ops.filter(o => o.eval(newState))
-          println(s"Enabled operations: $enabled")
-
-
-          val result = Attr(
-            "enabled" -> ListPrimitive(enabled.map(o => IDPrimitive(o.id)))
-          ).addStateAttr("state", newState)
-
-          reply ! result
-        }
-
-      }
-
-      res.left.map(e => reply ! e)
-      res.right.map(f => f.onFailure{case e: Throwable => reply ! SPError(e.toString)})
+//      val res = for {
+//        model <- modelE.right
+//        state <- stateE.right
+//      } yield {
+//        val opsF = (modelHandler ? GetOperations(model)).mapTo[SPIDs] map(_.items.map(_.asInstanceOf[Operation]))
+//        val thingsF = (modelHandler ? GetThings(model)).mapTo[SPIDs] map(_.items.map(_.asInstanceOf[Thing]))
+//
+//        for {
+//          ops <- opsF
+//          things <- thingsF
+//        } yield {
+//          import sp.domain.logic.OperationLogic._
+//          import sp.domain.logic.StateVariableLogic._
+//
+//
+//          val stateVars = things.map(sv => sv.id -> sv.inDomain).toMap ++ createOpsStateVars(ops)
+//          implicit val props = EvaluateProp(stateVars, Set(), ThreeStateDefinition)
+//
+//          val newState = (for {
+//            id <- attr.getAsID("execute")
+//            o <- ops.find(_.id == id)
+//          } yield o next state) getOrElse(state)
+//
+//          val enabled = ops.filter(o => o.eval(newState))
+//          println(s"Enabled operations: $enabled")
+//
+//
+//          val result = Attr(
+//            "enabled" -> ListPrimitive(enabled.map(o => IDPrimitive(o.id)))
+//          ).addStateAttr("state", newState)
+//
+//          reply ! result
+//        }
+//
+//      }
+//
+//      res.left.map(e => reply ! e)
+//      res.right.map(f => f.onFailure{case e: Throwable => reply ! SPError(e.toString)})
 
 //      val result = for {
 //

@@ -1,6 +1,5 @@
 package sp.launch
 
-import sp.domain.SPAttributes
 import sp.services.{PropositionParserActor}
 import sp.system.messages._
 

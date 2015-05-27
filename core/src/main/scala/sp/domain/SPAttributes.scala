@@ -1,87 +1,32 @@
 package sp.domain
 
+import org.json4s._
 
-case class SPAttributes(attrs: Map[String, SPAttributeValue]) {
-  def +(key: String, value: List[SPAttributeValue]): SPAttributes = SPAttributes(attrs + (key->ListPrimitive(value)))
-  def +(mapEntry: (String,SPAttributeValue)): SPAttributes = SPAttributes(attrs + mapEntry)
-  def +(key: String, value: SPAttributeValue): SPAttributes = SPAttributes(attrs + (key->value))
-  def ++(maps: (String, SPAttributeValue)*): SPAttributes = SPAttributes(attrs ++ maps)
-  def ++(maps: Map[String, SPAttributeValue]): SPAttributes = SPAttributes(attrs ++ maps)
-  def get(attribute: String) = attrs.get(attribute)
-  def getAsString(attribute: String) = extract(get(attribute), _.asString)
-  def getAsInt(attribute: String) = extract(get(attribute), _.asInt)
-  def getAsLong(attribute: String) = extract(get(attribute), _.asLong)
-  def getAsDouble(attribute: String) = extract(get(attribute), _.asDouble)
-  def getAsBool(attribute: String) = extract(get(attribute), _.asBool)
-  def getAsList(attribute: String) = extract(get(attribute), _.asList)
-  def getAsMap(attribute: String) = extract(get(attribute), _.asMap)
-  def getAsDate(attribute: String) = extract(get(attribute), _.asDate)
-  def getAsDuration(attribute: String) = extract(get(attribute), _.asDuration)
-  def getAsID(attribute: String) = extract(get(attribute), _.asID)
+/**
+ * Created by kristofer on 15-05-26.
+ */
+// Moved to package object in domain 15-05-26
+//case class SPAttributes(attr: JObject = JObject(List()))
+//case class SPValue(value: JValue = JNothing)
+
+// Here we define all case classes that we used in attributes
+
+/**
+ * Used in services and gui to define what type an attribute value should have
+ * If it should be a list or object, that is used instead and then this class
+ * as the leaf
+ * @param isa We use: string, int, double, boolean, id, time, ...
+ * @param default
+ */
+case class SPValueDefinition(isa: String, default: SPValue)
 
 
-  def getAttribute(levels: List[String]): Option[SPAttributeValue] = {
-    def req(value : MapPrimitive, levels: List[String]): Option[SPAttributeValue] = {
-        levels match {
-          case x :: Nil => value.value.get(x)
-          case x :: xs => {
-            for {
-              v <- value.value.get(x) if v.isInstanceOf[MapPrimitive]
-              root <- req(v.asInstanceOf[MapPrimitive], xs)
-            } yield root
-          }
-        }
-    }
 
-    req(MapPrimitive(this.attrs), levels)
-  }
-  
-  /**
-   * Helper method that extracts a type from the message. Used by the above 
-   * getAs* methods.
-   */
-  def extract[T](attr: Option[SPAttributeValue], f: SPAttributeValue => Option[T]) = {
-    for {
-      lv <- attr
-      v <- f(lv)
-    } yield v
-  }
-  
-  /**
-   * Helper method to be used instead of a try - catch
-   */
-  def tryWithOption[T](t: => T): Option[T] = {
-    try {
-      Some(t)
-    } catch {
-      case e: Exception => None
-    }
-  }
-  /**
-   * Helper method used together with getWith* above. If you are sure these methods will return 
-   * a value, you can extract the value with this method, 
-   * ex: val date = as(message.getAsDate("StartTime"))
-   * if StartTime does not exist in the message, an NoSuchElementException will be thrown
-   */
-  def as[T](o: Option[T]): T = {
-    o match {
-      case Some(x) => x
-      case None => throw new NoSuchElementException
-    }
-  }
-}
+case class StateVariable(domain: SVDomain,
+                        init: Option[SPValue] = None,
+                        goal: Option[SPValue] = None)
 
-object SPAttributes {
-  def -> (keyValues: (String, SPAttributeValue)*): SPAttributes = {
-    val map = keyValues.toMap
-    apply(map)
-  }
-}
-
-object Attr {
-  def apply(keyValues: (String, SPAttributeValue)*): SPAttributes = {
-    val map = keyValues.toMap
-    SPAttributes(map)
-  }
-}
-
+sealed trait SVDomain
+case class DomainList(domain: List[SPValue]) extends SVDomain
+case class DomainRange(range: Range) extends SVDomain
+case object DomainBool extends SVDomain

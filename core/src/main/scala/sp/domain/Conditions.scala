@@ -1,5 +1,6 @@
 package sp.domain
 
+
 /**
  * Created by Kristofer on 2014-06-10.
  */
@@ -19,7 +20,7 @@ object Action {
 
 case class PropositionCondition(guard: Proposition,
                                 action: List[Action],
-                                attributes: SPAttributes = SPAttributes(Map())) extends Condition {
+                                attributes: SPAttributes = SPAttributes()) extends Condition {
 }
 
 // propositional logic conditions
@@ -80,8 +81,8 @@ trait StateEvaluator
 
 object StateEvaluator {
   implicit def idToSE(id: ID) = SVIDEval(id)
-
-  implicit def strToSE(value: String) = ValueHolder(value)
+  implicit def strToSE(value: String) = ValueHolder(org.json4s.JString(value))
+  implicit def intToSE(value: Int) = ValueHolder(org.json4s.JInt(value))
 }
 
 case class SVIDEval(id: ID) extends StateEvaluator {
@@ -92,7 +93,7 @@ case class SVNameEval(v: String) extends StateEvaluator {
   //override def toString = v
 }
 
-case class ValueHolder(v: SPAttributeValue) extends StateEvaluator with StateUpdater {
+case class ValueHolder(v: SPValue) extends StateEvaluator with StateUpdater {
   //override def toString = v.toString
 }
 

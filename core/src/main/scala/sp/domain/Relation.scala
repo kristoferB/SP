@@ -1,5 +1,6 @@
 package sp.domain
 
+// Move to internal relation identification. If needed, encode in attributes
 case class EnabledStates(pre: States, post: States = States(Map()))
 // Temporary arbiMap. Remove as soon as possible
 case class EnabledStatesMap(map: Map[ID, EnabledStates], arbiMap: Set[Set[ID]] = Set())

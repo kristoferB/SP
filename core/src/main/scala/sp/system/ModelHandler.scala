@@ -3,7 +3,6 @@ package sp.system
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
-import sp.domain.SPAttributes
 import scala.concurrent.Future
 import akka.pattern.pipe
 import scala.concurrent.duration._
@@ -34,15 +33,15 @@ class ModelHandler extends PersistentActor {
     }
 
     case m: ModelMessage => {
-      if (modelMap.contains(m.model)) modelMap(m.model) forward m
-      else sender ! SPError(s"Model ${m.model} does not exist.")
+      if (modelMap.contains(m.modelID)) modelMap(m.modelID) forward m
+      else sender ! SPError(s"Model ${m.modelID} does not exist.")
     }
 
     case (m: ModelMessage, v: Long) => {
-      val viewName = viewNameMaker(m.model, v)
+      val viewName = viewNameMaker(m.modelID, v)
       if (!viewMap.contains(viewName)) {
-        println(s"The modelService creates a new view for ${m.model} version: ${v}")
-        val view = context.actorOf(sp.models.ModelView.props(m.model, v, viewName))
+        println(s"The modelService creates a new view for ${m.modelID} version: ${v}")
+        val view = context.actorOf(sp.models.ModelView.props(m.modelID, v, viewName))
         viewMap += viewName -> view
       }
       viewMap(viewName).tell(m, sender)
@@ -58,19 +57,19 @@ class ModelHandler extends PersistentActor {
   }
 
   def addModel(cm: CreateModel) = {
-    println(s"The modelService creates a new model called ${cm.name} id: ${cm.model}")
-    val newModelH = context.actorOf(sp.models.ModelActor.props(cm.model))
-    newModelH ! UpdateModelInfo(cm.model, ModelInfo(cm.model, cm.name, 0, cm.attributes))
-    modelMap += cm.model -> newModelH
+    println(s"The modelService creates a new model called ${cm.name} id: ${cm.modelID}")
+    val newModelH = context.actorOf(sp.models.ModelActor.props(cm.modelID))
+    newModelH ! UpdateModelInfo(cm.modelID, ModelInfo(cm.modelID, cm.name, 0, cm.attributes))
+    modelMap += cm.modelID -> newModelH
   }
 
   def viewNameMaker(id: ID, v: Long) = id.toString() + " - Version: " + v
 
   def receiveRecover = {
     case cm: CreateModel  => {
-      println(s"The modelService creates a new model called ${cm.name} id: ${cm.model}")
-      val newModelH = context.actorOf(sp.models.ModelActor.props(cm.model))
-      modelMap += cm.model -> newModelH
+      println(s"The modelService creates a new model called ${cm.name} id: ${cm.modelID}")
+      val newModelH = context.actorOf(sp.models.ModelActor.props(cm.modelID))
+      modelMap += cm.modelID -> newModelH
     }
   }
 

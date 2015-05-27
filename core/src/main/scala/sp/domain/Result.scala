@@ -15,7 +15,7 @@ case class RelationResult(name: String,
                           deadlocks: Option[NoRelations],
                           model: ID,
                           modelVersion: Long,
-                          attributes: SPAttributes = SPAttributes(Map()),
+                          attributes: SPAttributes = SPAttributes(),
                           id: ID = ID.newID
                            ) extends Result {
 

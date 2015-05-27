@@ -110,7 +110,7 @@ class DelmiaV5Service(modelHandler: ActorRef) extends Actor {
             items <- modelHandler ? UpdateIDs(id, model.version, items.toList)
           } yield {
             println(s"MADE IT: $model")
-            reply ! model.model.toString
+            reply ! model.modelID.toString
 
 
           }
