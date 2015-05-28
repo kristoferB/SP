@@ -35,14 +35,6 @@ class AttributesTest extends FlatSpec with Matchers  {
   //println(writePretty(attr))
 
 
-  //  val key1 = attr.find("int")
-  //  val sub = attr.find("sub1")
-  //  println(s"sub1: $sub")
-  //  println(s"key1: $key1")
-  //  val asString = attr.getAs[OPTest]("op1")
-  //  println(s"got it: $asString")
-
-
   "An SPAttribute" should "get as string" in {
     attr.getAs[String]("string") shouldEqual Some("Det gick")
   }
