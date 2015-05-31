@@ -1,9 +1,15 @@
 package sp.domain.logic
 
 import sp.domain._
-import sp.domain.Logic._
+//import sp.domain.Logic._
 
-case object OperationLogic {
+case object OperationLogic extends OperationLogics {
+
+}
+
+trait OperationLogics {
+  import sp.domain.logic.AttributeLogic._
+  import sp.domain.logic.StateLogic._
 
   case class EvaluateProp(
     stateVars: Map[ID, SPValue => Boolean],

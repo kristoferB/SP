@@ -32,17 +32,17 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
           //Creates a model and updates the model with "idables" parsed from the given json file
             modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(
               name = name.flatMap(_.asString).getOrElse("noName")))
-            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(modelID = modelInfo.modelID, modelVersion = modelInfo.version, items = idables))
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = idables))
 
             //Update the operations in the model with "conditions" connected to the parsed "idables"
-            SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(modelID = modelInfo.modelID))
+            SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
             opsWithConditionsAdded = opsToBe.map(_.asInstanceOf[Operation]).flatMap(op => parseAttributesToPropositionCondition(op, idables))
-            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(modelID = modelInfo.modelID, modelVersion = modelInfo.version, items = opsWithConditionsAdded))
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = opsWithConditionsAdded))
 
           } yield {
             println(s"MADE IT: $modelInfo")
             //            println(opsWithConditionsAdded.map(_.name).mkString("\n"))
-            reply ! modelInfo.modelID.toString
+            reply ! modelInfo.model.toString
           }
 
         }

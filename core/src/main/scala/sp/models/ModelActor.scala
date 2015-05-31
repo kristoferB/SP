@@ -89,7 +89,6 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
   }
 
 
-  implicit val f2 = jsonFormats
   def store(diff: ModelDiff, after: => Unit) = {
     val json = write(diff)
     persist(json){ d =>
@@ -255,7 +254,6 @@ trait ModelActorState  {
 
 
 
-  implicit val f = jsonFormats
 
   def receiveRecover: Actor.Receive = {
     case json: String => {

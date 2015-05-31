@@ -36,7 +36,6 @@ class PropositionParserActor extends Actor {
     }
   }
 
-  implicit val f = sp.domain.Logic.jsonFormats
 
   def extract(attr: SPAttributes) = {
     for {

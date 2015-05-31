@@ -1,5 +1,6 @@
 package sp.server
 
+import org.json4s._
 import sp.domain._
 import spray.http.{AllOrigins, StatusCodes, HttpHeaders}
 import spray.routing.PathMatchers.Segment
@@ -41,7 +42,11 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
   private implicit val to = timeout
 
   private def callSP(mess: Any, matchReply: PartialFunction[Any, Route]) = {
-    onSuccess(userHandler ? mess){evalReply{matchReply}}
+    onSuccess(userHandler ? mess) {
+      evalReply {
+        matchReply
+      }
+    }
   }
 
   def myUserPassAuthenticator(userPass: Option[UserPass]): Future[Option[String]] =
@@ -62,11 +67,19 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
   }
 
   val api = pathPrefix("api") {
-    / {complete("Sequence Planner REST API")} ~
+    / {
+      complete("Sequence Planner REST API")
+    } ~
       encodeResponse(Gzip) {
-        pathPrefix("models"){ modelapi } ~
-          pathPrefix("runtimes"){ runtimeapi } ~
-          pathPrefix("services") { serviceapi }  //~
+        pathPrefix("models") {
+          modelapi
+        } ~
+          pathPrefix("runtimes") {
+            runtimeapi
+          } ~
+          pathPrefix("services") {
+            serviceapi
+          } //~
         //      path("users") {
         //        get {
         //          callSP(GetUsers, {
@@ -92,10 +105,10 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
 }
 
 
-import spray.httpx.SprayJsonSupport._
-import spray.json._
-import sp.json.SPJson._
+//import spray.json._
+//import sp.json.SPJson._
 
+import sp.domain.Logic._
 
 
 trait ModelAPI extends SPApiHelpers {
@@ -231,15 +244,12 @@ trait ServiceAPI extends SPApiHelpers {
           entity(as[spray.http.MultipartFormData]){ value =>
 
             val file = value.get("file") map { f =>
-              val fileAsString = f.entity.asString
-              val nameAsString = f.filename
-              val model = value.get("model").map(_.entity.asString) getOrElse("")
-              val modelKV = ID.makeID(model).map(id =>"model"->IDPrimitive(id)).getOrElse("model"->StringPrimitive(""))
-              val attr = Attr(
-                "file" -> fileAsString,
-                "name"-> SPAttributeValue(nameAsString),
-                modelKV
-              )
+              val fileAsString: SPValue = f.entity.asString
+              val nameAsString = f.filename.getOrElse("")
+              val model = value.get("model").map(_.entity.asString).getOrElse("")
+              val modelKV = ID.makeID(model).map(id =>"model"->JString(id.toString)).getOrElse("model"->JString(""))
+              val attr = SPAttributes("file" -> fileAsString, "name"-> nameAsString, modelKV)
+
               callSP(Request(service, attr), {
                 case s: String => complete(s)
               })
@@ -273,7 +283,8 @@ trait ServiceAPI extends SPApiHelpers {
 
 
 
-trait SPApiHelpers extends HttpService {
+trait SPApiHelpers extends HttpService with spray.httpx.Json4sSupport  {
+  implicit def json4sFormats = Logic.jsonFormats
 
   val timeout = Timeout(3 seconds)
   // to cleanup the routing

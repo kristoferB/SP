@@ -29,14 +29,22 @@ class ModelHandlerTest(_system: ActorSystem) extends TestKit(_system) with Impli
       |akka.loglevel = DEBUG
     """.stripMargin)))
 
+
+  val mh = system.actorOf(ModelHandler.props, "modelHandler")
+  val mid = ID.newID
+  val o = Operation("hej")
+
+  override def beforeAll: Unit = {
+    mh ! CreateModel(mid, "generalModel")
+    mh ! UpdateIDs(mid, 0, List(o))
+  }
+
   override def afterAll {
     TestKit.shutdownActorSystem(system)
   }
 
 
   "The Model Handler" must {
-    val mh = system.actorOf(ModelHandler.props, "modelHandler")
-
     "create a new model and return success" in {
       val mid = sp.domain.ID.newID
       mh ! CreateModel(mid, "test2")

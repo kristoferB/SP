@@ -11,7 +11,78 @@ import org.json4s.native.Serialization._
  */
 class JsonTest extends FreeSpec with Matchers  {
 
-  implicit val f = sp.domain.logic.JsonLogic.jsonFormats
+
+
+
+
+  // Test to show how the json will look:
+  "a json string should be created for " - {
+    "A proposition" in {
+      val id = ID.newID
+      val and =
+        AND(List(
+          EQ("1", 2),
+          OR(List(NEQ(1, 2), NEQ(id, "hej")))
+        ))
+      val jsonString =
+        s"""
+          |{
+          |  "isa":"AND",
+          |  "props":[
+          |    {
+          |      "isa":"EQ",
+          |      "left":{
+          |        "isa":"ValueHolder",
+          |        "v":"1"
+          |      },
+          |      "right":{
+          |        "isa":"ValueHolder",
+          |        "v":2
+          |      }
+          |    },
+          |    {
+          |      "isa":"OR",
+          |      "props":[
+          |        {
+          |          "isa":"NEQ",
+          |          "left":{
+          |            "isa":"ValueHolder",
+          |            "v":1
+          |          },
+          |          "right":{
+          |            "isa":"ValueHolder",
+          |            "v":2
+          |          }
+          |        },
+          |        {
+          |          "isa":"NEQ",
+          |          "left":{
+          |            "isa":"SVIDEval",
+          |            "id":"${id.toString}"
+          |          },
+          |          "right":{
+          |            "isa":"ValueHolder",
+          |            "v":"hej"
+          |          }
+          |        }
+          |      ]
+          |    }
+          |  ]
+          |}
+        """.stripMargin
+
+      writePretty(parse(jsonString)) shouldEqual writePretty(and)
+    }
+    "An operation" in {
+      val id = ID.newID
+      val x = Operation(
+        name = "x",
+        conditions = List(PropositionCondition(
+          guard = AND(List(EQ("1", 2), NEQ(1, 2))),
+          action = List(Action(id, ValueHolder("hej"))))
+        ))
+    }
+  }
 
   val o = Operation("hej")
   val opJson = SPAttributes(

@@ -88,11 +88,10 @@ case object PropositionConditionLogic {
     def nextValue(s: State) = a.value match {
       case ValueHolder(v) => v
       case INCR(n) => updateValue(s(a.id), _ + n)
-      case INCR(n) => updateValue(s(a.id), _ - n)
+      case DECR(n) => updateValue(s(a.id), _ - n)
       case ASSIGN(id) => s(id)
     }
     def updateValue(v: JValue, func: BigInt => BigInt) = {
-      implicit val f = jsonFormats
       v match {
         case JInt(i) => JInt(func(i))
         case _ => JNothing

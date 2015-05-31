@@ -36,18 +36,18 @@ trait AttributeLogics {
     }
   }
 
-  implicit class pairAttr(p: (String, Any))(implicit formats : org.json4s.Formats) {
-    val k = p._1
-    val v = Extraction.decompose(p._2)
-    def + : SPAttributes = {
-      val res = List(k->v)
-      SPAttributes(res)
-    }
-    def +(p2: (String, Any)): SPAttributes = {
-      val res = List(k->v, p2._1->Extraction.decompose(p2._2))
-      SPAttributes(res)
-    }
-  }
+//  implicit class pairAttr(p: (String, Any))(implicit formats : org.json4s.Formats) {
+//    val k = p._1
+//    val v = Extraction.decompose(p._2)
+//    def + : SPAttributes = {
+//      val res = List(k->v)
+//      SPAttributes(res)
+//    }
+//    def +(p2: (String, Any)): SPAttributes = {
+//      val res = List(k->v, p2._1->Extraction.decompose(p2._2))
+//      SPAttributes(res)
+//    }
+//  }
 
   implicit class messLogic(x: SPAttributes) {
     val obj = x.obj

@@ -46,7 +46,7 @@ lazy val extensions = project.dependsOn(core).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= default)
 
-lazy val launch = project.dependsOn(core).
+lazy val launch = project.dependsOn(core, gui).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= default)
 

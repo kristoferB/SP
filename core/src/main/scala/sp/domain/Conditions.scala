@@ -3,6 +3,10 @@ package sp.domain
 
 /**
  * Created by Kristofer on 2014-06-10.
+ *
+ * TODO: Move logic to Proposition Logic! 150531 KB
+ * TODO: Also simplify the condition structure as soon as possible,
+ * TODO: e.g. remove stateEvaluater and StateUpdater
  */
 trait Condition {
   val attributes: SPAttributes
@@ -20,8 +24,7 @@ object Action {
 
 case class PropositionCondition(guard: Proposition,
                                 action: List[Action],
-                                attributes: SPAttributes = SPAttributes()) extends Condition {
-}
+                                attributes: SPAttributes = SPAttributes()) extends Condition
 
 
 
@@ -59,26 +62,15 @@ object StateEvaluator {
   implicit def intToSE(value: Int) = ValueHolder(org.json4s.JInt(value))
 }
 
-case class SVIDEval(id: ID) extends StateEvaluator {
-  //override def toString = id.toString
-}
-
-case class SVNameEval(v: String) extends StateEvaluator {
-  //override def toString = v
-}
-
-case class ValueHolder(v: SPValue) extends StateEvaluator with StateUpdater {
-  //override def toString = v.toString
-}
+case class SVIDEval(id: ID) extends StateEvaluator
+case class SVNameEval(v: String) extends StateEvaluator
+case class ValueHolder(v: SPValue) extends StateEvaluator with StateUpdater
 
 //TODO: add StateEvaluator for a+b, a+1 etc when nedded 140630
 
 sealed trait StateUpdater
-
 case class INCR(n: Int) extends StateUpdater
-
 case class DECR(n: Int) extends StateUpdater
-
 case class ASSIGN(id: ID) extends StateUpdater
 
 private object StrMaker {

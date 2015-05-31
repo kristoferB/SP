@@ -22,7 +22,6 @@ case object SOPLogic {
     val props = findOpProps(sop, Map(), getAllConditions)
     props map{ case (id, props) =>
       val propList = if (props.size == 1) props.head else AND(props.toList)
-      val attr: (String, SPValue) = "group" -> group
       id -> PropositionCondition(propList, List(), SPAttributes("group" -> group, "kind" -> "precondition") )
     }
   }

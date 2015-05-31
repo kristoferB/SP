@@ -223,7 +223,6 @@ trait RelationFinderAlgorithms {
   val opf = Set("f")
   val opif = Set("i", "f")
   def matchOps(o1: ID, o1State: EnabledStates, o2: ID, o2State: EnabledStates): SOP = {
-    implicit val f = jsonFormats
     val stateOfO2WhenO1Pre = o1State.pre(o2) flatMap (_.getAs[String])
     val stateOfO1WhenO2pre = o2State.pre(o1) flatMap (_.getAs[String])
     val pre = (stateOfO2WhenO1Pre, stateOfO1WhenO2pre)

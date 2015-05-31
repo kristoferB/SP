@@ -10,26 +10,27 @@ import org.json4s._
  */
 class AttributesTest extends FlatSpec with Matchers  {
 
-  implicit val f = jsonFormats
 
   val o = Operation("hej")
   val state = State(Map(ID.newID -> false))
   val d = org.joda.time.DateTime.now
-  val attr = "model" -> ID.newID +
-    ("int" -> 1) +
-    ("hej" -> "hej") +
-    ("string", "Det gick") +
-    ("boolean", false) +
-    ("double", 1.0) +
-    ("op", o) +
-    ("date", d) +
-    ("id", o.id) +
-    ("state", state) +
+  val attr = SPAttributes(
+    "model" -> ID.newID,
+    ("int" -> 1),
+    ("hej" -> "hej"),
+    ("string", "Det gick"),
+    ("boolean", false),
+    ("double", 1.0) ,
+    ("op", o) ,
+    "testar" -> List(o.id, o.id, o.id),
+    ("date", d) ,
+    ("id", o.id) ,
+    ("state", state) ,
     ("under", List(
-      ("state", state) +
-      ("op", o) +
+      ("state", state) ,
+      ("op", o) ,
       ("string", "bra")
-    ))
+    )))
 
   //import org.json4s.native.Serialization._
   //println(writePretty(attr))
@@ -65,6 +66,11 @@ class AttributesTest extends FlatSpec with Matchers  {
   "An SPAttribute" should "get as State" in {
     attr.getAs[State]("state") shouldEqual Some(state)
   }
+  "An SPAttribute" should "get as List" in {
+    attr.getAs[List[ID]]("testar") shouldEqual Some(List(o.id, o.id, o.id))
+  }
+
+
   "An SPAttribute" should "find all values" in {
     val res = attr.find("string")
     res shouldEqual List(JString("Det gick"), JString("bra"))

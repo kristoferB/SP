@@ -30,7 +30,7 @@ class CreateManufOpsFromProdOpsService(modelHandler: ActorRef) extends Actor wit
       val result = for {
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
         newOps = List(Operation("IamTheNewOp"))
-        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(modelID = id, modelVersion = modelInfo.version, items = newOps))
+        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = newOps))
 
       } yield {
           "ok"

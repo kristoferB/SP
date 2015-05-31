@@ -179,7 +179,6 @@ object IDAbleLogic {
   }
 
   import org.json4s._
-  implicit val f = sp.domain.Logic.jsonFormats
   def removeIDFromAttribute(id: Set[ID], attr: SPAttributes): SPAttributes = {
     val idSet = id.map(_.toString())
     val updated = reqRemoveFromAttr(idSet, attr.obj)
