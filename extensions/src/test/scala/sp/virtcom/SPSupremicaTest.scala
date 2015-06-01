@@ -1,5 +1,6 @@
 package sp.virtcom
 
+import base.{Exporters, SimpleModuleFactory}
 import org.scalatest._
 
 /**
@@ -7,9 +8,13 @@ import org.scalatest._
  */
 class SPSupremicaTest extends FreeSpec {
 
-  "when creating a model" - {
-    "the collectors should be implemented correctly" in {
-
+  "when creating a module" - {
+    "the supremica parts should be right" in {
+      case class Module() extends Exporters {
+        lazy val mModule = SimpleModuleFactory("module1")
+        saveToWMODFile("./testFiles/gitIgnore/")
+      }
+      Module()
     }
   }
 

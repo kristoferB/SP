@@ -22,3 +22,6 @@ project/project
 # journal
 journal/
 snapshots/
+
+# output from tests
+testFiles/gitIgnore/
