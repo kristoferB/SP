@@ -284,7 +284,7 @@ trait ServiceAPI extends SPApiHelpers {
 
 
 trait SPApiHelpers extends HttpService with spray.httpx.Json4sSupport  {
-  implicit def json4sFormats = Logic.jsonFormats
+  def json4sFormats = sp.domain.Logic.jsonFormats
 
   val timeout = Timeout(3 seconds)
   // to cleanup the routing

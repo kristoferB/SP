@@ -51,20 +51,20 @@ object SP extends App {
 //  serviceHandler ! RegisterService("VCImportService",
 //    system.actorOf(VCImportService.props(modelHandler), "VCImportService"))
 //
-//  import sp.jsonImporter._
-//
-//  val jsonActor = system.actorOf(ImportJSONService.props(modelHandler), "ImportJSONService")
-//  serviceHandler ! RegisterService("ImportJSONService", jsonActor)
+  import sp.jsonImporter._
+
+  val jsonActor = system.actorOf(ImportJSONService.props(modelHandler), "ImportJSONService")
+  serviceHandler ! RegisterService("ImportJSONService", jsonActor)
 //
 //  import sp.merger._
 //
 //  serviceHandler ! RegisterService("ProductAbilityMerger",
 //    system.actorOf(ProductAbilityMerger.props(modelHandler), "ProductAbilityMerger"))
 //
-//  import sp.virtcom._
-//
-//  serviceHandler ! RegisterService("CreateManufOpsFromProdOpsService",
-//    system.actorOf(CreateManufOpsFromProdOpsService.props(modelHandler), "CreateManufOpsFromProdOpsService"))
+  import sp.virtcom._
+
+  serviceHandler ! RegisterService("CreateManufOpsFromProdOpsService",
+    system.actorOf(CreateManufOpsFromProdOpsService.props(modelHandler), "CreateManufOpsFromProdOpsService"))
 
   //  //Preload model from json-importer
 //    val file = Source.fromFile("C:/Users/patrik/Box Sync/ModelsForROAR/pslFloorRoof_JSON.json").getLines().mkString("\n")

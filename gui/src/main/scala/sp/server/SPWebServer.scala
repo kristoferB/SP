@@ -2,7 +2,7 @@ package sp.server
 
 import akka.actor._
 import spray.routing._
-
+import sp.domain.Logic._
 
 /**
  * Created by Kristofer on 2014-06-19.

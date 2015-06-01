@@ -4,11 +4,11 @@ import akka.actor._
 import sp.domain.logic.{ActionParser, PropositionParser}
 import sp.system.messages._
 import sp.domain._
+import sp.domain.Logic._
+import org.json4s.native.Serialization._
 import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent.duration._
-import spray.json._
-import sp.json.SPJson._
 
 /**
  * To import operations and things from json
@@ -26,12 +26,12 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
 
           println(s"Name: $name")
 
-          val idables = JsonParser(file).convertTo[List[IDAble]]
+          val idables = read[List[IDAble]](file)
 
           for {
           //Creates a model and updates the model with "idables" parsed from the given json file
             modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(
-              name = name.flatMap(_.asString).getOrElse("noName")))
+              name = name.getOrElse("noName")))
             _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = idables))
 
             //Update the operations in the model with "conditions" connected to the parsed "idables"
@@ -54,7 +54,7 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
   def parseAttributesToPropositionCondition(op: Operation, idablesToParseFromString: List[IDAble]): Option[Operation] = {
     def getGuard(str: String) = (for {
       guard <- op.attributes.get(str)
-      guardAsString <- guard.asString
+      guardAsString <- guard.getAs[String]
     } yield PropositionParser(idablesToParseFromString).parseStr(guardAsString) match {
         case Right(p) => Some(p)
         case Left(f) => {
@@ -64,8 +64,7 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
       }).flatten
     def getAction(str: String) = for {
       actions <- op.attributes.get(str)
-      actionsList <- actions.asList
-      actionsAsString = actionsList.flatMap(_.asString)
+      actionsAsString <- actions.getAs[List[String]]
     } yield actionsAsString.map { action => ActionParser(idablesToParseFromString).parseStr(action) match {
         case Right(a) => Some(a)
         case Left(f) => {
@@ -81,20 +80,20 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
       postGuard <- getGuard("postGuard")
       postAction <- getAction("postAction")
     } yield {
-        op.copy(conditions = List(PropositionCondition(preGuard, preAction, SPAttributes(Map("kind" -> "precondition"))),
-          PropositionCondition(postGuard, postAction, SPAttributes(Map("kind" -> "postcondition")))))
+        op.copy(conditions = List(PropositionCondition(preGuard, preAction, SPAttributes("kind" -> "precondition")),
+          PropositionCondition(postGuard, postAction, SPAttributes("kind" -> "postcondition"))))
       }
   }
 
   def extract(attr: SPAttributes) = {
     for {
-      file <- attr.getAsString("file")
-    } yield (file, attr.get("name"))
+      file <- attr.getAs[String]("file")
+    } yield (file, attr.getAs[String]("name"))
   }
 
   def errorMessage(attr: SPAttributes) = {
     SPError("The request is missing parameters: \n" +
-      s"file: ${attr.getAsString("file")}" + "\n" +
+      s"file: ${attr.getAs[String]("file")}" + "\n" +
       s"Request: ${attr}")
   }
 

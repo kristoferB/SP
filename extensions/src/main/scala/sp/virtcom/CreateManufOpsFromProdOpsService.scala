@@ -3,6 +3,7 @@ package sp.virtcom
 import akka.actor._
 import sp.domain.{Operation, ID}
 import sp.jsonImporter.ServiceSupportTrait
+import sp.domain.Logic._
 import sp.system.messages._
 import akka.pattern.ask
 import akka.util.Timeout
@@ -25,7 +26,7 @@ class CreateManufOpsFromProdOpsService(modelHandler: ActorRef) extends Actor wit
 
       println(s"service: $service")
 
-      val id = attr.getAsID("activeModelID").getOrElse(ID.newID)
+      val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
 
       val result = for {
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
