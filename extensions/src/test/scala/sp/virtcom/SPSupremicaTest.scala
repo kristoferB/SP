@@ -13,6 +13,7 @@ class SPSupremicaTest extends FreeSpec {
       case class Module() extends Exporters {
         lazy val mModule = SimpleModuleFactory("module1")
         saveToWMODFile("./testFiles/gitIgnore/")
+        println("Some text")
       }
       Module()
     }
