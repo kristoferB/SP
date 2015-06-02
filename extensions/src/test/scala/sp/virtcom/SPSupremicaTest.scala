@@ -10,10 +10,12 @@ class SPSupremicaTest extends FreeSpec {
 
   "when creating a module" - {
     "the supremica parts should be right" in {
-      case class Module() extends Exporters {
-        lazy val mModule = SimpleModuleFactory("module1")
-        saveToWMODFile("./testFiles/gitIgnore/")
-        println("Some text")
+      case class Module() {
+        val psl = PSLFloorRoofCase()
+
+        import SupervisorImplicits._
+        psl.createWmodFile("./testFiles/gitIgnore/")
+
       }
       Module()
     }
