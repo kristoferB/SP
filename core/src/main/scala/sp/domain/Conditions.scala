@@ -63,7 +63,6 @@ object StateEvaluator {
 }
 
 case class SVIDEval(id: ID) extends StateEvaluator
-case class SVNameEval(v: String) extends StateEvaluator
 case class ValueHolder(v: SPValue) extends StateEvaluator with StateUpdater
 
 //TODO: add StateEvaluator for a+b, a+1 etc when nedded 140630

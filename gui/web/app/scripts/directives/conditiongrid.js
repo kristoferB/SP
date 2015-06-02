@@ -41,7 +41,7 @@ angular.module('spGuiApp')
           });
 
         $scope.addProp = function(array) {
-          array.push({isa: 'EQ', left: {id: ''}, right: 3});
+          array.push({isa: 'EQ', left: {isa: "SVIDEval", id: ''}, right: {isa:"ValueHolder", v: ''}});
         };
 
         $scope.removeProp = function(array, index) {
@@ -49,27 +49,27 @@ angular.module('spGuiApp')
         };
 
         $scope.getType = function(parent, key) {
-          if(angular.isDefined(parent[key]) && angular.isDefined(parent[key].isa))
+          //if(angular.isDefined(parent[key]) && angular.isDefined(parent[key].isa))
             return parent[key].isa;
-          else if(angular.isDefined(parent[key]) && angular.isDefined(parent[key].id))
-            return 'id';
-          else
-            return 'value';
+          //else if(angular.isDefined(parent[key]) && angular.isDefined(parent[key].id))
+          //  return 'id';
+          //else
+          //  return 'ValueHolder';
         };
 
         $scope.changeType = function(parent, key, type) {
           if(type === 'value')
-            parent[key] = true;
+            parent[key] = {isa:"ValueHolder", v: true};
           else if(type === 'id')
-            parent[key] = { id: ''};
+            parent[key] = {isa:"SPIDEval", id: ''};
           else if(type === 'EQ' || type === 'NEQ') {
             if(parent[key].isa === 'EQ' || parent[key].isa === 'NEQ') {
               parent[key].isa = type;
             } else {
               parent[key] = {
                 isa: type,
-                left: {id: ''},
-                right: true
+                left: {isa:"SPIDEval", id: ''},
+                right: {isa:"ValueHolder", v: true}
               };
             }
           } else { // AND, OR
@@ -78,7 +78,7 @@ angular.module('spGuiApp')
             } else {
               parent[key] = {
                 isa: type,
-                props: [{isa: 'EQ', left: {id: ''}, right: 2}, {isa: 'EQ', left: {id: ''}, right: 3}]
+                props: [{isa: 'EQ', left: {isa:"SPIDEval",id: ''}, right: {isa:"ValueHolder", v: true}}, {isa: 'EQ', left: {isa:"SPIDEval",id: ''}, right: {isa:"ValueHolder", v: true}}]
               };
             }
           }

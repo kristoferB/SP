@@ -94,8 +94,8 @@ angular.module('spGuiApp')
     function handleProp(prop) {
       if(prop.hasOwnProperty('id')) {
         return getNameFromId(prop.id);
-      } else if(prop.hasOwnProperty('isa')) {
-        return '(' + factory.guardAsText(prop) + ')';
+      } else if(prop.hasOwnProperty('v')) {
+        return prop.v;
       } else {
         return prop;
       }

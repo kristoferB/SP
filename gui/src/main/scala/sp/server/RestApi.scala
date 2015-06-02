@@ -179,6 +179,19 @@ trait ModelAPI extends SPApiHelpers {
       }
     } ~
       post {
+//        entity(as[List[SPAttributes]]){json =>
+//          println(s"I GOT: $json")
+//          import sp.domain.Logic._
+//          val x = SPAttributes("ops"->json)
+//          val o = x.getAs[List[Operation]]("ops")
+//          val conds = x.findAs[Condition]("conditions")
+//
+//          println("")
+//          println(s"ops: $o")
+//          println(s"cond: $conds")
+//
+//          reject
+//        } ~
         entity(as[IDAble]) { xs => callSP(UpdateIDs(model, -1, List(xs))) } ~
           entity(as[List[IDAble]]) { xs =>
             callSP(UpdateIDs(model, -1, xs), { case SPIDs(x) => complete(x) })

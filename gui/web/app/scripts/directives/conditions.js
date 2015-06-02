@@ -23,7 +23,7 @@ angular.module('spGuiApp')
         scope.itemSvc = itemSvc;
 
         scope.addAction = function(condition) {
-          condition.action.push({id: '', value: ''});
+          condition.action.push({id: '', value: {isa:"ValueHolder", v: ''}});
         };
 
         scope.removeAction = function(condition, action) {
@@ -32,7 +32,7 @@ angular.module('spGuiApp')
         };
 
         scope.emptyGuard = {
-          guard: {isa:'EQ', right: true, left: true}
+          guard: {isa:'EQ', right: {isa:"ValueHolder", v: ''}, left: {isa:"ValueHolder", v: ''}}
         };
 
         scope.removeCondition = function($index) {

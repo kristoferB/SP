@@ -11,7 +11,7 @@
         </tr>
         <tr ng-if="parent[key].isa === 'AND' || parent[key].isa === 'OR'"><td><button class="btn btn-default btn-sm" ng-click="addProp(parent[key].props)"><span class="glyphicon glyphicon-plus"></span> Add prop</button></td></tr>
       </table>
-      <input ng-if="!isDefined(parent[key].isa) && !isDefined(parent[key].id)" class="form-control input-sm" ng-model="parent[key]" type="text" />
+      <input ng-if="parent[key].isa === 'ValueHolder'" class="form-control input-sm" ng-model="parent[key].v" type="text" />
       <select ng-if="isDefined(parent[key].id)" class="form-control input-sm" ng-model="parent[key].id" ng-options="id as item.name for (id, item) in spTalker.items | with: { isa: ['Thing', 'Operation'] }"></select>
     </td>
   </tr>
