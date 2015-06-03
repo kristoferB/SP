@@ -56,7 +56,7 @@ object Build extends Build {
     .dependsOn(core, gui)
     .settings(basicSettings: _*)
     .settings(libraryDependencies ++= (defaultDepend ++ Seq(breeze)))
-    .settings(unmanagedJars in Compile += file("lib/SupFlower.jar"))
+//    .settings(unmanagedJars in Compile += file("lib/SupFlower.jar"))
 
   //run in Compile <<= (run in Compile in launch)
 	
