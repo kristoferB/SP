@@ -1,6 +1,6 @@
 package sp.virtcom
 
-import base.{Exporters, SimpleModuleFactory}
+import sp.supremicaStuff.base.{Exporters, SimpleModuleFactory}
 import org.scalatest._
 
 /**

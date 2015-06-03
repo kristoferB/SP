@@ -123,7 +123,7 @@ object SupervisorImplicits {
     //Variable values are changed to index in domain
 
     import sp.domain.logic.PropositionParser
-    import sp.domain.{AND, OR, NOT, EQ, NEQ, Proposition, StateEvaluator, SVNameEval, ValueHolder, StringPrimitive, GREQ, GR, LEEQ, LE}
+    import sp.domain._
 
     private def stringPredicateToSupremicaSyntax(s: String) = PropositionParser().parseStr(s) match {
       case Right(p) => propToSupremicaSyntax(p)
@@ -153,8 +153,7 @@ object SupervisorImplicits {
       case other => other.toString
     }
     private def stateEvalToSupremicaSyntax(se: StateEvaluator): String = se match {
-      case SVNameEval(v) => v
-      case ValueHolder(StringPrimitive(v)) => v
+      case ValueHolder(org.json4s.JString(v)) => v
       case other => other.toString
     }
 

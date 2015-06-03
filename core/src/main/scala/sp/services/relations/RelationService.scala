@@ -4,7 +4,7 @@ import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
 import sp.domain._
-import sp.domain.logic.StateLogic
+import sp.domain.Logic._
 import sp.system.messages._
 import sp.services.specificationconverters._
 
@@ -21,7 +21,6 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
   private implicit val to = Timeout(1 seconds)
 
   import context.dispatcher
-  import Attribs._
 
   def receive = {
     case Request(_, attr) => {
@@ -35,7 +34,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
           val modelInfoF = modelHandler ? GetModelInfo(model)
           val svsF = modelHandler ? GetThings(model)
           val currentRelationsF = (modelHandler ? GetResults(model, _.isInstanceOf[RelationResult]))
-          val specsCondsF = serviceHandler ? Request(conditionsFromSpecService, Attr("model"-> model))
+          val specsCondsF = serviceHandler ? Request(conditionsFromSpecService, SPAttributes("model"-> model))
 
           //            .mapTo[List[RelationResult]] map (_.sortWith(_.modelVersion > _.modelVersion))
 
@@ -45,7 +44,6 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
             stateVarsAnswer <- svsF
             currentRelAnswer <- currentRelationsF
             specsConds <- specsCondsF
-
           } yield {
             List(opsAnswer, modelInfoAnswer, stateVarsAnswer, currentRelAnswer, specsConds) match {
               case SPIDs(opsIDAble) ::
@@ -65,13 +63,13 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
                 val ops = opsIDAble map (_.asInstanceOf[Operation])
                 // test for duplication of operations
                 val opsWithDuplicate = if (duplicate > 1){
-                  val svAttr = Attr("stateVariable"->MapPrimitive(Map(
-                    "range"-> MapPrimitive(Map("start"->0, "end"-> duplicate, "step"->1)),
+                  val svAttr = SPAttributes("stateVariable"->Map(
+                    "range"-> (Map("start"->0, "end"-> duplicate, "step"->1)),
                     "init" -> 0
-                  )))
+                  ))
                   val countVars = ops.map(o => o -> Thing(o.name+"Counter", svAttr)) toMap
                   val newOps = ops.map{ o =>
-                    
+
                   }
                 } else ops
 
@@ -83,9 +81,6 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
                 if (olderRels.nonEmpty && olderRels.head.modelVersion == mVersion) reply ! olderRels.head
                 else {
 
-
-
-                  import sp.domain.logic.StateVariableLogic._
                   val stateVarsMap = svs.map(sv => sv.id -> sv.inDomain).toMap ++ createOpsStateVars(ops)
                   val goalState = goal.getOrElse(State(Map()))
                   val goalfunction: State => Boolean = (s: State) => {
@@ -96,7 +91,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
                   println(s"GOAL STATE: $goal")
                   println(s"conditions from spec $condMap")
 
-                  val temp = IDPrimitive(ID.newID)
+                  val temp: SPValue = ID.newID
                   val filterCondMap = condMap.map { case (id, conds) =>
                     val filtered = if (groups.isEmpty) conds else conds.filter(c => {
                       val group = c.attributes.get("group").getOrElse(temp)
@@ -121,13 +116,13 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
                   val inputToAlgo = FindRelations(updatedOps, stateVarsMap ++ createOpsStateVars(updatedOps), addOpsToState(updatedOps, init), groups, iterations, goalfunction)
 
                   val relID = if (olderRels.nonEmpty) olderRels.head.id else ID.newID
-                  val attr = Attr(
-                    "settings" -> MapPrimitive(Map(
-                      "goal" -> StateLogic.convertStateToListPrimitive(goalState),
-                      "init" -> StateLogic.convertStateToListPrimitive(init),
-                      "groups" -> ListPrimitive(groups),
-                      "operations" -> ListPrimitive(opsID.map(IDPrimitive.apply))
-                    ))
+                  val attr = SPAttributes(
+                    "settings" -> Map(
+                      "goal" -> goalState,
+                      "init" -> init,
+                      "groups" -> groups,
+                      "operations" -> opsID
+                    )
                   )
 
                   //TODO: Handle long running algorithms better
@@ -159,30 +154,29 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
   }
 
 
-
   //TODO: I will fix this in a more general way so we can return errors if something is missing (probably using HList)
   def extract(attr: SPAttributes) = {
     for {
-      model <- attr.getAsID("model")
-      ops <- attr.getAsList("operations") map( _.flatMap(_.asID))
-      initState <- attr.getStateAttr("initstate")
+      model <- attr.getAs[ID]("model")
+      ops <- attr.getAs[List[ID]]("operations")
+      initState <- attr.getAs[State]("initstate")
     } yield {
-      val groups = attr.getAsList("groups").getOrElse(List())
-      val goalState = attr.getStateAttr("goal")
-      val iterations = attr.getAsInt("iteration").getOrElse(100)
-      val duplicate = attr.getAsInt("duplicate").getOrElse(1)
+      val groups = attr.getAs[List[SPValue]]("groups").getOrElse(List())
+      val goalState = attr.getAs[State]("goal")
+      val iterations = attr.getAs[Int]("iteration").getOrElse(100)
+      val duplicate = attr.getAs[Int]("duplicate").getOrElse(1)
       (model, ops, initState, groups, iterations, goalState, duplicate)
     }
   }
 
   def errorMessage(attr: SPAttributes) = {
     SPError("The request is missing parameters: \n" +
-      s"model: ${attr.getAsID("model")}" + "\n" +
-      s"ops: ${attr.getAsList("operations") map (_.flatMap(_.asID))}" + "\n" +
-      s"initstate: ${attr.getStateAttr("initstate")}" + "\n" +
-      s"groups(optional): ${attr.getAsList("groups")}" + "\n" +
-      s"goal(optional): ${attr.getStateAttr("goal")}" + "\n" +
-      s"iterations(optional): ${attr.getAsInt("iteration")}")
+      s"model: ${attr.getAs[ID]("model")}" + "\n" +
+      s"ops: ${attr.getAs[List[ID]]("operations")}" + "\n" +
+      s"initstate: ${attr.getAs[State]("initstate")}" + "\n" +
+      s"groups(optional): ${attr.getAs[List[String]]("groups")}" + "\n" +
+      s"goal(optional): ${attr.getAs[State]("goal")}" + "\n" +
+      s"iterations(optional): ${attr.getAs[Int]("iteration")}")
   }
 
   /**
@@ -192,7 +186,8 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
    * @return an updated state object
    */
   def addOpsToState(ops: List[Operation], state: State) = {
-    state.next(ops.map(_.id -> StringPrimitive("i")).toMap)
+    val i: SPValue = "i"
+    state.next(ops.map(_.id -> i).toMap)
   }
 
   /**

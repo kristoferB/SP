@@ -7,6 +7,7 @@ import sp.system.messages._
 import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent.duration._
+import sp.domain.Logic._
 
 /**
  * To create manufacturing operations and variables
@@ -25,7 +26,7 @@ class CreateOpsFromManualModelService(modelHandler: ActorRef) extends Actor with
 
       println(s"service: $service")
 
-      val id = attr.getAsID("activeModelID").getOrElse(ID.newID)
+      val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
 
       val psl = PSLFloorRoofCase()
 

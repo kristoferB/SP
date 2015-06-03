@@ -126,7 +126,7 @@ object IDAbleLogic {
       sv match {
         case SVIDEval(svid) => if (id.contains(svid)) None else Some(sv)
         case ValueHolder(v) => {
-          removeIDFromAttrValue(id, v) map ValueHolder
+          removeIDFromAttrValue(id.map(_.toString), v) map ValueHolder
         }
         case _ => Some(sv)
       }
@@ -163,7 +163,7 @@ object IDAbleLogic {
   def removeIDFromAction(id: Set[ID], actions: List[Action]): List[Action] = {
     actions flatMap {
       case a @ Action(svid, ValueHolder(v)) => {
-        val newV = removeIDFromAttrValue(id, v)
+        val newV = removeIDFromAttrValue(id.map(_.toString), v)
         if (id.contains(svid) || newV == None) None
         else Some(Action(svid, ValueHolder(newV.get)))
       }
@@ -178,34 +178,35 @@ object IDAbleLogic {
     }
   }
 
+  import org.json4s._
   def removeIDFromAttribute(id: Set[ID], attr: SPAttributes): SPAttributes = {
-    val updated = reqRemoveFromAttr(id, attr.attrs)
-    if (updated == attr.attrs) attr else SPAttributes(updated)
+    val idSet = id.map(_.toString())
+    val updated = reqRemoveFromAttr(idSet, attr.obj)
+    if (updated == attr.obj) attr else JObject(updated)
   }
-  def removeIDFromAttrValue(id: Set[ID], attrVal: SPAttributeValue): Option[SPAttributeValue] = {
+  def removeIDFromAttrValue(ids: Set[String], attrVal: JValue): Option[JValue] = {
     attrVal match {
-      case IDPrimitive(x) => if (id.contains(x)) None else Some(attrVal)
-      case MapPrimitive(x) => {
-        val upd = reqRemoveFromAttr(id, x)
-        Some(MapPrimitive(upd))
+      case JString(x) => if (ids.contains(x)) None else Some(attrVal)
+      case JObject(xs) => {
+        val upd = reqRemoveFromAttr(ids, xs)
+        Some(JObject(upd))
       }
-      case ListPrimitive(xs) => {
-        val upd  = xs flatMap ((v => removeIDFromAttrValue(id, v)))
-        Some(ListPrimitive(upd))
+      case JArray(xs) => {
+        val upd  = xs flatMap ((v => removeIDFromAttrValue(ids, v)))
+        Some(JArray(upd))
       }
-      case OptionAsPrimitive(x) => x flatMap (v => removeIDFromAttrValue(id, v))
       case _ => Some(attrVal)
     }
   }
-  private def reqRemoveFromAttr(id: Set[ID], keyVal: Map[String, SPAttributeValue]): Map[String, SPAttributeValue] = {
+  private def reqRemoveFromAttr(id: Set[String], keyVal: List[(String, JValue)]): List[(String, JValue)] = {
     val markID = keyVal map { case (key, attr) =>
       val newAttr = removeIDFromAttrValue(id, attr)
       newAttr match {
         case Some(x) => key -> x
-        case None => "remove!!!!" -> StringPrimitive("")
+        case None => "remove!!!!" -> JString("")
       }
     }
-    markID - "remove!!!!"
+    markID.filterNot(_._1 == "remove!!!!")
   }
 
 }

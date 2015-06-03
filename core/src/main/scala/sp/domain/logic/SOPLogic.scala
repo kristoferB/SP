@@ -1,11 +1,15 @@
 package sp.domain.logic
 
+import org.json4s._
+import sp.domain._
+import sp.domain.Logic._
+
 /**
  * Created by kristofer on 04/09/14.
  */
 case object SOPLogic {
 
-  import sp.domain._
+
 
   /**
    * Given a sop, this method extract all guards that the sop specify
@@ -18,7 +22,7 @@ case object SOPLogic {
     val props = findOpProps(sop, Map(), getAllConditions)
     props map{ case (id, props) =>
       val propList = if (props.size == 1) props.head else AND(props.toList)
-      id -> PropositionCondition(propList, List(), SPAttributes(Map("group" -> group, "kind"-> "precondition")))
+      id -> PropositionCondition(propList, List(), SPAttributes("group" -> group, "kind" -> "precondition") )
     }
   }
 
@@ -266,7 +270,7 @@ case object SOPLogic {
 
     val filteredMap = temp.map{case (id, and) =>
       val seqs = and.props.flatMap{
-        case EQ(SVIDEval(id), ValueHolder(StringPrimitive("f"))) => Some(id)
+        case EQ(SVIDEval(id), ValueHolder(JString("f"))) => Some(id)
         case _ => None
       }
 
@@ -297,13 +301,13 @@ case object SOPLogic {
 
   def makeConds(c1: Map[ID, Proposition], c2: Map[ID, Proposition]): Map[ID, List[Condition]] = {
     c1 map{ case (id, prop) =>
-      val cond1 = PropositionCondition(prop, List(), Attr(
+      val cond1 = PropositionCondition(prop, List(), SPAttributes(
         "kind" -> "pre",
         "group" -> "sop"
       ))
       id -> {
         if (c2.contains(id)){
-          List(cond1, PropositionCondition(c2(id), List(), Attr(
+          List(cond1, PropositionCondition(c2(id), List(), SPAttributes(
             "kind" -> "pre",
             "group" -> "other"
           )))

@@ -7,6 +7,7 @@ import sp.domain._
 import sp.jsonImporter.ServiceSupportTrait
 import sp.system.messages._
 import scala.concurrent.duration._
+import sp.domain.Logic._
 
 /**
  * Created by patrik on 2015-06-03.
@@ -21,7 +22,7 @@ class CreateInstancesFromTypeModelService(modelHandler: ActorRef) extends Actor 
 
       println(s"service: $service")
 
-      val id = attr.getAsID("activeModelID").getOrElse(ID.newID)
+      val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
 
 
 

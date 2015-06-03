@@ -4,6 +4,7 @@ import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
 import sp.domain._
+import sp.domain.Logic._
 import sp.system.messages._
 
 import scala.concurrent.duration._
@@ -21,6 +22,7 @@ class ConditionsFromSpecsService(modelHandler: ActorRef) extends Actor {
   import context.dispatcher
 
   def receive = {
+    case None => "hej"
     case Request(_, attr) => {
       val reply = sender
       extract(attr) match {
@@ -58,17 +60,17 @@ class ConditionsFromSpecsService(modelHandler: ActorRef) extends Actor {
 
   def extract(attr: SPAttributes) = {
     for {
-      model <- attr.getAsID("model")
+      model <- attr.getAs[ID]("model")
     } yield {
-      val ops = (attr.getAsList("operations") map( _.flatMap(_.asID))).getOrElse(List[ID]())
+      val ops = (attr.getAs[List[ID]]("operations").getOrElse(List[ID]()))
       (model, ops)
     }
   }
 
   def errorMessage(attr: SPAttributes) = {
     SPError("The request is missing parameters: \n" +
-      s"model: ${attr.getAsID("model")}" + "\n" +
-      s"ops: ${attr.getAsList("operations") map (_.flatMap(_.asID))}" )
+      s"model: ${attr.getAs[ID]("model")}" + "\n" +
+      s"ops: ${attr.getAs[List[ID]]("operations")}" )
   }
 }
 

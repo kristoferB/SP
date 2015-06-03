@@ -6,14 +6,16 @@ import akka.util.Timeout
 import scala.concurrent.duration._
 import sp.domain._
 import sp.system.messages._
+import sp.domain.Logic._
 import akka.persistence._
+import org.json4s.native.Serialization._
 
 /**
  * Created by Kristofer on 2014-06-12.
  */
 class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
   override def persistenceId = model.toString()
-  implicit val timeout = Timeout(7 seconds)
+  implicit val timeout = Timeout(2 seconds)
   import context.dispatcher
 
   def receiveCommand = {
@@ -22,37 +24,22 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       //println(s"update me: $upd")
       val reply = sender
       createDiffUpd(ids, v) match {
-        case Right(diff) => {
-          persist(diff)(d =>{
-            updateState(d)
-            //reply ! SPIDs(diff.updatedItems)
-            reply ! SPIDs(ids)
-          })
-        }
+        case Right(diff) => store(diff, reply ! SPIDs(ids))
         case Left(error) => reply ! error
       }
     }
     case DeleteIDs(m, dels) => {
       val reply = sender
       createDiffDel(dels.toSet) match {
-        case Right(diff) => {
-          persist(diff)(d =>{
-            updateState(d)
-            reply ! SPIDs(diff.deletedItems)
-          })
-        }
+        case Right(diff) => store(diff, reply ! SPIDs(diff.deletedItems))
         case Left(error) => reply ! error
       }
     }
 
     case UpdateModelInfo(_, ModelInfo(m, newName, v, attribute)) => {
       val reply = sender
-      val diff = ModelDiff(model, List(), List(), state.version, state.version + 1, newName, (attribute + ("time", DatePrimitive.now)))
-
-      persist(diff)( d => {
-          updateState(d)
-          reply ! getModelInfo
-      })
+      val diff = ModelDiff(model, List(), List(), state.version, state.version + 1, newName, attribute.addTimeStamp)
+      store(diff, reply ! getModelInfo)
     }
 
     case Revert(_, v) => {
@@ -78,17 +65,14 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
           state.version,
           state.version + 1,
           info.name,
-          SPAttributes(info.attributes.attrs + ("time" -> DatePrimitive.now))
+          info.attributes.addTimeStamp
         )
         self ! (diff, reply)
       }
     }
 
     case (diff: ModelDiff, reply: ActorRef) => {
-      persist(diff)(d =>{
-        updateState(d)
-        reply ! getModelInfo
-      })
+      store(diff, reply ! getModelInfo)
     }
 
     /**
@@ -104,11 +88,13 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
     case GetModels => sender ! getModelInfo
   }
 
-  def receiveRecover = {
-    case d: ModelDiff  => {
-      updateState(d)
+
+  def store(diff: ModelDiff, after: => Unit) = {
+    val json = write(diff)
+    persist(json){ d =>
+      updateState(diff)
+      after
     }
-    case SnapshotOffer(_, snapshot: ModelState) => state = snapshot
   }
 
 }
@@ -132,7 +118,7 @@ trait ModelActorState  {
     lazy val items = idMap.values.toSet
   }
 
-  var state = ModelState(0, Map(), Map(), Attr(), "noName")
+  var state = ModelState(0, Map(), Map(), SPAttributes(), "noName")
 
 
   def queryMessage(reply: ActorRef, mess: ModelQuery) = {
@@ -209,7 +195,7 @@ trait ModelActorState  {
           state.version,
           state.version + 1,
           state.name,
-          state.attributes + ("time" -> DatePrimitive.now)))
+          state.attributes.addTimeStamp))
       }
     } else {
       Left(UpdateError(state.version, conflicts))
@@ -227,7 +213,7 @@ trait ModelActorState  {
     val del = (state.idMap filter( kv =>  delete.contains(kv._1))).values
     if (delete.nonEmpty && del.isEmpty) Left(UpdateError(state.version, delete.toList))
     else {
-      Right(ModelDiff(model, upd, del.toList, state.version, state.version + 1, state.name, SPAttributes(modelAttr.attrs + ("time" -> DatePrimitive.now))))
+      Right(ModelDiff(model, upd, del.toList, state.version, state.version + 1, state.name, modelAttr.addTimeStamp))
     }
   }
 
@@ -267,6 +253,30 @@ trait ModelActorState  {
   def getModelInfo = ModelInfo(model, state.name, state.version, state.attributes)
 
 
+
+
+  def receiveRecover: Actor.Receive = {
+    case json: String => {
+      tryWithOption(read[ModelDiff](json)) match {
+        case Some(diff) => updateState(diff)
+        case None => println(s"Couldn't convert json to modeldiff: $json")
+      }
+    }
+    case d: ModelDiff  => {
+      updateState(d)
+    }
+    case SnapshotOffer(_, snapshot: ModelState) => state = snapshot
+  }
+
+  def tryWithOption[T](t: => T): Option[T] = {
+    try {
+      Some(t)
+    } catch {
+      case e: Exception => None
+    }
+  }
+
+
 }
 
 
@@ -283,12 +293,6 @@ class ModelView(val model: ID, version: Long, name: String) extends PersistentVi
   override def autoUpdate = false
 
   def receive = {
-    case d: ModelDiff  => {
-      updateState(d)
-    }
-    case SnapshotOffer(_, snapshot: ModelState) => {
-      state = snapshot
-    }
     case mess: ModelQuery => {
       queryMessage(sender, mess)
     }
@@ -296,6 +300,7 @@ class ModelView(val model: ID, version: Long, name: String) extends PersistentVi
       sender ! getModelInfo
     }
     case m: ModelUpdate => sender ! SPError("You are in view mode and can not change. Switch to a model")
+    case x @ _ => receiveRecover(x)
 
   }
 

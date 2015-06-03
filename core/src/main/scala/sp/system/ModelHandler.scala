@@ -3,7 +3,6 @@ package sp.system
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
-import sp.domain.SPAttributes
 import scala.concurrent.Future
 import akka.pattern.pipe
 import scala.concurrent.duration._

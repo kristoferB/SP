@@ -29,7 +29,7 @@ object Hierarchy{
 object SOP {
   
   def apply(children: SOP*): SOP = {
-    if (children isEmpty) EmptySOP
+    if (children.isEmpty) EmptySOP
     else if (children.size == 1) children.head
     else Parallel(children:_*) 
   }
