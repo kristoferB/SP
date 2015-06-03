@@ -63,8 +63,11 @@ object SP extends App {
 //
   import sp.virtcom._
 
-  serviceHandler ! RegisterService("CreateManufOpsFromProdOpsService",
-    system.actorOf(CreateManufOpsFromProdOpsService.props(modelHandler), "CreateManufOpsFromProdOpsService"))
+  serviceHandler ! RegisterService("CreateOpsFromManualModelService",
+    system.actorOf(CreateOpsFromManualModelService.props(modelHandler), "CreateOpsFromManualModelService"))
+
+  serviceHandler ! RegisterService("CreateInstancesFromTypeModelService",
+    system.actorOf(CreateInstancesFromTypeModelService.props(modelHandler), "CreateInstancesFromTypeModelService"))
 
   //  //Preload model from json-importer
 //    val file = Source.fromFile("C:/Users/patrik/Box Sync/ModelsForROAR/pslFloorRoof_JSON.json").getLines().mkString("\n")
