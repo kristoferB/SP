@@ -14,7 +14,7 @@ class SPSupremicaTest extends FreeSpec {
         val psl = PSLFloorRoofCase()
 
         import SupervisorImplicits._
-        psl.createWmodFile("./testFiles/gitIgnore/")
+        psl.createModel("./testFiles/gitIgnore/")
 
       }
       Module()

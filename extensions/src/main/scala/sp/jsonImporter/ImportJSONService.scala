@@ -30,7 +30,7 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
 
           for {
           //Creates a model and updates the model with "idables" parsed from the given json file
-            modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(
+            modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(model = ID.newID,
               name = name.flatMap(_.asString).getOrElse("noName")))
             _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = idables))
 

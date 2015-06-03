@@ -36,7 +36,7 @@ object Proposition {
 }
 
 case class AND(props: List[Proposition]) extends Proposition {
-  //override def toString = StrMaker.makeStr(props, "&&")
+//  override def toString = StrMaker.makeStr(props, "&&")
 }
 
 case class OR(props: List[Proposition]) extends Proposition {
