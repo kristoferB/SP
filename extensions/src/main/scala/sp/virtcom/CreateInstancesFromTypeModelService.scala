@@ -62,12 +62,9 @@ class CreateInstancesFromTypeModelService(modelHandler: ActorRef) extends Actor 
   }
 
   def getInitState(vars: Set[Thing]) = {
-    val state = vars.foldLeft(Map(): Map[ID, SPAttributeValue]) { case (acc, v) =>
-      v.attributes.getAsMap("stateVariable") match {
-        case Some(map) => map.get("init") match {
-          case Some(value) => acc + (v.id -> value)
-          case _ => acc
-        }
+    val state = vars.foldLeft(Map(): Map[ID, SPValue]) { case (acc, v) =>
+      v.attributes.findField(f => f._1 == "init") match {
+        case Some(map) => acc + (v.id -> map._2)
         case _ => acc
       }
     }
