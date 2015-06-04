@@ -79,15 +79,15 @@ object IDAbleLogic {
       case h: Hierarchy => {
         if (id.contains(h.operation)) None
         else {
-          val newChildren = filter(h.children)
-          if (newChildren == sop.children) Some(h)
+          val newChildren = filter(h.sop)
+          if (newChildren == sop.sop) Some(h)
           else Some(h.modify(newChildren))
         }
       }
       case EmptySOP => Some(EmptySOP)
       case _ => {
-        val newChildren = filter(sop.children)
-        if (newChildren == sop.children)
+        val newChildren = filter(sop.sop)
+        if (newChildren == sop.sop)
           Some(sop)
         else if (newChildren.isEmpty)
           None

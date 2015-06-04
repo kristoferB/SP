@@ -93,7 +93,7 @@ class SOPMakerGroupingTest extends FreeSpec with Matchers with Defs {
       }
       "should group parallel 1 " in {
         val groups = groupify(sops, rels, _.isInstanceOf[Parallel], Parallel.apply)
-        groups.head.children.toSet shouldEqual Set(so1, so2, so3, so4)
+        groups.head.sop.toSet shouldEqual Set(so1, so2, so3, so4)
       }
       "should group parallel 2 " in {
         val rels = Map(
@@ -106,7 +106,7 @@ class SOPMakerGroupingTest extends FreeSpec with Matchers with Defs {
         )
         val groups = groupify(sops, rels, _.isInstanceOf[Parallel], Parallel.apply)
 
-        groups.head.children.toSet shouldEqual Set(so1, so2, so3)
+        groups.head.sop.toSet shouldEqual Set(so1, so2, so3)
       }
       "should group parallel 3 " in {
         val rels = Map(
@@ -118,8 +118,8 @@ class SOPMakerGroupingTest extends FreeSpec with Matchers with Defs {
           o3o4 -> Parallel(so3, so4)
         )
         val groups = groupify(sops, rels, _.isInstanceOf[Parallel], Parallel.apply)
-        groups.head.children.toSet shouldEqual Set(so1, so2)
-        groups.tail.head.children.toSet shouldEqual Set(so3, so4)
+        groups.head.sop.toSet shouldEqual Set(so1, so2)
+        groups.tail.head.sop.toSet shouldEqual Set(so3, so4)
       }
       "should group no parallel " in {
         val rels = Map(
@@ -174,7 +174,7 @@ class SOPMakerGroupingTest extends FreeSpec with Matchers with Defs {
           o3o4 -> Alternative(so3, so4)
         )
         val groups = groupify(sops, rels, _.isInstanceOf[Alternative], Alternative.apply)
-        groups.head.children.toSet shouldEqual Set(so1, so2, so3, so4)
+        groups.head.sop.toSet shouldEqual Set(so1, so2, so3, so4)
       }
       "should group alternative 2 " in {
         val rels = Map(
@@ -187,7 +187,7 @@ class SOPMakerGroupingTest extends FreeSpec with Matchers with Defs {
         )
         val groups = groupify(sops, rels, _.isInstanceOf[Alternative], Alternative.apply)
 
-        groups.head.children.toSet shouldEqual Set(so1, so2, so3)
+        groups.head.sop.toSet shouldEqual Set(so1, so2, so3)
       }
       "should group alternative 3 " in {
         val rels = Map(
@@ -199,8 +199,8 @@ class SOPMakerGroupingTest extends FreeSpec with Matchers with Defs {
           o3o4 -> Alternative(so3, so4)
         )
         val groups = groupify(sops, rels, _.isInstanceOf[Alternative], Alternative.apply)
-        groups.head.children.toSet shouldEqual Set(so1, so2)
-        groups.tail.head.children.toSet shouldEqual Set(so3, so4)
+        groups.head.sop.toSet shouldEqual Set(so1, so2)
+        groups.tail.head.sop.toSet shouldEqual Set(so3, so4)
       }
       "should group no alternative " in {
         val rels = Map(

@@ -69,6 +69,9 @@ angular.module('spGuiApp')
         }
       }
 
+      console.log("SOP:")
+      console.log(struct)
+
       for(var i = 0; i < struct.sop.length; i++) {
         unregisterDrawings(struct.sop[i], justLines);
       }
