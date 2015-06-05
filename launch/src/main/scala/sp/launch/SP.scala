@@ -63,15 +63,18 @@ object SP extends App {
 //
   import sp.virtcom._
 
-  serviceHandler ! RegisterService("CreateOpsFromManualModelService",
-    system.actorOf(CreateOpsFromManualModelService.props(modelHandler), "CreateOpsFromManualModelService"))
+  serviceHandler ! RegisterService("CreateOpsFromManualModel",
+    system.actorOf(CreateOpsFromManualModelService.props(modelHandler), "CreateOpsFromManualModel"))
 
-  serviceHandler ! RegisterService("CreateInstancesFromTypeModelService",
-    system.actorOf(CreateInstancesFromTypeModelService.props(modelHandler), "CreateInstancesFromTypeModelService"))
+  serviceHandler ! RegisterService("SynthesizeTypeModel",
+    system.actorOf(SynthesizeTypeModelService.props(modelHandler), "SynthesizeTypeModel"))
+
+  serviceHandler ! RegisterService("CreateInstanceModelFromTypeModel",
+    system.actorOf(CreateInstanceModelFromTypeModelService.props(modelHandler), "CreateInstanceModelFromTypeModel"))
 
   //  //Preload model from json-importer
-//    val file = Source.fromFile("C:/Users/patrik/Box Sync/ModelsForROAR/pslFloorRoof_JSON.json").getLines().mkString("\n")
-//    jsonActor ! Request("someString", SPAttributes(Map("file" -> file, "name" -> "preloadedModel")))
+//    val file = Source.fromFile("./testFiles/gitIgnore/module1.json").getLines().mkString("\n")
+//    jsonActor ! Request("someString", SPAttributes("file" -> file, "name" -> "preloadedModel"))
 
   // launch REST API
   sp.server.LaunchGUI.launch

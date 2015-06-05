@@ -1,6 +1,7 @@
 package sp.domain.logic
 
 import org.json4s._
+import org.json4s.native.Serialization._
 
 import sp.domain.{SPValue, SPAttributes}
 
@@ -119,7 +120,7 @@ trait AttributeLogics {
       } yield (value._1, t)
     }
 
-
+    def pretty = writePretty(x)
 
   }
 

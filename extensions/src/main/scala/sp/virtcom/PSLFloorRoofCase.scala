@@ -1,5 +1,8 @@
 package sp.virtcom
 
+import sp.domain.SPAttributes
+import sp.domain.Logic._
+
 /**
  * Type based model of simple process in PSL.
  */
@@ -7,20 +10,20 @@ case class PSLFloorRoofCase() extends CollectorModel {
   //Floor
   v(name = "vKUKA_car", domain = Seq("empty", "floor"), init = "empty", marked = "empty")
   v(name = "vFixture_car", domain = Seq("empty", "floor", "floorRoof"), init = "empty", marked = "floorRoof")
-  op("gripFloor_KUKA", c("vKUKA_pos", "atPallet", "atPalletWorking", "atPallet"))
-  op("gripFloor_KUKA", c("vKUKA_car", "empty", "floor"), Seq())
+  op("gripFloor_KUKA", c("vKUKA_pos", "atPallet", "atPalletWorking", "atPallet"), attributes = SPAttributes("simop" -> "op34"))
+  op("gripFloor_KUKA", c("vKUKA_car", "empty", "floor"))
   op("fixateFloor_KUKA", c("vKUKA_pos", "atFixture", "atFixtureWorking", "atFixture"))
-  op("fixateFloor_KUKA", c("vKUKA_car", "floor", "empty"), Seq())
-  op("fixateFloor_KUKA", c("vFixture_car", "empty", "floor"), Seq())
+  op("fixateFloor_KUKA", c("vKUKA_car", "floor", "empty"))
+  op("fixateFloor_KUKA", c("vFixture_car", "empty", "floor"))
   v(name = "vKUKA_pos", domain = Seq("atPallet", "atPalletWorking", "atFixture", "atFixtureWorking"))
 
   //Roof
   v(name = "vABB_car", domain = Seq("empty", "roof"), init = "empty", marked = "empty")
   op("gripRoof_ABB", c("vABB_pos", "atPallet", "atPalletWorking", "atPallet"))
-  op("gripRoof_ABB", c("vABB_car", "empty", "roof"), Seq())
+  op("gripRoof_ABB", c("vABB_car", "empty", "roof"))
   op("fixateRoof_ABB", c("vABB_pos", "atFixture", "atFixtureWorking", "atFixture"))
-  op("fixateRoof_ABB", c("vABB_car", "roof", "empty"), Seq())
-  op("fixateRoof_ABB", c("vFixture_car", "floor", "floorRoof"), Seq())
+  op("fixateRoof_ABB", c("vABB_car", "roof", "empty"))
+  op("fixateRoof_ABB", c("vFixture_car", "floor", "floorRoof"))
   v(name = "vABB_pos", domain = Seq("atPallet", "atPalletWorking", "atFixture", "atFixtureWorking"))
 
   //Robot movements
