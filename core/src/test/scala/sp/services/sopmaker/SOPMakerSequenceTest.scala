@@ -310,7 +310,7 @@ trait Defs2 extends Sequencify with Groupify {
   def getOpName(s: SOP): String = {
     s match {
       case h: Hierarchy => getOpName(h.operation)
-      case _ => s.children.foldLeft("")(_ + "_" +getOpName(_))
+      case _ => s.sop.foldLeft("")(_ + "_" +getOpName(_))
     }
   }
 

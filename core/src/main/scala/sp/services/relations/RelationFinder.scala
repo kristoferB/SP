@@ -240,7 +240,7 @@ trait RelationFinderAlgorithms {
     val arbMap = enabled.arbiMap
     val arbisar = rels.relations.map{
       case (ops, p: Parallel) if arbMap.contains(ops) =>
-        ops -> Arbitrary(p.children:_*)
+        ops -> Arbitrary(p.sop:_*)
       case x @ (ops, sop) => x
     }
 
