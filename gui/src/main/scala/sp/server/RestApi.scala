@@ -237,7 +237,6 @@ trait ServiceAPI extends SPApiHelpers {
       path(Segment / "import") { service =>
         post {
           entity(as[spray.http.MultipartFormData]){ value =>
-            println(s"VALUE TO TEST: $value")
             import sp.domain.Logic._
             import org.json4s._
             val file = value.get("file") map { f =>
@@ -260,7 +259,7 @@ trait ServiceAPI extends SPApiHelpers {
       } ~
       pathPrefix(Segment){ service =>
         implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
-        post { intercept("service post") ~
+        post {
           entity(as[SPAttributes]) { attr =>
           callSP(Request(service, attr))
         }}
@@ -308,7 +307,6 @@ trait SPApiHelpers extends HttpService with Json4SSP {
 
   def intercept(info: String) = {
       mapRequest(json => {println(s"I GOT in $info: $json"); json}) {reject}
-
   }
 
 

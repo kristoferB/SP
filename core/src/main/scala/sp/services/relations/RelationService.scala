@@ -156,6 +156,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
 
   //TODO: I will fix this in a more general way so we can return errors if something is missing (probably using HList)
   def extract(attr: SPAttributes) = {
+    println(s"RelationIdent got: $attr")
     for {
       model <- attr.getAs[ID]("model")
       ops <- attr.getAs[List[ID]]("operations")

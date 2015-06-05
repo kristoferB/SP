@@ -148,7 +148,12 @@ angular.module('spGuiApp')
         if(i > 0) {
           textLine = textLine + '; ';
         }
-        textLine = textLine + getNameFromId(action[i].id) + ' = ' + action[i].value;
+        var actionValue = false
+        if (action[i].value.isa == "SVIDEval")
+          actionValue == action[i].value.isa.id;
+        else actionValue == action[i].value.v
+
+        textLine = textLine + getNameFromId(action[i].id) + ' = ' + actionValue;
       }
       return textLine;
     };

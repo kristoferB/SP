@@ -175,7 +175,7 @@ angular.module('spGuiApp')
       attributes: {
         attributeTags: {},
         conditionGroups: ['default'],
-        conditionInputMode: 'grid'
+        conditionInputMode: 'text'
       }
     };
     $http.post(apiUrl + '/models', newModel).
@@ -405,7 +405,7 @@ angular.module('spGuiApp')
         newItem.attributes.parent = parent.id;
       }
       if(type === 'Operation') {
-        newItem.conditions = [{guard: {isa:'EQ', right: true, left: true}, action: [], attributes: {kind: 'pre', group: 'default'}}];
+        newItem.conditions = [];
       } else if(type === 'Thing') {
         newItem.attributes.stateVariable =  {
           kind: 'boolean'

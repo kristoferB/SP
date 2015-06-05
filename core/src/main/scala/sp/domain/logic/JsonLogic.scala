@@ -15,7 +15,8 @@ trait JsonLogics {
     override val customSerializers: List[Serializer[_]] = org.json4s.ext.JodaTimeSerializers.all :+
       org.json4s.ext.UUIDSerializer :+
       new IDSerializer :+
-      new StateSerializer
+      new StateSerializer :+
+      new RelationSerializer
     override val dateFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     override val typeHints = ShortTypeHints(List(
       classOf[Operation],
@@ -77,6 +78,15 @@ trait JsonLogics {
         } yield (id, kv._2)
         State(filtered.toMap)
       }
+      case JArray(xs) => {
+        import sp.domain.logic.AttributeLogic._
+        val filtered = for {
+          sv @ JObject(xs) <- xs
+          key <- sv.getAs[ID]("id")
+          v <- sv.get("value")
+        } yield (key -> v)
+        State(filtered.toMap)
+      }
     },
     {
       case x: State => {
@@ -85,4 +95,26 @@ trait JsonLogics {
       }
     }
     ))
+
+  class RelationSerializer extends CustomSerializer[RelationMap](format => (
+    {
+      case JObject(JField("relations", JArray(ops)) :: JField("enabledMap", JArray(enabled)) :: Nil) => {
+        println("Not parsing relationsmap just yet!!!")
+        RelationMap(Map(),EnabledStatesMap(Map()) )
+      }
+    },
+    {
+      case x: RelationMap =>
+        val remap = x.relations map{
+          case (ops, sop) =>
+            SPAttributes("operations" -> ops, "sop" -> sop)
+        }
+        SPAttributes(
+          "relations" -> remap
+          //"enabledMap" -> x.enabledStates
+        )
+    }
+
+    ))
+
 }

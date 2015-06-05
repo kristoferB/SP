@@ -48,7 +48,7 @@ angular.module('spGuiApp')
         scope.findRelations = function(){
 
           var operations = [], groups = [],
-            initState = [], goalState = [];
+            initState = {}, goalState = {};
 
           _.each(scope.opSelection, function(selected, id){
             if(selected) operations.push(id);
@@ -63,18 +63,20 @@ angular.module('spGuiApp')
             if(scope.initState[id] !== '')
               initValue = scope.initState[id];
             else console.log("non init value " + scope.initState[id])
-            initState.push({id: id, value: initValue });
+            initState[id] = initValue;
 
             if(scope.goalState[id] !== '')
-              goalState.push({id: id, value: scope.goalState[id] });
+              goalState[id] = scope.goalState[id];
 
           });
-          console.log("test");
+
 
           if(operations.length === 0) {
             notificationService.info('You have to pick at least one operation to generate a RelationMap.');
             return
           }
+
+
           var res = spTalker.findRelations(operations, initState, groups, goalState);
 
 
@@ -100,8 +102,9 @@ angular.module('spGuiApp')
         };
 
         scope.viewRelationMap = function(relMap) {
-          if(angular.isDefined(relMap.relationmap)) {
-            scope.relations = relMap.relationmap.relationmap.map(function(item){
+          console.log(relMap)
+          if(angular.isDefined(relMap.relationMap)) {
+            scope.relations = relMap.relationMap.relations.map(function(item){
               return item.sop
             });
           } else {scope.relations = []}
