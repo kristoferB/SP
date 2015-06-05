@@ -16,7 +16,7 @@ import scala.concurrent.duration._
  * "operation" -> {"id" -> ID(UUID)}
  */
 class SimulationRuntime(about: CreateRuntime) extends Actor {
-  import sp.domain.logic.StateLogic._
+  import sp.domain.Logic._
   private implicit val to = Timeout(20 seconds)
   import context.dispatcher
 
@@ -26,9 +26,10 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
     case SimpleMessage(_, attr) => {
       val reply = sender
 
+
       //val attr = extractAttributes(attr)
-      val modelE = either(attr.getAsID("model"), "missing property model: ID")
-      val stateE = either(attr.getStateAttr("state"), "missing property state: State object")
+      val modelE = either(attr.getAs[ID]("model"), "missing property model: ID")
+      val stateE = either(attr.getAs[State]("state"), "missing property state: State object")
 
       val res = for {
         model <- modelE.right
@@ -41,15 +42,14 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
           ops <- opsF
           things <- thingsF
         } yield {
-          import sp.domain.logic.OperationLogic._
-          import sp.domain.logic.StateVariableLogic._
+          import sp.domain.Logic._
 
 
           val stateVars = things.map(sv => sv.id -> sv.inDomain).toMap ++ createOpsStateVars(ops)
           implicit val props = EvaluateProp(stateVars, Set(), ThreeStateDefinition)
 
           val newState = (for {
-            id <- attr.getAsID("execute")
+            id <- attr.getAs[ID]("execute")
             o <- ops.find(_.id == id)
           } yield o next state) getOrElse(state)
 
@@ -57,9 +57,10 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
           println(s"Enabled operations: $enabled")
 
 
-          val result = Attr(
-            "enabled" -> ListPrimitive(enabled.map(o => IDPrimitive(o.id)))
-          ).addStateAttr("state", newState)
+          val result = SPAttributes(
+            "enabled" -> (enabled.map(o => (o.id))),
+            "state" -> newState
+          )
 
           reply ! result
         }
@@ -69,9 +70,7 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
       res.left.map(e => reply ! e)
       res.right.map(f => f.onFailure{case e: Throwable => reply ! SPError(e.toString)})
 
-//      val result = for {
-//
-//      }
+
 
 
 

@@ -40,8 +40,12 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
   val userHandler: ActorRef
   private implicit val to = timeout
 
-  private def callSP(mess: Any, matchReply: PartialFunction[Any, Route]) = {
-    onSuccess(userHandler ? mess){evalReply{matchReply}}
+  private def callSP(mess: Any, matchReply: PartialFunction[Any, Route] = {PartialFunction.empty}) = {
+    onSuccess(userHandler ? mess) {
+      evalReply {
+        matchReply
+      }
+    }
   }
 
   def myUserPassAuthenticator(userPass: Option[UserPass]): Future[Option[String]] =
@@ -62,11 +66,19 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
   }
 
   val api = pathPrefix("api") {
-    / {complete("Sequence Planner REST API")} ~
+    / {
+      complete("Sequence Planner REST API")
+    } ~
       encodeResponse(Gzip) {
-        pathPrefix("models"){ modelapi } ~
-          pathPrefix("runtimes"){ runtimeapi } ~
-          pathPrefix("services") { serviceapi }  //~
+        pathPrefix("models") {
+          modelapi
+        } ~
+          pathPrefix("runtimes") {
+            runtimeapi
+          } ~
+          pathPrefix("services") {
+            serviceapi
+          } //~
         //      path("users") {
         //        get {
         //          callSP(GetUsers, {
@@ -92,12 +104,6 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
 }
 
 
-import spray.httpx.SprayJsonSupport._
-import spray.json._
-import sp.json.SPJson._
-
-
-
 trait ModelAPI extends SPApiHelpers {
   val modelHandler: ActorRef
   private implicit val to = timeout
@@ -106,6 +112,7 @@ trait ModelAPI extends SPApiHelpers {
     / {
       get {callSP(GetModels) } ~
         post {
+          implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
           updateModelInfo ~
             entity(as[CreateModelNewID]) { cmd => callSP(CreateModel(ID.newID, cmd.name, cmd.attributes))}
         }
@@ -148,10 +155,14 @@ trait ModelAPI extends SPApiHelpers {
 
 
   private def getSPIDS(mess: ModelQuery) = {
-    /{ get {callSP(mess, { case SPIDs(x) => complete(x)})}}
+    implicit def jm[T <: AnyRef] =  json4sMarshaller[T]
+    /{ get {callSP(mess,{case SPIDs(xs)=> complete(xs)})}}
   }
 
-  def updateModelInfo = entity(as[ModelInfo]) {info => callSP(UpdateModelInfo(info.model, info))}
+  def updateModelInfo = {
+    implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
+    entity(as[ModelInfo]) {info => callSP(UpdateModelInfo(info.model, info))}
+  }
 
 
   private def callSP(mess: Any, matchReply: PartialFunction[Any, Route] = {PartialFunction.empty}) = {
@@ -166,9 +177,10 @@ trait ModelAPI extends SPApiHelpers {
       }
     } ~
       post {
+        implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
         entity(as[IDAble]) { xs => callSP(UpdateIDs(model, -1, List(xs))) } ~
           entity(as[List[IDAble]]) { xs =>
-            callSP(UpdateIDs(model, -1, xs), { case SPIDs(x) => complete(x) })
+            callSP(UpdateIDs(model, -1, xs))
           }
       }
 
@@ -185,32 +197,28 @@ trait RuntimeAPI extends SPApiHelpers {
   private implicit val to = timeout
 
   def runtimeapi =
-    /{get{callSP(GetRuntimes, {
-      case RuntimeInfos(xs) => complete(xs) })
+    /{get{callSP(GetRuntimes)
     } ~
-      post { entity(as[CreateRuntime]) { cr =>
-        callSP(cr, {
-          case xs: CreateRuntime => complete(xs)
-        })}
+      post {
+        implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
+        entity(as[CreateRuntime]) { cr =>
+        callSP(cr)}
       }
     } ~
       pathPrefix(Segment){ rt =>
         /{
+          implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
           post{ entity(as[SPAttributes]) { attr =>
-            callSP(SimpleMessage(rt, attr), {
-              case xs: SPAttributes => complete(xs)
-            })}
+            callSP(SimpleMessage(rt, attr))}
 
           }
         }
       } ~
       pathPrefix("kinds"){
-        /{get{callSP(GetRuntimeKinds, {
-          case RuntimeKindInfos(xs) => complete(xs)
-        })}}
+        /{get{callSP(GetRuntimeKinds)}}
       }
 
-  private def callSP(mess: Any, matchReply: PartialFunction[Any, Route]) = {
+  private def callSP(mess: Any, matchReply: PartialFunction[Any, Route] = {PartialFunction.empty}) = {
     onSuccess(runtimeHandler ? mess){evalReply{matchReply}}
   }
 
@@ -229,17 +237,16 @@ trait ServiceAPI extends SPApiHelpers {
       path(Segment / "import") { service =>
         post {
           entity(as[spray.http.MultipartFormData]){ value =>
-
+            println(s"VALUE TO TEST: $value")
+            import sp.domain.Logic._
+            import org.json4s._
             val file = value.get("file") map { f =>
-              val fileAsString = f.entity.asString
-              val nameAsString = f.filename
-              val model = value.get("model").map(_.entity.asString) getOrElse("")
-              val modelKV = ID.makeID(model).map(id =>"model"->IDPrimitive(id)).getOrElse("model"->StringPrimitive(""))
-              val attr = Attr(
-                "file" -> fileAsString,
-                "name"-> SPAttributeValue(nameAsString),
-                modelKV
-              )
+              val fileAsString: SPValue = f.entity.asString
+              val nameAsString = f.filename.getOrElse("")
+              val model = value.get("model").map(_.entity.asString).getOrElse("")
+              val modelKV: (String, SPValue) = ID.makeID(model).map(id =>"model"->JString(id.toString)).getOrElse("model"->JString(""))
+              val attr = SPAttributes("file" -> fileAsString, "name"-> nameAsString, modelKV)
+
               callSP(Request(service, attr), {
                 case s: String => complete(s)
               })
@@ -252,18 +259,14 @@ trait ServiceAPI extends SPApiHelpers {
         }
       } ~
       pathPrefix(Segment){ service =>
-        post { entity(as[SPAttributes]) { attr =>
-          callSP(Request(service, attr), {
-            case p: Proposition => complete(p)
-            case a: SPAttributes => complete(a)
-            case r: Result => complete(r)
-            case SPIDs(x) => complete(x)
-            case item: IDAble => complete(item)
-          })
+        implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
+        post { intercept("service post") ~
+          entity(as[SPAttributes]) { attr =>
+          callSP(Request(service, attr))
         }}
       }
 
-  private def callSP(mess: Any, matchReply: PartialFunction[Any, Route]) = {
+  private def callSP(mess: Any, matchReply: PartialFunction[Any, Route]={PartialFunction.empty}) = {
     onSuccess(serviceHandler ? mess){evalReply{matchReply}}
   }
 
@@ -272,13 +275,13 @@ trait ServiceAPI extends SPApiHelpers {
 
 
 
+trait SPApiHelpers extends HttpService with Json4SSP {
 
-trait SPApiHelpers extends HttpService {
+  implicit def jm[T <: AnyRef] =  json4sMarshaller[T]
 
   val timeout = Timeout(3 seconds)
   // to cleanup the routing
   def / = pathEndOrSingleSlash
-
 
   def replyMatcher: PartialFunction[Any, Route] = {
     case x: ModelInfo => complete(x)
@@ -289,6 +292,9 @@ trait SPApiHelpers extends HttpService {
     case a: SPAttributes => complete(a)
     case r: Result => complete(r)
     case item: IDAble => complete(item)
+    case  RuntimeInfos(xs) => complete(xs)
+    case RuntimeKindInfos(xs) => complete(xs)
+    case xs: CreateRuntime => complete(xs)
     case e: SPErrorString => complete(e)
     case e: UpdateError => complete(e)
     case MissingID(id, model, mess) => complete(StatusCodes.NotFound, s"id: $id $mess")
@@ -299,16 +305,41 @@ trait SPApiHelpers extends HttpService {
     pf orElse replyMatcher
   }
 
+
+  def intercept(info: String) = {
+      mapRequest(json => {println(s"I GOT in $info: $json"); json}) {reject}
+
+  }
+
+
+
+
+
+
 }
 
+trait Json4SSP {
+  import java.lang.reflect.InvocationTargetException
 
-//  def getBasedOn(x: IDAble) = {
-//    println(s"getbasedon: $x")
-//    for {
-//      bo <- x.attributes.getAsMap("basedOn")
-//      id <- bo.get("id").flatMap(_.asID)
-//      v <- bo.get("version").flatMap(_.asLong)
-//    } yield {
-//      (id, v)
-//    }
-//  }
+  import spray.http.{ ContentTypes, HttpCharsets, HttpEntity, MediaTypes }
+  import spray.httpx.unmarshalling.Unmarshaller
+  import spray.httpx.marshalling.Marshaller
+
+  import org.json4s.native.Serialization._
+  import org.json4s.{ Formats, MappingException }
+
+  import sp.domain.Logic._
+
+  def json4sUnmarshaller[T: Manifest] =
+    Unmarshaller[T](MediaTypes.`application/json`) {
+      case x: HttpEntity.NonEmpty ⇒
+        try read[T](x.asString(defaultCharset = HttpCharsets.`UTF-8`))
+        catch {
+          case MappingException("unknown error", ite: InvocationTargetException) ⇒ throw ite.getCause
+        }
+    }
+
+  def json4sMarshaller[T <: AnyRef] =
+    Marshaller.delegate[T, String](ContentTypes.`application/json`)(write(_))
+}
+

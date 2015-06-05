@@ -1,6 +1,8 @@
 package sp.domain.logic
 
+import org.json4s._
 import sp.domain._
+import sp.domain.Logic._
 
 case object PropositionConditionLogic {
 
@@ -9,18 +11,18 @@ case object PropositionConditionLogic {
    */
   implicit class propLogic(iProp: Proposition) {
 
-    private implicit class inequalityAttributes(l: SPAttributeValue) {
-      def >(r: SPAttributeValue) = {
+    private implicit class inequalityAttributes(l: SPValue) {
+      def >(r: SPValue) = {
         (l, r) match {
-          case (IntPrimitive(li), IntPrimitive(ri)) => li > ri
-          case (LongPrimitive(li), LongPrimitive(ri)) => li > ri
-          case (DoublePrimitive(li), DoublePrimitive(ri)) => li > ri
+          case (JInt(li), JInt(ri)) => li > ri
+          case (JDouble(li), JDouble(ri)) => li > ri
+          case (JDecimal(li), JDecimal(ri)) => li > ri
           case _ => false
         }
       }
-      def <(r: SPAttributeValue) = (r > l)
-      def >=(r: SPAttributeValue) = (l > r) || (l == r)
-      def <=(r: SPAttributeValue) = (r > l) || (l == r)
+      def <(r: SPValue) = (r > l)
+      def >=(r: SPValue) = (l > r) || (l == r)
+      def <=(r: SPValue) = (r > l) || (l == r)
     }
 
     def eval(state: State): Boolean = {
@@ -44,8 +46,8 @@ case object PropositionConditionLogic {
         if (psOptionValues.contains(None)) None else Some(e(psOptionValues))
       }
 
-      def valueEval(l: StateEvaluator, r: StateEvaluator, e: (SPAttributeValue, SPAttributeValue) => Boolean) = {
-        def getValue(se: StateEvaluator): Option[SPAttributeValue] = se match {
+      def valueEval(l: StateEvaluator, r: StateEvaluator, e: (SPValue, SPValue) => Boolean) = {
+        def getValue(se: StateEvaluator): Option[SPValue] = se match {
           case SVIDEval(id) => state.get(id)
           case ValueHolder(v) => Some(v)
           case _ => None
@@ -75,21 +77,28 @@ case object PropositionConditionLogic {
   implicit class condLogic(cond: Condition) {
     val c = cond.asInstanceOf[PropositionCondition]
     def eval(s: State) = c.guard.eval(s)
-    def next(s: State) = s.next(c.action map (a => a.id -> a.nextValue(s)) toMap)
-    def inDomain(s: State, stateVars: Map[ID, SPAttributeValue => Boolean]) = {
+    def next(s: State) = s.next(c.action.map(a => a.id -> a.nextValue(s)) toMap)
+    def inDomain(s: State, stateVars: Map[ID, SPValue => Boolean]) = {
       !(c.action map (_.inDomain(s, stateVars)) exists (!_))
     }
   }
 
   implicit class nextLogic(a: Action) {
+
     def nextValue(s: State) = a.value match {
       case ValueHolder(v) => v
-      case INCR(n) => SPAttributeValue(s(a.id).asInt map (_ + n))
-      case DECR(n) => SPAttributeValue(s(a.id).asInt map (_ - n))
+      case INCR(n) => updateValue(s(a.id), _ + n)
+      case DECR(n) => updateValue(s(a.id), _ - n)
       case ASSIGN(id) => s(id)
     }
+    def updateValue(v: JValue, func: BigInt => BigInt) = {
+      v match {
+        case JInt(i) => JInt(func(i))
+        case _ => JNothing
+      }
+    }
 
-    def inDomain(s: State, stateVars: Map[ID, SPAttributeValue => Boolean]): Boolean = {
+    def inDomain(s: State, stateVars: Map[ID, SPValue => Boolean]): Boolean = {
       val next = nextValue(s)
       val sv = stateVars(a.id)
       stateVars(a.id)(next)
@@ -156,7 +165,7 @@ case class PropositionParser(idablesToParseFromString: List[IDAble] = List()) ex
   lazy val stringValue = REG_EX_STRINGVALUE ^^ {
     v => spidMap.get(v) match {
       case Some(id) => SVIDEval(id)
-      case _ => ValueHolder(StringPrimitive(v))
+      case _ => ValueHolder(v)
     }
   }
 
@@ -186,7 +195,7 @@ case class ActionParser(idablesToParseFromString: List[IDAble] = List()) extends
   lazy val stringValue = REG_EX_STRINGVALUE ^^ {
     v => spidMap.get(v) match {
       case Some(id) => ASSIGN(id)
-      case _ => ValueHolder(StringPrimitive(v))
+      case _ => ValueHolder(v)
     }
   }
 
@@ -203,9 +212,9 @@ trait BaseParser extends JavaTokenParsers {
   def uuid[T](parserFunction: String => T) = REG_EX_UUID ^^ {
     parserFunction
   }
-  lazy val intValue = REG_EX_INTVALUE ^^ { v => ValueHolder(IntPrimitive(Integer.parseInt(v))) }
-  final lazy val trueValue = REG_EX_TRUE ^^ { v => ValueHolder(BoolPrimitive(true)) }
-  final lazy val falseValue = REG_EX_FALSE ^^ { v => ValueHolder(BoolPrimitive(false)) }
+  lazy val intValue = REG_EX_INTVALUE ^^ { v => ValueHolder(Integer.parseInt(v)) }
+  final lazy val trueValue = REG_EX_TRUE ^^ { v => ValueHolder(true) }
+  final lazy val falseValue = REG_EX_FALSE ^^ { v => ValueHolder(false) }
 
   val idablesToParseFromString: List[IDAble]
   lazy val spidMap = idablesToParseFromString.map(item => item.name -> item.id).toMap

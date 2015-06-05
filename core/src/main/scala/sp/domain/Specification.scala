@@ -9,10 +9,10 @@ trait Specification extends IDAble {
 
 case class SOPSpec(name: String,
                    sop: List[SOP],
-                   attributes: SPAttributes = Attr(),
+                   attributes: SPAttributes = SPAttributes(),
                    id: ID = ID.newID) extends Specification
 
 
 case class SPSpec(name: String,
-                  attributes: SPAttributes = Attr(),
+                  attributes: SPAttributes = SPAttributes(),
                   id: ID = ID.newID) extends Specification

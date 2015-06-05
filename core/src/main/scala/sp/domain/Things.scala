@@ -8,7 +8,7 @@ package sp.domain
  * Created by Kristofer on 2014-06-11.
  */
 case class Thing(name: String,
-                 attributes: SPAttributes = Attr(),
+                 attributes: SPAttributes = SPAttributes(),
                  id: ID = ID.newID) extends IDAble
 
 

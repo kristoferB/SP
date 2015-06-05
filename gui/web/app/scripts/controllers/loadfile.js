@@ -35,7 +35,7 @@ angular.module('spGuiApp')
         $scope.upload = $upload.upload({
           url: 'api/services/'+$scope.filetype.service+'/import', //upload.php script, node.js route, or servlet url
           //method: 'POST' or 'PUT',
-          //headers: {'header-key': 'header-value'},
+          //headers: {'Content-Type': 'application/json'},
           //withCredentials: true,
           data: {"model": spTalker.activeModel.model},
           file: file, // or list of files ($files) for html5 only

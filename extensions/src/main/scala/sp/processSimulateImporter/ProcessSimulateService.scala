@@ -1,20 +1,15 @@
 package sp.processSimulateImporter
 
 import akka.actor._
-import sp.domain.logic.{ ActionParser, PropositionParser}
+import sp.domain.logic.{ActionParser, PropositionParser}
 import sp.system.messages._
 import sp.domain._
+import sp.domain.Logic._
+import org.json4s.native.Serialization._
 import akka.pattern.ask
 import akka.util.Timeout
-import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import sp.services.specificationconverters._
-import sp.json.SPJson._
-import scala.util._
-import spray.json._
-import DefaultJsonProtocol._
-
 import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
 import akka.camel.{ CamelExtension, CamelMessage, Consumer, Producer }
 
@@ -24,19 +19,12 @@ class ProcessSimulateAMQ extends Actor with Producer {
   def endpointUri = "activemq:PS"
 }
 
-case class TXNameID(name: String, tx_id: String)
-
-object TXNameImplicits extends DefaultJsonProtocol {
-  implicit val implicitTXNameID = jsonFormat2(TXNameID)
-}
-
 class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Actor {
-  import TXNameImplicits._ // ???
   implicit val timeout = Timeout(1 seconds)
   val ps_timeout = Timeout(5 seconds)
 
   def addObjectFromJSON(json : String, modelid : ID) = {
-    val idable = JsonParser(json).convertTo[IDAble]
+    val idable = read[IDAble](json)
     modelHandler ! UpdateIDs(modelid, 0, List(idable))
   }
 
@@ -58,8 +46,8 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
           val result = Await.result(psAmq ? json, ps_timeout.duration)
           result match {
             case CamelMessage(body,headers) => {
-              val ll = JsonParser(body.toString).convertTo[List[IDAble]]
-              modelHandler ! UpdateIDs(model, 0, ll)
+              val idables = read[List[IDAble]](body.toString)
+              modelHandler ! UpdateIDs(model, 0, idables)
             }
           }
           reply ! "all ok"
@@ -82,9 +70,9 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
 
   def extract(attr: SPAttributes) = {
     for {
-      command <- attr.getAsString("command")
-      model <- attr.getAsID("model")
-      param <- attr.getAsString("param")
+      command <- attr.getAs[String]("command")
+      model <- attr.getAs[ID]("model")
+      param <- attr.getAs[String]("param")
     } yield (command, model, param)
   }  
 }

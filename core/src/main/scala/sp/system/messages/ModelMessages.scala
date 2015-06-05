@@ -2,6 +2,7 @@ package sp.system.messages
 
 import java.util.UUID
 import sp.domain._
+import sp.domain.logic.AttributeLogic._
 import akka.persistence._
 
 /**
@@ -15,8 +16,9 @@ sealed trait ModelQuery extends ModelMessage
 sealed trait ModelUpdate extends ModelMessage
 
 // Model messages
-case class CreateModel(model: ID = ID.newID, name: String, attributes: SPAttributes = SPAttributes(Map())) extends ModelMessage
-case class CreateModelNewID(name: String, attributes: SPAttributes = SPAttributes(Map())) //Problem to use this on the scala side. 150522 Patrik
+case class CreateModel(model: ID = ID.newID, name: String, attributes: SPAttributes = SPAttributes()) extends ModelMessage
+// TODO Should be local in rest API. Used during json parse: KB 150526
+case class CreateModelNewID(name: String, attributes: SPAttributes = SPAttributes()) //Problem to use this on the scala side. 150522 Patrik
 case object GetModels extends SPMessage
 
 case class GetIds(model: ID, ids: List[ID]) extends ModelQuery
@@ -45,7 +47,7 @@ case class ModelDiff(model: ID,
                      fromVersion: Long,
                      currentVersion: Long,
                      name: String,
-                     attributes: SPAttributes = SPAttributes(Map("time"->DatePrimitive.now))
+                     attributes: SPAttributes = SPAttributes().addTimeStamp
                    ) extends SPMessage
 case class ModelInfos(models: List[ModelInfo])
 case class ModelInfo(model: ID, name: String, version: Long, attributes: SPAttributes)

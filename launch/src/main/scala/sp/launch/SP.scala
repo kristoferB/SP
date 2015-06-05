@@ -1,8 +1,10 @@
 package sp.launch
 
-import sp.domain.SPAttributes
 import sp.services.{PropositionParserActor}
 import sp.system.messages._
+import sp.domain._
+
+
 import scala.io.Source
 
 /**
@@ -11,11 +13,12 @@ import scala.io.Source
 object SP extends App {
 
   import sp.system.SPActorSystem._
+  import sp.domain.Logic._
 
   // Register Runtimes here
   runtimeHandler ! RegisterRuntimeKind("SimulationRuntime",
     sp.runtimes.SimulationRuntime.props,
-    SPAttributes(Map("info" -> "En liten runtime")))
+  SPAttributes("info"->"en liten runtime"))
 
 
   // Register services here
@@ -37,31 +40,34 @@ object SP extends App {
   serviceHandler ! RegisterService("ConditionsFromSpecsService",
     system.actorOf(ConditionsFromSpecsService.props(modelHandler), "ConditionsFromSpecsService"))
 
-  import sp.areus._
-
-  serviceHandler ! RegisterService("DelmiaV5Service",
-    system.actorOf(DelmiaV5Service.props(modelHandler), "DelmiaV5Service"))
-
-  serviceHandler ! RegisterService("ImportKUKAFileService",
-    system.actorOf(ImportKUKAFileService.props(modelHandler), "ImportKUKAFileService"))
-
-  serviceHandler ! RegisterService("VCImportService",
-    system.actorOf(VCImportService.props(modelHandler), "VCImportService"))
-
+//  import sp.areus._
+//
+//  serviceHandler ! RegisterService("DelmiaV5Service",
+//    system.actorOf(DelmiaV5Service.props(modelHandler), "DelmiaV5Service"))
+//
+//  serviceHandler ! RegisterService("ImportKUKAFileService",
+//    system.actorOf(ImportKUKAFileService.props(modelHandler), "ImportKUKAFileService"))
+//
+//  serviceHandler ! RegisterService("VCImportService",
+//    system.actorOf(VCImportService.props(modelHandler), "VCImportService"))
+//
   import sp.jsonImporter._
 
   val jsonActor = system.actorOf(ImportJSONService.props(modelHandler), "ImportJSONService")
   serviceHandler ! RegisterService("ImportJSONService", jsonActor)
-
-  import sp.merger._
-
-  serviceHandler ! RegisterService("ProductAbilityMerger",
-    system.actorOf(ProductAbilityMerger.props(modelHandler), "ProductAbilityMerger"))
-
+//
+//  import sp.merger._
+//
+//  serviceHandler ! RegisterService("ProductAbilityMerger",
+//    system.actorOf(ProductAbilityMerger.props(modelHandler), "ProductAbilityMerger"))
+//
   import sp.virtcom._
 
-  serviceHandler ! RegisterService("CreateManufOpsFromProdOpsService",
-    system.actorOf(CreateManufOpsFromProdOpsService.props(modelHandler), "CreateManufOpsFromProdOpsService"))
+  serviceHandler ! RegisterService("CreateOpsFromManualModelService",
+    system.actorOf(CreateOpsFromManualModelService.props(modelHandler), "CreateOpsFromManualModelService"))
+
+  serviceHandler ! RegisterService("CreateInstancesFromTypeModelService",
+    system.actorOf(CreateInstancesFromTypeModelService.props(modelHandler), "CreateInstancesFromTypeModelService"))
 
   // activemq + process simulate stuff
   import akka.actor.{ Actor, ActorRef, Props, ActorSystem }

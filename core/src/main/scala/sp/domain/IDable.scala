@@ -2,6 +2,8 @@ package sp.domain
 
 import java.util.UUID
 
+import org.json4s._
+
 /**
  *
  * All things used in the domain should be an IDAble. When a new object is created, a new random ID is created.
@@ -37,5 +39,8 @@ object ID {
     } catch {
       case e: IllegalArgumentException => None
     }
+  }
+  def isID(str: String) = {
+    makeID(str) != None
   }
 }
