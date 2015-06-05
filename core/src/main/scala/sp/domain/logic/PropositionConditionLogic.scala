@@ -124,7 +124,7 @@ case object PropositionConditionLogic {
 
   def parseAttributesToPropositionCondition(op: Operation, idablesToParseFromString: List[IDAble]): Option[Operation] = {
     def getGuard(str: String) = {
-      val guardAsString = op.attributes.findAs[String](str).mkString("(", ")&(", ")")
+      val guardAsString = op.attributes.findAs[Set[String]](str).flatten.mkString("(", ")&(", ")")
       PropositionParser(idablesToParseFromString).parseStr(guardAsString) match {
         case Right(p) => Some(p)
         case Left(f) => {
@@ -134,7 +134,7 @@ case object PropositionConditionLogic {
       }
     }
     def getAction(str: String) = {
-      val actionsAsString = op.attributes.findAs[String](str)
+      val actionsAsString = op.attributes.findAs[Set[String]](str).flatten
       actionsAsString.flatMap { action => ActionParser(idablesToParseFromString).parseStr(action) match {
         case Right(a) => Some(a)
         case Left(f) => {

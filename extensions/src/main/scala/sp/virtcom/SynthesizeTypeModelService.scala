@@ -1,7 +1,7 @@
 package sp.virtcom
 
 import akka.actor._
-import org.json4s.JsonAST.{JObject, JString}
+import org.json4s.JsonAST.{JArray, JObject, JString}
 import sp.domain.logic.{PropositionConditionLogic, ActionParser}
 import sp.domain._
 import sp.jsonImporter.ServiceSupportTrait
@@ -45,10 +45,10 @@ class SynthesizeTypeModelService(modelHandler: ActorRef) extends Actor with Serv
           ptmw.addOperations()
           ptmw.addForbiddenExpressions()
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-          ptmw.getSupervisorGuardsAsSPAttributes()
+          ptmw.getSupervisorGuardsAsOptionString()
         }
 
-        updatedOps = ops.map(o => ptmw.createFinalCondition(o,supervisorGuards.get(o.name)))
+        updatedOps = ops.map(o => ptmw.createFinalCondition(o, supervisorGuards(o.name)))
         _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = updatedOps))
 
       } yield {
@@ -76,8 +76,8 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
   lazy val mModule = SimpleModuleFactory(moduleName)
 
   private def addTransition(o: Operation, event: String, guard: String, action: String) = {
-    val guardAsString = o.attributes.findAs[String](guard).mkString("(", ")&(", ")")
-    val actionsAsString = o.attributes.findAs[String](action)
+    val guardAsString = o.attributes.findAs[Set[String]](guard).flatten.mkString("(", ")&(", ")")
+    val actionsAsString = o.attributes.findAs[Set[String]](action).flatten
     addLeaf(event, stringPredicateToSupremicaSyntax(guardAsString),
       actionsAsString.map(stringActionToSupremicaSyntax).mkString("; "))
   }
@@ -119,26 +119,33 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
     }
   }
 
-  def getSupervisorGuardsAsSPAttributes() = {
-    def stringToAttribute(s: String) = s match {
-      case "1" => SPAttributes()
-      case "0" => SPAttributes("preGuard" -> "1<0")
-      case v => SPAttributes("preGuard" -> v)
+  def getSupervisorGuardsAsOptionString() = {
+    def stringToOption(s: String) = s match {
+      case "1" => None
+      case "0" => Some("1<0")
+      case v => Some(v)
     }
-    getSupervisorGuards().getOrElse(Map()).map { case (o, v) => o -> stringToAttribute(v) }
+    getSupervisorGuards().getOrElse(Map()).map { case (o, v) => o -> stringToOption(v) }
   }
 
-  def createFinalCondition(o: Operation, synthesizedGuard : Option[SPAttributes]): Operation = {
-    val updatedAttribute = o.attributes.mapField {
-      case ("preGuard", JString(v)) => ("preGuard", JString(stringPredicateToSupremicaSyntax(v)))
-      case ("preAction", JString(v)) => ("preAction", JString(stringActionToSupremicaSyntax(v)))
-      case ("postGuard", JString(v)) => ("postGuard", JString(stringPredicateToSupremicaSyntax(v)))
-      case ("postAction", JString(v)) => ("postAction", JString(stringActionToSupremicaSyntax(v)))
-      case other => other
+  def createFinalCondition(o: Operation, synthesizedGuard: Option[String]): Operation = {
+    lazy val updatedAttribute = o.attributes.transformField {
+      case ("preGuard", JArray(vs)) => ("preGuard", JArray(vs.map { case JString(x) => JString(stringPredicateToSupremicaSyntax(x)); case other => other }))
+      case ("preAction", JArray(vs)) => ("preAction", JArray(vs.map { case JString(x) => JString(stringActionToSupremicaSyntax(x)); case other => other }))
+      case ("postGuard", JArray(vs)) => ("postGuard", JArray(vs.map { case JString(x) => JString(stringPredicateToSupremicaSyntax(x)); case other => other }))
+      case ("postAction", JArray(vs)) => ("postAction", JArray(vs.map { case JString(x) => JString(stringActionToSupremicaSyntax(x)); case other => other }))
     }
 
-    val opWithUpdatedAttributes = o.copy(attributes = updatedAttribute.getAs[JObject].getOrElse(SPAttributes())+synthesizedGuard.getOrElse(SPAttributes()))
-    PropositionConditionLogic.parseAttributesToPropositionCondition(opWithUpdatedAttributes,vars).getOrElse(opWithUpdatedAttributes)
+    lazy val updatedAttributeWithSynthesizedGuards = synthesizedGuard match {
+      case Some(guard) => updatedAttribute.getAs[JObject].getOrElse(SPAttributes()).transformField {
+        case ("preGuard", JArray(vs)) => ("preGuard", JArray(JString(guard) :: vs))
+      }
+      case _ => updatedAttribute
+    }
+
+    val opWithUpdatedAttributes = o.copy(attributes = updatedAttributeWithSynthesizedGuards.getAs[JObject].getOrElse(SPAttributes()))
+
+    PropositionConditionLogic.parseAttributesToPropositionCondition(opWithUpdatedAttributes, vars).getOrElse(opWithUpdatedAttributes)
   }
 
   private def getFromVariableDomain(variable: String, value: String, errorMsg: String): Option[Int] = {
@@ -151,7 +158,6 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
 
     }
   }
-
 
   //To get correct syntax of guards in Supremica
   //Variable values are changed to index in domain

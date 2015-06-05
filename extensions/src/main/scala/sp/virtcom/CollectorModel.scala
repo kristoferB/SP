@@ -1,5 +1,6 @@
 package sp.virtcom
 
+import org.json4s.JsonAST.{JObject, JField, JString}
 import sp.domain.{SPSpec, Operation, Thing, SPAttributes}
 import sp.domain.Logic._
 
@@ -20,17 +21,12 @@ trait CollectorModel {
   implicit def stringToSeqOfSpAtt(s: String): Seq[SPAttributes] = {
     val guardAction = s.split(";")
     val actions: Set[String] = if (guardAction.size > 1) guardAction.drop(1).toSet else Set()
-    Seq(SPAttributes("freeTextCondition" -> Map("guard" -> guardAction.head, "actions" -> actions)))
+    Seq(SPAttributes("postAction" -> actions))
   }
   def op(name: String, conditions: Seq[SPAttributes], postActions: Seq[SPAttributes] = SPAttributes(), attributes: SPAttributes = SPAttributes()) = {
     import sp.domain.logic.AttributeLogic._
-    val attrUpdatedWithCond = conditions.foldLeft(attributes) { case (acc, c) => acc + c }
-    val attrUpdatedWithPostAction = postActions.foldLeft(attrUpdatedWithCond) { case (acc, pa) => {
-      val optAs = pa.findAs[Set[String]]("actions").headOption
-      if (optAs.isDefined) optAs.get.foldLeft(acc) { case (innerAcc, a) => innerAcc + SPAttributes("postAction" -> a) } else acc
-    }
-    }
-    operationSet += Operation(name = name, attributes = conditions.foldLeft(attributes) { case (acc, c) => acc + c })
+    val attrUpdated = (conditions ++ postActions).foldLeft(attributes) { case (acc, c) => acc + c }
+    operationSet += Operation(name = name, attributes = attrUpdated)
   }
 
   def x(name: String, forbiddenExpressions: Set[String]): Unit = {
@@ -38,8 +34,8 @@ trait CollectorModel {
     forbiddenExpressionMap = forbiddenExpressionMap ++ Map(name -> (optExistingFE.getOrElse(Set()) ++ forbiddenExpressions))
   }
 
-  def c(variable: String, fromValue: String, toValue: String): SPAttributes = SPAttributes("preGuard" -> s"$variable==$fromValue", "preAction" -> s"$variable=$toValue")
-  def c(variable: String, fromValue: String, inBetweenValue: String, toValue: String): SPAttributes = c(variable, fromValue, inBetweenValue) + SPAttributes("postGuard" -> s"$variable==$inBetweenValue", "postAction" -> s"$variable=$toValue")
+  def c(variable: String, fromValue: String, toValue: String): SPAttributes = SPAttributes("preGuard" -> Set(s"$variable==$fromValue"), "preAction" -> Set(s"$variable=$toValue"))
+  def c(variable: String, fromValue: String, inBetweenValue: String, toValue: String): SPAttributes = c(variable, fromValue, inBetweenValue) + SPAttributes("postGuard" -> Set(s"$variable==$inBetweenValue"), "postAction" -> Set(s"$variable=$toValue"))
 
   implicit def stringToOption: String => Option[String] = Some(_)
   implicit def stringToSetOfStrings: String => Set[String] = Set(_)
@@ -73,7 +69,25 @@ object CollectorModelImplicits {
 
       //Operations------------------------------------------------------------------------------------
       val ops = cm.operationSet.groupBy(_.name).map { case (k, os) => k -> os.foldLeft(SPAttributes()) { case (acc, o) => acc + o.attributes } }
-      val opsToAdd = ops.map(kv => Operation(name = kv._1, attributes = kv._2)).toList
+      val opsUpdated = ops.map { case (o, attr) =>
+        val keyValues = Seq("preGuard", "preAction", "postGuard", "postAction").map(key => key -> attr.findAs[Set[String]](key).flatten.toSet).toMap
+        val cleanAttr = attr removeField {
+          case ("preGuard", _) => true
+          case ("preAction", _) => true
+          case ("postGuard", _) => true
+          case ("postAction", _) => true
+          case _ => false
+        }
+        val updatedAttr = cleanAttr.getAs[JObject].getOrElse(SPAttributes()) + SPAttributes(
+          "preGuard" -> keyValues("preGuard"),
+          "preAction" -> keyValues("preAction"),
+          "postGuard" -> keyValues("postGuard"),
+          "postAction" -> keyValues("postAction")
+        )
+
+        o -> updatedAttr
+      }
+      val opsToAdd = opsUpdated.map(kv => Operation(name = kv._1, attributes = kv._2)).toList
       //      opsToAdd.foreach(o => println(s"n:${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
 
       //ForbiddenExpressions--------------------------------------------------------------------------------------
