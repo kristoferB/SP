@@ -150,7 +150,7 @@ class JsonTest extends FreeSpec with Matchers  {
       )
       val json = Extraction.decompose(sop)
       val str = write(json)
-      println(writePretty(json))
+      //println(writePretty(json))
       val r = read[SOP](str)
       r shouldEqual sop
     }
@@ -182,5 +182,33 @@ class JsonTest extends FreeSpec with Matchers  {
     }
 
   }
+
+  "a json string should be converted" - {
+    val x = SPAttributes("hej"->"AND", "haj"->false, "list"->List(1,2,3))
+    val jsonAttr =
+      s"""
+         |{
+         |  "hej":"AND",
+         |  "haj":false,
+         |  "list": [1,2,3]
+         |  }
+        """.stripMargin
+    "to an SPAttribute" in {
+
+      println(x.pretty)
+      println(x.toJson)
+
+
+      SPAttributes.fromJson(jsonAttr) shouldEqual Some(x)
+    }
+    "not to an SPAttribute" in {
+      SPAttributes.fromJson("["+jsonAttr+"]") shouldEqual None
+    }
+    "to an SPValue" in {
+      SPValue.fromJson("["+jsonAttr+"]") shouldEqual Some(JArray(List(x)))
+    }
+
+  }
+
 
 }

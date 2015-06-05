@@ -22,6 +22,16 @@ package object domain {
     }
     def apply() = JObject()
     def apply(fs: List[JField]): JObject = JObject(fs.toList)
+    def fromJson(json: String) = {
+      try {
+        org.json4s.native.JsonMethods.parse(json) match {
+          case x: SPAttributes => Some(x)
+          case x: JValue => None
+        }
+      } catch {
+        case e: Exception => None
+      }
+    }
   }
 
   object SPValue {
@@ -31,6 +41,13 @@ package object domain {
     def apply(s: String) = JString(s)
     def apply(i: Int) = JInt(i)
     def apply(b: Boolean) = JBool(b)
+    def fromJson(json: String): Option[SPValue] = {
+      try {
+        Some(org.json4s.native.JsonMethods.parse(json))
+      } catch {
+        case e: Exception => None
+      }
+    }
   }
 
 }
