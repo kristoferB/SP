@@ -39,7 +39,7 @@ angular.module('spGuiApp')
             width = 1;
           } else if(type === 'itemList') {
             wStorage.itemTree = false;
-          } else if(type === 'itemExplorer' || type === 'itemInfo') {
+          } else if(type === 'itemExplorer' || type === 'itemInfo' || type === 'processSimulate') {
             width = 1;
             height = 'small';
           } else if(type === 'identifyRelations') {

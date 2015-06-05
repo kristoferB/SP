@@ -6,6 +6,7 @@ object Dependencies {
     "spray repo" at "http://repo.spray.io/",
     "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/",
     "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
+
   )
   
   def compile   (deps: ModuleID*): Seq[ModuleID] = deps map (_ % "compile")
@@ -34,5 +35,10 @@ object Dependencies {
   
   val nscalatime = "com.github.nscala-time" %% "nscala-time" % "1.4.0"
   //val parser =  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.2"
+
+  // for activemq test
+  val akkaCamel     = "com.typesafe.akka"  %%  "akka-camel"                  % "2.3.6"
+  val activeMQ      = "org.apache.activemq" % "activemq-core" % "5.7.0"
+  val activeMQCamel = "org.apache.activemq" % "activemq-camel" % "5.11.1"
 
 }

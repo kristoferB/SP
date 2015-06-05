@@ -112,6 +112,38 @@ angular.module('spGuiApp')
       }})
   };
 
+  factory.importFromPS = function(txid) {
+    $http({
+      method: 'POST',
+      url: 'api/services/ProcessSimulate',
+      data: {
+          command: 'import',
+          model: factory.activeModel.model,
+	  param: txid
+      }}).success(function(result) {
+	  factory.loadAll();
+	  notificationService.success('Import from PS succeded.');
+      }).error(function(result) {
+	  notificationService.error('Fail: ' + result);
+      });
+  };
+
+  factory.createOp = function(opname) {
+    $http({
+      method: 'POST',
+      url: 'api/services/ProcessSimulate',
+      data: {
+	  command: 'createOp',
+          model: factory.activeModel.model,
+          param: opname
+      }}).success(function(result)  {
+          factory.loadAll();
+	  notificationService.success('Operation ' + opname + ' was successfully created in PS.\n');
+      }).error(function(result) {
+       notificationService.error('Fail: ' + result);
+    });
+  };
+
   factory.getSOP = function(ops, relationResultID, base) {
     return $http({
       method: 'POST',

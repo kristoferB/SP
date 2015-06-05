@@ -17,7 +17,10 @@ object Build extends Build {
     logback,
     scalatest,
     akkaTestKit,
-    nscalatime)
+    nscalatime,
+    akkaCamel,
+    activeMQ,
+    activeMQCamel)
 
   lazy val coreDepend = Seq(akkaPersistence)
     //parser)

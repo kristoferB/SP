@@ -3,7 +3,6 @@ package sp.launch
 import sp.domain.SPAttributes
 import sp.services.{PropositionParserActor}
 import sp.system.messages._
-
 import scala.io.Source
 
 /**
@@ -64,9 +63,18 @@ object SP extends App {
   serviceHandler ! RegisterService("CreateManufOpsFromProdOpsService",
     system.actorOf(CreateManufOpsFromProdOpsService.props(modelHandler), "CreateManufOpsFromProdOpsService"))
 
-  //  //Preload model from json-importer
-//    val file = Source.fromFile("C:/Users/patrik/Box Sync/ModelsForROAR/pslFloorRoof_JSON.json").getLines().mkString("\n")
-//    jsonActor ! Request("someString", SPAttributes(Map("file" -> file, "name" -> "preloadedModel")))
+  // activemq + process simulate stuff
+  import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
+  import akka.camel.{ CamelExtension, CamelMessage, Consumer, Producer }
+  import org.apache.activemq.camel.component.ActiveMQComponent
+  import sp.processSimulateImporter._
+
+  val camel = CamelExtension(system)
+  val camelContext = camel.context
+  camelContext.addComponent("activemq", ActiveMQComponent.activeMQComponent("tcp://martinsPC:61616"))
+  val psamq = system.actorOf(Props[ProcessSimulateAMQ], "ProcessSimulateAMQ")
+  serviceHandler ! RegisterService("ProcessSimulate",
+    system.actorOf(ProcessSimulateService.props(modelHandler, psamq), "ProcessSimulate"))
 
   // launch REST API
   sp.server.LaunchGUI.launch
