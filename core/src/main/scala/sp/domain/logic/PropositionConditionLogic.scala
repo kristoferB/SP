@@ -122,6 +122,38 @@ case object PropositionConditionLogic {
     }
   }
 
+  def parseAttributesToPropositionCondition(op: Operation, idablesToParseFromString: List[IDAble]): Option[Operation] = {
+    def getGuard(str: String) = {
+      val guardAsString = op.attributes.findAs[String](str).mkString("(", ")&(", ")")
+      PropositionParser(idablesToParseFromString).parseStr(guardAsString) match {
+        case Right(p) => Some(p)
+        case Left(f) => {
+          println(s"PropositionParser failed for operation ${op.name} on guard: $guardAsString. Failure message: $f")
+          None
+        }
+      }
+    }
+    def getAction(str: String) = {
+      val actionsAsString = op.attributes.findAs[String](str)
+      actionsAsString.flatMap { action => ActionParser(idablesToParseFromString).parseStr(action) match {
+        case Right(a) => Some(a)
+        case Left(f) => {
+          println(s"ActionParser failed for operation ${op.name} on action: $action. Failure message: $f")
+          None
+        }
+      }
+      }
+    }
+
+    return for {
+      preGuard <- getGuard("preGuard")
+      postGuard <- getGuard("postGuard")
+    } yield {
+        op.copy(conditions = List(PropositionCondition(preGuard, getAction("preAction"), SPAttributes("kind" -> "precondition")),
+          PropositionCondition(postGuard, getAction("postAction"), SPAttributes("kind" -> "postcondition"))))
+      }
+  }
+
 }
 
 import scala.util.parsing.combinator._

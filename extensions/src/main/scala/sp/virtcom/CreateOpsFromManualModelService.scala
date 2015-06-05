@@ -1,7 +1,7 @@
 package sp.virtcom
 
 import akka.actor._
-import sp.domain.{Operation, ID}
+import sp.domain.ID
 import sp.jsonImporter.ServiceSupportTrait
 import sp.system.messages._
 import akka.pattern.ask
@@ -29,18 +29,15 @@ class CreateOpsFromManualModelService(modelHandler: ActorRef) extends Actor with
       val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
 
       val psl = PSLFloorRoofCase()
+      import CollectorModelImplicits._
 
-      import SupervisorImplicits._
-      psl.createModel("./testFiles/gitIgnore/")
-
-//      val result = for {
-//        modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
-//        newOps = List(Operation("IamTheNewOp"))
-//        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = newOps))
-//
-//      } yield {
-//          "ok"
-//        }
+      for {
+        modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
+        newIDables = psl.parseToIDables()
+        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = newIDables.toList))
+      } yield {
+        newIDables.foreach(o => println(s"${o.name} a:${o.attributes.pretty}"))
+      }
 
       sender ! "ok"
 

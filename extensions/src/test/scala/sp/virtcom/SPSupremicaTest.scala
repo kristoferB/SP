@@ -13,8 +13,8 @@ class SPSupremicaTest extends FreeSpec {
       case class Module() {
         val psl = PSLFloorRoofCase()
 
-        import SupervisorImplicits._
-        psl.createModel("./testFiles/gitIgnore/")
+//        import CollectorModelImplicits._
+//        psl.createModel("./testFiles/gitIgnore/")
 
       }
       Module()

@@ -1,7 +1,7 @@
 package sp.jsonImporter
 
 import akka.actor._
-import sp.domain.logic.{ActionParser, PropositionParser}
+import sp.domain.logic.{PropositionConditionLogic, ActionParser, PropositionParser}
 import sp.system.messages._
 import sp.domain._
 import sp.domain.Logic._
@@ -31,12 +31,13 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
           for {
           //Creates a model and updates the model with "idables" parsed from the given json file
             modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(
+              model = ID.newID,
               name = name.getOrElse("noName")))
             _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = idables))
 
             //Update the operations in the model with "conditions" connected to the parsed "idables"
             SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
-            opsWithConditionsAdded = opsToBe.map(_.asInstanceOf[Operation]).flatMap(op => parseAttributesToPropositionCondition(op, idables))
+            opsWithConditionsAdded = opsToBe.map(_.asInstanceOf[Operation]).flatMap(op => PropositionConditionLogic.parseAttributesToPropositionCondition(op, idables))
             _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = opsWithConditionsAdded))
 
           } yield {
@@ -49,40 +50,6 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
         case None => sender ! errorMessage(attr)
       }
     }
-  }
-
-  def parseAttributesToPropositionCondition(op: Operation, idablesToParseFromString: List[IDAble]): Option[Operation] = {
-    def getGuard(str: String) = (for {
-      guard <- op.attributes.get(str)
-      guardAsString <- guard.getAs[String]
-    } yield PropositionParser(idablesToParseFromString).parseStr(guardAsString) match {
-        case Right(p) => Some(p)
-        case Left(f) => {
-          println(s"PropositionParser failed for operation ${op.name} on guard: $guardAsString. Failure message: $f")
-          None
-        }
-      }).flatten
-    def getAction(str: String) = for {
-      actions <- op.attributes.get(str)
-      actionsAsString <- actions.getAs[List[String]]
-    } yield actionsAsString.map { action => ActionParser(idablesToParseFromString).parseStr(action) match {
-        case Right(a) => Some(a)
-        case Left(f) => {
-          println(s"ActionParser failed for operation ${op.name} on action: $action. Failure message: $f")
-          None
-        }
-      }
-      }.flatten
-
-    return for {
-      preGuard <- getGuard("preGuard")
-      preAction <- getAction("preAction")
-      postGuard <- getGuard("postGuard")
-      postAction <- getAction("postAction")
-    } yield {
-        op.copy(conditions = List(PropositionCondition(preGuard, preAction, SPAttributes("kind" -> "precondition")),
-          PropositionCondition(postGuard, postAction, SPAttributes("kind" -> "postcondition"))))
-      }
   }
 
   def extract(attr: SPAttributes) = {
