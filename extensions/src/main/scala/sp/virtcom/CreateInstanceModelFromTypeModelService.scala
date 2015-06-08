@@ -40,12 +40,12 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
 
           val wfs = WrapperForSearch(ops.toSet)
           val result = for {
-            r1 <- wfs.findOpSeq(opsMap("gripRoof_ABB").conditions(0).eval, Set(initState), Map(initState -> Seq()))
-            r2 <- wfs.findOpSeq(opsMap("fixateRoof_ABB").conditions(0).eval, (r1,opsMap("gripRoof_ABB")))
-            r3 <- wfs.findOpSeq(markedState, (r2,opsMap("fixateRoof_ABB")))
+            r1 <- wfs.findOpSeq(opsMap("weldFloorRoof").conditions(0).eval, Set(initState), Map(initState -> Seq()))
+            r2 <- wfs.findOpSeq(opsMap("weldFloorRoof").conditions(0).eval, (r1,opsMap("weldFloorRoof")))
+            r3 <- wfs.findOpSeq(markedState, (r2,opsMap("weldFloorRoof")))
           } yield {
               implicit def opToSeqOp(o: Operation): Seq[Operation] = Seq(o)
-              val opSeq = r3.opSeq ++ opsMap("fixateRoof_ABB") ++ r2.opSeq ++ opsMap("gripRoof_ABB") ++ r1.opSeq
+              val opSeq = r3.opSeq ++ opsMap("weldFloorRoof") ++ r2.opSeq ++ opsMap("weldFloorRoof") ++ r1.opSeq
               opSeq.reverse
             }
 

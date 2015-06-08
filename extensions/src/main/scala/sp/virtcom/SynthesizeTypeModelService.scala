@@ -33,11 +33,14 @@ class SynthesizeTypeModelService(modelHandler: ActorRef) extends Actor with Serv
 
         //Collect ops, vars, forbidden expressiones
         SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
-        ops = opsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Operation])
+//        ops = opsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Operation])
+        ops = opsToBe.map(_.asInstanceOf[Operation])
         SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.model))
-        vars = varsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Thing])
+//        vars = varsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Thing])
+        vars = varsToBe.map(_.asInstanceOf[Thing])
         SPIDs(spSpecToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.model))
-        spec = spSpecToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[SPSpec])
+//        spec = spSpecToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[SPSpec])
+        spec = spSpecToBe.map(_.asInstanceOf[SPSpec])
 
         //Create Supremica Module and synthesize guards.
         ptmw = ParseToModuleWrapper(modelInfo.name, vars, ops, spec)
@@ -53,6 +56,7 @@ class SynthesizeTypeModelService(modelHandler: ActorRef) extends Actor with Serv
         _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = updatedOps))
 
       } yield {
+          supervisorGuards.filter(kv => kv._2.isDefined).foreach(kv => println(s"${kv._1}: ${kv._2}"))
 //          updatedOps.foreach(o => println(s"${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
         }
 
