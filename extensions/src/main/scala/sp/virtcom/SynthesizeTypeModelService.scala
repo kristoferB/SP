@@ -1,7 +1,7 @@
 package sp.virtcom
 
 import akka.actor._
-import org.json4s.JsonAST.{JArray, JObject, JString}
+import org.json4s.JsonAST.{JBool, JArray, JObject, JString}
 import sp.domain.logic.{PropositionConditionLogic, ActionParser}
 import sp.domain._
 import sp.jsonImporter.ServiceSupportTrait
@@ -26,17 +26,18 @@ class SynthesizeTypeModelService(modelHandler: ActorRef) extends Actor with Serv
       println(s"service: $service")
 
       val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
+      val checkedItems = attr.findObjectsWithField(List(("checked", JBool(true)))).unzip._1.flatMap(ID.makeID)
 
       val result = for {
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
 
         //Collect ops, vars, forbidden expressiones
         SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
-        ops = opsToBe.map(_.asInstanceOf[Operation])
+        ops = opsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Operation])
         SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.model))
-        vars = varsToBe.map(_.asInstanceOf[Thing])
+        vars = varsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Thing])
         SPIDs(spSpecToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.model))
-        spec = spSpecToBe.map(_.asInstanceOf[SPSpec])
+        spec = spSpecToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[SPSpec])
 
         //Create Supremica Module and synthesize guards.
         ptmw = ParseToModuleWrapper(modelInfo.name, vars, ops, spec)
@@ -52,7 +53,7 @@ class SynthesizeTypeModelService(modelHandler: ActorRef) extends Actor with Serv
         _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = updatedOps))
 
       } yield {
-          updatedOps.foreach(o => println(s"${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
+//          updatedOps.foreach(o => println(s"${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
         }
 
       sender ! result
