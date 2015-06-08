@@ -1,7 +1,7 @@
 package sp.virtcom
 
 import akka.actor._
-import org.json4s.JsonAST.{JBool, JArray, JObject, JString}
+import org.json4s.JsonAST.{JArray, JObject, JString}
 import sp.domain.logic.{PropositionConditionLogic, ActionParser}
 import sp.domain._
 import sp.jsonImporter.ServiceSupportTrait
@@ -26,13 +26,13 @@ class SynthesizeTypeModelService(modelHandler: ActorRef) extends Actor with Serv
       println(s"service: $service")
 
       val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
-      val checkedItems = attr.findObjectsWithField(List(("checked", JBool(true)))).unzip._1.flatMap(ID.makeID)
 
       val result = for {
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
 
         //Collect ops, vars, forbidden expressiones
         SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
+
 //        ops = opsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Operation])
         ops = opsToBe.map(_.asInstanceOf[Operation])
         SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.model))
@@ -56,6 +56,7 @@ class SynthesizeTypeModelService(modelHandler: ActorRef) extends Actor with Serv
         _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = updatedOps))
 
       } yield {
+
           supervisorGuards.filter(kv => kv._2.isDefined).foreach(kv => println(s"${kv._1}: ${kv._2}"))
 //          updatedOps.foreach(o => println(s"${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
         }

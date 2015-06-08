@@ -161,8 +161,7 @@ angular.module('spGuiApp')
       method: 'POST',
       url: 'api/services/'+service,
       data: {
-        activeModelID: factory.activeModel.model,
-        items: factory.items
+        activeModelID: factory.activeModel.model
       }}).success(function(dataFromServer)  {
         notificationService.success('Service ' + service + ' has been executed.\n' + dataFromServer);
       }).error(function(dataFromServer) {

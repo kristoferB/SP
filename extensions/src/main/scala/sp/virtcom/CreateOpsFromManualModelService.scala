@@ -36,7 +36,7 @@ class CreateOpsFromManualModelService(modelHandler: ActorRef) extends Actor with
         newIDables = psl.parseToIDables()
         _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = newIDables.toList))
       } yield {
-        newIDables.foreach(o => println(s"${o.name} a:${o.attributes.pretty}"))
+//        newIDables.foreach(o => println(s"${o.name} a:${o.attributes.pretty}"))
       }
 
       sender ! "ok"
