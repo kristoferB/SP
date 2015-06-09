@@ -6,6 +6,7 @@ import sp.jsonImporter.ServiceSupportTrait
 import sp.system.messages._
 import akka.pattern.ask
 import akka.util.Timeout
+import sp.virtcom.modeledCases.{PSLFloorRoofCase, VolvoWeldConveyerCase}
 import scala.concurrent.duration._
 import sp.domain.Logic._
 
@@ -28,15 +29,16 @@ class CreateOpsFromManualModelService(modelHandler: ActorRef) extends Actor with
 
       val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
 
-      val psl = PSLFloorRoofCase()
+            val manualModel = PSLFloorRoofCase()
+//      val manualModel = VolvoWeldConveyerCase()
       import CollectorModelImplicits._
 
       for {
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
-        newIDables = psl.parseToIDables()
+        newIDables = manualModel.parseToIDables()
         _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = newIDables.toList))
       } yield {
-//        newIDables.foreach(o => println(s"${o.name} a:${o.attributes.pretty}"))
+        //        newIDables.foreach(o => println(s"${o.name} a:${o.attributes.pretty}"))
       }
 
       sender ! "ok"

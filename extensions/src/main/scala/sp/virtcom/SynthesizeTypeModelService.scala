@@ -32,7 +32,6 @@ class SynthesizeTypeModelService(modelHandler: ActorRef) extends Actor with Serv
 
         //Collect ops, vars, forbidden expressiones
         SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
-
 //        ops = opsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Operation])
         ops = opsToBe.map(_.asInstanceOf[Operation])
         SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.model))
@@ -46,18 +45,22 @@ class SynthesizeTypeModelService(modelHandler: ActorRef) extends Actor with Serv
         ptmw = ParseToModuleWrapper(modelInfo.name, vars, ops, spec)
         supervisorGuards = {
           ptmw.addVariables()
+          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
           ptmw.addOperations()
+          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
           ptmw.addForbiddenExpressions()
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-          ptmw.getSupervisorGuardsAsOptionString()
+          ptmw.getSupervisorGuardsAsMap()
         }
 
-        updatedOps = ops.map(o => ptmw.createFinalCondition(o, supervisorGuards(o.name)))
+        updatedOps = ops.map(o => ptmw.createFinalCondition(o, supervisorGuards))
         _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = updatedOps))
 
       } yield {
 
-          supervisorGuards.filter(kv => kv._2.isDefined).foreach(kv => println(s"${kv._1}: ${kv._2}"))
+          supervisorGuards.foreach(kv => println(s"${kv._1}: ${kv._2}"))
+          ptmw.addSupervisorGuardsToFreshFlower(Some(supervisorGuards))
+          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
 //          updatedOps.foreach(o => println(s"${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
         }
 
@@ -90,6 +93,7 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
 
   def addOperations() = {
     ops.foreach { o =>
+      println(s"${o.name} ${o.attributes.pretty}")
       //pre
       val startEvent = o.name
       addEventIfNeededElseReturnExistingEvent(startEvent, false)
@@ -125,16 +129,11 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
     }
   }
 
-  def getSupervisorGuardsAsOptionString() = {
-    def stringToOption(s: String) = s match {
-      case "1" => None
-      case "0" => Some("1<0")
-      case v => Some(v)
-    }
-    getSupervisorGuards().getOrElse(Map()).map { case (o, v) => o -> stringToOption(v) }
+  def getSupervisorGuardsAsMap() = {
+    getSupervisorGuards().getOrElse(Map()).filter( og => !og._2.equals("1")).map{case (o,g) => o -> (if(g.equals("0")) "false" else g)}
   }
 
-  def createFinalCondition(o: Operation, synthesizedGuard: Option[String]): Operation = {
+  def createFinalCondition(o: Operation, synthesizedGuardMap: Map[String,String]): Operation = {
     lazy val updatedAttribute = o.attributes.transformField {
       case ("preGuard", JArray(vs)) => ("preGuard", JArray(vs.map { case JString(x) => JString(stringPredicateToSupremicaSyntax(x)); case other => other }))
       case ("preAction", JArray(vs)) => ("preAction", JArray(vs.map { case JString(x) => JString(stringActionToSupremicaSyntax(x)); case other => other }))
@@ -142,7 +141,7 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
       case ("postAction", JArray(vs)) => ("postAction", JArray(vs.map { case JString(x) => JString(stringActionToSupremicaSyntax(x)); case other => other }))
     }
 
-    lazy val updatedAttributeWithSynthesizedGuards = synthesizedGuard match {
+    lazy val updatedAttributeWithSynthesizedGuards = synthesizedGuardMap.get(o.name) match {
       case Some(guard) => updatedAttribute.getAs[JObject].getOrElse(SPAttributes()).transformField {
         case ("preGuard", JArray(vs)) => ("preGuard", JArray(JString(guard) :: vs))
       }
@@ -219,6 +218,8 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
     case GR(l, r) => leftRight(l, ">", r)
     case LEEQ(l, r) => leftRight(l, "<=", r)
     case LE(l, r) => leftRight(l, "<", r)
+    case AlwaysTrue => "1"
+    case AlwaysFalse => "0"
     case other => other.toString
   }
   private def stateEvalToSupremicaSyntax(se: StateEvaluator): String = se match {

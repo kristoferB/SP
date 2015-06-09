@@ -1,7 +1,8 @@
-package sp.virtcom
+package sp.virtcom.modeledCases
 
 import sp.domain.SPAttributes
 import sp.domain.Logic._
+import sp.virtcom.CollectorModel
 
 /**
  * Type based model of simple process in PSL.
@@ -58,30 +59,17 @@ case class PSLFloorRoofCase() extends CollectorModel {
   op("removeFloorRoof", c("vOutside", "idle", "removingFloorRoof", "idle"))
 
   //Robot movements
-  val staticRobotPos = Map("init" -> Set("pallet"),
-    "pallet" -> Set("fixture"),
-    "fixture" -> Set("init"))
-
-  def createMoveOperations(robot: String) = {
-    staticRobotPos.foreach {
-      case (source, targets) =>
-        targets.foreach { target =>
-          val inBetweenValue = s"${source}To${target.capitalize}"
-          val robot_pos = s"v${robot}_pos"
-          op(s"${inBetweenValue}_$robot", c(robot_pos, s"at${source.capitalize}", inBetweenValue, s"at${target.capitalize}"))
-          v(robot_pos, domain = Seq(s"at${source.capitalize}", inBetweenValue, s"at${target.capitalize}"))
-        }
-
-    }
-  }
+  val staticRobotPoses = Map("atInit" -> Set("atPallet"),
+    "atPallet" -> Set("atFixture"),
+    "atFixture" -> Set("atInit"))
 
   //ABB poses
   v("vABB_pos", init = s"atInit", marked = s"atInit")
-  createMoveOperations("ABB")
+  createMoveOperations("ABB",staticRobotPoses)
 
   //KUKA poses
   v("vKUKA_pos", init = s"atInit", marked = s"atInit")
-  createMoveOperations("KUKA")
+  createMoveOperations("KUKA",staticRobotPoses)
 
   x("PalletZone", "vABB_pos==atPalletWorking & vKUKA_pos==atPalletWorking")
   x("FixtureZone", "vABB_pos==atFixtureWorking & vKUKA_pos==atFixtureWorking")

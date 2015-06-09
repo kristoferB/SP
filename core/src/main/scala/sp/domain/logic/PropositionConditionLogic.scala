@@ -183,13 +183,14 @@ case class PropositionParser(idablesToParseFromString: List[IDAble] = List()) ex
   lazy val or: Parser[Proposition] = and ~ rep(REG_EX_OR ~ and) ^^ { case f1 ~ temp => if (temp.isEmpty) f1 else OR(f1 +: temp.map { case ~(_, f2) => f2 }) }
   lazy val and: Parser[Proposition] = not ~ rep(REG_EX_AND ~ not) ^^ { case f1 ~ temp => if (temp.isEmpty) f1 else AND(f1 +: temp.map { case ~(_, f2) => f2 }) }
   lazy val not: Parser[Proposition] = opt(REG_EX_NOT) ~ factor ^^ { case Some(_) ~ f => NOT(f); case None ~ f => f }
-  lazy val factor: Parser[Proposition] = expressionEQ | expressionNEQ | expressionGREQ | expressionLEEQ | expressionGR | expressionLE | "(" ~> or <~ ")" ^^ { case exp => exp }
+  lazy val factor: Parser[Proposition] = expressionEQ | expressionNEQ | expressionGREQ | expressionLEEQ | expressionGR | expressionLE | expressionFALSE | "(" ~> or <~ ")" ^^ { case exp => exp }
   lazy val expressionEQ: Parser[Proposition] = leftEv ~ REG_EX_OPERATOREQ ~ rightEv ^^ { case ~(~(var1, op), v) => EQ(var1, v) }
   lazy val expressionNEQ: Parser[Proposition] = leftEv ~ REG_EX_OPERATORNEQ ~ rightEv ^^ { case ~(~(var1, op), v) => NEQ(var1, v) }
   lazy val expressionGREQ: Parser[Proposition] = leftEv ~ REG_EX_OPERATORGREQ ~ rightEv ^^ { case ~(~(var1, op), v) => GREQ(var1, v) }
   lazy val expressionLEEQ: Parser[Proposition] = leftEv ~ REG_EX_OPERATORLEEQ ~ rightEv ^^ { case ~(~(var1, op), v) => LEEQ(var1, v) }
   lazy val expressionGR: Parser[Proposition] = leftEv ~ REG_EX_OPERATORGR ~ rightEv ^^ { case ~(~(var1, op), v) => GR(var1, v) }
   lazy val expressionLE: Parser[Proposition] = leftEv ~ REG_EX_OPERATORLE ~ rightEv ^^ { case ~(~(var1, op), v) => LE(var1, v) }
+  lazy val expressionFALSE: Parser[Proposition] = REG_EX_FALSE ^^ { _ => AlwaysFalse }
 
   lazy val leftEv: Parser[StateEvaluator] = uuid(str => SVIDEval(ID.makeID(str).get)) | stringValue
   lazy val rightEv: Parser[StateEvaluator] = uuid(str => SVIDEval(ID.makeID(str).get)) | intValue | trueValue | falseValue | stringValue

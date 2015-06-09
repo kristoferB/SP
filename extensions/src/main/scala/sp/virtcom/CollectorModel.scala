@@ -19,13 +19,14 @@ trait CollectorModel {
 
   implicit def SPAttToSeqOfSpAtt(spa: SPAttributes): Seq[SPAttributes] = Seq(spa)
   implicit def stringToSeqOfSpAtt(s: String): Seq[SPAttributes] = {
-    val guardAction = s.split(";")
-    val actions: Set[String] = if (guardAction.size > 1) guardAction.drop(1).toSet else Set()
-    Seq(SPAttributes("postAction" -> actions))
+    val guardAction = s.split(";").toSeq
+    val guard = if (!guardAction.head.isEmpty) Some(SPAttributes("postGuard" -> guardAction.head)) else None
+    val actions = if (guardAction.size > 1) Some(SPAttributes("postAction" -> guardAction.tail.toSet)) else None
+    Seq(guard,actions).flatten
   }
-  def op(name: String, conditions: Seq[SPAttributes], postActions: Seq[SPAttributes] = SPAttributes(), attributes: SPAttributes = SPAttributes()) = {
+  def op(name: String, conditions: Seq[SPAttributes], postConditions: Seq[SPAttributes] = SPAttributes(), attributes: SPAttributes = SPAttributes()) = {
     import sp.domain.logic.AttributeLogic._
-    val attrUpdated = (conditions ++ postActions).foldLeft(attributes) { case (acc, c) => acc + c }
+    val attrUpdated = (conditions ++ postConditions).foldLeft(attributes) { case (acc, c) => acc + c }
     operationSet += Operation(name = name, attributes = attrUpdated)
   }
 
@@ -36,6 +37,19 @@ trait CollectorModel {
 
   def c(variable: String, fromValue: String, toValue: String): SPAttributes = SPAttributes("preGuard" -> Set(s"$variable==$fromValue"), "preAction" -> Set(s"$variable=$toValue"))
   def c(variable: String, fromValue: String, inBetweenValue: String, toValue: String): SPAttributes = c(variable, fromValue, inBetweenValue) + SPAttributes("postGuard" -> Set(s"$variable==$inBetweenValue"), "postAction" -> Set(s"$variable=$toValue"))
+
+  def createMoveOperations(robotName: String, staticRobotPoses : Map[String,Set[String]]) = {
+    staticRobotPoses.foreach {
+      case (source, targets) =>
+        targets.foreach { target =>
+          val inBetweenValue = s"${source}To${target.capitalize}"
+          val robot_pos = s"v${robotName}_pos"
+          op(s"${inBetweenValue}_$robotName", c(robot_pos, s"$source", inBetweenValue, s"$target"))
+          v(robot_pos, domain = Seq(s"$source", inBetweenValue, s"$target"))
+        }
+
+    }
+  }
 
   implicit def stringToOption: String => Option[String] = Some(_)
   implicit def stringToSetOfStrings: String => Set[String] = Set(_)

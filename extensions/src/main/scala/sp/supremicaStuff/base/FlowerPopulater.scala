@@ -67,8 +67,8 @@ trait FlowerPopulater extends BasePopulater with Algorithms {
     addLeaf(eventName, guardAsText, actionsAsText)
   }
 
-  def addSupervisorGuardsToFreshFlower: Option[SimpleComponentSubject] = {
-    val eventGuardMap = getSupervisorGuards().map(_.filter { case (_, guard) => !guard.equals("1") })
+  def addSupervisorGuardsToFreshFlower(optSupervisorEventGuardMap : Option[Map[String,String]]= getSupervisorGuards()): Option[SimpleComponentSubject] = {
+    val eventGuardMap = optSupervisorEventGuardMap.map(_.filter { case (_, guard) => !guard.equals("1") })
     if (eventGuardMap.isEmpty) { return None }
     addFlowerRoot(efaNameFactory).map(efa => {
       eventGuardMap.map(_.foreach {

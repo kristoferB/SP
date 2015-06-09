@@ -2,6 +2,7 @@ package sp.virtcom
 
 import sp.supremicaStuff.base.{Exporters, SimpleModuleFactory}
 import org.scalatest._
+import sp.virtcom.modeledCases.PSLFloorRoofCase
 
 /**
  * Created by patrik on 2015-05-28.
