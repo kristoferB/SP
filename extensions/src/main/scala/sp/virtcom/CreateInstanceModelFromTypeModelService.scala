@@ -40,12 +40,14 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
 
           val wfs = WrapperForSearch(ops.toSet)
           val result = for {
-            r1 <- wfs.findOpSeq(opsMap("weldFloorRoof").conditions(0).eval, Set(initState), Map(initState -> Seq()))
-            r2 <- wfs.findOpSeq(opsMap("weldFloorRoof").conditions(0).eval, (r1,opsMap("weldFloorRoof")))
-            r3 <- wfs.findOpSeq(markedState, (r2,opsMap("weldFloorRoof")))
+            r1 <- wfs.findOpSeq(opsMap("weldProductA").conditions(0).eval, Set(initState), Map(initState -> Seq()))
+            r2 <- wfs.findOpSeq(opsMap("weldProductB").conditions(0).eval, (r1, opsMap("weldProductA")))
+            r3 <- wfs.findOpSeq(opsMap("tipDress").conditions(0).eval, (r2, opsMap("weldProductB")))
+            r4 <- wfs.findOpSeq(opsMap("weldProductB").conditions(0).eval, (r3, opsMap("tipDress")))
+            r5 <- wfs.findOpSeq(markedState, (r4, opsMap("weldProductB")))
           } yield {
               implicit def opToSeqOp(o: Operation): Seq[Operation] = Seq(o)
-              val opSeq = r3.opSeq ++ opsMap("weldFloorRoof") ++ r2.opSeq ++ opsMap("weldFloorRoof") ++ r1.opSeq
+              val opSeq = r5.opSeq ++ opsMap("weldProductB") ++ r4.opSeq ++ opsMap("tipDress") ++ r3.opSeq ++ opsMap("weldProductB") ++ r2.opSeq ++ opsMap("weldProductA") ++ r1.opSeq
               opSeq.reverse
             }
 
@@ -93,8 +95,8 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
         case _ => acc
       }
     }
-    def checkState(stateToCheck : Seq[(ID,SPValue)] = thatState.state.toSeq) : Boolean = stateToCheck match {
-      case kv+:rest => goalState.get(kv._1) match {
+    def checkState(stateToCheck: Seq[(ID, SPValue)] = thatState.state.toSeq): Boolean = stateToCheck match {
+      case kv +: rest => goalState.get(kv._1) match {
         case Some(v) => if (v.equals(kv._2)) checkState(rest) else false
         case _ => false //"stateToCheck" contains variables that is not in "goalState". This should although not happen...
       }
@@ -104,14 +106,15 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
   }
 
   case class WrapperForSearch(ops: Set[Operation]) {
+
     import sp.domain.logic.PropositionConditionLogic._
 
     case class OpSeqResult(finalState: State, opSeq: Seq[Operation])
 
-    def updateStateBasedInAllOperationActions(startState : State, o:Operation) = o.conditions.foldLeft(startState: State) { case (acc, c) => c.next(acc) }
+    def updateStateBasedInAllOperationActions(startState: State, o: Operation) = o.conditions.foldLeft(startState: State) { case (acc, c) => c.next(acc) }
 
-    def findOpSeq(terminationCondition: State => Boolean, opSeqStartOpPair: (OpSeqResult,Operation)): Option[OpSeqResult] = {
-      val updatedState = updateStateBasedInAllOperationActions(opSeqStartOpPair._1.finalState,opSeqStartOpPair._2)
+    def findOpSeq(terminationCondition: State => Boolean, opSeqStartOpPair: (OpSeqResult, Operation)): Option[OpSeqResult] = {
+      val updatedState = updateStateBasedInAllOperationActions(opSeqStartOpPair._1.finalState, opSeqStartOpPair._2)
       findOpSeq(terminationCondition, Set(updatedState), Map(updatedState -> Seq()))
     }
     def findOpSeq(terminationCondition: State => Boolean, freshStates: Set[State], visitedStates: Map[State, Seq[Operation]]): Option[OpSeqResult] = {
@@ -126,7 +129,7 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
         val enabledOps = freshStates.map(s => s -> ops.filter(_.conditions(0).eval(s)))
         val newStates = enabledOps.foldLeft(new LocalResult(Set(), visitedStates): LocalResult) { case (acc, (s, os)) =>
           val newAcc = os.foldLeft(acc: LocalResult) { case (accInner, o) => {
-            val targetStateForOperationO = updateStateBasedInAllOperationActions(s,o)
+            val targetStateForOperationO = updateStateBasedInAllOperationActions(s, o)
             if (accInner.vStates.contains(targetStateForOperationO))
             //Target state has been visited before. Take no action.
               accInner.copy()

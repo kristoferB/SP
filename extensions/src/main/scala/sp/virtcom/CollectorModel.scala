@@ -35,15 +35,15 @@ trait CollectorModel {
     forbiddenExpressionMap = forbiddenExpressionMap ++ Map(name -> (optExistingFE.getOrElse(Set()) ++ forbiddenExpressions))
   }
 
-  def c(variable: String, fromValue: String, toValue: String): SPAttributes = SPAttributes("preGuard" -> Set(s"$variable==$fromValue"), "preAction" -> Set(s"$variable=$toValue"))
-  def c(variable: String, fromValue: String, inBetweenValue: String, toValue: String): SPAttributes = c(variable, fromValue, inBetweenValue) + SPAttributes("postGuard" -> Set(s"$variable==$inBetweenValue"), "postAction" -> Set(s"$variable=$toValue"))
+  def c(variable: String, fromValue: String, toValue: String): SPAttributes = SPAttributes("preGuard" -> Set(s"$variable == $fromValue"), "preAction" -> Set(s"$variable = $toValue"))
+  def c(variable: String, fromValue: String, inBetweenValue: String, toValue: String): SPAttributes = c(variable, fromValue, inBetweenValue) + SPAttributes("postGuard" -> Set(s"$variable == $inBetweenValue"), "postAction" -> Set(s"$variable = $toValue"))
 
-  def createMoveOperations(robotName: String, staticRobotPoses : Map[String,Set[String]]) = {
+  def createMoveOperations(robotNamePrefix : String = "v", robotName: String, robotNameSuffix: String ="_pos",staticRobotPoses : Map[String,Set[String]]) = {
     staticRobotPoses.foreach {
       case (source, targets) =>
         targets.foreach { target =>
           val inBetweenValue = s"${source}To${target.capitalize}"
-          val robot_pos = s"v${robotName}_pos"
+          val robot_pos = s"$robotNamePrefix$robotName$robotNameSuffix"
           op(s"${inBetweenValue}_$robotName", c(robot_pos, s"$source", inBetweenValue, s"$target"))
           v(robot_pos, domain = Seq(s"$source", inBetweenValue, s"$target"))
         }

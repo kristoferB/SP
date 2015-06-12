@@ -224,7 +224,7 @@ case class ActionParser(idablesToParseFromString: List[IDAble] = List()) extends
   lazy val leftEv: Parser[ID] = uuid(str => ID.makeID(str).get) | stringValue_ID
   lazy val rightEv: Parser[StateUpdater] = intValue | trueValue | falseValue | stringValue
 
-  lazy val stringValue_ID = s"${spidMap.keySet.mkString("|")}".r ^^ { case str => spidMap(str) }
+  lazy val stringValue_ID = s"${spidMap.keySet.toSeq.sortBy(_.length).reverse.mkString("|")}".r ^^ { case str => spidMap(str) }
   lazy val stringValue = REG_EX_STRINGVALUE ^^ {
     v => spidMap.get(v) match {
       case Some(id) => ASSIGN(id)
@@ -239,8 +239,8 @@ trait BaseParser extends JavaTokenParsers {
   final lazy val REG_EX_STRINGVALUE = s"(\\p{L}|\\w)+".r
   //http://www.autohotkey.com/docs/misc/RegEx-QuickRef.htm
   final lazy val REG_EX_INTVALUE = s"\\d+".r
-  final lazy val REG_EX_TRUE = s"true|TRUE|T".r
-  final lazy val REG_EX_FALSE = s"false|FALSE|F".r
+  final lazy val REG_EX_TRUE = s"true|TRUE|T|1".r
+  final lazy val REG_EX_FALSE = s"false|FALSE|F|0".r
 
   def uuid[T](parserFunction: String => T) = REG_EX_UUID ^^ {
     parserFunction

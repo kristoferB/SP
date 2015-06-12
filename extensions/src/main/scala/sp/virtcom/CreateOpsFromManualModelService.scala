@@ -29,8 +29,8 @@ class CreateOpsFromManualModelService(modelHandler: ActorRef) extends Actor with
 
       val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
 
-            val manualModel = PSLFloorRoofCase()
-//      val manualModel = VolvoWeldConveyerCase()
+//            val manualModel = PSLFloorRoofCase()
+      val manualModel = VolvoWeldConveyerCase()
       import CollectorModelImplicits._
 
       for {

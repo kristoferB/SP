@@ -32,36 +32,36 @@ class SynthesizeTypeModelService(modelHandler: ActorRef) extends Actor with Serv
 
         //Collect ops, vars, forbidden expressiones
         SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
-//        ops = opsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Operation])
+        //        ops = opsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Operation])
         ops = opsToBe.map(_.asInstanceOf[Operation])
         SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.model))
-//        vars = varsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Thing])
+        //        vars = varsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Thing])
         vars = varsToBe.map(_.asInstanceOf[Thing])
         SPIDs(spSpecToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.model))
-//        spec = spSpecToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[SPSpec])
+        //        spec = spSpecToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[SPSpec])
         spec = spSpecToBe.map(_.asInstanceOf[SPSpec])
 
         //Create Supremica Module and synthesize guards.
         ptmw = ParseToModuleWrapper(modelInfo.name, vars, ops, spec)
-        supervisorGuards = {
+        optSupervisorGuards = {
           ptmw.addVariables()
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
           ptmw.addOperations()
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
           ptmw.addForbiddenExpressions()
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-          ptmw.getSupervisorGuardsAsMap()
+          ptmw.SupervisorAsBDD().getSupervisorGuards.map(_.filter(og => !og._2.equals("1")))
         }
 
-        updatedOps = ops.map(o => ptmw.createFinalCondition(o, supervisorGuards))
+        updatedOps = ops.map(o => ptmw.createFinalCondition(o, optSupervisorGuards))
         _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = updatedOps))
 
       } yield {
 
-          supervisorGuards.foreach(kv => println(s"${kv._1}: ${kv._2}"))
-          ptmw.addSupervisorGuardsToFreshFlower(Some(supervisorGuards))
+          optSupervisorGuards.getOrElse(Map()).foreach(kv => println(s"${kv._1}: ${kv._2}"))
+          ptmw.addSupervisorGuardsToFreshFlower(optSupervisorGuards)
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-//          updatedOps.foreach(o => println(s"${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
+          //          updatedOps.foreach(o => println(s"${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
         }
 
       sender ! result
@@ -93,15 +93,19 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
 
   def addOperations() = {
     ops.foreach { o =>
-      println(s"${o.name} ${o.attributes.pretty}")
+      //      println(s"${o.name} ${o.attributes.pretty}")
       //pre
       val startEvent = o.name
       addEventIfNeededElseReturnExistingEvent(startEvent, false)
       addTransition(o, startEvent, "preGuard", "preAction")
+
       //post
       val compEvent = s"$UNCONTROLLABLE_PREFIX$startEvent"
       addEventIfNeededElseReturnExistingEvent(compEvent, true)
       addTransition(o, compEvent, "postGuard", "postAction")
+
+      //Add operation events  to module comment
+      mModule.setComment(s"$getComment$OPERATION_PREFIX${o.name} $TRANSITION_PREFIX$startEvent,$compEvent")
     }
   }
 
@@ -113,6 +117,8 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
       intMarkings = markings.flatMap(m => getFromVariableDomain(v.name, m, "Problem with marking"))
     } yield {
         addVariable(v.name, 0, domain.size - 1, init, intMarkings)
+        //Add variable values to module comment
+        mModule.setComment(s"$getComment${TextFilePrefix.VARIABLE_PREFIX}${v.name} d${TextFilePrefix.COLON}${domain.mkString(",")}")
       }
     }
   }
@@ -129,11 +135,7 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
     }
   }
 
-  def getSupervisorGuardsAsMap() = {
-    getSupervisorGuards().getOrElse(Map()).filter( og => !og._2.equals("1")).map{case (o,g) => o -> (if(g.equals("0")) "false" else g)}
-  }
-
-  def createFinalCondition(o: Operation, synthesizedGuardMap: Map[String,String]): Operation = {
+  def createFinalCondition(o: Operation, synthesizedGuardMap: Option[Map[String, String]]): Operation = {
     lazy val updatedAttribute = o.attributes.transformField {
       case ("preGuard", JArray(vs)) => ("preGuard", JArray(vs.map { case JString(x) => JString(stringPredicateToSupremicaSyntax(x)); case other => other }))
       case ("preAction", JArray(vs)) => ("preAction", JArray(vs.map { case JString(x) => JString(stringActionToSupremicaSyntax(x)); case other => other }))
@@ -141,7 +143,7 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
       case ("postAction", JArray(vs)) => ("postAction", JArray(vs.map { case JString(x) => JString(stringActionToSupremicaSyntax(x)); case other => other }))
     }
 
-    lazy val updatedAttributeWithSynthesizedGuards = synthesizedGuardMap.get(o.name) match {
+    lazy val updatedAttributeWithSynthesizedGuards = synthesizedGuardMap.get.get(o.name) match {
       case Some(guard) => updatedAttribute.getAs[JObject].getOrElse(SPAttributes()).transformField {
         case ("preGuard", JArray(vs)) => ("preGuard", JArray(JString(guard) :: vs))
       }
@@ -150,7 +152,8 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
 
     val opWithUpdatedAttributes = o.copy(attributes = updatedAttributeWithSynthesizedGuards.getAs[JObject].getOrElse(SPAttributes()))
 
-    PropositionConditionLogic.parseAttributesToPropositionCondition(opWithUpdatedAttributes, vars).getOrElse(opWithUpdatedAttributes)
+    //Method starts
+    if (!synthesizedGuardMap.isDefined) o else PropositionConditionLogic.parseAttributesToPropositionCondition(opWithUpdatedAttributes, vars).getOrElse(opWithUpdatedAttributes)
   }
 
   private def getFromVariableDomain(variable: String, value: String, errorMsg: String): Option[Int] = {
@@ -220,11 +223,17 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
     case LE(l, r) => leftRight(l, "<", r)
     case AlwaysTrue => "1"
     case AlwaysFalse => "0"
-    case other => other.toString
+    case other => {
+      println(s"propToSupremicaSyntax cannot handle: $other right no. sorry");
+      other.toString
+    }
   }
   private def stateEvalToSupremicaSyntax(se: StateEvaluator): String = se match {
     case ValueHolder(org.json4s.JString(v)) => v
-    case other => other.toString
+    case other => {
+      println(s"stateEvalToSupremicaSyntax cannot handle: $other right no. sorry");
+      other.toString
+    }
   }
 
 }

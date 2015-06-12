@@ -71,10 +71,10 @@ trait ParseTextFileToModule extends SimpleModuleFactory with FlowerPopulater wit
         case _ => None
       }
     }
-    lazy val variables = lines.map(str => parseAll((s"$VARIABLE_PREFIX".r ~> s"$NAME".r) ~ (s"[^/]+".r) ~ opt(s"$COMMENT".r ~> s".*".r), str) match {
+    lazy val variables = lines.flatMap(str => parseAll((s"$VARIABLE_PREFIX".r ~> s"$NAME".r) ~ (s"[^/]+".r) ~ opt(s"$COMMENT".r ~> s".*".r), str) match {
       case Success(~(~(name, data), comment), _) => Some(ParsedVariable(name, parseVariable(data), comment))
       case _ => None
-    }).flatten
+    })
 
     variables.foreach(v => {
       if (v.data.getOrElse(Map()).size != 3) { println(s"Problem with variable ${v.name}! One domain value, one init value, and one marked value are required!"); return false }

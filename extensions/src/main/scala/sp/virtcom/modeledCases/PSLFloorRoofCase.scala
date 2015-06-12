@@ -65,11 +65,11 @@ case class PSLFloorRoofCase() extends CollectorModel {
 
   //ABB poses
   v("vABB_pos", init = s"atInit", marked = s"atInit")
-  createMoveOperations("ABB",staticRobotPoses)
+  createMoveOperations(robotName = "ABB", staticRobotPoses = staticRobotPoses)
 
   //KUKA poses
   v("vKUKA_pos", init = s"atInit", marked = s"atInit")
-  createMoveOperations("KUKA",staticRobotPoses)
+  createMoveOperations(robotName = "KUKA", staticRobotPoses = staticRobotPoses)
 
   x("PalletZone", "vABB_pos==atPalletWorking & vKUKA_pos==atPalletWorking")
   x("FixtureZone", "vABB_pos==atFixtureWorking & vKUKA_pos==atFixtureWorking")

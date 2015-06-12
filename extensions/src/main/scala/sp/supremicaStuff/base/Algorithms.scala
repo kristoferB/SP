@@ -29,9 +29,9 @@ import scala.util.parsing.combinator.RegexParsers
 
 trait Algorithms extends BaseFunctionality with RegexParsers {
 
-  def getSupervisorGuards(synthesisType: SynthesisAlgorithm = SynthesisAlgorithm.PARTITIONBDD): Option[Map[String, String]] = {
-    getVariables.foreach(v => if (v.getType().isInstanceOf[EnumSetExpressionProxy]) { println("Algorithm can't handle enum sets"); return None })
-
+  case class SupervisorAsBDD(synthesisType: SynthesisAlgorithm = SynthesisAlgorithm.PARTITIONBDD) {
+    //Init of variables
+    var supervisorExists = false
     lazy val options = new EditorSynthesizerOptions()
     options.setSynthesisType(SynthesisType.NONBLOCKINGCONTROLLABLE)
     options.setSynthesisAlgorithm(synthesisType)
@@ -41,19 +41,27 @@ trait Algorithms extends BaseFunctionality with RegexParsers {
     lazy val bddSynthesizer = new BDDExtendedSynthesizer(new ExtendedAutomata(mModule), options)
     lazy val manager = bddSynthesizer.bddAutomata.getManager()
 
+    //Start to calculate a supervisor
+    getVariables.foreach(v => if (v.getType().isInstanceOf[EnumSetExpressionProxy]) {
+      println("Algorithm can't handle enum sets")
+    })
+
     //Preload forbidden states directly into BDD synthesizer if forbidden expressions given in comment.
-    if (!getComment.split("\n").filter(_.startsWith(TextFilePrefix.FORBIDDEN_PREFIX)).isEmpty) {
+    if (getComment.split("\n").exists(_.startsWith(TextFilePrefix.FORBIDDEN_PREFIX))) {
       try {
-        def seps = getComment.split("\n").map(str => parse(s"${TextFilePrefix.FORBIDDEN_PREFIX}".r ~> s"(.*)".r, str) match {
+        def seps = getComment.split("\n").flatMap(str => parse(s"${TextFilePrefix.FORBIDDEN_PREFIX}".r ~> s"(.*)".r, str) match {
           case Success(exp, _) => Some(mParser.parse(exp, Operator.TYPE_BOOLEAN).asInstanceOf[SimpleExpressionProxy])
           case _ => None
-        }).flatten
+        })
         lazy val forbiddenStatesAsBdd = seps.foldLeft((seps.size, manager.getZeroBDD())) {
-          case ((sepsLeft, acc), sep) => if (sepsLeft % 200 == 0) { println(s"$sepsLeft additions of forbidden state combinations left") }; (sepsLeft - 1, acc.orWith(manager guard2BDD sep))
+          case ((sepsLeft, acc), sep) => if (sepsLeft % 200 == 0) {
+            println(s"$sepsLeft additions of forbidden state combinations left")
+          };
+            (sepsLeft - 1, acc.orWith(manager guard2BDD sep))
         }._2
         bddSynthesizer.bddAutomata.mForbiddenStates = forbiddenStatesAsBdd
       } catch {
-        case _: Throwable => println("Problem when parsing forbidden state combinations from comment\nor\nBuilding BDD of these combinations."); return None
+        case _: Throwable => println("Problem when parsing forbidden state combinations from comment\nor\nBuilding BDD of these combinations.")
       }
     }
     //-----
@@ -61,18 +69,53 @@ trait Algorithms extends BaseFunctionality with RegexParsers {
     try {
       bddSynthesizer.synthesize(options)
     } catch {
-      case _: Throwable => println("Problem to calculate supervisor."); return None
+      case _: Throwable => println("Problem to calculate supervisor.")
     }
-    lazy val nbrOfStates = bddSynthesizer.nbrOfStates()
-    if (bddSynthesizer == null | nbrOfStates == 0) { return None }
-    // Guard extraction		
-    lazy val eventNames = new Vector(getAlphabet.filter(_.getKind == EventKind.CONTROLLABLE).map(_.getName).toIndexedSeq.toVector.asJavaCollection)
-    options.setExpressionType(2) // 0=fromForbiddenStates, 1=fromAllowedStates, 2=mix
-    bddSynthesizer.generateGuard(eventNames, options)
-    lazy val eventGuardMap = bddSynthesizer.getEventGuardMap().asScala.map { case (event, bddegg) => event -> bddegg.getGuard() }.toMap
+    if (bddSynthesizer != null & bddSynthesizer.nbrOfStates != 0) {
+      println("Nbr of states in supervisor: " + bddSynthesizer.nbrOfStates)
+      supervisorExists = true
+    }
+    //Done with the supervisor calculation
 
-    println("Nbr of states in supervisor: " + nbrOfStates)
-    Some(eventGuardMap)
+    /**
+     * Returns the supervisor as extra guards for the controllable events.
+     * There are 3 types of guards
+     * "0": The event is always disabled, thus the extra guard is always false
+     * "1": The event is always enabled,  thus no extra guard is required
+     * "exp: The event is sometimes enabled/disabled. The extra guard should be appended to all transitions labeled by the event.
+     * Returns None if no supervisor exits
+     */
+    lazy val getSupervisorGuards: Option[Map[String, String]] = {
+      if (!supervisorExists) None
+      else {
+        lazy val eventNames = new Vector(getAlphabet.filter(_.getKind == EventKind.CONTROLLABLE).map(_.getName).toIndexedSeq.toVector.asJavaCollection)
+        options.setExpressionType(2) // 0=fromForbiddenStates, 1=fromAllowedStates, 2=mix
+        bddSynthesizer.generateGuard(eventNames, options)
+        lazy val eventGuardMap = bddSynthesizer.getEventGuardMap().asScala.map { case (event, bddegg) => event -> bddegg.getGuard() }.toMap
+        Some(eventGuardMap)
+      }
+    }
+
+    /**
+     *
+     * @param state KeyValue map for a subset of the variables in the module with assigned values.
+     * @return None if no supervisor exits, otherwise true (false) if the supervisor contains (not contains) the state
+     */
+    def containsState(state: Map[String, Int]): Option[Boolean] = {
+      if (!supervisorExists) None
+      else {
+        val expAsString = state.map { case (k, v) => s"$k==$v" }.mkString("&")
+        try {
+          val exp = mParser.parse(expAsString, Operator.TYPE_BOOLEAN)
+          val resultAsBDD = bddSynthesizer.getResult.and(manager.guard2BDD(exp))
+          val containsState = !resultAsBDD.toStringWithDomains.equals("F")
+//          println(s"Supervisor contains state: ${state.map { case (k, v) => s"$k:$v" }.mkString("[", ",", "]")} is $containsState")
+          return Some(containsState)
+        } catch {
+          case _: Throwable => println(s"Problem to parse state to expression: $expAsString."); None
+        }
+      }
+    }
   }
 
   def getDFA: Option[Iterable[Automaton]] = {
@@ -81,12 +124,14 @@ trait Algorithms extends BaseFunctionality with RegexParsers {
       Config.OPTIMIZING_COMPILER.set(true)
       val automata = proj.build(mModule).asInstanceOf[Automata]
       return Some(automata.asScala)
-    } catch { case t: Throwable => println(t); None }
+    } catch {
+      case t: Throwable => println(t); None
+    }
   }
-  
+
   def getAutomataSupervisor(synthesisType: SynthesisAlgorithm = SynthesisAlgorithm.MONOLITHIC): Option[Iterable[Automaton]] = {
     getDFA match {
-      case Some(as) => getAutomataSupervisor(as,synthesisType)
+      case Some(as) => getAutomataSupervisor(as, synthesisType)
       case _ => None
     }
   }
