@@ -45,6 +45,15 @@ case class VolvoWeldConveyerCase() extends CollectorModel {
     "atConveyers" -> Set("atHome"))
   createMoveOperations(robotName = "Robot", staticRobotPoses = staticRobotPoses)
 
+  // PS Visualization
+  op(s"gripProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,157"))
+  op(s"weldProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,188"))
+  op(s"releaseProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,430"))
+
+  op(s"gripProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,479"))
+  op(s"weldProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,507"))
+  op(s"releaseProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,717"))
+
   //Macros-----------------------------
   def conveyerX(X: String) = {
     v(name = s"vOutConveyer$X", domain = Seq("idle", "starting", "running", "stopping"), init = "idle", marked = "idle")
@@ -54,7 +63,7 @@ case class VolvoWeldConveyerCase() extends CollectorModel {
   }
 
   def productX(X: String) = {
-    op(s"addProduct$X", c("vIn_car", "empty", s"product$X"), attributes = SPAttributes())
+    op(s"addProduct$X", c("vIn_car", "empty", s"product$X"))
     op(s"addProduct$X", c("vOperator", "idle", s"addingProduct$X", "idle"))
 
     x("inZone", s"vOperator == addingProduct$X & vRobot_pos == atInGripping$X")

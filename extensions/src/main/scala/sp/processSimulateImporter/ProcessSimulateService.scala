@@ -20,29 +20,83 @@ class ProcessSimulateAMQ extends Actor with Producer {
 }
 
 class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Actor {
-  implicit val timeout = Timeout(1 seconds)
+  implicit val timeout = Timeout(10 seconds)
   val ps_timeout = Timeout(5 seconds)
 
   def addObjectFromJSON(json : String, modelid : ID) = {
     val idable = read[IDAble](json)
     modelHandler ! UpdateIDs(modelid, 0, List(idable))
-  }
 
+  }
   def receive = {
     case Request(_, attr) => {
       val reply = sender
       extract(attr) match {
         case Some(("createOp",model,name)) => {
-          val json = """{ "command" : "create_compound_op", "params":{"name":"""" + name + """"}}"""
-          val result = Await.result(psAmq ? json, ps_timeout.duration)
-          result match {
-            case CamelMessage(body,headers) => addObjectFromJSON(body.toString, model)
+          //test
+          val spids = Await.result(modelHandler ? GetSpecs(model,
+            s => s.name=="oneSequence"),ps_timeout.duration)
+          spids match {
+            case SPIDs(items) => {
+              if(!items.isEmpty) {
+                val json = SPAttributes("command"->"create_compound_op", "params"->Map("name" -> name)) toJson
+                val result = Await.result(psAmq ? json, ps_timeout.duration)
+                val parent = result match {
+                  case CamelMessage(body,headers) => read[IDAble](body.toString)
+                }
+
+                val names = items.head match {
+                  case SOPSpec(name, s, attributes, id) => {
+                    val ids = s.head.sop.map(x=>x match {
+                      case h: Hierarchy => h.operation
+                    } )
+                    val objects = Await.result(modelHandler ? GetIds(model, ids.toList),ps_timeout.duration)
+                    objects match {
+                      case SPIDs(items) => items.map(o=>(o.name, o.attributes.getAs[String]("simop")))
+                    }
+                  }
+                }
+
+                val json2 = SPAttributes("command"->"create_op_chain",
+                  "params"->Map("ops" -> names.map(n=>                 
+                    SPAttributes("name" -> n._1,"simop" -> (n._2 match {
+                      case Some(txid) => txid
+                      case _ => "dummy"
+                    }))), "parent" -> parent.attributes.getAs[String]("txid"))) toJson
+
+                println(json2)
+                val result2 = Await.result(psAmq ? json2, ps_timeout.duration)
+                val children = result2 match {
+                  case CamelMessage(body,headers) => read[List[IDAble]](body.toString)
+                }
+
+                println(children)
+
+
+                // val children = names.map(name => {
+                //   val json = SPAttributes("command"->"create_weld_op", "params"->Map("name" -> name, "parent" -> parent.attributes.getAs[String]("txid"))) toJson
+                //   val result = Await.result(psAmq ? json, ps_timeout.duration)
+                //   result match {
+                //     case CamelMessage(body,headers) => read[IDAble](body.toString)
+                //   }
+                // })
+
+                // add parent + children to model if we want
+
+
+
+              }
+              else
+                println(""""oneSequence" does not exist""")
+            }
           }
+
+
           reply ! "all ok"
         }
 
         case Some(("import",model,param)) => {
-          val json = """{ "command" : "get_all_tx_objects" } """
+          val json = SPAttributes("command"->"get_all_tx_objects") toJson
           val result = Await.result(psAmq ? json, ps_timeout.duration)
           result match {
             case CamelMessage(body,headers) => {
@@ -54,7 +108,7 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
         }
 
         case Some(("import_single",model,param)) => {
-          val json = """{ "command" : "get_tx_object", "params":{"txid":""""+param+""""}}"""
+          val json = SPAttributes("command"->"get_tx_object", "params"->Map("txid"->param)) toJson
           val result = Await.result(psAmq ? json, ps_timeout.duration)
           result match {
             case CamelMessage(body,headers) => addObjectFromJSON(body.toString, model)
