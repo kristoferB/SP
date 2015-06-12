@@ -13,14 +13,6 @@ import sp.virtcom.CollectorModel
  */
 case class VolvoWeldConveyerCase() extends CollectorModel {
 
-//  v("vOp1",Seq("i","e","f"),"i","f")
-////  v("vOp2",Seq("i","e","f"),"i","f")
-////  v("vR",Seq("i","w"),"i","i")
-//  op("op1",c("vOp1","i","e","f"))
-////  op("op1",c("vR","i","w","i"))
-////  op("op2",c("vOp2","i","e","f"))
-////  x("order","vOp1!=i & vOp2!=f")
-
   //Resources/Machines/Variables
   v(name = "vIn_car", domain = Seq("empty", "productA", "productB"), init = "empty", marked = "empty")
 
@@ -35,7 +27,10 @@ case class VolvoWeldConveyerCase() extends CollectorModel {
     conveyerX("B")
 
   //Product A
-    productX("A")
+  productX("A")
+
+  x("inZone", s"vOperator == addingProductA & vRobot_pos == atInGrippingB")
+  x("inZone", s"vOperator == addingProductB & vRobot_pos == atInGrippingA")
 
   //Product B
     productX("B")
@@ -59,7 +54,7 @@ case class VolvoWeldConveyerCase() extends CollectorModel {
   }
 
   def productX(X: String) = {
-    op(s"addProduct$X", c("vIn_car", "empty", s"product$X"))
+    op(s"addProduct$X", c("vIn_car", "empty", s"product$X"), attributes = SPAttributes())
     op(s"addProduct$X", c("vOperator", "idle", s"addingProduct$X", "idle"))
 
     x("inZone", s"vOperator == addingProduct$X & vRobot_pos == atInGripping$X")
