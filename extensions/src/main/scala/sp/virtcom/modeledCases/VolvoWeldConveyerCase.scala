@@ -13,14 +13,6 @@ import sp.virtcom.CollectorModel
  */
 case class VolvoWeldConveyerCase() extends CollectorModel {
 
-//  v("vOp1",Seq("i","e","f"),"i","f")
-////  v("vOp2",Seq("i","e","f"),"i","f")
-////  v("vR",Seq("i","w"),"i","i")
-//  op("op1",c("vOp1","i","e","f"))
-////  op("op1",c("vR","i","w","i"))
-////  op("op2",c("vOp2","i","e","f"))
-////  x("order","vOp1!=i & vOp2!=f")
-
   //Resources/Machines/Variables
   v(name = "vIn_car", domain = Seq("empty", "productA", "productB"), init = "empty", marked = "empty")
 
@@ -35,7 +27,10 @@ case class VolvoWeldConveyerCase() extends CollectorModel {
     conveyerX("B")
 
   //Product A
-    productX("A")
+  productX("A")
+
+  x("inZone", s"vOperator == addingProductA & vRobot_pos == atInGrippingB")
+  x("inZone", s"vOperator == addingProductB & vRobot_pos == atInGrippingA")
 
   //Product B
     productX("B")
@@ -49,6 +44,15 @@ case class VolvoWeldConveyerCase() extends CollectorModel {
     "atWeld" -> Set("atConveyers"),
     "atConveyers" -> Set("atHome"))
   createMoveOperations(robotName = "Robot", staticRobotPoses = staticRobotPoses)
+
+  // PS Visualization
+  op(s"gripProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,157"))
+  op(s"weldProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,188"))
+  op(s"releaseProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,430"))
+
+  op(s"gripProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,479"))
+  op(s"weldProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,507"))
+  op(s"releaseProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,717"))
 
   //Macros-----------------------------
   def conveyerX(X: String) = {
