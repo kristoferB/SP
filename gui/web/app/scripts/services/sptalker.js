@@ -119,7 +119,7 @@ angular.module('spGuiApp')
       data: {
           command: 'import',
           model: factory.activeModel.model,
-	  param: txid
+	  params: { }
       }}).success(function(result) {
 	  factory.loadAll();
 	  notificationService.success('Import from PS succeded.');
@@ -135,8 +135,7 @@ angular.module('spGuiApp')
       data: {
 	  command: 'createOp',
           model: factory.activeModel.model,
-          items: factory.items,
-          param: opname
+          params: { items: factory.items }
       }}).success(function(result)  {
           factory.loadAll();
 	  notificationService.success('Operation ' + opname + ' was successfully created in PS.\n');
