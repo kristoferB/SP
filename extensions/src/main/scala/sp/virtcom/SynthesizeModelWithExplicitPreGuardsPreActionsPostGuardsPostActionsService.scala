@@ -13,15 +13,22 @@ import scala.concurrent.duration._
 import sp.domain.Logic._
 
 /**
- * Created by patrik on 2015-06-04.
+ * Creates a wmod module from existing operations, things (variables), and SPspec (forbidden expressions).
+ * This module is synthesized.
+ * The synthesized supervisor is returned as an extra preGuard for a subset of the operations.
+ * Creates a Condition for each operation based on its:
+ *  preGuards (+ the synthesized guard)
+ *  preActions
+ *  postGurads
+ *  postActions
  */
-class SynthesizeTypeModelService(modelHandler: ActorRef) extends Actor with ServiceSupportTrait {
+class SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsService(modelHandler: ActorRef) extends Actor with ServiceSupportTrait {
   implicit val timeout = Timeout(1 seconds)
 
   import context.dispatcher
 
   def receive = {
-    case Request(service, attr) => {
+    case Request(service, attr) =>
 
       println(s"service: $service")
 
@@ -30,7 +37,7 @@ class SynthesizeTypeModelService(modelHandler: ActorRef) extends Actor with Serv
       val result = for {
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
 
-        //Collect ops, vars, forbidden expressiones
+        //Collect ops, vars, forbidden expressions
         SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
         //        ops = opsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Operation])
         ops = opsToBe.map(_.asInstanceOf[Operation])
@@ -39,10 +46,10 @@ class SynthesizeTypeModelService(modelHandler: ActorRef) extends Actor with Serv
         vars = varsToBe.map(_.asInstanceOf[Thing])
         SPIDs(spSpecToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.model))
         //        spec = spSpecToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[SPSpec])
-        spec = spSpecToBe.map(_.asInstanceOf[SPSpec])
+        specs = spSpecToBe.filter(_.isInstanceOf[SPSpec]).map(_.asInstanceOf[SPSpec])
 
         //Create Supremica Module and synthesize guards.
-        ptmw = ParseToModuleWrapper(modelInfo.name, vars, ops, spec)
+        ptmw = ParseToModuleWrapper(modelInfo.name, vars, ops, specs)
         optSupervisorGuards = {
           ptmw.addVariables()
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
@@ -53,26 +60,27 @@ class SynthesizeTypeModelService(modelHandler: ActorRef) extends Actor with Serv
           ptmw.SupervisorAsBDD().getSupervisorGuards.map(_.filter(og => !og._2.equals("1")))
         }
 
-        updatedOps = ops.map(o => ptmw.createFinalCondition(o, optSupervisorGuards))
+        //Update operations with conditions and change to Supremica syntax
+        updatedOps = ops.map(o => ptmw.changeToSupremicaSyntaxAndAddSPCondition(o, optSupervisorGuards))
         _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = updatedOps))
 
       } yield {
 
           optSupervisorGuards.getOrElse(Map()).foreach(kv => println(s"${kv._1}: ${kv._2}"))
+          //          updatedOps.foreach(o => println(s"${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
+
           ptmw.addSupervisorGuardsToFreshFlower(optSupervisorGuards)
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-          //          updatedOps.foreach(o => println(s"${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
+
         }
 
       sender ! result
-
-    }
   }
 
 }
 
-object SynthesizeTypeModelService {
-  def props(modelHandler: ActorRef) = Props(classOf[SynthesizeTypeModelService], modelHandler)
+object SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsService {
+  def props(modelHandler: ActorRef) = Props(classOf[SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsService], modelHandler)
 }
 
 case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List[Operation], spec: List[SPSpec]) extends FlowerPopulater with Exporters with Algorithms with TextFilePrefix {
@@ -96,12 +104,12 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
       //      println(s"${o.name} ${o.attributes.pretty}")
       //pre
       val startEvent = o.name
-      addEventIfNeededElseReturnExistingEvent(startEvent, false)
+      addEventIfNeededElseReturnExistingEvent(startEvent, unControllable = false)
       addTransition(o, startEvent, "preGuard", "preAction")
 
       //post
       val compEvent = s"$UNCONTROLLABLE_PREFIX$startEvent"
-      addEventIfNeededElseReturnExistingEvent(compEvent, true)
+      addEventIfNeededElseReturnExistingEvent(compEvent, unControllable = true)
       addTransition(o, compEvent, "postGuard", "postAction")
 
       //Add operation events  to module comment
@@ -135,7 +143,18 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
     }
   }
 
-  def createFinalCondition(o: Operation, synthesizedGuardMap: Option[Map[String, String]]): Operation = {
+  private def getFromVariableDomain(variable: String, value: String, errorMsg: String): Option[Int] = {
+    variableMap.get(variable) match {
+      case Some(domain) => domain.indexOf(value) match {
+        case -1 => println(s"$errorMsg\nValue: $value is not in the domain of variable: $variable. The result will not be correct!"); None
+        case other => Some(other)
+      }
+      case _ => println(s"$errorMsg\nVariable: $variable is not defined. The result will not be correct!"); None
+
+    }
+  }
+
+  def changeToSupremicaSyntaxAndAddSPCondition(o: Operation, synthesizedGuardMap: Option[Map[String, String]]): Operation = {
     lazy val updatedAttribute = o.attributes.transformField {
       case ("preGuard", JArray(vs)) => ("preGuard", JArray(vs.map { case JString(x) => JString(stringPredicateToSupremicaSyntax(x)); case other => other }))
       case ("preAction", JArray(vs)) => ("preAction", JArray(vs.map { case JString(x) => JString(stringActionToSupremicaSyntax(x)); case other => other }))
@@ -156,18 +175,7 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
     if (!synthesizedGuardMap.isDefined) o else PropositionConditionLogic.parseAttributesToPropositionCondition(opWithUpdatedAttributes, vars).getOrElse(opWithUpdatedAttributes)
   }
 
-  private def getFromVariableDomain(variable: String, value: String, errorMsg: String): Option[Int] = {
-    variableMap.get(variable) match {
-      case Some(domain) => domain.indexOf(value) match {
-        case -1 => println(s"$errorMsg\nValue: $value is not in the domain of variable: $variable. The result will not be correct!"); None
-        case other => Some(other)
-      }
-      case _ => println(s"$errorMsg\nVariable: $variable is not defined. The result will not be correct!"); None
-
-    }
-  }
-
-  //To get correct syntax of guards in Supremica
+  //To get correct syntax of guards and actions in Supremica
   //Variable values are changed to index in domain
 
   import sp.domain.logic.PropositionParser
@@ -183,16 +191,17 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
 
   private def actionToSupremicaSyntax(a: Action) = {
     val varsIdMap = vars.map(v => v.id -> v.name).toMap
-    val optValue = a.value match {
-      case ValueHolder(v) => v.getAs[String]
-      case _ => None
+    val value = a.value match {
+      case ValueHolder(org.json4s.JString(v)) => v
+      case ValueHolder(org.json4s.JInt(v)) => v.toString()
+      case other =>
+        println(s"actionToSupremicaSyntax cannot handle: $other right now. sorry")
+        other.toString
     }
     for {
       variable <- varsIdMap.get(a.id)
-      value <- optValue
-      valueInt <- getFromVariableDomain(variable, value, "Problem with action")
     } yield {
-      s"$variable = $valueInt"
+      s"$variable=${if (isInt(value)) value else getFromVariableDomain(variable, value, "Problem with action").getOrElse("NONE")}"
     }
   }
 
@@ -201,20 +210,10 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
     case other => other.toString
   }
 
-  private def leftRight(l: StateEvaluator, operator: String, r: StateEvaluator) = {
-    val left = stateEvalToSupremicaSyntax(l)
-    val right = stateEvalToSupremicaSyntax(r)
-    val result = for {
-      value <- getFromVariableDomain(left, right, "Problem with guard")
-    } yield {
-        s"$left$operator$value"
-      }
-    result.getOrElse("NONE")
-  }
   private def propToSupremicaSyntax(p: Proposition): String = p match {
     case AND(ps) => ps.map(propToSupremicaSyntax).mkString("(", ")&(", ")")
     case OR(ps) => ps.map(propToSupremicaSyntax).mkString("(", ")|(", ")")
-    case NOT(p) => s"!${propToSupremicaSyntax(p)}"
+    case NOT(q) => s"!${propToSupremicaSyntax(q)}"
     case EQ(l, r) => leftRight(l, "==", r)
     case NEQ(l, r) => leftRight(l, "!=", r)
     case GREQ(l, r) => leftRight(l, ">=", r)
@@ -223,16 +222,31 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
     case LE(l, r) => leftRight(l, "<", r)
     case AlwaysTrue => "1"
     case AlwaysFalse => "0"
-    case other => {
-      println(s"propToSupremicaSyntax cannot handle: $other right no. sorry");
+    case other =>
+      println(s"propToSupremicaSyntax cannot handle: $other right no. sorry")
       other.toString
-    }
   }
+
+  private def leftRight(l: StateEvaluator, operator: String, r: StateEvaluator) = {
+    val left = stateEvalToSupremicaSyntax(l)
+    val right = stateEvalToSupremicaSyntax(r)
+    s"$left$operator${if (isInt(right)) right else getFromVariableDomain(left, right, "Problem with guard").getOrElse("NONE")}"
+  }
+
   private def stateEvalToSupremicaSyntax(se: StateEvaluator): String = se match {
     case ValueHolder(org.json4s.JString(v)) => v
-    case other => {
-      println(s"stateEvalToSupremicaSyntax cannot handle: $other right no. sorry");
+    case ValueHolder(org.json4s.JInt(v)) => v.toString()
+    case other =>
+      println(s"stateEvalToSupremicaSyntax cannot handle: $other right now. sorry")
       other.toString
+  }
+
+  private def isInt(s: String): Boolean = {
+    try {
+      s.toInt
+      true
+    } catch {
+      case e: Exception => false
     }
   }
 

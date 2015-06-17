@@ -3,6 +3,7 @@ package sp.virtcom
 import akka.actor.{Props, Actor, ActorRef}
 import akka.pattern.ask
 import akka.util.Timeout
+import org.json4s.JsonAST.JBool
 import sp.domain._
 import sp.jsonImporter.ServiceSupportTrait
 import sp.system.messages._
@@ -10,7 +11,28 @@ import scala.concurrent.duration._
 import sp.domain.Logic._
 
 /**
- * Created by patrik on 2015-06-03.
+ * Given a straight operation sequence as a specification, this actor uses breadth-first search to find
+ * a straight operation sequence from the initial state (i) to a marked state (m) such that the operations in the
+ * specification can be executed in the order specified.
+ *
+ * Given the straight operation sequence:
+ * op1 -> op2
+ * this actor will return:
+ * (i) -> Seq[Operation] -> op1 -> Seq[Operation] -> op2 -> Seq[Operation] -> (m)
+ *
+ * The actor is greedy such that each Seq[Operation] contains the fewest number of operations possible.
+ * The sequence can thus be empty.
+ *
+ * The found operation sequence is returned to the model as a SOPSpec with a single Sequence that references
+ * to the corresponding operations in the model.
+ * The returned SOPSpec has the same name as the specification prefixed with "_Result".
+ *
+ * The actor will try to find an operation sequence for all SOPSpecs that are checked when the actor is called.
+ * No SOPSpec is returned to the model for a checked SOPSpec if:
+ * 1) the SOPSpec does not contain a straight operation sequence
+ * 2) no operation sequence is found
+ *
+ * @author Patrik Bergagard
  */
 class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Actor with ServiceSupportTrait {
   implicit val timeout = Timeout(1 seconds)
@@ -23,59 +45,84 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
       println(s"service: $service")
 
       val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
+      val checkedItems = attr.findObjectsWithField(List(("checked", JBool(true)))).unzip._1.flatMap(ID.makeID)
 
       //Search for operation sequence.
-      val foundSeqAsSOP = for {
+      for {
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
+
+        //Get operations and variables
         SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
         ops = opsToBe.map(_.asInstanceOf[Operation])
         SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.model))
         vars = varsToBe.map(_.asInstanceOf[Thing])
-      } yield {
-          val initState = getInitState(vars.toSet)
-          val markedState = stateIsMarked(vars.toSet)
-          val opsMap = ops.map(o => o.name -> o).toMap
 
-          import sp.domain.logic.PropositionConditionLogic._
+        //Get specification for the operation sequence to return
+        SPIDs(spSpecToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.model))
+        specs = spSpecToBe.filter(obj => checkedItems.contains(obj.id)).filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
 
-          val wfs = WrapperForSearch(ops.toSet)
-          val result = for {
-            r1 <- wfs.findOpSeq(opsMap("weldProductA").conditions(0).eval, Set(initState), Map(initState -> Seq()))
-            r2 <- wfs.findOpSeq(opsMap("weldProductB").conditions(0).eval, (r1, opsMap("weldProductA")))
-            r3 <- wfs.findOpSeq(opsMap("tipDress").conditions(0).eval, (r2, opsMap("weldProductB")))
-            r4 <- wfs.findOpSeq(opsMap("weldProductB").conditions(0).eval, (r3, opsMap("tipDress")))
-            r5 <- wfs.findOpSeq(markedState, (r4, opsMap("weldProductB")))
-          } yield {
-              implicit def opToSeqOp(o: Operation): Seq[Operation] = Seq(o)
-              val opSeq = r5.opSeq ++ opsMap("weldProductB") ++ r4.opSeq ++ opsMap("tipDress") ++ r3.opSeq ++ opsMap("weldProductB") ++ r2.opSeq ++ opsMap("weldProductA") ++ r1.opSeq
-              opSeq.reverse
-            }
-
-          println("start search")
-          result match {
-            case Some(r) => println(r.map(_.name).mkString("\n"))
-            case _ =>
+        specList = {
+          val onlySopsWithSequences = specs.flatMap { spec =>
+            val sopsWithSeq = spec.sop.filter(_.isInstanceOf[Sequence])
+            sopsWithSeq.map(seq => s"${spec.name}${if (sopsWithSeq.size > 1) spec.sop.indexOf(seq) else ""}" -> seq.sop)
           }
-          println("end search")
-
-          result match {
-            case Some(seq) => Sequence(seq.map(o => Hierarchy(o.id, List())): _*)
-            case _ => EmptySOP
+          val onlyHierarchy = onlySopsWithSequences.flatMap {
+            case (name, seq) if (seq.forall(_.isInstanceOf[Hierarchy])) => Some(name, seq.map(_.asInstanceOf[Hierarchy]).map(_.operation))
+            case _ => None
           }
+          lazy val opsIdMap = ops.map(o => o.id -> o).toMap
+          val transformToOps = onlyHierarchy.flatMap { case (name, seq) => val optList = seq.map(id => opsIdMap.get(id))
+            if (optList.forall(_.isDefined)) Some((name, optList.flatMap(o => o))) else None
+          }
+          transformToOps.filter(_._2.nonEmpty)
         }
 
-      //Add sop result to model
-      for {
-        modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
-        sop <- foundSeqAsSOP
-        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = List(SOPSpec(name = "oneSequence", sop = List(sop), attributes = SPAttributes().addTimeStamp))))
       } yield {
-        println(s"A new sop was generated! $sop")
+        val initState = getInitState(vars.toSet)
+        val markedState = stateIsMarked(vars.toSet)
+
+        import sp.domain.logic.PropositionConditionLogic._
+
+        if(specList.isEmpty) println("No specification(s) given.")
+
+        specList.foreach { case (name, opSeqFromSpec) =>
+
+          val wfs = WrapperForSearch(ops.toSet)
+
+          def findOpSeqIterator(remainingOpList: Seq[Operation], startState: State = initState, opSeqToReturn: Seq[Operation] = Seq()): Option[Seq[Operation]] = remainingOpList match {
+            case Nil => wfs.findOpSeq(markedState, Set(startState), Map(startState -> Seq())) match {
+              case Some(wfs.OpSeqResult(_, opSeq)) =>
+                val finalOpSeq = opSeq ++ opSeqToReturn
+                Some(finalOpSeq.reverse)
+              case _ => None
+            }
+            case o :: os => wfs.findOpSeq(o.conditions.head.eval, Set(startState), Map(startState -> Seq())) match {
+              case Some(wfs.OpSeqResult(lastState, opSeq)) =>
+                val nextStartState = wfs.updateStateBasedOnAllOperationActions(lastState, o)
+                findOpSeqIterator(os, nextStartState, Seq(o) ++ opSeq ++ opSeqToReturn)
+              case _ => None
+            }
+
+          }
+
+          //          println("search started")
+          val foundSeq = findOpSeqIterator(opSeqFromSpec) match {
+            case Some(seq) =>
+              println(s"The found sequence for specification $name contains ${seq.size} operations.")
+              Sequence(seq.map(o => Hierarchy(o.id, List())): _*)
+            case _ => EmptySOP
+          }
+          //          println("search ended")
+
+          for {
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = List(SOPSpec(name = s"${name}_Result", sop = List(foundSeq), attributes = SPAttributes().addTimeStamp))))
+          } yield {}
+        }
       }
+    }
 
       sender ! "ok"
 
-    }
   }
 
   def getInitState(vars: Set[Thing]) = {
@@ -111,12 +158,8 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
 
     case class OpSeqResult(finalState: State, opSeq: Seq[Operation])
 
-    def updateStateBasedInAllOperationActions(startState: State, o: Operation) = o.conditions.foldLeft(startState: State) { case (acc, c) => c.next(acc) }
+    def updateStateBasedOnAllOperationActions(startState: State, o: Operation) = o.conditions.foldLeft(startState: State) { case (acc, c) => c.next(acc) }
 
-    def findOpSeq(terminationCondition: State => Boolean, opSeqStartOpPair: (OpSeqResult, Operation)): Option[OpSeqResult] = {
-      val updatedState = updateStateBasedInAllOperationActions(opSeqStartOpPair._1.finalState, opSeqStartOpPair._2)
-      findOpSeq(terminationCondition, Set(updatedState), Map(updatedState -> Seq()))
-    }
     def findOpSeq(terminationCondition: State => Boolean, freshStates: Set[State], visitedStates: Map[State, Seq[Operation]]): Option[OpSeqResult] = {
 
       def terminate(fStates: Seq[State] = freshStates.toSeq): Option[OpSeqResult] = fStates match {
@@ -129,7 +172,7 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
         val enabledOps = freshStates.map(s => s -> ops.filter(_.conditions(0).eval(s)))
         val newStates = enabledOps.foldLeft(new LocalResult(Set(), visitedStates): LocalResult) { case (acc, (s, os)) =>
           val newAcc = os.foldLeft(acc: LocalResult) { case (accInner, o) => {
-            val targetStateForOperationO = updateStateBasedInAllOperationActions(s, o)
+            val targetStateForOperationO = updateStateBasedOnAllOperationActions(s, o)
             if (accInner.vStates.contains(targetStateForOperationO))
             //Target state has been visited before. Take no action.
               accInner.copy()

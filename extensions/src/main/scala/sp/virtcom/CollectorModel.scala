@@ -1,6 +1,5 @@
 package sp.virtcom
 
-import org.json4s.JsonAST.{JObject, JField, JString}
 import sp.domain.{SPSpec, Operation, Thing, SPAttributes}
 import sp.domain.Logic._
 
@@ -20,25 +19,25 @@ trait CollectorModel {
   implicit def SPAttToSeqOfSpAtt(spa: SPAttributes): Seq[SPAttributes] = Seq(spa)
   implicit def stringToSeqOfSpAtt(s: String): Seq[SPAttributes] = {
     val guardAction = s.split(";").toSeq
-    val guard = if (!guardAction.head.isEmpty) Some(SPAttributes("postGuard" -> guardAction.head)) else None
+    val guard = if (!guardAction.head.isEmpty) Some(SPAttributes("postGuard" -> Set(guardAction.head))) else None
     val actions = if (guardAction.size > 1) Some(SPAttributes("postAction" -> guardAction.tail.toSet)) else None
-    Seq(guard,actions).flatten
+    Seq(guard, actions).flatten
   }
   def op(name: String, conditions: Seq[SPAttributes], postConditions: Seq[SPAttributes] = SPAttributes(), attributes: SPAttributes = SPAttributes()) = {
     import sp.domain.logic.AttributeLogic._
-    val attrUpdated = (conditions ++ postConditions).foldLeft(attributes) { case (acc, c) => acc + c }
+    val attrUpdated = (conditions ++ postConditions).foldLeft(attributes) { case (acc, c) => acc merge c }
     operationSet += Operation(name = name, attributes = attrUpdated)
   }
+
+  def c(variable: String, fromValue: String, toValue: String): SPAttributes = SPAttributes("preGuard" -> Set(s"$variable == $fromValue"), "preAction" -> Set(s"$variable = $toValue"))
+  def c(variable: String, fromValue: String, inBetweenValue: String, toValue: String): SPAttributes = c(variable, fromValue, inBetweenValue) + SPAttributes("postGuard" -> Set(s"$variable == $inBetweenValue"), "postAction" -> Set(s"$variable = $toValue"))
 
   def x(name: String, forbiddenExpressions: Set[String]): Unit = {
     val optExistingFE = forbiddenExpressionMap.get(name)
     forbiddenExpressionMap = forbiddenExpressionMap ++ Map(name -> (optExistingFE.getOrElse(Set()) ++ forbiddenExpressions))
   }
 
-  def c(variable: String, fromValue: String, toValue: String): SPAttributes = SPAttributes("preGuard" -> Set(s"$variable == $fromValue"), "preAction" -> Set(s"$variable = $toValue"))
-  def c(variable: String, fromValue: String, inBetweenValue: String, toValue: String): SPAttributes = c(variable, fromValue, inBetweenValue) + SPAttributes("postGuard" -> Set(s"$variable == $inBetweenValue"), "postAction" -> Set(s"$variable = $toValue"))
-
-  def createMoveOperations(robotNamePrefix : String = "v", robotName: String, robotNameSuffix: String ="_pos",staticRobotPoses : Map[String,Set[String]]) = {
+  def createMoveOperations(robotNamePrefix: String = "v", robotName: String, robotNameSuffix: String = "_pos", staticRobotPoses: Map[String, Set[String]]) = {
     staticRobotPoses.foreach {
       case (source, targets) =>
         targets.foreach { target =>
@@ -82,26 +81,8 @@ object CollectorModelImplicits {
       }.toList
 
       //Operations------------------------------------------------------------------------------------
-      val ops = cm.operationSet.groupBy(_.name).map { case (k, os) => k -> os.foldLeft(SPAttributes()) { case (acc, o) => acc + o.attributes } }
-      val opsUpdated = ops.map { case (o, attr) =>
-        val keyValues = Seq("preGuard", "preAction", "postGuard", "postAction").map(key => key -> attr.findAs[Set[String]](key).flatten.toSet).toMap
-        val cleanAttr = attr removeField {
-          case ("preGuard", _) => true
-          case ("preAction", _) => true
-          case ("postGuard", _) => true
-          case ("postAction", _) => true
-          case _ => false
-        }
-        val updatedAttr = cleanAttr.getAs[JObject].getOrElse(SPAttributes()) + SPAttributes(
-          "preGuard" -> keyValues("preGuard"),
-          "preAction" -> keyValues("preAction"),
-          "postGuard" -> keyValues("postGuard"),
-          "postAction" -> keyValues("postAction")
-        )
-
-        o -> updatedAttr
-      }
-      val opsToAdd = opsUpdated.map(kv => Operation(name = kv._1, attributes = kv._2)).toList
+      val ops = cm.operationSet.groupBy(_.name).map { case (k, os) => k -> os.foldLeft(SPAttributes()) { case (acc, o) => acc merge o.attributes } }
+      val opsToAdd = ops.map(kv => Operation(name = kv._1, attributes = kv._2)).toList
       //      opsToAdd.foreach(o => println(s"n:${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
 
       //ForbiddenExpressions--------------------------------------------------------------------------------------
