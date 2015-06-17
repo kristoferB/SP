@@ -46,13 +46,13 @@ case class VolvoWeldConveyerCase() extends CollectorModel {
   createMoveOperations(robotName = "Robot", staticRobotPoses = staticRobotPoses)
 
   // PS Visualization
-  op(s"gripProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,157"))
-  op(s"weldProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,188"))
-  op(s"releaseProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,430"))
+  op(s"gripProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,158"))
+  op(s"weldProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,189"))
+  op(s"releaseProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,431"))
 
-  op(s"gripProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,479"))
-  op(s"weldProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,507"))
-  op(s"releaseProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,717"))
+  op(s"gripProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,481"))
+  op(s"weldProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,509"))
+  op(s"releaseProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,719"))
 
   //Macros-----------------------------
   def conveyerX(X: String) = {
