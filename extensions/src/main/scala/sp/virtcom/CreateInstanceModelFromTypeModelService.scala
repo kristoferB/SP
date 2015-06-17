@@ -58,8 +58,9 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
         vars = varsToBe.map(_.asInstanceOf[Thing])
 
         //Get specification for the operation sequence to return
-        SPIDs(spSpecToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.model))
-        specs = spSpecToBe.filter(obj => checkedItems.contains(obj.id)).filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
+        SPIDs(spSpecToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.model,
+          filter = {obj => checkedItems.contains(obj.id) && obj.isInstanceOf[SOPSpec]}))
+        specs = spSpecToBe.map(_.asInstanceOf[SOPSpec])
 
         specList = {
           val onlySopsWithSequences = specs.flatMap { spec =>
@@ -83,7 +84,7 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
 
         import sp.domain.logic.PropositionConditionLogic._
 
-        if(specList.isEmpty) println("No specification(s) given.")
+        if (specList.isEmpty) println("No specification(s) given.")
 
         specList.foreach { case (name, opSeqFromSpec) =>
 
