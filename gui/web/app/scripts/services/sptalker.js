@@ -135,6 +135,7 @@ angular.module('spGuiApp')
       data: {
 	  command: 'createOp',
           model: factory.activeModel.model,
+          items: factory.items,
           param: opname
       }}).success(function(result)  {
           factory.loadAll();
