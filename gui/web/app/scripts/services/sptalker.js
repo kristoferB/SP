@@ -121,8 +121,8 @@ angular.module('spGuiApp')
           model: factory.activeModel.model,
 	  params: { }
       }}).success(function(result) {
-	  factory.loadAll();
 	  notificationService.success('Import from PS succeded.');
+	  factory.loadAll();
       }).error(function(result) {
 	  notificationService.error('Fail: ' + result);
       });
@@ -137,8 +137,7 @@ angular.module('spGuiApp')
           model: factory.activeModel.model,
           params: { items: factory.items }
       }}).success(function(result)  {
-          factory.loadAll();
-	  notificationService.success('Operation ' + opname + ' was successfully created in PS.\n');
+	  notificationService.success('Operation(s) sent to PS ');
       }).error(function(result) {
        notificationService.error('Fail: ' + result);
     });
