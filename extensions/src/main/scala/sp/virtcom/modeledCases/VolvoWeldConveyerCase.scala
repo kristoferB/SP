@@ -46,13 +46,25 @@ case class VolvoWeldConveyerCase() extends CollectorModel {
   createMoveOperations(robotName = "Robot", staticRobotPoses = staticRobotPoses)
 
   // PS Visualization
-  op(s"gripProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,158"))
-  op(s"weldProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,189"))
-  op(s"releaseProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,431"))
+  op(s"addProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,98"))
+  op(s"gripProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,145"))
+  op(s"weldProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,178"))
+  op(s"releaseProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,75"))
+  op(s"removeProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,235"))
 
-  op(s"gripProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,481"))
-  op(s"weldProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,509"))
-  op(s"releaseProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,719"))
+  op(s"addProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,117"))
+  op(s"gripProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,158"))
+  op(s"weldProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,206"))
+  op(s"releaseProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,105"))
+  op(s"removeProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,241"))
+
+  op(s"atConveyersToAtHome_Robot", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,89"))
+  op(s"atHomeToAtIn_Robot", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,133"))
+  op(s"atInToAtWeld_Robot", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,171"))
+  op(s"atWeldToAtConveyers_Robot", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,228"))
+
+  op(s"tipDress", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,124"))
+  
 
   //Macros-----------------------------
   def conveyerX(X: String) = {
