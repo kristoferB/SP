@@ -3,6 +3,7 @@ package sp.server
 import sp.domain._
 import sp.opc.ServerSideEventsDirectives
 import ServerSideEventsDirectives._
+import sp.opc.simpleJsonMessToWeb.RuntimeState
 import spray.http.HttpHeaders.RawHeader
 import spray.http.{AllOrigins, StatusCodes, HttpHeaders}
 import spray.routing._
@@ -204,9 +205,15 @@ trait RuntimeAPI extends SPApiHelpers {
 
             }
           } ~
+          path("stop") {
+            callSP(StopRuntime(rt), {
+              case xs: SPAttributes => complete(xs)
+            })
+          } ~
           path("sse") {
             respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
-              sse { (channel, lastEventID) =>
+                sse { (channel, lastEventID) =>
+
                 // Register a closed event handler
                 channel ! RegisterClosedHandler( () => println("Connection closed !!!") )
 
@@ -294,9 +301,11 @@ trait SPApiHelpers extends HttpService {
     case a: SPAttributes => complete(a)
     case r: Result => complete(r)
     case item: IDAble => complete(item)
-    case e: SPErrorString => complete(e)
+    case e: SPErrorString => complete(StatusCodes.InternalServerError, e.error)
+    case e: SPErrorCodeAndString => complete(e.code,e.error)
     case e: UpdateError => complete(e)
     case MissingID(id, model, mess) => complete(StatusCodes.NotFound, s"id: $id $mess")
+    case r: RuntimeState => complete(r)
     case a: Any  => complete("reply from application is not converted: " +a.toString)
   }
 

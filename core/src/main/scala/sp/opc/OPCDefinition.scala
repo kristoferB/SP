@@ -1,53 +1,45 @@
 package sp.opc
 
+import akka.actor.ActorRef
 import akka.util.Timeout
-import sp.domain.{Thing, Operation, ID}
-import sp.system.messages.{GetThings, SPIDs, GetOperations}
+import sp.domain.{IDAble, Thing, Operation, ID}
+import sp.system.messages._
 import akka.pattern.ask
 import simpleJsonMessToWeb._
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Await
 import java.util.concurrent.TimeUnit
 import sp.system.SPActorSystem._
 
 object OPCDefinition {
 
-	private implicit val to = Timeout(20, TimeUnit.SECONDS)
+  private implicit val to = Timeout(20, TimeUnit.SECONDS)
 
-	// opcServerPrefix: prefix common to all OPC variables, reflecting the OPC server name. In PSL it's "S7:[S7_Connection_1]".
-	def get(model: ID, opcServerPrefix: String): OpcDef = {
+  // opcServerPrefix: prefix common to all OPC variables, reflecting the OPC server name. In PSL it's "S7:[S7_Connection_1]".
+  def get(model: ID, opcServerPrefix: String, idsToTags: Map[Option[ID], Option[String]], reply: ActorRef): OpcDef = {
 
-		val opsF: Future[List[Operation]] = (modelHandler ? GetOperations(model)).mapTo[SPIDs] map(_.items.map(_.asInstanceOf[Operation]))
-		val thingsF: Future[List[Thing]] = (modelHandler ? GetThings(model)).mapTo[SPIDs] map(_.items.map(_.asInstanceOf[Thing]))
+    var opcOpDefinitions: List[OpOpcDef] = List()
+    var opcVarDefinitions: List[VarOpcDef] = List()
 
-		var opcOpDefs: List[OpOpcDef] = List()
-		var opcVarDefs: List[VarOpcDef] = List()
+    idsToTags foreach {
+      case (Some(id: ID), Some(tag: String)) =>
+        val opVarBody = opcServerPrefix + tag
+        val idAble: Any = Await.result(modelHandler ? GetIds(model, List(id)), to.duration)
+        idAble match {
+          case SPIDs(List(_: Thing)) =>
+            opcVarDefinitions = VarOpcDef(id.toString(), opcServerPrefix + tag) :: opcVarDefinitions
+          case SPIDs(List(_: Operation)) =>
+            opcOpDefinitions = OpOpcDef(id.toString(), opVarBody + "_preTrue", opVarBody + "_state", opVarBody + "_start", opVarBody + "_reset") :: opcOpDefinitions
+          case MissingID =>
+            reply ! SPError("The ID " + id.toString() + " is not present in the model.")
+          case SPIDs(List(item: IDAble)) =>
+            reply ! SPError("Item " + item.name + " is not an Operation nor a Thing.")
+          case _ =>
+            reply ! SPError("There\'s something strange with ID " + id.toString())
+        }
+      case _ => reply ! SPError("Erroneous or missing id or opcTag in this OPCDef.")
+    }
 
-		for {
-			ops <- opsF
-			things <- thingsF
-		} yield {
-			opcOpDefs = ops.map(op => constructOPopcDef(op)).flatten
-			opcVarDefs = things.map(sv => constructVaropcDef(sv)).flatten
-		}
-
-		def constructVaropcDef(sv: Thing): Option[VarOpcDef] = {
-			sv.attributes.getAsString("opcTag") match {
-				case Some("") | None => None
-				case Some(opcTag: String) => Some(VarOpcDef(JsID(sv.id.toString()), opcServerPrefix + opcTag))
-			}
-		}
-
-		def constructOPopcDef(op: Operation): Option[OpOpcDef] = {
-			op.attributes.getAsString("opcTag") match {
-				case Some("") | None => None
-				case Some(opcTag: String) =>
-					val opVarBody = opcServerPrefix + opcTag
-					Some(OpOpcDef(JsID(op.id.toString()), opVarBody + ".preTrue", opVarBody + ".state", opVarBody + ".start", opVarBody + ".reset"))
-			}
-		}
-
-    OpcDef(opcOpDefs, opcVarDefs)
+    OpcDef(opcOpDefinitions, opcVarDefinitions)
 
   }
 

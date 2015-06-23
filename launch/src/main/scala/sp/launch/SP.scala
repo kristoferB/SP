@@ -16,7 +16,7 @@ object SP extends App {
   SPAttributes(Map("info"-> "Simulate system behavior by executing operations")))
 
   runtimeHandler ! RegisterRuntimeKind("PLCRuntime",
-    sp.runtimes.SimulationRuntime.props,
+    sp.runtimes.PLCRuntime.props,
     SPAttributes(Map("info"-> "Show status of and control a PLC")))
 
 

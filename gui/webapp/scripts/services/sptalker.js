@@ -1,0 +1,439 @@
+'use strict';
+
+/**
+ * @ngdoc service
+ * @name spGuiApp.spTalker
+ * @description
+ * # spTalker
+ * Factory in the spGuiApp.
+ */
+angular.module('spGuiApp')
+.factory('spTalker', ['$rootScope', '$resource', '$http', 'notificationService', '$timeout', 'API_URL', function ($rootScope, $resource, $http, notificationService, $timeout, API_URL) {
+    var factory = {
+      activeModel: {},
+      models: {},
+      users: [],
+      operations: [],
+      items: {},
+      itemsRead: false,
+      spSpecs: {},
+      things: {},
+      thingsAndOpsByName: {}
+    };
+
+    factory.getItemById = function(id) {
+      if(factory.items.hasOwnProperty(id))
+        return factory.items[id];
+      else if(factory.models.hasOwnProperty(id))
+        return factory.models[id];
+      else
+        return false
+    };
+
+    factory.getItemsByIds = function(ids) {
+      var items = {};
+      if(typeof ids === 'Array' || ids instanceof Array) {
+        ids.forEach(function(id) {
+          handleID(id);
+        })
+      } else {
+        ids.forEach(function(value, id) {
+          handleID(id);
+        })
+      }
+
+      function handleID(id) {
+        var item = factory.getItemById(id);
+        if(item) {
+          items[id] = item;
+        }
+      }
+
+      return items;
+    };
+
+    factory.getItemName = function(id) {
+      var item = factory.getItemById(id);
+      if(item)
+        return item.name;
+      else
+        return 'Item not in model';
+    };
+
+    //TODO: Handle services in a general way. Retrieve possible services from server
+    factory.parseProposition = function(proposition) {
+      return $http({
+        method: 'POST',
+        url: 'api/services/PropositionParser',
+        data: {
+          model: factory.activeModel.model,
+          parse: proposition
+        }})
+    };
+
+    factory.findRelations = function(ops, initState, groups, goalState) {
+      return $http({
+        method: 'POST',
+        url: 'api/services/Relations',
+        data: {
+          model: factory.activeModel.model,
+          operations: ops,
+          initstate: initState,
+          groups: groups,
+          goal: goalState
+        }})
+    };
+
+    factory.getSOP = function(ops, relationResultID, base) {
+      return $http({
+        method: 'POST',
+        url: 'api/services/SOPMaker',
+        data: {
+          model: factory.activeModel.model,
+          operations: ops,
+          relations: relationResultID,
+          base: base
+        }})
+    };
+
+    factory.createModel = function(name, successHandler) {
+      var newModel = {
+        name: name,
+        attributes: {
+          attributeTags: {},
+          conditionGroups: ['default'],
+          conditionInputMode: 'grid'
+        }
+      };
+      $http.post(API_URL + '/models', newModel).
+        success(function(model) {
+          notificationService.success('A new model \"' + model.name + '\" was successfully created');
+          factory.models[model.model] = model;
+          if(successHandler) {
+            successHandler(model);
+          }
+        }).
+        error(function() {
+          notificationService.error('The model creation failed.');
+        });
+    };
+
+    function loadModels() {
+      $http.get(API_URL + '/models').
+        success(function(models) {
+          models.forEach(function(model) {
+            factory.models[model.model] = model;
+          });
+        });
+    }
+    loadModels();
+
+    factory.loadModel = function(id) {
+      $http.get(API_URL + '/models/' + id).
+        success(function(model) {
+          factory.activeModel = model;
+          factory.loadAll();
+        });
+    };
+
+    factory.getModelVersionDiff = function(versionNo) {
+      var diff = {};
+      $http.get(API_URL + '/models/' + factory.activeModel.model + '/history/diff?version=' + versionNo).
+        success(function(versionInfo) {
+          angular.copy(versionInfo, diff);
+        });
+      return diff;
+    };
+
+    factory.revertModel = function(versionNo) {
+      $http.get(API_URL + '/models/' + factory.activeModel.model + '/history/revert?version=' + versionNo).
+        success(function(model) {
+          notificationService.success('Model ' + model.name + ' was reverted to version ' + versionNo);
+          factory.loadAll();
+        }).
+        error(function(error) {
+          console.log(error);
+          notificationService.error('Revert failed');
+        })
+    };
+
+    factory.refreshModelInfo = function() {
+      $http.get(API_URL + '/models/' + factory.activeModel.model).
+        success(function(model) {
+          angular.copy(model, factory.activeModel);
+        });
+    };
+
+    $rootScope.$on('itemsQueried', function() {
+      factory.refreshModelInfo();
+    });
+
+    if(sessionStorage.activeModel) {
+      factory.activeModel = { loading: 'please wait' };
+      var model = angular.fromJson(sessionStorage.activeModel);
+      factory.loadModel(model.model);
+    }
+
+    factory.saveModel = function(model, successHandler) {
+      $http.post(API_URL + '/models/' + model.model, model).
+        success(function() {
+          if(successHandler) {
+            successHandler();
+          }
+        }).
+        error(function(error) {
+          console.log(error);
+          notificationService.error('An error occurred during save of the active model. Please see your browser console for details.');
+        })
+    };
+
+    factory.loadItems = function() {
+      $http.get(API_URL + '/models/' + factory.activeModel.model + '/items').
+        success(function(items) {
+          Object.keys(factory.items).forEach(function(id) {
+            delete factory.items[id];
+          });
+          items.forEach(function(item) {
+            factory.items[item.id] = item;
+          });
+          updateItemLists();
+          factory.itemsRead = true;
+          $rootScope.$broadcast('itemsQueried');
+        });
+    };
+
+    function updateItemLists() {
+      filterOutItems();
+      factory.refreshModelInfo();
+    }
+
+    factory.loadAll = function() {
+      loadModels();
+      factory.loadItems();
+    };
+
+    function emptyMaps(mapsToEmpty) {
+      for(var i = 0; i < mapsToEmpty.length; i++) {
+        for(var itemID in mapsToEmpty[i]) {
+          if (mapsToEmpty[i].hasOwnProperty(itemID)) {
+            delete mapsToEmpty[i][itemID];
+          }
+        }
+      }
+    }
+
+    function filterOutItems() {
+      emptyMaps([factory.things, factory.thingsAndOpsByName, factory.spSpecs]);
+      for(var id in factory.items) {
+        if (factory.items.hasOwnProperty(id)) {
+          if(factory.items[id].isa === 'Thing' || factory.items[id].isa === 'Operation') {
+            factory.thingsAndOpsByName[factory.items[id].name.toLowerCase()] = factory.items[id];
+            if(factory.items[id].isa === 'Thing') {
+              factory.things[id] = factory.items[id];
+            }
+          } else if(factory.items[id].isa === 'SPSpec') {
+            factory.spSpecs[id] = factory.items[id];
+          }
+        }
+      }
+    }
+
+    factory.saveItems = function(items, notifySuccess, successHandler) {
+      var success = true;
+      if(items instanceof Array) {
+        if(items.length === 0) {
+          notificationService.error('No items supplied to save.');
+          return false;
+        }
+      }
+      if(Object.keys(factory.activeModel).length === 0) {
+        notificationService.error('No active model chosen.');
+        return false;
+      }
+      $http({method: 'POST', url: 'api/models/' + factory.activeModel.model + '/items', data: items})
+        .success(function(savedItems) {
+          if(notifySuccess) {
+            if(savedItems.length === 0) {
+              notificationService.info('No changes found to save.');
+            } else if(savedItems.length === 1) {
+              notificationService.success(savedItems[0].isa + ' \"' + savedItems[0].name + '\" was successfully saved.');
+            } else {
+              notificationService.success(items.length + ' items were successfully saved.');
+            }
+          }
+          updateItemLists();
+          if(successHandler) {
+            successHandler(savedItems);
+          }
+        })
+        .error(function(data) {
+          notificationService.error(data);
+          success = false;
+        });
+      return success;
+    };
+
+    factory.saveItem = function(item, notifySuccess, successHandler) {
+      var items = [];
+      items.push(item);
+      factory.saveItems(items, notifySuccess, successHandler);
+    };
+
+    factory.svKindChange = function(sv, newItem) {
+      var kind = sv.kind;
+      delete sv.domain;
+      delete sv.range;
+      delete sv.boolean;
+      delete sv.init;
+      delete sv.goal;
+
+      function addSVKindAttributes() {
+        if(kind === 'domain') {
+          sv[kind] = ['home', 'flexlink'];
+          sv.init = 'home';
+          sv.goal = 'flexlink';
+        } else if(kind === 'range') {
+          sv[kind] = {
+            start: 0,
+            end: 2,
+            step: 1
+          };
+          sv.init = 0;
+          sv.goal = 2
+        } else if(kind === 'boolean') {
+          sv[kind] = true;
+          sv.init = false;
+          sv.goal = true;
+        }
+      }
+
+      if(newItem) {
+        addSVKindAttributes();
+      } else {
+        $timeout(function() {
+          addSVKindAttributes();
+        });
+      }
+
+    };
+
+    factory.createItem = function(type, successHandler, readyMadeItem, errorHandler, parent) {
+      var newItem;
+      if(typeof readyMadeItem === 'undefined' || !readyMadeItem) {
+        newItem = {
+          isa : type,
+          name : type + Math.floor(Math.random()*1000),
+          attributes : {
+            children: []
+          }
+        };
+        if(parent) {
+          newItem.attributes.parent = parent.id;
+        }
+        if(type === 'Operation') {
+          newItem.conditions = [{guard: {isa:'EQ', right: true, left: true}, action: [], attributes: {kind: 'pre', group: 'default'}}];
+        } else if(type === 'Thing') {
+          newItem.attributes.stateVariable =  {
+            kind: 'boolean'
+          };
+          factory.svKindChange(newItem.attributes.stateVariable, true);
+        } else if(type === 'SOPSpec') {
+          newItem.sop = [{
+            isa: 'Sequence',
+            sop: []
+          }];
+        }
+      } else {
+        newItem = readyMadeItem;
+      }
+
+      $http.post(API_URL + '/models/' + factory.activeModel.model + '/items', newItem).
+        success(function(createdItem) {
+          factory.items[createdItem.id] = createdItem;
+          //notificationService.success('A new ' + createdItem.isa + ' with name ' + createdItem.name + ' was successfully created.');
+          updateItemLists();
+          if(successHandler) {
+            successHandler(createdItem);
+          } else {
+            $rootScope.$broadcast('itemsQueried');
+          }
+          loadModels();
+        }).
+        error(function(error) {
+          console.log(error);
+          notificationService.error('Creation of ' + newItem.isa + ' failed. Check your browser\'s console for details.');
+          if(errorHandler) {
+            errorHandler(error);
+          }
+        });
+    };
+
+    factory.deleteItem = function(itemToDelete) {
+      var success = true;
+
+      $http.delete(API_URL + '/models/' + factory.activeModel.model + '/items/' + itemToDelete.id).
+        success(function(deletedItem) {
+          /*if(notifySuccess) {
+            notificationService.success(deletedItem.isa + ' ' + deletedItem.name + ' was successfully deleted.');
+          }*/
+          factory.loadAll();
+        }).
+        error(function(error) {
+          console.log(error);
+          notificationService.error(itemToDelete.isa + ' ' + itemToDelete.name + ' could not be deleted from the server. Check your browser\'s error console for details.');
+          success = false;
+        });
+
+      return success;
+    };
+
+    factory.reReadFromServer = function(item) {
+      $http.get(API_URL + '/models/' + factory.activeModel.model + '/items/' + item.id).
+        success(function(readItem) {
+          factory.items[readItem.id] = readItem;
+          $rootScope.$broadcast('itemsQueried');
+        });
+    };
+
+    /*$http.defaults.headers.common['Authorization'] = 'Basic ' + window.btoa('admin' + ':' + 'pass');
+    $http({method: 'GET', url: 'api/secured'}).
+      success(function(data, status, headers, config) {
+          console.log(data);
+          // this callback will be called asynchronously
+          // when the response is available
+      }).
+      error(function(data, status, headers, config) {
+          console.log(data);
+          // called asynchronously if an error occurs
+          // or server returns response with an error status.
+      });*/
+
+    /*$http({method: 'POST', url: 'api/users', data: {userName: 'test', password: 'demo', name: 'Ben'}}).
+        success(function(data, status, headers, config) {
+            console.log(data);
+            // this callback will be called asynchronously
+            // when the response is available
+        }).
+        error(function(data, status, headers, config) {
+            console.log(data);
+            // called asynchronously if an error occurs
+            // or server returns response with an error status.
+        });
+
+    $http({method: 'GET', url: 'api/users'}).
+        success(function(data, status, headers, config) {
+            console.log(data);
+            // this callback will be called asynchronously
+            // when the response is available
+        }).
+        error(function(data, status, headers, config) {
+            console.log(data);
+            // called asynchronously if an error occurs
+            // or server returns response with an error status.
+        });*/
+
+
+
+  return factory;
+
+}]);

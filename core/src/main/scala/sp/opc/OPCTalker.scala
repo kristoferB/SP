@@ -4,13 +4,14 @@ import java.util.UUID
 
 import sp.domain.ID
 import akka.actor._
-import sp.system.messages.SPError
 import spray.json._
 
 import akka.actor.{ Actor, ActorRef, Props }
 import akka.io.{ IO, Tcp }
 import akka.util.ByteString
 import java.net.InetSocketAddress
+
+import scala.concurrent.duration.{FiniteDuration, SECONDS}
 
 //case class ReadOpcTag(variable: String, value: Any)
 case class WriteValue(varValueMap: Map[String, JsValue])
@@ -39,42 +40,45 @@ class Client(remote: InetSocketAddress, listener: ActorRef) extends Actor with a
   var connection: ActorRef = null
   var connected = false
   val clientID = java.util.UUID.randomUUID().toString
+  val regMessage = ByteString("{\"messType\":\"REG\",\"id\":\"" + clientID + "\"}" + "\n")
 
-  IO(Tcp) ! Connect(remote)
+  IO(Tcp) ! Connect(remoteAddress = remote, timeout = Some(FiniteDuration(3, SECONDS)))
 
   def receive = {
     case cf @ CommandFailed(_: Connect) =>
-      listener ! SPError("connect failed")
+      listener forward cf
       context stop self
 
     case c @ Connected(host, local) =>
       listener ! c
       connection = sender()
       connection ! Register(self)
+      connection ! Write(regMessage)
       connected = true
-      log.debug("OPCClient connected")
+
+      println("OPCClient connected")
       context become {
         case data: ByteString =>
           connection ! Write(data)
         case "YourState" =>
-          log.debug("TCPClient got mess: " + "YourState")
+          println("TCPClient got mess: " + "YourState")
           sender ! (if (connected) "Connected" else "Disconnected")
         case OPCSubscribe(vars) =>
           if (connected) {
-            log.debug("TCPClient got mess: " + "OPCSubscribe" + vars)
+            //println("TCPClient got mess: " + "OPCSubscribe" + vars)
             sendSubMessage(vars)
           }
         case OPCWrite(m) =>
           if (connected) {
-            log.debug("TCPClient got mess: " + "OPCWrite" + m)
+            println("TCPClient got mess: " + "OPCWrite" + m)
             sendWriteMessage(m map (kv => kv._1 -> kv._2))
           }
         case CommandFailed(w: Write) =>
           // O/S buffer was full
           listener ! "write failed"
-        case Received(data: ByteString) =>
-          val mess: String = data.toString()
-          log.info("Got message from OPCServer: " + mess)
+        case Received(bytes: ByteString) =>
+          val mess: String = bytes.utf8String
+          //println("Got mess from OPCServer: " + mess)
           mess.split("\n") foreach { mess =>
             try {
               val asl = JsonParser(mess)
@@ -87,15 +91,16 @@ class Client(remote: InetSocketAddress, listener: ActorRef) extends Actor with a
                 listener ! OPCError(em.toList)
               }
             } catch {
-              case e: Exception => log.info("Error converting received message " + mess)
+              case e: Exception => println("Error converting received message " + mess)
             }
           }
         case "close" =>
+          println("Disconnecting ")
           connection ! Close
         case cc: ConnectionClosed =>
           connected = false
           listener ! cc
-          log.debug("OPCClient disconnected")
+          println("OPCClient disconnected")
           context stop self
       }
   }

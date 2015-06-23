@@ -19,60 +19,61 @@ class OPCHandler(listener: ActorRef) extends Actor with akka.actor.ActorLogging 
 
   def receive = {
     case OPCValue(opcTag, value: JsValue) => updateState(opcTag, value)
-    case GetOpStates => sender ! opStates.values.toJson
-    case GetVarStates => sender ! varStates.values.toJson
+    case GetOpStates => sender ! opStates
+    case GetVarStates => sender ! varStates
     case OpWrite(id, start, reset) => writeOp(id, start, reset)
     case VarWrite(id, value) => writeVar(id, value)
     case UpdateOpcSubscription(opcDef: OpcDef) => updateOpcSubscription(opcDef)
     case l: List[_] => println(l) // forward error messages
   }
 
-  var opStates: Map[JsID, OpState] = Map.empty
-  var varStates: Map[JsID, VarState] = Map.empty
+  var opStates: Map[String, OpState] = Map.empty
+  var varStates: Map[String, VarState] = Map.empty
   private var opOpcDefs: Map[String, OpOpcDef] = Map.empty
   private var varOpcDefs: Map[String, VarOpcDef] = Map.empty
   
   private def updateState(opcTag: String, value: JsValue) = {
-      if (opOpcDefs.contains(opcTag)){
-        val opOpcDef = opOpcDefs(opcTag)
-        val oldOpState = opStates(opOpcDef.id)
-        val newOpState = if (opOpcDef.preTrueTag == opcTag) {
-          oldOpState.copy(preTrue=value)
-        } else if (opOpcDef.stateTag == opcTag) {
-          oldOpState.copy(state = value)
-        } else oldOpState
-        opStates += opOpcDef.id -> newOpState
-        listener ! newOpState
-      } 
-      if (varOpcDefs.contains(opcTag)){
-        val varOpcDef = varOpcDefs(opcTag)
-        val oldVarState = varStates(varOpcDef.id)
-        val newVarState = oldVarState.copy(value = value)
-        varStates += varOpcDef.id -> newVarState
-        listener ! newVarState
-      }
+    if (opOpcDefs.contains(opcTag)){
+      val opOpcDef: OpOpcDef = opOpcDefs(opcTag)
+      val oldOpState: OpState = opStates(opOpcDef.id)
+      val newOpState: OpState = if (opOpcDef.preTrueTag == opcTag) {
+        oldOpState.copy(preTrue=value)
+      } else if (opOpcDef.stateTag == opcTag) {
+        oldOpState.copy(state = value)
+      } else
+        oldOpState
+      opStates += opOpcDef.id -> newOpState
+      listener ! newOpState
+    }
+    if (varOpcDefs.contains(opcTag)){
+      val varOpcDef: VarOpcDef = varOpcDefs(opcTag)
+      val oldVarState: VarState = varStates(varOpcDef.id)
+      val newVarState: VarState = oldVarState.copy(value = value)
+      varStates += varOpcDef.id -> newVarState
+      listener ! newVarState
+    }
   }
   
-  private def writeOp(id: JsID, start: Boolean, reset: Boolean) = {
-    println("Server should write: " +id.uuid+" start:" + start+" reset: " + reset)
+  private def writeOp(id: String, start: JsValue, reset: JsValue) = {
+    println("Server should write: " + id + " start:" + start + " reset: " + reset)
     for {
       op <- opOpcDefs.values find (_.id == id)
     } yield {
       println(op)
-      listener ! OPCWrite(Map((op.startTag -> JsBoolean(start)), (op.resetTag -> JsBoolean(reset))))
+      listener ! OPCWrite(Map(op.startTag -> start, op.resetTag -> reset))
     }  
   }
   
-  private def writeVar(id: JsID, value: JsValue) = {
+  private def writeVar(id: String, value: JsValue) = {
     for {
       v <- varOpcDefs.values find (_.id == id)
     } yield {
-      listener ! OPCWrite(Map((v.opcTag -> value)))
+      listener ! OPCWrite(Map(v.opcTag -> value))
     }   
   }
   
   private def updateOpcSubscription(opcDef: OpcDef) = {
-    val json: JsValue = JsonParser(opcDef.toJson.toString)
+    val json: JsValue = JsonParser(opcDef.toJson.toString())
     val theDef = json.convertTo[OpcDef]
     
     opStates = Map.empty
@@ -89,7 +90,7 @@ class OPCHandler(listener: ActorRef) extends Actor with akka.actor.ActorLogging 
       
     opOpcDefs = (for {
         opOpcDef <- theDef.operations
-        kv <- Seq((opOpcDef.preTrueTag->opOpcDef), (opOpcDef.stateTag->opOpcDef), (opOpcDef.startTag->opOpcDef), (opOpcDef.resetTag->opOpcDef))
+        kv <- Seq(opOpcDef.preTrueTag->opOpcDef, opOpcDef.stateTag->opOpcDef, opOpcDef.startTag->opOpcDef, opOpcDef.resetTag->opOpcDef)
       } yield kv) toMap
 
     varOpcDefs = (for {

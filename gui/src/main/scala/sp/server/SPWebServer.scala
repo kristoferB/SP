@@ -19,11 +19,13 @@ class SPWebServer extends Actor with SPRoute {
   def receive = runRoute(api ~ sseApi ~ staticRoute)
   import sp.system._
 
+  val baseDir = "/home/daniel/IDEAProjects/SP/gui/webapp"
+
   def staticRoute: Route = {
     path("") {
-      getFromResource(s"${SPActorSystem.settings.webfolder}/index.html")
+      getFromFile(baseDir + "/index.html")
     } ~ {
-      getFromResourceDirectory(s"${SPActorSystem.settings.webfolder}")
+      getFromDirectory(baseDir)
     }
   }
 
