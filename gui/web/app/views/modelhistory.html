@@ -1,0 +1,37 @@
+<div class="modal-header">
+  <h3 class="modal-title"><span class="glyphicon glyphicon-time"></span> Model History</h3>
+</div>
+<div class="modal-body">
+  <table class="table"><thead><tr><th>Version</th></tr></thead></table>
+  <div class="modal-list-scroll-pane">
+    <table class="table">
+      <tbody>
+
+        <tr ng-repeat-start="version in modelVersions" ng-class-odd="'odd-row'" ng-class-even="'even-row'">
+          <td>{{version.no}}</td>
+          <td class="item-table-buttons">
+            <button class="btn btn-xs btn-default" ng-click="rowSettings[version.no].expandInfo = !rowSettings[version.no].expandInfo;" title="Show/hide info"><span class="glyphicon glyphicon-info-sign"></span></button>
+            <button class="btn btn-xs btn-default" ng-click="revert(version.no)" ng-if="!$first" title="Revert"><span class="glyphicon glyphicon-backward"></span></button>
+            <i ng-if="$first">Active</i>
+          </td>
+        </tr>
+
+        <tr ng-repeat-end ng-class-odd="'odd-row'" ng-class-even="'even-row'">
+          <td colspan="99" class="hiddenRow">
+            <div collapse="!rowSettings[version.no].expandInfo">
+              <table class="table">
+                <tr><td>Updated items:</td><td>{{version.diff.updatedItems}}</td></tr>
+                <tr><td>Deleted items:</td><td>{{version.diff.deletedItems}}</td></tr>
+                <tr><td>Time:</td><td>{{version.diff.attributes.time}}</td></tr>
+              </table>
+            </div>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-default" ng-click="dismiss()"><span class="glyphicon glyphicon-remove"></span> Close</button>
+</div>

@@ -1,0 +1,69 @@
+<!--[if lt IE 7]>
+<p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+<![endif]-->
+
+<!-- Add your site or application content here -->
+<div class="navbar navbar-inverse navbar-static-top" role="navigation" ng-hide="isLoginPage">
+  <div class="container-fluid">
+    <div class="pull-right">
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav ">
+          <li><a ng-click="openModelList()">Active model: {{spTalker.activeModel.name}}</a></li>
+          <!--<li ng-if="currentUser">
+              <p>Welcome, {{ currentUser.name }}</p>
+              <p ng-switch on="currentUser.role">
+                  <span ng-switch-when="userRoles.admin">You're admin.</span>
+                  <span ng-switch-when="userRoles.editor">You're editor.</span>
+                  <span ng-switch-default>You're something else.</span>
+              </p>
+          </li>-->
+          <li><object id="splogo" style="margin-left:20px; margin-top:2px; height:34px" data="/images/splogo.svg" type="image/svg+xml"></object></li>
+        </ul>
+      </div><!--/.nav-collapse -->
+
+      </div>
+      <div class="navbar-header">
+        <a class="navbar-brand">Sequence Planner</a>
+      </div>
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav ">
+          <li class="btn-group" dropdown is-open="status.isopen">
+            <a class="dropdown-toggle"><span class="glyphicon glyphicon-folder-close"></span> File <span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="openModelHistory()"><span class="glyphicon glyphicon-time"></span> Model History</a></li>
+              <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="openFileUpload()"><span class="glyphicon glyphicon-import"></span> Import Model or items</a></li>
+              <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="openServiceMeny()"><span class="glyphicon glyphicon-cutlery"></span> Services</a></li>
+            </ul>
+          </li>
+          <li class="btn-group" dropdown is-open="status.editisopen">
+            <a class="dropdown-toggle"><span class="glyphicon glyphicon-search"></span> View <span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="tabSvc.newWindow('sopMaker')"><span class="glyphicon glyphicon-th-large"></span> sopMaker</a></li>
+              <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="tabSvc.newWindow('itemList')"><span class="glyphicon glyphicon-list"></span> itemList</a></li>
+              <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="tabSvc.newWindow('itemTree')"><span class="glyphicon glyphicon-tree-deciduous"></span> itemTree</a></li>
+              <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="tabSvc.newWindow('itemExplorer')"><span class="glyphicon glyphicon-search"></span> itemExplorer</a></li>
+	      <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="tabSvc.newWindow('processSimulate')"><span class="glyphicon glyphicon-wrench"></span> PS connection</a></li>
+              <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="openSettings()"><span class="glyphicon glyphicon-wrench"></span> Settings</a></li>
+            </ul>
+          </li>
+
+          <!--TODO: Load algorithms from server-->
+          <li class="btn-group" dropdown is-open="status.algoisopen">
+            <a class="dropdown-toggle"><span class="glyphicon glyphicon-stats"></span> Algorithms <span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="tabSvc.newWindow('identifyRelations')"><span class="glyphicon glyphicon-link"></span> Identify Relations</a></li>
+              <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="tabSvc.newWindow('schedule')"><span class="glyphicon glyphicon-tasks"></span> Schedule</a></li>
+            </ul>
+          </li>
+
+          <li class="btn-group" dropdown is-open="status.runtimeisopen">
+            <a class="dropdown-toggle"><span class="glyphicon glyphicon-play"></span> Runtimes <span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="tabSvc.newWindow('simulationRuntime')"><span class="glyphicon glyphicon-facetime-video"></span> simulationRuntime</a></li>
+            </ul>
+          </li>
+
+        </ul>
+      </div><!--/.nav-collapse -->
+    </div>
+</div>

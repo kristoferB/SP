@@ -1,11 +1,15 @@
 package sp.domain.logic
 
+import org.json4s._
+import sp.domain._
+import sp.domain.Logic._
+
 /**
  * Created by kristofer on 04/09/14.
  */
 case object SOPLogic {
 
-  import sp.domain._
+
 
   /**
    * Given a sop, this method extract all guards that the sop specify
@@ -18,7 +22,7 @@ case object SOPLogic {
     val props = findOpProps(sop, Map(), getAllConditions)
     props map{ case (id, props) =>
       val propList = if (props.size == 1) props.head else AND(props.toList)
-      id -> PropositionCondition(propList, List(), SPAttributes(Map("group" -> group, "kind"-> "precondition")))
+      id -> PropositionCondition(propList, List(), SPAttributes("group" -> group, "kind" -> "precondition") )
     }
   }
 
@@ -59,9 +63,9 @@ case object SOPLogic {
     sop match{
       case x: Hierarchy => Set(x.operation)
       case x: SOP if x.isEmpty => Set()
-      case x: Sequence => seqEval(x.children).flatMap(s => getOps(s, seqEval)) toSet
-      case x: SometimeSequence => seqEval(x.children).flatMap(s => getOps(s, seqEval)) toSet
-      case x: SOP => x.children.flatMap(s => getOps(s, seqEval)) toSet
+      case x: Sequence => seqEval(x.sop).flatMap(s => getOps(s, seqEval)) toSet
+      case x: SometimeSequence => seqEval(x.sop).flatMap(s => getOps(s, seqEval)) toSet
+      case x: SOP => x.sop.flatMap(s => getOps(s, seqEval)) toSet
     }
   }
 
@@ -70,10 +74,10 @@ case object SOPLogic {
     sop match {
       case x: Hierarchy => EQ(x.operation, "f")
       case x: SOP if x.isEmpty => AlwaysTrue
-      case x: Sequence => getCompleteProposition(x.children.last)
-      case x: SometimeSequence => getCompleteProposition(x.children.last)
-      case x: Alternative => OR(x.children map getCompleteProposition toList)
-      case x: SOP => AND(x.children map getCompleteProposition toList)
+      case x: Sequence => getCompleteProposition(x.sop.last)
+      case x: SometimeSequence => getCompleteProposition(x.sop.last)
+      case x: Alternative => OR(x.sop map getCompleteProposition toList)
+      case x: SOP => AND(x.sop map getCompleteProposition toList)
     }
   }
 
@@ -81,9 +85,9 @@ case object SOPLogic {
     sop match {
       case x: Hierarchy => EQ(x.operation, "i")
       case x: SOP if x.isEmpty => AlwaysTrue
-      case x: Sequence => getStartProposition(x.children.head)
-      case x: SometimeSequence => getStartProposition(x.children.head)
-      case x: SOP => AND(x.children map getStartProposition toList)
+      case x: Sequence => getStartProposition(x.sop.head)
+      case x: SometimeSequence => getStartProposition(x.sop.head)
+      case x: SOP => AND(x.sop map getStartProposition toList)
     }
   }
 
@@ -107,13 +111,13 @@ case object SOPLogic {
       case x: SOP if x.isEmpty => map
       case x: Hierarchy => map // impl Hierarchy here later
       case x: SOP => {
-        val childProps = x.children.foldLeft(map) { (map, child) =>
+        val childProps = x.sop.foldLeft(map) { (map, child) =>
           val props = findOpProps(child, map)
           updateMap(props, map)
         }
         x match {
           case alt: Alternative => {
-            val startProps = alt.children.map(c => c -> getStartProposition(c))
+            val startProps = alt.sop.map(c => c -> getStartProposition(c))
             val propsToAdd = startProps map { case (sop, prop) =>
               val otherProps = startProps.filter((kv) => kv._1 != sop) map (_._2)
               if (otherProps.size == 1) sop -> otherProps.head
@@ -123,8 +127,8 @@ case object SOPLogic {
             newProps.foldLeft(childProps) { case (oldMap, newMap) => updateMap(newMap, oldMap)}
           }
           case arbi: Arbitrary => {
-            val startProps = arbi.children.map(c => c -> getStartProposition(c))
-            val complProps = arbi.children.map(c => c -> getCompleteProposition(c)) toMap
+            val startProps = arbi.sop.map(c => c -> getStartProposition(c))
+            val complProps = arbi.sop.map(c => c -> getCompleteProposition(c)) toMap
 
 
             val props = startProps.map { case (sop, prop) =>
@@ -155,7 +159,7 @@ case object SOPLogic {
                 }
               }
             }
-            val res = req(AlwaysTrue, seq.children.toList, Map())
+            val res = req(AlwaysTrue, seq.sop.toList, Map())
             updateMap(res, childProps)
           }
 
@@ -176,9 +180,9 @@ case object SOPLogic {
       case Nil => Map()
       case EmptySOP :: Nil => Map()
       case x :: xs => {
-       val reqChildren = x.children map extractOps toList
+       val reqChildren = x.sop map extractOps toList
        val relMap = foldThem(x, reqChildren)
-       val chMap = extractRelations(x.children.toList)
+       val chMap = extractRelations(x.sop.toList)
        val rest = extractRelations(xs)
        relMap ++ chMap ++ rest
       }
@@ -190,8 +194,8 @@ case object SOPLogic {
     def extr(xs: Seq[SOP]): List[ID] = xs flatMap extractOps toList
 
     sop match {
-      case x: Hierarchy => x.operation :: extr(x.children)
-      case x: SOP => extr(x.children)
+      case x: Hierarchy => x.operation :: extr(x.sop)
+      case x: SOP => extr(x.sop)
     }
   }
 
@@ -220,7 +224,7 @@ case object SOPLogic {
       o2 <- ops if (o1 != o2 && !sopRels.contains(Set(o1, o2)))
       rel <- relations.get(Set(o1, o2))
     } yield Set(o1, o2) -> rel).toMap
-    val cond = makeProps(missing)
+    val cond = makeProps(missing, relations)
 
     val otherOps = relations.keys flatMap(_ map(id => id)) filter(id => !ops.contains(id)) toSet
     val missingOthers = (for {
@@ -228,7 +232,7 @@ case object SOPLogic {
       o2 <- otherOps
       rel <- relations.get(Set(o1, o2))
     } yield Set(o1, o2) -> rel).toMap
-    val otherCond = makeProps(missingOthers)
+    val otherCond = makeProps(missingOthers, relations)
 
     val conds = makeConds(cond, otherCond)
 
@@ -237,12 +241,16 @@ case object SOPLogic {
     sops map(updateSOP(_, conds))
   }
 
-  def makeProps(missing: Map[Set[ID], SOP]): Map[ID, Proposition] = {
+  def makeProps(missing: Map[Set[ID], SOP], relations: Map[Set[ID], SOP]): Map[ID, Proposition] = {
     val res = missing.toList flatMap {
       case (_, s: Parallel) => List()
       case (_, s: Other) => List()
       case (_, s: Alternative) => {
         val temp = relOrder(s).map{case (id1, id2) => List(id1 -> EQ(id2, "i"), id2 -> EQ(id1, "i"))}
+        temp.getOrElse(List())
+      }
+      case (_, s: Arbitrary) => {
+        val temp = relOrder(s).map{case (id1, id2) => List(id1 -> NEQ(id2, "e"), id2 -> NEQ(id1, "e"))}
         temp.getOrElse(List())
       }
       case (_, s: Sequence) => {
@@ -255,21 +263,51 @@ case object SOPLogic {
       }
     }
 
-    res.foldLeft(Map[ID, AND]()){case (aggr, (id, prop)) =>
+    val temp = res.foldLeft(Map[ID, AND]()){case (aggr, (id, prop)) =>
       if (!aggr.contains(id)) aggr + (id -> AND(List(prop)))
       else aggr + (id -> AND(prop :: aggr(id).props))
     }
+
+    val filteredMap = temp.map{case (id, and) =>
+      val seqs = and.props.flatMap{
+        case EQ(SVIDEval(id), ValueHolder(JString("f"))) => Some(id)
+        case _ => None
+      }
+
+      val removeIds = for {
+        id1 <- seqs
+        id2 <- seqs
+        rels <- relations.get(Set(id1, id2)) if rels == Sequence(id1, id2)
+      } yield {
+        println(s"remove $id1")
+        id1
+      }
+
+
+        val filteredProps = and.props.filterNot{
+          case EQ(SVIDEval(id), _) => removeIds.contains(id)
+          case _ => false
+        }
+        id -> AND(filteredProps)
+    }
+
+    println(s"temp: $temp" )
+    println(s"Filtered: $filteredMap" )
+
+    filteredMap
+
   }
+
 
   def makeConds(c1: Map[ID, Proposition], c2: Map[ID, Proposition]): Map[ID, List[Condition]] = {
     c1 map{ case (id, prop) =>
-      val cond1 = PropositionCondition(prop, List(), Attr(
+      val cond1 = PropositionCondition(prop, List(), SPAttributes(
         "kind" -> "pre",
         "group" -> "sop"
       ))
       id -> {
         if (c2.contains(id)){
-          List(cond1, PropositionCondition(c2(id), List(), Attr(
+          List(cond1, PropositionCondition(c2(id), List(), SPAttributes(
             "kind" -> "pre",
             "group" -> "other"
           )))
@@ -279,8 +317,8 @@ case object SOPLogic {
   }
 
   def updateSOP(sop: SOP, conds: Map[ID, List[Condition]]): SOP = {
-    val updCh = sop.children.map(updateSOP(_, conds))
-    val updSOP = if (updCh == sop.children) sop else sop.modify(updCh)
+    val updCh = sop.sop.map(updateSOP(_, conds))
+    val updSOP = if (updCh == sop.sop) sop else sop.modify(updCh)
     updSOP match {
       case h: Hierarchy => {
         if (conds.contains(h.operation)){
@@ -292,7 +330,7 @@ case object SOPLogic {
   }
 
   def relOrder(sop: SOP): Option[(ID, ID)] = {
-    sop.children.toList match {
+    sop.sop.toList match {
       case (h1: Hierarchy) :: (h2: Hierarchy) :: Nil => Some(h1.operation, h2.operation)
       case _ => None
     }

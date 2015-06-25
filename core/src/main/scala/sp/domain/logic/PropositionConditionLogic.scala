@@ -1,33 +1,72 @@
 package sp.domain.logic
 
+import org.json4s._
 import sp.domain._
-
+import sp.domain.Logic._
 
 case object PropositionConditionLogic {
-
 
   /**
    * Evaluate Propositions by calling eval(proposition, state)
    */
-  implicit class propLogic(p: Proposition) {
-    def eval(s: State): Boolean = {
-      def req(p: Proposition): Boolean = {
-        p match {
-          case AND(props) => !props.exists(!req(_))
-          case OR(props) => props exists req
-          case NOT(prop) => !req(prop)
-          case EQ(l, r) => getValue(l) == getValue(r)
-          case NEQ(l, r) => getValue(l) != getValue(r)
-          case AlwaysTrue => true
-          case AlwaysFalse => false
+  implicit class propLogic(iProp: Proposition) {
+
+    private implicit class inequalityAttributes(l: SPValue) {
+      def >(r: SPValue) = {
+        (l, r) match {
+          case (JInt(li), JInt(ri)) => li > ri
+          case (JDouble(li), JDouble(ri)) => li > ri
+          case (JDecimal(li), JDecimal(ri)) => li > ri
+          case _ => false
         }
       }
-      def getValue(se: StateEvaluator): SPAttributeValue = se match {
-        case SVIDEval(id) => s(id)
-        case ValueHolder(v) => v
-        // does not handle SVNameEval
+      def <(r: SPValue) = (r > l)
+      def >=(r: SPValue) = (l > r) || (l == r)
+      def <=(r: SPValue) = (r > l) || (l == r)
+    }
+
+    def eval(state: State): Boolean = {
+      //Option[Boolean] = {
+      def req(prop: Proposition): Option[Boolean] = prop match {
+        case AND(ps) => listBooleanEval(ps, list => !list.flatten.contains(false))
+        case OR(ps) => listBooleanEval(ps, list => list.flatten.contains(true))
+        case NOT(p) => for {b <- req(p)} yield !b
+        case EQ(l, r) => valueEval(l, r, _ == _)
+        case NEQ(l, r) => valueEval(l, r, _ != _)
+        case GREQ(l, r) => valueEval(l, r, _ >= _)
+        case LEEQ(l, r) => valueEval(l, r, _ <= _)
+        case GR(l, r) => valueEval(l, r, _ > _)
+        case LE(l, r) => valueEval(l, r, _ < _)
+        case AlwaysTrue => Some(true)
+        case AlwaysFalse => Some(false)
       }
-      req(p)
+
+      def listBooleanEval(ps: List[Proposition], e: List[Option[Boolean]] => Boolean) = {
+        val psOptionValues = ps.map(req)
+        if (psOptionValues.contains(None)) None else Some(e(psOptionValues))
+      }
+
+      def valueEval(l: StateEvaluator, r: StateEvaluator, e: (SPValue, SPValue) => Boolean) = {
+        def getValue(se: StateEvaluator): Option[SPValue] = se match {
+          case SVIDEval(id) => state.get(id)
+          case ValueHolder(v) => Some(v)
+          case _ => None
+          // does not handle SVNameEval
+        }
+        (for {
+          left <- getValue(l)
+          right <- getValue(r)
+        } yield e(left, right)) match {
+          case ok@Some(_) => ok
+          case _ => {
+            println(s"Problem to do evaluation for $l and $r with function $e");
+            None
+          }
+        }
+      }
+
+      //Methods starts
+      req(iProp).getOrElse(false)
     }
   }
 
@@ -38,46 +77,84 @@ case object PropositionConditionLogic {
   implicit class condLogic(cond: Condition) {
     val c = cond.asInstanceOf[PropositionCondition]
     def eval(s: State) = c.guard.eval(s)
-    def next(s: State) = s.next(c.action map (a => a.id -> a.nextValue(s)) toMap)
-    def inDomain(s: State, stateVars: Map[ID, SPAttributeValue => Boolean]) = {
-      !(c.action map(_.inDomain(s, stateVars)) exists(!_))
+    def next(s: State) = s.next(c.action.map(a => a.id -> a.nextValue(s)) toMap)
+    def inDomain(s: State, stateVars: Map[ID, SPValue => Boolean]) = {
+      !(c.action map (_.inDomain(s, stateVars)) exists (!_))
     }
   }
 
   implicit class nextLogic(a: Action) {
+
     def nextValue(s: State) = a.value match {
       case ValueHolder(v) => v
-      case INCR(n) => SPAttributeValue(s(a.id).asInt map (_ + n))
-      case DECR(n) => SPAttributeValue(s(a.id).asInt map (_ - n))
+      case INCR(n) => updateValue(s(a.id), _ + n)
+      case DECR(n) => updateValue(s(a.id), _ - n)
       case ASSIGN(id) => s(id)
     }
+    def updateValue(v: JValue, func: BigInt => BigInt) = {
+      v match {
+        case JInt(i) => JInt(func(i))
+        case _ => JNothing
+      }
+    }
 
-    def inDomain(s: State, stateVars: Map[ID, SPAttributeValue => Boolean]): Boolean = {
+    def inDomain(s: State, stateVars: Map[ID, SPValue => Boolean]): Boolean = {
       val next = nextValue(s)
       val sv = stateVars(a.id)
       stateVars(a.id)(next)
 
-//      val checkDomain = sv.attributes.getAsList("domain") map (_.contains(next))
-//      val checkBoolean = sv.attributes.getAsBool("boolean") map (b =>
-//        next.isInstanceOf[BoolPrimitive] && b)
-//      val checkRange = for {
-//        range <- sv.attributes.getAsMap("range")
-//        start <- range.get("start") flatMap (_.asInt)
-//        end <- range.get("end") flatMap (_.asInt)
-//        step <- range.get("step") flatMap (_.asInt)
-//        nextInt <- next.asInt
-//      } yield {
-//        val r = start until end by step
-//        r.contains(nextInt)
-//      }
-//
-//      checkDomain getOrElse( checkRange getOrElse( checkBoolean getOrElse false))
+      //      val checkDomain = sv.attributes.getAsList("domain") map (_.contains(next))
+      //      val checkBoolean = sv.attributes.getAsBool("boolean") map (b =>
+      //        next.isInstanceOf[BoolPrimitive] && b)
+      //      val checkRange = for {
+      //        range <- sv.attributes.getAsMap("range")
+      //        start <- range.get("start") flatMap (_.asInt)
+      //        end <- range.get("end") flatMap (_.asInt)
+      //        step <- range.get("step") flatMap (_.asInt)
+      //        nextInt <- next.asInt
+      //      } yield {
+      //        val r = start until end by step
+      //        r.contains(nextInt)
+      //      }
+      //
+      //      checkDomain getOrElse( checkRange getOrElse( checkBoolean getOrElse false))
 
     }
   }
 
-}
+  def parseAttributesToPropositionCondition(op: Operation, idablesToParseFromString: List[IDAble]): Option[Operation] = {
+    def getGuard(str: String) = {
+      val guardAsString = op.attributes.findAs[Set[String]](str).flatten.mkString("(", ")&(", ")")
+      PropositionParser(idablesToParseFromString).parseStr(guardAsString) match {
+        case Right(p) => Some(p)
+        case Left(f) => {
+          println(s"PropositionParser failed for operation ${op.name} on guard: $guardAsString. Failure message: $f")
+          None
+        }
+      }
+    }
+    def getAction(str: String) = {
+      val actionsAsString = op.attributes.findAs[Set[String]](str).flatten
+      actionsAsString.flatMap { action => ActionParser(idablesToParseFromString).parseStr(action) match {
+        case Right(a) => Some(a)
+        case Left(f) => {
+          println(s"ActionParser failed for operation ${op.name} on action: $action. Failure message: $f")
+          None
+        }
+      }
+      }
+    }
 
+    return for {
+      preGuard <- getGuard("preGuard")
+      postGuard <- getGuard("postGuard")
+    } yield {
+        op.copy(conditions = List(PropositionCondition(preGuard, getAction("preAction"), SPAttributes("kind" -> "precondition")),
+          PropositionCondition(postGuard, getAction("postAction"), SPAttributes("kind" -> "postcondition"))))
+      }
+  }
+
+}
 
 import scala.util.parsing.combinator._
 
@@ -85,7 +162,7 @@ import scala.util.parsing.combinator._
  * Parses Propositions from a String and return an
  * Either, were Left(NoSucess) and Right(Proposition)
  */
-case object PropositionParser extends JavaTokenParsers {
+case class PropositionParser(idablesToParseFromString: List[IDAble] = List()) extends BaseParser {
 
   def parseStr(str: String) = parseAll(or, str) match {
     case Success(result, _) => Right(result)
@@ -95,43 +172,101 @@ case object PropositionParser extends JavaTokenParsers {
   final lazy val REG_EX_OR = s"or|OR|Or|\\|\\||\\|".r
   final lazy val REG_EX_AND = s"and|AND|And|&&|&".r
   final lazy val REG_EX_NOT = s"not|n|!".r
-  final lazy val REG_EX_TRUE = s"true|TRUE|T".r
-  final lazy val REG_EX_FALSE = s"false|FALSE|F".r
-  final lazy val REX_EX_VARIABLE = s"\\w+".r
-  //A word build up from characters [A-Za-z0-9_] that is at least of length one.
-  final lazy val REG_EX_OPERATOREQ = s"==|:=|=".r
+
+  final lazy val REG_EX_OPERATOREQ = s"==".r
   final lazy val REG_EX_OPERATORNEQ = s"!=".r
-  final lazy val REG_EX_OPERATOR = s"==|>=|<=|!=|:=|=|>|<".r
+  final lazy val REG_EX_OPERATORGREQ = s">=".r
+  final lazy val REG_EX_OPERATORLEEQ = s"<=".r
+  final lazy val REG_EX_OPERATORGR = s">".r
+  final lazy val REG_EX_OPERATORLE = s"<".r
 
-  final lazy val REG_EX_VALUE = s"\\w+".r
-  final lazy val REG_EX_UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}".r
+  lazy val or: Parser[Proposition] = and ~ rep(REG_EX_OR ~ and) ^^ { case f1 ~ temp => if (temp.isEmpty) f1 else OR(f1 +: temp.map { case ~(_, f2) => f2 }) }
+  lazy val and: Parser[Proposition] = not ~ rep(REG_EX_AND ~ not) ^^ { case f1 ~ temp => if (temp.isEmpty) f1 else AND(f1 +: temp.map { case ~(_, f2) => f2 }) }
+  lazy val not: Parser[Proposition] = opt(REG_EX_NOT) ~ factor ^^ { case Some(_) ~ f => NOT(f); case None ~ f => f }
+  lazy val factor: Parser[Proposition] = expressionEQ | expressionNEQ | expressionGREQ | expressionLEEQ | expressionGR | expressionLE | expressionFALSE | "(" ~> or <~ ")" ^^ { case exp => exp }
+  lazy val expressionEQ: Parser[Proposition] = leftEv ~ REG_EX_OPERATOREQ ~ rightEv ^^ { case ~(~(var1, op), v) => EQ(var1, v) }
+  lazy val expressionNEQ: Parser[Proposition] = leftEv ~ REG_EX_OPERATORNEQ ~ rightEv ^^ { case ~(~(var1, op), v) => NEQ(var1, v) }
+  lazy val expressionGREQ: Parser[Proposition] = leftEv ~ REG_EX_OPERATORGREQ ~ rightEv ^^ { case ~(~(var1, op), v) => GREQ(var1, v) }
+  lazy val expressionLEEQ: Parser[Proposition] = leftEv ~ REG_EX_OPERATORLEEQ ~ rightEv ^^ { case ~(~(var1, op), v) => LEEQ(var1, v) }
+  lazy val expressionGR: Parser[Proposition] = leftEv ~ REG_EX_OPERATORGR ~ rightEv ^^ { case ~(~(var1, op), v) => GR(var1, v) }
+  lazy val expressionLE: Parser[Proposition] = leftEv ~ REG_EX_OPERATORLE ~ rightEv ^^ { case ~(~(var1, op), v) => LE(var1, v) }
+  lazy val expressionFALSE: Parser[Proposition] = REG_EX_FALSE ^^ { _ => AlwaysFalse }
 
+  lazy val leftEv: Parser[StateEvaluator] = uuid(str => SVIDEval(ID.makeID(str).get)) | stringValue
+  lazy val rightEv: Parser[StateEvaluator] = uuid(str => SVIDEval(ID.makeID(str).get)) | intValue | trueValue | falseValue | stringValue
 
-  lazy val or: Parser[Proposition] = and ~ rep(REG_EX_OR ~ and) ^^ { case f1 ~ temp => if (temp.isEmpty) f1 else OR(f1 +: temp.map { case ~(_, f2) => f2})}
-  lazy val and: Parser[Proposition] = not ~ rep(REG_EX_AND ~ not) ^^ { case f1 ~ temp => if (temp.isEmpty) f1 else AND(f1 +: temp.map { case ~(_, f2) => f2})}
-  lazy val not: Parser[Proposition] = opt(REG_EX_NOT) ~ factor ^^ { case Some(_) ~ f => NOT(f); case None ~ f => f}
-  lazy val factor: Parser[Proposition] = expressionEQ | expressionNEQ | "(" ~> or <~ ")" ^^ { case exp => exp}
-  lazy val expressionEQ: Parser[Proposition] = stateEv ~ REG_EX_OPERATOREQ ~ stateEv ^^ { case ~(~(var1, op), v) => EQ(var1, v)}
-  lazy val expressionNEQ: Parser[Proposition] = stateEv ~ REG_EX_OPERATORNEQ ~ stateEv ^^ { case ~(~(var1, op), v) => NEQ(var1, v)}
-  lazy val stateEv: Parser[StateEvaluator] = uuid | value
-  lazy val uuid: Parser[StateEvaluator] = REG_EX_UUID ^^ { uuid => SVIDEval(ID.makeID(uuid).get)}
-  lazy val value: Parser[StateEvaluator] = REG_EX_VALUE ^^ { v => ValueHolder(StringPrimitive(v))}
+  lazy val stringValue = REG_EX_STRINGVALUE ^^ {
+    v => spidMap.get(v) match {
+      case Some(id) => SVIDEval(id)
+      case _ => ValueHolder(v)
+    }
+  }
+
 }
 
-//object TestParser extends App  {
+case class ActionParser(idablesToParseFromString: List[IDAble] = List()) extends BaseParser {
+
+  def parseStr(str: String) = parseAll(factor, str) match {
+    case Success(result, _) => Right(result)
+    case failure: NoSuccess => Left(failure) //failure.toString = "["+failure.next.pos+"] error: "+failure.msg+"\n\n"+failure.next.pos.longString
+  }
+
+  final lazy val REG_EX_OPERATORASSIGN = s"=|:=".r
+  final lazy val REG_EX_OPERATORINCR = s"+=".r
+  final lazy val REG_EX_OPERATORDECR = s"-=".r
+
+  lazy val factor: Parser[Action] = expressionASSIGNtype1 | expressionASSIGNtype2 | expressionINCR | expressionDECR | "(" ~> factor <~ ")" ^^ { case exp => exp }
+  lazy val expressionASSIGNtype1: Parser[Action] = leftEv ~ REG_EX_OPERATORASSIGN ~ REG_EX_UUID ^^ { case ~(~(var1, _), v) => Action(var1, ASSIGN(ID.makeID(v).get)) }
+  lazy val expressionASSIGNtype2: Parser[Action] = leftEv ~ REG_EX_OPERATORASSIGN ~ rightEv ^^ { case ~(~(var1, _), v) => Action(var1, v) }
+  lazy val expressionINCR: Parser[Action] = leftEv ~ REG_EX_OPERATORINCR ~ REG_EX_INTVALUE ^^ { case ~(~(var1, _), v) => Action(var1, INCR(Integer.parseInt(v))) }
+  lazy val expressionDECR: Parser[Action] = leftEv ~ REG_EX_OPERATORDECR ~ REG_EX_INTVALUE ^^ { case ~(~(var1, _), v) => Action(var1, DECR(Integer.parseInt(v))) }
+
+  lazy val leftEv: Parser[ID] = uuid(str => ID.makeID(str).get) | stringValue_ID
+  lazy val rightEv: Parser[StateUpdater] = intValue | trueValue | falseValue | stringValue
+
+  lazy val stringValue_ID = s"${spidMap.keySet.toSeq.sortBy(_.length).reverse.mkString("|")}".r ^^ { case str => spidMap(str) }
+  lazy val stringValue = REG_EX_STRINGVALUE ^^ {
+    v => spidMap.get(v) match {
+      case Some(id) => ASSIGN(id)
+      case _ => ValueHolder(v)
+    }
+  }
+
+}
+
+trait BaseParser extends JavaTokenParsers {
+  final lazy val REG_EX_UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}".r
+  final lazy val REG_EX_STRINGVALUE = s"(\\p{L}|\\w)+".r
+  //http://www.autohotkey.com/docs/misc/RegEx-QuickRef.htm
+  final lazy val REG_EX_INTVALUE = s"\\d+".r
+  final lazy val REG_EX_TRUE = s"true|TRUE|T|1".r
+  final lazy val REG_EX_FALSE = s"false|FALSE|F|0".r
+
+  def uuid[T](parserFunction: String => T) = REG_EX_UUID ^^ {
+    parserFunction
+  }
+  lazy val intValue = REG_EX_INTVALUE ^^ { v => ValueHolder(Integer.parseInt(v)) }
+  final lazy val trueValue = REG_EX_TRUE ^^ { v => ValueHolder(true) }
+  final lazy val falseValue = REG_EX_FALSE ^^ { v => ValueHolder(false) }
+
+  val idablesToParseFromString: List[IDAble]
+  lazy val spidMap = idablesToParseFromString.map(item => item.name -> item.id).toMap
+}
+
+//object TestParser extends App {
 //  println("Welcome to the parser: Type an expression or enter for exit")
 //  waitForString
 //
-//  private def waitForString    {
-//      def waitEOF(): Unit = Console.readLine() match {
-//        case "" => ""
-//        case "exit" => ""
-//        case str: String => {
-//          println(PropositionParser.parseStr(str))
-//          println(PropositionParser.parseAll(PropositionParser.stateEv, str))
-//          waitEOF()
-//        }
+//  private def waitForString {
+//    def waitEOF(): Unit = Console.readLine() match {
+//      case "" =>
+//      case "exit" =>
+//      case str: String => {
+//        println(PropositionParser().parseStr(str))
+//        //          println(PropositionParser.parseAll(PropositionParser.stateEv, str))
+//        waitEOF()
 //      }
-//      waitEOF()
 //    }
+//    waitEOF()
+//  }
 //}

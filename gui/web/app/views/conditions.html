@@ -1,0 +1,70 @@
+<table class="table attr-table" ng-if="!edit">
+    <tr ng-repeat="cond in conditions" ng-init="guardAsText = itemSvc.guardAsText(cond.guard)">
+      <td class="col-md-1"><span ng-if="$first">guard:</span></td>
+        <td>{{guardAsText}}</td>
+        <td class="col-md-1"><span>{{cond.attributes.kind}}</span></td>
+        <td class="col-md-1"><span>{{cond.attributes.group}}</span></td>
+    </tr>
+    <tr ng-repeat="cond in conditions" ng-init="actionAsText = itemSvc.actionAsText(cond.action)">
+      <td><span ng-if="$first">action:</span></td>
+        <td>{{actionAsText}}</td>
+        <td><span>{{cond.attributes.kind}}</span></td>
+        <td><span>{{cond.attributes.group}}</span></td>
+    </tr>
+</table>
+
+
+<ng-form ng-if="edit" name="conditionsForm" ng-repeat="condition in conditions">
+  <table class="table attr-table">
+    <tr>
+      <td class="col-md-1">kind: </td>
+      <td>
+        <select class="form-control input-sm" ng-model="condition.attributes.kind">
+          <option>pre</option>
+          <option>post</option>
+        </select>
+      </td>
+      <td><button ng-if="edit" class="btn btn-sm btn-default" ng-click="removeCondition($index)"><span class="glyphicon glyphicon-minus"></span></button></td>
+    </tr>
+    <tr>
+      <td>group: </td>
+      <td><select class="form-control input-sm" ng-model="condition.attributes.group" ng-options="group for group in spTalker.activeModel.attributes.conditionGroups"></select></td>
+    </tr>
+    <tr ng-init="guardOrAction = 'guard'">
+      <td>guard: </td>
+      <td ng-show="spTalker.activeModel.attributes.conditionInputMode === 'text'">
+        <input autocomplete="off" name="guardInput" class="guard-input form-control input-sm" ng-model="guardModel" condition-suggestions prop-parse ng-trim="false" type="text"/>
+        <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.guardInput.$error.nameToIds]"></span>
+        <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.guardInput.$error.propParse]"></span>
+        <span class="error" ng-show="conditionsForm.guardInput.$error.maxlength"><br />Not too long, please.</span>
+        <!--<span class="error" ng-show="conditionsForm.guardInput.$dirty && conditionsForm.guardInput.$error.required"><br />At least one guard is required.</span>-->
+      </td>
+      <td ng-if="spTalker.activeModel.attributes.conditionInputMode === 'grid'">
+        <condition-grid parent="condition" key="'guard'"></condition-grid>
+      </td>
+    </tr>
+    <tr ng-init="guardOrAction = 'action'">
+      <td>action: </td>
+      <td ng-show="spTalker.activeModel.attributes.conditionInputMode === 'text'">
+        <input autocomplete="off" name="actionInput" class="action-input form-control input-sm" ng-model="actionModel" condition-suggestions prop-parse ng-trim="false" type="text" ng-disabled="!edit"/>
+        <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.actionInput.$error.nameToIds]"></span>
+        <span class="glyphicon prop-parse" ng-class="{false:'glyphicon-ok', true:'glyphicon-remove'}[conditionsForm.actionInput.$error.actionParse]"></span>
+        <!--<span class="error" ng-show="conditionsForm.actionInput.$dirty && conditionsForm.actionInput.$error.required"><br />At least one action is required.</span>-->
+        <span class="error" ng-show="conditionsForm.actionInput.$error.maxlength"><br/>Not too long, please.</span>
+      </td>
+      <td ng-if="spTalker.activeModel.attributes.conditionInputMode === 'grid'">
+        <table class="table">
+          <tr ng-repeat="action in condition.action">
+            <td>
+              <select class="form-control input-sm" ng-model="action.id" ng-options="id as item.name for (id, item) in spTalker.items | with: { isa: 'Thing' }"></select>
+              <span>=</span>
+              <input class="form-control input-sm" type="text" ng-model="action.value" />
+              <button class="btn btn-default btn-sm" ng-click="removeAction(condition, action)"><span class="glyphicon glyphicon-minus"></span></button>
+            </td>
+          </tr>
+        </table>
+        <button class="btn btn-default btn-sm" ng-click="addAction(condition)"><span class="glyphicon glyphicon-plus"></span> Add action</button>
+      </td>
+    </tr>
+  </table>
+</ng-form>

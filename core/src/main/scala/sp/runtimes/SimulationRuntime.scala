@@ -6,35 +6,29 @@ import sp.system.messages._
 import akka.pattern.ask
 import akka.util._
 import scala.concurrent.Future
-import java.util.concurrent.TimeUnit
+import scala.concurrent.duration._
 
 /**
- * Send a SimpleMessage to it that looks like:
- * "name" -> "SimulationRuntime728",
- * "attr" -> {
- *   "model" -> "MyModel21",
- *   "state" -> { //the current state of ops and variables is supplied on every execute call
- *     {id: "ebd1f370-e053-11e4-b571-0800200c9a66", value: "i"}, //operation
- *     {id: "7b8b9f20-e054-11e4-b571-0800200c9a66", value: 7}, //integer variable
- *     {id: "93e4af30-e054-11e4-b571-0800200c9a66", value: "home"} //string variable
- *   },
- *   "execute" -> "ebd1f370-e053-11e4-b571-0800200c9a66" //id of an op to execute
- * }
+ * Exempel på en runtime eller service.
+ *
+ * Skicka en SimpleMessage med attribute till den som ser ut:
+ * "name" -> "Kristofer",
+ * "operation" -> {"id" -> ID(UUID)}
  */
 class SimulationRuntime(about: CreateRuntime) extends Actor {
-  import sp.domain.logic.StateLogic._
+  import sp.domain.Logic._
+  private implicit val to = Timeout(20 seconds)
   import context.dispatcher
   import sp.system.SPActorSystem._
-
-  private implicit val to = Timeout(20, TimeUnit.SECONDS)
 
   def receive = {
     case SimpleMessage(_, attr) => {
       val reply = sender
 
+
       //val attr = extractAttributes(attr)
-      val modelE = either(attr.getAsID("model"), "missing property model: ID")
-      val stateE = either(attr.getStateAttr("state"), "missing property state: State object")
+      val modelE = either(attr.getAs[ID]("model"), "missing property model: ID")
+      val stateE = either(attr.getAs[State]("state"), "missing property state: State object")
 
       val res = for {
         model <- modelE.right
@@ -47,14 +41,13 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
           ops <- opsF
           things <- thingsF
         } yield {
-          import sp.domain.logic.OperationLogic._
-          import sp.domain.logic.StateVariableLogic._
+          import sp.domain.Logic._
 
           val stateVars = things.map(sv => sv.id -> sv.inDomain).toMap ++ createOpsStateVars(ops)
-          implicit val props = EvaluateProp(stateVars, Set())
+          implicit val props = EvaluateProp(stateVars, Set(), ThreeStateDefinition)
 
           val newState = (for {
-            id <- attr.getAsID("execute")
+            id <- attr.getAs[ID]("execute")
             o <- ops.find(_.id == id)
           } yield o next state) getOrElse(state)
 
@@ -62,9 +55,10 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
           println(s"Enabled operations: $enabled")
 
 
-          val result = Attr(
-            "enabled" -> ListPrimitive(enabled.map(o => IDPrimitive(o.id)))
-          ).addStateAttr("state", newState)
+          val result = SPAttributes(
+            "enabled" -> (enabled.map(o => (o.id))),
+            "state" -> newState
+          )
 
           reply ! result
         }
@@ -74,9 +68,7 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
       res.left.map(e => reply ! e)
       res.right.map(f => f.onFailure{case e: Throwable => reply ! SPError(e.toString)})
 
-//      val result = for {
-//
-//      }
+
 
 
 

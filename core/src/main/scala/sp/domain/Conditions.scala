@@ -1,72 +1,73 @@
 package sp.domain
 
+
 /**
  * Created by Kristofer on 2014-06-10.
+ *
+ * TODO: Move logic to Proposition Logic! 150531 KB
+ * TODO: Also simplify the condition structure as soon as possible,
+ * TODO: e.g. remove stateEvaluater and StateUpdater
  */
 trait Condition {
   val attributes: SPAttributes
 }
 
-
 case class Action(id: ID, value: StateUpdater)
-case class PropositionCondition(guard: Proposition,
-                                action: List[Action],
-                                attributes: SPAttributes = SPAttributes(Map())) extends Condition {
+object Action {
+  def parseStr(str: String, idables: List[IDAble] = List()): Option[Action] = {
+    val propParser = sp.domain.logic.ActionParser(idables)
+    propParser.parseStr(str).right.toOption
+  }
+
+  implicit def strToProp(str: String)(implicit idables: List[IDAble] = List()): Action = parseStr(str, idables).get
 }
 
+case class PropositionCondition(guard: Proposition,
+                                action: List[Action],
+                                attributes: SPAttributes = SPAttributes()) extends Condition
 
 
-
-
-// propositional logic conditions
 
 sealed trait Proposition
 
+object Proposition {
+  def parseStr(str: String, idables: List[IDAble] = List()): Option[Proposition] = {
+    val propParser = sp.domain.logic.PropositionParser(idables)
+    propParser.parseStr(str).right.toOption
+  }
 
-case class AND(props: List[Proposition]) extends Proposition {
-  //override def toString = StrMaker.makeStr(props, "&&")
-}
-case class OR(props: List[Proposition]) extends Proposition{
-  //override def toString = StrMaker.makeStr(props, "||")
-}
-case class NOT(p: Proposition) extends Proposition {
-  //override def toString = s"!$p"
+  implicit def strToProp(str: String)(implicit idables: List[IDAble] = List()): Proposition = parseStr(str, idables).get
 }
 
-case class EQ(left: StateEvaluator, right: StateEvaluator) extends Proposition {
-  //override def toString = s"$left == $right "
-}
-case class NEQ(left: StateEvaluator, right: StateEvaluator) extends Proposition {
-  //override def toString = s"$left != $right "
-}
+case class AND(props: List[Proposition]) extends Proposition
+case class OR(props: List[Proposition]) extends Proposition
+case class NOT(p: Proposition) extends Proposition
+case class EQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
+case class NEQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
+case class GREQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
+case class LEEQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
+case class GR(left: StateEvaluator, right: StateEvaluator) extends Proposition
+case class LE(left: StateEvaluator, right: StateEvaluator) extends Proposition
 
 // dummy Propositions used in algorithms
 case object AlwaysTrue extends Proposition
+
 case object AlwaysFalse extends Proposition
 
-
 trait StateEvaluator
+
 object StateEvaluator {
   implicit def idToSE(id: ID) = SVIDEval(id)
-  implicit def strToSE(value: String) = ValueHolder(value)
+  implicit def strToSE(value: String) = ValueHolder(org.json4s.JString(value))
+  implicit def intToSE(value: Int) = ValueHolder(org.json4s.JInt(value))
 }
 
-case class SVIDEval(id: ID) extends StateEvaluator {
-  //override def toString = id.toString
-}
-case class SVNameEval(v: String) extends StateEvaluator {
-  //override def toString = v
-}
-case class ValueHolder(v: SPAttributeValue) extends StateEvaluator with StateUpdater {
-  //override def toString = v.toString
-}
+case class SVIDEval(id: ID) extends StateEvaluator
+case class ValueHolder(v: SPValue) extends StateEvaluator with StateUpdater
 
 //TODO: add StateEvaluator for a+b, a+1 etc when nedded 140630
 
-
-
 sealed trait StateUpdater
-
 case class INCR(n: Int) extends StateUpdater
 case class DECR(n: Int) extends StateUpdater
 case class ASSIGN(id: ID) extends StateUpdater

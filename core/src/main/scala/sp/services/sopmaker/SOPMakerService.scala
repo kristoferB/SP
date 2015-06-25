@@ -5,6 +5,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import scala.util._
 import sp.domain._
+import sp.domain.Logic._
 import sp.system.messages._
 
 import scala.concurrent.duration._
@@ -81,20 +82,20 @@ class SOPMakerService(modelHandler: ActorRef) extends Actor {
 
   def extract(attr: SPAttributes) = {
     for {
-      model <- attr.getAsID("model")
-      ops <- attr.getAsList("operations") map( _.flatMap(_.asID))
-      relations <- attr.getAsID("relations")
+      model <- attr.getAs[ID]("model")
+      ops <- attr.getAs[List[ID]]("operations")
+      relations <- attr.getAs[ID]("relations")
     } yield {
-      val base = attr.getAsID("base")
+      val base = attr.getAs[ID]("base")
       (model, ops, relations, base)
     }
   }
 
   def errorMessage(attr: SPAttributes) = {
     SPError("The request is missing parameters: \n" +
-      s"model: ${attr.getAsID("model")}" + "\n" +
-      s"relations: ${attr.getAsID("relations")}" + "\n" +
-      s"ops: ${attr.getAsList("operations") map (_.flatMap(_.asID))}" )
+      s"model: ${attr.getAs[ID]("model")}" + "\n" +
+      s"relations: ${attr.getAs[ID]("relations")}" + "\n" +
+      s"ops: ${attr.getAs[List[ID]]("operations")}" )
   }
 }
 

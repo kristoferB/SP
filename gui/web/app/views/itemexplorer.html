@@ -1,0 +1,21 @@
+<div class="header">
+  <div class="btn-toolbar" role="toolbar">
+    <div class="btn-group">
+      <button class="btn btn-default" ng-if="explorerMode" ng-disabled="itemSvc.indexOfViewedItem <= 0" ng-click="goBack()" title="Go back"><span class="glyphicon glyphicon-chevron-left"></span></button>
+      <button class="btn btn-default" ng-if="explorerMode" ng-disabled="itemSvc.indexOfViewedItem >= itemSvc.selectedItemsHistory.length - 1" ng-click="goForward()" title="Go forward"><span class="glyphicon glyphicon-chevron-right"></span></button>
+      <button class="btn btn-default" ng-disabled="itemSvc.selectedItemsHistory.length === 0" ng-click="enterEdit()" ng-if="!edit" title="Edit"><span class="glyphicon glyphicon-edit"></span></button>
+      <button class="btn btn-default" ng-disabled="itemSvc.selectedItemsHistory.length === 0" ng-click="itemSvc.deleteItem(spTalker.getItemById(itemSvc.selectedItemsHistory[itemSvc.indexOfViewedItem]))" ng-if="!edit" title="Delete"><span class="glyphicon glyphicon-trash"></span></button>
+      <button class="btn btn-default" ng-click="itemForm.$valid && saveItem()" ng-if="edit" type="submit" title="Save"><span class="glyphicon glyphicon-floppy-disk"></span></button>
+      <button class="btn btn-default" ng-click="cancelEdit()" ng-if="edit" title="Cancel"><span class="glyphicon glyphicon-remove"></span></button>
+    </div> <!-- end of btn-group -->
+  </div> <!-- end of toolbar -->
+</div> <!-- end of header -->
+
+<div class="content">
+  <div class="content-wrapper">
+    <form class="form-inline" name="itemForm">
+      <item-info ng-if="explorerMode && itemSvc.indexOfViewedItem !== -1" item="spTalker.getItemById(itemSvc.selectedItemsHistory[itemSvc.indexOfViewedItem])" edit="edit" show-item-name="true"></item-info>
+      <item-info ng-if="!explorerMode" item="spTalker.getItemById(windowStorage.itemID)" edit="edit" show-item-name="true"></item-info>
+    </form>
+  </div> <!-- end of content-wrapper -->
+</div> <!-- end of content -->

@@ -1,0 +1,20 @@
+<table class="table-bordered attr-table">
+  <tr class="form-inline" ng-init="type = getType(attrTagValue);" ng-repeat="(attrTag, attrTagValue) in attrTagsObj">
+    <td ng-if="type !== 'object'">
+      {{attrTag}} ({{type}})
+    </td>
+    <td ng-if="type === 'object'">
+      {{attrTag}} (object)<br/>
+      <attr-tag-grid class="sub-attr-tag-grid" attr-tags-obj="attrTagValue"></attr-tag-grid>
+    </td>
+    <td>
+      <button ng-click="deleteObjProp(attrTagsObj,attrTag);" class="btn btn-sm btn-default"><span class="glyphicon glyphicon-minus"></span></button>
+    </td>
+  </tr>
+  <tr class="empty-attr-tag-obj" ng-if="isEmpty(attrTagsObj)">
+    <td>No tags in this object</td>
+  </tr>
+  <tr>
+    <td colspan="2"><button class="btn btn-sm btn-default" ng-click="createAttrTag()"><span class="glyphicon glyphicon-plus"></span> Add</button></td>
+  </tr>
+</table>

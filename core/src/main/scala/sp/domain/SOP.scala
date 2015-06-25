@@ -1,23 +1,25 @@
 package sp.domain
 
+// TODO: Clean this and move logic. Maybe also make sop: List[SOP]
+
 trait SOP {
-  val children: Seq[SOP]
+  val sop: Seq[SOP]
   def +(sop: SOP) = SOP.addChildren(this, Seq(sop))
   def ++(sops: Seq[SOP]) = SOP.addChildren(this,sops)
   def modify(sops: Seq[SOP]) = SOP.modifySOP(this,sops)
   def <--(sops: Seq[SOP]) = modify(sops)
-  lazy val isEmpty: Boolean = (this == EmptySOP) || children.isEmpty || children.contains(EmptySOP)
+  lazy val isEmpty: Boolean = (this == EmptySOP) || sop.isEmpty || sop.contains(EmptySOP)
 }
 
 
-case object EmptySOP extends SOP {val children  = Seq[SOP]()}
-case class Parallel(children: SOP*) extends SOP
-case class Alternative(children: SOP*) extends SOP
-case class Arbitrary(children: SOP*) extends SOP
-case class Sequence(children: SOP*) extends SOP
-case class SometimeSequence(children: SOP*) extends SOP
-case class Other(children: SOP*) extends SOP
-case class Hierarchy(operation: ID, conditions: List[Condition], children: SOP*) extends SOP
+case object EmptySOP extends SOP {val sop  = Seq[SOP]()}
+case class Parallel(sop: SOP*) extends SOP
+case class Alternative(sop: SOP*) extends SOP
+case class Arbitrary(sop: SOP*) extends SOP
+case class Sequence(sop: SOP*) extends SOP
+case class SometimeSequence(sop: SOP*) extends SOP
+case class Other(sop: SOP*) extends SOP
+case class Hierarchy(operation: ID, conditions: List[Condition], sop: SOP*) extends SOP
 
 object Hierarchy{
   def apply(id: ID): Hierarchy = Hierarchy(id, List())
@@ -29,7 +31,7 @@ object Hierarchy{
 object SOP {
   
   def apply(children: SOP*): SOP = {
-    if (children isEmpty) EmptySOP
+    if (children.isEmpty) EmptySOP
     else if (children.size == 1) children.head
     else Parallel(children:_*) 
   }
@@ -44,7 +46,7 @@ object SOP {
   def addChildren(sop: SOP, children: Seq[SOP]): SOP = {
     sop match {
       case Hierarchy(o,conds, child) => Hierarchy(o,conds, addChildren(child, children))
-      case _ => modifySOP(sop, sop.children ++ children)
+      case _ => modifySOP(sop, sop.sop ++ children)
     }
   }
 

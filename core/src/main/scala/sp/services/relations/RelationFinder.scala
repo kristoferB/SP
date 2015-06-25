@@ -2,6 +2,7 @@ package sp.services.relations
 
 import akka.actor._
 import sp.domain._
+import sp.domain.Logic._
 
 import scala.annotation.tailrec
 
@@ -16,9 +17,9 @@ import scala.annotation.tailrec
  *            before
  */
 case class FindRelations( ops: List[Operation],
-                          stateVars: Map[ID, SPAttributeValue => Boolean],
+                          stateVars: Map[ID, SPValue => Boolean],
                           init: State,
-                          groups: List[SPAttributeValue] = List(),
+                          groups: List[SPValue] = List(),
                           iterations: Int = 100,
                           goal: State => Boolean = _ => true)
 
@@ -34,7 +35,11 @@ class RelationFinder extends Actor with RelationFinderAlgorithms {
       ops.foreach(o => println(o.name + " " + o.id + " " + o.conditions))
       val sm = findWhenOperationsEnabled(itr)
       val relM = sm._1 map findOperationRelations
-      sender ! FindRelationResult(relM, sm._2)
+      val addedArbis = for {
+        en <- sm._1
+        rel <- relM
+      } yield changeParaToArbi(rel, en)
+      sender ! FindRelationResult(addedArbis, sm._2)
     }
   }
 }
@@ -55,8 +60,8 @@ trait RelationFinderAlgorithms {
    * @param goal The goal function, when the execution has reached the goal.
    */
   case class Setup(ops: List[Operation],
-              stateVars: Map[ID, SPAttributeValue => Boolean],
-              groups: List[SPAttributeValue],
+              stateVars: Map[ID, SPValue => Boolean],
+              groups: List[SPValue],
               init: State,
               goal: State => Boolean)
 
@@ -96,12 +101,46 @@ trait RelationFinderAlgorithms {
         val i = scala.util.Random.nextInt(enabled.size)
         val o = enabled(i)
         val newState = o next s
-        val remainingOps = ops.filterNot(_ == o)
+        val remainingOps = if (props.defs.completed(newState(o.id)))
+          ops.filterNot(_ == o)
+        else ops
         req(remainingOps, newState, o +: seq, stateMap + (s->enabled))
       }
     }
 
     req(ops.toIndexedSeq, init, IndexedSeq(), Map())
+  }
+
+  def arbitraryFinder(sequence: Seq[Operation], setup: Setup) = {
+    val stateVars = setup.stateVars
+    val init = setup.init
+    val groups = setup.groups
+
+    import sp.domain.logic.OperationLogic._
+    
+    @tailrec
+    def findNotPar(s: State, seq: Seq[Operation]): Set[Operation] = {
+    implicit val props = EvaluateProp(stateVars, groups.toSet, TwoStateDefinition)
+      if (seq.isEmpty) Set() 
+      else if (!seq.head.eval(s)) Set(seq.head)
+      else {
+        findNotPar(seq.head.next(s), seq.tail)
+      }
+    }
+    
+    implicit val props = EvaluateProp(stateVars, groups.toSet, ThreeStateDefinition)
+    @tailrec
+    def req(s: State, seq: Seq[Operation], res: Set[Set[ID]]): Set[Set[ID]] = {
+      if (seq.isEmpty) res
+      else {
+        val o = seq.head
+        if (!o.eval(s)) println("SOMETHING IS WRONG IN OVERLAP FINDER OP "+o+s)
+        val newState = o.next(s)
+        val parallelTo = findNotPar(newState, seq.tail).map(x=> Set(o.id,x.id))
+        req(o.next(newState), seq.tail, res ++ parallelTo)
+      }
+    }
+    req(init, sequence, Set())
   }
 
   /**
@@ -113,7 +152,6 @@ trait RelationFinderAlgorithms {
    */
   def findWhenOperationsEnabled(iterations: Int, opsToTest: Set[Operation] = Set())(implicit setup: Setup) = {
     //val setup = prepairSetup(setMeUp)
-
 
     @tailrec
     def req(n: Int, esm: EnabledStatesMap, deadLocks: NoRelations): (EnabledStatesMap, NoRelations)  = {
@@ -132,7 +170,9 @@ trait RelationFinderAlgorithms {
               val updatedOps = checkThese.map(o => o.id -> mergeAState(o, m(o.id), sm._1)).toMap
               m ++ updatedOps
             })
-            req(n-1, EnabledStatesMap(updateMap), deadLocks)
+            val arbiMap = arbitraryFinder(seqRes.seq, setup)
+            val updatedArbiMap = arbiMap ++ esm.arbiMap
+            req(n-1, EnabledStatesMap(updateMap, updatedArbiMap), deadLocks)
           }
         }
       }
@@ -144,7 +184,7 @@ trait RelationFinderAlgorithms {
     }
 
 
-    val emptyStates = States(setup.stateVars map (_._1 -> Set[SPAttributeValue]()))
+    val emptyStates = States(setup.stateVars map (_._1 -> Set[SPValue]()))
     val oie = EnabledStates(emptyStates, emptyStates)
     val startMap = {if (opsToTest.isEmpty) setup.ops else opsToTest}.map(_.id -> oie)
     val emptyEnabledStates = EnabledStatesMap(startMap toMap)
@@ -183,8 +223,8 @@ trait RelationFinderAlgorithms {
   val opf = Set("f")
   val opif = Set("i", "f")
   def matchOps(o1: ID, o1State: EnabledStates, o2: ID, o2State: EnabledStates): SOP = {
-    val stateOfO2WhenO1Pre = o1State.pre(o2) flatMap (_.asString)
-    val stateOfO1WhenO2pre = o2State.pre(o1) flatMap (_.asString)
+    val stateOfO2WhenO1Pre = o1State.pre(o2) flatMap (_.to[String])
+    val stateOfO1WhenO2pre = o2State.pre(o1) flatMap (_.to[String])
     val pre = (stateOfO2WhenO1Pre, stateOfO1WhenO2pre)
 
     if (pre ==(opi, opi)) Alternative(o1, o2)
@@ -194,6 +234,19 @@ trait RelationFinderAlgorithms {
     else if (pre ==(opi, opif)) Sequence(o1, o2) //SometimeSequence(o1, o2)
     else if (pre ==(opif, opif)) Parallel(o1, o2)
     else Other(o1, o2)
+  }
+
+  def changeParaToArbi(rels: RelationMap, enabled: EnabledStatesMap) = {
+    val arbMap = enabled.arbiMap
+    val arbisar = rels.relations.map{
+      case (ops, p: Parallel) if arbMap.contains(ops) =>
+        ops -> Arbitrary(p.sop:_*)
+      case x @ (ops, sop) => x
+    }
+
+    rels.copy(relations = arbisar)
+
+
   }
 
 
@@ -221,7 +274,8 @@ trait RelationFinderAlgorithms {
    * @return an updated state object
    */
   def addOpsToState(ops: List[Operation], state: State) = {
-    state.next(ops.map(_.id -> StringPrimitive("i")).toMap)
+    val i: SPValue = "i"
+    state.next(ops.map(_.id -> i).toMap)
   }
 
   /**

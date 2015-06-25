@@ -2,11 +2,11 @@ package sp.domain
 
 import java.util.UUID
 
+import org.json4s._
+
 /**
- * MAJOR CHANGE: Remove the version and update things
  *
  * All things used in the domain should be an IDAble. When a new object is created, a new random ID is created.
- *
  *
  * When an object is updated, the model handler will reuse the id and increment the version.
  * The plan is that only the model handler should do this.
@@ -40,5 +40,8 @@ object ID {
     } catch {
       case e: IllegalArgumentException => None
     }
+  }
+  def isID(str: String) = {
+    makeID(str) != None
   }
 }

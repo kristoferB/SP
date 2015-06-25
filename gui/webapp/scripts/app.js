@@ -121,7 +121,7 @@ angular
   $httpProvider.defaults.transformResponse.push(function(responseData){
     convertDateStringsToDates(responseData);
     return responseData;
-  });
+  })
 }]);
 
 var regexIso8601 = /^(\d{4}|\+\d{6})(?:-(\d{2})(?:-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})\.(\d{1,})(Z|([\-+])(\d{2}):(\d{2}))?)?)?)?$/;
@@ -152,7 +152,7 @@ angular.module('spGuiApp').filter('filterElements', function () {
   return function (input) {
     var filteredInput ={};
     angular.forEach(input, function(value, key){
-      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' && key !== 'attributes' && key !== 'children' && key !== 'attributeTags' && key !== 'boolean' && key !== 'parent'){
+      if(key !== 'id' && key !=='name' && key !== 'isa' && key !== 'version' ){
         filteredInput[key]= value;
       }
     });

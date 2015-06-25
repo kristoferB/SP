@@ -1,0 +1,14 @@
+<div class="modal-header">
+    <h3 class="modal-title">Create Attribute Tag</h3>
+</div>
+<form class="form-inline" role="form" name="form">
+<div class="modal-body">
+  <label class="sr-only" for="attr-tag-input">Tag</label><input placeholder="Enter tag name" name="name" required type="text" id="attr-tag-input" class="form-control input-sm" ng-model="forms.tag" auto-focus />
+  <label class="sr-only" for="attr-type-select">Type</label><select id="attr-type-select" ng-model="forms.type" class="form-control input-sm" ng-options="attrTagType.label for attrTagType in attrTagTypes"></select>
+  <span class="error" ng-show="form.name.$dirty && form.name.$error.required"><br />You have to choose a name.</span>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" ng-click="form.$valid && save()"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+  <button class="btn btn-default" ng-click="close()"><span class="glyphicon glyphicon-remove"></span> Close</button>
+</div>
+</form>

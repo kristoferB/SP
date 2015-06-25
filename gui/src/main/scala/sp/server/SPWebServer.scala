@@ -3,7 +3,6 @@ package sp.server
 import akka.actor._
 import sp.opc.ServerSideEventsDirectives._
 import spray.routing._
-
 import spray.http.HttpHeaders.RawHeader
 
 /**
@@ -19,7 +18,7 @@ class SPWebServer extends Actor with SPRoute {
   def receive = runRoute(api ~ sseApi ~ staticRoute)
   import sp.system._
 
-  val baseDir = "/home/daniel/IDEAProjects/SP/gui/webapp"
+  val baseDir = "./gui/webapp"
 
   def staticRoute: Route = {
     path("") {

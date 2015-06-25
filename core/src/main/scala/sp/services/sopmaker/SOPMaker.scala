@@ -43,7 +43,7 @@ trait MakeASop extends Groupify with Sequencify {
 
 
     val groupAlternatives = groupify(groupOthers, relations, _.isInstanceOf[Alternative], Alternative.apply)
-    val groupParallel = groupify(groupAlternatives, relations, _.isInstanceOf[Parallel], Parallel.apply)
+    val groupParallel = groupify(groupAlternatives, relations, x => x.isInstanceOf[Parallel] || x.isInstanceOf[Arbitrary], Parallel.apply)
     val result = sequencify(groupParallel, relations, base)
 
     addMissingRelations(result, relations)
@@ -73,8 +73,8 @@ trait Groupify {
       if (s1 == s2) Other()
       else {
         relations(Set(s1, s2)) match {
-          case x: Sequence => if (x.children.head.asInstanceOf[Hierarchy].operation == s1) Sequence(sop1, sop2) else Sequence(sop2, sop1)
-          case x: SometimeSequence => if (x.children.head.asInstanceOf[Hierarchy].operation == s1) SometimeSequence(sop1, sop2) else SometimeSequence(sop2, sop1)
+          case x: Sequence => if (x.sop.head.asInstanceOf[Hierarchy].operation == s1) Sequence(sop1, sop2) else Sequence(sop2, sop1)
+          case x: SometimeSequence => if (x.sop.head.asInstanceOf[Hierarchy].operation == s1) SometimeSequence(sop1, sop2) else SometimeSequence(sop2, sop1)
           case x: SOP => {x.modify(List(sop1, sop2)) }
         }
       }
@@ -82,7 +82,7 @@ trait Groupify {
 
     relationBetweenPairs.toList match {
       case x :: Nil => x
-      case x :: y :: Nil if instanceOfSequence(x, y) => Sequence(x.children.head, x.children.tail.head)
+      case x :: y :: Nil if instanceOfSequence(x, y) => Sequence(x.sop.head, x.sop.tail.head)
       case _ => Other(sop1, sop2)
     }
 
@@ -91,14 +91,14 @@ trait Groupify {
   def extractOps(sop: SOP): List[ID] = {
     sop match {
       case x: Hierarchy => List(x.operation) // does not need to dig since the op is included in the relationMap
-      case x: SOP => x.children flatMap extractOps toList
+      case x: SOP => x.sop flatMap extractOps toList
     }
   }
 
   private def instanceOfSequence(s1: SOP, s2: SOP): Boolean = {
     (s1.isInstanceOf[Sequence] && s2.isInstanceOf[SometimeSequence] ||
     s1.isInstanceOf[SometimeSequence] && s2.isInstanceOf[Sequence]) &&
-    s1.children.head == s2.children.head
+    s1.sop.head == s2.sop.head
   }
 
 
@@ -108,7 +108,7 @@ trait Groupify {
                relationToGroup: SOP => Boolean,
                createSOP: List[SOP] => SOP): List[SOP] = {
 
-    val sops = sopsToGroup map { sop => if (sop.children.isEmpty) sop else sop.modify(groupify(sop.children.toList, relations, relationToGroup, createSOP))}
+    val sops = sopsToGroup map { sop => if (sop.sop.isEmpty) sop else sop.modify(groupify(sop.sop.toList, relations, relationToGroup, createSOP))}
 
     val relatedPairs = for {
       x <- sops
@@ -154,7 +154,7 @@ trait Sequencify {
   def sequencify(sops: Seq[SOP], relations: Map[Set[ID], SOP], base: SOP = EmptySOP): List[SOP] = {
     val updSops = sops map{
       case s: SOP if s.isEmpty => s
-      case s: SOP => s.modify(sequencify(s.children, relations, base))
+      case s: SOP => s.modify(sequencify(s.sop, relations, base))
     }
 
     val nodeRelations = (for {
@@ -196,7 +196,7 @@ trait Sequencify {
 
   def checkIfSeq(pre: SOP, post: SOP, relation: SOP): Boolean = {
     (relation.isInstanceOf[Sequence] || relation.isInstanceOf[SometimeSequence]) &&
-    relation.children.toList == List(pre, post)
+    relation.sop.toList == List(pre, post)
   }
 
 
@@ -265,7 +265,7 @@ trait Sequencify {
     }
 
     val res = getAlwaysSeq(seq, Sequence())
-    if (res.children.size == 1) res.children.head else res
+    if (res.sop.size == 1) res.sop.head else res
   }
 
 
@@ -274,7 +274,7 @@ trait Sequencify {
   def getOpsNames(s: SOP): String = {
     s match {
       case h: Hierarchy => h.operation.toString()
-      case _ => s.children.foldLeft("")(_ + "_--_--_" +getOpsNames(_))
+      case _ => s.sop.foldLeft("")(_ + "_--_--_" +getOpsNames(_))
     }
   }
 

@@ -36,10 +36,10 @@ angular.module('spGuiApp')
             wStorage.editable = true;
           } else if(type === 'itemTree') {
             wStorage.itemTree = true;
-            width = 0;
+            width = 1;
           } else if(type === 'itemList') {
             wStorage.itemTree = false;
-          } else if(type === 'itemExplorer' || type === 'itemInfo') {
+          } else if(type === 'itemExplorer' || type === 'itemInfo' || type === 'processSimulate') {
             width = 1;
             height = 'small';
           } else if(type === 'identifyRelations') {
@@ -68,7 +68,7 @@ angular.module('spGuiApp')
         };
 
         scope.changeWindowWidth = function(window, increase) {
-          if(increase && window.width !== 4){
+          if(increase && window.width !== 5){
             window.width++;
           } else if(!increase && window.width !== 0) {
             window.width--;

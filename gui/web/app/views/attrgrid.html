@@ -1,0 +1,61 @@
+<span ng-init="type = getType(attrObj[key], key)">
+
+  <span ng-if="!edit && type === 'string'">{{attrObj[key]}}</span>
+  <input ng-if="edit && type === 'string'" type="text" class="form-control input-sm" ng-model="attrObj[key]" />
+
+  <span ng-if="!edit && type === 'empty'">{{attrObj[key]}}</span>
+  <input ng-if="edit && type === 'empty'" type="text" class="form-control input-sm" ng-model="attrObj[key]" />
+
+  <span ng-if="!edit && type === 'number'">{{attrObj[key]}}</span>
+  <input ng-if="edit && type === 'number'" type="number" class="form-control input-sm" ng-model="attrObj[key]" />
+
+  <span ng-if="!edit && type === 'boolean'">{{attrObj[key]}}</span>
+  <input ng-if="edit && type === 'boolean'" type="checkbox" class="form-control input-sm" ng-model="attrObj[key]" />
+
+  <span ng-if="!edit && type === 'item'">{{getName(attrObj[key])}} - <small>({{attrObj[key]}})</small></span>
+  <input ng-if="edit && type === 'item'" type="text" class="form-control input-sm" ng-model="attrObj[key]" />
+
+  <span ng-if="!edit && type === 'date' ">{{attrObj[key] | date:'yyyy-MM-dd HH:mm:ss'}}</span>
+  <input ng-if="edit && type === 'date'" id="datetimeInput" step=1 name="datetimeInput" type="datetime-local" class="form-control input-sm" ng-model="attrObj[key]" />
+
+  <span ng-if="!edit && type === 'kind'">{{attrObj[key]}}</span>
+  <select ng-if="edit && type === 'kind'" class="form-control input-sm" ng-model="attrObj[key]" ng-options="svKind as svKind for svKind in svKinds" ng-change="spTalker.svKindChange(attrObj, false)"></select>
+
+  <button ng-if="type==='sop' && item.isa === 'SOPSpec'" ng-click="tabSvc.newWindow('sopMaker', {sopSpecId: item.id})" class="btn btn-sm btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
+  <button ng-if="type==='sop' && item.isa !== 'SOPSpec'" ng-click="tabSvc.newWindow('sopViewer', {sopDef: attrObj[key]})" class="btn btn-sm btn-default"><span class="glyphicon glyphicon-new-window"></span> View in sopMaker</button>
+
+  <conditions ng-if="type === 'conditions'" conditions="attrObj[key]" edit="edit"></conditions>
+  <button ng-if="type==='conditions' && edit" class="btn btn-sm btn-default" ng-click="itemListSvc.addCondition(attrObj[key])"><span class="glyphicon glyphicon-plus"></span> Add condition</button>
+
+  <table class="element-list" ng-if="type === 'object'">
+    <tr class="form-inline" ng-repeat="(attr, attrVal) in attrObj[key]" ng-init="row = {childIsArrayOrObj: isNonEmptyArrayOrObj(attrVal)}">
+      <td ng-if="level >= 1" >
+        <button ng-if="row.childIsArrayOrObj" class="btn-default btn-xs glyphicon" ng-class="{true:'glyphicon-minus', false:'glyphicon-plus'}[row.expandChildren]" ng-init="row.expandChildren = false" ng-click="row.expandChildren = !row.expandChildren"></button>
+      </td>
+      <td style="white-space:nowrap;" ng-if="row.childIsArrayOrObj" colspan="2">
+        <deleteable-key attr-obj="attrObj[key]" element="attr" key="attr" edit="edit"></deleteable-key>
+        <attr-grid ng-if="level === 0 || row.expandChildren" edit="edit" attr-obj="attrObj[key]" key="attr" level=level+1 item="item"></attr-grid>
+      </td>
+      <td style="white-space:nowrap;" ng-if="!row.childIsArrayOrObj">
+        <deleteable-key attr-obj="attrObj[key]" element="attr" key="attr" edit="edit"></deleteable-key>
+      </td>
+      <td ng-if="!row.childIsArrayOrObj">
+        <attr-grid edit="edit" attr-obj="attrObj[key]" key="attr" level=level+1 item="item"></attr-grid>
+      </td>
+    </tr>
+  </table>
+
+  <table class="element-list" ng-if="type === 'array'">
+    <tr ng-if="edit"><td colspan="2"><button class="btn btn-default btn-sm" ng-click="addElementToArray(attrObj[key])"><span class="glyphicon glyphicon-plus"></span> Add row</button></td></tr>
+    <tr class="form-inline" ng-repeat="elem in attrObj[key] track by $index">
+      <td class="col-md-1">
+        <deleteable-key attr-obj="attrObj[key]" key="$index+1" element="elem" edit="edit"></deleteable-key>
+      </td>
+      <td class="col-md-9">
+        <attr-grid edit="edit" attr-obj="attrObj[key]" key="$index" level=level+1 item="item"></attr-grid>
+      </td>
+    </tr>
+    <tr ng-if="attrObj[key].length === 0"><td>no elements found</td></tr>
+  </table>
+
+</span>

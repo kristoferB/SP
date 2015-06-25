@@ -28,7 +28,7 @@
   <button ng-if="type==='conditions' && edit" class="btn btn-sm btn-default" ng-click="itemListSvc.addCondition(attrObj[key])"><span class="glyphicon glyphicon-plus"></span> Add condition</button>
 
   <table class="element-list" ng-if="type === 'object'">
-    <tr class="form-inline" ng-repeat="(attr, attrVal) in attrObj[key] | filterElements" ng-init="row = {childIsArrayOrObj: isNonEmptyArrayOrObj(attrVal)}">
+    <tr class="form-inline" ng-repeat="(attr, attrVal) in attrObj[key]" ng-init="row = {childIsArrayOrObj: isNonEmptyArrayOrObj(attrVal)}">
       <td ng-if="level >= 1" >
         <button ng-if="row.childIsArrayOrObj" class="btn-default btn-xs glyphicon" ng-class="{true:'glyphicon-minus', false:'glyphicon-plus'}[row.expandChildren]" ng-init="row.expandChildren = false" ng-click="row.expandChildren = !row.expandChildren"></button>
       </td>
@@ -39,7 +39,7 @@
       <td style="white-space:nowrap;" ng-if="!row.childIsArrayOrObj">
         <deleteable-key attr-obj="attrObj[key]" element="attr" key="attr" edit="edit"></deleteable-key>
       </td>
-      <td " ng-if="!row.childIsArrayOrObj">
+      <td ng-if="!row.childIsArrayOrObj">
         <attr-grid edit="edit" attr-obj="attrObj[key]" key="attr" level=level+1 item="item"></attr-grid>
       </td>
     </tr>

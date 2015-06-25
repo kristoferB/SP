@@ -3,7 +3,8 @@ package sp.services
 import akka.actor._
 import sp.domain._
 import sp.system.messages._
-import sp.domain.logic._
+import sp.domain.logic.PropositionParser
+import sp.domain.Logic._
 
 /**
  * The service parse a string into a proposition and returns it.
@@ -12,14 +13,15 @@ import sp.domain.logic._
  * "parse" -> "the string to parse" e.g. r1.tool==kalle AND r2 = false
  * If we need better performance from multiple requests in the future,
  * we can have multiple actors in a round robin.
-**/
-class PropositionParserActor extends Actor  {
+ **/
+class PropositionParserActor extends Actor {
+
   def receive = {
     case Request(_, attr) => {
       extract(attr) match {
 
         case Some(res) => {
-          PropositionParser.parseStr(res._2) match {
+          PropositionParser().parseStr(res._2) match {
             case Left(failure) =>
               val errorMess = "[" + failure.next.pos + "] error: " + failure.msg + "\n\n" + failure.next.pos.longString
               sender ! SPErrorString(errorMess)
@@ -34,21 +36,22 @@ class PropositionParserActor extends Actor  {
     }
   }
 
+
   def extract(attr: SPAttributes) = {
     for {
-      model <- attr.getAsID("model")
-      parse <- attr.getAsString("parse")
+      model <- attr.getAs[ID]("model")
+      parse <- attr.getAs[String]("parse")
     } yield (model, parse)
   }
 
-      def errorMessage(attr: SPAttributes) = {
-        SPError("The request is missing parameters: \n" +
-          s"model: ${attr.getAsID("model")}" + "\n" +
-          s"parse: ${attr.getAsString("parse")}" )
-      }
+  def errorMessage(attr: SPAttributes) = {
+    SPError("The request is missing parameters: \n" +
+      s"model: ${attr.getAs[ID]("model")}" + "\n" +
+      s"parse: ${attr.getAs[String]("parse")}")
+  }
 
 }
 
-object PropositionParserActor{
+object PropositionParserActor {
   def props = Props(classOf[PropositionParserActor])
 }

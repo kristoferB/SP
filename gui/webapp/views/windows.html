@@ -1,5 +1,5 @@
 <ul ui-sortable="sortableOptions" ng-model="windows" id="sortable" class="list-unstyled windows">
-  <li class="window sizeTransition" ng-repeat="window in windows" ng-class="{'col-md-2': window.width === 0, 'col-md-3': window.width === 1, 'col-md-6': window.width === 2, 'col-md-9': window.width === 3, 'col-md-12': window.width === 4, 'smallPanelHeight': window.height === 'small', 'largePanelHeight': window.height === 'large'}">
+  <li class="window sizeTransition" ng-repeat="window in windows" ng-class="{'col-md-2': window.width === 0, 'col-md-3': window.width === 1, 'col-md-4': window.width === 2, 'col-md-6': window.width === 3, 'col-md-9': window.width === 4, 'col-md-12': window.width === 5, 'smallPanelHeight': window.height === 'small', 'largePanelHeight': window.height === 'large'}">
     <div class="panel panel-default">
       <div class="panel-heading">
         <span class="draggable pull-right">
@@ -20,6 +20,7 @@
         <item-explorer ng-switch-when="itemExplorer" window-storage="window.storage" class="wrapper"></item-explorer>
         <item-explorer ng-switch-when="itemInfo" window-storage="window.storage" class="wrapper"></item-explorer>
         <relationident ng-switch-when="identifyRelations" class="wrapper" ></relationident>
+	<processsimulate ng-switch-when="processSimulate" class="wrapper" ></processsimulate>
         <gantt-schedule ng-switch-when="schedule" class="wrapper"></gantt-schedule>
         <simulation-runtime ng-switch-when="SimulationRuntime" window-storage="window.storage" class="wrapper"></simulation-runtime>
         <plc-runtime ng-switch-when="PLCRuntime" window-storage="window.storage" class="wrapper"></plc-runtime>

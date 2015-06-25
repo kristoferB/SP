@@ -1,0 +1,20 @@
+<div class="modal-header">
+    <h3 class="modal-title">Login</h3>
+</div>
+<form role="form" name="loginForm" ng-submit="login(credentials)" novalidate>
+    <div class="modal-body">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" class="form-control" id="username" ng-model="credentials.username">
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" class="form-control" id="password" ng-model="credentials.password">
+        </div>
+        <!--<button class="btn btn-default" type="submit">Login</button>-->
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" type="submit"><span class="glyphicon glyphicon-asterisk"></span> Login</button>
+        <button class="btn btn-default" ng-click="close()"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+    </div>
+</form>
