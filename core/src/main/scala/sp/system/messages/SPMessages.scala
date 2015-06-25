@@ -10,5 +10,6 @@ object SPError {
   def apply(s: String): SPError = SPErrorString(s)
 }
 case class SPErrorString(error: String) extends SPError
+case class SPErrors(errors: List[SPError]) extends SPError
 case class UpdateError(currentModelVersion: Long, conflicts: List[ID]) extends SPError
 case class MissingID(id: ID, model: ID,  error: String = s"The Model does not contain that id")

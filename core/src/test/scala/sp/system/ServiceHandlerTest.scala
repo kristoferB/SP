@@ -1,59 +1,69 @@
 package sp.system
 
 import akka.actor._
-import akka.testkit.{ImplicitSender, TestKit, TestActorRef}
-import com.typesafe.config.ConfigFactory
+import akka.testkit._
+import com.typesafe.config._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import sp.domain._
 import sp.system.messages._
+import sp.domain.Logic._
+
+import scala.concurrent.duration._
 
 /**
- * Created by kristofer on 09/01/15.
+ * Created by Kristofer on 2014-06-17.
  */
-//class ServiceHandlerTest extends TestKit(ActorSystem("test")) with ImplicitSender
-//      with WordSpecLike with Matchers with BeforeAndAfterAll {
-//
-//  override def afterAll {
-//    TestKit.shutdownActorSystem(system)
-//  }
-//
-//  class ServiceHelperImpl(modelHandler: ActorRef) extends ServiceHelper(modelHandler) {
-//
-//    val interface: Map[String, SPAttributeValue] = Map("model"->DefinitionPrimitive("ID"))
-//    val fetchedFromModel: List[String] = List()
-//
-//
-//    def request(request: ServiceRequest): Unit = {
-//      println(s"REQUEST: $request")
+class ServiceHandlerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
+  with WordSpecLike with Matchers with BeforeAndAfterAll {
+
+  def this() = this(ActorSystem("myTest", ConfigFactory.parseString(
+    """
+      |akka.loglevel = DEBUG
+    """.stripMargin)))
+
+
+  val mhP = TestProbe()
+  val seP = TestProbe()
+  val bP = TestProbe()
+
+  val mh = system.actorOf(ServiceTalker.props(), "serviceTalker")
+  val mid = ID.newID
+  val o = Operation("hej")
+
+  override def beforeAll: Unit = {
+
+  }
+
+  override def afterAll {
+    TestKit.shutdownActorSystem(system)
+  }
+
+
+  "The Service Talker" must {
+    "analyse request attributes an pass if ok" in {
+      val attr = SPAttributes("key1"-> KeyDefinition("String", None, None),
+        "key2"-> SPAttributes("key3"-> KeyDefinition("String", None, None)))
+
+
+      val mid = sp.domain.ID.newID
+      mh ! CreateModel(mid, "test2")
+      expectMsgType[ModelInfo]
+    }
+
+//    "create a new model and add content" in {
+//      val mid = sp.domain.ID.newID
+//      mh ! CreateModel(mid, "test2")
+//      val o = Operation("hej")
+//      var count = 0
+//      fishForMessage(3 seconds) {
+//        case m:ModelInfo => mh ! UpdateIDs(mid, 0, List(o)); false
+//        case SPIDs(ids) if count == 0 => mh ! GetIds(mid,List()); count +=1; false
+//        case SPIDs(ids) if count == 1 => ids shouldEqual List(o); true
+//      }
 //    }
-//  }
-//
-//  class ModelTemp extends Actor {
-//    def receive = {
-//      case m @ _ => println(s"modelTemp got: $m")
-//    }
-//  }
-//
-//
-//  "The Service Helper" must {
-//    val mTemp = system.actorOf(Props(classOf[ModelTemp], this), "mTemp")
-//    val p = Props(classOf[ServiceHelperImpl], this, mTemp)
-//    val actorRef = TestActorRef(p)
-//    val actor = actorRef.underlyingActor
-//
-//    val service = system.actorOf(Props(classOf[ServiceHelperImpl], this, mTemp),"service")
-//
-//    "when parsing attributes" in {
-//
-//    }
-//
-//    "ping" in {
-//      service ! "hej"
-//      expectMsg("då")
-//      service ! Request("", Attr(
-//        "model" -> ""
-//      ))
-//      expectMsg("då")
-//    }
-//  }
-//}
+
+    // add more test on the model and views
+  }
+}
+
+

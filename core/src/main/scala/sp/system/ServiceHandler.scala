@@ -2,17 +2,20 @@ package sp.system
 
 import akka.actor._
 import akka.event.Logging
+import org.json4s.JsonAST.{JObject, JNothing}
 import sp.domain._
 import sp.system.messages._
 
 class ServiceHandler extends Actor{
-  var actors: Map[String, ActorRef] = Map()
   val log = Logging(context.system, this)
-  
+  var actors: Map[String, ActorRef] = Map()
+  var info: Map[String, SPAttributes] = Map()
+
   def receive = {
-    case r @ RegisterService(service, ref) => {
+    case r @ RegisterService(service, ref, attr) => {
       if (!actors.contains(service)) {
         actors += service -> ref
+        info = info + (service -> attr)
         ref.tell(r, sender)
       }
       else sender ! SPError(s"Service $service already registered")
@@ -22,7 +25,7 @@ class ServiceHandler extends Actor{
         actors(m.service).tell(m, sender)
       else sender ! SPError(s"Service ${m.service} does not exists")
     }
-    case GetServices => sender ! actors.keys.toList
+    case GetServices => sender ! Services(info)
   }
 }
 
@@ -30,6 +33,80 @@ object ServiceHandler {
   def props = Props(classOf[ServiceHandler])
 }
 
+// move somewhere good
+case class KeyDefinition(isa: String, default: Option[SPValue], definitions: Option[SPAttributes])
+
+class ServiceTalker(service: ActorRef, modelHandler: ActorRef, replyTo: ActorRef, serviceAttributes: SPAttributes,  toBus: Option[ActorRef]) extends Actor {
+  import sp.domain.Logic._
+  import akka.pattern.ask
+  import akka.util.Timeout
+  import scala.util._
+  import scala.concurrent.duration._
+  import context.dispatcher
+  implicit val timeout = Timeout(2 seconds)
+
+  val model = serviceAttributes.getAs[ID]("model")
+  val toModel = serviceAttributes.getAs[Boolean]("toModel").getOrElse(false) && model.isDefined
+  val expectAttrs = extractKeyAttributes(serviceAttributes)
+
+  def receive = {
+    case r @ Request(_, attr, ids) => {
+      val errors = analyseAttr(attr, expectAttrs)
+      if (errors.nonEmpty) replyTo ! SPErrors(errors)
+      else {
+        if (model.isDefined && ids.isEmpty) {
+          modelHandler ? GetIds(model.get, List()) onComplete {
+            case Success(result) => result match {
+              case SPIDs(xs) => service ! r.copy(ids = xs)
+            }
+            case Failure(failure) => replyTo ! SPError(failure.getMessage)
+          }
+        } else {
+          service ! r
+        }
+      }
+    }
+    case r @ Response(ids, attr) => {
+      if (toModel) {
+        modelHandler ! UpdateIDs(model.get, -1, ids, attr)
+      }
+      replyTo ! r
+      toBus.foreach(_ ! r)
+      self ! PoisonPill
+    }
+    case r @ Progress(attr) => {
+      replyTo ! r
+      toBus.foreach(_ ! r)
+      self ! PoisonPill
+    }
+
+
+  }
+
+  def analyseAttr(attr: SPAttributes, expected: List[(String, KeyDefinition)]): List[SPError] = {
+    expected.flatMap{ case (key, v) =>
+      attr.get(key).getOrElse(v.default.getOrElse(JNothing)) match {
+        case o: JObject => {
+          v.definitions.map(d => analyseAttr(o, extractKeyAttributes(d))).getOrElse(List())
+        }
+        case JNothing => List(SPError(s"requiered key: $key is missing"))
+        case _ => List()
+      }
+    }
+  }
+
+  def extractKeyAttributes(x: SPAttributes) = x.findObjectsWithKeysAs[KeyDefinition](List("isa"))
+
+}
+
+object ServiceTalker {
+  def props(service: ActorRef,
+            modelHandler: ActorRef,
+            replyTo: ActorRef,
+            serviceAttributes: SPAttributes,
+            toBus: Option[ActorRef] = None) =
+    Props(classOf[ServiceTalker], service, modelHandler, replyTo, serviceAttributes, toBus)
+}
 
 
 //case class ServiceRequest(modelID: ID, attr: SPAttributes, model: SPIDs)
