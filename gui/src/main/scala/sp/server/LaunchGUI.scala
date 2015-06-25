@@ -20,8 +20,8 @@ object LaunchGUI {//extends MySslConfiguration {
     IO(Http) ! Http.Bind(service, interface, port)
 
     println(s"${system.name} started at $interface:$port")
-    println("Press CTRL+C or write re-stop to exit....\n")
-    //system.shutdown()
+    scala.io.StdIn.readLine("Press ENTER to exit application.\n")
+    system.terminate()
 
   }
 }

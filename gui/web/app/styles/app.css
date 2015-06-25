@@ -13,8 +13,17 @@ body {
     margin-bottom: 0;
 }
 
+.table > tbody > tr > td {
+    vertical-align: middle;
+}
+
 input {
     color: #ebebeb;
+}
+
+/*** Help class for Bootstrap tables where 100% width is not preferred ***/
+.table-nonfluid {
+    width: auto !important;
 }
 
 /*** nav bar ***/
@@ -104,6 +113,132 @@ input {
 .sop {
     float: left;
 }
+
+/*** PLC Runtime ***/
+.plc-runtime .op-area {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    min-height: 80px;
+}
+
+.plc-runtime .op {
+    background-color: white;
+    float: left;
+    width: 100px;
+    height: 80px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: solid black 1px;
+    transition: border-color 1s;
+    margin-right: 10px;
+}
+
+.plc-runtime .op:hover {
+    border-color: white;
+}
+
+.plc-runtime .op:active {
+    background-color: lightgrey;
+}
+
+.plc-runtime .op-top {
+    height: 15px;
+}
+
+.plc-runtime .pretrue-true {
+    background-color:lightgreen;
+}
+
+.plc-runtime .pretrue-false {
+    background-color:lightcoral;
+}
+
+.plc-runtime .op-middle {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    height: 30px;
+    line-height: 30px;
+    font-size: 12px;
+    color: black;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.plc-runtime .executing {
+    background-color: #fff55d;
+}
+
+.plc-runtime .op-bottom {
+    height: 15px;
+}
+
+.plc-runtime .finished {
+    background-color:lightskyblue;
+}
+
+.plc-runtime .expand {
+    height: 70px !important;
+}
+
+.plc-runtime .expand-range {
+    height: 100px !important;
+}
+
+.plc-runtime .var-area {
+    margin-top: 20px;
+}
+
+.plc-runtime .variable {
+    float: left;
+    height: 30px;
+    width: 170px;
+    background-color: white;
+    border-radius: 10px;
+    overflow: hidden;
+    border: solid black 1px;
+    margin-right: 10px;
+    transition: border-color 1s;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 30px;
+    font-size: 12px;
+    color: black;
+}
+
+.plc-runtime .variable .var-left {
+    margin-left:10px;
+    width: 98px;
+    height: 30px;
+    text-align: left;
+    float: left;
+}
+
+.plc-runtime .variable .var-right {
+    width: 60px;
+    height: 30px;
+    float: left;
+    border: none;
+}
+
+.plc-runtime .variable .var-right .bool {
+    width: 30px;
+    height: 30px;
+    float: left;
+    border: none;
+}
+
+.plc-runtime .variable .var-right .var-true {
+    background-color: lightgreen;
+}
+
+.plc-runtime .variable .var-right .var-false {
+    background-color: lightcoral;
+}
+
+.clearfix {
+    overflow: auto;
+}
+
 
 /*** modals ***/
 

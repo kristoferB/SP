@@ -46,6 +46,10 @@ angular.module('spGuiApp')
             width = 1;
           } else if(type === 'schedule') {
             height = 'small';
+          } else if(type === 'runtimeList') {
+            width = 1;
+          } else if(type === 'PLCRuntime') {
+            width = 3;
           }
 
           scope.windows.push({type: type, width: width, height: height, name: type, id: type + noOfOpenedWindows, storage: wStorage});
