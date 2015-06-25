@@ -22,8 +22,9 @@ object LaunchGUI {//extends MySslConfiguration {
     println(s"Server started ${system.name}, $interface:$port")
     println("Type `exit` to exit....")
 
-    Console.readLine() // wait for enter to exit
-    system.shutdown()
+  scala.io.StdIn.readLine match {
+    case x => system.terminate()
+  }
 
 
   }

@@ -163,13 +163,13 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
     }
 
     lazy val updatedAttributeWithSynthesizedGuards = synthesizedGuardMap.get.get(o.name) match {
-      case Some(guard) => updatedAttribute.getAs[JObject].getOrElse(SPAttributes()).transformField {
+      case Some(guard) => updatedAttribute.to[SPAttributes].getOrElse(SPAttributes()).transformField {
         case ("preGuard", JArray(vs)) => ("preGuard", JArray(JString(guard) :: vs))
       }
       case _ => updatedAttribute
     }
 
-    val opWithUpdatedAttributes = o.copy(attributes = updatedAttributeWithSynthesizedGuards.getAs[JObject].getOrElse(SPAttributes()))
+    val opWithUpdatedAttributes = o.copy(attributes = updatedAttributeWithSynthesizedGuards.to[SPAttributes].getOrElse(SPAttributes()))
 
     //Method starts
     if (!synthesizedGuardMap.isDefined) o else PropositionConditionLogic.parseAttributesToPropositionCondition(opWithUpdatedAttributes, vars).getOrElse(opWithUpdatedAttributes)
