@@ -1,6 +1,6 @@
 package sp.virtcom
 
-import sp.domain.{SPSpec, Operation, Thing, SPAttributes}
+import sp.domain._
 import sp.domain.Logic._
 
 /**
@@ -9,7 +9,8 @@ import sp.domain.Logic._
 trait CollectorModel {
   var variableMap: Map[String, VariableProperties] = Map()
   var operationSet: Set[Operation] = Set()
-  var forbiddenExpressionMap: Map[String, Set[String]] = Map()
+  var forbiddenExpressionMap: Map[String, ForbiddenExpressionInfo] = Map()
+  var productSpecMap: Map[String, Seq[String]] = Map()
 
   def v(name: String, domain: Seq[String] = Seq(), init: Option[String] = None, marked: Set[String] = Set()): Unit = {
     val value = variableMap.getOrElse(name, VariableProperties())
@@ -23,7 +24,7 @@ trait CollectorModel {
     val actions = if (guardAction.size > 1) Some(SPAttributes("postAction" -> guardAction.tail.toSet)) else None
     Seq(guard, actions).flatten
   }
-  def op(name: String, conditions: Seq[SPAttributes], postConditions: Seq[SPAttributes] = SPAttributes(), attributes: SPAttributes = SPAttributes()) = {
+  def op(name: String, conditions: Seq[SPAttributes] = SPAttributes(), postConditions: Seq[SPAttributes] = SPAttributes(), attributes: SPAttributes = SPAttributes()) = {
     import sp.domain.logic.AttributeLogic._
     val attrUpdated = (conditions ++ postConditions).foldLeft(attributes) { case (acc, c) => acc merge c }
     operationSet += Operation(name = name, attributes = attrUpdated)
@@ -32,9 +33,13 @@ trait CollectorModel {
   def c(variable: String, fromValue: String, toValue: String): SPAttributes = SPAttributes("preGuard" -> Set(s"$variable == $fromValue"), "preAction" -> Set(s"$variable = $toValue"))
   def c(variable: String, fromValue: String, inBetweenValue: String, toValue: String): SPAttributes = c(variable, fromValue, inBetweenValue) + SPAttributes("postGuard" -> Set(s"$variable == $inBetweenValue"), "postAction" -> Set(s"$variable = $toValue"))
 
-  def x(name: String, forbiddenExpressions: Set[String]): Unit = {
-    val optExistingFE = forbiddenExpressionMap.get(name)
-    forbiddenExpressionMap = forbiddenExpressionMap ++ Map(name -> (optExistingFE.getOrElse(Set()) ++ forbiddenExpressions))
+  def x(name: String, forbiddenExpressions: Set[String] = Set(), operations: Set[String] = Set()): Unit = {
+    val info = forbiddenExpressionMap.getOrElse(name, ForbiddenExpressionInfo())
+    forbiddenExpressionMap = forbiddenExpressionMap ++ Map(name -> info.copy(expressions = info.expressions ++ forbiddenExpressions, operations = info.operations ++ operations))
+  }
+
+  def product(name: String, operationSeq: Seq[String]) = {
+    productSpecMap = productSpecMap ++ Map(name -> operationSeq)
   }
 
   def createMoveOperations(robotNamePrefix: String = "v", robotName: String, robotNameSuffix: String = "_pos", staticRobotPoses: Map[String, Set[String]]) = {
@@ -50,10 +55,16 @@ trait CollectorModel {
     }
   }
 
+  def aResourceTrans(resource: String, atStart: String, atExecute: String, atComplete: String) = {
+    "resourceTrans" -> Set(resource -> Set("atStart" -> atStart, "atExecute" -> atExecute, "atComplete" -> atComplete))
+  }
+
   implicit def stringToOption: String => Option[String] = Some(_)
   implicit def stringToSetOfStrings: String => Set[String] = Set(_)
   implicit def stringToSeqOfStrings: String => Seq[String] = Seq(_)
 }
+
+protected case class ForbiddenExpressionInfo(expressions: Set[String] = Set(), operations: Set[String] = Set())
 
 case class VariableProperties(domain: Seq[String] = Seq(), init: Option[String] = None, marked: Set[String] = Set())
 
@@ -84,14 +95,21 @@ object CollectorModelImplicits {
       val ops = cm.operationSet.groupBy(_.name).map { case (k, os) => k -> os.foldLeft(SPAttributes()) { case (acc, o) => acc merge o.attributes } }
       val opsToAdd = ops.map(kv => Operation(name = kv._1, attributes = kv._2)).toList
       //      opsToAdd.foreach(o => println(s"n:${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
+      lazy val operationMap = opsToAdd.map(o => o.name -> o).toMap
 
       //ForbiddenExpressions--------------------------------------------------------------------------------------
-      val fesToAdd = cm.forbiddenExpressionMap.map { case (name, fes) =>
-        SPSpec(name = name, attributes = SPAttributes("forbiddenExpressions" -> fes))
+      val fesToAdd = cm.forbiddenExpressionMap.flatMap { case (name, info) =>
+        (if (info.expressions.isEmpty) Seq() else Seq(SPSpec(name = name, attributes = SPAttributes("forbiddenExpressions" -> info.expressions)))) ++
+          (if (info.operations.isEmpty) Seq() else Seq(SOPSpec(name = name, sop = List(Arbitrary(info.operations.flatMap(o => operationMap.get(o)).map(o => Hierarchy(o.id, List())).toSeq: _*)))))
+      }.toList
+
+      //Products--------------------------------------------------------------------------------------------
+      val productsToAdd = cm.productSpecMap.map { case (name, opSeq) =>
+        SOPSpec(name = name, sop = List(Sequence(opSeq.flatMap(o => operationMap.get(o)).map(o => Hierarchy(o.id, List())): _*)))
       }.toList
 
       //Return--------------------------------------------------------------------------------------------
-      varsToAdd ++ opsToAdd ++ fesToAdd
+      varsToAdd ++ opsToAdd ++ fesToAdd ++ productsToAdd
     }
 
     private def getFromVariableDomain(variable: String, value: String, errorMsg: String): Option[Int] = {
