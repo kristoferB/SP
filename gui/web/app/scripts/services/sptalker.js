@@ -164,6 +164,7 @@ angular.module('spGuiApp')
         items: factory.items
       }}).success(function(dataFromServer)  {
         notificationService.success('Service ' + service + ' has been executed.\n' + dataFromServer);
+        factory.loadAll();
       }).error(function(dataFromServer) {
        notificationService.error('Service ' + obj + ' could not be executed. \n' + dataFromServer);
     });

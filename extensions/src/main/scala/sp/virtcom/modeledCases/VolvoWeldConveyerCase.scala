@@ -1,6 +1,6 @@
 package sp.virtcom.modeledCases
 
-import sp.domain.SPAttributes
+import sp.domain.{Operation, SPAttributes}
 import sp.domain.Logic._
 import sp.virtcom.CollectorModel
 
@@ -23,20 +23,23 @@ case class VolvoWeldConveyerCase() extends CollectorModel {
 
   v(name = "vTipDresser", domain = Seq("idle", "tipdressing"), init = "idle", marked = "idle")
 
-    conveyerX("A")
-    conveyerX("B")
+  x("inZone", s"vOperator == addingProductA & vRobot_pos == atInGrippingB")
+  x("inZone", s"vOperator == addingProductB & vRobot_pos == atInGrippingA")
+
+  //Conveyers
+  conveyerX("A")
+  conveyerX("B")
 
   //Product A
   productX("A")
 
-  x("inZone", s"vOperator == addingProductA & vRobot_pos == atInGrippingB")
-  x("inZone", s"vOperator == addingProductB & vRobot_pos == atInGrippingA")
-
   //Product B
-    productX("B")
+  productX("B")
 
   //Tip dressing
   op("tipDress", c("vTipDresser", "idle", "tipdressing", "idle"))
+  op("tipDress", attributes = SPAttributes(aResourceTrans("vTipDresser", "idle", "tipdressing", "idle")))
+  x("weldZone", operations = "tipDress")
 
   //Robot movements
   val staticRobotPoses = Map("atHome" -> Set("atIn"),
@@ -46,45 +49,60 @@ case class VolvoWeldConveyerCase() extends CollectorModel {
   createMoveOperations(robotName = "Robot", staticRobotPoses = staticRobotPoses)
 
   // PS Visualization
-  op(s"gripProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,158"))
-  op(s"weldProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,189"))
-  op(s"releaseProductA", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,431"))
+  op(s"addProductA", attributes = SPAttributes("simop" -> "1,98"))
+  op(s"gripProductA", attributes = SPAttributes("simop" -> "1,145"))
+  op(s"weldProductA", attributes = SPAttributes("simop" -> "1,178"))
+  op(s"releaseProductA", attributes = SPAttributes("simop" -> "1,75"))
+  op(s"removeProductA", attributes = SPAttributes("simop" -> "1,235"))
 
-  op(s"gripProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,481"))
-  op(s"weldProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,509"))
-  op(s"releaseProductB", conditions = SPAttributes(), attributes = SPAttributes("simop" -> "1,719"))
+  op(s"addProductB", attributes = SPAttributes("simop" -> "1,117"))
+  op(s"gripProductB", attributes = SPAttributes("simop" -> "1,158"))
+  op(s"weldProductB", attributes = SPAttributes("simop" -> "1,206"))
+  op(s"releaseProductB", attributes = SPAttributes("simop" -> "1,105"))
+  op(s"removeProductB", attributes = SPAttributes("simop" -> "1,241"))
+
+  op(s"atConveyersToAtHome_Robot", attributes = SPAttributes("simop" -> "1,89"))
+  op(s"atHomeToAtIn_Robot", attributes = SPAttributes("simop" -> "1,133"))
+  op(s"atInToAtWeld_Robot", attributes = SPAttributes("simop" -> "1,171"))
+  op(s"atWeldToAtConveyers_Robot", attributes = SPAttributes("simop" -> "1,228"))
+
+  op(s"tipDress", attributes = SPAttributes("simop" -> "1,124"))
 
   //Macros-----------------------------
   def conveyerX(X: String) = {
-    v(name = s"vOutConveyer$X", domain = Seq("idle", "starting", "running", "stopping"), init = "idle", marked = "idle")
+    v(name = s"vOutConveyer$X", domain = Seq("running", s"removingProduct$X"), init = "running", marked = "running")
     v(name = s"vOutConveyer${X}_car", domain = Seq("empty", "partlyOccupied", "occupied"), init = "empty", marked = "empty")
-    op(s"startOutConveyer$X", c(s"vOutConveyer$X", "idle", "starting", "running"))
-    op(s"stopOutConveyer$X", c(s"vOutConveyer$X", "running", "stopping", "idle"))
   }
 
   def productX(X: String) = {
     op(s"addProduct$X", c("vIn_car", "empty", s"product$X"))
     op(s"addProduct$X", c("vOperator", "idle", s"addingProduct$X", "idle"))
+    op(s"addProduct$X", attributes = SPAttributes("carrierTrans" -> Set("atComplete" -> "vIn_car"), aResourceTrans("vOperator", "idle", s"addingProduct$X", "idle")))
 
-    x("inZone", s"vOperator == addingProduct$X & vRobot_pos == atInGripping$X")
+    x("inZone", s"vOperator == addingProduct$X & vRobot_pos == atInGripping$X", operations = Set(s"addProduct$X",s"gripProduct$X"))
 
     op(s"gripProduct$X", c("vIn_car", s"product$X", "empty"))
     op(s"gripProduct$X", c("vRobot_car", "empty", s"product$X"))
     op(s"gripProduct$X", c("vRobot_pos", "atIn", s"atInGripping$X", "atIn"))
     v(name = "vRobot_pos", domain = s"atInGripping$X")
+    op(s"gripProduct$X", attributes = SPAttributes("carrierTrans" -> Set("atComplete" -> "vRobot_car"), aResourceTrans("vRobot_pos", "atIn0", s"atInGripping$X", "atIn1")))
 
     op(s"weldProduct$X", c("vRobot_pos", "atWeld", s"atWeldWelding$X", "atWeld"))
     op(s"weldProduct$X", c("vRobot_car", s"product$X", s"product${X}Welded"))
     v(name = "vRobot_pos", domain = s"atWeldWelding$X")
+    op(s"weldProduct$X", attributes = SPAttributes(aResourceTrans("vRobot_pos", "atWeld0", s"atWeldWelding$X", "atWeld1")))
 
-    x("weldZone", s"vRobot_pos == atWeldWelding$X & vTipDresser == tipdressing")
+    x("weldZone", s"vRobot_pos == atWeldWelding$X & vTipDresser == tipdressing", operations = s"weldProduct$X")
 
     op(s"releaseProduct$X", c(s"vOutConveyer${X}_car", "empty", "occupied"))
     op(s"releaseProduct$X", c("vRobot_car", s"product${X}Welded", "empty"))
     op(s"releaseProduct$X", c("vRobot_pos", "atConveyers", s"atConveyersReleasingProduct$X", "atConveyers"))
     v(name = "vRobot_pos", domain = s"atConveyersReleasingProduct$X")
+    op(s"releaseProduct$X", attributes = SPAttributes("carrierTrans" -> Set("atComplete" -> s"vOutConveyer${X}_car"), aResourceTrans("vRobot_pos", "atConveyers0", s"atConveyersReleasingProduct$X", "atConveyers1")))
 
     op(s"removeProduct$X", c(s"vOutConveyer${X}_car", "occupied", "partlyOccupied", "empty"))
-    op(s"removeProduct$X", conditions = SPAttributes("preGuard" -> Set(s"vOutConveyer$X==running"), "postGuard" -> Set(s"vOutConveyer$X==running")))
+    op(s"removeProduct$X", attributes = SPAttributes(aResourceTrans(s"vConveyer$X", "running", s"removingProduct$X", "running")))
+
+    product(s"Product$X",Seq(s"addProduct$X",s"gripProduct$X",s"weldProduct$X",s"releaseProduct$X",s"removeProduct$X"))
   }
 }

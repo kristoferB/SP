@@ -30,7 +30,7 @@ trait AttributeLogics {
 
 
   implicit class valueLogic(value: SPValue) {
-    def getAs[T](implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = {
+    def to[T](implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = {
       tryWithOption(
         value.extract[T]
       )
@@ -64,18 +64,18 @@ trait AttributeLogics {
     }
 
     def get(key: String) = {
-      x \ key match {
+      val temp = if (key.nonEmpty) x \ key else x
+      temp match {
         case JNothing => None
         case res: JValue => Some(res)
       }
-      
     }
 
     def getAs[T](key: String)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = {
-      val res = x \ key
-      tryWithOption(
-        res.extract[T]
-      )
+      for {
+        x <- get(key)
+        t <- tryWithOption(x.extract[T])
+      } yield t
     }
 
     def find(key: String) = x \\ key match {
