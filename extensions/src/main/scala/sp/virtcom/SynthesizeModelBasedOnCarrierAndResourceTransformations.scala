@@ -1,7 +1,7 @@
 package sp.virtcom
 
 import akka.actor._
-import org.json4s.JsonAST.{JArray, JObject, JString}
+import org.json4s.JsonAST._
 import sp.domain.logic.{PropositionConditionLogic, ActionParser}
 import sp.domain._
 import sp.jsonImporter.ServiceSupportTrait
@@ -13,16 +13,19 @@ import scala.concurrent.duration._
 import sp.domain.Logic._
 
 /**
- * Creates a wmod module from existing operations, things (variables), and SPspec (forbidden expressions).
+ * Creates a wmod module from checked:
+ * Operations (with attributes describing "carrierTransformation" and/or "resourceTransformation"
+ * SOPSpecs (with operations modeling product refinement or with operations modeling mutex as arbitrary order)
+ * Things (variables)
  * This module is synthesized.
- * The synthesized supervisor is returned as an extra preGuard for a subset of the operations.
- * Creates a Condition for each operation based on its:
- *  preGuards (+ the synthesized guard)
- *  preActions
- *  postGuards
- *  postActions
+ * Creates transport operations for Things with attribute field: "addTransport:true/yes"
+ * Creates a Condition for each operation based on:
+ * "carrierTransformation"
+ * "resourceTransformation"
+ * synthesized guard
+ * Creates and extends given Things to apply with created wmod module
  */
-class SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsService(modelHandler: ActorRef) extends Actor with ServiceSupportTrait {
+class SynthesizeModelBasedOnCarrierAndResourceTransformations(modelHandler: ActorRef) extends Actor with ServiceSupportTrait {
   implicit val timeout = Timeout(1 seconds)
 
   import context.dispatcher
@@ -32,45 +35,54 @@ class SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsService
 
       println(s"service: $service")
 
-      val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
+      lazy val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
+      lazy val checkedItems = attr.findObjectsWithField(List(("checked", JBool(true)))).unzip._1.flatMap(ID.makeID)
 
       val result = for {
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
 
-        //Collect ops, vars, forbidden expressions
+        //Collect ops, vars, sopSpecs
         SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
-        //        ops = opsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Operation])
         ops = opsToBe.map(_.asInstanceOf[Operation])
-        SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.model))
-        //        vars = varsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Thing])
+        checkOps = ops.filter(obj => checkedItems.contains(obj.id))
+
+        SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.model,
+          filter = { obj => checkedItems.contains(obj.id) && obj.isInstanceOf[Thing] }))
         vars = varsToBe.map(_.asInstanceOf[Thing])
-        SPIDs(spSpecToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.model))
-        //        spec = spSpecToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[SPSpec])
-        specs = spSpecToBe.filter(_.isInstanceOf[SPSpec]).map(_.asInstanceOf[SPSpec])
 
-        //Create Supremica Module and synthesize guards.
-        ptmw = ParseToModuleWrapper(modelInfo.name, vars, ops, specs)
-        optSupervisorGuards = {
-          ptmw.addVariables()
-          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-          ptmw.addOperations()
-          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-          ptmw.addForbiddenExpressions()
-          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-          ptmw.SupervisorAsBDD().getSupervisorGuards.map(_.filter(og => !og._2.equals("1")))
-        }
+        SPIDs(sopSpecsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.model,
+          filter = { obj => checkedItems.contains(obj.id) && obj.isInstanceOf[SOPSpec] }))
+        sopSpecs = sopSpecsToBe.map(_.asInstanceOf[SOPSpec])
 
-        //Update operations with conditions and change to Supremica syntax
-        updatedOps = ops.map(o => ptmw.changeToSupremicaSyntaxAndAddSPCondition(o, optSupervisorGuards))
-        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = updatedOps))
+        //Extend and check SopsWithCarrierTransformation
+        eswct = ExtendSopsWithCarrierTransformation(sopSpecs, ops)
+
+        //        //Create Supremica Module and synthesize guards.
+        //        ptmw = ParseToModuleWrapper(modelInfo.name, vars, ops, specs)
+        //        optSupervisorGuards = {
+        //          ptmw.addVariables()
+        //          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+        //          ptmw.addOperations()
+        //          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+        //          ptmw.addForbiddenExpressions()
+        //          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+        //          ptmw.SupervisorAsBDD().getSupervisorGuards.map(_.filter(og => !og._2.equals("1")))
+        //        }
+
+        //        //Update operations with conditions and change to Supremica syntax
+        //        updatedOps = ops.map(o => ptmw.changeToSupremicaSyntaxAndAddSPCondition(o, optSupervisorGuards))
+        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = List()))
 
       } yield {
 
-          optSupervisorGuards.getOrElse(Map()).foreach(kv => println(s"${kv._1}: ${kv._2}"))
-          //          updatedOps.foreach(o => println(s"${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
-
-          ptmw.addSupervisorGuardsToFreshFlower(optSupervisorGuards)
-          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+          println(checkOps.map(_.name).mkString("\n"))
+          println(vars.map(_.name).mkString("\n"))
+          println(sopSpecs.map(_.name).mkString("\n"))
+          //          optSupervisorGuards.getOrElse(Map()).foreach(kv => println(s"${kv._1}: ${kv._2}"))
+          //          //          updatedOps.foreach(o => println(s"${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
+          //
+          //          ptmw.addSupervisorGuardsToFreshFlower(optSupervisorGuards)
+          //          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
 
         }
 
@@ -79,11 +91,46 @@ class SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsService
 
 }
 
-object SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsService {
-  def props(modelHandler: ActorRef) = Props(classOf[SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsService], modelHandler)
+object SynthesizeModelBasedOnCarrierAndResourceTransformations {
+  def props(modelHandler: ActorRef) = Props(classOf[SynthesizeModelBasedOnCarrierAndResourceTransformations], modelHandler)
 }
 
-case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List[Operation], spec: List[SPSpec]) extends FlowerPopulater with Exporters with Algorithms with TextFilePrefix {
+case class ExtendSopsWithCarrierTransformation(sopSpecs: List[SOPSpec], operations: List[Operation]) {
+  lazy val operationIdMap = operations.map(o => o.id -> o).toMap
+
+  sopSpecs.foreach { sopSpec =>
+    lazy val productName = sopSpec.name
+    sopSpec.sop.foreach { sop => sop match {
+      case seq: Sequence =>
+        def checkAndOrUpdateCarrierTransformationAttribute(remainingSeq: Seq[SOP], optPreviousAtCompleteValue: Option[String] = None): Unit = {
+          remainingSeq match {
+            case node +: nodes =>
+              node match {
+                case h: Hierarchy if operationIdMap.contains(h.operation) =>
+                  lazy val op = operationIdMap(h.operation)
+                  println(op.name)
+//                  op.attributes \ "carrierTrans" transformField {
+//
+//                  }
+
+                //atStart
+                //atComplete
+                //atExecute
+                case _ => println(s"SOP nbr ${sopSpec.sop.indexOf(sop) + 1} in SOPSpec ${sopSpec.name} has a node that is not an Operation/Hierarchy. This and the remaining nodes in this SOP will be ignored.")
+              }
+            case Nil => //Do nothing
+          }
+        }
+        checkAndOrUpdateCarrierTransformationAttribute(seq.sop)
+      case _ => println(s"SOP nbr ${sopSpec.sop.indexOf(sop) + 1} in SOPSpec ${sopSpec.name} has an outermost SOP that is not a Sequence. This SOP will be ignored.")
+    }
+
+    }
+
+  }
+}
+
+case class AnotherParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List[Operation], spec: List[SPSpec]) extends FlowerPopulater with Exporters with Algorithms with TextFilePrefix {
 
   lazy val variableMap = vars.flatMap(v => {
     val optDomain = v.attributes.findAs[Seq[String]]("domain").headOption
@@ -163,13 +210,13 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
     }
 
     lazy val updatedAttributeWithSynthesizedGuards = synthesizedGuardMap.get.get(o.name) match {
-      case Some(guard) => updatedAttribute.to[SPAttributes].getOrElse(SPAttributes()).transformField {
+      case Some(guard) => updatedAttribute.getAs[JObject].getOrElse(SPAttributes()).transformField {
         case ("preGuard", JArray(vs)) => ("preGuard", JArray(JString(guard) :: vs))
       }
       case _ => updatedAttribute
     }
 
-    val opWithUpdatedAttributes = o.copy(attributes = updatedAttributeWithSynthesizedGuards.to[SPAttributes].getOrElse(SPAttributes()))
+    val opWithUpdatedAttributes = o.copy(attributes = updatedAttributeWithSynthesizedGuards.getAs[JObject].getOrElse(SPAttributes()))
 
     //Method starts
     if (!synthesizedGuardMap.isDefined) o else PropositionConditionLogic.parseAttributesToPropositionCondition(opWithUpdatedAttributes, vars).getOrElse(opWithUpdatedAttributes)

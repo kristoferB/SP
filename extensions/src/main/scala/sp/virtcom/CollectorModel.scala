@@ -12,9 +12,9 @@ trait CollectorModel {
   var forbiddenExpressionMap: Map[String, ForbiddenExpressionInfo] = Map()
   var productSpecMap: Map[String, Seq[String]] = Map()
 
-  def v(name: String, domain: Seq[String] = Seq(), init: Option[String] = None, marked: Set[String] = Set()): Unit = {
+  def v(name: String, domain: Seq[String] = Seq(), init: Option[String] = None, marked: Set[String] = Set(), idleValue: Option[String] = None): Unit = {
     val value = variableMap.getOrElse(name, VariableProperties())
-    variableMap += (name -> VariableProperties(value.domain ++ domain ++ marked ++ (if (init.isDefined) Set(init.get) else Set()), if (init.isDefined) init else value.init, value.marked ++ marked))
+    variableMap += (name -> VariableProperties(value.domain ++ domain ++ marked ++ (if (init.isDefined) Set(init.get) else Set()), if (init.isDefined) init else value.init, value.marked ++ marked, if (idleValue.isDefined) idleValue else value.idleValue))
   }
 
   implicit def SPAttToSeqOfSpAtt(spa: SPAttributes): Seq[SPAttributes] = Seq(spa)
@@ -56,7 +56,13 @@ trait CollectorModel {
   }
 
   def aResourceTrans(resource: String, atStart: String, atExecute: String, atComplete: String) = {
-    "resourceTrans" -> Set(resource -> Set("atStart" -> atStart, "atExecute" -> atExecute, "atComplete" -> atComplete))
+    "resourceTrans" -> Seq(resource -> Seq("atStart" -> atStart, "atExecute" -> atExecute, "atComplete" -> atComplete))
+  }
+  def aCarrierTrans(carrier: String, atStart: Option[String] = None, atExecute: Option[String] = None, atComplete: Option[String] = None) = {
+    "carrierTrans" -> Seq(carrier ->
+      Seq("atStart" -> atStart, "atExecute" -> atExecute, "atComplete" -> atComplete).foldLeft(Seq(): Seq[(String, String)]) {
+        case (acc, (key, optValue)) => acc ++ (if (optValue.isDefined) Seq(key -> optValue.get) else Seq())
+      })
   }
 
   implicit def stringToOption: String => Option[String] = Some(_)
@@ -66,7 +72,7 @@ trait CollectorModel {
 
 protected case class ForbiddenExpressionInfo(expressions: Set[String] = Set(), operations: Set[String] = Set())
 
-case class VariableProperties(domain: Seq[String] = Seq(), init: Option[String] = None, marked: Set[String] = Set())
+case class VariableProperties(domain: Seq[String] = Seq(), init: Option[String] = None, marked: Set[String] = Set(), idleValue: Option[String] = None)
 
 /**
  * To work on a collector Model
@@ -78,17 +84,14 @@ object CollectorModelImplicits {
     def parseToIDables() = {
       cm.variableMap = cm.variableMap.map { case (name, vp) => name -> vp.copy(vp.domain.distinct) }
       //Variables-----------------------------------------------------------------------------------------------------
-      val varsToAdd = cm.variableMap.flatMap { case (name, vp) =>
-        for {
-          initValue <- getFromVariableDomain(name, vp.init.getOrElse("NONE"), "Problem with init value")
-        } yield {
-          Thing(name = name, attributes = SPAttributes("markings" -> vp.marked,
-            "stateVariable" -> Map(
-              "domain" -> vp.domain,
-              "init" -> initValue,
-              "goal" -> (if (vp.marked.size == 1) getFromVariableDomain(name, vp.marked.head, "Problem with marking") else None: Option[Int])
-            )))
-        }
+      val varsToAdd = cm.variableMap.map { case (name, vp) =>
+        Thing(name = name, attributes = SPAttributes("markings" -> vp.marked,
+          "idleValue" -> vp.idleValue,
+          "stateVariable" -> Map(
+            "domain" -> vp.domain,
+            "init" -> getFromVariableDomain(name, vp.init.getOrElse("NONE"), "Problem with init value"),
+            "goal" -> (if (vp.marked.size == 1) getFromVariableDomain(name, vp.marked.head, "Problem with marking") else None: Option[Int])
+          )))
       }.toList
 
       //Operations------------------------------------------------------------------------------------
@@ -115,10 +118,10 @@ object CollectorModelImplicits {
     private def getFromVariableDomain(variable: String, value: String, errorMsg: String): Option[Int] = {
       cm.variableMap.get(variable) match {
         case Some(vp) => vp.domain.indexOf(value) match {
-          case -1 => println(s"$errorMsg\nValue: $value is not in the domain of variable: $variable. The result will not be correct!"); None
+          case -1 => println(s"$errorMsg\nValue: $value is not in the domain of variable: $variable. The result might not be correct!"); None
           case other => Some(other)
         }
-        case _ => println(s"$errorMsg\nVariable: $variable is not defined. The result will not be correct!"); None
+        case _ => println(s"$errorMsg\nVariable: $variable is not defined. The result might not be correct!"); None
 
       }
     }
