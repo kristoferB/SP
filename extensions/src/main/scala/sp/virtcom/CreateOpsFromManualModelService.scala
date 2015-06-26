@@ -23,7 +23,7 @@ class CreateOpsFromManualModelService(modelHandler: ActorRef) extends Actor with
   import context.dispatcher
 
   def receive = {
-    case Request(service, attr) => {
+    case Request(service, attr, _) => {
 
       println(s"service: $service")
 
@@ -36,7 +36,7 @@ class CreateOpsFromManualModelService(modelHandler: ActorRef) extends Actor with
       for {
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
         newIDables = manualModel.parseToIDables()
-        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = newIDables.toList))
+        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, items = newIDables.toList))
       } yield {
         //        newIDables.foreach(o => println(s"${o.name} a:${o.attributes.pretty}"))
       }

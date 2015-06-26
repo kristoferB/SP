@@ -34,68 +34,71 @@ object ServiceHandler {
 }
 
 // move somewhere good
-case class KeyDefinition(isa: String, default: Option[SPValue], definitions: Option[SPAttributes])
+case class KeyDefinition(ofType: String, domain: List[SPValue] = List(), default: Option[SPValue] = None)
 
-class ServiceTalker(service: ActorRef, modelHandler: ActorRef, replyTo: ActorRef, serviceAttributes: SPAttributes,  toBus: Option[ActorRef]) extends Actor {
-  import sp.domain.Logic._
-  import akka.pattern.ask
-  import akka.util.Timeout
-  import scala.util._
-  import scala.concurrent.duration._
+
+import sp.domain.Logic._
+import akka.pattern.ask
+import akka.util.Timeout
+import scala.util._
+import scala.concurrent.duration._
+
+class ServiceTalker(service: ActorRef,
+                    modelHandler: ActorRef,
+                    replyTo: ActorRef,
+                    serviceAttributes: SPAttributes,
+                    request: Request,
+                    busHandler: Option[ActorRef]) extends Actor {
+
   import context.dispatcher
   implicit val timeout = Timeout(2 seconds)
 
-  val model = serviceAttributes.getAs[ID]("model")
-  val toModel = serviceAttributes.getAs[Boolean]("toModel").getOrElse(false) && model.isDefined
-  val expectAttrs = extractKeyAttributes(serviceAttributes)
+  val expectAttrs = serviceAttributes.findObjectsWithKeysAs[KeyDefinition](List("ofType", "domain"))
+  val reqAttr = request.attributes
+  val model = reqAttr.getAs[ID]("model")
+  val toModel = reqAttr.getAs[Boolean]("toModel").getOrElse(false) && model.isDefined
+  val toBus = reqAttr.getAs[Boolean]("toBus").getOrElse(false) && busHandler.isDefined
+  val onlyResponse = reqAttr.getAs[Boolean]("onlyResponse").getOrElse(false)
+  val fillIDs = reqAttr.getAs[List[ID]]("fillIDs").getOrElse(List()).toSet
 
   def receive = {
-    case r @ Request(_, attr, ids) => {
-      val errors = analyseAttr(attr, expectAttrs)
-      if (errors.nonEmpty) replyTo ! SPErrors(errors)
-      else {
+    case req @ Request(_, attr, ids) => {
         if (model.isDefined && ids.isEmpty) {
           modelHandler ? GetIds(model.get, List()) onComplete {
             case Success(result) => result match {
-              case SPIDs(xs) => service ! r.copy(ids = xs)
+              case SPIDs(xs) => {
+                val filter = xs.filter(item => fillIDs.contains(item.id))
+                val res = if (filter.nonEmpty) filter else xs
+                service ! req.copy(ids = res)
+              }
             }
             case Failure(failure) => replyTo ! SPError(failure.getMessage)
           }
         } else {
-          service ! r
+          service ! req
         }
-      }
     }
+
     case r @ Response(ids, attr) => {
       if (toModel) {
-        modelHandler ! UpdateIDs(model.get, -1, ids, attr)
+        modelHandler ! UpdateIDs(model.get, ids, attr)
       }
       replyTo ! r
-      toBus.foreach(_ ! r)
+      if (toBus) busHandler.foreach(_ ! r)
       self ! PoisonPill
     }
-    case r @ Progress(attr) => {
-      replyTo ! r
-      toBus.foreach(_ ! r)
-      self ! PoisonPill
-    }
-
-
-  }
-
-  def analyseAttr(attr: SPAttributes, expected: List[(String, KeyDefinition)]): List[SPError] = {
-    expected.flatMap{ case (key, v) =>
-      attr.get(key).getOrElse(v.default.getOrElse(JNothing)) match {
-        case o: JObject => {
-          v.definitions.map(d => analyseAttr(o, extractKeyAttributes(d))).getOrElse(List())
-        }
-        case JNothing => List(SPError(s"requiered key: $key is missing"))
-        case _ => List()
-      }
+    case r: Progress => {
+      if (!onlyResponse) replyTo ! r
+      if (toBus) busHandler.foreach(_ ! r)
     }
   }
 
-  def extractKeyAttributes(x: SPAttributes) = x.findObjectsWithKeysAs[KeyDefinition](List("isa"))
+  def fillDefaults(attr: SPAttributes, expected: List[(String, KeyDefinition)]): SPAttributes = {
+    val flatAttr = attr.filterField{x => true}.toMap
+    val d = expected.filter(kv => !flatAttr.contains(kv._1)).map(kv => kv._1 -> kv._2.default.getOrElse(JNothing))
+    attr + SPAttributes(d)
+  }
+
 
 }
 
@@ -104,8 +107,39 @@ object ServiceTalker {
             modelHandler: ActorRef,
             replyTo: ActorRef,
             serviceAttributes: SPAttributes,
+            request: Request,
             toBus: Option[ActorRef] = None) =
-    Props(classOf[ServiceTalker], service, modelHandler, replyTo, serviceAttributes, toBus)
+    Props(classOf[ServiceTalker], service, modelHandler, replyTo, serviceAttributes, request, toBus)
+
+  def validateRequest(req: Request, serviceAttributes: SPAttributes) = {
+    val attr = req.attributes
+    val expectAttrs = serviceAttributes.findObjectsWithKeysAs[KeyDefinition](List("ofType", "domain"))
+
+    val errors = analyseAttr(attr, expectAttrs)
+    if (errors.nonEmpty) Left(errors) else {
+      val filled = req.copy(attributes = fillDefaults(attr, expectAttrs))
+      Right(filled)
+    }
+  }
+
+  private def analyseAttr(attr: SPAttributes, expected: List[(String, KeyDefinition)]): List[SPError] = {
+    expected.flatMap{ case (key, v) =>
+      val flatAttr = attr.filterField{x => true}.toMap
+      flatAttr.get(key).getOrElse(v.default.getOrElse(JNothing)) match {
+        case JNothing => List(SPError(s"required key $key is missing"))
+        case _ => List()
+      }
+    }
+  }
+
+  private def fillDefaults(attr: SPAttributes, expected: List[(String, KeyDefinition)]): SPAttributes = {
+    val flatAttr = attr.filterField{x => true}.toMap
+    val d = expected.filter(kv => !flatAttr.contains(kv._1)).map(kv => kv._1 -> kv._2.default.getOrElse(JNothing))
+    attr + SPAttributes(d)
+  }
+
+
+
 }
 
 

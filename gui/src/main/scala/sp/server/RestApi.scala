@@ -27,6 +27,7 @@ trait RestAPI extends HttpService {
   val userHandler: ActorRef
   implicit val to: Timeout
 
+  // work in progress to change the structure
   def api = {
     initial{
       get {
@@ -36,7 +37,7 @@ trait RestAPI extends HttpService {
         path("models" / JavaUUID / "operations"){ modelID => askModel(GetOperations(modelID))} ~
         path("models" / JavaUUID / "things"){ modelID => askModel(GetThings(modelID))} ~
         path("models" / JavaUUID / "specs"){ modelID => askModel(GetSpecs(modelID))} ~
-        path("models" / JavaUUID / "results"){ modelID => askModel(GetResults(modelID))} ~
+        path("models" / JavaUUID / "results"){ modelID => askModel(GetResults(modelID))}
 //        path("models" / JavaUUID / Segment / JavaUUID ){ (modelID, id) =>
 //          askModel(GetIds(modelID, List(id)))
 //        }
@@ -48,7 +49,7 @@ trait RestAPI extends HttpService {
 
   def askModel(mess: SPMessage) = {
     val f = modelHandler ? mess
-    complete(f)
+    complete("")
   }
 
 
@@ -206,9 +207,9 @@ trait ModelAPI extends SPApiHelpers {
     } ~
       post {
         implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
-        entity(as[IDAble]) { xs => callSP(UpdateIDs(model, -1, List(xs))) } ~
+        entity(as[IDAble]) { xs => callSP(UpdateIDs(model, List(xs))) } ~
           entity(as[List[IDAble]]) { xs =>
-            callSP(UpdateIDs(model, -1, xs))
+            callSP(UpdateIDs(model, xs))
           }
       }
 

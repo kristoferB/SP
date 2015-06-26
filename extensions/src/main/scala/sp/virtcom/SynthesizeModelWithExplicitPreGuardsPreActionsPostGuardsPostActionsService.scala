@@ -28,7 +28,7 @@ class SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsService
   import context.dispatcher
 
   def receive = {
-    case Request(service, attr) =>
+    case Request(service, attr, _) =>
 
       println(s"service: $service")
 
@@ -62,7 +62,7 @@ class SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsService
 
         //Update operations with conditions and change to Supremica syntax
         updatedOps = ops.map(o => ptmw.changeToSupremicaSyntaxAndAddSPCondition(o, optSupervisorGuards))
-        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = updatedOps))
+        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, items = updatedOps))
 
       } yield {
 

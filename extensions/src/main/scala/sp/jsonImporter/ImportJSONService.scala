@@ -19,7 +19,7 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
   import context.dispatcher
 
   def receive = {
-    case Request(_, attr) => {
+    case Request(_, attr, _) => {
       val reply = sender
       extract(attr) match {
         case Some((file, name)) => {
@@ -33,12 +33,12 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
             modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(
               model = ID.newID,
               name = name.getOrElse("noName")))
-            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = idables))
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, items = idables))
 
             //Update the operations in the model with "conditions" connected to the parsed "idables"
             SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
             opsWithConditionsAdded = opsToBe.map(_.asInstanceOf[Operation]).flatMap(op => PropositionConditionLogic.parseAttributesToPropositionCondition(op, idables))
-            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = opsWithConditionsAdded))
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model,  items = opsWithConditionsAdded))
 
           } yield {
             println(s"MADE IT: $modelInfo")
