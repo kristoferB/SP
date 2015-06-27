@@ -11,6 +11,7 @@ case class RegisterService(service: String,
                            ref: ActorRef,
                            attributes: SPAttributes = SPAttributes()) extends SPMessage
 
+case class RemoveService(service: String) extends ServiceMessage
 case object GetServices extends SPMessage
 case class Services(list: Map[String, SPAttributes])
 
@@ -53,3 +54,11 @@ case class Response(ids: List[IDAble],
  * @param attributes
  */
 case class Progress(attributes: SPAttributes)
+
+/**
+ * Used by an service for defining its input for a UI.
+ * @param ofType
+ * @param domain
+ * @param default
+ */
+case class KeyDefinition(ofType: String, domain: List[SPValue] = List(), default: Option[SPValue] = None)

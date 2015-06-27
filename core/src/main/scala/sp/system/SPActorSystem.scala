@@ -13,7 +13,7 @@ object SPActorSystem {
   implicit val system = ActorSystem("sequenceplanner")
 
   val modelHandler = system.actorOf(ModelHandler.props, "modelHandler")
-  val serviceHandler = system.actorOf(ServiceHandler.props, "serviceHandler")
+  val serviceHandler = system.actorOf(ServiceHandler.props(modelHandler), "serviceHandler")
   val runtimeHandler = system.actorOf(RunTimeHandler.props, "runtimeHandler")
   val userHandler = system.actorOf(sp.users.UserHandler.props, "userHandler")
 
