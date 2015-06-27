@@ -1,21 +1,22 @@
-Sequence Planner
-=====
-Work in progress. We need to define this.
+#Sequence Planner
 
-Pre:  
-install nodejs
-
-To init the GUI dev environment, run from command:  
+##Setup
+First, install nodejs according to instructions on the web. Then init the GUI dev environment by executing
+```
 cd gui/web  
 npm install  
-npm install -g yo //the yeoman dev environment  
-bower install //fetch of web app dependencies  
-cd ..  
-cd .. //back to root folder
+npm install -g yo //The yeoman dev environment. Run as root if you're on a Unix OS.
+bower install //Fetch of web app dependencies.
+```
 
-Launch SP with  
+##Run
+###Backend
+Open a command window and set location to the project root folder (SP/). Then launch SP backend with  
+```
 sbt launch/run
-
-then launch GUI from another command window with  
-cd gui/web  
+```
+###Frontend
+Open another command window and set location to the web folder (SP/gui/web/). Then launch the GUI with  
+```
 grunt serve
+```

@@ -69,6 +69,9 @@ object SP extends App {
   serviceHandler ! RegisterService("SynthesizeModel-prePostGuardsActionsInAttributes",
     system.actorOf(SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsService.props(modelHandler), "SynthesizeModel-prePostGuardsActionsInAttributes"))
 
+  serviceHandler ! RegisterService("SynthesizeModel-carrierAndResoruceTrans",
+    system.actorOf(SynthesizeModelBasedOnCarrierAndResourceTransformations.props(modelHandler), "SynthesizeModel-carrierAndResoruceTrans"))
+
   serviceHandler ! RegisterService("CreateInstanceModelFromTypeModel",
     system.actorOf(CreateInstanceModelFromTypeModelService.props(modelHandler), "CreateInstanceModelFromTypeModel"))
 
