@@ -28,7 +28,7 @@ class ServiceTalker(service: ActorRef,
   val toBus = reqAttr.getAs[Boolean]("toBus").getOrElse(false) && busHandler.isDefined
   val onlyResponse = reqAttr.getAs[Boolean]("onlyResponse").getOrElse(false)
   val fillIDs = reqAttr.getAs[List[ID]]("fillIDs").getOrElse(List()).toSet
-  val cancelTimeout =  context.system.scheduler.scheduleOnce(1 seconds, self, "timeout")
+  val cancelTimeout =  context.system.scheduler.scheduleOnce(3 seconds, self, "timeout")
 
   def receive = {
     case req @ Request(_, attr, ids) => {
@@ -57,9 +57,9 @@ class ServiceTalker(service: ActorRef,
     case "timeout" => {
       replyTo ! SPError(s"Service ${request.service} (actor: $service) is not responding. Removing it from the service handler")
       context.parent ! RemoveService(request.service)
+      service ! RemoveService(request.service)
       killMe
     }
-
     case r @ Response(ids, attr) => {
       if (toModel) {
         modelHandler ! UpdateIDs(model.get, ids, attr)
@@ -72,6 +72,15 @@ class ServiceTalker(service: ActorRef,
       cancelTimeout.cancel()
       if (!onlyResponse) replyTo ! r
       if (toBus) busHandler.foreach(_ ! r)
+    }
+    case e: SPError => {
+      replyTo ! e
+      killMe
+    }
+    case x if sender() == service=> {
+      println("SERVICES SHOULD SEND A RESPONSE, NOT "+x)
+      replyTo ! x
+      killMe
     }
   }
 

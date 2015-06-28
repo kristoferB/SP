@@ -42,7 +42,57 @@ class ServiceHandlerTest(_system: ActorSystem) extends TestKit(_system) with Imp
         val sh = system.actorOf(ServiceHandler.props(p.ref))
         sh ! RegisterService("hej", p.ref, serviceDef)
         p.expectMsgPF(100 milliseconds){case r: RegisterService => println(r)}
+    }
+    "Remove the service" in {
+        val p = TestProbe()
+        val serviceDef = SPAttributes()
+        val sh = system.actorOf(ServiceHandler.props(p.ref))
+        sh ! RegisterService("hej", p.ref, serviceDef)
+        sh ! RemoveService("hej")
+        sh ! Request("hej", SPAttributes())
 
+        p.fishForMessage(100 milliseconds){
+          case r: RegisterService => false
+          case r: RemoveService => true
+        }
+
+        fishForMessage(100 milliseconds){
+          case r: RegisterService => false
+          case r: RemoveService => false
+          case SPErrorString(s) =>  true
+        }
+    }
+    "Validate request" in {
+      val definition = SPAttributes("key1" -> KeyDefinition("kk", List(), None),
+        "key2" -> SPAttributes("key3" -> KeyDefinition("kk", List(), None)))
+      val attr = SPAttributes("key1" -> "hej", "key3" -> "kalle")
+      val p = TestProbe()
+      val sh = system.actorOf(ServiceHandler.props(p.ref))
+      sh ! RegisterService("hej", p.ref, definition)
+      sh ! Request("hej", attr)
+
+      p.fishForMessage(100 milliseconds){
+        case r: RegisterService => false
+        case r: Request => true
+      }
+    }
+    "Validate request and fail" in {
+      val definition = SPAttributes("key1" -> KeyDefinition("kk", List(), None),
+        "key2" -> SPAttributes("key3" -> KeyDefinition("kk", List(), None)))
+      val attr = SPAttributes("key1" -> "hej")
+      val p = TestProbe()
+      val sh = system.actorOf(ServiceHandler.props(p.ref))
+      sh ! RegisterService("hej", p.ref, definition)
+      sh ! Request("hej", attr)
+
+      p.expectMsgPF(100 milliseconds){
+        case r: RegisterService => "yes"
+      }
+
+      fishForMessage(100 milliseconds){
+        case r: RegisterService => false
+        case r: SPErrors => println(r); true
+      }
     }
   }
 }
