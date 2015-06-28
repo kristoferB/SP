@@ -7,6 +7,7 @@ cd gui/web
 npm install  
 npm install -g yo //The yeoman dev environment. Run as root if you're on a Unix OS.
 bower install //Fetch of web app dependencies.
+npm install grunt-connect-proxy --save-dev
 ```
 
 ##Run
