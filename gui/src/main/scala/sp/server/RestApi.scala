@@ -149,7 +149,8 @@ trait ModelAPI extends SPApiHelpers {
       pathPrefix(JavaUUID) { model =>
         / {
           get { callSP(GetModelInfo(model)) } ~
-            post { updateModelInfo }
+          post { updateModelInfo } ~
+          delete {callSP(DeleteModel(model))}
         } ~
           pathPrefix(Segment){ typeOfItems =>
             IDHandler(model) ~
@@ -323,6 +324,7 @@ trait SPApiHelpers extends HttpService with Json4SSP {
     case  RuntimeInfos(xs) => complete(xs)
     case RuntimeKindInfos(xs) => complete(xs)
     case xs: CreateRuntime => complete(xs)
+    case DeleteModel(x) => complete(s"deleted: $x")
     case e: SPErrorString => complete(e)
     case e: UpdateError => complete(e)
     case MissingID(id, model, mess) => complete(StatusCodes.NotFound, s"id: $id $mess")

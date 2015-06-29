@@ -34,8 +34,10 @@ class ModelHandler extends PersistentActor {
 
     case del: DeleteModel => {
       if (modelMap.contains(del.model)){
+        val reply = sender()
         persist(del){ d =>
           deleteModel(del)
+          reply ! del
         }
       }
       else sender ! SPError(s"Model ${del.model} does not exist.")
@@ -74,9 +76,7 @@ class ModelHandler extends PersistentActor {
 
   def deleteModel(del: DeleteModel) = {
     if (modelMap.contains(del.model)){
-      (modelMap(del.model) ? GetModelInfo).mapTo[ModelInfo].foreach(mi =>
-        println(s"The modelService deleted a model called ${mi.name} id: ${mi.model}")
-      )
+      println(del)
       modelMap(del.model) ! PoisonPill
       modelMap = modelMap - del.model
     }
