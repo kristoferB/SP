@@ -193,7 +193,7 @@ angular.module('spGuiApp')
   };
 
   factory.deleteModel = function(id) {
-    $http.delete(apiUrl + '/models/'+id).
+    $http.delete(API_URL + '/models/'+id).
       success(function(model) {
         notificationService.success('Model \"' + model + '\" was successfully deleted');
         delete factory.models[id]

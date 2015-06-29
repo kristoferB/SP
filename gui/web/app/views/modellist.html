@@ -10,7 +10,7 @@
             <td>{{model.model}}</td>
             <td>{{model.version}}</td>
             <td>{{model.attributes.time}}</td>
-            <td><a ng-click="delete(id, $event)" ng-show="checkID(id)"><span class="glyphicon glyphicon-trash" title="Delete selected"></span></a></td>
+            <td ng-click="delete(id, $event)"><a ng-show="checkID(id)"><span class="glyphicon glyphicon-trash" title="Delete selected"></span></a></td>
         </tr>
         </tbody>
     </table>
