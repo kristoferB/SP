@@ -40,7 +40,7 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
   import context.dispatcher
 
   def receive = {
-    case Request(service, attr) => {
+    case Request(service, attr, _) => {
 
       println(s"service: $service")
 
@@ -116,7 +116,7 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
           //          println("search ended")
 
           for {
-            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = List(SOPSpec(name = s"${name}_Result", sop = List(foundSeq), attributes = SPAttributes().addTimeStamp))))
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id,  items = List(SOPSpec(name = s"${name}_Result", sop = List(foundSeq), attributes = SPAttributes().addTimeStamp))))
           } yield {}
         }
       }

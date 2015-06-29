@@ -34,18 +34,16 @@ class ModelHandler extends PersistentActor {
         reply ! "OK"
       } else reply ! SPError("A model with that ID do already exist.")
 
-    case dm @ DeleteModel(id) =>
-      val reply = sender()
-      if (modelMap.contains(id)){
-        persist(dm){n =>
-          println(s"The modelService deletes the model with id: ${dm.model}")
-          deleteModel(n)
-          eventHandler ! ModelDeleted(EventTargets.ModelHandler, EventTypes.Deletion, dm.model)
+    case del: DeleteModel =>
+      if (modelMap.contains(del.model)){
+        val reply = sender()
+        persist(del){ d =>
+          deleteModel(del)
+          eventHandler ! ModelDeleted(EventTargets.ModelHandler, EventTypes.Deletion, del.model)
+          reply ! "OK"
         }
-        reply ! "OK"
-      } else {
-        reply ! SPError("There's no model with that ID")
       }
+      else sender ! SPError(s"Model ${del.model} does not exist.")
 
     case m: ModelMessage =>
       if (modelMap.contains(m.model)) modelMap(m.model) forward m
@@ -74,9 +72,13 @@ class ModelHandler extends PersistentActor {
     modelMap += cm.id -> newModelH
   }
 
-  def deleteModel(dm: DeleteModel) = {
-    context.stop(modelMap(dm.model))
-    modelMap -= dm.model
+  def deleteModel(del: DeleteModel) = {
+    if (modelMap.contains(del.model)){
+      println(del)
+      modelMap(del.model) ! PoisonPill
+      modelMap = modelMap - del.model
+    }
+    else sender ! SPError(s"Model ${del.model} does not exist.")
   }
 
   def viewNameMaker(id: ID, v: Long) = id.toString() + " - Version: " + v

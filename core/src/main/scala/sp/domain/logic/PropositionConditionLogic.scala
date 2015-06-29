@@ -4,7 +4,10 @@ import org.json4s._
 import sp.domain._
 import sp.domain.Logic._
 
-case object PropositionConditionLogic {
+
+case object PropositionConditionLogic extends PropositionConditionLogics
+
+trait PropositionConditionLogics {
 
   /**
    * Evaluate Propositions by calling eval(proposition, state)

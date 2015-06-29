@@ -37,8 +37,8 @@ class TestA(mh: ActorRef) extends Actor {
     val model = CreateModel(mid, "test")
     def receive = {
       case "createM" => mh ! model
-      case "newop" => mh ! UpdateIDs(mid, 1,  List(Operation("kalle")))
-      case "updateOp" => mh ! UpdateIDs(mid, 1,  List(Operation("hej")))
+      case "newop" => mh ! UpdateIDs(mid, List(Operation("kalle")))
+      case "updateOp" => mh ! UpdateIDs(mid, List(Operation("hej")))
       case "op1" => mh ! GetIds(mid, List(o1.id))
       case "ops" => mh ! GetOperations(mid)
       case "things" => mh ! GetThings(mid)
@@ -48,7 +48,7 @@ class TestA(mh: ActorRef) extends Actor {
         println(x)
         if (ids.exists(_.id == o1.id)) for{o <- ids.find(_.id == o1.id)} yield(o1 = o)
       }
-      case x @ ModelDiff(mid, ids, del, model, prevV, v, t) => println(x)
+      case x @ ModelDiff(mid, ids, del, info, model, prevV, v, t) => println(x)
       case x: Any => println(x)
     }
   }

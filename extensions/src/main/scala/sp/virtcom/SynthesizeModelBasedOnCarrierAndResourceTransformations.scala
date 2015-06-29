@@ -31,7 +31,7 @@ class SynthesizeModelBasedOnCarrierAndResourceTransformations(modelHandler: Acto
   import context.dispatcher
 
   def receive = {
-    case Request(service, attr) =>
+    case Request(service, attr, _) =>
 
       println(s"service: $service")
 
@@ -71,7 +71,7 @@ class SynthesizeModelBasedOnCarrierAndResourceTransformations(modelHandler: Acto
 
         //        //Update operations with conditions and change to Supremica syntax
         //        updatedOps = ops.map(o => ptmw.changeToSupremicaSyntaxAndAddSPCondition(o, optSupervisorGuards))
-        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = List()))
+        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, items = List(), info = SPAttributes("info"->"empty update")))
 
       } yield {
 

@@ -62,6 +62,11 @@ trait JsonLogics {
         if (id == None) println(s"ID: $idStr is not an ID. A new one is created!!!")
         id.getOrElse(ID.newID)
       }
+      case JObject(JField("id", JString(idStr)) :: Nil) => {
+        val id = ID.makeID(idStr)
+        if (id == None) println(s"ID: $idStr is not an ID. A new one is created!!!")
+        id.getOrElse(ID.newID)
+      }
     },
     {
       case x: ID =>
