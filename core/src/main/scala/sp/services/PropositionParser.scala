@@ -17,7 +17,7 @@ import sp.domain.Logic._
 class PropositionParserActor extends Actor {
 
   def receive = {
-    case Request(_, attr) => {
+    case Request(_, attr, _) => {
       extract(attr) match {
 
         case Some(res) => {

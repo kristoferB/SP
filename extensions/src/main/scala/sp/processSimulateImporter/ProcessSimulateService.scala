@@ -25,11 +25,11 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
 
   def addObjectFromJSON(json : String, modelid : ID) = {
     val idable = read[IDAble](json)
-    modelHandler ! UpdateIDs(modelid, 0, List(idable))
+    modelHandler ! UpdateIDs(modelid, List(idable))
 
   }
   def receive = {
-    case Request(_, attr) => {
+    case Request(_, attr, _) => {
       val reply = sender
       extract(attr) match {
         case Some(("createOp",model,params)) => {
@@ -86,7 +86,7 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
           result match {
             case CamelMessage(body,headers) => {
               val idables = read[List[IDAble]](body.toString)
-              modelHandler ! UpdateIDs(model, 0, idables)
+              modelHandler ! UpdateIDs(model, idables)
             }
           }
           reply ! "all ok"

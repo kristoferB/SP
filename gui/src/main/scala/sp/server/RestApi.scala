@@ -20,23 +20,52 @@ import ServerSideEventsDirectives._
 
 
 
+/**
+ * Started working on cleaning up the API 150605
+ * TODO: Move API to this trait
+ * TODO: Make some tests using spray testkit for routings
+ */
+trait RestAPI extends HttpService {
+  val modelHandler: ActorRef
+  val runtimeHandler: ActorRef
+  val serviceHandler: ActorRef
+  val userHandler: ActorRef
+  implicit val to: Timeout
 
-//// API classes
-//case class IDSaver(isa: String,
-//                   name: String,
-//                   attributes: Option[SPAttributes],
-//                   id: Option[ID],
-//                   version: Option[Long],
-//                   conditions: Option[List[Condition]],
-//                   sop: Option[List[SOP]])
+  // work in progress to change the structure
+  def api = {
+    initial{
+      get {
+        path("models"){ askModel(GetModels) } ~
+        path("models" / JavaUUID){ modelID => askModel(GetModelInfo(modelID))} ~
+        path("models" / JavaUUID / "items"){ modelID => askModel(GetIds(modelID, List()))} ~
+        path("models" / JavaUUID / "operations"){ modelID => askModel(GetOperations(modelID))} ~
+        path("models" / JavaUUID / "things"){ modelID => askModel(GetThings(modelID))} ~
+        path("models" / JavaUUID / "specs"){ modelID => askModel(GetSpecs(modelID))} ~
+        path("models" / JavaUUID / "results"){ modelID => askModel(GetResults(modelID))}
+//        path("models" / JavaUUID / Segment / JavaUUID ){ (modelID, id) =>
+//          askModel(GetIds(modelID, List(id)))
+//        }
+      }
+    }
+
+  }
 
 
+  def askModel(mess: SPMessage) = {
+    val f = modelHandler ? mess
+    complete("")
+  }
 
 
+  def initial(r: Route) = {
+    pathPrefix("api"){
+      /{complete("SP API")} ~ encodeResponse(Gzip) { r }
+    }
+  }
 
-
-
-
+  def / = pathEndOrSingleSlash
+}
 
 trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI {
   val modelHandler: ActorRef
@@ -125,7 +154,8 @@ trait ModelAPI extends SPApiHelpers {
       pathPrefix(JavaUUID) { model =>
         / {
           get { callSP(GetModelInfo(model)) } ~
-            post { updateModelInfo }
+          post { updateModelInfo } ~
+          delete {callSP(DeleteModel(model))}
         } ~
           pathPrefix(Segment){ typeOfItems =>
             IDHandler(model) ~
@@ -183,9 +213,9 @@ trait ModelAPI extends SPApiHelpers {
     } ~
       post {
         implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
-        entity(as[IDAble]) { xs => callSP(UpdateIDs(model, -1, List(xs))) } ~
+        entity(as[IDAble]) { xs => callSP(UpdateIDs(model, List(xs))) } ~
           entity(as[List[IDAble]]) { xs =>
-            callSP(UpdateIDs(model, -1, xs))
+            callSP(UpdateIDs(model, xs))
           }
       }
 
@@ -253,7 +283,7 @@ trait ServiceAPI extends SPApiHelpers {
 
   def serviceapi =
     /{ get { complete{
-      (serviceHandler ? GetServices).mapTo[List[String]]
+      (serviceHandler ? GetServices).mapTo[Services]
     }}} ~
       path(Segment / "import") { service =>
         post {
@@ -316,6 +346,7 @@ trait SPApiHelpers extends HttpService with Json4SSP {
     case RuntimeKindInfos(xs) => complete(xs)
     case cr: CreateRuntime => complete(cr)
     case e: SPErrorString => complete(StatusCodes.InternalServerError, e.error)
+    case DeleteModel(x) => complete(s"deleted: $x")
     case e: SPErrors => complete(StatusCodes.InternalServerError, e.errors)
     case e: UpdateError => complete(e)
     case MissingID(id, model, mess) => complete(StatusCodes.NotFound, s"id: $id $mess")

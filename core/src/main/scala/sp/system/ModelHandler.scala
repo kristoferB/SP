@@ -32,6 +32,17 @@ class ModelHandler extends PersistentActor {
       } else modelMap(id).tell(GetModels, reply)
     }
 
+    case del: DeleteModel => {
+      if (modelMap.contains(del.model)){
+        val reply = sender()
+        persist(del){ d =>
+          deleteModel(del)
+          reply ! del
+        }
+      }
+      else sender ! SPError(s"Model ${del.model} does not exist.")
+    }
+
     case m: ModelMessage => {
       if (modelMap.contains(m.model)) modelMap(m.model) forward m
       else sender ! SPError(s"Model ${m.model} does not exist.")
@@ -63,6 +74,15 @@ class ModelHandler extends PersistentActor {
     modelMap += cm.model -> newModelH
   }
 
+  def deleteModel(del: DeleteModel) = {
+    if (modelMap.contains(del.model)){
+      println(del)
+      modelMap(del.model) ! PoisonPill
+      modelMap = modelMap - del.model
+    }
+    else sender ! SPError(s"Model ${del.model} does not exist.")
+  }
+
   def viewNameMaker(id: ID, v: Long) = id.toString() + " - Version: " + v
 
   def receiveRecover = {
@@ -70,6 +90,9 @@ class ModelHandler extends PersistentActor {
       println(s"The modelService creates a new model called ${cm.name} id: ${cm.model}")
       val newModelH = context.actorOf(sp.models.ModelActor.props(cm.model))
       modelMap += cm.model -> newModelH
+    }
+    case del: DeleteModel => {
+      deleteModel(del)
     }
   }
 

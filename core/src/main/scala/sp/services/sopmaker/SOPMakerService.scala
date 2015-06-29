@@ -21,7 +21,7 @@ class SOPMakerService(modelHandler: ActorRef) extends Actor {
   val sopmakers = context.actorOf(SOPMaker.props)
 
   def receive = {
-    case Request(_, attr) => {
+    case Request(_, attr, _) => {
       val reply = sender
       extract(attr) match {
         case Some((model, opsID, relations, base)) => {

@@ -36,7 +36,7 @@ class ModelHandlerTest(_system: ActorSystem) extends TestKit(_system) with Impli
 
   override def beforeAll: Unit = {
     mh ! CreateModel(mid, "generalModel")
-    mh ! UpdateIDs(mid, 0, List(o))
+    mh ! UpdateIDs(mid, List(o))
   }
 
   override def afterAll {
@@ -57,7 +57,7 @@ class ModelHandlerTest(_system: ActorSystem) extends TestKit(_system) with Impli
       val o = Operation("hej")
       var count = 0
       fishForMessage(3 seconds) {
-        case m:ModelInfo => mh ! UpdateIDs(mid, 0, List(o)); false
+        case m:ModelInfo => mh ! UpdateIDs(mid, List(o)); false
         case SPIDs(ids) if count == 0 => mh ! GetIds(mid,List()); count +=1; false
         case SPIDs(ids) if count == 1 => ids shouldEqual List(o); true
       }

@@ -192,6 +192,17 @@ angular.module('spGuiApp')
       });
   };
 
+  factory.deleteModel = function(id) {
+    $http.delete(apiUrl + '/models/'+id).
+      success(function(model) {
+        notificationService.success('Model \"' + model + '\" was successfully deleted');
+        delete factory.models[id]
+      }).
+      error(function() {
+        notificationService.error('The model deletion failed.');
+      });
+  };
+
   function loadModels() {
     $http.get(API_URL + '/models').
       success(function(models) {

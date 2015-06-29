@@ -5,7 +5,13 @@
     <table class="table table-hover">
         <thead><tr><th>Name</th><th>ID</th><th>Version</th><th>Created</th></tr></thead>
         <tbody>
-        <tr ng-repeat="(id, model) in spTalker.models" ng-click="setActiveModel(model)"><td>{{model.name}}</td><td>{{model.model}}</td><td>{{model.version}}</td><td>{{model.attributes.time}}</td></tr>
+        <tr ng-repeat="(id, model) in spTalker.models" ng-click="setActiveModel(model)">
+            <td >{{model.name}}</td>
+            <td>{{model.model}}</td>
+            <td>{{model.version}}</td>
+            <td>{{model.attributes.time}}</td>
+            <td><a ng-click="delete(id, $event)" ng-show="checkID(id)"><span class="glyphicon glyphicon-trash" title="Delete selected"></span></a></td>
+        </tr>
         </tbody>
     </table>
 </div>

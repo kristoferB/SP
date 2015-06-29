@@ -53,9 +53,7 @@ angular.module('spGuiApp')
                 return;
               }
               scope.enabled = response.enabled;
-              response.state.forEach(function(state) {
-                scope.currentStates[state.id] = state.value;
-              });
+              scope.currentStates = response.state;
             }).
             error(function() {
               notificationService.error('The runtime state update failed.');
