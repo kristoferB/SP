@@ -1,7 +1,8 @@
 package sp.server
 
 import sp.domain._
-import spray.http.{AllOrigins, StatusCodes, HttpHeaders}
+import spray.http.HttpHeaders.RawHeader
+import spray.http._
 import spray.routing.PathMatchers.Segment
 import spray.routing._
 import spray.routing.authentication._
@@ -13,6 +14,10 @@ import akka.actor._
 import akka.pattern.ask
 import scala.concurrent.duration._
 import spray.httpx.encoding._
+
+import sp.opc.ServerSideEventsDirectives
+import ServerSideEventsDirectives._
+
 
 
 
@@ -48,18 +53,18 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
     }
   }
 
-  def myUserPassAuthenticator(userPass: Option[UserPass]): Future[Option[String]] =
+  /*def myUserPassAuthenticator(userPass: Option[UserPass]): Future[Option[String]] =
     Future {
       if (userPass.exists(up => up.user == "admin" && up.pass == "pass")) Some("John")
       else None
-    }
+    }*/
 
   // Handles AuthenticationRequiredRejection to omit the WWW-Authenticate header.
   // The omit prevents the browser login dialog to open when the Basic HTTP Authentication repsonds with code "401: Unauthorized".
-  implicit val myRejectionHandler = RejectionHandler {
+  /*implicit val myRejectionHandler = RejectionHandler {
     case AuthenticationFailedRejection(cause, challengeHeaders) :: _ =>
       complete(StatusCodes.Unauthorized, "Wrong username and/or password.")
-  }
+  }*/
 
   def returnUser(userName: String): UserDetails = {
     return UserDetails(22, userName)
@@ -210,7 +215,23 @@ trait RuntimeAPI extends SPApiHelpers {
           implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
           post{ entity(as[SPAttributes]) { attr =>
             callSP(SimpleMessage(rt, attr))}
+          }
+        } ~
+          path("stop") {
+            callSP(StopRuntime(rt), {
+              case xs: SPAttributes => complete(xs)
+            })
+          } ~
+          path("sse") {
+            respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
+                sse { (channel, lastEventID) =>
 
+                // Register a closed event handler
+                channel ! RegisterClosedHandler( () => println("Connection closed !!!") )
+
+                // Use the channel
+                runtimeHandler ! SubscribeToSSE(rt, channel, lastEventID)
+              }
           }
         }
       } ~
@@ -291,12 +312,14 @@ trait SPApiHelpers extends HttpService with Json4SSP {
     case a: SPAttributes => complete(a)
     case r: Result => complete(r)
     case item: IDAble => complete(item)
-    case  RuntimeInfos(xs) => complete(xs)
+    case RuntimeInfos(xs) => complete(xs)
     case RuntimeKindInfos(xs) => complete(xs)
-    case xs: CreateRuntime => complete(xs)
-    case e: SPErrorString => complete(e)
+    case cr: CreateRuntime => complete(cr)
+    case e: SPErrorString => complete(StatusCodes.InternalServerError, e.error)
+    case e: SPErrors => complete(StatusCodes.InternalServerError, e.errors)
     case e: UpdateError => complete(e)
     case MissingID(id, model, mess) => complete(StatusCodes.NotFound, s"id: $id $mess")
+    case r: sp.opc.RuntimeState => complete(r)
     case a: Any  => complete("reply from application is not converted: " +a.toString)
   }
 

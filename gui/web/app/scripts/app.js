@@ -70,14 +70,14 @@ angular
         redirectTo: '/'
       });
   })
-  .config(function ($httpProvider) {
+  /*.config(function ($httpProvider) {
     $httpProvider.interceptors.push([
       '$injector',
       function ($injector) {
         return $injector.get('AuthInterceptor');
       }
     ]);
-  })
+  })*/
   .config(['notificationServiceProvider', function(notificationServiceProvider) {
     notificationServiceProvider.setStack('bottom_right', 'stack-bottomright', {
       dir1: 'up',
@@ -113,6 +113,7 @@ angular
   .constant('NAME_PATTERN', /^[A-Za-z0-9_-][A-Za-z0-9_-]*$/)
   .constant('ITEM_KINDS', ['Operation', 'Thing', 'SOPSpec', 'SPObject'])
   .constant('SV_KINDS', ['domain', 'range', 'boolean'])
+  .constant('API_URL', '/api')
   .run(function($rootScope, $location) {
     $rootScope.location = $location;
   })

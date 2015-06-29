@@ -1,0 +1,24 @@
+<div class="modal-header">
+  <h3 class="modal-title">Choose OPC Server</h3>
+</div>
+<div class="modal-body">
+  <table class="table table-hover">
+    <thead><tr><th>Name</th><th>ID</th><th>IP</th><th>Port</th><th>Actions</th></tr></thead>
+    <tbody>
+      <tr ng-repeat="opc in spTalker.items | with: { isa: 'SPSpec' }" ng-click="chooseOPC(opc)">
+        <td>{{opc.name}}</td>
+        <td>{{opc.id}}</td>
+        <td>{{opc.attributes.ip}}</td>
+        <td>{{opc.attributes.port}}</td>
+        <td>
+          <button class="btn btn-default btn-xs" ng-click="editOPC(opc); $event.stopPropagation();"><span class="glyphicon glyphicon-edit"></span></button>
+          <button class="btn btn-default btn-xs" ng-click="spTalker.deleteItem(opc, true); $event.stopPropagation();"><span class="glyphicon glyphicon-trash"></span></button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" ng-click="newOPC()"><span class="glyphicon glyphicon-asterisk"></span> New OPC</button>
+  <button class="btn btn-default" ng-click="dismiss()"><span class="glyphicon glyphicon-remove"></span> Close</button>
+</div>

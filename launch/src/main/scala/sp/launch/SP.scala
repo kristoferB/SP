@@ -1,5 +1,6 @@
 package sp.launch
 
+import sp.opc.PLCRuntime
 import sp.services.{PropositionParserActor}
 import sp.system.messages._
 import sp.domain._
@@ -17,8 +18,12 @@ object SP extends App {
 
   // Register Runtimes here
   runtimeHandler ! RegisterRuntimeKind("SimulationRuntime",
-    sp.runtimes.SimulationRuntime.props,
-  SPAttributes("info"->"en liten runtime"))
+  sp.runtimes.SimulationRuntime.props,
+  SPAttributes("info"-> "Simulate system behavior by executing operations"))
+
+  runtimeHandler ! RegisterRuntimeKind("PLCRuntime",
+    PLCRuntime.props,
+    SPAttributes("info"-> "Show status of and control a PLC"))
 
 
   // Register services here
