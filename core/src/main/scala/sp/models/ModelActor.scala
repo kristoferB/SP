@@ -180,10 +180,11 @@ trait ModelActorState  {
     val upd = ids filter(!state.items.contains(_))
     if (upd.isEmpty) Left(SPError("No changes identified"))
     else {
+      val updInfo = if (info.obj.isEmpty) SPAttributes("info"->s"updated: ${ids.map(_.name).mkString(",")}") else info
       Right(ModelDiff(model,
         upd,
         List(),
-        info,
+        updInfo,
         state.version,
         state.version + 1,
         state.name,
@@ -197,7 +198,8 @@ trait ModelActorState  {
     val del = (state.idMap filter( kv =>  delete.contains(kv._1))).values
     if (delete.nonEmpty && del.isEmpty) Left(UpdateError(state.version, delete.toList))
     else {
-      Right(ModelDiff(model, upd, del.toList, info, state.version,state.version + 1, state.name, modelAttr.addTimeStamp))
+      val updInfo = if (info.obj.isEmpty) SPAttributes("info"->s"deleted: ${del.map(_.name).mkString(",")}") else info
+      Right(ModelDiff(model, upd, del.toList, updInfo, state.version,state.version + 1, state.name, modelAttr.addTimeStamp))
     }
   }
 
