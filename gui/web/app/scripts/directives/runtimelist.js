@@ -42,7 +42,6 @@ angular.module('spGuiApp')
               name: kind + Math.floor(Math.random()*1000)
             }})
             .success(function(runtime) {
-              console.log(runtime);
               scope.runtimes.push(runtime);
               notificationService.success('A new runtime \"' + runtime.name + '\" was successfully created');
             })

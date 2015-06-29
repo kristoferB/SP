@@ -101,7 +101,7 @@ class PLCRuntime(about: CreateRuntime) extends Actor {
       }
     case os: OpState => sendEvent(write(os), "NewOpState")
     case vs: VarState => sendEvent(write(vs), "NewVarState")
-    case oe: OPCError => sendEvent(write(oe), "Error")
+    case oe: OPCError => for(error <- oe.e) sendEvent(write(error), "Error")
     case e: SPErrorString => sendEvent(e.error, "Error")
     case StatusCodes.OK =>
     case e @ _ =>
