@@ -75,7 +75,7 @@ module.exports = function (grunt) {
     connect: {
       options: {
         protocol:'http',
-        port: 8080,
+        port: 8443,
         //key: grunt.file.read('resources/livereload.key'),
         //cert: grunt.file.read('resources/livereload.crt'),
         // Change this to '0.0.0.0' to access the server from outside.
@@ -85,7 +85,7 @@ module.exports = function (grunt) {
       },
       proxies: [{
         context: '/api', // the context of the data service
-        host: '0.0.0.0', // wherever the data service is running
+        host: 'localhost', // wherever the data service is running
         https:false,
         port: 8030 // the port that the data service is running on
       }],
