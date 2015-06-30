@@ -27,7 +27,10 @@ class SPSettings(system: ExtendedActorSystem) extends Extension {
    */
   val port: Int = system.settings.config getInt "sp.port"
 
-  val webfolder: String = system.settings.config getString "sp.webfolder"
+  val webFolder: String = system.settings.config getString "sp.webFolder"
+  val devFolder: String = system.settings.config getString "sp.devFolder"
+  val buildFolder: String = system.settings.config getString "sp.buildFolder"
+  val devMode: Boolean = system.settings.config getBoolean "sp.devMode"
 
 
 }
