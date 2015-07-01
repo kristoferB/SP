@@ -10,33 +10,26 @@
     function DashboardController($q, dataservice, logger) {
         var vm = this;
         vm.news = {
-            title: 'helloWorld',
-            description: 'Hot Towel Angular is a SPA template for Angular developers.'
+            title: 'Sequence Planner',
+            description: 'Create a model and apply algorithms to it.'
         };
         vm.messageCount = 0;
-        vm.people = [];
+        vm.models = [];
         vm.title = 'Dashboard';
 
-        //activate();
+        activate();
 
         function activate() {
-            var promises = [getMessageCount(), getPeople()];
+            var promises = [getModels()];
             return $q.all(promises).then(function() {
                 logger.info('Activated Dashboard View');
             });
         }
 
-        function getMessageCount() {
-            return dataservice.getMessageCount().then(function (data) {
-                vm.messageCount = data;
-                return vm.messageCount;
-            });
-        }
-
-        function getPeople() {
-            return dataservice.getPeople().then(function (data) {
-                vm.people = data;
-                return vm.people;
+        function getModels() {
+            return dataservice.getModels().then(function (data) {
+                vm.models = data;
+                return vm.models;
             });
         }
     }

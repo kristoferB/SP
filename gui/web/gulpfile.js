@@ -7,7 +7,8 @@ var gulp = require('gulp');
 var path = require('path');
 var _ = require('lodash');
 var $ = require('gulp-load-plugins')({lazy: true});
-var proxyMiddleware = require('http-proxy-middleware');
+var proxy = require('proxy-middleware');
+var url = require('url');
 
 var colors = $.util.colors;
 var envenv = $.util.env;
@@ -498,8 +499,19 @@ function startBrowserSync(isDev, specRunner) {
             .on('change', changeEvent);
     }
 
+    // the base url where to forward the requests
+    var proxyOptions = url.parse('http://localhost:' + port + '/api');
+    // Which route browserSync should forward to the gateway
+    proxyOptions.route = '/api';
+
     var options = {
-        proxy: 'localhost:' + port,
+        proxy: {
+            target: 'http://localhost:' + port,
+            middleware: [
+                // proxy /api requests to api gateway
+                proxy(proxyOptions)
+            ]
+        },
         port: 3000,
         files: isDev ? [
             config.client + '**/*.*',

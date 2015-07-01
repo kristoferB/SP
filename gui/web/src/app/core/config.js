@@ -13,8 +13,8 @@
     }
 
     var config = {
-        appErrorPrefix: '[helloWorld Error] ',
-        appTitle: 'helloWorld'
+        appErrorPrefix: '[Sequence Planner Error] ',
+        appTitle: 'Sequence Planner'
     };
 
     core.value('config', config);
