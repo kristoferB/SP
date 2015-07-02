@@ -20,11 +20,11 @@ object LaunchGUI {//extends MySslConfiguration {
     IO(Http) ! Http.Bind(service, interface, port)
 
     println(s"Server started ${system.name}, $interface:$port")
-    println("Type `exit` to exit....")
 
-  scala.io.StdIn.readLine match {
+  scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
     case x => system.terminate()
   }
+
 
 
   }

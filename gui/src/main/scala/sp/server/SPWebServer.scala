@@ -2,7 +2,6 @@ package sp.server
 
 import akka.actor._
 import spray.routing._
-import sp.domain.Logic._
 
 /**
  * Created by Kristofer on 2014-06-19.
@@ -14,13 +13,17 @@ class SPWebServer extends Actor with SPRoute {
   override val userHandler : ActorRef= sp.system.SPActorSystem.userHandler
 
   def actorRefFactory = context
-  def receive = runRoute(api ~ staticRoute)
+  def receive = runRoute(api)
   import sp.system._
 
+  val baseDir = "./gui/webapp"
+
   def staticRoute: Route = {
-    //path("")(getFromResource("webapp/index.html")) ~ getFromResourceDirectory("webapp")
-    path("")(getFromFile(s"${SPActorSystem.settings.webfolder}/index.html")) ~ getFromDirectory(SPActorSystem.settings.webfolder)
+    path("") {
+      getFromFile(baseDir + "/index.html")
+    } ~ {
+      getFromDirectory(baseDir)
+    }
   }
+
 }
-
-

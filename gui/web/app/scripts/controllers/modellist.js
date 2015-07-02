@@ -24,6 +24,14 @@
     $scope.dismiss = function () {
       $modalInstance.dismiss('cancel');
     };
+    $scope.delete = function (id, event) {
+      spTalker.deleteModel(id);
+      event.stopPropagation();
+    };
+    $scope.checkID = function (id) {
+      return spTalker.activeModel.model != id;
+    };
+
 
     $scope.setActiveModel = function (chosenModel) {
       spTalker.activeModel = chosenModel;

@@ -56,12 +56,7 @@
             </ul>
           </li>
 
-          <li class="btn-group" dropdown is-open="status.runtimeisopen">
-            <a class="dropdown-toggle"><span class="glyphicon glyphicon-play"></span> Runtimes <span class="caret"></span></a>
-            <ul class="dropdown-menu" role="menu">
-              <li><a x-name="option" role="menuitem" tabindex="-1" ng-click="tabSvc.newWindow('simulationRuntime')"><span class="glyphicon glyphicon-facetime-video"></span> simulationRuntime</a></li>
-            </ul>
-          </li>
+          <li><a ng-click="tabSvc.newWindow('runtimeList')"><span class="glyphicon glyphicon-play"></span> Runtimes </a></li>
 
         </ul>
       </div><!--/.nav-collapse -->

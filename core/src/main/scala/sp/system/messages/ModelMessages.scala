@@ -31,10 +31,11 @@ case class GetDiff(model: ID, version: Long) extends ModelQuery
 case class GetDiffFrom(model: ID, version: Long) extends ModelQuery
 case class GetModelInfo(model: ID) extends ModelQuery
 
-case class UpdateIDs(model: ID, modelVersion: Long, items: List[IDAble]) extends ModelUpdate
+case class UpdateIDs(model: ID, items: List[IDAble], info: SPAttributes = SPAttributes()) extends ModelUpdate
 case class UpdateModelInfo(model: ID, info: ModelInfo) extends ModelUpdate
-case class DeleteIDs(model: ID, items: List[ID]) extends ModelUpdate
+case class DeleteIDs(model: ID, items: List[ID], info: SPAttributes = SPAttributes()) extends ModelUpdate
 case class Revert(model: ID, toVersion: Long) extends ModelUpdate
+case class DeleteModel(model: ID) extends ModelUpdate
 
 
 // API output
@@ -44,10 +45,11 @@ case class SPIDs(items: List[IDAble]) extends SPMessage
 case class ModelDiff(model: ID,
                      updatedItems: List[IDAble],
                      deletedItems: List[IDAble],
+                     diffInfo: SPAttributes,
                      fromVersion: Long,
-                     currentVersion: Long,
+                     version: Long,
                      name: String,
-                     attributes: SPAttributes = SPAttributes().addTimeStamp
+                     modelAttr: SPAttributes = SPAttributes().addTimeStamp
                    ) extends SPMessage
 case class ModelInfos(models: List[ModelInfo])
 case class ModelInfo(model: ID, name: String, version: Long, attributes: SPAttributes)

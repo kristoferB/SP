@@ -90,6 +90,20 @@ trait AttributeLogics {
       } yield t
     }
 
+    def findObjects(f: List[JField] => Boolean) = {
+      val t = x.filter {
+        case JObject(xs) => f(xs)
+        case _ => false
+      }
+      t.asInstanceOf[List[SPAttributes]]
+    }
+    def findObjectsAs[T](f: List[JField] => Boolean)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = {
+      for {
+        value <- findObjects(f)
+        t <- tryWithOption(value.extract[T])
+      } yield t
+    }
+
     def findObjectsWithKeys(keys: List[String]) = {
       x.filterField {
         case JField(key, JObject(xs)) => {

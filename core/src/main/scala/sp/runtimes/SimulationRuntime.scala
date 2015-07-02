@@ -19,9 +19,8 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
   import sp.domain.Logic._
   private implicit val to = Timeout(20 seconds)
   import context.dispatcher
-
-
   import sp.system.SPActorSystem._
+
   def receive = {
     case SimpleMessage(_, attr) => {
       val reply = sender
@@ -44,17 +43,21 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
         } yield {
           import sp.domain.Logic._
 
-
           val stateVars = things.map(sv => sv.id -> sv.inDomain).toMap ++ createOpsStateVars(ops)
           implicit val props = EvaluateProp(stateVars, Set(), ThreeStateDefinition)
 
           val newState = (for {
             id <- attr.getAs[ID]("execute")
             o <- ops.find(_.id == id)
-          } yield o next state) getOrElse(state)
+          } yield {
+              println(s"execute $o")
+              println(s"state: $state")
+              println(s"next state ${o next state}")
+              o next state
+            }) getOrElse(state)
 
           val enabled = ops.filter(o => o.eval(newState))
-          println(s"Enabled operations: $enabled")
+          //println(s"Enabled operations: $enabled")
 
 
           val result = SPAttributes(

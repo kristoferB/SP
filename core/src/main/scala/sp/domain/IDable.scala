@@ -29,6 +29,7 @@ case class ID(value: UUID){
   override def toString() = value.toString
 }
 
+
 object ID {
   implicit def uuidToID(id: UUID) = ID(id)
   implicit def idToUUID(id: ID) = id.value

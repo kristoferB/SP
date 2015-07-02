@@ -48,8 +48,18 @@ class RunTimeHandler extends Actor {
       } else reply ! RuntimeInfos(List[CreateRuntime]())
     }
     case m: RuntimeMessage => {
-      if (runMap.contains(m.runtime)) runMap(m.runtime) forward m
+      if (runMap.contains(m.runtime)) {
+        runMap(m.runtime) forward m
+      }
       else sender ! SPError(s"Runtime ${m.runtime} does not exist.")
+    }
+    case s: StopRuntime => {
+      if (runMap.contains(s.name)) {
+        context.stop(runMap(s.name))
+        runMap -= s.name
+        sender ! "OK"
+      }
+      else sender ! SPError(s"Runtime ${s.name} does not exist.")
     }
 
 

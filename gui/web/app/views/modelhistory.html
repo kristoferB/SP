@@ -14,6 +14,7 @@
             <button class="btn btn-xs btn-default" ng-click="revert(version.no)" ng-if="!$first" title="Revert"><span class="glyphicon glyphicon-backward"></span></button>
             <i ng-if="$first">Active</i>
           </td>
+          <td>{{version.diff.diffInfo.info}}</td>
         </tr>
 
         <tr ng-repeat-end ng-class-odd="'odd-row'" ng-class-even="'even-row'">

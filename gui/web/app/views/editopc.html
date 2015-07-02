@@ -1,0 +1,20 @@
+<div class="modal-header">
+    <h3 class="modal-title">Edit OPC</h3>
+</div>
+<form name="opcform" novalidate>
+<div class="modal-body">
+    Name: <input name="name" type="text" class="form-control" ng-model="opc.name" auto-focus required="" />
+    <span class="error" ng-show="(opcform.$submitted || opcform.name.$dirty) && opcform.name.$error.required">You have to choose a name.<br /></span>
+    <span class="error" ng-show="opcform.name.$error.maxlength">Not too long, please.<br /></span>
+    IP: <input name="ip" ng-model="opc.attributes.ip" type="text" class="form-control" required="" />
+    <span class="error" ng-show="(opcform.$submitted || opcform.ip.$dirty) && opcform.ip.$error.required">You have to specify an IP address.<br /></span>
+    Port: <input name="port" ng-model="opc.attributes.port" type="number" min="1" max="65000" class="form-control" required="" />
+    <span class="error" ng-show="(opcform.$submitted || opcform.port.$dirty) && opcform.port.$error.required">You have to specify a port.<br /></span>
+    <span class="error" ng-show="opcform.port.$error.number">Not a valid number.<br /></span>
+    Tag Prefix: <input name="prefix" ng-model="opc.attributes.prefix" type="text" class="form-control" />
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" type="submit" ng-disabled="opcform.$pristine" ng-click="opcform.$valid && saveOPC()"><span class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+    <button class="btn btn-default" ng-click="dismiss()"><span class="glyphicon glyphicon-remove"></span> Close</button>
+</div>
+</form>

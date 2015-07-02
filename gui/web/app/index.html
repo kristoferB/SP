@@ -8,12 +8,12 @@
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <!-- build:css styles/vendor.css -->
     <!-- bower:css -->
-    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="bower_components/angular-gantt/assets/gantt.css" />
     <link rel="stylesheet" href="bower_components/pnotify/pnotify.core.css" />
     <link rel="stylesheet" href="bower_components/pnotify/pnotify.buttons.css" />
     <link rel="stylesheet" href="bower_components/pnotify/pnotify.history.css" />
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="bower_components/ng-grid/ng-grid.css" />
-    <link rel="stylesheet" href="bower_components/angular-gantt/assets/gantt.css" />
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css(.tmp) styles/main.css -->
@@ -73,19 +73,15 @@
     <!-- build:js scripts/vendor.js -->
     <!-- bower:js -->
     <script src="bower_components/jquery/dist/jquery.js"></script>
-    <script src="bower_components/ng-file-upload-shim/angular-file-upload-shim.js"></script>
     <script src="bower_components/angular/angular.js"></script>
-    <script src="bower_components/json3/lib/json3.js"></script>
-    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
     <script src="bower_components/angular-resource/angular-resource.js"></script>
     <script src="bower_components/angular-cookies/angular-cookies.js"></script>
     <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
     <script src="bower_components/angular-animate/angular-animate.js"></script>
     <script src="bower_components/angular-touch/angular-touch.js"></script>
     <script src="bower_components/angular-route/angular-route.js"></script>
-    <script src="bower_components/raphael/raphael.js"></script>
-    <script src="bower_components/jquery-ui/jquery-ui.js"></script>
-    <script src="bower_components/angular-ui-sortable/sortable.js"></script>
+    <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+    <script src="bower_components/angular-gantt/assets/angular-gantt.js"></script>
     <script src="bower_components/pnotify/pnotify.core.js"></script>
     <script src="bower_components/pnotify/pnotify.buttons.js"></script>
     <script src="bower_components/pnotify/pnotify.callbacks.js"></script>
@@ -94,13 +90,17 @@
     <script src="bower_components/pnotify/pnotify.history.js"></script>
     <script src="bower_components/pnotify/pnotify.nonblock.js"></script>
     <script src="bower_components/angular-pnotify/src/angular-pnotify.js"></script>
-    <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+    <script src="bower_components/jquery-ui/jquery-ui.js"></script>
+    <script src="bower_components/angular-ui-sortable/sortable.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="bower_components/bootstrap-contextmenu/bootstrap-contextmenu.js"></script>
+    <script src="bower_components/json3/lib/json3.js"></script>
+    <script src="bower_components/ng-file-upload/angular-file-upload.js"></script>
+    <script src="bower_components/ng-file-upload-shim/angular-file-upload-shim.js"></script>
     <script src="bower_components/ng-grid/build/ng-grid.js"></script>
     <script src="bower_components/ng-textcomplete/ng-textcomplete.js"></script>
-    <script src="bower_components/bootstrap-contextmenu/bootstrap-contextmenu.js"></script>
+    <script src="bower_components/raphael/raphael.js"></script>
     <script src="bower_components/underscore/underscore.js"></script>
-    <script src="bower_components/ng-file-upload/angular-file-upload.js"></script>
-    <script src="bower_components/angular-gantt/assets/angular-gantt.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 
@@ -153,6 +153,12 @@
         <script src="scripts/directives/simulationruntime.js"></script>
         <script src="scripts/controllers/serviceMeny.js"></script>
         <script src="scripts/directives/processsimulate.js"></script>
+        <script src="scripts/directives/plcruntime.js"></script>
+        <script src="scripts/directives/runtimelist.js"></script>
+        <script src="scripts/controllers/chooseopc.js"></script>
+        <script src="scripts/controllers/editopc.js"></script>
+        <script src="scripts/controllers/opctagedit.js"></script>
+        <script src="scripts/directives/operation.js"></script>
         <!-- endbuild -->
 </body>
 </html>

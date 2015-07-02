@@ -1,0 +1,126 @@
+<div class="header">
+  <div class="btn-toolbar" role="toolbar">
+    <div class="btn-group">
+      <button class="btn btn-default" ng-disabled="true" title="Runtime status">
+        <span style="color: red" ng-show="!runtimeExists">TERMINATED</span>
+        <span style="color: greenyellow" ng-show="runtimeExists">EXISTS</span>
+      </button>
+      <button class="btn btn-default" ng-disabled="true" title="SSE channel status">
+        <span style="color: greenyellow" ng-show="sseOpen">OPEN</span>
+        <span style="color: red" ng-show="!sseOpen">SSE CLOSED</span>
+      </button>
+      <button class="btn btn-default" ng-click="chooseOPCModal()" ng-disabled="!runtimeExists" title="Choose OPC"><span class="glyphicon glyphicon-hdd"></span> {{chosenOPCText()}}</button>
+      <button class="btn btn-default" ng-click="editTags()" ng-disabled="!opcSpec" title="Edit OPC Tags"><span class="glyphicon glyphicon-tags"></span></button>
+      <button class="btn btn-default" ng-click="connect()" ng-disabled="!runtimeExists || !opcSpec || connected" title="Connect to OPC"><span class="glyphicon glyphicon-arrow-up"></span></button>
+      <button class="btn btn-default" ng-click="disconnect()" ng-disabled="!runtimeExists || !connected" title="Disconnect from OPC"><span class="glyphicon glyphicon-arrow-down"></span></button>
+      <button class="btn btn-default" ng-disabled="true" title="OPC connection status">
+        <span style="color: red" ng-show="!connected && !connecting">DISCONNECTED</span>
+        <span ng-show="connecting">CONNECTING...</span>
+        <span style="color: greenyellow" ng-show="connected && !disconnecting">CONNECTED</span>
+        <span ng-show="disconnecting">DISCONNECTING...</span>
+      </button>
+    </div> <!-- end of btn-group -->
+  </div> <!-- end of toolbar -->
+</div> <!-- end of header -->
+
+<div class="content plc-runtime">
+  <div class="content-wrapper">
+    <div class="col-md-12">
+
+      <tabset>
+        <tab>
+          <tab-heading>Execution Mode</tab-heading>
+          <h5>Executing Operations</h5>
+          <div class="op-area clearfix">
+            <operation ng-repeat="opState in opStates | filter:executing" ng-click="toggleOp(opState)" op-state="opState" toggle-op="toggleOp"></operation>
+          </div>
+          <h5>Executable Operations</h5>
+          <div class="op-area clearfix">
+            <operation ng-repeat="opState in opStates | filter:executable" ng-click="toggleOp(opState)" op-state="opState" toggle-op="toggleOp"></operation>
+          </div>
+        </tab>
+        <tab>
+          <tab-heading>All Operations</tab-heading>
+          <form class="inline-form" style="margin-top: 10px;">
+            <label>Name: <input class="form-control input-sm" type="text" ng-model="opSearch.name"></label>
+            <label>State:
+              <select class="form-control input-sm" ng-model="opSearch.state" convert-to-number>
+                <option value="">Any</option>
+                <option value="0">Initial</option>
+                <option value="1">Executing</option>
+                <option value="2">Finished</option>
+              </select>
+            </label>
+            <label>preTrue:
+              <select class="form-control input-sm" ng-model="opSearch.preTrue">
+                <option value="">Any</option>
+                <option value="true">True</option>
+                <option value="false">False</option>
+              </select>
+            </label>
+            <label>Order by:
+              <select class="form-control input-sm" ng-model="opSortOrder">
+                <option value="name">Name</option>
+                <option value="state">State</option>
+                <option value="preTrue">preTrue</option>
+              </select>
+            </label>
+            <label>Asc/Desc:
+              <select class="form-control input-sm" ng-model="opReverse" ng-options="option.value as option.label for option in reverseOptions"></select>
+            </label>
+          </form>
+          <div class="op-area clearfix">
+            <operation ng-repeat="opState in opStates | filter:opSearch | orderBy:opSortOrder:opReverse" ng-click="toggleOp(opState)" op-state="opState" toggle-op="toggleOp"></operation>
+          </div>
+        </tab>
+        <tab>
+          <tab-heading>All Variables</tab-heading>
+          <form class="inline-form" style="margin-top: 10px;">
+            <label>Name: <input class="form-control input-sm" type="text" ng-model="varSearch.name"></label>
+            <label>Kind:
+              <select class="form-control input-sm" ng-model="varSearch.kind">
+                <option value="">Any</option>
+                <option value="boolean">Boolean</option>
+                <option value="domain">Domain</option>
+                <option value="range">Range</option>
+              </select>
+            </label>
+            <label>Value: <input class="form-control input-sm" type="text" ng-model="varSearch.value"></label>
+            <label>Order by:
+              <select class="form-control input-sm" ng-model="varSortOrder">
+                <option value="name">Name</option>
+                <option value="kind">Kind</option>
+              </select>
+            </label>
+            <label>Asc/Desc:
+              <select class="form-control input-sm" ng-model="varReverse" ng-options="option.value as option.label for option in reverseOptions"></select>
+            </label>
+            <button class="btn btn-default btn-sm" type="button" ng-click="expandAll = !expandAll;">{{ expandAll ? 'Collapse All' : 'Expand All' }}</button>
+          </form>
+          <div class="var-area clearfix">
+            <div class="variable clearfix" ng-repeat="varState in varStates | filter:varSearch | orderBy:varSortOrder:varReverse" ng-init="expand = false;" ng-class="{ 'expand': (expand || expandAll) && kind !== 'range',  'expand-range': (expand || expandAll) && varState.kind === 'range' }">
+              <div class="var-left" ng-click="expand = !expand" >{{ varState.name }}</div>
+              <div class="var-right clearfix" ng-switch on="varState.kind">
+                <div ng-switch-when="boolean" class="bool" ng-class="{ 'var-false': varState.value === false }"></div>
+                <div ng-switch-when="boolean" class="bool" ng-class="{ 'var-true': varState.value === true }"></div>
+                <span ng-switch-when="domain">{{ stateDescription(varState) }}</span>
+                <span ng-switch-when="range">{{ varState.value }}</span>
+              </div>
+              <form class="form-inline" name="form" ng-if="expand === true || expandAll === true" ng-init="model = { value: varState.value };" novalidate>
+                <select ng-if="varState.kind === 'domain'" name="domain" class="form-control input-sm"  ng-model="model.value" ng-options="parseInt(index) as value for (index, value) in domain(varState.id)" required></select>
+                <input ng-if="varState.kind === 'range'" name="number" class="form-control input-sm" type="number" ng-model="model.value" min="{{rangeStart(varState.id)}}" max="{{rangeEnd(varState.id)}}" step="{{rangeStep(varState.id)}}" />
+                <button ng-if="varState.kind !== 'boolean'" class="btn btn-default btn-xs" ng-click="form.$valid && writeVar(varState.id, model.value)">Force</button>
+                <button ng-if="varState.kind === 'boolean'" class="btn btn-default btn-xs" ng-click="form.$valid && writeVar(varState.id, !varState.value)">Force {{!varState.value}}</button><br />
+                <span class="error" ng-show="form.number.$error.min">Must not be lower than {{rangeStart(varState.id)}}<br /></span>
+                <span class="error" ng-show="form.number.$error.max">Must not be higher than {{rangeEnd(varState.id)}}<br /></span>
+              </form>
+            </div>
+          </div>
+        </tab>
+      </tabset>
+
+
+    </div>
+  </div> <!-- end of content-wrapper -->
+
+</div> <!-- end of content -->

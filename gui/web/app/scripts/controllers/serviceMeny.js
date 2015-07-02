@@ -20,7 +20,7 @@ angular.module('spGuiApp')
 
     function getServices() {
       $http.get('api/services').success(function(dataFromServer)  {
-        $scope.services = dataFromServer;
+        $scope.services = dataFromServer.list;
       }).error(function(dataFromServer) {
         notificationService.error('Services could not be loaded. \n' + dataFromServer);
       });
