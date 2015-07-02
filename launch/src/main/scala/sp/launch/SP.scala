@@ -66,11 +66,11 @@ object SP extends App {
   serviceHandler ! RegisterService("CreateOpsFromManualModel",
     system.actorOf(CreateOpsFromManualModelService.props(modelHandler), "CreateOpsFromManualModel"))
 
-  serviceHandler ! RegisterService("SynthesizeModel-prePostGuardsActionsInAttributes",
-    system.actorOf(SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsService.props(modelHandler), "SynthesizeModel-prePostGuardsActionsInAttributes"))
+  serviceHandler ! RegisterService("SynthesizeModel-Attributes",
+    system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler), "SynthesizeModel-Attributes"))
 
-  serviceHandler ! RegisterService("SynthesizeModel-carrierAndResoruceTrans",
-    system.actorOf(SynthesizeModelBasedOnCarrierAndResourceTransformations.props(modelHandler), "SynthesizeModel-carrierAndResoruceTrans"))
+  serviceHandler ! RegisterService("ExtendIDablesBasedOnTheirAttributes",
+    system.actorOf(ExtendIDablesBasedOnTheirAttributes.props(modelHandler), "ExtendIDablesBasedOnTheirAttributes"))
 
   serviceHandler ! RegisterService("CreateInstanceModelFromTypeModel",
     system.actorOf(CreateInstanceModelFromTypeModelService.props(modelHandler), "CreateInstanceModelFromTypeModel"))

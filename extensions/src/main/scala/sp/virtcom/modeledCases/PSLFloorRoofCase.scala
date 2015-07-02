@@ -24,7 +24,7 @@ case class PSLFloorRoofCase() extends CollectorModel {
   op("addFloor", c("vOutside", "idle", "addingFloor", "idle"))
 
   op("gripFloor_KUKA", c("vPalletFloor_car", "floor", "empty"))
-  op("gripFloor_KUKA", c("vKUKA_pos", "atPallet", "atPalletWorking", "atPallet"), attributes = SPAttributes("simop" -> "op34"))
+  op("gripFloor_KUKA", c("vKUKA_pos", "atPallet", "atPalletWorking", "atPallet"))
   op("gripFloor_KUKA", c("vKUKA_car", "empty", "floor"))
 
   op("fixateFloor_KUKA", c("vKUKA_pos", "atFixture", "atFixtureWorking", "atFixture"))

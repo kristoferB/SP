@@ -26,7 +26,7 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
 
           println(s"Name: $name")
 
-          val idables = read[List[IDAble]](file)
+          lazy val idables = read[List[IDAble]](file)
 
           for {
           //Creates a model and updates the model with "idables" parsed from the given json file
@@ -37,8 +37,8 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
 
             //Update the operations in the model with "conditions" connected to the parsed "idables"
             SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
-            opsWithConditionsAdded = opsToBe.map(_.asInstanceOf[Operation]).flatMap(op => PropositionConditionLogic.parseAttributesToPropositionCondition(op, idables))
-            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = opsWithConditionsAdded))
+            ops = opsToBe.map(_.asInstanceOf[Operation])
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = ops))
 
           } yield {
             println(s"MADE IT: $modelInfo")
