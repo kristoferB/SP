@@ -15,13 +15,12 @@ import scala.concurrent.duration._
  * "name" -> "Kristofer",
  * "operation" -> {"id" -> ID(UUID)}
  */
-class SimulationRuntime(about: CreateRuntime) extends Actor {
+class SimulationRuntime(about: RuntimeInfo) extends Actor {
   import sp.domain.Logic._
   private implicit val to = Timeout(20 seconds)
   import context.dispatcher
-
-
   import sp.system.SPActorSystem._
+
   def receive = {
     case SimpleMessage(_, attr) => {
       val reply = sender
@@ -43,7 +42,6 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
           things <- thingsF
         } yield {
           import sp.domain.Logic._
-
 
           val stateVars = things.map(sv => sv.id -> sv.inDomain).toMap ++ createOpsStateVars(ops)
           implicit val props = EvaluateProp(stateVars, Set(), ThreeStateDefinition)
@@ -86,7 +84,7 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
       // load things from the model here.
       // If needed return cr after load is complete
       println(cr)
-      sender ! cr
+      sender ! about
     }
     case GetRuntimes => {
       sender ! about
@@ -147,5 +145,5 @@ class SimulationRuntime(about: CreateRuntime) extends Actor {
 }
 
 object SimulationRuntime {
-  def props(cr: CreateRuntime) = Props(classOf[SimulationRuntime], cr)
+  def props(cr: RuntimeInfo) = Props(classOf[SimulationRuntime], cr)
 }

@@ -10,7 +10,9 @@ object Logic extends
   StateLogics with
   JsonLogics with
   OperationLogics with
-  ThingLogics {
+  ThingLogics with
+  PropositionConditionLogics {
 
   implicit val formats = jsonFormats
+
 }

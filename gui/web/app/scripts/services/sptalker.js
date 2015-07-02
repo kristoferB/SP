@@ -8,9 +8,8 @@
  * Factory in the spGuiApp.
  */
 angular.module('spGuiApp')
-.factory('spTalker', ['$rootScope', '$resource', '$http', 'notificationService', '$timeout', function ($rootScope, $resource, $http, notificationService, $timeout) {
-  var apiUrl = '/api',
-    factory = {
+.factory('spTalker', ['$rootScope', '$resource', '$http', 'notificationService', '$timeout', 'API_URL', function ($rootScope, $resource, $http, notificationService, $timeout, API_URL) {
+    var factory = {
       activeModel: {},
       models: {},
       users: [],
@@ -25,7 +24,7 @@ angular.module('spGuiApp')
   factory.createRuntime = function() {
     return $http({
       method: 'POST',
-      url: apiUrl + '/runtimes',
+      url: API_URL + '/runtimes',
       data: {
         kind: 'SimulationRuntime',
         model: factory.activeModel.model,
@@ -46,13 +45,18 @@ angular.module('spGuiApp')
     }
     return $http({
       method: 'POST',
-      url: apiUrl + '/runtimes/' + runtimeName,
+      url: API_URL + '/runtimes/' + runtimeName,
       data: newState});
   };
 
   factory.getItemById = function(id) {
-    return factory.items[id];
-  };
+      if(factory.items.hasOwnProperty(id))
+        return factory.items[id];
+      else if(factory.models.hasOwnProperty(id))
+        return factory.models[id];
+      else
+        return false
+    };
 
   factory.getItemsByIds = function(ids) {
     var items = {};
@@ -77,16 +81,12 @@ angular.module('spGuiApp')
   };
 
   factory.getItemName = function(id) {
-    var item =  factory.items[id];
-    if(item) {
-      return item.name
-    }
-    var model = factory.models[id];
-    if(model) {
-      return model.name
-    }
-    return 'no name';
-  };
+      var item = factory.getItemById(id);
+      if(item)
+        return item.name;
+      else
+        return 'Item not in model';
+    };
 
   //TODO: Handle services in a general way. Retrieve possible services from server
   factory.parseProposition = function(proposition) {
@@ -179,7 +179,7 @@ angular.module('spGuiApp')
         conditionInputMode: 'text'
       }
     };
-    $http.post(apiUrl + '/models', newModel).
+    $http.post(API_URL + '/models', newModel).
       success(function(model) {
         notificationService.success('A new model \"' + model.name + '\" was successfully created');
         factory.models[model.model] = model;
@@ -192,8 +192,19 @@ angular.module('spGuiApp')
       });
   };
 
+  factory.deleteModel = function(id) {
+    $http.delete(API_URL + '/models/'+id).
+      success(function(model) {
+        notificationService.success('Model \"' + model + '\" was successfully deleted');
+        delete factory.models[id]
+      }).
+      error(function() {
+        notificationService.error('The model deletion failed.');
+      });
+  };
+
   function loadModels() {
-    $http.get(apiUrl + '/models').
+    $http.get(API_URL + '/models').
       success(function(models) {
         models.forEach(function(model) {
           factory.models[model.model] = model;
@@ -203,7 +214,7 @@ angular.module('spGuiApp')
   loadModels();
 
   factory.loadModel = function(id) {
-    $http.get(apiUrl + '/models/' + id).
+    $http.get(API_URL + '/models/' + id).
       success(function(model) {
         factory.activeModel = model;
         factory.loadAll();
@@ -212,7 +223,7 @@ angular.module('spGuiApp')
 
   factory.getModelVersionDiff = function(versionNo) {
     var diff = {};
-    $http.get(apiUrl + '/models/' + factory.activeModel.model + '/history/diff?version=' + versionNo).
+    $http.get(API_URL + '/models/' + factory.activeModel.model + '/history/diff?version=' + versionNo).
       success(function(versionInfo) {
         angular.copy(versionInfo, diff);
       });
@@ -220,7 +231,7 @@ angular.module('spGuiApp')
   };
 
   factory.revertModel = function(versionNo) {
-    $http.get(apiUrl + '/models/' + factory.activeModel.model + '/history/revert?version=' + versionNo).
+    $http.get(API_URL + '/models/' + factory.activeModel.model + '/history/revert?version=' + versionNo).
       success(function(model) {
         notificationService.success('Model ' + model.name + ' was reverted to version ' + versionNo);
         factory.loadAll();
@@ -232,7 +243,7 @@ angular.module('spGuiApp')
   };
 
   factory.refreshModelInfo = function() {
-    $http.get(apiUrl + '/models/' + factory.activeModel.model).
+    $http.get(API_URL + '/models/' + factory.activeModel.model).
       success(function(model) {
         angular.copy(model, factory.activeModel);
       });
@@ -249,7 +260,7 @@ angular.module('spGuiApp')
   }
 
   factory.saveModel = function(model, successHandler) {
-    $http.post(apiUrl + '/models/' + model.model, model).
+    $http.post(API_URL + '/models/' + model.model, model).
       success(function() {
         if(successHandler) {
           successHandler();
@@ -262,7 +273,7 @@ angular.module('spGuiApp')
   };
 
   factory.loadItems = function() {
-    $http.get(apiUrl + '/models/' + factory.activeModel.model + '/items').
+    $http.get(API_URL + '/models/' + factory.activeModel.model + '/items').
       success(function(items) {
         Object.keys(factory.items).forEach(function(id) {
           delete factory.items[id];
@@ -341,10 +352,9 @@ angular.module('spGuiApp')
         }
       })
       .error(function(data) {
-        console.log(data);
-        notificationService.error('Items save failed. Please see console log for details.');
-        success = false;
-      });
+          notificationService.error(data);
+          success = false;
+        });
     return success;
   };
 
@@ -422,7 +432,7 @@ angular.module('spGuiApp')
       newItem = readyMadeItem;
     }
 
-    $http.post(apiUrl + '/models/' + factory.activeModel.model + '/items', newItem).
+    $http.post(API_URL + '/models/' + factory.activeModel.model + '/items', newItem).
       success(function(createdItem) {
         factory.items[createdItem.id] = createdItem;
         notificationService.success('A new ' + createdItem.isa + ' with name ' + createdItem.name + ' was successfully created.');
@@ -446,7 +456,7 @@ angular.module('spGuiApp')
   factory.deleteItem = function(itemToDelete, notifySuccess) {
     var success = true;
 
-    $http.delete(apiUrl + '/models/' + factory.activeModel.model + '/items/' + itemToDelete.id).
+    $http.delete(API_URL + '/models/' + factory.activeModel.model + '/items/' + itemToDelete.id).
       success(function(deletedItem) {
         if(notifySuccess) {
           notificationService.success(deletedItem.isa + ' ' + deletedItem.name + ' was successfully deleted.');
@@ -463,7 +473,7 @@ angular.module('spGuiApp')
   };
 
   factory.reReadFromServer = function(item) {
-    $http.get(apiUrl + '/models/' + factory.activeModel.model + '/items/' + item.id).
+    $http.get(API_URL + '/models/' + factory.activeModel.model + '/items/' + item.id).
       success(function(readItem) {
         factory.items[readItem.id] = readItem;
         $rootScope.$broadcast('itemsQueried');

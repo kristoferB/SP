@@ -10,13 +10,12 @@ import akka.persistence._
  */
 
 // API Inputs
-
 sealed trait ModelMessage extends SPMessage { val model: ID }
 sealed trait ModelQuery extends ModelMessage
 sealed trait ModelUpdate extends ModelMessage
 
 // Model messages
-case class CreateModel(model: ID, name: String, attributes: SPAttributes = SPAttributes()) extends ModelMessage
+case class CreateModel(id: ID, name: String, attributes: SPAttributes = SPAttributes())
 // TODO Should be local in rest API. Used during json parse: KB 150526
 case class CreateModelNewID(name: String, attributes: SPAttributes = SPAttributes()) //Problem to use this on the scala side. 150522 Patrik
 case object GetModels extends SPMessage
@@ -31,10 +30,11 @@ case class GetDiff(model: ID, version: Long) extends ModelQuery
 case class GetDiffFrom(model: ID, version: Long) extends ModelQuery
 case class GetModelInfo(model: ID) extends ModelQuery
 
-case class UpdateIDs(model: ID, modelVersion: Long, items: List[IDAble]) extends ModelUpdate
+case class UpdateIDs(model: ID, items: List[IDAble], info: SPAttributes = SPAttributes()) extends ModelUpdate
 case class UpdateModelInfo(model: ID, info: ModelInfo) extends ModelUpdate
-case class DeleteIDs(model: ID, items: List[ID]) extends ModelUpdate
+case class DeleteIDs(model: ID, items: List[ID], info: SPAttributes = SPAttributes()) extends ModelUpdate
 case class Revert(model: ID, toVersion: Long) extends ModelUpdate
+case class DeleteModel(model: ID) extends ModelUpdate
 
 
 // API output
@@ -44,13 +44,14 @@ case class SPIDs(items: List[IDAble]) extends SPMessage
 case class ModelDiff(model: ID,
                      updatedItems: List[IDAble],
                      deletedItems: List[IDAble],
+                     diffInfo: SPAttributes,
                      fromVersion: Long,
-                     currentVersion: Long,
+                     version: Long,
                      name: String,
-                     attributes: SPAttributes = SPAttributes().addTimeStamp
+                     modelAttr: SPAttributes = SPAttributes().addTimeStamp
                    ) extends SPMessage
 case class ModelInfos(models: List[ModelInfo])
-case class ModelInfo(model: ID, name: String, version: Long, attributes: SPAttributes)
+case class ModelInfo(id: ID, name: String, version: Long, attributes: SPAttributes)
 
 
 

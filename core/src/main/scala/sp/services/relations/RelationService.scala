@@ -23,7 +23,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
   import context.dispatcher
 
   def receive = {
-    case Request(_, attr) => {
+    case Request(_, attr, _) => {
       val reply = sender
       extract(attr) match {
         case Some((model, opsID, init, groups, iterations, goal, duplicate)) => {
@@ -131,7 +131,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
                     case Success(res: FindRelationResult) => {
                       val relation = RelationResult("RelationMap", res.map, res.deadlocks, model, mVersion + 1, attr, relID)
                       reply ! relation
-                      modelHandler ! UpdateIDs(model, mVersion, List(relation))
+                      modelHandler ! UpdateIDs(model, List(relation), SPAttributes("info"->"new relations"))
                       relationFinder ! PoisonPill
                     }
                     case Success(res) => println("WHAT IS THIS RELATION FINDER RETURNS: " + res); relationFinder ! PoisonPill

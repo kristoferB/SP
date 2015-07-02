@@ -1,7 +1,5 @@
-node_modules
-dist
-.tmp
-.sass-cache
 bower_components
-*.json~
-*.DS_Store
+node_modules
+.tmp
+report
+build/

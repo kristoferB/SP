@@ -49,7 +49,7 @@ trait JsonLogics {
     ))
   }
   def jsonFormats = new JsonFormats {}
-  implicit val f = jsonFormats
+  implicit val formats2 = jsonFormats
 
   def timeStamp = {
     Extraction.decompose(org.joda.time.DateTime.now)
@@ -58,6 +58,11 @@ trait JsonLogics {
   class IDSerializer extends CustomSerializer[ID](format => (
     {
       case JString(idStr) => {
+        val id = ID.makeID(idStr)
+        if (id == None) println(s"ID: $idStr is not an ID. A new one is created!!!")
+        id.getOrElse(ID.newID)
+      }
+      case JObject(JField("id", JString(idStr)) :: Nil) => {
         val id = ID.makeID(idStr)
         if (id == None) println(s"ID: $idStr is not an ID. A new one is created!!!")
         id.getOrElse(ID.newID)

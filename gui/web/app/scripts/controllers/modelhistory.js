@@ -15,6 +15,7 @@ angular.module('spGuiApp')
 
     for(var i = spTalker.activeModel.version; (spTalker.activeModel.version - i) < 50 && i >= 1; i--) {
       var ver = {no: i, diff: spTalker.getModelVersionDiff(i)};
+      console.log(ver);
       $scope.modelVersions.push(ver);
     }
 

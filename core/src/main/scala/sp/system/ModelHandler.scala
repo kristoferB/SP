@@ -8,6 +8,7 @@ import akka.pattern.pipe
 import scala.concurrent.duration._
 import sp.system.messages._
 import akka.persistence._
+import sp.system.SPActorSystem.eventHandler
 
 import sp.domain._
 
@@ -22,55 +23,71 @@ class ModelHandler extends PersistentActor {
   def receiveCommand = {
     //case mess @ _ if {println(s"handler got: $mess from $sender"); false} => Unit
 
-    case cm @ CreateModel(id, name, attr)=> {
-      val reply = sender
+    case cm @ CreateModel(id, name, attr) =>
+      val reply = sender()
       if (!modelMap.contains(id)){
         persist(cm){n =>
+          println(s"The modelHandler creates a new model called ${cm.name} id: ${cm.id}")
           addModel(n)
-          modelMap(id).tell(GetModels, reply)
+          modelMap(n.id) ! n
         }
-      } else modelMap(id).tell(GetModels, reply)
-    }
+        reply ! "OK"
+      } else reply ! SPError("A model with that ID do already exist.")
 
-    case m: ModelMessage => {
+    case del: DeleteModel =>
+      if (modelMap.contains(del.model)){
+        val reply = sender()
+        persist(del){ d =>
+          deleteModel(del)
+          eventHandler ! ModelDeleted(EventTargets.ModelHandler, EventTypes.Deletion, del.model)
+          reply ! "OK"
+        }
+      }
+      else sender ! SPError(s"Model ${del.model} does not exist.")
+
+    case m: ModelMessage =>
       if (modelMap.contains(m.model)) modelMap(m.model) forward m
       else sender ! SPError(s"Model ${m.model} does not exist.")
-    }
 
-    case (m: ModelMessage, v: Long) => {
+    case (m: ModelMessage, v: Long) =>
       val viewName = viewNameMaker(m.model, v)
       if (!viewMap.contains(viewName)) {
-        println(s"The modelService creates a new view for ${m.model} version: ${v}")
+        println(s"The modelHandler creates a new view for ${m.model} version: ${v}")
         val view = context.actorOf(sp.models.ModelView.props(m.model, v, viewName))
         viewMap += viewName -> view
       }
-      viewMap(viewName).tell(m, sender)
-    }
+      viewMap(viewName).tell(m, sender())
 
 
     case GetModels =>
-      val reply = sender
-      if (!modelMap.isEmpty){
+      val reply = sender()
+      if (modelMap.nonEmpty){
         val fList = Future.traverse(modelMap.values)(x => (x ? GetModels).mapTo[ModelInfo]) map(_ toList)
         fList map ModelInfos pipeTo reply
       } else reply ! ModelInfos(List[ModelInfo]())
   }
 
   def addModel(cm: CreateModel) = {
-    println(s"The modelService creates a new model called ${cm.name} id: ${cm.model}")
-    val newModelH = context.actorOf(sp.models.ModelActor.props(cm.model))
-    newModelH ! UpdateModelInfo(cm.model, ModelInfo(cm.model, cm.name, 0, cm.attributes))
-    modelMap += cm.model -> newModelH
+    val newModelH = context.actorOf(sp.models.ModelActor.props(cm.id))
+    modelMap += cm.id -> newModelH
+  }
+
+  def deleteModel(del: DeleteModel) = {
+    if (modelMap.contains(del.model)){
+      println(del)
+      modelMap(del.model) ! PoisonPill
+      modelMap = modelMap - del.model
+    }
+    else sender ! SPError(s"Model ${del.model} does not exist.")
   }
 
   def viewNameMaker(id: ID, v: Long) = id.toString() + " - Version: " + v
 
   def receiveRecover = {
-    case cm: CreateModel  => {
-      println(s"The modelService creates a new model called ${cm.name} id: ${cm.model}")
-      val newModelH = context.actorOf(sp.models.ModelActor.props(cm.model))
-      modelMap += cm.model -> newModelH
-    }
+    case cm: CreateModel  =>
+      addModel(cm)
+    case dm: DeleteModel =>
+      deleteModel(dm)
   }
 
 }

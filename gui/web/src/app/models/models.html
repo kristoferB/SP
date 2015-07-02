@@ -1,0 +1,39 @@
+<section class="mainbar">
+    <div class="view-header">
+        <h1>{{vm.title}}</h1>
+    </div>
+    <div class="container">
+
+        <div class="m-b">
+            <button type="button" tooltip="Create a new, empty model" class="btn btn-sm btn-primary btn-addon"
+                    ng-click="vm.createModel()">
+                <i class="fa fa-plus"></i>Create Model
+            </button>
+        </div>
+
+        <sp-widget widget-title="vm.title">
+
+            <table sp-table row-collection="vm.models" displayed-collection="vm.displayedModels"
+                      header-template="app/models/model-table-header.html">
+                <tbody>
+                    <tr ng-repeat="m in vm.displayedModels">
+                        <td class="col-md-4"><a href="#" editable-text="m.name" onbeforesave="vm.updateName(m, $data)"
+                                                buttons="no" blur="submit">{{ m.name || "none" }}</a>
+                        </td>
+                        <td class="col-md-4">{{m.attributes.time | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+                        <td class="col-md-4">
+                            <button class="btn btn-xs btn-primary" ng-click="vm.setActiveModel(m)">
+                                <i class="fa fa-folder-open-o"></i> Open
+                            </button>
+                            <button class="btn btn-xs btn-danger" ng-click="vm.deleteModel(m.id)">
+                                <i class="fa fa-trash-o"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </sp-widget>
+
+    </div>
+</section>

@@ -26,8 +26,9 @@ trait IDAble {
 
 
 case class ID(value: UUID){
-  override def toString() = value.toString
+  override def toString = value.toString
 }
+
 
 object ID {
   implicit def uuidToID(id: UUID) = ID(id)

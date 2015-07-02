@@ -19,7 +19,7 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
   import context.dispatcher
 
   def receive = {
-    case Request(_, attr) => {
+    case Request(_, attr, _) => {
       val reply = sender
       extract(attr) match {
         case Some((file, name)) => {
@@ -31,19 +31,25 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
           for {
           //Creates a model and updates the model with "idables" parsed from the given json file
             modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? CreateModel(
-              model = ID.newID,
+              id = ID.newID,
               name = name.getOrElse("noName")))
-            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = idables))
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.id, items = idables))
 
             //Update the operations in the model with "conditions" connected to the parsed "idables"
+<<<<<<< HEAD
             SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
             ops = opsToBe.map(_.asInstanceOf[Operation])
             _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, modelVersion = modelInfo.version, items = ops))
+=======
+            SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.id))
+            opsWithConditionsAdded = opsToBe.map(_.asInstanceOf[Operation]).flatMap(op => PropositionConditionLogic.parseAttributesToPropositionCondition(op, idables))
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.id,  items = opsWithConditionsAdded))
+>>>>>>> 2951d9606fc9637de1f9ea358be9a223dc5295e0
 
           } yield {
             println(s"MADE IT: $modelInfo")
             //            println(opsWithConditionsAdded.map(_.name).mkString("\n"))
-            reply ! modelInfo.model.toString
+            reply ! modelInfo.id.toString
           }
 
         }

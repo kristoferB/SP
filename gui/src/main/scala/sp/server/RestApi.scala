@@ -1,7 +1,8 @@
 package sp.server
 
 import sp.domain._
-import spray.http.{AllOrigins, StatusCodes, HttpHeaders}
+import spray.http.HttpHeaders.RawHeader
+import spray.http._
 import spray.routing.PathMatchers.Segment
 import spray.routing._
 import spray.routing.authentication._
@@ -13,27 +14,59 @@ import akka.actor._
 import akka.pattern.ask
 import scala.concurrent.duration._
 import spray.httpx.encoding._
+import ServerSideEventsDirectives._
 
 
 
-//// API classes
-//case class IDSaver(isa: String,
-//                   name: String,
-//                   attributes: Option[SPAttributes],
-//                   id: Option[ID],
-//                   version: Option[Long],
-//                   conditions: Option[List[Condition]],
-//                   sop: Option[List[SOP]])
+/**
+ * Started working on cleaning up the API 150605
+ * TODO: Move API to this trait
+ * TODO: Make some tests using spray testkit for routings
+ */
+trait RestAPI extends HttpService {
+  val modelHandler: ActorRef
+  val runtimeHandler: ActorRef
+  val serviceHandler: ActorRef
+  val userHandler: ActorRef
+  implicit val to: Timeout
+
+  // work in progress to change the structure
+  def api = {
+    initial{
+      get {
+        path("models"){ askModel(GetModels) } ~
+        path("models" / JavaUUID){ modelID => askModel(GetModelInfo(modelID))} ~
+        path("models" / JavaUUID / "items"){ modelID => askModel(GetIds(modelID, List()))} ~
+        path("models" / JavaUUID / "operations"){ modelID => askModel(GetOperations(modelID))} ~
+        path("models" / JavaUUID / "things"){ modelID => askModel(GetThings(modelID))} ~
+        path("models" / JavaUUID / "specs"){ modelID => askModel(GetSpecs(modelID))} ~
+        path("models" / JavaUUID / "results"){ modelID => askModel(GetResults(modelID))}
+//        path("models" / JavaUUID / Segment / JavaUUID ){ (modelID, id) =>
+//          askModel(GetIds(modelID, List(id)))
+//        }
+      }
+    }
+
+  }
 
 
+  def askModel(mess: SPMessage) = {
+    val f = modelHandler ? mess
+    complete("")
+  }
 
 
+  def initial(r: Route) = {
+    pathPrefix("api"){
+      /{complete("SP API")} ~ encodeResponse(Gzip) { r }
+    }
+  }
 
+  def / = pathEndOrSingleSlash
+}
 
-
-
-
-trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI {
+trait SPRoute extends SPApiHelpers with EventAPI with ModelAPI with RuntimeAPI with ServiceAPI {
+  val eventHandler: ActorRef
   val modelHandler: ActorRef
   val runtimeHandler: ActorRef
   val serviceHandler: ActorRef
@@ -48,18 +81,18 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
     }
   }
 
-  def myUserPassAuthenticator(userPass: Option[UserPass]): Future[Option[String]] =
+  /*def myUserPassAuthenticator(userPass: Option[UserPass]): Future[Option[String]] =
     Future {
       if (userPass.exists(up => up.user == "admin" && up.pass == "pass")) Some("John")
       else None
-    }
+    }*/
 
   // Handles AuthenticationRequiredRejection to omit the WWW-Authenticate header.
-  // The omit prevents the browser login dialog to open when the Basic HTTP Authentication repsonds with code "401: Unauthorized".
-  implicit val myRejectionHandler = RejectionHandler {
+  // The omit prevents the browser login dialog to open when the Basic HTTP Authentication responds with code "401: Unauthorized".
+  /*implicit val myRejectionHandler = RejectionHandler {
     case AuthenticationFailedRejection(cause, challengeHeaders) :: _ =>
       complete(StatusCodes.Unauthorized, "Wrong username and/or password.")
-  }
+  }*/
 
   def returnUser(userName: String): UserDetails = {
     return UserDetails(22, userName)
@@ -73,12 +106,16 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
         pathPrefix("models") {
           modelapi
         } ~
-          pathPrefix("runtimes") {
-            runtimeapi
-          } ~
-          pathPrefix("services") {
-            serviceapi
-          } //~
+        pathPrefix("runtimes") {
+          runtimeapi
+        } ~
+        pathPrefix("services") {
+          serviceapi
+        } ~
+        path("events") {
+          eventAPI
+        }
+        //~
         //      path("users") {
         //        get {
         //          callSP(GetUsers, {
@@ -103,6 +140,28 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
   }
 }
 
+trait EventAPI extends SPApiHelpers {
+  val eventHandler: ActorRef
+  private implicit val to = timeout
+
+  def eventAPI =
+    / {
+      respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
+        sse { (channel, lastEventID) =>
+          // Register a closed event handler
+          channel ! RegisterClosedHandler( () => println("Connection closed !!!") )
+          // Use the channel
+          eventHandler ! SubscribeToSSE(channel, lastEventID)
+        }
+      }
+    }
+
+  private def callSP(mess: Any, matchReply: PartialFunction[Any, Route] = {PartialFunction.empty}) = {
+    //println(s"Sending from route: $mess")
+    onSuccess(eventHandler ? mess){evalReply{matchReply}}
+  }
+}
+
 
 trait ModelAPI extends SPApiHelpers {
   val modelHandler: ActorRef
@@ -120,7 +179,8 @@ trait ModelAPI extends SPApiHelpers {
       pathPrefix(JavaUUID) { model =>
         / {
           get { callSP(GetModelInfo(model)) } ~
-            post { updateModelInfo }
+          post { updateModelInfo } ~
+          delete { callSP(DeleteModel(model)) }
         } ~
           pathPrefix(Segment){ typeOfItems =>
             IDHandler(model) ~
@@ -161,7 +221,7 @@ trait ModelAPI extends SPApiHelpers {
 
   def updateModelInfo = {
     implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
-    entity(as[ModelInfo]) {info => callSP(UpdateModelInfo(info.model, info))}
+    entity(as[ModelInfo]) {info => callSP(UpdateModelInfo(info.id, info))}
   }
 
 
@@ -178,18 +238,13 @@ trait ModelAPI extends SPApiHelpers {
     } ~
       post {
         implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
-        entity(as[IDAble]) { xs => callSP(UpdateIDs(model, -1, List(xs))) } ~
+        entity(as[IDAble]) { xs => callSP(UpdateIDs(model, List(xs))) } ~
           entity(as[List[IDAble]]) { xs =>
-            callSP(UpdateIDs(model, -1, xs))
+            callSP(UpdateIDs(model, xs))
           }
       }
-
   }
-
 }
-
-
-
 
 
 trait RuntimeAPI extends SPApiHelpers {
@@ -205,25 +260,27 @@ trait RuntimeAPI extends SPApiHelpers {
         callSP(cr)}
       }
     } ~
-      pathPrefix(Segment){ rt =>
-        /{
-          implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
-          post{ entity(as[SPAttributes]) { attr =>
-            callSP(SimpleMessage(rt, attr))}
-
-          }
-        }
-      } ~
       pathPrefix("kinds"){
         /{get{callSP(GetRuntimeKinds)}}
+      } ~
+      path(JavaUUID){ rt =>
+        /{
+          post {
+            implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
+            entity(as[SPAttributes]) { attr =>
+            callSP(SimpleMessage(rt, attr))}
+          } ~
+          delete {
+            callSP(StopRuntime(rt), {
+              case xs: SPAttributes => complete(xs)
+            })
+          }
+        }
       }
-
   private def callSP(mess: Any, matchReply: PartialFunction[Any, Route] = {PartialFunction.empty}) = {
     onSuccess(runtimeHandler ? mess){evalReply{matchReply}}
   }
-
 }
-
 
 
 trait ServiceAPI extends SPApiHelpers {
@@ -232,7 +289,7 @@ trait ServiceAPI extends SPApiHelpers {
 
   def serviceapi =
     /{ get { complete{
-      (serviceHandler ? GetServices).mapTo[List[String]]
+      (serviceHandler ? GetServices).mapTo[Services]
     }}} ~
       path(Segment / "import") { service =>
         post {
@@ -291,12 +348,14 @@ trait SPApiHelpers extends HttpService with Json4SSP {
     case a: SPAttributes => complete(a)
     case r: Result => complete(r)
     case item: IDAble => complete(item)
-    case  RuntimeInfos(xs) => complete(xs)
+    case ri: RuntimeInfo => complete(ri)
+    case RuntimeInfos(xs) => complete(xs)
     case RuntimeKindInfos(xs) => complete(xs)
-    case xs: CreateRuntime => complete(xs)
-    case e: SPErrorString => complete(e)
+    case e: SPErrorString => complete(StatusCodes.InternalServerError, e.error)
+    case e: SPErrors => complete(StatusCodes.InternalServerError, e.errors)
     case e: UpdateError => complete(e)
     case MissingID(id, model, mess) => complete(StatusCodes.NotFound, s"id: $id $mess")
+    case r: sp.runtimes.opc.RuntimeState => complete(r)
     case a: Any  => complete("reply from application is not converted: " +a.toString)
   }
 

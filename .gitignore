@@ -12,6 +12,8 @@ project/project
 .classpath
 .cache
 *.DS_Store
+*~
+*.log
 
 
 # Intellij
