@@ -68,7 +68,7 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
             sopsWithSeq.map(seq => s"${spec.name}${if (sopsWithSeq.size > 1) spec.sop.indexOf(seq) else ""}" -> seq.sop)
           }
           val onlyHierarchy = onlySopsWithSequences.flatMap {
-            case (name, seq) if (seq.forall(_.isInstanceOf[Hierarchy])) => Some(name, seq.map(_.asInstanceOf[Hierarchy]).map(_.operation))
+            case (name, seq) if seq.forall(_.isInstanceOf[Hierarchy]) => Some(name, seq.map(_.asInstanceOf[Hierarchy]).map(_.operation))
             case _ => None
           }
           lazy val opsIdMap = ops.map(o => o.id -> o).toMap
@@ -116,7 +116,9 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
           //          println("search ended")
 
           for {
-            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id,  items = List(SOPSpec(name = s"${name}_Result", sop = List(foundSeq), attributes = SPAttributes().addTimeStamp))))
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id,
+              items = List(SOPSpec(name = s"${name}_Result", sop = List(foundSeq), attributes = SPAttributes().addTimeStamp)),
+            info = SPAttributes("info" -> s"Added SOP ${name}_Result")))
           } yield {}
         }
       }
@@ -172,7 +174,7 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
       def oneMoreIteration() = {
         val enabledOps = freshStates.map(s => s -> ops.filter(_.conditions(0).eval(s)))
         val newStates = enabledOps.foldLeft(new LocalResult(Set(), visitedStates): LocalResult) { case (acc, (s, os)) =>
-          val newAcc = os.foldLeft(acc: LocalResult) { case (accInner, o) => {
+          val newAcc = os.foldLeft(acc: LocalResult) { case (accInner, o) =>
             val targetStateForOperationO = updateStateBasedOnAllOperationActions(s, o)
             if (accInner.vStates.contains(targetStateForOperationO))
             //Target state has been visited before. Take no action.
@@ -180,7 +182,6 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
             else
             //Target state has not been visited before. Add to accumulator
               LocalResult(accInner.fStates + targetStateForOperationO, Map(targetStateForOperationO -> (o +: accInner.vStates(s))) ++ accInner.vStates)
-          }
           }
           newAcc
         }

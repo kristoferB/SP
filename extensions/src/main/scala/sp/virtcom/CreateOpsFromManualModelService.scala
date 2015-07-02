@@ -36,7 +36,8 @@ class CreateOpsFromManualModelService(modelHandler: ActorRef) extends Actor with
       for {
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
         newIDables = manualModel.parseToIDables()
-        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, items = newIDables.toList, info = SPAttributes("info"->"Patrik har varit hear")))
+      infoText = s"Model added from \'${manualModel.getClass.getSimpleName}\'"
+        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, items = newIDables.toList, info = SPAttributes("info"->infoText)))
       } yield {
         //        newIDables.foreach(o => println(s"${o.name} a:${o.attributes.pretty}"))
       }
