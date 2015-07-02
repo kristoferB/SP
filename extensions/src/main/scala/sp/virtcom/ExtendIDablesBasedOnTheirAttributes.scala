@@ -32,7 +32,7 @@ class ExtendIDablesBasedOnTheirAttributes(modelHandler: ActorRef) extends Actor 
   import context.dispatcher
 
   def receive = {
-    case Request(service, attr) =>
+    case Request(service, attr,_) =>
 
       println(s"service: $service")
 
@@ -62,7 +62,7 @@ class ExtendIDablesBasedOnTheirAttributes(modelHandler: ActorRef) extends Actor 
           eiw.extend()
           eiw.extendedIDables()
         }
-        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = updatedIDables))
+        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, items = updatedIDables, info = SPAttributes("info" -> "Model extended based on attributes")))
 
       } yield {
 

@@ -24,7 +24,7 @@ class SynthesizeModelBasedOnAttributesService(modelHandler: ActorRef) extends Ac
   import context.dispatcher
 
   def receive = {
-    case Request(service, attr) =>
+    case Request(service, attr,_) =>
 
       println(s"service: $service")
 
@@ -58,7 +58,7 @@ class SynthesizeModelBasedOnAttributesService(modelHandler: ActorRef) extends Ac
 
         //Update operations with conditions and change to Supremica syntax
         updatedOps = ops.map(o => ptmw.addSPConditionFromAttributes(ptmw.addSynthesizedGuardsToAttributes(o, optSupervisorGuards), optSupervisorGuards))
-        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, modelVersion = modelInfo.version, items = updatedOps))
+        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, items = updatedOps, info = SPAttributes("info" -> "Model synthesized")))
 
       } yield {
 

@@ -39,7 +39,8 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
             SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
             ops = opsToBe.map(_.asInstanceOf[Operation])
 
-            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model,  items = ops))
+            _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.model, items = ops,
+              info = SPAttributes("info" -> s"Model imported from \'${file.substring(file.length - 20)} \'")))
           } yield {
             println(s"MADE IT: $modelInfo")
             //            println(opsWithConditionsAdded.map(_.name).mkString("\n"))
