@@ -19,19 +19,48 @@ import sp.domain.Logic._
  * Creates a Condition for each operation based on its attributes
  */
 class SynthesizeModelBasedOnAttributesService(modelHandler: ActorRef) extends Actor with ServiceSupportTrait {
+  //  implicit val timeout = Timeout(1 seconds)
+  //
+  //  import context.dispatcher
+
+  def receive = {
+    case Request(service, attr, ids) =>
+
+      println(s"service: $service")
+      //      println(s"attr: ${attr.getAs[ID]("model")}")
+      //      println(s"ids: $ids")
+
+      context.actorOf(Props(classOf[SynthesizeModelBasedOnAttributesRunner], modelHandler, attr, sender())) ! "go"
+
+  }
+
+}
+
+private case class SynthesizeModelBasedOnAttributesRunnerStatus(status: String)
+
+private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef, attr: SPAttributes, replyTo: ActorRef) extends Actor with ServiceSupportTrait {
+
   implicit val timeout = Timeout(1 seconds)
 
   import context.dispatcher
 
-  def receive = {
-    case Request(service, attr,_) =>
+  var status = SynthesizeModelBasedOnAttributesRunnerStatus("Reading model")
 
-      println(s"service: $service")
+  def startProgress = {
+    context.system.scheduler.schedule(
+      1 seconds, 1 seconds) {
+      replyTo ! Progress(SPAttributes("status" -> status))
+    }
+  }
+
+  def receive = {
+    case "go" =>
+      val progress = startProgress
 
       val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
       lazy val checkedItems = attr.findObjectsWithField(List(("checked", JBool(true)))).unzip._1.flatMap(ID.makeID)
 
-      val result = for {
+      for {
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
 
         //Collect ops, vars, forbidden expressions
@@ -46,15 +75,18 @@ class SynthesizeModelBasedOnAttributesService(modelHandler: ActorRef) extends Ac
 
         //Create Supremica Module and synthesize guards.
         ptmw = ParseToModuleWrapper(modelInfo.name, vars, ops, sopSpecs)
-        optSupervisorGuards = {
+        ptmwModule = {
+          status = SynthesizeModelBasedOnAttributesRunnerStatus("Creating wmod module")
           ptmw.addVariables()
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
           ptmw.addOperations()
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
           ptmw.addForbiddenExpressions()
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-          ptmw.SupervisorAsBDD().getSupervisorGuards.map(_.filter(og => !og._2.equals("1")))
+          status = SynthesizeModelBasedOnAttributesRunnerStatus("Synthesizing supervisor")
+          ptmw.SupervisorAsBDD()
         }
+        optSupervisorGuards = ptmwModule.getSupervisorGuards.map(_.filter(og => !og._2.equals("1")))
 
         //Update operations with conditions and change to Supremica syntax
         updatedOps = ops.map(o => ptmw.addSPConditionFromAttributes(ptmw.addSynthesizedGuardsToAttributes(o, optSupervisorGuards), optSupervisorGuards))
@@ -62,17 +94,20 @@ class SynthesizeModelBasedOnAttributesService(modelHandler: ActorRef) extends Ac
 
       } yield {
 
-          optSupervisorGuards.getOrElse(Map()).foreach(kv => println(s"${kv._1}: ${kv._2}"))
-          //          updatedOps.foreach(o => println(s"${o.name} c:${o.conditions} a:${o.attributes.pretty}"))
-
-          ptmw.addSupervisorGuardsToFreshFlower(optSupervisorGuards)
-          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-
+        lazy val synthesizedGuards = optSupervisorGuards.getOrElse(Map()).foldLeft(SPAttributes()) { case (acc, (event, guard)) =>
+          acc merge SPAttributes("synthesizedGuards" -> SPAttributes(event -> guard))
         }
+        lazy val nbrOfStates = SPAttributes("nbrOfStatesInSupervisor" -> ptmwModule.nbrOfStates())
 
-      sender ! result
+        println(s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
+        if(synthesizedGuards.obj.nonEmpty) println(synthesizedGuards.pretty)
+
+        ptmw.addSupervisorGuardsToFreshFlower(optSupervisorGuards)
+        ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+        progress.cancel()
+        replyTo ! Response(updatedOps, synthesizedGuards merge nbrOfStates)
+      }
   }
-
 }
 
 object SynthesizeModelBasedOnAttributesService {
@@ -136,7 +171,7 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
       allInit = Set("init", "idleValue").flatMap(key => v.attributes.findAs[String](key))
       init <- if (allInit.size == 1) Some(allInit.head)
       else {
-        println(s"Problem with variable ${v.name}, attribute keys init and idleValue do not point to the same value");
+        println(s"Problem with variable ${v.name}, attribute keys init and idleValue do not point to the same value")
         None
       }
       intInit <- getFromVariableDomain(v.name, init, "Problem with init")
@@ -145,7 +180,7 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
       allMarkings = Set(idleValueAttr, markingsAttr).flatten
       markings <- if (allMarkings.size == 1) Some(allMarkings.head)
       else {
-        println(s"Problem with variable ${v.name}, attribute keys markings and idleValue do not point to the same value(s)");
+        println(s"Problem with variable ${v.name}, attribute keys markings and idleValue do not point to the same value(s)")
         None
       }
       intMarkings = markings.flatMap(m => getFromVariableDomain(v.name, m, "Problem with marking"))
@@ -211,7 +246,7 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
           lazy val guardAsString = if (allGuards.isEmpty) "" else allGuards.mkString("(", ")&(", ")")
           PropositionParser(idablesToParseFromString).parseStr(guardAsString) match {
             case Right(p) => Some(p)
-            case Left(f) => println(s"PropositionParser failed for operation ${op.name} on guard: $guardAsString. Failure message: $f"); None
+            case Left(fault) => println(s"PropositionParser failed for operation ${op.name} on guard: $guardAsString. Failure message: $fault"); None
           }
         }
         def getAction(directActionAttr: Set[String], nestedActionAttr: Set[TransformationPatternInAttributes => Option[String]]) = {
@@ -219,7 +254,7 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
           actionsAsStrings.flatMap { action =>
             ActionParser(idablesToParseFromString).parseStr(action) match {
               case Right(a) => Some(a)
-              case Left(f) => println(s"ActionParser failed for operation ${op.name} on action: $action. Failure message: $f"); None
+              case Left(fault) => println(s"ActionParser failed for operation ${op.name} on action: $action. Failure message: $fault"); None
             }
           }.toList
         }

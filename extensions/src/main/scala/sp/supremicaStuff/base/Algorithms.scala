@@ -40,6 +40,7 @@ trait Algorithms extends BaseFunctionality with RegexParsers {
     options.setMaximallyPermissive(true)
     lazy val bddSynthesizer = new BDDExtendedSynthesizer(new ExtendedAutomata(mModule), options)
     lazy val manager = bddSynthesizer.bddAutomata.getManager()
+    def nbrOfStates() = if(supervisorExists) Some(bddSynthesizer.nbrOfStates) else None
 
     //Start to calculate a supervisor
     getVariables.foreach(v => if (v.getType().isInstanceOf[EnumSetExpressionProxy]) {
@@ -72,7 +73,6 @@ trait Algorithms extends BaseFunctionality with RegexParsers {
       case _: Throwable => println("Problem to calculate supervisor.")
     }
     if (bddSynthesizer != null & bddSynthesizer.nbrOfStates != 0) {
-      println("Nbr of states in supervisor: " + bddSynthesizer.nbrOfStates)
       supervisorExists = true
     }
     //Done with the supervisor calculation
