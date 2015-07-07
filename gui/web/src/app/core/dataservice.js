@@ -9,7 +9,6 @@
     /* @ngInject */
     function dataservice($http, $q, logger) {
         var service = {
-
             getModels: getModels
         };
 

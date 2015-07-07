@@ -1,7 +1,7 @@
 /* jshint -W079 */
 var mockData = (function() {
     return {
-        getMockPeople: getMockPeople,
+        getMockModels: getMockModels,
         getMockStates: getMockStates
     };
 
@@ -22,15 +22,12 @@ var mockData = (function() {
         ];
     }
 
-    function getMockPeople() {
+    function getMockModels() {
         return [
-            {firstName: 'John', lastName: 'Papa', age: 25, location: 'Florida'},
-            {firstName: 'Ward', lastName: 'Bell', age: 31, location: 'California'},
-            {firstName: 'Colleen', lastName: 'Jones', age: 21, location: 'New York'},
-            {firstName: 'Madelyn', lastName: 'Green', age: 18, location: 'North Dakota'},
-            {firstName: 'Ella', lastName: 'Jobs', age: 18, location: 'South Dakota'},
-            {firstName: 'Landon', lastName: 'Gates', age: 11, location: 'South Carolina'},
-            {firstName: 'Haley', lastName: 'Guthrie', age: 35, location: 'Wyoming'}
+            {id:'5689ce13-2e2d-4451-8f8f-f05973f78dfb', name:'A first model', version:46,
+                attributes:{time:'2015-07-07T18:22:07.125+0200'}},
+            {id:'5ccdc932-438d-4c45-b947-6dd208e31e31', name:'A second model', version:72,
+                attributes:{time:'2015-07-07T15:10:16.970+0200'}}
         ];
     }
 })();
