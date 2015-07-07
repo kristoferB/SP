@@ -8,12 +8,13 @@ import sp.system.messages._
 import scala.concurrent.Future
 import akka.pattern.pipe
 import scala.concurrent.duration._
+import sp.domain.ID
 
 //TODO: make persistent soon
 
 class RunTimeHandler extends Actor {
   var kindMap: Map[String, RegisterRuntimeKind] = Map()
-  private var runMap: Map[String, ActorRef] = Map()
+  private var runMap: Map[ID, ActorRef] = Map()
   implicit val timeout = Timeout(5 seconds)
   import context.dispatcher
   val log = Logging(context.system, this)
@@ -27,25 +28,24 @@ class RunTimeHandler extends Actor {
       val xs = kindMap map{case (name, kind) => RuntimeKindInfo(name, kind.attributes)}
       sender ! RuntimeKindInfos(xs toList)
     }
-    case cr @ CreateRuntime(kind, _, name, _) => {
+    case cr @ CreateRuntime(kind, model, name, settings) => {
       val reply = sender
       if (kindMap.contains(kind)){
-        if (!runMap.contains(name)){
-          val a = context.actorOf(kindMap(kind).props(cr), name)
-          runMap += name -> a
-          a.tell(cr, reply)
-        } else reply ! SPError(s"runtime $name already exists")
-
+        val id = ID.newID
+        val rtInfo = RuntimeInfo(id, kind, model, name ,settings)
+        val a = context.actorOf(kindMap(kind).props(rtInfo), name)
+        runMap += id -> a
+        a.tell(cr, reply)
       } else {
         reply ! SPError(s"$kind is not available as a runtime kind")
       }
     }
     case GetRuntimes => {
       val reply = sender
-      if (!runMap.isEmpty) {
-        val fList = Future.traverse(runMap.values)(x => (x ? GetRuntimes).mapTo[CreateRuntime]) map (_ toList)
+      if (runMap.nonEmpty) {
+        val fList = Future.traverse(runMap.values)(x => (x ? GetRuntimes).mapTo[RuntimeInfo]) map (_ toList)
         fList map RuntimeInfos pipeTo reply
-      } else reply ! RuntimeInfos(List[CreateRuntime]())
+      } else reply ! RuntimeInfos(List[RuntimeInfo]())
     }
     case m: RuntimeMessage => {
       if (runMap.contains(m.runtime)) {
@@ -54,15 +54,13 @@ class RunTimeHandler extends Actor {
       else sender ! SPError(s"Runtime ${m.runtime} does not exist.")
     }
     case s: StopRuntime => {
-      if (runMap.contains(s.name)) {
-        context.stop(runMap(s.name))
-        runMap -= s.name
+      if (runMap.contains(s.runtime)) {
+        context.stop(runMap(s.runtime))
+        runMap -= s.runtime
         sender ! "OK"
       }
-      else sender ! SPError(s"Runtime ${s.name} does not exist.")
+      else sender ! SPError(s"Runtime ${s.runtime} does not exist.")
     }
-
-
     case _ => println("not impl yet")
   }
 

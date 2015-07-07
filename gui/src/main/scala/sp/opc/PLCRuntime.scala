@@ -15,7 +15,7 @@ import spray.http.StatusCodes
 
 import scala.concurrent.Await
 
-class PLCRuntime(about: CreateRuntime) extends Actor {
+class PLCRuntime(about: RuntimeInfo) extends Actor {
   private implicit val to = Timeout(2, TimeUnit.SECONDS)
   import sp.system.SPActorSystem._
   import org.json4s.native.Serialization._
@@ -63,7 +63,7 @@ class PLCRuntime(about: CreateRuntime) extends Actor {
         case _ =>
           println("The model is not an ID")
           sender ! SPError("Missing or erroneous property model: ID")
-          runtimeHandler ! StopRuntime(name)
+          runtimeHandler ! StopRuntime(about.id)
       }
 
     case c @ Connected(host, local) =>
@@ -280,5 +280,5 @@ class PLCRuntime(about: CreateRuntime) extends Actor {
 }
 
 object PLCRuntime {
-  def props(cr: CreateRuntime) = Props(classOf[PLCRuntime], cr)
+  def props(cr: RuntimeInfo) = Props(classOf[PLCRuntime], cr)
 }

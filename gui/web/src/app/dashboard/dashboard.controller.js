@@ -13,7 +13,6 @@
             title: 'Sequence Planner',
             description: 'Create a model and apply algorithms to it.'
         };
-        vm.messageCount = 0;
         vm.models = [];
         vm.title = 'Dashboard';
 

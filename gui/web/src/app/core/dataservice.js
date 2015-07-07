@@ -9,13 +9,11 @@
     /* @ngInject */
     function dataservice($http, $q, logger) {
         var service = {
-            getModels: getModels,
-            getMessageCount: getMessageCount
+
+            getModels: getModels
         };
 
         return service;
-
-        function getMessageCount() { return $q.when(72); }
 
         function getModels() {
             return $http.get('/api/models')

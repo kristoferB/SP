@@ -42,15 +42,15 @@ class SynthesizeModelBasedOnCarrierAndResourceTransformations(modelHandler: Acto
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
 
         //Collect ops, vars, sopSpecs
-        SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
+        SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.id))
         ops = opsToBe.map(_.asInstanceOf[Operation])
         checkOps = ops.filter(obj => checkedItems.contains(obj.id))
 
-        SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.model,
+        SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.id,
           filter = { obj => checkedItems.contains(obj.id) && obj.isInstanceOf[Thing] }))
         vars = varsToBe.map(_.asInstanceOf[Thing])
 
-        SPIDs(sopSpecsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.model,
+        SPIDs(sopSpecsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.id,
           filter = { obj => checkedItems.contains(obj.id) && obj.isInstanceOf[SOPSpec] }))
         sopSpecs = sopSpecsToBe.map(_.asInstanceOf[SOPSpec])
 

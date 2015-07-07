@@ -52,13 +52,13 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
 
         //Get operations and variables
-        SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
+        SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.id))
         ops = opsToBe.map(_.asInstanceOf[Operation])
-        SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.model))
+        SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.id))
         vars = varsToBe.map(_.asInstanceOf[Thing])
 
         //Get specification for the operation sequence to return
-        SPIDs(spSpecToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.model,
+        SPIDs(spSpecToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.id,
           filter = {obj => checkedItems.contains(obj.id) && obj.isInstanceOf[SOPSpec]}))
         specs = spSpecToBe.map(_.asInstanceOf[SOPSpec])
 

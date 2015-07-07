@@ -166,7 +166,7 @@ trait ModelAPI extends SPApiHelpers {
 
   def updateModelInfo = {
     implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
-    entity(as[ModelInfo]) {info => callSP(UpdateModelInfo(info.model, info))}
+    entity(as[ModelInfo]) {info => callSP(UpdateModelInfo(info.id, info))}
   }
 
 
@@ -212,26 +212,36 @@ trait RuntimeAPI extends SPApiHelpers {
     } ~
       pathPrefix(Segment){ rt =>
         /{
-          implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
-          post{ entity(as[SPAttributes]) { attr =>
-            callSP(SimpleMessage(rt, attr))}
+          ID.makeID(rt) match {
+            case Some(runtime: ID) =>
+              implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
+              post{ entity(as[SPAttributes]) { attr =>
+                callSP(SimpleMessage(runtime, attr))}
+              }
+            case None => complete(SPError("The supplied runtime identifier is not a valid ID."))
           }
         } ~
-          path("stop") {
-            callSP(StopRuntime(rt), {
-              case xs: SPAttributes => complete(xs)
-            })
-          } ~
-          path("sse") {
-            respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
+        path("stop") {
+          ID.makeID(rt) match {
+            case Some(runtime: ID) =>
+              callSP(StopRuntime(runtime), {
+                case xs: SPAttributes => complete(xs)
+              })
+            case None => complete(SPError("The supplied runtime identifier is not a valid ID."))
+          }
+        } ~
+        path("sse") {
+          ID.makeID(rt) match {
+            case Some(runtime: ID) =>
+              respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
                 sse { (channel, lastEventID) =>
-
-                // Register a closed event handler
-                channel ! RegisterClosedHandler( () => println("Connection closed !!!") )
-
-                // Use the channel
-                runtimeHandler ! SubscribeToSSE(rt, channel, lastEventID)
+                  // Register a closed event handler
+                  channel ! RegisterClosedHandler( () => println("Connection closed !!!") )
+                  // Use the channel
+                  runtimeHandler ! SubscribeToSSE(runtime, channel, lastEventID)
+                }
               }
+            case None => complete(SPError("The supplied runtime identifier is not a valid ID."))
           }
         }
       } ~
