@@ -210,6 +210,9 @@ trait RuntimeAPI extends SPApiHelpers {
         callSP(cr)}
       }
     } ~
+      pathPrefix("kinds"){
+        /{get{callSP(GetRuntimeKinds)}}
+      } ~
       pathPrefix(Segment){ rt =>
         /{
           ID.makeID(rt) match {
@@ -244,9 +247,6 @@ trait RuntimeAPI extends SPApiHelpers {
             case None => complete(SPError("The supplied runtime identifier is not a valid ID."))
           }
         }
-      } ~
-      pathPrefix("kinds"){
-        /{get{callSP(GetRuntimeKinds)}}
       }
 
   private def callSP(mess: Any, matchReply: PartialFunction[Any, Route] = {PartialFunction.empty}) = {
@@ -322,9 +322,9 @@ trait SPApiHelpers extends HttpService with Json4SSP {
     case a: SPAttributes => complete(a)
     case r: Result => complete(r)
     case item: IDAble => complete(item)
+    case ri: RuntimeInfo => complete(ri)
     case RuntimeInfos(xs) => complete(xs)
     case RuntimeKindInfos(xs) => complete(xs)
-    case cr: CreateRuntime => complete(cr)
     case e: SPErrorString => complete(StatusCodes.InternalServerError, e.error)
     case e: SPErrors => complete(StatusCodes.InternalServerError, e.errors)
     case e: UpdateError => complete(e)

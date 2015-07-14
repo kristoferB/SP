@@ -33,7 +33,7 @@ class RunTimeHandler extends Actor {
       if (kindMap.contains(kind)){
         val id = ID.newID
         val rtInfo = RuntimeInfo(id, kind, model, name ,settings)
-        val a = context.actorOf(kindMap(kind).props(rtInfo), name)
+        val a = context.actorOf(kindMap(kind).props(rtInfo), id.toString())
         runMap += id -> a
         a.tell(cr, reply)
       } else {

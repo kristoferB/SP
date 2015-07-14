@@ -57,9 +57,9 @@ class PLCRuntime(about: RuntimeInfo) extends Actor {
       model match {
         case x: ID =>
           attachedModel = Some(x)
-          opcHandler = Some(context.actorOf(Props(new OPCHandler(self)), name + "OPCHandler"))
+          opcHandler = Some(context.actorOf(Props(new OPCHandler(self)), ID.newID.toString()))
           println("Model and OPC Handler attached.")
-          sender ! cr
+          sender ! about
         case _ =>
           println("The model is not an ID")
           sender ! SPError("Missing or erroneous property model: ID")
