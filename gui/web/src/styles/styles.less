@@ -13,9 +13,14 @@
     -webkit-text-shadow: none !important;
     -ms-text-shadow: none !important;
     text-shadow: none !important;*/
-    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     /*font-weight: 400;*/
+}
+
+.padder {
+    padding-right: 15px;
+    padding-left: 15px;
 }
 
 .btn, .badge, .modal, .modal-dialog, .modal-content,
@@ -123,6 +128,14 @@ h6 {
 p {
     padding: 1px 0 !important;
     margin: 1px 0 !important;
+}
+
+.text-xs {
+    font-size: 12px;
+}
+
+.text-muted {
+    color: #98a6ad!important;
 }
 
 a {
@@ -530,6 +543,10 @@ form {
 
 .navbar {
     background: #000;
+    min-height: 60px;
+    -webkit-box-shadow: 0 2px 2px #999;
+    -moz-box-shadow: 0 2px 2px #999;
+    box-shadow: 0 2px 2px #999;
 }
 
     .navbar .container {
@@ -539,6 +556,8 @@ form {
     .navbar .nav > li > a {
         font-size: 13px !important;
         color: #fff !important;
+        padding-top: 20px;
+        padding-bottom: 20px;
     }
 
     .navbar i {
@@ -566,7 +585,7 @@ form {
     width: 230px;
     float: left;
     display: block;
-    background: #111;
+    background: #fff;
     color: #eee;
     position: relative;
 }
@@ -591,11 +610,13 @@ form {
         margin: 0 auto;
         position: absolute;
         z-index: 60;
-        background: #111;
+        background: transparent;
     }
 
     .sidebar .navi li i {
         margin-right: 5px;
+        width: 15px;
+        text-align: center;
     }
 
     .sidebar .navi li span i {
@@ -604,19 +625,26 @@ form {
 
     .sidebar .navi > li > a {
         display: block;
-        padding: 12px 20px;
-        font-size: 15px;
-        line-height: 25px;
-        color: #fff;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.42857143em;
+        color: #58666e;
         text-decoration: none;
-        border-bottom: 1px solid #222;
-        background-color: #111;
+        //border-bottom: 1px solid #222;
+
+        -webkit-transition: background-color .2s ease-in-out 0s;
+        transition: background-color .2s ease-in-out 0s;
+        transition-property: background-color;
+        transition-duration: 0.2s;
+        transition-timing-function: ease-in-out;
+        transition-delay: 0s;
     }
 
         .sidebar .navi > li > a:hover, .sidebar .navi > li.open > a {
-            border-bottom: 1px solid #222;
-            background-color: #222;
-            color: #fff;
+            //border-bottom: 1px solid #222;
+            background-color: #f0f3f4;
+            //color: #fff;
         }
 
     .sidebar .navi li ul {
@@ -722,7 +750,7 @@ form {
 
         .sidebar .sidebar-dropdown a {
             color: #ddd;
-            background-color: #343434;
+            background-color: transparent;
             padding: 6px;
             text-transform: uppercase;
             text-align: center;
@@ -794,7 +822,7 @@ form {
     margin-left: 230px;
     margin-right: 0;
     width: auto;
-    background: #fff;
+    background: transparent;
     min-height: 900px;
 }
 
@@ -1309,19 +1337,15 @@ form {
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
 
 body {
-    background-color: #FFF;
+    background-color: #f0f3f4;
 }
 
 .navbar-inverse {
-    background-color: #333;
+    background-color: #2196f3;
 }
 
 .sidebar-widget form {
     margin: 0em -1em;
-}
-
-.sidebar .navi > li > a {
-    background-color: #333 !important;
 }
 
 .sidebar .navi li ul li a {
@@ -1349,7 +1373,7 @@ body {
 }
 
     .sidebar .sidebar-inner {
-        background-color: #333;
+        background-color: transparent;
     }
 
 .sidebar-filler {
@@ -1358,7 +1382,7 @@ body {
     top: 0;
     left: 0;
     height: 100%;
-    background-color: #333;
+    background-color: #fff;
     width: 230px;
 }
 
@@ -1518,17 +1542,20 @@ small {
 
 .navbar .navbar-brand {
     /*background: url(../images/gg.png) no-repeat left top !important;*/
-    margin: 0 1em;
-    height: 45px;
+    line-height: 60px;
+    padding: 0 20px;
+    height: auto;
 }
 
 .navbar .brand-title {
-    /*margin-left: 4em;*/
+    margin-left: 10px;
     color: #FFFFFF;
+    font-weight: 700;
+    font-size: 20px;
 }
 
-.navbar-logo img {
-    height: 20px;
+.navbar-logo {
+    height: 30px;
 }
 
 .today-datas li {
