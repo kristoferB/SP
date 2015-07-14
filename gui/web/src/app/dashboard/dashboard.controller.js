@@ -5,9 +5,9 @@
         .module('app.dashboard')
         .controller('DashboardController', DashboardController);
 
-    DashboardController.$inject = ['$q', 'dataservice', 'logger'];
+    DashboardController.$inject = ['$q', 'spTalker', 'logger'];
     /* @ngInject */
-    function DashboardController($q, dataservice, logger) {
+    function DashboardController($q, spTalker, logger) {
         var vm = this;
         vm.news = {
             title: 'Sequence Planner',
@@ -26,7 +26,7 @@
         }
 
         function getModels() {
-            return dataservice.getModels().then(function (data) {
+            return spTalker.getModels().then(function (data) {
                 vm.models = data;
                 return vm.models;
             });
