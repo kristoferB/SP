@@ -16,3 +16,12 @@ case class SOPSpec(name: String,
 case class SPSpec(name: String,
                   attributes: SPAttributes = SPAttributes(),
                   id: ID = ID.newID) extends Specification
+
+// To be used for defining hierarchies in SP
+case class HierarchySpec(name: String,
+                         hierarchy: List[HierarchyNode],
+                         attributes: SPAttributes = SPAttributes(),
+                         id: ID = ID.newID) extends Specification
+
+//Use HierarchySpec to define new levels without an IDAble as id
+case class HierarchyNode(id: ID, hierarchy: List[HierarchyNode] = List())
