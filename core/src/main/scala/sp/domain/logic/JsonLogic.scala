@@ -23,6 +23,7 @@ trait JsonLogics {
       classOf[Thing],
       classOf[RelationResult],
       classOf[SPSpec],
+      classOf[HierarchySpec],
       classOf[SOPSpec],
       classOf[Parallel],
       classOf[Alternative],
