@@ -14,10 +14,9 @@
 
     <!-- build:css styles/lib.css -->
     <!-- bower:css -->
-    <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.css" />
-    <link rel="stylesheet" href="../bower_components/font-source-sans-pro/source-sans-pro.css" />
-    <link rel="stylesheet" href="../bower_components/toastr/toastr.css" />
+    <link rel="stylesheet" href="../bower_components/angular-material/angular-material.css" />
+    <link rel="stylesheet" href="../bower_components/md-data-table/dist/md-data-table-style.css" />
     <!-- endbower -->
     <!-- endbuild -->
 
@@ -27,32 +26,55 @@
     <!-- endinject -->
     <!-- endbuild -->
 </head>
-<body>
-    <div>
-        <div ng-include="'app/layout/shell.html'"></div>
-        <div id="splash-page" ng-show="showSplash">
-            <div class="page-splash">
-                <div class="page-splash-message">
-                    Sequence Planner
-                </div>
-                <div class="progress progress-striped active page-progress-bar">
-                    <div class="bar"></div>
-                </div>
-            </div>
+<body layout="row">
+
+    <div flex layout="column" tabIndex="-1">
+
+        <md-toolbar layout="row" class="md-whiteframe-z1">
+            <md-button class="menu" hide-gt-sm ng-click="ul.toggleList()" aria-label="Show User List">
+                <md-icon md-font-icon="fa-bars" class="fa" ></md-icon>
+            </md-button>
+            <h1>Sequence Planner</h1>
+        </md-toolbar>
+
+        <div flex layout="row" role="main">
+            <md-sidenav class="site-sidenav md-sidenav-left md-whiteframe-z2"
+                        md-component-id="left"
+                        md-is-locked-open="$mdMedia('gt-sm')"
+                        style="z-index: 1">
+
+                <md-list ng-controller="SidebarController as vm">
+                    <md-list-item ng-repeat="r in vm.navRoutes">
+                        <md-button ng-click="vm.$state.go(r.name)">
+                            <md-icon md-font-icon="fa-magic" class="fa"></md-icon>
+                            {{r.name}}
+                        </md-button>
+                    </md-list-item>
+                </md-list>
+
+            </md-sidenav>
+
+            <md-content flex id="content" ui-view></md-content>
         </div>
+
     </div>
+
 
     <!-- build:js js/lib.js -->
     <!-- bower:js -->
     <script src="../bower_components/jquery/dist/jquery.js"></script>
     <script src="../bower_components/angular/angular.js"></script>
     <script src="../bower_components/angular-sanitize/angular-sanitize.js"></script>
-    <script src="../bower_components/bootstrap/dist/js/bootstrap.js"></script>
-    <script src="../bower_components/extras.angular.plus/ngplus-overlay.js"></script>
     <script src="../bower_components/moment/moment.js"></script>
     <script src="../bower_components/angular-ui-router/release/angular-ui-router.js"></script>
-    <script src="../bower_components/toastr/toastr.js"></script>
     <script src="../bower_components/angular-animate/angular-animate.js"></script>
+    <script src="../bower_components/angular-aria/angular-aria.js"></script>
+    <script src="../bower_components/angular-material/angular-material.js"></script>
+    <script src="../bower_components/lodash/lodash.js"></script>
+    <script src="../bower_components/angular-uuid4/angular-uuid4.js"></script>
+    <script src="../bower_components/angular-material-icons/angular-material-icons.min.js"></script>
+    <script src="../bower_components/md-data-table/dist/md-data-table.js"></script>
+    <script src="../bower_components/md-data-table/dist/md-data-table-templates.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 
@@ -79,8 +101,6 @@
     <script src="/src/app/core/sptalker.service.js"></script>
     <script src="/src/app/dashboard/dashboard.controller.js"></script>
     <script src="/src/app/dashboard/dashboard.route.js"></script>
-    <script src="/src/app/layout/ht-sidebar.directive.js"></script>
-    <script src="/src/app/layout/ht-top-nav.directive.js"></script>
     <script src="/src/app/layout/shell.controller.js"></script>
     <script src="/src/app/layout/sidebar.controller.js"></script>
     <script src="/src/app/widgets/ht-img-person.directive.js"></script>

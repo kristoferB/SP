@@ -10,7 +10,7 @@
     function DashboardController($q, spTalker, logger) {
         var vm = this;
         vm.news = {
-            title: 'Sequence Planner',
+            title: 'Help',
             description: 'Create a model and apply algorithms to it.'
         };
         vm.models = [];
