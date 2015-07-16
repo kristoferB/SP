@@ -78,7 +78,7 @@ class ServiceTalker(service: ActorRef,
       killMe
     }
     case x if sender() == service=> {
-      println("SERVICES SHOULD SEND A RESPONSE, NOT "+x)
+      println("SERVICES SHOULD SEND case class Response, NOT "+x)
       replyTo ! x
       killMe
     }
@@ -126,8 +126,6 @@ object ServiceTalker {
     val d = expected.filter(kv => !flatAttr.contains(kv._1)).map(kv => kv._1 -> kv._2.default.getOrElse(JNothing))
     attr + SPAttributes(d)
   }
-
-
 
 }
 
