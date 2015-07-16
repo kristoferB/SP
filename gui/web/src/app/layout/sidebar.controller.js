@@ -11,7 +11,6 @@
         var vm = this;
         var states = routerHelper.getStates();
         vm.isCurrent = isCurrent;
-        vm.$state = $state;
 
         activate();
 
