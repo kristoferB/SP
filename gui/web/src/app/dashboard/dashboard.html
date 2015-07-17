@@ -1,69 +1,21 @@
 <section id="dashboard-view" class="mainbar">
-    <section class="matter">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <ul class="today-datas">
-                        <li class="blightblue">
-                            <div class="pull-left"><i class="fa fa-plane"></i></div>
-                            <div class="datas-text pull-right">
-                                <span class="bold">May 18 - 19, 2015</span> Castle Resort, Neverland
-                            </div>
-                            <div class="clearfix"></div>
-                        </li>
-
-                        <li class="borange">
-                            <div class="pull-left"><i class="fa fa-envelope"></i></div>
-                            <div class="datas-text pull-right">
-                                <span class="bold">1</span> Messages
-                            </div>
-                            <div class="clearfix"></div>
-                        </li>
-
-                    </ul>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="widget wviolet">
-                        <div ht-widget-header title="Models"
-                             allow-collapse="true"></div>
-                        <div class="widget-content text-center text-info">
-                            <table class="table table-condensed table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>ID</th>
-                                        <th>Version</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr ng-repeat="m in vm.models">
-                                        <td>{{m.name}}</td>
-                                        <td>{{m.id}}</td>
-                                        <td>{{m.version}}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="widget-foot">
-                            <div class="clearfix"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="widget wgreen">
-                        <div ht-widget-header title="{{vm.news.title}}"
-                             allow-collapse="true"></div>
-                        <div class="widget-content text-center text-info">
-                            <small>{{vm.news.description}}</small>
-                        </div>
-                        <div class="widget-foot">
-                            <div class="clearfix"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="view-header">
+        <div class="dropdown pull-right m-t-n-xs ">
+            <button type="button" class="btn btn-default btn-addon dropdown-toggle"
+                    data-toggle="dropdown" aria-haspopup="true" id="newDropDown" aria-expanded="false">
+                <i class="fa fa-plus"></i> New
+            </button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="newDropDown">
+                <li><a href="">Item List</a></li>
+                <li><a href="">Runtime List</a></li>
+                <li><a href="">SOP Maker</a></li>
+            </ul>
         </div>
-    </section>
+        <h1>Dashboard</h1>
+    </div>
+
+    <div class="container">
+
+    </div>
+
 </section>

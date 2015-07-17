@@ -4,8 +4,9 @@
     angular.module('app', [
         'app.core',
         'app.widgets',
-        'app.settings',
+        'app.models',
         'app.dashboard',
+        'app.settings',
         'app.layout'
     ]);
 

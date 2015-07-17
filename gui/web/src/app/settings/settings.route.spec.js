@@ -2,7 +2,7 @@
 describe('settings routes', function () {
     describe('state', function () {
         var controller;
-        var view = 'app/settings/settings.html';
+        var view = 'app/settings/models.html';
 
         beforeEach(function() {
             module('app.settings', bard.fakeToastr);

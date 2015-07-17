@@ -1,0 +1,40 @@
+<section class="mainbar">
+    <div class="view-header">
+        <h1>Models</h1>
+    </div>
+    <div class="container">
+        <div class="m-b">
+            <button type="button" tooltip="Create a new, empty model" class="btn btn-sm btn-primary btn-addon" ng-click="vm.createModel()" tabindex="0">
+                <i class="fa fa-plus"></i>Create Model
+            </button>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+
+                <table class="table table-condensed table-striped">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>ID</th>
+                        <th>Version</th>
+                        <th>Created</th>
+                        <!--<th>Delete</th>-->
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="m in vm.models">
+                        <td>{{m.name}}</td>
+                        <td>{{m.id}}</td>
+                        <td>{{m.version}}</td>
+                        <td>{{m.attributes.time}}</td>
+                        <!--<td><button class="btn btn-sm btn-danger" ng-click="deleteModel(m.id)" tabindex="0"><i class="fa fa-plus"></i> </button></td>-->
+                    </tr>
+                    </tbody>
+                </table>
+
+
+            </div>
+
+        </div>
+    </div>
+</section>

@@ -43,7 +43,7 @@
             }
 
             function fail(error) {
-                var msg = 'query for ' + itemKind  + ' failed. ' + error.data.description;
+                var msg = 'Query for ' + itemKind  + ' failed. ' + error.data.description;
                 logger.error(msg);
                 return $q.reject(msg);
             }
@@ -60,7 +60,7 @@
             return postStuff(API.serviceInstance(serviceID), 'service instance', data);
         }
 
-        function postStuff(restURL, itemKind, data) {
+        function postStuff(restURL, receiver, data) {
             return $http.post(restURL, data)
                 .then(success)
                 .catch(fail);
@@ -70,7 +70,7 @@
             }
 
             function fail(error) {
-                var msg = 'post to ' + itemKind  + ' failed. ' + error.data.description;
+                var msg = 'Post to ' + receiver  + ' failed. ' + error.data.description;
                 logger.error(msg);
                 return $q.reject(msg);
             }

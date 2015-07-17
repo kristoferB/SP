@@ -12,31 +12,8 @@
 
     <div class="navbar-collapse collapse box-shadow">
         <ul class="nav navbar-nav hidden-sm">
-            <li class="dropdown">
-                <a href="" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" id="newDropDown" aria-expanded="false">
-                    <i class="fa fa-fw fa-plus visible-xs-inline-block"></i>
-                    <span class="ng-scope">New</span> <span class="fa fa-caret-down"></span>
-                </a>
-                <ul class="dropdown-menu" role="menu" aria-labelledby="newDropDown">
-                    <li><a href="#" class="ng-scope">Projects</a></li>
-                    <li>
-                        <a href="">
-                            <span class="badge bg-info pull-right">5</span>
-                            <span class="ng-scope">Task</span>
-                        </a>
-                    </li>
-                    <li><a href="" class="ng-scope">User</a></li>
-                    <li class="divider"></li>
-                    <li>
-                        <a href="">
-                            <span class="badge bg-danger pull-right">4</span>
-                            <span class="ng-scope">Email</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-            <li><a href="/">Dashboard</a></li>
-            <li><a href="/settings">Settings</a></li>
+            <li><a ui-sref="models"><i class="fa fa-files-o"></i> Model: None</a></li>
+            <li><a ui-sref="dashboard"><i class="fa fa-tachometer"></i> Dashboard</a></li>
         </ul>
         <div class="pull-right navbar-logo">
             <ul class="nav navbar-nav pull-right">
@@ -50,25 +27,11 @@
                     </a>
                     <!-- dropdown -->
                     <ul class="dropdown-menu" aria-labelledby="userDropDown">
-                        <li>
-                            <a href="">
-                                <span class="badge bg-danger pull-right">30%</span>
-                                <span>Settings</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a ui-sref="app.page.profile" href="#/app/page/profile">Profile</a>
-                        </li>
-                        <li>
-                            <a ui-sref="app.docs" href="#/app/docs">
-                                <span class="label bg-info pull-right">new</span>
-                                Help
-                            </a>
-                        </li>
+                        <li><a ui-sref="settings"><i class="fa fa-cog"></i> Settings</a></li>
+                        <li><a><i class="fa fa-user"></i> Profile</a></li>
+                        <li><a><i class="fa fa-question"></i> Help</a></li>
                         <li class="divider"></li>
-                        <li>
-                            <a ui-sref="access.signin" href="#/access/signin">Logout</a>
-                        </li>
+                        <li><a><i class="fa fa-sign-out"></i> Logout</a></li>
                     </ul>
                     <!-- / dropdown -->
                 </li>
