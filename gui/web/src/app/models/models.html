@@ -18,7 +18,7 @@
                         <th>ID</th>
                         <th>Version</th>
                         <th>Created</th>
-                        <!--<th>Delete</th>-->
+                        <th>Actions</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -27,7 +27,7 @@
                         <td>{{m.id}}</td>
                         <td>{{m.version}}</td>
                         <td>{{m.attributes.time}}</td>
-                        <!--<td><button class="btn btn-sm btn-danger" ng-click="deleteModel(m.id)" tabindex="0"><i class="fa fa-plus"></i> </button></td>-->
+                        <td><button class="btn btn-sm btn-danger" ng-click="vm.deleteModel(m)" tabindex="0"><i class="fa fa-trash-o"></i> Delete</button></td>
                     </tr>
                     </tbody>
                 </table>

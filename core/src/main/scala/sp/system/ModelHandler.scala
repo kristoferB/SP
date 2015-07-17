@@ -22,34 +22,42 @@ class ModelHandler extends PersistentActor {
   def receiveCommand = {
     //case mess @ _ if {println(s"handler got: $mess from $sender"); false} => Unit
 
-    case cm @ CreateModel(id, name, attr)=> {
-      val reply = sender
+    case cm @ CreateModel(id, name, attr) =>
+      val reply = sender()
       if (!modelMap.contains(id)){
         persist(cm){n =>
           addModel(n)
           modelMap(id).tell(GetModels, reply)
         }
       } else modelMap(id).tell(GetModels, reply)
-    }
 
-    case m: ModelMessage => {
+    case dm @ DeleteModel(id) =>
+      val reply = sender()
+      if (modelMap.contains(id)){
+        persist(dm){n =>
+          deleteModel(n)
+        }
+        reply ! "OK"
+      } else {
+        reply ! SPError("There's no model with that ID")
+      }
+
+    case m: ModelMessage =>
       if (modelMap.contains(m.model)) modelMap(m.model) forward m
       else sender ! SPError(s"Model ${m.model} does not exist.")
-    }
 
-    case (m: ModelMessage, v: Long) => {
+    case (m: ModelMessage, v: Long) =>
       val viewName = viewNameMaker(m.model, v)
       if (!viewMap.contains(viewName)) {
         println(s"The modelService creates a new view for ${m.model} version: ${v}")
         val view = context.actorOf(sp.models.ModelView.props(m.model, v, viewName))
         viewMap += viewName -> view
       }
-      viewMap(viewName).tell(m, sender)
-    }
+      viewMap(viewName).tell(m, sender())
 
 
     case GetModels =>
-      val reply = sender
+      val reply = sender()
       if (!modelMap.isEmpty){
         val fList = Future.traverse(modelMap.values)(x => (x ? GetModels).mapTo[ModelInfo]) map(_ toList)
         fList map ModelInfos pipeTo reply
@@ -63,14 +71,19 @@ class ModelHandler extends PersistentActor {
     modelMap += cm.id -> newModelH
   }
 
+  def deleteModel(dm: DeleteModel) = {
+    println(s"The modelService deletes the model with id: ${dm.model}")
+    context.stop(modelMap(dm.model))
+    modelMap -= dm.model
+  }
+
   def viewNameMaker(id: ID, v: Long) = id.toString() + " - Version: " + v
 
   def receiveRecover = {
-    case cm: CreateModel  => {
+    case cm: CreateModel  =>
       println(s"The modelService creates a new model called ${cm.name} id: ${cm.id}")
       val newModelH = context.actorOf(sp.models.ModelActor.props(cm.id))
       modelMap += cm.id -> newModelH
-    }
   }
 
 }

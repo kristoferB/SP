@@ -125,7 +125,8 @@ trait ModelAPI extends SPApiHelpers {
       pathPrefix(JavaUUID) { model =>
         / {
           get { callSP(GetModelInfo(model)) } ~
-            post { updateModelInfo }
+            post { updateModelInfo } ~
+            delete { callSP(DeleteModel(model)) }
         } ~
           pathPrefix(Segment){ typeOfItems =>
             IDHandler(model) ~

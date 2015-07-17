@@ -12,6 +12,7 @@
         vm.title = 'Models';
         vm.models = [];
         vm.createModel = createModel;
+        vm.deleteModel = deleteModel;
 
         activate();
 
@@ -29,10 +30,6 @@
             });
         }
 
-        function deleteModel() {
-
-        }
-
         function createModel() {
             const newModel = {
               name: ''
@@ -42,6 +39,16 @@
 
             function addModelToTable(model) {
                 vm.models.push(model);
+            }
+        }
+
+        function deleteModel(model) {
+            spTalker.deleteModel(model.id)
+                .then(removeModelFromTable);
+
+            function removeModelFromTable() {
+                vm.models.splice(vm.models.indexOf(model), 1);
+                logger.info("Deleted model with id " + model.id + '.');
             }
         }
     }

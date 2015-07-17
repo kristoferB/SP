@@ -20,7 +20,8 @@
             postToRuntimeHandler: postToRuntimeHandler,
             postToRuntimeInstance: postToRuntimeInstance,
             postToServiceHandler: postToServiceHandler,
-            postToServiceInstance: postToServiceInstance
+            postToServiceInstance: postToServiceInstance,
+            deleteModel: deleteModel
         };
 
         return service;
@@ -71,6 +72,25 @@
 
             function fail(error) {
                 var msg = 'Post to ' + receiver  + ' failed. ' + error.data.description;
+                logger.error(msg);
+                return $q.reject(msg);
+            }
+        }
+
+        function deleteModel(modelID) { return deleteStuff(API.model(modelID), 'model'); }
+
+        function deleteStuff(restURL, itemKind) {
+
+            return $http.delete(restURL)
+                .then(success)
+                .catch(fail);
+
+            function success(response) {
+                return response.data;
+            }
+
+            function fail(error) {
+                var msg = 'Deletion of ' + itemKind  + ' failed. ' + error.data.description;
                 logger.error(msg);
                 return $q.reject(msg);
             }

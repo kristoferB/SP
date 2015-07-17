@@ -8,6 +8,7 @@
         .constant('moment', moment)
         .constant('API', {
             models: '/api/models',
+            model: function(modelID) { return '/api/models/' + modelID; },
             items: function(modelID) { return '/api/models/' + modelID + '/items'; },
             runtimeKinds: '/api/runtimes/kinds',
             runtimeHandler: '/api/runtimes',

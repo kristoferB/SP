@@ -16,6 +16,7 @@ sealed trait ModelUpdate extends ModelMessage
 
 // Model messages
 case class CreateModel(id: ID, name: String, attributes: SPAttributes = SPAttributes())
+case class DeleteModel(model: ID)
 // TODO Should be local in rest API. Used during json parse: KB 150526
 case class CreateModelNewID(name: String, attributes: SPAttributes = SPAttributes()) //Problem to use this on the scala side. 150522 Patrik
 case object GetModels extends SPMessage
