@@ -25,7 +25,8 @@ class SPWebServer extends Actor with SPRoute {
       getFromFile(srcFolder + "/index.html")
     } ~
     getFromDirectory(webFolder) ~
-    getFromDirectory(srcFolder)
+    getFromDirectory(srcFolder) ~
+    getFromFile(srcFolder + "/index.html")
   }
 
 }
