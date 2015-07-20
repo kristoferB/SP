@@ -1,4 +1,4 @@
-package sp.opc
+package sp.runtimes.opc
 
 import sp.domain._
 

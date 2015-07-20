@@ -27,6 +27,5 @@ trait RuntimeMessage {
   val runtime: ID
 }
 
-case class SubscribeToSSE(runtime: ID, channel: ActorRef, lastEventId: Option[String]) extends RuntimeMessage
 case class SimpleMessage(runtime: ID, attributes: SPAttributes) extends RuntimeMessage
 

@@ -8,6 +8,7 @@ import spray.routing._
  * Created by Kristofer on 2014-06-19.
  */
 class SPWebServer extends Actor with SPRoute {
+  override val eventHandler : ActorRef= sp.system.SPActorSystem.eventHandler
   override val modelHandler : ActorRef= sp.system.SPActorSystem.modelHandler
   override val runtimeHandler : ActorRef= sp.system.SPActorSystem.runtimeHandler
   override val serviceHandler : ActorRef= sp.system.SPActorSystem.serviceHandler

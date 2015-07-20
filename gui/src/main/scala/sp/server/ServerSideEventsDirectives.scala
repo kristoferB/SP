@@ -1,10 +1,11 @@
-package sp.opc
+package sp.server
 
 /**
  * Created by daniel on 2015-03-23.
  */
 
 import akka.actor._
+import sp.system.messages.{ServerSentEndEvent, ServerSentDataEvent}
 import spray.can.Http
 import spray.http.HttpHeaders._
 import spray.http.MediaTypes._
@@ -12,22 +13,22 @@ import spray.http._
 import spray.routing.Directives._
 import spray.routing._
 
-import scala.concurrent.duration._
-
 // Enable scala features
 import scala.language.{implicitConversions, postfixOps}
+import scala.concurrent.duration._
+
 
 trait ServerSideEventsDirectives {
 
 
-  case class ServerSentDataEvent(data: String, event: Option[String], id: Option[String])
+  /*case class ServerSentDataEvent(data: String, event: Option[String], id: Option[String])
   object ServerSentEndEvent
 
   object ServerSentEvent {
     def apply(data: String) = ServerSentDataEvent(data, None, None)
     def apply(data: String, event: String) = ServerSentDataEvent(data, Some(event), None)
     def apply(data: String, event: String, id: String) = ServerSentDataEvent(data, Some(event), Some(id))
-  }
+  }*/
 
   case class RegisterClosedHandler(handler: () => Unit)
 

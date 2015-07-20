@@ -3,11 +3,11 @@
 
     angular
         .module('app.core')
-        .factory('spTalker', spTalker);
+        .factory('rest', rest);
 
-    spTalker.$inject = ['$http', '$q', 'logger', 'API'];
+    rest.$inject = ['$http', '$q', 'logger', 'API'];
     /* @ngInject */
-    function spTalker($http, $q, logger, API) {
+    function rest($http, $q, logger, API) {
         var service = {
             getModels: getModels,
             getItems: getItems,
@@ -40,6 +40,7 @@
                 .catch(fail);
 
             function success(response) {
+                logger.info('Successfully fetched ' + response.data.length + ' ' + itemKind + ' through REST.');
                 return response.data;
             }
 
@@ -67,11 +68,12 @@
                 .catch(fail);
 
             function success(response) {
+                logger.info('Successfully posted data to ' + receiver + '.');
                 return response.data;
             }
 
             function fail(error) {
-                var msg = 'Post to ' + receiver  + ' failed. ' + error.data.description;
+                var msg = 'Post of data to ' + receiver  + ' failed. ' + error.data.description;
                 logger.error(msg);
                 return $q.reject(msg);
             }
@@ -86,6 +88,7 @@
                 .catch(fail);
 
             function success(response) {
+                logger.info('Successfully sent deletion/stop request for ' + itemKind + '.');
                 return response.data;
             }
 

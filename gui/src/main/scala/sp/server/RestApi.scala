@@ -14,8 +14,6 @@ import akka.actor._
 import akka.pattern.ask
 import scala.concurrent.duration._
 import spray.httpx.encoding._
-
-import sp.opc.ServerSideEventsDirectives
 import ServerSideEventsDirectives._
 
 
@@ -38,7 +36,8 @@ import ServerSideEventsDirectives._
 
 
 
-trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI {
+trait SPRoute extends SPApiHelpers with EventAPI with ModelAPI with RuntimeAPI with ServiceAPI {
+  val eventHandler: ActorRef
   val modelHandler: ActorRef
   val runtimeHandler: ActorRef
   val serviceHandler: ActorRef
@@ -60,7 +59,7 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
     }*/
 
   // Handles AuthenticationRequiredRejection to omit the WWW-Authenticate header.
-  // The omit prevents the browser login dialog to open when the Basic HTTP Authentication repsonds with code "401: Unauthorized".
+  // The omit prevents the browser login dialog to open when the Basic HTTP Authentication responds with code "401: Unauthorized".
   /*implicit val myRejectionHandler = RejectionHandler {
     case AuthenticationFailedRejection(cause, challengeHeaders) :: _ =>
       complete(StatusCodes.Unauthorized, "Wrong username and/or password.")
@@ -78,12 +77,16 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
         pathPrefix("models") {
           modelapi
         } ~
-          pathPrefix("runtimes") {
-            runtimeapi
-          } ~
-          pathPrefix("services") {
-            serviceapi
-          } //~
+        pathPrefix("runtimes") {
+          runtimeapi
+        } ~
+        pathPrefix("services") {
+          serviceapi
+        } ~
+        path("events") {
+          eventAPI
+        }
+        //~
         //      path("users") {
         //        get {
         //          callSP(GetUsers, {
@@ -108,6 +111,28 @@ trait SPRoute extends SPApiHelpers with ModelAPI with RuntimeAPI with ServiceAPI
   }
 }
 
+trait EventAPI extends SPApiHelpers {
+  val eventHandler: ActorRef
+  private implicit val to = timeout
+
+  def eventAPI =
+    / {
+      respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
+        sse { (channel, lastEventID) =>
+          // Register a closed event handler
+          channel ! RegisterClosedHandler( () => println("Connection closed !!!") )
+          // Use the channel
+          eventHandler ! SubscribeToSSE(channel, lastEventID)
+        }
+      }
+    }
+
+  private def callSP(mess: Any, matchReply: PartialFunction[Any, Route] = {PartialFunction.empty}) = {
+    //println(s"Sending from route: $mess")
+    onSuccess(eventHandler ? mess){evalReply{matchReply}}
+  }
+}
+
 
 trait ModelAPI extends SPApiHelpers {
   val modelHandler: ActorRef
@@ -125,8 +150,8 @@ trait ModelAPI extends SPApiHelpers {
       pathPrefix(JavaUUID) { model =>
         / {
           get { callSP(GetModelInfo(model)) } ~
-            post { updateModelInfo } ~
-            delete { callSP(DeleteModel(model)) }
+          post { updateModelInfo } ~
+          delete { callSP(DeleteModel(model)) }
         } ~
           pathPrefix(Segment){ typeOfItems =>
             IDHandler(model) ~
@@ -189,13 +214,8 @@ trait ModelAPI extends SPApiHelpers {
             callSP(UpdateIDs(model, -1, xs))
           }
       }
-
   }
-
 }
-
-
-
 
 
 trait RuntimeAPI extends SPApiHelpers {
@@ -214,48 +234,24 @@ trait RuntimeAPI extends SPApiHelpers {
       pathPrefix("kinds"){
         /{get{callSP(GetRuntimeKinds)}}
       } ~
-      pathPrefix(Segment){ rt =>
+      path(JavaUUID){ rt =>
         /{
-          ID.makeID(rt) match {
-            case Some(runtime: ID) =>
-              implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
-              post{ entity(as[SPAttributes]) { attr =>
-                callSP(SimpleMessage(runtime, attr))}
-              }
-            case None => complete(SPError("The supplied runtime identifier is not a valid ID."))
-          }
-        } ~
-        path("stop") {
-          ID.makeID(rt) match {
-            case Some(runtime: ID) =>
-              callSP(StopRuntime(runtime), {
-                case xs: SPAttributes => complete(xs)
-              })
-            case None => complete(SPError("The supplied runtime identifier is not a valid ID."))
-          }
-        } ~
-        path("sse") {
-          ID.makeID(rt) match {
-            case Some(runtime: ID) =>
-              respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
-                sse { (channel, lastEventID) =>
-                  // Register a closed event handler
-                  channel ! RegisterClosedHandler( () => println("Connection closed !!!") )
-                  // Use the channel
-                  runtimeHandler ! SubscribeToSSE(runtime, channel, lastEventID)
-                }
-              }
-            case None => complete(SPError("The supplied runtime identifier is not a valid ID."))
+          post {
+            implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
+            entity(as[SPAttributes]) { attr =>
+            callSP(SimpleMessage(rt, attr))}
+          } ~
+          delete {
+            callSP(StopRuntime(rt), {
+              case xs: SPAttributes => complete(xs)
+            })
           }
         }
       }
-
   private def callSP(mess: Any, matchReply: PartialFunction[Any, Route] = {PartialFunction.empty}) = {
     onSuccess(runtimeHandler ? mess){evalReply{matchReply}}
   }
-
 }
-
 
 
 trait ServiceAPI extends SPApiHelpers {
@@ -330,7 +326,7 @@ trait SPApiHelpers extends HttpService with Json4SSP {
     case e: SPErrors => complete(StatusCodes.InternalServerError, e.errors)
     case e: UpdateError => complete(e)
     case MissingID(id, model, mess) => complete(StatusCodes.NotFound, s"id: $id $mess")
-    case r: sp.opc.RuntimeState => complete(r)
+    case r: sp.runtimes.opc.RuntimeState => complete(r)
     case a: Any  => complete("reply from application is not converted: " +a.toString)
   }
 

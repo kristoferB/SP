@@ -1,6 +1,6 @@
 package sp.launch
 
-import sp.opc.PLCRuntime
+import sp.runtimes.opc.PLCRuntime
 import sp.services.{PropositionParserActor}
 import sp.system.messages._
 import sp.domain._

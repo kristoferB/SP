@@ -8,6 +8,7 @@ import akka.pattern.pipe
 import scala.concurrent.duration._
 import sp.system.messages._
 import akka.persistence._
+import sp.system.SPActorSystem._
 
 import sp.domain._
 
@@ -27,9 +28,11 @@ class ModelHandler extends PersistentActor {
       if (!modelMap.contains(id)){
         persist(cm){n =>
           addModel(n)
-          modelMap(id).tell(GetModels, reply)
         }
-      } else modelMap(id).tell(GetModels, reply)
+        val modelInfo = ModelInfo(cm.id, cm.name, 0, cm.attributes)
+        eventHandler ! ModelCreated(EventTargets.ModelHandler, EventActions.Creation, modelInfo)
+        reply ! "OK"
+      } else reply ! SPError("A model with that ID do already exist.")
 
     case dm @ DeleteModel(id) =>
       val reply = sender()
@@ -37,6 +40,7 @@ class ModelHandler extends PersistentActor {
         persist(dm){n =>
           deleteModel(n)
         }
+        eventHandler ! ModelDeleted(EventTargets.ModelHandler, EventActions.Deletion, dm.model)
         reply ! "OK"
       } else {
         reply ! SPError("There's no model with that ID")
@@ -58,7 +62,7 @@ class ModelHandler extends PersistentActor {
 
     case GetModels =>
       val reply = sender()
-      if (!modelMap.isEmpty){
+      if (modelMap.nonEmpty){
         val fList = Future.traverse(modelMap.values)(x => (x ? GetModels).mapTo[ModelInfo]) map(_ toList)
         fList map ModelInfos pipeTo reply
       } else reply ! ModelInfos(List[ModelInfo]())

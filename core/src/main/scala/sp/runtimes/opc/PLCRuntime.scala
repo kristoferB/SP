@@ -1,4 +1,4 @@
-package sp.opc
+package sp.runtimes.opc
 
 import java.util.concurrent.TimeUnit
 
@@ -9,9 +9,7 @@ import akka.util._
 import org.json4s._
 import sp.domain._
 import sp.domain.Logic._
-import sp.opc.ServerSideEventsDirectives._
 import sp.system.messages._
-import spray.http.StatusCodes
 
 import scala.concurrent.Await
 
@@ -80,9 +78,6 @@ class PLCRuntime(about: RuntimeInfo) extends Actor {
       opcClient = None
       sendEvent("", "ConnectionClosed")
       println("Connection closed")
-    case ss: SubscribeToSSE =>
-      sseChannels = ss.channel :: sseChannels
-      println("Added a new SSE channel")
     case GetRuntimes => sender ! about
     case ow @ (OPCWrite(_) | OPCSubscribe(_)) =>
       opcClient match {
@@ -103,7 +98,6 @@ class PLCRuntime(about: RuntimeInfo) extends Actor {
     case vs: VarState => sendEvent(write(vs), "NewVarState")
     case oe: OPCError => for(error <- oe.e) sendEvent(write(error), "Error")
     case e: SPErrorString => sendEvent(e.error, "Error")
-    case StatusCodes.OK =>
     case e @ _ =>
       println("PLCRuntime: I couldn't match the following message:")
       println(e)
@@ -119,7 +113,7 @@ class PLCRuntime(about: RuntimeInfo) extends Actor {
           case Some(handler: ActorRef) => handler ! OpWrite(i.toString(), JBool(s), JBool(r))
           case None => reply ! SPError("There is no OPCHandler actor attached to the runtime")
         }
-        reply ! StatusCodes.OK
+        reply ! "Operation written"
       case _ => reply ! SPError("Wrong or missing ID, start or reset property for action writeOp.")
     }
   }
@@ -133,10 +127,10 @@ class PLCRuntime(about: RuntimeInfo) extends Actor {
         (id, intValue, boolValue) match {
           case (Some(i: ID), Some(iv: Int), _) =>
             handler ! VarWrite(i.toString(), JInt(iv))
-            reply ! StatusCodes.OK
+            reply ! "Integer value written to variable"
           case (Some(i: ID), _, Some(bv: Boolean)) =>
             handler ! VarWrite(i.toString(), JBool(bv))
-            reply ! StatusCodes.OK
+            reply ! "Boolean value written to variable"
           case _ => reply ! SPError("Wrong or missing ID or value property for action writeVar.")
         }
       case None => reply ! SPError("There is no OPCHandler actor attached to the runtime")
@@ -195,7 +189,7 @@ class PLCRuntime(about: RuntimeInfo) extends Actor {
                             opcClient match {
                               case Some(client: ActorRef) =>
                                 handler ! UpdateOpcSubscription(opcDef)
-                                reply ! StatusCodes.OK
+                                reply ! "The OPC subscription was updated."
                               case None => reply ! SPError("Subscription error: The runtime first has to be connected to a OPC Server")
                             }
                           case None => reply ! SPError("Subscription error: There is no OPCHandler actor attached to the runtime")
@@ -231,7 +225,7 @@ class PLCRuntime(about: RuntimeInfo) extends Actor {
                           case Some(_: ActorRef) => reply ! SPError("Connected already")
                           case _ =>
                             context.actorOf(Props(new Client(remote, self)), name + "opcClient")
-                            reply ! StatusCodes.OK
+                            reply ! "Connecting"
                             sendEvent("","Connecting")
                         }
                       case None => reply ! SPError("The runtime has to have a name")
@@ -251,7 +245,7 @@ class PLCRuntime(about: RuntimeInfo) extends Actor {
     opcClient match {
       case Some(client: ActorRef) =>
         client ! "close"
-        reply ! StatusCodes.OK
+        reply ! "Disconnecting"
         sendEvent("","Disconnecting")
       case _ => reply ! SPError("There is no OPC to disconnect from.")
     }
@@ -265,7 +259,7 @@ class PLCRuntime(about: RuntimeInfo) extends Actor {
             attr.getAs[ID]("opcSpecID") match {
               case Some(opcSpecID: ID) =>
                 attachedOPCSpec = Some(opcSpecID)
-                reply ! StatusCodes.OK
+                reply ! "OPC chosen"
                 sendEvent(opcSpecID.toString(),"OPCChosen")
                 connect()
               case None => reply ! SPError("Erroneous or missing property plcSpecID: ID")

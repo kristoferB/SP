@@ -7,6 +7,7 @@
         .constant('toastr', toastr)
         .constant('moment', moment)
         .constant('API', {
+            events: '/api/events',
             models: '/api/models',
             model: function(modelID) { return '/api/models/' + modelID; },
             items: function(modelID) { return '/api/models/' + modelID + '/items'; },

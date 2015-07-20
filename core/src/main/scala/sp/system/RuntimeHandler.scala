@@ -12,7 +12,7 @@ import sp.domain.ID
 
 //TODO: make persistent soon
 
-class RunTimeHandler extends Actor {
+class RuntimeHandler extends Actor {
   var kindMap: Map[String, RegisterRuntimeKind] = Map()
   private var runMap: Map[ID, ActorRef] = Map()
   implicit val timeout = Timeout(5 seconds)
@@ -66,8 +66,8 @@ class RunTimeHandler extends Actor {
 
 }
 
-object RunTimeHandler {
-  def props = Props(classOf[RunTimeHandler])
+object RuntimeHandler {
+  def props = Props(classOf[RuntimeHandler])
 }
 
 
