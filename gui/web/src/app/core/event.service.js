@@ -23,6 +23,9 @@
 
         function openSSEChannel() {
             eventSource = new EventSource(API.events);
+            $rootScope.$on('$destroy', function() {
+                eventSource.close();
+            });
         }
 
         function addListener(target, handlerFunc) {
@@ -32,7 +35,7 @@
             } else {
                 eventSource.addEventListener(target, function(e) {
                     const data = JSON.parse(e.data);
-                    logger.info('Received ' + data.action + ' event for target ' + target + '.');
+                    logger.info('Received ' + data.event + ' event for target ' + target + '.');
                     $rootScope.$apply(handlerFunc(data));
                 });
                 logger.info('Added a SSE listener for target ' + target + '.');

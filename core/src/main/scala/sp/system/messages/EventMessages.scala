@@ -28,8 +28,8 @@ case class SubscribeToSSE(channel: ActorRef, lastEventId: Option[String])
 
 trait EventMessage {
   val target: String
-  val action: String
+  val event: String
 }
 
-case class ModelCreated(target: String, action: String, modelInfo: ModelInfo) extends EventMessage
-case class ModelDeleted(target: String, action: String, id: ID) extends EventMessage
+case class ModelCreated(target: String, event: String, modelInfo: ModelInfo) extends EventMessage
+case class ModelDeleted(target: String, event: String, id: ID) extends EventMessage

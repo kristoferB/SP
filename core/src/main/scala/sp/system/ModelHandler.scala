@@ -28,9 +28,10 @@ class ModelHandler extends PersistentActor {
       if (!modelMap.contains(id)){
         persist(cm){n =>
           addModel(n)
+          modelMap(n.id) ! UpdateModelInfo(cm.id, ModelInfo(cm.id, cm.name, 0, cm.attributes))
+          val modelInfo: Future[ModelInfo] = modelMap(n.id).ask(GetModels).mapTo[ModelInfo]
+          modelInfo foreach { mi => eventHandler ! ModelCreated(EventTargets.ModelHandler, EventActions.Creation, mi) }
         }
-        val modelInfo = ModelInfo(cm.id, cm.name, 0, cm.attributes)
-        eventHandler ! ModelCreated(EventTargets.ModelHandler, EventActions.Creation, modelInfo)
         reply ! "OK"
       } else reply ! SPError("A model with that ID do already exist.")
 
@@ -39,8 +40,8 @@ class ModelHandler extends PersistentActor {
       if (modelMap.contains(id)){
         persist(dm){n =>
           deleteModel(n)
+          eventHandler ! ModelDeleted(EventTargets.ModelHandler, EventActions.Deletion, dm.model)
         }
-        eventHandler ! ModelDeleted(EventTargets.ModelHandler, EventActions.Deletion, dm.model)
         reply ! "OK"
       } else {
         reply ! SPError("There's no model with that ID")
@@ -71,7 +72,6 @@ class ModelHandler extends PersistentActor {
   def addModel(cm: CreateModel) = {
     println(s"The modelService creates a new model called ${cm.name} id: ${cm.id}")
     val newModelH = context.actorOf(sp.models.ModelActor.props(cm.id))
-    newModelH ! UpdateModelInfo(cm.id, ModelInfo(cm.id, cm.name, 0, cm.attributes))
     modelMap += cm.id -> newModelH
   }
 
@@ -85,9 +85,9 @@ class ModelHandler extends PersistentActor {
 
   def receiveRecover = {
     case cm: CreateModel  =>
-      println(s"The modelService creates a new model called ${cm.name} id: ${cm.id}")
-      val newModelH = context.actorOf(sp.models.ModelActor.props(cm.id))
-      modelMap += cm.id -> newModelH
+      addModel(cm)
+    case dm: DeleteModel =>
+      deleteModel(dm)
   }
 
 }

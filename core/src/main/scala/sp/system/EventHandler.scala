@@ -3,17 +3,14 @@ package sp.system
 import akka.actor._
 import akka.util.Timeout
 import akka.event.Logging
-import org.json4s.NoTypeHints
-import org.json4s.native.Serialization
 import sp.system.messages._
 import scala.concurrent.duration._
-import org.json4s.ext.JavaTypesSerializers
+import sp.domain.logic.JsonLogic.f
 
 class EventHandler extends Actor {
   private var sseChannels: List[ActorRef] = List.empty
   var lastEventID: Int = 0
   implicit val timeout = Timeout(5 seconds)
-  implicit val formats = Serialization.formats(NoTypeHints) ++ JavaTypesSerializers.all //org.json4s.DefaultFormats
   import context.dispatcher
   val log = Logging(context.system, this)
 

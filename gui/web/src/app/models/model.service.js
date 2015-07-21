@@ -38,11 +38,11 @@
             event.addListener('ModelHandler', onModelHandlerEvent);
 
             function onModelHandlerEvent(data) {
-                if(data.action === 'Creation') {
+                if(data.event === 'Creation') {
                     console.log(data);
                     models.push(data.modelInfo);
-                    logger.info('Added a model with id ' + data.modelInfo.id + ' and name ' + data.info.id + '.');
-                } else if(data.action === 'Deletion') {
+                    logger.info('Added a model with id ' + data.modelInfo.id + ' and name ' + data.modelInfo.name + '.');
+                } else if(data.event === 'Deletion') {
                     models.splice(_.findIndex(models, { id: data.id }), 1);
                     logger.info('Removed a model with id ' + data.id + '.');
                 }
