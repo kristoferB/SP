@@ -5,6 +5,14 @@
         .module('app.core', [
             'ngAnimate', 'ngSanitize',
             'blocks.exception', 'blocks.logger', 'blocks.router',
-            'ui.router', 'smart-table'
-        ]);
+            'ui.router', 'smart-table', 'xeditable'
+        ])
+        .run(runBlock);
+
+    runBlock.$inject = ['inlineEditing'];
+
+    function runBlock(inlineEditing) {
+        inlineEditing.initialize();
+    }
+
 })();

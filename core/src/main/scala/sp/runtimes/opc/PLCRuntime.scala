@@ -8,15 +8,14 @@ import akka.pattern.ask
 import akka.util._
 import org.json4s._
 import sp.domain._
-import sp.domain.Logic._
 import sp.system.messages._
-
+import sp.system.SPActorSystem._
+import sp.domain.Logic._
+import org.json4s.native.Serialization._
 import scala.concurrent.Await
 
 class PLCRuntime(about: RuntimeInfo) extends Actor {
   private implicit val to = Timeout(2, TimeUnit.SECONDS)
-  import sp.system.SPActorSystem._
-  import org.json4s.native.Serialization._
 
   case class OPC(name: String, hostname: String, port: Int, tagPrefix: String, idsToTags: Map[Option[ID], Option[String]])
 

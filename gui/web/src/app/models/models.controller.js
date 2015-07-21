@@ -5,28 +5,15 @@
         .module('app.models')
         .controller('ModelsController', ModelsController);
 
-    ModelsController.$inject = ['rest', 'model'];
+    ModelsController.$inject = ['model'];
     /* @ngInject */
-    function ModelsController(rest, model) {
+    function ModelsController(model) {
         var vm = this;
         vm.title = 'Models';
         vm.models = model.models;
-        vm.createModel = createModel;
-        vm.deleteModel = deleteModel;
+        vm.createModel = model.createModel;
+        vm.deleteModel = model.deleteModel;
+        vm.updateName = model.updateName;
 
-        activate();
-
-        function activate() {}
-
-        function createModel() {
-            const newModel = {
-              name: ''
-            };
-            rest.postToModelHandler(newModel);
-        }
-
-        function deleteModel(model) {
-            rest.deleteModel(model.id);
-        }
     }
 })();

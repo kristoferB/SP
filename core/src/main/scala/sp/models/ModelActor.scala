@@ -9,6 +9,7 @@ import sp.system.messages._
 import sp.domain.Logic._
 import akka.persistence._
 import org.json4s.native.Serialization._
+import sp.system.SPActorSystem.eventHandler
 
 /**
  * Created by Kristofer on 2014-06-12.
@@ -20,29 +21,28 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
 
   def receiveCommand = {
     //case mess @ _ if {println(s"model got: $mess from $sender"); false} => Unit
-    case upd @ UpdateIDs(m, v, ids) => {
+    case upd @ UpdateIDs(m, v, ids) =>
       //println(s"update me: $upd")
       val reply = sender
       createDiffUpd(ids, v) match {
         case Right(diff) => store(diff, reply ! SPIDs(ids))
         case Left(error) => reply ! error
       }
-    }
-    case DeleteIDs(m, dels) => {
+
+    case DeleteIDs(m, dels) =>
       val reply = sender
       createDiffDel(dels.toSet) match {
         case Right(diff) => store(diff, reply ! SPIDs(diff.deletedItems))
         case Left(error) => reply ! error
       }
-    }
 
-    case UpdateModelInfo(_, ModelInfo(m, newName, v, attribute)) => {
+    case UpdateModelInfo(_, ModelInfo(m, newName, v, attribute)) =>
       val reply = sender
       val diff = ModelDiff(model, List(), List(), state.version, state.version + 1, newName, attribute.addTimeStamp)
-      store(diff, reply ! getModelInfo)
-    }
+      reply ! "OK"
+      store(diff, eventHandler ! ModelInfoUpdated(EventTargets.ModelHandler, EventTypes.Update, getModelInfo))
 
-    case Revert(_, v) => {
+    case Revert(_, v) =>
       val reply = sender
       val view = context.actorOf(sp.models.ModelView.props(model, v, "modelReverter"))
       val infoF = view ? GetModels
@@ -69,11 +69,10 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
         )
         self ! (diff, reply)
       }
-    }
 
-    case (diff: ModelDiff, reply: ActorRef) => {
+    case (diff: ModelDiff, reply: ActorRef) =>
       store(diff, reply ! getModelInfo)
-    }
+
 
     /**
      * TODO: This is a temporary solution. When we go more production
@@ -107,7 +106,7 @@ trait ModelActorState  {
   val model: ID
   //def persist[A](event: A)(handler: A ⇒ Unit)
 
-  private val noDiffInMemory = 50;
+  private val noDiffInMemory = 50
 
   // A model state
   case class ModelState(version: Long, idMap: Map[ID, IDAble], diff: Map[Long, ModelDiff], attributes: SPAttributes, name: String){
@@ -123,7 +122,7 @@ trait ModelActorState  {
 
   def queryMessage(reply: ActorRef, mess: ModelQuery) = {
     mess match {
-      case GetIds(_, ids) => {
+      case GetIds(_, ids) =>
         if (ids.isEmpty) reply ! SPIDs(state.idMap.values.toList)
         else {
           ids foreach(id=> if (!state.idMap.contains(id)) reply ! MissingID(id, model))
@@ -133,38 +132,31 @@ trait ModelActorState  {
           } yield x
           reply ! SPIDs(res)
         }
-      }
-      case GetOperations(_, f) => {
+      case GetOperations(_, f) =>
         val res = state.operations.values filter f
         reply ! SPIDs(res.toList)
-      }
-      case GetThings(_, f) => {
+      case GetThings(_, f) =>
         val res = state.things.values filter f
         reply ! SPIDs(res.toList)
-      }
-      case GetSpecs(_, f) => {
+      case GetSpecs(_, f) =>
         val res = state.specifications.values filter f
         reply ! SPIDs(res.toList)
-      }
-      case GetResults(_, f) => {
+      case GetResults(_, f) =>
         val res = state.results.values filter f
         reply ! SPIDs(res.toList)
-      }
-      case GetQuery(_, q, f) => {
+      case GetQuery(_, q, f) =>
         if (!q.isEmpty)
           println("Query STRING NOT IMPLEMENTED ModelActor")
 
         val res = state.idMap.values filter f
         reply ! SPIDs(res.toList)
-      }
 
       case GetDiffFrom(_,v) => reply ! getDiff(v)
-      case GetDiff(_,v) => {
+      case GetDiff(_,v) =>
         if (state.diff.contains(v))
           reply ! state.diff(v)
         else
           reply ! SPError(s"The model only stores $noDiffInMemory in memory. Use the view instead")
-      }
       case x: GetModelInfo => reply ! getModelInfo
     }
   }

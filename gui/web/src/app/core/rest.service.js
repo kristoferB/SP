@@ -16,6 +16,7 @@
             stopRuntimeInstance: stopRuntimeInstance,
             getRegisteredServices: getRegisteredServices,
             postToModelHandler: postToModelHandler,
+            postToModel: postToModel,
             postItems: postItems,
             postToRuntimeHandler: postToRuntimeHandler,
             postToRuntimeInstance: postToRuntimeInstance,
@@ -45,13 +46,14 @@
             }
 
             function fail(error) {
-                var msg = 'Query for ' + itemKind  + ' failed. ' + error.data.description;
+                var msg = 'Query for ' + itemKind  + ' failed. ' + error.data;
                 logger.error(msg);
                 return $q.reject(msg);
             }
         }
 
         function postToModelHandler(data) { return postStuff(API.models, 'model handler', data); }
+        function postToModel(modelID, data) { return postStuff(API.model(modelID), 'model', data); }
         function postItems(data, modelID) { return postStuff(API.items(modelID), 'item handler', data); }
         function postToRuntimeHandler(data) { return postStuff(API.runtimeHandler, 'runtime handler', data); }
         function postToRuntimeInstance(data, runtimeID) {
@@ -73,7 +75,7 @@
             }
 
             function fail(error) {
-                var msg = 'Post of data to ' + receiver  + ' failed. ' + error.data.description;
+                var msg = 'Post of data to ' + receiver  + ' failed. ' + error.data;
                 logger.error(msg);
                 return $q.reject(msg);
             }
@@ -93,7 +95,7 @@
             }
 
             function fail(error) {
-                var msg = 'Deletion of ' + itemKind  + ' failed. ' + error.data.description;
+                var msg = 'Deletion of ' + itemKind  + ' failed. ' + error.data;
                 logger.error(msg);
                 return $q.reject(msg);
             }

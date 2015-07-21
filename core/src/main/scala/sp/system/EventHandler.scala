@@ -5,7 +5,7 @@ import akka.util.Timeout
 import akka.event.Logging
 import sp.system.messages._
 import scala.concurrent.duration._
-import sp.domain.logic.JsonLogic.f
+import sp.domain.Logic._
 
 class EventHandler extends Actor {
   private var sseChannels: List[ActorRef] = List.empty

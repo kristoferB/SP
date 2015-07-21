@@ -13,4 +13,5 @@ object Logic extends
   ThingLogics {
 
   implicit val formats = jsonFormats
+
 }

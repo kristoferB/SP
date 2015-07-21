@@ -28,7 +28,8 @@
     "toastr": "~2.1.0",
     "angular-animate": "~1.4.2",
     "lodash": "~3.10.0",
-    "angular-smart-table": "~2.1.1"
+    "angular-smart-table": "~2.1.1",
+    "angular-xeditable": "~0.1.9"
   },
   "resolutions": {
     "angular": "~1.4.2",

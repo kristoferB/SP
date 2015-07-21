@@ -9,7 +9,7 @@ object EventTargets {
   val RuntimeHandler: String = "RuntimeHandler"
 }
 
-object EventActions {
+object EventTypes {
   val Creation: String = "Creation"
   val Deletion: String = "Deletion"
   val Update: String = "Update"
@@ -33,3 +33,4 @@ trait EventMessage {
 
 case class ModelCreated(target: String, event: String, modelInfo: ModelInfo) extends EventMessage
 case class ModelDeleted(target: String, event: String, id: ID) extends EventMessage
+case class ModelInfoUpdated(target: String, event: String, modelInfo: ModelInfo) extends EventMessage

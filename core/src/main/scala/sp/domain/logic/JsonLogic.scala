@@ -49,7 +49,7 @@ trait JsonLogics {
     ))
   }
   def jsonFormats = new JsonFormats {}
-  implicit val f = jsonFormats
+  implicit val formats2 = jsonFormats
 
   def timeStamp = {
     Extraction.decompose(org.joda.time.DateTime.now)
