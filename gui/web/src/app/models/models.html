@@ -11,25 +11,32 @@
         <div class="row">
             <div class="col-md-12">
 
-                <table class="table table-condensed table-striped">
+                <table st-table="displayedCollection" st-safe-src="vm.models" class="table table-condensed table-striped">
                     <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>ID</th>
-                        <th>Version</th>
-                        <th>Created</th>
-                        <th>Actions</th>
-                    </tr>
+                        <tr>
+                            <th st-sort="name">Name</th>
+                            <th st-sort="id">ID</th>
+                            <th st-sort="version">Version</th>
+                            <th st-sort="attributes.time" st-sort-default="true">Created</th>
+                            <th>Actions</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="m in vm.models">
-                        <td>{{m.name}}</td>
-                        <td>{{m.id}}</td>
-                        <td>{{m.version}}</td>
-                        <td>{{m.attributes.time}}</td>
-                        <td><button class="btn btn-sm btn-danger" ng-click="vm.deleteModel(m)" tabindex="0"><i class="fa fa-trash-o"></i> Delete</button></td>
-                    </tr>
+                        <tr ng-repeat="m in displayedCollection">
+                            <td>{{m.name}}</td>
+                            <td>{{m.id}}</td>
+                            <td>{{m.version}}</td>
+                            <td>{{m.attributes.time | date}}</td>
+                            <td><button class="btn btn-sm btn-danger" ng-click="vm.deleteModel(m)" tabindex="0"><i class="fa fa-trash-o"></i> Delete</button></td>
+                        </tr>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="5" class="text-center">
+                                <div st-pagination="" st-items-by-page="15"></div>
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
 
 
