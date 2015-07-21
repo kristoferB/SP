@@ -38,9 +38,6 @@ object MultiRelationFinder {
 
 private[relations] case class Setup(twoOrThreeStates: String, simpleThreeState: Boolean, iterations: Int, maxDepth: Int, maxResets: Int, breakOnSameState: Boolean)
 private[relations] case class Input(operations: List[ID], groups: List[String], initState: State, goal: Proposition)
-private[relations] case class RelationStatus(iterations: Int)
-
-
 
 /**
  * Created by kristofer on 15-06-22.
@@ -48,7 +45,7 @@ private[relations] case class RelationStatus(iterations: Int)
 class MultiRelationFinder(serviceHandler: ActorRef,
                           condFromSpecsService: String,
                           flattenOperationService: String
-                           ) extends sp.system.ServiceRunner  {
+                           ) extends sp.system.ServiceRunner with MultiRelationFinderLogic  {
 
 
   type ServiceInput = (Setup, Input)
@@ -62,9 +59,22 @@ class MultiRelationFinder(serviceHandler: ActorRef,
   import context.dispatcher
 
   def request(attr: ServiceInput, ids: List[IDAble]): Response = {
+    val setup = attr._1
+    val input = attr._2
     val condFromSpecsF = askAService(Request(condFromSpecsService, SPAttributes(), ids.filter(_.isInstanceOf[Specification])), serviceHandler)
     val flattenOpsF = askAService(Request(flattenOperationService, SPAttributes("someInput"->"yes"), ids), serviceHandler)
     val f = for {cond <- condFromSpecsF; ops <- flattenOpsF} yield {
+      updateProgress(SPAttributes("status"-> "Received initial answer from external services"))
+
+      // identify relations
+
+      //loop
+        // find a sequence
+        // identify enabled and arbitrary
+        // update relations
+        // handle deadlocks
+      // end loop
+
 
 
       Response(List(), SPAttributes())
