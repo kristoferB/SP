@@ -56,7 +56,8 @@ abstract class ServiceRunner extends Actor {
   var count = 0
   var progress = Progress(SPAttributes("count"->count))
   def updateProgress(attr: SPAttributes) = {
-    progress = Progress(attr + ("count" -> count))
+    val attrNoCount = SPAttributes(attr.obj.filter(_._1 != "count"))
+    progress = Progress(attrNoCount + ("count" -> count))
   }
 
 
@@ -113,6 +114,7 @@ abstract class ServiceRunner extends Actor {
   def startProgress = {context.system.scheduler.schedule(
     500 milliseconds, 500 milliseconds){
     count += 1
+    updateProgress(progress.attributes)
     replyTo ! progress
   }
   }
