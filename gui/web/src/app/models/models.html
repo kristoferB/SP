@@ -15,20 +15,16 @@
                     <thead>
                         <tr>
                             <th st-sort="name">Name</th>
-                            <th st-sort="id">ID</th>
-                            <th st-sort="version">Version</th>
                             <th st-sort="attributes.time" st-sort-default="reverse">Last Modified</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr ng-repeat="m in displayedCollection">
-                            <td><a href="#" editable-text="m.name" onbeforesave="vm.updateName(m, $data)"
+                            <td class="col-md-4"><a href="#" editable-text="m.name" onbeforesave="vm.updateName(m, $data)"
                                    buttons="no" blur="submit">{{ m.name || "none" }}</a></td>
-                            <td>{{m.id}}</td>
-                            <td>{{m.version}}</td>
-                            <td>{{m.attributes.time | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-                            <td><button class="btn btn-sm btn-danger" ng-click="vm.deleteModel(m)" tabindex="0"><i class="fa fa-trash-o"></i> Delete</button></td>
+                            <td class="col-md-4">{{m.attributes.time | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+                            <td class="col-md-4"><button class="btn btn-sm btn-danger" ng-click="vm.deleteModel(m.id)" tabindex="0"><i class="fa fa-trash-o"></i> Delete</button></td>
                         </tr>
                     </tbody>
                     <tfoot>

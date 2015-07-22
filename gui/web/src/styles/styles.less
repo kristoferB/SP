@@ -25,6 +25,10 @@
     padding-left: 15px;
 }
 
+.wrapper-lg {
+    padding: 30px;
+}
+
 .m-b {
     margin-bottom: 15px;
 }
@@ -64,34 +68,11 @@
 
 /* end of Helper classes */
 
-.badge, .modal, .modal-dialog, .modal-content,
-input, select {
-    -ms-border-radius: 0 !important;
-    border-radius: 0 !important;
-}
-
-input, select {
-    padding: 4px !important;
-    /*width: 65% !important;*/
-    display: inline-block !important;
-}
-
-
 .navbar * {
     background-image: none !important;
     -webkit-text-shadow: none !important;
     -ms-text-shadow: none !important;
     text-shadow: none !important;
-}
-
-form * {
-    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
-}
-
-input, textarea {
-    background-image: none !important;
-    border: 1px solid #ccc !important;
-    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
 }
 
 select {
@@ -123,7 +104,7 @@ input[type="radio"], input[type="checkbox"] {
 body {
     font-size: 14px;
     line-height: 23px;
-    color: #666;
+    color: #58666e;
     background: #111;
     padding-top: 50px;
     -webkit-font-smoothing: antialiased;
@@ -152,7 +133,7 @@ h2 {
 
 h3 {
     font-size: 24px;
-    line-height: 33px;
+    font-weight: 300;
 }
 
 h4 {
@@ -178,8 +159,11 @@ h6 {
 }
 
 p {
-    padding: 1px 0 !important;
-    margin: 1px 0 !important;
+    margin: 0 0 10px;
+}
+
+label {
+    font-weight: normal;
 }
 
 .text-xs {
@@ -230,12 +214,6 @@ hr {
 
 a.btn {
     font-size: 13px !important;
-}
-
-.label {
-    font-weight: 400;
-    padding: 3px 6px !important;
-    font-size: 13px;
 }
 
 .control-label{
@@ -466,18 +444,20 @@ a.btn {
 
 /* Form */
 
-form {
-    margin: 10px;
+.form-control {
+    border-color: #cfdadd;
+    border-radius: 2px;
 }
 
-    form input, form button, form textarea, form select {
-        font-size: 13px !important;
+    .form-control, .form-control:focus {
+        -webkit-box-shadow: none;
+        box-shadow: none;
     }
 
-    form label {
-        font-size: 13px;
-        line-height: 13px;
-    }
+    .form-control::-webkit-input-placeholder { color: #999; }
+    .form-control:-moz-placeholder { color: #999; }
+    .form-control::-moz-placeholder { color: #999; opacity:1; }
+    .form-control:-ms-input-placeholder { color: #999; }
 
 .form-inline button {
     margin-left: 15px;
@@ -1091,16 +1071,6 @@ select > option {
     color: black;
 }
 
-input.form-control,
-select.form-control,
-textarea.form-control {
-    /*width: 205px;*/
-    display: inline;
-    display: block;
-    width: 50%;
-    max-width: 30em;
-}
-
 .list-flow.list-flow-tight {
     width: 90px;
 }
@@ -1322,6 +1292,10 @@ table td {
 
 .st-sort-descent:before {
     content: '\25BC';
+}
+
+.editable-input {
+    height: 30px;
 }
 
 a {

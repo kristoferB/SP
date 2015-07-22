@@ -3,6 +3,7 @@ package sp.models
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
+import sp.system.messages
 import scala.concurrent.duration._
 import sp.domain._
 import sp.system.messages._
@@ -35,6 +36,10 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
         case Right(diff) => store(diff, reply ! SPIDs(diff.deletedItems))
         case Left(error) => reply ! error
       }
+
+    case cm: CreateModel =>
+      val diff = ModelDiff(model, List(), List(), state.version, state.version + 1, cm.name, cm.attributes.addTimeStamp)
+      store(diff, eventHandler ! ModelCreated(EventTargets.ModelHandler, EventTypes.Creation, getModelInfo))
 
     case UpdateModelInfo(_, ModelInfo(m, newName, v, attribute)) =>
       val reply = sender

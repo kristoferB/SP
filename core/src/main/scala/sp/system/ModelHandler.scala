@@ -28,9 +28,7 @@ class ModelHandler extends PersistentActor {
       if (!modelMap.contains(id)){
         persist(cm){n =>
           addModel(n)
-          modelMap(n.id) ! UpdateModelInfo(cm.id, ModelInfo(cm.id, cm.name, 0, cm.attributes))
-          val modelInfo: Future[ModelInfo] = modelMap(n.id).ask(GetModels).mapTo[ModelInfo]
-          modelInfo foreach { mi => eventHandler ! ModelCreated(EventTargets.ModelHandler, EventTypes.Creation, mi) }
+          modelMap(n.id) ! n
         }
         reply ! "OK"
       } else reply ! SPError("A model with that ID do already exist.")

@@ -5,7 +5,7 @@
         .module('app.core', [
             'ngAnimate', 'ngSanitize',
             'blocks.exception', 'blocks.logger', 'blocks.router',
-            'ui.router', 'smart-table', 'xeditable'
+            'ui.router', 'smart-table', 'xeditable', 'ui.bootstrap'
         ])
         .run(runBlock);
 

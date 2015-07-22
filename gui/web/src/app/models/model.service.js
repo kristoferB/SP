@@ -43,14 +43,16 @@
             function onModelHandlerEvent(data) {
                 if(data.event === 'Update') {
                     const model = getModel(data.modelInfo.id);
+                    const oldName = model.name;
                     angular.extend(model, data.modelInfo);
-                    logger.info('Updated name and/or attributes for model with id ' + data.modelInfo.id + '.');
+                    logger.info('Updated name and/or attributes for model ' + oldName + '.');
                 } else if(data.event === 'Creation') {
                     models.push(data.modelInfo);
-                    logger.info('Added a model with id ' + data.modelInfo.id + ' and name ' + data.modelInfo.name + '.');
+                    logger.info('Added a model with name ' + data.modelInfo.name + '.');
                 } else if(data.event === 'Deletion') {
+                    const name = getModel(data.id).name;
                     models.splice(getModelArrayIndex(data.id), 1);
-                    logger.info('Removed a model with id ' + data.id + '.');
+                    logger.info('Removed model ' + name + '.');
                 }
             }
         }
@@ -63,15 +65,15 @@
             return models[getModelArrayIndex(id)];
         }
 
-        function createModel() {
+        function createModel(name) {
             const newModel = {
-                name: ''
+                name: name
             };
             rest.postToModelHandler(newModel);
         }
 
-        function deleteModel(model) {
-            rest.deleteModel(model.id);
+        function deleteModel(id) {
+            rest.deleteModel(id);
         }
 
         function updateName(model, name) {

@@ -29,7 +29,8 @@
     "angular-animate": "~1.4.2",
     "lodash": "~3.10.0",
     "angular-smart-table": "~2.1.1",
-    "angular-xeditable": "~0.1.9"
+    "angular-xeditable": "~0.1.9",
+    "angular-bootstrap": "0.12.1"
   },
   "resolutions": {
     "angular": "~1.4.2",
