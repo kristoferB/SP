@@ -29,6 +29,13 @@
     padding: 30px;
 }
 
+.b-b {
+    border-bottom: 1px solid #dee5e7;
+}
+.b-t {
+    border-top: 1px solid #dee5e7;
+}
+
 .m-b {
     margin-bottom: 15px;
 }
@@ -103,7 +110,7 @@ input[type="radio"], input[type="checkbox"] {
 
 body {
     font-size: 14px;
-    line-height: 23px;
+    line-height: 1.42857143em;
     color: #58666e;
     background: #111;
     padding-top: 50px;
@@ -117,7 +124,7 @@ body {
 
 
 h1, h2, h3, h4, h5, h6 {
-    margin: 2px 0;
+    margin: 0;
     color: #777;
 }
 
@@ -155,7 +162,7 @@ h6 {
     border-bottom: 1px solid #dee5e7;
     padding: 20px;
     color: #58666e;
-    background-color: #edf1f2;
+    background-color: #f6f8f8;
 }
 
 p {
@@ -1271,34 +1278,86 @@ small {
 }
 /*#endregion*/
 
-table th > a {
-    font-weight: bold;
-}
+/*---------- TABLES ----------*/
 
-table th,
-table td {
-    text-align: left;
-    vertical-align: middle;
+.table {
+    margin: 0;
+
+    >thead>tr>th {
+        padding: 8px 15px;
+        border-bottom: 1px solid #eaeff0;
+
+        &.table-filter {
+            text-align: right;
+
+            input {
+                margin-left: 0.5em;
+            }
+        }
+
+        &[st-sort] {
+            background: url('../images/sort_both.png') no-repeat center right;
+
+            &.st-sort-descent {
+                background: url('../images/sort_desc.png') no-repeat center right;
+            }
+
+            &.st-sort-ascent {
+                background: url('../images/sort_asc.png') no-repeat center right;
+            }
+        }
+    }
+
+    >tbody>tr>td {
+        .editable-input {
+            height: 30px;
+        }
+
+        button {
+            margin-left: 0;
+        }
+    }
+
+    >tbody>tr>td, >tfoot>tr>td {
+        padding: 8px 15px;
+        border-top: 1px solid #eaeff0;
+    }
+
+    >tfoot>tr>td {
+
+        div.table-info {
+            padding: 8px 0;
+            white-space: nowrap;
+        }
+
+        .pagination {
+
+            .select-page {
+                width: 50px;
+                text-align: center;
+            }
+
+            li a {
+                &:hover {
+                    cursor: auto;
+                }
+
+                input {
+                    padding: 0;
+                    margin: -5px 0;
+                }
+            }
+        }
+
+        &.table-paging .pagination {
+            margin: 0;
+        }
+
+    }
 }
 
 .table-hover tbody tr:hover > td,
 .table-hover tbody tr:hover > th {
-    cursor: pointer;
-}
-
-.st-sort-ascent:before {
-    content: '\25B2';
-}
-
-.st-sort-descent:before {
-    content: '\25BC';
-}
-
-.editable-input {
-    height: 30px;
-}
-
-a {
     cursor: pointer;
 }
 

@@ -15,7 +15,7 @@
             scope: {
                 'navline': '='
             },
-            templateUrl: 'app/layout/ht-top-nav.html'
+            templateUrl: 'app/layout/sp-top-nav.html'
         };
 
         /* @ngInject */

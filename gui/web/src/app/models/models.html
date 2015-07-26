@@ -1,44 +1,16 @@
 <section class="mainbar">
     <div class="view-header">
-        <h1>Models</h1>
+        <h1>{{vm.title}}</h1>
     </div>
     <div class="container">
+
         <div class="m-b">
-            <button type="button" tooltip="Create a new, empty model" class="btn btn-sm btn-primary btn-addon" ng-click="vm.createModel()" tabindex="0">
+            <button type="button" tooltip="Create a new, empty model" class="btn btn-sm btn-primary btn-addon"
+                    ng-click="vm.createModel()">
                 <i class="fa fa-plus"></i>Create Model
             </button>
         </div>
-        <div class="row">
-            <div class="col-md-12">
+        <sp-widget title="vm.title" body-template="app/models/model-table.html"></sp-widget>
 
-                <table st-table="displayedCollection" st-safe-src="vm.models" class="table table-condensed table-striped">
-                    <thead>
-                        <tr>
-                            <th st-sort="name">Name</th>
-                            <th st-sort="attributes.time" st-sort-default="reverse">Last Modified</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr ng-repeat="m in displayedCollection">
-                            <td class="col-md-4"><a href="#" editable-text="m.name" onbeforesave="vm.updateName(m, $data)"
-                                   buttons="no" blur="submit">{{ m.name || "none" }}</a></td>
-                            <td class="col-md-4">{{m.attributes.time | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-                            <td class="col-md-4"><button class="btn btn-sm btn-danger" ng-click="vm.deleteModel(m.id)" tabindex="0"><i class="fa fa-trash-o"></i> Delete</button></td>
-                        </tr>
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="5" class="text-center">
-                                <div st-pagination="" st-items-by-page="15"></div>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-
-
-            </div>
-
-        </div>
     </div>
 </section>

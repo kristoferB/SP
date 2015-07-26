@@ -23,7 +23,6 @@
         }
 
         function createModel() {
-
             var modalInstance = $modal.open({
                 templateUrl: '/app/models/createmodel.html',
                 controller: 'CreateModelController',

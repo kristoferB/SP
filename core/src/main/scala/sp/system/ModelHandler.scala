@@ -27,6 +27,7 @@ class ModelHandler extends PersistentActor {
       val reply = sender()
       if (!modelMap.contains(id)){
         persist(cm){n =>
+          println(s"The modelHandler creates a new model called ${cm.name} id: ${cm.id}")
           addModel(n)
           modelMap(n.id) ! n
         }
@@ -37,6 +38,7 @@ class ModelHandler extends PersistentActor {
       val reply = sender()
       if (modelMap.contains(id)){
         persist(dm){n =>
+          println(s"The modelService deletes the model with id: ${dm.model}")
           deleteModel(n)
           eventHandler ! ModelDeleted(EventTargets.ModelHandler, EventTypes.Deletion, dm.model)
         }
@@ -52,7 +54,7 @@ class ModelHandler extends PersistentActor {
     case (m: ModelMessage, v: Long) =>
       val viewName = viewNameMaker(m.model, v)
       if (!viewMap.contains(viewName)) {
-        println(s"The modelService creates a new view for ${m.model} version: ${v}")
+        println(s"The modelHandler creates a new view for ${m.model} version: ${v}")
         val view = context.actorOf(sp.models.ModelView.props(m.model, v, viewName))
         viewMap += viewName -> view
       }
@@ -68,13 +70,11 @@ class ModelHandler extends PersistentActor {
   }
 
   def addModel(cm: CreateModel) = {
-    println(s"The modelService creates a new model called ${cm.name} id: ${cm.id}")
     val newModelH = context.actorOf(sp.models.ModelActor.props(cm.id))
     modelMap += cm.id -> newModelH
   }
 
   def deleteModel(dm: DeleteModel) = {
-    println(s"The modelService deletes the model with id: ${dm.model}")
     context.stop(modelMap(dm.model))
     modelMap -= dm.model
   }

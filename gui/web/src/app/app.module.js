@@ -7,7 +7,8 @@
         'app.models',
         'app.dashboard',
         'app.settings',
-        'app.layout'
+        'app.layout',
+        'app.tables'
     ]);
 
 })();
