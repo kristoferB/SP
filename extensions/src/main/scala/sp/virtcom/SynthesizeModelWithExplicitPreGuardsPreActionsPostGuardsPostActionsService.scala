@@ -49,7 +49,7 @@ class SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsService
         specs = spSpecToBe.filter(_.isInstanceOf[SPSpec]).map(_.asInstanceOf[SPSpec])
 
         //Create Supremica Module and synthesize guards.
-        ptmw = ParseToModuleWrapper(modelInfo.name, vars, ops, specs)
+        ptmw = YetAnotherParseToModuleWrapper(modelInfo.name, vars, ops, specs)
         optSupervisorGuards = {
           ptmw.addVariables()
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
@@ -83,7 +83,7 @@ object SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsServic
   def props(modelHandler: ActorRef) = Props(classOf[SynthesizeModelWithExplicitPreGuardsPreActionsPostGuardsPostActionsService], modelHandler)
 }
 
-case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List[Operation], spec: List[SPSpec]) extends FlowerPopulater with Exporters with Algorithms with TextFilePrefix {
+case class YetAnotherParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List[Operation], spec: List[SPSpec]) extends FlowerPopulater with Exporters with Algorithms with TextFilePrefix {
 
   lazy val variableMap = vars.flatMap(v => {
     val optDomain = v.attributes.findAs[Seq[String]]("domain").headOption
@@ -172,7 +172,8 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
     val opWithUpdatedAttributes = o.copy(attributes = updatedAttributeWithSynthesizedGuards.to[SPAttributes].getOrElse(SPAttributes()))
 
     //Method starts
-    if (!synthesizedGuardMap.isDefined) o else PropositionConditionLogic.parseAttributesToPropositionCondition(opWithUpdatedAttributes, vars).getOrElse(opWithUpdatedAttributes)
+    //if (!synthesizedGuardMap.isDefined) o else PropositionConditionLogic.parseAttributesToPropositionCondition(opWithUpdatedAttributes, vars).getOrElse(opWithUpdatedAttributes)
+    opWithUpdatedAttributes
   }
 
   //To get correct syntax of guards and actions in Supremica

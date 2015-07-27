@@ -37,7 +37,6 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
 
             //Update the operations in the model with "conditions" connected to the parsed "idables"
             SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.id))
-<<<<<<< HEAD
             ops = opsToBe.map(_.asInstanceOf[Operation])
 
             _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = modelInfo.id, items = ops,

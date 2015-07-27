@@ -43,17 +43,17 @@ class ExtendIDablesBasedOnTheirAttributes(modelHandler: ActorRef) extends Actor 
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
 
         //Collect ops, vars, sopSpecs, spSpecs
-        SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.model))
+        SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.id))
         ops = opsToBe.map(_.asInstanceOf[Operation])
         //        checkOps = ops.filter(obj => checkedItems.contains(obj.id))
 
-        SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.model))
+        SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.id))
         vars = varsToBe.map(_.asInstanceOf[Thing])
 
-        SPIDs(sopSpecsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.model))
+        SPIDs(sopSpecsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.id))
         sopSpecs = sopSpecsToBe.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
 
-        SPIDs(spSpecsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.model))
+        SPIDs(spSpecsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.id))
         spSpecs = spSpecsToBe.filter(_.isInstanceOf[SPSpec]).map(_.asInstanceOf[SPSpec])
 
         //Extend Operations and Variables (TODO extend based on product sequences)

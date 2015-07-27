@@ -219,7 +219,8 @@ case class AnotherParseToModuleWrapper(moduleName: String, vars: List[Thing], op
     val opWithUpdatedAttributes = o.copy(attributes = updatedAttributeWithSynthesizedGuards.to[SPAttributes].getOrElse(SPAttributes()))
 
     //Method starts
-    if (!synthesizedGuardMap.isDefined) o else PropositionConditionLogic.parseAttributesToPropositionCondition(opWithUpdatedAttributes, vars).getOrElse(opWithUpdatedAttributes)
+    //if (!synthesizedGuardMap.isDefined) o else PropositionConditionLogic.parseAttributesToPropositionCondition(opWithUpdatedAttributes, vars).getOrElse(opWithUpdatedAttributes)
+    opWithUpdatedAttributes
   }
 
   //To get correct syntax of guards and actions in Supremica
