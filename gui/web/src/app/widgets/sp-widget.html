@@ -1,4 +1,4 @@
 <div class="panel panel-default">
-    <div class="panel-heading">{{vm.title}}</div>
-    <div ng-include="vm.bodyTemplate"></div>
+    <div class="panel-heading">{{ vm.widgetTitle || "No title" }}</div>
+    <div ng-transclude></div>
 </div>

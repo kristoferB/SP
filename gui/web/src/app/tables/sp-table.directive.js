@@ -13,26 +13,34 @@
     function spTable() {
 
         var directive = {
-            restrict: 'E',
+            restrict: 'A',
             templateUrl: 'app/tables/sp-table.html',
             controller: SPTableController,
             controllerAs: 'vm',
+            link: linkFunction,
             scope: {},
+            transclude: true,
+            replace: true,
             bindToController: {
                 rowCollection: '=',
-                headerTemplate: '@',
-                bodyTemplate: '@'
+                displayedCollection: '=',
+                headerTemplate: '@'
             }
         };
         return directive;
+
+        function linkFunction(scope, element, attrs, ctrl, transclude) {
+            element.find('tbody').replaceWith(transclude());
+        }
     }
+
+    SPTableController.$inject = [];
 
     function SPTableController() {
         var vm = this;
 
         vm.itemsByPage = 15;
         vm.pageSizes = [2, 10, 15, 20, 50];
-        vm.displayedCollection = [];
     }
 
 })();

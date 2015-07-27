@@ -8,21 +8,25 @@
     /* @ngInject */
     function htTopNav () {
         var directive = {
-            bindToController: true,
+            scope: {},
+            bindToController: {
+                'navline': '='
+            },
             controller: TopNavController,
             controllerAs: 'vm',
             restrict: 'EA',
-            scope: {
-                'navline': '='
-            },
             templateUrl: 'app/layout/sp-top-nav.html'
         };
 
-        /* @ngInject */
-        function TopNavController() {
-            var vm = this;
-        }
-
         return directive;
     }
+
+    /* @ngInject */
+    TopNavController.$inject = ['model'];
+
+    function TopNavController(model) {
+        var vm = this;
+        vm.model = model;
+    }
+
 })();

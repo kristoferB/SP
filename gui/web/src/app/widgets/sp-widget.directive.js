@@ -14,17 +14,19 @@
             controller: SPWidgetController,
             controllerAs: 'vm',
             scope: {},
+            transclude: true,
+            replace: true,
             bindToController: {
-                title: '=',
-                bodyTemplate: '@'
+                widgetTitle: '='
             }
         };
         return directive;
     }
 
-    function SPWidgetController($scope) {
+    SPWidgetController.$inject = [];
+
+    function SPWidgetController() {
         var vm = this;
-        vm.$parent = $scope.$parent;
     }
 
 })();

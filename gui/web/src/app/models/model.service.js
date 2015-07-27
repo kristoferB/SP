@@ -12,7 +12,8 @@
         var activeModel = null;
         var service = {
             models: models,
-            activeModel: activeModel,
+            getActiveModel: getActiveModel,
+            setActiveModel: setActiveModel,
             updateName: updateName,
             createModel: createModel,
             deleteModel: deleteModel
@@ -35,6 +36,15 @@
                 models.length = 0;
                 models.push.apply(models, data);
             });
+        }
+
+        function getActiveModel() {
+            return activeModel;
+        }
+
+        function setActiveModel(model) {
+            activeModel = model;
+            logger.info('Set active model to ' + model.name + '.');
         }
 
         function listenToModelHandlerEvents() {

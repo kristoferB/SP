@@ -1,8 +1,0 @@
-<tr ng-repeat="m in vm.displayedCollection">
-    <td class="col-md-4"><a href="#" editable-text="m.name"
-                            onbeforesave="vm.updateName(m, $data)"
-                            buttons="no" blur="submit">{{ m.name || "none" }}</a></td>
-    <td class="col-md-4">{{m.attributes.time | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-    <td class="col-md-4"><button class="btn btn-xs btn-danger" ng-click="vm.deleteModel(m.id)"
-                                 tabindex="0"><i class="fa fa-trash-o"></i> Delete</button></td>
-</tr>

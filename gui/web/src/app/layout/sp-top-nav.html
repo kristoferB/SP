@@ -12,7 +12,7 @@
 
     <div class="navbar-collapse collapse box-shadow">
         <ul class="nav navbar-nav hidden-sm">
-            <li><a ui-sref="models"><i class="fa fa-files-o"></i> Model: None</a></li>
+            <li><a ui-sref="models"><i class="fa fa-files-o"></i> Model: {{ vm.model.getActiveModel().name || "None" }}</a></li>
             <li><a ui-sref="dashboard"><i class="fa fa-tachometer"></i> Dashboard</a></li>
         </ul>
         <div class="pull-right navbar-logo">
