@@ -38,6 +38,7 @@ class ModelHandler extends PersistentActor {
       if (modelMap.contains(del.model)){
         val reply = sender()
         persist(del){ d =>
+          println(del)
           deleteModel(del)
           eventHandler ! ModelDeleted(EventTargets.ModelHandler, EventTypes.Deletion, del.model)
           reply ! "OK"
@@ -74,7 +75,6 @@ class ModelHandler extends PersistentActor {
 
   def deleteModel(del: DeleteModel) = {
     if (modelMap.contains(del.model)){
-      println(del)
       modelMap(del.model) ! PoisonPill
       modelMap = modelMap - del.model
     }

@@ -15,7 +15,8 @@
         var directive = {
             restrict: 'E',
             require: '^stTable',
-            template: '<div class="table-info">Showing {{indexOfFirstEntryOnPage()}} to {{indexOfLastEntryOnPage()}} of {{totalNoOfEntries()}} entries</div>',
+            template: '<div class="table-info">Showing {{indexOfFirstEntryOnPage()}} to ' +
+                      '{{indexOfLastEntryOnPage()}} of {{totalNoOfEntries()}} entries</div>',
             link: link
         };
         return directive;
@@ -35,12 +36,13 @@
             }
 
             function indexOfLastEntryOnPage() {
-                const total = totalNoOfEntries();
-                const last = indexOfFirstEntryOnPage() + ctrl.tableState().pagination.number - 1;
-                if(last > total)
+                var total = totalNoOfEntries();
+                var last = indexOfFirstEntryOnPage() + ctrl.tableState().pagination.number - 1;
+                if (last > total) {
                     return total;
-                else
+                } else {
                     return last;
+                }
             }
         }
     }

@@ -3,14 +3,15 @@
 
     angular
         .module('app.core')
-        .factory('event', event);
+        .factory('eventHandler', eventHandler);
 
-    event.$inject = ['$rootScope', 'API', 'logger'];
+    eventHandler.$inject = ['$rootScope', 'API', 'logger'];
     /* @ngInject */
-    function event($rootScope, API, logger) {
-        var eventSource = null;
+    function eventHandler($rootScope, API, logger) {
+        var eventSource = new EventSource(API.events);
         var service = {
-            addListener: addListener
+            addListener: addListener,
+            eventSource: eventSource
         };
 
         activate();
@@ -21,20 +22,24 @@
             openSSEChannel();
         }
 
+        /* global EventSource */
         function openSSEChannel() {
-            eventSource = new EventSource(API.events);
-            $rootScope.$on('$destroy', function() {
-                eventSource.close();
-            });
+            if (typeof(EventSource) !== 'undefined') {
+                $rootScope.$on('$destroy', function () {
+                    eventSource.close();
+                });
+            } else {
+                logger.error('Your browser does\'nt support SSE. Please update your browser.');
+            }
         }
 
         function addListener(target, handlerFunc) {
-            if(eventSource === null) {
+            if (eventSource === null) {
                 logger.error('Couldn\'t add an SSE listener for target ' + target + ' because there\'s no ' +
                     'EventSource to add it to.');
             } else {
                 eventSource.addEventListener(target, function(e) {
-                    const data = JSON.parse(e.data);
+                    var data = angular.fromJson(e.data);
                     logger.info('Received ' + data.event + ' event for target ' + target + '.');
                     $rootScope.$apply(handlerFunc(data));
                 });

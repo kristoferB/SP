@@ -1,13 +1,18 @@
 /* jshint -W079 */
 var mockData = (function() {
     return {
+        // REST responses
         getMockStates: getMockStates,
         getMockModels: getMockModels,
         getMockItems: getMockItems,
         getMockRuntimeKinds: getMockRuntimeKinds,
         getMockRuntimeInstances: getMockRuntimeInstances,
-        getMockRegisteredServices: getMockRegisteredServices
+        getMockRegisteredServices: getMockRegisteredServices,
+        // SSE events
+        getMockModelCreationEvent: getMockModelCreationEvent
     };
+
+    // REST responses //
 
     function getMockStates() {
         return [
@@ -83,6 +88,37 @@ var mockData = (function() {
             'CreateOpsFromManualModel',
             'Relations'
         ];
+    }
+
+    // SSE events //
+    function getMockModelCreationEvent() {
+        var dataObj = {
+            target: 'ModelHandler',
+            event: 'Creation',
+            modelInfo: {
+                id: 'a34ee181-06d3-442a-ae5d-422b38e9ed3d',
+                name: 'A third model',
+                version: 1,
+                attributes: {
+                    time: '2015-07-26T14:23:07.276+0200'
+                }
+            }
+        };
+        return createMessageEvent('ModelHandler', dataObj);
+    }
+
+    function createMessageEvent(eventName, dataObj) {
+        var bubbles = false;
+        var cancelable = false;
+        var dataObjAsJson = angular.toJson(dataObj);
+        var origin = 'http://localhost:3000';
+        var lastEventId = '1';
+        var source = window;
+        var evt = document.createEvent('MessageEvent');  // MUST be 'MessageEvent'
+        evt.initMessageEvent(eventName, bubbles, cancelable, dataObjAsJson, origin, lastEventId, source, null);
+        //This deprecated way of creating a MessageEvent is required by PhantomJS 1.9.8
+
+        return evt;
     }
 
 })();

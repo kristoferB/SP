@@ -14,11 +14,8 @@
         activate();
 
         function activate() {
-            logger.info('Activated Dashboard View');
+            logger.info('Activated dashboard view');
         }
-
-
-
 
     }
 })();
