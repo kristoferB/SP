@@ -11,8 +11,15 @@
 1. Install [Node.js](http://nodejs.org)
  - on OSX use [homebrew](http://brew.sh) `brew install node`
  - on Windows use [chocolatey](https://chocolatey.org/) `choco install nodejs`
+ 
+2. Install Bower package manager globally.    
+    ```bash
+    npm install -g bower
+    ```
+    
+    >Refer to these [instructions on how to not require sudo](https://github.com/sindresorhus/guides/blob/master/npm-global-without-sudo.md)
 
-2. Install app dependencies.    
+3. Install the rest of the app dependencies.    
     ```bash
     npm install
     bower install

@@ -16,7 +16,7 @@
             restrict: 'E',
             require: '^stTable',
             template: '<div class="table-info">Showing {{indexOfFirstEntryOnPage()}} to ' +
-                      '{{indexOfLastEntryOnPage()}} of {{totalNoOfEntries()}} entries</div>',
+                      '{{indexOfLastEntryOnPage()}} of <span>{{totalNoOfEntries()}}</span> entries</div>',
             link: link
         };
         return directive;
