@@ -22,11 +22,11 @@
                         </td>
                         <td class="col-md-4">{{m.attributes.time | date:'yyyy-MM-dd HH:mm:ss'}}</td>
                         <td class="col-md-4">
-                            <button class="btn btn-xs btn-primary" ng-click="vm.setActiveModel(m)">
-                                <i class="fa fa-folder-open-o"></i> Open
+                            <button class="btn btn-xs btn-primary" ng-click="vm.setActiveModel(m)"
+                                    id="{{$index}}-open"><i class="fa fa-folder-open-o"></i> Open
                             </button>
-                            <button class="btn btn-xs btn-danger" ng-click="vm.deleteModel(m.id)">
-                                <i class="fa fa-trash-o"></i> Delete
+                            <button class="btn btn-xs btn-danger" ng-click="vm.deleteModel(m.id)"
+                                    id="{{$index}}-delete"><i class="fa fa-trash-o"></i> Delete
                             </button>
                         </td>
                     </tr>

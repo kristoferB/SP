@@ -9,7 +9,9 @@ var mockData = (function() {
         getMockRuntimeInstances: getMockRuntimeInstances,
         getMockRegisteredServices: getMockRegisteredServices,
         // SSE events
-        getMockModelCreationEvent: getMockModelCreationEvent
+        getMockModelCreationEvent: getMockModelCreationEvent,
+        getMockModelDeletionEvent: getMockModelDeletionEvent,
+        getMockModelUpdateEvent: getMockModelUpdateEvent
     };
 
     // REST responses //
@@ -92,7 +94,7 @@ var mockData = (function() {
 
     // SSE events //
     function getMockModelCreationEvent() {
-        var dataObj = {
+        var data = {
             target: 'ModelHandler',
             event: 'Creation',
             modelInfo: {
@@ -104,18 +106,43 @@ var mockData = (function() {
                 }
             }
         };
-        return createMessageEvent('ModelHandler', dataObj);
+        return createMessageEvent('ModelHandler', data);
     }
 
-    function createMessageEvent(eventName, dataObj) {
+    function getMockModelDeletionEvent() {
+        var data = {
+            target: 'ModelHandler',
+            event: 'Deletion',
+            id: '5689ce13-2e2d-4451-8f8f-f05973f78dfb'
+        };
+        return createMessageEvent('ModelHandler', data);
+    }
+
+    function getMockModelUpdateEvent() {
+        var data = {
+            target: 'ModelHandler',
+            event: 'Update',
+            modelInfo: {
+                id: '5ccdc932-438d-4c45-b947-6dd208e31e31',
+                name: 'An updated name',
+                version: 2,
+                attributes: {
+                    time: '2015-07-31T15:23:07.276+0200'
+                }
+            }
+        };
+        return createMessageEvent('ModelHandler', data);
+    }
+
+    function createMessageEvent(eventName, data) {
         var bubbles = false;
         var cancelable = false;
-        var dataObjAsJson = angular.toJson(dataObj);
+        var dataAsJson = angular.toJson(data);
         var origin = 'http://localhost:3000';
         var lastEventId = '1';
         var source = window;
         var evt = document.createEvent('MessageEvent');  // MUST be 'MessageEvent'
-        evt.initMessageEvent(eventName, bubbles, cancelable, dataObjAsJson, origin, lastEventId, source, null);
+        evt.initMessageEvent(eventName, bubbles, cancelable, dataAsJson, origin, lastEventId, source, null);
         //This deprecated way of creating a MessageEvent is required by PhantomJS 1.9.8
 
         return evt;

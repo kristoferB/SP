@@ -9,6 +9,7 @@ var _ = require('lodash');
 var $ = require('gulp-load-plugins')({lazy: true});
 var proxy = require('proxy-middleware');
 var url = require('url');
+var gp = require('gulp-protractor');
 
 var colors = $.util.colors;
 var envenv = $.util.env;
@@ -22,7 +23,7 @@ var port = process.env.PORT || config.port;
  * --nosync   : Don't launch the browser with browser-sync when serving code.
  * --debug    : Launch debugger with node-inspector.
  * --debug-brk: Launch debugger and break on 1st line with node-inspector.
- * --startServers: Will start servers for midway tests on the test task.
+ * --startServers: Will start servers for midway tests on the unit test task.
  */
 
 /**
@@ -211,7 +212,7 @@ gulp.task('build', ['optimize', 'images', 'fonts'], function() {
  * and inject them into the new index.html
  * @return {Stream}
  */
-gulp.task('optimize', ['inject', 'test'], function() {
+gulp.task('optimize', ['inject', 'unit-test'], function() {
     log('Optimizing the js, css, and html');
 
     var assets = $.useref.assets({searchPath: './'});
@@ -303,13 +304,43 @@ gulp.task('clean-code', function(done) {
 });
 
 /**
- * Run specs once and exit
+ * Run unit test specs once and exit
  * To start servers and run midway specs as well:
- *    gulp test --startServers
+ *    gulp unit-test --startServers
  * @return {Stream}
  */
-gulp.task('test', ['vet', 'templatecache'], function(done) {
+gulp.task('unit-test', ['vet', 'templatecache'], function(done) {
     startTests(true /*singleRun*/ , done);
+});
+
+//jscs:disable
+/**
+ * Download and setup selenium webdriver
+ */
+/*jshint -W106 */
+gulp.task('webdriver-update', gp.webdriver_update);
+
+/**
+ * Start a stand-alone selenium webdriver instance
+ */
+/*jshint -W106 */
+gulp.task('webdriver-standalone', gp.webdriver_standalone);
+
+//jscs:enable
+
+/**
+ * Run e2e tests with Protractor
+ */
+gulp.task('e2e-test', function() {
+    log('Running e2e tests with Protractor');
+
+    gulp
+        .src(config.e2eSpecs)
+        .pipe(gp.protractor({
+            configFile: 'protractor.conf.js',
+            args: ['--baseUrl', 'http://localhost:8080']
+        }))
+        .on('error', function(e) { throw e; });
 });
 
 /**
@@ -573,7 +604,7 @@ function startPlatoVisualizer(done) {
  */
 function startTests(singleRun, done) {
     var child;
-    var excludeFiles = [];
+    var excludeFiles = config.e2eSpecs;
     var fork = require('child_process').fork;
     var karma = require('karma').server;
     //var serverSpecs = config.serverIntegrationSpecs;

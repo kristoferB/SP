@@ -57,6 +57,12 @@
     "globals": {
         "angular": false,
         "EventSource": true,
-        "_": true
+        "_": true,
+        "describe": true,
+        "browser": true,
+        "element": true,
+        "by": true,
+        "it": true,
+        "expect": true
     }
 }

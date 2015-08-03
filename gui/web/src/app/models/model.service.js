@@ -16,7 +16,8 @@
             setActiveModel: setActiveModel,
             updateName: updateName,
             createModel: createModel,
-            deleteModel: deleteModel
+            deleteModel: deleteModel,
+            getModel: getModel
         };
 
         activate();

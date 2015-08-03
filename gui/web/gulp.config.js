@@ -117,6 +117,7 @@ module.exports = function() {
         ],
         specHelpers: [client + 'test-helpers/*.js'],
         specs: [clientApp + '**/*.spec.js'],
+        e2eSpecs: [clientApp + '**/*.e2e-spec.js'],
         //serverIntegrationSpecs: [client + '/tests/server-integration/**/*.spec.js'],
 
         /**

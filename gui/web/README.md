@@ -12,27 +12,11 @@
  - on OSX use [homebrew](http://brew.sh) `brew install node`
  - on Windows use [chocolatey](https://chocolatey.org/) `choco install nodejs`
 
-2. Install Yeoman 
-
-    ```bash
-    npm install -g yo
-    ```
-
-3. Install these NPM packages globally
-
-    ```bash
-    npm install -g bower gulp
-    ```
-
-    >Refer to these [instructions on how to not require sudo](https://github.com/sindresorhus/guides/blob/master/npm-global-without-sudo.md)
-    
-4. Install app dependencies
-    
+2. Install app dependencies.    
     ```bash
     npm install
     bower install
     ```
-    
 
 ## Running the GUI project
 
@@ -43,19 +27,18 @@
  - Run the unit tests using `gulp test` (via karma, mocha, sinon).
 
 ### Running in dev mode
- - Run the project with `gulp serve-dev`
-
- - opens it in a browser and updates the browser with any files changes.
+ - Run the project with `gulp serve-dev`.
+ - Opens the app in a browser and refreshes the browser on any file change.
 
 ### Building the project
- - Build the optimized project using `gulp build`
- - This create the optimized code for the project and puts it in the build folder
+ - Build the optimized project using `gulp build`.
+ - This create the optimized code for the project and puts it in the build folder.
 
 ### Running the optimized code
- - Run the optimize project from the build folder with `gulp serve-build`
+ - Run the optimize project from the build folder with `gulp serve-build`.
 
 ## Exploring HotTowel
-HotTowel Angular starter project
+HotTowel Angular starter project.
 
 ### Structure
 The structure also contains a gulpfile.js.
@@ -113,13 +96,21 @@ The `blocks.router` module contains a routing helper module that assists in addi
 
     Serves and browses to the spec runner html page and runs the unit tests in it. Injects any changes on the fly and re runs the tests. Quick and easy view of tests as an alternative to terminal via `gulp test`.
 
-- `gulp test`
+- `gulp unit-test`
 
     Runs all unit tests using karma runner, mocha, chai and sinon with phantomjs. Depends on vet task, for code analysis.
 
-- `gulp test --startServers`
+- `gulp unit-test --startServers`
 
     Runs all unit tests and midway tests. Cranks up a second node process to run a server for the midway tests to hit a web api.
+
+- `gulp webdriver-update`
+    
+    Downloads and sets up Selenium Webdriver for e2e testing.
+    
+- `gulp e2e-test`
+    
+    Runs all e2e tests using Protractor with Selenium Webdriver.
 
 - `gulp autotest`
 
