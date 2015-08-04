@@ -11,6 +11,7 @@
         var vm = this;
         vm.title = 'Models';
         vm.models = model.models;
+        vm.model = model;
         vm.displayedModels = [];
         vm.createModel = createModel;
         vm.updateName = model.updateName;

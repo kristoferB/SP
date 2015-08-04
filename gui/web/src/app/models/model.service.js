@@ -12,6 +12,7 @@
         var activeModel = null;
         var service = {
             models: models,
+            idOfLatestModel: '',
             getActiveModel: getActiveModel,
             setActiveModel: setActiveModel,
             updateName: updateName,
@@ -59,6 +60,7 @@
                     logger.info('Updated name and/or attributes for model ' + oldName + '.');
                 } else if (data.event === 'Creation') {
                     models.push(data.modelInfo);
+                    service.idOfLatestModel = data.modelInfo.id;
                     logger.info('Added a model with name ' + data.modelInfo.name + '.');
                 } else if (data.event === 'Deletion') {
                     var name = getModel(data.id).name;

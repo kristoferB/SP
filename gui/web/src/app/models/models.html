@@ -16,8 +16,9 @@
             <table sp-table row-collection="vm.models" displayed-collection="vm.displayedModels"
                       header-template="app/models/model-table-header.html">
                 <tbody>
-                    <tr ng-repeat="m in vm.displayedModels">
-                        <td class="col-md-4"><a href="#" editable-text="m.name" onbeforesave="vm.updateName(m, $data)"
+                    <tr ng-repeat="m in vm.displayedModels" ng-class="{'latest': m.id === vm.model.idOfLatestModel}">
+                        <td class="col-md-4">
+                            <a href="#" editable-text="m.name" onbeforesave="vm.updateName(m, $data)"
                                                 buttons="no" blur="submit">{{ m.name || "none" }}</a>
                         </td>
                         <td class="col-md-4">{{m.attributes.time | date:'yyyy-MM-dd HH:mm:ss'}}</td>

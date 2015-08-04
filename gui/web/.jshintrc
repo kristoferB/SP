@@ -63,6 +63,7 @@
         "element": true,
         "by": true,
         "it": true,
-        "expect": true
+        "expect": true,
+        "beforeAll": true
     }
 }
