@@ -581,6 +581,11 @@ a.btn {
 
 @media screen {
     .navbar-inverse .navbar-nav {
+
+        li a {
+            color: #555;
+        }
+
         .dropdown-menu, .open > .dropdown-menu {
             display: block;
             position: absolute;
@@ -599,13 +604,11 @@ a.btn {
             opacity: 0;
 
             li {
-                color: #777;
                 font-size: 13px;
                 line-height: 18px;
 
                 a {
-                    color: #555;
-                    line-height: 23px !important;
+                    line-height: 1.42857143em !important;
                     padding: 5px 15px;
                 }
             }
@@ -617,17 +620,13 @@ a.btn {
             visibility: visible;
             transform: scale(1,1);
 
-            li {
-                a {
-                    &:hover {
-                        background: #f9f9f9 !important;
-                        filter: none;
-                        color: #888;
-                    }
+            > li {
+                > a {
+                    color: #555;
 
-                    &:hover, &:focus {
-                        filter: none !important;
-                        background: #fff !important;
+                    &:hover {
+                        background: #edf1f2 !important;
+                        filter: none;
                     }
                 }
             }
@@ -950,22 +949,6 @@ body {
     background-color: #fff;
 }
 
-.sidebar-widget form {
-    margin: 0em -1em;
-}
-
-.sidebar .navi li ul li a {
-    color: #fff;
-}
-
-    .sidebar .navi li ul li a:hover {
-        color: @color_lightblue;
-    }
-
-    .sidebar .navi li ul li a:disabled {
-        color: #999;
-    }
-
 .navbar-inverse .btn-navbar {
     background-color: #333;
 }
@@ -973,24 +956,6 @@ body {
     .navbar-inverse .btn-navbar:hover {
         background-color: #333;
     }
-
-.sidebar {
-    margin-top: -2px;
-}
-
-    .sidebar .sidebar-inner {
-        background-color: transparent;
-    }
-
-.sidebar-filler {
-    z-index: -1;
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    background-color: #fff;
-    width: 230px;
-}
 
 /*#endregion */
 
