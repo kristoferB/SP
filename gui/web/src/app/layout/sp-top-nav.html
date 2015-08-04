@@ -2,7 +2,8 @@
     <div class="navbar-header">
         <a href="/" class="navbar-brand">
             <img src="images/splogo_all_white.svg" class="navbar-logo" alt="." />
-            <span class="brand-title">{{vm.navline.title}}</span></a>
+            <span class="brand-title">Sequence<br />Planner</span>
+        </a>
         <a class="btn navbar-btn navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
@@ -10,32 +11,31 @@
         </a>
     </div>
 
-    <div class="navbar-collapse collapse box-shadow">
-        <ul class="nav navbar-nav hidden-sm">
-            <li><a ui-sref="models"><i class="fa fa-files-o"></i> Model: {{ vm.model.getActiveModel().name || "None" }}</a></li>
-            <li><a ui-sref="dashboard"><i class="fa fa-tachometer"></i> Dashboard</a></li>
-        </ul>
-        <div class="pull-right navbar-logo">
-            <ul class="nav navbar-nav pull-right">
-                <li class="dropdown">
-                    <a href="" class="dropdown-toggle" aria-haspopup="true" id="userDropDown" data-toggle="dropdown" aria-expanded="false">
-                        <span class="thumb-sm avatar pull-right m-t-n-sm m-b-n-sm m-l-sm">
-                        <img src="images/a0.jpg" alt="...">
-                        <i class="on md b-white bottom"></i>
-                        </span>
-                        <span class="hidden-sm hidden-md">John.Smith</span> <b class="fa fa-caret-down"></b>
-                    </a>
-                    <!-- dropdown -->
-                    <ul class="dropdown-menu" aria-labelledby="userDropDown">
-                        <li><a ui-sref="settings"><i class="fa fa-cog"></i> Settings</a></li>
-                        <li><a><i class="fa fa-user"></i> Profile</a></li>
-                        <li><a><i class="fa fa-question"></i> Help</a></li>
-                        <li class="divider"></li>
-                        <li><a><i class="fa fa-sign-out"></i> Logout</a></li>
-                    </ul>
-                    <!-- / dropdown -->
-                </li>
+    <ul class="nav navbar-nav pull-right">
+        <li class="navbar-user dropdown">
+            <a href="" class="dropdown-toggle" aria-haspopup="true" id="userDropDown" data-toggle="dropdown" aria-expanded="false">
+                <span>John.Smith</span><b class="caret"></b>
+                <span class="thumb-sm avatar pull-right">
+                    <img src="images/a0.jpg" alt="..." />
+                </span>
+            </a>
+            <!-- dropdown -->
+            <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropDown">
+                <li><a ui-sref="settings"><i class="fa fa-cog"></i> Settings</a></li>
+                <li><a><i class="fa fa-user"></i> Profile</a></li>
+                <li><a><i class="fa fa-question"></i> Help</a></li>
+                <li class="divider"></li>
+                <li><a><i class="fa fa-sign-out"></i> Logout</a></li>
             </ul>
-        </div>
+            <!-- / dropdown -->
+        </li>
+    </ul>
+
+    <div class="navbar-collapse collapse box-shadow">
+        <ul class="nav navbar-nav">
+            <li><a ui-sref="models" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-files-o"></i> Model: {{ vm.model.getActiveModel().name || "None" }}</a></li>
+            <li><a ui-sref="dashboard" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-tachometer"></i> Dashboard</a></li>
+        </ul>
     </div>
+
 </nav>

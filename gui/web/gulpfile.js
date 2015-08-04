@@ -557,7 +557,7 @@ function startBrowserSync(isDev, specRunner) {
         },
         injectChanges: true,
         logFileChanges: true,
-        logLevel: 'debug',
+        logLevel: 'info',
         logPrefix: 'gulp-patterns',
         notify: true,
         reloadDelay: 0 //1000

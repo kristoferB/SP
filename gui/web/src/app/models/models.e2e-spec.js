@@ -56,4 +56,18 @@ describe('models page', function() {
             });
         });
     });
+
+    describe('open button click', function() {
+        element(by.css('open-model')).click();
+        browser.sleep(2000);
+
+        it('should change the active model from "None"', function() {
+            expect(element(by.css('fa-files-o')).getText()).not.toContain('None');
+        });
+
+        it('should change url to /dashboard', function() {
+            expect(currentUrl()).toContain('/dashboard');
+        });
+
+    });
 });
