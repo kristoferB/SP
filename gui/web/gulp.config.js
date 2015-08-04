@@ -1,11 +1,11 @@
 module.exports = function() {
-    var client = './src/';
+    var client = 'src/';
     //var server = './src/server/';
     var clientApp = client + 'app/';
     var report = './report/';
     var root = './';
     var specRunnerFile = 'specs.html';
-    var temp = './.tmp/';
+    var temp = '.tmp/';
     var wiredep = require('wiredep');
     var bowerFiles = wiredep({devDependencies: true})['js'];
     var bower = {
@@ -14,6 +14,8 @@ module.exports = function() {
         ignorePath: '../..'
     };
     var nodeModules = 'node_modules';
+    var specs = clientApp + '**/*.spec.js';
+    var e2eSpecs = clientApp + '**/*.e2e-spec.js';
 
     var config = {
         /**
@@ -36,8 +38,8 @@ module.exports = function() {
         js: [
             clientApp + '**/*.module.js',
             clientApp + '**/*.js',
-            '!' + clientApp + '**/*.spec.js',
-            '!' + clientApp + '**/*.e2e-spec.js'
+            '!' + specs,
+            '!' + e2eSpecs
         ],
         jsOrder: [
             '**/app.module.js',
@@ -117,8 +119,8 @@ module.exports = function() {
             nodeModules + '/sinon-chai/lib/sinon-chai.js'
         ],
         specHelpers: [client + 'test-helpers/*.js'],
-        specs: [clientApp + '**/*.spec.js'],
-        e2eSpecs: [clientApp + '**/*.e2e-spec.js'],
+        specs: specs,
+        e2eSpecs: e2eSpecs,
         //serverIntegrationSpecs: [client + '/tests/server-integration/**/*.spec.js'],
 
         /**

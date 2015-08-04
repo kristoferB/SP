@@ -1,31 +1,40 @@
 describe('models page', function() {
-    browser.get('/models');
-    browser.sleep(2000);
-    var tableRowsElem = element.all(by.repeater('m in vm.displayedModels'));
-    var noOfEntriesElem = element(by.binding('totalNoOfEntries()'));
-    var initialArrayLength = parseInt(tableRowsElem.count());
-    var initialEntriesCount = parseInt(noOfEntriesElem.getText());
+    var tableRowsElem, noOfEntriesElem, initialArrayLength, initialEntriesCount;
+
+    beforeAll(function() {
+        browser.get('/models');
+        tableRowsElem = element.all(by.repeater('m in vm.displayedModels'));
+        noOfEntriesElem = element(by.binding('totalNoOfEntries()'));
+        browser.waitForAngular();
+        initialArrayLength = parseInt(tableRowsElem.count());
+        initialEntriesCount = parseInt(noOfEntriesElem.getText());
+    });
 
     it('should be the same number of entries as array length', function() {
+        browser.waitForAngular();
         expect(initialArrayLength).toEqual(initialEntriesCount);
     });
 
     describe('create button click', function() {
-        element(by.id('open-create-model-dialog')).click();
-        browser.sleep(2000);
+        beforeAll(function() {
+            element(by.id('open-create-model-dialog')).click();
+        });
 
         describe('and form submit', function() {
-            element(by.model('vm.name')).sendKeys("My fancy model");
-            browser.sleep(2000);
-            element(by.id('create-model')).click();
-            browser.sleep(2000);
+            beforeAll(function() {
+                browser.waitForAngular();
+                element(by.model('vm.name')).sendKeys("My fancy model");
+                element(by.id('create-model')).click();
+            });
 
             it('should add one row to the models table', function() {
+                browser.waitForAngular();
                 this.newArrayLength = parseInt(tableRowsElem.count());
                 expect(this.newArrayLength).toEqual(initialArrayLength + 1);
             });
 
             it('should increase the table entries count by 1', function() {
+                browser.waitForAngular();
                 this.newEntriesCount = parseInt(noOfEntriesElem.getText());
                 expect(this.newEntriesCount).toEqual(initialEntriesCount + 1);
             });
@@ -33,24 +42,32 @@ describe('models page', function() {
     });
 
     describe('delete button click', function() {
-        element(by.css('.btn-danger')).click();
-        browser.sleep(2000);
-        var confirmDialog = browser.switchTo().alert();
+        var confirmDialog;
+
+        beforeAll(function() {
+            browser.waitForAngular();
+            element.all(by.css('.btn-danger')).first().click();
+            browser.sleep(500);
+            confirmDialog = browser.switchTo().alert();
+        });
 
         it('should open a confirm dialog with a warning message', function() {
             expect(confirmDialog.getText()).toContain('Are you sure');
         });
 
         describe('and OK button click', function() {
-            confirmDialog.accept();
-            browser.sleep(2000);
+            beforeAll(function() {
+                confirmDialog.accept();
+            });
 
             it('should remove one row from the models table', function() {
+                browser.waitForAngular();
                 var newArrayLength = parseInt(tableRowsElem.count());
                 expect(newArrayLength).toEqual(initialArrayLength - 1);
             });
 
             it('should lessen the table entries count by 1', function() {
+                browser.waitForAngular();
                 var newEntriesCount = parseInt(noOfEntriesElem.getText());
                 expect(newEntriesCount).toEqual(initialEntriesCount - 1);
             });
@@ -58,15 +75,19 @@ describe('models page', function() {
     });
 
     describe('open button click', function() {
-        element(by.css('open-model')).click();
-        browser.sleep(2000);
+        beforeAll(function() {
+            browser.waitForAngular();
+            element.all(by.css('.open-model')).first().click();
+        });
 
         it('should change the active model from "None"', function() {
-            expect(element(by.css('fa-files-o')).getText()).not.toContain('None');
+            browser.waitForAngular();
+            expect(element(by.css('.fa-files-o')).getText()).not.toContain('None');
         });
 
         it('should change url to /dashboard', function() {
-            expect(currentUrl()).toContain('/dashboard');
+            browser.waitForAngular();
+            expect(browser.getCurrentUrl()).toContain('/dashboard');
         });
 
     });

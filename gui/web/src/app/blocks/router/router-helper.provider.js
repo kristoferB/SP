@@ -81,7 +81,12 @@
 
             function init() {
                 handleRoutingErrors();
+                makeDashboardHomepage();
                 updateDocTitle();
+            }
+
+            function makeDashboardHomepage() {
+                $urlRouterProvider.when('/', '/dashboard');
             }
 
             function getStates() { return $state.get(); }

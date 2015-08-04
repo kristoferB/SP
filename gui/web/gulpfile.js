@@ -546,8 +546,10 @@ function startBrowserSync(isDev, specRunner) {
         port: 3000,
         files: isDev ? [
             config.client + '**/*.*',
+            '!' + config.specs,
+            '!' + config.e2eSpecs,
             '!' + config.less,
-            config.temp + '**/*.css'
+            config.temp + '*.css'
         ] : [],
         ghostMode: { // these are the defaults t,f,t,t
             clicks: true,
@@ -604,7 +606,7 @@ function startPlatoVisualizer(done) {
  */
 function startTests(singleRun, done) {
     var child;
-    var excludeFiles = config.e2eSpecs;
+    var excludeFiles = [config.e2eSpecs];
     var fork = require('child_process').fork;
     var karma = require('karma').server;
     //var serverSpecs = config.serverIntegrationSpecs;
