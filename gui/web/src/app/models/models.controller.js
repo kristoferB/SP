@@ -5,16 +5,16 @@
         .module('app.models')
         .controller('ModelsController', ModelsController);
 
-    ModelsController.$inject = ['model', '$window', '$modal', '$state', 'logger'];
+    ModelsController.$inject = ['modelService', '$window', '$modal', '$state', 'logger'];
     /* @ngInject */
-    function ModelsController(model, $window, $modal, $state, logger) {
+    function ModelsController(modelService, $window, $modal, $state, logger) {
         var vm = this;
         vm.title = 'Models';
-        vm.models = model.models;
-        vm.model = model;
+        vm.models = modelService.models;
+        vm.modelService = modelService;
         vm.displayedModels = [];
         vm.createModel = createModel;
-        vm.updateName = model.updateName;
+        vm.updateName = modelService.updateName;
         vm.deleteModel = deleteModel;
         vm.setActiveModel = setActiveModel;
 
@@ -25,14 +25,14 @@
         }
 
         function setActiveModel(m) {
-            model.setActiveModel(m);
+            modelService.setActiveModel(m);
             $state.go('dashboard');
         }
 
         function deleteModel(id) {
             var sure = $window.confirm('Are you sure you want to delete the whole model?');
             if (sure) {
-                model.deleteModel(id);
+                modelService.deleteModel(id);
             }
         }
 
@@ -44,7 +44,7 @@
             });
 
             modalInstance.result.then(function(chosenName) {
-                model.createModel(chosenName);
+                modelService.createModel(chosenName);
             });
         }
 

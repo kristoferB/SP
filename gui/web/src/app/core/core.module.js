@@ -9,10 +9,10 @@
         ])
         .run(runBlock);
 
-    runBlock.$inject = ['inlineEditing'];
+    runBlock.$inject = ['inlineEditingService'];
 
-    function runBlock(inlineEditing) {
-        inlineEditing.initialize();
+    function runBlock(inlineEditingService) {
+        inlineEditingService.initialize();
     }
 
 })();

@@ -3,11 +3,11 @@
 
     angular
         .module('app.core')
-        .factory('eventHandler', eventHandler);
+        .factory('eventService', eventService);
 
-    eventHandler.$inject = ['$rootScope', 'API', 'logger'];
+    eventService.$inject = ['$rootScope', 'API', 'logger'];
     /* @ngInject */
-    function eventHandler($rootScope, API, logger) {
+    function eventService($rootScope, API, logger) {
         var service = {
             addListener: addListener,
             eventSource: null

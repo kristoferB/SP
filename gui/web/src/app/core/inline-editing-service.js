@@ -7,11 +7,11 @@
 
     angular
         .module('app.core')
-        .factory('inlineEditing', inlineEditing);
+        .factory('inlineEditingService', inlineEditingService);
 
-    inlineEditing.$inject = ['editableOptions'];
+    inlineEditingService.$inject = ['editableOptions'];
     /* @ngInject */
-    function inlineEditing(editableOptions) {
+    function inlineEditingService(editableOptions) {
         var service = {
             initialize: initialize
         };

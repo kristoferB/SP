@@ -15,29 +15,31 @@
         var directive = {
             restrict: 'E',
             require: '^stTable',
-            template: '<div class="table-info">Showing {{indexOfFirstEntryOnPage()}} to ' +
-                      '{{indexOfLastEntryOnPage()}} of <span>{{totalNoOfEntries()}}</span> entries</div>',
+            template:   '<div class="table-info">Showing ' +
+                        '<span class="number-of-first-entry-on-page">{{numberOfFirstEntryOnPage()}}</span> to ' +
+                        '<span class="number-of-last-entry-on-page">{{numberOfLastEntryOnPage()}}</span> of ' +
+                        '<span class="total-number-of-entries">{{totalNoOfEntries()}}</span> entries</div>',
             link: link
         };
         return directive;
 
         function link(scope, element, attrs, ctrl) {
 
-            scope.indexOfFirstEntryOnPage = indexOfFirstEntryOnPage;
-            scope.indexOfLastEntryOnPage = indexOfLastEntryOnPage;
+            scope.numberOfFirstEntryOnPage = numberOfFirstEntryOnPage;
+            scope.numberOfLastEntryOnPage = numberOfLastEntryOnPage;
             scope.totalNoOfEntries = totalNoOfEntries;
 
             function totalNoOfEntries() {
                 return ctrl.tableState().pagination.totalItemCount;
             }
 
-            function indexOfFirstEntryOnPage() {
+            function numberOfFirstEntryOnPage() {
                 return ctrl.tableState().pagination.start + 1;
             }
 
-            function indexOfLastEntryOnPage() {
+            function numberOfLastEntryOnPage() {
                 var total = totalNoOfEntries();
-                var last = indexOfFirstEntryOnPage() + ctrl.tableState().pagination.number - 1;
+                var last = numberOfFirstEntryOnPage() + ctrl.tableState().pagination.number - 1;
                 if (last > total) {
                     return total;
                 } else {

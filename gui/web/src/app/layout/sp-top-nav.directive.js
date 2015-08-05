@@ -22,11 +22,11 @@
     }
 
     /* @ngInject */
-    TopNavController.$inject = ['model'];
+    TopNavController.$inject = ['modelService'];
 
-    function TopNavController(model) {
+    function TopNavController(modelService) {
         var vm = this;
-        vm.model = model;
+        vm.modelService = modelService;
     }
 
 })();

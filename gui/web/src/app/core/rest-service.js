@@ -3,11 +3,11 @@
 
     angular
         .module('app.core')
-        .factory('rest', rest);
+        .factory('restService', restService);
 
-    rest.$inject = ['$http', '$q', 'logger', 'API'];
+    restService.$inject = ['$http', '$q', 'logger', 'API'];
     /* @ngInject */
-    function rest($http, $q, logger, API) {
+    function restService($http, $q, logger, API) {
         var service = {
             getModels: getModels,
             getItems: getItems,

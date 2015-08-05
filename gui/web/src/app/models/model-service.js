@@ -3,11 +3,11 @@
 
     angular
         .module('app.models')
-        .factory('model', model);
+        .factory('modelService', modelService);
 
-    model.$inject = ['$q', 'logger', 'rest', 'eventHandler'];
+    modelService.$inject = ['$q', 'logger', 'restService', 'eventService'];
     /* @ngInject */
-    function model($q, logger, rest, eventHandler) {
+    function modelService($q, logger, restService, eventService) {
         var models = [];
         var activeModel = null;
         var service = {
@@ -34,7 +34,7 @@
         }
 
         function getAllModels() {
-            return rest.getModels().then(function (data) {
+            return restService.getModels().then(function (data) {
                 models.length = 0;
                 models.push.apply(models, data);
             });
@@ -50,7 +50,7 @@
         }
 
         function listenToModelHandlerEvents() {
-            eventHandler.addListener('ModelHandler', onModelHandlerEvent);
+            eventService.addListener('ModelHandler', onModelHandlerEvent);
 
             function onModelHandlerEvent(data) {
                 if (data.event === 'Update') {
@@ -82,18 +82,18 @@
             var newModel = {
                 name: name
             };
-            rest.postToModelHandler(newModel);
+            restService.postToModelHandler(newModel);
         }
 
         function deleteModel(id) {
-            rest.deleteModel(id);
+            restService.deleteModel(id);
         }
 
         function updateName(model, name) {
             var data = {};
             angular.extend(data, model);
             data.name = name;
-            return rest.postToModel(model.id, data)
+            return restService.postToModel(model.id, data)
                 .then(success)
                 .catch(fail);
 
