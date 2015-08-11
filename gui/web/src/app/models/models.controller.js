@@ -9,7 +9,7 @@
     /* @ngInject */
     function ModelsController(modelService, $window, $modal, $state, logger) {
         var vm = this;
-        vm.title = 'Models';
+        vm.title = $state.current.title;
         vm.models = modelService.models;
         vm.modelService = modelService;
         vm.displayedModels = [];

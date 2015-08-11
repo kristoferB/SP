@@ -17,7 +17,8 @@
             transclude: true,
             replace: true,
             bindToController: {
-                widgetTitle: '='
+                widgetTitle: '=',
+                closeHandler: '&'
             }
         };
         return directive;
@@ -27,6 +28,17 @@
 
     function SPWidgetController() {
         var vm = this;
+        vm.closeButtonVisible = false;
+        vm.showCloseButton = showCloseButton;
+        vm.hideCloseButton = hideCloseButton;
+
+        function showCloseButton() {
+            vm.closeButtonVisible = true;
+        }
+
+        function hideCloseButton() {
+            vm.closeButtonVisible = false;
+        }
     }
 
 })();

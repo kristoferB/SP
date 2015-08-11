@@ -5,11 +5,11 @@
         .module('app.settings')
         .controller('SettingsController', SettingsController);
 
-    SettingsController.$inject = ['logger'];
+    SettingsController.$inject = ['logger', '$state'];
     /* @ngInject */
-    function SettingsController(logger) {
+    function SettingsController(logger, $state) {
         var vm = this;
-        vm.title = 'Settings';
+        vm.title = $state.current.title;
 
         activate();
 

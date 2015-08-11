@@ -23,5 +23,4 @@ case class HierarchySpec(name: String,
                          attributes: SPAttributes = SPAttributes(),
                          id: ID = ID.newID) extends Specification
 
-//Use HierarchySpec to define new levels without an IDAble as id
 case class HierarchyNode(id: ID, hierarchy: List[HierarchyNode] = List())

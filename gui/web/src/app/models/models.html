@@ -1,6 +1,6 @@
 <section class="mainbar">
     <div class="view-header">
-        <h1>{{vm.title}}</h1>
+        <h1>{{::vm.title}}</h1>
     </div>
     <div class="container">
 
@@ -12,7 +12,6 @@
         </div>
 
         <sp-widget widget-title="vm.title">
-
             <table sp-table row-collection="vm.models" displayed-collection="vm.displayedModels"
                       header-template="app/models/model-table-header.html">
                 <tbody>
@@ -33,7 +32,6 @@
                     </tr>
                 </tbody>
             </table>
-
         </sp-widget>
 
     </div>

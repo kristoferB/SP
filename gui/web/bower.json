@@ -30,10 +30,12 @@
     "lodash": "3.10.0",
     "angular-smart-table": "2.1.1",
     "angular-xeditable": "0.1.9",
-    "angular-bootstrap": "0.12.1"
+    "angular-bootstrap": "0.12.1",
+    "angular-gridster": "0.13.5",
+    "ngstorage": "0.3.7",
+    "ng-jsoneditor": "angular-tools/ng-jsoneditor"
   },
   "resolutions": {
-    "angular": "1.4.3",
-    "angular-mocks": "1.4.3"
+    "angular": "1.4.3"
   }
 }

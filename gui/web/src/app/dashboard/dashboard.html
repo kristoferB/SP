@@ -6,16 +6,24 @@
                 <i class="fa fa-plus"></i> New
             </button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="newDropDown">
-                <li><a href="">Item List</a></li>
-                <li><a href="">Runtime List</a></li>
-                <li><a href="">SOP Maker</a></li>
+                <li ng-repeat="widgetKind in ::vm.widgetKinds" ng-click="vm.addWidget(widgetKind)">
+                    <a href="">{{::widgetKind.title}}</a>
+                </li>
             </ul>
         </div>
-        <h1>Dashboard</h1>
+        <h1>{{::vm.title}}</h1>
     </div>
 
     <div class="container">
-
+        <div gridster="vm.gridsterOptions">
+            <ul>
+                <li gridster-item="widget" ng-repeat="widget in vm.storage.widgets">
+                    <sp-widget widget-title="widget.title" close-handler="vm.closeWidget(widget)">
+                        <ng-include src="widget.template"></ng-include>
+                    </sp-widget>
+                </li>
+            </ul>
+        </div>
     </div>
 
 </section>

@@ -239,16 +239,119 @@ a.btn {
         font-size: 12px;
     }
 
-/* Button colors */
+@fill-height: {
+    flex: 1 1 0;
+};
+
+@fill-height-and-make-flex-container: {
+    @fill-height();
+    display: flex;
+    flex-direction: column;
+};
+
+/* Panels in general */
+.panel .panel-body {
+    padding: 0;
+}
+
+/* Gridster Widgets */
+
+.gridster {
+
+    .handle-se {
+        border: none;
+        width: 12px;
+        height: 12px;
+    }
+
+    .panel {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        height: 100%;
+
+        .panel-heading {
+            flex: 0 0 auto;
+
+            .widget-close {
+                cursor: pointer;
+                line-height: 20px;
+            }
+        }
+
+        .panel-body {
+            @fill-height-and-make-flex-container();
+
+            .widget-toolbar {
+                padding: 15px;
+                border-bottom: 1px solid #dee5e7;
+                background-color: #f6f8f8;
+                flex: 0 0 auto;
+
+                button {
+                    width: 60px;
+                    margin-right: 10px;
+                }
+
+                .btn-group:not([dropdown]) {
+                    margin-right: 10px;
+                }
+
+                .btn-group > button {
+                    margin-right: 0;
+                    margin-left: -1px;
+                }
+            }
+
+            > ng-include {
+                @fill-height-and-make-flex-container();
+
+                > div[ng-controller] {
+                    @fill-height-and-make-flex-container();
+                }
+            }
+        }
+    }
+
+}
+
+/* Item List */
+
+.item-list {
+    div[ng-jsoneditor] {
+        @fill-height-and-make-flex-container();
+    }
+
+    .jsoneditor {
+        @fill-height();
+    }
+}
+
+
+/* Buttons */
+
+
+
+.btn > i {
+    margin-right: 8px;
+}
+
+.btn.btn-notext > i {
+    margin-right: 0;
+}
 
 .btn-default {
     color: #58666e !important;
-    background-color: #fcfdfd;
     background-color: #fff;
     border-color: #dee5e7;
     border-bottom-color: #d8e1e3;
     -webkit-box-shadow: 0 1px 1px rgba(90, 90, 90, 0.1);
     box-shadow: 0 1px 1px rgba(90, 90, 90, 0.1);
+
+    &:hover, &:focus {
+        background-color: #edf1f2 !important;
+        border-color: #c7d3d6;
+    }
 }
 
 .btn.btn-primary {
@@ -651,7 +754,7 @@ a.btn {
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.05), 0 1px 0 rgba(0, 0, 0, 0.05);
 
     .navbar-header {
-        background-color: #f05050;
+        background-color: #de691c; //#df691a; //#f05050;
         margin-right: 10px;
         display: flex;
         float: left;
@@ -919,23 +1022,6 @@ a.btn {
 /*#endregion */
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*#region Override background color theme */
 
 /*For Bootstrap 3*/
@@ -982,25 +1068,9 @@ select > option {
     width: 90px;
 }
 
-
 .map {
     height: 228px;
 }
-
-.btn > i {
-    margin-right: 8px;
-}
-
-
-
-    .btn.btn-notext > i {
-        margin-right: 0;
-    }
-
-.btn-group{
-    margin: .2em;
-}
-
 
 small {
     font-size: 14px;

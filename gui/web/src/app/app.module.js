@@ -8,7 +8,8 @@
         'app.dashboard',
         'app.settings',
         'app.layout',
-        'app.tables'
+        'app.tables',
+        'app.itemList'
     ]);
 
 })();
