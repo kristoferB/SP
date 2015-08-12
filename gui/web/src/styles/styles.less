@@ -297,7 +297,7 @@ a.btn {
                     margin-right: 10px;
                 }
 
-                .btn-group > button {
+                .btn-group button {
                     margin-right: 0;
                     margin-left: -1px;
                 }
@@ -326,6 +326,14 @@ a.btn {
     }
 }
 
+.jsoneditor-contextmenu, .jsoneditor-contextmenu *  {
+    box-sizing: content-box !important;
+    -webkit-box-sizing: content-box !important;
+}
+
+.jsoneditor-contextmenu ul li button.default {
+    width: 91px;
+}
 
 /* Buttons */
 
@@ -339,6 +347,11 @@ a.btn {
     margin-right: 0;
 }
 
+.btn.disabled { // to emit mouse events also on disabled buttons, so e.g. tooltips can close
+    pointer-events: inherit;
+    cursor: auto;
+}
+
 .btn-default {
     color: #58666e !important;
     background-color: #fff;
@@ -347,7 +360,7 @@ a.btn {
     -webkit-box-shadow: 0 1px 1px rgba(90, 90, 90, 0.1);
     box-shadow: 0 1px 1px rgba(90, 90, 90, 0.1);
 
-    &:hover, &:focus {
+    &:hover:not(.disabled), &:focus:not(.disabled) {
         background-color: #edf1f2 !important;
         border-color: #c7d3d6;
     }

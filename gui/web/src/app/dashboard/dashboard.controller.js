@@ -14,6 +14,7 @@
         vm.closeWidget = closeWidget;
         vm.gridsterOptions = {
             outerMargin: false,
+            swapping: true,
             draggable: {
                 enabled: false,
                 handle: '.panel-heading'
