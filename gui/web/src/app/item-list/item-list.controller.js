@@ -27,7 +27,14 @@
             "String4": "Hello World 4"
         };
         vm.options = {
-            mode: 'tree'
+            mode: 'tree',
+            modes: [
+                'tree',
+                'view',
+                'form',
+                'code',
+                'text'
+            ]
         };
 
         activate();

@@ -5,22 +5,23 @@
         .module('app.dashboard')
         .controller('DashboardController', DashboardController);
 
-    DashboardController.$inject = ['logger', '$sessionStorage', '$state'];
+    DashboardController.$inject = ['logger', '$sessionStorage', '$state', '$rootScope', '$timeout'];
     /* @ngInject */
-    function DashboardController(logger, $sessionStorage, $state) {
+    function DashboardController(logger, $sessionStorage, $state, $rootScope, $timeout) {
         var vm = this;
         vm.title = $state.current.title;
         vm.addWidget = addWidget;
         vm.closeWidget = closeWidget;
-        vm.storage = $sessionStorage.$default({
-            widgets: []
-        });
         vm.gridsterOptions = {
             outerMargin: false,
             draggable: {
+                enabled: false,
                 handle: '.panel-heading'
             }
         };
+        vm.storage = $sessionStorage.$default({
+            widgets: []
+        });
         vm.widgetKinds = [
             { sizeX: 2, sizeY: 2, title: 'Item List', template: 'app/item-list/item-list.html' },
             { sizeX: 2, sizeY: 2, title: 'SOP Maker' },
@@ -31,16 +32,23 @@
 
         activate();
 
+        function activate() {
+            enableWidgetDrag();
+            logger.info('Activated dashboard view');
+        }
+
+        function enableWidgetDrag() {
+            $timeout(function() {
+                vm.gridsterOptions.draggable.enabled = true;
+            }, 100, false);
+        }
+
         function addWidget(widgetKind) {
-            vm.storage.widgets.push(widgetKind)
+            vm.storage.widgets.push(widgetKind);
         }
 
         function closeWidget(widget) {
             vm.storage.widgets.splice(vm.storage.widgets.indexOf(widget), 1);
-        }
-
-        function activate() {
-            logger.info('Activated dashboard view');
         }
 
     }
