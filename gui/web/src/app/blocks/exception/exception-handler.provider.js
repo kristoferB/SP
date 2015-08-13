@@ -53,6 +53,9 @@
         return function(exception, cause) {
             var appErrorPrefix = exceptionHandler.config.appErrorPrefix || '';
             var errorData = {exception: exception, cause: cause};
+            if(exception.message.substr(0, 11) === 'Parse error') {
+                return; // ignore parse errors in ACE editor
+            }
             exception.message = appErrorPrefix + exception.message;
             $delegate(exception, cause);
             /**

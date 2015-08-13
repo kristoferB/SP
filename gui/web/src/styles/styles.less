@@ -80,6 +80,20 @@ select {
     font-family: "Segoe UI", Arial, Helvetica, sans-serif;
 }
 
+.input-group {
+    white-space: nowrap;
+
+    > .input-group-btn > button.btn-default {
+        box-shadow: none;
+    }
+}
+
+.input-group-addon {
+    background-color: #fff;
+    color: #58666e;
+    border-color: #dee5e7;
+}
+
 input[type="radio"], input[type="checkbox"] {
     margin: 0 0 0 !important;
     margin-right: 5px !important;
@@ -165,6 +179,7 @@ p {
 label {
     font-weight: normal;
     white-space: nowrap;
+    margin-bottom: 0;
 }
 
 .text-xs {
@@ -233,21 +248,11 @@ a.btn {
     line-height: 17px;
     margin: 5px 0 !important;
     border: 0;
-}
 
-    .progress .bar {
+    .bar {
         font-size: 12px;
     }
-
-@fill-height: {
-    flex: 1 1 0;
-};
-
-@fill-height-and-make-flex-container: {
-    @fill-height();
-    display: flex;
-    flex-direction: column;
-};
+}
 
 /* Panels in general */
 .panel .panel-body {
@@ -267,7 +272,6 @@ a.btn {
     .panel {
         display: flex;
         flex-direction: column;
-        flex: 1;
         height: 100%;
 
         .panel-heading {
@@ -280,34 +284,45 @@ a.btn {
         }
 
         .panel-body {
-            @fill-height-and-make-flex-container();
+            flex: 1 1 0;
+            position: relative;
 
-            .widget-toolbar {
-                padding: 15px;
-                border-bottom: 1px solid #dee5e7;
-                background-color: #f6f8f8;
-                flex: 0 0 auto;
+            ng-include {
+                position: absolute;
+                width: 100%;
+                height: 100%;
 
-                button {
-                    width: 60px;
-                    margin-right: 10px;
-                }
+                [ng-controller] {
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
 
-                .btn-group:not([dropdown]) {
-                    margin-right: 10px;
-                }
+                    .panel-toolbar {
+                        padding: 15px;
+                        border-bottom: 1px solid #dee5e7;
+                        background-color: #f6f8f8;
+                        flex: 0 0 auto;
 
-                .btn-group button {
-                    margin-right: 0;
-                    margin-left: -1px;
-                }
-            }
+                        button:not(.input-group-btn button) {
+                            //width: 60px;
+                            margin-right: 10px;
+                        }
 
-            > ng-include {
-                @fill-height-and-make-flex-container();
+                        .btn-group:not([dropdown]) {
+                            margin-right: 10px;
+                        }
 
-                > div[ng-controller] {
-                    @fill-height-and-make-flex-container();
+                        .btn-group button {
+                            margin-right: 0;
+                            margin-left: -1px;
+                        }
+                    }
+
+                    .panel-content {
+                        flex: 1 1 0;
+                        position: relative;
+                    }
                 }
             }
         }
@@ -317,12 +332,38 @@ a.btn {
 /* Item List */
 
 .item-list {
-    div[ng-jsoneditor] {
-        @fill-height-and-make-flex-container();
-    }
 
     .jsoneditor {
-        @fill-height();
+        position: absolute;
+        border: none;
+
+        > .menu {
+            visibility: hidden;
+        }
+
+        > .outer {
+            padding-top: 0;
+
+            > .ace_editor {
+                position: absolute;
+                * {
+                    font-family: monospace;
+                }
+            }
+        }
+    }
+
+    .search-matches {
+        padding-right: 8px;
+        line-height: 30px;
+    }
+
+    .item-search {
+        width: 220px;
+
+        .input-group .input-group-btn button {
+            width: auto;
+        }
     }
 }
 
@@ -561,7 +602,7 @@ a.btn {
 /* Form */
 
 .form-control {
-    border-color: #cfdadd;
+    border-color: #dee5e7;
     border-radius: 2px;
 }
 
@@ -639,6 +680,15 @@ a.btn {
 }
 
 /* Dropdown menu */
+
+.dropdown-menu {
+    min-width: 120px;
+
+    a .fa {
+        vertical-align: middle;
+        line-height: 20px;
+    }
+}
 
 .dropdown-big .dropdown-menu {
     -moz-min-width: 250px;
@@ -1127,10 +1177,6 @@ small {
     margin: 2px auto 8px auto !important;
 }
 
-.fa-search {
-    color: #FFFFFF;
-}
-
 .form-search {
     min-height: 2em;
 }
@@ -1158,10 +1204,6 @@ small {
 .flag-haschanges {
     position: fixed !important;
     display: inline;
-}
-
-.fa {
-    width: 13px;
 }
 
 .fa-asterisk.fa-asterisk-large {

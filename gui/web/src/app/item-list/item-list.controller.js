@@ -8,14 +8,16 @@
         .module('app.itemList')
         .controller('ItemListController', ItemListController);
 
-    ItemListController.$inject = ['logger'];
+    ItemListController.$inject = ['logger', '$timeout'];
     /* @ngInject */
-    function ItemListController(logger) {
+    function ItemListController(logger, $timeout) {
         var vm = this;
-        vm.jsonEditor = null;
-        vm.editorLoaded = function(editorInstance) {vm.jsonEditor = editorInstance;};
-        vm.setMode = function(mode) {vm.options.mode = mode;};
+        vm.editor = null;
+        vm.editorLoaded = function(editorInstance) {vm.editor = editorInstance;};
+        vm.setMode = setMode;
         vm.modes = ['tree', 'view', 'form', 'code', 'text'];
+        vm.searchText = '';
+        vm.search = function() {vm.editor.search(vm.editor.searchBox.dom.search.value)};
         vm.json =  {
             "Array": [1, 2, 3],
             "Boolean": true,
@@ -33,11 +35,27 @@
         vm.options = {
             mode: 'tree'
         };
+        vm.numberOfErrors = 0;
+
 
         activate();
 
         function activate() {
             logger.info('Added a Item List widget');
+        }
+
+        function setMode(mode) {
+            vm.options.mode = mode;
+            if(mode === 'code') {
+                $timeout(function() {
+                    vm.editor.editor.setOptions({maxLines: Infinity});
+                    vm.editor.editor.on('change', function(e) {
+                        $timeout(function() {
+                            vm.numberOfErrors = vm.editor.editor.getSession().getAnnotations().length;
+                        }, 300);
+                    })
+                });
+            }
         }
 
     }

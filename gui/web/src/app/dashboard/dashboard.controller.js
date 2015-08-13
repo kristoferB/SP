@@ -41,7 +41,7 @@
         function enableWidgetDrag() {
             $timeout(function() {
                 vm.gridsterOptions.draggable.enabled = true;
-            }, 100, false);
+            }, 500, false);
         }
 
         function addWidget(widgetKind) {
