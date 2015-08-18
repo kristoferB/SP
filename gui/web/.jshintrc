@@ -59,10 +59,12 @@
         "EventSource": true,
         "_": true,
         "describe": true,
+        "fdescribe": true,
         "browser": true,
         "element": true,
         "by": true,
         "it": true,
+        "fit": true,
         "expect": true,
         "beforeAll": true
     }

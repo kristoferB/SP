@@ -1,13 +1,13 @@
-<div ng-controller="ItemListController as vm" class="item-list">
+<div ng-controller="ItemEditorController as vm" class="item-editor">
     <div class="panel-toolbar">
 
         <div class="btn-group">
             <div class="btn-group" dropdown>
-                <button type="button" class="btn btn-sm btn-default dropdown-toggle" id="mode-drop-down"
+                <button type="button" class="btn btn-sm btn-default dropdown-toggle" id="mode-dropdown"
                         ng-class="{'disabled': vm.numberOfErrors > 0}" dropdown-toggle tooltip="Mode">
                     {{vm.options.mode | capitalize}} <span class="caret"></span>
                 </button>
-                <ul class="dropdown-menu" role="menu" aria-labelledby="mode-drop-down">
+                <ul class="dropdown-menu" role="menu" aria-labelledby="mode-dropdown">
                     <li ng-repeat="mode in ::vm.modes">
                         <a ng-click="vm.setMode(mode)">
                             {{::mode | capitalize}}

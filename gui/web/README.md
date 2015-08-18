@@ -26,16 +26,28 @@
     ```
 
 ## Running the GUI project
-
-### Linting
- - Run code analysis using `gulp vet`. This runs jshint, jscs, and plato.
-
-### Tests
- - Run the unit tests using `gulp test` (via karma, mocha, sinon).
-
 ### Running in dev mode
  - Run the project with `gulp serve-dev`.
  - Opens the app in a browser and refreshes the browser on any file change.
+ 
+### Unit Tests
+ - Run the unit tests using `gulp unit-test` (via Karma, Mocha and Sinon).
+
+#### Note on PhantomJS function undefined errors
+Since the inclusion of the ng-jsoneditor library, Karma tests fail with a "function undefined" error on PhantomJS 1.0. 
+This is because PhantomJS 1.0 does not support some vital ES5 and ES6 specifications, like bind(). 
+PhantomJS 2.0, released in january 2015, fixed this, but still working binaries and npm packages are missing for 
+many platforms. Therefore, PhantomJS 2.0 is not available through npm. Luckily, the PhantomJS 1.0 binary is easy to 
+replace with its 2.0 counterpart. Windows and Mac OSX binaries could be downloaded from 
+http://phantomjs.org/download.html while  brprodoehl provides binaries for Ubuntu at 
+https://github.com/bprodoehl/phantomjs/releases. Replace the existing PhantomJS 1.0 binary in 
+node_modules/phantomjs/lib/phantom/bin with one of these and then hopefully you are good to go.
+
+### E2E Tests
+ - Run the E2E tests using `gulp e2e-test` (via Protractor, Selenium WebDriver and Jasmine).
+
+### Linting
+ - Run code analysis using `gulp vet`. This runs jshint, jscs, and plato.
 
 ### Building the project
  - Build the optimized project using `gulp build`.

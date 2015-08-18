@@ -5,9 +5,9 @@
         .module('app.dashboard')
         .controller('DashboardController', DashboardController);
 
-    DashboardController.$inject = ['logger', '$sessionStorage', '$state', '$rootScope', '$timeout'];
+    DashboardController.$inject = ['logger', '$sessionStorage', '$state', '$timeout'];
     /* @ngInject */
-    function DashboardController(logger, $sessionStorage, $state, $rootScope, $timeout) {
+    function DashboardController(logger, $sessionStorage, $state, $timeout) {
         var vm = this;
         vm.title = $state.current.title;
         vm.addWidget = addWidget;
@@ -24,11 +24,11 @@
             widgets: []
         });
         vm.widgetKinds = [
-            { sizeX: 2, sizeY: 2, title: 'Item List', template: 'app/item-list/item-list.html' },
-            { sizeX: 2, sizeY: 2, title: 'SOP Maker' },
-            { sizeX: 1, sizeY: 1, title: 'Item Explorer' },
-            { sizeX: 1, sizeY: 1, title: 'Service List' },
-            { sizeX: 2, sizeY: 1, title: 'Runtime List' }
+            {sizeX: 2, sizeY: 2, title: 'Item Editor', template: 'app/item-editor/item-editor.html'},
+            {sizeX: 2, sizeY: 2, title: 'SOP Maker'},
+            {sizeX: 1, sizeY: 1, title: 'Item Explorer'},
+            {sizeX: 1, sizeY: 1, title: 'Service List'},
+            {sizeX: 2, sizeY: 1, title: 'Runtime List'}
         ];
 
         activate();

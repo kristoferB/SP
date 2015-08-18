@@ -5,7 +5,8 @@ describe('ModelsController', function() {
 
     beforeEach(function() {
         bard.appModule('app.models');
-        bard.inject('eventService', '$httpBackend', 'restService', '$controller', '$log', '$rootScope', '$q');
+        bard.inject('eventService', '$httpBackend', 'restService', '$controller', '$log', '$rootScope', '$q', '$state');
+        $state.current = {title: 'Models'};
         /* global EventSource */
         eventService.eventSource = new EventSource('/');
         bard.inject('modelService');

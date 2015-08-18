@@ -1,11 +1,10 @@
 <section id="dashboard-view" class="mainbar">
     <div class="view-header">
-        <div class="dropdown pull-right m-t-n-xs ">
-            <button type="button" class="btn btn-default btn-addon dropdown-toggle"
-                    data-toggle="dropdown" aria-haspopup="true" id="newDropDown" aria-expanded="false">
+        <div dropdown class="btn-group pull-right m-t-n-xs" id="new-widget-dropdown">
+            <button type="button" class="btn btn-default btn-addon" dropdown-toggle id="new-widget-btn">
                 <i class="fa fa-plus"></i> New
             </button>
-            <ul class="dropdown-menu" role="menu" aria-labelledby="newDropDown">
+            <ul class="dropdown-menu" role="menu" aria-labelledby="new-widget-btn">
                 <li ng-repeat="widgetKind in ::vm.widgetKinds" ng-click="vm.addWidget(widgetKind)">
                     <a href="">{{::widgetKind.title}}</a>
                 </li>
@@ -19,7 +18,7 @@
             <ul>
                 <li gridster-item="widget" ng-repeat="widget in vm.storage.widgets">
                     <sp-widget widget-title="widget.title" close-handler="vm.closeWidget(widget)">
-                        <ng-include src="widget.template"></ng-include>
+                        <ng-include src="widget.template" include-replace></ng-include>
                     </sp-widget>
                 </li>
             </ul>

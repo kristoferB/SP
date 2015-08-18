@@ -4,7 +4,7 @@
     angular
         .module('app.core', [
             'ngAnimate', 'ngSanitize', 'gridster', 'ngStorage', 'ng.jsoneditor',
-            'blocks.exception', 'blocks.logger', 'blocks.router',
+            'blocks.exception', 'blocks.logger', 'blocks.router', 'mwl.confirm',
             'ui.router', 'smart-table', 'xeditable', 'ui.bootstrap'
         ])
         .run(runBlock);

@@ -33,9 +33,11 @@
     "angular-bootstrap": "0.12.1",
     "angular-gridster": "0.13.5",
     "ngstorage": "0.3.7",
-    "ng-jsoneditor": "angular-tools/ng-jsoneditor"
+    "ng-jsoneditor": "angular-tools/ng-jsoneditor",
+    "angular-bootstrap-confirm": "~0.3.0"
   },
   "resolutions": {
-    "angular": "1.4.3"
+    "angular": "1.4.3",
+    "bootstrap": "3.2.0"
   }
 }

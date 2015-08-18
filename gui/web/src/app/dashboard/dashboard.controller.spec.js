@@ -4,12 +4,12 @@ describe('DashboardController', function() {
 
     beforeEach(function() {
         bard.appModule('app.dashboard');
-        bard.inject('$controller', '$log', '$rootScope');
+        bard.inject('$controller', '$log', '$rootScope', '$state');
     });
 
-    beforeEach(function () {
+    beforeEach(function() {
+        $state.current = {title: 'Dashboard'};
         controller = $controller('DashboardController');
-        $rootScope.$apply();
     });
 
     bard.verifyNoOutstandingHttpRequests();

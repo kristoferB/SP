@@ -4,7 +4,8 @@ describe('SettingsController', function() {
 
     beforeEach(function() {
         bard.appModule('app.settings');
-        bard.inject('$controller', '$log', '$rootScope');
+        bard.inject('$controller', '$log', '$rootScope', '$state');
+        $state.current = {title: 'Settings'};
     });
 
     beforeEach(function () {

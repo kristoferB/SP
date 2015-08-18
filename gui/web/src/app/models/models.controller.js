@@ -5,9 +5,9 @@
         .module('app.models')
         .controller('ModelsController', ModelsController);
 
-    ModelsController.$inject = ['modelService', '$window', '$modal', '$state', 'logger'];
+    ModelsController.$inject = ['modelService', '$modal', '$state', 'logger'];
     /* @ngInject */
-    function ModelsController(modelService, $window, $modal, $state, logger) {
+    function ModelsController(modelService, $modal, $state, logger) {
         var vm = this;
         vm.title = $state.current.title;
         vm.models = modelService.models;
@@ -15,7 +15,6 @@
         vm.displayedModels = [];
         vm.createModel = createModel;
         vm.updateName = modelService.updateName;
-        vm.deleteModel = deleteModel;
         vm.setActiveModel = setActiveModel;
 
         activate();
@@ -27,13 +26,6 @@
         function setActiveModel(m) {
             modelService.setActiveModel(m);
             $state.go('dashboard');
-        }
-
-        function deleteModel(id) {
-            var sure = $window.confirm('Are you sure you want to delete the whole model?');
-            if (sure) {
-                modelService.deleteModel(id);
-            }
         }
 
         function createModel() {

@@ -9,7 +9,7 @@
         'app.settings',
         'app.layout',
         'app.tables',
-        'app.itemList'
+        'app.itemEditor'
     ]);
 
 })();

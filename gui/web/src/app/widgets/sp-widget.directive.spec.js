@@ -57,7 +57,7 @@ describe('spWidget', function() {
     });
 
     it('should have the title "My Widget"', function() {
-        expect(compiledElement.find('.panel-heading').text()).to.equal('My Widget');
+        expect(compiledElement.find('.panel-title').text()).to.equal('My Widget');
     });
 
     it('should have transcluded in the div tag', function() {

@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    angular.module('app.itemList', [
+    angular.module('app.itemEditor', [
         'app.core',
         'app.widgets'
       ]);

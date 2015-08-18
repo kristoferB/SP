@@ -14,6 +14,7 @@
             controller: SPWidgetController,
             controllerAs: 'vm',
             scope: {},
+            link: link,
             transclude: true,
             replace: true,
             bindToController: {
@@ -22,23 +23,16 @@
             }
         };
         return directive;
+
+        function link(scope, element, attrs) {
+            scope.vm.showCloseBtn = element.attr('close-handler');
+        }
     }
 
     SPWidgetController.$inject = [];
 
     function SPWidgetController() {
         var vm = this;
-        vm.closeButtonVisible = false;
-        vm.showCloseButton = showCloseButton;
-        vm.hideCloseButton = hideCloseButton;
-
-        function showCloseButton() {
-            vm.closeButtonVisible = true;
-        }
-
-        function hideCloseButton() {
-            vm.closeButtonVisible = false;
-        }
     }
 
 })();
