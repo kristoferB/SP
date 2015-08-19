@@ -1,0 +1,22 @@
+<div ng-controller="ItemExplorerController as vm" class="item-explorer">
+    <div class="panel-toolbar">
+        <div class="btn-group">
+            <button class="btn btn-sm btn-default btn-notext" tooltip="Expand All"
+                    ng-click="vm.expandAll()"><i class="fa fa-expand"></i>
+            </button>
+            <button class="btn btn-sm btn-default btn-notext" tooltip="Collapse All"
+                    ng-click="vm.collapseAll()"><i class="fa fa-compress"></i>
+            </button>
+        </div>
+
+        <div class="item-search pull-right">
+            <div class="input-group">
+                <span class="input-group-addon input-sm"><i class="fa fa-search"></i></span>
+                <input class="input-sm form-control" type="search" ng-model="vm.searchText"
+                       ng-change="vm.search()" ng-model-options='{ debounce: 400 }'/>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-content" js-tree="vm.treeConfig" ng-model="vm.treeData" tree="vm.treeInstance"></div>
+</div>

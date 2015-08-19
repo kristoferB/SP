@@ -24,7 +24,7 @@
         };
         return directive;
 
-        function link(scope, element, attrs) {
+        function link(scope, element) {
             scope.vm.showCloseBtn = element.attr('close-handler');
         }
     }

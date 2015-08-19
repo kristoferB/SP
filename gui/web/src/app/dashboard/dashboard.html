@@ -5,7 +5,8 @@
                 <i class="fa fa-plus"></i> New
             </button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="new-widget-btn">
-                <li ng-repeat="widgetKind in ::vm.widgetKinds" ng-click="vm.addWidget(widgetKind)">
+                <li ng-repeat="widgetKind in ::vm.widgetKinds" id="{{::(widgetKind.title | slugify) + '-dropdown-item'}}"
+                    ng-click="vm.addWidget(widgetKind)">
                     <a href="">{{::widgetKind.title}}</a>
                 </li>
             </ul>

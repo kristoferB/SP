@@ -1,4 +1,4 @@
-describe('item editor', function() {
+fdescribe('item explorer', function() {
 
     beforeAll(function() {
         browser.get('/dashboard');
@@ -7,11 +7,11 @@ describe('item editor', function() {
     describe('dropdown item click', function() {
         beforeAll(function() {
             element(by.id('new-widget-btn')).click();
-            element(by.id('item-editor-dropdown-item')).click();
+            element(by.id('item-explorer-dropdown-item')).click();
         });
 
         it('should open the widget', function() {
-            expect(element(by.css('.item-editor')).isPresent()).toBeTruthy();
+            expect(element(by.css('.item-explorer')).isPresent()).toBeTruthy();
         });
     });
 

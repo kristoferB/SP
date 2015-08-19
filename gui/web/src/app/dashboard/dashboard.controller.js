@@ -24,11 +24,11 @@
             widgets: []
         });
         vm.widgetKinds = [
+            {sizeX: 1, sizeY: 2, title: 'Item Explorer', template: 'app/item-explorer/item-explorer.html'},
             {sizeX: 2, sizeY: 2, title: 'Item Editor', template: 'app/item-editor/item-editor.html'},
-            {sizeX: 2, sizeY: 2, title: 'SOP Maker'},
-            {sizeX: 1, sizeY: 1, title: 'Item Explorer'},
             {sizeX: 1, sizeY: 1, title: 'Service List'},
-            {sizeX: 2, sizeY: 1, title: 'Runtime List'}
+            {sizeX: 2, sizeY: 1, title: 'Runtime List'},
+            {sizeX: 2, sizeY: 2, title: 'SOP Maker'}
         ];
 
         activate();

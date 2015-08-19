@@ -9,7 +9,8 @@
         'app.settings',
         'app.layout',
         'app.tables',
-        'app.itemEditor'
+        'app.itemEditor',
+        'app.itemExplorer'
     ]);
 
 })();

@@ -175,18 +175,19 @@ a {
         display: flex;
         flex-direction: column;
         height: 100%;
+        background-color: #f5f5f5;
 
         .panel-heading {
             flex: 0 0 auto;
 
             &:hover .widget-close-btn {
-                transition-delay: 500ms;
+                transition-delay: 300ms;
                 opacity: 1;
                 visibility: visible;
             }
 
             .widget-close-btn {
-                transition: opacity 200ms ease 0ms, visibility 0ms ease 500ms;
+                transition: opacity 200ms ease 0ms, visibility 0ms ease 300ms;
                 cursor: pointer;
                 line-height: 20px;
                 opacity: 0;
@@ -206,9 +207,7 @@ a {
                 width: 100%;
 
                 .panel-toolbar {
-                    padding: 15px;
-                    border-bottom: 1px solid #dee5e7;
-                    background-color: #f6f8f8;
+                    padding: 15px 16px;
                     flex: 0 0 auto;
 
                     button:not(.input-group-btn button) {
@@ -229,14 +228,23 @@ a {
                 .panel-content {
                     flex: 1 1 0;
                     position: relative;
+                    margin-left: 15px;
+                    margin-right: 15px;
+                    margin-bottom: 15px;
+                    border: 1px solid #dee5e7;
+                    background-color: white;
                 }
             }
 
         }
+
+        .panel-footer {
+            border: none;
+        }
     }
 }
 
-/* Item List */
+/* Item Editor */
 
 .item-editor {
 
@@ -268,8 +276,8 @@ a {
     .item-search {
         width: 220px;
 
-        .input-group .input-group-btn button {
-            width: auto;
+        input {
+            z-index: 10;
         }
     }
 }
@@ -281,6 +289,18 @@ a {
 
 .jsoneditor-contextmenu ul li button.default {
     width: 91px;
+}
+
+/* Item Explorer */
+
+.jstree-contextmenu {
+    z-index: 30;
+}
+
+.item-explorer {
+    .item-search {
+        width: 153px;
+    }
 }
 
 
@@ -389,6 +409,12 @@ a {
     &:hover {
         background: #d82829 !important;
     }
+}
+
+/* Tooltips */
+
+.tooltip-inner {
+    white-space: nowrap;
 }
 
 /* Form */

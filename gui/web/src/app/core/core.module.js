@@ -3,9 +3,9 @@
 
     angular
         .module('app.core', [
-            'ngAnimate', 'ngSanitize', 'gridster', 'ngStorage', 'ng.jsoneditor',
+            'ngAnimate', 'ngSanitize', 'gridster', 'ngStorage', 'ng.jsoneditor', 'ngJsTree',
             'blocks.exception', 'blocks.logger', 'blocks.router', 'mwl.confirm',
-            'ui.router', 'smart-table', 'xeditable', 'ui.bootstrap'
+            'ui.router', 'smart-table', 'xeditable', 'ui.bootstrap', 'angular.filter'
         ])
         .run(runBlock);
 
