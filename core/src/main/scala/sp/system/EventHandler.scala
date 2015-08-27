@@ -21,7 +21,7 @@ class EventHandler extends Actor {
   }
 
   def sendEvent(data: EventMessage, event: String): Unit = {
-    val sse = ServerSentEvent(org.json4s.native.Serialization.write(data).toString, event, lastEventID.toString)
+    val sse = serverSentEvent(org.json4s.native.Serialization.write(data).toString, event, lastEventID.toString)
     for {
       channel <- sseChannels
     } yield {

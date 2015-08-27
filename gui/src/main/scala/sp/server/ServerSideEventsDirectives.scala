@@ -5,7 +5,7 @@ package sp.server
  */
 
 import akka.actor._
-import sp.system.messages.{ServerSentEndEvent, ServerSentDataEvent}
+import sp.system.messages.{serverSentEndEvent, ServerSentDataEvent}
 import spray.can.Http
 import spray.http.HttpHeaders._
 import spray.http.MediaTypes._
@@ -67,7 +67,7 @@ trait ServerSideEventsDirectives {
                 val eventString = event.map(ev => s"event: $ev\n").getOrElse("")
                 val dataString = data.split("\n").map(d => s"data: $d\n").mkString
                 ctx.responder ! MessageChunk(s"${idString}${eventString}${dataString}\n")
-              case ServerSentEndEvent =>
+              case `serverSentEndEvent` =>
                 ctx.responder ! ChunkedMessageEnd
               case ReceiveTimeout =>
                 ctx.responder ! MessageChunk("\n") // Comment to keep connection alive

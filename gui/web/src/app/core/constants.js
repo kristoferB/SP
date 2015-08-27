@@ -11,6 +11,7 @@
             models: '/api/models',
             model: function(modelID) { return '/api/models/' + modelID; },
             items: function(modelID) { return '/api/models/' + modelID + '/items'; },
+            item: function(modelID, itemID) { return '/api/models/' + modelID + '/items/' + itemID; },
             runtimeKinds: '/api/runtimes/kinds',
             runtimeHandler: '/api/runtimes',
             runtimeInstance: function(runtimeID) { return '/api/runtimes/' + runtimeID; },

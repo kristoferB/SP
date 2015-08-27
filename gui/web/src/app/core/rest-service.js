@@ -17,12 +17,14 @@
             getRegisteredServices: getRegisteredServices,
             postToModelHandler: postToModelHandler,
             postToModel: postToModel,
+            postItem: postItem,
             postItems: postItems,
             postToRuntimeHandler: postToRuntimeHandler,
             postToRuntimeInstance: postToRuntimeInstance,
             postToServiceHandler: postToServiceHandler,
             postToServiceInstance: postToServiceInstance,
-            deleteModel: deleteModel
+            deleteModel: deleteModel,
+            deleteItem: deleteItem
         };
 
         return service;
@@ -41,20 +43,21 @@
                 .catch(fail);
 
             function success(response) {
-                logger.info('Successfully fetched ' + response.data.length + ' ' + itemKind + ' through REST.');
+                logger.info('REST Service: Successfully fetched ' + response.data.length + ' ' + itemKind + ' through REST.');
                 return response.data;
             }
 
             function fail(error) {
-                var msg = 'Query for ' + itemKind  + ' failed. ' + error.data;
+                var msg = 'REST Service: Query for ' + itemKind  + ' failed. ' + error.data;
                 logger.error(msg);
                 return $q.reject(msg);
             }
         }
 
         function postToModelHandler(data) { return postStuff(API.models, 'model handler', data); }
-        function postToModel(modelID, data) { return postStuff(API.model(modelID), 'model', data); }
-        function postItems(data, modelID) { return postStuff(API.items(modelID), 'item handler', data); }
+        function postToModel(modelID, data) { return postStuff(API.model(modelID), 'model actor', data); }
+        function postItem(item, modelID) { return postStuff(API.item(modelID, item.id), 'model actor', item); }
+        function postItems(data, modelID) { return postStuff(API.items(modelID), 'model actor', data); }
         function postToRuntimeHandler(data) { return postStuff(API.runtimeHandler, 'runtime handler', data); }
         function postToRuntimeInstance(data, runtimeID) {
             return postStuff(API.runtimeInstance(runtimeID), 'runtime instance', data);
@@ -70,18 +73,19 @@
                 .catch(fail);
 
             function success(response) {
-                logger.info('Successfully posted data to ' + receiver + '.');
+                logger.info('REST Service: Successfully posted data to ' + receiver + '.');
                 return response.data;
             }
 
             function fail(error) {
-                var msg = 'Post of data to ' + receiver  + ' failed. ' + error.data;
+                var msg = 'REST Service: Post of data to ' + receiver  + ' failed. ' + error.data;
                 logger.error(msg);
                 return $q.reject(msg);
             }
         }
 
         function deleteModel(modelID) { return deleteStuff(API.model(modelID), 'model'); }
+        function deleteItem(modelID, itemID) { return deleteStuff(API.item(modelID, itemID), 'item'); }
 
         function deleteStuff(restURL, itemKind) {
 
@@ -90,12 +94,12 @@
                 .catch(fail);
 
             function success(response) {
-                logger.info('Successfully sent deletion/stop request for ' + itemKind + '.');
+                logger.info('REST Service: Successfully sent deletion/stop request for ' + itemKind + '.');
                 return response.data;
             }
 
             function fail(error) {
-                var msg = 'Deletion of ' + itemKind  + ' failed. ' + error.data;
+                var msg = 'REST Service: Deletion of ' + itemKind  + ' failed. ' + error.data;
                 logger.error(msg);
                 return $q.reject(msg);
             }

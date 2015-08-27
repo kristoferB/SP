@@ -24,7 +24,7 @@
             widgets: []
         });
         vm.widgetKinds = [
-            {sizeX: 1, sizeY: 2, title: 'Item Explorer', template: 'app/item-explorer/item-explorer.html'},
+            {sizeX: 2, sizeY: 2, title: 'Item Explorer', template: 'app/item-explorer/item-explorer.html'},
             {sizeX: 2, sizeY: 2, title: 'Item Editor', template: 'app/item-editor/item-editor.html'},
             {sizeX: 1, sizeY: 1, title: 'Service List'},
             {sizeX: 2, sizeY: 1, title: 'Runtime List'},
@@ -35,7 +35,7 @@
 
         function activate() {
             enableWidgetDrag();
-            logger.info('Activated dashboard view');
+            logger.info('Dashboard Controller: Activated Dashboard view.');
         }
 
         function enableWidgetDrag() {
@@ -45,6 +45,7 @@
         }
 
         function addWidget(widgetKind) {
+            logger.info('Dashboard Controller: Added an ' + widgetKind.title + ' widget to Dashboard.');
             vm.storage.widgets.push(widgetKind);
         }
 

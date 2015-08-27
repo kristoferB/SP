@@ -31,7 +31,7 @@
 
     <div class="navbar-collapse collapse box-shadow">
         <ul class="nav navbar-nav">
-            <li><a ui-sref="models" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-files-o"></i> Model: {{ vm.modelService.getActiveModel().name || "None" }}</a></li>
+            <li><a ui-sref="models" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-files-o"></i> Model: {{ vm.modelService.activeModel.name || "None" }}</a></li>
             <li><a ui-sref="dashboard" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-tachometer"></i> Dashboard</a></li>
         </ul>
     </div>

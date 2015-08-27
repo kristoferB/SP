@@ -20,7 +20,7 @@
         activate();
 
         function activate() {
-            logger.info('Activated models view');
+            logger.info('Models Controller: Activated Models view');
         }
 
         function setActiveModel(m) {

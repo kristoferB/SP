@@ -10,7 +10,6 @@
   "scripts": {
     "init": "npm install",
     "install": "bower install",
-    "start": "node src/server/app.js",
     "test": "gulp test"
   },
   "dependencies": {

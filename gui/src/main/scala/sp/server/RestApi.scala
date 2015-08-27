@@ -197,15 +197,14 @@ trait ModelAPI extends SPApiHelpers {
             parameter('version.as[Long]) { version =>
               pathPrefix(Segment) { typeOfItems =>
                 typeOfItems match {
-                  case "diff" => { / { callSP(GetDiff(model, version)) }}
-                  case "diffFrom" => { / { callSP(GetDiffFrom(model, version)) }}
-                  case "revert" => { / {callSP(Revert(model, version)) } }
-                  case _ => {
+                  case "diff" => / { callSP(GetDiff(model, version)) }
+                  case "diffFrom" => / { callSP(GetDiffFrom(model, version)) }
+                  case "revert" => / {callSP(Revert(model, version)) }
+                  case _ =>
                     / { get { callSP((GetIds(model, List()), version)) } } ~
                       path(JavaUUID) { id =>
                         / { get {callSP((GetIds(model, List(ID(id))), version))}}
                       }
-                  }
                 }
               } ~
                 / { get { callSP((GetModelInfo(model), version))} }

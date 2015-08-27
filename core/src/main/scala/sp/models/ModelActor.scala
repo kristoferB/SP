@@ -26,20 +26,24 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       //println(s"update me: $upd")
       val reply = sender
       createDiffUpd(ids, info) match {
-        case Right(diff) => store(diff, reply ! SPIDs(ids))
+        case Right(diff) =>
+          reply ! "OK"
+          store(diff, eventHandler ! ItemsUpdated(eventTargets.itemService, eventTypes.update, SPIDs(ids)))
         case Left(error) => reply ! error
       }
 
     case DeleteIDs(m, dels, info) =>
       val reply = sender
       createDiffDel(dels.toSet, info) match {
-        case Right(diff) => store(diff, reply ! SPIDs(diff.deletedItems))
+        case Right(diff) =>
+          reply ! "OK"
+          store(diff, eventHandler ! ItemDeleted(eventTargets.itemService, eventTypes.deletion, SPIDs(diff.deletedItems)))
         case Left(error) => reply ! error
       }
 
     case cm: CreateModel =>
       val diff = ModelDiff(model, List(), List(), SPAttributes("info"->"new model attributes"), state.version, state.version + 1, cm.name, cm.attributes.addTimeStamp)
-      store(diff, eventHandler ! ModelCreated(EventTargets.ModelHandler, EventTypes.Creation, getModelInfo))
+      store(diff, eventHandler ! ModelCreated(eventTargets.modelService, eventTypes.creation, getModelInfo))
 
     case UpdateModelInfo(_, ModelInfo(m, newName, v, attribute)) =>
       val reply = sender
@@ -53,7 +57,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
         newName,
         attribute.addTimeStamp)
       reply ! "OK"
-      store(diff, eventHandler ! ModelInfoUpdated(EventTargets.ModelHandler, EventTypes.Update, getModelInfo))
+      store(diff, eventHandler ! ModelInfoUpdated(eventTargets.modelService, eventTypes.update, getModelInfo))
 
     case Revert(_, v) =>
       val reply = sender

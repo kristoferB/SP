@@ -5,77 +5,89 @@
         .module('app.models')
         .factory('modelService', modelService);
 
-    modelService.$inject = ['$q', 'logger', 'restService', 'eventService'];
+    modelService.$inject = ['$q', 'logger', 'restService', 'eventService', '$sessionStorage', '$rootScope'];
     /* @ngInject */
-    function modelService($q, logger, restService, eventService) {
-        var models = [];
-        var activeModel = null;
+    function modelService($q, logger, restService, eventService, $sessionStorage, $rootScope) {
         var service = {
-            models: models,
+            activeModel: null,
+            models: [],
             idOfLatestModel: '',
-            getActiveModel: getActiveModel,
             setActiveModel: setActiveModel,
             updateName: updateName,
             createModel: createModel,
             deleteModel: deleteModel,
             getModel: getModel
         };
+        var storage = $sessionStorage.$default({
+            activeModelID: null
+        });
 
         activate();
 
         return service;
 
         function activate() {
-            listenToModelHandlerEvents();
+            listenToModelEvents();
             var promises = [getAllModels()];
             return $q.all(promises).then(function() {
-                logger.info('Loaded ' + models.length + ' models through REST.');
+                logger.info('Model Service: Loaded ' + service.models.length + ' models through REST.');
+                restoreActiveModel(storage.activeModelID);
             });
         }
 
         function getAllModels() {
             return restService.getModels().then(function (data) {
-                models.length = 0;
-                models.push.apply(models, data);
+                service.models.length = 0;
+                service.models.push.apply(service.models, data);
             });
         }
 
-        function getActiveModel() {
-            return activeModel;
-        }
-
         function setActiveModel(model) {
-            activeModel = model;
-            logger.info('Set active model to ' + model.name + '.');
+            service.activeModel = model;
+            storage.activeModelID = model.id;
+            logger.info('Model Service: Active model was set to ' + model.name + '.');
+            $rootScope.$broadcast('modelChanged', service.activeModel);
         }
 
-        function listenToModelHandlerEvents() {
-            eventService.addListener('ModelHandler', onModelHandlerEvent);
-
-            function onModelHandlerEvent(data) {
-                if (data.event === 'Update') {
-                    var model = getModel(data.modelInfo.id);
-                    var oldName = model.name;
-                    angular.extend(model, data.modelInfo);
-                    logger.info('Updated name and/or attributes for model ' + oldName + '.');
-                } else if (data.event === 'Creation') {
-                    models.push(data.modelInfo);
-                    service.idOfLatestModel = data.modelInfo.id;
-                    logger.info('Added a model with name ' + data.modelInfo.name + '.');
-                } else if (data.event === 'Deletion') {
-                    var name = getModel(data.id).name;
-                    models.splice(getModelArrayIndex(data.id), 1);
-                    logger.info('Removed model ' + name + '.');
+        function restoreActiveModel() {
+            if (storage.activeModelID !== null) {
+                var model = getModel(storage.activeModelID);
+                if (model === null) {
+                    logger.error('Model Service: The previously active model is no longer available.')
+                } else {
+                    setActiveModel(model);
                 }
             }
         }
 
-        function getModelArrayIndex(id) {
-            return _.findIndex(models, {id: id});
+        function listenToModelEvents() {
+            eventService.addListener('modelService', onModelEvent);
+
+            function onModelEvent(data) {
+                if (data.event === 'update') {
+                    var model = getModel(data.modelInfo.id);
+                    var oldName = model.name;
+                    angular.extend(model, data.modelInfo);
+                    logger.info('Model Service: Updated name and/or attributes for model ' + oldName + '.');
+                } else if (data.event === 'creation') {
+                    service.models.push(data.modelInfo);
+                    service.idOfLatestModel = data.modelInfo.id;
+                    logger.info('Model Service: Added a model with name ' + data.modelInfo.name + '.');
+                } else if (data.event === 'deletion') {
+                    var name = getModel(data.id).name;
+                    service.models.splice(_.findIndex(service.models, {id: data.id}), 1);
+                    logger.info('Model Service: Removed model ' + name + '.');
+                }
+            }
         }
 
         function getModel(id) {
-            return models[getModelArrayIndex(id)];
+            var index = _.findIndex(service.models, {id: id});
+            if (index === -1) {
+                return null
+            } else {
+                return service.models[index];
+            }
         }
 
         function createModel(name) {

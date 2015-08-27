@@ -40,7 +40,7 @@ class ModelHandler extends PersistentActor {
         persist(del){ d =>
           println(del)
           deleteModel(del)
-          eventHandler ! ModelDeleted(EventTargets.ModelHandler, EventTypes.Deletion, del.model)
+          eventHandler ! ModelDeleted(eventTargets.modelService, eventTypes.deletion, del.model)
           reply ! "OK"
         }
       }

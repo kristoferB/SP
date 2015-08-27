@@ -23,7 +23,7 @@
                     service.eventSource.close();
                 });
             } else {
-                logger.error('Your browser does\'nt support SSE. Please update your browser.');
+                logger.error('Event Service: Your browser does\'nt support SSE. Please update your browser.');
             }
         }
 
@@ -35,10 +35,10 @@
             }
             service.eventSource.addEventListener(target, function(e) {
                 var data = angular.fromJson(e.data);
-                logger.info('Received ' + data.event + ' event for target ' + target + '.');
+                logger.info('Event Service: Received ' + data.event + ' event for target ' + target + '.');
                 $rootScope.$apply(handlerFunc(data));
             });
-            logger.info('Added a SSE listener for target ' + target + '.');
+            logger.info('Event Service: Added an SSE listener for target ' + target + '.');
         }
 
     }

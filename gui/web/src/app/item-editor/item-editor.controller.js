@@ -39,7 +39,7 @@
         activate();
 
         function activate() {
-            logger.info('Added an Item Editor widget');
+
         }
 
         function setMode(mode) {

@@ -20,7 +20,7 @@
     "jquery": "2.1.4",
     "angular": "1.4.4",
     "angular-sanitize": "1.4.4",
-    "bootstrap": "3.3.5",
+    "bootstrap": "3.3.4",
     "font-awesome": "4.2.0",
     "font-source-sans-pro": "0.1.0",
     "moment": "2.6.0",
@@ -40,6 +40,6 @@
   },
   "resolutions": {
     "angular": "1.4.4",
-    "bootstrap": "~3.3.4"
+    "bootstrap": "3.3.4"
   }
 }
