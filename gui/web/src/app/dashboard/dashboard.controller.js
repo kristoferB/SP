@@ -21,7 +21,8 @@
             }
         };
         vm.storage = $sessionStorage.$default({
-            widgets: []
+            widgets: [],
+            widgetIndex: 1
         });
         vm.widgetKinds = [
             {sizeX: 2, sizeY: 2, title: 'Item Explorer', template: 'app/item-explorer/item-explorer.html'},
@@ -45,8 +46,12 @@
         }
 
         function addWidget(widgetKind) {
-            logger.info('Dashboard Controller: Added an ' + widgetKind.title + ' widget to Dashboard.');
-            vm.storage.widgets.push(widgetKind);
+            var widget = angular.copy(widgetKind, {});
+            widget.index = vm.storage.widgetIndex;
+            vm.storage.widgetIndex++;
+            vm.storage.widgets.push(widget);
+            logger.info('Dashboard Controller: Added an ' + widget.title + ' widget with index '
+                + vm.storage.widgetIndex + ' to Dashboard.');
         }
 
         function closeWidget(widget) {

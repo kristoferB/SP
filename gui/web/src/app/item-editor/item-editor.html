@@ -28,6 +28,12 @@
             </button>
         </div>
 
+        <div class="btn-group">
+            <button class="btn btn-sm btn-default btn-notext" tooltip="Edit Model"
+                    ng-click="vm.editModel()"><i class="fa fa-pencil"></i>
+            </button>
+        </div>
+
         <div class="btn-group"
              ng-if="vm.options.mode === 'code' || vm.options.mode === 'text'">
             <button class="btn btn-sm btn-default btn-notext" tooltip="Format"
@@ -67,5 +73,7 @@
         </span>
     </div>
 
-    <div class="panel-content" ng-jsoneditor="vm.editorLoaded" ng-model="vm.json" options="vm.options"></div>
+    <div class="panel-content" ng-jsoneditor="vm.editorLoaded" ng-model="vm.data" options="vm.options"
+         ng-model-options="{ debounce: 3000 }" ng-change="vm.change()"></div>
+
 </div>

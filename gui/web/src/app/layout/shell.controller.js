@@ -5,9 +5,9 @@
         .module('app.layout')
         .controller('ShellController', ShellController);
 
-    ShellController.$inject = ['$rootScope', '$timeout', 'config', 'logger'];
+    ShellController.$inject = ['config', 'logger'];
     /* @ngInject */
-    function ShellController($rootScope, $timeout, config, logger) {
+    function ShellController(config, logger) {
         var vm = this;
         vm.navline = {
             title: config.appTitle
@@ -16,7 +16,7 @@
         activate();
 
         function activate() {
-            logger.success(config.appTitle + ' loaded!', null);
+            logger.success('Shell Controller: ' + config.appTitle + ' loaded!', null);
         }
 
     }

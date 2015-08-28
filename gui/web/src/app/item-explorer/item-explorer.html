@@ -29,11 +29,13 @@
             <div class="input-group">
                 <span class="input-group-addon input-sm"><i class="fa fa-search"></i></span>
                 <input class="input-sm form-control" type="search" ng-model="vm.searchText"
-                       ng-change="vm.search()" ng-model-options='{ debounce: 400 }'/>
+                       ng-change="vm.search()" ng-model-options="{ debounce: 400 }"/>
             </div>
         </div>
     </div>
 
-    <div class="panel-content" js-tree="vm.treeConfig" tree="vm.treeInstance" tree-events="ready:vm.onTreeReady;move_node:vm.onNodeMove;copy_node:vm.onNodeCopy"></div>
+    <div class="panel-content" js-tree="vm.treeConfig" tree="vm.treeInstance"
+         tree-events="ready:vm.onTreeReady;move_node:vm.onNodeMove;copy_node:vm.onNodeCopy;changed:vm.onSelectionChange">
+    </div>
 
 </div>

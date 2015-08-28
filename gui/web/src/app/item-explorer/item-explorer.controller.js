@@ -8,9 +8,9 @@
         .module('app.itemExplorer')
         .controller('ItemExplorerController', ItemExplorerController);
 
-    ItemExplorerController.$inject = ['$scope', 'logger', 'itemService', '$modal'];
+    ItemExplorerController.$inject = ['$scope', 'logger', 'itemService', '$modal', '$rootScope'];
     /* @ngInject */
-    function ItemExplorerController($scope, logger, itemService, $modal) {
+    function ItemExplorerController($scope, logger, itemService, $modal, $rootScope) {
         var vm = this;
         vm.treeInstance = null;
         vm.searchText = '';
@@ -22,6 +22,7 @@
         vm.onTreeReady = onTreeReady;
         vm.onNodeMove = onNodeMove;
         vm.onNodeCopy = onNodeCopy;
+        vm.onSelectionChange = onSelectionChange;
         vm.itemKinds = [
             {value: 'Operation', label: 'Operation'},
             {value: 'Thing', label: 'Thing'},
@@ -66,6 +67,18 @@
                 }
             }
         };
+
+        function onSelectionChange(e, data) {
+            logger.info('Selected node for item ' + data.node.data.name + '.');
+            itemService.selected.splice(0, itemService.selected.length);
+            for(var i = 0; i < data.selected.length; i++) {
+                if(data.selected[i] !== 'all-items') {
+                    var item = itemService.getItem(data.selected[i]);
+                    itemService.selected.push(item);
+                }
+            }
+            //$rootScope.$digest();
+        }
 
         function createItem(itemKind) {
             var modalInstance = $modal.open({
