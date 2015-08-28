@@ -49,10 +49,15 @@ class SimulationRuntime(about: RuntimeInfo) extends Actor {
           val newState = (for {
             id <- attr.getAs[ID]("execute")
             o <- ops.find(_.id == id)
-          } yield o next state) getOrElse(state)
+          } yield {
+              println(s"execute $o")
+              println(s"state: $state")
+              println(s"next state ${o next state}")
+              o next state
+            }) getOrElse(state)
 
           val enabled = ops.filter(o => o.eval(newState))
-          println(s"Enabled operations: $enabled")
+          //println(s"Enabled operations: $enabled")
 
 
           val result = SPAttributes(
