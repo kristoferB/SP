@@ -8,89 +8,94 @@
         .module('app.itemEditor')
         .controller('ItemEditorController', ItemEditorController);
 
-    ItemEditorController.$inject = ['$timeout', 'itemService', '$scope'];
+    ItemEditorController.$inject = ['$timeout', 'itemService', '$scope', 'dialogs'];
     /* @ngInject */
-    function ItemEditorController($timeout, itemService, $scope) {
+    function ItemEditorController($timeout, itemService, $scope, dialogs) {
         var vm = this;
         vm.editor = null;
         vm.editorLoaded = editorLoaded;
         vm.setMode = setMode;
         vm.modes = ['tree', 'view', 'form', 'code', 'text'];
         vm.search = function() {vm.editor.search(vm.editor.searchBox.dom.search.value);};
-        /*vm.data =  {
-            'Array': [1, 2, 3],
-            'Boolean': true,
-            'Null': null,
-            'Number': 123,
-            'Object': {
-                'a': 'b',
-                'c': 'd'
-            },
-            'String': 'Hello World',
-            'String2': 'Hello World 2',
-            'String3': 'Hello World 3',
-            'String4': 'Hello World 4'
-        };*/
-        /*vm.json = [
-            {
-                aString: 'hej'
-            },
-            {
-                aString: 'hej2'
-            }
-        ];*/
         vm.data = {};
         vm.options = {
             mode: 'tree'
         };
         vm.numberOfErrors = 0;
         vm.itemService = itemService;
+        vm.save = save;
         vm.change = change;
-        vm.editModel = editModel;
+        vm.itemChanged = {};
+        vm.atLeastOneItemChanged = false;
 
         activate();
 
         function activate() {
+            $scope.$on('closeRequest', function(widgetID) {
+                if (vm.atLeastOneItemChanged) {
+                    var dialog = dialogs.confirm('Unsaved changes','You have unsaved changes. Do you still want to close?');
+                    dialog.result.then(function(btn){
+                        $scope.$emit('closeWidget', widgetID);
+                    });
+                } else {
+                    $scope.$emit('closeWidget', widgetID);
+                }
+            });
         }
 
         function editorLoaded(editorInstance) {
             vm.editor = editorInstance;
             editorInstance.setName('Selected items');
-            $scope.$watch(
+            actOnSelectionChanges();
+            $scope.$on('itemUpdate', function() {change();});
+        }
+
+        function actOnSelectionChanges() {
+            $scope.$watchCollection(
                 function() {
                     return itemService.selected;
                 },
                 function(nowSelected) {
                     var selected = {};
-                    //vm.data.splice(0, vm.data.length);
-                    //vm.data = angular.extend([], nowSelected);
                     for(var i = 0; i < nowSelected.length; i++) {
                         var item = nowSelected[i];
                         selected[item.name] = item;
                     }
                     vm.data = selected;
-                }, true
-            );
-            /*$scope.$watch(function() {
-                return itemService.selected;
-            }, function(selected) {
-                console.log('Selected items changed.');
-                angular.extend(vm.data, selected);
-                for(var i = 0; i < selected.length; i++) {
                 }
-            }, true);*/
-        }
-
-        function editModel() {
-            vm.data.Number = 164;
+            );
         }
 
         function change() {
-            for(var i = 0; i < vm.data.length; i++) {
-                var editorItem = vm.data[i];
-                var centralItem = itemService.getItem(vm.data[i].id);
-                angular.extend(centralItem, editorItem);
-                itemService.saveItem(centralItem);
+            var keys = Object.keys(vm.data);
+            var atLeastOneItemChanged = false;
+            for(var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                if (vm.data.hasOwnProperty(key)) {
+                    var editorItem = vm.data[key];
+                    var centralItem = itemService.getItem(editorItem.id);
+                    var equal = _.isEqual(editorItem, centralItem);
+                    vm.itemChanged[editorItem.id] = !equal;
+                    if(!equal) {
+                        atLeastOneItemChanged = true;
+                    }
+                }
+            }
+            vm.atLeastOneItemChanged = atLeastOneItemChanged;
+        }
+
+        function save() {
+            var keys = Object.keys(vm.data);
+            for(var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                if (vm.data.hasOwnProperty(key)) {
+                    var editorItem = vm.data[key];
+                    var centralItem = itemService.getItem(editorItem.id);
+                    if (!_.isEqual(editorItem, centralItem)) {
+                        angular.extend(centralItem, editorItem);
+                        itemService.saveItem(centralItem);
+                    }
+                }
             }
         }
 

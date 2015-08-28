@@ -14,25 +14,27 @@
             controller: SPWidgetController,
             controllerAs: 'vm',
             scope: {},
-            link: link,
             transclude: true,
             replace: true,
             bindToController: {
                 widgetTitle: '=',
-                closeHandler: '&'
+                widgetID: '=',
+                showCloseBtn: '='
             }
         };
-        return directive;
 
-        function link(scope, element) {
-            scope.vm.showCloseBtn = element.attr('close-handler');
-        }
+        return directive;
     }
 
-    SPWidgetController.$inject = [];
+    SPWidgetController.$inject = ['$scope'];
 
-    function SPWidgetController() {
+    function SPWidgetController($scope) {
         var vm = this;
+        vm.requestClose = requestClose;
+
+        function requestClose() {
+            $scope.$broadcast('closeRequest', vm.widgetID);
+        }
     }
 
 })();

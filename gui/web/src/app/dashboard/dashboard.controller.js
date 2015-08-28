@@ -5,13 +5,12 @@
         .module('app.dashboard')
         .controller('DashboardController', DashboardController);
 
-    DashboardController.$inject = ['logger', '$sessionStorage', '$state', '$timeout'];
+    DashboardController.$inject = ['logger', '$sessionStorage', '$state', '$timeout', '$scope'];
     /* @ngInject */
-    function DashboardController(logger, $sessionStorage, $state, $timeout) {
+    function DashboardController(logger, $sessionStorage, $state, $timeout, $scope) {
         var vm = this;
         vm.title = $state.current.title;
         vm.addWidget = addWidget;
-        vm.closeWidget = closeWidget;
         vm.gridsterOptions = {
             outerMargin: false,
             swapping: true,
@@ -22,7 +21,7 @@
         };
         vm.storage = $sessionStorage.$default({
             widgets: [],
-            widgetIndex: 1
+            widgetID: 1
         });
         vm.widgetKinds = [
             {sizeX: 2, sizeY: 2, title: 'Item Explorer', template: 'app/item-explorer/item-explorer.html'},
@@ -37,6 +36,10 @@
         function activate() {
             enableWidgetDrag();
             logger.info('Dashboard Controller: Activated Dashboard view.');
+            $scope.$on('closeWidget', function(widgetID) {
+                var arrayIndex = _.findIndex(vm.storage.widgets, {id: widgetID});
+                vm.storage.widgets.splice(arrayIndex, 1);
+            });
         }
 
         function enableWidgetDrag() {
@@ -47,16 +50,11 @@
 
         function addWidget(widgetKind) {
             var widget = angular.copy(widgetKind, {});
-            widget.index = vm.storage.widgetIndex;
-            vm.storage.widgetIndex++;
+            widget.id = vm.storage.widgetID;
+            vm.storage.widgetID++;
             vm.storage.widgets.push(widget);
             logger.info('Dashboard Controller: Added an ' + widget.title + ' widget with index '
-                + vm.storage.widgetIndex + ' to Dashboard.');
+                + vm.storage.widgetID + ' to Dashboard.');
         }
-
-        function closeWidget(widget) {
-            vm.storage.widgets.splice(vm.storage.widgets.indexOf(widget), 1);
-        }
-
     }
 })();

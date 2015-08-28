@@ -18,6 +18,12 @@
             </div>
         </div>
 
+        <div class="btn-group">
+            <button class="btn btn-sm btn-default btn-notext" tooltip="Save Edited Items"
+                    ng-disabled="!vm.atLeastOneItemChanged" ng-click="vm.save()"><i class="fa fa-floppy-o"></i>
+            </button>
+        </div>
+
         <div class="btn-group"
              ng-if="vm.options.mode === 'tree' || vm.options.mode === 'form' || vm.options.mode === 'view'">
             <button class="btn btn-sm btn-default btn-notext" tooltip="Expand All"
@@ -25,12 +31,6 @@
             </button>
             <button class="btn btn-sm btn-default btn-notext" tooltip="Collapse All"
                     ng-click="vm.editor.collapseAll()"><i class="fa fa-compress"></i>
-            </button>
-        </div>
-
-        <div class="btn-group">
-            <button class="btn btn-sm btn-default btn-notext" tooltip="Edit Model"
-                    ng-click="vm.editModel()"><i class="fa fa-pencil"></i>
             </button>
         </div>
 
@@ -74,6 +74,6 @@
     </div>
 
     <div class="panel-content" ng-jsoneditor="vm.editorLoaded" ng-model="vm.data" options="vm.options"
-         ng-model-options="{ debounce: 3000 }" ng-change="vm.change()"></div>
+         ng-change="vm.change()" ng-model-options="{debounce:400}"></div>
 
 </div>

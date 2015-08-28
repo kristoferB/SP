@@ -18,7 +18,7 @@
         <div gridster="vm.gridsterOptions">
             <ul>
                 <li gridster-item="widget" ng-repeat="widget in vm.storage.widgets">
-                    <sp-widget widget-title="widget.title" close-handler="vm.closeWidget(widget)">
+                    <sp-widget widget-id="widget.id" widget-title="widget.title" show-close-btn="true">
                         <ng-include src="widget.template" include-replace></ng-include>
                     </sp-widget>
                 </li>

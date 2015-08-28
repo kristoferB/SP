@@ -18,6 +18,8 @@
         vm.search = function() {vm.treeInstance.jstree(true).search(vm.searchText);};
         vm.expandAll = function() {vm.treeInstance.jstree(true).open_all();};
         vm.collapseAll = function() {vm.treeInstance.jstree(true).close_all();};
+        vm.selectAll = function() {vm.treeInstance.jstree(true).select_all();};
+        vm.deselectAll = function() {vm.treeInstance.jstree(true).deselect_all();};
         vm.createItem = createItem;
         vm.onTreeReady = onTreeReady;
         vm.onNodeMove = onNodeMove;
@@ -40,10 +42,13 @@
             plugins: ['dnd', 'types', 'contextmenu', 'search'],
             types: {
                 '#' : {
-                    valid_children: ['Root']
+                    valid_children: ['Root', 'AllItemsRoot']
                 },
                 Root: {
                     icon : 'images/tree_icon.png'
+                },
+                AllItemsRoot: {
+                    icon: 'images/all_items.png'
                 },
                 Operation: {
                     icon: 'images/step_forward.png',
@@ -68,16 +73,27 @@
             }
         };
 
+        activate();
+
+        function activate() {
+            $scope.$on('closeRequest', function(widgetID) {
+                $scope.$emit('closeWidget', widgetID);
+            });
+        }
+
         function onSelectionChange(e, data) {
-            logger.info('Selected node for item ' + data.node.data.name + '.');
             itemService.selected.splice(0, itemService.selected.length);
             for(var i = 0; i < data.selected.length; i++) {
-                if(data.selected[i] !== 'all-items') {
-                    var item = itemService.getItem(data.selected[i]);
-                    itemService.selected.push(item);
+                var nodeID = data.selected[i];
+                if (nodeID !== 'all-items') {
+                    var node = vm.treeInstance.jstree(true).get_node(nodeID);
+                    if (node.type !== 'Root') {
+                        var itemID = node.data.id;
+                        var item = itemService.getItem(itemID);
+                        itemService.selected.push(item);
+                    }
                 }
             }
-            //$rootScope.$digest();
         }
 
         function createItem(itemKind) {
@@ -132,9 +148,11 @@
 
         function checkCallback(operation, node, node_parent, node_position, more) {
             //console.log(operation, node, node_parent);
-            if (operation === 'move_node' && node.parent === 'all-items' ||
+            if (operation === 'move_node' && node.id === 'all-items' ||
+                operation === 'move_node' && node.parent === 'all-items' ||
                 operation === 'move_node' && node_parent.id === 'all-items' ||
                 operation === 'move_node' && node.type === 'Root' ||
+                operation === 'copy_node' && node.id === 'all-items' ||
                 operation === 'copy_node' && node_parent.id === 'all-items' ||
                 operation === 'copy_node' && node.type === 'Root') {
                 return false;
@@ -331,7 +349,7 @@
             var allItemsRoot = {
                 id: 'all-items',
                 text: 'All items',
-                type: 'Root',
+                type: 'AllItemsRoot',
                 children: [],
                 state: {opened: true}
 

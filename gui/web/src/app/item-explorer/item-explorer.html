@@ -10,6 +10,15 @@
         </div>
 
         <div class="btn-group">
+            <button class="btn btn-sm btn-default btn-notext" tooltip="Select All"
+                    ng-click="vm.selectAll()"><i class="fa fa-check-square"></i>
+            </button>
+            <button class="btn btn-sm btn-default btn-notext" tooltip="Deselect All"
+                    ng-click="vm.deselectAll()"><i class="fa fa-square"></i>
+            </button>
+        </div>
+
+        <div class="btn-group">
             <div class="btn-group" dropdown>
                 <button type="button" class="btn btn-sm btn-default btn-notext dropdown-toggle"
                         id="create-item-dropdown" dropdown-toggle tooltip="Create item">
@@ -29,7 +38,7 @@
             <div class="input-group">
                 <span class="input-group-addon input-sm"><i class="fa fa-search"></i></span>
                 <input class="input-sm form-control" type="search" ng-model="vm.searchText"
-                       ng-change="vm.search()" ng-model-options="{ debounce: 400 }"/>
+                       ng-change="vm.search()" ng-model-options="{debounce: 400}"/>
             </div>
         </div>
     </div>
