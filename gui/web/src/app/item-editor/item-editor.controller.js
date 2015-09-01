@@ -8,33 +8,35 @@
         .module('app.itemEditor')
         .controller('ItemEditorController', ItemEditorController);
 
-    ItemEditorController.$inject = ['$timeout', 'itemService', '$scope', 'dialogs'];
+    ItemEditorController.$inject = ['$timeout', 'itemService', '$scope', 'dialogs', '$sessionStorage'];
     /* @ngInject */
-    function ItemEditorController($timeout, itemService, $scope, dialogs) {
+    function ItemEditorController($timeout, itemService, $scope, dialogs, $sessionStorage) {
         var vm = this;
         vm.editor = null;
         vm.editorLoaded = editorLoaded;
         vm.setMode = setMode;
         vm.modes = ['tree', 'view', 'form', 'code', 'text'];
         vm.search = function() {vm.editor.search(vm.editor.searchBox.dom.search.value);};
-        vm.data = {};
         vm.options = {
             mode: 'tree'
         };
+        vm.storage = $sessionStorage.$default({
+            data: {},
+            itemChanged: {},
+            atLeastOneItemChanged: false
+        });
         vm.numberOfErrors = 0;
         vm.itemService = itemService;
         vm.save = save;
         vm.change = change;
-        vm.itemChanged = {};
-        vm.atLeastOneItemChanged = false;
 
         activate();
 
         function activate() {
-            $scope.$on('closeRequest', function(widgetID) {
-                if (vm.atLeastOneItemChanged) {
-                    var dialog = dialogs.confirm('Unsaved changes','You have unsaved changes. Do you still want to close?');
-                    dialog.result.then(function(btn){
+            $scope.$on('closeRequest', function(e, widgetID) {
+                if (vm.storage.atLeastOneItemChanged) {
+                    var dialog = dialogs.confirm('Confirm close','You have unsaved changes. Do you still want to close?');
+                    dialog.result.then(function(){
                         $scope.$emit('closeWidget', widgetID);
                     });
                 } else {
@@ -55,41 +57,46 @@
                 function() {
                     return itemService.selected;
                 },
-                function(nowSelected) {
-                    var selected = {};
-                    for(var i = 0; i < nowSelected.length; i++) {
-                        var item = nowSelected[i];
-                        selected[item.name] = item;
+                function(nowSelected, previouslySelected) {
+                    var isSame = (nowSelected.length == previouslySelected.length) && nowSelected.every(function(element, index) {
+                            return element === previouslySelected[index];
+                        });
+                    if (!isSame) {
+                        var selected = {};
+                        for(var i = 0; i < nowSelected.length; i++) {
+                            var item = nowSelected[i];
+                            selected[item.name] = item;
+                        }
+                        vm.storage.data = selected;
                     }
-                    vm.data = selected;
                 }
             );
         }
 
         function change() {
-            var keys = Object.keys(vm.data);
+            var keys = Object.keys(vm.storage.data);
             var atLeastOneItemChanged = false;
             for(var i = 0; i < keys.length; i++) {
                 var key = keys[i];
-                if (vm.data.hasOwnProperty(key)) {
-                    var editorItem = vm.data[key];
+                if (vm.storage.data.hasOwnProperty(key)) {
+                    var editorItem = vm.storage.data[key];
                     var centralItem = itemService.getItem(editorItem.id);
                     var equal = _.isEqual(editorItem, centralItem);
-                    vm.itemChanged[editorItem.id] = !equal;
+                    vm.storage.itemChanged[editorItem.id] = !equal;
                     if(!equal) {
                         atLeastOneItemChanged = true;
                     }
                 }
             }
-            vm.atLeastOneItemChanged = atLeastOneItemChanged;
+            vm.storage.atLeastOneItemChanged = atLeastOneItemChanged;
         }
 
         function save() {
-            var keys = Object.keys(vm.data);
+            var keys = Object.keys(vm.storage.data);
             for(var i = 0; i < keys.length; i++) {
                 var key = keys[i];
-                if (vm.data.hasOwnProperty(key)) {
-                    var editorItem = vm.data[key];
+                if (vm.storage.data.hasOwnProperty(key)) {
+                    var editorItem = vm.storage.data[key];
                     var centralItem = itemService.getItem(editorItem.id);
                     if (!_.isEqual(editorItem, centralItem)) {
                         angular.extend(centralItem, editorItem);

@@ -20,7 +20,7 @@
 
         <div class="btn-group">
             <button class="btn btn-sm btn-default btn-notext" tooltip="Save Edited Items"
-                    ng-disabled="!vm.atLeastOneItemChanged" ng-click="vm.save()"><i class="fa fa-floppy-o"></i>
+                    ng-disabled="!vm.storage.atLeastOneItemChanged" ng-click="vm.save()"><i class="fa fa-floppy-o"></i>
             </button>
         </div>
 
@@ -73,7 +73,7 @@
         </span>
     </div>
 
-    <div class="panel-content" ng-jsoneditor="vm.editorLoaded" ng-model="vm.data" options="vm.options"
+    <div class="panel-content" ng-jsoneditor="vm.editorLoaded" ng-model="vm.storage.data" options="vm.options"
          ng-change="vm.change()" ng-model-options="{debounce:400}"></div>
 
 </div>

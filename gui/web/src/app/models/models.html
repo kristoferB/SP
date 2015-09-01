@@ -1,15 +1,15 @@
 <section class="mainbar">
     <div class="view-header">
-        <h1>{{::vm.title}}</h1>
-    </div>
-    <div class="container">
-
-        <div class="m-b">
-            <button type="button" tooltip="Create a new, empty model" class="btn btn-sm btn-primary btn-addon"
+        <div class="btn-group pull-right">
+            <button type="button" tooltip="Create a new, empty model" class="btn btn-sm btn-default btn-addon"
                     ng-click="vm.createModel()" id="open-create-model-dialog">
                 <i class="fa fa-plus"></i>Create Model
             </button>
         </div>
+        <h1>{{::vm.title}}</h1>
+    </div>
+
+    <div class="container">
 
         <sp-widget widget-title="vm.title" show-close-btn="false">
             <table sp-table row-collection="vm.models" displayed-collection="vm.displayedModels"

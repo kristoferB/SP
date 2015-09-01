@@ -8,9 +8,9 @@
         .module('app.itemExplorer')
         .controller('ItemExplorerController', ItemExplorerController);
 
-    ItemExplorerController.$inject = ['$scope', 'logger', 'itemService', '$modal', '$rootScope'];
+    ItemExplorerController.$inject = ['$scope', 'logger', 'itemService', '$modal'];
     /* @ngInject */
-    function ItemExplorerController($scope, logger, itemService, $modal, $rootScope) {
+    function ItemExplorerController($scope, logger, itemService, $modal) {
         var vm = this;
         vm.treeInstance = null;
         vm.searchText = '';
@@ -76,9 +76,14 @@
         activate();
 
         function activate() {
-            $scope.$on('closeRequest', function(widgetID) {
+            $scope.$on('closeRequest', function(e, widgetID) {
                 $scope.$emit('closeWidget', widgetID);
             });
+        }
+
+        function onTreeReady() {
+            rebuildTree();
+            listenToChanges();
         }
 
         function onSelectionChange(e, data) {
@@ -113,11 +118,6 @@
             });
         }
 
-        function onTreeReady() {
-            rebuildTree();
-            listenToChanges();
-        }
-
         function getRootID(node) {
             var noOfParents = node.parents.length;
             return node.parents[noOfParents - 2];
@@ -147,7 +147,6 @@
         }
 
         function checkCallback(operation, node, node_parent, node_position, more) {
-            //console.log(operation, node, node_parent);
             if (operation === 'move_node' && node.id === 'all-items' ||
                 operation === 'move_node' && node.parent === 'all-items' ||
                 operation === 'move_node' && node_parent.id === 'all-items' ||

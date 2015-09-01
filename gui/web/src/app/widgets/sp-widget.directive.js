@@ -18,7 +18,7 @@
             replace: true,
             bindToController: {
                 widgetTitle: '=',
-                widgetID: '=',
+                widgetId: '=',
                 showCloseBtn: '='
             }
         };
@@ -33,7 +33,7 @@
         vm.requestClose = requestClose;
 
         function requestClose() {
-            $scope.$broadcast('closeRequest', vm.widgetID);
+            $scope.$broadcast('closeRequest', vm.widgetId);
         }
     }
 
