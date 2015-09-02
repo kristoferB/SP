@@ -8,10 +8,11 @@
         .module('app.itemEditor')
         .controller('ItemEditorController', ItemEditorController);
 
-    ItemEditorController.$inject = ['$timeout', 'itemService', '$scope', 'dialogs', '$sessionStorage'];
+    ItemEditorController.$inject = ['$timeout', 'itemService', '$scope', 'dialogs', 'dashboardService'];
     /* @ngInject */
-    function ItemEditorController($timeout, itemService, $scope, dialogs, $sessionStorage) {
+    function ItemEditorController($timeout, itemService, $scope, dialogs, dashboardService) {
         var vm = this;
+        vm.widget = $scope.$parent.widget;
         vm.editor = null;
         vm.editorLoaded = editorLoaded;
         vm.setMode = setMode;
@@ -20,11 +21,6 @@
         vm.options = {
             mode: 'tree'
         };
-        vm.storage = $sessionStorage.$default({
-            data: {},
-            itemChanged: {},
-            atLeastOneItemChanged: false
-        });
         vm.numberOfErrors = 0;
         vm.itemService = itemService;
         vm.save = save;
@@ -33,14 +29,21 @@
         activate();
 
         function activate() {
-            $scope.$on('closeRequest', function(e, widgetID) {
-                if (vm.storage.atLeastOneItemChanged) {
+            if(vm.widget.storage === undefined) {
+                vm.widget.storage = {
+                    data: {},
+                    itemChanged: {},
+                    atLeastOneItemChanged: false
+                }
+            }
+            $scope.$on('closeRequest', function() {
+                if (vm.widget.storage.atLeastOneItemChanged) {
                     var dialog = dialogs.confirm('Confirm close','You have unsaved changes. Do you still want to close?');
                     dialog.result.then(function(){
-                        $scope.$emit('closeWidget', widgetID);
+                        dashboardService.closeWidget(vm.widget.id);
                     });
                 } else {
-                    $scope.$emit('closeWidget', widgetID);
+                    dashboardService.closeWidget(vm.widget.id);
                 }
             });
         }
@@ -67,36 +70,36 @@
                             var item = nowSelected[i];
                             selected[item.name] = item;
                         }
-                        vm.storage.data = selected;
+                        vm.widget.storage.data = selected;
                     }
                 }
             );
         }
 
         function change() {
-            var keys = Object.keys(vm.storage.data);
+            var keys = Object.keys(vm.widget.storage.data);
             var atLeastOneItemChanged = false;
             for(var i = 0; i < keys.length; i++) {
                 var key = keys[i];
-                if (vm.storage.data.hasOwnProperty(key)) {
-                    var editorItem = vm.storage.data[key];
+                if (vm.widget.storage.data.hasOwnProperty(key)) {
+                    var editorItem = vm.widget.storage.data[key];
                     var centralItem = itemService.getItem(editorItem.id);
                     var equal = _.isEqual(editorItem, centralItem);
-                    vm.storage.itemChanged[editorItem.id] = !equal;
+                    vm.widget.storage.itemChanged[editorItem.id] = !equal;
                     if(!equal) {
                         atLeastOneItemChanged = true;
                     }
                 }
             }
-            vm.storage.atLeastOneItemChanged = atLeastOneItemChanged;
+            vm.widget.storage.atLeastOneItemChanged = atLeastOneItemChanged;
         }
 
         function save() {
-            var keys = Object.keys(vm.storage.data);
+            var keys = Object.keys(vm.widget.storage.data);
             for(var i = 0; i < keys.length; i++) {
                 var key = keys[i];
-                if (vm.storage.data.hasOwnProperty(key)) {
-                    var editorItem = vm.storage.data[key];
+                if (vm.widget.storage.data.hasOwnProperty(key)) {
+                    var editorItem = vm.widget.storage.data[key];
                     var centralItem = itemService.getItem(editorItem.id);
                     if (!_.isEqual(editorItem, centralItem)) {
                         angular.extend(centralItem, editorItem);

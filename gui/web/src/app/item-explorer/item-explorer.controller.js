@@ -8,10 +8,11 @@
         .module('app.itemExplorer')
         .controller('ItemExplorerController', ItemExplorerController);
 
-    ItemExplorerController.$inject = ['$scope', 'logger', 'itemService', '$modal'];
+    ItemExplorerController.$inject = ['$scope', 'logger', 'itemService', '$modal', 'dashboardService'];
     /* @ngInject */
-    function ItemExplorerController($scope, logger, itemService, $modal) {
+    function ItemExplorerController($scope, logger, itemService, $modal, dashboardService) {
         var vm = this;
+        vm.widget = $scope.$parent.widget;
         vm.treeInstance = null;
         vm.searchText = '';
         vm.itemService = itemService;
@@ -76,8 +77,8 @@
         activate();
 
         function activate() {
-            $scope.$on('closeRequest', function(e, widgetID) {
-                $scope.$emit('closeWidget', widgetID);
+            $scope.$on('closeRequest', function() {
+                dashboardService.closeWidget(vm.widget.id);
             });
         }
 

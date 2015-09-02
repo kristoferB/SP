@@ -17,8 +17,7 @@
             transclude: true,
             replace: true,
             bindToController: {
-                widgetTitle: '=',
-                widgetId: '=',
+                widget: '=',
                 showCloseBtn: '='
             }
         };
@@ -33,7 +32,7 @@
         vm.requestClose = requestClose;
 
         function requestClose() {
-            $scope.$broadcast('closeRequest', vm.widgetId);
+            $scope.$broadcast('closeRequest', vm.widget.id);
         }
     }
 
