@@ -8,11 +8,12 @@
         .module('app.itemExplorer')
         .controller('ItemExplorerController', ItemExplorerController);
 
-    ItemExplorerController.$inject = ['$scope', 'logger', 'itemService', '$modal', 'dashboardService'];
+    ItemExplorerController.$inject = ['$scope', 'logger', 'itemService', '$modal', 'dashboardService', '$rootScope'];
     /* @ngInject */
-    function ItemExplorerController($scope, logger, itemService, $modal, dashboardService) {
+    function ItemExplorerController($scope, logger, itemService, $modal, dashboardService, $rootScope) {
         var vm = this;
         vm.widget = $scope.$parent.widget;
+        vm.dashboard = $scope.$parent.vm.dashboard;
         vm.treeInstance = null;
         vm.searchText = '';
         vm.itemService = itemService;
@@ -381,7 +382,7 @@
         }
 
         function contextMenuItems(node) {
-            var items = {},
+            var menuItems = {},
                 rename = {
                     label: "Rename",
                     action: function() {
@@ -431,15 +432,15 @@
                 items.create = create;
             }*/
             if (node.id !== 'all-items') {
-                items.rename = rename;
+                menuItems[20] = rename;
                 var rootID, item = itemService.getItem(node.id);
                 if (node.type === 'Root') {
-                    items.delete = {
+                    menuItems.delete = {
                         label: 'Delete root',
                         action: deleteItemAndItsNodes
                     };
                 } else if (item === null) {
-                    items.delete = {
+                    menuItems[30] = {
                         label: 'Delete node',
                         action: function() {
                             removeTreeNode(node, true);
@@ -448,14 +449,28 @@
                         }
                     };
                 } else {
-                    items.delete = {
+                    menuItems[30] = {
                         label: 'Delete item',
                         action: deleteItemAndItsNodes
                     };
+                    if (node.type === 'SOPSpec') {
+                        menuItems[10] = {
+                            label: 'Open with SOP Maker',
+                            action: function() {
+                                var widgetKind = _.find(dashboardService.widgetKinds, {title: 'SOP Maker'});
+                                if (widgetKind === undefined) {
+                                    logger.error('Item Explorer: Open with SOP Maker failed. ' +
+                                        'Could not find widgetKind "SOPMaker".')
+                                }
+                                dashboardService.addWidget(vm.dashboard, widgetKind, {sopSpecID: item.id});
+                                $rootScope.$digest();
+                            }
+                        };
+                    }
                 }
             }
 
-            return items;
+            return menuItems;
 
             function deleteItemAndItsNodes() {
                 var localNodes = getTreeNodesConnectedToItem(item.id, false);

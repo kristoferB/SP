@@ -10,7 +10,8 @@
         'app.layout',
         'app.tables',
         'app.itemEditor',
-        'app.itemExplorer'
+        'app.itemExplorer',
+        'app.sopMaker'
     ]);
 
 })();
