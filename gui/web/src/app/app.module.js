@@ -5,12 +5,14 @@
         'app.core',
         'app.widgets',
         'app.models',
+        'app.modelSettings',
         'app.dashboard',
         'app.settings',
         'app.layout',
         'app.tables',
         'app.itemEditor',
-        'app.itemExplorer'
+        'app.itemExplorer',
+        'app.sopMaker'
     ]);
 
 })();

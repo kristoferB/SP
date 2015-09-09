@@ -20,6 +20,7 @@
                 </span>
             </a>
             <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="user-dropdown">
+                <li><a ui-sref="models"><i class="fa fa-files-o"></i> Manage models</a></li>
                 <li><a ui-sref="settings"><i class="fa fa-cog"></i> Settings</a></li>
                 <li><a><i class="fa fa-user"></i> Profile</a></li>
                 <li><a><i class="fa fa-question"></i> Help</a></li>
@@ -31,7 +32,7 @@
 
     <div class="navbar-collapse collapse box-shadow">
         <ul class="nav navbar-nav">
-            <li><a ui-sref="models" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-files-o"></i> Model: {{ vm.modelService.activeModel.name || "None" }}</a></li>
+            <li><a ui-sref="model-settings" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-cog"></i> {{ vm.modelService.activeModel.name || "No model" }}</a></li>
             <li><a ui-sref="dashboard" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-tachometer"></i> Dashboard</a></li>
         </ul>
     </div>

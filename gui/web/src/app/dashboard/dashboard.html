@@ -6,7 +6,7 @@
             </button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="new-widget-btn">
                 <li ng-repeat="widgetKind in ::vm.dashboardService.widgetKinds" id="{{::(widgetKind.title | slugify) + '-dropdown-item'}}"
-                    ng-click="vm.dashboardService.addWidget(vm.dashboard.id, widgetKind)">
+                    ng-click="vm.dashboardService.addWidget(vm.dashboard, widgetKind)">
                     <a href="">{{::widgetKind.title}}</a>
                 </li>
             </ul>
@@ -18,7 +18,7 @@
         <div gridster="vm.gridsterOptions">
             <ul>
                 <li gridster-item="widget" ng-repeat="widget in vm.dashboard.widgets">
-                    <sp-widget widget="widget" show-close-btn="true">
+                    <sp-widget widget="widget" dashboard="vm.dashboard" show-close-btn="true">
                         <ng-include src="widget.template" include-replace></ng-include>
                     </sp-widget>
                 </li>
