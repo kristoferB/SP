@@ -2,6 +2,7 @@ package sp.domain.logic
 
 import org.json4s._
 import sp.domain._
+import sp.system.messages._
 
 
 /**
@@ -46,7 +47,15 @@ trait JsonLogics {
       classOf[ASSIGN],
       classOf[ValueHolder],
       classOf[SVIDEval],
-      classOf[PropositionCondition]
+      classOf[PropositionCondition],
+      classOf[ModelAdded],
+      classOf[ModelDeleted],
+      classOf[ModelUpdated],
+      classOf[ModelDiff],
+      classOf[Response],
+      classOf[Progress],
+      classOf[SPOK]
+
     ))
   }
   def jsonFormats = new JsonFormats {}

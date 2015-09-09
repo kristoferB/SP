@@ -42,7 +42,7 @@ class ServiceHandler(mh: ActorRef) extends Actor{
       }
       else sender() ! SPError(s"Service ${s} does not exists")
     }
-    case m: ServiceMessage => {
+    case m: ServiceCommand => {
       if (actors.contains(m.service)){
         actors(m.service).tell(m, sender)
       }

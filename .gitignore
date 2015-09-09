@@ -14,7 +14,7 @@ project/project
 *.DS_Store
 *~
 *.log
-
+.ensime
 
 # Intellij
 .idea/

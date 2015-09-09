@@ -11,6 +11,7 @@ import akka.persistence._
 import sp.system.SPActorSystem.eventHandler
 
 import sp.domain._
+import sp.domain.Logic._
 
 class ModelHandler extends PersistentActor {
   override def persistenceId = "modelhandler"
@@ -30,8 +31,11 @@ class ModelHandler extends PersistentActor {
           println(s"The modelHandler creates a new model called ${cm.name} id: ${cm.id}")
           addModel(n)
           modelMap(n.id) ! n
+          val info = ModelInfo(id, name, 1, attr, List())
+          reply ! SPOK
+          //eventHandler ! ModelAdded(id, SPAttributes("modelInfo"->info))
         }
-        reply ! "OK"
+        reply ! SPOK
       } else reply ! SPError("A model with that ID do already exist.")
 
     case del: DeleteModel =>
@@ -40,17 +44,18 @@ class ModelHandler extends PersistentActor {
         persist(del){ d =>
           println(del)
           deleteModel(del)
-          eventHandler ! ModelDeleted(eventTargets.modelService, eventTypes.deletion, del.model)
-          reply ! "OK"
+          val delMess = ModelDeleted(del.model, SPAttributes())
+          reply ! SPOK
+          eventHandler ! delMess
         }
       }
       else sender ! SPError(s"Model ${del.model} does not exist.")
 
-    case m: ModelMessage =>
+    case m: ModelCommand =>
       if (modelMap.contains(m.model)) modelMap(m.model) forward m
       else sender ! SPError(s"Model ${m.model} does not exist.")
 
-    case (m: ModelMessage, v: Long) =>
+    case (m: ModelCommand, v: Long) =>
       val viewName = viewNameMaker(m.model, v)
       if (!viewMap.contains(viewName)) {
         println(s"The modelHandler creates a new view for ${m.model} version: ${v}")

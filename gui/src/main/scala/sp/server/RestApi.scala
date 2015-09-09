@@ -28,6 +28,8 @@ trait RestAPI extends HttpService {
   val runtimeHandler: ActorRef
   val serviceHandler: ActorRef
   val userHandler: ActorRef
+  val eventHandler: ActorRef
+
   implicit val to: Timeout
 
   // work in progress to change the structure
@@ -50,7 +52,7 @@ trait RestAPI extends HttpService {
   }
 
 
-  def askModel(mess: SPMessage) = {
+  def askModel(mess: SPCommand) = {
     val f = modelHandler ? mess
     complete("")
   }
@@ -66,11 +68,12 @@ trait RestAPI extends HttpService {
 }
 
 trait SPRoute extends SPApiHelpers with EventAPI with ModelAPI with RuntimeAPI with ServiceAPI {
-  val eventHandler: ActorRef
   val modelHandler: ActorRef
   val runtimeHandler: ActorRef
   val serviceHandler: ActorRef
   val userHandler: ActorRef
+  val eventHandler: ActorRef
+
   private implicit val to = timeout
 
   private def callSP(mess: Any, matchReply: PartialFunction[Any, Route] = {PartialFunction.empty}) = {
@@ -147,11 +150,9 @@ trait EventAPI extends SPApiHelpers {
   def eventAPI =
     / {
       respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
-        sse { (channel, lastEventID) =>
-          // Register a closed event handler
-          channel ! RegisterClosedHandler( () => println("Connection closed !!!") )
-          // Use the channel
-          eventHandler ! SubscribeToSSE(channel, lastEventID)
+        // TODO: Send in as dependency
+        dynamic {
+          sse("", eventHandler)
         }
       }
     }
@@ -353,7 +354,7 @@ trait SPApiHelpers extends HttpService with Json4SSP {
     case e: SPErrorString => complete(StatusCodes.InternalServerError, e.error)
     case e: SPErrors => complete(StatusCodes.InternalServerError, e.errors)
     case e: UpdateError => complete(e)
-    case MissingID(id, model, mess) => complete(StatusCodes.NotFound, s"id: $id $mess")
+    case MissingID(id, mess) => complete(StatusCodes.NotFound, s"id: $id $mess")
     case r: sp.runtimes.opc.RuntimeState => complete(r)
     case a: Any  => complete("reply from application is not converted: " +a.toString)
   }

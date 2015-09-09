@@ -27,8 +27,9 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       val reply = sender
       createDiffUpd(ids, info) match {
         case Right(diff) =>
-          reply ! "OK"
-          store(diff, eventHandler ! ItemsUpdated(eventTargets.itemService, eventTypes.update, SPIDs(ids)))
+          store(diff, {
+            reply ! SPOK
+          })
         case Left(error) => reply ! error
       }
 
@@ -37,15 +38,16 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       createDiffDel(dels.toSet, info) match {
         case Right(diff) =>
           reply ! "OK"
-          store(diff, eventHandler ! ItemDeleted(eventTargets.itemService, eventTypes.deletion, SPIDs(diff.deletedItems)))
+          store(diff, reply ! SPOK)
         case Left(error) => reply ! error
       }
 
     case cm: CreateModel =>
       val diff = ModelDiff(model, List(), List(), SPAttributes("info"->"new model attributes"), state.version, state.version + 1, cm.name, cm.attributes.addTimeStamp)
-      store(diff, eventHandler ! ModelCreated(eventTargets.modelService, eventTypes.creation, getModelInfo))
+      val reply = sender
+      store(diff, reply ! SPOK)
 
-    case UpdateModelInfo(_, ModelInfo(m, newName, v, attribute)) =>
+    case UpdateModelInfo(_, ModelInfo(m, newName, v, attribute, _)) =>
       val reply = sender
       val diff = ModelDiff(
         model,
@@ -56,8 +58,8 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
         state.version + 1,
         newName,
         attribute.addTimeStamp)
-      reply ! "OK"
-      store(diff, eventHandler ! ModelInfoUpdated(eventTargets.modelService, eventTypes.update, getModelInfo))
+
+      store(diff, reply ! SPOK)
 
     case Revert(_, v) =>
       val reply = sender
@@ -106,11 +108,13 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
   }
 
 
-  def store(diff: ModelDiff, after: => Unit) = {
+  def store(diff: ModelDiff, after: => Unit = Unit) = {
     val json = write(diff)
     persist(json){ d =>
       updateState(diff)
       after
+      eventHandler ! diff
+      eventHandler ! getModelInfo
     }
   }
 
@@ -143,7 +147,7 @@ trait ModelActorState  {
       case GetIds(_, ids) =>
         if (ids.isEmpty) reply ! SPIDs(state.idMap.values.toList)
         else {
-          ids foreach(id=> if (!state.idMap.contains(id)) reply ! MissingID(id, model))
+          ids foreach(id=> if (!state.idMap.contains(id)) reply ! MissingID(id))
           val res = for {
             i <- ids
             x <- state.idMap.get(i)
@@ -235,6 +239,11 @@ trait ModelActorState  {
     ModelDiff(model, allDiffs, allDels,allDiffInfo, fromV, state.version, state.name, state.attributes)
   }
 
+  def getHistory = {
+    val sorted = state.diff.toList.sortWith(_._1 > _._1)
+    sorted.map{case (v, d) => SPAttributes("version"->v, "diff"->d)}
+  }
+
   def updateItemsDueToDelete(dels: Set[ID]): List[IDAble] = {
     val items = state.idMap.filterKeys(k => !dels.contains(k)).values
     sp.domain.logic.IDAbleLogic.removeID(dels, items.toList)
@@ -245,7 +254,7 @@ trait ModelActorState  {
 
   }
 
-  def getModelInfo = ModelInfo(model, state.name, state.version, state.attributes)
+  def getModelInfo = ModelInfo(model, state.name, state.version, state.attributes, getHistory)
 
 
 

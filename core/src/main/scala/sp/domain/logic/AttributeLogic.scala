@@ -35,6 +35,9 @@ trait AttributeLogics {
         value.extract[T]
       )
     }
+    import org.json4s.native.JsonMethods._
+    def pretty = org.json4s.native.JsonMethods.pretty(render(value))
+    def toJson = org.json4s.native.JsonMethods.compact(render(value))
   }
 
 //  implicit class pairAttr(p: (String, Any))(implicit formats : org.json4s.Formats) {
@@ -63,6 +66,25 @@ trait AttributeLogics {
       SPAttributes(obj ++ xs.obj)
     }
 
+    def apply[T](keys: String*)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]): Option[T] = {
+      def req(list: List[String], obj: JObject): Option[T] = list match {
+        case Nil => None
+        case x :: Nil => {
+          for {
+            v <- obj.get(x)
+            t <- tryWithOption(v.extract[T])
+          } yield t
+        }
+        case x :: xs => {
+          for {
+            v <- obj.get(x) if v.isInstanceOf[JObject]
+            res <- req(xs, v.asInstanceOf[JObject])
+          } yield res
+        }
+      }
+      req(keys.toList, x)
+    }
+
     def get(key: String) = {
       val temp = if (key.nonEmpty) x \ key else x
       temp match {
@@ -89,6 +111,8 @@ trait AttributeLogics {
         t <- tryWithOption(x.extract[T])
       } yield t
     }
+
+    // TODO: Update the api to better handle objects in arrays KB 150907.
 
     def findObjects(f: List[JField] => Boolean) = {
       val t = x.filter {

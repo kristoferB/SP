@@ -9,13 +9,13 @@ import sp.domain._
 
 case class RegisterService(service: String,
                            ref: ActorRef,
-                           attributes: SPAttributes = SPAttributes()) extends SPMessage
+                           attributes: SPAttributes = SPAttributes()) extends SPCommand
 
-case class RemoveService(service: String) extends ServiceMessage
-case object GetServices extends SPMessage
+case class RemoveService(service: String) extends ServiceCommand
+case object GetServices extends SPCommand
 case class Services(list: Map[String, SPAttributes])
 
-trait ServiceMessage extends SPMessage {
+trait ServiceCommand extends SPCommand {
   val service: String
 }
 
@@ -38,7 +38,7 @@ trait ServiceMessage extends SPMessage {
  */
 case class Request(service: String,
                    attributes: SPAttributes,
-                   ids: List[IDAble] = List()) extends ServiceMessage
+                   ids: List[IDAble] = List()) extends ServiceCommand
 
 /**
  * The final answer from the service
@@ -46,14 +46,14 @@ case class Request(service: String,
  * @param attributes Information about the result
  */
 case class Response(ids: List[IDAble],
-                   attributes: SPAttributes)
+                   attributes: SPAttributes) extends SPEvent
 
 /**
  * If the service takes longer time to answer, it should return these messages
  * will probably incl some kind of response id for
  * @param attributes
  */
-case class Progress(attributes: SPAttributes)
+case class Progress(attributes: SPAttributes) extends SPEvent
 
 /**
  * Used by an service for defining its input for a UI.

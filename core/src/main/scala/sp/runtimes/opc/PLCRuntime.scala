@@ -141,7 +141,8 @@ class PLCRuntime(about: RuntimeInfo) extends Actor {
     for {
       channel <- sseChannels
     } yield {
-      channel ! serverSentEvent(data, eventName, lastEventID.toString)
+      //rethink this
+      //channel ! serverSentEvent(data, eventName, lastEventID.toString)
     }
   }
 

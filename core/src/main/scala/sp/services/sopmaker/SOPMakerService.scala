@@ -33,7 +33,7 @@ class SOPMakerService(modelHandler: ActorRef) extends Actor {
             currentRelAnswer <- currentRelationsF
           } yield {
             List(modelInfoAnswer, currentRelAnswer) match {
-              case ModelInfo(_, _, mVersion, _) :: SPIDs(relsIdAble) :: Nil => {
+              case ModelInfo(_, _, mVersion, _, _) :: SPIDs(relsIdAble) :: Nil => {
                 val rels = relsIdAble map (_.asInstanceOf[RelationResult]) sortWith (_.modelVersion > _.modelVersion)
                 if (rels.isEmpty)
                   reply ! SPError("Relations must be specificed before SOP creation")

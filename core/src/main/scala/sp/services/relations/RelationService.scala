@@ -47,7 +47,7 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
           } yield {
             List(opsAnswer, modelInfoAnswer, stateVarsAnswer, currentRelAnswer, specsConds) match {
               case SPIDs(opsIDAble) ::
-                ModelInfo(_, _ , mVersion, _) ::
+                ModelInfo(_, _ , mVersion, _, _) ::
                 SPIDs(svsIDAble) ::
                 SPIDs(olderRelsIDAble) ::
                 ConditionsFromSpecs(condMap) ::

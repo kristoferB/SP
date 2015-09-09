@@ -61,13 +61,39 @@
         }
 
         function listenToModelEvents() {
-            eventService.addListener('modelService', onModelEvent);
+            eventService.addListener('ModelDeleted', onModelDeleted);
+            eventService.addListener('ModelInfo', onModelInfo);
+            eventService.addListener('message', onModelTest);
+
+            function onModelTest(data) {
+                logger.info('Model Test ' + data );
+            }
+            function onModelDeleted(data) {
+                var name = getModel(data.id).name;
+                service.models.splice(_.findIndex(service.models, {id: data.id}), 1);
+                logger.info('Model Service: Removed model ' + name + '.');
+            }
+            function onModelInfo(data) {
+                logger.info("got modelInfo: "+ data)
+                var existingModel = getModel(data.id)
+                if (existingModel === null){
+                    service.models.push(data);
+                    service.idOfLatestModel = data.id;
+                    logger.info('Model Service: Added a model with name ' + data.name + '.');
+                } else {
+                    var oldName = existingModel.name;
+                    angular.extend(existingModel, data);
+                    logger.info('Model Service: Updated name and/or attributes for model ' + oldName + '.');
+                }
+            }
+
+
 
             function onModelEvent(data) {
-                if (data.event === 'update') {
-                    var model = getModel(data.modelInfo.id);
+                if (data.isa === 'ModelDiff') {
+                    var model = getModel(data.model);
                     var oldName = model.name;
-                    angular.extend(model, data.modelInfo);
+                    angular.extend(model.attr, data.modelInfo);
                     logger.info('Model Service: Updated name and/or attributes for model ' + oldName + '.');
                 } else if (data.event === 'creation') {
                     service.models.push(data.modelInfo);

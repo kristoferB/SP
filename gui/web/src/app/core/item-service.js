@@ -77,14 +77,12 @@
         }
 
         function listenToItemEvents() {
-            eventService.addListener('itemService', onItemEvent);
+            eventService.addListener('ModelDiff', onItemEvent);
 
             function onItemEvent(data) {
                 logger.info('Item Service: Handler received an event.');
-                var remoteItem;
-                if (data.event === 'update') {
-                    for (var i = 0; i < data.updated.items.length; i++) {
-                        remoteItem = data.updated.items[i];
+                    for (var i = 0; i < data.updatedItems.length; i++) {
+                        var remoteItem = data.updatedItems[i];
                         var existingItem = getItem(remoteItem.id);
                         if (existingItem === null) { // item not found => create
                             service.items.push(remoteItem);
@@ -97,9 +95,8 @@
                             logger.info('Item Service: Updated item ' + oldName + '.');
                         }
                     }
-                } else if (data.event === 'deletion') {
-                    for (var j = 0; j < data.deleted.items.length; j++) {
-                        remoteItem = data.deleted.items[j];
+                    for (var j = 0; j < data.deletedItems.length; j++) {
+                        var remoteItem = data.deletedItems[j];
                         var localItem = getItem(remoteItem.id);
                         if (localItem === null) {
                             logger.error('Item Service: Could not find an item with id ' + localItem.id + ' to delete.');
@@ -109,7 +106,7 @@
                             logger.info('Item Service: Removed item ' + localItem.name + '.');
                         }
                     }
-                }
+
             }
         }
 
