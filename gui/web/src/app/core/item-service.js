@@ -10,6 +10,7 @@
     function itemService(logger, restService, $rootScope, eventService, modelService) {
         var service = {
             items: [],
+            itemsFetched: false,
             selected: [],
             createItem: createItem,
             deleteItem: deleteItem,
@@ -36,6 +37,7 @@
             return restService.getItems(modelID).then(function(data) {
                 service.items.push.apply(service.items, data);
                 logger.info('Item Service: Loaded ' + service.items.length + ' items through REST.');
+                service.itemsFetched = true;
                 $rootScope.$broadcast('itemsFetch', service.items);
             });
         }

@@ -27,9 +27,9 @@
             widgetKinds: [
                 {sizeX: 2, sizeY: 2, title: 'Item Explorer', template: 'app/item-explorer/item-explorer.html'},
                 {sizeX: 2, sizeY: 2, title: 'Item Editor', template: 'app/item-editor/item-editor.html'},
+                {sizeX: 2, sizeY: 2, title: 'SOP Maker', template: 'app/sop-maker/sop-maker.html'},
                 {sizeX: 1, sizeY: 1, title: 'Service List'},
-                {sizeX: 2, sizeY: 1, title: 'Runtime List'},
-                {sizeX: 2, sizeY: 2, title: 'SOP Maker'}
+                {sizeX: 2, sizeY: 1, title: 'Runtime List'}
             ]
         };
 
@@ -65,10 +65,12 @@
             service.storage.dashboards.splice(index, 1);
         }
 
-        function addWidget(dashboardID, widgetKind) {
-            var dashboard = getDashboard(dashboardID);
+        function addWidget(dashboard, widgetKind, additionalData) {
             var widget = angular.copy(widgetKind, {});
             widget.id = service.storage.widgetID++;
+            if (additionalData !== undefined) {
+                widget.storage = additionalData;
+            }
             dashboard.widgets.push(widget);
             logger.info('Dashboard Controller: Added an ' + widget.title + ' widget with index '
                 + widget.id + ' to dashboard ' + dashboard.name + '.');
