@@ -22,22 +22,17 @@
 
             if(modelService.activeModel !== null) {
 		// already loaded
-		getDiffs(modelService.activeModel);
+		            getDiffs(modelService.activeModel);
             }
 	    // will trigger on model load/change
-            $rootScope.$on('modelChanged', function(event, model) {
+            $rootScope.$on('modelUpdate', function(event, model) {
+                logger.info("modelversion should update")
                 getDiffs(model);
             });
         }
 
 	function getDiffs(model) {
-	    vm.diffs.splice(0,vm.diffs.length);
-            const max_diffs = 10; // cannot load more via rest service?
-	    for(var i = model.version; (model.version - i) < max_diffs && i >= 1; i--) {
-	    	var res = restService.getModelDiff(model.id,i).then(function(data) {
-	    	    vm.diffs.push(data);
-	    	});
-	    }
+      vm.diffs = model.history
 	}
 
 	function revert(versionNo) {

@@ -85,6 +85,9 @@
                     angular.extend(existingModel, data);
                     logger.info('Model Service: Updated name and/or attributes for model ' + oldName + '.');
                 }
+                if (data.id === service.activeModelID){
+                    $rootScope.$broadcast('modelUpdate', service.activeModel);
+                }
             }
 
 
