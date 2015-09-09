@@ -12,6 +12,8 @@
             model: function(modelID) { return '/api/models/' + modelID; },
             items: function(modelID) { return '/api/models/' + modelID + '/items'; },
             item: function(modelID, itemID) { return '/api/models/' + modelID + '/items/' + itemID; },
+            modelDiff: function(modelID, version) { return '/api/models/' + modelID + '/history/diff?version='+version },
+            revertModel: function(modelID, version) { return '/api/models/' + modelID + '/history/revert?version=' + version },
             runtimeKinds: '/api/runtimes/kinds',
             runtimeHandler: '/api/runtimes',
             runtimeInstance: function(runtimeID) { return '/api/runtimes/' + runtimeID; },

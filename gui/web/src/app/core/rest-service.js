@@ -11,6 +11,8 @@
         var service = {
             getModels: getModels,
             getItems: getItems,
+            getModelDiff: getModelDiff,
+            revertModel: revertModel,
             getRuntimeKinds: getRuntimeKinds,
             getRuntimeInstances: getRuntimeInstances,
             stopRuntimeInstance: stopRuntimeInstance,
@@ -31,6 +33,8 @@
 
         function getModels() { return getStuff(API.models, 'models'); }
         function getItems(modelID) { return getStuff(API.items(modelID), 'items'); }
+        function getModelDiff(modelID, version) { return getStuff(API.modelDiff(modelID,version), 'model diff'); }
+        function revertModel(modelID, version) { return getStuff(API.revertModel(modelID, version), 'revert model'); }
         function getRuntimeKinds() { return getStuff(API.runtimeKinds, 'runtime kinds'); }
         function getRuntimeInstances() { return getStuff(API.runtimeHandler, 'runtime instances'); }
         function stopRuntimeInstance(runtimeID) { return getStuff(API.stopRuntimeInstance(runtimeID), 'runtime stop'); }
