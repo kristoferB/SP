@@ -10,28 +10,25 @@ import akka.util.Timeout
 import scala.util._
 import scala.concurrent.duration._
 
-//TODO: We probably need another Talker when talking to services via the bus, 050627
 class ServiceTalker(service: ActorRef,
                     modelHandler: ActorRef,
                     replyTo: ActorRef,
                     serviceAttributes: SPAttributes,
                     request: Request,
-                    busHandler: Option[ActorRef]) extends Actor {
+                    eventHandler: Option[ActorRef]) extends Actor {
 
   import context.dispatcher
   implicit val timeout = Timeout(2 seconds)
+  val cancelTimeout =  context.system.scheduler.scheduleOnce(3 seconds, self, "timeout")
 
-  val expectAttrs = serviceAttributes.findObjectsWithKeysAs[KeyDefinition](List("ofType", "domain"))
   val reqAttr = request.attributes
   val model = reqAttr.getAs[ID]("model")
   val toModel = reqAttr.getAs[Boolean]("toModel").getOrElse(false) && model.isDefined
-  val toBus = reqAttr.getAs[Boolean]("toBus").getOrElse(false) && busHandler.isDefined
   val onlyResponse = reqAttr.getAs[Boolean]("onlyResponse").getOrElse(false)
   val fillIDs = reqAttr.getAs[List[ID]]("fillIDs").getOrElse(List()).toSet
-  val cancelTimeout =  context.system.scheduler.scheduleOnce(3 seconds, self, "timeout")
 
   def receive = {
-    case req @ Request(_, attr, ids) => {
+    case req @ Request(_, attr, ids, _) => {
       if (model.isDefined && ids.isEmpty) {
         modelHandler ? GetIds(model.get, List()) onComplete {
           case Success(result) => result match {
@@ -55,29 +52,31 @@ class ServiceTalker(service: ActorRef,
       }
     }
     case "timeout" => {
-      replyTo ! SPError(s"Service ${request.service} (actor: $service) is not responding. Removing it from the service handler")
-      context.parent ! RemoveService(request.service)
-      service ! RemoveService(request.service)
+      replyTo ! SPError(s"Service ${request.service} (actor: $service) is not responding.")
+      eventHandler.foreach(_ ! SPError(s"Service ${request.service} (actor: $service) is not responding."))
+//      context.parent ! RemoveService(request.service)
+//      service ! RemoveService(request.service)
       killMe
     }
-    case r @ Response(ids, attr) => {
+    case r @ Response(ids, attr, _, _) => {
       if (toModel) {
         modelHandler ! UpdateIDs(model.get, ids, attr)
       }
       replyTo ! r
-      if (toBus) busHandler.foreach(_ ! r)
+      eventHandler.foreach(_ ! r)
       killMe
     }
     case r: Progress => {
       cancelTimeout.cancel()
       if (!onlyResponse) replyTo ! r
-      if (toBus) busHandler.foreach(_ ! r)
+      eventHandler.foreach(_ ! r)
     }
     case e: SPError => {
       replyTo ! e
+      eventHandler.foreach(_ ! ServiceError(request.service, request.reqID, e))
       killMe
     }
-    case x if sender() == service=> {
+    case x if sender() == service => {
       println("SERVICES SHOULD SEND case class Response, NOT "+x)
       replyTo ! x
       killMe

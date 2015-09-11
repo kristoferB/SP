@@ -40,16 +40,18 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
       val definition = SPAttributes("key1" -> KeyDefinition("kk", List(), None),
         "key2" -> SPAttributes("key3" -> KeyDefinition("kk", List(), None)))
       val attr = SPAttributes("key1" -> "hej", "key3" -> "kalle")
+      val request = Request("temp", attr, List())
 
-      val x = ServiceTalker.validateRequest(Request("temp", attr, List()), definition)
-      x shouldEqual Right(Request("temp", SPAttributes("key1" -> "hej", "key3" -> "kalle")))
+      val x = ServiceTalker.validateRequest(request, definition)
+      x shouldEqual Right(Request("temp", SPAttributes("key1" -> "hej", "key3" -> "kalle"), List(), request.reqID))
     }
 
     "analyse request attributes an fail if missing" in {
       val definition = SPAttributes("key1" -> KeyDefinition("String", List(), None),
         "key2" -> SPAttributes("key3" -> KeyDefinition("String", List(), None)))
       val attr = SPAttributes("key1" -> "hej")
-      val x = ServiceTalker.validateRequest(Request("temp", attr, List()), definition)
+      val request = Request("temp", attr, List())
+      val x = ServiceTalker.validateRequest(request, definition)
       x shouldEqual Left(List(SPErrorString(s"required key key3 is missing")))
     }
 
@@ -57,8 +59,9 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
       val definition = SPAttributes("key1" -> KeyDefinition("String", List(), Some("japp")),
         "key2" -> SPAttributes("key3" -> KeyDefinition("String", List(), None)))
       val attr = SPAttributes("key3" -> "kalle")
-      val x = ServiceTalker.validateRequest(Request("temp", attr, List()), definition)
-      x shouldEqual Right(Request("temp", SPAttributes("key1" -> "japp", "key3" -> "kalle")))
+      val request = Request("temp", attr, List())
+      val x = ServiceTalker.validateRequest(request, definition)
+      x shouldEqual Right(Request("temp", SPAttributes("key1" -> "japp", "key3" -> "kalle"), List(), request.reqID))
     }
 
     "forward a request" in {
@@ -93,7 +96,7 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
       dead watch st
 
       st ! r
-      p.expectMsg(500 millis, Response(r.ids, r.attributes))
+      p.expectMsg(500 millis, Response(r.ids, r.attributes, r.service, r.reqID))
       dead.expectTerminated(st, 2000 milliseconds)
     }
     "Expect a progress and then response" in {
@@ -148,7 +151,7 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
           toBus = None))
 
       st ! r
-      p.expectMsg(1600 millis, Response(List(o), r.attributes))
+      p.expectMsg(1600 millis, Response(List(o), r.attributes, r.service, r.reqID))
     }
 
     "Fail and die if model is wrong" in {
@@ -168,8 +171,10 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
 
       dead watch st
       st ! r
-      p.expectMsgPF(2 seconds){case SPErrorString(s) => true}
-      dead.expectTerminated(st, 2 seconds)
+      p.expectMsgPF(3 seconds){
+        case SPErrorString(s) => true
+      }
+      dead.expectTerminated(st, 3 seconds)
     }
 
 
@@ -188,7 +193,9 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
           toBus = None))
 
       st ! r
-      p.expectMsgPF(4 seconds){case SPErrorString(s) => println(s)}
+      p.expectMsgPF(4 seconds){
+        case SPErrorString(s) => println(s)
+      }
     }
 
   }
@@ -196,17 +203,18 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
 }
 
 
+
 class testServiceSH(o: IDAble) extends Actor {
   import context.dispatcher
   def receive = {
     case GetIds(_, Nil) => sender() ! SPIDs(List(o))
-    case Request("reply", a, xs) => {
-      sender() ! Response(xs, a)
+    case Request("reply", a, xs, id) => {
+      sender() ! Response(xs, a, "reply", id)
     }
-    case Request("delay", a, xs) => {
+    case Request("delay", a, xs, id) => {
       val reply = sender()
-      context.system.scheduler.scheduleOnce(500 milliseconds, reply, Progress(SPAttributes()))
-      context.system.scheduler.scheduleOnce(1500 milliseconds, reply, Response(List(), SPAttributes()))
+      context.system.scheduler.scheduleOnce(500 milliseconds, reply, Progress(SPAttributes(), "delay", id))
+      context.system.scheduler.scheduleOnce(1500 milliseconds, reply, Response(List(), SPAttributes(), "delay", id))
     }
   }
 }

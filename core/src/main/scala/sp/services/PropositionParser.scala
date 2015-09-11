@@ -17,17 +17,16 @@ import sp.domain.Logic._
 class PropositionParserActor extends Actor {
 
   def receive = {
-    case Request(_, attr, _) => {
+    case Request(s, attr, _, reqID) => {
       extract(attr) match {
-
         case Some(res) => {
           PropositionParser().parseStr(res._2) match {
             case Left(failure) =>
               val errorMess = "[" + failure.next.pos + "] error: " + failure.msg + "\n\n" + failure.next.pos.longString
               sender ! SPErrorString(errorMess)
             case Right(prop) => {
-              //TODO: fill in the ids
-              sender ! prop
+              val resp = Response(List(), SPAttributes("proposition"->prop), s, reqID)
+              sender ! resp
             }
           }
         }

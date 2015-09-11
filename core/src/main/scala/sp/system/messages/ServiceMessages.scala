@@ -38,7 +38,8 @@ trait ServiceCommand extends SPCommand {
  */
 case class Request(service: String,
                    attributes: SPAttributes,
-                   ids: List[IDAble] = List()) extends ServiceCommand
+                   ids: List[IDAble] = List(),
+                   reqID: ID = ID.newID) extends ServiceCommand
 
 /**
  * The final answer from the service
@@ -46,14 +47,15 @@ case class Request(service: String,
  * @param attributes Information about the result
  */
 case class Response(ids: List[IDAble],
-                   attributes: SPAttributes) extends SPEvent
+                    attributes: SPAttributes,
+                    service: String,
+                    reqID: ID) extends SPEvent
 
 /**
  * If the service takes longer time to answer, it should return these messages
- * will probably incl some kind of response id for
  * @param attributes
  */
-case class Progress(attributes: SPAttributes) extends SPEvent
+case class Progress(attributes: SPAttributes, service: String, reqID: ID) extends SPEvent
 
 /**
  * Used by an service for defining its input for a UI.

@@ -30,7 +30,7 @@ class ServiceHandler(mh: ActorRef) extends Actor{
       else sender ! SPError(s"Service ${s} does not exists")
       println(s"Service $s removed")
     }
-    case r @ Request(s, _, _) => {
+    case r @ Request(s, _, _, _) => {
       if (actors.contains(s)){
         ServiceTalker.validateRequest(r, specs(s)) match {
           case Right(req) => {

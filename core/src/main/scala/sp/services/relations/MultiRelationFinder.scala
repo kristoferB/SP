@@ -29,10 +29,10 @@ object MultiRelationFinder {
     )
   )
 
-  def props(serviceHandler: ActorRef,
-            condFromSpecsService: String,
-            flattenOperationService: String) =
-    Props(classOf[MultiRelationFinder], serviceHandler, condFromSpecsService, flattenOperationService)
+//  def props(serviceHandler: ActorRef,
+//            condFromSpecsService: String,
+//            flattenOperationService: String) =
+//    Props(classOf[MultiRelationFinder], serviceHandler, condFromSpecsService, flattenOperationService)
 }
 
 
@@ -42,50 +42,50 @@ private[relations] case class Input(operations: List[ID], groups: List[String], 
 /**
  * Created by kristofer on 15-06-22.
  */
-class MultiRelationFinder(serviceHandler: ActorRef,
-                          condFromSpecsService: String,
-                          flattenOperationService: String
-                           ) extends sp.system.ServiceRunner with MultiRelationFinderLogic  {
-
-
-  type ServiceInput = (Setup, Input)
-
-  def extractServiceInput(attr: SPAttributes): Option[ServiceInput] = {
-    val setup = attr.getAs[Setup]("setup")
-    val input = attr.getAs[Input]("input")
-    for (s <- setup; x <- input) yield {(s, x)}
-  }
-
-  import context.dispatcher
-
-  def request(attr: ServiceInput, ids: List[IDAble]): Response = {
-    val setup = attr._1
-    val input = attr._2
-    val condFromSpecsF = askAService(Request(condFromSpecsService, SPAttributes(), ids.filter(_.isInstanceOf[Specification])), serviceHandler)
-    val flattenOpsF = askAService(Request(flattenOperationService, SPAttributes("someInput"->"yes"), ids), serviceHandler)
-    val f = for {cond <- condFromSpecsF; ops <- flattenOpsF} yield {
-      updateProgress(SPAttributes("status"-> "Received initial answer from external services"))
-
-      // identify relations
-
-      //loop
-        // find a sequence
-        // identify enabled and arbitrary
-        // update relations
-        // handle deadlocks
-      // end loop
-
-
-
-      Response(List(), SPAttributes())
-    }
-    Await.result(f, 3 seconds)
-  }
-
-
-
-
-  }
+//class MultiRelationFinder(serviceHandler: ActorRef,
+//                          condFromSpecsService: String,
+//                          flattenOperationService: String
+//                           ) extends Actor with sp.system.ServiceSupport with MultiRelationFinderLogic  {
+//
+//
+//  type ServiceInput = (Setup, Input)
+//
+//  def extractServiceInput(attr: SPAttributes): Option[ServiceInput] = {
+//    val setup = attr.getAs[Setup]("setup")
+//    val input = attr.getAs[Input]("input")
+//    for (s <- setup; x <- input) yield {(s, x)}
+//  }
+//
+//  import context.dispatcher
+//
+//  def request(attr: ServiceInput, ids: List[IDAble]): Response = {
+//    val setup = attr._1
+//    val input = attr._2
+//    val condFromSpecsF = askAService(Request(condFromSpecsService, SPAttributes(), ids.filter(_.isInstanceOf[Specification])), serviceHandler)
+//    val flattenOpsF = askAService(Request(flattenOperationService, SPAttributes("someInput"->"yes"), ids), serviceHandler)
+//    val f = for {cond <- condFromSpecsF; ops <- flattenOpsF} yield {
+//      updateProgress(SPAttributes("status"-> "Received initial answer from external services"))
+//
+//      // identify relations
+//
+//      //loop
+//        // find a sequence
+//        // identify enabled and arbitrary
+//        // update relations
+//        // handle deadlocks
+//      // end loop
+//
+//
+//
+//      Response(List(), SPAttributes())
+//    }
+//    Await.result(f, 3 seconds)
+//  }
+//
+//
+//
+//
+//  }
 
 
 

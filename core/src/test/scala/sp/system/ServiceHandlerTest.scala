@@ -102,13 +102,13 @@ class testService(o: IDAble) extends Actor {
   import context.dispatcher
   def receive = {
     case GetIds(_, Nil) => sender() ! SPIDs(List(o))
-    case Request("reply", a, xs) => {
-      sender() ! Response(xs, a)
+    case Request("reply", a, xs, id) => {
+      sender() ! Response(xs, a, "reply", id)
     }
-    case Request("delay", a, xs) => {
+    case Request("delay", a, xs, id) => {
       val reply = sender()
-      context.system.scheduler.scheduleOnce(500 milliseconds, reply, Progress(SPAttributes()))
-      context.system.scheduler.scheduleOnce(1500 milliseconds, reply, Response(List(), SPAttributes()))
+      context.system.scheduler.scheduleOnce(500 milliseconds, reply, Progress(SPAttributes(), "delay", id))
+      context.system.scheduler.scheduleOnce(1500 milliseconds, reply, Response(List(), SPAttributes(), "delay", id))
     }
   }
 }

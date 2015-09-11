@@ -23,7 +23,7 @@ class ConditionsFromSpecsService(modelHandler: ActorRef) extends Actor {
 
   def receive = {
     case None => "hej"
-    case Request(_, attr, _) => {
+    case Request(_, attr, _, _) => {
       val reply = sender
       extract(attr) match {
         case Some((model, opsID)) => {
