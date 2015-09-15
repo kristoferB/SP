@@ -12,7 +12,8 @@
         'app.tables',
         'app.itemEditor',
         'app.itemExplorer',
-        'app.sopMaker'
+        'app.sopMaker',
+        'app.spServices'
     ]);
 
 })();
