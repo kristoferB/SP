@@ -13,7 +13,7 @@
     function spServicesService($q, logger, restService, $http) {
         var service = {
             spServices1: getSpServices,
-            spServices2: []
+            spServices2: null
         };
 
         activate();
@@ -29,8 +29,13 @@
 
         function getRegisteredSpServices() {
             return restService.getRegisteredServices().then(function (data) {
-                service.spServices2.push.apply(service.spServices2, data.list);
+                logger.info("service" + JSON.stringify(data.list))
+                service.spServices2 = JSON.stringify(data.list);
+//                service.spServices2.push.apply(service.spServices2, data);
             });
+//            return restService.getModels().then(function (data) {
+//                service.spServices2.push.apply(service.spServices2, data);
+//            });
         }
 
         function getSpServices() {
