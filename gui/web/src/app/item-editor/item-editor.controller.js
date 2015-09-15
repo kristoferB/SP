@@ -30,11 +30,7 @@
 
         function activate() {
             if(vm.widget.storage === undefined) {
-                vm.widget.storage = {
-                    data: {},
-                    itemChanged: {},
-                    atLeastOneItemChanged: false
-                }
+                resetWidgetStorage();
             }
             $scope.$on('closeRequest', function() {
                 if (vm.widget.storage.atLeastOneItemChanged) {
@@ -46,6 +42,15 @@
                     dashboardService.closeWidget(vm.widget.id);
                 }
             });
+            listenToChanges();
+        }
+
+        function resetWidgetStorage() {
+            vm.widget.storage = {
+                data: {},
+                itemChanged: {},
+                atLeastOneItemChanged: false
+            };
         }
 
         function editorLoaded(editorInstance) {
@@ -121,6 +126,12 @@
                     });
                 });
             }
+        }
+
+        function listenToChanges() {
+            $scope.$on('itemsFetch', function() {
+                resetWidgetStorage();
+            });
         }
     }
 })();
