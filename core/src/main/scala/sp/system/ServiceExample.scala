@@ -12,7 +12,7 @@ import sp.domain.Logic._
 object ServiceExample {
   val specification = SPAttributes(
     "service" -> SPAttributes(
-      "group"-> "aMenuGroup" // to organize in gui. use "hide" to hide service in gui
+      "group"-> "aMenuGroup" // to organize in gui. maybe use "hide" to hide service in gui
     ),
     "setup" -> Map(
       "onlyOperations" -> KeyDefinition("Boolean", List(), Some(false)),
@@ -33,7 +33,7 @@ class ServiceExample extends Actor with ServiceSupport {
   import context.dispatcher
 
   def receive = {
-    case r @ Request(service, _, ids, reqID) => {
+    case r @ Request(service, attr, ids, reqID) => {
 
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()
@@ -81,7 +81,7 @@ class ServiceExample extends Actor with ServiceSupport {
           }
       }
 
-      res.map(replyTo ! _)
+      res.foreach(replyTo ! _)
 
     }
     case x => sender() ! SPError("What do you whant me to do? "+ x)

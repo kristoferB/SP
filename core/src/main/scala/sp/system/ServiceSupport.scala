@@ -22,9 +22,9 @@ trait ServiceSupport {
     result
   }
 
-  def askAService(service: String, serviceHandler: ActorRef)(implicit rnr: RequestAndReply, ec: ExecutionContext, timeout: Timeout) = {
+  def askAService(request: Request, serviceHandler: ActorRef)(implicit rnr: RequestAndReply, ec: ExecutionContext, timeout: Timeout) = {
     val p = Promise[Response]()
-    val request = rnr._1
+    val service = request.service
     val replyTo = rnr._2
     val f = serviceHandler ? request.copy(attributes = request.attributes + ("onlyResponse"->true))
     f.onSuccess{

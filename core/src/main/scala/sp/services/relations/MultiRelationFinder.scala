@@ -29,35 +29,51 @@ object MultiRelationFinder {
     )
   )
 
-//  def props(serviceHandler: ActorRef,
-//            condFromSpecsService: String,
-//            flattenOperationService: String) =
-//    Props(classOf[MultiRelationFinder], serviceHandler, condFromSpecsService, flattenOperationService)
+  def props(serviceHandler: ActorRef,
+            condFromSpecsService: String,
+            flattenOperationService: String) =
+    Props(classOf[MultiRelationFinder], serviceHandler, condFromSpecsService, flattenOperationService)
 }
 
 
-private[relations] case class Setup(twoOrThreeStates: String, simpleThreeState: Boolean, iterations: Int, maxDepth: Int, maxResets: Int, breakOnSameState: Boolean)
-private[relations] case class Input(operations: List[ID], groups: List[String], initState: State, goal: Proposition)
+case class Setup(twoOrThreeStates: String, simpleThreeState: Boolean, iterations: Int, maxDepth: Int, maxResets: Int, breakOnSameState: Boolean)
+case class Input(operations: List[ID], groups: List[String], initState: State, goal: Proposition)
 
 /**
  * Created by kristofer on 15-06-22.
  */
-//class MultiRelationFinder(serviceHandler: ActorRef,
-//                          condFromSpecsService: String,
-//                          flattenOperationService: String
-//                           ) extends Actor with sp.system.ServiceSupport with MultiRelationFinderLogic  {
-//
-//
-//  type ServiceInput = (Setup, Input)
-//
-//  def extractServiceInput(attr: SPAttributes): Option[ServiceInput] = {
-//    val setup = attr.getAs[Setup]("setup")
-//    val input = attr.getAs[Input]("input")
-//    for (s <- setup; x <- input) yield {(s, x)}
-//  }
-//
-//  import context.dispatcher
-//
+class MultiRelationFinder(serviceHandler: ActorRef,
+                          condFromSpecsService: String,
+                          flattenOperationService: String
+                           ) extends Actor with sp.system.ServiceSupport with MultiRelationFinderLogic  {
+
+  import context.dispatcher
+  implicit val timeout = akka.util.Timeout(1 seconds)
+
+  def receive = {
+    case r @ Request(service, attr, ids, reqID) => {
+      val replyTo = sender()
+      implicit val requestNReplyTo = (r, replyTo)
+      val progress = context.actorOf(progressHandler)
+
+      val res = for {
+        setup <- getAttr(_.getAs[Setup]("setup"), "Couldn't convert the setup json")
+        input <- getAttr(_.getAs[Input]("input"), "Couldn't convert the input json")
+      } yield {
+          val condFromSpecs = askAService(Request(condFromSpecsService, SPAttributes(), ids.filter(_.isInstanceOf[Specification])), serviceHandler)
+          val flattenOpsF = askAService(Request(flattenOperationService, SPAttributes("someInput"->"yes"), ids), serviceHandler)
+
+          progress ! SPAttributes("status"-> "Received initial answer from external services")
+
+        }
+
+      res.foreach(replyTo ! _)
+    }
+
+    }
+
+  import context.dispatcher
+
 //  def request(attr: ServiceInput, ids: List[IDAble]): Response = {
 //    val setup = attr._1
 //    val input = attr._2
@@ -81,11 +97,11 @@ private[relations] case class Input(operations: List[ID], groups: List[String], 
 //    }
 //    Await.result(f, 3 seconds)
 //  }
-//
-//
-//
-//
-//  }
+
+
+
+
+  }
 
 
 
