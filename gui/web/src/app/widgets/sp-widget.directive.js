@@ -18,7 +18,7 @@
             replace: true,
             bindToController: {
                 widget: '=',
-                dashboard: '=',
+                dashboard: '=', /* When is this used? /Patrik 150915 */
                 showCloseBtn: '='
             }
         };
