@@ -8,11 +8,12 @@
         .module('app.spServices')
         .factory('spServicesService', spServicesService);
 
-    spServicesService.$inject = ['$q', 'logger', 'restService'];
+    spServicesService.$inject = ['$q', 'logger', 'restService', 'modelService', 'itemService'];
     /* @ngInject */
-    function spServicesService($q, logger, restService) {
+    function spServicesService($q, logger, restService, modelService, itemService) {
         var service = {
-            spServices: []
+            spServices: [],
+            startSpService: startSpService
         };
 
         activate();
@@ -31,6 +32,12 @@
 //                logger.info("service" + JSON.stringify(data))
                 service.spServices.push.apply(service.spServices, data);
             });
+        }
+
+        function startSpService(spService) {
+//            logger.info("sp services - service: Started service " + spService.name)
+            var attributesSentToService = {'activeModel': modelService.activeModel, 'selectedItems': itemService.selected}
+            restService.postToServiceInstance(attributesSentToService, spService.name);
         }
 
     }

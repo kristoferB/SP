@@ -12,8 +12,10 @@
     /* @ngInject */
     function spServicesController(spServicesService, $scope, dashboardService) {
         var vm = this;
-        vm.widget = $scope.$parent.widget;
-        vm.registeredServices = spServicesService.spServices;
+        vm.widget = $scope.$parent.widget; //For GUI
+        vm.registeredServices = spServicesService.spServices; //From RESTapi
+        vm.displayedRegisteredServices = []; //For GUI
+        vm.startSpService = spServicesService.startSpService; //To start a service. Name of service as parameter
 
         activate();
 

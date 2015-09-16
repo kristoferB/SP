@@ -44,8 +44,10 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
 
       println(s"service: $service")
 
-      val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
-      val checkedItems = attr.findObjectsWithField(List(("checked", JBool(true)))).unzip._1.flatMap(ID.makeID)
+      lazy val activeModel = attr.getAs[SPAttributes]("activeModel")
+      lazy val selectedItems = attr.getAs[List[SPAttributes]]("selectedItems").map( _.flatMap(_.getAs[ID]("id"))).getOrElse(List())
+
+      lazy val id = activeModel.flatMap(_.getAs[ID]("id")).getOrElse(ID.newID)
 
       //Search for operation sequence.
       for {
@@ -59,7 +61,7 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
 
         //Get specification for the operation sequence to return
         SPIDs(spSpecToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.id,
-          filter = {obj => checkedItems.contains(obj.id) && obj.isInstanceOf[SOPSpec]}))
+          filter = {obj => selectedItems.contains(obj.id) && obj.isInstanceOf[SOPSpec]}))
         specs = spSpecToBe.map(_.asInstanceOf[SOPSpec])
 
         specList = {

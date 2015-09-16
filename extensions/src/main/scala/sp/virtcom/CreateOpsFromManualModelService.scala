@@ -27,7 +27,9 @@ class CreateOpsFromManualModelService(modelHandler: ActorRef) extends Actor with
 
       println(s"service: $service")
 
-      val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
+      lazy val activeModel = attr.getAs[SPAttributes]("activeModel")
+
+      lazy val id = activeModel.flatMap(_.getAs[ID]("id")).getOrElse(ID.newID)
 
 //            val manualModel = PSLFloorRoofCase()
       val manualModel = VolvoWeldConveyerCase()
