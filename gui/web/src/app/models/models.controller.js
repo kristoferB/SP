@@ -16,6 +16,7 @@
         vm.createModel = createModel;
         vm.updateName = modelService.updateName;
         vm.setActiveModel = setActiveModel;
+        vm.widget = {title: "Model list"};
 
         activate();
 

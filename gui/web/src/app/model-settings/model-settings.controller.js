@@ -11,6 +11,8 @@
         var vm = this;
         vm.title = $state.current.title;
         vm.revert = revert;
+        vm.widgetModelSettings = {title: "Model settings"};
+        vm.widgetModelHistory = {title: "Model history"};
 	vm.diffs = [];
 	vm.displayedDiffs = [];
 	vm.modelService = modelService;

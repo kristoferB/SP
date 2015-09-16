@@ -3,10 +3,10 @@
         <h1>{{vm.modelService.activeModel.name}} settings</h1>
     </div>
     <div class="container">
-      <sp-widget widget-title="Model settings" show-close-btn="false">
+      <sp-widget widget="vm.widgetModelSettings" show-close-btn="false">
         Add some settings here...
       </sp-widget>
-      <sp-widget widget-title="Model history" show-close-btn="false">
+      <sp-widget widget="vm.widgetModelHistory" show-close-btn="false">
 	<table sp-table row-collection="vm.diffs" displayed-collection="vm.displayedDiffs">
 	<thead><tr><th class="col-md-1">Version</th><th class="col-md-1">Revert</th><th class="col-md-10">Comment</th></tr></thead>
 	<tbody>
