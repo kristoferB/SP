@@ -289,7 +289,7 @@ trait ServiceAPI extends SPApiHelpers {
 
   def serviceapi =
     /{ get { complete{
-      (serviceHandler ? GetServices).mapTo[Services]
+      (serviceHandler ? GetServices).mapTo[List[ServiceInfo]]
     }}} ~
       path(Segment / "import") { service =>
         post {

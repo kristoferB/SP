@@ -8,12 +8,11 @@
         .module('app.spServices')
         .factory('spServicesService', spServicesService);
 
-    spServicesService.$inject = ['$q', 'logger', 'restService', '$http'];
+    spServicesService.$inject = ['$q', 'logger', 'restService'];
     /* @ngInject */
-    function spServicesService($q, logger, restService, $http) {
+    function spServicesService($q, logger, restService) {
         var service = {
-            spServices1: getSpServices,
-            spServices2: null
+            spServices: []
         };
 
         activate();
@@ -23,35 +22,15 @@
         function activate() {
             var promises = [getRegisteredSpServices()];
             return $q.all(promises).then(function() {
-                logger.info('spServices service: Loaded ' + service.spServices2 + ' spServices through REST.');
+                logger.info('spServices service: Loaded ' + service.spServices + ' spServices through REST.');
             });
         }
 
         function getRegisteredSpServices() {
-            return restService.getRegisteredServices().then(function (data) {
-                logger.info("service" + JSON.stringify(data.list))
-                service.spServices2 = JSON.stringify(data.list);
-//                service.spServices2.push.apply(service.spServices2, data);
+            restService.getRegisteredServices().then(function (data) {
+//                logger.info("service" + JSON.stringify(data))
+                service.spServices.push.apply(service.spServices, data);
             });
-//            return restService.getModels().then(function (data) {
-//                service.spServices2.push.apply(service.spServices2, data);
-//            });
-        }
-
-        function getSpServices() {
-            logger.info('Trying to get spServices');
-
-            restService.getRegisteredServices().then(function(dataFromServer)  {
-                logger.success('success to get spServices');
-                return dataFromServer.list;
-            });
-
-//            $http.get('api/services').success(function(dataFromServer)  {
-//                logger.success('success to get spServices');
-//                return dataFromServer.list;
-//            }).error(function(dataFromServer) {
-//                logger.info('problem to get  spServices');
-//            });
         }
 
     }

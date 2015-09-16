@@ -48,7 +48,7 @@ class ServiceHandler(mh: ActorRef) extends Actor{
       }
       else sender ! SPError(s"Service ${m.service} does not exists")
     }
-    case GetServices => sender ! Services(specs)
+    case GetServices => sender ! specs.map{case (name, attribute) => ServiceInfo(name,attribute)}.toList
   }
 }
 

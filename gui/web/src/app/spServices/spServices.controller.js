@@ -13,8 +13,7 @@
     function spServicesController(spServicesService, $scope, dashboardService) {
         var vm = this;
         vm.widget = $scope.$parent.widget;
-        vm.registeredServices1 = spServicesService.spServices1;
-        vm.registeredServices2 = spServicesService.spServices2;
+        vm.registeredServices = spServicesService.spServices;
 
         activate();
 
