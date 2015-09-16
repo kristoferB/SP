@@ -83,6 +83,11 @@ class ServiceExample extends Actor with ServiceSupport {
 
       res.foreach(replyTo ! _)
 
+      // Ev så bygger vi in nedan logik i service support, men ev är det bra att man
+      // har lite koll själv.
+      //progress ! PoisonPill  // behövs om du inte skapar en actor per request
+      self ! PoisonPill // måste döda din actor när du är färdig om du kör per request
+
     }
     case x => sender() ! SPError("What do you whant me to do? "+ x)
   }

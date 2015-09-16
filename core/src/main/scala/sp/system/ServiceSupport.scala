@@ -16,9 +16,9 @@ trait ServiceSupport {
 
   type RequestAndReply = (Request, ActorRef)
 
-  def getAttr[T](transform: SPAttributes => Option[T], error: String)(implicit rnr: RequestAndReply): Option[T] = {
+  def getAttr[T](transform: SPAttributes => Option[T], error: String = "could translate the attributes in the service")(implicit rnr: RequestAndReply): Option[T] = {
     val result = transform(rnr._1.attributes)
-    if (result.isEmpty) rnr._2 ! SPError(error)
+    if (result.isEmpty) rnr._2 ! SPError(error + s"\nreq: ${rnr._1}")
     result
   }
 

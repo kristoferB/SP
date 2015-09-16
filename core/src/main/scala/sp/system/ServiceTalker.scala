@@ -22,7 +22,7 @@ class ServiceTalker(service: ActorRef,
   val cancelTimeout =  context.system.scheduler.scheduleOnce(3 seconds, self, "timeout")
 
   val reqAttr = request.attributes
-  val model = reqAttr.getAs[ID]("model")
+  val model = reqAttr.dig[ID]("service", "model")
   val toModel = reqAttr.getAs[Boolean]("toModel").getOrElse(false) && model.isDefined
   val onlyResponse = reqAttr.getAs[Boolean]("onlyResponse").getOrElse(false)
   val fillIDs = reqAttr.getAs[List[ID]]("fillIDs").getOrElse(List()).toSet
@@ -108,6 +108,10 @@ object ServiceTalker {
       val filled = req.copy(attributes = fillDefaults(attr, expectAttrs))
       Right(filled)
     }
+  }
+
+  def serviceSpec = SPAttributes{
+    "model"-> KeyDefinition("ID", List(), Some(false)),
   }
 
   private def analyseAttr(attr: SPAttributes, expected: List[(String, KeyDefinition)]): List[SPError] = {

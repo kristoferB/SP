@@ -19,7 +19,7 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
   import context.dispatcher
 
   def receive = {
-    case Request(_, attr, _) => {
+    case Request(_, attr, _, _) => {
       val reply = sender
       extract(attr) match {
         case Some((file, name)) => {

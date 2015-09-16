@@ -53,6 +53,7 @@ trait AttributeLogics {
 //    }
 //  }
 
+  // TODO: WE must update these names and improve the API 150916
   implicit class messLogic(x: SPAttributes) {
     val obj = x.obj
     def addTimeStamp = {
@@ -66,7 +67,7 @@ trait AttributeLogics {
       SPAttributes(obj ++ xs.obj)
     }
 
-    def apply[T](keys: String*)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]): Option[T] = {
+    def dig[T](keys: String*)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]): Option[T] = {
       def req(list: List[String], obj: JObject): Option[T] = list match {
         case Nil => None
         case x :: Nil => {

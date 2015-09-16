@@ -19,7 +19,7 @@ class ImportKUKAFileService(modelHandler: ActorRef) extends Actor {
 
 
   def receive = {
-    case Request(_, attr, _) => {
+    case Request(_, attr, _, _) => {
       val reply = sender
 //      extract(attr) match {
 //        case Some((file, name, model)) => {

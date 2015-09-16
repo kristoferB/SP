@@ -40,7 +40,7 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
   import context.dispatcher
 
   def receive = {
-    case Request(service, attr, _) => {
+    case Request(service, attr, _, ) => {
 
       println(s"service: $service")
 

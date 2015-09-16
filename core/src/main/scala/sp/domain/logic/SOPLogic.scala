@@ -5,6 +5,7 @@ import sp.domain._
 import sp.domain.Logic._
 
 /**
+ * TODO: Refactor to the same structure as other logic
  * Created by kristofer on 04/09/14.
  */
 case object SOPLogic {
