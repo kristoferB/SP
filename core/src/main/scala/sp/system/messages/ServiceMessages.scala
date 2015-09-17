@@ -13,7 +13,8 @@ case class RegisterService(service: String,
 
 case class RemoveService(service: String) extends ServiceCommand
 case object GetServices extends SPCommand
-case class Services(list: Map[String, SPAttributes])
+case class ServiceInfo(name: String, attributes: SPAttributes)
+case class ServiceInfos(services: List[ServiceInfo])
 
 trait ServiceCommand extends SPCommand {
   val service: String

@@ -57,21 +57,23 @@ private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef, att
     case "go" =>
       val progress = startProgress
 
-      val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
-      lazy val checkedItems = attr.findObjectsWithField(List(("checked", JBool(true)))).unzip._1.flatMap(ID.makeID)
+      lazy val activeModel = attr.getAs[SPAttributes]("activeModel")
+      lazy val selectedItems = attr.getAs[List[SPAttributes]]("selectedItems").map( _.flatMap(_.getAs[ID]("id"))).getOrElse(List())
+
+      lazy val id = activeModel.flatMap(_.getAs[ID]("id")).getOrElse(ID.newID)
 
       for {
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
 
         //Collect ops, vars, forbidden expressions
         SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.id))
-        //        ops = opsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Operation])
+        //        ops = opsToBe.filter(obj => selectedItems.contains(obj.id)).map(_.asInstanceOf[Operation])
         ops = opsToBe.map(_.asInstanceOf[Operation])
         SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.id))
-        //        vars = varsToBe.filter(obj => checkedItems.contains(obj.id)).map(_.asInstanceOf[Thing])
+        //        vars = varsToBe.filter(obj => selectedItems.contains(obj.id)).map(_.asInstanceOf[Thing])
         vars = varsToBe.map(_.asInstanceOf[Thing])
         SPIDs(sopSpecToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.id))
-        sopSpecs = sopSpecToBe.filter(obj => checkedItems.contains(obj.id) && obj.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
+        sopSpecs = sopSpecToBe.filter(obj => selectedItems.contains(obj.id) && obj.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
 
         //Create Supremica Module and synthesize guards.
         ptmw = ParseToModuleWrapper(modelInfo.name, vars, ops, sopSpecs)

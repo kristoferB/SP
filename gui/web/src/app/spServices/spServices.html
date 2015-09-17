@@ -1,5 +1,19 @@
-<div ng-controller="spServicesController as vm" class="spServices">
-    <h1>Services</h1>
-    <b>{{vm.registeredServices1}}</b>
-    <b>{{vm.registeredServices2}}</b>
+<div ng-controller="spServicesController as vm">
+    <table sp-table row-collection="vm.registeredServices" displayed-collection="vm.displayedRegisteredServices">
+        <thead><tr><th class="col-md-1">Action</th><th class="col-md-1">Name</th><th class="col-md-10">Attributes</th></tr></thead>
+        <tbody>
+        <tr ng-repeat="obj in vm.displayedRegisteredServices | orderBy: '-name'" ng-class-odd="'odd-row'" ng-class-even="'even-row'">
+            <!--Action-->
+            <td>
+                <button class="btn btn-xs btn-primary" ng-click="vm.startSpService(obj)">
+                    <i class="fa fa-play"></i> Run
+                </button>
+            </td>
+            <!--Name-->
+            <td>{{obj.name}}</td>
+            <!--Attributes-->
+            <td>{{obj.attributes}}</td>
+        </tr>
+        </tbody>
+    </table>
 </div>

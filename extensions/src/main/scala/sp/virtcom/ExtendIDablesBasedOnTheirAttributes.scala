@@ -36,8 +36,10 @@ class ExtendIDablesBasedOnTheirAttributes(modelHandler: ActorRef) extends Actor 
 
       println(s"service: $service")
 
-      lazy val id = attr.getAs[ID]("activeModelID").getOrElse(ID.newID)
-            lazy val checkedItems = attr.findObjectsWithField(List(("checked", JBool(true)))).unzip._1.flatMap(ID.makeID)
+      lazy val activeModel = attr.getAs[SPAttributes]("activeModel")
+      lazy val selectedItems = attr.getAs[List[SPAttributes]]("selectedItems").map( _.flatMap(_.getAs[ID]("id"))).getOrElse(List())
+
+      lazy val id = activeModel.flatMap(_.getAs[ID]("id")).getOrElse(ID.newID)
 
       val result = for {
         modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
@@ -45,7 +47,7 @@ class ExtendIDablesBasedOnTheirAttributes(modelHandler: ActorRef) extends Actor 
         //Collect ops, vars, sopSpecs, spSpecs
         SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.id))
         ops = opsToBe.map(_.asInstanceOf[Operation])
-        //        checkOps = ops.filter(obj => checkedItems.contains(obj.id))
+        //        checkOps = ops.filter(obj => selectedItems.contains(obj.id))
 
         SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.id))
         vars = varsToBe.map(_.asInstanceOf[Thing])
