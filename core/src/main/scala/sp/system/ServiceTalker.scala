@@ -23,9 +23,9 @@ class ServiceTalker(service: ActorRef,
 
   val reqAttr = request.attributes
   val model = reqAttr.dig[ID]("service", "model")
-  val toModel = reqAttr.getAs[Boolean]("toModel").getOrElse(false) && model.isDefined
-  val onlyResponse = reqAttr.getAs[Boolean]("onlyResponse").getOrElse(false)
-  val fillIDs = reqAttr.getAs[List[ID]]("fillIDs").getOrElse(List()).toSet
+  val toModel = reqAttr.dig[Boolean]("service, responseToModel").getOrElse(false) && model.isDefined
+  val onlyResponse = reqAttr.dig[Boolean]("service", "onlyResponse").getOrElse(false)
+  val fillIDs = reqAttr.dig[List[ID]]("service","includeIDAbles").getOrElse(List()).toSet
 
   def receive = {
     case req @ Request(_, attr, ids, _) => {
@@ -110,9 +110,12 @@ object ServiceTalker {
     }
   }
 
-  def serviceSpec = SPAttributes{
-    "model"-> KeyDefinition("ID", List(), Some(false)),
-  }
+  def serviceSpec = SPAttributes(
+    "model"-> KeyDefinition("ID", List(), Some("")),
+    "responseToModel"->KeyDefinition("Boolean", List(true, false), Some(false)),
+    "includeIDAbles"->KeyDefinition("List[ID]", List(), Some(SPValue(List[IDAble]()))),
+    "onlyResponse"->KeyDefinition("Boolean", List(true, false), Some(false))
+  )
 
   private def analyseAttr(attr: SPAttributes, expected: List[(String, KeyDefinition)]): List[SPError] = {
     expected.flatMap{ case (key, v) =>

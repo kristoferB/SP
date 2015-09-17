@@ -1,20 +1,19 @@
 package sp.processSimulateImporter
 
-import akka.actor.Status.Success
 import akka.actor._
 import sp.domain.logic.{ActionParser, PropositionParser}
-import sp.system.ServiceSupport
+import sp.system._
 import sp.system.messages._
 import sp.domain._
 import sp.domain.Logic._
+import scala.concurrent.Future
+import akka.util._
 import akka.pattern.ask
-import akka.util.Timeout
-import scala.concurrent.{Promise, Future, Await}
+import scala.concurrent._
 import scala.concurrent.duration._
-import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
-import akka.camel.{ CamelExtension, CamelMessage, Consumer, Producer }
+import akka.camel._
 
-import scala.util.{Failure, Try}
+import scala.util._
 
 /**
  * Some unclear interfaces. What is items?
@@ -92,6 +91,7 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     progress ! PoisonPill
   }
 
+
   def createOp(model: ID, params: SPAttributes, ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
     // lite oklart här. Vad gör raden? hur ser datastrukturen ut i params? Bör definieras i en case class
     val checkItems = params.findObjectsWithField(List(("checked", SPValue(true)))).unzip._1.flatMap(ID.makeID)
@@ -117,23 +117,22 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
 
     // Så det är ett meddelande per SOPSpec eller?
     // TODO: progressbar while waiting for answer...
-    val ask = psAmq ? json
 
+
+    val f = psAmq ? json
     progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
 
-    val items = handlePSAnswer(ask)
-
+    val items = handlePSAnswer(f)
     items.map{list => Response(list, SPAttributes("command" -> "create_op_chain"), rnr.req.service, rnr.req.reqID)}
-
   }
 
   def fetch(model: ID, params: SPAttributes, ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
     val json = SPAttributes("command" -> "get_all_tx_objects") toJson
 
-    val ask = psAmq ? json
+    val f = psAmq ? json
     progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
 
-    val items = handlePSAnswer(ask)
+    val items = handlePSAnswer(f)
     items.map{list => Response(list, SPAttributes("command" -> "get_all_tx_objects"), rnr.req.service, rnr.req.reqID)}
   }
 
@@ -141,10 +140,10 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     val txid = params.getAs[String]("txid").getOrElse("")
 
     val json = SPAttributes("command" -> "get_tx_object", "params" -> Map("txid" -> txid)) toJson
-    val ask = psAmq ? json
+    val f = psAmq ? json
     progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
 
-    val items = handlePSAnswer(ask)
+    val items = handlePSAnswer(f)
     items.map{list => Response(list, SPAttributes("command" -> "get_all_tx_objects"), rnr.req.service, rnr.req.reqID)}
   }
 

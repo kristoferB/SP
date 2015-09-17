@@ -24,7 +24,7 @@ class SynthesizeModelBasedOnAttributesService(modelHandler: ActorRef) extends Ac
   //  import context.dispatcher
 
   def receive = {
-    case Request(service, attr, ids) =>
+    case Request(service, attr, ids, _) =>
 
       println(s"service: $service")
       //      println(s"attr: ${attr.getAs[ID]("model")}")

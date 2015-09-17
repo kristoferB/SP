@@ -23,7 +23,7 @@ class CreateOpsFromManualModelService(modelHandler: ActorRef) extends Actor with
   import context.dispatcher
 
   def receive = {
-    case Request(service, attr, _) => {
+    case Request(service, attr, _, _) => {
 
       println(s"service: $service")
 

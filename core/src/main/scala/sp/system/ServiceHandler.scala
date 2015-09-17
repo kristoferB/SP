@@ -5,6 +5,7 @@ import akka.event.Logging
 import org.json4s.JsonAST.{JObject, JNothing}
 import sp.domain._
 import sp.system.messages._
+import sp.domain.Logic._
 
 class ServiceHandler(mh: ActorRef) extends Actor{
   val log = Logging(context.system, this)
@@ -15,7 +16,8 @@ class ServiceHandler(mh: ActorRef) extends Actor{
     case r @ RegisterService(service, ref, attr) => {
       if (!actors.contains(service)) {
         actors += service -> ref
-        specs = specs + (service -> attr)
+        val serviceSpec = attr + ("service" -> ServiceTalker.serviceSpec)
+        specs = specs + (service -> serviceSpec)
         ref.tell(r, sender)
       }
       else sender ! SPError(s"Service $service already registered")

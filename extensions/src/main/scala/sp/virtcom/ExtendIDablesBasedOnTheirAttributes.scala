@@ -32,7 +32,7 @@ class ExtendIDablesBasedOnTheirAttributes(modelHandler: ActorRef) extends Actor 
   import context.dispatcher
 
   def receive = {
-    case Request(service, attr,_) =>
+    case Request(service, attr,_, _) =>
 
       println(s"service: $service")
 
