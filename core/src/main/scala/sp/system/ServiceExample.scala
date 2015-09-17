@@ -18,7 +18,7 @@ object ServiceExample {
       "onlyOperations" -> KeyDefinition("Boolean", List(), Some(false)),
       "searchMethod" -> KeyDefinition("String", List("theGood", "theBad"), Some("theGood"))
     ),
-    "findID" -> KeyDefinition("ID", List(), None)
+    "findID" -> KeyDefinition("ID", List(), Some(""))
   )
 
   // important to incl ServiceLauncher if you want unique actors per request
@@ -48,6 +48,7 @@ class ServiceExample extends Actor with ServiceSupport {
       //val serviceAnswer: Future[Response] = askAService("myService", serviceHandler)
 
       // Use the getAttr to simplify extraction of parameters with error support
+      // MAYBE WE SHOULD SIMPLIFY HERE SINCE THESE ARE ALREADY VALIDATED. MAYBE BETTER TO CRASH
       val res = for {
         s <- getAttr(_.getAs[ExampleSetup]("setup"), error = "Can not convert the setup")
         id <- getAttr(_.getAs[ID]("findID"), error = "An ID was not defined in findID")

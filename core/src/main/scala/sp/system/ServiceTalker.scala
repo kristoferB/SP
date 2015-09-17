@@ -21,19 +21,22 @@ class ServiceTalker(service: ActorRef,
   implicit val timeout = Timeout(2 seconds)
   val cancelTimeout =  context.system.scheduler.scheduleOnce(3 seconds, self, "timeout")
 
-  val reqAttr = request.attributes
-  val model = reqAttr.dig[ID]("service", "model")
-  val toModel = reqAttr.dig[Boolean]("service, responseToModel").getOrElse(false) && model.isDefined
-  val onlyResponse = reqAttr.dig[Boolean]("service", "onlyResponse").getOrElse(false)
-  val fillIDs = reqAttr.dig[List[ID]]("service","includeIDAbles").getOrElse(List()).toSet
+  val x = request.attributes
+  val handleAttr = ServiceHandlerAttributes(
+    x.dig[ID]("core", "model"),
+    x.dig[Boolean]("core", "responseToModel").getOrElse(false),
+    x.dig[Boolean]("core", "onlyResponse").getOrElse(false),
+    x.dig[List[ID]]("core", "includeIDAbles").getOrElse(List())
+
+  )
 
   def receive = {
     case req @ Request(_, attr, ids, _) => {
-      if (model.isDefined && ids.isEmpty) {
-        modelHandler ? GetIds(model.get, List()) onComplete {
+      if (handleAttr.model.isDefined && ids.isEmpty) {
+        modelHandler ? GetIds(handleAttr.model.get, List()) onComplete {
           case Success(result) => result match {
             case SPIDs(xs) => {
-              val filter = xs.filter(item => fillIDs.contains(item.id))
+              val filter = xs.filter(item => handleAttr.includeIDAbles.contains(item.id))
               val res = if (filter.nonEmpty) filter else xs
               service ! req.copy(ids = res)
             }
@@ -59,8 +62,8 @@ class ServiceTalker(service: ActorRef,
       killMe
     }
     case r @ Response(ids, attr, _, _) => {
-      if (toModel) {
-        modelHandler ! UpdateIDs(model.get, ids, attr)
+      if (handleAttr.responseToModel) {
+        modelHandler ! UpdateIDs(handleAttr.model.get, ids, attr)
       }
       replyTo ! r
       eventHandler.foreach(_ ! r)
@@ -68,7 +71,7 @@ class ServiceTalker(service: ActorRef,
     }
     case r: Progress => {
       cancelTimeout.cancel()
-      if (!onlyResponse) replyTo ! r
+      if (!handleAttr.onlyResponse) replyTo ! r
       eventHandler.foreach(_ ! r)
     }
     case e: SPError => {
@@ -110,12 +113,12 @@ object ServiceTalker {
     }
   }
 
-  def serviceSpec = SPAttributes(
+  def serviceHandlerAttributes = SPAttributes("core" -> SPAttributes(
     "model"-> KeyDefinition("ID", List(), Some("")),
     "responseToModel"->KeyDefinition("Boolean", List(true, false), Some(false)),
     "includeIDAbles"->KeyDefinition("List[ID]", List(), Some(SPValue(List[IDAble]()))),
     "onlyResponse"->KeyDefinition("Boolean", List(true, false), Some(false))
-  )
+  ))
 
   private def analyseAttr(attr: SPAttributes, expected: List[(String, KeyDefinition)]): List[SPError] = {
     expected.flatMap{ case (key, v) =>

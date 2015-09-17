@@ -37,7 +37,14 @@
         function startSpService(spService) {
 //            logger.info("sp services - service: Started service " + spService.name)
             var attributesSentToService = {'activeModel': modelService.activeModel, 'selectedItems': itemService.selected}
-            restService.postToServiceInstance(attributesSentToService, spService.name);
+            var responseF = restService.postToServiceInstance(attributesSentToService, spService.name)
+
+              responseF.then(function(data){
+                logger.info('service answer: ' + JSON.stringify(data) + '.');
+            })
+
+
+            ;
         }
 
     }

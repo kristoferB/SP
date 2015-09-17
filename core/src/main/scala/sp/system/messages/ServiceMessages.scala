@@ -11,10 +11,14 @@ case class RegisterService(service: String,
                            ref: ActorRef,
                            attributes: SPAttributes = SPAttributes()) extends SPCommand
 
-case class RemoveService(service: String) extends ServiceCommand
+case class RemoveService(service: String) extends ServiceCommand with SPEvent
 case object GetServices extends SPCommand
-case class ServiceInfo(name: String, attributes: SPAttributes)
+case class ServiceInfo(name: String, attributes: SPAttributes) extends SPEvent
 case class ServiceInfos(services: List[ServiceInfo])
+case class ServiceHandlerAttributes(model: Option[ID],
+                                    responseToModel: Boolean,
+                                    onlyResponse: Boolean,
+                                    includeIDAbles: List[ID])
 
 trait ServiceCommand extends SPCommand {
   val service: String

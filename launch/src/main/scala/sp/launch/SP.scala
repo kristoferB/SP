@@ -2,6 +2,7 @@ package sp.launch
 
 import sp.runtimes.opc.PLCRuntime
 import sp.services.{PropositionParserActor}
+import sp.system.ServiceExample
 import sp.system.messages._
 import sp.domain._
 
@@ -16,14 +17,14 @@ object SP extends App {
   import sp.system.SPActorSystem._
   import sp.domain.Logic._
 
-  // Register Runtimes here
-  runtimeHandler ! RegisterRuntimeKind("SimulationRuntime",
-  sp.runtimes.SimulationRuntime.props,
-  SPAttributes("info"-> "Simulate system behavior by executing operations"))
-
-  runtimeHandler ! RegisterRuntimeKind("PLCRuntime",
-    PLCRuntime.props,
-    SPAttributes("info"-> "Show status of and control a PLC"))
+// Merge runtimes to services instead
+//  runtimeHandler ! RegisterRuntimeKind("SimulationRuntime",
+//  sp.runtimes.SimulationRuntime.props,
+//  SPAttributes("info"-> "Simulate system behavior by executing operations"))
+//
+//  runtimeHandler ! RegisterRuntimeKind("PLCRuntime",
+//    PLCRuntime.props,
+//    SPAttributes("info"-> "Show status of and control a PLC"))
 
 
   // Register services here
@@ -31,21 +32,22 @@ object SP extends App {
     system.actorOf(PropositionParserActor.props, "PropositionParser"))
 
   import sp.services.relations._
-
   serviceHandler ! RegisterService("Relations",
     system.actorOf(RelationService.props(modelHandler, serviceHandler, "ConditionsFromSpecsService"), "Relations"))
 
   import sp.services.sopmaker._
-
   serviceHandler ! RegisterService("SOPMaker",
     system.actorOf(SOPMakerService.props(modelHandler), "SOPMaker"))
 
   import sp.services.specificationconverters._
-
   serviceHandler ! RegisterService("ConditionsFromSpecsService",
     system.actorOf(ConditionsFromSpecsService.props(modelHandler), "ConditionsFromSpecsService"))
 
-//  import sp.areus._
+  serviceHandler ! RegisterService("Example",
+    system.actorOf(ServiceExample.props, "Example"))
+
+
+  //  import sp.areus._
 //
 //  serviceHandler ! RegisterService("DelmiaV5Service",
 //    system.actorOf(DelmiaV5Service.props(modelHandler), "DelmiaV5Service"))
@@ -72,7 +74,7 @@ object SP extends App {
     system.actorOf(CreateOpsFromManualModelService.props(modelHandler), "CreateOpsFromManualModel"))
 
   serviceHandler ! RegisterService("SynthesizeModel-Attributes",
-    system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler), "SynthesizeModel-Attributes"))
+    system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler), "SynthesizeModel-Attributes"), SynthesizeModelBasedOnAttributesService.specification)
 
   serviceHandler ! RegisterService("ExtendIDablesBasedOnTheirAttributes",
     system.actorOf(ExtendIDablesBasedOnTheirAttributes.props(modelHandler), "ExtendIDablesBasedOnTheirAttributes"))

@@ -18,103 +18,158 @@ import sp.domain.Logic._
  * The synthesized supervisor is returned as an extra preGuard for a subset of the operations.
  * Creates a Condition for each operation based on its attributes
  */
-class SynthesizeModelBasedOnAttributesService(modelHandler: ActorRef) extends Actor with ServiceSupportTrait {
-  //  implicit val timeout = Timeout(1 seconds)
-  //
-  //  import context.dispatcher
-
+class SynthesizeModelBasedOnAttributesService(modelHandler: ActorRef) extends Actor {
   def receive = {
-    case Request(service, attr, ids, _) =>
-
-      println(s"service: $service")
-      //      println(s"attr: ${attr.getAs[ID]("model")}")
-      //      println(s"ids: $ids")
-
-      context.actorOf(Props(classOf[SynthesizeModelBasedOnAttributesRunner], modelHandler, attr, sender())) ! "go"
-
-  }
-
-}
-
-private case class SynthesizeModelBasedOnAttributesRunnerStatus(status: String)
-
-private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef, attr: SPAttributes, replyTo: ActorRef) extends Actor with ServiceSupportTrait {
-
-  implicit val timeout = Timeout(1 seconds)
-
-  import context.dispatcher
-
-  var status = SynthesizeModelBasedOnAttributesRunnerStatus("Reading model")
-
-  def startProgress = {
-    context.system.scheduler.schedule(
-      1 seconds, 1 seconds) {
-      replyTo ! Progress(SPAttributes("status" -> status))
-    }
-  }
-
-  def receive = {
-    case "go" =>
-      val progress = startProgress
-
-      lazy val activeModel = attr.getAs[SPAttributes]("activeModel")
-      lazy val selectedItems = attr.getAs[List[SPAttributes]]("selectedItems").map( _.flatMap(_.getAs[ID]("id"))).getOrElse(List())
-
-      lazy val id = activeModel.flatMap(_.getAs[ID]("id")).getOrElse(ID.newID)
-
-      for {
-        modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
-
-        //Collect ops, vars, forbidden expressions
-        SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.id))
-        //        ops = opsToBe.filter(obj => selectedItems.contains(obj.id)).map(_.asInstanceOf[Operation])
-        ops = opsToBe.map(_.asInstanceOf[Operation])
-        SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.id))
-        //        vars = varsToBe.filter(obj => selectedItems.contains(obj.id)).map(_.asInstanceOf[Thing])
-        vars = varsToBe.map(_.asInstanceOf[Thing])
-        SPIDs(sopSpecToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.id))
-        sopSpecs = sopSpecToBe.filter(obj => selectedItems.contains(obj.id) && obj.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
-
-        //Create Supremica Module and synthesize guards.
-        ptmw = ParseToModuleWrapper(modelInfo.name, vars, ops, sopSpecs)
-        ptmwModule = {
-          status = SynthesizeModelBasedOnAttributesRunnerStatus("Creating wmod module")
-          ptmw.addVariables()
-          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-          ptmw.addOperations()
-          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-          ptmw.addForbiddenExpressions()
-          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-          status = SynthesizeModelBasedOnAttributesRunnerStatus("Synthesizing supervisor")
-          ptmw.SupervisorAsBDD()
-        }
-        optSupervisorGuards = ptmwModule.getSupervisorGuards.map(_.filter(og => !og._2.equals("1")))
-
-        //Update operations with conditions and change to Supremica syntax
-        updatedOps = ops.map(o => ptmw.addSPConditionFromAttributes(ptmw.addSynthesizedGuardsToAttributes(o, optSupervisorGuards), optSupervisorGuards))
-        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, items = updatedOps, info = SPAttributes("info" -> "Model synthesized")))
-
-      } yield {
-
-        lazy val synthesizedGuards = optSupervisorGuards.getOrElse(Map()).foldLeft(SPAttributes()) { case (acc, (event, guard)) =>
-          acc merge SPAttributes("synthesizedGuards" -> SPAttributes(event -> guard))
-        }
-        lazy val nbrOfStates = SPAttributes("nbrOfStatesInSupervisor" -> ptmwModule.nbrOfStates())
-
-        println(s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
-        if(synthesizedGuards.obj.nonEmpty) println(synthesizedGuards.pretty)
-
-        ptmw.addSupervisorGuardsToFreshFlower(optSupervisorGuards)
-        ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-        progress.cancel()
-        replyTo ! Response(updatedOps, synthesizedGuards merge nbrOfStates)
-      }
+    case r @ Request(service, attr, ids, reqID) =>
+      println(s"service: $service got reqID: $reqID")
+      context.actorOf(Props(classOf[SynthesizeModelBasedOnAttributesRunner], modelHandler)).tell(r, sender())
   }
 }
 
 object SynthesizeModelBasedOnAttributesService {
+
+  // todo update spec
+  val specification = SPAttributes(
+    "service" -> SPAttributes(
+      "group"-> "patriks" // to organize in gui. maybe use "hide" to hide service in gui
+    ),
+    "selectedItems"-> KeyDefinition("List[ID]", List(), Some(SPValue(List()))),
+    "id"-> KeyDefinition("ID", List(), None),
+    "setup" -> Map(
+      "ops" -> KeyDefinition("Boolean", List(), Some(false)),
+      "searchMethod" -> KeyDefinition("String", List("theGood", "theBad"), Some("theGood"))
+    ),
+    "findID" -> KeyDefinition("ID", List(), None)
+  )
+
   def props(modelHandler: ActorRef) = Props(classOf[SynthesizeModelBasedOnAttributesService], modelHandler)
 }
+
+private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef) extends Actor with sp.system.ServiceSupport {
+  implicit val timeout = Timeout(1 seconds)
+  import context.dispatcher
+
+  def receive = {
+    case r @ Request(service, attr, ids, reqID) => {
+      val replyTo = sender()
+      implicit val rnr = RequestNReply(r, replyTo)
+      val progress = context.actorOf(progressHandler)
+      progress ! SPAttributes("progress" -> "Reading model")
+
+      val result = for {
+        model <- getAttr(_.dig[ID]("core", "model"))
+        items <- getAttr(_.getAs[List[ID]]("selectedItems")) // troligen bättre att skicka med dem i idablesToFill för då kommer de att fyllas i requesten direkt. KB
+        id <- getAttr(_.getAs[ID]("id")) // är detta id för modellen?
+      } yield {
+          val infoF = askForModelInfo(id, modelHandler)
+          val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
+          val vars = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing])
+          val sopSpecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
+
+          infoF.foreach { info =>
+            progress ! SPAttributes("progress" -> "got info and data from model")
+
+            //Create Supremica Module and synthesize guards.
+            val ptmw = ParseToModuleWrapper(info.name, vars, ops, sopSpecs)
+            val ptmwModule = {
+              progress ! SPAttributes("progress" -> "creating wmod file")
+              ptmw.addVariables()
+              ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+              ptmw.addOperations()
+              ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+              ptmw.addForbiddenExpressions()
+              ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+              progress ! SPAttributes("progress" -> "Synthesizing supervisor")
+              ptmw.SupervisorAsBDD()
+            }
+            val optSupervisorGuards = ptmwModule.getSupervisorGuards.map(_.filter(og => !og._2.equals("1")))
+            val updatedOps = ops.map(o => ptmw.addSPConditionFromAttributes(ptmw.addSynthesizedGuardsToAttributes(o, optSupervisorGuards), optSupervisorGuards))
+
+            modelHandler ! UpdateIDs(id, updatedOps, SPAttributes("info" -> s"Model synthesized by service $service, request $reqID"))
+
+            progress ! SPAttributes("progress" -> "Synthesized operations sent to model")
+
+
+            lazy val synthesizedGuards = optSupervisorGuards.getOrElse(Map()).foldLeft(SPAttributes()) { case (acc, (event, guard)) =>
+              acc merge SPAttributes("synthesizedGuards" -> SPAttributes(event -> guard))
+            }
+            lazy val nbrOfStates = SPAttributes("nbrOfStatesInSupervisor" -> ptmwModule.nbrOfStates())
+
+            println(s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
+            if(synthesizedGuards.obj.nonEmpty) println(synthesizedGuards.pretty)
+
+            progress ! SPAttributes("progress" -> s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
+
+            ptmw.addSupervisorGuardsToFreshFlower(optSupervisorGuards)
+            ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+            progress ! SPAttributes("progress" -> "saved to wmod file in ./testFiles/gitIgnore/")
+
+
+            progress ! PoisonPill
+            replyTo ! Response(updatedOps, synthesizedGuards merge nbrOfStates, service, reqID)
+            self ! PoisonPill
+          }
+
+        }
+    }
+
+//    case "go" =>
+//
+//      lazy val activeModel = attr.getAs[SPAttributes]("activeModel")
+//      lazy val selectedItems = attr.getAs[List[SPAttributes]]("selectedItems").map( _.flatMap(_.getAs[ID]("id"))).getOrElse(List())
+//
+//      lazy val id = activeModel.flatMap(_.getAs[ID]("id")).getOrElse(ID.newID)
+//
+//      for {
+//        modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
+//
+//        //Collect ops, vars, forbidden expressions
+//        SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.id))
+//        //        ops = opsToBe.filter(obj => selectedItems.contains(obj.id)).map(_.asInstanceOf[Operation])
+//        ops = opsToBe.map(_.asInstanceOf[Operation])
+//        SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.id))
+//        //        vars = varsToBe.filter(obj => selectedItems.contains(obj.id)).map(_.asInstanceOf[Thing])
+//        vars = varsToBe.map(_.asInstanceOf[Thing])
+//        SPIDs(sopSpecToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.id))
+//        sopSpecs = sopSpecToBe.filter(obj => selectedItems.contains(obj.id) && obj.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
+//
+//        //Create Supremica Module and synthesize guards.
+//        ptmw = ParseToModuleWrapper(modelInfo.name, vars, ops, sopSpecs)
+//        ptmwModule = {
+//          status = SynthesizeModelBasedOnAttributesRunnerStatus("Creating wmod module")
+//          ptmw.addVariables()
+//          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+//          ptmw.addOperations()
+//          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+//          ptmw.addForbiddenExpressions()
+//          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+//          status = SynthesizeModelBasedOnAttributesRunnerStatus("Synthesizing supervisor")
+//          ptmw.SupervisorAsBDD()
+//        }
+//        optSupervisorGuards = ptmwModule.getSupervisorGuards.map(_.filter(og => !og._2.equals("1")))
+//
+//        //Update operations with conditions and change to Supremica syntax
+//        updatedOps = ops.map(o => ptmw.addSPConditionFromAttributes(ptmw.addSynthesizedGuardsToAttributes(o, optSupervisorGuards), optSupervisorGuards))
+//        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, items = updatedOps, info = SPAttributes("info" -> "Model synthesized")))
+//
+//      } yield {
+//
+//        lazy val synthesizedGuards = optSupervisorGuards.getOrElse(Map()).foldLeft(SPAttributes()) { case (acc, (event, guard)) =>
+//          acc merge SPAttributes("synthesizedGuards" -> SPAttributes(event -> guard))
+//        }
+//        lazy val nbrOfStates = SPAttributes("nbrOfStatesInSupervisor" -> ptmwModule.nbrOfStates())
+//
+//        println(s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
+//        if(synthesizedGuards.obj.nonEmpty) println(synthesizedGuards.pretty)
+//
+//        ptmw.addSupervisorGuardsToFreshFlower(optSupervisorGuards)
+//        ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+//        progress.cancel()
+//        replyTo ! Response(updatedOps, synthesizedGuards merge nbrOfStates)
+//      }
+  }
+}
+
 
 case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List[Operation], sopSpec: List[SOPSpec]) extends FlowerPopulater with Exporters with Algorithms with TextFilePrefix {
 

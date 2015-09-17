@@ -45,6 +45,53 @@ trait ServiceSupport {
     p.future
   }
 
+  def askForIDAbles(mess: ModelCommand, modelHandler: ActorRef)(implicit rnr: RequestNReply, ec: ExecutionContext, timeout: Timeout) = {
+    val p = Promise[List[IDAble]]()
+    val model = mess.model
+    val replyTo = rnr.reply
+    val f = modelHandler ? mess
+    f.onSuccess{
+      case SPIDs(xs) => p.success(xs)
+      case x: SPError => {
+        replyTo ! SPErrors(List(SPError(s"$model failed when asked $mess"), x))
+        p.failure(new RuntimeException(x.toString))
+      }
+      case x => {
+        replyTo ! SPError(s"$model failed when asked $mess, got $x")
+        p.failure(new RuntimeException(x.toString))
+      }
+    }
+    f.onFailure{ case e =>
+      replyTo ! SPErrors(List(SPError(s"$model failed when asked $mess"), SPError(e.getMessage)))
+      p.failure(e)
+    }
+
+    p.future
+  }
+
+  def askForModelInfo(model: ID, modelHandler: ActorRef)(implicit rnr: RequestNReply, ec: ExecutionContext, timeout: Timeout) = {
+    val p = Promise[ModelInfo]()
+    val replyTo = rnr.reply
+    val f = modelHandler ? GetModelInfo(model)
+    f.onSuccess{
+      case x: ModelInfo => p.success(x)
+      case x: SPError => {
+        replyTo ! SPErrors(List(SPError(s"$model failed when asked for info"), x))
+        p.failure(new RuntimeException(x.toString))
+      }
+      case x => {
+        replyTo ! SPError(s"$model failed when asked for info, got $x")
+        p.failure(new RuntimeException(x.toString))
+      }
+    }
+    f.onFailure{ case e =>
+      replyTo ! SPErrors(List(SPError(s"$model failed when asked for info"), SPError(e.getMessage)))
+      p.failure(e)
+    }
+
+    p.future
+  }
+
   def progressHandler(implicit rnr: RequestNReply) = {
     Props(classOf[ProgressHandler], rnr.req, rnr.reply)
   }
@@ -66,9 +113,11 @@ class ProgressHandler(request: Request, replyTo: ActorRef) extends Actor {
       count += 1
       sendProgress
 
-      if (lastUpdate < count + 30) // terminate if no response from service in 15 sec
+      if (lastUpdate < count + 30) {
+        // terminate if no response from service in 15 sec
         self ! PoisonPill
-      else
+        replyTo ! SPError("Service failed to respond!")
+      } else
         nextTick
     }
   }
