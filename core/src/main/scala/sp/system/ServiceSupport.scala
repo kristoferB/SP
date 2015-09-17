@@ -13,19 +13,18 @@ import scala.util._
 
 
 trait ServiceSupport {
+  case class RequestNReply(req: Request, reply: ActorRef)
 
-  type RequestAndReply = (Request, ActorRef)
-
-  def getAttr[T](transform: SPAttributes => Option[T], error: String = "could translate the attributes in the service")(implicit rnr: RequestAndReply): Option[T] = {
-    val result = transform(rnr._1.attributes)
-    if (result.isEmpty) rnr._2 ! SPError(error + s"\nreq: ${rnr._1}")
+  def getAttr[T](transform: SPAttributes => Option[T], error: String = "could translate the attributes in the service")(implicit rnr: RequestNReply): Option[T] = {
+    val result = transform(rnr.req.attributes)
+    if (result.isEmpty) rnr.reply ! SPError(error + s"\nreq: ${rnr.req}")
     result
   }
 
-  def askAService(request: Request, serviceHandler: ActorRef)(implicit rnr: RequestAndReply, ec: ExecutionContext, timeout: Timeout) = {
+  def askAService(request: Request, serviceHandler: ActorRef)(implicit rnr: RequestNReply, ec: ExecutionContext, timeout: Timeout) = {
     val p = Promise[Response]()
     val service = request.service
-    val replyTo = rnr._2
+    val replyTo = rnr.reply
     val f = serviceHandler ? request.copy(attributes = request.attributes + ("onlyResponse"->true))
     f.onSuccess{
       case x: Response => p.success(x)
@@ -46,8 +45,8 @@ trait ServiceSupport {
     p.future
   }
 
-  def progressHandler(implicit rnr: RequestAndReply) = {
-    Props(classOf[ProgressHandler], rnr._1, rnr._2)
+  def progressHandler(implicit rnr: RequestNReply) = {
+    Props(classOf[ProgressHandler], rnr.req, rnr.reply)
   }
 
 }
@@ -55,16 +54,22 @@ trait ServiceSupport {
 class ProgressHandler(request: Request, replyTo: ActorRef) extends Actor {
   import context.dispatcher
   var count = 0
+  var lastUpdate = 0
   var progress = Progress(SPAttributes(), request.service, request.reqID)
   self ! "tick"
   def receive = {
     case attr: SPAttributes => {
       progress = progress.copy(attributes = attr)
+      lastUpdate = count
     }
     case "tick" => {
       count += 1
       sendProgress
-      nextTick
+
+      if (lastUpdate < count + 30) // terminate if no response from service in 15 sec
+        self ! PoisonPill
+      else
+        nextTick
     }
   }
 
@@ -73,7 +78,6 @@ class ProgressHandler(request: Request, replyTo: ActorRef) extends Actor {
   }
 
   def nextTick = {
-    println("hej")
     context.system.scheduler.scheduleOnce(500 milliseconds, self, "tick")
   }
 }

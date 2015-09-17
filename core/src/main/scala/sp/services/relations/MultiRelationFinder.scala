@@ -53,7 +53,7 @@ class MultiRelationFinder(serviceHandler: ActorRef,
   def receive = {
     case r @ Request(service, attr, ids, reqID) => {
       val replyTo = sender()
-      implicit val requestNReplyTo = (r, replyTo)
+      implicit val rnr = RequestNReply(r, replyTo)
       val progress = context.actorOf(progressHandler)
 
       val res = for {

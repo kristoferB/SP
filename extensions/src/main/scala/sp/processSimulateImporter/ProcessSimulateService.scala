@@ -1,5 +1,6 @@
 package sp.processSimulateImporter
 
+import akka.actor.Status.Success
 import akka.actor._
 import sp.domain.logic.{ActionParser, PropositionParser}
 import sp.system.ServiceSupport
@@ -13,7 +14,7 @@ import scala.concurrent.duration._
 import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
 import akka.camel.{ CamelExtension, CamelMessage, Consumer, Producer }
 
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 /**
  * Some unclear interfaces. What is items?
@@ -29,17 +30,10 @@ object ProcessSimulateService {
     )
   )
 
-  // Om du vill att den skall skapa en actor per request så skriver du såhär
-  //def props = sp.system.ServiceLauncher.props(Props(classOf[ProcessSimulateService]))
-
-  // Nu skapas endast en service, enl nedan, då activeMQ ju är tung. Men jag tycker vi skall
-  // lägga den i en egen så att vi har en service som kallas activeMQ som man skickar till
-  def props(modelHandler: ActorRef, psAmq: ActorRef) = Props(classOf[ProcessSimulateService], modelHandler, psAmq)
+  // Nu skapas en actor per request
+  def props(modelHandler: ActorRef, psAmq: ActorRef) = sp.system.ServiceLauncher.props(Props(classOf[ProcessSimulateService], modelHandler, psAmq))
 }
 
-object ProcessSimulateAMQ {
-  def props = Props(classOf[ProcessSimulateAMQ])
-}
 
 // activemq part    Beövs det inte en consumer också?
 class ProcessSimulateAMQ extends Actor with Producer {
@@ -47,25 +41,19 @@ class ProcessSimulateAMQ extends Actor with Producer {
   def endpointUri = "activemq:PS"
 }
 
+object ProcessSimulateAMQ {
+  def props = Props(classOf[ProcessSimulateAMQ])
+}
 
 
 class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Actor  with ServiceSupport {
   implicit val timeout = Timeout(5 seconds)
-
   import context.dispatcher
 
-  def addObjectFromJSON(json: String, modelid: ID) = {
-    for {
-      value <- SPValue.fromJson(json)
-      idable <- value.to[IDAble]
-    } yield modelHandler ! UpdateIDs(modelid, List(idable))
-
-  }
-
   def receive = {
-    case r@Request(service, attr, ids, reqID) => {
+    case r @ Request(service, attr, ids, reqID) => {
       val replyTo = sender()
-      implicit val requestNReplyTo = (r, replyTo)
+      implicit val rnr = RequestNReply(r, replyTo)
       val progress = context.actorOf(progressHandler)
 
       progress ! SPAttributes("progress" -> "creating a json for Process simulate")
@@ -80,17 +68,31 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
             case "import" => fetch(model, params, ids, progress)
             case "import_single" => fetch_single(model, params, ids, progress)
           }
+
+        res onComplete {
+          case Success(resp) => {
+            replyTo ! resp
+            terminate(progress)
+          }
+          case Failure(t) => {
+            replyTo ! SPError("Failed when communicating")
+            terminate(progress)
+          }
         }
 
-      progress ! PoisonPill
-      for {
 
-      }
+        }
+
     }
     case _ => sender ! SPError("Ill formed request");
   }
 
-  def createOp(model: ID, params: SPAttributes, ids: List[IDAble], progress: ActorRef)(implicit rnr: (Request, ActorRef)) = {
+  def terminate(progress: ActorRef): Unit = {
+    self ! PoisonPill
+    progress ! PoisonPill
+  }
+
+  def createOp(model: ID, params: SPAttributes, ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
     // lite oklart här. Vad gör raden? hur ser datastrukturen ut i params? Bör definieras i en case class
     val checkItems = params.findObjectsWithField(List(("checked", SPValue(true)))).unzip._1.flatMap(ID.makeID)
     val sopSpecs = ids.filter(item => item.isInstanceOf[SOPSpec] && checkItems.contains(item.id)).map(_.asInstanceOf[SOPSpec])
@@ -121,24 +123,21 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
 
     val items = handlePSAnswer(ask)
 
-    items.map{list => Response(list, SPAttributes("command" -> "create_op_chain"), rnr._1.service, rnr._1.reqID)}
+    items.map{list => Response(list, SPAttributes("command" -> "create_op_chain"), rnr.req.service, rnr.req.reqID)}
 
   }
 
-  def fetch(model: ID, params: SPAttributes, ids: List[IDAble], progress: ActorRef)(implicit rnr: (Request, ActorRef)) = {
+  def fetch(model: ID, params: SPAttributes, ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
     val json = SPAttributes("command" -> "get_all_tx_objects") toJson
 
     val ask = psAmq ? json
     progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
 
     val items = handlePSAnswer(ask)
-    items.map{list => Response(list, SPAttributes("command" -> "get_all_tx_objects"), rnr._1.service, rnr._1.reqID)}
-
-
+    items.map{list => Response(list, SPAttributes("command" -> "get_all_tx_objects"), rnr.req.service, rnr.req.reqID)}
   }
 
-  def fetch_single(model: ID, params: SPAttributes, ids: List[IDAble], progress: ActorRef)(implicit rnr: (Request, ActorRef)) = {
-
+  def fetch_single(model: ID, params: SPAttributes, ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
     val txid = params.getAs[String]("txid").getOrElse("")
 
     val json = SPAttributes("command" -> "get_tx_object", "params" -> Map("txid" -> txid)) toJson
@@ -146,16 +145,13 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
 
     val items = handlePSAnswer(ask)
-    items.map{list => Response(list, SPAttributes("command" -> "get_all_tx_objects"), rnr._1.service, rnr._1.reqID)}
-
-
-
+    items.map{list => Response(list, SPAttributes("command" -> "get_all_tx_objects"), rnr.req.service, rnr.req.reqID)}
   }
 
-  def handlePSAnswer(f: Future[Any])(implicit rnr: (Request, ActorRef)): Future[List[IDAble]] = {
+  def handlePSAnswer(f: Future[Any])(implicit rnr: RequestNReply): Future[List[IDAble]] = {
     val p = Promise[List[IDAble]]()
 
-    // finds error by exception
+    // finds error by exception, since then the future fails
     val res: Future[List[IDAble]] = f.map{answer =>
       val json = answer.asInstanceOf[CamelMessage].body.toString
       val value = SPValue.fromJson(json).get
@@ -168,7 +164,7 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     res.map(p.success(_))
     res.onFailure{case x => {
       p.failure(x)
-      rnr._2 ! SPError(s"Failed when communicating with Process simulate: $x")
+      rnr.reply ! SPError(s"Failed when communicating with Process simulate: $x")
     }}
 
     p.future
