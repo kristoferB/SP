@@ -1,7 +1,6 @@
 package sp.virtcom
 
 import akka.actor._
-import org.json4s.JsonAST.JBool
 import sp.domain.logic.{PropositionParser, ActionParser}
 import sp.domain._
 import sp.jsonImporter.ServiceSupportTrait
@@ -246,7 +245,7 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
         def getGuard(directGuardAttr: Set[String], nestedGuardAttr: Set[TransformationPatternInAttributes => Option[String]]) = {
           lazy val allGuards = directAttrValues(o, directGuardAttr) ++ nestedAttrValues(o, nestedGuardAttr, "==")
           lazy val guardAsString = if (allGuards.isEmpty) "" else allGuards.mkString("(", ")&(", ")")
-          PropositionParser(idablesToParseFromString).parseStr(guardAsString) match {
+          PropositionParser(idablesToParseFromString).parseStr(stringPredicateToSupremicaSyntax(guardAsString)) match {
             case Right(p) => Some(p)
             case Left(fault) => println(s"PropositionParser failed for operation ${op.name} on guard: $guardAsString. Failure message: $fault"); None
           }
@@ -254,7 +253,7 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
         def getAction(directActionAttr: Set[String], nestedActionAttr: Set[TransformationPatternInAttributes => Option[String]]) = {
           val actionsAsStrings = directAttrValues(o, directActionAttr) ++ nestedAttrValues(o, nestedActionAttr, "=")
           actionsAsStrings.flatMap { action =>
-            ActionParser(idablesToParseFromString).parseStr(action) match {
+            ActionParser(idablesToParseFromString).parseStr(stringActionToSupremicaSyntax(action)) match {
               case Right(a) => Some(a)
               case Left(fault) => println(s"ActionParser failed for operation ${op.name} on action: $action. Failure message: $fault"); None
             }
