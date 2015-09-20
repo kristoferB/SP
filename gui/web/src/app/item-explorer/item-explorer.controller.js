@@ -42,6 +42,7 @@
                 check_callback: checkCallback
             },
             plugins: ['dnd', 'types', 'contextmenu', 'search'],
+            search: { "show_only_matches" : true},
             types: {
                 '#' : {
                     valid_children: ['Root', 'AllItemsRoot']

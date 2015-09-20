@@ -3,7 +3,6 @@ package sp.virtcom
 import akka.actor.{Props, Actor, ActorRef}
 import akka.pattern.ask
 import akka.util.Timeout
-import org.json4s.JsonAST.JBool
 import sp.domain._
 import sp.jsonImporter.ServiceSupportTrait
 import sp.system.messages._
@@ -81,7 +80,9 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
         }
 
       } yield {
-        val initState = getInitState(vars.toSet)
+
+        val initState = getIdleState(vars.toSet)
+
         val markedState = stateIsMarked(vars.toSet)
 
         import sp.domain.logic.PropositionConditionLogic._
@@ -93,12 +94,15 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
           val wfs = WrapperForSearch(ops.toSet)
 
           def findOpSeqIterator(remainingOpList: Seq[Operation], startState: State = initState, opSeqToReturn: Seq[Operation] = Seq()): Option[Seq[Operation]] = remainingOpList match {
+              //No more operations remains in list
             case Nil => wfs.findOpSeq(markedState, Set(startState), Map(startState -> Seq())) match {
               case Some(wfs.OpSeqResult(_, opSeq)) =>
                 val finalOpSeq = opSeq ++ opSeqToReturn
                 Some(finalOpSeq.reverse)
               case _ => None
             }
+              //At least one more operation remains in list
+              //The goal state is set to the first state from where the first operation in the list of remaining operations can start
             case o :: os => wfs.findOpSeq(o.conditions.head.eval, Set(startState), Map(startState -> Seq())) match {
               case Some(wfs.OpSeqResult(lastState, opSeq)) =>
                 val nextStartState = wfs.updateStateBasedOnAllOperationActions(lastState, o)
@@ -108,14 +112,16 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
 
           }
 
-          //          println("search started")
+                    println("search started")
           val foundSeq = findOpSeqIterator(opSeqFromSpec) match {
             case Some(seq) =>
-              println(s"The found sequence for specification $name contains ${seq.size} operations.")
+              println(s"The found sequence for specification \'$name\' contains ${seq.size} operations.")
               Sequence(seq.map(o => Hierarchy(o.id, List())): _*)
-            case _ => EmptySOP
+            case _ =>
+              println(s"No sequence for specification \'$name\' could be found.")
+              EmptySOP
           }
-          //          println("search ended")
+                    println("search ended")
 
           for {
             _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id,
@@ -130,23 +136,28 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
 
   }
 
-  def getInitState(vars: Set[Thing]) = {
+  def getIdleState(vars: Set[Thing]) = {
     val state = vars.foldLeft(Map(): Map[ID, SPValue]) { case (acc, v) =>
-      v.attributes.findField(f => f._1 == "init") match {
-        case Some(kv) => acc + (v.id -> kv._2)
-        case _ => acc
+      lazy val optDomain = v.attributes.findField(f => f._1 == "domain").flatMap(_._2.to[List[String]])
+      v.attributes.getAs[Int]("idleValue") match {
+        //Do nothing if idleValue is an int
+        case Some(value) => acc + (v.id -> SPValue(value))
+        //If not an int try with a string
+        case _ => v.attributes.getAs[String]("idleValue") match {
+          case Some(value) => optDomain match {
+            //replace string value with position in domain
+            case Some(domain) if domain.contains(value) => acc + (v.id -> SPValue(domain.indexOf(value)))
+            case _ => acc
+          }
+          case _ => acc
+        }
       }
     }
     State(state)
   }
 
   def stateIsMarked(vars: Set[Thing]): State => Boolean = { thatState =>
-    val goalState = vars.foldLeft(Map(): Map[ID, SPValue]) { case (acc, v) =>
-      v.attributes.findAs[String]("goal") match {
-        case i :: Nil => acc + (v.id -> Integer.parseInt(i))
-        case _ => acc
-      }
-    }
+    lazy val goalState = getIdleState(vars)
     def checkState(stateToCheck: Seq[(ID, SPValue)] = thatState.state.toSeq): Boolean = stateToCheck match {
       case kv +: rest => goalState.get(kv._1) match {
         case Some(v) => if (v.equals(kv._2)) checkState(rest) else false
@@ -174,8 +185,8 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
 
       case class LocalResult(fStates: Set[State], vStates: Map[State, Seq[Operation]])
       def oneMoreIteration() = {
-        val enabledOps = freshStates.map(s => s -> ops.filter(_.conditions(0).eval(s)))
-        val newStates = enabledOps.foldLeft(new LocalResult(Set(), visitedStates): LocalResult) { case (acc, (s, os)) =>
+        val enabledOpsFromEachFreshState = freshStates.map(s => s -> ops.filter(_.conditions(0).eval(s)))
+        val newStates = enabledOpsFromEachFreshState.foldLeft(new LocalResult(Set(), visitedStates): LocalResult) { case (acc, (s, os)) =>
           val newAcc = os.foldLeft(acc: LocalResult) { case (accInner, o) =>
             val targetStateForOperationO = updateStateBasedOnAllOperationActions(s, o)
             if (accInner.vStates.contains(targetStateForOperationO))
@@ -187,6 +198,7 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
           }
           newAcc
         }
+        //Inner method starts
         findOpSeq(terminationCondition, newStates.fStates, newStates.vStates)
       }
 
