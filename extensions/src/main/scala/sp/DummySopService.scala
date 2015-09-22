@@ -61,23 +61,14 @@ class DummySopService extends Actor with ServiceSupport {
 
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
-      // val ops = ids.filter(item => item.isInstanceOf[Operation])
-      // println(s"ops: $ops")
+      val ops = ids.filter(item => item.isInstanceOf[Operation])
+      println(s"selected ops: $ops")
 
       println(s"core är även med: $core")
 
-      val items = List(SOPSpec(name = "DummySop", sop = List(), attributes = SPAttributes().addTimeStamp))
+      val items = List(SOPSpec(name = "DummySop", sop = ops.map(x => Hierarchy(x.id)), attributes = SPAttributes().addTimeStamp))
 
-      s.searchMethod match {
-        case "theBad" => {
-          println("HEJ theBad")
-          sendResp(Response(items, SPAttributes("setup" -> s), service, reqID), progress)
-        }
-        case "theGood" => {
-          println("HEJ theGood")
-          sendResp(Response(items, SPAttributes("setup" -> s), service, reqID), progress)
-        }
-      }
+      sendResp(Response(items, SPAttributes(), service, reqID), progress)
     }
     case (r : Response, reply: ActorRef) => {
       reply ! r
