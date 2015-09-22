@@ -46,13 +46,13 @@ class DummySopService extends Actor with ServiceSupport {
   import context.dispatcher
 
   def receive = {
-    case r @ Request(service, attr, ids, reqID) => {
+    case r @ Request(service, attr, ids, reqID) =>
 
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
 
-      // include this if you whant to send progress messages. Send attributes to it during calculations
+      // include this if you want to send progress messages. Send attributes to it during calculations
       val progress = context.actorOf(progressHandler)
 
       println(s"I got: $r")
@@ -72,11 +72,9 @@ class DummySopService extends Actor with ServiceSupport {
     }
     case (r : Response, reply: ActorRef) => {
       reply ! r
-    }
-    case x => {
+    case x =>
       sender() ! SPError("What do you whant me to do? "+ x)
       self ! PoisonPill
-    }
   }
 
   import scala.concurrent._

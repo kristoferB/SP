@@ -8,9 +8,10 @@
         .module('app.spServices')
         .factory('spServicesService', spServicesService);
 
-    spServicesService.$inject = ['$q', 'logger', 'restService', 'modelService', 'itemService', 'eventService'];
+    spServicesService.$inject = ['$q', 'logger', 'restService', 'modelService', 'itemService', 'eventService',
+                                 'dashboardService'];
     /* @ngInject */
-    function spServicesService($q, logger, restService, modelService, itemService, eventService) {
+    function spServicesService($q, logger, restService, modelService, itemService, eventService, dashboardService) {
         var service = {
             spServices: [],
             startSpService: startSpService
@@ -30,7 +31,7 @@
           return $q.all(promises).then(function() {
               logger.info('spServices service: Loaded ' + service.spServices + ' spServices through REST.');
           });
-          
+
         }
 
         // test
@@ -64,16 +65,17 @@
 
             var serviceAttributes = spService.attributes;
 
-            logger.info("Tesing service run");
+            logger.info("Testing service run");
             logger.info(serviceAttributes);
             logger.info(core);
 
             var sendAttr = {'core': core};
 
-            restService.postToServiceInstance(sendAttr, spService.name).then(success);
+            return restService.postToServiceInstance(sendAttr, spService.name).then(success);
 
             function success(data){
                 logger.info('service answer: ' + JSON.stringify(data) + '.');
+                return data;
             }
 
         }

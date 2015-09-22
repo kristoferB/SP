@@ -12,10 +12,11 @@
     /* @ngInject */
     function spServicesController(spServicesService, $scope, dashboardService) {
         var vm = this;
+        var dashboard = $scope.$parent.vm.dashboard;
         vm.widget = $scope.$parent.widget; //For GUI
-        vm.registeredServices = spServicesService.spServices; //From RESTapi
+        vm.registeredServices = spServicesService.spServices; //From REST-api
         vm.displayedRegisteredServices = []; //For GUI
-        vm.startSpService = spServicesService.startSpService; //To start a service. Name of service as parameter
+        vm.startSpService = startSPService; //To start a service. Name of service as parameter
 
         activate();
 
@@ -23,6 +24,22 @@
             $scope.$on('closeRequest', function() {
                 dashboardService.closeWidget(vm.widget.id);
             });
+        }
+
+        function startSPService() {
+            spServicesService.startSpService.then(success);
+
+            function success(data) {
+                if (data.isa === 'Response') {
+                    for(var i = 0; i < data.ids.length; i++) {
+                        var widgetKind = _.find(dashboardService.widgetKinds, {title: 'SOP Maker'});
+                        var widgetStorage = {
+                            sopSpec: data.ids[i]
+                        };
+                        dashboardService.addWidget(dashboard, widgetKind, widgetStorage);
+                    }
+                }
+            }
         }
 
     }
