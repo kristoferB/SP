@@ -64,20 +64,18 @@
 
             var serviceAttributes = spService.attributes;
 
-          logger.info("Tesing service run");
-          logger.info(serviceAttributes);
-          logger.info(core);
+            logger.info("Tesing service run");
+            logger.info(serviceAttributes);
+            logger.info(core);
 
-          var sendAttr = {'core': core};
+            var sendAttr = {'core': core};
 
-            var responseF = restService.postToServiceInstance(sendAttr, spService.name);
+            restService.postToServiceInstance(sendAttr, spService.name).then(success);
 
-              responseF.then(function(data){
+            function success(data){
                 logger.info('service answer: ' + JSON.stringify(data) + '.');
-            })
+            }
 
-
-            ;
         }
 
     }
