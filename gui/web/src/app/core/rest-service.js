@@ -13,21 +13,16 @@
             getItems: getItems,
             getModelDiff: getModelDiff,
             revertModel: revertModel,
-            getRuntimeKinds: getRuntimeKinds,
-            getRuntimeInstances: getRuntimeInstances,
-            stopRuntimeInstance: stopRuntimeInstance,
             getRegisteredServices: getRegisteredServices,
             postToModelHandler: postToModelHandler,
             postToModel: postToModel,
             postItem: postItem,
             postItems: postItems,
-            postToRuntimeHandler: postToRuntimeHandler,
-            postToRuntimeInstance: postToRuntimeInstance,
             postToServiceHandler: postToServiceHandler,
             postToServiceInstance: postToServiceInstance,
             deleteModel: deleteModel,
             deleteItem: deleteItem,
-            errorToString: errorToString
+            getNewID: getNewID
         };
 
         return service;
@@ -35,10 +30,8 @@
         function getModels() { return getStuff(API.models, 'models'); }
         function getItems(modelID) { return getStuff(API.items(modelID), 'items'); }
         function getModelDiff(modelID, version) { return getStuff(API.modelDiff(modelID,version), 'model diff'); }
+        function getNewID() { return getStuff(API.newID, 'get new id'); }
         function revertModel(modelID, version) { return getStuff(API.revertModel(modelID, version), 'revert model'); }
-        function getRuntimeKinds() { return getStuff(API.runtimeKinds, 'runtime kinds'); }
-        function getRuntimeInstances() { return getStuff(API.runtimeHandler, 'runtime instances'); }
-        function stopRuntimeInstance(runtimeID) { return getStuff(API.stopRuntimeInstance(runtimeID), 'runtime stop'); }
         function getRegisteredServices() { return getStuff(API.serviceHandler, 'registered services'); }
 
         function getStuff(restURL, itemKind) {
@@ -63,10 +56,6 @@
         function postToModel(modelID, data) { return postStuff(API.model(modelID), 'model actor', data); }
         function postItem(item, modelID) { return postStuff(API.item(modelID, item.id), 'model actor', item); }
         function postItems(data, modelID) { return postStuff(API.items(modelID), 'model actor', data); }
-        function postToRuntimeHandler(data) { return postStuff(API.runtimeHandler, 'runtime handler', data); }
-        function postToRuntimeInstance(data, runtimeID) {
-            return postStuff(API.runtimeInstance(runtimeID), 'runtime instance', data);
-        }
         function postToServiceHandler(data) { return postStuff(API.serviceHandler, 'service handler', data); }
         function postToServiceInstance(data, serviceID) {
             return postStuff(API.serviceInstance(serviceID), 'service instance', data);
@@ -111,6 +100,8 @@
                 return $q.reject(msg);
             }
         }
+
+
 
         /**
          * Move to some place good

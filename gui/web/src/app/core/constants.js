@@ -19,6 +19,7 @@
             runtimeInstance: function(runtimeID) { return '/api/runtimes/' + runtimeID; },
             stopRuntimeInstance: function(runtimeID) { return '/api/runtimes/' + runtimeID + '/stop'; },
             serviceHandler: '/api/services',
-            serviceInstance: function(serviceInstanceID) { return '/api/services/' + serviceInstanceID; }
+            serviceInstance: function(serviceInstanceID) { return '/api/services/' + serviceInstanceID; },
+            newID: '/api/services/newid'
         });
 })();

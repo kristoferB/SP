@@ -291,6 +291,9 @@ trait ServiceAPI extends SPApiHelpers {
     /{ get { complete{
       (serviceHandler ? GetServices).mapTo[List[ServiceInfo]]
     }}} ~
+    path("newid"){
+      dynamic{complete(ID.newID)}
+    } ~
       path(Segment / "import") { service =>
         post {
           entity(as[spray.http.MultipartFormData]){ value =>
@@ -315,10 +318,12 @@ trait ServiceAPI extends SPApiHelpers {
         }
       } ~
       pathPrefix(Segment){ service =>
+        import sp.domain.Logic._
         implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
         post {
           entity(as[SPAttributes]) { attr =>
-          callSP(Request(service, attr))
+            val id = attr.getAs[ID]("reqID").get //.getOrElse(ID.newID) for testing
+            callSP(Request(service, attr, List(), id))
         }}
       }
 

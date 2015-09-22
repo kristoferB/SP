@@ -28,7 +28,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       createDiffUpd(ids, info) match {
         case Right(diff) =>
           store(diff, {
-            reply ! SPOK
+            reply ! diff
           })
         case Left(error) => reply ! error
       }

@@ -16,7 +16,7 @@
         vm.widget = $scope.$parent.$parent.$parent.widget; //For GUI
         vm.registeredServices = spServicesService.spServices; //From REST-api
         vm.displayedRegisteredServices = []; //For GUI
-        vm.startSpService = startSPService; //To start a service. Name of service as parameter
+        vm.startSpService = spServicesService.callService; //To start a service. Name of service as parameter
 
         activate();
 
