@@ -85,7 +85,7 @@
             function fail(error) {
                 console.log("got an error")
                 console.log(error.data)
-                var msg = 'Service: ' + receiver  + ' failed:\n' + errorToString(error.data);
+                var msg = 'Service: ' + receiver  + ' failed:' + errorToString(error.data);
                 logger.error(msg);
                 return $q.reject(msg);
             }
@@ -120,20 +120,20 @@
             var msg = ""
             if (!angular.isUndefined(error.errors)){
                 angular.forEach(error.errors, function(e){
-                    msg = msg + '\n' + e.error
+                    msg = msg + '<br/>\n' + e.error
                 })
             }
             if (!angular.isUndefined(error.error)){
-                msg = msg + '\n' + error.error
+                msg = msg + '<br/>\n' + error.error
             }
             if (!angular.isUndefined(error.service)){
-                msg = msg + '\n' + 'Error from Service: '+error.service+ " request id: "+error.id;
-                msg = msg + '\n' + errorToString(error.serviceError)
+                msg = msg + '<br/>\n' + 'Error from Service: '+error.service+ " request id: "+error.id;
+                msg = msg + '<br/>\n' + errorToString(error.serviceError)
             }
             if (!angular.isUndefined(error.conflicts)){
-                msg = msg + '\n' + 'The following IDs could not be updated: \n';
+                msg = msg + '<br/>\n' + 'The following IDs could not be updated: \n';
                 angular.forEach(error.conflicts, function(id){
-                    msg = msg + '\n' + id
+                    msg = msg + '<br/>\n' + id
                 })
             }
             return msg;

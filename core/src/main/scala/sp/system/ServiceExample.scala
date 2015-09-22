@@ -22,13 +22,7 @@ object ServiceExample extends SPService {
 
   val transformTuple  = (
     TransformValue("setup", _.getAs[ExampleSetup]("setup")),
-    TransformValue("findID", _.getAs[ID]("findID")),
-    TransformValue("searchMethod", x => {
-      for {
-        value <- x.dig[String]("setup", "searchMethod")
-        if List("theGood", "theBad").contains(value)
-      } yield value
-    })
+    TransformValue("findID", _.getAs[ID]("findID"))
   )
 
   val transformation = transformToList(transformTuple.productIterator.toList)

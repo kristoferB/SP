@@ -21,16 +21,18 @@
         return service;
 
         function activate() {
-            var promises = [getRegisteredSpServices()];
-            return $q.all(promises).then(function() {
-                logger.info('spServices service: Loaded ' + service.spServices + ' spServices through REST.');
-            });
 
           eventService.addListener('SPErrorString', onEvent);
           eventService.addListener('SPErrors', onEvent);
           eventService.addListener('ServiceError', onEvent);
           eventService.addListener('Progress', onEvent);
           eventService.addListener('Response', onEvent);
+
+          var promises = [getRegisteredSpServices()];
+          return $q.all(promises).then(function() {
+              logger.info('spServices service: Loaded ' + service.spServices + ' spServices through REST.');
+          });
+          
         }
 
         // test
