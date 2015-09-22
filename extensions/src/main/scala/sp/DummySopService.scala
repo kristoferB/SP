@@ -66,7 +66,9 @@ class DummySopService extends Actor with ServiceSupport {
 
       println(s"core är även med: $core")
 
-      val items = List(SOPSpec(name = setup.sopname, sop = ops.map(x => Hierarchy(x.id)), attributes = SPAttributes().addTimeStamp))
+      val hs = ops.map(x => Hierarchy(x.id))
+      val seq = Sequence(hs:_*)
+      val items = List(SOPSpec(name = setup.sopname, sop = List(seq), attributes = SPAttributes().addTimeStamp))
 
       sendResp(Response(items, SPAttributes(), service, reqID), progress)
 
