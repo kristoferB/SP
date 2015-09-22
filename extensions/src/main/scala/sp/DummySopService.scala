@@ -69,8 +69,8 @@ class DummySopService extends Actor with ServiceSupport {
       val items = List(SOPSpec(name = setup.sopname, sop = ops.map(x => Hierarchy(x.id)), attributes = SPAttributes().addTimeStamp))
 
       sendResp(Response(items, SPAttributes(), service, reqID), progress)
-    }
-    case (r : Response, reply: ActorRef) => {
+
+    case (r : Response, reply: ActorRef) =>
       reply ! r
     case x =>
       sender() ! SPError("What do you whant me to do? "+ x)

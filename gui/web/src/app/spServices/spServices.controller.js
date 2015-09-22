@@ -26,8 +26,8 @@
             });
         }
 
-        function startSPService() {
-            spServicesService.startSpService.then(success);
+        function startSPService(spService) {
+            spServicesService.startSpService(spService).then(success);
 
             function success(data) {
                 if (data.isa === 'Response') {
