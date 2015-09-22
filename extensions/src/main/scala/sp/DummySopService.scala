@@ -15,7 +15,7 @@ object DummySopService extends SPService {
       "description"-> "Create a Dummy SOP"
     ),
     "setup" -> SPAttributes(
-      "searchMethod" -> KeyDefinition("String", List("theGood", "theBad"), Some("theGood"))
+      "sopname" -> KeyDefinition("String", List(), Some("DummySopName"))
     )
   )
 
@@ -39,7 +39,7 @@ object DummySopService extends SPService {
 }
 
 
-case class DummySopSetup(searchMethod: String)
+case class DummySopSetup(sopname: String)
 
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
 class DummySopService extends Actor with ServiceSupport {
@@ -57,7 +57,7 @@ class DummySopService extends Actor with ServiceSupport {
 
       println(s"I got: $r")
 
-      val s = transform(DummySopService.transformTuple)
+      val setup = transform(DummySopService.transformTuple)
 
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
@@ -66,7 +66,7 @@ class DummySopService extends Actor with ServiceSupport {
 
       println(s"core är även med: $core")
 
-      val items = List(SOPSpec(name = "DummySop", sop = ops.map(x => Hierarchy(x.id)), attributes = SPAttributes().addTimeStamp))
+      val items = List(SOPSpec(name = setup.sopname, sop = ops.map(x => Hierarchy(x.id)), attributes = SPAttributes().addTimeStamp))
 
       sendResp(Response(items, SPAttributes(), service, reqID), progress)
     }
