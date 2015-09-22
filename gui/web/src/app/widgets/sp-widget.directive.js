@@ -18,7 +18,9 @@
             replace: true,
             bindToController: {
                 widget: '=',
-                dashboard: '=', /* When is this used? /Patrik 150915 */
+                dashboard: '=',
+                /* Q: When is this used? /Patrik 150915
+                   A: In certain widget controllers, to determine which dashboard they belong to. /Daniel 150922 */
                 showCloseBtn: '='
             }
         };
@@ -31,6 +33,7 @@
     function SPWidgetController($scope) {
         var vm = this;
         vm.requestClose = requestClose;
+        vm.title = angular.copy(vm.widget.title, '');
 
         function requestClose() {
             $scope.$broadcast('closeRequest', vm.widget.id);

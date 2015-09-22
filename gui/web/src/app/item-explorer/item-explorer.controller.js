@@ -12,8 +12,8 @@
     /* @ngInject */
     function ItemExplorerController($scope, logger, itemService, $modal, dashboardService, $rootScope) {
         var vm = this;
-        vm.widget = $scope.$parent.widget;
-        vm.dashboard = $scope.$parent.vm.dashboard;
+        vm.widget = $scope.$parent.$parent.$parent.vm.widget;
+        vm.dashboard = $scope.$parent.$parent.$parent.vm.dashboard;
         vm.treeInstance = null;
         vm.searchText = '';
         vm.itemService = itemService;

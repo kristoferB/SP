@@ -12,7 +12,7 @@
     /* @ngInject */
     function ItemEditorController($timeout, itemService, $scope, dialogs, dashboardService) {
         var vm = this;
-        vm.widget = $scope.$parent.widget;
+        vm.widget = $scope.$parent.$parent.$parent.widget;
         vm.editor = null;
         vm.editorLoaded = editorLoaded;
         vm.setMode = setMode;

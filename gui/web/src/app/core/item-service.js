@@ -65,9 +65,11 @@
 
         function saveItem(item) {
             if (modelService.activeModel === null) {
-                logger.error('Item Service: Failed to save item, no active model set.');
+                var msg = 'Item Service: Failed to save item, no active model set.';
+                logger.error(msg);
+                return $q.reject(msg);
             } else {
-                restService.postItem(item, modelService.activeModel.id);
+                return restService.postItem(item, modelService.activeModel.id);
             }
         }
 
