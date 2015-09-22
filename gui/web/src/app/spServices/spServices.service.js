@@ -22,8 +22,6 @@
 
         function activate() {
 
-          eventService.addListener('SPErrorString', onEvent);
-          eventService.addListener('SPErrors', onEvent);
           eventService.addListener('ServiceError', onEvent);
           eventService.addListener('Progress', onEvent);
           eventService.addListener('Response', onEvent);
@@ -51,10 +49,15 @@
         function startSpService(spService) {
 //            logger.info("sp services - service: Started service " + spService.name)
 
-            // Core should be prefilled but possible to change in the form
+          // Core should be prefilled but possible to change in the form
+          var ids = _.map(itemService.selected, function(item){
+            return item.id;
+          });
+          console.log(ids);
+
             var core = {
                 'model': modelService.activeModel.id,
-                'includeIDAbles': itemService.selected,
+                'includeIDAbles': ids,
                 'responseToModel': false,
                 'onlyResponse': false
             };
