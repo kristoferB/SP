@@ -1,5 +1,7 @@
 package sp.system
 
+import java.lang.Exception
+
 import akka.actor._
 import org.json4s.{JNothing}
 import sp.domain._
@@ -22,13 +24,8 @@ class ServiceTalker(service: ActorRef,
   val cancelTimeout =  context.system.scheduler.scheduleOnce(3 seconds, self, "timeout")
 
   val x = request.attributes
-  val handleAttr = ServiceHandlerAttributes(
-    x.dig[ID]("core", "model"),
-    x.dig[Boolean]("core", "responseToModel").getOrElse(false),
-    x.dig[Boolean]("core", "onlyResponse").getOrElse(false),
-    x.dig[List[ID]]("core", "includeIDAbles").getOrElse(List())
-
-  )
+  val handleAttr = x.getAs[ServiceHandlerAttributes]("core").getOrElse(
+    ServiceHandlerAttributes(None, false, false, List()))
 
   def receive = {
     case req @ Request(_, attr, ids, _) => {
@@ -102,30 +99,116 @@ object ServiceTalker {
             toBus: Option[ActorRef]) =
     Props(classOf[ServiceTalker], service, modelHandler, replyTo, serviceAttributes, request, toBus)
 
-  def validateRequest(req: Request, serviceAttributes: SPAttributes) = {
-    val attr = req.attributes
-    val expectAttrs = serviceAttributes.findObjectsWithKeysAs[KeyDefinition](List("ofType", "domain"))
-
-    val errors = analyseAttr(attr, expectAttrs)
-    if (errors.nonEmpty) Left(errors) else {
-      val filled = req.copy(attributes = fillDefaults(attr, expectAttrs))
-      Right(filled)
-    }
-  }
+//  def validateRequest(req: Request, serviceAttributes: SPAttributes, transform: List[TransformValue[_]]) = {
+//    val attr = req.attributes
+//    val expectAttrs = serviceAttributes.findObjectsWithKeysAs[KeyDefinition](List("ofType", "domain"))
+//
+//    val errorsAttr = analyseAttr(attr, expectAttrs)
+//    if (errorsAttr.nonEmpty) Left(errorsAttr) else {
+//      val filled = fillDefaults(attr, expectAttrs)
+//      val transformers: List[TransformValue[_]] = transformServiceHandlerAttributes.++(transform)
+//      val tError = analyseTransform(filled, transform)
+//      if (tError.nonEmpty) Left(tError) else {
+//        Right(req.copy(attributes = filled))
+//      }
+//    }
+//  }
 
   def serviceHandlerAttributes = SPAttributes("core" -> SPAttributes(
-    "model"-> KeyDefinition("ID", List(), Some("")),
+    "model"-> KeyDefinition("Option[ID]", List(), Some(JNothing)),
     "responseToModel"->KeyDefinition("Boolean", List(true, false), Some(false)),
     "includeIDAbles"->KeyDefinition("List[ID]", List(), Some(SPValue(List[IDAble]()))),
     "onlyResponse"->KeyDefinition("Boolean", List(true, false), Some(false))
   ))
+  def transformServiceHandlerAttributes = List[TransformValue[_]](
+    TransformValue("core", _.getAs[ServiceHandlerAttributes]("core"))
+  )
+
+  def validateRequest(req: Request, serviceAttributes: SPAttributes, transform: List[TransformValue[_]])= {
+    val attr = req.attributes
+    val expectAttrs = serviceAttributes.findObjectsWithKeysAs[KeyDefinition](List("ofType", "domain"))
+    val errorsAttr = analyseAttr(attr, expectAttrs)
+    if (errorsAttr.nonEmpty) Left(errorsAttr) else {
+      try {
+        val upd = reqUpdate(attr, serviceAttributes)
+        val transformers: List[TransformValue[_]] =  transform //++ transformServiceHandlerAttributes
+        val tError = analyseTransform(upd, transformers)
+        if (tError.nonEmpty) Left(tError) else {
+          Right(req.copy(attributes = upd))
+        }
+      } catch {
+        case e: Exception => {
+          Left(List(SPError(e.getMessage)))
+        }
+      }
+    }
+  }
+
+  import org.json4s._
+  private def reqUpdate(reqAttr: SPAttributes, specAttr: SPAttributes): SPAttributes = {
+    val sKeys = specAttr.obj.map(_._1)
+    sKeys match {
+      case Nil => reqAttr
+      case x :: xs => {
+        val reqObj = reqAttr.get(x)
+        val specObj = specAttr.getAs[KeyDefinition](x)
+        val updReq: SPAttributes = (specObj, reqObj) match {
+          case (Some(KeyDefinition(ofType, domain, default)), Some(value)) => {
+            if (domain.nonEmpty && !domain.contains(value)){throw new Exception(s"value: $value is not include in the domain: $domain for key: $x")}
+            reqAttr
+          }
+          case (Some(KeyDefinition(ofType, domain, Some(defaultValue))), None) => {
+            reqAttr + (x -> defaultValue)
+          }
+          case (Some(KeyDefinition(ofType, domain, None)), None) => {
+            if (!ofType.toLowerCase.contains("option"))
+              throw new Exception(s"Required key test2: $x is missing")
+            else
+              reqAttr
+          }
+          case (None, dummy) => {
+            (specAttr.get(x), reqObj) match {
+              case (Some(value: JObject), Some(req: JObject)) => {
+                val fixedBelow = reqUpdate(req, value)
+                SPAttributes(reqAttr.obj.filterNot(_._1 == x) :+ (x->fixedBelow))
+              }
+              case (Some(value: JObject), None) => {
+                val fixedBelow = reqUpdate(SPAttributes(), value)
+                reqAttr + (x -> fixedBelow)
+              }
+              case (Some(value: JObject), Some(req: JValue)) => {
+                throw new Exception(s"The key: $x expects an object, not: $req")
+              }
+              case (s,r) => {
+                reqAttr
+              }
+            }
+          }
+        }
+        val updSpec = SPAttributes(specAttr.obj.filterNot(_._1 == x))
+        reqUpdate(updReq, updSpec)
+      }
+    }
+  }
+
+
+
+
 
   private def analyseAttr(attr: SPAttributes, expected: List[(String, KeyDefinition)]): List[SPError] = {
     expected.flatMap{ case (key, v) =>
       val flatAttr = attr.filterField{x => true}.toMap
-      flatAttr.get(key).getOrElse(v.default.getOrElse(JNothing)) match {
-        case JNothing => List(SPError(s"required key $key is missing"))
-        case _ => List()
+
+      println(s"key: $key value: ${flatAttr.get(key)} default: ${v.default}")
+
+      flatAttr.get(key).orElse(v.default) match {
+        case None => {
+          if (!v.ofType.toLowerCase.contains("option"))
+            List(SPError(s"Required key $key is missing"))
+          else
+            List()
+        }
+        case x => List()
       }
     }
   }
@@ -136,5 +219,13 @@ object ServiceTalker {
     attr + SPAttributes(d)
   }
 
+  private def analyseTransform(attr: SPAttributes, tr: List[TransformValue[_]]) = {
+    tr.flatMap{t =>
+      t.transform(attr) match {
+        case Some(x) => None
+        case None => Some(SPError(s"Couldn't transform the key: ${t.key}"))
+      }
+    }
+  }
 }
 

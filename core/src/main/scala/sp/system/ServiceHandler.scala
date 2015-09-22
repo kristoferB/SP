@@ -10,14 +10,14 @@ import sp.domain.Logic._
 class ServiceHandler(mh: ActorRef, eh: ActorRef) extends Actor{
   val log = Logging(context.system, this)
   var actors: Map[String, ActorRef] = Map()
-  var specs: Map[String, SPAttributes] = Map()
+  var specs: Map[String, (SPAttributes, List[TransformValue[_]])] = Map()
 
   def receive = {
-    case r @ RegisterService(service, ref, attr) => {
+    case r @ RegisterService(service, ref, attr, transform) => {
       if (!actors.contains(service)) {
         actors += service -> ref
         val serviceSpec = attr + ServiceTalker.serviceHandlerAttributes
-        specs = specs + (service -> serviceSpec)
+        specs = specs + (service -> (serviceSpec, transform))
         ref.tell(r, sender)
         eh ! ServiceInfo(service, serviceSpec)
       }
@@ -36,12 +36,20 @@ class ServiceHandler(mh: ActorRef, eh: ActorRef) extends Actor{
     }
     case r @ Request(s, _, _, _) => {
       if (actors.contains(s)){
-        ServiceTalker.validateRequest(r, specs(s)) match {
+        val spec = specs(s)
+        println(s"in servicehandler: $r")
+        ServiceTalker.validateRequest(r, spec._1, spec._2) match {
           case Right(req) => {
-            val talker = context.actorOf(ServiceTalker.props(actors(s), mh, sender, specs(s), req, Some(eh)))
-            talker.tell(r, sender())
+            println(s"in servicehandler everything ok: $req")
+
+            val talker = context.actorOf(ServiceTalker.props(actors(s), mh, sender, spec._1, req, Some(eh)))
+            talker.tell(req, sender())
           }
-          case Left(e) => sender() ! SPErrors(e)
+          case Left(e) => {
+            sender() ! SPErrors(e)
+            println(s"in servicehandler error: ${e}")
+
+          }
         }
       }
       else sender() ! SPError(s"Service ${s} does not exists")
@@ -52,7 +60,7 @@ class ServiceHandler(mh: ActorRef, eh: ActorRef) extends Actor{
       }
       else sender ! SPError(s"Service ${m.service} does not exists")
     }
-    case GetServices => sender ! specs.map{case (name, attribute) => ServiceInfo(name,attribute)}.toList
+    case GetServices => sender ! specs.map{case (name, attribute) => ServiceInfo(name,attribute._1)}.toList
   }
 }
 

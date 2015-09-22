@@ -26,7 +26,8 @@
             postToServiceHandler: postToServiceHandler,
             postToServiceInstance: postToServiceInstance,
             deleteModel: deleteModel,
-            deleteItem: deleteItem
+            deleteItem: deleteItem,
+            errorToString: errorToString
         };
 
         return service;
@@ -52,7 +53,7 @@
             }
 
             function fail(error) {
-                var msg = 'REST Service: Query for ' + itemKind  + ' failed. ' + error.data;
+                var msg = 'REST Service: Query for ' + itemKind  + ' failed. ' + JSON.stringify(error.data);
                 logger.error(msg);
                 return $q.reject(msg);
             }
@@ -82,7 +83,9 @@
             }
 
             function fail(error) {
-                var msg = 'REST Service: Post of data to ' + receiver  + ' failed. ' + error.data;
+                console.log("got an error")
+                console.log(error.data)
+                var msg = 'Service: ' + receiver  + ' failed:\n' + errorToString(error.data);
                 logger.error(msg);
                 return $q.reject(msg);
             }
@@ -107,6 +110,33 @@
                 logger.error(msg);
                 return $q.reject(msg);
             }
+        }
+
+        /**
+         * Move to some place good
+         * @param error the SPError
+         */
+        function errorToString(error){
+            var msg = ""
+            if (!angular.isUndefined(error.errors)){
+                angular.forEach(error.errors, function(e){
+                    msg = msg + '\n' + e.error
+                })
+            }
+            if (!angular.isUndefined(error.error)){
+                msg = msg + '\n' + error.error
+            }
+            if (!angular.isUndefined(error.service)){
+                msg = msg + '\n' + 'Error from Service: '+error.service+ " request id: "+error.id;
+                msg = msg + '\n' + errorToString(error.serviceError)
+            }
+            if (!angular.isUndefined(error.conflicts)){
+                msg = msg + '\n' + 'The following IDs could not be updated: \n';
+                angular.forEach(error.conflicts, function(id){
+                    msg = msg + '\n' + id
+                })
+            }
+            return msg;
         }
     }
 })();

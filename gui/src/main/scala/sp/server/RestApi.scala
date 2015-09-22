@@ -335,7 +335,7 @@ trait SPApiHelpers extends HttpService with Json4SSP {
 
   implicit def jm[T <: AnyRef] =  json4sMarshaller[T]
 
-  val timeout = Timeout(3 seconds)
+  val timeout = Timeout(5 seconds)
   // to cleanup the routing
   def / = pathEndOrSingleSlash
 
@@ -353,11 +353,12 @@ trait SPApiHelpers extends HttpService with Json4SSP {
     case ri: RuntimeInfo => complete(ri)
     case RuntimeInfos(xs) => complete(xs)
     case RuntimeKindInfos(xs) => complete(xs)
-    case e: SPErrorString => complete(StatusCodes.InternalServerError, e.error)
-    case e: SPErrors => complete(StatusCodes.InternalServerError, e.errors)
-    case e: ServiceError => complete(StatusCodes.InternalServerError, e)
-    case e: UpdateError => complete(e)
-    case MissingID(id, mess) => complete(StatusCodes.NotFound, s"id: $id $mess")
+    case e: SPError => complete(StatusCodes.InternalServerError, e)
+//    case e: SPErrorString => complete(StatusCodes.InternalServerError, e.error)
+//    case e: SPErrors => complete(StatusCodes.InternalServerError, e.errors)
+//    case e: ServiceError => complete(StatusCodes.InternalServerError, e)
+//    case e: UpdateError => complete(e)
+//    case MissingID(id, mess) => complete(StatusCodes.NotFound, s"id: $id $mess")
     case r: sp.runtimes.opc.RuntimeState => complete(r)
     case a: Any  => complete("reply from application is not converted: " +a.toString)
   }

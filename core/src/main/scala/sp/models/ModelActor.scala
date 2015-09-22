@@ -147,7 +147,7 @@ trait ModelActorState  {
       case GetIds(_, ids) =>
         if (ids.isEmpty) reply ! SPIDs(state.idMap.values.toList)
         else {
-          ids foreach(id=> if (!state.idMap.contains(id)) reply ! MissingID(id))
+          ids foreach(id=> if (!state.idMap.contains(id)) reply ! SPError(s"Model ${state.name} does not contain id: $id"))
           val res = for {
             i <- ids
             x <- state.idMap.get(i)
@@ -290,9 +290,7 @@ class ModelView(val model: ID, version: Long, name: String) extends PersistentVi
   override def persistenceId: String = model.toString()
   override def viewId: String = ID.newID.toString()
 
-  override def preStart() {
-    self ! Recover(toSequenceNr = version)
-  }
+  override def recovery = Recovery(toSequenceNr = version)
 
   override def autoUpdate = false
 

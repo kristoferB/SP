@@ -11,9 +11,33 @@ import akka.util.Timeout
 import scala.util._
 
 
+trait SPService {
+  val specification: SPAttributes
+  val transformation: List[TransformValue[_]]
+
+  def transformToList(xs: List[Any]) = {
+    for {
+      x <- xs
+      if x.isInstanceOf[TransformValue[_]]
+    } yield x.asInstanceOf[TransformValue[_]]
+  }
+}
+
 
 trait ServiceSupport {
+  type transformed
   case class RequestNReply(req: Request, reply: ActorRef)
+
+
+  def transform[T](tV: TransformValue[T])(implicit rnr: RequestNReply): T = {
+    val replyTo = rnr.reply    
+    val service = rnr.req.service
+    val attr = rnr.req.attributes
+    
+    val transformO = tV.transform(attr)
+    if (transformO.isEmpty) replyTo ! SPError(s"Couldn't transform the key ${tV.key}")
+    transformO.get
+  }
 
   def getAttr[T](transform: SPAttributes => Option[T], error: String = "could translate the attributes in the service")(implicit rnr: RequestNReply): Option[T] = {
     val result = transform(rnr.req.attributes)
@@ -113,7 +137,7 @@ class ProgressHandler(request: Request, replyTo: ActorRef) extends Actor {
       count += 1
       sendProgress
 
-      if (lastUpdate < count + 30) {
+      if (lastUpdate > count + 30) {
         // terminate if no response from service in 15 sec
         self ! PoisonPill
         replyTo ! SPError("Service failed to respond!")
@@ -133,7 +157,7 @@ class ProgressHandler(request: Request, replyTo: ActorRef) extends Actor {
 
 class ServiceLauncher(runner: Props) extends Actor {
   def receive = {
-    case RegisterService(s, _, _) => println(s"Service $s is registered")
+    case RegisterService(s, _, _,_) => println(s"Service $s is registered")
     case RemoveService(s) => println(s"Service $s is removed")
     case req: Request => {
       try {

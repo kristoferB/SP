@@ -37,31 +37,33 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
 
   "The Service Talker" must {
     "analyse request attributes an pass if ok" in {
-      val definition = SPAttributes("key1" -> KeyDefinition("kk", List(), None),
-        "key2" -> SPAttributes("key3" -> KeyDefinition("kk", List(), None)))
-      val attr = SPAttributes("key1" -> "hej", "key3" -> "kalle")
+      val definition = SPAttributes("key1" -> KeyDefinition("kk", List("hej", "kalle"), None),
+        "key2" -> SPAttributes("key3" -> KeyDefinition("kk", List("hej", "kalle"), None))) +
+      ServiceTalker.serviceHandlerAttributes
+
+      val attr = SPAttributes("key1" -> "hej", "key2" -> Map("key3" -> "kalle"))
       val request = Request("temp", attr, List())
 
-      val x = ServiceTalker.validateRequest(request, definition)
-      x shouldEqual Right(Request("temp", SPAttributes("key1" -> "hej", "key3" -> "kalle"), List(), request.reqID))
+      val x = ServiceTalker.validateRequest(request, definition, List())
+      x shouldEqual Right(Request("temp", SPAttributes("key1" -> "hej", "key2" -> Map("key3" -> "kalle"), "core"-> ServiceHandlerAttributes(None, false, false, List())), List(), request.reqID))
     }
 
     "analyse request attributes an fail if missing" in {
-      val definition = SPAttributes("key1" -> KeyDefinition("String", List(), None),
-        "key2" -> SPAttributes("key3" -> KeyDefinition("String", List(), None)))
+      val definition = SPAttributes("key1" -> KeyDefinition("String", List("hej", "kalle"), None),
+        "key2" -> SPAttributes("key3" -> KeyDefinition("String", List("hej", "kalle"), None)))
       val attr = SPAttributes("key1" -> "hej")
       val request = Request("temp", attr, List())
-      val x = ServiceTalker.validateRequest(request, definition)
-      x shouldEqual Left(List(SPErrorString(s"required key key3 is missing")))
+      val x = ServiceTalker.validateRequest(request, definition, List())
+      x shouldEqual Left(List(SPErrorString(s"Required key key3 is missing")))
     }
 
     "analyse request attributes an fill if missing" in {
-      val definition = SPAttributes("key1" -> KeyDefinition("String", List(), Some("japp")),
-        "key2" -> SPAttributes("key3" -> KeyDefinition("String", List(), None)))
-      val attr = SPAttributes("key3" -> "kalle")
+      val definition = SPAttributes("key1" -> KeyDefinition("String", List("hej", "kalle"), Some("japp")),
+        "key2" -> SPAttributes("key3" -> KeyDefinition("String", List("hej", "kalle"), None)))
+      val attr = SPAttributes("key2" -> Map("key3" -> "kalle"))
       val request = Request("temp", attr, List())
-      val x = ServiceTalker.validateRequest(request, definition)
-      x shouldEqual Right(Request("temp", SPAttributes("key1" -> "japp", "key3" -> "kalle"), List(), request.reqID))
+      val x = ServiceTalker.validateRequest(request, definition, List())
+      x shouldEqual Right(Request("temp", SPAttributes("key1" -> "japp", "key2" -> Map("key3" -> "kalle")), List(), request.reqID))
     }
 
     "forward a request" in {
@@ -121,7 +123,7 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
     }
     "Expect only response if onlyResponse attribute" in {
       val p = TestProbe()
-      val r = Request("delay", SPAttributes("onlyResponse"->true), List())
+      val r = Request("delay", SPAttributes("core"-> ServiceHandlerAttributes(None, false, true, List())), List())
       val testA = system.actorOf(Props(classOf[testService], o))
       val st = system.actorOf(
         ServiceTalker.props(
@@ -139,7 +141,7 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
     }
     "Expect SPTalker to fill model" in {
       val p = TestProbe()
-      val r = Request("reply", SPAttributes("model"->id), List())
+      val r = Request("reply", SPAttributes("core"-> ServiceHandlerAttributes(Some(id), true, false, List())), List())
       val testA = system.actorOf(Props(classOf[testService], o))
       val st = system.actorOf(
         ServiceTalker.props(
@@ -158,7 +160,7 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
       val p = TestProbe()
       val empty = TestProbe()
       val dead = TestProbe()
-      val r = Request("reply", SPAttributes("model"->id), List())
+      val r = Request("reply", SPAttributes("core"-> ServiceHandlerAttributes(Some(id), true, false, List())), List())
       val testA = system.actorOf(Props(classOf[testService], o))
       val st = system.actorOf(
         ServiceTalker.props(

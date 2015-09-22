@@ -38,15 +38,17 @@ class ServiceHandlerTest(_system: ActorSystem) extends TestKit(_system) with Imp
 
     "Add the service" in {
         val p = TestProbe()
+        val e = TestProbe()
         val serviceDef = SPAttributes()
-        val sh = system.actorOf(ServiceHandler.props(p.ref))
+        val sh = system.actorOf(ServiceHandler.props(p.ref, e.ref))
         sh ! RegisterService("hej", p.ref, serviceDef)
         p.expectMsgPF(100 milliseconds){case r: RegisterService => println(r)}
     }
     "Remove the service" in {
         val p = TestProbe()
+        val e = TestProbe()
         val serviceDef = SPAttributes()
-        val sh = system.actorOf(ServiceHandler.props(p.ref))
+        val sh = system.actorOf(ServiceHandler.props(p.ref, e.ref))
         sh ! RegisterService("hej", p.ref, serviceDef)
         sh ! RemoveService("hej")
         sh ! Request("hej", SPAttributes())
@@ -67,7 +69,8 @@ class ServiceHandlerTest(_system: ActorSystem) extends TestKit(_system) with Imp
         "key2" -> SPAttributes("key3" -> KeyDefinition("kk", List(), None)))
       val attr = SPAttributes("key1" -> "hej", "key3" -> "kalle")
       val p = TestProbe()
-      val sh = system.actorOf(ServiceHandler.props(p.ref))
+      val e = TestProbe()
+      val sh = system.actorOf(ServiceHandler.props(p.ref, e.ref))
       sh ! RegisterService("hej", p.ref, definition)
       sh ! Request("hej", attr)
 
@@ -81,7 +84,8 @@ class ServiceHandlerTest(_system: ActorSystem) extends TestKit(_system) with Imp
         "key2" -> SPAttributes("key3" -> KeyDefinition("kk", List(), None)))
       val attr = SPAttributes("key1" -> "hej")
       val p = TestProbe()
-      val sh = system.actorOf(ServiceHandler.props(p.ref))
+      val e = TestProbe()
+      val sh = system.actorOf(ServiceHandler.props(p.ref, e.ref))
       sh ! RegisterService("hej", p.ref, definition)
       sh ! Request("hej", attr)
 

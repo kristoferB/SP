@@ -44,7 +44,10 @@ object SP extends App {
     system.actorOf(ConditionsFromSpecsService.props(modelHandler), "ConditionsFromSpecsService"))
 
   serviceHandler ! RegisterService("Example",
-    system.actorOf(ServiceExample.props, "Example"))
+    system.actorOf(ServiceExample.props, "Example"),
+    ServiceExample.specification,
+    ServiceExample.transformation
+  )
 
 
   //  import sp.areus._

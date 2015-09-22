@@ -9,7 +9,8 @@ import sp.domain._
 
 case class RegisterService(service: String,
                            ref: ActorRef,
-                           attributes: SPAttributes = SPAttributes()) extends SPCommand
+                           attributes: SPAttributes = SPAttributes(),
+                           validate: List[TransformValue[_]] = List()) extends SPCommand
 
 case class RemoveService(service: String) extends ServiceCommand with SPEvent
 case object GetServices extends SPCommand
@@ -69,3 +70,10 @@ case class Progress(attributes: SPAttributes, service: String, reqID: ID) extend
  * @param default
  */
 case class KeyDefinition(ofType: String, domain: List[SPValue] = List(), default: Option[SPValue] = None)
+
+/**
+ * Used for validating the request
+ * @param transform
+ * @tparam T
+ */
+case class TransformValue[T](key: String, transform: SPAttributes => Option[T])

@@ -8,8 +8,7 @@ import sp.domain._
 import sp.domain.Logic._
 
 
-
-object ServiceExample {
+object ServiceExample extends SPService {
   val specification = SPAttributes(
     "service" -> SPAttributes(
       "group"-> "aMenuGroup" // to organize in gui. maybe use "hide" to hide service in gui
@@ -21,12 +20,25 @@ object ServiceExample {
     "findID" -> KeyDefinition("ID", List(), Some(""))
   )
 
+  val transformTuple  = (
+    TransformValue("setup", _.getAs[ExampleSetup]("setup")),
+    TransformValue("findID", _.getAs[ID]("findID")),
+    TransformValue("searchMethod", x => {
+      for {
+        value <- x.dig[String]("setup", "searchMethod")
+        if List("theGood", "theBad").contains(value)
+      } yield value
+    })
+  )
+
+  val transformation = transformToList(transformTuple.productIterator.toList)
+
   // important to incl ServiceLauncher if you want unique actors per request
   def props = ServiceLauncher.props(Props(classOf[ServiceExample]))
 }
 
 
-case class ExampleSetup(onlyOperations: Option[Boolean], searchMethod: Option[String])
+case class ExampleSetup(onlyOperations: Boolean, searchMethod: String)
 
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
 class ServiceExample extends Actor with ServiceSupport {
@@ -42,55 +54,57 @@ class ServiceExample extends Actor with ServiceSupport {
       // include this if you whant to send progress messages. Send attributes to it during calculations
       val progress = context.actorOf(progressHandler)
 
-      // ask a service with the following. You need to send in the service Handler in the constructor
-      // of the actor. Avoid using sp.system.SPActorSystem.serviceHandler as below since it
-      // makes it hard to test
-      //val serviceAnswer: Future[Response] = askAService("myService", serviceHandler)
+      println(s"I got: $r")
 
-      // Use the getAttr to simplify extraction of parameters with error support
-      // MAYBE WE SHOULD SIMPLIFY HERE SINCE THESE ARE ALREADY VALIDATED. MAYBE BETTER TO CRASH
-      val res = for {
-        s <- getAttr(_.getAs[ExampleSetup]("setup"), error = "Can not convert the setup")
-        id <- getAttr(_.getAs[ID]("findID"), error = "An ID was not defined in findID")
-      } yield {
-          s.searchMethod match {
-            case Some("theBad") => {
-              println("HEJ")
-              var iterations = 0
-              val filter = ids.filter { x =>
-                progress ! SPAttributes("iterations" -> iterations)
-                iterations += 1
-                if (s.onlyOperations.get && !x.isInstanceOf[Operation] || x.id == id) false
-                else {
-                  val jsonID = SPValue(id)
-                  SPValue(x).find(_ == jsonID).isDefined
-                }
-              }
-              Response(filter, SPAttributes("setup" -> s), service, reqID)
-            }
-            case Some("theGood") => {
-              println("HEJ den bra")
-              var iterations = 0
-              val f2 = IDAbleLogic.removeID(Set(id), ids).map(_.id)
-              val filter = ids.filter { x =>
-                progress ! SPAttributes("iterations" -> iterations)
-                iterations += 1
-                f2.contains(x.id)
-              }
-              Response(filter, SPAttributes("setup" -> s), service, reqID)
+      val s = transform(ServiceExample.transformTuple._1)
+      val id = transform(ServiceExample.transformTuple._2)
+
+      s.searchMethod match {
+        case "theBad" => {
+          println("HEJ")
+          var iterations = 0
+          val filter = ids.filter { x =>
+            progress ! SPAttributes("iterations" -> iterations)
+            iterations += 1
+            if (s.onlyOperations && !x.isInstanceOf[Operation] || x.id == id) false
+            else {
+              val jsonID = SPValue(id)
+              SPValue(x).find(_ == jsonID).isDefined
             }
           }
-      }
-
-      res.foreach{ resp =>
-        replyTo ! resp
-        self ! PoisonPill
-        //progress ! PoisonPill  // behövs om du inte skapar en actor per request
+          sendResp(Response(filter, SPAttributes("setup" -> s), service, reqID), progress)
+        }
+        case "theGood" => {
+          println("HEJ den bra")
+          var iterations = 0
+          val f2 = IDAbleLogic.removeID(Set(id), ids).map(_.id)
+          val filter = ids.filter { x =>
+            progress ! SPAttributes("iterations" -> iterations)
+            iterations += 1
+            f2.contains(x.id)
+          }
+          sendResp(Response(filter, SPAttributes("setup" -> s), service, reqID), progress)
+        }
       }
     }
-    case x => sender() ! SPError("What do you whant me to do? "+ x)
+    case (r : Response, reply: ActorRef) => {
+      reply ! r
+    }
+    case x => {
+      sender() ! SPError("What do you whant me to do? "+ x)
+      self ! PoisonPill
+    }
   }
 
+  import scala.concurrent._
+  import scala.concurrent.duration._
+  def sendResp(r: Response, progress: ActorRef)(implicit rnr: RequestNReply) = {
+    context.system.scheduler.scheduleOnce(2000 milliseconds, self, (r, rnr.reply))
+
+//    rnr.reply ! r
+//    progress ! PoisonPill
+//    self ! PoisonPill
+  }
 
 }
 

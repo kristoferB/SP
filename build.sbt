@@ -1,8 +1,8 @@
 name := "SequencePlanner"
 
 lazy val default = Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.3.11",
-  "com.typesafe.akka" %% "akka-testkit" % "2.3.11",
+  "com.typesafe.akka" %% "akka-actor" % "2.4.0-RC3",
+  "com.typesafe.akka" %% "akka-testkit" % "2.4.0-RC3",
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
   "com.github.nscala-time" %% "nscala-time" % "2.0.0",
   "org.json4s" %% "json4s-native" % "3.2.11",
@@ -12,7 +12,7 @@ lazy val default = Seq(
 
 lazy val commonSettings = Seq(
   version := "0.5.0-SNAPSHOT",
-  scalaVersion := "2.11.6",
+  scalaVersion := "2.11.7",
   resolvers ++= Seq(
     "Sonatype OSS Snapshots" at "https://oss.sonatype.org/Releases",
     "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/"),
