@@ -148,7 +148,7 @@ class ProgressHandler(request: Request, replyTo: ActorRef) extends Actor {
   }
 
   def sendProgress = {
-    replyTo ! progress.copy(attributes = progress.attributes + ("progress", count))
+    replyTo ! progress.copy(attributes = progress.attributes + ("progressNo", count))
   }
 
   def nextTick = {

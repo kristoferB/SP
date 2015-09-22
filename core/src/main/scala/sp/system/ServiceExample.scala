@@ -13,7 +13,7 @@ object ServiceExample extends SPService {
     "service" -> SPAttributes(
       "group"-> "aMenuGroup" // to organize in gui. maybe use "hide" to hide service in gui
     ),
-    "setup" -> Map(
+    "setup" -> SPAttributes(
       "onlyOperations" -> KeyDefinition("Boolean", List(), Some(false)),
       "searchMethod" -> KeyDefinition("String", List("theGood", "theBad"), Some("theGood"))
     ),
@@ -35,6 +35,15 @@ object ServiceExample extends SPService {
 
   // important to incl ServiceLauncher if you want unique actors per request
   def props = ServiceLauncher.props(Props(classOf[ServiceExample]))
+
+
+  // Alla får även "core" -> ServiceHandlerAttributes
+
+//  case class ServiceHandlerAttributes(model: Option[ID],
+//                                      responseToModel: Boolean,
+//                                      onlyResponse: Boolean,
+//                                      includeIDAbles: List[ID])
+
 }
 
 
@@ -58,6 +67,9 @@ class ServiceExample extends Actor with ServiceSupport {
 
       val s = transform(ServiceExample.transformTuple._1)
       val id = transform(ServiceExample.transformTuple._2)
+
+      val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
+      println(s"core är även med: $core")
 
       s.searchMethod match {
         case "theBad" => {

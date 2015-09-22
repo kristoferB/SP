@@ -33,7 +33,6 @@ class ModelHandler extends PersistentActor {
           modelMap(n.id) ! n
           val info = ModelInfo(id, name, 1, attr, List())
           reply ! SPOK
-          //eventHandler ! ModelAdded(id, SPAttributes("modelInfo"->info))
         }
         reply ! SPOK
       } else reply ! SPError("A model with that ID do already exist.")

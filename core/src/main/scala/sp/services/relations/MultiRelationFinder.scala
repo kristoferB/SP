@@ -80,7 +80,7 @@ class MultiRelationFinder(serviceHandler: ActorRef,
         Response(List(), SPAttributes(), r.service, r.reqID)
       }
 
-      
+
       import scala.util.{Success, Failure}
       res onComplete{
         case Success(response) => {

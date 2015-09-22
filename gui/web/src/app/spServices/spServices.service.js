@@ -54,7 +54,7 @@
                 'model': modelService.activeModel.id,
                 'includeIDAbles': itemService.selected,
                 'responseToModel': false,
-                'onlyResponse': true,
+                'onlyResponse': false,
             }
 
             var serviceAttributes = spService.attributes
