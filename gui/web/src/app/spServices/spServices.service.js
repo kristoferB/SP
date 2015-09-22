@@ -8,10 +8,9 @@
         .module('app.spServices')
         .factory('spServicesService', spServicesService);
 
-    spServicesService.$inject = ['$q', 'logger', 'restService', 'modelService', 'itemService', 'eventService',
-                                 'dashboardService'];
+    spServicesService.$inject = ['$q', 'logger', 'restService', 'modelService', 'itemService', 'eventService'];
     /* @ngInject */
-    function spServicesService($q, logger, restService, modelService, itemService, eventService, dashboardService) {
+    function spServicesService($q, logger, restService, modelService, itemService, eventService) {
         var service = {
             spServices: [],
             startSpService: startSpService

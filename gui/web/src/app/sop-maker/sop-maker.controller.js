@@ -71,7 +71,7 @@
 
         function loadAndDraw() {
             if (vm.widget.storage.sopSpec) {
-                vm.sopSpecCopy = vm.widget.storage.sopSpec;
+                vm.sopSpecCopy = angular.copy(vm.widget.storage.sopSpec, {});
                 logger.info('SOP Spec Maker: Loaded a raw SOP structure that was supplied to the widget.');
             } else if (vm.widget.storage.sopSpecID) {
                 var sopSpec = itemService.getItem(vm.widget.storage.sopSpecID);

@@ -133,7 +133,7 @@
                     var op = itemService.getItem(struct.operation);
 
                     struct.clientSideAdditions.drawnText = paper.text(struct.clientSideAdditions.width / 2, (struct.clientSideAdditions.preGuards.length + struct.clientSideAdditions.preActions.length + 1) * measures.condLineHeight + (measures.nameLineHeight-measures.condLineHeight) / 2, op.name).attr({'font-weight': 'bold'});
-                    struct.clientSideAdditions.drawnRect = paper.rect(0, 0, struct.clientSideAdditions.width, struct.clientSideAdditions.height, 5).attr({fill:'#FFFFFF', 'stroke-width':0, text: struct.clientSideAdditions.drawnText});
+                    struct.clientSideAdditions.drawnRect = paper.rect(0, 0, struct.clientSideAdditions.width, struct.clientSideAdditions.height, 5).attr({fill:'#FFFFFF', 'stroke-width':1, text: struct.clientSideAdditions.drawnText});
 
                     if(dirScope.vm.widget.storage.editable) {
                         var opContextMenu = {
