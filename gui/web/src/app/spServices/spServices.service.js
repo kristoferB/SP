@@ -26,16 +26,16 @@
                 logger.info('spServices service: Loaded ' + service.spServices + ' spServices through REST.');
             });
 
-          eventService.addListner('SPErrorString', onEvent);
-          eventService.addListner('SPErrors', onEvent);
-          eventService.addListner('ServiceError', onEvent);
-          eventService.addListner('Progress', onEvent);
-          eventService.addListner('Response', onEvent);
+          eventService.addListener('SPErrorString', onEvent);
+          eventService.addListener('SPErrors', onEvent);
+          eventService.addListener('ServiceError', onEvent);
+          eventService.addListener('Progress', onEvent);
+          eventService.addListener('Response', onEvent);
         }
 
         // test
         function onEvent(data){
-          console.log("got event")
+          console.log("got event");
           console.log(data)
         }
 
@@ -54,18 +54,18 @@
                 'model': modelService.activeModel.id,
                 'includeIDAbles': itemService.selected,
                 'responseToModel': false,
-                'onlyResponse': false,
-            }
+                'onlyResponse': false
+            };
 
-            var serviceAttributes = spService.attributes
+            var serviceAttributes = spService.attributes;
 
-          logger.info("Tesing service run")
-          logger.info(serviceAttributes)
-          logger.info(core)
+          logger.info("Tesing service run");
+          logger.info(serviceAttributes);
+          logger.info(core);
 
-          var sendAttr = {'core': core}
+          var sendAttr = {'core': core};
 
-            var responseF = restService.postToServiceInstance(sendAttr, spService.name)
+            var responseF = restService.postToServiceInstance(sendAttr, spService.name);
 
               responseF.then(function(data){
                 logger.info('service answer: ' + JSON.stringify(data) + '.');

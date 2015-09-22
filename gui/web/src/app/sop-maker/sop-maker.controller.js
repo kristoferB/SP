@@ -70,17 +70,20 @@
         }
 
         function loadAndDraw() {
-            if (vm.widget.storage && vm.widget.storage.sopSpecID) {
+            if (vm.widget.storage.sopSpec) {
+                vm.sopSpecCopy = vm.widget.storage.sopSpec;
+                logger.info('SOP Spec Maker: Loaded a raw SOP structure that was supplied to the widget.');
+            } else if (vm.widget.storage.sopSpecID) {
                 var sopSpec = itemService.getItem(vm.widget.storage.sopSpecID);
                 if (sopSpec === null) {
                     logger.error('The SOP Spec associated with this SOP Maker instance is not available.');
                 } else {
                     vm.sopSpecCopy = angular.copy(sopSpec, {});
-                    vm.sopSpecCopy.vertDir = true;
                     logger.info('SOP Spec Maker: SOP "' + vm.sopSpecCopy.name + '" loaded.');
-                    draw();
                 }
             }
+            vm.sopSpecCopy.vertDir = true;
+            draw();
         }
 
         function save() {
