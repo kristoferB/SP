@@ -127,7 +127,8 @@ class ProgressHandler(request: Request, replyTo: ActorRef) extends Actor {
   var count = 0
   var lastUpdate = 0
   var progress = Progress(SPAttributes(), request.service, request.reqID)
-  self ! "tick"
+  nextTick
+
   def receive = {
     case attr: SPAttributes => {
       progress = progress.copy(attributes = attr)

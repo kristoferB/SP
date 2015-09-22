@@ -3,12 +3,13 @@ package sp.services.relations
 import akka.actor._
 import sp.domain._
 import sp.domain.Logic._
+import sp.system._
 import sp.system.messages._
 import scala.concurrent._
 import scala.concurrent.duration._
 
 
-object MultiRelationFinder {
+object MultiRelationFinder extends SPService {
   val specification = SPAttributes(
     "service" -> SPAttributes(
       "group"-> "Relations"
@@ -29,6 +30,13 @@ object MultiRelationFinder {
     )
   )
 
+  val transformTuple  = (
+    TransformValue("setup", _.getAs[Setup]("setup")),
+    TransformValue("input", _.getAs[Input]("input"))
+    )
+
+  val transformation = transformToList(transformTuple.productIterator.toList)
+
   def props(serviceHandler: ActorRef,
             condFromSpecsService: String,
             flattenOperationService: String) =
@@ -48,7 +56,7 @@ class MultiRelationFinder(serviceHandler: ActorRef,
                            ) extends Actor with sp.system.ServiceSupport with MultiRelationFinderLogic  {
 
   import context.dispatcher
-  implicit val timeout = akka.util.Timeout(1 seconds)
+  implicit val timeout = akka.util.Timeout(2 seconds)
 
   def receive = {
     case r @ Request(service, attr, ids, reqID) => {
@@ -56,23 +64,40 @@ class MultiRelationFinder(serviceHandler: ActorRef,
       implicit val rnr = RequestNReply(r, replyTo)
       val progress = context.actorOf(progressHandler)
 
-      val res = for {
-        setup <- getAttr(_.getAs[Setup]("setup"), "Couldn't convert the setup json")
-        input <- getAttr(_.getAs[Input]("input"), "Couldn't convert the input json")
+      val setup = transform(MultiRelationFinder.transformTuple._1)
+      val inpu = transform(MultiRelationFinder.transformTuple._2)
+
+      val condFromSpecsF = askAService(Request(condFromSpecsService, SPAttributes(), ids.filter(_.isInstanceOf[Specification])), serviceHandler)
+      val flattenOpsF = askAService(Request(flattenOperationService, SPAttributes("someInput"->"yes"), ids), serviceHandler)
+
+      val res: Future[Response] = for {
+        condFromSpec <- condFromSpecsF
+        flattenOps <- flattenOpsF
       } yield {
-          val condFromSpecs = askAService(Request(condFromSpecsService, SPAttributes(), ids.filter(_.isInstanceOf[Specification])), serviceHandler)
-          val flattenOpsF = askAService(Request(flattenOperationService, SPAttributes("someInput"->"yes"), ids), serviceHandler)
+        progress ! SPAttributes("status"-> "Received initial answer from external services")
 
-          progress ! SPAttributes("status"-> "Received initial answer from external services")
 
+        Response(List(), SPAttributes(), r.service, r.reqID)
+      }
+
+      
+      import scala.util.{Success, Failure}
+      res onComplete{
+        case Success(response) => {
+          replyTo ! response
+          self ! PoisonPill
         }
+        case Failure(e) => {
+          // Probably already sent error
+          self ! PoisonPill
+        }
+      }
 
-      res.foreach(replyTo ! _)
+      }
+
     }
 
-    }
 
-  import context.dispatcher
 
 //  def request(attr: ServiceInput, ids: List[IDAble]): Response = {
 //    val setup = attr._1
