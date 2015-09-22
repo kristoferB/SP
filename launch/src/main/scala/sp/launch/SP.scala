@@ -49,6 +49,13 @@ object SP extends App {
     ServiceExample.transformation
   )
 
+  import sp.extensions.DummySopService._
+  serviceHandler ! RegisterService("DummySop",
+    system.actorOf(DummySopService.props, "DummySop"),
+    DummySopService.specification,
+    DummySopService.transformation
+  )
+
 
   //  import sp.areus._
 //
