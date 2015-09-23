@@ -28,8 +28,8 @@
                 {sizeX: 2, sizeY: 2, title: 'Item Explorer', template: 'app/item-explorer/item-explorer.html'},
                 {sizeX: 2, sizeY: 2, title: 'Item Editor', template: 'app/item-editor/item-editor.html'},
                 {sizeX: 2, sizeY: 2, title: 'SOP Maker', template: 'app/sop-maker/sop-maker.html'},
-                {sizeX: 2, sizeY: 2, title: 'Service List', template: 'app/spServices/spServices.html'},
-                {sizeX: 2, sizeY: 1, title: 'Runtime List'}
+                {sizeX: 2, sizeY: 2, title: 'Service List', template: 'app/spServices/spServices.html'}
+                //{sizeX: 2, sizeY: 1, title: 'Runtime List'}
             ]
         };
 

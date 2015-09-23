@@ -13,7 +13,7 @@
     function spServicesController(spServicesService, $scope, dashboardService) {
         var vm = this;
         var dashboard = $scope.$parent.$parent.$parent.vm.dashboard;
-        vm.widget = $scope.$parent.$parent.$parent.widget; //For GUI
+        vm.widget = $scope.$parent.$parent.$parent.vm.widget; //For GUI
         vm.registeredServices = spServicesService.spServices; //From REST-api
         vm.displayedRegisteredServices = []; //For GUI
         vm.startSpService = startSPService; //To start a service. Name of service as parameter
