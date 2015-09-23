@@ -19,4 +19,4 @@ case class SPErrorString(error: String) extends SPError
 case class SPErrors(errors: List[SPError]) extends SPError
 case class UpdateError(currentModelVersion: Long, conflicts: List[ID]) extends SPError
 case class MissingID(id: ID, error: String = s"The Model does not contain that id") extends SPError
-case class ServiceError(service: String, regID: ID, serviceError: SPError) extends SPError
+case class ServiceError(service: String, reqID: ID, serviceError: SPError) extends SPError

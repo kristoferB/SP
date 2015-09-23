@@ -35,7 +35,7 @@
             }
             service.eventSource.addEventListener(target, function(e) {
                 var data = angular.fromJson(e.data);
-                logger.info('Event Service: Received ' + e.event + ' event for target ' + target + '.');
+                logger.info('Event Service: Received event for target ' + target + '.');
                 console.log(e);
                 console.log(data);
                 $rootScope.$apply(handlerFunc(data));

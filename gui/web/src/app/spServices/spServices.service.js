@@ -8,14 +8,15 @@
     .module('app.spServices')
     .factory('spServicesService', spServicesService);
 
-  spServicesService.$inject = ['$q', 'logger', 'restService', 'modelService', 'itemService', 'eventService'];
+  spServicesService.$inject = ['$q', 'logger', 'restService', 'modelService', 'itemService', 'eventService', '$rootScope'];
   /* @ngInject */
-  function spServicesService($q, logger, restService, modelService, itemService, eventService) {
+  function spServicesService($q, logger, restService, modelService, itemService, eventService, $rootScope) {
     var service = {
       spServices: [],
       eventQue: {},
+      eventCounter: 0,
       callService: callService,
-      listenForServiceEvents: listenForServiceEvents
+      eventListeners: {},
     };
 
     activate();
@@ -37,8 +38,6 @@
 
 
 
-
-
     function getRegisteredSpServices() {
       restService.getRegisteredServices().then(function (data) {
 //                logger.info("service" + JSON.stringify(data))
@@ -46,22 +45,13 @@
       });
     }
 
-    /**
-     * To ask a service.
-     * @param spService The service to call
-     * @param request The request attributes to send to the service
-     * @param answerCallBack function(data) where data is a response or an {error:String}
-     * @param progressCallback function(data) where data is a
-     * Progress(isa: 'Progress', attributes: {...}, service: String, reqID: ID)
-     */
-    function callService(spService, request, answerCallBack, progressCallback) {
+
+    function callService(spService, request, responseCallBack, progressCallback) {
       // TODO. Should be moved to serviceForm
       var ids = _.map(itemService.selected, function(item){
         return item.id;
       });
       console.log(ids);
-
-      service.eventQue
 
       var core = {
         'model': modelService.activeModel.id,
@@ -78,7 +68,7 @@
 
       var idF = restService.getNewID();
       var answerF = idF.then(function(id){
-        logger.info('I got id: '+id)
+        addEventListener(id, responseCallBack, progressCallback);
         var sendAttr = {'core': core, reqID: id};
         return restService.postToServiceInstance(sendAttr, spService.name)
       });
@@ -89,27 +79,88 @@
       })
 
     }
-    function listenForServiceEvents(spService, reqID, callBack){
 
+    function addEventListener(reqID, responseCallBack, progressCallback){
+      var current = service.eventListeners[reqID];
+      if (_.isUndefined(current)) {
+        current = {
+          reqID: reqID,
+          response: [],
+          progress: []
+        };
+      }
+      current.response.push(responseCallBack);
+      current.progress.push(progressCallback);
+
+      service.eventListeners[reqID] = current;
+
+      var que = service.eventQue[reqID];
+      if (!_.isUndefined(que)) {
+        _.forEach(que.events, function(e){
+          sendEventToListener(e);
+        })
+      }
     }
 
+    function sendEventToListener(e){
+      var current = service.eventListeners[e.reqID];
+      if (!_.isUndefined(current)) {
+        console.log(current);
+        if (!(_.isUndefined(e.isa)) && e.isa == 'Response'){
+          _.forEach(current.response, function(cb){
+            $rootScope.$apply(cb(e));
+          })
+        }
+        else {
+          _.forEach(current.progress, function(cb){
+            $rootScope.$apply(cb(e));
+          })
+        }
+      }
+    }
 
     // Event handler for services
     function onEvent(data){
       console.log("got event");
-      console.log(data);
 
       var s = data.service
       var id = data.reqID
-
+      var isRespons = !(_.isUndefined(data.isa)) && data.isa == 'Response';
 
       var current = service.eventQue[id]
       if (_.isUndefined(current)) {
-        current = {'service': s, 'reqID': id, events: []};
+        current = {
+          service: s,
+          reqID: id,
+          events: [],
+          counter: service.eventCounter
+        };
+        service.eventCounter += 1;
+        if (service.eventCounter > 1000) service.eventCounter = 0;
       }
+
       current.events.push(data);
+      if (isRespons){
+        current.includesResponse = true;
+        service.eventQue = removeOldEventQues(service.eventQue);
+        //console.log(service.eventQue);
+      }
       service.eventQue[id] = current;
-      console.log(service.eventQue)
+
+      sendEventToListener(data);
+    }
+
+
+    function removeOldEventQues(que){
+      var completed = _.filter(que, function(q){
+        return true;
+      });
+
+      if (completed.length < 10){return que}
+
+      var sorted = _.sortByAll(completed, ['counter']);
+      var noOld = _.takeRight(sorted, 5)
+      return _.indexBy(noOld, 'reqID')
     }
 
   }
