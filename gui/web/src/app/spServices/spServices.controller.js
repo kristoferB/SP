@@ -20,7 +20,11 @@
         vm.currentProgess = {};
         vm.isServiceActive = isServiceActive;
         vm.buildHtmlFromJsonAttr = buildHtmlFromJsonAttr;
+        //<---Temp fields--->
         vm.printToLogger = function(obj) {logger.info("I was asked to print this: "+obj);}
+        vm.textField = "init text";
+        vm.serviceForms = {};
+        //<----------------->
 
         activate();
 
@@ -31,6 +35,8 @@
         }
 
         function startSPService(spService) {
+            logger.info("service form: " + spService.name + " " + JSON.stringify(vm.serviceForms[spService.name]));
+//            spServicesService.callService(spService, {"data":{"setup":{"sopname":"some name"}}}, resp, prog);
             spServicesService.callService(spService, {}, resp, prog);
 
             if (!_.isUndefined(vm.currentProgess[event.service])){
@@ -91,40 +97,45 @@
 
         }
 
-        function buildHtmlFromJsonAttr(jsonToParse) {
+        function buildHtmlFromJsonAttr(serviceAsJson) {
             var toReturn = '';
+            var form = {};
+            var serviceName = serviceAsJson.name;
             function recBuild(obj) {
                 var k;
                 if (obj instanceof Object) {
-//                    var keys = [];
-//                    for (k in obj) {
-//                        keys.push(k);
-//                    }
-//                    if (_.contains(keys,"domain")) {
-//                        toReturn += '<i>' + obj["ofType"] + ' is a domain</i>';
-//                    }
-                    for (k in obj){
-                        if (obj.hasOwnProperty(k)){
-//                            if (k == "domain") {
-//                                toReturn += '<i>' + k + ' is a domain</i>';
-//                            }
-                            toReturn += '<b>' + k + '</b>';
-                            var value = obj[k];
-                            if (value instanceof Object) {
-                                toReturn += '<ul>';
-                                recBuild( obj[k] );
-                                toReturn += '</ul>';
-                            } else {
-                                toReturn += ': ' + value + '<br/>';
+                    var keys = [];
+                    for (k in obj) {
+                        keys.push(k);
+                    }
+                    //Test for obj(ect) to be a KeyDefinition
+                    //From the signature of a KD it will always contains keys 'domain' and 'ofType'.
+                    if (_.contains(keys,"domain") && _.contains(keys,"ofType")) {
+                        //Yes, this obj(ect) is a KeyDefinition
+                        toReturn += '<i>KeyDefinition of type:' + obj["ofType"] + '</i>';
+                    } else {
+                        //No, this obj(ect) is not a KeyDefinition
+                        for (k in obj){
+                            if (obj.hasOwnProperty(k)){
+                                vm.serviceForms[serviceName] = k;
+                                toReturn += '<b>' + k + '</b>';
+                                var value = obj[k];
+                                if (value instanceof Object) {
+                                    toReturn += '<ul>';
+                                    recBuild( obj[k] );
+                                    toReturn += '</ul>';
+                                } else {
+                                    toReturn += ': <input type="text" ng-model="vm.textField"></input>' + value + '<br/>';
+                                }
                             }
                         }
                     }
                 } else {
-                    toReturn += '<li><button ng-click="vm.printToLogger(\''+obj+'\')">' + obj+ '</button></li>';
+                    toReturn += '<li><button ng-click="vm.printToLogger(\''+obj+'\')"> :(' + obj+ '</button></li>';
                 };
             };
 
-            recBuild(jsonToParse);
+            recBuild(serviceAsJson.attributes);
             return toReturn;
         };
 

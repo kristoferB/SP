@@ -60,7 +60,7 @@
       var ids = _.map(itemService.selected, function(item){
         return item.id;
       });
-      console.log(ids);
+      console.log("selected items: " + ids);
 
 
       var defaultCore = {
