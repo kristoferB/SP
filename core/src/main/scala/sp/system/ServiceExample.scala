@@ -96,6 +96,10 @@ class ServiceExample extends Actor with ServiceSupport {
     case (r : Response, reply: ActorRef) => {
       reply ! r
     }
+    case ("boom", replyTo: ActorRef) => {
+      replyTo ! SPError("BOOM")
+      self ! PoisonPill
+    }
     case x => {
       sender() ! SPError("What do you whant me to do? "+ x)
       self ! PoisonPill
@@ -106,6 +110,7 @@ class ServiceExample extends Actor with ServiceSupport {
   import scala.concurrent.duration._
   def sendResp(r: Response, progress: ActorRef)(implicit rnr: RequestNReply) = {
     context.system.scheduler.scheduleOnce(2000 milliseconds, self, (r, rnr.reply))
+    //context.system.scheduler.scheduleOnce(1000 milliseconds, self, ("boom", rnr.reply))
 
 //    rnr.reply ! r
 //    progress ! PoisonPill

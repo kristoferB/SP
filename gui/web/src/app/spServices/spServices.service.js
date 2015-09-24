@@ -17,6 +17,7 @@
       eventCounter: 0,
       callService: callService,
       eventListeners: {},
+      getService: getService
     };
 
     activate();
@@ -37,6 +38,14 @@
     }
 
 
+    function getService(name){
+      var f = _.find(service.spServices, function(s){
+        return s.name == name
+      })
+      return f;
+    }
+
+
 
     function getRegisteredSpServices() {
       restService.getRegisteredServices().then(function (data) {
@@ -53,24 +62,31 @@
       });
       console.log(ids);
 
-      var core = {
+
+      var defaultCore = {
         'model': modelService.activeModel.id,
         'includeIDAbles': ids,
         'responseToModel': false,
         'onlyResponse': false
       };
 
-      var serviceAttributes = spService.attributes;
+      var message = {};
 
-      logger.info("Testing service run");
-      logger.info(serviceAttributes);
-      logger.info(core);
+      if (_.isObject(request.data)){
+        message = request.data;
+      }
+
+      if (_.isUndefined(message.core)){
+        message.core = defaultCore;
+      }
+
+
 
       var idF = restService.getNewID();
       var answerF = idF.then(function(id){
         addEventListener(id, responseCallBack, progressCallback);
-        var sendAttr = {'core': core, reqID: id};
-        return restService.postToServiceInstance(sendAttr, spService.name)
+        message.reqID = id;
+        return restService.postToServiceInstance(message, spService.name)
       });
 
       return answerF.then(function(serviceAnswer){
@@ -90,7 +106,7 @@
         };
       }
       current.response.push(responseCallBack);
-      current.progress.push(progressCallback);
+      current.progress.push(catchErrors);
 
       service.eventListeners[reqID] = current;
 
@@ -99,6 +115,14 @@
         _.forEach(que.events, function(e){
           sendEventToListener(e);
         })
+      }
+
+      function catchErrors(event) {
+        var msg = restService.errorToString(event)
+        if (msg !== ""){
+          logger.error(msg);
+        }
+        progressCallback(event);
       }
     }
 
@@ -121,10 +145,8 @@
 
     // Event handler for services
     function onEvent(data){
-      console.log("got event");
-
-      var s = data.service
-      var id = data.reqID
+      var s = data.service;
+      var id = data.reqID;
       var isRespons = !(_.isUndefined(data.isa)) && data.isa == 'Response';
 
       var current = service.eventQue[id]

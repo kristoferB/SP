@@ -22,7 +22,8 @@
             postToServiceInstance: postToServiceInstance,
             deleteModel: deleteModel,
             deleteItem: deleteItem,
-            getNewID: getNewID
+            getNewID: getNewID,
+            errorToString: errorToString
         };
 
         return service;
@@ -58,7 +59,7 @@
         function postItems(data, modelID) { return postStuff(API.items(modelID), 'model actor', data); }
         function postToServiceHandler(data) { return postStuff(API.serviceHandler, 'service handler', data); }
         function postToServiceInstance(data, serviceID) {
-            return postStuff(API.serviceInstance(serviceID), 'service instance', data);
+            return postStuff(API.serviceInstance(serviceID), serviceID, data);
         }
 
         function postStuff(restURL, receiver, data) {
@@ -108,7 +109,7 @@
          * @param error the SPError
          */
         function errorToString(error){
-            var msg = ""
+            var msg = "";
             if (!angular.isUndefined(error.errors)){
                 angular.forEach(error.errors, function(e){
                     msg = msg + '<br/>\n' + e.error
@@ -117,8 +118,8 @@
             if (!angular.isUndefined(error.error)){
                 msg = msg + '<br/>\n' + error.error
             }
-            if (!angular.isUndefined(error.service)){
-                msg = msg + '<br/>\n' + 'Error from Service: '+error.service+ " request id: "+error.id;
+            if (!angular.isUndefined(error.serviceError)){
+                msg = msg + '<br/>\n' + 'Error from Service: '+error.service+ " request id: "+error.reqID;
                 msg = msg + '<br/>\n' + errorToString(error.serviceError)
             }
             if (!angular.isUndefined(error.conflicts)){

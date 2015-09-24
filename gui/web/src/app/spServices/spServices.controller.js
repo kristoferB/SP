@@ -82,7 +82,7 @@
 
         function isServiceActive(name){
             if (!_.isUndefined(vm.currentProgess[name]))
-                console.log("service: "+name+ "is active");
+                console.log("service: "+name+ " is active");
 
             return !_.isUndefined(vm.currentProgess[name])
         }
