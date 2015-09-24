@@ -20,7 +20,7 @@
 
         <div class="btn-group">
             <button class="btn btn-sm btn-default btn-notext" tooltip="Save Edited Items"
-                    ng-disabled="!vm.widget.storage.atLeastOneItemChanged" ng-click="vm.save()"><i class="fa fa-floppy-o"></i>
+                    ng-class="{'disabled': !vm.widget.storage.atLeastOneItemChanged}" ng-click="vm.save()"><i class="fa fa-floppy-o"></i>
             </button>
         </div>
 
