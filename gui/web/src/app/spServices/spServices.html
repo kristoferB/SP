@@ -1,6 +1,6 @@
-<div ng-controller="spServicesController as vm">
+<div ng-controller="spServicesController as vm" class="sp-services">
     <table sp-table row-collection="vm.registeredServices" displayed-collection="vm.displayedRegisteredServices">
-        <thead><tr><th class="col-md-1">Action</th><th class="col-md-1">Form</th><th class="col-md-10">Name</th></tr></thead>
+        <thead><tr><th class="col-md-1">Action</th><th class="col-md-1">Form</th><th class="col-md-1">Name</th></tr></thead>
         <tbody>
         <tr ng-repeat-start="obj in vm.displayedRegisteredServices | orderBy: '-name'" ng-class-odd="'odd-row'" ng-class-even="'even-row'">
             <!--Action-->
@@ -22,9 +22,8 @@
             <td colspan="99" class="hiddenRow">
                 <div collapse="!rowSettings[$index].expandInfo">
                     <!--Form-->
-                    Form for service<br/>
-                    <!--Attributes-->
-                    Attributes: {{obj.attributes}}
+                    <!--{{obj.attributes}}-->
+                    <sp-services-form form="{{vm.buildHtmlFromJsonAttr(obj.attributes)}}" ></sp-services-form>
                 </div>
             </td>
         </tr>
