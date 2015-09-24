@@ -14,7 +14,6 @@
 
         var directive = {
             link: function(scope, element, attrs) {
-                console.log("inside directive");
                 var template = attrs.form;
                 var linkFn = $compile(template);
                 var content = linkFn(scope);

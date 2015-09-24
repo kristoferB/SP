@@ -8,9 +8,9 @@
       .module('app.spServices')
       .controller('spServicesController', spServicesController);
 
-    spServicesController.$inject = ['spServicesService', '$scope', 'dashboardService'];
+    spServicesController.$inject = ['spServicesService', '$scope', 'dashboardService','logger'];
     /* @ngInject */
-    function spServicesController(spServicesService, $scope, dashboardService) {
+    function spServicesController(spServicesService, $scope, dashboardService, logger) {
         var vm = this;
         var dashboard = $scope.$parent.$parent.$parent.vm.dashboard;
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //For GUI
@@ -96,12 +96,27 @@
             function recBuild(obj) {
                 var k;
                 if (obj instanceof Object) {
+//                    var keys = [];
+//                    for (k in obj) {
+//                        keys.push(k);
+//                    }
+//                    if (_.contains(keys,"domain")) {
+//                        toReturn += '<i>' + obj["ofType"] + ' is a domain</i>';
+//                    }
                     for (k in obj){
                         if (obj.hasOwnProperty(k)){
+//                            if (k == "domain") {
+//                                toReturn += '<i>' + k + ' is a domain</i>';
+//                            }
                             toReturn += '<b>' + k + '</b>';
-                            toReturn += '<ul>';
-                            recBuild( obj[k] );
-                            toReturn += '</ul>';
+                            var value = obj[k];
+                            if (value instanceof Object) {
+                                toReturn += '<ul>';
+                                recBuild( obj[k] );
+                                toReturn += '</ul>';
+                            } else {
+                                toReturn += ': ' + value + '<br/>';
+                            }
                         }
                     }
                 } else {

@@ -31,6 +31,7 @@
             <tr ng-repeat-end ng-class-odd="'odd-row'" ng-class-even="'even-row'">
                 <td colspan="99" class="hiddenRow">
                     <div collapse="!rowSettings[$index].expandInfo">
+                    <!--<div collapse="rowSettings[$index].expandInfo">-->
                         <!--Form-->
                         <!--Attributes: {{obj.attributes}}-->
                         <sp-services-form form="{{vm.buildHtmlFromJsonAttr(obj.attributes)}}" ></sp-services-form>
