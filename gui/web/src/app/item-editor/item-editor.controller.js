@@ -45,6 +45,12 @@
                 }
             });
             listenToChanges();
+
+            vm.widget.storage.data = {o1: {
+                isa: "operation",
+                name: "o1"
+            }
+            };
         }
 
         function resetWidgetStorage() {
@@ -71,6 +77,7 @@
                     var isSame = (nowSelected.length == previouslySelected.length) && nowSelected.every(function(element, index) {
                             return element === previouslySelected[index];
                         });
+                    console.log("item selected");
                     if (!isSame) {
                         var selected = {};
                         for(var i = 0; i < nowSelected.length; i++) {
@@ -83,7 +90,7 @@
             );
         }
 
-        function change(ev) {
+        function change() {
             var keys = Object.keys(vm.widget.storage.data);
             var atLeastOneItemChanged = false;
             for (var i = 0; i < keys.length; i++) {

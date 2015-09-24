@@ -3,7 +3,7 @@
 
     angular
         .module('app.core', [
-            'ngAnimate', 'ngSanitize', 'gridster', 'ngStorage', 'ng.jsoneditor', 'ngJsTree',
+            'ngAnimate', 'ngSanitize', 'gridster', 'ngStorage', 'ngJsTree',
             'blocks.exception', 'blocks.logger', 'blocks.router', 'mwl.confirm', 'dialogs.main',
             'dialogs.default-translations', 'pascalprecht.translate', 'ui.router', 'smart-table', 'xeditable',
             'ui.bootstrap', 'angular.filter'

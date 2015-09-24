@@ -34,8 +34,8 @@
     "jquery": "2.1.4",
     "lodash": "3.10.0",
     "moment": "2.6.0",
+    "jsoneditor": "~4",
     "ng-js-tree": "~0.0.6",
-    "ng-jsoneditor": "angular-tools/ng-jsoneditor",
     "ngstorage": "0.3.7",
     "raphael": "~2.1.4",
     "toastr": "2.1.0"
