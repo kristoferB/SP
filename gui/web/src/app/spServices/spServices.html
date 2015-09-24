@@ -32,9 +32,8 @@
                 <td colspan="99" class="hiddenRow">
                     <div collapse="!rowSettings[$index].expandInfo">
                         <!--Form-->
-                        Form for service<br/>
-                        <!--Attributes-->
-                        Attributes: {{obj.attributes}}
+                        <!--Attributes: {{obj.attributes}}-->
+                        <sp-services-form form="{{vm.buildHtmlFromJsonAttr(obj.attributes)}}" ></sp-services-form>
                     </div>
                 </td>
             </tr>

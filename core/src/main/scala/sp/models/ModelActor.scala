@@ -290,7 +290,7 @@ class ModelView(val model: ID, version: Long, name: String) extends PersistentVi
   override def persistenceId: String = model.toString()
   override def viewId: String = ID.newID.toString()
 
-  override def recovery = Recovery(toSequenceNr = version)
+//  override def recovery = Recovery(toSequenceNr = version) Recovery is not found on compile, Patrik 150924
 
   override def autoUpdate = false
 

@@ -19,6 +19,8 @@
         vm.startSpService = startSPService; //To start a service. Name of service as parameter
         vm.currentProgess = {};
         vm.isServiceActive = isServiceActive;
+        vm.buildHtmlFromJsonAttr = buildHtmlFromJsonAttr;
+        vm.printToLogger = function(obj) {logger.info("I was asked to print this: "+obj);}
 
         activate();
 
@@ -88,6 +90,28 @@
         function success(data) {
 
         }
+
+        function buildHtmlFromJsonAttr(jsonToParse) {
+            var toReturn = '';
+            function recBuild(obj) {
+                var k;
+                if (obj instanceof Object) {
+                    for (k in obj){
+                        if (obj.hasOwnProperty(k)){
+                            toReturn += '<b>' + k + '</b>';
+                            toReturn += '<ul>';
+                            recBuild( obj[k] );
+                            toReturn += '</ul>';
+                        }
+                    }
+                } else {
+                    toReturn += '<li><button ng-click="vm.printToLogger(\''+obj+'\')">' + obj+ '</button></li>';
+                };
+            };
+
+            recBuild(jsonToParse);
+            return toReturn;
+        };
 
 
     }
