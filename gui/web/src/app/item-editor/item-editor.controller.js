@@ -16,7 +16,7 @@
         vm.editor = null;
         vm.editorLoaded = editorLoaded;
         vm.setMode = setMode;
-        vm.modes = ['tree', 'view', 'form', 'code', 'text'];
+        vm.modes = ['tree', 'code'];
         vm.search = function() {vm.editor.search(vm.editor.searchBox.dom.search.value);};
         vm.options = {
             mode: 'tree'
@@ -25,6 +25,8 @@
         vm.itemService = itemService;
         vm.save = save;
         vm.change = change;
+        vm.inSync = true;
+        vm.unSync = unSync;
 
         activate();
 
@@ -81,27 +83,26 @@
             );
         }
 
-        function change() {
+        function change(ev) {
             var keys = Object.keys(vm.widget.storage.data);
             var atLeastOneItemChanged = false;
-            for(var i = 0; i < keys.length; i++) {
+            for (var i = 0; i < keys.length; i++) {
                 var key = keys[i];
                 if (vm.widget.storage.data.hasOwnProperty(key)) {
                     var editorItem = vm.widget.storage.data[key];
                     var centralItem = itemService.getItem(editorItem.id);
                     var equal = _.isEqual(editorItem, centralItem);
                     vm.widget.storage.itemChanged[editorItem.id] = !equal;
-                    if(!equal) {
+                    if (!equal) {
                         atLeastOneItemChanged = true;
                     }
                 }
             }
             vm.widget.storage.atLeastOneItemChanged = atLeastOneItemChanged;
         }
-
         function save() {
             var keys = Object.keys(vm.widget.storage.data);
-            for(var i = 0; i < keys.length; i++) {
+            for (var i = 0; i < keys.length; i++) {
                 var key = keys[i];
                 if (vm.widget.storage.data.hasOwnProperty(key)) {
                     var editorItem = vm.widget.storage.data[key];
@@ -113,7 +114,6 @@
                 }
             }
         }
-
         function setMode(mode) {
             vm.options.mode = mode;
             if (mode === 'code') {
@@ -132,6 +132,13 @@
             $scope.$on('itemsFetch', function() {
                 resetWidgetStorage();
             });
+        }
+
+        function unSync(){
+            if (vm.inSync){
+                vm.inSync = false;
+                // probably remove some watches
+            }
         }
     }
 })();
