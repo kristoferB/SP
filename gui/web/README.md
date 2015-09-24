@@ -12,9 +12,9 @@
  - on OSX use [homebrew](http://brew.sh) `brew install node`
  - on Windows use [chocolatey](https://chocolatey.org/) `choco install nodejs`
  
-2. Install Bower package manager globally.    
+2. Install Gulp and Bower globally.    
     ```bash
-    npm install -g bower
+    npm install -g gulp bower
     ```
     
     >Refer to these [instructions on how to not require sudo](https://github.com/sindresorhus/guides/blob/master/npm-global-without-sudo.md)
