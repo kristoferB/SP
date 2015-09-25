@@ -8,9 +8,9 @@
         .module('app.spServices')
         .directive('spServicesForm', spServicesForm);
 
-    spServicesForm.$inject = ['$compile','logger'];
+    spServicesForm.$inject = ['$compile'];
     /* @ngInject */
-    function spServicesForm($compile, logger) {
+    function spServicesForm($compile) {
 
         var directive = {
             link: function(scope, element, attrs) {

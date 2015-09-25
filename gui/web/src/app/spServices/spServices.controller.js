@@ -19,10 +19,9 @@
         vm.startSpService = startSPService; //To start a service. Name of service as parameter
         vm.currentProgess = {};
         vm.isServiceActive = isServiceActive;
-        vm.buildHtmlFromJsonAttr = buildHtmlFromJsonAttr;
+        vm.preProcessServiceAttr = preProcessServiceAttr;
         //<---Temp fields--->
         vm.printToLogger = function(obj) {logger.info("I was asked to print this: "+obj);}
-        vm.textField = "init text";
         vm.serviceForms = {};
         //<----------------->
 
@@ -97,11 +96,14 @@
 
         }
 
+        function preProcessServiceAttr(serviceAsJson) {
+            vm.serviceForms[serviceAsJson.name] = buildServiceFormFromJsonAttr(serviceAsJson);
+            return buildHtmlFromJsonAttr(serviceAsJson);
+        }
+
         function buildHtmlFromJsonAttr(serviceAsJson) {
             var toReturn = '';
-            var form = {};
-            var serviceName = serviceAsJson.name;
-            function recBuild(obj) {
+            function recBuild(obj, parentString) {
                 var k;
                 if (obj instanceof Object) {
                     var keys = [];
@@ -117,15 +119,15 @@
                         //No, this obj(ect) is not a KeyDefinition
                         for (k in obj){
                             if (obj.hasOwnProperty(k)){
-                                vm.serviceForms[serviceName] = k;
                                 toReturn += '<b>' + k + '</b>';
                                 var value = obj[k];
+                                var updatedParentString = parentString + "." + k;
                                 if (value instanceof Object) {
                                     toReturn += '<ul>';
-                                    recBuild( obj[k] );
+                                    recBuild(obj[k], updatedParentString);
                                     toReturn += '</ul>';
                                 } else {
-                                    toReturn += ': <input type="text" ng-model="vm.textField"></input>' + value + '<br/>';
+                                    toReturn += ': <input type="text" ng-model="'+updatedParentString+'"/>' + value + '<br/>';
                                 }
                             }
                         }
@@ -135,8 +137,40 @@
                 };
             };
 
-            recBuild(serviceAsJson.attributes);
+            recBuild(serviceAsJson.attributes, "vm.serviceForms." + serviceAsJson.name);
             return toReturn;
+        };
+
+        function buildServiceFormFromJsonAttr(serviceAsJson) {
+            function recBuild(obj) {
+                var k;
+                if (obj instanceof Object) {
+                    var objToReturn = {};
+//                    var keys = [];
+//                    for (k in obj) {
+//                        keys.push(k);
+//                    }
+//                    //Test for obj(ect) to be a KeyDefinition
+//                    //From the signature of a KD it will always contains keys 'domain' and 'ofType'.
+//                    if (_.contains(keys,"domain") && _.contains(keys,"ofType")) {
+//                        //Yes, this obj(ect) is a KeyDefinition
+//                        return 'KeyDefinition';
+//                    } else {
+                        //No, this obj(ect) is not a KeyDefinition
+                        for (k in obj){
+                            if (obj.hasOwnProperty(k)){
+                                var fromProperty = recBuild(obj[k])
+                                objToReturn[k] = fromProperty;
+                            }
+                        }
+                        return objToReturn;
+
+//                    }
+                } else {
+                    return obj;
+                };
+            };
+            return recBuild(serviceAsJson.attributes);
         };
 
 

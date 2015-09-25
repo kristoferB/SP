@@ -83,11 +83,11 @@ object SP extends App {
   serviceHandler ! RegisterService("CreateOpsFromManualModel",
     system.actorOf(CreateOpsFromManualModelService.props(modelHandler), "CreateOpsFromManualModel"))
 
-  serviceHandler ! RegisterService("SynthesizeModel-Attributes",
-    system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler), "SynthesizeModel-Attributes"), SynthesizeModelBasedOnAttributesService.specification)
+  serviceHandler ! RegisterService("SynthesizeModelBasedOnAttributes",
+    system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler), "SynthesizeModelBasedOnAttributes"), SynthesizeModelBasedOnAttributesService.specification)
 
-  serviceHandler ! RegisterService("ExtendIDablesBasedOnTheirAttributes",
-    system.actorOf(ExtendIDablesBasedOnTheirAttributes.props(modelHandler), "ExtendIDablesBasedOnTheirAttributes"))
+  serviceHandler ! RegisterService("ExtendIDablesBasedOnAttributes",
+    system.actorOf(ExtendIDablesBasedOnTheirAttributes.props(modelHandler), "ExtendIDablesBasedOnAttributes"))
 
   serviceHandler ! RegisterService("CreateInstanceModelFromTypeModel",
     system.actorOf(CreateInstanceModelFromTypeModelService.props(modelHandler), "CreateInstanceModelFromTypeModel"))

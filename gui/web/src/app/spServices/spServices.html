@@ -6,6 +6,7 @@
             <tr ng-repeat-start="obj in vm.displayedRegisteredServices | orderBy: '-name'" ng-class-odd="'odd-row'" ng-class-even="'even-row'">
                 <!--Action-->
                 <td>
+                    <!-- TODO only enable Run-button if a model is active-->
                     <button class="btn btn-xs btn-primary" ng-click="vm.startSpService(obj)">
                         <i class="fa fa-play"></i> Run
                     </button>
@@ -34,7 +35,7 @@
                     <!--<div collapse="rowSettings[$index].expandInfo">-->
                         <!--Form-->
                         <!--Attributes: {{obj.attributes}}-->
-                        <sp-services-form form="{{vm.buildHtmlFromJsonAttr(obj)}}" ></sp-services-form>
+                        <sp-services-form form="{{vm.preProcessServiceAttr(obj)}}" ></sp-services-form>
                     </div>
                 </td>
             </tr>
