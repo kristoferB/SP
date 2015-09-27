@@ -39,7 +39,7 @@
                 items: contextMenuItems
             },
             core: {
-                check_callback: checkCallback
+                check_callback: isNodeDroppable
             },
             plugins: ['dnd', 'types', 'contextmenu', 'search'],
             search: { "show_only_matches" : true},
@@ -149,15 +149,17 @@
             }
         }
 
-        function checkCallback(operation, node, node_parent, node_position, more) {
-            if (operation === 'move_node' && node.id === 'all-items' ||
-                operation === 'move_node' && node.parent === 'all-items' ||
-                operation === 'move_node' && node_parent.id === 'all-items' ||
-                operation === 'move_node' && node.type === 'Root' ||
-                operation === 'copy_node' && node.id === 'all-items' ||
-                operation === 'copy_node' && node_parent.id === 'all-items' ||
-                operation === 'copy_node' && node.type === 'Root') {
+        function isNodeDroppable(operation, draggedNode, targetParent, node_position, more) {
+            if (operation === 'move_node' && draggedNode.id === 'all-items' ||
+                operation === 'move_node' && draggedNode.parent === 'all-items' ||
+                operation === 'move_node' && targetParent.id === 'all-items' ||
+                operation === 'move_node' && draggedNode.type === 'Root' ||
+                operation === 'copy_node' && draggedNode.id === 'all-items' ||
+                operation === 'copy_node' && targetParent.id === 'all-items' ||
+                operation === 'copy_node' && draggedNode.type === 'Root') {
                 return false;
+            } else {
+                return true;
             }
         }
 

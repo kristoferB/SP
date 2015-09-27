@@ -5,26 +5,26 @@
         .module('app.sopMaker')
         .service('sopDrawer', sopDrawer);
 
-    sopDrawer.$inject = ['sopCalcer', 'itemService'];
+    sopDrawer.$inject = ['sopCalcer', 'itemService', '$document', 'uuid4'];
     /* @ngInject */
-    function sopDrawer(sopCalcer, itemService) {
+    function sopDrawer(sopCalcer, itemService, $document, uuid4) {
         var service = {
             calcAndDrawSop: calcAndDrawSop,
             drawLine: drawLine,
             drawSop: drawSop,
             executeDrop: executeDrop,
-            highlightDroppable: highlightDroppable,
+            highlightDropTarget: highlightDropTarget,
             isMoveNecessary: isMoveNecessary,
             insertNode: insertNode,
             makeDraggable: makeDraggable,
-            makeDroppable: makeDroppable,
+            setupDropTarget: setupDropTarget,
             removeHighlights: removeHighlights,
             removeNode: removeNode,
             wrapAsSequence: wrapAsSequence
         };
         var measures, dragDropManager = {
             'draggedObj' : false,
-            'droppable' : false,
+            'dropTarget' : false,
             'objToInsertInArray' : [],
             'objToInsertIn' : 0,
             'indexToInsertAt' : 0
@@ -58,9 +58,17 @@
 
             sopCalcer.makeIt(dirScope, measures);
 
+            paper.setSize(dirScope.vm.sopSpecCopy.width, dirScope.vm.sopSpecCopy.height);
+
+            if (!doRedraw) {
+                dirScope.vm.sopChanged = true;
+            }
+
             dirScope.vm.sopSpecCopy.sop.forEach(function(sequence) {
                 service.drawSop(sequence, measures, paper, firstLoop, doRedraw, dirScope, sequence);
             });
+
+            dirScope.vm.saveToSessionStorage();
         }
 
         function unregisterDrawings(struct, justLines) {
@@ -156,9 +164,9 @@
                         angular.element(struct.clientSideAdditions.drawnText.node).contextmenu(opContextMenu);
                     }
 
-                    struct.clientSideAdditions.drawnArrow = paper.path(struct.clientSideAdditions.arrow).attr({opacity:0, 'fill':measures.commonLineColor, 'stroke-width':0}).toBack();
-                    var arrowAnim = Raphael.animation({opacity:1}, 0);
-                    struct.clientSideAdditions.drawnArrow.animate(arrowAnim.delay(animTime));
+                    struct.clientSideAdditions.drawnArrow = paper.path(struct.clientSideAdditions.arrow).attr({opacity:1, 'fill':measures.commonLineColor, 'stroke-width':0}).toBack();
+                    //var arrowAnim = Raphael.animation({opacity:1}, 0);
+                    //struct.clientSideAdditions.drawnArrow.animate(arrowAnim.delay(animTime));
 
                     struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnRect, struct.clientSideAdditions.drawnText, struct.clientSideAdditions.drawnArrow);
                     struct.clientSideAdditions.setToDrag.push(struct.clientSideAdditions.drawnRect, struct.clientSideAdditions.drawnText);
@@ -194,7 +202,7 @@
                         struct.clientSideAdditions.drawnRect = paper.rect(0, 0, struct.clientSideAdditions.structMeasures.width, struct.clientSideAdditions.structMeasures.height).attr({'fill': '#D8D8D8', 'fill-opacity': 0.5, 'stroke': measures.commonLineColor, 'stroke-width': 0, 'rx': 10, 'ry': 10}).toBack();
                         struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnRect);
                         if(dirScope.vm.widget.storage.editable) {
-                            service.makeDroppable(struct.clientSideAdditions.drawnSet, false, struct, 0, false, dirScope, paper, measures);
+                            service.setupDropTarget(struct.clientSideAdditions.drawnSet, false, struct, 0, false, dirScope, paper, measures);
                         }
                     } else if (struct.isa === 'Alternative') {
                         if(dirScope.vm.sopSpecCopy.vertDir) {
@@ -208,7 +216,7 @@
                         struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnLine1, struct.clientSideAdditions.drawnLine2);
 
                         if(dirScope.vm.widget.storage.editable) {
-                            service.makeDroppable(struct.clientSideAdditions.drawnShadowSet, true, struct, 0, false, dirScope, paper, measures);
+                            service.setupDropTarget(struct.clientSideAdditions.drawnShadowSet, true, struct, 0, false, dirScope, paper, measures);
                         }
                     } else if (struct.isa === 'Parallel' || struct.isa === 'Arbitrary') {
                         if(dirScope.vm.sopSpecCopy.vertDir) {
@@ -226,15 +234,15 @@
                             struct.clientSideAdditions.drawnSet.attr({'stroke-dasharray': '- '});
                         }
                         if(dirScope.vm.widget.storage.editable) {
-                            service.makeDroppable(struct.clientSideAdditions.drawnShadowSet, true, struct, 0, false, dirScope, paper, measures);
+                            service.setupDropTarget(struct.clientSideAdditions.drawnShadowSet, true, struct, 0, false, dirScope, paper, measures);
                         }
                     }
 
                     struct.clientSideAdditions.drawnSet.forEach(
                         function(drawing) {
-                            drawing.attr({opacity:0});
-                            var structAnim = Raphael.animation({opacity:1}, 0);
-                            drawing.animate(structAnim.delay(animTime));
+                            drawing.attr({opacity:1});
+                            //var structAnim = Raphael.animation({opacity:1}, 0);
+                            //drawing.animate(structAnim.delay(animTime));
                         }
                     );
                     struct.clientSideAdditions.drawnShadowSet.transform('T' + struct.clientSideAdditions.x + ',' + struct.clientSideAdditions.y);
@@ -248,9 +256,9 @@
                         if (struct.isa === 'Hierarchy') {
                             struct.clientSideAdditions.drawnRect.animate({width: struct.clientSideAdditions.width, height: struct.clientSideAdditions.height}, animTime);
                             struct.clientSideAdditions.drawnText.animate({text: op.name}, animTime);
-                            var arrowAnim = Raphael.animation({opacity: 1}, 0);
-                            struct.clientSideAdditions.drawnArrow.animate(arrowAnim.delay(animTime));
-                            struct.clientSideAdditions.drawnArrow.attr({opacity: 0, path: struct.clientSideAdditions.arrow, transform: 'T' + struct.clientSideAdditions.x + ',' + struct.clientSideAdditions.y});
+                            //var arrowAnim = Raphael.animation({opacity: 1}, 0);
+                            //struct.clientSideAdditions.drawnArrow.animate(arrowAnim.delay(animTime));
+                            struct.clientSideAdditions.drawnArrow.attr({opacity: 1, path: struct.clientSideAdditions.arrow, transform: 'T' + struct.clientSideAdditions.x + ',' + struct.clientSideAdditions.y});
                             if(dirScope.vm.widget.storage.editable) {
                                 service.makeDraggable(struct.clientSideAdditions.setToDrag, struct.clientSideAdditions.x, struct.clientSideAdditions.y, struct, paper, dirScope, measures);
                             }
@@ -280,9 +288,9 @@
                             }
                             struct.clientSideAdditions.drawnSet.forEach(
                                 function (drawing) {
-                                    drawing.attr({opacity: 0});
-                                    var structAnim = Raphael.animation({opacity: 1}, 0);
-                                    drawing.animate(structAnim.delay(animTime));
+                                    drawing.attr({opacity: 1});
+                                    //var structAnim = Raphael.animation({opacity: 1}, 0);
+                                    //drawing.animate(structAnim.delay(animTime));
                                 }
                             );
                             struct.clientSideAdditions.drawnShadowSet.attr({transform: 'T' + struct.clientSideAdditions.x + ',' + struct.clientSideAdditions.y});
@@ -300,11 +308,62 @@
 
         }
 
-        function makeDroppable(drawnObjSet, shadow, objToInsertIn, indexToInsertAt, expectSequence, dirScope, paper, measures) {
+        function setupDropTarget(drawnObjSet, shadow, objToInsertIn, indexToInsertAt, expectSequence, dirScope, paper, measures) {
 
             drawnObjSet.forEach( function(drawObj) {
+
+                var id = uuid4.generate();
+                drawObj.node.setAttribute('id', id);
+                drawObj.node.setAttribute('drop-target', 'true');
+                drawObj.node.setAttribute('shadow', shadow.toString());
+                dragDropManager.objToInsertInArray.push(objToInsertIn);
+                drawObj.node.setAttribute('obj-to-insert-in-index', dragDropManager.objToInsertInArray.length - 1);
+                drawObj.node.setAttribute('index-to-insert-at', indexToInsertAt);
+                drawObj.node.setAttribute('expect-sequence', expectSequence);
+
+                // For Item Explorer jsTree
+                $document.bind('dnd_move.vakata', onMove);
+                $document.bind('dnd_stop.vakata', onStop);
+
+                // For SOP Maker struct buttons
+                drawObj.node.addEventListener('dragenter', enter, false);
+                drawObj.node.addEventListener('dragover', allowdrop, false);
+                drawObj.node.addEventListener('dragleave', leave, false);
+                drawObj.node.addEventListener('drop', dropped, false);
+
+                function onMove(e, data) {
+                    var t = angular.element(data.event.target);
+                    if (t.length) {
+                        if (t[0].id === id) {
+                            service.highlightDropTarget(drawObj);
+                        } else if (dragDropManager.dropTarget &&
+                                   dragDropManager.dropTarget.node.getAttribute('id') === id) {
+                            service.removeHighlights(false);
+                        }
+                    }
+                }
+
+                function onStop(e, data) {
+                    var t = angular.element(data.event.target);
+                    if (t.length) {
+                        if (t[0].id === id) {
+                            if(data.data.jstree && data.data.origin) {
+                                var treeNode = data.data.origin.get_node(data.element);
+                                var item = treeNode.data;
+                                var sopToInsert = {
+                                    isa: 'Hierarchy',
+                                    operation: item.id,
+                                    sop: []
+                                };
+                                service.executeDrop(sopToInsert, dirScope, paper, measures, false);
+                                service.removeHighlights(false);
+                            }
+                        }
+                    }
+                }
+
                 function enter(ev) {
-                    service.highlightDroppable(drawObj);
+                    service.highlightDropTarget(drawObj);
                 }
                 function allowdrop(ev) {
                     ev.preventDefault();
@@ -314,27 +373,15 @@
                 }
                 function dropped(ev) {
                     var isa = ev.dataTransfer.getData('text/plain');
-                    console.log(isa);
                     var sopToInsert = {
-                            isa: isa,
-                            sop: []
-                        };
+                        isa: isa,
+                        sop: []
+                    };
                     if(isa === 'Hierarchy') {
                         sopToInsert.operation = ev.dataTransfer.getData('id');
                     }
                     service.executeDrop(sopToInsert, dirScope, paper, measures, false)
                 }
-
-                drawObj.node.addEventListener('dragenter', enter, false);
-                drawObj.node.addEventListener('dragover', allowdrop, false);
-                drawObj.node.addEventListener('dragleave', leave, false);
-                drawObj.node.addEventListener('drop', dropped, false);
-                drawObj.node.setAttribute('droppable', 'true');
-                drawObj.node.setAttribute('shadow', ''+shadow);
-                dragDropManager.objToInsertInArray.push(objToInsertIn);
-                drawObj.node.setAttribute('objToInsertInIndex', (dragDropManager.objToInsertInArray.length-1));
-                drawObj.node.setAttribute('indexToInsertAt', indexToInsertAt);
-                drawObj.node.setAttribute('expectSequence', expectSequence);
             });
         }
 
@@ -342,7 +389,6 @@
             node.clientSideAdditions.parentObject.sop.splice(node.clientSideAdditions.parentObjectIndex, 1); // Pop from the old position
             if(!move) {
                 unregisterDrawings(node, false);
-
             }
         }
 
@@ -400,24 +446,24 @@
         }
 
         function removeHighlights(within) {
-            if(!within) {
-                if(dragDropManager.droppable && dragDropManager.droppable.node.getAttribute('shadow') === 'true') {
-                    dragDropManager.droppable.attr({opacity:0});
-                } else if (dragDropManager.droppable && dragDropManager.droppable.node.getAttribute('shadow') === 'false'){
-                    dragDropManager.droppable.attr({'fill':'#D8D8D8'});
+            if (!within) {
+                if (dragDropManager.dropTarget && dragDropManager.dropTarget.node.getAttribute('shadow') === 'true') {
+                    dragDropManager.dropTarget.attr({opacity:0});
+                } else if (dragDropManager.dropTarget && dragDropManager.dropTarget.node.getAttribute('shadow') === 'false') {
+                    dragDropManager.dropTarget.attr({'fill':'#D8D8D8'});
                 }
-                dragDropManager.droppable = false;
+                dragDropManager.dropTarget = false;
             }
         }
 
         function executeDrop(node, dirScope, paper, measures, remove) {
-            var objToInsertInIndex = dragDropManager.droppable.node.getAttribute('objToInsertInIndex');
+            var objToInsertInIndex = dragDropManager.dropTarget.node.getAttribute('obj-to-insert-in-index');
             dragDropManager.objToInsertIn = dragDropManager.objToInsertInArray[objToInsertInIndex];
-            dragDropManager.indexToInsertAt = dragDropManager.droppable.node.getAttribute('indexToInsertAt');
-            var expectSequence = dragDropManager.droppable.node.getAttribute('expectSequence');
+            dragDropManager.indexToInsertAt = dragDropManager.dropTarget.node.getAttribute('index-to-insert-at');
+            var expectSequence = dragDropManager.dropTarget.node.getAttribute('expect-sequence');
             service.removeHighlights(false);
-            if(service.isMoveNecessary(node)) {
-                if(remove) {
+            if (service.isMoveNecessary(node)) {
+                if (remove) {
                     service.removeNode(node, true);
                 }
                 service.insertNode(node, expectSequence);
@@ -426,19 +472,19 @@
             dirScope.$digest();
         }
 
-        function highlightDroppable(objDraggedOver) {
+        function highlightDropTarget(objDraggedOver) {
 
-            if (dragDropManager.droppable !== objDraggedOver) {
-                if (dragDropManager.droppable && dragDropManager.droppable.node.getAttribute('shadow') === 'true') {
-                    dragDropManager.droppable.attr({opacity: 0});
-                } else if (dragDropManager.droppable && dragDropManager.droppable.node.getAttribute('shadow') === 'false') {
-                    dragDropManager.droppable.attr({'fill': '#D8D8D8'});
+            if (dragDropManager.dropTarget !== objDraggedOver) {
+                if (dragDropManager.dropTarget && dragDropManager.dropTarget.node.getAttribute('shadow') === 'true') {
+                    dragDropManager.dropTarget.attr({opacity: 0});
+                } else if (dragDropManager.dropTarget && dragDropManager.dropTarget.node.getAttribute('shadow') === 'false') {
+                    dragDropManager.dropTarget.attr({'fill': '#D8D8D8'});
                 }
-                dragDropManager.droppable = objDraggedOver;
+                dragDropManager.dropTarget = objDraggedOver;
             }
 
             var within;
-            if (objDraggedOver.node.getAttribute('droppable') === 'true') {
+            if (objDraggedOver.node.getAttribute('drop-target') === 'true') {
                 within = true;
                 if (objDraggedOver.node.getAttribute('shadow') === 'true') {
                     objDraggedOver.attr({opacity: 0.5});
@@ -474,7 +520,7 @@
 
                 up = function() {
                     drawObj.attr({opacity: 1});
-                    if(dragDropManager.droppable) {
+                    if(dragDropManager.dropTarget) {
                         ox = lx;
                         oy = ly;
                         service.executeDrop(draggedSop, dirScope, paper, measures, true);
@@ -492,7 +538,7 @@
                 },
 
                 dragOver = function(objDraggedOver) {
-                    within = service.highlightDroppable(objDraggedOver);
+                    within = service.highlightDropTarget(objDraggedOver);
                 };
 
             drawObj.undrag();
@@ -514,12 +560,12 @@
             }
 
             if(typeof line.drawn === 'undefined') { // Draw
-                line.drawnLine = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({opacity: 0, stroke: measures.commonLineColor}).toBack();
-                var lineAnim = Raphael.animation({opacity:1});
-                line.drawnLine.animate(lineAnim.delay(measures.animTime));
+                line.drawnLine = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({opacity: 1, stroke: measures.commonLineColor}).toBack();
+                //var lineAnim = Raphael.animation({opacity:1});
+                //line.drawnLine.animate(lineAnim.delay(measures.animTime));
                 line.drawnShadow = paper.path('M ' + line.x1 + ' ' + line.y1 + ' l ' + line.x2 + ' ' + line.y2).attr({stroke: '#FF0000', 'stroke-width': 30, opacity: 0});
                 if(dirScope.vm.widget.storage.editable) {
-                    service.makeDroppable(tempSet.push(line.drawnShadow), true, objToInsertIn, indexToInsertAt, true, dirScope, paper, measures);
+                    service.setupDropTarget(tempSet.push(line.drawnShadow), true, objToInsertIn, indexToInsertAt, true, dirScope, paper, measures);
                 }
                 /*dirScope.$watch(function() { // Animate on change
                  return line.x1+line.y1+line.x2+line.y2;

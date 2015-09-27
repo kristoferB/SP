@@ -8,17 +8,21 @@
         .module('app.sopMaker')
         .controller('SOPMakerController', SOPMakerController);
 
-    SOPMakerController.$inject = ['$element', '$scope', 'sopDrawer', 'itemService', 'logger', 'dashboardService', '$modal'];
+    SOPMakerController.$inject = ['$element', '$scope', 'sopDrawer', 'itemService', 'logger', 'dashboardService',
+                                  '$modal', 'uuid4', 'dialogs'];
     /* @ngInject */
-    function SOPMakerController($element, $scope, sopDrawer, itemService, logger, dashboardService, $modal) {
+    function SOPMakerController($element, $scope, sopDrawer, itemService, logger, dashboardService, $modal, uuid4,
+                                dialogs) {
         var vm = this, paper = null;
         var widgetModel = $scope.$parent.$parent.$parent.vm;
         vm.widget = widgetModel.widget;
         vm.addSop = addSop;
         vm.toggleDirection = toggleDirection;
         vm.save = save;
+        vm.saveToSessionStorage = saveToSessionStorage;
         vm.clearAndDrawFromScratch = clearAndDrawFromScratch;
         vm.sopSpecCopy = null;
+        vm.sopChanged = false;
         vm.saveButtonText = function() {return vm.widget.storage.sopSpecID ? 'Save' : 'Save As';};
 
         activate();
@@ -40,7 +44,14 @@
                 });
             }
             $scope.$on('closeRequest', function() {
-                dashboardService.closeWidget(vm.widget.id);
+                if (vm.sopChanged) {
+                    var dialog = dialogs.confirm('Confirm close','You have unsaved changes. Do you still want to close?');
+                    dialog.result.then(function(){
+                        dashboardService.closeWidget(vm.widget.id);
+                    });
+                } else {
+                    dashboardService.closeWidget(vm.widget.id);
+                }
             });
         }
 
@@ -72,18 +83,20 @@
         }
 
         function loadAndDraw() {
-            if (vm.widget.storage.sopSpecID) {
+            if (vm.widget.storage.sopSpec) {
+                vm.sopSpecCopy = angular.copy(vm.widget.storage.sopSpec, {});
+                vm.widget.storage.sopSpecID = vm.widget.storage.sopSpec.id;
+                logger.info('SOP Maker: Loaded a raw SOP structure that was supplied to the widget.');
+            } else if (vm.widget.storage.sopSpecID) {
                 var sopSpec = itemService.getItem(vm.widget.storage.sopSpecID);
                 if (sopSpec === null) {
-                    logger.error('The SOP Spec ' + vm.widget.storage.sopSpecID + ' associated with this SOP Maker instance is not available.');
+                    logger.error('SOP Maker: The SOP Spec ' + vm.widget.storage.sopSpecID +
+                                 ' associated with this SOP Maker instance is not available.');
                     return;
                 } else {
                     vm.sopSpecCopy = angular.copy(sopSpec, {});
-                    logger.info('SOP Spec Maker: SOP "' + vm.sopSpecCopy.name + '" loaded.');
+                    logger.info('SOP Maker: SOP "' + vm.sopSpecCopy.name + '" loaded.');
                 }
-            } else if (vm.widget.storage.sopSpec) {
-                vm.sopSpecCopy = angular.copy(vm.widget.storage.sopSpec, {});
-                logger.info('SOP Spec Maker: Loaded a raw SOP structure that was supplied to the widget.');
             } else {
                 vm.sopSpecCopy = {
                     name: 'Nameless SOP',
@@ -91,21 +104,33 @@
                 }
             }
             widgetModel.title = vm.sopSpecCopy.name;
-            console.log($scope.$parent);
             vm.sopSpecCopy.vertDir = true;
             draw();
+        }
+
+        function saveToSessionStorage() {
+            if (vm.widget.storage.sopSpec === undefined) {
+                vm.widget.storage.sopSpec = {
+                    isa: 'SOPSpec',
+                    name: vm.sopSpecCopy.name
+                };
+            }
+            if (vm.sopSpecCopy.id !== undefined) {
+                vm.widget.storage.sopSpec.id = vm.sopSpecCopy.id;
+            }
+            vm.widget.storage.sopSpec.sop = extractSOPStructure(vm.sopSpecCopy.sop);
         }
 
         function save() {
             var sopSpec;
             if (vm.widget.storage.sopSpecID) {
-                console.log(vm.widget.storage.sopSpecID);
-                 sopSpec = itemService.getItem(vm.widget.storage.sopSpecID);
+                sopSpec = itemService.getItem(vm.widget.storage.sopSpecID);
                 if (sopSpec === null) {
                     logger.error('The SOP Spec associated with this SOP Maker instance is not available.');
                 } else {
                     sopSpec.sop = extractSOPStructure(vm.sopSpecCopy.sop);
                     itemService.saveItem(sopSpec);
+                    vm.sopChanged = false;
                 }
             } else {
                 sopSpec = {
@@ -126,21 +151,15 @@
                 saveAsModal.result.then(ifSaveIsConfirmed);
             }
 
-            function newUUID() {
-                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-                    return v.toString(16);
-                });
-            }
-
             function ifSaveIsConfirmed(sopSpec) {
-                sopSpec.id = newUUID();
+                sopSpec.id = uuid4.generate();
                 sopSpec.sop = extractSOPStructure(vm.sopSpecCopy.sop);
                 itemService.saveItem(sopSpec).then(ifSaveSucceeds);
 
                 function ifSaveSucceeds() {
                     vm.widget.storage.sopSpecID = sopSpec.id;
                     widgetModel.title = sopSpec.name;
+                    vm.sopChanged = false;
                 }
             }
 

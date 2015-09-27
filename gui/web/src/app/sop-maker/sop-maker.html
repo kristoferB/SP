@@ -1,7 +1,8 @@
 <div ng-controller="SOPMakerController as vm" class="sop-maker">
     <div class="panel-toolbar">
         <div class="btn-group">
-            <button class="btn btn-sm btn-default btn-notext" tooltip="{{vm.saveButtonText()}}" ng-click="vm.save()">
+            <button class="btn btn-sm btn-default btn-notext" tooltip="{{vm.saveButtonText()}}" ng-click="vm.save()"
+                    ng-class="{'disabled': !vm.sopChanged}">
                 <i class="fa fa-floppy-o"></i>
             </button>
         </div>
