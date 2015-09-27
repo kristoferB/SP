@@ -18,6 +18,7 @@
         vm.displayedRegisteredServices = []; //For GUI
         vm.startSpService = startSPService; //To start a service. Name of service as parameter
         vm.currentProgess = {};
+        vm.serviceAttributes = {};
         vm.isServiceActive = isServiceActive;
         vm.preProcessServiceAttr = preProcessServiceAttr;
         //<---Temp fields--->
@@ -31,12 +32,20 @@
             $scope.$on('closeRequest', function() {
                 dashboardService.closeWidget(vm.widget.id);
             });
+
+            _.forEach(vm.registeredServices, function(s){
+                vm.serviceAttributes[s.name] = {};
+            })
+
         }
 
         function startSPService(spService) {
             logger.info("service form: " + spService.name + " " + JSON.stringify(vm.serviceForms[spService.name]));
 //            spServicesService.callService(spService, {"data":{"setup":{"sopname":"some name"}}}, resp, prog);
-            spServicesService.callService(spService, {}, resp, prog);
+
+
+            console.log(vm.serviceAttributes)
+            //spServicesService.callService(spService, {}, resp, prog);
 
             if (!_.isUndefined(vm.currentProgess[event.service])){
                 delete vm.currentProgess[event.service];

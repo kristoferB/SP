@@ -32,10 +32,12 @@
             <tr ng-repeat-end ng-class-odd="'odd-row'" ng-class-even="'even-row'">
                 <td colspan="99" class="hiddenRow">
                     <div collapse="!rowSettings[$index].expandInfo">
+                        Attribute att skicka:<br/>
+                        {{vm.serviceAttributes[obj.name]}}
                     <!--<div collapse="rowSettings[$index].expandInfo">-->
                         <!--Form-->
                         <!--Attributes: {{obj.attributes}}-->
-                        <sp-services-form form="{{vm.preProcessServiceAttr(obj)}}" ></sp-services-form>
+                        <sp-services-form attributes="vm.serviceAttributes[obj.name]" structure="obj.attributes"></sp-services-form>
                     </div>
                 </td>
             </tr>

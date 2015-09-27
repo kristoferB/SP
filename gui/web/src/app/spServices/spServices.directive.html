@@ -1,0 +1,17 @@
+<table class="table" ng-if="vm.isA == 'object'">
+    <tr ng-repeat="(key, value) in vm.structure">
+        <td>{{key}}</td>
+        <td><sp-services-form attributes="vm.attributes[key]" structure="value"></sp-services-form></td>
+    </tr>
+</table>
+
+<div ng-if="vm.isA == 'something'">
+        {{vm.structure}}
+</div>
+
+
+<!--Add divs for all types from scala-->
+<div ng-if="vm.isA == 'KeyDef'">
+    <input type="text" ng-model="vm.attributes"/>
+    <p>keyDef: {{vm.structure.ofType}}</p>
+</div>

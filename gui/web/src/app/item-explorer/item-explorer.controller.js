@@ -300,7 +300,7 @@
                 state: {opened: true},
                 data: hierarchyRoot
             };
-            vm.treeInstance.jstree(true).create_node('#', root, 'last');
+            vm.treeInstance.jstree(true).create_node('#', root, 'first');
         }
 
 
@@ -353,8 +353,7 @@
                 text: 'All items',
                 type: 'AllItemsRoot',
                 children: [],
-                state: {opened: true}
-
+                state: {opened: false}
             };
             if (!base) {
                 logger.error('Item Explorer: Failed to add items to the tree. The global root "#" was not present.');
@@ -376,7 +375,7 @@
                         noOfItems++;
                     }
                 }
-                vm.treeInstance.jstree(true).create_node(base, allItemsRoot, 'first');
+                vm.treeInstance.jstree(true).create_node(base, allItemsRoot, 'last');
                 logger.info('Item Explorer: Populated tree with ' + noOfItems + ' items and ' + noOfCustomRoots +
                     ' custom roots.');
             }
