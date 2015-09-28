@@ -49,14 +49,10 @@
             $scope.$on('gridster-resized', gridsterGlobalResize);
 
             updateChart();
-
-            vm.events = {
-
-            }
         }
 
         function gridsterResize(ev, item){
-            vm.options.chart.height = item.getElementSizeY();
+            vm.options.chart.height = item.getElementSizeY()-50;
             vm.options.chart.width = item.getElementSizeX();
         }
 
@@ -73,7 +69,7 @@
                     margin : {
                         top: 20,
                         right: 50,
-                        bottom: 150,
+                        bottom: 170,
                         left: 100
                     },
                     lines: {
@@ -95,10 +91,7 @@
                         tickFormat: function(d){
                             return d3.format('1.0f')(d);
                         },
-                        axisLabelDistance: 10
-                    },
-                    callback: function(chart){
-                        console.log("!!! lineChart callback !!!");
+                        axisLabelDistance: 5
                     }
                 },
                 title: {
@@ -114,7 +107,7 @@
                 extended: false, // default: false
                 disabled: false, // default: false
                 autorefresh: true, // default: true
-                refreshDataOnly: true, // default: false
+                refreshDataOnly: false, // default: false
                 deepWatchOptions: true, // default: true
                 deepWatchData: false, // default: false
                 deepWatchConfig: true, // default: true
@@ -125,40 +118,14 @@
 
         }
 
-        function fillOps(noOfDerivations) {
-            noOfDerivations = _.isUndefined(noOfDerivations) ? 0 : noOfDerivations
+        function fillOps(noOfDerivatives) {
+            noOfDerivatives = _.isUndefined(noOfDerivatives) ? 0 : noOfDerivatives
             var res = [];
 
-
             _.forEach(vm.operations, function(op){
-
                 var joints = {};
-
                 var poses = [];
-
-                if (op.poses.length > 100){
-                    var remove = Math.trunc(op.poses.length*1.5/100);
-                    console.log("removes")
-                    console.log(remove)
-
-                    var i = 0;
-                    var temp = [];
-                    temp.push(op.poses[0]);
-
-                    _.forEach(op.poses, function(p){
-                        if (i >= remove){
-                            temp.push(p)
-                            i = 0;
-                        }
-                        i++
-                    });
-
-                    temp.push(op.poses[op.poses.length-1]);
-                    poses = temp;
-                } else {
-                    poses = op.poses;
-                }
-
+                poses = filterPoses(op.poses, 50);
 
                 _.forEach(poses, function(p){
                     var x = p.time;
@@ -169,34 +136,74 @@
                     })
                 });
 
-                for (var i = 0; i < noOfDerivations; i++) {
-                    var der = {};
-                    _.forOwn(joints, function(value, key){
-                        der[key] = [];
-                        var prevY = _.isUndefined(value[0].y) ? 0 : value[0].y;
-                        var prevX = _.isUndefined(value[0].x) ? -0.0001 : value[0].x-0.0001;
-                        _.forEach(value, function(point){
-                            var newY = (point.y - prevY)/(point.x-prevX)
-                            der[key].push({'x': point.x, 'y': newY})
-                        });
-                    });
-                    joints = der;
-                }
+                joints = derivativeJoints(joints, noOfDerivatives);
 
                 _.forOwn(joints, function(value, key){
                     res.push({values: value,key: op.name +"_"+key})
                 })
-
-                console.log(res)
-
             });
-
             return res;
-
         };
 
-        function reload(derivate){
-            vm.data = fillOps(derivate);
+        function filterPoses(poses, noToKeep){
+            var result = [];
+            noToKeep = noToKeep > 10 ? noToKeep : 50;
+            if (poses.length > noToKeep*2){
+                var remove = Math.trunc(poses.length/noToKeep);
+                var i = 0;
+                var temp = [];
+                temp.push(poses[0]);
+                temp.push(poses[poses.length-1]);
+                poses.splice(0, 1);
+                poses.splice(poses.length-1, 1);
+                _.forEach(poses, function(p){
+                    if (i >= remove){
+                        temp.push(p)
+                        i = 0;
+                    }
+                    i++
+                });
+                result = temp;
+            } else {
+                result = poses;
+            }
+            return result
+        }
+
+        function derivativeJoints(joints, derivative){
+            var res = joints;
+            for (var i = 0; i < derivative; i++) {
+                var der = {};
+                _.forOwn(res, function(value, key){
+                    der[key] = [];
+                    var prevY = _.isUndefined(value[0].y) ? 0 : value[0].y;
+                    var prevX = _.isUndefined(value[0].x) ? -0.0001 : value[0].x-0.0001;
+                    _.forEach(value, function(point){
+                        var newY = (point.y - prevY)/(point.x-prevX)
+                        der[key].push({'x': point.x, 'y': newY})
+                        prevY = point.y;
+                        prevX = point.x
+                    });
+                });
+                res = der;
+            }
+            if (derivative == 0){
+                vm.options.chart.yAxis.axisLabel = 'Position (deg)';
+            } else if (derivative == 1){
+                vm.options.chart.yAxis.axisLabel = 'Speed (deg/s)';
+            } else if (derivative == 2){
+                vm.options.chart.yAxis.axisLabel = 'Acceleration (deg/s^2)';
+            } else if (derivative == 3){
+                vm.options.chart.yAxis.axisLabel = 'Jerk (deg/s^3)';
+            } else {
+                vm.options.chart.yAxis.axisLabel = 'Position (deg)';
+            }
+
+            return res;
+        }
+
+        function reload(derivative){
+            vm.data = fillOps(derivative);
             vm.api.refresh();
         }
 

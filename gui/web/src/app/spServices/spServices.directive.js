@@ -50,9 +50,6 @@
 
         function activate(){
             whatIsIt();
-
-            // For Item Explorer jsTree
-            $document.bind('dnd_stop.vakata', onStop);
         };
 
         function whatIsIt(){
@@ -79,12 +76,6 @@
         }
 
 
-        function onStop(e, data) {
-            var t = angular.element(data.event.target);
-            console.log("target")
-            console.log(e);
-            console.log(data);
-        }
 
     }
 
