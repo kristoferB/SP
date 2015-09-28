@@ -81,13 +81,19 @@ object SP extends App {
   import sp.virtcom._
 
   serviceHandler ! RegisterService("CreateOpsFromManualModel",
-    system.actorOf(CreateOpsFromManualModelService.props(modelHandler), "CreateOpsFromManualModel"))
+    system.actorOf(CreateOpsFromManualModelService.props, "CreateOpsFromManualModel"),
+    CreateOpsFromManualModelService.specification,
+    CreateOpsFromManualModelService.transformation
+  )
 
   serviceHandler ! RegisterService("SynthesizeModelBasedOnAttributes",
-    system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler), "SynthesizeModelBasedOnAttributes"), SynthesizeModelBasedOnAttributesService.specification)
+    system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler), "SynthesizeModelBasedOnAttributes"),
+    SynthesizeModelBasedOnAttributesService.specification)
 
   serviceHandler ! RegisterService("ExtendIDablesBasedOnAttributes",
-    system.actorOf(ExtendIDablesBasedOnTheirAttributes.props(modelHandler), "ExtendIDablesBasedOnAttributes"))
+    system.actorOf(ExtendIDablesBasedOnTheirAttributes.props(modelHandler), "ExtendIDablesBasedOnAttributes"),
+    ExtendIDablesBasedOnTheirAttributes.specification
+  )
 
   serviceHandler ! RegisterService("CreateInstanceModelFromTypeModel",
     system.actorOf(CreateInstanceModelFromTypeModelService.props(modelHandler), "CreateInstanceModelFromTypeModel"))

@@ -4,11 +4,14 @@ import akka.actor._
 import org.json4s.JsonAST.{JArray, JBool}
 import sp.domain._
 import sp.jsonImporter.ServiceSupportTrait
+import sp.system.{ServiceSupport, ServiceLauncher, SPService}
 import sp.system.messages._
 import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent.duration._
 import sp.domain.Logic._
+
+import scala.util.{Failure, Success}
 
 /**
  * Extends IDables
@@ -26,57 +29,86 @@ import sp.domain.Logic._
  *
  * TODO: Extend based on product SOPs
  */
-class ExtendIDablesBasedOnTheirAttributes(modelHandler: ActorRef) extends Actor with ServiceSupportTrait {
+object ExtendIDablesBasedOnTheirAttributes {
+  val specification = SPAttributes(
+    "service" -> SPAttributes(
+      "description"-> "Extend idables based on their attributes"
+    )
+  )
+
+  def props(modelHandler: ActorRef) = Props(classOf[ExtendIDablesBasedOnTheirAttributes], modelHandler)
+
+}
+
+class ExtendIDablesBasedOnTheirAttributes(modelHandler: ActorRef) extends Actor {
+  def receive = {
+    case r @ Request(service, attr, ids, reqID) =>
+      println(s"service: $service got reqID: $reqID")
+      context.actorOf(Props(classOf[ExtendIDablesBasedOnTheirAttributesRunner], modelHandler)).tell(r, sender())
+  }
+}
+
+class ExtendIDablesBasedOnTheirAttributesRunner(modelHandler: ActorRef) extends Actor with ServiceSupport with ServiceSupportTrait {
   implicit val timeout = Timeout(1 seconds)
 
   import context.dispatcher
 
   def receive = {
-    case Request(service, attr,_, _) =>
+    case r@Request(service, attr, ids, reqID) =>
 
-      println(s"service: $service")
+      // Always include the following lines. Are used by the helper functions
+      val replyTo = sender()
+      implicit val rnr = RequestNReply(r, replyTo)
 
-      lazy val activeModel = attr.getAs[SPAttributes]("activeModel")
-      lazy val selectedItems = attr.getAs[List[SPAttributes]]("selectedItems").map( _.flatMap(_.getAs[ID]("id"))).getOrElse(List())
-
-      lazy val id = activeModel.flatMap(_.getAs[ID]("id")).getOrElse(ID.newID)
+      lazy val core = attr.getAs[ServiceHandlerAttributes]("core").get
 
       val result = for {
-        modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
 
         //Collect ops, vars, sopSpecs, spSpecs
-        SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = modelInfo.id))
+        SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = core.model.get))
         ops = opsToBe.map(_.asInstanceOf[Operation])
-        //        checkOps = ops.filter(obj => selectedItems.contains(obj.id))
+        //        checkOps = ops.filter(obj => core.includeIDAbles.contains(obj.id))
 
-        SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = modelInfo.id))
+        SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = core.model.get))
         vars = varsToBe.map(_.asInstanceOf[Thing])
 
-        SPIDs(sopSpecsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.id))
+        SPIDs(sopSpecsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = core.model.get))
         sopSpecs = sopSpecsToBe.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
 
-        SPIDs(spSpecsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = modelInfo.id))
+        SPIDs(spSpecsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = core.model.get))
         spSpecs = spSpecsToBe.filter(_.isInstanceOf[SPSpec]).map(_.asInstanceOf[SPSpec])
 
-        //Extend Operations and Variables (TODO extend based on product sequences)
-        eiw = ExtendIDablesWrapper(ops, vars, sopSpecs, spSpecs)
-        updatedIDables = {
-          eiw.extend()
-          eiw.extendedIDables()
-        }
-        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, items = updatedIDables, info = SPAttributes("info" -> "Model extended based on attributes")))
-
       } yield {
+          //Extend Operations and Variables (TODO extend based on product sequences)
+          val eiw = ExtendIDablesWrapper(ops, vars, sopSpecs, spSpecs)
+          val updatedIDables = {
+            eiw.extend()
+            eiw.extendedIDables()
+          }
 
+          updatedIDables
         }
 
-      sender ! result
+      result onComplete {
+        case Success(updatedIDables) => {
+          rnr.reply ! Response(updatedIDables, SPAttributes(), service, reqID)
+          self ! PoisonPill
+        }
+        case Failure(t) => {
+          rnr.reply ! SPError(s"Problem to update idables. Error msg: $t")
+          self ! PoisonPill
+        }
+      }
+
+    case (r: Response, reply: ActorRef) => {
+      reply ! r
+    }
+    case x => {
+      sender() ! SPError("What do you whant me to do? " + x)
+      self ! PoisonPill
+    }
+
   }
-
-}
-
-object ExtendIDablesBasedOnTheirAttributes {
-  def props(modelHandler: ActorRef) = Props(classOf[ExtendIDablesBasedOnTheirAttributes], modelHandler)
 }
 
 case class TransformationPatternInAttributes(atStart: Option[String], atExecute: Option[String], atComplete: Option[String]) {

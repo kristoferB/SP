@@ -55,12 +55,10 @@ private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef) ext
       val progress = context.actorOf(progressHandler)
       progress ! SPAttributes("progress" -> "Reading model")
 
-      val result = for {
-        model <- getAttr(_.dig[ID]("core", "model"))
-        items <- getAttr(_.getAs[List[ID]]("selectedItems")) // troligen bättre att skicka med dem i idablesToFill för då kommer de att fyllas i requesten direkt. KB
-        id <- getAttr(_.getAs[ID]("id")) // är detta id för modellen?
+      for {
+        idOfModel <- getAttr(_.dig[ID]("core", "model"))
       } yield {
-          val infoF = askForModelInfo(id, modelHandler)
+          val infoF = askForModelInfo(idOfModel, modelHandler)
           val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
           val vars = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing])
           val sopSpecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
@@ -84,9 +82,9 @@ private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef) ext
             val optSupervisorGuards = ptmwModule.getSupervisorGuards.map(_.filter(og => !og._2.equals("1")))
             val updatedOps = ops.map(o => ptmw.addSPConditionFromAttributes(ptmw.addSynthesizedGuardsToAttributes(o, optSupervisorGuards), optSupervisorGuards))
 
-            modelHandler ! UpdateIDs(id, updatedOps, SPAttributes("info" -> s"Model synthesized by service $service, request $reqID"))
+//            modelHandler ! UpdateIDs(idOfModel, updatedOps, SPAttributes("info" -> s"Model synthesized by service $service, request $reqID"))
 
-            progress ! SPAttributes("progress" -> "Synthesized operations sent to model")
+//            progress ! SPAttributes("progress" -> "Synthesized operations sent to model")
 
 
             lazy val synthesizedGuards = optSupervisorGuards.getOrElse(Map()).foldLeft(SPAttributes()) { case (acc, (event, guard)) =>

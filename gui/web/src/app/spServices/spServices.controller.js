@@ -8,9 +8,9 @@
       .module('app.spServices')
       .controller('spServicesController', spServicesController);
 
-    spServicesController.$inject = ['spServicesService', '$scope', 'dashboardService','logger'];
+    spServicesController.$inject = ['spServicesService', '$scope', 'dashboardService','logger', 'modelService','itemService'];
     /* @ngInject */
-    function spServicesController(spServicesService, $scope, dashboardService, logger) {
+    function spServicesController(spServicesService, $scope, dashboardService, logger, modelService,itemService) {
         var vm = this;
         var dashboard = $scope.$parent.$parent.$parent.vm.dashboard;
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //For GUI
@@ -20,11 +20,7 @@
         vm.currentProgess = {};
         vm.serviceAttributes = {};
         vm.isServiceActive = isServiceActive;
-        vm.preProcessServiceAttr = preProcessServiceAttr;
-        //<---Temp fields--->
-        vm.printToLogger = function(obj) {logger.info("I was asked to print this: "+obj);}
-        vm.serviceForms = {};
-        //<----------------->
+
 
         activate();
 
@@ -35,17 +31,16 @@
 
             _.forEach(vm.registeredServices, function(s){
                 vm.serviceAttributes[s.name] = {};
-            })
+            });
+
+            _.forEach(vm.registeredServices, function(s){
+                s.attributes.core.model.default = modelService.activeModel.id;
+            });
 
         }
 
         function startSPService(spService) {
-            logger.info("service form: " + spService.name + " " + JSON.stringify(vm.serviceForms[spService.name]));
-//            spServicesService.callService(spService, {"data":{"setup":{"sopname":"some name"}}}, resp, prog);
-
-
-            console.log(vm.serviceAttributes)
-            //spServicesService.callService(spService, {}, resp, prog);
+            spServicesService.callService(spService, {"data":vm.serviceAttributes[spService.name]}, resp, prog);
 
             if (!_.isUndefined(vm.currentProgess[event.service])){
                 delete vm.currentProgess[event.service];
@@ -104,84 +99,6 @@
         function success(data) {
 
         }
-
-        function preProcessServiceAttr(serviceAsJson) {
-            vm.serviceForms[serviceAsJson.name] = buildServiceFormFromJsonAttr(serviceAsJson);
-            return buildHtmlFromJsonAttr(serviceAsJson);
-        }
-
-        function buildHtmlFromJsonAttr(serviceAsJson) {
-            var toReturn = '';
-            function recBuild(obj, parentString) {
-                var k;
-                if (obj instanceof Object) {
-                    var keys = [];
-                    for (k in obj) {
-                        keys.push(k);
-                    }
-                    //Test for obj(ect) to be a KeyDefinition
-                    //From the signature of a KD it will always contains keys 'domain' and 'ofType'.
-                    if (_.contains(keys,"domain") && _.contains(keys,"ofType")) {
-                        //Yes, this obj(ect) is a KeyDefinition
-                        toReturn += '<i>KeyDefinition of type:' + obj["ofType"] + '</i>';
-                    } else {
-                        //No, this obj(ect) is not a KeyDefinition
-                        for (k in obj){
-                            if (obj.hasOwnProperty(k)){
-                                toReturn += '<b>' + k + '</b>';
-                                var value = obj[k];
-                                var updatedParentString = parentString + "." + k;
-                                if (value instanceof Object) {
-                                    toReturn += '<ul>';
-                                    recBuild(obj[k], updatedParentString);
-                                    toReturn += '</ul>';
-                                } else {
-                                    toReturn += ': <input type="text" ng-model="'+updatedParentString+'"/>' + value + '<br/>';
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    toReturn += '<li><button ng-click="vm.printToLogger(\''+obj+'\')"> :(' + obj+ '</button></li>';
-                };
-            };
-
-            recBuild(serviceAsJson.attributes, "vm.serviceForms." + serviceAsJson.name);
-            return toReturn;
-        };
-
-        function buildServiceFormFromJsonAttr(serviceAsJson) {
-            function recBuild(obj) {
-                var k;
-                if (obj instanceof Object) {
-                    var objToReturn = {};
-//                    var keys = [];
-//                    for (k in obj) {
-//                        keys.push(k);
-//                    }
-//                    //Test for obj(ect) to be a KeyDefinition
-//                    //From the signature of a KD it will always contains keys 'domain' and 'ofType'.
-//                    if (_.contains(keys,"domain") && _.contains(keys,"ofType")) {
-//                        //Yes, this obj(ect) is a KeyDefinition
-//                        return 'KeyDefinition';
-//                    } else {
-                        //No, this obj(ect) is not a KeyDefinition
-                        for (k in obj){
-                            if (obj.hasOwnProperty(k)){
-                                var fromProperty = recBuild(obj[k])
-                                objToReturn[k] = fromProperty;
-                            }
-                        }
-                        return objToReturn;
-
-//                    }
-                } else {
-                    return obj;
-                };
-            };
-            return recBuild(serviceAsJson.attributes);
-        };
-
 
     }
 })();

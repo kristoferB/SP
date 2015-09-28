@@ -5,6 +5,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import sp.domain._
 import sp.jsonImporter.ServiceSupportTrait
+import sp.system.SPService
 import sp.system.messages._
 import scala.concurrent.duration._
 import sp.domain.Logic._
@@ -33,7 +34,40 @@ import sp.domain.Logic._
  *
  * @author Patrik Bergagard
  */
-class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Actor with ServiceSupportTrait {
+
+class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Actor {
+  def receive = {
+    case r @ Request(service, attr, ids, reqID) =>
+      println(s"service: $service got reqID: $reqID")
+      context.actorOf(Props(classOf[CreateInstanceModelFromTypeModelRunner], modelHandler)).tell(r, sender())
+  }
+}
+
+object CreateInstanceModelFromTypeModelService {
+  val specification = SPAttributes(
+    "service" -> SPAttributes(
+      "description"-> "Create one instance form type models"
+    ),
+    "selectedItems" -> SPAttributes(
+      "selectedItems"-> KeyDefinition("List[ID]", List(), Some(SPValue(List())))
+    )
+  )
+
+  // important to incl ServiceLauncher if you want unique actors per request
+  def props(modelHandler: ActorRef) = Props(classOf[CreateInstanceModelFromTypeModelService], modelHandler)
+
+
+  // Alla far aven "core" -> ServiceHandlerAttributes
+
+  //  case class ServiceHandlerAttributes(model: Option[ID],
+  //                                      responseToModel: Boolean,
+  //                                      onlyResponse: Boolean,
+  //                                      includeIDAbles: List[ID])
+
+}
+
+
+class CreateInstanceModelFromTypeModelRunner(modelHandler: ActorRef) extends Actor with ServiceSupportTrait {
   implicit val timeout = Timeout(1 seconds)
 
   import context.dispatcher
@@ -215,8 +249,4 @@ class CreateInstanceModelFromTypeModelService(modelHandler: ActorRef) extends Ac
 
   }
 
-}
-
-object CreateInstanceModelFromTypeModelService {
-  def props(modelHandler: ActorRef) = Props(classOf[CreateInstanceModelFromTypeModelService], modelHandler)
 }

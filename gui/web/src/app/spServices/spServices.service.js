@@ -56,19 +56,19 @@
 
 
     function callService(spService, request, responseCallBack, progressCallback) {
-      // TODO. Should be moved to serviceForm
-      var ids = _.map(itemService.selected, function(item){
-        return item.id;
-      });
-      console.log("selected items: " + ids);
-
-
-      var defaultCore = {
-        'model': modelService.activeModel.id,
-        'includeIDAbles': ids,
-        'responseToModel': false,
-        'onlyResponse': false
-      };
+//      // TODO. Should be moved to serviceForm
+//      var ids = _.map(itemService.selected, function(item){
+//        return item.id;
+//      });
+//      console.log("selected items: " + ids);
+//
+//
+//      var defaultCore = {
+//        'model': modelService.activeModel.id,
+//        'includeIDAbles': ids,
+//        'responseToModel': true,
+//        'onlyResponse': false
+//      };
 
       var message = {};
 
@@ -76,11 +76,9 @@
         message = request.data;
       }
 
-      if (_.isUndefined(message.core)){
-        message.core = defaultCore;
-      }
-
-
+//      if (_.isUndefined(message.core)){
+//        message.core.includeIDAbles = ids;
+//      }
 
       var idF = restService.getNewID();
       var answerF = idF.then(function(id){

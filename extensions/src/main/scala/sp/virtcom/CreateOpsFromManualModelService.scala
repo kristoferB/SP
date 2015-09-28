@@ -1,13 +1,11 @@
 package sp.virtcom
 
 import akka.actor._
-import sp.domain.{SPAttributes, ID}
-import sp.jsonImporter.ServiceSupportTrait
+import sp.domain.SPAttributes
+import sp.system._
+import sp.system.{ServiceLauncher, SPService}
 import sp.system.messages._
-import akka.pattern.ask
-import akka.util.Timeout
 import sp.virtcom.modeledCases.{PSLFloorRoofCase, VolvoWeldConveyerCase}
-import scala.concurrent.duration._
 import sp.domain.Logic._
 
 /**
@@ -17,40 +15,60 @@ import sp.domain.Logic._
  * To add a new service:
  * Register the service (actor) to SP (actor system) [sp.launch.SP]
  */
-class CreateOpsFromManualModelService(modelHandler: ActorRef) extends Actor with ServiceSupportTrait {
-  implicit val timeout = Timeout(1 seconds)
 
-  import context.dispatcher
+object CreateOpsFromManualModelService extends SPService {
+  val specification = SPAttributes(
+    "service" -> SPAttributes(
+      "description" -> "Creates operations for a manual model"
+    ),
+    "setup" -> SPAttributes(
+      "model" -> KeyDefinition("String", List(), Some("VolvoWeldConveyerCase"))
+    )
+  )
 
-  def receive = {
-    case Request(service, attr, _, _) => {
+  val transformTuple = (
+    TransformValue("setup", _.getAs[CreateOpsFromManualModelSetup]("setup"))
+    )
 
-      println(s"service: $service")
+  val transformation = transformToList(transformTuple.productIterator.toList)
 
-      lazy val activeModel = attr.getAs[SPAttributes]("activeModel")
-
-      lazy val id = activeModel.flatMap(_.getAs[ID]("id")).getOrElse(ID.newID)
-
-//            val manualModel = PSLFloorRoofCase()
-      val manualModel = VolvoWeldConveyerCase()
-      import CollectorModelImplicits._
-
-      for {
-        modelInfo <- futureWithErrorSupport[ModelInfo](modelHandler ? GetModelInfo(id))
-        newIDables = manualModel.parseToIDables()
-      infoText = s"Model added from \'${manualModel.getClass.getSimpleName}\'"
-        _ <- futureWithErrorSupport[Any](modelHandler ? UpdateIDs(model = id, items = newIDables.toList, info = SPAttributes("info"->infoText)))
-      } yield {
-        //        newIDables.foreach(o => println(s"${o.name} a:${o.attributes.pretty}"))
-      }
-
-      sender ! "ok"
-
-    }
-  }
+  // important to incl ServiceLauncher if you want unique actors per request
+  def props = ServiceLauncher.props(Props(classOf[CreateOpsFromManualModelService]))
 
 }
 
-object CreateOpsFromManualModelService {
-  def props(modelHandler: ActorRef) = Props(classOf[CreateOpsFromManualModelService], modelHandler)
+case class CreateOpsFromManualModelSetup(sopname: String)
+
+class CreateOpsFromManualModelService extends Actor with ServiceSupport {
+
+  def receive = {
+    case r@Request(service, attr, ids, reqID) =>
+
+      // Always include the following lines. Are used by the helper functions
+      val replyTo = sender()
+      implicit val rnr = RequestNReply(r, replyTo)
+
+      // include this if you want to send progress messages. Send attributes to it during calculations
+      val progress = context.actorOf(progressHandler)
+
+      println(s"service: $service")
+
+      //            val manualModel = PSLFloorRoofCase()
+      val manualModel = VolvoWeldConveyerCase()
+      import CollectorModelImplicits._
+
+      rnr.reply ! Response(manualModel.parseToIDables(), SPAttributes(), service, reqID)
+      progress ! PoisonPill
+      self ! PoisonPill
+
+    case (r: Response, reply: ActorRef) => {
+      reply ! r
+    }
+    case x => {
+      sender() ! SPError("What do you whant me to do? " + x)
+      self ! PoisonPill
+    }
+
+  }
+
 }
