@@ -13,7 +13,8 @@
         'app.itemEditor',
         'app.itemExplorer',
         'app.sopMaker',
-        'app.spServices'
+        'app.spServices',
+        'app.trajectories'
     ]);
 
 })();

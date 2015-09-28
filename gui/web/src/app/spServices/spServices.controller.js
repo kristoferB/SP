@@ -37,6 +37,11 @@
                 s.attributes.core.model.default = modelService.activeModel.id;
             });
 
+            vm.displayedRegisteredServices = _.map(vm.displayedRegisteredServices, function(s){
+                s.attributes.core.model.default = model
+            })
+
+
         }
 
         function startSPService(spService) {

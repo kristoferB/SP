@@ -48,11 +48,7 @@
             });
             listenToChanges();
 
-            vm.widget.storage.data = {o1: {
-                isa: "operation",
-                name: "o1"
-            }
-            };
+            vm.widget.storage.data = {};
         }
 
         function resetWidgetStorage() {

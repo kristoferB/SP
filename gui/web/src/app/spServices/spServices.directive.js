@@ -41,7 +41,8 @@
 
     }
 
-    function spServicesFormController() {
+    spServicesFormController.$inject = ['$document'];
+    function spServicesFormController($document) {
         var vm = this;
         vm.isA = "";
 
@@ -49,6 +50,9 @@
 
         function activate(){
             whatIsIt();
+
+            // For Item Explorer jsTree
+            $document.bind('dnd_stop.vakata', onStop);
         };
 
         function whatIsIt(){
@@ -72,6 +76,14 @@
                 vm.isA = "something";
                 vm.attributes = x;
             }
+        }
+
+
+        function onStop(e, data) {
+            var t = angular.element(data.event.target);
+            console.log("target")
+            console.log(e);
+            console.log(data);
         }
 
     }

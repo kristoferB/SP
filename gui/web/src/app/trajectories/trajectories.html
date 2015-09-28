@@ -1,0 +1,10 @@
+<div ng-controller="trajectoriesController as vm" class="trajectory">
+    <div class="panel-content">
+        <button ng-click="vm.test()">hej</button>
+        <trajectories
+                operations="vm.operations"
+                selection="vm.selection"
+                widget="vm.widget"
+                reload="vm.reload"></trajectories>
+    </div>
+</div>

@@ -1,4 +1,4 @@
-<table class="table" ng-if="vm.isA == 'object'">
+<table class="table drop-target" ng-if="vm.isA == 'object'">
     <tr ng-repeat="(key, value) in vm.structure">
         <td>{{key}}</td>
         <td><sp-services-form attributes="vm.attributes[key]" structure="value"></sp-services-form></td>
