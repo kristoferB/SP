@@ -1,16 +1,36 @@
 <table class="table drop-target" ng-if="vm.isA == 'object'">
     <tr ng-repeat="(key, value) in vm.structure">
         <td>{{key}}</td>
-        <td><sp-services-form attributes="vm.attributes[key]" structure="value"></sp-services-form></td>
+        <td><sp-services-form attributes="vm.attributes[key]" structure="value" key="key"></sp-services-form></td>
     </tr>
 </table>
 
-<div ng-if="vm.isA == 'something'">
-        {{vm.structure}}
+<!--Supported non-object isA-->
+<div ng-if="vm.isA == 'Option[ID]Model'">
+    <input type="text" ng-model="vm.attributes"/>
+    <button ng-click="vm.attributes = vm.reloadModelID">reload</button>
 </div>
 
+<div ng-if="vm.isA == 'List[ID]includeIDAbles'">
+    <textarea ng-model="vm.attributes"/>
+    <button ng-click="vm.attributes = vm.reloadSelectedItems">reload</button>
+    <button ng-click="vm.attributes = []">clear</button>
+</div>
 
-<!--Add divs for all types from scala-->
+<div ng-if="vm.isA == 'Boolean'">
+    <button ng-click="vm.attributes = !vm.attributes">{{vm.attributes}}</button>
+</div>
+
+<div ng-if="vm.isA == 'List[ID]'">
+    <textarea ng-model="vm.attributes"/>
+    <button ng-click="vm.attributes = []">clear</button>
+</div>
+
+<!--non-object isA not supported right now will end up here-->
+<div ng-if="vm.isA == 'something'">
+    {{vm.structure}}
+</div>
+
 <div ng-if="vm.isA == 'KeyDef'">
     <input type="text" ng-model="vm.attributes"/>
     <p>keyDef: {{vm.structure.ofType}}</p>

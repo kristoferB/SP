@@ -16,7 +16,8 @@
             templateUrl: 'app/spServices/spServices.directive.html',
             scope: {
                 attributes: '=',
-                structure: '='
+                structure: '=',
+                key: '='
             },
             compile: compile,
           controller: spServicesFormController,
@@ -41,16 +42,18 @@
 
     }
 
-    spServicesFormController.$inject = ['$document'];
-    function spServicesFormController($document) {
+    spServicesFormController.$inject = ['modelService','itemService'];
+    function spServicesFormController(modelService,itemService) {
         var vm = this;
         vm.isA = "";
+        vm.reloadModelID = reloadModelID();
+        vm.reloadSelectedItems = reloadSelectedItems();
 
         activate();
 
         function activate(){
             whatIsIt();
-        };
+        }
 
         function whatIsIt(){
             var x = vm.structure;
@@ -58,27 +61,45 @@
                 vm.isA = ""
             } else if (!_.isUndefined(x.ofType)){
 
-                // använd denna för att matcha typer, ev förenkla typerna?
-                //vm.isA = x.ofType;
-                vm.isA = "KeyDef"; // för att testa
+                if (x.ofType == "Option[ID]" && vm.key == "model") {
+                    vm.isA = "Option[ID]Model";
+                    vm.attributes = _.isUndefined(x.default) ? vm.reloadModelID : x.default;
+                } else if (x.ofType == "List[ID]" && vm.key == "includeIDAbles") {
+                    vm.isA = "List[ID]includeIDAbles";
+                    vm.attributes = _.isUndefined(x.default) ? vm.reloadSelectedItems : x.default;
+                } else if (x.ofType == "Boolean") {
+                    vm.isA = "Boolean";
+                    vm.attributes = _.isUndefined(x.default) ? false : x.default
+                } else if (x.ofType == "List[ID]") {
+                    vm.isA = "List[ID]";
+                    vm.attributes = _.isUndefined(x.default) ? [] : x.default
+                } else{
+                    vm.isA = "KeyDef"; // för att testa
+                    vm.attributes = _.isUndefined(x.default) ? "" : x.default
+                }
 
-                vm.attributes = _.isUndefined(x.default) ? "" : x.default
+//                vm.attributes = _.isUndefined(x.default) ? "" : x.default
             } else if (_.isObject(x)){
                 vm.isA = "object";
                 vm.attributes = {};
-                //_.forOwn(x, function(value, key){
-                //    vm.attributes[key] = "";
-                //})
             } else {
                 vm.isA = "something";
                 vm.attributes = x;
             }
         }
 
+        function reloadModelID() {
+            var currentModelId = modelService.activeModel.id;
+            return _.isUndefined(currentModelId) ? "" : currentModelId;
+        }
 
+        function reloadSelectedItems() {
+            var toReturn = _.map(itemService.selected, function(item){
+                return item.id;
+            });
+            return toReturn;
+        }
 
     }
-
-
 
 })();

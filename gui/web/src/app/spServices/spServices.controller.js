@@ -21,7 +21,6 @@
         vm.serviceAttributes = {};
         vm.isServiceActive = isServiceActive;
 
-
         activate();
 
         function activate() {
@@ -33,14 +32,9 @@
                 vm.serviceAttributes[s.name] = {};
             });
 
-            _.forEach(vm.registeredServices, function(s){
-                s.attributes.core.model.default = modelService.activeModel.id;
-            });
-
-            vm.displayedRegisteredServices = _.map(vm.displayedRegisteredServices, function(s){
-                s.attributes.core.model.default = model
-            })
-
+//            _.forEach(vm.registeredServices, function(s){
+//                s.attributes.core.model.default = modelService.activeModel.id;
+//            });
 
         }
 
