@@ -13,7 +13,7 @@
 
 <div ng-if="vm.isA == 'List[ID]includeIDAbles'">
     <textarea ng-model="vm.attributes" ng-list tooltip='Eg.: a,b,, , c => ["a","b",""," c"]'></textarea>
-    <button ng-click="vm.attributes = vm.reloadSelectedItems()">reload</button>
+    <button ng-click="vm.attributes = vm.reloadSelectedItems()">get selected</button>
     <button ng-click="vm.attributes = []">clear</button>
 </div>
 
