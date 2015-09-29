@@ -19,6 +19,7 @@
         vm.startSpService = startSPService; //To start a service. Name of service as parameter
         vm.currentProgess = {};
         vm.serviceAttributes = {};
+        vm.showDetails = {};
         vm.isServiceActive = isServiceActive;
 
         activate();
@@ -29,7 +30,7 @@
             });
 
             _.forEach(vm.registeredServices, function(s){
-                vm.serviceAttributes[s.name] = {};
+                vm.showDetails[s.name] = false;
             });
 
         }
