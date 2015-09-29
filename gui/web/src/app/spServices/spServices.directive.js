@@ -47,8 +47,8 @@
     function spServicesFormController(modelService,itemService) {
         var vm = this;
         vm.isA = "";
-        vm.reloadModelID = reloadModelID();
-        vm.reloadSelectedItems = reloadSelectedItems();
+        vm.reloadModelID = reloadModelID;
+        vm.reloadSelectedItems = reloadSelectedItems;
 
         activate();
 
@@ -69,7 +69,7 @@
                 //core>includeIDAbles
                 } else if (x.ofType == "List[ID]" && vm.key == "includeIDAbles") {
                     vm.isA = "List[ID]includeIDAbles";
-                    vm.attributes = _.isUndefined(x.default) ? vm.reloadSelectedItems : x.default;
+                    vm.attributes = _.isUndefined(x.default) ? vm.reloadSelectedItems() : x.default;
                 //Boolean
                 } else if (x.ofType == "Boolean") {
                     vm.isA = "Boolean";

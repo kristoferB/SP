@@ -13,7 +13,7 @@
 
 <div ng-if="vm.isA == 'List[ID]includeIDAbles'">
     <textarea ng-model="vm.attributes"/>
-    <button ng-click="vm.attributes = vm.reloadSelectedItems">reload (not working)</button>
+    <button ng-click="vm.attributes = vm.reloadSelectedItems()">reload (not working)</button>
     <button ng-click="vm.attributes = []">clear</button>
 </div>
 
