@@ -109,7 +109,10 @@ object SP extends App {
   camelContext.addComponent("activemq", ActiveMQComponent.activeMQComponent("tcp://martinsPC:61616"))
   val psamq = system.actorOf(Props[ProcessSimulateAMQ], "ProcessSimulateAMQ")
   serviceHandler ! RegisterService("ProcessSimulate",
-    system.actorOf(ProcessSimulateService.props(modelHandler, psamq), "ProcessSimulate"))
+    system.actorOf(ProcessSimulateService.props(modelHandler, psamq), "ProcessSimulate"),
+    ProcessSimulateService.specification,
+    ProcessSimulateService.transformation
+  )
 
   //  //Preload model from json-importer
 //    val file = Source.fromFile("./testFiles/gitIgnore/module1.json").getLines().mkString("\n")

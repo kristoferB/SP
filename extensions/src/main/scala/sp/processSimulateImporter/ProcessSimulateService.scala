@@ -18,21 +18,26 @@ import scala.util._
 /**
  * Some unclear interfaces. What is items?
  */
-object ProcessSimulateService {
+
+case class PSCommand(command: String)
+
+object ProcessSimulateService extends SPService {
   val specification = SPAttributes(
     "service" -> SPAttributes(
       "group"-> "External"
     ),
-    "command" -> KeyDefinition("String", List("createOp", "import", "import_single"), Some("createOp")),
-    "params" -> SPAttributes(
-      "items" -> KeyDefinition("SPAttributes", List(), Some(org.json4s.JArray(List())))
+    "setup" -> SPAttributes(
+      "command" -> KeyDefinition("String", List("createOp", "import", "import_single"), Some("createOp"))
     )
   )
 
-  // Nu skapas en actor per request
-  def props(modelHandler: ActorRef, psAmq: ActorRef) = sp.system.ServiceLauncher.props(Props(classOf[ProcessSimulateService], modelHandler, psAmq))
-}
+  val transformTuple  = (
+    TransformValue("setup", _.getAs[PSCommand]("command"))
+  )
+  val transformation = transformToList(transformTuple.productIterator.toList)
 
+  def props(modelHandler: ActorRef, psAmq: ActorRef) = ServiceLauncher.props(Props(classOf[ProcessSimulateService], modelHandler, psAmq))
+}
 
 // activemq part    Beövs det inte en consumer också?
 class ProcessSimulateAMQ extends Actor with Producer {
@@ -57,31 +62,25 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
 
       progress ! SPAttributes("progress" -> "creating a json for Process simulate")
 
-      for {
-        command <- getAttr(_.getAs[String]("command"))
-        model <- getAttr(_.getAs[ID]("model"))
-        params <- getAttr(_.getAs[SPAttributes]("params"))
-      } yield {
-          val res = command match {
-            case "createOp" => createOp(model, params, ids, progress)
-            case "import" => fetch(model, params, ids, progress)
-            case "import_single" => fetch_single(model, params, ids, progress)
-          }
+      val setup = transform(ProcessSimulateService.transformTuple)
+      val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
+      
+      val res = setup.command match {
+        case "createOp" => createOp(core.model, ids, progress)
+        case "import" => fetch(core.model, ids, progress)
+        case "import_single" => fetch_single(core.model, ids, progress)
+      }
 
-        res onComplete {
-          case Success(resp) => {
-            replyTo ! resp
-            terminate(progress)
-          }
-          case Failure(t) => {
-            replyTo ! SPError("Failed when communicating")
-            terminate(progress)
-          }
+      res onComplete {
+        case Success(resp) => {
+          replyTo ! resp
+          terminate(progress)
         }
-
-
+        case Failure(t) => {
+          replyTo ! SPError("Failed when communicating")
+          terminate(progress)
         }
-
+      }
     }
     case _ => sender ! SPError("Ill formed request");
   }
@@ -92,12 +91,12 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
   }
 
 
-  def createOp(model: ID, params: SPAttributes, ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
-    // lite oklart här. Vad gör raden? hur ser datastrukturen ut i params? Bör definieras i en case class
-    val checkItems = params.findObjectsWithField(List(("checked", SPValue(true)))).unzip._1.flatMap(ID.makeID)
-    val sopSpecs = ids.filter(item => item.isInstanceOf[SOPSpec] && checkItems.contains(item.id)).map(_.asInstanceOf[SOPSpec])
+  def createOp(model: Option[ID], ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
+    val sops = ids.filter(item => item.isInstanceOf[SOPSpec]) map (_.asInstanceOf[SOPSpec])
+    println(s"selected sops: $sops")
+      
     val opIDS = for {
-      spec <- sopSpecs
+      spec <- sops
       sop <- spec.sop
       op <- sp.domain.logic.SOPLogic.getAllOperations(sop)
     } yield op
@@ -126,7 +125,7 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     items.map{list => Response(list, SPAttributes("command" -> "create_op_chain"), rnr.req.service, rnr.req.reqID)}
   }
 
-  def fetch(model: ID, params: SPAttributes, ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
+  def fetch(model: Option[ID], ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
     val json = SPAttributes("command" -> "get_all_tx_objects") toJson
 
     val f = psAmq ? json
@@ -136,8 +135,8 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     items.map{list => Response(list, SPAttributes("command" -> "get_all_tx_objects"), rnr.req.service, rnr.req.reqID)}
   }
 
-  def fetch_single(model: ID, params: SPAttributes, ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
-    val txid = params.getAs[String]("txid").getOrElse("")
+  def fetch_single(model: Option[ID], ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
+    val txid = "" // params.getAs[String]("txid").getOrElse("")
 
     val json = SPAttributes("command" -> "get_tx_object", "params" -> Map("txid" -> txid)) toJson
     val f = psAmq ? json
