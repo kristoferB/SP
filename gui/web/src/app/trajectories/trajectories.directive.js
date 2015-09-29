@@ -17,6 +17,7 @@
             templateUrl: 'app/trajectories/trajectories.directive.html',
             scope: {
                 operations: '=',
+                marks: '=',
                 selection: '=',
                 widget: '=',
                 reload: '='
@@ -74,10 +75,7 @@
                     },
                     lines: {
                         dispatch: {
-                            elementClick: function(e){ console.log("chartClick"); console.log(e);vm.selection(e)},
-                            elementMouseover: function(e){ console.log("elementMouseover");console.log(e); },
-                            tooltipShow: function(e){ console.log("tooltipShow"); },
-                            tooltipHide: function(e){ console.log("tooltipHide"); }
+                            elementClick: function(e){ console.log("chartClick"); console.log(e);vm.selection(e)}
                         },
                     },
                     x: function(d){ return d.x; },
@@ -91,7 +89,8 @@
                         tickFormat: function(d){
                             return d3.format('1.0f')(d);
                         },
-                        axisLabelDistance: 5
+                        axisLabelDistance: 5,
+                        showMaxMin: false
                     }
                 },
                 title: {
@@ -101,6 +100,9 @@
             };
 
             vm.data = fillOps(0);
+
+
+            console.log(vm.data);
 
             vm.config = {
                 visible: true, // default: true
@@ -121,8 +123,10 @@
         function fillOps(noOfDerivatives) {
             noOfDerivatives = _.isUndefined(noOfDerivatives) ? 0 : noOfDerivatives
             var res = [];
+            var title = "";
 
             _.forEach(vm.operations, function(op){
+                title = (title == "") ? op.name : title + " - " + op.name
                 var joints = {};
                 var poses = [];
                 poses = filterPoses(op.poses, 50);
@@ -131,7 +135,6 @@
                     var x = p.time;
                     _.forOwn(p.joints, function(value, key){
                         if (_.isUndefined(joints[key])) joints[key] = [];
-
                         joints[key].push({'x': x, 'y': value})
                     })
                 });
@@ -142,6 +145,14 @@
                     res.push({values: value,key: op.name +"_"+key})
                 })
             });
+
+            var marks = fillMarks(res, vm.marks);
+            console.log("marks")
+            console.log(marks)
+            _.forEach(marks, function(m){res.push(m)});
+
+
+            vm.options.title.text = title;
             return res;
         };
 
@@ -153,7 +164,7 @@
                 var i = 0;
                 var temp = [];
                 temp.push(poses[0]);
-                temp.push(poses[poses.length-1]);
+                var last = poses[poses.length-1];
                 poses.splice(0, 1);
                 poses.splice(poses.length-1, 1);
                 _.forEach(poses, function(p){
@@ -163,6 +174,7 @@
                     }
                     i++
                 });
+                temp.push(last);
                 result = temp;
             } else {
                 result = poses;
@@ -202,9 +214,50 @@
             return res;
         }
 
+
+
+        function fillMarks(ops, marks){
+            var res = [];
+            //var minMax = getMinMaxY(ops);
+            _.forEach(marks, function(m){
+                if (!_.isUndefined(m.isa)){
+                    var start = m.startTime;
+                    var stop = (_.isUndefined(m.stopTime)) ? start+0.1 : m.stopTime;
+                    var line = {
+                        key: m.isa + " " + m.name,
+                        values: [
+                            {x: start, y: 10},
+                            {x: stop, y: 10}
+                        ],
+                        area: true
+                    };
+                    res.push(line);
+                }
+            });
+            return res;
+        }
+
+        function getMinMaxY(data){
+            var max = -100000;
+            var min = 100000;
+            _.forEach(data, function(line){
+                _.forEach(line.values, function(val){
+                    if (val.y > max) max = val.y;
+                    if (val.y < min) min = val.y;
+                })
+            })
+            return {
+                max: max,
+                min: min
+            }
+        }
+
+
+
         function reload(derivative){
             vm.data = fillOps(derivative);
-            vm.api.refresh();
+
+            vm.api.update();
         }
 
 

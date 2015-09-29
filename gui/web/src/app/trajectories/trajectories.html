@@ -2,13 +2,26 @@
     <div class="panel-content">
 
         <div class="btn-group">
-            <button class="btn btn-sm btn-default btn-notext" tooltip="Save Edited Items"
-                    ng-click="vm.test()"><i class="fa fa-floppy-o"></i>
+            <button class="btn btn-sm btn-default btn-notext" tooltip="Switch derivative"
+                    ng-click="vm.changeChartDerivative()"><i class="fa fa-line-chart"></i>
+            </button>            
+        </div>
+        <div ng-if="vm.inMarkMode" class="btn-group" dropdown is-open="status.isopen">
+            <button id="single-button" type="button" class="btn btn-primary" dropdown-toggle ng-disabled="disabled">
+                {{vm.currentMark.isa}} <span class="caret"></span>
             </button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="single-button">
+                <li ng-repeat="isa in vm.markTypes" role="menuitem">
+                <a ng-click="vm.currentMark.isa = isa" href="#">{{isa}}</a>
+                </li>
+            </ul>
+            <input type="text" ng-model="vm.currentMark.name"/>
+            {{vm.currentMark}}
         </div>
 
                 <trajectories
                     operations="vm.operations"
+                    marks="vm.marks"
                     selection="vm.selection"
                     widget="vm.widget"
                     reload="vm.reload">
