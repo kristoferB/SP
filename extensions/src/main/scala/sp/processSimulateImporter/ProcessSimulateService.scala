@@ -19,12 +19,13 @@ import scala.util._
  * Some unclear interfaces. What is items?
  */
 
-case class PSCommand(command: String)
+case class PSsetup(command: String)
 
 object ProcessSimulateService extends SPService {
   val specification = SPAttributes(
     "service" -> SPAttributes(
-      "group"-> "External"
+      "group" -> "External",
+      "description" -> "Pull/push data from/to Process Simulate"
     ),
     "setup" -> SPAttributes(
       "command" -> KeyDefinition("String", List("createOp", "import", "import_single"), Some("createOp"))
@@ -32,7 +33,7 @@ object ProcessSimulateService extends SPService {
   )
 
   val transformTuple  = (
-    TransformValue("setup", _.getAs[PSCommand]("command"))
+    TransformValue("setup", _.getAs[PSsetup]("setup"))
   )
   val transformation = transformToList(transformTuple.productIterator.toList)
 
@@ -69,6 +70,7 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
         case "createOp" => createOp(core.model, ids, progress)
         case "import" => fetch(core.model, ids, progress)
         case "import_single" => fetch_single(core.model, ids, progress)
+        case _ => throw new Exception("No such command! How to do this the scala way?")
       }
 
       res onComplete {
@@ -93,7 +95,6 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
 
   def createOp(model: Option[ID], ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
     val sops = ids.filter(item => item.isInstanceOf[SOPSpec]) map (_.asInstanceOf[SOPSpec])
-    println(s"selected sops: $sops")
       
     val opIDS = for {
       spec <- sops
@@ -116,7 +117,6 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
 
     // Så det är ett meddelande per SOPSpec eller?
     // TODO: progressbar while waiting for answer...
-
 
     val f = psAmq ? json
     progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
