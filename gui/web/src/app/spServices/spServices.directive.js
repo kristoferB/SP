@@ -102,8 +102,11 @@
         }
 
         function reloadModelID() {
-            var currentModelId = modelService.activeModel.id;
-            return _.isUndefined(currentModelId) ? "" : currentModelId;
+            if (modelService.activeModel === null) {
+                return "";
+            } else {
+                return modelService.activeModel.id;
+            }
         }
 
         function reloadSelectedItems() {

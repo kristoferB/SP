@@ -12,7 +12,7 @@
 </div>
 
 <div ng-if="vm.isA == 'List[ID]includeIDAbles'">
-    <textarea ng-model="vm.attributes"/>
+    <textarea ng-model="vm.attributes" ng-list tooltip='Eg.: a,b,, , c => ["a","b",""," c"]'></textarea>
     <button ng-click="vm.attributes = vm.reloadSelectedItems">reload (not working)</button>
     <button ng-click="vm.attributes = []">clear</button>
 </div>
@@ -32,7 +32,7 @@
 </div>
 
 <div ng-if="vm.isA == 'List[T]'">
-    <textarea ng-model="vm.attributes"/>
+    <textarea ng-model="vm.attributes" ng-list tooltip='Eg.: a,b,, , c => ["a","b",""," c"]'></textarea>
     <button ng-click="vm.attributes = []">clear</button>
 </div>
 

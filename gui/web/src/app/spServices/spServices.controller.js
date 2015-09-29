@@ -32,10 +32,6 @@
                 vm.serviceAttributes[s.name] = {};
             });
 
-//            _.forEach(vm.registeredServices, function(s){
-//                s.attributes.core.model.default = modelService.activeModel.id;
-//            });
-
         }
 
         function startSPService(spService) {
