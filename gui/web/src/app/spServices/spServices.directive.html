@@ -13,7 +13,7 @@
 
 <div ng-if="vm.isA == 'List[ID]includeIDAbles'">
     <textarea ng-model="vm.attributes"/>
-    <button ng-click="vm.attributes = vm.reloadSelectedItems">reload</button>
+    <button ng-click="vm.attributes = vm.reloadSelectedItems">reload (not working)</button>
     <button ng-click="vm.attributes = []">clear</button>
 </div>
 
@@ -21,7 +21,17 @@
     <button ng-click="vm.attributes = !vm.attributes">{{vm.attributes}}</button>
 </div>
 
-<div ng-if="vm.isA == 'List[ID]'">
+<div ng-if="vm.isA == 'String'">
+    <input type="text" ng-model="vm.attributes"/>
+</div>
+
+<div ng-if="vm.isA == 'StringWithDomain'">
+    <select ng-model="vm.attributes">
+        <option ng-repeat="option in vm.domainToSelectFrom" value="{{option}}">{{option}}</option>
+    </select>
+</div>
+
+<div ng-if="vm.isA == 'List[T]'">
     <textarea ng-model="vm.attributes"/>
     <button ng-click="vm.attributes = []">clear</button>
 </div>
