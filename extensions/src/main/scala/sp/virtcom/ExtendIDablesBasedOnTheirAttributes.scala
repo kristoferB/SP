@@ -16,41 +16,31 @@ import scala.util.{Failure, Success}
 /**
  * Extends IDables
  * Operations:
- *  "carrierTrans" attributes are extended to get a value keys "atStart", "atExecute", "atComplete" if no exists.
- *  E.g. If "atStart":"gripper" and no values are given for "atExecute" and "atComplete" then "atExecute":"partlyGripper" and "atComplete":"empty"
+ * "carrierTrans" attributes are extended to get a value keys "atStart", "atExecute", "atComplete" if no exists.
+ * E.g. If "atStart":"gripper" and no values are given for "atExecute" and "atComplete" then "atExecute":"partlyGripper" and "atComplete":"empty"
  * SPSpec:
- *  "staticRobotPoses" attributes are extended to generate new (transport) operations
- *  E.g. {"atHome":{{"to":"atFixture"},{"to":"atTable","simop":"1,202"}}} will generate two operations:
- *   "atHomeToAtFixture" and "atHomeToAtTable" (with an attribute "simop":"1,202")
+ * "staticRobotPoses" attributes are extended to generate new (transport) operations
+ * E.g. {"atHome":{{"to":"atFixture"},{"to":"atTable","simop":"1,202"}}} will generate two operations:
+ * "atHomeToAtFixture" and "atHomeToAtTable" (with an attribute "simop":"1,202")
  * Variables:
- *  Non-existing variables referenced in attributes of operations are created.
- *  The domains for new and old variables are extended based on values given in attributes of operations.
- *  Variables without an attribute key "idleValue" that contains the value "empty" in its domain are extend with the attribute: "idleValue":"empty"
+ * Non-existing variables referenced in attributes of operations are created.
+ * The domains for new and old variables are extended based on values given in attributes of operations.
+ * Variables without an attribute key "idleValue" that contains the value "empty" in its domain are extend with the attribute: "idleValue":"empty"
  *
  * TODO: Extend based on product SOPs
  */
 object ExtendIDablesBasedOnTheirAttributes {
   val specification = SPAttributes(
     "service" -> SPAttributes(
-      "description"-> "Extend idables based on their attributes"
+      "description" -> "Extend idables based on their attributes"
     )
   )
 
-  def props(modelHandler: ActorRef) = Props(classOf[ExtendIDablesBasedOnTheirAttributes], modelHandler)
+  def props = ServiceLauncher.props(Props(classOf[ExtendIDablesBasedOnTheirAttributesService]))
 
 }
 
-class ExtendIDablesBasedOnTheirAttributes(modelHandler: ActorRef) extends Actor {
-  def receive = {
-    case r @ Request(service, attr, ids, reqID) =>
-      println(s"service: $service got reqID: $reqID")
-      context.actorOf(Props(classOf[ExtendIDablesBasedOnTheirAttributesRunner], modelHandler)).tell(r, sender())
-  }
-}
-
-class ExtendIDablesBasedOnTheirAttributesRunner(modelHandler: ActorRef) extends Actor with ServiceSupport with ServiceSupportTrait {
-  implicit val timeout = Timeout(1 seconds)
-
+class ExtendIDablesBasedOnTheirAttributesService extends Actor with ServiceSupport {
   import context.dispatcher
 
   def receive = {
@@ -60,45 +50,20 @@ class ExtendIDablesBasedOnTheirAttributesRunner(modelHandler: ActorRef) extends 
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
 
-      lazy val core = attr.getAs[ServiceHandlerAttributes]("core").get
+      val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
+      val vars = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing])
+      val sopSpecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
+      val spSpecs = ids.filter(_.isInstanceOf[SPSpec]).map(_.asInstanceOf[SPSpec])
 
-      val result = for {
-
-        //Collect ops, vars, sopSpecs, spSpecs
-        SPIDs(opsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetOperations(model = core.model.get))
-        ops = opsToBe.map(_.asInstanceOf[Operation])
-        //        checkOps = ops.filter(obj => core.includeIDAbles.contains(obj.id))
-
-        SPIDs(varsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetThings(model = core.model.get))
-        vars = varsToBe.map(_.asInstanceOf[Thing])
-
-        SPIDs(sopSpecsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = core.model.get))
-        sopSpecs = sopSpecsToBe.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
-
-        SPIDs(spSpecsToBe) <- futureWithErrorSupport[SPIDs](modelHandler ? GetSpecs(model = core.model.get))
-        spSpecs = spSpecsToBe.filter(_.isInstanceOf[SPSpec]).map(_.asInstanceOf[SPSpec])
-
-      } yield {
-          //Extend Operations and Variables (TODO extend based on product sequences)
-          val eiw = ExtendIDablesWrapper(ops, vars, sopSpecs, spSpecs)
-          val updatedIDables = {
-            eiw.extend()
-            eiw.extendedIDables()
-          }
-
-          updatedIDables
-        }
-
-      result onComplete {
-        case Success(updatedIDables) => {
-          rnr.reply ! Response(updatedIDables, SPAttributes(), service, reqID)
-          self ! PoisonPill
-        }
-        case Failure(t) => {
-          rnr.reply ! SPError(s"Problem to update idables. Error msg: $t")
-          self ! PoisonPill
-        }
+      //Extend Operations and Variables (TODO extend based on product sequences)
+      val eiw = ExtendIDablesWrapper(ops, vars, sopSpecs, spSpecs)
+      val updatedIDables = {
+        eiw.extend()
+        eiw.extendedIDables()
       }
+
+      rnr.reply ! Response(updatedIDables, SPAttributes(), service, reqID)
+      self ! PoisonPill
 
     case (r: Response, reply: ActorRef) => {
       reply ! r
@@ -112,9 +77,9 @@ class ExtendIDablesBasedOnTheirAttributesRunner(modelHandler: ActorRef) extends 
 }
 
 case class TransformationPatternInAttributes(atStart: Option[String], atExecute: Option[String], atComplete: Option[String]) {
-  private def partly(optValue: Option[String]) = optValue.map(value => s"partly${value.capitalize}")
   def partlyAtStart() = partly(atStart)
   def partlyAtComplete() = partly(atComplete)
+  private def partly(optValue: Option[String]) = optValue.map(value => s"partly${value.capitalize}")
   def valuesForDomain() = Seq(atStart, atExecute, atComplete).flatten
 }
 

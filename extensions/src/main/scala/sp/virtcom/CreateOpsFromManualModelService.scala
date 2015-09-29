@@ -22,7 +22,7 @@ object CreateOpsFromManualModelService extends SPService {
       "description" -> "Creates operations for a manual model"
     ),
     "setup" -> SPAttributes(
-      "model" -> KeyDefinition("String", List(), Some("VolvoWeldConveyerCase"))
+      "model" -> KeyDefinition("String", List("Volvo Weld Conveyer","PSL - floor roof"), Some("Volvo Weld Conveyer"))
     )
   )
 
@@ -37,7 +37,7 @@ object CreateOpsFromManualModelService extends SPService {
 
 }
 
-case class CreateOpsFromManualModelSetup(sopname: String)
+case class CreateOpsFromManualModelSetup(model: String)
 
 class CreateOpsFromManualModelService extends Actor with ServiceSupport {
 
@@ -53,8 +53,14 @@ class CreateOpsFromManualModelService extends Actor with ServiceSupport {
 
       println(s"service: $service")
 
-      //            val manualModel = PSLFloorRoofCase()
-      val manualModel = VolvoWeldConveyerCase()
+      val selectedModel = transform(CreateOpsFromManualModelService.transformTuple)
+
+      var manualModel :CollectorModel = VolvoWeldConveyerCase()
+      if (selectedModel.model.equals("PSL - floor roof")) {
+        manualModel = PSLFloorRoofCase()
+      }
+
+
       import CollectorModelImplicits._
 
       rnr.reply ! Response(manualModel.parseToIDables(), SPAttributes(), service, reqID)

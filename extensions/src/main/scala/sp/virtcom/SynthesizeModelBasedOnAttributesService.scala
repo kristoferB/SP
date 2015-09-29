@@ -30,15 +30,8 @@ object SynthesizeModelBasedOnAttributesService {
   // todo update spec
   val specification = SPAttributes(
     "service" -> SPAttributes(
-      "group"-> "patriks" // to organize in gui. maybe use "hide" to hide service in gui
-    ),
-    "selectedItems"-> KeyDefinition("List[ID]", List(), Some(SPValue(List()))),
-    "id"-> KeyDefinition("ID", List(), None),
-    "setup" -> Map(
-      "ops" -> KeyDefinition("Boolean", List(), Some(false)),
-      "searchMethod" -> KeyDefinition("String", List("theGood", "theBad"), Some("theGood"))
-    ),
-    "findID" -> KeyDefinition("ID", List(), None)
+      "description" -> "Synthesizes selected items and returns gaurds into conditions."
+    )
   )
 
   def props(modelHandler: ActorRef) = Props(classOf[SynthesizeModelBasedOnAttributesService], modelHandler)

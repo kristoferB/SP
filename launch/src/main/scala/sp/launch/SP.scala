@@ -91,12 +91,15 @@ object SP extends App {
     SynthesizeModelBasedOnAttributesService.specification)
 
   serviceHandler ! RegisterService("ExtendIDablesBasedOnAttributes",
-    system.actorOf(ExtendIDablesBasedOnTheirAttributes.props(modelHandler), "ExtendIDablesBasedOnAttributes"),
+    system.actorOf(ExtendIDablesBasedOnTheirAttributes.props, "ExtendIDablesBasedOnAttributes"),
     ExtendIDablesBasedOnTheirAttributes.specification
   )
 
   serviceHandler ! RegisterService("CreateInstanceModelFromTypeModel",
-    system.actorOf(CreateInstanceModelFromTypeModelService.props(modelHandler), "CreateInstanceModelFromTypeModel"))
+    system.actorOf(CreateInstanceModelFromTypeModelService.props, "CreateInstanceModelFromTypeModel"),
+    CreateInstanceModelFromTypeModelService.specification,
+    CreateInstanceModelFromTypeModelService.transformation
+  )
 
   // activemq + process simulate stuff
   import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
