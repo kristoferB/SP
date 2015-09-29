@@ -82,6 +82,10 @@
                         vm.isA += "WithDomain";
                         vm.domainToSelectFrom = x.domain;
                     }
+                //Boolean
+                } else if (x.ofType == "ID") {
+                    vm.isA = "ID";
+                    vm.attributes = _.isUndefined(x.default) ? "" : x.default;
                 //List[ID] and List[String]
                 } else if (x.ofType == "List[ID]" || x.ofType == "List[String]") {
                     vm.isA = "List[T]";
