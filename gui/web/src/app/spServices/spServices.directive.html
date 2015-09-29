@@ -8,12 +8,12 @@
 <!--Supported non-object isA-->
 <div ng-if="vm.isA == 'Option[ID]Model'">
     <input type="text" ng-model="vm.attributes"/>
-    <button ng-click="vm.attributes = vm.reloadModelID">reload</button>
+    <button ng-click="vm.attributes = vm.reloadModelID()">reload</button>
 </div>
 
 <div ng-if="vm.isA == 'List[ID]includeIDAbles'">
     <textarea ng-model="vm.attributes" ng-list tooltip='Eg.: a,b,, , c => ["a","b",""," c"]'></textarea>
-    <button ng-click="vm.attributes = vm.reloadSelectedItems">reload (not working)</button>
+    <button ng-click="vm.attributes = vm.reloadSelectedItems()">reload</button>
     <button ng-click="vm.attributes = []">clear</button>
 </div>
 
