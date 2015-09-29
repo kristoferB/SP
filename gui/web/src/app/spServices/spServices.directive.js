@@ -17,8 +17,7 @@
             scope: {
                 attributes: '=',
                 structure: '=',
-                key: '=',
-                domainToSelectFrom: "="
+                key: '='
             },
             compile: compile,
           controller: spServicesFormController,
@@ -49,6 +48,7 @@
         vm.isA = "";
         vm.reloadModelID = reloadModelID;
         vm.reloadSelectedItems = reloadSelectedItems;
+        vm.domainToSelectFrom = [];
 
         activate();
 

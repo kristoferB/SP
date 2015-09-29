@@ -14,24 +14,46 @@
         var vm = this;
         var dashboard = $scope.$parent.$parent.$parent.vm.dashboard;
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //For GUI
-        vm.test = test;
+        vm.changeChartDerivative = changeChartDerivative;
         vm.operations = [];
         vm.selection = selectionEvent;
 
-;
+        vm.inMarkMode = false;
+        vm.markTypes = ["zone", "keep", "mark"];
+        vm.marks = [];
+        vm.currentMark = {};
+
 
 
         activate();
 
 
-        function selectionEvent(hej){
-            console.log("got select");
-            console.log(hej);
+        function selectionEvent(poses){
+            var p = _.isArray(poses) ? poses[0].point.x : poses.point.x
+            if (_.isUndefined(vm.currentMark.isa)){
+                vm.currentMark = {
+                    isa: "zone",
+                    name: "z1",
+                    startTime: p
+                }
+            }
+            if (vm.inMarkMode){
+                if (vm.currentMark.isa !== "mark")
+                    vm.currentMark.stopTime = p;
 
+                vm.inMarkMode = false;
+                vm.marks.push(vm.currentMark);
+                vm.currentMark = {};
+                changeChartDerivative(true);
+            } else {
+                vm.inMarkMode = true;
+            }
+            $scope.$apply();
         };
 
         var step = 1;
-        function test(){
+        function changeChartDerivative(keep){
+            if (keep) step = step-1 < 0 ? 3 : step-1
            console.log("in test trajectory")
             vm.reload(step);
             step = (step >=3) ? 0 : step+1;
