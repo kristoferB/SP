@@ -12,7 +12,7 @@ import sp.virtcom.CollectorModel
  * Stationary weld with tip dress
  */
 //case class VolvoWeldConveyerCase() extends ExplicitPrePost with SimOps
-case class VolvoWeldConveyerCase() extends ImplicitOnlyCarriersAndResources
+case class VolvoWeldConveyerCase() extends ImplicitOnlyCarriersAndResources with SimOps
 
 sealed trait ImplicitOnlyCarriersAndResources extends CollectorModel {
   //Resources/Machines/Variables
@@ -78,10 +78,10 @@ sealed trait SimOps extends CollectorModel {
   op(s"releaseProductB", SPAttributes("simop" -> "1,105"))
   op(s"removeProductB", SPAttributes("simop" -> "1,241"))
 
-  op(s"atConveyersToAtHome_Robot", SPAttributes("simop" -> "1,89"))
-  op(s"atHomeToAtIn_Robot", SPAttributes("simop" -> "1,133"))
-  op(s"atInToAtWeld_Robot", SPAttributes("simop" -> "1,171"))
-  op(s"atWeldToAtConveyers_Robot", SPAttributes("simop" -> "1,228"))
+//  op(s"atConveyersToAtHome_Robot", SPAttributes("simop" -> "1,89"))
+//  op(s"atHomeToAtIn_Robot", SPAttributes("simop" -> "1,133"))
+//  op(s"atInToAtWeld_Robot", SPAttributes("simop" -> "1,171"))
+//  op(s"atWeldToAtConveyers_Robot", SPAttributes("simop" -> "1,228"))
 
   op(s"tipDress", SPAttributes("simop" -> "1,124"))
 }
