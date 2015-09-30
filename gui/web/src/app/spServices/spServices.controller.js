@@ -20,6 +20,7 @@
         vm.currentProgess = {};
         vm.serviceAttributes = {};
         vm.showDetails = {};
+        vm.openResponse = {};
         vm.isServiceActive = isServiceActive;
 
         activate();
@@ -31,6 +32,7 @@
 
             _.forEach(vm.registeredServices, function(s){
                 vm.showDetails[s.name] = false;
+                vm.openResponse[s.name] = false;
             });
 
         }

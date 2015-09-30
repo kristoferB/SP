@@ -2,35 +2,29 @@
     <div class="panel-content">
         <table sp-table row-collection="vm.registeredServices" displayed-collection="vm.displayedRegisteredServices">
             <!--<thead><tr><th class="col-md-1">Action</th><th class="col-md-1">Form</th><th class="col-md-5">Name</th><th class="col-md-5">Progress</th></tr></thead>-->
-            <thead><tr><th class="col-md-1">Action</th><th class="col-md-1">Form</th><th class="col-md-10">Name</th></tr></thead>
             <tbody>
             <tr ng-repeat-start="obj in vm.displayedRegisteredServices | orderBy: '-name'" ng-class-odd="'odd-row'" ng-class-even="'even-row'">
                 <!--Action-->
                 <td>
-                    <!-- TODO only enable Run-button if a model is active-->
-                    <button class="btn btn-xs btn-primary" ng-click="vm.startSpService(obj)">
-                        <i class="fa fa-play"></i> Run
+                    <button type="button" class="btn btn-link" ng-click="vm.showDetails[obj.name] = !vm.showDetails[obj.name]">
+                        <i ng-if="!vm.showDetails[obj.name]" class="fa fa-plus"></i>
+                        <i ng-if="vm.showDetails[obj.name]" class="fa fa-minus"></i>
                     </button>
+
+                    <label>{{obj.name}}</label>
                 </td>
-                <!--Form button-->
-                <td>
-                    <button class="btn btn-xs btn-default" ng-click="vm.showDetails[obj.name] = !vm.showDetails[obj.name]" title="Show/hide form">
-                        <span class="glyphicon glyphicon-info-sign"></span>
-                    </button>
-                </td>
+
                 <!--Name-->
-                <td>{{obj.name}}</td>
-                <!--<td>-->
-                    <!--<div ng-if="vm.isServiceActive(obj.name)">-->
-                        <!--<p>type: {{vm.currentProgess[obj.name].type}}</p>-->
-                        <!--<p>info: {{vm.currentProgess[obj.name].info | json}}</p>-->
-                        <!--<p>req id: {{vm.currentProgess[obj.name].reqID}}</p>-->
-                        <!--<p>error: {{vm.currentProgess[obj.name].error}}</p>-->
-                        <!--<p>ids: {{vm.currentProgess[obj.name].ids}}</p>-->
-                    <!--</div>-->
-                <!--</td>-->
+                <td >
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-primary" ng-click="vm.startSpService(obj)">
+                            <i class="fa fa-play"></i> Run
+                        </button>
+                    </div>
+                    <label ng-if="vm.currentProgess[obj.name].type == 'Progress'">Loading</label>
+                </td>
             </tr>
-            <tr ng-repeat-end ng-class-odd="'odd-row'" ng-class-even="'even-row'">
+            <tr ng-if="vm.showDetails[obj.name]" ng-repeat-end ng-class-odd="'odd-row'" ng-class-even="'even-row'">
                 <td colspan="99" class="hiddenRow">
                     <div collapse="!vm.showDetails[obj.name]">
                         <!--Attribute att skicka:<br/>-->
