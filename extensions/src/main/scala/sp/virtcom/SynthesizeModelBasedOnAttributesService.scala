@@ -30,7 +30,7 @@ object SynthesizeModelBasedOnAttributesService {
   // todo update spec
   val specification = SPAttributes(
     "service" -> SPAttributes(
-      "description" -> "Synthesizes selected items and returns gaurds into conditions."
+      "description" -> "Synthesizes selected items and returns guards into conditions."
     )
   )
 

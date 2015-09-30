@@ -7,58 +7,94 @@
 
 <!--Supported non-object isA-->
 <div ng-if="vm.isA == 'Option[ID]Model'">
-    <form name="form">
-        <input type="text" name="input" ng-model="vm.attributes" ng-pattern="/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/"/>
-        <div role="alert">
-            <span class="error" ng-show="form.input.$error.pattern">
-                Not an UUID!
-            </span>
+    <form role="form" name="form">
+        <div class="form-group">
+            <input type="text" name="input" class="form-control" ng-model="vm.attributes" ng-pattern="/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/"/>
+            <div role="alert">
+                <span class="error" ng-show="form.input.$error.pattern">
+                    Not an UUID!
+                </span>
+            </div>
+            <button class="btn btn-default" ng-click="vm.attributes = vm.reloadModelID()">
+                <i class="fa fa-repeat"></i>
+                reload
+            </button>
         </div>
     </form>
-    <button ng-click="vm.attributes = vm.reloadModelID()">reload</button>
 </div>
 
 <div ng-if="vm.isA == 'List[ID]includeIDAbles'">
-    <form name="form">
-        <textarea name="input" ng-model="vm.attributes" ng-list ng-pattern="/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?(,[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})*$/"></textarea>
-        <div role="alert">
-            <span class="error" ng-show="form.input.$error.pattern">
-                Not a list of UUIDs!
-            </span>
+    <form role="form" name="form">
+        <div class="form-group">
+            <textarea name="input" class="form-control" ng-model="vm.attributes" ng-list ng-pattern="/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?(,[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})*$/"/>
+            <div role="alert">
+                <span class="error" ng-show="form.input.$error.pattern">
+                    Not a list of UUIDs!
+                </span>
+            </div>
+            <button class="btn btn-default" ng-click="vm.attributes = vm.reloadSelectedItems()">
+                <i class="fa fa-download"></i>
+                get selected
+            </button>
+            <button class="btn btn-default" ng-click="vm.attributes = []">
+                <i class="fa fa-times"></i>
+                clear
+            </button>
         </div>
     </form>
-    <button ng-click="vm.attributes = vm.reloadSelectedItems()">get selected</button>
-    <button ng-click="vm.attributes = []">clear</button>
 </div>
 
 <div ng-if="vm.isA == 'Boolean'">
-    <button ng-click="vm.attributes = !vm.attributes">{{vm.attributes}}</button>
+    <button class="btn btn-default" ng-click="vm.attributes = !vm.attributes">
+        {{vm.attributes}}
+    </button>
 </div>
 
 <div ng-if="vm.isA == 'String'">
-    <input type="text" ng-model="vm.attributes"/>
+    <form role="form">
+        <div class="form-group">
+            <input type="text" class="form-control" ng-model="vm.attributes"/>
+        </div>
+    </form>
 </div>
 
 <div ng-if="vm.isA == 'StringWithDomain'">
-    <select ng-model="vm.attributes">
-        <option ng-repeat="option in vm.domainToSelectFrom" value="{{option}}">{{option}}</option>
-    </select>
+    <form role="form">
+        <div class="form-group">
+            <select class="form-control" ng-model="vm.attributes">
+                <option ng-repeat="option in vm.domainToSelectFrom" value="{{option}}">{{option}}</option>
+            </select>
+        </div>
+    </form>
 </div>
 
 <div ng-if="vm.isA == 'ID'">
-    <form name="form">
-        <input type="text" name="input" ng-model="vm.attributes" ng-pattern="/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/"/>
-        <div role="alert">
-            <span class="error" ng-show="form.input.$error.pattern">
-                Not an UUID!
-            </span>
+    <form role="form" name="form">
+        <div class="form-group">
+            <input type="text" name="input" class="form-control" ng-model="vm.attributes" ng-pattern="/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/"/>
+            <div role="alert">
+                <span class="error" ng-show="form.input.$error.pattern">
+                    Not an UUID!
+                </span>
+            </div>
         </div>
     </form>
 </div>
 
 <div ng-if="vm.isA == 'List[T]'">
-    <textarea ng-model="vm.attributes" ng-list tooltip='Eg.: a,b,, , c => ["a","b",""," c"]'></textarea>
-    <button ng-click="vm.attributes = []">clear</button>
+    <form role="form">
+        <div class="form-group">
+            <textarea class="form-control" ng-model="vm.attributes" ng-list tooltip='Eg.: a,b,, , c => ["a","b",""," c"]'/>
+            <button class="btn btn-default" ng-click="vm.attributes = vm.reloadSelectedItems()">
+                <i class="fa fa-download"></i>
+                get selected
+            </button>
+            <button class="btn btn-default" ng-click="vm.attributes = []">
+                <i class="fa fa-times"></i>
+                clear
+            </button>
+        </div>
+    </form>
 </div>
 
 <!--non-object isA not supported right now will end up here-->
@@ -67,6 +103,10 @@
 </div>
 
 <div ng-if="vm.isA == 'KeyDef'">
-    <input type="text" ng-model="vm.attributes"/>
+    <form role="form">
+        <div class="form-group">
+            <input type="text" class="form-control" ng-model="vm.attributes"/>
+        </div>
+    </form>
     <p>keyDef: {{vm.structure.ofType}}</p>
 </div>
