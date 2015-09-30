@@ -84,7 +84,7 @@
 <div ng-if="vm.isA == 'List[T]'">
     <form role="form">
         <div class="form-group">
-            <textarea class="form-control" ng-model="vm.attributes" ng-list tooltip='Eg.: a,b,, , c => ["a","b",""," c"]'/>
+            <textarea class="form-control" ng-model="vm.attributes" ng-list/>
             <button class="btn btn-default" ng-click="vm.attributes = vm.reloadSelectedItems()">
                 <i class="fa fa-download"></i>
                 get selected
