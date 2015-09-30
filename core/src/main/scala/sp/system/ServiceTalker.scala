@@ -116,7 +116,7 @@ object ServiceTalker {
 
   def serviceHandlerAttributes = SPAttributes("core" -> SPAttributes(
     "model"-> KeyDefinition("Option[ID]", List(), Some(JNothing)),
-    "responseToModel"->KeyDefinition("Boolean", List(true, false), Some(false)),
+    "responseToModel"->KeyDefinition("Boolean", List(true, false), Some(true)),
     "includeIDAbles"->KeyDefinition("List[ID]", List(), Some(SPValue(List[IDAble]()))),
     "onlyResponse"->KeyDefinition("Boolean", List(true, false), Some(false))
   ))

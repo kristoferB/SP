@@ -12,7 +12,7 @@ import sp.virtcom.CollectorModel
  * Stationary weld with tip dress
  */
 //case class VolvoWeldConveyerCase() extends ExplicitPrePost with SimOps
-case class VolvoWeldConveyerCase() extends ImplicitOnlyCarriersAndResources with SimOps
+case class VolvoWeldConveyerCase() extends ImplicitOnlyCarriersAndResources with SimOps with SlowGripWhenOperatorPresent
 
 sealed trait ImplicitOnlyCarriersAndResources extends CollectorModel {
   //Resources/Machines/Variables
@@ -65,13 +65,27 @@ sealed trait ImplicitOnlyCarriersAndResources extends CollectorModel {
   }
 }
 
-sealed trait SimOps extends CollectorModel {
-  op(s"addProductA", SPAttributes("simop" -> "1,98"))
-  op(s"gripProductA", SPAttributes("simop" -> "1,145"))
+sealed trait SlowGripWhenOperatorPresent extends CollectorModel {
+  //Operator
+  op("addOperator",SPAttributes(aResourceTrans("vOperator","idle","toIn","inside")))
+  op("removeOperator",SPAttributes(aResourceTrans("vOperator","inside","toOutside","idle")))
+
+  op(s"addOperator", SPAttributes("simop" -> "X"))
+  op(s"removeOperator", SPAttributes("simop" -> "X"))
+
+  //Grip product A slow
+  op(s"gripProductA_slow_1", SPAttributes(aResourceTrans("vRobot_pos", "atIn0", s"atInGrippingA0", "atInGrippingA1")))
+  op(s"gripProductA_slow_2", SPAttributes(aResourceTrans("vRobot_pos", "atInGrippingA1", s"atInGrippingA2", "atIn1")))
+  op(s"gripProductA_slow_1", SPAttributes(aCarrierTrans("vIn_car", atStart = s"productA")))
+  op(s"gripProductA_slow_1", SPAttributes(aCarrierTrans("vRobot_car", atComplete = s"productA")))
 
   op(s"gripProductA_slow_1", SPAttributes("simop" -> "X"))
   op(s"gripProductA_slow_2", SPAttributes("simop" -> "X"))
+}
 
+sealed trait SimOps extends CollectorModel {
+  op(s"addProductA", SPAttributes("simop" -> "1,98"))
+  op(s"gripProductA", SPAttributes("simop" -> "1,145"))
   op(s"weldProductA", SPAttributes("simop" -> "1,178"))
   op(s"releaseProductA", SPAttributes("simop" -> "1,75"))
 //  op(s"removeProductA", SPAttributes("simop" -> "1,235"))
@@ -89,8 +103,6 @@ sealed trait SimOps extends CollectorModel {
 
   op(s"tipDress", SPAttributes("simop" -> "1,124"))
 
-  op(s"addOperator", SPAttributes("simop" -> "X"))
-  op(s"removeOperator", SPAttributes("simop" -> "X"))
 }
 
 sealed trait ExplicitPrePost extends CollectorModel {

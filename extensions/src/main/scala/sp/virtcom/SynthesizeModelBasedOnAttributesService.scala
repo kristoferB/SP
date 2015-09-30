@@ -91,9 +91,8 @@ private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef) ext
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
           progress ! SPAttributes("progress" -> "saved to wmod file in ./testFiles/gitIgnore/")
 
-
-          progress ! PoisonPill
           replyTo ! Response(updatedOps, synthesizedGuards merge nbrOfStates, service, reqID)
+          progress ! PoisonPill
           self ! PoisonPill
         }
 
@@ -181,60 +180,53 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
   }
 
   def addForbiddenExpressions() = {
-    lazy val operationIdMap = ops.map(o => o.id -> o).toMap
     sopSpec.foreach { s =>
       s.attributes.getAs[Set[String]]("forbiddenExpressions").foreach(fes =>
         addForbiddenExpression(forbiddenExpression = stringPredicateToSupremicaSyntax(fes.mkString("(", ")|(", ")")), addSelfLoop = false, addInComment = true))
       s.sop.foreach {
-        case a: Arbitrary if a.sop.forall(_.isInstanceOf[Hierarchy]) =>
-          lazy val opsExecuteMap = a.sop.map(_.asInstanceOf[Hierarchy]).flatMap(h => operationIdMap.get(h.operation)).map(o =>
-            o -> (directAttrValues(o, Set("postGuard")) ++ nestedAttrValues(o, Set(_.atExecute), "==")).mkString("(", ")&(", ")")).toMap
-          def addForbiddenExpressionForRemainingOps(remainingOps: Seq[Operation]): Unit = remainingOps match {
-            case o +: os if os.nonEmpty =>
-              os.foreach { otherO =>
-                addForbiddenExpression(forbiddenExpression = stringPredicateToSupremicaSyntax(s"(${opsExecuteMap(o)})&(${opsExecuteMap(otherO)})"), addSelfLoop = false, addInComment = true)
-              }
-              addForbiddenExpressionForRemainingOps(os)
-            case _ => //do nothing
-          }
-          addForbiddenExpressionForRemainingOps(opsExecuteMap.keys.toSeq)
-        case a: Arbitrary if a.sop.forall(sopIsOneOpOrAStraightSeqOfOps) =>
-          def getOperationSeqsFromSop(sopNode : SOP): Seq[Seq[Operation]] = {
-            sopNode.sop.map( _ match {
-              case h:Hierarchy => Seq(operationIdMap.get(h.operation)).flatten
-              case s:Sequence => s.sop.flatMap(h => operationIdMap.get(h.asInstanceOf[Hierarchy].operation)).toSeq
-            })
-          }
-          def getExpressionOfExecutingSeq(seq : Seq[Operation]) : String = {
-            //For seq.head only expression for being executing
-            //For seq.tail both expression for being enabled to start and executing
-            def enabledToStart(o : Operation) : String = (directAttrValues(o, Set("preGuard")) ++ nestedAttrValues(o, Set(_.atStart), "==")).mkString("(", ")&(", ")")
-            def executing(o : Operation) : String = (directAttrValues(o, Set("postGuard")) ++ nestedAttrValues(o, Set(_.atExecute), "==")).mkString("(", ")&(", ")")
-            lazy val headExp = Seq(executing(seq.head))
-            lazy val tailExps = seq.tail.flatMap(o => Seq(enabledToStart(o),executing(o)))
-            return (headExp ++ tailExps).mkString("(", ")|(", ")")
-          }
-          def addForbiddenExpressionForRemainingSeqExps(remainingSeqExps: Seq[String]): Unit = remainingSeqExps match {
-            case exp +: exps if exps.nonEmpty =>
-              exps.foreach { otherExp =>
-                addForbiddenExpression(forbiddenExpression = stringPredicateToSupremicaSyntax(s"($exp)&($otherExp)"), addSelfLoop = false, addInComment = true)
-              }
-              addForbiddenExpressionForRemainingSeqExps(exps)
-            case _ => //do nothing
-          }
-          //--This case starts here---
-          //TODO Need to ignore operations that are the same from different sequences
-          lazy val opSeqs = getOperationSeqsFromSop(a)
-          lazy val seqsAsExp = opSeqs.map(getExpressionOfExecutingSeq)
-          addForbiddenExpressionForRemainingSeqExps(seqsAsExp)
+        case a: Arbitrary if a.sop.forall(sopIsOneOpOrAStraightSeqOfOps) => addForbiddenExpressionWorkerForOneArbitrary(a)
+        case s: Sequence if s.sop.forall { node => node.isInstanceOf[Arbitrary] && node.asInstanceOf[Arbitrary].sop.forall(sopIsOneOpOrAStraightSeqOfOps) } =>
+          s.sop.foreach(a => addForbiddenExpressionWorkerForOneArbitrary(a.asInstanceOf[Arbitrary]))
         case _ => //do nothing
       }
     }
   }
 
-  private def sopIsOneOpOrAStraightSeqOfOps(sopToCheck : SOP): Boolean = sopToCheck match {
-    case h:Hierarchy => true
-    case s:Sequence =>
+  private def addForbiddenExpressionWorkerForOneArbitrary(a: Arbitrary): Unit = {
+    lazy val operationIdMap = ops.map(o => o.id -> o).toMap
+    def getOperationSeqsFromSop(sopNode: SOP): Seq[Seq[Operation]] = {
+      sopNode.sop.map{
+        case h: Hierarchy => Seq(operationIdMap.get(h.operation)).flatten
+        case s: Sequence => s.sop.flatMap(h => operationIdMap.get(h.asInstanceOf[Hierarchy].operation)).toSeq
+      }
+    }
+    def getExpressionOfExecutingSeq(seq: Seq[Operation]): String = {
+      //For seq.head only expression for being executing
+      //For seq.tail both expression for being enabled to start and executing
+      def enabledToStart(o: Operation): String = (directAttrValues(o, Set("preGuard")) ++ nestedAttrValues(o, Set(_.atStart), "==")).mkString("(", ")&(", ")")
+      def executing(o: Operation): String = (directAttrValues(o, Set("postGuard")) ++ nestedAttrValues(o, Set(_.atExecute), "==")).mkString("(", ")&(", ")")
+      lazy val headExp = Seq(executing(seq.head))
+      lazy val tailExps = seq.tail.flatMap(o => Seq(enabledToStart(o), executing(o)))
+      return (headExp ++ tailExps).mkString("(", ")|(", ")")
+    }
+    def addForbiddenExpressionForRemainingSeqExps(remainingSeqExps: Seq[String]): Unit = remainingSeqExps match {
+      case exp +: exps if exps.nonEmpty =>
+        exps.foreach { otherExp =>
+          addForbiddenExpression(forbiddenExpression = stringPredicateToSupremicaSyntax(s"($exp)&($otherExp)"), addSelfLoop = false, addInComment = true)
+        }
+        addForbiddenExpressionForRemainingSeqExps(exps)
+      case _ => //do nothing
+    }
+    //--This case starts here---
+    //TODO Need to ignore operations that are the same from different sequences
+    lazy val opSeqs = getOperationSeqsFromSop(a)
+    lazy val seqsAsExp = opSeqs.map(getExpressionOfExecutingSeq)
+    addForbiddenExpressionForRemainingSeqExps(seqsAsExp)
+  }
+
+  private def sopIsOneOpOrAStraightSeqOfOps(sopToCheck: SOP): Boolean = sopToCheck match {
+    case h: Hierarchy => true
+    case s: Sequence =>
       lazy val seq = sopToCheck.asInstanceOf[Sequence]
       seq.sop.forall(_.isInstanceOf[Hierarchy])
     case _ => false
