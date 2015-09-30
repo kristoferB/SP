@@ -93,37 +93,80 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
   }
 
 
+  // def createOp(model: Option[ID], ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
+  //   val sopspecs = ids.filter(item => item.isInstanceOf[SOPSpec]) map (_.asInstanceOf[SOPSpec])
+  //   println(sopspecs)
+
+  //   val opIDS = for {
+  //     sopspec <- sopspecs
+  //     sop <- sopspec.sop
+  //     op <- sp.domain.logic.SOPLogic.getAllOperations(sop)
+  //   } yield op
+
+  //   println(opIDS)
+
+  //   val ops = ids.filter(item => opIDS.contains(item.id)) map (_.asInstanceOf[Operation])
+  //   val json = SPAttributes(
+  //     "command" -> "create_op_chain",
+  //     "params" -> SPAttributes(
+  //       "ops" -> ops.map { o =>
+  //         SPAttributes(
+  //           "name" -> o.name,
+  //           "simop" -> o.attributes.getAs[String]("simop").
+  //             orElse(o.attributes.getAs[String]("simop")).getOrElse("dummy")
+  //         )
+  //       },
+  //       "parent" -> "ingenParentFördig")).toJson
+
+  //   println(json)
+
+  //   // Så det är ett meddelande per SOPSpec eller?
+  //   // TODO: progressbar while waiting for answer...
+
+  //   val f = psAmq ? json
+  //   progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
+
+  //   val items = handlePSAnswer(f)
+  //   items.map{list => Response(list, SPAttributes("command" -> "create_op_chain"), rnr.req.service, rnr.req.reqID)}
+  // }
+
   def createOp(model: Option[ID], ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
-    val sops = ids.filter(item => item.isInstanceOf[SOPSpec]) map (_.asInstanceOf[SOPSpec])
-      
-    val opIDS = for {
-      spec <- sops
-      sop <- spec.sop
-      op <- sp.domain.logic.SOPLogic.getAllOperations(sop)
-    } yield op
+    val sopspecs = ids.filter(item => item.isInstanceOf[SOPSpec]) map (_.asInstanceOf[SOPSpec])
+    println(sopspecs)
 
-    val ops = ids.filter(item => opIDS.contains(item.id)) map (_.asInstanceOf[Operation])
-    val json = SPAttributes(
-      "command" -> "create_op_chain",
-      "params" -> SPAttributes(
-        "ops" -> ops.map { o =>
-          SPAttributes(
-            "name" -> o.name,
-            "simop" -> o.attributes.getAs[String]("simop").
-              orElse(o.attributes.getAs[String]("simop")).getOrElse("dummy")
-          )
-        },
-        "parent" -> "ingenParentFördig")).toJson
 
-    // Så det är ett meddelande per SOPSpec eller?
-    // TODO: progressbar while waiting for answer...
+    val json = SPAttributes("command"->"create_op_chains",
+      "params"->Map("op_chains" -> sopspecs.map(sop => {
+        val ops = sop match {
+          case SOPSpec(name, s, attributes, id) => {
+            val ids = s.head.sop.map(x=>x match {
+              case h: Hierarchy => h.operation
+            } )
+            val objects = Await.result(modelHandler ? GetIds(model.get, ids.toList),timeout.duration)
+            objects match {
+              case SPIDs(ops) => ops
+            }
+          }
+        }
+        SPAttributes("name" -> sop.name,
+          "ops" -> ops.map(o=>
+            SPAttributes("name" -> o.name,"simop" -> (o.attributes.getAs[String]("simop") match {
+              case Some(txid) => txid
+              case _ => (o.attributes.getAs[String]("txid") match {
+                case Some(txid) => txid
+                case _ => "dummy"
+              })
+            }))))
+      }))).toJson
+
+    println(json)
 
     val f = psAmq ? json
     progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
 
     val items = handlePSAnswer(f)
     items.map{list => Response(list, SPAttributes("command" -> "create_op_chain"), rnr.req.service, rnr.req.reqID)}
-  }
+  }  
 
   def fetch(model: Option[ID], ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
     val json = SPAttributes("command" -> "get_all_tx_objects") toJson
