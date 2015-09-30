@@ -47,17 +47,17 @@
             console.log("RESP GOT: ");
             console.log(event);
 
-            if (event.isa === 'Response') {
-                for(var i = 0; i < event.ids.length; i++) {
-                    if (!_.isUndefined(event.ids[i].sop)) {
-                        var widgetKind = _.find(dashboardService.widgetKinds, {title: 'SOP Maker'});
-                        var widgetStorage = {
-                            sopSpec: event.ids[i]
-                        };
-                        dashboardService.addWidget(dashboard, widgetKind, widgetStorage);
-                    }
-                }
-            }
+//            if (event.isa === 'Response') {
+//                for(var i = 0; i < event.ids.length; i++) {
+//                    if (!_.isUndefined(event.ids[i].sop)) {
+//                        var widgetKind = _.find(dashboardService.widgetKinds, {title: 'SOP Maker'});
+//                        var widgetStorage = {
+//                            sopSpec: event.ids[i]
+//                        };
+//                        dashboardService.addWidget(dashboard, widgetKind, widgetStorage);
+//                    }
+//                }
+//            }
             updateInfo(event);
         }
 
