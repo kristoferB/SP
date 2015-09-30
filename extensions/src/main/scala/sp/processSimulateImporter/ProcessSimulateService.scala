@@ -19,7 +19,7 @@ import scala.util._
  * Some unclear interfaces. What is items?
  */
 
-case class PSsetup(command: String)
+case class PSsetup(command: String, sops: List[ID])
 
 object ProcessSimulateService extends SPService {
   val specification = SPAttributes(
@@ -28,7 +28,8 @@ object ProcessSimulateService extends SPService {
       "description" -> "Pull/push data from/to Process Simulate"
     ),
     "setup" -> SPAttributes(
-      "command" -> KeyDefinition("String", List("createOp", "import", "import_single"), Some("createOp"))
+      "command" -> KeyDefinition("String", List("createOp", "import", "import_single"), Some("createOp")),
+      "sops" -> KeyDefinition("List[ID]", List(), Some(SPValue(List())))
     )
   )
 
@@ -67,7 +68,7 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
       
       val res = setup.command match {
-        case "createOp" => createOp(core.model, ids, progress)
+        case "createOp" => createOp(core.model, ids, setup.sops, progress)
         case "import" => fetch(core.model, ids, progress)
         case "import_single" => fetch_single(core.model, ids, progress)
         case _ => throw new Exception("No such command! How to do this the scala way?")
@@ -130,22 +131,17 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
   //   items.map{list => Response(list, SPAttributes("command" -> "create_op_chain"), rnr.req.service, rnr.req.reqID)}
   // }
 
-  def createOp(model: Option[ID], ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
-    val sopspecs = ids.filter(item => item.isInstanceOf[SOPSpec]) map (_.asInstanceOf[SOPSpec])
-    println(sopspecs)
-
+  def createOp(model: Option[ID], ids: List[IDAble], sops: List[ID], progress: ActorRef)(implicit rnr: RequestNReply) = {
+    val sopspecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec]).filter(sop => sops.contains(sop.id))
 
     val json = SPAttributes("command"->"create_op_chains",
       "params"->Map("op_chains" -> sopspecs.map(sop => {
         val ops = sop match {
           case SOPSpec(name, s, attributes, id) => {
-            val ids = s.head.sop.map(x=>x match {
+            val sopops = s.head.sop.map(x=>x match {
               case h: Hierarchy => h.operation
             } )
-            val objects = Await.result(modelHandler ? GetIds(model.get, ids.toList),timeout.duration)
-            objects match {
-              case SPIDs(ops) => ops
-            }
+            ids.filter(op => sopops.contains(op.id)).map(_.asInstanceOf[Operation])
           }
         }
         SPAttributes("name" -> sop.name,
