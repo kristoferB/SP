@@ -68,15 +68,19 @@ sealed trait ImplicitOnlyCarriersAndResources extends CollectorModel {
 sealed trait SimOps extends CollectorModel {
   op(s"addProductA", SPAttributes("simop" -> "1,98"))
   op(s"gripProductA", SPAttributes("simop" -> "1,145"))
+
+  op(s"gripProductA_slow_1", SPAttributes("simop" -> "X"))
+  op(s"gripProductA_slow_2", SPAttributes("simop" -> "X"))
+
   op(s"weldProductA", SPAttributes("simop" -> "1,178"))
   op(s"releaseProductA", SPAttributes("simop" -> "1,75"))
-  op(s"removeProductA", SPAttributes("simop" -> "1,235"))
+//  op(s"removeProductA", SPAttributes("simop" -> "1,235"))
 
   op(s"addProductB", SPAttributes("simop" -> "1,117"))
   op(s"gripProductB", SPAttributes("simop" -> "1,158"))
   op(s"weldProductB", SPAttributes("simop" -> "1,206"))
   op(s"releaseProductB", SPAttributes("simop" -> "1,105"))
-  op(s"removeProductB", SPAttributes("simop" -> "1,241"))
+//  op(s"removeProductB", SPAttributes("simop" -> "1,241"))
 
 //  op(s"atConveyersToAtHome_Robot", SPAttributes("simop" -> "1,89"))
 //  op(s"atHomeToAtIn_Robot", SPAttributes("simop" -> "1,133"))
@@ -84,6 +88,9 @@ sealed trait SimOps extends CollectorModel {
 //  op(s"atWeldToAtConveyers_Robot", SPAttributes("simop" -> "1,228"))
 
   op(s"tipDress", SPAttributes("simop" -> "1,124"))
+
+  op(s"addOperator", SPAttributes("simop" -> "X"))
+  op(s"removeOperator", SPAttributes("simop" -> "X"))
 }
 
 sealed trait ExplicitPrePost extends CollectorModel {
