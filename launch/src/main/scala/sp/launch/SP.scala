@@ -101,6 +101,16 @@ object SP extends App {
     CreateInstanceModelFromTypeModelService.transformation
   )
 
+  import sp.areus._
+
+  serviceHandler ! RegisterService("ImportLogFiles",
+    system.actorOf(ImportLogFiles.props, "ImportLogFiles"),
+    ImportLogFiles.specification,
+    ImportLogFiles.transformation
+  )
+
+
+
   // activemq + process simulate stuff
   import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
   import akka.camel.{ CamelExtension, CamelMessage, Consumer, Producer }

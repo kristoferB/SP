@@ -6,18 +6,30 @@
                     ng-click="vm.changeChartDerivative()"><i class="fa fa-line-chart"></i>
             </button>            
         </div>
-        <div ng-if="vm.inMarkMode" class="btn-group" dropdown is-open="status.isopen">
-            <button id="single-button" type="button" class="btn btn-primary" dropdown-toggle ng-disabled="disabled">
-                {{vm.currentMark.isa}} <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu" aria-labelledby="single-button">
-                <li ng-repeat="isa in vm.markTypes" role="menuitem">
-                <a ng-click="vm.currentMark.isa = isa" href="#">{{isa}}</a>
-                </li>
-            </ul>
+        <form ng-if="vm.inMarkMode"class="form-inline" role="form">
+            <div class="btn-group" dropdown is-open="status.isopen">
+                <button id="single-button" type="button" class="btn btn-primary" dropdown-toggle ng-disabled="disabled">
+                    {{vm.currentMark.isa}} <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="single-button">
+                    <li ng-repeat="isa in vm.markTypes" role="menuitem">
+                        <a ng-click="vm.currentMark.isa = isa" href="#">{{isa}}</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="form-group">
+                <label for="pwd">Name</label>
+                <input type="string" class="form-control" id="pwd">
+            </div>
+
+
             <input type="text" ng-model="vm.currentMark.name"/>
             {{vm.currentMark}}
-        </div>
+
+
+        </form>
+
+
 
                 <trajectories
                     operations="vm.operations"
