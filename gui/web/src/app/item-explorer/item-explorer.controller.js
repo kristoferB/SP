@@ -8,7 +8,7 @@
         .module('app.itemExplorer')
         .controller('ItemExplorerController', ItemExplorerController);
 
-    ItemExplorerController.$inject = ['$scope', 'logger', 'itemService', '$modal', 'dashboardService', '$rootScope'];
+    ItemExplorerController.$inject = ['$scope', 'logger', 'itemService', '$modal', 'dashboardService', '$rootScope', 'uuid4'];
     /* @ngInject */
     function ItemExplorerController($scope, logger, itemService, $modal, dashboardService, $rootScope) {
         var vm = this;
@@ -42,7 +42,10 @@
                 check_callback: isNodeDroppable
             },
             plugins: ['dnd', 'types', 'contextmenu', 'search'],
-            search: { "show_only_matches" : true},
+            search: {
+                "show_only_matches" : true,
+                "fuzzy": false,
+                "search_callback": searchCallback},
             types: {
                 '#' : {
                     valid_children: ['Root', 'AllItemsRoot']
@@ -82,6 +85,10 @@
             $scope.$on('closeRequest', function() {
                 dashboardService.closeWidget(vm.widget.id);
             });
+        }
+
+        function searchCallback(str, node){
+            return node.type.search(new RegExp(str, "i")) > -1 || node.text.search(new RegExp(str, "i")) > -1;
         }
 
         function onTreeReady() {
@@ -174,7 +181,7 @@
                 } else {
                     var itemNode = allItemsNode(item);
                     var parent = vm.treeInstance.jstree(true).get_node('all-items');
-                    vm.treeInstance.jstree(true).create_node(parent, itemNode, 'first');
+                    vm.treeInstance.jstree(true).create_node(parent, itemNode, 'last');
                     logger.info('Item Explorer: Added a node to the "All items" root.');
                 }
             });
@@ -228,6 +235,12 @@
 
         function updateTreeRoot(hierarchyRoot) {
             var treeRoot = vm.treeInstance.jstree(true).get_node(hierarchyRoot.id);
+
+            console.log("updateTreeRoot");
+            console.log(treeRoot);
+            console.log(hierarchyRoot);
+            console.log(vm.treeInstance.jstree(true));
+
             loopTree(treeRoot, hierarchyRoot);
             loopHierarchy(treeRoot, hierarchyRoot);
 
