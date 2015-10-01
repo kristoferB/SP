@@ -10,7 +10,7 @@
 
     ItemExplorerController.$inject = ['$scope', 'logger', 'itemService', '$modal', 'dashboardService', '$rootScope', 'uuid4'];
     /* @ngInject */
-    function ItemExplorerController($scope, logger, itemService, $modal, dashboardService, $rootScope) {
+    function ItemExplorerController($scope, logger, itemService, $modal, dashboardService, $rootScope, uuid4) {
         var vm = this;
         vm.widget = $scope.$parent.$parent.$parent.vm.widget;
         vm.dashboard = $scope.$parent.$parent.$parent.vm.dashboard;
@@ -41,40 +41,45 @@
             core: {
                 check_callback: isNodeDroppable
             },
+            dnd: {
+                large_drop_target: true,
+                large_drag_target: true
+            },
             plugins: ['dnd', 'types', 'contextmenu', 'search'],
             search: {
                 "show_only_matches" : true,
-                "fuzzy": false,
                 "search_callback": searchCallback},
             types: {
                 '#' : {
                     valid_children: ['Root', 'AllItemsRoot']
                 },
                 Root: {
-                    icon : 'images/tree_icon.png'
+                    icon : 'images/tree_icon.png',
+                    valid_children: ['Operation', 'Thing', 'SPSpec', 'SOPSpec', 'Result']
                 },
                 AllItemsRoot: {
-                    icon: 'images/all_items.png'
+                    icon: 'images/all_items.png',
+                    valid_children: []
                 },
                 Operation: {
                     icon: 'images/step_forward.png',
-                    valid_children: []
+                    valid_children: ['Operation', 'Thing', 'SPSpec', 'SOPSpec', 'Result']
                 },
                 Thing: {
                     icon: 'images/robot.png',
-                    valid_children: ['operation']
+                    valid_children: ['Operation', 'Thing', 'SPSpec', 'SOPSpec', 'Result']
                 },
                 SPSpec: {
                     icon: 'images/document.png',
-                    valid_children: []
+                    valid_children: ['Operation', 'Thing', 'SPSpec', 'SOPSpec', 'Result']
                 },
                 SOPSpec: {
                     icon: 'images/hierarchy.png',
-                    valid_children: []
+                    valid_children: ['Operation', 'Thing', 'SPSpec', 'SOPSpec', 'Result']
                 },
                 Result: {
                     icon: 'images/line_chart.png',
-                    valid_children: []
+                    valid_children: ['Operation', 'Thing', 'SPSpec', 'SOPSpec', 'Result']
                 }
             }
         };
@@ -87,13 +92,39 @@
             });
         }
 
-        function searchCallback(str, node){
-            return node.type.search(new RegExp(str, "i")) > -1 || node.text.search(new RegExp(str, "i")) > -1;
+        function onTreeReady() {
+            console.log("tree ready");
+            updateTree();
+            listenToChanges();
         }
 
-        function onTreeReady() {
-            rebuildTree();
-            listenToChanges();
+        function isNodeDroppable(operation, draggedNode, targetParent, node_position, more) {
+            return (
+              draggedNode.id !== 'all-items' ||
+              draggedNode.type === 'Root' ||
+              targetParent.id !== 'all-items'
+            );
+        }
+
+        function listenToChanges() {
+            $scope.$on('itemsFetch', function() {
+                updateTree();
+            });
+            $scope.$on('itemCreation', function(event, item) {
+                updateTree();
+            });
+            $scope.$on('itemDeletion', function(event, item) {
+                var node = vm.treeInstance.jstree(true).get_node(item.id);
+                vm.treeInstance.jstree(true).delete_node(node);
+                updateTree();
+            });
+            $scope.$on('itemUpdate', function(event, item) {
+                updateTree();
+            });
+        }
+
+        function searchCallback(str, node){
+            return node.type.search(new RegExp(str, "i")) > -1 || node.text.search(new RegExp(str, "i")) > -1;
         }
 
         function onSelectionChange(e, data) {
@@ -102,240 +133,120 @@
                 var nodeID = data.selected[i];
                 if (nodeID !== 'all-items') {
                     var node = vm.treeInstance.jstree(true).get_node(nodeID);
-                    if (node.type !== 'Root') {
-                        var itemID = node.data.id;
-                        var item = itemService.getItem(itemID);
-                        itemService.selected.push(item);
-                    }
+                    var itemID = node.data.id;
+                    var item = itemService.getItem(itemID);
+                    itemService.selected.push(item);
                 }
             }
         }
 
-        function createItem(itemKind) {
-            var modalInstance = $modal.open({
-                templateUrl: '/app/item-explorer/create-item.html',
-                controller: 'CreateItemController',
-                controllerAs: 'vm',
-                resolve: {
-                    itemKind: function () {
-                        return itemKind;
-                    }
-                }
+
+
+
+
+
+        function updateTree(){
+            refreshRoots();
+            refreshItemNodes();
+        }
+
+
+        function refreshRoots(){
+            var roots = _.filter(itemService.items, function(i){return i.isa == 'HierarchyRoot'});
+            _.forEach(roots, function(root){
+                updateTreeRoot(root);
             });
 
-            modalInstance.result.then(function(chosenName) {
-                itemService.createItem(chosenName, itemKind.value);
-            });
-        }
+            function updateTreeRoot(hierarchyRoot) {
+                console.log("hierarchyRoot")
+                console.log(hierarchyRoot)
+                var children = createChildren(hierarchyRoot);
+                var newRoot = createRoot(hierarchyRoot);
+                newRoot.children = children;
 
-        function getRootID(node) {
-            var noOfParents = node.parents.length;
-            return node.parents[noOfParents - 2];
-        }
+                var oldRoot = vm.treeInstance.jstree(true).get_node(hierarchyRoot.id);
 
-        function onNodeCopy(e, data) {
-            data.node.data = angular.extend({}, data.original.data);
-            var rootID = getRootID(data.node);
-            updateHierarchyRoot(rootID);
-        }
+                vm.treeInstance.jstree(true).delete_node(oldRoot);
+                console.log(vm.treeInstance.jstree(true))
 
-        function onNodeMove(e, data) {
-            var oldParent = vm.treeInstance.jstree(true).get_node(data.old_parent);
-            var oldRootID;
-            if(oldParent.type === 'Root') {
-                oldRootID = oldParent.id;
-            } else {
-                var noOfParentsOnOldPos = oldParent.parents.length;
-                oldRootID = data.node.parents[noOfParentsOnOldPos - 2];
-            }
-            updateHierarchyRoot(oldRootID);
+                vm.treeInstance.jstree(true).create_node('#', newRoot, 'last');
 
-            var newRootID = getRootID(data.node);
-            if (newRootID !== oldRootID) {
-                updateHierarchyRoot(newRootID);
-            }
-        }
-
-        function isNodeDroppable(operation, draggedNode, targetParent, node_position, more) {
-            if (operation === 'move_node' && draggedNode.id === 'all-items' ||
-                operation === 'move_node' && draggedNode.parent === 'all-items' ||
-                operation === 'move_node' && targetParent.id === 'all-items' ||
-                operation === 'move_node' && draggedNode.type === 'Root' ||
-                operation === 'copy_node' && draggedNode.id === 'all-items' ||
-                operation === 'copy_node' && targetParent.id === 'all-items' ||
-                operation === 'copy_node' && draggedNode.type === 'Root') {
-                return false;
-            } else {
-                return true;
-            }
-        }
-
-        function listenToChanges() {
-            $scope.$on('itemsFetch', function() {
-                rebuildTree();
-            });
-            $scope.$on('itemCreation', function(event, item) {
-                if (item.isa === 'HierarchyRoot') {
-                    addRoot(item);
-                    logger.info('Item Explorer: Added a root to the tree.');
-                } else {
-                    var itemNode = allItemsNode(item);
-                    var parent = vm.treeInstance.jstree(true).get_node('all-items');
-                    vm.treeInstance.jstree(true).create_node(parent, itemNode, 'last');
-                    logger.info('Item Explorer: Added a node to the "All items" root.');
+                function createChildren(node){
+                    var x = _.map(node.children, function(c){
+                        var newN = createNode(c);
+                        newN.children = createChildren(c);
+                        var treeN =  vm.treeInstance.jstree(true).get_node(c.id);
+                        if (treeN){ newN.state = treeN.state}
+                        return newN
+                    });
+                    return x;
                 }
-            });
-            $scope.$on('itemDeletion', function(event, item) {
-                var node = vm.treeInstance.jstree(true).get_node(item.id);
-                removeTreeNode(node, true);
-                logger.info('Item Explorer: Deleted item/root ' + item.name + ' from the tree.');
-            });
-            $scope.$on('itemUpdate', function(event, item) {
-                if (item.isa === 'HierarchyRoot') {
-                    updateTreeRoot(item);
-                    logger.info('Item Explorer: Updated hierarchy root ' + item.name + '.');
-                } else {
-                    updateTreeNodeNames(item);
-                }
-            });
-        }
 
-        function updateTreeNodeNames(item) {
-            var treeNodes = getTreeNodesConnectedToItem(item.id, true);
-            for(var i = 0; i < treeNodes.length; i++) {
-                vm.treeInstance.jstree(true).rename_node(treeNodes[i], item.name);
-            }
-        }
-
-        function getTreeNodesConnectedToItem(itemID, includeAllItemsNode) {
-            var hierarchyRoots = _.filter(itemService.items, {isa: 'HierarchyRoot'}),
-                treeNodes = [];
-            for(var i = 0; i < hierarchyRoots.length; i++) {
-                loopHierarchy(hierarchyRoots[i]);
-            }
-            var allItemsNode = vm.treeInstance.jstree(true).get_node(itemID);
-            if (includeAllItemsNode) {
-                treeNodes.push(allItemsNode);
-            }
-            return treeNodes;
-
-            function loopHierarchy(hierarchyParent) {
-                for(var i = 0; i < hierarchyParent.children.length; i++) {
-                    var hierarchyNode = hierarchyParent.children[i];
-                    if (hierarchyNode.item === itemID) {
-                        var treeNode = vm.treeInstance.jstree(true).get_node(hierarchyNode.id);
-                        treeNodes.push(treeNode);
-                    }
-                    if (hierarchyNode.children.length > 0) {
-                        loopHierarchy(hierarchyNode);
-                    }
-                }
-            }
-        }
-
-        function updateTreeRoot(hierarchyRoot) {
-            var treeRoot = vm.treeInstance.jstree(true).get_node(hierarchyRoot.id);
-
-            console.log("updateTreeRoot");
-            console.log(treeRoot);
-            console.log(hierarchyRoot);
-            console.log(vm.treeInstance.jstree(true));
-
-            loopTree(treeRoot, hierarchyRoot);
-            loopHierarchy(treeRoot, hierarchyRoot);
-
-            function loopTree(treeParent, hierarchyParent) {
-                for(var i = 0; i < treeParent.children.length; i++) {
-                    var treeChildID = treeParent.children[i];
-                    var treeChild = vm.treeInstance.jstree(true).get_node(treeChildID);
-                    var hierarchyChild = _.find(hierarchyParent.children, {id: treeChildID});
-                    if (!hierarchyChild) {
-                        removeTreeNode(treeChild, true);
-                    }
-                    if (treeChild.children.length > 0) {
-                        loopTree(treeChild, hierarchyChild);
-                    }
-                }
-            }
-
-            function loopHierarchy(treeParent, hierarchyParent) {
-                for(var i = 0; i < hierarchyParent.children.length; i++) {
-                    var hierarchyChild = hierarchyParent.children[i];
-                    var treeChildIndex = treeParent.children.indexOf(hierarchyChild.id);
-                    if (treeChildIndex === -1) {
-                        vm.treeInstance.jstree(true).create_node(treeParent, treeNode(hierarchyChild), 'last');
-                    }
-                    if (hierarchyChild.children && hierarchyChild.children.length > 0) {
-                        var treeChild = vm.treeInstance.jstree(true).get_node(hierarchyChild.id);
-                        loopHierarchy(treeChild, hierarchyChild);
-                    }
-                }
-            }
-
-        }
-
-        function updateHierarchyRoot(rootID) {
-            var treeRoot = vm.treeInstance.jstree(true).get_node(rootID);
-            if(!treeRoot) {
-                logger.error('Item Explorer: Remote root update failed. Could not find the tree root.');
-                return;
-            }
-            var hierarchyRoot = itemService.getItem(treeRoot.id);
-            if(hierarchyRoot === null) {
-                logger.error('Item Explorer: Remote root update failed. Could not find the HierarchyRoot item.');
-                return;
-            }
-            hierarchyRoot.children = [];
-            loopTreeRoot(treeRoot, hierarchyRoot);
-            itemService.saveItem(hierarchyRoot);
-
-            function loopTreeRoot(treeParent, hierarchyParent) {
-                for(var i = 0; i < treeParent.children.length; i++) {
-                    var treeChildID = treeParent.children[i];
-                    var treeChild = vm.treeInstance.jstree(true).get_node(treeChildID);
-                    var hierarchyChild = {
-                        id: treeChildID,
+                function createRoot(hierarchyRoot) {
+                    var oldRoot = vm.treeInstance.jstree(true).get_node(hierarchyRoot.id);
+                    var root = {
+                        id: hierarchyRoot.id,
+                        text: hierarchyRoot.name,
+                        type: 'Root',
                         children: [],
-                        item: treeChild.data.id
+                        state: oldRoot.state ? oldRoot.state : {opened: true},
+                        data: hierarchyRoot
                     };
-                    hierarchyParent.children.push(hierarchyChild);
-                    if (treeChild.children.length > 0) {
-                        loopTreeRoot(treeChild, hierarchyChild);
-                    }
+                    return root;
                 }
+
+                function deleteChildrenInTree(node){
+                    _.forEach(node.children, function(c){
+                        deleteChildrenInTree(c);
+                        var treeN =  vm.treeInstance.jstree(true).get_node(c.id);
+                        if (treeN){
+                            vm.treeInstance.jstree(true).delete_node(treeN);
+                        }
+                    })
+                }
+
+
             }
         }
 
-        function addRoot(hierarchyRoot) {
-            var root = {
-                id: hierarchyRoot.id,
-                text: hierarchyRoot.name,
-                type: 'Root',
-                children: [],
-                state: {opened: true},
-                data: hierarchyRoot
+
+
+        function refreshItemNodes(){
+            var items = _.filter(itemService.items, function(i){return i.isa !== 'HierarchyRoot'});
+
+            var sorted = _.sortBy(items, 'name');
+            var fixState = _.map(sorted, function(i){
+                var item = createItemNode(i);
+                var treeNode = vm.treeInstance.jstree(true).get_node(i.id);
+                if (treeNode){
+                    item.state = treeNode.state;
+                }
+                return item;
+            });
+
+            var root = vm.treeInstance.jstree(true).get_node('all-items');
+            var newRoot = {
+                id: 'all-items',
+                text: 'All items',
+                type: 'AllItemsRoot',
+                children: fixState,
+                state: root.state ? root.state : {opened: false}
             };
-            vm.treeInstance.jstree(true).create_node('#', root, 'first');
+
+            vm.treeInstance.jstree(true).delete_node(root);
+            vm.treeInstance.jstree(true).create_node('#',newRoot, 'last');
         }
 
 
-        function allItemsNode(item) {
-            return {
-                id: item.id,
-                text: item.name,
-                type: item.isa,
-                children: [],
-                data: item
-            };
-        }
 
-        function treeNode(hierarchyNode) {
+
+        function createNode(hierarchyNode) {
             var item = itemService.getItem(hierarchyNode.item);
             if (item === null) {
                 logger.error('Item Explorer: A hierarchy node refers to an item that does not exist.');
                 return {
                     id: hierarchyNode.id,
-                    text: 'Does not exist',
+                    text: hierarchyNode.item,
                     type: 'unknown',
                     children: [],
                     data: {
@@ -353,48 +264,191 @@
             }
         }
 
-        function removeTreeNode(node, showError) {
-            if(showError && !node) {
-                logger.error('Item Explorer: Node deletion failed. Could not find any node with the supplied id.');
+        function createItemNode(item) {
+            return {
+                id: item.id,
+                text: item.name,
+                type: item.isa,
+                children: [],
+                data: item,
+            };
+        }
+
+        function createHNode(item) {
+            return {
+                item: item.id,
+                children: [],
+                id: uuid4.generate()
+            };
+        }
+
+
+        function createItem(itemKind) {
+            var modalInstance = $modal.open({
+                templateUrl: '/app/item-explorer/create-item.html',
+                controller: 'CreateItemController',
+                controllerAs: 'vm',
+                resolve: {
+                    itemKind: function () {
+                        return itemKind;
+                    }
+                }
+            });
+
+            modalInstance.result.then(function(chosenName) {
+                itemService.createItem(chosenName, itemKind.value);
+
+                // add to under selected node, if selected
+
+            });
+        }
+
+
+
+
+
+
+
+
+// TODO: Refactor copy and move
+        function onNodeCopy(e, data) {
+            console.log("copy");
+            console.log(e);
+            console.log(data);
+
+            var newParentID = data.node.parent;
+            var newRoot = getRoot(data.node);
+
+            if(data.node.type !== 'Root' && data.node.type !== 'AllItemsRoot' && newRoot.type !== 'AllItemsRoot'){
+                var id = data.original.data.id ? data.original.data.id : data.original.id;
+                console.log(id);
+                console.log(data.original.data.id);
+                var item = itemService.getItem(id);
+
+                var hNode = createHNode(item);
+                var newH = itemService.getItem(newRoot.id);
+                var newH2 = addHNodeToH(hNode, newParentID, newH);
+                _.forEach(newH2.children, function(c){console.log(c)})
+                if (newH2) itemService.saveItem(newH2);
+
+
             } else {
-                vm.treeInstance.jstree(true).delete_node(node);
+                console.log("INGET")
+                updateTree();
+            }
+
+
+
+        }
+
+
+        function onNodeMove(e, data) {
+            var newParentID = data.node.parent;
+            var newRoot = getRoot(data.node);
+
+            if(data.node.type !== 'Root' && data.node.type !== 'AllItemsRoot' && newRoot.type !== 'AllItemsRoot'){
+                var oldParent = vm.treeInstance.jstree(true).get_node(data.old_parent);
+                var oldRoot = getRoot(oldParent);
+
+                var newH = itemService.getItem(newRoot.id);
+                var oldH = itemService.getItem(oldRoot.id);
+                var hNodeToAdd = getHNodeFromHRoot(oldH, data.node.id);
+                var newH = addHNodeToH(hNodeToAdd, newParentID, newH);
+
+                var sameP = newH && oldH && newH.id == oldH.id;
+                oldH = sameP ? newH : oldH;
+                var removeH = deleteNodeFromH(data.node.id, oldParent.id, oldH);
+
+                if (newH && !sameP) itemService.saveItem(newH);
+                if (removeH) itemService.saveItem(removeH);
+
+                var newP = vm.treeInstance.jstree(true).get_node(newParentID);
+                newP.state.opened = true;
+            } else {
+                console.log("INGET")
+                updateTree();
+            }
+
+            function getHNodeFromHRoot(hRoot, id){
+                if (hRoot){
+                    return findHnodeInH(hRoot, id)
+                } else {
+                    return {
+                        item: id,
+                        children: [],
+                        id: uuid4.generate()
+                    }
+                }
+            }
+
+        }
+
+        function deleteNodeFromH(nodeID, parentID, hRoot){
+            console.log("DELETE")
+            console.log(hRoot)
+            var hPar = findHnodeInH(hRoot, parentID)
+            if (hPar){
+                var index = _.findIndex(hPar.children, {id: nodeID});
+                hPar.children.splice(index, 1)
+                console.log(hRoot)
+                return hRoot;
+            }
+            return false;
+        }
+
+        function addHNodeToH(node, parentID, hRoot){
+            console.log("ADD")
+            console.log(hRoot)
+            var hPar = findHnodeInH(hRoot, parentID)
+            if (hPar){
+                hPar.children.push(node);
+                console.log(hRoot)
+                return hRoot;
+            }
+            return false;
+        }
+
+
+        function findHnodeInH(node, id){
+            if (!node) return false;
+            if (node.id == id) return node;
+            else {
+                var found = false;
+                _.forEach(node.children, function(c){
+                    var res = findHnodeInH(c, id);
+                    if (res){
+                        found = res;
+                    }
+                });
+                return found;
             }
         }
 
-        function rebuildTree() {
-            var base = vm.treeInstance.jstree(true).get_node('#');
-            var allItemsRoot = {
-                id: 'all-items',
-                text: 'All items',
-                type: 'AllItemsRoot',
-                children: [],
-                state: {opened: false}
-            };
-            if (!base) {
-                logger.error('Item Explorer: Failed to add items to the tree. The global root "#" was not present.');
-            } else {
-                for(var i = 0; i < base.children.length; i++) {
-                    vm.treeInstance.jstree(true).delete_node(base.children[i]);
-                }
-                allItemsRoot.children.length = 0;
-                var noOfCustomRoots = 0, noOfItems = 0;
-                for(i = 0; i < itemService.items.length; i++) {
-                    var item = itemService.items[i];
-                    if (item.isa === 'HierarchyRoot' ) {
-                        addRoot(item);
-                        updateTreeRoot(item);
-                        noOfCustomRoots++;
-                    } else {
-                        var itemNode = allItemsNode(item);
-                        allItemsRoot.children.push(itemNode);
-                        noOfItems++;
-                    }
-                }
-                vm.treeInstance.jstree(true).create_node(base, allItemsRoot, 'last');
-                logger.info('Item Explorer: Populated tree with ' + noOfItems + ' items and ' + noOfCustomRoots +
-                    ' custom roots.');
-            }
+        function getRoot(node){
+            if (node.type == 'Root') return node;
+            if (node.type == 'AllItemsRoot') return false;
+
+            var rootID = node.parents[node.parents.length - 2];
+            return vm.treeInstance.jstree(true).get_node(rootID);
         }
+
+        function getRootID(node) {
+            var noOfParents = node.parents.length;
+            return node.parents[noOfParents - 2];
+        }
+
+        function getHierarchyFromTree(node){
+            return _.map(node.children, function(c){
+                var treeChild = vm.treeInstance.jstree(true).get_node(c);
+                console.log(treeChild);
+                return {
+                    id: treeChild.id,
+                    item: treeChild.item,
+                    children: getHierarchyFromTree(treeChild)
+                };
+            });
+        }
+
 
         function contextMenuItems(node) {
             var menuItems = {},
@@ -452,21 +506,27 @@
                 if (node.type === 'Root') {
                     menuItems.delete = {
                         label: 'Delete root',
-                        action: deleteItemAndItsNodes
+                        action: function(){
+                            itemService.deleteItem(node.id)
+                        }
                     };
                 } else if (item === null) {
                     menuItems[30] = {
                         label: 'Delete node',
                         action: function() {
-                            removeTreeNode(node, true);
-                            rootID = getRootID(node);
-                            updateHierarchyRoot(rootID);
+                            var root = getRoot(node);
+                            var parID = node.parent;
+                            var hRoot = itemService.getItem(root.id);
+                            hRoot = deleteNodeFromH(node.id, parID, hRoot)
+                            if (hRoot) itemService.saveItem(hRoot);
                         }
                     };
                 } else {
                     menuItems[30] = {
                         label: 'Delete item',
-                        action: deleteItemAndItsNodes
+                        action: function(){
+                            itemService.deleteItem(node.id);
+                        }
                     };
                     if (node.type === 'SOPSpec') {
                         menuItems[10] = {
@@ -487,15 +547,6 @@
 
             return menuItems;
 
-            function deleteItemAndItsNodes() {
-                var localNodes = getTreeNodesConnectedToItem(item.id, false);
-                for(var i = 0; i < localNodes.length; i++) {
-                    rootID = getRootID(localNodes[i]);
-                    removeTreeNode(localNodes[i], true);
-                    updateHierarchyRoot(rootID);
-                }
-                itemService.deleteItem(item.id);
-            }
         }
     }
 })();

@@ -17,9 +17,9 @@ case class SPSpec(name: String,
                   id: ID = ID.newID) extends Specification
 
 // To be used for defining hierarchies in SP
-case class HierarchyRoot(id: ID = ID.newID,
-                         name: String,
+case class HierarchyRoot(name: String,
                          children: List[HierarchyNode] = List(),
-                         attributes: SPAttributes = SPAttributes()) extends Specification
+                         attributes: SPAttributes = SPAttributes(),
+                         id: ID = ID.newID) extends Specification
 
-case class HierarchyNode(id: ID = ID.newID, item: ID, children: List[HierarchyNode] = List())
+case class HierarchyNode(item: ID, children: List[HierarchyNode] = List(), id: ID = ID.newID)
