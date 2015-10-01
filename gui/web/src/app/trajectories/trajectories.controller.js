@@ -8,13 +8,14 @@
       .module('app.trajectories')
       .controller('trajectoriesController', trajectoriesController);
 
-    trajectoriesController.$inject = ['$scope', 'dashboardService','logger'];
+    trajectoriesController.$inject = ['$scope', 'dashboardService','logger', 'item-service'];
     /* @ngInject */
     function trajectoriesController($scope, dashboardService, logger) {
         var vm = this;
         var dashboard = $scope.$parent.$parent.$parent.vm.dashboard;
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //For GUI
         vm.changeChartDerivative = changeChartDerivative;
+        vm.loadSelected = loadSelected;
         vm.operations = [];
         vm.selection = selectionEvent;
 
@@ -57,6 +58,10 @@
            console.log("in test trajectory")
             vm.reload(step);
             step = (step >=3) ? 0 : step+1;
+        }
+
+        function loadSelected(){
+
         }
 
 

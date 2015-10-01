@@ -52,14 +52,14 @@ class ImportLogFiles extends Actor with ServiceSupport {
       val robot = findName(resource, ids, Thing(resource))
       val op = Operation(operation, List(), SPAttributes("poses"->dummyData.dummyParse))
 
-      val root = findName(hierarchyName, ids, HierarchyRoot(ID.newID, hierarchyName))
+      val root = findName(hierarchyName, ids, HierarchyRoot(hierarchyName))
 
-      val node = HierarchyNode(ID.newID, op.id)
-      val robotNode = root.children.find(_.item == robot.id).getOrElse(HierarchyNode(ID.newID, robot.id, List()))
+      val node = HierarchyNode(op.id)
+      val robotNode = root.children.find(_.item == robot.id).getOrElse(HierarchyNode(robot.id, List()))
       val newRobotNode = robotNode.copy(children = robotNode.children :+ node)
 
       val newSpec = root.copy(children = root.children :+ newRobotNode)
-      
+
 
 
       replyTo ! Response(List(robot, op, newSpec), SPAttributes(), service, reqID)
@@ -76,8 +76,11 @@ class ImportLogFiles extends Actor with ServiceSupport {
   }
 }
 
+case class Mark(robot: Int, entersAtSample: Int, exitsAtSample: Int)
 
-trait ImportFileLogic {
+case object dummyData {
+  import scala.io.Source
+
   def getPosesFromLog(file: List[String]) = {
     file.flatMap{ l =>
       val xs = l.trim.split("""\s+""").toList.map(x => Try(x.toDouble))
@@ -95,31 +98,36 @@ trait ImportFileLogic {
       }
     }
   }
-  
-  def dummyParse() = getPosesFromLog(dummyData.file.getLines().toList)
 
-}
+  def createSarmadJson = {
+    val poses = dummyParse
+    val times = poses.map(_.time)
+    val trajectory = poses.map(_.joints)
 
-case object dummyData {
-  import scala.io.Source
+    val robot = SPAttributes(
+      "makespan" -> 8.0,
+      "samplingRate" -> 0.012,
+      "timeToleranceMax" -> 0.1,
+      "timeToleranceMin" -> 0.001,
+      "epsilonT" -> 0.001,
+      "costScaleFactor" -> 100,
+      "velocityLimit" -> (1 to 6).map(x => 200),
+      "accelerationLimit" -> (1 to 6).map(x => 2000),
+      "jerkLimit" -> (1 to 6).map(x => 6000),
+      "time" -> times,
+      "trajectory" -> trajectory
+    )
 
-  def getPosesFromLog(file: List[String]) = {
-    file.flatMap{ l =>
-      val xs = l.trim.split("""\s+""").toList.map(x => Try(x.toDouble))
-      println("a line:"+xs)
-      xs match {
-        case  Success(time) ::
-          Success(j1) ::
-          Success(j2) ::
-          Success(j3) ::
-          Success(j4) ::
-          Success(j5) ::
-          Success(j6) :: Nil => {
-          Some(Pose(time, List(j1, j2, j3, j4, j5, j6)))
-        }
-        case x => None
-      }
-    }
+    val r1Z = Mark(1, 100, 300)
+    val r2Z = Mark(1, 200, 400)
+
+    val request = SPAttributes(
+      "robots" -> List(robot, robot),
+      "sharedZones" -> List(List(r1Z, r2Z))
+    )
+
+    request.pretty
+
   }
 
   def dummyParse = getPosesFromLog(dummyData.file.getLines().toList)
