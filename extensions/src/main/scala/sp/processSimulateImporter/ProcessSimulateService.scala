@@ -43,7 +43,7 @@ object ProcessSimulateService extends SPService {
 
 // activemq part    Beövs det inte en consumer också?
 class ProcessSimulateAMQ extends Actor with Producer {
-  implicit val timeout = Timeout(1 seconds)
+  implicit val timeout = Timeout(100 seconds)
   def endpointUri = "activemq:PS"
 }
 
@@ -53,7 +53,7 @@ object ProcessSimulateAMQ {
 
 
 class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Actor  with ServiceSupport {
-  implicit val timeout = Timeout(5 seconds)
+  implicit val timeout = Timeout(100 seconds)
   import context.dispatcher
 
   def receive = {
@@ -93,44 +93,6 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     progress ! PoisonPill
   }
 
-
-  // def createOp(model: Option[ID], ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
-  //   val sopspecs = ids.filter(item => item.isInstanceOf[SOPSpec]) map (_.asInstanceOf[SOPSpec])
-  //   println(sopspecs)
-
-  //   val opIDS = for {
-  //     sopspec <- sopspecs
-  //     sop <- sopspec.sop
-  //     op <- sp.domain.logic.SOPLogic.getAllOperations(sop)
-  //   } yield op
-
-  //   println(opIDS)
-
-  //   val ops = ids.filter(item => opIDS.contains(item.id)) map (_.asInstanceOf[Operation])
-  //   val json = SPAttributes(
-  //     "command" -> "create_op_chain",
-  //     "params" -> SPAttributes(
-  //       "ops" -> ops.map { o =>
-  //         SPAttributes(
-  //           "name" -> o.name,
-  //           "simop" -> o.attributes.getAs[String]("simop").
-  //             orElse(o.attributes.getAs[String]("simop")).getOrElse("dummy")
-  //         )
-  //       },
-  //       "parent" -> "ingenParentFördig")).toJson
-
-  //   println(json)
-
-  //   // Så det är ett meddelande per SOPSpec eller?
-  //   // TODO: progressbar while waiting for answer...
-
-  //   val f = psAmq ? json
-  //   progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
-
-  //   val items = handlePSAnswer(f)
-  //   items.map{list => Response(list, SPAttributes("command" -> "create_op_chain"), rnr.req.service, rnr.req.reqID)}
-  // }
-
   def createOp(model: Option[ID], ids: List[IDAble], sops: List[ID], progress: ActorRef)(implicit rnr: RequestNReply) = {
     val sopspecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec]).filter(sop => sops.contains(sop.id))
 
@@ -138,10 +100,9 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
       "params"->Map("op_chains" -> sopspecs.map(sop => {
         val ops = sop match {
           case SOPSpec(name, s, attributes, id) => {
-            val sopops = s.head.sop.map(x=>x match {
-              case h: Hierarchy => h.operation
-            } )
-            ids.filter(op => sopops.contains(op.id)).map(_.asInstanceOf[Operation])
+            s.head.sop.flatMap(x=>x match {
+              case h: Hierarchy => ids.find(o=>o.id == h.operation)
+            }).map(_.asInstanceOf[Operation])
           }
         }
         SPAttributes("name" -> sop.name,
@@ -154,8 +115,6 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
               })
             }))))
       }))).toJson
-
-    println(json)
 
     val f = psAmq ? json
     progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
@@ -191,11 +150,27 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     // finds error by exception, since then the future fails
     val res: Future[List[IDAble]] = f.map{answer =>
       val json = answer.asInstanceOf[CamelMessage].body.toString
-      val value = SPValue.fromJson(json).get
-      val list = value.to[List[IDAble]]
-      val item = value.to[IDAble].map(List(_))
+      val psres = SPAttributes.fromJson(json).get
+      val responseType = psres.getAs[String]("reponse_type").get
 
-      list.getOrElse(item.get)
+      responseType match {
+        case "simple_ok" => {
+          List()
+        }
+        case "list_of_items" => {
+          val value = SPValue.fromJson(json).get
+          val list = value.to[List[IDAble]]
+          val item = value.to[IDAble].map(List(_))
+          list.getOrElse(item.get)
+        }
+        case "error" => {
+          val error_message = psres.getAs[String]("error").get
+          throw new Exception(s"PS Error: $error_message")
+        }
+        case _ => {
+          throw new Exception("Unrecognized response")
+        }
+      }
     }
 
     res.map(p.success(_))
@@ -208,99 +183,3 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
   }
 
 }
-
-
-
-//
-//      val reply = sender
-//      extract(attr) match {
-//        case Some(("createOp",model,params)) => {
-//
-//          val checkedItems = params.getAs[JObject]("items") match {
-//            case Some(list) => list.findObjectsWithField(List(("checked", JBool(true)))).unzip._1.flatMap(ID.makeID)
-//            case _ => List()
-//          }
-//
-//          val spids = Await.result(modelHandler ? GetSpecs(model, s => checkedItems.contains(s.id) && s.isInstanceOf[SOPSpec]),timeout.duration)
-//          spids match {
-//            case SPIDs(items) => {
-//              for(item <- items) {
-//                val ops = item match {
-//                  case SOPSpec(name, s, attributes, id) => {
-//                    val ids = s.head.sop.map(x=>x match {
-//                      case h: Hierarchy => h.operation
-//                    } )
-//                    val objects = Await.result(modelHandler ? GetIds(model, ids.toList),timeout.duration)
-//                    objects match {
-//                      case SPIDs(ops) => ops
-//                    }
-//                  }
-//                }
-//
-//                val json = SPAttributes("command"->"create_op_chain",
-//                  "params"->Map("ops" -> ops.map(o=>
-//                    SPAttributes("name" -> o.name,"simop" -> (o.attributes.getAs[String]("simop") match {
-//                      case Some(txid) => txid
-//                      case _ => (o.attributes.getAs[String]("txid") match {
-//                        case Some(txid) => txid
-//                        case _ => "dummy"
-//                      })
-//                    }))), "parent" -> item.name)) toJson
-//
-//                // TODO: progressbar while waiting for answer...
-//                psAmq ! json
-//
-//                // val result = Await.result(psAmq ? json, timeout.duration)
-//                // val children = result match {
-//                //   case CamelMessage(body,headers) => read[List[IDAble]](body.toString)
-//                // }
-//              }
-//            }
-//          }
-//
-//
-//          reply ! "all ok"
-//        }
-//
-//      // Lite oklart vad som händer här
-//        case Some(("import",model,params)) => {
-//          val json = SPAttributes("command"->"get_all_tx_objects") toJson
-//          val result = Await.result(psAmq ? json, timeout.duration)
-//          result match {
-//            case CamelMessage(body,headers) => {
-//              val idables = read[List[IDAble]](body.toString)
-//              modelHandler ! UpdateIDs(model, idables)
-//            }
-//          }
-//          reply ! "all ok"
-//        }
-//
-//        case Some(("import_single",model,params)) => {
-//          val txid = params.getAs[String]("txid") match {
-//            case Some(s) => s
-//            case _ => ""
-//          }
-//          val json = SPAttributes("command"->"get_tx_object", "params"->Map("txid"->txid)) toJson
-//          val result = Await.result(psAmq ? json, timeout.duration)
-//          result match {
-//            case CamelMessage(body,headers) => addObjectFromJSON(body.toString, model)
-//          }
-//          reply ! "all ok"
-//        }
-//
-//
-//        case _ => reply ! SPError("Ill formed request");
-//      }
-//    }
-//  }
-//
-//  def extract(attr: SPAttributes) = {
-//    for {
-//      command <- attr.getAs[String]("command")
-//      model <- attr.getAs[ID]("model")
-//      params <- attr.getAs[SPAttributes]("params")
-//    } yield (command, model, params)
-//  }
-//}
-
-
