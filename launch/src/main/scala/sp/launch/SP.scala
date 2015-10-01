@@ -127,6 +127,14 @@ object SP extends App {
     ProcessSimulateService.transformation
   )
 
+  import sp.areus.modalaService._
+  val modalaamqProducer = system.actorOf(Props[ModalaAMQProducer], "ModalaAMQProducer")
+  serviceHandler ! RegisterService("Modala",
+    system.actorOf(ModalaService.props(modalaamqProducer), "Modala"),
+    ModalaService.specification,
+    ModalaService.transformation
+  )
+
   //  //Preload model from json-importer
 //    val file = Source.fromFile("./testFiles/gitIgnore/module1.json").getLines().mkString("\n")
 //    jsonActor ! Request("someString", SPAttributes("file" -> file, "name" -> "preloadedModel"))
