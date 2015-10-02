@@ -8,6 +8,8 @@ object IDAbleLogic {
   import sp.domain._
   import sp.system.messages._
 
+
+
   def removeID(id: Set[ID], ids: List[IDAble]) = {
     def removeFrom(item: IDAble): Option[IDAble] = {
       val newItem = item match {
@@ -15,6 +17,7 @@ object IDAbleLogic {
         case x: Thing => removeIDFromThing(id, x)
         case x: SPSpec => removeIDFromSPSpec(id, x)
         case x: SOPSpec => removeIDFromSOPSpec(id, x)
+        case x:HierarchyRoot => removeIDFromHierarchyRoot(id, x)
         case _ => item
       }
       if (newItem == item) None
@@ -58,13 +61,27 @@ object IDAbleLogic {
   }
 
   def removeIDFromSOPSpec(id: Set[ID], obj: SOPSpec): SOPSpec = {
-    println(s"id: $id,  a sopspec to check: $obj")
     val newAttr = removeIDFromAttribute(id, obj.attributes)
     val newSOP = obj.sop flatMap(sop => removeIDFromSOP(id, sop))
     if (newAttr == obj.attributes && newSOP == obj.sop)
       obj
     else
       obj.copy(sop = newSOP, attributes = newAttr)
+  }
+
+  def removeIDFromHierarchyRoot(id: Set[ID], obj: HierarchyRoot): HierarchyRoot = {
+    val newAttr = removeIDFromAttribute(id, obj.attributes)
+    val newCh = obj.children.flatMap((c => removeIDFromHierarchyNode(id, c)))
+    if (newAttr == obj.attributes && newCh == obj.children)
+      obj
+    else
+      obj.copy(children = newCh, attributes = newAttr)
+  }
+
+  def removeIDFromHierarchyNode(id: Set[ID], obj: HierarchyNode): Option[HierarchyNode] = {
+    {if (id.contains(obj.item)) None else Some(obj)}.map(
+      node => node.copy(children = node.children.flatMap(c => removeIDFromHierarchyNode(id, c)))
+    )
   }
 
   def removeIDFromSOP(id: Set[ID], sop: SOP): Option[SOP] = {
