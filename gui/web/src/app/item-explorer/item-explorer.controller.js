@@ -93,7 +93,6 @@
         }
 
         function onTreeReady() {
-            console.log("tree ready");
             updateTree();
             listenToChanges();
         }
@@ -158,8 +157,6 @@
             });
 
             function updateTreeRoot(hierarchyRoot) {
-                console.log("hierarchyRoot")
-                console.log(hierarchyRoot)
                 var children = createChildren(hierarchyRoot);
                 var newRoot = createRoot(hierarchyRoot);
                 newRoot.children = children;
@@ -167,7 +164,6 @@
                 var oldRoot = vm.treeInstance.jstree(true).get_node(hierarchyRoot.id);
 
                 vm.treeInstance.jstree(true).delete_node(oldRoot);
-                console.log(vm.treeInstance.jstree(true))
 
                 vm.treeInstance.jstree(true).create_node('#', newRoot, 'last');
 
@@ -305,39 +301,25 @@
 
 
 
-
-
-
-
-
 // TODO: Refactor copy and move
         function onNodeCopy(e, data) {
-            console.log("copy");
-            console.log(e);
-            console.log(data);
 
             var newParentID = data.node.parent;
             var newRoot = getRoot(data.node);
 
             if(data.node.type !== 'Root' && data.node.type !== 'AllItemsRoot' && newRoot.type !== 'AllItemsRoot'){
                 var id = data.original.data.id ? data.original.data.id : data.original.id;
-                console.log(id);
-                console.log(data.original.data.id);
                 var item = itemService.getItem(id);
 
                 var hNode = createHNode(item);
                 var newH = itemService.getItem(newRoot.id);
                 var newH2 = addHNodeToH(hNode, newParentID, newH);
-                _.forEach(newH2.children, function(c){console.log(c)})
                 if (newH2) itemService.saveItem(newH2);
 
 
             } else {
-                console.log("INGET")
                 updateTree();
             }
-
-
 
         }
 
@@ -365,7 +347,6 @@
                 var newP = vm.treeInstance.jstree(true).get_node(newParentID);
                 newP.state.opened = true;
             } else {
-                console.log("INGET")
                 updateTree();
             }
 
@@ -384,25 +365,19 @@
         }
 
         function deleteNodeFromH(nodeID, parentID, hRoot){
-            console.log("DELETE")
-            console.log(hRoot)
             var hPar = findHnodeInH(hRoot, parentID)
             if (hPar){
                 var index = _.findIndex(hPar.children, {id: nodeID});
                 hPar.children.splice(index, 1)
-                console.log(hRoot)
                 return hRoot;
             }
             return false;
         }
 
         function addHNodeToH(node, parentID, hRoot){
-            console.log("ADD")
-            console.log(hRoot)
             var hPar = findHnodeInH(hRoot, parentID)
             if (hPar){
                 hPar.children.push(node);
-                console.log(hRoot)
                 return hRoot;
             }
             return false;
@@ -440,7 +415,6 @@
         function getHierarchyFromTree(node){
             return _.map(node.children, function(c){
                 var treeChild = vm.treeInstance.jstree(true).get_node(c);
-                console.log(treeChild);
                 return {
                     id: treeChild.id,
                     item: treeChild.item,

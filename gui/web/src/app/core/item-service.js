@@ -15,7 +15,8 @@
             createItem: createItem,
             deleteItem: deleteItem,
             saveItem: saveItem,
-            getItem: getItem
+            getItem: getItem,
+            getChildren: getChildren
         };
 
         activate();
@@ -78,6 +79,13 @@
                 logger.error('Item Service: Failed to request item deletion, no active model set.')
             }
             restService.deleteItem(modelService.activeModel.id, itemID);
+        }
+
+        function getChildren(node){
+            if (_.isUndefined(node) || _.isUndefined(node.children)) return [];
+            return _.map(node.children, function(c){
+                return service.getItem(c.item)
+            });
         }
 
         function listenToItemEvents() {

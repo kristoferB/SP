@@ -41,6 +41,7 @@
         vm.api
         vm.events = {};
         vm.reload = reload;
+        vm.showSettings = true;
 
         activate();
 
@@ -71,7 +72,7 @@
                         top: 20,
                         right: 50,
                         bottom: 170,
-                        left: 100
+                        left: 70
                     },
                     lines: {
                         dispatch: {
@@ -89,7 +90,7 @@
                         tickFormat: function(d){
                             return d3.format('1.0f')(d);
                         },
-                        axisLabelDistance: 5,
+                        axisLabelDistance: 0,
                         showMaxMin: false
                     }
                 },

@@ -8,9 +8,9 @@
       .module('app.trajectories')
       .controller('trajectoriesController', trajectoriesController);
 
-    trajectoriesController.$inject = ['$scope', 'dashboardService','logger', 'item-service'];
+    trajectoriesController.$inject = ['$scope', 'dashboardService','logger', 'itemService'];
     /* @ngInject */
-    function trajectoriesController($scope, dashboardService, logger) {
+    function trajectoriesController($scope, dashboardService, logger, itemService) {
         var vm = this;
         var dashboard = $scope.$parent.$parent.$parent.vm.dashboard;
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //For GUI
@@ -61,7 +61,12 @@
         }
 
         function loadSelected(){
-
+            var selected = itemService.selected;
+            var root = _.find(itemService.selected, {isa: 'HierarchyRoot'});
+            console.log("loadSelected")
+            console.log(root)
+            var res = _.filter(itemService.getChildren(root), {isa : 'Thing'});
+            console.log(res);
         }
 
 
