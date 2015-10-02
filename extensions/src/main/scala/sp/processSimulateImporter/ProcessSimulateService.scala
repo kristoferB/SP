@@ -151,7 +151,7 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     val res: Future[List[IDAble]] = f.map{answer =>
       val json = answer.asInstanceOf[CamelMessage].body.toString
       val psres = SPAttributes.fromJson(json).get
-      val responseType = psres.getAs[String]("reponse_type").get
+      val responseType = psres.getAs[String]("response_type").get
 
       responseType match {
         case "simple_ok" => {
