@@ -4,7 +4,6 @@
             <!--<thead><tr><th class="col-md-1">Action</th><th class="col-md-1">Form</th><th class="col-md-5">Name</th><th class="col-md-5">Progress</th></tr></thead>-->
             <tbody>
             <tr ng-repeat-start="obj in vm.displayedRegisteredServices | orderBy: '-name'" ng-class-odd="'odd-row'" ng-class-even="'even-row'">
-                <!--Action-->
                 <td>
                     <button type="button" class="btn btn-link" ng-click="vm.showDetails[obj.name] = !vm.showDetails[obj.name]">
                         <i ng-if="!vm.showDetails[obj.name]" class="fa fa-plus"></i>
@@ -13,14 +12,13 @@
 
                     <label>{{obj.name}}</label>
                 </td>
-
-                <!--Name-->
                 <td >
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-primary" ng-click="vm.startSpService(obj)">
+                    <div class="btn-group" ng-if="vm.servicesAreRunnable()">
+                        <button type="button" class="btn btn-sm btn-primary" ng-click="vm.startSpService(obj)">
                             <i class="fa fa-play"></i> Run
                         </button>
                     </div>
+                    <label ng-if="!vm.servicesAreRunnable()">Not runnable, no model loaded</label>
                     <label ng-if="vm.currentProgess[obj.name].type == 'Progress'">Loading</label>
                 </td>
             </tr>

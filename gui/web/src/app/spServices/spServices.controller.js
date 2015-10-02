@@ -22,6 +22,7 @@
         vm.showDetails = {};
         vm.openResponse = {};
         vm.isServiceActive = isServiceActive;
+        vm.servicesAreRunnable = servicesAreRunnable;
 
         activate();
 
@@ -96,6 +97,10 @@
 
         function success(data) {
 
+        }
+
+        function servicesAreRunnable() {
+            return !(modelService.activeModel === null)
         }
 
     }

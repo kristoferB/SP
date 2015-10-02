@@ -57,11 +57,29 @@
 
     function callService(spService, request, responseCallBack, progressCallback) {
 
-      var message = {};
+        var message = {};
 
-      if (_.isObject(request.data)){
-        message = request.data;
-      }
+        if (_.isObject(request.data)){
+          message = request.data;
+        }
+
+        //To handle that parameter 'request.core' is undefined if service has not been loaded in GUI.
+        var selectedIds = _.map(itemService.selected, function(item){
+            return item.id;
+        });
+
+        var defaultCore = {
+            'model': modelService.activeModel.id,
+            'includeIDAbles': selectedIds,
+            'responseToModel': spService.attributes.core.responseToModel.default,
+            'onlyResponse': spService.attributes.core.onlyResponse.default
+        };
+
+        if (_.isUndefined(message.core)){
+            logger.info("SP Service: Values for 'attributes.core' are undefined. Default values are used.")
+            message.core = defaultCore;
+        }
+        //----------------------------------------------------------------------------------------------
 
       var idF = restService.getNewID();
       var answerF = idF.then(function(id){
