@@ -158,10 +158,10 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
           List()
         }
         case "list_of_items" => {
-          val value = SPValue.fromJson(json).get
-          val list = value.to[List[IDAble]]
-          val item = value.to[IDAble].map(List(_))
-          list.getOrElse(item.get)
+          psres.getAs[List[IDAble]]("items").get
+        }
+        case "item" => {
+          List(psres.getAs[IDAble]("item").get)
         }
         case "error" => {
           val error_message = psres.getAs[String]("error").get
