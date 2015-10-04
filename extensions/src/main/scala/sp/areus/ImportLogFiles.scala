@@ -58,7 +58,7 @@ class ImportLogFiles extends Actor with ServiceSupport {
       val robotNode = root.children.find(_.item == robot.id).getOrElse(HierarchyNode(robot.id, List()))
       val newRobotNode = robotNode.copy(children = robotNode.children :+ node)
 
-      val newSpec = root.copy(children = root.children :+ newRobotNode)
+      val newSpec = root.copy(children = root.children.filter(_.item != newRobotNode.item) :+ newRobotNode)
 
 
 
@@ -114,6 +114,7 @@ case object dummyData {
       "velocityLimit" -> (1 to 6).map(x => 200),
       "accelerationLimit" -> (1 to 6).map(x => 2000),
       "jerkLimit" -> (1 to 6).map(x => 6000),
+      "weights" -> List(List(20, 20, 20, 10, 7, 5)),
       "time" -> times,
       "trajectory" -> trajectory
     )

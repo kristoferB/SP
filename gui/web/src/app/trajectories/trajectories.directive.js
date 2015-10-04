@@ -83,7 +83,8 @@
                     y: function(d){ return d.y; },
                     useInteractiveGuideline: true,
                     xAxis: {
-                        axisLabel: 'Time (s)'
+                        axisLabel: 'Time (s)',
+                        showMaxMin: false
                     },
                     yAxis: {
                         axisLabel: 'Position (deg)',
@@ -148,10 +149,7 @@
             });
 
             var marks = fillMarks(res, vm.marks);
-            console.log("marks")
-            console.log(marks)
             _.forEach(marks, function(m){res.push(m)});
-
 
             vm.options.title.text = title;
             return res;
@@ -165,9 +163,7 @@
                 var i = 0;
                 var temp = [];
                 temp.push(poses[0]);
-                var last = poses[poses.length-1];
                 poses.splice(0, 1);
-                poses.splice(poses.length-1, 1);
                 _.forEach(poses, function(p){
                     if (i >= remove){
                         temp.push(p)
@@ -175,7 +171,6 @@
                     }
                     i++
                 });
-                temp.push(last);
                 result = temp;
             } else {
                 result = poses;
@@ -256,8 +251,9 @@
 
 
         function reload(derivative){
+            console.log("RELOADING");
+            console.log(vm.operations);
             vm.data = fillOps(derivative);
-
             vm.api.update();
         }
 

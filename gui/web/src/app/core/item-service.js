@@ -10,13 +10,15 @@
     function itemService(logger, restService, $rootScope, eventService, modelService) {
         var service = {
             items: [],
+            itemMap: {},
             itemsFetched: false,
             selected: [],
             createItem: createItem,
             deleteItem: deleteItem,
             saveItem: saveItem,
             getItem: getItem,
-            getChildren: getChildren
+            getChildren: getChildren,
+            getIdAbleHierarchy: getIdAbleHierarchy
         };
 
         activate();
@@ -35,8 +37,10 @@
 
         function getAllItems(modelID) {
             service.items.splice(0, service.items.length);
+            service.itemMap = {};
             return restService.getItems(modelID).then(function(data) {
                 service.items.push.apply(service.items, data);
+                _.forEach(service.items, function(i){service.itemMap[i.id] = i});
                 logger.info('Item Service: Loaded ' + service.items.length + ' items through REST.');
                 service.itemsFetched = true;
                 $rootScope.$broadcast('itemsFetch', service.items);
@@ -44,12 +48,7 @@
         }
 
         function getItem(id) {
-            var index = _.findIndex(service.items, {id: id});
-            if (index === -1) {
-                return null
-            } else {
-                return service.items[index];
-            }
+            return _.isUndefined(service.itemMap[id]) ? null : service.itemMap[id];
         }
 
         function createItem(name, isa) {
@@ -88,6 +87,17 @@
             });
         }
 
+        function getIdAbleHierarchy(root){
+            if (_.isUndefined(root)) return null;
+            var rootItem = _.isUndefined(root.item) ? getItem(root.id) : getItem(root.item);
+            if (!_.isObject(rootItem)) return null;
+            var rootCopy = angular.copy(rootItem);
+            rootCopy.children = _.map(root.children, function(c){
+                return getIdAbleHierarchy(c);
+            });
+            return rootCopy;
+        }
+
         function listenToItemEvents() {
             eventService.addListener('ModelDiff', onItemEvent);
 
@@ -98,6 +108,7 @@
                         var existingItem = getItem(remoteItem.id);
                         if (existingItem === null) { // item not found => create
                             service.items.push(remoteItem);
+                            service.itemMap[remoteItem.id] = remoteItem;
                             $rootScope.$broadcast('itemCreation', remoteItem);
                             logger.info('Item Service: Added an item with name ' + remoteItem.name + '.');
                         } else { // item found => update
@@ -114,6 +125,7 @@
                             logger.error('Item Service: Could not find an item with id ' + localItem.id + ' to delete.');
                         } else {
                             _.remove(service.items, localItem);
+                            delete service.itemMap[localItem.id];
                             $rootScope.$broadcast('itemDeletion', remoteItem);
                             logger.info('Item Service: Removed item ' + localItem.name + '.');
                         }
