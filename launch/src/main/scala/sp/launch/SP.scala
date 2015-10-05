@@ -109,6 +109,12 @@ object SP extends App {
     ImportLogFiles.transformation
   )
 
+  serviceHandler ! RegisterService("OpSeqBasedOnTime",
+    system.actorOf(SearchOpSeqTimeService.props, "OpSeqBasedOnTime"),
+    SearchOpSeqTimeService.specification,
+    SearchOpSeqTimeService.transformation
+  )
+
 
 
   // activemq + process simulate stuff
