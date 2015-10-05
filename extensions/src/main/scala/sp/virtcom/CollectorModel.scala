@@ -9,6 +9,7 @@ import sp.domain.Logic._
  */
 
 trait CollectorModel {
+  val modelName: String
   var variableSet: Set[Thing] = Set()
   var operationSet: Set[Operation] = Set()
   var forbiddenExpressionSet: Set[SOPSpec] = Set()

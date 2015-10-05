@@ -22,7 +22,7 @@ object CreateOpsFromManualModelService extends SPService {
       "description" -> "Creates operations for a manual model"
     ),
     "setup" -> SPAttributes(
-      "model" -> KeyDefinition("String", List("Volvo Weld Conveyer","PSL - floor roof"), Some("Volvo Weld Conveyer"))
+      "model" -> KeyDefinition("String", List(VolvoWeldConveyerCase().modelName, PSLFloorRoofCase().modelName), Some(VolvoWeldConveyerCase().modelName))
     )
   )
 
@@ -55,15 +55,14 @@ class CreateOpsFromManualModelService extends Actor with ServiceSupport {
 
       val selectedModel = transform(CreateOpsFromManualModelService.transformTuple)
 
-      var manualModel :CollectorModel = VolvoWeldConveyerCase()
-      if (selectedModel.model.equals("PSL - floor roof")) {
+      var manualModel: CollectorModel = VolvoWeldConveyerCase()
+      if (selectedModel.model.equals(PSLFloorRoofCase().modelName)) {
         manualModel = PSLFloorRoofCase()
       }
 
-
       import CollectorModelImplicits._
 
-      rnr.reply ! Response(manualModel.parseToIDables(), SPAttributes(), service, reqID)
+      rnr.reply ! Response(manualModel.parseToIDables(), SPAttributes("info" -> s"Model created from: ${VolvoWeldConveyerCase().modelName}"), service, reqID)
       progress ! PoisonPill
       self ! PoisonPill
 

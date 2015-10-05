@@ -12,7 +12,7 @@ import sp.virtcom.CollectorModel
  * Stationary weld with tip dress
  */
 //case class VolvoWeldConveyerCase() extends ExplicitPrePost with SimOps
-case class VolvoWeldConveyerCase() extends ImplicitOnlyCarriersAndResources with SimOps with SlowGripWhenOperatorPresent
+case class VolvoWeldConveyerCase(modelName: String = "Volvo Weld Conveyer") extends ImplicitOnlyCarriersAndResources with SimOps with SlowGripWhenOperatorPresent
 
 sealed trait ImplicitOnlyCarriersAndResources extends CollectorModel {
   //Resources/Machines/Variables
@@ -67,15 +67,18 @@ sealed trait ImplicitOnlyCarriersAndResources extends CollectorModel {
 
 sealed trait SlowGripWhenOperatorPresent extends CollectorModel {
   //Operator
-  op("addOperator",SPAttributes(aResourceTrans("vOperator","idle","toIn","inside")))
-  op("removeOperator",SPAttributes(aResourceTrans("vOperator","inside","toOutside","idle")))
+  v(name = "vOperator_present", idleValue = "idle")
+
+  op("addOperator",SPAttributes(aResourceTrans("vOperator_present","idle","toIn","inside0")))
+  op("inspectByOperator",SPAttributes(aResourceTrans("vOperator_present","inside0","inspecting","inside1")))
+  op("removeOperator",SPAttributes(aResourceTrans("vOperator_present","inside1","toOut","idle")))
 
   op(s"addOperator", SPAttributes("simop" -> "X"))
   op(s"removeOperator", SPAttributes("simop" -> "X"))
 
   //Grip product A slow
   op(s"gripProductA_slow_1", SPAttributes(aResourceTrans("vRobot_pos", "atIn0", s"atInGrippingA0", "atInGrippingA1")))
-  op(s"gripProductA_slow_2", SPAttributes(aResourceTrans("vRobot_pos", "atInGrippingA1", s"atInGrippingA2", "atIn1")))
+  op(s"gripProductA_slow_2", SPAttributes(aResourceTrans("vRobot_pos", "atInGrippingA1", s"atInGrippingA2", "atIn1"))) //Has this second op to get right op seq in other service
   op(s"gripProductA_slow_1", SPAttributes(aCarrierTrans("vIn_car", atStart = s"productA")))
   op(s"gripProductA_slow_1", SPAttributes(aCarrierTrans("vRobot_car", atComplete = s"productA")))
 

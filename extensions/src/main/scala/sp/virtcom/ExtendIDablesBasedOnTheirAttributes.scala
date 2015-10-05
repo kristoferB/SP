@@ -1,17 +1,11 @@
 package sp.virtcom
 
 import akka.actor._
-import org.json4s.JsonAST.{JArray, JBool}
+import org.json4s.JsonAST.JArray
 import sp.domain._
-import sp.jsonImporter.ServiceSupportTrait
-import sp.system.{ServiceSupport, ServiceLauncher, SPService}
+import sp.system.{ServiceSupport, ServiceLauncher}
 import sp.system.messages._
-import akka.pattern.ask
-import akka.util.Timeout
-import scala.concurrent.duration._
 import sp.domain.Logic._
-
-import scala.util.{Failure, Success}
 
 /**
  * Extends IDables
@@ -62,14 +56,14 @@ class ExtendIDablesBasedOnTheirAttributesService extends Actor with ServiceSuppo
         eiw.extendedIDables()
       }
 
-      rnr.reply ! Response(updatedIDables, SPAttributes(), service, reqID)
+      rnr.reply ! Response(updatedIDables, SPAttributes("info" -> "IDAbles extended based on their attributes"), service, reqID)
       self ! PoisonPill
 
     case (r: Response, reply: ActorRef) => {
       reply ! r
     }
     case x => {
-      sender() ! SPError("What do you whant me to do? " + x)
+      sender() ! SPError("What should I do? " + x)
       self ! PoisonPill
     }
 

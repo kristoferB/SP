@@ -7,7 +7,7 @@ import sp.virtcom.CollectorModel
 /**
  * Type based model of simple process in PSL.
  */
-case class PSLFloorRoofCase() extends CollectorModel {
+case class PSLFloorRoofCase(modelName: String = "PSL - floor roof") extends CollectorModel {
   //Carriers
   v(name = "vKUKA_car", domain = Seq("empty", "floor"), init = "empty", marked = "empty")
   v(name = "vABB_car", domain = Seq("empty", "roof"), init = "empty", marked = "empty")

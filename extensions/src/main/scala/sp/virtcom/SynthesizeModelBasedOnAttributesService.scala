@@ -3,10 +3,8 @@ package sp.virtcom
 import akka.actor._
 import sp.domain.logic.{PropositionParser, ActionParser}
 import sp.domain._
-import sp.jsonImporter.ServiceSupportTrait
 import sp.supremicaStuff.base._
 import sp.system.messages._
-import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent.duration._
 import sp.domain.Logic._
@@ -91,7 +89,10 @@ private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef) ext
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
           progress ! SPAttributes("progress" -> "saved to wmod file in ./testFiles/gitIgnore/")
 
-          replyTo ! Response(updatedOps, synthesizedGuards merge nbrOfStates, service, reqID)
+          lazy val opsWithSynthesizedGuard = optSupervisorGuards.getOrElse(Map()).keys
+          lazy val spAttributes = synthesizedGuards merge nbrOfStates merge SPAttributes("info" -> s"Model synthesized. ${opsWithSynthesizedGuard.size} operations are extended with a guard: ${opsWithSynthesizedGuard.mkString(", ")}")
+
+          replyTo ! Response(updatedOps, spAttributes, service, reqID)
           progress ! PoisonPill
           self ! PoisonPill
         }

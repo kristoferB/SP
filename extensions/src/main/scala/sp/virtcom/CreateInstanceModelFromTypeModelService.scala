@@ -1,13 +1,9 @@
 package sp.virtcom
 
 import akka.actor.{PoisonPill, Props, Actor, ActorRef}
-import akka.pattern.ask
-import akka.util.Timeout
 import sp.domain._
-import sp.jsonImporter.ServiceSupportTrait
 import sp.system.{ServiceSupport, ServiceLauncher, SPService}
 import sp.system.messages._
-import scala.concurrent.duration._
 import sp.domain.Logic._
 
 /**
@@ -51,23 +47,13 @@ object CreateInstanceModelFromTypeModelService extends SPService {
 
   val transformation = transformToList(transformTuple.productIterator.toList)
 
-  // important to incl ServiceLauncher if you want unique actors per request
   def props = ServiceLauncher.props(Props(classOf[CreateInstanceModelFromTypeModelService]))
-
-  // Alla far aven "core" -> ServiceHandlerAttributes
-
-  //  case class ServiceHandlerAttributes(model: Option[ID],
-  //                                      responseToModel: Boolean,
-  //                                      onlyResponse: Boolean,
-  //                                      includeIDAbles: List[ID])
 
 }
 
 case class CreateInstanceModelFromTypeModelSpecifications(sops: List[ID])
 
 class CreateInstanceModelFromTypeModelService extends Actor with ServiceSupport {
-
-  import context.dispatcher
 
   def receive = {
     case r@Request(service, attr, ids, reqID) =>
@@ -78,15 +64,15 @@ class CreateInstanceModelFromTypeModelService extends Actor with ServiceSupport 
 
       println(s"service: $service")
 
-      val specifications = transform(CreateInstanceModelFromTypeModelService.transformTuple)
+      lazy val specifications = transform(CreateInstanceModelFromTypeModelService.transformTuple)
 
-      val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
-      val vars = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing])
-      val specs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec]).filter(sop => specifications.sops.contains(sop.id))
+      lazy val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
+      lazy val vars = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing])
+      lazy val specs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec]).filter(sop => specifications.sops.contains(sop.id))
 
       println(s"specs: ${specs.map(_.name)}")
 
-      val specList = {
+      lazy val specList = {
         val onlySopsWithSequences = specs.flatMap { spec =>
           val sopsWithSeq = spec.sop.filter(_.isInstanceOf[Sequence])
           sopsWithSeq.map(seq => s"${spec.name}${if (sopsWithSeq.size > 1) spec.sop.indexOf(seq) else ""}" -> seq.sop)
@@ -103,64 +89,65 @@ class CreateInstanceModelFromTypeModelService extends Actor with ServiceSupport 
       }
 
 
-      val initState = getIdleState(vars.toSet)
+      lazy val initState = getIdleState(vars.toSet)
 
-      val markedState = stateIsMarked(vars.toSet)
+      lazy val markedState = stateIsMarked(vars.toSet)
 
       import sp.domain.logic.PropositionConditionLogic._
 
       if (specList.isEmpty) println("No specification(s) given.")
 
-      val result = specList.map { case (name, opSeqFromSpec) =>
+      if (ops.exists(_.conditions.size != 2)) {
+        println("At least one operation lacks pre and/or postcondition. I will not go on.")
+        rnr.reply ! Response(List(), SPAttributes(), service, reqID)
+        self ! PoisonPill
+      } else {
+        lazy val result = specList.map { case (name, opSeqFromSpec) =>
 
-        val wfs = WrapperForSearch(ops.toSet)
+          val wfs = WrapperForSearch(ops.toSet)
 
-        def findOpSeqIterator(remainingOpList: Seq[Operation], startState: State = initState, opSeqToReturn: Seq[Operation] = Seq()): Option[Seq[Operation]] = remainingOpList match {
-          //No more operations remains in list
-          case Nil => wfs.findOpSeq(markedState, Set(startState), Map(startState -> Seq())) match {
-            case Some(wfs.OpSeqResult(_, opSeq)) =>
-              val finalOpSeq = opSeq ++ opSeqToReturn
-              Some(finalOpSeq.reverse)
-            case _ => None
+          def findOpSeqIterator(remainingOpList: Seq[Operation], startState: State = initState, opSeqToReturn: Seq[Operation] = Seq()): Option[Seq[Operation]] = remainingOpList match {
+            //No more operations remains in list
+            case Nil => wfs.findOpSeq(markedState, Set(startState), Map(startState -> Seq())) match {
+              case Some(wfs.OpSeqResult(_, opSeq)) =>
+                val finalOpSeq = opSeq ++ opSeqToReturn
+                Some(finalOpSeq.reverse)
+              case _ => None
+            }
+            //At least one more operation remains in list
+            //The goal state is set to the first state from where the first operation in the list of remaining operations can start
+            case o :: os => wfs.findOpSeq(o.conditions.head.eval, Set(startState), Map(startState -> Seq())) match {
+              case Some(wfs.OpSeqResult(lastState, opSeq)) =>
+                val nextStartState = wfs.updateStateBasedOnAllOperationActions(lastState, o)
+                findOpSeqIterator(os, nextStartState, Seq(o) ++ opSeq ++ opSeqToReturn)
+              case _ => None
+            }
+
           }
-          //At least one more operation remains in list
-          //The goal state is set to the first state from where the first operation in the list of remaining operations can start
-          case o :: os => wfs.findOpSeq(o.conditions.head.eval, Set(startState), Map(startState -> Seq())) match {
-            case Some(wfs.OpSeqResult(lastState, opSeq)) =>
-              val nextStartState = wfs.updateStateBasedOnAllOperationActions(lastState, o)
-              findOpSeqIterator(os, nextStartState, Seq(o) ++ opSeq ++ opSeqToReturn)
-            case _ => None
-          }
 
+          println("search started")
+          val foundSeq = findOpSeqIterator(opSeqFromSpec) match {
+            case Some(seq) =>
+              println(s"The found sequence for specification \'$name\' contains ${seq.size} operations.")
+              Sequence(seq.map(o => Hierarchy(o.id, List())): _*)
+            case _ =>
+              println(s"No sequence for specification \'$name\' could be found.")
+              EmptySOP
+          }
+          println("search ended")
+
+          SequenceResult(name, SOPSpec(name = s"${name}_Result", sop = List(foundSeq), attributes = SPAttributes().addTimeStamp))
         }
 
-        println("search started")
-        val foundSeq = findOpSeqIterator(opSeqFromSpec) match {
-          case Some(seq) =>
-            println(s"The found sequence for specification \'$name\' contains ${seq.size} operations.")
-            Sequence(seq.map(o => Hierarchy(o.id, List())): _*)
-          case _ =>
-            println(s"No sequence for specification \'$name\' could be found.")
-            EmptySOP
-        }
-        println("search ended")
-
-
-        (SOPSpec(name = s"${name}_Result", sop = List(foundSeq), attributes = SPAttributes().addTimeStamp), SPAttributes("info" -> s"Added SOP ${name}_Result"))
-
+        rnr.reply ! Response(result.map(_.result), SPAttributes("info" -> s"Operation sequence(s) created from specification(s): ${result.map(_.startSeqName).mkString(", ")}"), service, reqID)
+        self ! PoisonPill
       }
 
-
-      rnr.reply ! Response(result.unzip._1, SPAttributes(), service, reqID)
-      self ! PoisonPill
-
-    case (r: Response, reply: ActorRef) => {
+    case (r: Response, reply: ActorRef) =>
       reply ! r
-    }
-    case x => {
+    case x =>
       sender() ! SPError("What do you whant me to do? " + x)
       self ! PoisonPill
-    }
   }
 
   def getIdleState(vars: Set[Thing]) = {
@@ -242,3 +229,5 @@ case class WrapperForSearch(ops: Set[Operation]) {
   }
 
 }
+
+private case class SequenceResult(startSeqName: String, result: SOPSpec)
