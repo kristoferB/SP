@@ -82,12 +82,6 @@ class SearchOpSeqTimeService extends Actor with ServiceSupport with CalcMethods 
       lazy val evalualteProp3 = EvaluateProp(mapOps((_: SPValue) => true), Set(), ThreeStateDefinition)
 
       //Calculation -------------------------------------------------------
-      lazy val result1 = findStraightSeq(opsUpd, initState, isGoalState, evalualteProp2)
-      println(s"opSeq: ${result1.getOrElse(Seq()).map(_.name).mkString("\n")}")
-
-      lazy val result2 = makeParallel(result1.get, initState, evalualteProp2, evalualteProp3)
-      println(s"par: ${result2.getOrElse(Seq(Set())).map(set => set.map(_.name).mkString(", ")).mkString("\n")}")
-
       lazy val result = for {
         straightSeq <- findStraightSeq(opsUpd, initState, isGoalState, evalualteProp2)
         parSeq <- makeParallel(straightSeq, initState, evalualteProp2, evalualteProp3)
@@ -99,7 +93,7 @@ class SearchOpSeqTimeService extends Actor with ServiceSupport with CalcMethods 
       val sop = result.get.sopSpec
       println(s"duration: ${result.get.duration}")
 
-      rnr.reply ! Response(List(), SPAttributes(), service, reqID)
+      rnr.reply ! Response(List(sop)++opsUpd, SPAttributes("info" -> s"Added sop '${sop.name}'"), service, reqID)
       progress ! PoisonPill
       self ! PoisonPill
 
@@ -187,10 +181,16 @@ sealed trait CalcMethods {
   }
 
   def translateToSOPSpec(parSeq: Seq[Set[Operation]], sopName: String, durationKey: String): SOPPlusDuration = {
-    lazy val sop = Sequence(parSeq.map(set => Parallel(set.toSeq.sortWith((o1, o2) => o1.name < o2.name).map(o => Hierarchy(o.id, List())): _*)): _*)
+    lazy val sop = Sequence(parSeq.map(set =>
+      if (set.size > 1) {
+        Parallel(set.toSeq.sortWith((o1, o2) => o1.name < o2.name).map(o => Hierarchy(o.id, List())): _*)
+      } else {
+        Hierarchy(set.head.id, List())
+      }
+    ): _*)
     lazy val duration: Double = parSeq.foldLeft(0: Double) { case (acc, set) =>
       lazy val durationSet = set.flatMap(_.attributes.getAs[Double](durationKey))
-      acc + 1 //durationSet.maxBy(_)
+      acc + durationSet.maxBy(identity)
     }
     lazy val attr = SPAttributes("SOPduration" -> duration)
     SOPPlusDuration(SOPSpec(sopName, List(sop), attr), duration)
