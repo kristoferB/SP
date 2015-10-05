@@ -33,7 +33,7 @@ object SearchOpSeqTimeService extends SPService {
 
 case class SearchOpSeqTimeSetup(model: String)
 
-class SearchOpSeqTimeService extends Actor with ServiceSupport {
+class SearchOpSeqTimeService extends Actor with ServiceSupport with CalcMethods {
 
   def receive = {
     case r@Request(service, attr, ids, reqID) =>
@@ -46,6 +46,7 @@ class SearchOpSeqTimeService extends Actor with ServiceSupport {
       val progress = context.actorOf(progressHandler)
       println(s"service: $service")
 
+      //Example-------------------------------------------------------------
       val o11 = Operation("o11", List(), SPAttributes("time" -> 2))
       val o12 = Operation("o12", List(), SPAttributes("time" -> 5))
       val o13 = Operation("o13", List(), SPAttributes("time" -> 4))
@@ -63,26 +64,40 @@ class SearchOpSeqTimeService extends Actor with ServiceSupport {
         o.copy(conditions = cond)
       }
 
+      //Init defs-----------------------------------------------------------------
       def mapOps[T](t: T) = ops.map(o => o.id -> t).toMap
 
       lazy val initState = State(mapOps(OperationState.init))
-      lazy val goalState = State(mapOps(OperationState.finished))
+      def isGoalState(state: State) = {
+        lazy val goalState = State(mapOps(OperationState.finished))
+        state.state.forall { case (id, value) =>
+          goalState.get(id) match {
+            case Some(otherValue) => value == otherValue
+            case _ => false
+          }
+        }
+      }
 
       lazy val evalualteProp2 = EvaluateProp(mapOps((_: SPValue) => true), Set(), TwoStateDefinition)
       lazy val evalualteProp3 = EvaluateProp(mapOps((_: SPValue) => true), Set(), ThreeStateDefinition)
 
+      //Calculation -------------------------------------------------------
+      lazy val result1 = findStraightSeq(opsUpd, initState, isGoalState, evalualteProp2)
+      println(s"opSeq: ${result1.getOrElse(Seq()).map(_.name).mkString("\n")}")
 
-      def findStraightSeq(ops: List[Operation], initState: State, goalState: State, evalSetup: EvaluateProp) = {
-        implicit val es = evalSetup
+      lazy val result2 = makeParallel(result1.get, initState, evalualteProp2, evalualteProp3)
+      println(s"par: ${result2.getOrElse(Seq(Set())).map(set => set.map(_.name).mkString(", ")).mkString("\n")}")
 
-        println(s"enabled: ${ops.filter(o => o.eval(initState))}")
+      lazy val result = for {
+        straightSeq <- findStraightSeq(opsUpd, initState, isGoalState, evalualteProp2)
+        parSeq <- makeParallel(straightSeq, initState, evalualteProp2, evalualteProp3)
+        if straightSeq.forall(_.attributes.getAs[Double]("time").isDefined)
+      } yield {
+          translateToSOPSpec(parSeq, sopName = "Result", durationKey = "time")
+        }
 
-        println(s"update2: ${ops.filter(o => o.eval(initState)).map(o => o.next(initState)).mkString("\n")}")
-      }
-
-      implicit val evalSetup3 = evalualteProp3
-
-      println(s"update3: ${opsUpd.filter(o => o.eval(initState)).map(o => o.next(initState)).mkString("\n")}")
+      val sop = result.get.sopSpec
+      println(s"duration: ${result.get.duration}")
 
       rnr.reply ! Response(List(), SPAttributes(), service, reqID)
       progress ! PoisonPill
@@ -97,4 +112,87 @@ class SearchOpSeqTimeService extends Actor with ServiceSupport {
 
   }
 
+}
+
+case class SOPPlusDuration(sopSpec: SOPSpec, duration: Double)
+
+sealed trait CalcMethods {
+  def findStraightSeq(ops: List[Operation], initState: State, isGoalState: State => Boolean, evalSetup: EvaluateProp): Option[Seq[Operation]] = {
+    implicit val es = evalSetup
+
+    def getEnabledOperations(state: State) = ops.filter(_.eval(state))
+
+    def iterate(currentState: State, resultingOpSeq: Seq[Operation] = Seq()): Option[Seq[Operation]] = {
+      if (isGoalState(currentState)) {
+        Some(resultingOpSeq.reverse)
+      } else {
+        lazy val enabledOps = getEnabledOperations(currentState)
+        if (enabledOps.isEmpty) {
+          None
+        } else {
+          import scala.util.Random
+          lazy val selectedOp = Random.shuffle(enabledOps).head
+          iterate(selectedOp.next(currentState), selectedOp +: resultingOpSeq)
+        }
+      }
+    }
+
+    //Method starts
+    iterate(initState)
+  }
+
+  def makeParallel(opsInStraightSeq: Seq[Operation], initState: State, evalSetup2: EvaluateProp, evalSetup3: EvaluateProp): Option[Seq[Set[Operation]]] = {
+
+    def isParallel(thisOp: Operation, thatOp: Operation, ii: State): Boolean = {
+      implicit val es = evalSetup3
+
+      if (!thisOp.eval(ii) || !thatOp.eval(ii)) return false
+      val ei = thisOp.next(ii)
+      if (!thatOp.eval(ei)) return false
+      val fi = thisOp.next(ei)
+      if (!thatOp.eval(fi)) return false
+      val ie = thatOp.next(ii)
+      if (!thisOp.eval(ie)) return false
+      val if_ = thatOp.next(ie)
+      if (!thisOp.eval(if_)) return false
+
+      //Under the assumption that there are no post-guards between 'thisOp' and 'thatOp,
+      //all remaining transitions are ok
+
+      true
+    }
+
+    def iterate(remainingOps: Seq[Operation], currentState: State, parSeq: Seq[Set[Operation]]): Option[Seq[Set[Operation]]] = {
+      remainingOps match {
+        case o +: os =>
+          if (parSeq.head.forall(otherO => isParallel(o, otherO, currentState))) {
+            //Add 'o' to set
+            iterate(os, currentState, (Set(o) ++ parSeq.head) +: parSeq.tail)
+          } else {
+            //Update currentState and add 'o' to a new 'parallel sop' in seq
+            implicit val es = evalSetup2
+            lazy val newState = parSeq.head.foldLeft(currentState) { case (stateAcc, otherO) => otherO.next(stateAcc) }
+            iterate(os, newState, Set(o) +: parSeq)
+          }
+        case _ => Some(parSeq.reverse)
+      }
+    }
+
+    //Method starts
+    if (opsInStraightSeq.isEmpty) {
+      None
+    } else {
+      iterate(opsInStraightSeq.tail, initState, Seq(Set(opsInStraightSeq.head)))
+    }
+  }
+
+  def translateToSOPSpec(parSeq: Seq[Set[Operation]], sopName: String, durationKey: String): SOPPlusDuration = {
+    lazy val sop = Sequence(parSeq.map(set => Parallel(set.toSeq.sortWith((o1, o2) => o1.name < o2.name).map(o => Hierarchy(o.id, List())): _*)): _*)
+    lazy val duration: Double = parSeq.foldLeft(0: Double) { case (acc, set) =>
+      lazy val durationSet = set.flatMap(_.attributes.getAs[Double](durationKey))
+      acc + 1 //durationSet.maxBy(_)
+    }
+    lazy val attr = SPAttributes("SOPduration" -> duration)
+    SOPPlusDuration(SOPSpec(sopName, List(sop), attr), duration)
+  }
 }
