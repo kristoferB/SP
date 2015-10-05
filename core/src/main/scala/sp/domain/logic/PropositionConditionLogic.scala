@@ -103,8 +103,8 @@ trait PropositionConditionLogics {
 
     def inDomain(s: State, stateVars: Map[ID, SPValue => Boolean]): Boolean = {
       val next = nextValue(s)
-      val sv = stateVars(a.id)
-      stateVars(a.id)(next)
+      val sv = stateVars.get(a.id).getOrElse(_=>true)
+      sv(next)
 
       //      val checkDomain = sv.attributes.getAsList("domain") map (_.contains(next))
       //      val checkBoolean = sv.attributes.getAsBool("boolean") map (b =>
