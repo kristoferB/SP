@@ -5,7 +5,6 @@ import sp.domain._
 import sp.system._
 import sp.system.{ServiceLauncher, SPService}
 import sp.system.messages._
-import sp.virtcom.modeledCases.{PSLFloorRoofCase, VolvoWeldConveyerCase}
 import sp.domain.Logic._
 
 /**
@@ -64,20 +63,24 @@ class SearchOpSeqTimeService extends Actor with ServiceSupport {
         o.copy(conditions = cond)
       }
 
-      lazy val initState = State(ops.map(o => o.id -> OperationState.init).toMap)
+      def mapOps[T](t: T) = ops.map(o => o.id -> t).toMap
 
-      println(s"initState: $initState")
+      lazy val initState = State(mapOps(OperationState.init))
+      lazy val goalState = State(mapOps(OperationState.finished))
 
-      def f1() = {
-        implicit val evalSetup2 = EvaluateProp(ops.map(o => o.id -> ((_: SPValue) => true)).toMap, Set(), TwoStateDefinition)
+      lazy val evalualteProp2 = EvaluateProp(mapOps((_: SPValue) => true), Set(), TwoStateDefinition)
+      lazy val evalualteProp3 = EvaluateProp(mapOps((_: SPValue) => true), Set(), ThreeStateDefinition)
 
-        println(s"enabled: ${opsUpd.filter(o => o.eval(initState))}")
 
-        println(s"update2: ${opsUpd.filter(o => o.eval(initState)).map(o => o.next(initState)).mkString("\n")}")
+      def findStraightSeq(ops: List[Operation], initState: State, goalState: State, evalSetup: EvaluateProp) = {
+        implicit val es = evalSetup
+
+        println(s"enabled: ${ops.filter(o => o.eval(initState))}")
+
+        println(s"update2: ${ops.filter(o => o.eval(initState)).map(o => o.next(initState)).mkString("\n")}")
       }
-      f1
 
-      implicit val evalSetup3 = EvaluateProp(ops.map(o => o.id -> ((_ : SPValue) => true)).toMap,Set(),ThreeStateDefinition)
+      implicit val evalSetup3 = evalualteProp3
 
       println(s"update3: ${opsUpd.filter(o => o.eval(initState)).map(o => o.next(initState)).mkString("\n")}")
 
@@ -85,13 +88,12 @@ class SearchOpSeqTimeService extends Actor with ServiceSupport {
       progress ! PoisonPill
       self ! PoisonPill
 
-    case (r: Response, reply: ActorRef) => {
+    case (r: Response, reply: ActorRef) =>
       reply ! r
-    }
-    case x => {
+
+    case x =>
       sender() ! SPError("What do you whant me to do? " + x)
       self ! PoisonPill
-    }
 
   }
 
