@@ -9,11 +9,7 @@
                 </button>
             </div>
 
-            <div class="btn-group">
-                <button class="btn btn-sm btn-default"
-                        ng-click="vm.loadSelected()">Load
-                </button>
-            </div>
+
         </form>
 
 
@@ -68,7 +64,41 @@
 
         <tabset>
             <tab active="vm.showSettings">
-                Form
+                <form role="form">
+                    <div class="form-group">
+                        <label>Select Hierarchy including trajectories</label>
+                        <select class="form-control"
+                                ng-model="vm.selectedRoot"
+                                ng-options="root.name for root in vm.availableRoots"
+                                ng-change="vm.loadSelected(root)"
+                                >
+                            <!--<option ng-repeat="root in vm.availableRoots">{{root.name}}</option>-->
+                        </select>
+                    </div>
+                    <div class="form-group" ng-if="vm.availableResources.length !== 0">
+                        <label>Select resource</label>
+                        <select class="form-control"
+                                ng-model="vm.resource"
+                                ng-options="resource.name for resource in vm.availableResources"
+                                ng-change="vm.loadResource()"
+                                >
+                            <!--<option ng-repeat="root in vm.availableRoots">{{root.name}}</option>-->
+                        </select>
+                    </div>
+                    <!--<div class="form-group" ng-if="vm.availableOperations.length !== 0">-->
+                        <!--<label ng-repeat="op in vm.availableOperations">{{op.name}}</label>-->
+                    <!--</div>-->
+                    <!--<div class="form-group" ng-if="vm.availableMarks.length !== 0">-->
+                        <!--<label ng-repeat="op in vm.availableMarks">{{op.name}}</label>-->
+                    <!--</div>-->
+                    <div class="form-group">
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-default"
+                                    ng-click="vm.loadAvailableRoots()">Reset
+                            </button>
+                        </div>
+                    </div>
+                </form>
 
             </tab>
             <tab active="!vm.showSettings">

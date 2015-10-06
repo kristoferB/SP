@@ -98,6 +98,7 @@
             return rootCopy;
         }
 
+
         function listenToItemEvents() {
             eventService.addListener('ModelDiff', onItemEvent);
 

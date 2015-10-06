@@ -125,7 +125,7 @@ object SP extends App {
 
   val camel = CamelExtension(system)
   val camelContext = camel.context
-  camelContext.addComponent("activemq", ActiveMQComponent.activeMQComponent("tcp://martinsPC:61616"))
+  camelContext.addComponent("activemq", ActiveMQComponent.activeMQComponent(s"tcp://${settings.activeMQ}:61616"))
   val psamq = system.actorOf(Props[ProcessSimulateAMQ], "ProcessSimulateAMQ")
   serviceHandler ! RegisterService("ProcessSimulate",
     system.actorOf(ProcessSimulateService.props(modelHandler, psamq), "ProcessSimulate"),

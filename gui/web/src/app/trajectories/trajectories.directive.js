@@ -68,10 +68,11 @@
                 chart: {
                     type: 'lineChart',
                     height: 450,
+                    width: 700,
                     margin : {
                         top: 20,
                         right: 50,
-                        bottom: 170,
+                        bottom: 150,
                         left: 70
                     },
                     lines: {

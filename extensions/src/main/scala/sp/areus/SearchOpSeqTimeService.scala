@@ -20,7 +20,7 @@ object SearchOpSeqTimeService extends SPService {
     "setup" -> SPAttributes(
       "ops" -> KeyDefinition("List[ID]", List(), Some(SPValue(List()))),
       "iterations" -> KeyDefinition("Int", List(10, 50, 100, 200, 500), Some(100)),
-      "name on sop" -> KeyDefinition("String", List(), Some("Result"))
+      "name" -> KeyDefinition("String", List(), Some("Result"))
     )
   )
 
@@ -102,17 +102,32 @@ class SearchOpSeqTimeService extends Actor with ServiceSupport with CalcMethods 
 //      println(result.map(_.duration).distinct.sortBy(identity).mkString("\n"))
       lazy val bestParSeq = result.minBy(_.duration)
 
+
       //Response-------------------------------------------------------------------------------
       progress ! SPAttributes("progress" -> "Conclude result")
       if(result.isEmpty) {
         rnr.reply ! SPError("No result could be found.\n Are the conditions for the operations right?\n Do all operations include a correct attribute for its duration?")
       } else {
 
+        var best = -1.0
+        val allSOPs = result.flatMap { res =>
+          val sopToWorkOn = translateToSOPSpec(bestParSeq.parSeq, setup.name)
+          val durationAttr = SPAttributes("SOPduration" -> bestParSeq.duration)
+          if (best == -1 || best >= bestParSeq.duration) {
+            best = bestParSeq.duration
+            Some(sopToWorkOn.copy(attributes = sopToWorkOn.attributes merge durationAttr))
+          } else
+            None
+        }        
+
+
+
+
         lazy val sopToWorkOn = translateToSOPSpec(bestParSeq.parSeq, setup.name)
         lazy val durationAttr = SPAttributes("SOPduration" -> bestParSeq.duration)
         lazy val sopToReturn = sopToWorkOn.copy(attributes = sopToWorkOn.attributes merge durationAttr)
 
-        rnr.reply ! Response(List(sopToReturn), SPAttributes("info" -> s"Added sop '${sopToReturn.name}'") merge durationAttr, service, reqID)
+        rnr.reply ! Response(allSOPs.toList, SPAttributes("info" -> s"Added sop '${sopToReturn.name}'") merge durationAttr, service, reqID)
       }
       progress ! PoisonPill
       self ! PoisonPill

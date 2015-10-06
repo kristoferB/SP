@@ -495,6 +495,12 @@
                             if (hRoot) itemService.saveItem(hRoot);
                         }
                     };
+                    menuItems[40] = {
+                        label: 'Delete item',
+                        action: function() {
+                            itemService.deleteItem(node.data.id);
+                        }
+                    };
                 } else {
                     menuItems[30] = {
                         label: 'Delete item',

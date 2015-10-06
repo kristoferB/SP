@@ -13,6 +13,7 @@
         vm.title = $state.current.title;
         vm.gridsterOptions = {
             outerMargin: false,
+            columns: 12,
             swapping: true,
             draggable: {
                 enabled: false,

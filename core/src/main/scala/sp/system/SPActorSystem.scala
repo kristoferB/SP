@@ -18,6 +18,7 @@ object SPActorSystem {
   val runtimeHandler = system.actorOf(RuntimeHandler.props, "runtimeHandler")
   val userHandler = system.actorOf(sp.users.UserHandler.props, "userHandler")
 
+  // TODO: Send this to all handlers instead of during construction
   val handlers = SPHandlers(modelHandler, serviceHandler, eventHandler)
 
 
@@ -25,15 +26,9 @@ object SPActorSystem {
 
 }
 
-// TODO: Broadcast handlers to all handlers after creation
 case class SPHandlers(
            modelHandler : ActorRef,
            serviceHandler : ActorRef,
            eventHandler : ActorRef
 )
 
-class a extends Actor {
-  def receive = {
-    case _ =>
-  }
-}

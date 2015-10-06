@@ -15,7 +15,7 @@ import akka.camel._
 
 import scala.util._
 
-case class ModalaSetup(inputdata: String)
+case class ModalaSetup(inputdata: String, rootHierarchy: ID)
 
 object ModalaService extends SPService {
   val specification = SPAttributes(
@@ -24,7 +24,8 @@ object ModalaService extends SPService {
       "description" -> "DALAHÄSTAR"
     ),
     "setup" -> SPAttributes(
-      "inputdata" -> KeyDefinition("String", List(), Some(""))
+      "inputdata" -> KeyDefinition("String", List(), Some("")),
+      "rootHierarchy"-> KeyDefinition("ID", List(), None)
     )
   )
 
@@ -49,6 +50,7 @@ class ModalaAMQConsumer(caller : ActorRef, service : ActorRef, req : Request, pr
 
   def receive = {
     case msg: CamelMessage => {
+      println(s"JAA: $msg")
       msg.body match {
         case "progress" => {
           // relay progress messages
@@ -82,21 +84,60 @@ class ModalaService(amqProducer: ActorRef) extends Actor with ServiceSupport {
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
       val progress = context.actorOf(progressHandler)
-      val amqConsumer = context.actorOf(ModalaAMQConsumer.props(replyTo,self, r, progress)) // start listening for replies
+      //val amqConsumer = context.actorOf(ModalaAMQConsumer.props(replyTo,self, r, progress)) // start listening for replies
 
       progress ! SPAttributes("progress" -> "making a MODALA request")
 
       val setup = transform(ModalaService.transformTuple)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
-      amqProducer ! setup.inputdata
+      val test = sp.areus.dummyData.createSarmadJson
+
+      generateReq(ids, setup.rootHierarchy)
+
+      //amqProducer ! setup.inputdata
     }
     case DalaResponse(message,caller,Request(s,a,i,r),progress) => {
-      caller ! Response(List(), SPAttributes("final result" -> message), s, r)
+      import org.json4s._
+      import org.json4s.native.JsonMethods._
+      val json = parse(message)
+      caller ! Response(List(), SPAttributes("final result" -> json), s, r)
       sender() ! PoisonPill // don't need consumer any more
       progress ! PoisonPill
       self ! PoisonPill
     }
     case _ => sender ! SPError("Ill formed request");
   }
+
+  def generateReq(ids: List[IDAble], rootID: ID) = {
+    val idMap = ids.map(x => x.id -> x).toMap
+
+    val root = tryWithOption(idMap(rootID).asInstanceOf[HierarchyRoot]).getOrElse(HierarchyRoot("empty"))
+
+    val res =  (for {
+      ch <- root.children
+      if idMap.get(ch.item).isInstanceOf[Some[Thing]]
+      tch <- ch.children
+      if idMap.get(tch.item).isInstanceOf[Some[Operation]]
+      och <- tch.children
+      child <- idMap.get(och.item)
+    } yield (idMap(tch.item).asInstanceOf[Operation], child)).
+      foldLeft(Map[Operation, List[IDAble]]()){(result, tuple) =>
+      val op = tuple._1
+      val item = tuple._2
+      result + (op -> (item :: result.get(tuple._1).getOrElse(List[IDAble]())))
+    }
+
+    println(s"res got: ${res.map(t => t._1.name -> t._2.map(_.name))}")
+
+  }
+
+  def tryWithOption[T](t: => T): Option[T] = {
+    try {
+      Some(t)
+    } catch {
+      case e: Exception => None
+    }
+  }
+
 }
