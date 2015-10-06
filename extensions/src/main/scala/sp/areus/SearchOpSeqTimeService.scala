@@ -1,6 +1,7 @@
 package sp.areus
 
 import akka.actor._
+import sp.areus.SearchOpSeqTimeService.TimeUnit
 import sp.domain._
 import sp.system._
 import sp.system.{ServiceLauncher, SPService}
@@ -17,13 +18,15 @@ object SearchOpSeqTimeService extends SPService {
       "description" -> "Creates SOP for operations with shortast* execution time"
     ),
     "setup" -> SPAttributes(
-      "ops" -> KeyDefinition("List[ID]", List(), Some(SPValue(List())))
+      "ops" -> KeyDefinition("List[ID]", List(), Some(SPValue(List()))),
+      "iterations" -> KeyDefinition("Int", List(10, 50, 100, 200, 500), Some(100)),
+      "name" -> KeyDefinition("String", List(), Some("Result"))
     )
   )
 
-  val transformTuple = (
-    TransformValue("setup", _.getAs[SearchOpSeqTimeSetup]("setup"))
-    )
+  type TimeUnit = Double
+
+  val transformTuple = (TransformValue("setup", _.getAs[SearchOpSeqTimeSetup]("setup")))
 
   val transformation = transformToList(transformTuple.productIterator.toList)
 
@@ -31,7 +34,7 @@ object SearchOpSeqTimeService extends SPService {
 
 }
 
-case class SearchOpSeqTimeSetup(model: String)
+case class SearchOpSeqTimeSetup(ops: List[ID], iterations: Int, name : String)
 
 class SearchOpSeqTimeService extends Actor with ServiceSupport with CalcMethods {
 
@@ -46,13 +49,15 @@ class SearchOpSeqTimeService extends Actor with ServiceSupport with CalcMethods 
       val progress = context.actorOf(progressHandler)
       println(s"service: $service")
 
+      val setup = transform(SearchOpSeqTimeService.transformTuple)
+
       //Example-------------------------------------------------------------
       val o11 = Operation("o11", List(), SPAttributes("time" -> 2))
       val o12 = Operation("o12", List(), SPAttributes("time" -> 5))
       val o13 = Operation("o13", List(), SPAttributes("time" -> 4))
-      val o21 = Operation("o21", List(), SPAttributes("time" -> 3))
+      val o21 = Operation("o21", List(), SPAttributes("time" -> 1.5))
       val o22 = Operation("o22", List(), SPAttributes("time" -> 2))
-      val o23 = Operation("o23", List(), SPAttributes("time" -> 3))
+      val o23 = Operation("o23", List(), SPAttributes("time" -> 4.23))
       val ops = List(o11, o12, o13, o21, o22, o23)
 
       val sopSeq = SOP(Sequence(o11, o12, o13), Sequence(o21, o22, o23))
@@ -83,17 +88,28 @@ class SearchOpSeqTimeService extends Actor with ServiceSupport with CalcMethods 
 
       //Calculation -------------------------------------------------------
       lazy val result = for {
+        n <- 0 to setup.iterations
         straightSeq <- findStraightSeq(opsUpd, initState, isGoalState, evalualteProp2)
         parSeq <- makeParallel(straightSeq, initState, evalualteProp2, evalualteProp3)
-        if straightSeq.forall(_.attributes.getAs[Double]("time").isDefined)
+        if straightSeq.forall(_.attributes.getAs[TimeUnit]("time").isDefined)
       } yield {
-          translateToSOPSpec(parSeq, sopName = "Result", durationKey = "time")
+          ParSeqPlusDuration(parSeq, duration(parSeq, durationKey = "time"))
         }
 
-      val sop = result.get.sopSpec
-      println(s"duration: ${result.get.duration}")
+      lazy val bestParSeq = result.minBy(_.duration)
 
-      rnr.reply ! Response(List(sop)++opsUpd, SPAttributes("info" -> s"Added sop '${sop.name}'"), service, reqID)
+      //Response-------------------------------------------------------------------------------
+
+      if(result.isEmpty) {
+        rnr.reply ! SPError("No result could be found.\n Are the conditions for the operations right?\n Do all operations include a correct attribute for its duration?")
+      } else {
+
+        lazy val sopToWorkOn = translateToSOPSpec(bestParSeq.parSeq, setup.name)
+        lazy val durationAttr = SPAttributes("SOPduration" -> bestParSeq.duration)
+        lazy val sopToReturn = sopToWorkOn.copy(attributes = sopToWorkOn.attributes merge durationAttr)
+
+        rnr.reply ! Response(List(sopToReturn) ++ opsUpd, SPAttributes("info" -> s"Added sop '${sopToReturn.name}'") merge durationAttr, service, reqID)
+      }
       progress ! PoisonPill
       self ! PoisonPill
 
@@ -103,12 +119,10 @@ class SearchOpSeqTimeService extends Actor with ServiceSupport with CalcMethods 
     case x =>
       sender() ! SPError("What do you whant me to do? " + x)
       self ! PoisonPill
-
   }
-
 }
 
-case class SOPPlusDuration(sopSpec: SOPSpec, duration: Double)
+case class ParSeqPlusDuration(parSeq: Seq[Set[Operation]], duration: TimeUnit)
 
 sealed trait CalcMethods {
   def findStraightSeq(ops: List[Operation], initState: State, isGoalState: State => Boolean, evalSetup: EvaluateProp): Option[Seq[Operation]] = {
@@ -180,7 +194,14 @@ sealed trait CalcMethods {
     }
   }
 
-  def translateToSOPSpec(parSeq: Seq[Set[Operation]], sopName: String, durationKey: String): SOPPlusDuration = {
+  def duration(parSeq: Seq[Set[Operation]], durationKey: String): TimeUnit = {
+    parSeq.foldLeft(0: TimeUnit) { case (acc, set) =>
+      lazy val durationSet = set.flatMap(_.attributes.getAs[TimeUnit](durationKey))
+      acc + durationSet.maxBy(identity)
+    }
+  }
+
+  def translateToSOPSpec(parSeq: Seq[Set[Operation]], sopName: String): SOPSpec = {
     lazy val sop = Sequence(parSeq.map(set =>
       if (set.size > 1) {
         Parallel(set.toSeq.sortWith((o1, o2) => o1.name < o2.name).map(o => Hierarchy(o.id, List())): _*)
@@ -188,11 +209,6 @@ sealed trait CalcMethods {
         Hierarchy(set.head.id, List())
       }
     ): _*)
-    lazy val duration: Double = parSeq.foldLeft(0: Double) { case (acc, set) =>
-      lazy val durationSet = set.flatMap(_.attributes.getAs[Double](durationKey))
-      acc + durationSet.maxBy(identity)
-    }
-    lazy val attr = SPAttributes("SOPduration" -> duration)
-    SOPPlusDuration(SOPSpec(sopName, List(sop), attr), duration)
+    SOPSpec(sopName, List(sop))
   }
 }
