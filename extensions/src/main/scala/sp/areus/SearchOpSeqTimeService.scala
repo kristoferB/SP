@@ -20,7 +20,7 @@ object SearchOpSeqTimeService extends SPService {
     "setup" -> SPAttributes(
       "ops" -> KeyDefinition("List[ID]", List(), Some(SPValue(List()))),
       "iterations" -> KeyDefinition("Int", List(10, 50, 100, 200, 500), Some(100)),
-      "name" -> KeyDefinition("String", List(), Some("Result"))
+      "name on sop" -> KeyDefinition("String", List(), Some("Result"))
     )
   )
 
@@ -52,24 +52,26 @@ class SearchOpSeqTimeService extends Actor with ServiceSupport with CalcMethods 
       val setup = transform(SearchOpSeqTimeService.transformTuple)
 
       //Example-------------------------------------------------------------
-      val o11 = Operation("o11", List(), SPAttributes("time" -> 2))
-      val o12 = Operation("o12", List(), SPAttributes("time" -> 5))
-      val o13 = Operation("o13", List(), SPAttributes("time" -> 4))
-      val o21 = Operation("o21", List(), SPAttributes("time" -> 1.5))
-      val o22 = Operation("o22", List(), SPAttributes("time" -> 2))
-      val o23 = Operation("o23", List(), SPAttributes("time" -> 4.23))
-      val ops = List(o11, o12, o13, o21, o22, o23)
-
-      val sopSeq = SOP(Sequence(o11, o12, o13), Sequence(o21, o22, o23))
-      val sopArbi = SOP(Arbitrary(o12, o22))
-
-      val conditions = sp.domain.logic.SOPLogic.extractOperationConditions(List(sopSeq, sopArbi), "traj")
-      val opsUpd = ops.map { o =>
-        val cond = conditions.get(o.id).map(List(_)).getOrElse(List())
-        o.copy(conditions = cond)
-      }
+//      val o11 = Operation("o11", List(), SPAttributes("time" -> 2))
+//      val o12 = Operation("o12", List(), SPAttributes("time" -> 5))
+//      val o13 = Operation("o13", List(), SPAttributes("time" -> 4))
+//      val o21 = Operation("o21", List(), SPAttributes("time" -> 1.5))
+//      val o22 = Operation("o22", List(), SPAttributes("time" -> 2))
+//      val o23 = Operation("o23", List(), SPAttributes("time" -> 4.23))
+//      val ops = List(o11, o12, o13, o21, o22, o23)
+//
+//      val sopSeq = SOP(Sequence(o11, o12, o13), Sequence(o21, o22, o23))
+//      val sopArbi = SOP(Arbitrary(o12, o22))
+//
+//      val conditions = sp.domain.logic.SOPLogic.extractOperationConditions(List(sopSeq, sopArbi), "traj")
+//      val opsUpd = ops.map { o =>
+//        val cond = conditions.get(o.id).map(List(_)).getOrElse(List())
+//        o.copy(conditions = cond)
+//      }
 
       //Init defs-----------------------------------------------------------------
+      lazy val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
+
       def mapOps[T](t: T) = ops.map(o => o.id -> t).toMap
 
       lazy val initState = State(mapOps(OperationState.init))
@@ -87,19 +89,21 @@ class SearchOpSeqTimeService extends Actor with ServiceSupport with CalcMethods 
       lazy val evalualteProp3 = EvaluateProp(mapOps((_: SPValue) => true), Set(), ThreeStateDefinition)
 
       //Calculation -------------------------------------------------------
+      progress ! SPAttributes("progress" -> "Iterate sequences")
       lazy val result = for {
         n <- 0 to setup.iterations
-        straightSeq <- findStraightSeq(opsUpd, initState, isGoalState, evalualteProp2)
+        straightSeq <- findStraightSeq(ops, initState, isGoalState, evalualteProp2)
         parSeq <- makeParallel(straightSeq, initState, evalualteProp2, evalualteProp3)
         if straightSeq.forall(_.attributes.getAs[TimeUnit]("time").isDefined)
       } yield {
           ParSeqPlusDuration(parSeq, duration(parSeq, durationKey = "time"))
         }
 
+//      println(result.map(_.duration).distinct.sortBy(identity).mkString("\n"))
       lazy val bestParSeq = result.minBy(_.duration)
 
       //Response-------------------------------------------------------------------------------
-
+      progress ! SPAttributes("progress" -> "Conclude result")
       if(result.isEmpty) {
         rnr.reply ! SPError("No result could be found.\n Are the conditions for the operations right?\n Do all operations include a correct attribute for its duration?")
       } else {
@@ -108,7 +112,7 @@ class SearchOpSeqTimeService extends Actor with ServiceSupport with CalcMethods 
         lazy val durationAttr = SPAttributes("SOPduration" -> bestParSeq.duration)
         lazy val sopToReturn = sopToWorkOn.copy(attributes = sopToWorkOn.attributes merge durationAttr)
 
-        rnr.reply ! Response(List(sopToReturn) ++ opsUpd, SPAttributes("info" -> s"Added sop '${sopToReturn.name}'") merge durationAttr, service, reqID)
+        rnr.reply ! Response(List(sopToReturn), SPAttributes("info" -> s"Added sop '${sopToReturn.name}'") merge durationAttr, service, reqID)
       }
       progress ! PoisonPill
       self ! PoisonPill
