@@ -50,7 +50,7 @@
     </button>
 </div>
 
-<div ng-if="vm.isA == 'String'">
+<div ng-if="vm.isA == 'String' || vm.isA == 'Int'">
     <form role="form">
         <div class="form-group">
             <input type="text" class="form-control" ng-model="vm.attributes"/>
@@ -58,12 +58,10 @@
     </form>
 </div>
 
-<div ng-if="vm.isA == 'StringWithDomain'">
+<div ng-if="vm.isA == 'StringWithDomain' || vm.isA == 'IntWithDomain'">
     <form role="form">
         <div class="form-group">
-            <select class="form-control" ng-model="vm.attributes">
-                <option ng-repeat="option in vm.domainToSelectFrom" value="{{option}}">{{option}}</option>
-            </select>
+            <select class="form-control" ng-options="option as option for option in vm.domainToSelectFrom track by option" ng-model="vm.attributes"/>
         </div>
     </form>
 </div>

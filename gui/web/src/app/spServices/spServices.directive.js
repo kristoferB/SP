@@ -82,7 +82,15 @@
                         vm.isA += "WithDomain";
                         vm.domainToSelectFrom = x.domain;
                     }
-                //Boolean
+                //Int
+                } else if (x.ofType == "Int") {
+                    vm.isA = "Int";
+                    vm.attributes = _.isUndefined(x.default) ? 0 : x.default;
+                    if(!_.isUndefined(x.domain) && x.domain.length > 0) {
+                        vm.isA += "WithDomain";
+                        vm.domainToSelectFrom = x.domain;
+                    }
+                //ID
                 } else if (x.ofType == "ID") {
                     vm.isA = "ID";
                     vm.attributes = _.isUndefined(x.default) ? "" : x.default;
