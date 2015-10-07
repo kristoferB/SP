@@ -40,7 +40,8 @@
     "ng-js-tree": "~0.0.6",
     "ngstorage": "0.3.7",
     "raphael": "~2.1.4",
-    "toastr": "2.1.0"
+    "toastr": "2.1.0",
+    "bootstrap-contextmenu": "~0.2.0"
   },
   "resolutions": {
     "angular": "1.4.4",
