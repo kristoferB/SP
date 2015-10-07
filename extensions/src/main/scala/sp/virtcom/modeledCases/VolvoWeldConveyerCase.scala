@@ -73,8 +73,9 @@ sealed trait SlowGripWhenOperatorPresent extends CollectorModel {
   op("inspectByOperator",SPAttributes(aResourceTrans("vOperator_present","inside0","inspecting","inside1")))
   op("removeOperator",SPAttributes(aResourceTrans("vOperator_present","inside1","toOut","idle")))
 
-  op(s"addOperator", SPAttributes("simop" -> "X"))
-  op(s"removeOperator", SPAttributes("simop" -> "X"))
+  op(s"addOperator", SPAttributes("simop" -> "1,1299"))
+  op(s"inspectByOperator", SPAttributes("simop" -> "1,1311"))
+  op(s"removeOperator", SPAttributes("simop" -> "1,1305"))
 
   //Grip product A slow
   op(s"gripProductA_slow_1", SPAttributes(aResourceTrans("vRobot_pos", "atIn0", s"atInGrippingA0", "atInGrippingA1")))
