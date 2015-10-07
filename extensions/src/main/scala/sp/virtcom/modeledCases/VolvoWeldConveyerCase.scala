@@ -36,8 +36,8 @@ sealed trait ImplicitOnlyCarriersAndResources extends CollectorModel {
 
   //Robot movements
   lazy val staticRobotPoses = SPAttributes("atHome" -> Set(SPAttributes("to" -> "atIn0", "simop" -> "1,133")),
-    "atIn1" -> Set(SPAttributes("to" -> "atWeld0", "simop" -> "1,171")),
-    "atWeld1" -> Set(SPAttributes("to" -> "atConveyers0", "simop" -> "1,228")),
+    "atIn1" -> Set(SPAttributes("to" -> "atWeld0", "simop" -> "1,177")),
+    "atWeld1" -> Set(SPAttributes("to" -> "atConveyers0", "simop" -> "1,234")),
     "atConveyers1" -> Set(SPAttributes("to" -> "atHome", "simop" -> "1,89")))
   robotMovements("v","Robot","_pos", staticRobotPoses)
 
@@ -82,22 +82,22 @@ sealed trait SlowGripWhenOperatorPresent extends CollectorModel {
   op(s"gripProductA_slow_1", SPAttributes(aCarrierTrans("vIn_car", atStart = s"productA")))
   op(s"gripProductA_slow_1", SPAttributes(aCarrierTrans("vRobot_car", atComplete = s"productA")))
 
-  op(s"gripProductA_slow_1", SPAttributes("simop" -> "X"))
-  op(s"gripProductA_slow_2", SPAttributes("simop" -> "X"))
+  op(s"gripProductA_slow_1", SPAttributes("simop" -> "1,515"))
+  op(s"gripProductA_slow_2", SPAttributes("simop" -> "1,532"))
 }
 
 sealed trait SimOps extends CollectorModel {
   op(s"addProductA", SPAttributes("simop" -> "1,98"))
-  op(s"gripProductA", SPAttributes("simop" -> "1,145"))
-  op(s"weldProductA", SPAttributes("simop" -> "1,178"))
+  op(s"gripProductA", SPAttributes("simop" -> "1,143"))
+  op(s"weldProductA", SPAttributes("simop" -> "1,184"))
   op(s"releaseProductA", SPAttributes("simop" -> "1,75"))
-//  op(s"removeProductA", SPAttributes("simop" -> "1,235"))
+//  op(s"removeProductA", SPAttributes("simop" -> "1,241"))
 
   op(s"addProductB", SPAttributes("simop" -> "1,117"))
-  op(s"gripProductB", SPAttributes("simop" -> "1,158"))
-  op(s"weldProductB", SPAttributes("simop" -> "1,206"))
+  op(s"gripProductB", SPAttributes("simop" -> "1,160"))
+  op(s"weldProductB", SPAttributes("simop" -> "1,212"))
   op(s"releaseProductB", SPAttributes("simop" -> "1,105"))
-//  op(s"removeProductB", SPAttributes("simop" -> "1,241"))
+//  op(s"removeProductB", SPAttributes("simop" -> "1,247"))
 
 //  op(s"atConveyersToAtHome_Robot", SPAttributes("simop" -> "1,89"))
 //  op(s"atHomeToAtIn_Robot", SPAttributes("simop" -> "1,133"))
