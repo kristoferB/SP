@@ -31,7 +31,14 @@
                 getAllItems(modelService.activeModel.id);
             }
             $rootScope.$on('modelChanged', function(event, model) {
-                getAllItems(model.id);
+                if( model != null) {
+                    getAllItems(model.id);
+                } else {
+                    service.items = [];
+                    service.itemMap = {};
+                    service.itemsFetched = false;
+                    service.selected = [];
+                }
             });
         }
 

@@ -44,8 +44,12 @@
 
         function setActiveModel(model) {
             service.activeModel = model;
-            storage.activeModelID = model.id;
-            logger.info('Model Service: Active model was set to ' + model.name + '.');
+             if(model == null) {
+                storage.activeModelID = null;
+            } else {
+               storage.activeModelID = model.id;
+               logger.info('Model Service: Active model was set to ' + model.name + '.');
+            }
             $rootScope.$broadcast('modelChanged', service.activeModel);
         }
 
@@ -72,6 +76,11 @@
                 var name = getModel(data.id).name;
                 service.models.splice(_.findIndex(service.models, {id: data.id}), 1);
                 logger.info('Model Service: Removed model ' + name + '.');
+                if(!_.isUndefined(data.id) && !_.isUndefined(storage.activeModelID)) {
+                    if (data.id == storage.activeModelID) {
+                        setActiveModel(null);
+                    }
+                }
             }
             function onModelInfo(data) {
                 logger.info("Model Service: got modelInfo: "+ data)
@@ -103,9 +112,7 @@
                     service.idOfLatestModel = data.modelInfo.id;
                     logger.info('Model Service: Added a model with name ' + data.modelInfo.name + '.');
                 } else if (data.event === 'deletion') {
-                    var name = getModel(data.id).name;
-                    service.models.splice(_.findIndex(service.models, {id: data.id}), 1);
-                    logger.info('Model Service: Removed model ' + name + '.');
+                    onModelDeleted(data.modelInfo);
                 }
             }
         }
