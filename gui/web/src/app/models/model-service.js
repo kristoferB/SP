@@ -74,7 +74,7 @@
                 logger.info('Model Service: Removed model ' + name + '.');
             }
             function onModelInfo(data) {
-                logger.info("got modelInfo: "+ data)
+                logger.info("Model Service: got modelInfo: "+ data)
                 var existingModel = getModel(data.id)
                 if (existingModel === null){
                     service.models.push(data);
