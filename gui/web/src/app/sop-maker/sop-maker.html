@@ -7,8 +7,9 @@
             </button>
         </div>
         <div class="btn-group">
-            <button class="btn btn-sm btn-default btn-notext" tooltip="Rotate" ng-click="vm.toggleDirection()">
-                <i class="fa fa-repeat"></i>
+            <button class="btn btn-sm btn-default btn-notext" tooltip="Rotate view" ng-click="vm.toggleDirection()">
+                <!--<i class="fa fa-repeat"></i>-->
+                <i class="fa fa-th"></i>
             </button>
             <button class="btn btn-sm btn-default btn-notext" tooltip="Add sequence" ng-click="vm.addSop()">
                 <i class="fa fa-plus"></i>
@@ -17,15 +18,18 @@
         <div class="btn-group">
             <button class="btn btn-sm btn-default btn-notext" tooltip="Parallel" draggable="true"
                     ondragstart="event.dataTransfer.setData('text/plain', 'Parallel')">
-                <i class="fa fa-pause"></i>
+                <!--<i class="fa fa-pause"></i>-->
+                <i class="fa fa-pause fa-rotate-90"></i>
             </button>
             <button class="btn btn-sm btn-default btn-notext" tooltip="Alternative" draggable="true"
                     ondragstart="event.dataTransfer.setData('text/plain', 'Alternative')">
-                <i class="fa fa-arrows-h"></i>
+                <!--<i class="fa fa-arrows-h"></i>-->
+                <i class="fa fa-share-alt"></i>
             </button>
             <button class="btn btn-sm btn-default btn-notext" tooltip="Arbitrary" draggable="true"
                     ondragstart="event.dataTransfer.setData('text/plain', 'Arbitrary')">
-                <i class="fa fa-question"></i>
+                <!--<i class="fa fa-question"></i>-->
+                <i class="fa fa-life-ring"></i>
             </button>
             <button class="btn btn-sm btn-default btn-notext" tooltip="Other" draggable="true"
                     ondragstart="event.dataTransfer.setData('text/plain', 'Other')">
