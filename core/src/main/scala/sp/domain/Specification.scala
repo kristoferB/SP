@@ -23,3 +23,5 @@ case class HierarchyRoot(name: String,
                          id: ID = ID.newID) extends Specification
 
 case class HierarchyNode(item: ID, children: List[HierarchyNode] = List(), id: ID = ID.newID)
+
+case class IDAbleHierarchy(item: IDAble, children: List[IDAbleHierarchy])

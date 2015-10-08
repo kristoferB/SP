@@ -239,7 +239,7 @@
         function createNode(hierarchyNode) {
             var item = itemService.getItem(hierarchyNode.item);
             if (item === null) {
-                logger.error('Item Explorer: A hierarchy node refers to an item that does not exist.');
+                //logger.error('Item Explorer: A hierarchy node refers to an item that does not exist.');
                 return {
                     id: hierarchyNode.id,
                     text: hierarchyNode.item,

@@ -109,10 +109,20 @@ object SP extends App {
     ImportLogFiles.transformation
   )
 
-  serviceHandler ! RegisterService("OpSeqBasedOnTime",
-    system.actorOf(SearchOpSeqTimeService.props, "OpSeqBasedOnTime"),
-    SearchOpSeqTimeService.specification,
-    SearchOpSeqTimeService.transformation
+  serviceHandler ! RegisterService("createGantt",
+    system.actorOf(CreateGanttChart.props, "createGantt"),
+    CreateGanttChart.specification,
+    CreateGanttChart.transformation
+  )
+  serviceHandler ! RegisterService("transformTrajectories",
+    system.actorOf(TransformTrajectories.props, "transformTrajectories"),
+    TransformTrajectories.specification,
+    TransformTrajectories.transformation
+  )
+  serviceHandler ! RegisterService("MakeGanttTrajectory",
+    system.actorOf(MakeNewGanttTrajectory.props, "MakeGanttTrajectory"),
+    MakeNewGanttTrajectory.specification,
+    MakeNewGanttTrajectory.transformation
   )
 
 

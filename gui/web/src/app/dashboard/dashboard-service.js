@@ -25,11 +25,11 @@
                 dashboardID: 2
             }),
             widgetKinds: [
-                {sizeX: 2, sizeY: 2, title: 'Item Explorer', template: 'app/item-explorer/item-explorer.html'},
-                {sizeX: 2, sizeY: 2, title: 'Item Editor', template: 'app/item-editor/item-editor.html'},
-                {sizeX: 2, sizeY: 2, title: 'SOP Maker', template: 'app/sop-maker/sop-maker.html'},
-                {sizeX: 3, sizeY: 2, title: 'Service List', template: 'app/spServices/spServices.html'},
-                {sizeX: 3, sizeY: 2, title: 'Trajectories', template: 'app/trajectories/trajectories.html'}
+                {sizeX: 4, sizeY: 4, title: 'Item Explorer', template: 'app/item-explorer/item-explorer.html'},
+                {sizeX: 4, sizeY: 4, title: 'Item Editor', template: 'app/item-editor/item-editor.html'},
+                {sizeX: 4, sizeY: 4, title: 'SOP Maker', template: 'app/sop-maker/sop-maker.html'},
+                {sizeX: 6, sizeY: 4, title: 'Service List', template: 'app/spServices/spServices.html'},
+                {sizeX: 6, sizeY: 4, title: 'Trajectories', template: 'app/trajectories/trajectories.html'}
             ]
         };
 

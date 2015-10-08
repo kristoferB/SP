@@ -198,9 +198,6 @@ object ServiceTalker {
   private def analyseAttr(attr: SPAttributes, expected: List[(String, KeyDefinition)]): List[SPError] = {
     expected.flatMap{ case (key, v) =>
       val flatAttr = attr.filterField{x => true}.toMap
-
-      println(s"key: $key value: ${flatAttr.get(key)} default: ${v.default}")
-
       flatAttr.get(key).orElse(v.default) match {
         case None => {
           if (!v.ofType.toLowerCase.contains("option"))

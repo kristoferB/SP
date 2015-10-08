@@ -72,8 +72,6 @@
         function loadAvailableRoots(){
             clearAll();
             vm.availableRoots = filterRoots();
-            console.log("roots")
-            console.log(vm.availableRoots)
         }
 
         function listenToChanges() {
@@ -92,10 +90,6 @@
         }
 
         function update(){
-            console.log("update")
-            console.log(vm.availableOperations)
-            console.log(vm.root)
-            console.log(vm.resource)
             if (_.isUndefined(vm.root.id)){
                 loadAvailableRoots();
                 return;
@@ -111,7 +105,6 @@
             loadRoot(root);
             var resource = _.find(vm.availableResources, {id: resourceID});
             if (resource){
-                console.log(resource)
                 vm.resource = resource;
                 loadResource();
             }
@@ -124,19 +117,17 @@
             var p = _.isArray(poses) ? poses[0].point.x : poses.point.x;
             var pose = _.isArray(poses) ? poses[0] : poses;
 
-            console.log("pose")
-            console.log(pose)
 
-            if (_.isUndefined(vm.currentMark.isa)){
+            if (_.isUndefined(vm.currentMark.type)){
                 vm.currentMark = {
-                    isa: "zone",
+                    type: "zone",
                     name: "z1",
-                    startTime: p
+                    start: p
                 }
             }
             if (vm.inMarkMode){
-                if (vm.currentMark.isa !== "mark")
-                    vm.currentMark.stopTime = p;
+                if (vm.currentMark.type !== "mark")
+                    vm.currentMark.end = p;
 
                 vm.inMarkMode = false;
                 vm.marks.push(vm.currentMark);
@@ -193,15 +184,12 @@
             //var selected = itemService.selected;
             //var root = _.find(itemService.selected, {isa: 'HierarchyRoot'});
             var root = root ? root : vm.selectedRoot;
-            console.log("loadSelected")
-            console.log(root);
             loadRoot(root);
         }
 
         function loadRoot(root){
             if (root){
                 var rootIDable = itemService.getIdAbleHierarchy(root);
-                console.log(rootIDable);
                 vm.root = rootIDable;
                 vm.availableResources = filterResources(rootIDable);
 
@@ -211,23 +199,14 @@
                 vm.storage.resource = {};
                 vm.operations.length = 0;
                 vm.marks.length = 0;
-                console.log(vm.availableResources);
             }
 
         }
 
         function loadResource(){
-            console.log("loading resource")
-            console.log(vm.resource)
             vm.availableOperations = filterOperations(vm.resource);
-            console.log("test")
-            console.log(vm.availableOperations)
-            console.log(vm.root)
-            console.log(vm.resource)
 
             vm.availableMarks = filterMarks(vm.root, vm.resource, vm.availableOperations);
-            console.log("test")
-            console.log(vm.availableMarks)
 
 
             loadTrajectory(vm.resource);
@@ -244,16 +223,14 @@
                }
             });
 
-            console.log("marks")
-            console.log(vm.availableMarks)
             var markTraj = _.map(vm.availableMarks, function(m){
                 var x = {
                     name: m.name,
-                    isa: m.attributes.mark.isa,
-                    startTime: m.attributes.mark.startTime
+                    type: m.attributes.mark.type,
+                    start: m.attributes.mark.start
                 };
-                if (!_.isUndefined( m.attributes.mark.stopTime)) {
-                    x.stopTime = m.attributes.mark.stopTime;
+                if (!_.isUndefined( m.attributes.mark.end)) {
+                    x.end = m.attributes.mark.end;
                 }
                 return x
             });
@@ -274,14 +251,11 @@
         }
 
         function filterRoots(){
-            console.log("roots");
             var result = [];
             _.forEach(itemService.items, function(c){
                 if (c.isa == 'HierarchyRoot'){
                     var rootIDAble = itemService.getIdAbleHierarchy(c);
                     var res = filterResources(rootIDAble);
-                    console.log(c);
-                    console.log(res.length > 0);
                     if (res.length > 0) result.push(rootIDAble);
                 }
             });

@@ -61,7 +61,6 @@
             if (_.isUndefined(x)){
                 vm.isA = ""
             } else if (!_.isUndefined(x.ofType)){
-
                 //core>model
                 if (x.ofType == "Option[ID]" && vm.key == "model") {
                     vm.isA = "Option[ID]Model";
@@ -93,7 +92,7 @@
                 //ID
                 } else if (x.ofType == "ID") {
                     vm.isA = "ID";
-                    vm.attributes = _.isUndefined(x.default) ? "" : x.default;
+                    vm.attributes = _.isUndefined(x.default) ? vm.reloadSelectedItems()[0] : x.default;
                 //List[ID] and List[String]
                 } else if (x.ofType == "List[ID]" || x.ofType == "List[String]") {
                     vm.isA = "List[T]";

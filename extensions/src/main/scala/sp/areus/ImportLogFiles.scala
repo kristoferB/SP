@@ -57,14 +57,18 @@ class ImportLogFiles extends Actor with ServiceSupport {
 
       val robot1 = Thing(resource1)
       val robot2 = Thing(resource2)
-      val poses = dummyData.dummyParse
+      val allPoses = dummyData.dummyParse
+      val poses = allPoses //.grouped(10).map(_.head).toList :+ allPoses.last
       val reversePoses = poses.zip(poses.reverse).map(zip =>
         Pose(zip._1.time, zip._2.joints)
       )
 
+      val optPos = dummyData.dummyParse2
+
 
       val op = Operation(operation1, List(), SPAttributes("poses"->poses))
       val op2 = Operation(operation2, List(), SPAttributes("poses"->reversePoses))
+      val op3 = Operation("optimal", List(), SPAttributes("poses"->optPos))
 
       val root = findName(hierarchyName, ids, HierarchyRoot(hierarchyName))
 
@@ -94,7 +98,7 @@ class ImportLogFiles extends Actor with ServiceSupport {
 //      }
 
 
-      replyTo ! Response(List(robot1, robot2, op, op2, newSpec), SPAttributes(), service, reqID)
+      replyTo ! Response(List(robot1, robot2, op, op2, newSpec, op3), SPAttributes(), service, reqID)
 
     }
 
@@ -167,7 +171,9 @@ case object dummyData {
 
 
   def dummyParse = getPosesFromLog(dummyData.file.getLines().toList)
+  def dummyParse2 = getPosesFromLog(dummyData.file2.getLines().toList)
 
   val file = Source.fromFile("./testFiles/longRunOriginal.emi")
+  val file2 = Source.fromFile("./testFiles/longRunOptimal.emi")
 }
 

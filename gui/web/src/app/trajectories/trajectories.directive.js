@@ -217,11 +217,11 @@
             var res = [];
             //var minMax = getMinMaxY(ops);
             _.forEach(marks, function(m){
-                if (!_.isUndefined(m.isa)){
-                    var start = m.startTime;
-                    var stop = (_.isUndefined(m.stopTime)) ? start+0.1 : m.stopTime;
+                if (!_.isUndefined(m.type)){
+                    var start = m.start;
+                    var stop = (_.isUndefined(m.end)) ? start+0.1 : m.end;
                     var line = {
-                        key: m.isa + " " + m.name,
+                        key: m.type + " " + m.name,
                         values: [
                             {x: start, y: 10},
                             {x: stop, y: 10}

@@ -37,17 +37,17 @@ class ServiceHandler(mh: ActorRef, eh: ActorRef) extends Actor{
     case r @ Request(s, _, _, _) => {
       if (actors.contains(s)){
         val spec = specs(s)
-        println(s"in servicehandler: $r")
+        //println(s"in servicehandler: $r")
         ServiceTalker.validateRequest(r, spec._1, spec._2) match {
           case Right(req) => {
-            println(s"in servicehandler everything ok: $req")
+            //println(s"in servicehandler everything ok: $req")
 
             val talker = context.actorOf(ServiceTalker.props(actors(s), mh, sender, spec._1, req, Some(eh)))
             talker.tell(req, sender())
           }
           case Left(e) => {
             sender() ! SPErrors(e)
-            println(s"in servicehandler error: ${e}")
+            //println(s"in servicehandler error: ${e}")
 
           }
         }

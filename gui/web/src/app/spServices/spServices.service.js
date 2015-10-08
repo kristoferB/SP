@@ -162,9 +162,10 @@
 
       current.events.push(data);
       if (isRespons){
+        logger.success("Service "+s+" completed")
         current.includesResponse = true;
         service.eventQue = removeOldEventQues(service.eventQue);
-        //console.log(service.eventQue);
+        console.log(data);
       }
       service.eventQue[id] = current;
 
