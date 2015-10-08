@@ -28,14 +28,14 @@ object ProcessSimulateService extends SPService {
       "description" -> "Pull/push data from/to Process Simulate"
     ),
     "setup" -> SPAttributes(
-      "command" -> KeyDefinition("String", List("createOp", "import", "import_single"), Some("createOp")),
+      "command" -> KeyDefinition("String", List("export seq", "import", "import_single", "update sim ids"), Some("createOp")),
       "sops" -> KeyDefinition("List[ID]", List(), Some(SPValue(List())))
     )
   )
 
-  val transformTuple  = (
+  val transformTuple = (
     TransformValue("setup", _.getAs[PSsetup]("setup"))
-  )
+    )
   val transformation = transformToList(transformTuple.productIterator.toList)
 
   def props(modelHandler: ActorRef, psAmq: ActorRef) = ServiceLauncher.props(Props(classOf[ProcessSimulateService], modelHandler, psAmq))
@@ -51,13 +51,13 @@ object ProcessSimulateAMQ {
   def props = Props(classOf[ProcessSimulateAMQ])
 }
 
-
-class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Actor  with ServiceSupport {
+class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Actor with ServiceSupport {
   implicit val timeout = Timeout(100 seconds)
+
   import context.dispatcher
 
   def receive = {
-    case r @ Request(service, attr, ids, reqID) => {
+    case r@Request(service, attr, ids, reqID) => {
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
       val progress = context.actorOf(progressHandler)
@@ -66,11 +66,12 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
 
       val setup = transform(ProcessSimulateService.transformTuple)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
-      
+
       val res = setup.command match {
-        case "createOp" => createOp(core.model, ids, setup.sops, progress)
+        case "export seq" => exportSeq(core.model, ids, setup.sops, progress)
         case "import" => fetch(core.model, ids, progress)
         case "import_single" => fetch_single(core.model, ids, progress)
+        case "update sim ids" => updateSimIds(ids, progress)
         case _ => throw new Exception("No such command! How to do this the scala way?")
       }
 
@@ -93,26 +94,26 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     progress ! PoisonPill
   }
 
-  def createOp(model: Option[ID], ids: List[IDAble], sops: List[ID], progress: ActorRef)(implicit rnr: RequestNReply) = {
+  def exportSeq(model: Option[ID], ids: List[IDAble], sops: List[ID], progress: ActorRef)(implicit rnr: RequestNReply) = {
     val sopspecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec]).filter(sop => sops.contains(sop.id))
 
-    val json = SPAttributes("command"->"create_op_chains",
-      "params"->Map("op_chains" -> sopspecs.map(sop => {
+    val json = SPAttributes("command" -> "create_op_chains",
+      "params" -> Map("op_chains" -> sopspecs.map(sop => {
         val ops = sop match {
-          case SOPSpec(name, s, attributes, id) => {
-            s.head.sop.flatMap(x=>x match {
-              case h: Hierarchy => ids.find(o=>o.id == h.operation)
-            }).map(_.asInstanceOf[Operation])
-          }
+          case SOPSpec(name, s, attributes, id) =>
+            s.head.sop.flatMap {
+              case h: Hierarchy => ids.find(o => o.id == h.operation)
+            }.map(_.asInstanceOf[Operation])
         }
         SPAttributes("name" -> sop.name,
-          "ops" -> ops.map(o=>
-            SPAttributes("name" -> o.name,"simop" -> (o.attributes.getAs[String]("simop") match {
+          "ops" -> ops.map(o =>
+            SPAttributes("name" -> o.name, "simop" -> (o.attributes.getAs[String]("simop") match {
               case Some(txid) => txid
-              case _ => (o.attributes.getAs[String]("txid") match {
-                case Some(txid) => txid
-                case _ => "dummy"
-              })
+              case _ =>
+                o.attributes.getAs[String]("txid") match {
+                  case Some(txid) => txid
+                  case _ => "dummy"
+                }
             }))))
       }))).toJson
 
@@ -120,8 +121,37 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
 
     val items = handlePSAnswer(f)
-    items.map{list => Response(list, SPAttributes("command" -> "create_op_chain"), rnr.req.service, rnr.req.reqID)}
-  }  
+    items.map { list => Response(list, SPAttributes("info" -> "create_op_chain"), rnr.req.service, rnr.req.reqID) }
+  }
+
+  def updateSimIds(ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
+    lazy val json = SPAttributes("command" -> "get_all_tx_objects") toJson
+    val f = psAmq ? json
+
+    progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
+
+    val idablesFromPS_Future = handlePSAnswer(f)
+
+    lazy val opsInSP = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
+
+    idablesFromPS_Future.map {
+      idablesFromPS =>
+        lazy val opsFromPS = idablesFromPS.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
+        lazy val opsFromPSName_Map = opsFromPS.map(o => o.name -> o).toMap
+        lazy val opsInSPName_Map = opsInSP.map(o => o.name -> o).toMap
+        lazy val updatedSPOps = opsInSPName_Map.flatMap { case (spOpName, spOp) =>
+          for {
+            psOp <- opsFromPSName_Map.get(spOpName)
+            txidValue <- psOp.attributes.getAs[String]("txid")
+          } yield {
+            lazy val updatedAttr = (spOp.attributes transformField { case ("simop", _) => ("simop", SPValue(txidValue)) }).to[SPAttributes].getOrElse(SPAttributes())
+            spOp.copy(attributes = updatedAttr)
+          }
+        }
+        progress ! SPAttributes("progress" -> s"'simop' attribute has now been updated.")
+        Response(updatedSPOps.toList, SPAttributes("info" -> s"Updated 'simop' attribute for ${updatedSPOps.size} operations. ${updatedSPOps.map(_.name).mkString(", ")}"), rnr.req.service, rnr.req.reqID)
+    }
+  }
 
   def fetch(model: Option[ID], ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
     val json = SPAttributes("command" -> "get_all_tx_objects") toJson
@@ -130,7 +160,7 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
 
     val items = handlePSAnswer(f)
-    items.map{list => Response(list, SPAttributes("command" -> "get_all_tx_objects"), rnr.req.service, rnr.req.reqID)}
+    items.map { list => Response(list, SPAttributes("info" -> "get_all_tx_objects"), rnr.req.service, rnr.req.reqID) }
   }
 
   def fetch_single(model: Option[ID], ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
@@ -141,14 +171,14 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
 
     val items = handlePSAnswer(f)
-    items.map{list => Response(list, SPAttributes("command" -> "get_all_tx_objects"), rnr.req.service, rnr.req.reqID)}
+    items.map { list => Response(list, SPAttributes("info" -> "get_all_tx_objects"), rnr.req.service, rnr.req.reqID) }
   }
 
   def handlePSAnswer(f: Future[Any])(implicit rnr: RequestNReply): Future[List[IDAble]] = {
     val p = Promise[List[IDAble]]()
 
     // finds error by exception, since then the future fails
-    val res: Future[List[IDAble]] = f.map{answer =>
+    val res: Future[List[IDAble]] = f.map { answer =>
       val json = answer.asInstanceOf[CamelMessage].body.toString
       val psres = SPAttributes.fromJson(json).get
       val responseType = psres.getAs[String]("response_type").get
@@ -174,10 +204,11 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     }
 
     res.map(p.success(_))
-    res.onFailure{case x => {
+    res.onFailure { case x => {
       p.failure(x)
       rnr.reply ! SPError(s"Failed when communicating with Process simulate: $x")
-    }}
+    }
+    }
 
     p.future
   }
