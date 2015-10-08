@@ -120,6 +120,24 @@
         function drawSop(struct, measures, paper, firstLoop, doRedraw, dirScope, sequence) {
             var animTime = measures.animTime;
 
+            //Despite the name, this context menu is for all node types...
+            var opContextMenu = {
+                target: '#op-context-menu', //In dashboard.html
+                onItem: function (context, e) {
+                    if (e.target.getAttribute('id') === 'remove-node') {
+                        service.removeNode(struct, false);
+                        service.calcAndDrawSop(dirScope, paper, true, false, true);
+                        dirScope.$digest();
+                    } else if (e.target.getAttribute('id') === 'remove-sequence') {
+                        unregisterDrawings(sequence, false);
+                        dirScope.vm.sopSpecCopy.sop.splice(dirScope.vm.sopSpecCopy.sop.indexOf(sequence), 1);
+                        service.calcAndDrawSop(dirScope, paper, true, false, true);
+                        dirScope.$digest();
+                    }
+                    e.preventDefault();
+                }
+            };
+
             for (var n = 0; n < struct.sop.length; n++) {
                 service.drawSop(struct.sop[n], measures, paper, false, doRedraw, dirScope, sequence);
                 if(struct.isa === 'Sequence') {
@@ -140,26 +158,10 @@
                     struct.clientSideAdditions.setToDrag = paper.set();
                     var op = itemService.getItem(struct.operation);
 
-                    struct.clientSideAdditions.drawnText = paper.text(struct.clientSideAdditions.width / 2, (struct.clientSideAdditions.preGuards.length + struct.clientSideAdditions.preActions.length + 1) * measures.condLineHeight + (measures.nameLineHeight-measures.condLineHeight) / 2, op.name).attr({'font-weight': 'bold'});
+                    struct.clientSideAdditions.drawnText = paper.text(struct.clientSideAdditions.width / 2, (struct.clientSideAdditions.preGuards.length + struct.clientSideAdditions.preActions.length + 1) * measures.condLineHeight + (measures.nameLineHeight-measures.condLineHeight) / 2 , op.name).attr({'font-weight': 'bold'});
                     struct.clientSideAdditions.drawnRect = paper.rect(0, 0, struct.clientSideAdditions.width, struct.clientSideAdditions.height, 5).attr({fill:'#FFFFFF', 'stroke-width':1, text: struct.clientSideAdditions.drawnText});
 
                     if(dirScope.vm.widget.storage.editable) {
-                        var opContextMenu = {
-                            target: '#op-context-menu',
-                            onItem: function (context, e) {
-                                if (e.target.getAttribute('id') === 'remove-op') {
-                                    service.removeNode(struct, false);
-                                    service.calcAndDrawSop(dirScope, paper, true, false, true);
-                                    dirScope.$digest();
-                                } else if (e.target.getAttribute('id') === 'remove-sequence') {
-                                    unregisterDrawings(sequence, false);
-                                    dirScope.vm.sopSpecCopy.sop.splice(dirScope.vm.sopSpecCopy.sop.indexOf(sequence), 1);
-                                    service.calcAndDrawSop(dirScope, paper, true, false, true);
-                                    dirScope.$digest();
-                                }
-                                e.preventDefault();
-                            }
-                        };
                         angular.element(struct.clientSideAdditions.drawnRect.node).contextmenu(opContextMenu);
                         angular.element(struct.clientSideAdditions.drawnText.node).contextmenu(opContextMenu);
                     }
@@ -203,6 +205,7 @@
                         struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnRect);
                         if(dirScope.vm.widget.storage.editable) {
                             service.setupDropTarget(struct.clientSideAdditions.drawnSet, false, struct, 0, false, dirScope, paper, measures);
+                            angular.element(struct.clientSideAdditions.drawnRect.node).contextmenu(opContextMenu);
                         }
                     } else if (struct.isa === 'Alternative') {
                         if(dirScope.vm.sopSpecCopy.vertDir) {
@@ -217,6 +220,7 @@
 
                         if(dirScope.vm.widget.storage.editable) {
                             service.setupDropTarget(struct.clientSideAdditions.drawnShadowSet, true, struct, 0, false, dirScope, paper, measures);
+                            angular.element(struct.clientSideAdditions.drawnShadow.node).contextmenu(opContextMenu);
                         }
                     } else if (struct.isa === 'Parallel' || struct.isa === 'Arbitrary') {
                         if(dirScope.vm.sopSpecCopy.vertDir) {
@@ -235,6 +239,7 @@
                         }
                         if(dirScope.vm.widget.storage.editable) {
                             service.setupDropTarget(struct.clientSideAdditions.drawnShadowSet, true, struct, 0, false, dirScope, paper, measures);
+                            angular.element(struct.clientSideAdditions.drawnShadow.node).contextmenu(opContextMenu);
                         }
                     }
 
