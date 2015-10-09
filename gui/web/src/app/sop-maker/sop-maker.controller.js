@@ -9,10 +9,10 @@
         .controller('SOPMakerController', SOPMakerController);
 
     SOPMakerController.$inject = ['$element', '$scope', 'sopDrawer', 'itemService', 'logger', 'dashboardService',
-                                  '$modal', 'uuid4', 'dialogs'];
+                                  '$modal', 'uuid4', 'dialogs','$rootScope'];
     /* @ngInject */
     function SOPMakerController($element, $scope, sopDrawer, itemService, logger, dashboardService, $modal, uuid4,
-                                dialogs) {
+                                dialogs,$rootScope) {
         var vm = this, paper = null;
         var widgetModel = $scope.$parent.$parent.$parent.vm;
         vm.widget = widgetModel.widget;
@@ -24,6 +24,8 @@
         vm.sopSpecCopy = null;
         vm.sopChanged = false;
         vm.saveButtonText = function() {return vm.widget.storage.sopSpecID ? 'Save' : 'Save As';};
+        vm.closeSOPMakerWidgetOnItemEvent = closeSOPMakerWidgetOnItemEvent;
+        vm.closeSOPMakerWidgetsOnModelChange = closeSOPMakerWidgetsOnModelChange;
 
         activate();
 
@@ -53,6 +55,9 @@
                     dashboardService.closeWidget(vm.widget.id);
                 }
             });
+
+            vm.closeSOPMakerWidgetOnItemEvent('itemDeletion');
+            vm.closeSOPMakerWidgetsOnModelChange();
         }
 
         function addSop() {
@@ -189,6 +194,24 @@
                 return copy;
             }
             throw new Error("Unable to copy obj! Its type isn't supported.");
+        }
+
+        function closeSOPMakerWidgetOnItemEvent(itemEvent) {
+            $rootScope.$on(itemEvent, function(event, item) {
+                if(item.isa == "SOPSpec") {
+                    if(!_.isUndefined(vm.widget.storage.sopSpecID)) {
+                        if(item.id == vm.widget.storage.sopSpecID) {
+                            dashboardService.closeWidget(vm.widget.id);
+                        }
+                    }
+                }
+            });
+        }
+
+        function closeSOPMakerWidgetsOnModelChange() {
+            $rootScope.$on('modelChanged', function(event, model) {
+                dashboardService.closeWidget(vm.widget.id);
+            });
         }
 
 
