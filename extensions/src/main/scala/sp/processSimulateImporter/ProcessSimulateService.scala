@@ -28,7 +28,7 @@ object ProcessSimulateService extends SPService {
       "description" -> "Pull/push data from/to Process Simulate"
     ),
     "setup" -> SPAttributes(
-      "command" -> KeyDefinition("String", List("export seq", "import", "import_single", "update sim ids"), Some("createOp")),
+      "command" -> KeyDefinition("String", List("export seq", "import", "import_single", "update sim ids"), Some("export seq")),
       "sops" -> KeyDefinition("List[ID]", List(), Some(SPValue(List())))
     )
   )

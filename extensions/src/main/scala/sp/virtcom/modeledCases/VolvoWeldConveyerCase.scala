@@ -32,7 +32,8 @@ sealed trait ImplicitOnlyCarriersAndResources extends CollectorModel {
 
   //Tip dressing
   op("tipDress", SPAttributes(aResourceTrans("vTipDresser", "idle", "tipdressing", "idle")))
-  x("weldZone", operations = "tipDress")
+  x("weldZoneA", operations = "tipDress")
+  x("weldZoneB", operations = "tipDress")
 
   //Robot movements
   lazy val staticRobotPoses = SPAttributes("atHome" -> Set(SPAttributes("to" -> "atIn0", "simop" -> "1,134")),
@@ -56,7 +57,7 @@ sealed trait ImplicitOnlyCarriersAndResources extends CollectorModel {
     op(s"weldProduct$X", SPAttributes(aResourceTrans("vRobot_pos", "atWeld0", s"atWeldWelding$X", "atWeld1")))
     op(s"weldProduct$X", SPAttributes(aCarrierTrans("vRobot_car", s"product$X", s"partlyProduct${X}Welded", s"product${X}Welded")))
 
-    x("weldZone", operations = s"weldProduct$X")
+    x(s"weldZone$X", operations = s"weldProduct$X")
 
     op(s"releaseProduct$X", SPAttributes(aCarrierTrans(s"vOutConveyer${X}_car", atComplete = s"product$X"), aResourceTrans("vRobot_pos", "atConveyers0", s"atConveyersReleasingProduct$X", "atConveyers1")))
     op(s"releaseProduct$X", SPAttributes(aCarrierTrans("vRobot_car", atStart = s"product${X}Welded")))
