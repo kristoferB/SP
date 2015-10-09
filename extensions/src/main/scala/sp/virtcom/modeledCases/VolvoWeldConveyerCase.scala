@@ -35,10 +35,10 @@ sealed trait ImplicitOnlyCarriersAndResources extends CollectorModel {
   x("weldZone", operations = "tipDress")
 
   //Robot movements
-  lazy val staticRobotPoses = SPAttributes("atHome" -> Set(SPAttributes("to" -> "atIn0", "simop" -> "1,133")),
-    "atIn1" -> Set(SPAttributes("to" -> "atWeld0", "simop" -> "1,177")),
-    "atWeld1" -> Set(SPAttributes("to" -> "atConveyers0", "simop" -> "1,234")),
-    "atConveyers1" -> Set(SPAttributes("to" -> "atHome", "simop" -> "1,89")))
+  lazy val staticRobotPoses = SPAttributes("atHome" -> Set(SPAttributes("to" -> "atIn0", "simop" -> "1,134")),
+    "atIn1" -> Set(SPAttributes("to" -> "atWeld0", "simop" -> "1,178")),
+    "atWeld1" -> Set(SPAttributes("to" -> "atConveyers0", "simop" -> "1,235")),
+    "atConveyers1" -> Set(SPAttributes("to" -> "atHome", "simop" -> "1,90")))
   robotMovements("v","Robot","_pos", staticRobotPoses)
 
   //Macros-----------------------------
@@ -73,9 +73,9 @@ sealed trait SlowGripWhenOperatorPresent extends CollectorModel {
   op("inspectByOperator",SPAttributes(aResourceTrans("vOperator_present","inside0","inspecting","inside1")))
   op("removeOperator",SPAttributes(aResourceTrans("vOperator_present","inside1","toOut","idle")))
 
-  op(s"addOperator", SPAttributes("simop" -> "1,1299"))
-  op(s"inspectByOperator", SPAttributes("simop" -> "1,1311"))
-  op(s"removeOperator", SPAttributes("simop" -> "1,1305"))
+  op(s"addOperator", SPAttributes("simop" -> "1,272"))
+  op(s"inspectByOperator", SPAttributes("simop" -> "1,282"))
+  op(s"removeOperator", SPAttributes("simop" -> "1,277"))
 
   //Grip product A slow
   op(s"gripProductA_slow_1", SPAttributes(aResourceTrans("vRobot_pos", "atIn0", s"atInGrippingA0", "atInGrippingA1")))
@@ -83,29 +83,29 @@ sealed trait SlowGripWhenOperatorPresent extends CollectorModel {
   op(s"gripProductA_slow_1", SPAttributes(aCarrierTrans("vIn_car", atStart = s"productA")))
   op(s"gripProductA_slow_1", SPAttributes(aCarrierTrans("vRobot_car", atComplete = s"productA")))
 
-  op(s"gripProductA_slow_1", SPAttributes("simop" -> "1,515"))
-  op(s"gripProductA_slow_2", SPAttributes("simop" -> "1,532"))
+  op(s"gripProductA_slow_1", SPAttributes("simop" -> "1,254"))
+  op(s"gripProductA_slow_2", SPAttributes("simop" -> "1,269"))
 }
 
 sealed trait SimOps extends CollectorModel {
-  op(s"addProductA", SPAttributes("simop" -> "1,98"))
-  op(s"gripProductA", SPAttributes("simop" -> "1,143"))
-  op(s"weldProductA", SPAttributes("simop" -> "1,184"))
-  op(s"releaseProductA", SPAttributes("simop" -> "1,75"))
-//  op(s"removeProductA", SPAttributes("simop" -> "1,241"))
+  op(s"addProductA", SPAttributes("simop" -> "1,99"))
+  op(s"gripProductA", SPAttributes("simop" -> "1,144"))
+  op(s"weldProductA", SPAttributes("simop" -> "1,185"))
+  op(s"releaseProductA", SPAttributes("simop" -> "1,76"))
+//  op(s"removeProductA", SPAttributes("simop" -> "1,242"))
 
-  op(s"addProductB", SPAttributes("simop" -> "1,117"))
-  op(s"gripProductB", SPAttributes("simop" -> "1,160"))
-  op(s"weldProductB", SPAttributes("simop" -> "1,212"))
-  op(s"releaseProductB", SPAttributes("simop" -> "1,105"))
-//  op(s"removeProductB", SPAttributes("simop" -> "1,247"))
+  op(s"addProductB", SPAttributes("simop" -> "1,118"))
+  op(s"gripProductB", SPAttributes("simop" -> "1,161"))
+  op(s"weldProductB", SPAttributes("simop" -> "1,213"))
+  op(s"releaseProductB", SPAttributes("simop" -> "1,106"))
+//  op(s"removeProductB", SPAttributes("simop" -> "1,248"))
 
 //  op(s"atConveyersToAtHome_Robot", SPAttributes("simop" -> "1,89"))
 //  op(s"atHomeToAtIn_Robot", SPAttributes("simop" -> "1,133"))
 //  op(s"atInToAtWeld_Robot", SPAttributes("simop" -> "1,171"))
 //  op(s"atWeldToAtConveyers_Robot", SPAttributes("simop" -> "1,228"))
 
-  op(s"tipDress", SPAttributes("simop" -> "1,124"))
+  op(s"tipDress", SPAttributes("simop" -> "1,125"))
 
 }
 

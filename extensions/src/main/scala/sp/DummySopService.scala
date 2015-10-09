@@ -71,7 +71,7 @@ class DummySopService extends Actor with ServiceSupport {
       val seq = Sequence(hs: _*)
       val items = List(SOPSpec(name = setup.sopname, sop = List(seq), attributes = SPAttributes().addTimeStamp))
 
-      sendResp(Response(items, SPAttributes(), service, reqID), progress)
+      sendResp(Response(items, SPAttributes("info" -> "Dummy SOP created"), service, reqID), progress)
 
     case (r: Response, reply: ActorRef) =>
       reply ! r
