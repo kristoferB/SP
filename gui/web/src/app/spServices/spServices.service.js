@@ -73,7 +73,7 @@
       });
 
       return answerF.then(function(serviceAnswer){
-        logger.info('service answer: ' + JSON.stringify(serviceAnswer) + '.');
+        //logger.info('service answer: ' + JSON.stringify(serviceAnswer) + '.');
         return serviceAnswer;
       })
 

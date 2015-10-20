@@ -43,15 +43,10 @@ class TransformTrajectories extends Actor with ServiceSupport with TrajectoryLog
       val trajectory = transform(TransformTrajectories.transformTuple)
       val root = tryWithOption(idMap(trajectory).asInstanceOf[HierarchyRoot]).get
 
-      val opsNCh = getOperationsAndItsChildren(idMap, root)
+      val opsNCh = getOperationsAndItsChildren(ids, root)
       val opsNZones = opsNCh.map { case (o, ch) =>
-        val zones = ch.filter { t =>
-          t.isInstanceOf[Thing] &&
-            t.attributes.getAs[ZoneMark]("mark").nonEmpty &&
-            t.attributes.dig[String]("mark", "type").get == "zone"
-        }
-        o -> zones.map(_.attributes.getAs[ZoneMark]("mark").get)
-      }
+        o -> getOperationZones(ch)
+      }.toMap
 
       val operationsDiviedOnZones = splitOperationDueToZones(opsNZones)
       val newHierarchy = addItemsToHierarchy(root, operationsDiviedOnZones.toList)
@@ -73,42 +68,11 @@ class TransformTrajectories extends Actor with ServiceSupport with TrajectoryLog
   }
 }
 
-// TODO move to core
-trait HierarchyLogic {
 
-
-
-}
 
 // Håller på att städa
 trait TrajectoryLogicCleaning {
-  implicit class HierarchyExtras(x: HierarchyRoot){
-    def toIDAbleHierarchy(ids: List[IDAble]): IDAbleHierarchy = {
-      val idMap = ids.map(i => i.id -> i).toMap
-      def itr(node: HierarchyNode): Option[IDAbleHierarchy] = {
-        val ch = node.children.flatMap(itr)
-        idMap.get(node.item).map(IDAbleHierarchy(_, ch))
-      }
-      IDAbleHierarchy(x,x.children.flatMap(itr))
-    }
-  }
 
-
-  implicit class IDAbleHierarchyExtras(x: IDAbleHierarchy){
-    def toHierarchy: HierarchyRoot = {
-      def itr(node: IDAbleHierarchy): HierarchyNode = {
-        val ch = node.children.map(itr)
-        HierarchyNode(node.item.id, ch)
-      }
-      val newH = if (x.item.isInstanceOf[HierarchyRoot])
-        x.item.asInstanceOf[HierarchyRoot]
-      else
-        HierarchyRoot(x.item.name + "H")
-
-      // fixa så att idn från gamla rooten kommer med
-      newH.copy(children = x.children.map(itr))
-    }
-  }
 }
 
 trait GanttLogic {
@@ -119,20 +83,22 @@ trait GanttLogic {
 
 trait TrajectoryLogic {
   // TODO: Fix this since .isInstanceOf[Some[Thing]] doesn't work
-  def getOperationsAndItsChildren(idMap: Map[ID, IDAble], root: HierarchyRoot) = {
-    (for {
-      ch <- root.children
-      if idMap.get(ch.item).isInstanceOf[Some[Thing]]
-      tch <- ch.children
-      if idMap.get(tch.item).isInstanceOf[Some[Operation]]
-      och <- tch.children
-      child <- idMap.get(och.item)
-    } yield (idMap(tch.item).asInstanceOf[Operation], child)).
-      foldLeft(Map[Operation, List[IDAble]]()){(result, tuple) =>
-      val op = tuple._1
-      val item = tuple._2
-      result + (op -> (item :: result.getOrElse(tuple._1, List[IDAble]())))
+  def getOperationsAndItsChildren(ids: List[IDAble], root: HierarchyRoot) = {
+    val idH = root.toIDAbleHierarchy(ids)
+    val ops = idH.getNodes(_ match {
+      case IDAbleHierarchy(o: Operation, chs) => o.attributes.getAs[List[Pose]](("poses")).nonEmpty
+      case _ => false
+    })
+    ops.map(h => h.item.asInstanceOf[Operation] -> h.children.map(_.item))
+  }
+
+  def getOperationZones(ids: List[IDAble]) = {
+    val zones = ids.filter { t =>
+      t.isInstanceOf[Thing] &&
+        t.attributes.getAs[ZoneMark]("mark").nonEmpty &&
+        t.attributes.dig[String]("mark", "type").get == "zone"
     }
+    zones.map(_.attributes.getAs[ZoneMark]("mark").get)
   }
 
   def splitOperationDueToZones(opsNZones: Map[Operation, List[ZoneMark]]) = {
