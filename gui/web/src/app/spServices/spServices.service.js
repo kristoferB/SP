@@ -17,7 +17,9 @@
       eventCounter: 0,
       callService: callService,
       eventListeners: {},
-      getService: getService
+      getService: getService,
+      reloadModelID: reloadModelID,
+      reloadSelectedItems, reloadSelectedItems
     };
 
     activate();
@@ -185,8 +187,21 @@
       return _.indexBy(noOld, 'reqID')
     }
 
+    function reloadModelID() {
+        if (modelService.activeModel === null) {
+            return "";
+        } else {
+            return modelService.activeModel.id;
+        }
+    }
+
+    function reloadSelectedItems() {
+        var toReturn = _.map(itemService.selected, function(item){
+            return item.id;
+        });
+        return toReturn;
+    }
+
   }
-
-
 
 })();

@@ -42,12 +42,12 @@
 
     }
 
-    spServicesFormController.$inject = ['modelService','itemService'];
-    function spServicesFormController(modelService,itemService) {
+    spServicesFormController.$inject = ['modelService','itemService','spServicesService'];
+    function spServicesFormController(modelService,itemService,spServicesService) {
         var vm = this;
         vm.isA = "";
-        vm.reloadModelID = reloadModelID;
-        vm.reloadSelectedItems = reloadSelectedItems;
+        vm.reloadModelID = spServicesService.reloadModelID;
+        vm.reloadSelectedItems = spServicesService.reloadSelectedItems;
         vm.domainToSelectFrom = [];
 
         activate();
@@ -111,22 +111,6 @@
                 vm.attributes = x;
             }
         }
-
-        function reloadModelID() {
-            if (modelService.activeModel === null) {
-                return "";
-            } else {
-                return modelService.activeModel.id;
-            }
-        }
-
-        function reloadSelectedItems() {
-            var toReturn = _.map(itemService.selected, function(item){
-                return item.id;
-            });
-            return toReturn;
-        }
-
     }
 
 })();

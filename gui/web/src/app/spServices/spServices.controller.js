@@ -39,6 +39,12 @@
         }
 
         function startSPService(spService) {
+
+            //Fill attributes with default values if spService directive has not been loaded.
+            if(_.isUndefined(vm.serviceAttributes[spService.name])) {
+                vm.serviceAttributes[spService.name] = fillAttributes(spService.attributes,"");
+            }
+
             spServicesService.callService(spService, {"data":vm.serviceAttributes[spService.name]}, resp, prog);
 
             if (!_.isUndefined(vm.currentProgess[event.service])){
@@ -101,6 +107,46 @@
 
         function servicesAreRunnable() {
             return !(modelService.activeModel === null)
+        }
+
+        function fillAttributes(structure,key) {
+            var x = structure;
+            if (_.isUndefined(x)){
+                //Do nothing
+            } else if (!_.isUndefined(x.ofType)){
+                //core>model
+                if (x.ofType == "Option[ID]" && key == "model") {
+                    return _.isUndefined(x.default) ? spServicesService.reloadModelID() : x.default;
+                //core>includeIDAbles
+                } else if (x.ofType == "List[ID]" && key == "includeIDAbles") {
+                    return _.isUndefined(x.default) ? spServicesService.reloadSelectedItems() : x.default;
+                //Boolean
+                } else if (x.ofType == "Boolean") {
+                    return _.isUndefined(x.default) ? false : x.default;
+                //String
+                } else if (x.ofType == "String") {
+                    return _.isUndefined(x.default) ? "" : x.default;
+                //Int
+                } else if (x.ofType == "Int") {
+                    return _.isUndefined(x.default) ? 0 : x.default;
+                //List[ID] and List[String]
+                } else if (x.ofType == "List[ID]" || x.ofType == "List[String]") {
+                    return _.isUndefined(x.default) ? [] : x.default;
+                //The rest
+                } else {
+                    return _.isUndefined(x.default) ? "" : x.default;
+                }
+            } else if (_.isObject(x)){
+                var localAttribute = {};
+                for(var localKey in x){
+                    var attrName = localKey;
+                    var attrValue = x[localKey];
+                    localAttribute[attrName] = fillAttributes(attrValue,attrName);
+                }
+                return localAttribute;
+            } else {
+                return x;
+            }
         }
 
     }
