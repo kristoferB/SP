@@ -43,6 +43,7 @@
             //Fill attributes with default values if spService directive has not been loaded.
             if(_.isUndefined(vm.serviceAttributes[spService.name])) {
                 vm.serviceAttributes[spService.name] = fillAttributes(spService.attributes,"");
+//                console.log("vm.serviceAttributes[spService.name] " + JSON.stringify(vm.serviceAttributes[spService.name]));
             }
 
             spServicesService.callService(spService, {"data":vm.serviceAttributes[spService.name]}, resp, prog);
@@ -116,10 +117,12 @@
             } else if (!_.isUndefined(x.ofType)){
                 //core>model
                 if (x.ofType == "Option[ID]" && key == "model") {
+                    console.log("inside" + x.default);
                     return _.isUndefined(x.default) ? spServicesService.reloadModelID() : x.default;
                 //core>includeIDAbles
                 } else if (x.ofType == "List[ID]" && key == "includeIDAbles") {
-                    return _.isUndefined(x.default) ? spServicesService.reloadSelectedItems() : x.default;
+//                    return _.isUndefined(x.default) ? spServicesService.reloadSelectedItems() : x.default;
+                return spServicesService.reloadSelectedItems();
                 //Boolean
                 } else if (x.ofType == "Boolean") {
                     return _.isUndefined(x.default) ? false : x.default;
