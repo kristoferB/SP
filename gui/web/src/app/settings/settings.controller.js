@@ -12,7 +12,7 @@
         vm.title = $state.current.title;
         vm.widget = {title: "Appearance"};
         vm.themes = settingsService.themes;
-        vm.theme = settingsService.storage.theme;
+        vm.settingsService = settingsService;
 
         activate();
 
