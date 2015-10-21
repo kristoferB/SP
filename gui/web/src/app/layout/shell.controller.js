@@ -12,7 +12,7 @@
         vm.navline = {
             title: config.appTitle
         };
-        vm.theme = settingsService.storage.theme;
+        vm.settingsService = settingsService;
 
         activate();
 
