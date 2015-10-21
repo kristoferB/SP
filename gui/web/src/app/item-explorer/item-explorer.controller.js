@@ -98,11 +98,9 @@
         }
 
         function isNodeDroppable(operation, draggedNode, targetParent, node_position, more) {
-            return (
-              draggedNode.id !== 'all-items' ||
-              draggedNode.type === 'Root' ||
-              targetParent.id !== 'all-items'
-            );
+            return (draggedNode.id !== 'all-items' || 
+                    draggedNode.type === 'Root' ||
+                    targetParent.id !== 'all-items') && targetParent.parent !== 'all-items'
         }
 
         function listenToChanges() {
@@ -327,6 +325,9 @@
         function onNodeMove(e, data) {
             var newParentID = data.node.parent;
             var newRoot = getRoot(data.node);
+
+            console.log("****************************");
+            console.log(data.node);
 
             if(data.node.type !== 'Root' && data.node.type !== 'AllItemsRoot' && newRoot.type !== 'AllItemsRoot'){
                 var oldParent = vm.treeInstance.jstree(true).get_node(data.old_parent);
