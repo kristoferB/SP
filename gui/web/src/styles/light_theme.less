@@ -1,12 +1,4 @@
-// old colors
-@color_lightblue: #52b9e9;
-@color_blue: #1171a3;
-@color_success: #43c83c;
-@color_warning: #f88529;
-@color_important: #fa3031;
-@color_violet: #7266ba;
-
-// new colors
+// *** COLORS ***
 
 // body
 @body_color: #58666e;
@@ -39,21 +31,21 @@
 @button_default_border_color_hover: #c7d3d6;
 
 @button_primary_color: #fff;
-@button_primary_background: @color_violet;
+@button_primary_background: #7266ba;
 @button_primary_color_hover: #fff;
 @button_primary_background_hover: #6254b2;
 @button_primary_border_hover: #5a4daa;
 
-@button_info_background: @color_lightblue;
+@button_info_background: #52b9e9;
 @button_info_background_hover: #459fc9;
 
-@button_success_background: @color_success;
+@button_success_background: #43c83c;
 @button_success_background_hover: #36a530;
 
-@button_warning_background: @color_warning;
+@button_warning_background: #f88529;
 @button_warning_background_hover: #d67323;
 
-@button_danger_background: @color_important;
+@button_danger_background: #fa3031;
 @button_danger_background_hover: #d82829;
 
 // forms
@@ -66,7 +58,7 @@
 @dropdown_menu_background_hover: #edf1f2;
 @dropdown_menu_background_divider: #e5e5e5;
 
-// navbar
+// navbar 
 @navbar_background: #fff;
 // this is the SP logo orange
 @navbar_header_background: #de691c; //#df691a; //#f05050;
@@ -78,6 +70,48 @@
 @pagination_background: #fff;
 @pagination_color_hover: #333;
 @pagination_background_hover: #fafafa;
+
+
+// *** FONT SIZES ***
+
+// body
+@body_font_size: 14px;
+@body_line_height: 1.42857143em;
+
+// h1
+@h1_font_size: 24px;
+@h1_font_weight: 300;
+
+@h2_font_size: 30px;
+@h2_line_height: 40px;
+
+@h3_font_size: 24px;
+@h3_font_weight: 300;
+
+@h4_line_height: 30px;
+@h4_font_size: 20px;
+@h4_font_weight: 300;
+
+@h5_line_height: 28px;
+@h5_font_size: 18px;
+
+@h6_line_height: 25px;
+@h6_font_size: 15px;
+
+// dialogs
+@dialog_header_font_size: 24px;
+@dialog_header_font_weight: 300;
+
+// form
+@select_font_family: "Segoe UI", Arial, Helvetica, sans-serif;
+@select_font_size: 13px;
+
+// navbar
+@navbar_brand_font_size: 15px;   // SP logo font
+@navbar_brand_font_weight: 700;
+@navbar_brand_line_height: 16px;
+
+// *** BASE CSS ***
 
 * {
     font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -134,8 +168,8 @@
 /* end of Helper classes */
 
 body {
-    font-size: 14px;
-    line-height: 1.42857143em;
+    font-size: body_font_size;
+    line-height: body_line_height;
     color: @body_color;
     background: @body_background;
     padding-top: 50px;
@@ -154,34 +188,34 @@ h1, h2, h3, h4, h5, h6, .panel-title {
 }
 
 h1 {
-    font-size: 24px;
-    font-weight: 300;
+    font-size: @h1_font_size;
+    font-weight: @h1_font_weight;
 }
 
 h2 {
-    font-size: 30px;
-    line-height: 40px;
+   font-size: @h2_font_size;
+   line-height: @h2_line_height;
 }
 
 h3 {
-    font-size: 24px;
-    font-weight: 300;
+    font-size: @h3_font_size;
+    font-weight: @h3_font_weight;
 }
 
 h4 {
-    font-size: 20px;
-    line-height: 30px;
-    font-weight: 300;
+    font-size: @h4_font_size;
+    line-height: @h4_line_height;
+    font-weight: @h4_font_weight;
 }
 
 h5 {
-    font-size: 18px;
-    line-height: 28px;
+    font-size: h5_font_size;
+    line-height: h5_line_height;
 }
 
 h6 {
-    font-size: 15px;
-    line-height: 25px;
+    font-size: h6_font_size;
+    line-height: h6_line_height;
 }
 
 .view-header {
@@ -234,8 +268,8 @@ a {
 
     h4 {
         color: @dialog_header_confirm_h_color;
-        font-weight: 300;
-        font-size: 24px;
+        font-weight: @dialog_header_font_weight;
+        font-size: @dialog_header_font_size;
     }
 
     span {
@@ -415,17 +449,6 @@ a {
     }
 }
 
-/* Settings Page */
-.settings-page {
-    .settings-table-container {
-        margin: 10px;
-        table {
-            td {
-                padding: 10px;
-            }
-        }
-    }
-}
 
 
 /* trajectory */
@@ -557,8 +580,8 @@ a {
 /* Form */
 
 select {
-    font-size: 13px !important;
-    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    font-size: @select_font_size !important;
+    font-family: @select_font_family;
 }
 
 .input-group {
@@ -673,9 +696,9 @@ select {
     .brand-title {
         margin-left: 10px;
         color: @navbar_brand_title_color;
-        font-weight: 700;
-        font-size: 15px;
-        line-height: 16px;
+        font-weight: @navbar_brand_font_weight;
+        font-size: @navbar_brand_font_size;
+        line-height: @navbar_brand_line_height;
     }
 
     .navbar-logo {
