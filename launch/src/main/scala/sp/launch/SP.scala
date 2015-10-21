@@ -31,9 +31,19 @@ object SP extends App {
   serviceHandler ! RegisterService("PropositionParser",
     system.actorOf(PropositionParserActor.props, "PropositionParser"))
 
+
+println("registering relation service")
   import sp.services.relations._
+  serviceHandler ! RegisterService("MultiRelationFinder",
+    system.actorOf(MultiRelationFinder.props , "MultiRelationFinder"),
+        MultiRelationFinder.specification,
+    MultiRelationFinder.transformation)
+
+
+import sp.services.relations._
   serviceHandler ! RegisterService("Relations",
     system.actorOf(RelationService.props(modelHandler, serviceHandler, "ConditionsFromSpecsService"), "Relations"))
+
 
   import sp.services.sopmaker._
   serviceHandler ! RegisterService("SOPMaker",
