@@ -5,13 +5,14 @@
         .module('app.layout')
         .controller('ShellController', ShellController);
 
-    ShellController.$inject = ['config', 'logger', '$document'];
+    ShellController.$inject = ['config', 'logger', '$document', 'settingsService'];
     /* @ngInject */
-    function ShellController(config, logger, $document) {
+    function ShellController(config, logger, $document, settingsService) {
         var vm = this;
         vm.navline = {
             title: config.appTitle
         };
+        vm.theme = settingsService.storage.theme;
 
         activate();
 

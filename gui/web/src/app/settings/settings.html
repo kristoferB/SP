@@ -1,8 +1,25 @@
-<section class="mainbar">
+<section class="settings-page mainbar">
     <div class="view-header">
         <h1>{{::vm.title}}</h1>
     </div>
     <div class="container">
+        <sp-widget widget="vm.widget" show-close-btn="false">
+            <form class="form-inline">
+                <div class="settings-table-container">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>Theme</td>
+                                <td>
+                                    <select class="form-control input-sm" ng-model="vm.theme"
+                                            ng-options="theme for theme in vm.themes"></select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </sp-widget>
 
     </div>
 </section>
