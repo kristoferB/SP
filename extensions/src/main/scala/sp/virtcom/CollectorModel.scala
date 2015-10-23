@@ -15,8 +15,8 @@ trait CollectorModel {
   var forbiddenExpressionSet: Set[SOPSpec] = Set()
   var robotMovementsSet: Set[SPSpec] = Set()
 
-  def v(name: String, domain: Seq[String] = Seq(), init: Option[String] = None, marked: Set[String] = Set(), idleValue: Option[String] = None) = {
-    variableSet += Thing(name = name, attributes = SPAttributes("markings" -> (if (marked.isEmpty) None: Option[Set[String]] else Some(marked)),
+  def v(name: String, domain: Seq[String] = Seq(), init: Option[String] = None, marked: Set[String] = Set(), idleValue: Option[String] = None, attributes : SPAttributes = SPAttributes()) = {
+    variableSet += Thing(name = name, attributes = attributes merge SPAttributes("markings" -> (if (marked.isEmpty) None: Option[Set[String]] else Some(marked)),
       "idleValue" -> idleValue,
       "stateVariable" -> SPAttributes(
         "domain" -> (domain ++ (if (init.isDefined) Seq(init.get) else Seq()) ++ marked.toSeq ++ (if (idleValue.isDefined) Seq(idleValue.get) else Seq())),
