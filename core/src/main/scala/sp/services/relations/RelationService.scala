@@ -74,7 +74,6 @@ class RelationService(modelHandler: ActorRef, serviceHandler: ActorRef, conditio
                 } else ops
 
 
-
                 val svs = svsIDAble map (_.asInstanceOf[Thing])
                 val olderRels = List[RelationResult]() //olderRelsIDAble map (_.asInstanceOf[RelationResult]) sortWith (_.modelVersion > _.modelVersion)
 
