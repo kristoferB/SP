@@ -57,7 +57,7 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
       println(s"core är även med: $core")
 
-      val ops = ids.filter(item => item.isInstanceOf[Operation])
+      val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation]).toSet
 
       def mapOps[T](t: T) = ops.map(o => o.id -> t).toMap
       val iState = State(mapOps(OperationState.init))
@@ -66,8 +66,8 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
       //buildRelationMap(createItemRelationsfrom(findStraightSeq(ops, iState, evalualteProp2))) 
       val result = (0 to 10).foldLeft((Set(), Set()): (Set[Seq[Operation]], Set[State])) {
         case (acc @ (accOpseqs, accStates), _) =>
-          findStraightSeq(iState, evalualteProp2, _._2.length > 10) match {
-            case Some(tuple) => (accOpseqs + opSeq, accStates ++ newStates)
+          findStraightSeq(ops, iState, evalualteProp2, {case (_,seq) => seq.length > 10}) match {
+            case Some((opSeq,newStates)) => (accOpseqs + opSeq, accStates ++ newStates)
             case _ => acc
           }
 
@@ -106,11 +106,9 @@ case class OperationRelation(opPair: Set[Operation], relation: Set[SOP]) //opPai
 
 sealed trait RelationIdentificationLogic {
 
-  val ops: Set[Operation]
-  def getEnabledOperations(state: State) = ops.filter(_.eval(state))
-
-  def findStraightSeq(initState: State, evalSetup: EvaluateProp, goalCondition: (State, Seq[Operation]) => Boolean): Option[(Seq[Operation], Set[State])] = {
+  def findStraightSeq(ops : Set[Operation], initState: State, evalSetup: EvaluateProp, goalCondition: (State, Seq[Operation]) => Boolean): Option[(Seq[Operation], Set[State])] = {
     implicit val es = evalSetup
+    def getEnabledOperations(state: State) = ops.filter(_.eval(state))
 
     @tailrec
     def iterate(currentState: State, opSeq: Seq[Operation] = Seq(), states: Set[State] = Set()): Option[(Seq[Operation], Set[State])] = {
