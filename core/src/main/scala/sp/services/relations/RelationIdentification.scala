@@ -1,7 +1,9 @@
 package sp.services.relations
 
 import akka.actor._
+import akka.pattern.ask
 import sp.domain.logic.IDAbleLogic
+import sp.services.sopmaker.{MakeASop, MakeMeASOP, SOPMaker}
 import scala.concurrent._
 import sp.system._
 import sp.system.messages._
@@ -9,6 +11,7 @@ import sp.domain._
 import sp.domain.Logic._
 
 import scala.annotation.tailrec
+import scala.util.{Failure, Success}
 
 object RelationIdentification extends SPService {
   val specification = SPAttributes(
@@ -42,7 +45,7 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
   import context.dispatcher
 
   def receive = {
-    case r@Request(service, attr, ids, reqID) => {
+    case r@Request(service, attr, ids, reqID) =>
 
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()
@@ -68,42 +71,29 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
       }
       val evalualteProp2 = EvaluateProp(mapOps((_: SPValue) => true), Set(), TwoStateDefinition)
 
-      val result = (0 to 10).foldLeft((Set(), Set()): (Set[Seq[Operation]], Set[State])) {
+      val (opSeqs, states) = (0 to 10).foldLeft((Set(), Set()): (Set[Seq[Operation]], Set[State])) {
         case (acc@(accOpseqs, accStates), _) =>
           findStraightSeq(ops, iState, evalualteProp2, { case (state, seq) => isGoalState(state) }) match {
             case Some((opSeq, newStates)) => (accOpseqs + opSeq, accStates ++ newStates)
             case _ => acc
           }
       }
-      val itemRelationMap = createItemRelationsfrom(ops, result._2, evalualteProp2)
-      val operationRelation = buildRelationMap(itemRelationMap, ops, result._1)
-      val sops = operationRelation.flatMap(_.relation).toList
-      val toReturn = SOPSpec(name = "relationMapAsPairs", sop = sops)
+      val itemRelationMap = createItemRelationsfrom(ops, states, evalualteProp2)
+      val operationRelations = buildRelationMap(itemRelationMap, ops, opSeqs)
 
+      val sops = CreateSop(ops, operationRelations, ops.head).createSop()
+
+      val toReturn = SOPSpec(name = "relationSOP", sop = sops)
       rnr.reply ! Response(List(toReturn), SPAttributes("info" -> s"created a relationMap for ${ops.map(_.name).mkString(" ")}"), service, reqID)
 
       progress ! PoisonPill
       self ! PoisonPill
-    }
-    case (r: Response, reply: ActorRef) => {
+
+    case (r: Response, reply: ActorRef) =>
       reply ! r
-    }
-    case x => {
+    case x =>
       sender() ! SPError("What do you want me to do? " + x)
       self ! PoisonPill
-    }
-  }
-
-  import scala.concurrent._
-  import scala.concurrent.duration._
-
-  def sendResp(r: Response, progress: ActorRef)(implicit rnr: RequestNReply) = {
-    context.system.scheduler.scheduleOnce(2000 milliseconds, self, (r, rnr.reply))
-    //context.system.scheduler.scheduleOnce(1000 milliseconds, self, ("boom", rnr.reply))
-
-    //    rnr.reply ! r
-    //    progress ! PoisonPill
-    //    self ! PoisonPill
   }
 
 }
@@ -135,7 +125,6 @@ sealed trait RelationIdentificationLogic {
             iterate(selectedOp.next(currentState), selectedOp +: opSeq, states + currentState)
           }
       }
-      // }
     }
     iterate(initState)
   }
@@ -200,6 +189,11 @@ sealed trait RelationIdentificationLogic {
     }
     iterate(activeOps.toSeq)
 
+  }
+
+  case class CreateSop(activeOps: Set[Operation], operationRelations: Set[OperationRelation], rootOp: Operation) extends MakeASop {
+    val relations = operationRelations.map(or => or.opPair.map(_.id) -> or.relation.headOption.getOrElse(EmptySOP)).toMap
+    def createSop() = makeTheSop(activeOps.map(_.id).toList, relations, if (activeOps.contains(rootOp)) SOP.apply(rootOp) else EmptySOP)
   }
 
 }
