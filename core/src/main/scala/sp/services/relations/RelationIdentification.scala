@@ -66,8 +66,8 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
       //buildRelationMap(createItemRelationsfrom(findStraightSeq(ops, iState, evalualteProp2))) 
       val result = (0 to 10).foldLeft((Set(), Set()): (Set[Seq[Operation]], Set[State])) {
         case (acc @ (accOpseqs, accStates), _) =>
-          findStraightSeq(ops, iState, evalualteProp2, {case (_,seq) => seq.length > 10}) match {
-            case Some((opSeq,newStates)) => (accOpseqs + opSeq, accStates ++ newStates)
+          findStraightSeq(ops, iState, evalualteProp2, { case (_, seq) => seq.length > 10 }) match {
+            case Some((opSeq, newStates)) => (accOpseqs + opSeq, accStates ++ newStates)
             case _ => acc
           }
 
@@ -101,12 +101,12 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
 }
 
 //case class SeqState(op: Option[Operation] = None, state: State)
-//case class ItemRelation(id: ID, state: SPValue, relations: Map[ID, Set[SPValue]])
+case class ItemRelation(id: ID, state: SPValue, relations: Map[ID, Set[SPValue]])
 case class OperationRelation(opPair: Set[Operation], relation: Set[SOP]) //opPair just has always has two operations
 
 sealed trait RelationIdentificationLogic {
 
-  def findStraightSeq(ops : Set[Operation], initState: State, evalSetup: EvaluateProp, goalCondition: (State, Seq[Operation]) => Boolean): Option[(Seq[Operation], Set[State])] = {
+  def findStraightSeq(ops: Set[Operation], initState: State, evalSetup: EvaluateProp, goalCondition: (State, Seq[Operation]) => Boolean): Option[(Seq[Operation], Set[State])] = {
     implicit val es = evalSetup
     def getEnabledOperations(state: State) = ops.filter(_.eval(state))
 
@@ -128,9 +128,29 @@ sealed trait RelationIdentificationLogic {
     }
     iterate(initState)
   }
-  // def createItemRelationsfrom(straightSeq: Set[Operation]): Seq[ItemRelation] = {
+  def createItemRelationsfrom(ops: Set[Operation], states: Set[State], evalSetup: EvaluateProp): Set[ItemRelation] = {
 
-  // }
+    implicit val es = evalSetup
+    def getEnabledOperations(state: State) = ops.filter(_.eval(state))
+    val itemRelMap = states.foldLeft(Map(): Map[Operation, ItemRelation]) {
+      case (acc, s) =>
+        //val relation = s.state.map{case(id,value)=>id-> Set(value)}.toMap
+        val enabledOps = getEnabledOperations(s)
+        val res = enabledOps.map { o =>
+          val ir = acc.getOrElse(o, ItemRelation(o.id, OperationState.init, Map()))
+
+          val newMap = s.state.map {
+            case (id, value) =>
+              id -> (ir.relations.getOrElse(id, Set()) + value)
+          }
+          o -> ir.copy(relations = newMap)
+
+        }
+        acc ++ res
+
+    }
+    itemRelMap.values.toSet
+  }
   // def buildRelationMap(itemRelation: Seq[ItemRelation]): Seq[OperationRelation] {
   //   def findRelationBetween(o1: Operation, o2: Operation): Seq[SOP] = {
   //     //using itemRelation here

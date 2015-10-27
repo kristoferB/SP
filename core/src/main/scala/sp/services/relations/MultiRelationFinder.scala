@@ -7,6 +7,7 @@ import sp.system._
 import sp.system.messages._
 import scala.concurrent._
 import scala.concurrent.duration._
+import scala.annotation.tailrec
 
 object MultiRelationFinder extends SPService {
   val specification = SPAttributes(
@@ -22,8 +23,8 @@ object MultiRelationFinder extends SPService {
     "input" -> SPAttributes(
       "operations" -> KeyDefinition("List[ID]", List(), Some(org.json4s.JArray(List()))),
       "groups" -> KeyDefinition("List[String]", List(), Some(org.json4s.JArray(List())))))
-      // "initState" -> KeyDefinition("State", List(), None),
-      // "goal" -> KeyDefinition("Proposition", List(), None)))
+  // "initState" -> KeyDefinition("State", List(), None),
+  // "goal" -> KeyDefinition("Proposition", List(), None)))
 
   val transformTuple = (
     TransformValue("setup", _.getAs[Setup]("setup")),
@@ -37,7 +38,7 @@ object MultiRelationFinder extends SPService {
 case class Setup(twoOrThreeStates: String, simpleThreeState: Boolean, iterations: Int, maxDepth: Int, maxResets: Int, breakOnSameState: Boolean)
 case class Input(operations: List[ID], groups: List[String])
 
-case class ItemRelation(id: ID, state: SPValue, relations: Map[ID, Set[SPValue]])
+case class ItemRelations(id: ID, state: SPValue, relations: Map[ID, Set[SPValue]])
 
 /**
  * Created by kristofer on 15-06-22.
@@ -92,9 +93,9 @@ class MultiRelationFinder() extends Actor with sp.system.ServiceSupport with Mul
       def mapOps[T](t: T) = opsUpd.map(o => o.id -> t).toMap
 
       lazy val initState = State(mapOps(OperationState.init))
-      // lazy val operationRelationMap = ops.map(o => o -> ItemRelation(o.id, OperationState.init, Map())).toMap
+      // lazy val operationRelationMap = ops.map(o => o -> ItemRelations(o.id, OperationState.init, Map())).toMap
       lazy val evalualteProp2 = EvaluateProp(mapOps((_: SPValue) => true), Set(), TwoStateDefinition)
-      lazy val opNameMap = opsUpd.map(o=> o.id -> o.name).toMap
+      lazy val opNameMap = opsUpd.map(o => o.id -> o.name).toMap
       //Calculation -------------------------------------------------------
       progress ! SPAttributes("progress" -> "Iterate sequences")
       // val result = for {
@@ -112,12 +113,12 @@ class MultiRelationFinder() extends Actor with sp.system.ServiceSupport with Mul
       // case class OpsSomething(op: ID, state: SPValue)
       // case class OperationRelation(op1: OpSomething, op2: OpSomething, sop: SOP)
       // case class OpsRelMap(map: Map[Set[ID], Set[OperationRelation]])
+      case class OpRelation(opPair: Set[Operation], relations: Set[SOP])
 
-
-      val result = (0 to setup.iterations).foldLeft((Set(),Map()):(Set[Seq[Operation]],Map[Operation,ItemRelation])){
-        case((accOpseq,accOrm),n) => 
-        val opSeqMap = findStraightSeq(opsUpd,initState,accOrm,evalualteProp2)
-        (Set(opSeqMap.opSeq) ++ accOpseq, opSeqMap.orm)
+      val result = (0 to setup.iterations).foldLeft((Set(), Map()): (Set[Seq[Operation]], Map[Operation, ItemRelations])) {
+        case ((accOpseq, accOrm), n) =>
+          val opSeqMap = findStraightSeq(opsUpd, initState, accOrm, evalualteProp2)
+          (Set(opSeqMap.opSeq) ++ accOpseq, opSeqMap.orm)
       }
       // println("Multi relation:")
       //   val toPrint = result._2.map{
@@ -167,21 +168,21 @@ class MultiRelationFinder() extends Actor with sp.system.ServiceSupport with Mul
   //  }
 
 }
-case class OperationSequenceAndMap(opSeq: Seq[Operation],orm: Map[Operation, ItemRelation])
+case class OperationSequenceAndMap(opSeq: Seq[Operation], orm: Map[Operation, ItemRelations])
 sealed trait calcMethods {
-  def findStraightSeq(ops: List[Operation], initState: State, operationRelationMap: Map[Operation, ItemRelation], evalSetup: EvaluateProp): OperationSequenceAndMap = {
+  def findStraightSeq(ops: List[Operation], initState: State, operationRelationMap: Map[Operation, ItemRelations], evalSetup: EvaluateProp): OperationSequenceAndMap = {
     implicit val es = evalSetup
 
     def getEnabledOperations(state: State) = ops.filter(_.eval(state))
-
-    def iterate(currentState: State, orm: Map[Operation, ItemRelation],opSeq: Seq[Operation]=Seq()): OperationSequenceAndMap = {
+    @tailrec
+    def iterate(currentState: State, orm: Map[Operation, ItemRelations], opSeq: Seq[Operation] = Seq()): OperationSequenceAndMap = {
       lazy val enabledOps = getEnabledOperations(currentState)
       if (enabledOps.isEmpty) {
-        OperationSequenceAndMap(opSeq.reverse,orm)
+        OperationSequenceAndMap(opSeq.reverse, orm)
       } else {
         val res = enabledOps.map {
           o =>
-            val ir = orm.getOrElse(o, ItemRelation(o.id, OperationState.init, Map()))
+            val ir = orm.getOrElse(o, ItemRelations(o.id, OperationState.init, Map()))
 
             val newMap = currentState.state.map {
               case (id, value) =>
@@ -193,7 +194,7 @@ sealed trait calcMethods {
         import scala.util.Random
         lazy val selectedOp = Random.shuffle(enabledOps).head
 
-        iterate(selectedOp.next(currentState), orm ++ res,selectedOp+:opSeq)
+        iterate(selectedOp.next(currentState), orm ++ res, selectedOp +: opSeq)
       }
       // }
     }
