@@ -14,7 +14,7 @@ object RelationIdentification extends SPService {
   val specification = SPAttributes(
     "service" -> SPAttributes(
       "description" -> "Find relations" // to organize in gui. maybe use "hide" to hide service in gui
-      ),
+    ),
     "setup" -> SPAttributes())
 
   val transformTuple = (
@@ -38,10 +38,11 @@ case class RelationIdentificationSetup(onlyOperations: Boolean, searchMethod: St
 
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
 class RelationIdentification extends Actor with ServiceSupport with RelationIdentificationLogic {
+
   import context.dispatcher
 
   def receive = {
-    case r @ Request(service, attr, ids, reqID) => {
+    case r@Request(service, attr, ids, reqID) => {
 
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()
@@ -50,45 +51,53 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
       // include this if you whant to send progress messages. Send attributes to it during calculations
       val progress = context.actorOf(progressHandler)
 
-      println(s"I got: $r")
-
       //val s = transform(RelationMapper.transformTuple._1)
-
-      val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
-      println(s"core är även med: $core")
 
       val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation]).toSet
 
       def mapOps[T](t: T) = ops.map(o => o.id -> t).toMap
       val iState = State(mapOps(OperationState.init))
+      def isGoalState(state: State) = {
+        lazy val goalState = State(mapOps(OperationState.finished))
+        state.state.forall { case (id, value) =>
+          goalState.get(id) match {
+            case Some(otherValue) => value == otherValue
+            case _ => false
+          }
+        }
+      }
       val evalualteProp2 = EvaluateProp(mapOps((_: SPValue) => true), Set(), TwoStateDefinition)
 
-      //buildRelationMap(createItemRelationsfrom(findStraightSeq(ops, iState, evalualteProp2))) 
       val result = (0 to 10).foldLeft((Set(), Set()): (Set[Seq[Operation]], Set[State])) {
-        case (acc @ (accOpseqs, accStates), _) =>
-          findStraightSeq(ops, iState, evalualteProp2, { case (_, seq) => seq.length > 10 }) match {
+        case (acc@(accOpseqs, accStates), _) =>
+          findStraightSeq(ops, iState, evalualteProp2, { case (state, seq) => isGoalState(state)}) match {
             case Some((opSeq, newStates)) => (accOpseqs + opSeq, accStates ++ newStates)
             case _ => acc
           }
-
       }
 
+      val itemRelationMap = createItemRelationsfrom(ops, result._2, evalualteProp2)
+      val operationRelation = buildRelationMap(itemRelationMap, ops, result._1)
+      val sops = operationRelation.flatMap(_.relation).toList
+      val toReturn = SOPSpec(name = "relationMapAsPairs", sop = sops)
+
+      rnr.reply ! Response(List(toReturn), SPAttributes("info" -> s"created a relationMap for ${ops.map(_.name).mkString(" ")}"), service, reqID)
+
+      progress ! PoisonPill
+      self ! PoisonPill
     }
     case (r: Response, reply: ActorRef) => {
       reply ! r
     }
-    case ("boom", replyTo: ActorRef) => {
-      replyTo ! SPError("BOOM")
-      self ! PoisonPill
-    }
     case x => {
-      sender() ! SPError("What do you whant me to do? " + x)
+      sender() ! SPError("What do you want me to do? " + x)
       self ! PoisonPill
     }
   }
 
   import scala.concurrent._
   import scala.concurrent.duration._
+
   def sendResp(r: Response, progress: ActorRef)(implicit rnr: RequestNReply) = {
     context.system.scheduler.scheduleOnce(2000 milliseconds, self, (r, rnr.reply))
     //context.system.scheduler.scheduleOnce(1000 milliseconds, self, ("boom", rnr.reply))
@@ -102,7 +111,10 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
 
 //case class SeqState(op: Option[Operation] = None, state: State)
 case class ItemRelation(id: ID, state: SPValue, relations: Map[ID, Set[SPValue]])
-case class OperationRelation(opPair: Set[Operation], relation: Set[SOP]) //opPair just has always has two operations
+
+case class OperationRelation(opPair: Set[Operation], relation: Set[SOP])
+
+//opPair just has always has two operations
 
 sealed trait RelationIdentificationLogic {
 
@@ -161,20 +173,28 @@ sealed trait RelationIdentificationLogic {
 
       val pre = (valuesOfO2WhenO1Enabled map (_.to[String]), valuesOfO1WhenO2Enabled map (_.to[String]))
 
-      if (pre == (opi, opi)) Alternative(o1, o2)
-      else if (pre == (opi, opf)) Sequence(o1, o2)
-      else if (pre == (opf, opi)) Sequence(o2, o1)
-      else if (pre == (opif, opi)) Sequence(o2, o1) //SometimeSequence(o2, o1)
-      else if (pre == (opi, opif)) Sequence(o1, o2) //SometimeSequence(o1, o2)
-      else if (pre == (opif, opif)) Parallel(o1, o2)
+      if (pre ==(opi, opi)) Alternative(o1, o2)
+      else if (pre ==(opi, opf)) Sequence(o1, o2)
+      else if (pre ==(opf, opi)) Sequence(o2, o1)
+      else if (pre ==(opif, opi)) Sequence(o2, o1) //SometimeSequence(o2, o1)
+      else if (pre ==(opi, opif)) Sequence(o1, o2) //SometimeSequence(o1, o2)
+      else if (pre ==(opif, opif)) Parallel(o1, o2)
       else Other(o1, o2)
     }
 
+    def getRelation(thisOp: Operation, thatOp: Operation): Set[SPValue] = {
+      itemRelations.get(thisOp) match {
+        case Some(ir) => ir.relations.getOrElse(thatOp.id, Set())
+        case _ => Set()
+      }
+    }
+
+    @tailrec
     def iterate(operations: Seq[Operation], opRels: Set[OperationRelation] = Set()): Set[OperationRelation] = {
       operations match {
         case thisOp +: os if os.nonEmpty =>
           val res = os.map { thatOp =>
-            val sop = matchOps(thisOp.id, itemRelations(thisOp).relations.getOrElse(thatOp.id, Set()), thatOp.id, itemRelations(thatOp).relations.getOrElse(thisOp.id, Set()))
+            val sop = matchOps(thisOp.id, getRelation(thisOp, thatOp), thatOp.id, getRelation(thatOp, thisOp))
             OperationRelation(Set(thisOp, thatOp), Set(sop))
           }
           iterate(os, opRels ++ res)
