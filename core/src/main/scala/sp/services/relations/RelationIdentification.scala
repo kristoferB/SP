@@ -8,6 +8,8 @@ import sp.system.messages._
 import sp.domain._
 import sp.domain.Logic._
 
+import scala.annotation.tailrec
+
 object RelationIdentification extends SPService {
   val specification = SPAttributes(
     "service" -> SPAttributes(
@@ -31,9 +33,6 @@ object RelationIdentification extends SPService {
   //                                      includeIDAbles: List[ID])
 
 }
-
-case class OpState(op: ID, state: State)
-case class OperationRelation(op1: OpState, op2: OpState, sop: SOP)
 
 case class RelationIdentificationSetup(onlyOperations: Boolean, searchMethod: String)
 
@@ -65,6 +64,14 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
       val evalualteProp2 = EvaluateProp(mapOps((_: SPValue) => true), Set(), TwoStateDefinition)
 
       //buildRelationMap(createItemRelationsfrom(findStraightSeq(ops, iState, evalualteProp2))) 
+      val result = (0 to 10).foldLeft((Set(), Set()): (Set[Seq[Operation]], Set[State])) {
+        case (acc @ (accOpseqs, accStates), _) =>
+          findStraightSeq(iState, evalualteProp2, _._2.length > 10) match {
+            case Some(tuple) => (accOpseqs + opSeq, accStates ++ newStates)
+            case _ => acc
+          }
+
+      }
 
     }
     case (r: Response, reply: ActorRef) => {
@@ -92,24 +99,45 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
   }
 
 }
-case class ItemRelation(id: ID, state: SPValue, relations: Map[ID, Set[SPValue]])
-case class OperationRelation(opPair: Set[Operation], relation: Set[SOP]) //Pair is a tuple
+
+//case class SeqState(op: Option[Operation] = None, state: State)
+//case class ItemRelation(id: ID, state: SPValue, relations: Map[ID, Set[SPValue]])
+case class OperationRelation(opPair: Set[Operation], relation: Set[SOP]) //opPair just has always has two operations
 
 sealed trait RelationIdentificationLogic {
-  def findStraightSeq(ops: List[Operation], initState: State, evalSetup: EvaluateProp): Seq[Operation] = {
+
+  val ops: Set[Operation]
+  def getEnabledOperations(state: State) = ops.filter(_.eval(state))
+
+  def findStraightSeq(initState: State, evalSetup: EvaluateProp, goalCondition: (State, Seq[Operation]) => Boolean): Option[(Seq[Operation], Set[State])] = {
     implicit val es = evalSetup
 
-    def getEnabledOperations(state: State) = ops.filter(_.eval(state))
-
-  }
-  def createItemRelationsfrom(straightSeq: Set[Operation]): Seq[ItemRelation] = {
-
-  }
-  def buildRelationMap(itemRelation: Seq[ItemRelation]): Seq[OperationRelation] {
-    def findRelationBetween(o1: Operation, o2: Operation): Seq[SOP] = {
-      //using itemRelation here
+    @tailrec
+    def iterate(currentState: State, opSeq: Seq[Operation] = Seq(), states: Set[State] = Set()): Option[(Seq[Operation], Set[State])] = {
+      goalCondition(currentState, opSeq) match {
+        case true => Some(opSeq.reverse, states + currentState)
+        case false =>
+          lazy val enabledOps = getEnabledOperations(currentState)
+          if (enabledOps.isEmpty) {
+            None
+          } else {
+            import scala.util.Random
+            lazy val selectedOp = Random.shuffle(enabledOps).head
+            iterate(selectedOp.next(currentState), selectedOp +: opSeq, states + currentState)
+          }
+      }
+      // }
     }
+    iterate(initState)
   }
+  // def createItemRelationsfrom(straightSeq: Set[Operation]): Seq[ItemRelation] = {
+
+  // }
+  // def buildRelationMap(itemRelation: Seq[ItemRelation]): Seq[OperationRelation] {
+  //   def findRelationBetween(o1: Operation, o2: Operation): Seq[SOP] = {
+  //     //using itemRelation here
+  //   }
+  // }
 
 }
 
