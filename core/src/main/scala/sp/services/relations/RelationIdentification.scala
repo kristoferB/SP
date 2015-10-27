@@ -70,12 +70,11 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
 
       val result = (0 to 10).foldLeft((Set(), Set()): (Set[Seq[Operation]], Set[State])) {
         case (acc@(accOpseqs, accStates), _) =>
-          findStraightSeq(ops, iState, evalualteProp2, { case (state, seq) => isGoalState(state)}) match {
+          findStraightSeq(ops, iState, evalualteProp2, { case (state, seq) => isGoalState(state) }) match {
             case Some((opSeq, newStates)) => (accOpseqs + opSeq, accStates ++ newStates)
             case _ => acc
           }
       }
-
       val itemRelationMap = createItemRelationsfrom(ops, result._2, evalualteProp2)
       val operationRelation = buildRelationMap(itemRelationMap, ops, result._1)
       val sops = operationRelation.flatMap(_.relation).toList
@@ -164,15 +163,13 @@ sealed trait RelationIdentificationLogic {
   }
 
   def buildRelationMap(itemRelations: Map[Operation, ItemRelation], activeOps: Set[Operation], opSequences: Set[Seq[Operation]]): Set[OperationRelation] = {
-    val opi = Set("i")
-    val opf = Set("f")
-    val opif = Set("i", "f")
+
+    val opi = Set(OperationState.init)
+    val opf = Set(OperationState.finished)
+    val opif = opi ++ opf
     def matchOps(o1: ID, valuesOfO2WhenO1Enabled: Set[SPValue], o2: ID, valuesOfO1WhenO2Enabled: Set[SPValue]): SOP = {
-      //val stateOfO2WhenO1Pre = o1State.pre(o2) flatMap (_.to[String])
-      //val stateOfO1WhenO2pre = o2State.pre(o1) flatMap (_.to[String])
 
-      val pre = (valuesOfO2WhenO1Enabled map (_.to[String]), valuesOfO1WhenO2Enabled map (_.to[String]))
-
+      val pre = (valuesOfO2WhenO1Enabled, valuesOfO1WhenO2Enabled)
       if (pre ==(opi, opi)) Alternative(o1, o2)
       else if (pre ==(opi, opf)) Sequence(o1, o2)
       else if (pre ==(opf, opi)) Sequence(o2, o1)
