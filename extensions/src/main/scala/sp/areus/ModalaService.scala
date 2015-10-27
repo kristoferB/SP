@@ -95,7 +95,7 @@ class ModalaService(amqProducer: ActorRef) extends Actor with ServiceSupport wit
       val idMap = ids.map(x => x.id -> x).toMap
       val trajectory = setup.rootHierarchy
       val root = tryWithOption(idMap(trajectory).asInstanceOf[HierarchyRoot]).getOrElse(HierarchyRoot("empty"))
-      val opsNChildren = getOperationsAndItsChildren(idMap, root)
+      val opsNChildren = getOperationsAndItsChildren(ids, root)
       val robotTrajectories = opsNChildren.map(_._2.filter(
         item => item.isInstanceOf[Operation] && item.attributes.getAs[List[Pose]]("poses").isDefined).
         map(_.asInstanceOf[Operation])).toList

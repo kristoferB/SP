@@ -1,18 +1,4 @@
 <section id="dashboard-view" class="mainbar">
-    <div class="view-header">
-        <div dropdown class="btn-group pull-right m-t-n-xs" id="new-widget-dropdown">
-            <button type="button" class="btn btn-sm btn-default btn-addon" dropdown-toggle id="new-widget-btn">
-                <i class="fa fa-plus"></i> New
-            </button>
-            <ul class="dropdown-menu" role="menu" aria-labelledby="new-widget-btn">
-                <li ng-repeat="widgetKind in ::vm.dashboardService.widgetKinds" id="{{::(widgetKind.title | slugify) + '-dropdown-item'}}"
-                    ng-click="vm.dashboardService.addWidget(vm.dashboard, widgetKind)">
-                    <a href="">{{::widgetKind.title}}</a>
-                </li>
-            </ul>
-        </div>
-        <h1>{{::vm.title}}</h1>
-    </div>
 
     <div class="container">
         <div gridster="vm.gridsterOptions">

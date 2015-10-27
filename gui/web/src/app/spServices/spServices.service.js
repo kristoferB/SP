@@ -17,7 +17,9 @@
       eventCounter: 0,
       callService: callService,
       eventListeners: {},
-      getService: getService
+      getService: getService,
+      reloadModelID: reloadModelID,
+      reloadSelectedItems: reloadSelectedItems
     };
 
     activate();
@@ -63,24 +65,6 @@
           message = request.data;
         }
 
-        //To handle that parameter 'request.core' is undefined if service has not been loaded in GUI.
-        var selectedIds = _.map(itemService.selected, function(item){
-            return item.id;
-        });
-
-        var defaultCore = {
-            'model': modelService.activeModel.id,
-            'includeIDAbles': selectedIds,
-            'responseToModel': spService.attributes.core.responseToModel.default,
-            'onlyResponse': spService.attributes.core.onlyResponse.default
-        };
-
-        if (_.isUndefined(message.core)){
-            logger.info("SP Service: Values for 'attributes.core' are undefined. Default values are used.")
-            message.core = defaultCore;
-        }
-        //----------------------------------------------------------------------------------------------
-
       var idF = restService.getNewID();
       var answerF = idF.then(function(id){
         addEventListener(id, responseCallBack, progressCallback);
@@ -89,7 +73,7 @@
       });
 
       return answerF.then(function(serviceAnswer){
-        logger.info('service answer: ' + JSON.stringify(serviceAnswer) + '.');
+        //logger.info('service answer: ' + JSON.stringify(serviceAnswer) + '.');
         return serviceAnswer;
       })
 
@@ -185,8 +169,21 @@
       return _.indexBy(noOld, 'reqID')
     }
 
+    function reloadModelID() {
+        if (modelService.activeModel === null) {
+            return "";
+        } else {
+            return modelService.activeModel.id;
+        }
+    }
+
+    function reloadSelectedItems() {
+        var toReturn = _.map(itemService.selected, function(item){
+            return item.id;
+        });
+        return toReturn;
+    }
+
   }
-
-
 
 })();

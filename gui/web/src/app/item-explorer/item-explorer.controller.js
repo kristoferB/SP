@@ -98,11 +98,9 @@
         }
 
         function isNodeDroppable(operation, draggedNode, targetParent, node_position, more) {
-            return (
-              draggedNode.id !== 'all-items' ||
-              draggedNode.type === 'Root' ||
-              targetParent.id !== 'all-items'
-            );
+            return (draggedNode.id !== 'all-items' || 
+                    draggedNode.type === 'Root' ||
+                    targetParent.id !== 'all-items') && targetParent.parent !== 'all-items'
         }
 
         function listenToChanges() {
@@ -328,6 +326,9 @@
             var newParentID = data.node.parent;
             var newRoot = getRoot(data.node);
 
+            console.log("****************************");
+            console.log(data.node);
+
             if(data.node.type !== 'Root' && data.node.type !== 'AllItemsRoot' && newRoot.type !== 'AllItemsRoot'){
                 var oldParent = vm.treeInstance.jstree(true).get_node(data.old_parent);
                 var oldRoot = getRoot(oldParent);
@@ -476,7 +477,7 @@
             }*/
             if (node.id !== 'all-items') {
                 menuItems[20] = rename;
-                var rootID, item = itemService.getItem(node.id);
+                var rootID, item = itemService.getItem(node.data.id);
                 if (node.type === 'Root') {
                     menuItems.delete = {
                         label: 'Delete root',
@@ -508,21 +509,23 @@
                             itemService.deleteItem(node.id);
                         }
                     };
-                    if (node.type === 'SOPSpec') {
-                        menuItems[10] = {
-                            label: 'Open with SOP Maker',
-                            action: function() {
-                                var widgetKind = _.find(dashboardService.widgetKinds, {title: 'SOP Maker'});
-                                if (widgetKind === undefined) {
-                                    logger.error('Item Explorer: Open with SOP Maker failed. ' +
-                                        'Could not find widgetKind "SOPMaker".')
-                                }
-                                dashboardService.addWidget(vm.dashboard, widgetKind, {sopSpecID: item.id});
-                                $rootScope.$digest();
-                            }
-                        };
-                    }
                 }
+
+                if (node.data.isa === 'SOPSpec') {
+                    menuItems[10] = {
+                        label: 'Open with SOP Maker',
+                        action: function() {
+                            var widgetKind = _.find(dashboardService.widgetKinds, {title: 'SOP Maker'});
+                            if (widgetKind === undefined) {
+                                logger.error('Item Explorer: Open with SOP Maker failed. ' +
+                                    'Could not find widgetKind "SOPMaker".')
+                            }
+                            dashboardService.addWidget(vm.dashboard, widgetKind, {sopSpecID: item.id});
+                            $rootScope.$digest();
+                        }
+                    };
+                }
+
             }
 
             return menuItems;

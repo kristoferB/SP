@@ -111,6 +111,8 @@
 
             function onItemEvent(data) {
                 logger.info('Item Service: Handler received an event.');
+
+                if (data.model == modelService.activeModel.id) {
                     for (var i = 0; i < data.updatedItems.length; i++) {
                         var remoteItem = data.updatedItems[i];
                         var existingItem = getItem(remoteItem.id);
@@ -138,7 +140,7 @@
                             logger.info('Item Service: Removed item ' + localItem.name + '.');
                         }
                     }
-
+                }
             }
         }
 

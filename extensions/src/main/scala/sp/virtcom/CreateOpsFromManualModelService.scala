@@ -1,11 +1,11 @@
 package sp.virtcom
 
 import akka.actor._
-import sp.domain.SPAttributes
+import sp.domain.{HierarchyRoot, HierarchyNode, IDAble, SPAttributes}
 import sp.system._
 import sp.system.{ServiceLauncher, SPService}
 import sp.system.messages._
-import sp.virtcom.modeledCases.{PSLFloorRoofCase, VolvoWeldConveyerCase}
+import sp.virtcom.modeledCases.{ROARcase, PSLFloorRoofCase, VolvoWeldConveyerCase}
 import sp.domain.Logic._
 
 /**
@@ -22,7 +22,7 @@ object CreateOpsFromManualModelService extends SPService {
       "description" -> "Creates operations for a manual model"
     ),
     "setup" -> SPAttributes(
-      "model" -> KeyDefinition("String", List(VolvoWeldConveyerCase().modelName, PSLFloorRoofCase().modelName), Some(VolvoWeldConveyerCase().modelName))
+      "model" -> KeyDefinition("String", List(VolvoWeldConveyerCase().modelName, PSLFloorRoofCase().modelName, ROARcase().modelName), Some(VolvoWeldConveyerCase().modelName))
     )
   )
 
@@ -39,7 +39,7 @@ object CreateOpsFromManualModelService extends SPService {
 
 case class CreateOpsFromManualModelSetup(model: String)
 
-class CreateOpsFromManualModelService extends Actor with ServiceSupport {
+class CreateOpsFromManualModelService extends Actor with ServiceSupport with AddHierarchies {
 
   def receive = {
     case r@Request(service, attr, ids, reqID) =>
@@ -58,22 +58,40 @@ class CreateOpsFromManualModelService extends Actor with ServiceSupport {
       var manualModel: CollectorModel = VolvoWeldConveyerCase()
       if (selectedModel.model.equals(PSLFloorRoofCase().modelName)) {
         manualModel = PSLFloorRoofCase()
+      } else if (selectedModel.model.equals(ROARcase().modelName)) {
+        manualModel = ROARcase()
       }
 
       import CollectorModelImplicits._
 
-      rnr.reply ! Response(manualModel.parseToIDables(), SPAttributes("info" -> s"Model created from: ${VolvoWeldConveyerCase().modelName}"), service, reqID)
+      val idablesFromModel = manualModel.parseToIDables()
+      val idablesToReturn = idablesFromModel ++ addHierarchies(idablesFromModel, "hierarchy")
+
+      rnr.reply ! Response(idablesToReturn, SPAttributes("info" -> s"Model created from: ${VolvoWeldConveyerCase().modelName}"), service, reqID)
       progress ! PoisonPill
       self ! PoisonPill
 
-    case (r: Response, reply: ActorRef) => {
+    case (r: Response, reply: ActorRef) =>
       reply ! r
-    }
-    case x => {
+    case x =>
       sender() ! SPError("What do you whant me to do? " + x)
       self ! PoisonPill
-    }
 
   }
 
+}
+
+sealed trait AddHierarchies {
+  def addHierarchies(idables: List[IDAble], attributeKey: String): List[IDAble] = {
+    val hierarchyMap = idables.foldLeft(Map(): Map[String, List[HierarchyNode]]) { case (acc, idable) =>
+      idable.attributes.getAs[String](attributeKey) match {
+        case Some(hierarchy) =>
+          acc ++ Map(hierarchy -> (HierarchyNode(idable.id) +: acc.getOrElse(hierarchy, List())))
+        case _ => acc
+      }
+    }
+    hierarchyMap.map { case (hierarchy, nodes) =>
+      HierarchyRoot(hierarchy, nodes)
+    }.toList
+  }
 }

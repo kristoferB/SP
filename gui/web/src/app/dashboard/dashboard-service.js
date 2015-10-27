@@ -67,7 +67,7 @@
 
         function addWidget(dashboard, widgetKind, additionalData) {
             var widget = angular.copy(widgetKind, {});
-            widget.id = service.storage.widget++;
+            widget.id = service.storage.widgetID++;
             if (additionalData !== undefined) {
                 widget.storage = additionalData;
             }

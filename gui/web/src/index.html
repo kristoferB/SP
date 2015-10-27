@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="app">
+<html ng-app="app" ng-controller="ShellController as vm">
 <head>
     <style>
         /* This helps the ng-show/ng-hide animations start at the right place. */
@@ -27,9 +27,11 @@
     <!-- endbower -->
     <!-- endbuild -->
 
+    <link rel="stylesheet" ng-href="/.tmp/{{vm.settingsService.storage.theme}}_theme.css" />
+
     <!-- build:css styles/app.css -->
     <!-- inject:css -->
-    <link rel="stylesheet" href="/.tmp/styles.css">
+
     <!-- endinject -->
     <!-- endbuild -->
 </head>
@@ -162,6 +164,8 @@
     <script src="/src/app/models/models.controller.js"></script>
 
     <script src="/src/app/models/models.route.js"></script>
+
+    <script src="/src/app/settings/settings-service.js"></script>
 
     <script src="/src/app/settings/settings.controller.js"></script>
 

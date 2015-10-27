@@ -59,10 +59,10 @@ class MakeNewGanttTrajectory
 
       val idMap = ids.map(x => x.id -> x).toMap
       val root = tryWithOption(idMap(trajectory).asInstanceOf[HierarchyRoot]).getOrElse(HierarchyRoot("empty"))
-      val opsNChildren = getOperationsAndItsChildren(idMap, root)
+      val opsNChildren = getOperationsAndItsChildren(ids, root)
       val robotTrajectories = opsNChildren.map(_._2.filter(
         item => item.isInstanceOf[Operation] && item.attributes.getAs[List[Pose]]("poses").isDefined).
-        map(_.asInstanceOf[Operation])).toList
+        map(_.asInstanceOf[Operation])).filter(_.nonEmpty).toList
       val makeSpan = getMakeSpan(robotTrajectories.flatten)
       val updateOps = matchGantt(robotTrajectories)
 
@@ -141,11 +141,14 @@ trait GanttTrajectoryLogic {
     val markOps = xs.map{ops =>
       ops.flatMap(op => op.attributes.getAs[ZoneMark]("mark").map { x =>
         val poses = op.attributes.getAs[List[Pose]]("poses").get
-        val newMark = x.copy(start = poses.head.time, end = poses.last.time)
-        Thing(x.name, SPAttributes("mark" -> newMark))
+        Thing(x.name, SPAttributes("mark" -> SPAttributes(
+          "start"-> poses.head.time,
+          "end" -> poses.last.time,
+          "type" -> "zone"
+        )))
       })
     }
-    val newOps = poses.map(ps => Operation("new", List(), SPAttributes("poses"->ps)))
+    val newOps = poses.map(ps => Operation("newOp", List(), SPAttributes("poses"->ps)))
     val newThings = poses.map(ps => Thing("new"))
     val zip = (newOps zip markOps) zip newThings
     val chs = zip.map(z => HierarchyNode(z._2.id, List(HierarchyNode(z._1._1.id, z._1._2.map(t => HierarchyNode(t.id))))))
