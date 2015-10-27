@@ -128,13 +128,12 @@ sealed trait RelationIdentificationLogic {
     }
     iterate(initState)
   }
-  def createItemRelationsfrom(ops: Set[Operation], states: Set[State], evalSetup: EvaluateProp): Set[ItemRelation] = {
+  def createItemRelationsfrom(ops: Set[Operation], states: Set[State], evalSetup: EvaluateProp): Map[Operation, ItemRelation] = {
 
     implicit val es = evalSetup
     def getEnabledOperations(state: State) = ops.filter(_.eval(state))
     val itemRelMap = states.foldLeft(Map(): Map[Operation, ItemRelation]) {
       case (acc, s) =>
-        //val relation = s.state.map{case(id,value)=>id-> Set(value)}.toMap
         val enabledOps = getEnabledOperations(s)
         val res = enabledOps.map { o =>
           val ir = acc.getOrElse(o, ItemRelation(o.id, OperationState.init, Map()))
@@ -149,13 +148,42 @@ sealed trait RelationIdentificationLogic {
         acc ++ res
 
     }
-    itemRelMap.values.toSet
+    itemRelMap
   }
-  // def buildRelationMap(itemRelation: Seq[ItemRelation]): Seq[OperationRelation] {
-  //   def findRelationBetween(o1: Operation, o2: Operation): Seq[SOP] = {
-  //     //using itemRelation here
-  //   }
-  // }
+
+  def buildRelationMap(itemRelations: Map[Operation, ItemRelation], activeOps: Set[Operation], opSequences: Set[Seq[Operation]]): Set[OperationRelation] = {
+    val opi = Set("i")
+    val opf = Set("f")
+    val opif = Set("i", "f")
+    def matchOps(o1: ID, valuesOfO2WhenO1Enabled: Set[SPValue], o2: ID, valuesOfO1WhenO2Enabled: Set[SPValue]): SOP = {
+      //val stateOfO2WhenO1Pre = o1State.pre(o2) flatMap (_.to[String])
+      //val stateOfO1WhenO2pre = o2State.pre(o1) flatMap (_.to[String])
+
+      val pre = (valuesOfO2WhenO1Enabled map (_.to[String]), valuesOfO1WhenO2Enabled map (_.to[String]))
+
+      if (pre == (opi, opi)) Alternative(o1, o2)
+      else if (pre == (opi, opf)) Sequence(o1, o2)
+      else if (pre == (opf, opi)) Sequence(o2, o1)
+      else if (pre == (opif, opi)) Sequence(o2, o1) //SometimeSequence(o2, o1)
+      else if (pre == (opi, opif)) Sequence(o1, o2) //SometimeSequence(o1, o2)
+      else if (pre == (opif, opif)) Parallel(o1, o2)
+      else Other(o1, o2)
+    }
+
+    def iterate(operations: Seq[Operation], opRels: Set[OperationRelation] = Set()): Set[OperationRelation] = {
+      operations match {
+        case thisOp +: os if os.nonEmpty =>
+          val res = os.map { thatOp =>
+            val sop = matchOps(thisOp.id, itemRelations(thisOp).relations.getOrElse(thatOp.id, Set()), thatOp.id, itemRelations(thatOp).relations.getOrElse(thisOp.id, Set()))
+            OperationRelation(Set(thisOp, thatOp), Set(sop))
+          }
+          iterate(os, opRels ++ res)
+        case _ => opRels
+      }
+    }
+    iterate(activeOps.toSeq)
+
+  }
 
 }
 
