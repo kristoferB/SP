@@ -3,7 +3,7 @@ package sp.services.relations
 import akka.actor._
 import akka.pattern.ask
 import sp.domain.logic.IDAbleLogic
-import sp.services.sopmaker.{ MakeASop, MakeMeASOP, SOPMaker }
+import sp.services.sopmaker.{MakeASop, MakeMeASOP, SOPMaker}
 import scala.concurrent._
 import sp.system._
 import sp.system.messages._
@@ -11,14 +11,14 @@ import sp.domain._
 import sp.domain.Logic._
 
 import scala.annotation.tailrec
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
 
 //TODO: future: background and foreground services. background takes hierarchy as input, foreground takes List, set or hierarchy
 object RelationIdentification extends SPService {
   val specification = SPAttributes(
     "service" -> SPAttributes(
       "description" -> "Find relations" // to organize in gui. maybe use "hide" to hide service in gui
-      ),
+    ),
     "setup" -> SPAttributes("iterations" -> KeyDefinition("Int", List(), Some(10)),
       "operationIds" -> KeyDefinition("List[ID]", List(), Some(SPValue(List())))))
 
@@ -43,7 +43,6 @@ case class RelationIdentificationSetup(iterations: Int, operationIds: List[ID])
 
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
 class RelationIdentification extends Actor with ServiceSupport with RelationIdentificationLogic {
-
 
   def receive = {
     case r@Request(service, attr, ids, reqID) =>
@@ -70,18 +69,13 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
             }
         }
       }
-      val evalualteProp2 = EvaluateProp(mapOps((_: SPValue) => true), Set(), TwoStateDefinition)
+      val evaluateProp2 = EvaluateProp(mapOps((_: SPValue) => true), Set(), TwoStateDefinition)
+      val evaluateProp3 = EvaluateProp(mapOps((_: SPValue) => true), Set(), ThreeStateDefinition)
 
-      val (opSeqs, states) = (0 to setup.iterations).foldLeft((Set(), Set()): (Set[Seq[Operation]], Set[State])) {
-        case (acc @ (accOpseqs, accStates), _) =>
-          findStraightSeq(ops, iState, evalualteProp2, { case (state, seq) => isGoalState(state) }) match {
-            case Some((opSeq, newStates)) => (accOpseqs + opSeq, accStates ++ newStates)
-            case _ => acc
-          }
-      }
-      val itemRelationMap = createItemRelationsfrom(ops, states, evalualteProp2)
-      val operationRelations = buildRelationMap(itemRelationMap, ops, opSeqs)
-      val activeOps = if(setup.operationIds.isEmpty) ops else ops.filter(o=>setup.operationIds.contains(o.id))
+      val (opSeqs, states) = analyseOperations(ops, setup.iterations, iState, { case (state, seq) => isGoalState(state) }, evaluateProp2)
+      val itemRelationMap = createItemRelationsfrom(ops, states, evaluateProp2)
+      val operationRelations = buildRelationMap(itemRelationMap, ops, opSeqs, iState, evaluateProp2, evaluateProp3)
+      val activeOps = if (setup.operationIds.isEmpty) ops else ops.filter(o => setup.operationIds.contains(o.id))
 
       val sops = CreateSop(activeOps, operationRelations, ops.head).createSop()
 
@@ -106,7 +100,17 @@ case class OperationRelation(opPair: Set[Operation], relation: Set[SOP])
 
 trait RelationIdentificationLogic {
 
-  def findStraightSeq(ops: Set[Operation], initState: State, evalSetup: EvaluateProp, goalCondition: (State, Seq[Operation]) => Boolean): Option[(Seq[Operation], Set[State])] = {
+  def analyseOperations(ops: Set[Operation], iterations: Int, iState: State, goalCondition: (State, Seq[Operation]) => Boolean, evalSetup: EvaluateProp): (Set[Seq[Operation]], Set[State]) = {
+    (0 to iterations).foldLeft((Set(), Set()): (Set[Seq[Operation]], Set[State])) {
+      case (acc@(accOpseqs, accStates), _) =>
+        findStraightSeq(ops, iState, goalCondition, evalSetup) match {
+          case Some((opSeq, newStates)) => (accOpseqs + opSeq, accStates ++ newStates)
+          case _ => acc
+        }
+    }
+  }
+
+  def findStraightSeq(ops: Set[Operation], initState: State, goalCondition: (State, Seq[Operation]) => Boolean, evalSetup: EvaluateProp): Option[(Seq[Operation], Set[State])] = {
     implicit val es = evalSetup
     def getEnabledOperations(state: State) = ops.filter(_.eval(state))
 
@@ -142,28 +146,55 @@ trait RelationIdentificationLogic {
               id -> (ir.relations.getOrElse(id, Set()) + value)
           }
           o -> ir.copy(relations = newMap)
-
         }
         acc ++ res
-
     }
     itemRelMap
   }
 
-  def buildRelationMap(itemRelations: Map[Operation, ItemRelation], activeOps: Set[Operation], opSequences: Set[Seq[Operation]]): Set[OperationRelation] = {
+  def arbitraryFinder(sequence: Seq[Operation], iState: State, evalSetup2: EvaluateProp, evalSetup3: EvaluateProp) = {
+
+    @tailrec
+    def findNotPar(s: State, seq: Seq[Operation]): Set[Operation] = {
+      implicit val es2 = evalSetup2
+      if (seq.isEmpty) Set()
+      else if (!seq.head.eval(s)) Set(seq.head)
+      else {
+        findNotPar(seq.head.next(s), seq.tail)
+      }
+    }
+
+    implicit val es2 = evalSetup3
+    @tailrec
+    def req(s: State, seq: Seq[Operation], res: Set[Set[ID]]): Set[Set[ID]] = {
+      if (seq.isEmpty) res
+      else {
+        val o = seq.head
+        if (!o.eval(s)) println("SOMETHING IS WRONG IN OVERLAP FINDER OP " + o + s)
+        val newState = o.next(s)
+        val parallelTo = findNotPar(newState, seq.tail).map(x => Set(o.id, x.id))
+        req(o.next(newState), seq.tail, res ++ parallelTo)
+      }
+    }
+    req(iState, sequence, Set())
+  }
+
+  def buildRelationMap(itemRelations: Map[Operation, ItemRelation], activeOps: Set[Operation], opSequences: Set[Seq[Operation]], iState: State, evalSetup2: EvaluateProp, evalSetup3: EvaluateProp): Set[OperationRelation] = {
     //TODO: create Parallel, Arbitary orders and return
     val opi = Set(OperationState.init)
     val opf = Set(OperationState.finished)
     val opif = opi ++ opf
 
+    val arbiPairs = opSequences.flatMap(opSeq => arbitraryFinder(opSeq, iState, evalSetup2, evalSetup3))
+
     def matchOps(o1: ID, valuesOfO2WhenO1Enabled: Set[SPValue], o2: ID, valuesOfO1WhenO2Enabled: Set[SPValue]): SOP = {
       val pre = (valuesOfO2WhenO1Enabled, valuesOfO1WhenO2Enabled)
-      if (pre == (opi, opi)) Alternative(o1, o2)
-      else if (pre == (opi, opf)) Sequence(o1, o2)
-      else if (pre == (opf, opi)) Sequence(o2, o1)
-      else if (pre == (opif, opi)) Sequence(o2, o1) //SometimeSequence(o2, o1)
-      else if (pre == (opi, opif)) Sequence(o1, o2) //SometimeSequence(o1, o2)
-      else if (pre == (opif, opif)) Parallel(o1, o2)
+      if (pre ==(opi, opi)) Alternative(o1, o2)
+      else if (pre ==(opi, opf)) Sequence(o1, o2)
+      else if (pre ==(opf, opi)) Sequence(o2, o1)
+      else if (pre ==(opif, opi)) Sequence(o2, o1) //SometimeSequence(o2, o1)
+      else if (pre ==(opi, opif)) Sequence(o1, o2) //SometimeSequence(o1, o2)
+      else if (pre ==(opif, opif)) if (arbiPairs.contains(Set(o1, o2))) Arbitrary(o1, o2) else Parallel(o1, o2)
       else Other(o1, o2)
     }
 
