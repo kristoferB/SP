@@ -19,11 +19,10 @@ object RelationIdentification extends SPService {
     "service" -> SPAttributes(
       "description" -> "Find relations" // to organize in gui. maybe use "hide" to hide service in gui
     ),
-    "setup" -> SPAttributes("iterations" -> KeyDefinition("Int", List(), Some(10)),
+    "setup" -> SPAttributes("iterations" -> KeyDefinition("Int", List(10,100,200,500,700,100), Some(100)),
       "operationIds" -> KeyDefinition("List[ID]", List(), Some(SPValue(List())))))
 
-  val transformTuple =
-    TransformValue("setup", _.getAs[RelationIdentificationSetup]("setup"))
+  val transformTuple = TransformValue("setup", _.getAs[RelationIdentificationSetup]("setup"))
 
   val transformation = transformToList(transformTuple.productIterator.toList)
 
@@ -164,7 +163,7 @@ trait RelationIdentificationLogic {
       }
     }
 
-    implicit val es2 = evalSetup3
+    implicit val es3 = evalSetup3
     @tailrec
     def req(s: State, seq: Seq[Operation], res: Set[Set[ID]]): Set[Set[ID]] = {
       if (seq.isEmpty) res
@@ -180,12 +179,14 @@ trait RelationIdentificationLogic {
   }
 
   def buildRelationMap(itemRelations: Map[Operation, ItemRelation], activeOps: Set[Operation], opSequences: Set[Seq[Operation]], iState: State, evalSetup2: EvaluateProp, evalSetup3: EvaluateProp): Set[OperationRelation] = {
-    //TODO: create Parallel, Arbitary orders and return
+
     val opi = Set(OperationState.init)
     val opf = Set(OperationState.finished)
     val opif = opi ++ opf
 
     val arbiPairs = opSequences.flatMap(opSeq => arbitraryFinder(opSeq, iState, evalSetup2, evalSetup3))
+    //    val opMap = activeOps.map(o => o.id -> o.name).toMap
+    //    println(s"arbiPairs: ${arbiPairs.map(ops => ops.map(opMap))}")
 
     def matchOps(o1: ID, valuesOfO2WhenO1Enabled: Set[SPValue], o2: ID, valuesOfO1WhenO2Enabled: Set[SPValue]): SOP = {
       val pre = (valuesOfO2WhenO1Enabled, valuesOfO1WhenO2Enabled)
@@ -218,7 +219,6 @@ trait RelationIdentificationLogic {
       }
     }
     iterate(activeOps.toSeq)
-
   }
 
   case class CreateSop(activeOps: Set[Operation], operationRelations: Set[OperationRelation], rootOp: Operation) extends MakeASop {

@@ -47,23 +47,23 @@ class DummySopService extends Actor with ServiceSupport {
   def receive = {
     case r@Request(service, attr, ids, reqID) =>
 
-//      //Example-------------------------------------------------------------
-//            val o11 = Operation("o11", List(), SPAttributes("time" -> 2))
-//            val o12 = Operation("o12", List(), SPAttributes("time" -> 5))
-//            val o13 = Operation("o13", List(), SPAttributes("time" -> 4))
-//            val o21 = Operation("o21", List(), SPAttributes("time" -> 1.5))
-//            val o22 = Operation("o22", List(), SPAttributes("time" -> 2))
-//            val o23 = Operation("o23", List(), SPAttributes("time" -> 4.23))
-//            val opsEx = List(o11, o12, o13, o21, o22, o23)
-//
-//            val sopSeq = SOP(Sequence(o11, o12, o13), Sequence(o21, o22, o23))
-//            val sopArbi = SOP(Arbitrary(o12, o22))
-//
-//            val conditions = sp.domain.logic.SOPLogic.extractOperationConditions(List(sopSeq, sopArbi), "traj")
-//            val opsUpd = opsEx.map { o =>
-//              val cond = conditions.get(o.id).map(List(_)).getOrElse(List())
-//              o.copy(conditions = cond)
-//            }
+      //Example------------------      -------------------------------------------
+      val o11 = Operation("o11", List(), SPAttributes("time" -> 2))
+      val o12 = Operation("o12", List(), SPAttributes("time" -> 5))
+      val o13 = Operation("o13", List(), SPAttributes("time" -> 4))
+      val o21 = Operation("o21", List(), SPAttributes("time" -> 1.5))
+      val o22 = Operation("o22", List(), SPAttributes("time" -> 2))
+      val o23 = Operation("o23", List(), SPAttributes("time" -> 4.23))
+      val opsEx = List(o11, o12, o13, o21, o22, o23)
+
+      val sopSeq = SOP(Sequence(o11, o12, o13), Sequence(o21, o22, o23))
+      val sopArbi = SOP(Arbitrary(o12, o22))
+
+      val conditions = sp.domain.logic.SOPLogic.extractOperationConditions(List(sopSeq, sopArbi), "traj")
+      val opsUpd = opsEx.map { o =>
+        val cond = conditions.get(o.id).map(List(_)).getOrElse(List())
+        o.copy(conditions = cond)
+      }
 
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()
@@ -90,6 +90,7 @@ class DummySopService extends Actor with ServiceSupport {
       val items = List(SOPSpec(name = setup.sopname, sop = List(seq), attributes = SPAttributes().addTimeStamp))
 
       sendResp(Response(items, SPAttributes("info" -> "Dummy SOP created"), service, reqID), progress)
+//      sendResp(Response(items++opsUpd, SPAttributes("info" -> "Dummy SOP created"), service, reqID), progress)
 
     case (r: Response, reply: ActorRef) =>
       reply ! r
