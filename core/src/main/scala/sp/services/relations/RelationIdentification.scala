@@ -3,7 +3,7 @@ package sp.services.relations
 import akka.actor._
 import akka.pattern.ask
 import sp.domain.logic.IDAbleLogic
-import sp.services.sopmaker.{MakeASop, MakeMeASOP, SOPMaker}
+import sp.services.sopmaker.{ MakeASop, MakeMeASOP, SOPMaker }
 import scala.concurrent._
 import sp.system._
 import sp.system.messages._
@@ -11,17 +11,19 @@ import sp.domain._
 import sp.domain.Logic._
 
 import scala.annotation.tailrec
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
+//TODO: future: background and foreground services. background takes hierarchy as input, foreground takes List, set or hierarchy
 object RelationIdentification extends SPService {
   val specification = SPAttributes(
     "service" -> SPAttributes(
       "description" -> "Find relations" // to organize in gui. maybe use "hide" to hide service in gui
-    ),
-    "setup" -> SPAttributes())
+      ),
+    "setup" -> SPAttributes("iterations" -> KeyDefinition("Int", List(), Some(10)),
+      "operationIds" -> KeyDefinition("List[ID]", List(), Some(SPValue(List())))))
 
-  val transformTuple = (
-    TransformValue("setup", _.getAs[RelationIdentification]("setup")))
+  val transformTuple =
+    TransformValue("setup", _.getAs[RelationIdentificationSetup]("setup"))
 
   val transformation = transformToList(transformTuple.productIterator.toList)
 
@@ -37,16 +39,14 @@ object RelationIdentification extends SPService {
 
 }
 
-case class RelationIdentificationSetup(onlyOperations: Boolean, searchMethod: String)
+case class RelationIdentificationSetup(iterations: Int, operationIds: List[ID])
 
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
 class RelationIdentification extends Actor with ServiceSupport with RelationIdentificationLogic {
 
-  import context.dispatcher
 
   def receive = {
     case r@Request(service, attr, ids, reqID) =>
-
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
@@ -54,7 +54,7 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
       // include this if you whant to send progress messages. Send attributes to it during calculations
       val progress = context.actorOf(progressHandler)
 
-      //val s = transform(RelationMapper.transformTuple._1)
+      val setup = transform(RelationIdentification.transformTuple)
 
       val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation]).toSet
 
@@ -62,17 +62,18 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
       val iState = State(mapOps(OperationState.init))
       def isGoalState(state: State) = {
         lazy val goalState = State(mapOps(OperationState.finished))
-        state.state.forall { case (id, value) =>
-          goalState.get(id) match {
-            case Some(otherValue) => value == otherValue
-            case _ => false
-          }
+        state.state.forall {
+          case (id, value) =>
+            goalState.get(id) match {
+              case Some(otherValue) => value == otherValue
+              case _ => false
+            }
         }
       }
       val evalualteProp2 = EvaluateProp(mapOps((_: SPValue) => true), Set(), TwoStateDefinition)
 
-      val (opSeqs, states) = (0 to 10).foldLeft((Set(), Set()): (Set[Seq[Operation]], Set[State])) {
-        case (acc@(accOpseqs, accStates), _) =>
+      val (opSeqs, states) = (0 to setup.iterations).foldLeft((Set(), Set()): (Set[Seq[Operation]], Set[State])) {
+        case (acc @ (accOpseqs, accStates), _) =>
           findStraightSeq(ops, iState, evalualteProp2, { case (state, seq) => isGoalState(state) }) match {
             case Some((opSeq, newStates)) => (accOpseqs + opSeq, accStates ++ newStates)
             case _ => acc
@@ -80,8 +81,9 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
       }
       val itemRelationMap = createItemRelationsfrom(ops, states, evalualteProp2)
       val operationRelations = buildRelationMap(itemRelationMap, ops, opSeqs)
+      val activeOps = if(setup.operationIds.isEmpty) ops else ops.filter(o=>setup.operationIds.contains(o.id))
 
-      val sops = CreateSop(ops, operationRelations, ops.head).createSop()
+      val sops = CreateSop(activeOps, operationRelations, ops.head).createSop()
 
       val toReturn = SOPSpec(name = "relationSOP", sop = sops)
       rnr.reply ! Response(List(toReturn), SPAttributes("info" -> s"created a relationMap for ${ops.map(_.name).mkString(" ")}"), service, reqID)
@@ -98,14 +100,11 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
 
 }
 
-//case class SeqState(op: Option[Operation] = None, state: State)
 case class ItemRelation(id: ID, state: SPValue, relations: Map[ID, Set[SPValue]])
 
 case class OperationRelation(opPair: Set[Operation], relation: Set[SOP])
 
-//opPair just has always has two operations
-
-sealed trait RelationIdentificationLogic {
+trait RelationIdentificationLogic {
 
   def findStraightSeq(ops: Set[Operation], initState: State, evalSetup: EvaluateProp, goalCondition: (State, Seq[Operation]) => Boolean): Option[(Seq[Operation], Set[State])] = {
     implicit val es = evalSetup
@@ -152,19 +151,19 @@ sealed trait RelationIdentificationLogic {
   }
 
   def buildRelationMap(itemRelations: Map[Operation, ItemRelation], activeOps: Set[Operation], opSequences: Set[Seq[Operation]]): Set[OperationRelation] = {
-
+    //TODO: create Parallel, Arbitary orders and return
     val opi = Set(OperationState.init)
     val opf = Set(OperationState.finished)
     val opif = opi ++ opf
-    def matchOps(o1: ID, valuesOfO2WhenO1Enabled: Set[SPValue], o2: ID, valuesOfO1WhenO2Enabled: Set[SPValue]): SOP = {
 
+    def matchOps(o1: ID, valuesOfO2WhenO1Enabled: Set[SPValue], o2: ID, valuesOfO1WhenO2Enabled: Set[SPValue]): SOP = {
       val pre = (valuesOfO2WhenO1Enabled, valuesOfO1WhenO2Enabled)
-      if (pre ==(opi, opi)) Alternative(o1, o2)
-      else if (pre ==(opi, opf)) Sequence(o1, o2)
-      else if (pre ==(opf, opi)) Sequence(o2, o1)
-      else if (pre ==(opif, opi)) Sequence(o2, o1) //SometimeSequence(o2, o1)
-      else if (pre ==(opi, opif)) Sequence(o1, o2) //SometimeSequence(o1, o2)
-      else if (pre ==(opif, opif)) Parallel(o1, o2)
+      if (pre == (opi, opi)) Alternative(o1, o2)
+      else if (pre == (opi, opf)) Sequence(o1, o2)
+      else if (pre == (opf, opi)) Sequence(o2, o1)
+      else if (pre == (opif, opi)) Sequence(o2, o1) //SometimeSequence(o2, o1)
+      else if (pre == (opi, opif)) Sequence(o1, o2) //SometimeSequence(o1, o2)
+      else if (pre == (opif, opif)) Parallel(o1, o2)
       else Other(o1, o2)
     }
 
