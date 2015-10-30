@@ -72,7 +72,8 @@
 
         function toggleDirection() {
             vm.sopSpecCopy.vertDir = !vm.sopSpecCopy.vertDir;
-            reDraw();
+//            reDraw(); Removed by Patrik 151030. The uttermost lines are not toggled...
+            clearAndDrawFromScratch();
         }
 
         function toggleConditions() {

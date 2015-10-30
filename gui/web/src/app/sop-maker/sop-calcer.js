@@ -574,9 +574,11 @@
                         textLine = textLine + '; ';
                     }
                     var actionValue = false;
-                    if (action[i].value.isa == "SVIDEval")
-                        actionValue == action[i].value.isa.id;
-                    else actionValue == action[i].value.v
+                    if (action[i].value.isa == "SVIDEval") {
+                        actionValue = action[i].value.isa.id;
+                    } else {
+                        actionValue = action[i].value.v;
+                    }
 
                     textLine = textLine + getNameFromId(action[i].id) + ' = ' + actionValue;
                 }
