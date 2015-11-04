@@ -9,7 +9,7 @@ import sp.virtcom.CollectorModel
  */
 case class ROARcase(modelName: String = "ROAR - single bin") extends CollectorModel {
 
-  def hAtt(h: String) = SPAttributes("hierarchy" -> h)
+  def hAtt(h: String) = SPAttributes("hierarchy" -> Set(h))
 
   op("searchForBins", hAtt("Quad"))
   op("dock", hAtt("Quad"))

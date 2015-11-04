@@ -35,6 +35,7 @@ object ExtendIDablesBasedOnTheirAttributes {
 }
 
 class ExtendIDablesBasedOnTheirAttributesService extends Actor with ServiceSupport {
+
   import context.dispatcher
 
   def receive = {
@@ -73,6 +74,12 @@ class ExtendIDablesBasedOnTheirAttributesService extends Actor with ServiceSuppo
 case class TransformationPatternInAttributes(atStart: Option[String], atExecute: Option[String], atComplete: Option[String]) {
   def partlyAtStart() = partly(atStart)
   def partlyAtComplete() = partly(atComplete)
+  def betweenStartAndComplete() = for {
+    start <- atStart
+    complete <- atComplete
+  } yield {
+      s"${start}To${complete.capitalize}"
+    }
   private def partly(optValue: Option[String]) = optValue.map(value => s"partly${value.capitalize}")
   def valuesForDomain() = Seq(atStart, atExecute, atComplete).flatten
 }
@@ -98,7 +105,7 @@ private case class ExtendIDablesWrapper(var ops: List[Operation], var vars: List
         _.obj.map { case (key, toTpia) =>
           lazy val tpia = toTpia.to[TransformationPatternInAttributes].get
           SPAttributes(key -> SPAttributes("atStart" -> tpia.atStart.getOrElse("empty"),
-            "atExecute" -> (if (tpia.atExecute.isDefined) tpia.atExecute else if (tpia.atComplete.isDefined) tpia.partlyAtComplete() else tpia.partlyAtStart()),
+            "atExecute" -> (if (tpia.atExecute.isDefined) tpia.atExecute else if (tpia.atComplete.isDefined && tpia.atStart.isDefined) tpia.betweenStartAndComplete() else if (tpia.atComplete.isDefined) tpia.partlyAtComplete() else tpia.partlyAtStart()),
             "atComplete" -> tpia.atComplete.getOrElse("empty")))
         }
       }.map(_.foldLeft(SPAttributes()) { case (acc, attr) => acc merge attr })

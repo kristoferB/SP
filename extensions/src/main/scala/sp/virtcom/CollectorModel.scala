@@ -50,8 +50,8 @@ trait CollectorModel {
     )
   }
 
-  def x(name: String, forbiddenExpressions: Set[String] = Set(), operations: Set[String] = Set()) = {
-    forbiddenExpressionSet += SOPSpec(name = name, sop = List(), attributes = SPAttributes(
+  def x(name: String, forbiddenExpressions: Set[String] = Set(), operations: Set[String] = Set(),attributes : SPAttributes = SPAttributes()) = {
+    forbiddenExpressionSet += SOPSpec(name = name, sop = List(), attributes = attributes merge SPAttributes(
       "forbiddenExpressions" -> (if (forbiddenExpressions.isEmpty) None else Some(forbiddenExpressions)),
       "mutexOperations" -> (if (operations.isEmpty) None else Some(operations))))
   }
