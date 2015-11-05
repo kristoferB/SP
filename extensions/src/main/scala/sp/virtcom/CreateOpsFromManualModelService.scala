@@ -83,7 +83,7 @@ class CreateOpsFromManualModelService extends Actor with ServiceSupport with Add
 
 }
 
-sealed trait AddHierarchies {
+trait AddHierarchies {
   def addHierarchies(idables: List[IDAble], attributeKey: String): List[IDAble] = {
     val hierarchyMap = idables.foldLeft(Map(): Map[String, List[HierarchyNode]]) { case (acc, idable) =>
       idable.attributes.getAs[Set[String]](attributeKey) match {

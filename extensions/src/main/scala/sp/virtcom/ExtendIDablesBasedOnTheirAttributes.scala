@@ -34,7 +34,7 @@ object ExtendIDablesBasedOnTheirAttributes {
 
 }
 
-class ExtendIDablesBasedOnTheirAttributesService extends Actor with ServiceSupport {
+class ExtendIDablesBasedOnTheirAttributesService extends Actor with ServiceSupport with AddHierarchies {
 
   import context.dispatcher
 
@@ -44,6 +44,8 @@ class ExtendIDablesBasedOnTheirAttributesService extends Actor with ServiceSuppo
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
+
+      println(s"service: $service")
 
       val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
       val vars = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing])

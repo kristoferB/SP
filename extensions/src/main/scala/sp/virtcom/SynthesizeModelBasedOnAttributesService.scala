@@ -68,6 +68,7 @@ private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef) ext
             ptmw.saveToWMODFile("./testFiles/gitIgnore/")
             ptmw.addForbiddenExpressions()
             ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+            ptmw.saveToWMODFile("./testFiles/gitIgnore/raw/")
             progress ! SPAttributes("progress" -> "Synthesizing supervisor")
             ptmw.SupervisorAsBDD()
           }
