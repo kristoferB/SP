@@ -13,11 +13,14 @@ case class ROARcase(modelName: String = "ROAR - single bin") extends CollectorMo
 
   v(name = "vQuad", idleValue = "inDock", domain = Seq("searchingForBins"), attributes = hAtt("Quad"))
   v(name = "vBinDetection_mockup", idleValue = "idle", attributes = hAtt("Quad"))
-  op("searchForBins", hAtt("Quad") merge
-    SPAttributes(aResourceTrans("vQuad", "inDock", "searchingForBins", "inDock")))
+  op("searchForBins1", hAtt("Quad") merge
+    SPAttributes(aResourceTrans("vQuad", "inDock", "searchingForBins1", "searchingForBins2")))
+  op("searchForBins2", hAtt("Quad") merge
+    SPAttributes(aResourceTrans("vQuad", "searchingForBins2", "searchingForBins3", "inDock")))
+
   op("newBinDetected_onlyInMockup", hAtt("Quad") merge
     SPAttributes(aResourceTrans("vBinDetection_mockup", "idle", "detecting", "idle")) merge
-    SPAttributes("preGuard" -> Set("vQuad == searchingForBins")) merge
+    SPAttributes("preGuard" -> Set("vQuad == searchingForBins2")) merge
     SPAttributes(aCarrierTrans("vDetectedBins", atStart = "non", atComplete = "oneBin"))
   )
 
