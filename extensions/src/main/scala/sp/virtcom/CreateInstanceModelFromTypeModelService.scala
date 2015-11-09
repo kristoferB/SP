@@ -102,7 +102,7 @@ class CreateInstanceModelFromTypeModelService extends Actor with ServiceSupport 
         rnr.reply ! Response(List(), SPAttributes(), service, reqID)
         self ! PoisonPill
       } else {
-        lazy val result = specList.map { case (name, opSeqFromSpec) =>
+        val result = specList.map { case (name, opSeqFromSpec) =>
 
           val wfs = WrapperForSearch(ops.toSet)
 

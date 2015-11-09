@@ -15,7 +15,7 @@ trait CollectorModel {
   var forbiddenExpressionSet: Set[SOPSpec] = Set()
   var robotMovementsSet: Set[SPSpec] = Set()
 
-  def v(name: String, domain: Seq[String] = Seq(), init: Option[String] = None, marked: Set[String] = Set(), idleValue: Option[String] = None, attributes : SPAttributes = SPAttributes()) = {
+  def v(name: String, domain: Seq[String] = Seq(), init: Option[String] = None, marked: Set[String] = Set(), idleValue: Option[String] = None, attributes: SPAttributes = SPAttributes()) = {
     variableSet += Thing(name = name, attributes = attributes merge SPAttributes("markings" -> (if (marked.isEmpty) None: Option[Set[String]] else Some(marked)),
       "idleValue" -> idleValue,
       "stateVariable" -> SPAttributes(
@@ -50,8 +50,8 @@ trait CollectorModel {
     )
   }
 
-  def x(name: String, forbiddenExpressions: Set[String] = Set(), operations: Set[String] = Set()) = {
-    forbiddenExpressionSet += SOPSpec(name = name, sop = List(), attributes = SPAttributes(
+  def x(name: String, forbiddenExpressions: Set[String] = Set(), operations: Set[String] = Set(), attributes: SPAttributes = SPAttributes()) = {
+    forbiddenExpressionSet += SOPSpec(name = name, sop = List(), attributes = attributes merge SPAttributes(
       "forbiddenExpressions" -> (if (forbiddenExpressions.isEmpty) None else Some(forbiddenExpressions)),
       "mutexOperations" -> (if (operations.isEmpty) None else Some(operations))))
   }
@@ -69,8 +69,8 @@ trait CollectorModel {
     }
   }
 
-  def robotMovements(robotNamePrefix: String = "v", robotName: String, robotNameSuffix: String = "_pos", staticRobotPoses: SPAttributes) = {
-    robotMovementsSet += SPSpec(name = robotName, attributes = SPAttributes(
+  def robotMovements(robotNamePrefix: String = "v", robotName: String, robotNameSuffix: String = "_pos", staticRobotPoses: SPAttributes, attributes: SPAttributes = SPAttributes()) = {
+    robotMovementsSet += SPSpec(name = robotName, attributes = attributes merge SPAttributes(
       "robotNamePrefix" -> robotNamePrefix,
       "robotName" -> robotName,
       "robotNameSuffix" -> robotNameSuffix,
@@ -107,9 +107,10 @@ object CollectorModelImplicits {
 
       //ForbiddenExpressions--------------------------------------------------------------------------------------
       lazy val fesToAddWithNoVisableOperations = getIDablesFromSet(cm.forbiddenExpressionSet, (n, as) => SOPSpec(name = n, sop = List(), attributes = as))
-      lazy val fesToAdd = fesToAddWithNoVisableOperations.map { obj => obj.copy(sop =
-        List(Arbitrary(obj.attributes.findAs[List[String]]("mutexOperations").flatten.flatMap(o => operationMap.get(o)).map(o => Hierarchy(o.id)): _*)),
-        attributes = obj.attributes.removeField { case JField("mutexOperations", _) => true; case _ => false }.to[SPAttributes].getOrElse(SPAttributes()))
+      lazy val fesToAdd = fesToAddWithNoVisableOperations.map { obj =>
+        val mutexOperations = obj.attributes.findAs[List[String]]("mutexOperations").flatten
+        obj.copy(sop = if (mutexOperations.isEmpty) List() else List(Arbitrary(mutexOperations.flatMap(o => operationMap.get(o)).map(o => Hierarchy(o.id)): _*)),
+          attributes = obj.attributes.removeField { case JField("mutexOperations", _) => true; case _ => false }.to[SPAttributes].getOrElse(SPAttributes()))
       }
 
       //RobotMovements---------------------------------------------------------------------------------------------
