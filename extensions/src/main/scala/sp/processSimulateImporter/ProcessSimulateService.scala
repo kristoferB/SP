@@ -94,35 +94,43 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     progress ! PoisonPill
   }
 
+  def createExportJsonHelper(sop : SOP, ids: List[IDAble], ack : SPAttributes) : SPAttributes = {
+    sop match {
+      case h: Hierarchy =>
+        val ops = ids.find(o => o.id == h.operation)
+        ack merge (ops match {
+          case Some(o) => SPAttributes("name" -> o.name, "simop" -> (o.attributes.getAs[String]("simop") match {
+            case Some(txid) => txid
+            case _ =>
+              o.attributes.getAs[String]("txid") match {
+                case Some(txid) => txid
+                case _ => "dummy"
+              }
+          }))
+          case None => SPAttributes("name" -> "op does not exist")
+        })
+      case p: Parallel => {
+        ack merge SPAttributes("parallel" -> p.sop.map(createExportJsonHelper(_, ids, ack)))
+      }
+      case s: Sequence => {
+        ack merge SPAttributes("sequence" -> s.sop.map(createExportJsonHelper(_, ids, ack)))
+      }
+    }
+  }
+
   def exportSeq(model: Option[ID], ids: List[IDAble], sops: List[ID], progress: ActorRef)(implicit rnr: RequestNReply) = {
     val sopspecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec]).filter(sop => sops.contains(sop.id))
 
     val json = SPAttributes("command" -> "create_op_chains",
-      "params" -> Map("op_chains" -> sopspecs.map(sop => {
-        val ops = sop match {
-          case SOPSpec(name, s, attributes, id) =>
-            s.head.sop.flatMap {
-              case h: Hierarchy => ids.find(o => o.id == h.operation)
-            }.map(_.asInstanceOf[Operation])
-        }
-        SPAttributes("name" -> sop.name,
-          "ops" -> ops.map(o =>
-            SPAttributes("name" -> o.name, "simop" -> (o.attributes.getAs[String]("simop") match {
-              case Some(txid) => txid
-              case _ =>
-                o.attributes.getAs[String]("txid") match {
-                  case Some(txid) => txid
-                  case _ => "dummy"
-                }
-            }))))
-      }))).toJson
+      "params" -> SPAttributes("op_chains" ->
+        sopspecs.map(spec => SPAttributes("name" -> spec.name, "sop" -> spec.sop.map(createExportJsonHelper(_, ids, SPAttributes())))))).pretty
 
     val f = psAmq ? json
     progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
 
     val items = handlePSAnswer(f)
     items.map { list => Response(list, SPAttributes("info" -> "create_op_chain"), rnr.req.service, rnr.req.reqID) }
-  }
+  }  
 
   def updateSimIds(ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
     lazy val json = SPAttributes("command" -> "get_all_tx_objects") toJson
