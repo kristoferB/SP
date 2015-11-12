@@ -18,6 +18,7 @@
         vm.widget = widgetModel.widget;
         vm.addSop = addSop;
         vm.toggleDirection = toggleDirection;
+        vm.toggleConditions = toggleConditions;
         vm.save = save;
         vm.saveToSessionStorage = saveToSessionStorage;
         vm.clearAndDrawFromScratch = clearAndDrawFromScratch;
@@ -34,7 +35,7 @@
                 vm.widget.storage = {};
             }
             vm.widget.storage.editable = true;
-            vm.widget.storage.viewAllConditions = true;
+            vm.widget.storage.viewAllConditions = false;
             var paperElement = $($element).find('.sop-paper');
             paper = Raphael(paperElement[0], 300, 300);
             if(itemService.itemsFetched) {
@@ -71,7 +72,13 @@
 
         function toggleDirection() {
             vm.sopSpecCopy.vertDir = !vm.sopSpecCopy.vertDir;
-            reDraw();
+//            reDraw(); Removed by Patrik 151030. The uttermost lines are not toggled...
+            clearAndDrawFromScratch();
+        }
+
+        function toggleConditions() {
+            vm.widget.storage.viewAllConditions = !vm.widget.storage.viewAllConditions;
+            clearAndDrawFromScratch();
         }
 
         function clearAndDrawFromScratch() {

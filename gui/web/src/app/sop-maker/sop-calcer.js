@@ -460,7 +460,7 @@
             });
 
             for(var i = 0; i < conditions.length; i++) {
-                if (conditions[i].attributes.kind === 'pre') {
+                if (conditions[i].attributes.kind === 'precondition') {
                     var preGuardAsText = guardAsText(conditions[i].guard);
                     if (preGuardAsText !== '') {
                         sop.clientSideAdditions[kinds[0]].push(preGuardAsText);
@@ -469,7 +469,7 @@
                     if (preActionAsText !== '') {
                         sop.clientSideAdditions[kinds[2]].push(preActionAsText);
                     }
-                } else if(conditions[i].attributes.kind === 'post') {
+                } else if(conditions[i].attributes.kind === 'postcondition') {
                     var postGuardAsText = guardAsText(conditions[i].guard);
                     if (postGuardAsText !== '') {
                         sop.clientSideAdditions[kinds[1]].push(postGuardAsText);
@@ -540,13 +540,23 @@
                         return left + operator + right;
                     }
                 } else if(prop.isa === 'AND' || prop.isa === 'OR') {
-                    operator = ' ' + prop.isa + ' ';
+                    var operatorType = '\&';
+                        if (prop.isa === 'OR') {
+                            operatorType = '\|';
+                        }
+                    operator = ' ' + operatorType + ' ';
                     var line = '';
                     for(var i = 0; i < prop.props.length; i++) {
                         if(i > 0) {
                             line = line + operator;
                         }
-                        line = line + handleProp(prop.props[i]);
+                        var nextPropText = guardAsText(prop.props[i]);
+                        if (prop.props[i].hasOwnProperty('props')) {
+                            if(prop.props[i].props.length>1) {
+                                nextPropText = '(' + nextPropText + ')';
+                            }
+                        }
+                        line = line + nextPropText;
                     }
                     return line;
                 } else if(prop.isa === 'NOT') {
@@ -564,9 +574,11 @@
                         textLine = textLine + '; ';
                     }
                     var actionValue = false;
-                    if (action[i].value.isa == "SVIDEval")
-                        actionValue == action[i].value.isa.id;
-                    else actionValue == action[i].value.v
+                    if (action[i].value.isa == "SVIDEval") {
+                        actionValue = action[i].value.isa.id;
+                    } else {
+                        actionValue = action[i].value.v;
+                    }
 
                     textLine = textLine + getNameFromId(action[i].id) + ' = ' + actionValue;
                 }
