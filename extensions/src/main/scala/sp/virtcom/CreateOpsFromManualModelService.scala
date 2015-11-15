@@ -5,7 +5,7 @@ import sp.domain.{HierarchyRoot, HierarchyNode, IDAble, SPAttributes}
 import sp.system._
 import sp.system.{ServiceLauncher, SPService}
 import sp.system.messages._
-import sp.virtcom.modeledCases.{ROARcase, PSLFloorRoofCase, VolvoWeldConveyerCase}
+import sp.virtcom.modeledCases.{SimpleTest, ROARcase, PSLFloorRoofCase, VolvoWeldConveyerCase}
 import sp.domain.Logic._
 
 /**
@@ -17,12 +17,13 @@ import sp.domain.Logic._
  */
 
 object CreateOpsFromManualModelService extends SPService {
+  val a = ""
   val specification = SPAttributes(
     "service" -> SPAttributes(
       "description" -> "Creates operations for a manual model"
     ),
     "setup" -> SPAttributes(
-      "model" -> KeyDefinition("String", List(VolvoWeldConveyerCase().modelName, PSLFloorRoofCase().modelName, ROARcase().modelName), Some(VolvoWeldConveyerCase().modelName))
+      "model" -> KeyDefinition("String", List(VolvoWeldConveyerCase().modelName, PSLFloorRoofCase().modelName, ROARcase().modelName, SimpleTest().modelName), Some(SimpleTest().modelName))
     )
   )
 
@@ -60,6 +61,8 @@ class CreateOpsFromManualModelService extends Actor with ServiceSupport with Add
         manualModel = PSLFloorRoofCase()
       } else if (selectedModel.model.equals(ROARcase().modelName)) {
         manualModel = ROARcase()
+      } else if (selectedModel.model.equals(SimpleTest().modelName)) {
+        manualModel = SimpleTest()
       }
 
       import CollectorModelImplicits._
