@@ -55,6 +55,7 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
       val setup = transform(RelationIdentification.transformTuple)
 
       val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation]).toSet
+      val sopSpecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec]).toSet
 
       def mapOps[T](t: T) = ops.map(o => o.id -> t).toMap
       val iState = State(mapOps(OperationState.init))
