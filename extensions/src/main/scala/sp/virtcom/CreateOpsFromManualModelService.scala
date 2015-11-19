@@ -69,7 +69,7 @@ class CreateOpsFromManualModelService extends Actor with ServiceSupport with Add
       val idablesFromModel = manualModel.parseToIDables()
       val idablesToReturn = idablesFromModel ++ addHierarchies(idablesFromModel, "hierarchy")
 
-      rnr.reply ! Response(idablesToReturn, SPAttributes("info" -> s"Model created from: ${VolvoWeldConveyerCase().modelName}"), service, reqID)
+      rnr.reply ! Response(idablesToReturn, SPAttributes("info" -> s"Model created from: ${manualModel.modelName}"), service, reqID)
       progress ! PoisonPill
       self ! PoisonPill
 

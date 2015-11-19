@@ -38,7 +38,8 @@ object CreateInstanceModelFromTypeModelService extends SPService {
       "description" -> "Create one instance form type models"
     ),
     "Specifications" -> SPAttributes(
-      "sops" -> KeyDefinition("List[ID]", List(), Some(SPValue(List())))
+      "sops" -> KeyDefinition("List[ID]", List(), Some(SPValue(List()))),
+      "generateIdables" -> KeyDefinition("Boolean", List(), Some(false))
     )
   )
 
@@ -52,9 +53,9 @@ object CreateInstanceModelFromTypeModelService extends SPService {
 
 }
 
-case class CreateInstanceModelFromTypeModelSpecifications(sops: List[ID])
+case class CreateInstanceModelFromTypeModelSpecifications(sops: List[ID], generateIdables: Boolean)
 
-class CreateInstanceModelFromTypeModelService extends Actor with ServiceSupport with DESModelingSupport {
+class CreateInstanceModelFromTypeModelService extends Actor with ServiceSupport with DESModelingSupport with CopyModifyAndAddIdables with AddHierarchies {
 
   def receive = {
     case r@Request(service, attr, ids, reqID) =>
@@ -62,6 +63,8 @@ class CreateInstanceModelFromTypeModelService extends Actor with ServiceSupport 
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
+
+      val progress = context.actorOf(progressHandler)
 
       println(s"service: $service")
 
@@ -98,12 +101,14 @@ class CreateInstanceModelFromTypeModelService extends Actor with ServiceSupport 
 
       if (specList.isEmpty) println("No specification(s) given.")
 
+      case class SequenceResult(startSeqName: String, opSeq: Seq[Operation], result: SOPSpec)
+
       if (ops.exists(_.conditions.size != 2)) {
         println("At least one operation lacks pre and/or postcondition. I will not go on.")
         rnr.reply ! Response(List(), SPAttributes(), service, reqID)
         self ! PoisonPill
       } else {
-        val result = specList.map { case (name, opSeqFromSpec) =>
+        val result = specList.flatMap { case (name, opSeqFromSpec) =>
 
           val wfs = WrapperForSearch(ops.toSet)
 
@@ -127,20 +132,36 @@ class CreateInstanceModelFromTypeModelService extends Actor with ServiceSupport 
           }
 
           println("search started")
+          progress ! SPAttributes("progress" -> "search started")
           val foundSeq = findOpSeqIterator(opSeqFromSpec) match {
             case Some(seq) =>
               println(s"The found sequence for specification \'$name\' contains ${seq.size} operations.")
-              Sequence(seq.map(o => Hierarchy(o.id, List())): _*)
+              Some((seq, Sequence(seq.map(o => Hierarchy(o.id, List())): _*)))
             case _ =>
               println(s"No sequence for specification \'$name\' could be found.")
-              EmptySOP
+              None
           }
           println("search ended")
+          progress ! SPAttributes("progress" -> "search ended")
 
-          SequenceResult(name, SOPSpec(name = s"${name}_Result", sop = List(foundSeq), attributes = SPAttributes().addTimeStamp))
+          foundSeq.map { case (opSeq, sequence) =>
+            SequenceResult(name, opSeq, SOPSpec(name = s"${name}_Result", sop = List(sequence), attributes = SPAttributes().addTimeStamp))
+          }
+
         }
 
-        rnr.reply ! Response(result.map(_.result), SPAttributes("info" -> s"Operation sequence(s) created from specification(s): ${result.map(_.startSeqName).mkString(", ")}"), service, reqID)
+        if (result.nonEmpty) {
+
+          val (newIdablesList, newOldOpMapList) = (if (specifications.generateIdables) result.map(r => copyModifyAndAddIdables(r.startSeqName, r.opSeq, vars.toSet)) else List()).unzip
+          val newIdables = newIdablesList.foldLeft(Set(): Set[IDAble]) { case (acc, newIds) => acc ++ newIds }.toList
+          val newIdablesWithHierarchies = newIdables ++ addHierarchies(newIdables, "hierarchy")
+
+          rnr.reply ! Response(result.map(_.result) ++ newIdablesWithHierarchies, SPAttributes("info" -> s"Operation sequence(s) created from specification(s): ${result.map(_.startSeqName).mkString(", ")}"), service, reqID)
+        } else {
+          rnr.reply ! Response(List(), SPAttributes(), service, reqID)
+        }
+
+        progress ! PoisonPill
         self ! PoisonPill
       }
 
@@ -199,4 +220,37 @@ case class WrapperForSearch(ops: Set[Operation]) {
 
 }
 
-private case class SequenceResult(startSeqName: String, result: SOPSpec)
+trait CopyModifyAndAddIdables extends CollectorModel {
+  val modelName = ""
+  def copyModifyAndAddIdables(seqName: String, straightOpSeq: Seq[Operation], existingVars: Set[Thing]): (Set[IDAble], Map[Operation, Operation]) = {
+    val hAtt = SPAttributes("hierarchy" -> Set(seqName))
+
+    type copyAndModifyOpsReturnType = (Map[Operation, Operation], Map[Operation, Int])
+    def copyAndModifyOps(oldOpSeq: Seq[Operation], newOldOpMap: Map[Operation, Operation], oldOpFreqMap: Map[Operation, Int]): copyAndModifyOpsReturnType = oldOpSeq match {
+      case o +: os =>
+        val vName = s"v${o.name.capitalize}"
+        val freq = oldOpFreqMap.getOrElse(o, 0)
+        val attr = SPAttributes("preGuard" -> Set(s"$vName==$freq")) merge SPAttributes("postGuard" -> Set(s"$vName==$freq"))merge SPAttributes("postAction" -> Set(s"$vName=${freq + 1}"))
+        val oldAttr = (o.attributes transformField { case ("hierarchy", _) => ("hierarchy", SPValue(Set(seqName))) }).to[SPAttributes].getOrElse(SPAttributes())
+        val newOp = o.copy(name = s"$vName$freq", id = ID.newID, attributes = oldAttr merge attr merge hAtt)
+        copyAndModifyOps(os, newOldOpMap + (newOp -> o), oldOpFreqMap + (o -> (freq + 1)))
+      case _ => (newOldOpMap, oldOpFreqMap)
+    }
+
+    def addVars(opFreqMap: Map[Operation, Int]): Set[Thing] = {
+      opFreqMap.keys.foreach { o =>
+        val vName = s"v${o.name.capitalize}"
+        val last = opFreqMap(o)
+        val domain = (0 to last).map(_.toString)
+        v(vName, domain, init = Some("0"), marked = Set(last.toString), attributes = hAtt)
+      }
+      variableSet
+    }
+
+    def addHierarchyToExistingVars() = existingVars.map(v => v.copy(attributes = v.attributes merge hAtt))
+
+    val (newOldOpMap, oldOpFreqMap) = copyAndModifyOps(straightOpSeq, Map(), Map())
+    val vars = addVars(oldOpFreqMap) ++ addHierarchyToExistingVars
+    (newOldOpMap.keySet ++ vars, newOldOpMap)
+  }
+}
