@@ -1,0 +1,25 @@
+<div ng-controller="opcRunnerController as vm">
+    <div class="panel-content">
+        <h2>{{vm.x}}</h2>
+        <h3>{{vm.opcServ.x}}</h3>
+
+        <div ng-if="vm.x == 4">
+            <button type="button" class="btn btn-sm btn-primary" ng-click="vm.test()">
+                <i class="fa fa-play"></i> Start operation
+            </button>
+        </div>
+
+        <div ng-if="vm.x == 5">
+            <button type="button" class="btn btn-sm btn-warning" ng-disabled="true" ng-click="vm.test()">
+                <i class="fa fa-play"></i> Running
+            </button>
+        </div>
+
+        <div ng-if="vm.x == 6">
+            <button type="button" class="btn btn-sm btn-success" ng-click="vm.test()">
+                <i class="fa fa-play"></i> Operation finished
+            </button>
+        </div>        
+
+    </div>
+</div>

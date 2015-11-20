@@ -125,6 +125,11 @@ object SP extends App {
     MakeNewGanttTrajectory.specification,
     MakeNewGanttTrajectory.transformation)
 
+  import sp.opcrunner._
+
+  serviceHandler ! RegisterService("OpcRunner",
+    system.actorOf(OpcRunner.props, "OpcRunner"), OpcRunner.specification, OpcRunner.transformation)
+
   // activemq + process simulate stuff
   import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
   import akka.camel.{ CamelExtension, CamelMessage, Consumer, Producer }

@@ -29,7 +29,8 @@
                 {sizeX: 4, sizeY: 4, title: 'Item Editor', template: 'app/item-editor/item-editor.html'},
                 {sizeX: 4, sizeY: 4, title: 'SOP Maker', template: 'app/sop-maker/sop-maker.html'},
                 {sizeX: 6, sizeY: 4, title: 'Service List', template: 'app/spServices/spServices.html'},
-                {sizeX: 6, sizeY: 4, title: 'Trajectories', template: 'app/trajectories/trajectories.html'}
+                {sizeX: 6, sizeY: 4, title: 'Trajectories', template: 'app/trajectories/trajectories.html'},
+                {sizeX: 6, sizeY: 4, title: 'OPC Runner', template: 'app/opc-runner/opc-runner.html'}
             ]
         };
 

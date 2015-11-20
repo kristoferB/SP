@@ -1,0 +1,10 @@
+to run some opc tests. make sure ps is connected to opc server and that the opc server is started. load signal configuration in both softwares.
+
+start opcDAClient. D:\Software\OpcDAClient\OpcDAClient>"C:\Program Files (x86)\Java\jre1.8.0_45\bin\java" -jar opcRunner.jar localhost Matrikon.OPC.Simulation.1 7070
+
+run some tests:
+
+1) nc localhost 7070  < test_opc.txt && Sleep 1 && nc localhost 7070 < test_opc2.txt && Sleep 1 && nc localhost 7070 < test_opc3.txt
+2) while read -r line; do echo -e "{"messType":"REG","id":"9999"}\n$line" | nc -i 1 localhost 7070; done < opc.txt
+
+

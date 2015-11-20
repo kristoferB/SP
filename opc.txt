@@ -1,0 +1,8 @@
+{"messType":"WRITE","id":"9999", "mess":{"PS.ChamberOpenStart":true}}
+{"messType":"WRITE","id":"9999", "mess":{"PS.ParkFixtureStart":true}}
+{"messType":"WRITE","id":"9999", "mess":{"PS.ParkFixtureStart":false}}
+{"messType":"WRITE","id":"9999", "mess":{"PS.ChamberOpenStart":false}}
+{"messType":"WRITE","id":"9999", "mess":{"PS.ChamberCloseStart":true}}
+{"messType":"WRITE","id":"9999", "mess":{"PS.ParkFixtureStart":true}}
+{"messType":"WRITE","id":"9999", "mess":{"PS.ParkFixtureStart":false}}
+{"messType":"WRITE","id":"9999", "mess":{"PS.ChamberCloseStart":false}}
