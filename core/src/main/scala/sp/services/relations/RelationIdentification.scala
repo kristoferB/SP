@@ -1,9 +1,8 @@
 package sp.services.relations
 
 import akka.actor._
-import akka.pattern.ask
 import sp.domain.logic.IDAbleLogic
-import sp.services.sopmaker.{MakeASop, MakeMeASOP, SOPMaker}
+import sp.services.sopmaker.MakeASop
 import scala.concurrent._
 import sp.system._
 import sp.system.messages._
@@ -11,7 +10,6 @@ import sp.domain._
 import sp.domain.Logic._
 
 import scala.annotation.tailrec
-import scala.util.{Failure, Success}
 
 //TODO: future: background and foreground services. background takes hierarchy as input, foreground takes List, set or hierarchy
 object RelationIdentification extends SPService {
@@ -19,7 +17,7 @@ object RelationIdentification extends SPService {
     "service" -> SPAttributes(
       "description" -> "Find relations" // to organize in gui. maybe use "hide" to hide service in gui
     ),
-    "setup" -> SPAttributes("iterations" -> KeyDefinition("Int", List(1, 10, 200, 600, 1000, 2000), Some(1000)),
+    "setup" -> SPAttributes("iterations" -> KeyDefinition("Int", List(1, 10, 100, 400, 1000, 2000), Some(1000)),
       "operationIds" -> KeyDefinition("List[ID]", List(), Some(SPValue(List())))))
 
   val transformTuple = TransformValue("setup", _.getAs[RelationIdentificationSetup]("setup"))
@@ -59,20 +57,13 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
       val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation]).toSet
       val vars = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing]).toSet
 
-      //      val straightOpSeqs = getStraightOPSeqs(sopSpecs, ops_)
-      //      println("straightOpSeqs " + straightOpSeqs.map(kv => kv._2.map(_.name).mkString("\n")))
-      //      val (straightOpSeqsUpd, newOldMap) = replaceDuplicates(straightOpSeqs)
-      //      println("straightOpSeqsUpd " + straightOpSeqsUpd.map(kv => kv._2.map(_.name).mkString("\n")))
-      //      println("newOldMap " + newOldMap.map(kv => kv._1.name -> kv._2.name).mkString("\n"))
-
-      //      val ops = straightOpSeqsUpd.foldLeft(Set(): Set[Operation]) { case (acc, (_, os)) => acc ++ os }
-      println("ops size " + ops.size)
+      //      println("ops size " + ops.size)
 
       def mapOps[T](t: T) = ops.map(o => o.id -> t).toMap
       //      val iState = State(mapOps(OperationState.init))
       val iState = State(getIdleState(vars).state ++ mapOps(OperationState.init))
 
-      println("iState " + iState.state.mkString("\n"))
+      //      println("iState " + iState.state.mkString("\n"))
 
       def isGoalStateOps(state: State) = {
         lazy val goalState = State(mapOps(OperationState.finished))
@@ -96,7 +87,7 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
 
       progress ! SPAttributes("progress" -> "Analyse operations")
       val (opSeqs, states) = analyseOperations(ops, setup.iterations, iState, { case (state, seq) => isGoalState(state) }, evaluateProp2)
-      println("opSeqs " + opSeqs.map(_.map(_.name)).mkString("\n"))
+      println("opSeqs " + opSeqs.size)
 
       progress ! SPAttributes("progress" -> "Create item relations")
       val itemRelationMap = createItemRelationsfrom(ops, states, evaluateProp2)
@@ -104,13 +95,13 @@ class RelationIdentification extends Actor with ServiceSupport with RelationIden
 
       progress ! SPAttributes("progress" -> "Create relation maps")
       val operationRelations = buildRelationMap(itemRelationMap, ops, opSeqs, iState, evaluateProp2, evaluateProp3)
-      println("operationRelations " + operationRelations.mkString("\n"))
+      //      println("operationRelations " + operationRelations.mkString("\n"))
 
       progress ! SPAttributes("progress" -> "Create SOPs")
       val activeOps = if (setup.operationIds.isEmpty) ops else ops.filter(o => setup.operationIds.contains(o.id))
       import scala.util.Random
       val startOpsOps = if (activeOps.size > 3) Random.shuffle(activeOps).take(3) else activeOps
-      val sops = startOpsOps.toList.flatMap(startOp => CreateSop(activeOps, operationRelations, startOp).createSop())
+      val sops = startOpsOps.toList.flatMap(startOp => CreateSop(activeOps, operationRelations, startOp).createSop()).distinct
       if (sops.nonEmpty) {
         val toReturn = SOPSpec(name = "relationSOPs", sop = sops)
         //        rnr.reply ! Response(List(toReturn) ++ newOldMap.keys.toList, SPAttributes("info" -> s"created a relationMap for ${ops.map(_.name).mkString(" ")}"), service, reqID)
@@ -175,31 +166,11 @@ trait RelationIdentificationLogic {
     implicit val es = evalSetup
 
     def getEnabledOperations(state: State) = {
-      //      ops.filter(_.eval(state))
-      val opsToReturn = ops.filter(_.eval(state))
-      def propLogic() = {
-        import sp.domain.logic.PropositionConditionLogic._
-        opsToReturn.filter { o =>
-          //          println("o " + o.name + " " + o.attributes)
-          o.attributes.getAs[ID]("after") match {
-            case Some(id) =>
-              state.state.get(id) match {
-                case Some(stateValue) if stateValue == OperationState.finished => true
-                case _ => false
-              }
-            case _ => true
-          }
-        }
-      }
-      val opsToReturn2 = propLogic()
-      //      println("enabledOps " + opsToReturn.map(_.name))
-      //      println("enabledOps2 " + opsToReturn2.map(_.name))
-      opsToReturn2
+      ops.filter(_.eval(state))
     }
 
     @tailrec
     def iterate(currentState: State, path: Seq[(State, Operation)], ioDeadLockStateOpMap: Map[State, Set[Operation]], backtrackingRandomReturnLengthOpt: Option[Int] = None): Option[(Seq[Operation], Set[State], Map[State, Set[Operation]])] = {
-      //            println("currentState " + goalCondition(currentState, path) + "\n" + currentState.state.mkString("\n"))
       import scala.util.Random
       goalCondition(currentState, path.unzip._2) match {
         case true =>
@@ -351,9 +322,9 @@ trait DESModelingSupport {
           acc + (v.id -> SPValue(allInitInt.head))
         } else {
           println(s"Problem with variable ${v.name}, attribute keys init and idleValue do not point to the same value")
+          acc
         }
       }
-      acc
     }
     State(state)
   }
@@ -366,7 +337,7 @@ trait DESModelingSupport {
       if (allMarkings.size == 1) {
         val optDomain = v.attributes.findField(f => f._1 == "domain").flatMap(_._2.to[List[String]])
         optDomain match {
-          case Some(domain) if (allMarkings.head -- domain.toSet).isEmpty => Some(v.id -> allMarkings.head.map(m => domain.indexOf(m)))
+          case Some(domain) if (allMarkings.head -- domain.toSet).isEmpty => Some(v.id -> allMarkings.head.map(m => SPValue(domain.indexOf(m))))
           case _ =>
             println(s"Problem with variable ${v.name}, attribute keys markings/idleValue not in variable domain")
             None
@@ -377,9 +348,13 @@ trait DESModelingSupport {
       }
     }.toMap
 
+    import org.json4s.JsonAST.JInt
     def checkState(stateToCheck: Seq[(ID, SPValue)] = thatState.state.toSeq): Boolean = stateToCheck match {
       case kv +: rest => goalState.get(kv._1) match {
-        case Some(v) => if (v.contains(kv._2.asInstanceOf[Int])) checkState(rest) else false
+        case Some(marked) => kv._2 match {
+          case v@JInt(_) => if (marked.contains(v)) checkState(rest) else false
+          case _ => false
+        }
         case _ => false //"stateToCheck" contains variables that is not in "goalState". This should although not happen...
       }
       case _ => true //"stateToCheck" == "goalState"

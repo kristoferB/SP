@@ -237,7 +237,7 @@ trait CopyModifyAndAddIdables extends CollectorModel {
       case _ => (newOldOpMap, oldOpFreqMap)
     }
 
-    def addVars(opFreqMap: Map[Operation, Int]): Set[Thing] = {
+    def addVarsForOps(opFreqMap: Map[Operation, Int]): Set[Thing] = {
       opFreqMap.keys.foreach { o =>
         val vName = s"v${o.name.capitalize}"
         val last = opFreqMap(o)
@@ -250,7 +250,7 @@ trait CopyModifyAndAddIdables extends CollectorModel {
     def addHierarchyToExistingVars() = existingVars.map(v => v.copy(attributes = v.attributes merge hAtt))
 
     val (newOldOpMap, oldOpFreqMap) = copyAndModifyOps(straightOpSeq, Map(), Map())
-    val vars = addVars(oldOpFreqMap) ++ addHierarchyToExistingVars
+    val vars = addVarsForOps(oldOpFreqMap) ++ addHierarchyToExistingVars
     (newOldOpMap.keySet ++ vars, newOldOpMap)
   }
 }
