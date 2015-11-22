@@ -17,7 +17,7 @@ object RelationIdentification extends SPService {
     "service" -> SPAttributes(
       "description" -> "Find relations" // to organize in gui. maybe use "hide" to hide service in gui
     ),
-    "setup" -> SPAttributes("iterations" -> KeyDefinition("Int", List(1, 10, 100, 400, 1000, 2000), Some(1000)),
+    "setup" -> SPAttributes("iterations" -> KeyDefinition("Int", List(1, 10, 100, 400, 1000, 2000), Some(100)),
       "operationIds" -> KeyDefinition("List[ID]", List(), Some(SPValue(List())))))
 
   val transformTuple = TransformValue("setup", _.getAs[RelationIdentificationSetup]("setup"))

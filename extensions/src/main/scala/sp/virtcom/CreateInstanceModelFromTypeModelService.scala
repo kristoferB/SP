@@ -101,7 +101,7 @@ class CreateInstanceModelFromTypeModelService extends Actor with ServiceSupport 
 
       if (specList.isEmpty) println("No specification(s) given.")
 
-      case class SequenceResult(startSeqName: String, opSeq: Seq[Operation], result: SOPSpec)
+      case class SequenceResult(startSeqName: String, oldOpSeq: Seq[Operation], opSeq: Seq[Operation], result: SOPSpec)
 
       if (ops.exists(_.conditions.size != 2)) {
         println("At least one operation lacks pre and/or postcondition. I will not go on.")
@@ -145,14 +145,14 @@ class CreateInstanceModelFromTypeModelService extends Actor with ServiceSupport 
           progress ! SPAttributes("progress" -> "search ended")
 
           foundSeq.map { case (opSeq, sequence) =>
-            SequenceResult(name, opSeq, SOPSpec(name = s"${name}_Result", sop = List(sequence), attributes = SPAttributes().addTimeStamp))
+            SequenceResult(name, opSeqFromSpec, opSeq, SOPSpec(name = s"${name}_Result", sop = List(sequence), attributes = SPAttributes().addTimeStamp))
           }
 
         }
 
         if (result.nonEmpty) {
 
-          val (newIdablesList, newOldOpMapList) = (if (specifications.generateIdables) result.map(r => copyModifyAndAddIdables(r.startSeqName, r.opSeq, vars.toSet)) else List()).unzip
+          val (newIdablesList, newOldOpMapList) = (if (specifications.generateIdables) result.map(r => copyModifyAndAddIdables(r.startSeqName, r.oldOpSeq, r.opSeq, vars.toSet)) else List()).unzip
           val newIdables = newIdablesList.foldLeft(Set(): Set[IDAble]) { case (acc, newIds) => acc ++ newIds }.toList
           val newIdablesWithHierarchies = newIdables ++ addHierarchies(newIdables, "hierarchy")
 
@@ -222,18 +222,28 @@ case class WrapperForSearch(ops: Set[Operation]) {
 
 trait CopyModifyAndAddIdables extends CollectorModel {
   val modelName = ""
-  def copyModifyAndAddIdables(seqName: String, straightOpSeq: Seq[Operation], existingVars: Set[Thing]): (Set[IDAble], Map[Operation, Operation]) = {
+  def copyModifyAndAddIdables(seqName: String, oldStraightOpSeq: Seq[Operation], straightOpSeq: Seq[Operation], existingVars: Set[Thing]): (Set[IDAble], Map[Operation, Operation]) = {
     val hAtt = SPAttributes("hierarchy" -> Set(seqName))
 
     type copyAndModifyOpsReturnType = (Map[Operation, Operation], Map[Operation, Int])
-    def copyAndModifyOps(oldOpSeq: Seq[Operation], newOldOpMap: Map[Operation, Operation], oldOpFreqMap: Map[Operation, Int]): copyAndModifyOpsReturnType = oldOpSeq match {
+    def copyAndModifyOps(oldOpSeq: Seq[Operation], oldSpec: Seq[(Operation, Operation)], newOldOpMap: Map[Operation, Operation], oldOpFreqMap: Map[Operation, Int]): copyAndModifyOpsReturnType = oldOpSeq match {
       case o +: os =>
         val vName = s"v${o.name.capitalize}"
         val freq = oldOpFreqMap.getOrElse(o, 0)
-        val attr = SPAttributes("preGuard" -> Set(s"$vName==$freq")) merge SPAttributes("postGuard" -> Set(s"$vName==$freq"))merge SPAttributes("postAction" -> Set(s"$vName=${freq + 1}"))
+        val (orderGuard, oldSpecUpd) = oldSpec.headOption match {
+          case Some((oAfter, oBefore)) if oAfter.equals(o) =>
+            oldOpFreqMap.get(oBefore) match {
+              case Some(f) => (SPAttributes("preGuard" -> Set(s"v${oBefore.name.capitalize}==$f")), oldSpec.tail)
+              case _ =>
+                println(s"Problem when adding guards for operation orders. ${oBefore.name} does not come before ${oAfter.name}, as in spec. Result will not be ok.")
+                (SPAttributes(), oldSpec.tail)
+            }
+          case _ => (SPAttributes(), oldSpec)
+        }
+        val attr = SPAttributes("preGuard" -> Set(s"$vName==$freq")) merge orderGuard merge SPAttributes("postGuard" -> Set(s"$vName==$freq")) merge SPAttributes("postAction" -> Set(s"$vName=${freq + 1}"))
         val oldAttr = (o.attributes transformField { case ("hierarchy", _) => ("hierarchy", SPValue(Set(seqName))) }).to[SPAttributes].getOrElse(SPAttributes())
         val newOp = o.copy(name = s"$vName$freq", id = ID.newID, attributes = oldAttr merge attr merge hAtt)
-        copyAndModifyOps(os, newOldOpMap + (newOp -> o), oldOpFreqMap + (o -> (freq + 1)))
+        copyAndModifyOps(os, oldSpecUpd, newOldOpMap + (newOp -> o), oldOpFreqMap + (o -> (freq + 1)))
       case _ => (newOldOpMap, oldOpFreqMap)
     }
 
@@ -247,10 +257,15 @@ trait CopyModifyAndAddIdables extends CollectorModel {
       variableSet
     }
 
-    def addHierarchyToExistingVars() = existingVars.map(v => v.copy(attributes = v.attributes merge hAtt))
+    def addHierarchyToExistingVars(eVars: Set[Thing]) = eVars.map(v => v.copy(attributes = v.attributes merge hAtt))
 
-    val (newOldOpMap, oldOpFreqMap) = copyAndModifyOps(straightOpSeq, Map(), Map())
-    val vars = addVarsForOps(oldOpFreqMap) ++ addHierarchyToExistingVars
+    def workOnInitialSpec(spec: Seq[Operation], acc: Seq[(Operation, Operation)] = Seq()) : Seq[(Operation, Operation)] = spec match {
+      case o1 +: rest if rest.nonEmpty => workOnInitialSpec(rest,(rest.head, o1) +: acc)
+      case _ => acc.reverse
+    }
+
+    val (newOldOpMap, oldOpFreqMap) = copyAndModifyOps(straightOpSeq, workOnInitialSpec(oldStraightOpSeq), Map(), Map())
+    val vars = addVarsForOps(oldOpFreqMap) ++ addHierarchyToExistingVars(existingVars)
     (newOldOpMap.keySet ++ vars, newOldOpMap)
   }
 }
