@@ -63,13 +63,17 @@ class ServiceTalker(service: ActorRef,
         modelHandler ! UpdateIDs(handleAttr.model.get, ids, attr)
       }
       replyTo ! r
-      eventHandler.foreach(_ ! r)
+      if (!handleAttr.onlyResponse) {
+        eventHandler.foreach(_ ! r)
+      }
       killMe
     }
     case r: Progress => {
       cancelTimeout.cancel()
-      if (!handleAttr.onlyResponse) replyTo ! r
-      eventHandler.foreach(_ ! r)
+      if (!handleAttr.onlyResponse) {
+        replyTo ! r
+        eventHandler.foreach(_ ! r)
+      }
     }
     case e: SPError => {
       replyTo ! e
