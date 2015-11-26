@@ -103,14 +103,16 @@ class CreateParallelInstanceService(serviceHandler : ActorRef) extends Actor wit
           progress ! PoisonPill
           self ! PoisonPill
         } else {
-          val r = resultSOP(0).asInstanceOf[SOPSpec].copy(name = sopSpecs(0).name + "_Result")
+          // rename resulting sop and keep only the first sequence
+          val r = resultSOP(0).asInstanceOf[SOPSpec]
+          val rl = List(r.copy(name = sopSpecs(0).name + "_Result", sop = r.sop.take(1)))
 
           // only send back operations
           val ops = ids3.filter(_.isInstanceOf[Operation])
           // need to fix the hierachy otherwise end up with invalid children
           val root = ids3.filter(_.isInstanceOf[HierarchyRoot]).map(_.asInstanceOf[HierarchyRoot])
           val nr = root.map(r => r.copy(children = r.children.filter(x => ops.exists(_.id == x.item))))
-          rnr.reply ! Response(nr ++ ops ++ List(r),
+          rnr.reply ! Response(nr ++ ops ++ rl,
             SPAttributes("info" -> s"created a parallel instance for ${sopSpecs(0).name}"),
             service, reqID)
           progress ! PoisonPill
