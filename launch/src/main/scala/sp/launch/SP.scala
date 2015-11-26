@@ -100,6 +100,11 @@ object SP extends App {
     CreateInstanceModelFromTypeModelService.specification,
     CreateInstanceModelFromTypeModelService.transformation)
 
+  serviceHandler ! RegisterService("CreateParallelInstance",
+    system.actorOf(CreateParallelInstanceService.props(serviceHandler), "CreateParallelInstance"),
+    CreateParallelInstanceService.specification,
+    CreateParallelInstanceService.transformation)
+
   import sp.areus._
 
   serviceHandler ! RegisterService("ImportLogFiles",
