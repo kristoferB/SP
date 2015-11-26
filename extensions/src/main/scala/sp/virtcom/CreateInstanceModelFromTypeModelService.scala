@@ -45,7 +45,7 @@ object CreateInstanceModelFromTypeModelService extends SPService {
 
   val transformTuple = (
     TransformValue("Specifications", _.getAs[CreateInstanceModelFromTypeModelSpecifications]("Specifications"))
-    )
+  )
 
   val transformation = transformToList(transformTuple.productIterator.toList)
 
@@ -151,12 +151,15 @@ class CreateInstanceModelFromTypeModelService extends Actor with ServiceSupport 
         }
 
         if (result.nonEmpty) {
+          if(specifications.generateIdables) {
+            val (newIdablesList, newOldOpMapList) = result.map(r => copyModifyAndAddIdables(r.startSeqName, r.oldOpSeq, r.opSeq, vars.toSet)).unzip
+            val newIdables = newIdablesList.foldLeft(Set(): Set[IDAble]) { case (acc, newIds) => acc ++ newIds }.toList
+            val newIdablesWithHierarchies = newIdables ++ addHierarchies(newIdables, "hierarchy")
 
-          val (newIdablesList, newOldOpMapList) = (if (specifications.generateIdables) result.map(r => copyModifyAndAddIdables(r.startSeqName, r.oldOpSeq, r.opSeq, vars.toSet)) else List()).unzip
-          val newIdables = newIdablesList.foldLeft(Set(): Set[IDAble]) { case (acc, newIds) => acc ++ newIds }.toList
-          val newIdablesWithHierarchies = newIdables ++ addHierarchies(newIdables, "hierarchy")
-
-          rnr.reply ! Response(result.map(_.result) ++ newIdablesWithHierarchies, SPAttributes("info" -> s"Operation sequence(s) created from specification(s): ${result.map(_.startSeqName).mkString(", ")}"), service, reqID)
+            rnr.reply ! Response(newIdablesWithHierarchies, SPAttributes(), service, reqID)
+          } else {
+            rnr.reply ! Response(result.map(_.result), SPAttributes("info" -> s"Operation sequence(s) created from specification(s): ${result.map(_.startSeqName).mkString(", ")}"), service, reqID)
+          }
         } else {
           rnr.reply ! Response(List(), SPAttributes(), service, reqID)
         }

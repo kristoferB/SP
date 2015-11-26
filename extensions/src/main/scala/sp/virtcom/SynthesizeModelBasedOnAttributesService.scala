@@ -8,6 +8,8 @@ import sp.system.messages._
 import akka.util.Timeout
 import scala.concurrent.duration._
 import sp.domain.Logic._
+import scala.concurrent._
+import akka.pattern.ask
 
 /**
  * Creates a wmod module from existing operations, things (variables), and SOPspec (forbidden expressions/mutex operations).
@@ -47,57 +49,62 @@ private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef) ext
       val progress = context.actorOf(progressHandler)
       progress ! SPAttributes("progress" -> "Reading model")
 
-      for {
-        idOfModel <- getAttr(_.dig[ID]("core", "model"))
-      } yield {
-        val infoF = askForModelInfo(idOfModel, modelHandler)
-        val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
-        val vars = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing])
-        val sopSpecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
+      val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
+      val vars = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing])
+      val sopSpecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
 
-        infoF.foreach { info =>
-          progress ! SPAttributes("progress" -> "got info and data from model")
+      progress ! SPAttributes("progress" -> "got info and data from model")
 
-          //Create Supremica Module and synthesize guards.
-          val ptmw = ParseToModuleWrapper(info.name, vars, ops, sopSpecs)
-          val ptmwModule = {
-            progress ! SPAttributes("progress" -> "creating wmod file")
-            ptmw.addVariables()
-            ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-            ptmw.addOperations()
-            ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-            ptmw.addForbiddenExpressions()
-            ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-            ptmw.saveToWMODFile("./testFiles/gitIgnore/raw/")
-            progress ! SPAttributes("progress" -> "Synthesizing supervisor")
-            ptmw.SupervisorAsBDD()
-          }
-          val optSupervisorGuards = ptmwModule.getSupervisorGuards.map(_.filter(og => !og._2.equals("1")))
-          val updatedOps = ops.map(o => ptmw.addSPConditionFromAttributes(ptmw.addSynthesizedGuardsToAttributes(o, optSupervisorGuards), optSupervisorGuards))
+      // Only set the name if there is a model
+      val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
+      val moduleNameF = core.model match {
+        case None =>
+          val p = Promise[String]()
+          p.success("dummy")
+          p.future
+        case Some(id) =>
+          val infoF = askForModelInfo(id, modelHandler)
+          infoF.map(info => info.name)
+      }
 
-
-          lazy val synthesizedGuards = optSupervisorGuards.getOrElse(Map()).foldLeft(SPAttributes()) { case (acc, (event, guard)) =>
-            acc merge SPAttributes("synthesizedGuards" -> SPAttributes(event -> guard))
-          }
-          lazy val nbrOfStates = SPAttributes("nbrOfStatesInSupervisor" -> ptmwModule.nbrOfStates())
-
-          println(s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
-          if (synthesizedGuards.obj.nonEmpty) println(synthesizedGuards.pretty)
-
-          progress ! SPAttributes("progress" -> s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
-
-          ptmw.addSupervisorGuardsToFreshFlower(optSupervisorGuards)
+      moduleNameF.foreach { moduleName =>
+        //Create Supremica Module and synthesize guards.
+        val ptmw = ParseToModuleWrapper(moduleName, vars, ops, sopSpecs)
+        val ptmwModule = {
+          progress ! SPAttributes("progress" -> "creating wmod file")
+          ptmw.addVariables()
           ptmw.saveToWMODFile("./testFiles/gitIgnore/")
-          progress ! SPAttributes("progress" -> "saved to wmod file in ./testFiles/gitIgnore/")
-
-          lazy val opsWithSynthesizedGuard = optSupervisorGuards.getOrElse(Map()).keys
-          lazy val spAttributes = synthesizedGuards merge nbrOfStates merge SPAttributes("info" -> s"Model synthesized. ${opsWithSynthesizedGuard.size} operations are extended with a guard: ${opsWithSynthesizedGuard.mkString(", ")}")
-
-          replyTo ! Response(updatedOps, spAttributes, service, reqID)
-          progress ! PoisonPill
-          self ! PoisonPill
+          ptmw.addOperations()
+          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+          ptmw.addForbiddenExpressions()
+          ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+          ptmw.saveToWMODFile("./testFiles/gitIgnore/raw/")
+          progress ! SPAttributes("progress" -> "Synthesizing supervisor")
+          ptmw.SupervisorAsBDD()
         }
+        val optSupervisorGuards = ptmwModule.getSupervisorGuards.map(_.filter(og => !og._2.equals("1")))
+        val updatedOps = ops.map(o => ptmw.addSPConditionFromAttributes(ptmw.addSynthesizedGuardsToAttributes(o, optSupervisorGuards), optSupervisorGuards))
 
+        lazy val synthesizedGuards = optSupervisorGuards.getOrElse(Map()).foldLeft(SPAttributes()) { case (acc, (event, guard)) =>
+          acc merge SPAttributes("synthesizedGuards" -> SPAttributes(event -> guard))
+        }
+        lazy val nbrOfStates = SPAttributes("nbrOfStatesInSupervisor" -> ptmwModule.nbrOfStates())
+
+        println(s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
+        if (synthesizedGuards.obj.nonEmpty) println(synthesizedGuards.pretty)
+
+        progress ! SPAttributes("progress" -> s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
+
+        ptmw.addSupervisorGuardsToFreshFlower(optSupervisorGuards)
+        ptmw.saveToWMODFile("./testFiles/gitIgnore/")
+        progress ! SPAttributes("progress" -> "saved to wmod file in ./testFiles/gitIgnore/")
+
+        lazy val opsWithSynthesizedGuard = optSupervisorGuards.getOrElse(Map()).keys
+        lazy val spAttributes = synthesizedGuards merge nbrOfStates merge SPAttributes("info" -> s"Model synthesized. ${opsWithSynthesizedGuard.size} operations are extended with a guard: ${opsWithSynthesizedGuard.mkString(", ")}")
+
+        replyTo ! Response(updatedOps, spAttributes, service, reqID)
+        progress ! PoisonPill
+        self ! PoisonPill
       }
     }
   }
