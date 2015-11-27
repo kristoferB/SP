@@ -95,6 +95,7 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
   }
 
   def createExportJsonHelper(sop : SOP, ids: List[IDAble], ack : SPAttributes) : SPAttributes = {
+    import org.json4s.JString
     sop match {
       case h: Hierarchy =>
         val ops = ids.find(o => o.id == h.operation)
@@ -106,6 +107,15 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
                 case Some(txid) => txid
                 case _ => "dummy"
               }
+          }), "needsToBeCompleted" -> h.conditions.flatMap({
+            case PropositionCondition(AND(x),_,_) =>
+              x.flatMap({
+                case EQ(SVIDEval(otherOpId), ValueHolder(JString("f"))) =>
+                  // for now, only handle when the operation is finished
+                  ids.find(o => o.id == otherOpId).map(_.name)
+                case _ => None
+              })
+            case _ => None
           }))
           case None => SPAttributes("name" -> "op does not exist")
         })
