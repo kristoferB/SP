@@ -58,6 +58,8 @@ class CreateParallelInstanceService(serviceHandler : ActorRef) extends Actor wit
 
       println(s"service: $service")
 
+      implicit val hierarchyRoots = filterHierarchyRoots(ids)
+
       val specifications = transform(CreateParallelInstanceService.transformTuple)
       val sopSpecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec]).filter(sop => specifications.sops.contains(sop.id))
 

@@ -1,7 +1,7 @@
 package sp.virtcom
 
 import akka.actor._
-import sp.domain.SPAttributes
+import sp.domain.{HierarchyRoot, SPAttributes}
 import sp.services.AddHierarchies
 import sp.system._
 import sp.system.{ServiceLauncher, SPService}
@@ -53,6 +53,8 @@ class CreateOpsFromManualModelService extends Actor with ServiceSupport with Add
       val progress = context.actorOf(progressHandler)
 
       println(s"service: $service")
+
+      implicit val hierarchyRoots = filterHierarchyRoots(ids)
 
       val selectedModel = transform(CreateOpsFromManualModelService.transformTuple)
 
