@@ -2,6 +2,7 @@ package sp.virtcom
 
 import akka.actor.{PoisonPill, Props, Actor, ActorRef}
 import sp.domain._
+import sp.services.AddHierarchies
 import sp.system.{ServiceSupport, ServiceLauncher, SPService}
 import sp.system.messages._
 import sp.domain.Logic._
@@ -25,7 +26,7 @@ object CreateParallelInstanceService extends SPService {
     ),
     "Specifications" -> SPAttributes(
       "sops" -> KeyDefinition("List[ID]", List(), Some(SPValue(List()))),
-      "iterations" -> KeyDefinition("Int", List(1, 10, 100, 400, 1000, 2000), Some(1000))
+      "iterations" -> KeyDefinition("Int", List(100, 400, 1000, 2000), Some(1000))
     )
   )
 
@@ -42,7 +43,7 @@ object CreateParallelInstanceService extends SPService {
 
 case class CreateParallelInstanceSpecifications(sops: List[ID], iterations : Int)
 
-class CreateParallelInstanceService(serviceHandler : ActorRef) extends Actor with ServiceSupport {
+class CreateParallelInstanceService(serviceHandler : ActorRef) extends Actor with ServiceSupport with AddHierarchies {
   implicit val timeout = Timeout(600 seconds)
   import context.dispatcher
 
@@ -105,14 +106,14 @@ class CreateParallelInstanceService(serviceHandler : ActorRef) extends Actor wit
         } else {
           // rename resulting sop and keep only the first sequence
           val r = resultSOP(0).asInstanceOf[SOPSpec]
-          val rl = List(r.copy(name = sopSpecs(0).name + "_Result", sop = r.sop.take(1)))
+          val rl = List(r.copy(name = sopSpecs(0).name + "_Result", sop = r.sop.take(1), attributes = SPAttributes("hierarchy" -> Set("Results"))))
 
           // only send back operations
           val ops = ids3.filter(_.isInstanceOf[Operation])
-          // need to fix the hierachy otherwise end up with invalid children
+          // need to fix the hierarchy otherwise end up with invalid children
           val root = ids3.filter(_.isInstanceOf[HierarchyRoot]).map(_.asInstanceOf[HierarchyRoot])
           val nr = root.map(r => r.copy(children = r.children.filter(x => ops.exists(_.id == x.item))))
-          rnr.reply ! Response(nr ++ ops ++ rl,
+          rnr.reply ! Response(nr ++ ops ++ rl ++ addHierarchies(rl, "hierarchy"),
             SPAttributes("info" -> s"created a parallel instance for ${sopSpecs(0).name}"),
             service, reqID)
           progress ! PoisonPill

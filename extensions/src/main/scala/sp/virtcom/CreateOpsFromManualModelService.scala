@@ -1,7 +1,8 @@
 package sp.virtcom
 
 import akka.actor._
-import sp.domain.{HierarchyRoot, HierarchyNode, IDAble, SPAttributes}
+import sp.domain.SPAttributes
+import sp.services.AddHierarchies
 import sp.system._
 import sp.system.{ServiceLauncher, SPService}
 import sp.system.messages._
@@ -81,21 +82,4 @@ class CreateOpsFromManualModelService extends Actor with ServiceSupport with Add
 
   }
 
-}
-
-trait AddHierarchies {
-  def addHierarchies(idables: List[IDAble], attributeKey: String): List[IDAble] = {
-    val hierarchyMap = idables.foldLeft(Map(): Map[String, List[HierarchyNode]]) { case (acc, idable) =>
-      idable.attributes.getAs[Set[String]](attributeKey) match {
-        case Some(hierarchies) =>
-          acc ++ hierarchies.map { hierarchy =>
-            hierarchy -> (HierarchyNode(idable.id) +: acc.getOrElse(hierarchy, List()))
-          }
-        case _ => acc
-      }
-    }
-    hierarchyMap.map { case (hierarchy, nodes) =>
-      HierarchyRoot(hierarchy, nodes)
-    }.toList
-  }
 }

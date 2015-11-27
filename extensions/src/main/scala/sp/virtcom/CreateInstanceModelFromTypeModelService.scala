@@ -2,6 +2,7 @@ package sp.virtcom
 
 import akka.actor.{PoisonPill, Props, Actor, ActorRef}
 import sp.domain._
+import sp.services.AddHierarchies
 import sp.supremicaStuff.auxiliary.DESModelingSupport
 import sp.system.{ServiceSupport, ServiceLauncher, SPService}
 import sp.system.messages._
@@ -232,8 +233,11 @@ trait CopyModifyAndAddIdables extends CollectorModel {
     def copyAndModifyOps(oldOpSeq: Seq[Operation], oldSpec: Seq[(Operation, Operation)], newOldOpMap: Map[Operation, Operation], oldOpFreqMap: Map[Operation, Int]): copyAndModifyOpsReturnType = oldOpSeq match {
       case o +: os =>
         val vName = s"v${o.name.capitalize}"
-        val freq = oldOpFreqMap.getOrElse(o, 1)
+        val freq = oldOpFreqMap.getOrElse(o, 0)
         val (orderGuard, oldSpecUpd) = oldSpec.headOption match {
+          case Some((oAfter, oBefore)) if oAfter.equals(oBefore) =>
+            //No need to add an extra guard. The ordering is taking care of by the frequency guard.
+            (SPAttributes(), oldSpec.tail)
           case Some((oAfter, oBefore)) if oAfter.equals(o) =>
             oldOpFreqMap.get(oBefore) match {
               case Some(f) => (SPAttributes("preGuard" -> Set(s"v${oBefore.name.capitalize}==$f")), oldSpec.tail)

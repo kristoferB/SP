@@ -3,6 +3,7 @@ package sp.virtcom
 import akka.actor._
 import org.json4s.JsonAST.JArray
 import sp.domain._
+import sp.services.AddHierarchies
 import sp.system.{ServiceSupport, ServiceLauncher}
 import sp.system.messages._
 import sp.domain.Logic._

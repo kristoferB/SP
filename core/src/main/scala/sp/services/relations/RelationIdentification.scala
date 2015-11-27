@@ -1,9 +1,7 @@
 package sp.services.relations
 
 import akka.actor._
-import sp.domain.logic.IDAbleLogic
 import sp.services.sopmaker.MakeASop
-import scala.concurrent._
 import sp.system._
 import sp.system.messages._
 import sp.domain._
