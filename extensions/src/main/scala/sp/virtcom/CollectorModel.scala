@@ -29,7 +29,7 @@ trait CollectorModel {
   implicit def stringStringToSeqOfSpAtt(kv: (String, String)): SPAttributes = SPAttributes(kv)
 
   def op(name: String, attributes: Seq[SPAttributes] = Seq(SPAttributes())) = {
-    operationSet += Operation(name = name, attributes = attributes.foldLeft(SPAttributes()) { case (acc, c) => acc merge c })
+    operationSet += Operation(name = name, attributes = attributes.foldLeft(SPAttributes("simop" -> "X")) { case (acc, c) => acc merge c })
   }
 
   def c(variable: String, fromValue: String, toValue: String): SPAttributes = {

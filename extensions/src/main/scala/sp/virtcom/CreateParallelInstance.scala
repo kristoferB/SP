@@ -26,7 +26,7 @@ object CreateParallelInstanceService extends SPService {
     ),
     "Specifications" -> SPAttributes(
       "sops" -> KeyDefinition("List[ID]", List(), Some(SPValue(List()))),
-      "iterations" -> KeyDefinition("Int", List(100, 400, 1000, 2000), Some(1000))
+      "iterations" -> KeyDefinition("Int", List(100, 400, 1000, 2000), Some(400))
     )
   )
 
@@ -62,8 +62,6 @@ class CreateParallelInstanceService(serviceHandler : ActorRef) extends Actor wit
 
       val specifications = transform(CreateParallelInstanceService.transformTuple)
       val sopSpecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec]).filter(sop => specifications.sops.contains(sop.id))
-
-      println(specifications)
 
       progress ! SPAttributes("progress" -> "CreateParallelInstanceService started")
 

@@ -23,7 +23,7 @@ object CreateOpsFromManualModelService extends SPService {
       "description" -> "Creates operations for a manual model"
     ),
     "setup" -> SPAttributes(
-      "model" -> KeyDefinition("String", List(VolvoWeldConveyerCase().modelName, GKNcase().modelName, ROARcase().modelName, PSLFloorRoofCase().modelName), Some(GKNcase().modelName))
+      "model" -> KeyDefinition("String", List(VolvoWeldConveyerCase().modelName, GKNcase().modelName, ROARcase().modelName, PSLFloorRoofCase().modelName), Some(VolvoWeldConveyerCase().modelName))
     )
   )
 
