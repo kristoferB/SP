@@ -229,7 +229,7 @@ trait CopyModifyAndAddIdables extends CollectorModel {
     def copyAndModifyOps(oldOpSeq: Seq[Operation], oldSpec: Seq[(Operation, Operation)], newOldOpMap: Map[Operation, Operation], oldOpFreqMap: Map[Operation, Int]): copyAndModifyOpsReturnType = oldOpSeq match {
       case o +: os =>
         val vName = s"v${o.name.capitalize}"
-        val freq = oldOpFreqMap.getOrElse(o, 0)
+        val freq = oldOpFreqMap.getOrElse(o, 1)
         val (orderGuard, oldSpecUpd) = oldSpec.headOption match {
           case Some((oAfter, oBefore)) if oAfter.equals(o) =>
             oldOpFreqMap.get(oBefore) match {
@@ -242,7 +242,7 @@ trait CopyModifyAndAddIdables extends CollectorModel {
         }
         val attr = SPAttributes("preGuard" -> Set(s"$vName==$freq")) merge orderGuard merge SPAttributes("postGuard" -> Set(s"$vName==$freq")) merge SPAttributes("postAction" -> Set(s"$vName=${freq + 1}"))
         val oldAttr = (o.attributes transformField { case ("hierarchy", _) => ("hierarchy", SPValue(Set(seqName))) }).to[SPAttributes].getOrElse(SPAttributes())
-        val newOp = o.copy(name = s"$vName$freq", id = ID.newID, attributes = oldAttr merge attr merge hAtt)
+        val newOp = o.copy(name = s"${o.name}$freq", id = ID.newID, attributes = oldAttr merge attr merge hAtt)
         copyAndModifyOps(os, oldSpecUpd, newOldOpMap + (newOp -> o), oldOpFreqMap + (o -> (freq + 1)))
       case _ => (newOldOpMap, oldOpFreqMap)
     }
