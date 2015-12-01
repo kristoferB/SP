@@ -105,17 +105,27 @@
 
         function listenToChanges() {
             $scope.$on('itemsFetch', function() {
+                console.log("fetch items expl");
                 updateTree();
             });
-            $scope.$on('itemCreation', function(event, item) {
+            $scope.$on('itemCreation', function(event, items) {
+                console.log("cre items expl");
+                console.log(items);
                 updateTree();
             });
-            $scope.$on('itemDeletion', function(event, item) {
-                var node = vm.treeInstance.jstree(true).get_node(item.id);
-                vm.treeInstance.jstree(true).delete_node(node);
+            $scope.$on('itemDeletion', function(event, items) {
+                console.log("delete items expl");
+                console.log(items);
+                _.forEach(items, function(item){
+                    var node = vm.treeInstance.jstree(true).get_node(item.id);
+                    vm.treeInstance.jstree(true).delete_node(node);
+                });
                 updateTree();
             });
-            $scope.$on('itemUpdate', function(event, item) {
+            $scope.$on('itemUpdate', function(event, items) {
+
+                console.log("upd items expl");
+                console.log(items);
                 updateTree();
             });
         }
@@ -143,6 +153,7 @@
 
 
         function updateTree(){
+            console.log("upd tree")
             refreshRoots();
             refreshItemNodes();
         }
@@ -151,6 +162,7 @@
         function refreshRoots(){
             var roots = _.filter(itemService.items, function(i){return i.isa == 'HierarchyRoot'});
             _.forEach(roots, function(root){
+                console.log(root);
                 updateTreeRoot(root);
             });
 

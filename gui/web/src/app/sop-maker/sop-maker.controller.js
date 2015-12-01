@@ -204,14 +204,17 @@
         }
 
         function closeSOPMakerWidgetOnItemEvent(itemEvent) {
-            $rootScope.$on(itemEvent, function(event, item) {
-                if(item.isa == "SOPSpec") {
-                    if(!_.isUndefined(vm.widget.storage.sopSpecID)) {
-                        if(item.id == vm.widget.storage.sopSpecID) {
-                            dashboardService.closeWidget(vm.widget.id);
+            $rootScope.$on(itemEvent, function(event, items) {
+                _.forEach(items, function(item){
+                    if(item.isa == "SOPSpec") {
+                        if(!_.isUndefined(vm.widget.storage.sopSpecID)) {
+                            if(item.id == vm.widget.storage.sopSpecID) {
+                                dashboardService.closeWidget(vm.widget.id);
+                            }
                         }
                     }
-                }
+                });
+
             });
         }
 

@@ -7,7 +7,8 @@ import sp.system.messages._
 /**
  * Created by Kristofer on 2014-06-27.
  */
-object Areus extends App {
+object Areus //extends App
+{
 
   import sp.system.SPActorSystem._
 
