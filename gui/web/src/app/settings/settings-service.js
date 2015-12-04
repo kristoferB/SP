@@ -10,9 +10,9 @@
     function settingsService($localStorage) {
         var service = {
             storage: $localStorage.$default({
-                theme: 'light'
+                theme: 'default'
             }),
-            themes: ['light', 'dark']
+            themes: ['default', 'blue', 'dark']
         };
 
         activate();
