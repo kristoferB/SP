@@ -1,6 +1,6 @@
 <div ng-controller="spServicesController as vm" class="service-list">
     <div class="panel-content">
-        <table class="table table-hover" sp-table row-collection="vm.registeredServices" displayed-collection="vm.displayedRegisteredServices">
+        <table sp-table row-collection="vm.registeredServices" displayed-collection="vm.displayedRegisteredServices">
             <!--<thead><tr><th class="col-md-1">Action</th><th class="col-md-1">Form</th><th class="col-md-5">Name</th><th class="col-md-5">Progress</th></tr></thead>-->
             <tbody>
             <tr ng-repeat-start="obj in vm.displayedRegisteredServices | orderBy: '-name'" ng-class-odd="'odd-row'" ng-class-even="'even-row'">
