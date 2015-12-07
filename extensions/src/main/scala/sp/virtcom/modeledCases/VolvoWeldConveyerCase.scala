@@ -70,13 +70,13 @@ sealed trait SlowGripWhenOperatorPresent extends CollectorModel {
   //Operator
   v(name = "vOperator_present", idleValue = "idle")
 
-  op("addOperator",SPAttributes(aResourceTrans("vOperator_present","idle","toIn","inside0")))
-  op("inspectByOperator",SPAttributes(aResourceTrans("vOperator_present","inside0","inspecting","inside1")))
-  op("removeOperator",SPAttributes(aResourceTrans("vOperator_present","inside1","toOut","idle")))
+  op("operatorEnters",SPAttributes(aResourceTrans("vOperator_present","idle","toIn","inside0")))
+  op("operatorInspects",SPAttributes(aResourceTrans("vOperator_present","inside0","inspecting1","inside1")))
+  op("operatorLeaves",SPAttributes(aResourceTrans("vOperator_present","inside1","toOut","idle")))
 
-  op(s"addOperator", SPAttributes("simop" -> "1,272"))
-  op(s"inspectByOperator", SPAttributes("simop" -> "1,282"))
-  op(s"removeOperator", SPAttributes("simop" -> "1,277"))
+  op(s"operatorEnters", SPAttributes("simop" -> "1,272"))
+  op(s"operatorInspects", SPAttributes("simop" -> "1,282"))
+  op(s"operatorLeaves", SPAttributes("simop" -> "1,277"))
 
   //Grip product A slow
   op(s"gripProductA_slow_1", SPAttributes(aResourceTrans("vRobot_pos", "atIn0", s"atInGrippingA0", "atInGrippingA1")))
@@ -93,13 +93,13 @@ sealed trait SimOps extends CollectorModel {
   op(s"gripProductA", SPAttributes("simop" -> "1,144"))
   op(s"weldProductA", SPAttributes("simop" -> "1,185"))
   op(s"releaseProductA", SPAttributes("simop" -> "1,76"))
-//  op(s"removeProductA", SPAttributes("simop" -> "1,242"))
+  op(s"removeProductA", SPAttributes("simop" -> "1,242"))
 
   op(s"addProductB", SPAttributes("simop" -> "1,118"))
   op(s"gripProductB", SPAttributes("simop" -> "1,161"))
   op(s"weldProductB", SPAttributes("simop" -> "1,213"))
   op(s"releaseProductB", SPAttributes("simop" -> "1,106"))
-//  op(s"removeProductB", SPAttributes("simop" -> "1,248"))
+  op(s"removeProductB", SPAttributes("simop" -> "1,248"))
 
 //  op(s"atConveyersToAtHome_Robot", SPAttributes("simop" -> "1,89"))
 //  op(s"atHomeToAtIn_Robot", SPAttributes("simop" -> "1,133"))

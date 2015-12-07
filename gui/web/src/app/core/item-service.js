@@ -5,9 +5,9 @@
         .module('app.core')
         .factory('itemService', itemService);
 
-    itemService.$inject = ['logger', 'restService', '$rootScope', 'eventService', 'modelService'];
+    itemService.$inject = ['logger', 'restService', '$rootScope', 'eventService', 'modelService', '$timeout'];
     /* @ngInject */
-    function itemService(logger, restService, $rootScope, eventService, modelService) {
+    function itemService(logger, restService, $rootScope, eventService, modelService, $timeout) {
         var service = {
             items: [],
             itemMap: {},
@@ -115,19 +115,22 @@
                 if (data.model == modelService.activeModel.id) {
                     for (var i = 0; i < data.updatedItems.length; i++) {
                         var remoteItem = data.updatedItems[i];
-                        var existingItem = getItem(remoteItem.id);
-                        if (existingItem === null) { // item not found => create
-                            service.items.push(remoteItem);
-                            service.itemMap[remoteItem.id] = remoteItem;
-                            $rootScope.$broadcast('itemCreation', remoteItem);
-                            logger.info('Item Service: Added an item with name ' + remoteItem.name + '.');
-                        } else { // item found => update
-                            var oldName = existingItem.name;
-                            angular.extend(existingItem, remoteItem);
-                            $rootScope.$broadcast('itemUpdate', existingItem);
-                            logger.info('Item Service: Updated item ' + oldName + '.');
+
+                        var localItem = getItem(remoteItem.id);
+                        if (localItem != null) {
+                            _.remove(service.items, localItem);
                         }
+                        service.itemMap[remoteItem.id] = remoteItem;
+                        service.items.push(remoteItem);
+                        //if (existingItem === null) { // item not found => create
+                        //    service.items.push(remoteItem);
+                        //} else { // item found => update
+                        //    service.items = _.filter(service.reject, {id: remoteItem.id});
+                        //    service.items.push(remoteItem);
+                        //    logger.info('Item Service: Updated item ' + oldName + '.');
+                        //}
                     }
+
                     for (var j = 0; j < data.deletedItems.length; j++) {
                         var remoteItem = data.deletedItems[j];
                         var localItem = getItem(remoteItem.id);
@@ -136,9 +139,15 @@
                         } else {
                             _.remove(service.items, localItem);
                             delete service.itemMap[localItem.id];
-                            $rootScope.$broadcast('itemDeletion', remoteItem);
                             logger.info('Item Service: Removed item ' + localItem.name + '.');
                         }
+                    }
+                    if (data.updatedItems.length > 0) {
+                        $timeout(function() {$rootScope.$broadcast('itemUpdate', data.updatedItems);}, 0);
+
+                    }
+                    if (data.deletedItems.length > 0) {
+                        $timeout(function() {$rootScope.$broadcast('itemDeletion', data.deletedItems);}, 0);
                     }
                 }
             }

@@ -19,7 +19,7 @@ trait CollectorModel {
     variableSet += Thing(name = name, attributes = attributes merge SPAttributes("markings" -> (if (marked.isEmpty) None: Option[Set[String]] else Some(marked)),
       "idleValue" -> idleValue,
       "stateVariable" -> SPAttributes(
-        "domain" -> (domain ++ (if (init.isDefined) Seq(init.get) else Seq()) ++ marked.toSeq ++ (if (idleValue.isDefined) Seq(idleValue.get) else Seq())),
+        "domain" -> (domain ++ (if (init.isDefined) Seq(init.get) else Seq()) ++ marked.toSeq ++ (if (idleValue.isDefined) Seq(idleValue.get) else Seq())).distinct,
         "init" -> init,
         "goal" -> (if (marked.size == 1) marked.head else None: Option[Int])
       )))
@@ -29,7 +29,7 @@ trait CollectorModel {
   implicit def stringStringToSeqOfSpAtt(kv: (String, String)): SPAttributes = SPAttributes(kv)
 
   def op(name: String, attributes: Seq[SPAttributes] = Seq(SPAttributes())) = {
-    operationSet += Operation(name = name, attributes = attributes.foldLeft(SPAttributes()) { case (acc, c) => acc merge c })
+    operationSet += Operation(name = name, attributes = attributes.foldLeft(SPAttributes("simop" -> "X")) { case (acc, c) => acc merge c })
   }
 
   def c(variable: String, fromValue: String, toValue: String): SPAttributes = {

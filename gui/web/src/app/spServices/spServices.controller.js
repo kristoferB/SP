@@ -117,7 +117,7 @@
             } else if (!_.isUndefined(x.ofType)){
                 //core>model
                 if (x.ofType == "Option[ID]" && key == "model") {
-                    console.log("inside" + x.default);
+//                    console.log("inside" + x.default);
                     return _.isUndefined(x.default) ? spServicesService.reloadModelID() : x.default;
                 //core>includeIDAbles
                 } else if (x.ofType == "List[ID]" && key == "includeIDAbles") {
