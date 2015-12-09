@@ -96,6 +96,19 @@ trait OperationLogics {
   }
 
 
+  case object ThreeStateDefinitionWithReset extends OperationStateDefinition {
+    def domain = List(init, executing)
+
+    override def nextOpState(state: SPValue) = {
+      if (state == init) executing
+      else if (state == executing) init
+      else throw new IllegalArgumentException(s"Can not understand operation state: $state")
+    }
+
+    def nextState(o: Operation, state: State)(implicit props: EvaluateProp): State = {
+      next(o,state)
+    }
+  }
 
   case object ThreeStateDefinition extends OperationStateDefinition{
     
