@@ -130,6 +130,9 @@ object SP extends App {
   serviceHandler ! RegisterService("OpcRunner",
     system.actorOf(OpcRunner.props, "OpcRunner"), OpcRunner.specification, OpcRunner.transformation)
 
+  serviceHandler ! RegisterService("Simulation",
+    system.actorOf(Simulation.props, "Simulation"), Simulation.specification, Simulation.transformation)
+
   // activemq + process simulate stuff
   import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
   import akka.camel.{ CamelExtension, CamelMessage, Consumer, Producer }

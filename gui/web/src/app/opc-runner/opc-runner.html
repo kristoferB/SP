@@ -1,25 +1,21 @@
 <div ng-controller="opcRunnerController as vm">
     <div class="panel-content">
-        <h2>{{vm.x}}</h2>
-        <h3>{{vm.opcServ.x}}</h3>
+        <h2>OPC Runtime</h2>
 
-        <div ng-if="vm.x == 4">
-            <button type="button" class="btn btn-sm btn-primary" ng-click="vm.test()">
-                <i class="fa fa-play"></i> Start operation
+        <div ng-if="vm.state == null">
+            <button type="button" class="btn btn-sm btn-primary" ng-click="vm.get_init_state()">
+                <i class="fa"></i> Get initial state
             </button>
         </div>
-
-        <div ng-if="vm.x == 5">
-            <button type="button" class="btn btn-sm btn-warning" ng-disabled="true" ng-click="vm.test()">
-                <i class="fa fa-play"></i> Running
-            </button>
+        <div ng-if="vm.state != null">
+            <div ng-if="vm.nextToRun != null">
+                <button type="button" class="btn btn-sm btn-primary" ng-click="vm.execute_op(vm.state,vm.nextToRun)">
+                    <i class="fa fa-play"></i> Start next operation:<br>{{vm.nextToRun}}
+                </button>
+            </div>
+            <small>Current state: {{vm.state}}</small><br>
+            <small>Enabled operations: {{vm.enabled}}</small><br>
         </div>
-
-        <div ng-if="vm.x == 6">
-            <button type="button" class="btn btn-sm btn-success" ng-click="vm.test()">
-                <i class="fa fa-play"></i> Operation finished
-            </button>
-        </div>        
 
     </div>
 </div>

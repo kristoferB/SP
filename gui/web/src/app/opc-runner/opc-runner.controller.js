@@ -8,105 +8,119 @@
       .module('app.opcRunner')
       .controller('opcRunnerController', opcRunnerController);
 
-    opcRunnerController.$inject = ['opcRunnerService', '$scope', 'dashboardService','logger', 'modelService','itemService'];
+    opcRunnerController.$inject = ['opcRunnerService', '$scope', 'dashboardService','logger', 'modelService','itemService','restService'];
     /* @ngInject */
-    function opcRunnerController(opcRunnerService, $scope, dashboardService, logger, modelService,itemService) {
+    function opcRunnerController(opcRunnerService, $scope, dashboardService, logger, modelService,itemService,restService) {
         var vm = this;
         vm.x = 2;
         vm.opcServ = opcRunnerService;
-        vm.test = function() {
-            vm.x = 5;
-        }
+        vm.run_op = run_op;
+        vm.get_init_state = get_init_state;
+        vm.state = null;
+        vm.enabled = null;
+        vm.nextToRun = null;
+        vm.execute_op = execute_op;
         activate();
 
         function activate() {
-            vm.x = 4;
+            vm.x = 0;
         }
 
-        function blah() {
+        function get_init_state() {
             var idF = restService.getNewID();
             var answerF = idF.then(function(id){
-                addEventListener(id, responseCallBack, progressCallback);
-                message.reqID = id;
-                message.data = { 
-                    "test" : 2
+                var message = {
+                    "setup": {
+                        "command":"get init state"
+                    },
+                    "core":{
+                        "model":modelService.activeModel.id,
+                        "responseToModel":false,
+                        "includeIDAbles":["dbf1bc32-133a-4153-b659-6213d08d8e0a",
+                                          "3ba767a9-4cff-49b6-a771-469666e3ca18",
+                                          "7de125d3-428a-4bf2-91ea-ffc529f23358"],
+                        "onlyResponse":true
+                    },
+                    "reqID":id
                 };
-                return restService.postToServiceInstance(message, "opc")
+                return restService.postToServiceInstance(message, "Simulation")
             });
 
             return answerF.then(function(serviceAnswer){
-                //logger.info('service answer: ' + JSON.stringify(serviceAnswer) + '.');
-                return serviceAnswer;
+                console.log('simulation response: ' + JSON.stringify(serviceAnswer) + '.');
+                vm.state = serviceAnswer.attributes.newstate;
+                vm.enabled = serviceAnswer.attributes.enabled;
+
+                // select random op and run it
+                if(vm.enabled.length > 0)
+                    vm.nextToRun = vm.enabled[Math.floor(Math.random()*vm.enabled.length)];
+                else
+                    vm.nextToRun = null;
+            })
+        }
+
+        function execute_op(state,opID) {
+            var idF = restService.getNewID();
+            var answerF = idF.then(function(id){
+                var message = {
+                    "setup": {
+                        "command":"execute",
+                        "state":state,
+                        "operation":opID
+                    },
+                    "core":{
+                        "model":modelService.activeModel.id,
+                        "responseToModel":false,
+                        "includeIDAbles":["dbf1bc32-133a-4153-b659-6213d08d8e0a",
+                                          "3ba767a9-4cff-49b6-a771-469666e3ca18",
+                                          "7de125d3-428a-4bf2-91ea-ffc529f23358"],
+                        "onlyResponse":true
+                    },
+                    "reqID":id
+                };
+                return restService.postToServiceInstance(message, "Simulation")
+            });
+
+            // if starting op, start opc service
+            if(state[opID] == "i") {
+                run_op(opID);
+            }
+
+            return answerF.then(function(serviceAnswer){
+                console.log('simulation response: ' + JSON.stringify(serviceAnswer) + '.');
+                vm.state = serviceAnswer.attributes.newstate;
+                vm.enabled = serviceAnswer.attributes.enabled;
+
+                // select random op and run it
+                vm.nextToRun = vm.enabled[Math.floor(Math.random()*vm.enabled.length)];
+            })
+        }
+
+        function run_op(opID) {
+            var idF = restService.getNewID();
+            var answerF = idF.then(function(id){
+                var message = {
+                    "setup": {
+                        "command":"start_op",
+                        "ops":[opID]
+                    },
+                    "core":{
+                        "model":modelService.activeModel.id,
+                        "responseToModel":false,
+                        "includeIDAbles":[],
+                        "onlyResponse":true
+                    },
+                    "reqID":id
+                };
+                return restService.postToServiceInstance(message, "OpcRunner")
+            });
+
+            return answerF.then(function(serviceAnswer){
+                console.log('service answer: ' + JSON.stringify(serviceAnswer) + '.');
+                // update state
+                execute_op(vm.state, opID)
             })
 
-            spServicesService.callService(spService, {"data":vm.serviceAttributes[spService.name]}, resp, prog);
-        }
-
-        function resp(event){
-            console.log("RESP GOT: ");
-            console.log(event);
-        }
-
-        function prog(event){
-            console.log("PROG GOT: ");
-            console.log(event);
-        }        
-
-        function startSPService(spService) {
-
-            //Fill attributes with default values if spService directive has not been loaded.
-            if(_.isUndefined(vm.serviceAttributes[spService.name])) {
-                vm.serviceAttributes[spService.name] = fillAttributes(spService.attributes,"");
-//                console.log("vm.serviceAttributes[spService.name] " + JSON.stringify(vm.serviceAttributes[spService.name]));
-            }
-
-            
-
-            if (!_.isUndefined(vm.currentProgess[event.service])){
-                delete vm.currentProgess[event.service];
-            }
-        }
-
-        function fillAttributes(structure,key) {
-            var x = structure;
-            if (_.isUndefined(x)){
-                //Do nothing
-            } else if (!_.isUndefined(x.ofType)){
-                //core>model
-                if (x.ofType == "Option[ID]" && key == "model") {
-                    console.log("inside" + x.default);
-                    return _.isUndefined(x.default) ? spServicesService.reloadModelID() : x.default;
-                //core>includeIDAbles
-                } else if (x.ofType == "List[ID]" && key == "includeIDAbles") {
-//                    return _.isUndefined(x.default) ? spServicesService.reloadSelectedItems() : x.default;
-                return spServicesService.reloadSelectedItems();
-                //Boolean
-                } else if (x.ofType == "Boolean") {
-                    return _.isUndefined(x.default) ? false : x.default;
-                //String
-                } else if (x.ofType == "String") {
-                    return _.isUndefined(x.default) ? "" : x.default;
-                //Int
-                } else if (x.ofType == "Int") {
-                    return _.isUndefined(x.default) ? 0 : x.default;
-                //List[ID] and List[String]
-                } else if (x.ofType == "List[ID]" || x.ofType == "List[String]") {
-                    return _.isUndefined(x.default) ? [] : x.default;
-                //The rest
-                } else {
-                    return _.isUndefined(x.default) ? "" : x.default;
-                }
-            } else if (_.isObject(x)){
-                var localAttribute = {};
-                for(var localKey in x){
-                    var attrName = localKey;
-                    var attrValue = x[localKey];
-                    localAttribute[attrName] = fillAttributes(attrValue,attrName);
-                }
-                return localAttribute;
-            } else {
-                return x;
-            }
         }
     }
 })();

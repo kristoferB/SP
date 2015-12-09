@@ -139,25 +139,43 @@ class OpcRunner extends Actor with ServiceSupport {
       val setup = transform(OpcRunner.transformTuple)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
-      import org.json4s.JsonAST.{JValue,JBool}
+      val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation]).filter(op => setup.ops.contains(op.id))
+      val sigs = ops.flatMap(o =>
+        for {
+          start <- o.attributes.getAs[String]("starting_signal")
+          end <- o.attributes.getAs[String]("ending_signal")
+        } yield {
+          (start,end)
+        })
 
-      context become {
-        case "Connected" =>
-          setup.command match {
-            case "start_op" =>
-              client ! OPCSubscribe(List("PS.ParkFixtureStart","PS.ParkFixtureEnd"))
-              client ! OPCWrite(Map ( "PS.ParkFixtureStart" -> true ))
-            case _ => throw new Exception("No such command!")
-          }
-        case OPCValue("PS.ParkFixtureEnd", JBool(true)) =>
-          client ! OPCWrite(Map ( "PS.ParkFixtureStart" -> false ))
-          done = true
-        case OPCValue("PS.ParkFixtureEnd", JBool(false)) =>
-          if(done) self ! "Done"
-        case "Done" =>
-          replyTo ! Response(List(), SPAttributes("opcrunner" -> "start_op"), rnr.req.service, rnr.req.reqID)
-          terminate(progress)
-          context unbecome
+      if(sigs.isEmpty) {
+        println(ids)
+        println(ops)
+        println(sigs)
+        sender ! SPError("Operation doesn't exist or signals not properly defined");
+      } else {
+        val sig = sigs.head
+
+        import org.json4s.JsonAST.{JValue,JBool}
+
+        context become {
+          case "Connected" =>
+            setup.command match {
+              case "start_op" =>
+                client ! OPCSubscribe(List(sig._1,sig._2))
+                client ! OPCWrite(Map ( sig._1 -> true ))
+              case _ => throw new Exception("No such command!")
+            }
+          case OPCValue(sig._2, JBool(true)) =>
+            client ! OPCWrite(Map ( sig._1 -> false ))
+            done = true
+          case OPCValue(sig._2, JBool(false)) =>
+            if(done) self ! "Done"
+          case "Done" =>
+            replyTo ! Response(List(), SPAttributes("opcrunner" -> "start_op"), rnr.req.service, rnr.req.reqID)
+            terminate(progress)
+            context unbecome
+        }
       }
     }
     case _ => sender ! SPError("Ill formed request");
@@ -167,13 +185,4 @@ class OpcRunner extends Actor with ServiceSupport {
     self ! PoisonPill
     progress ! PoisonPill
   }
-
-  // def startOp(model: Option[ID], ids: List[IDAble], ops: List[ID], progress: ActorRef)(implicit rnr: RequestNReply) = {
-  //   val ol = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation]).filter(op => ops.contains(op.id))
-
-  //   val json = SPAttributes("command" -> "create_op_chains").pretty
-  //   val f = client ? json
-  //   f
-  // }  
-
 }
