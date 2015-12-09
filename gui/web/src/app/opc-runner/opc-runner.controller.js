@@ -12,7 +12,9 @@
     /* @ngInject */
     function opcRunnerController(opcRunnerService, $scope, dashboardService, logger, modelService,itemService,restService) {
         var vm = this;
-        vm.x = 2;
+
+        vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
+
         vm.opcServ = opcRunnerService;
         vm.run_op = run_op;
         vm.get_init_state = get_init_state;
@@ -20,10 +22,20 @@
         vm.enabled = null;
         vm.nextToRun = null;
         vm.execute_op = execute_op;
+        vm.selected = [ ];
+        vm.reload_selection = reload_selection;
         activate();
 
         function activate() {
-            vm.x = 0;
+            $scope.$on('closeRequest', function() {
+                dashboardService.closeWidget(vm.widget.id);
+            });
+        }
+
+        function reload_selection() {
+            vm.selected = _.map(itemService.selected, function(item){
+                return item.id;
+            });
         }
 
         function get_init_state() {
@@ -36,9 +48,7 @@
                     "core":{
                         "model":modelService.activeModel.id,
                         "responseToModel":false,
-                        "includeIDAbles":["dbf1bc32-133a-4153-b659-6213d08d8e0a",
-                                          "3ba767a9-4cff-49b6-a771-469666e3ca18",
-                                          "7de125d3-428a-4bf2-91ea-ffc529f23358"],
+                        "includeIDAbles": vm.selected,
                         "onlyResponse":true
                     },
                     "reqID":id
@@ -47,7 +57,6 @@
             });
 
             return answerF.then(function(serviceAnswer){
-                console.log('simulation response: ' + JSON.stringify(serviceAnswer) + '.');
                 vm.state = serviceAnswer.attributes.newstate;
                 vm.enabled = serviceAnswer.attributes.enabled;
 
@@ -71,9 +80,7 @@
                     "core":{
                         "model":modelService.activeModel.id,
                         "responseToModel":false,
-                        "includeIDAbles":["dbf1bc32-133a-4153-b659-6213d08d8e0a",
-                                          "3ba767a9-4cff-49b6-a771-469666e3ca18",
-                                          "7de125d3-428a-4bf2-91ea-ffc529f23358"],
+                        "includeIDAbles":vm.selected,
                         "onlyResponse":true
                     },
                     "reqID":id
@@ -87,7 +94,6 @@
             }
 
             return answerF.then(function(serviceAnswer){
-                console.log('simulation response: ' + JSON.stringify(serviceAnswer) + '.');
                 vm.state = serviceAnswer.attributes.newstate;
                 vm.enabled = serviceAnswer.attributes.enabled;
 
@@ -116,7 +122,6 @@
             });
 
             return answerF.then(function(serviceAnswer){
-                console.log('service answer: ' + JSON.stringify(serviceAnswer) + '.');
                 // update state
                 execute_op(vm.state, opID)
             })
