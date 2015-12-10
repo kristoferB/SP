@@ -161,9 +161,13 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
           for {
             psOp <- opsFromPSName_Map.get(spOpName)
             txidValue <- psOp.attributes.getAs[String]("txid")
+            ssValue <- psOp.attributes.getAs[String]("starting_signal")
+            esValue <- psOp.attributes.getAs[String]("ending_signal")
           } yield {
-            lazy val updatedAttr = (spOp.attributes transformField { case ("simop", _) => ("simop", SPValue(txidValue)) }).to[SPAttributes].getOrElse(SPAttributes())
-            spOp.copy(attributes = updatedAttr)
+            val updatedAttr = (spOp.attributes transformField { case ("simop", _) => ("simop", SPValue(txidValue)) }).to[SPAttributes].getOrElse(SPAttributes())
+            val updatedAttr1 = (updatedAttr transformField { case ("starting_signal", _) => ("starting_signal", SPValue(ssValue)) }).to[SPAttributes].getOrElse(SPAttributes())
+            val updatedAttr2 = (updatedAttr1 transformField { case ("ending_signal", _) => ("ending_signal", SPValue(esValue)) }).to[SPAttributes].getOrElse(SPAttributes())
+            spOp.copy(attributes = updatedAttr2)
           }
         }
         progress ! SPAttributes("progress" -> s"'simop' attribute has now been updated.")
