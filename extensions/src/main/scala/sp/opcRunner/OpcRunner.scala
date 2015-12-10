@@ -145,7 +145,7 @@ class OpcRunner extends Actor with ServiceSupport {
           start <- o.attributes.getAs[String]("starting_signal")
           end <- o.attributes.getAs[String]("ending_signal")
         } yield {
-          (start,end)
+          (start,end,o)
         })
 
       if(sigs.isEmpty) {
@@ -172,7 +172,7 @@ class OpcRunner extends Actor with ServiceSupport {
           case OPCValue(sig._2, JBool(false)) =>
             if(done) self ! "Done"
           case "Done" =>
-            replyTo ! Response(List(), SPAttributes("opcrunner" -> "start_op"), rnr.req.service, rnr.req.reqID)
+            replyTo ! Response(List(), SPAttributes("silent" -> true, "opcrunner" -> "start_op", "op" -> sig._3.id), rnr.req.service, rnr.req.reqID)
             terminate(progress)
             context unbecome
         }

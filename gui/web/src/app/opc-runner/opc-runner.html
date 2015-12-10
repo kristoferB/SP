@@ -18,11 +18,12 @@
         <div ng-if="vm.state != null">
             <div style="padding: 10px; float: left; width: 50%">
                 <h4>Enabled operations</h4>
-                <table ng-repeat="op in vm.enabled">
+                <label>Filter operations: <input ng-model="vm.manualOpsFilterQuery"></label>
+                <table ng-repeat="op in vm.manualEnabled | orderBy:'name' | filter:vm.manualOpsFilterQuery">
                     <tr>
                         <td style="padding: 5px">
-                            <button type="button" class="btn btn-sm btn-primary" ng-click="vm.execute_op(vm.state,op)">
-                                <i class="fa fa-play"></i>{{vm.get_item_name(op)}}
+                            <button type="button" class="btn btn-sm btn-primary" ng-click="vm.execute_op(vm.state,op.id)">
+                                <i class="fa fa-play"></i>{{op.name}}
                             </button>
                         </td>
                     </tr>
@@ -31,16 +32,33 @@
 
             <div style="padding: 10px; float: right; width: 50%">
                 <h4>System state</h4>
+                <label>Filter operations: <input ng-model="vm.opsFilterQuery"></label>
                 <table>
                     <thead>
-                        <th class="col-md-4">Item</th>
+                        <th class="col-md-4">Operation</th>
+                        <th class="col-md-4">State</th>
+                        <th class="col-md-4">Autorun</th>
+                    </thead>
+                    <tbody ng-repeat="op in vm.operations | orderBy:'name' |  filter:vm.opsFilterQuery">
+                        <tr>
+                            <td class="col-md-4">{{op.name}}</td>
+                            <td class="col-md-4">{{op.state}}</td>
+                            <td class="col-md-4"><center><input type="checkbox" ng-model="op.item.attributes.autostart"/></center></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br>
+                <label>Filter variables: <input ng-model="vm.varsFilterQuery"></label>
+                <table>
+                    <thead>
+                        <th class="col-md-4">Variable</th>
                         <th class="col-md-4">State</th>
                         <th class="col-md-4"></th>
                     </thead>
-                    <tbody ng-repeat="(k,v) in vm.state">
+                    <tbody ng-repeat="op in vm.variables | orderBy:'name' |  filter:vm.varsFilterQuery">
                         <tr>
-                            <td class="col-md-4">{{vm.get_item_name(k)}}</td>
-                            <td class="col-md-4">{{vm.get_item_state(k)}}</td>
+                            <td class="col-md-4">{{op.name}}</td>
+                            <td class="col-md-4">{{op.state}}</td>
                             <td class="col-md-4"></td>
                         </tr>
                     </tbody>
