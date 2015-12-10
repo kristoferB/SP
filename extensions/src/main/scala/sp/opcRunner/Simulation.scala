@@ -71,7 +71,11 @@ class Simulation extends Actor with ServiceSupport with DESModelingSupport {
             case State(map) => State(map ++ ops.map(_.id -> OperationState.init).toMap)
           }
           println("initial state: " + initState)
-          val enabledOps = ops.filter(_.conditions(0).eval(initState))
+          val enabledOps = ops.filter(_.conditions.filter(_.attributes.getAs[String]("kind").getOrElse("") == "precondition").headOption
+            match {
+              case Some(cond) => cond.eval(initState)
+              case None => true
+            })
           println("enabled operations: " + enabledOps)
           replyTo ! Response(List(), SPAttributes("simluation" -> "get init state",
             "newstate" -> initState, "enabled" -> enabledOps.map(_.id)),
@@ -87,7 +91,11 @@ class Simulation extends Actor with ServiceSupport with DESModelingSupport {
 
           // todo: check if op is enabled
           val newState = op.next(state)
-          val enabledOpsNow = ops.filter(_.conditions(0).eval(newState))
+          val enabledOpsNow = ops.filter(_.conditions.filter(_.attributes.getAs[String]("kind").getOrElse("") == "precondition").headOption
+            match {
+              case Some(cond) => cond.eval(newState)
+              case None => true
+            })
           replyTo ! Response(List(), SPAttributes("simluation" -> "execute",
             "newstate" -> newState, "enabled" -> enabledOpsNow.map(_.id)),
             rnr.req.service, rnr.req.reqID)
