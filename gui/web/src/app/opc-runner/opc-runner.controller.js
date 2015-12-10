@@ -20,10 +20,12 @@
         vm.get_init_state = get_init_state;
         vm.state = null;
         vm.enabled = null;
-        vm.nextToRun = null;
+        vm.nextToRun = null; // randomly selected from enabled ops (for auto-start)
         vm.execute_op = execute_op;
         vm.selected = [ ];
         vm.reload_selection = reload_selection;
+        vm.get_item_name = get_item_name;
+        vm.get_item_state = get_item_state;
         activate();
 
         function activate() {
@@ -36,6 +38,23 @@
             vm.selected = _.map(itemService.selected, function(item){
                 return item.id;
             });
+        }
+
+        function get_item_name(id) {
+            return itemService.getItem(id).name
+        }
+
+        function get_item_state(id) {
+            var item = itemService.getItem(id)
+            if(item.isa == 'Operation') {
+                if(vm.state[id] == 'i') return 'idle';
+                else if(vm.state[id] == 'e') return 'executing';
+                else return 'error!';
+            }
+            if(item.isa == 'Thing') {
+                var index = vm.state[id];
+                return item.attributes.stateVariable.domain[index];
+            }
         }
 
         function get_init_state() {
@@ -125,7 +144,6 @@
                 // update state
                 execute_op(vm.state, opID)
             })
-
         }
     }
 })();
