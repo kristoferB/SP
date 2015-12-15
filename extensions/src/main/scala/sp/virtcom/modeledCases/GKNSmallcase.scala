@@ -28,7 +28,6 @@ case class GKNSmallcase(modelName: String = "GKN - weld station") extends Collec
   rop(s"WireCut", SPAttributes(aCarrierTrans(s"vRobot_car", atStart = "tool", atComplete = s"tool_cut")) merge
     SPAttributes(aResourceTrans("vRobot_pos", "weldGunStand", s"cuttingAtWireCut", "weldGunStand"))
   )
-  x("cutterZone", "vRobot_pos==cuttingAtWireCut && vRobot_car!=tool", attributes = hAtt("GKN"))
 
   //Grip/place product at loadStn
   val loadStations = Set(1, 2)
@@ -49,22 +48,22 @@ case class GKNSmallcase(modelName: String = "GKN - weld station") extends Collec
   //Load in chamber
   rop(s"FixtureToChamber", SPAttributes(aCarrierTrans("vChamber_car", atStart = "empty", atComplete = "weld0")) merge
     SPAttributes(aCarrierTrans(s"vRobot_car", atStart = "tool_fixture_rfid", atComplete = "tool")) merge
-    SPAttributes(aResourceTrans("vRobot_pos", "in", s"loadingAtChamber", "weldGunStand"))
+    SPAttributes(aResourceTrans("vRobot_pos", "in", s"fixtureToChamber", "weldGunStand"))
   )
-  x("chamberZone", s"vRobot_pos==loadingAtChamber && vChamber_status!=opened", attributes = hAtt("GKN"))
+  x("chamberZone", s"vRobot_pos==fixtureToChamber && vChamber_status!=opened", attributes = hAtt("GKN"))
 
   //Unload in chamber
   rop("FixtureFromChamber", SPAttributes(aCarrierTrans("vChamber_car", atStart = s"weld1", atComplete = "empty")) merge
     SPAttributes(aCarrierTrans(s"vRobot_car", atStart = s"tool", atComplete = s"tool_fixture_welded")) merge
-    SPAttributes(aResourceTrans("vRobot_pos", "weldGunStand", s"unloadingAtChamber", "in"))
+    SPAttributes(aResourceTrans("vRobot_pos", "weldGunStand", s"fixtureFromChamber", "in"))
   )
-  x("chamberZone", s"vRobot_pos==unloadingAtChamber && vChamber_status!=opened", attributes = hAtt("GKN"))
+  x("chamberZone", s"vRobot_pos==fixtureFromChamber && vChamber_status!=opened", attributes = hAtt("GKN"))
 
   //Weld in chamber
   rop(s"Weld", SPAttributes(aCarrierTrans("vChamber_car", atStart = s"weld0", atComplete = s"weld1")) merge
     SPAttributes(aCarrierTrans("vRobot_car", atStart = s"tool_cut", atComplete = s"tool")) merge
-    SPAttributes(aResourceTrans("vRobot_pos", "weldGunStand", s"welding1AtChamber", "weldGunStand"))
+    SPAttributes(aResourceTrans("vRobot_pos", "weldGunStand", s"welding", "weldGunStand"))
   )
 
-  x("chamberZone", s"vRobot_pos==welding1AtChamber && vChamber_status!=closed", attributes = hAtt("GKN"))
+  x("chamberZone", s"vRobot_pos==welding && vChamber_status!=closed", attributes = hAtt("GKN"))
 }
