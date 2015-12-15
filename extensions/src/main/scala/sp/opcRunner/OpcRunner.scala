@@ -36,7 +36,7 @@ class OpcDAClientConnection(master : ActorRef) extends Actor {
 
   def receive = {
     case cf @ CommandFailed(_: Connect) =>
-      println("Command failed, stopping")
+//      println("Command failed, stopping")
       context stop self
 
     case c @ Connected(host, local) =>
@@ -44,7 +44,7 @@ class OpcDAClientConnection(master : ActorRef) extends Actor {
       connection ! Register(self)
       connection ! Write(regMessage)
 
-      println("OPCClient connected")
+//      println("OPCClient connected")
 
       master ! "Connected"
 
@@ -52,17 +52,17 @@ class OpcDAClientConnection(master : ActorRef) extends Actor {
         case data: ByteString =>
           connection ! Write(data)
         case OPCSubscribe(vars) =>
-          println("TCPClient got mess: " + "OPCSubscribe" + vars)
+//          println("TCPClient got mess: " + "OPCSubscribe" + vars)
           sendSubMessage(vars)
         case OPCWrite(m) =>
-          println("TCPClient got mess: " + "OPCWrite" + m)
+//          println("TCPClient got mess: " + "OPCWrite" + m)
           sendWriteMessage(m map (kv => kv._1 -> kv._2))
         case CommandFailed(w: Write) =>
           // O/S buffer was full
-          println("write failed")
+//          println("write failed")
         case Received(bytes: ByteString) =>
           val mess: String = bytes.utf8String
-          println("Got mess from OPCServer: " + mess)
+//          println("Got mess from OPCServer: " + mess)
 
           mess.split("\n") foreach { mess =>
             try {
@@ -80,10 +80,10 @@ class OpcDAClientConnection(master : ActorRef) extends Actor {
             }
           }
         case "close" =>
-          println("Disconnecting ")
+//          println("Disconnecting ")
           connection ! Close
         case cc: ConnectionClosed =>
-          println("OPCClient disconnected")
+//          println("OPCClient disconnected")
           context stop self
       }
   }
@@ -172,6 +172,7 @@ class OpcRunner extends Actor with ServiceSupport {
           case OPCValue(sig._2, JBool(false)) =>
             if(done) self ! "Done"
           case "Done" =>
+            // println("Operation done: " + sig._3.name)
             replyTo ! Response(List(), SPAttributes("silent" -> true, "opcrunner" -> "start_op", "op" -> sig._3.id), rnr.req.service, rnr.req.reqID)
             terminate(progress)
             context unbecome

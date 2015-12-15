@@ -36,10 +36,13 @@
 
         activate();
 
-        function onEvent(event){
+        var mutex = 0;
+
+        function on_service_event(event){
             // only care about OPC service, assume simulation service always finishes in time
             if(!(_.isUndefined(event.service)) && event.service != "OpcRunner") return;
             if(!(_.isUndefined(event.isa)) && event.isa != "Response") return;
+            console.log('operation finished ' + itemService.getItem(event.attributes.op).name);
             execute_op(vm.state, event.attributes.op);
         }
 
@@ -52,6 +55,7 @@
             // select random op and run it
             if(auto_enabled.length > 0) {
                 var run_op = auto_enabled[Math.floor(Math.random()*auto_enabled.length)];
+                console.log('starting op: ' + itemService.getItem(run_op).name);
                 execute_op(vm.state,run_op);
             }
         }
@@ -59,14 +63,24 @@
         function activate() {
             $scope.$on('closeRequest', function() {
                 dashboardService.closeWidget(vm.widget.id);
+                // need this??
+                vm.state = null;
+                vm.enabled = [ ];
+                vm.execute_op = execute_op;
+                vm.selected = [ ];
+                console.log('aborting simulation');
             });
 
-            // start timer for autostarting ops
-            setInterval(autostart, 250);
+            eventService.addListener('ServiceError', on_service_event);
+            eventService.addListener('Progress', on_service_event);
+            eventService.addListener('Response', on_service_event);
 
-            eventService.addListener('ServiceError', onEvent);
-            eventService.addListener('Progress', onEvent);
-            eventService.addListener('Response', onEvent);
+            // listen to changes
+            eventService.addListener('ModelDiff', on_model_diff);
+            function on_model_diff(data) {
+                console.log('RE-filter enabled ops...');
+                if(vm.state) re_filter_enabled();
+            }
         }
 
         function reload_selection() {
@@ -125,6 +139,36 @@
             }), function(id) {
                 return { id: id, name: itemService.getItem(id).name };
             });
+
+            // let other functions update
+            mutex=0;
+
+            autostart();
+        }
+
+        function re_filter_enabled() {
+            mutex=1;
+            var idF = restService.getNewID();
+            var answerF = idF.then(function(id){
+                var message = {
+                    "setup": {
+                        "command":"re-filter enabled by state",
+                        "state":vm.state,
+                    },
+                    "core":{
+                        "model":modelService.activeModel.id,
+                        "responseToModel":false,
+                        "includeIDAbles":vm.selected,
+                        "onlyResponse":true
+                    },
+                    "reqID":id
+                };
+                return restService.postToServiceInstance(message, "Simulation")
+            });
+
+            return answerF.then(function(serviceAnswer){
+                update_state(serviceAnswer.attributes.newstate,serviceAnswer.attributes.enabled);
+            })
         }
 
         function get_init_state() {
@@ -151,6 +195,18 @@
         }
 
         function execute_op(state,opID) {
+            // onle let one op update at a time...
+            if(mutex > 0) {
+                setTimeout(function() { execute_op(vm.state,opID) }, 50);
+                return;
+            }
+            mutex=1;
+
+            // if starting op, start opc service
+            if(state[opID] == "i") {
+                run_op(opID);
+            }
+
             var idF = restService.getNewID();
             var answerF = idF.then(function(id){
                 var message = {
@@ -170,10 +226,6 @@
                 return restService.postToServiceInstance(message, "Simulation")
             });
 
-            // if starting op, start opc service
-            if(state[opID] == "i") {
-                run_op(opID);
-            }
 
             return answerF.then(function(serviceAnswer){
                 update_state(serviceAnswer.attributes.newstate,serviceAnswer.attributes.enabled);
@@ -198,11 +250,6 @@
                 };
                 return restService.postToServiceInstance(message, "OpcRunner")
             });
-
-            // return answerF.then(function(serviceAnswer){
-            //     // update state
-            //     execute_op(vm.state, opID)
-            // })
         }
     }
 })();

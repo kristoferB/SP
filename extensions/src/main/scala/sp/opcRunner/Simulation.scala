@@ -22,7 +22,7 @@ object Simulation extends SPService {
       "description" -> "Run operations based on their conditions and state"
     ),
     "setup" -> SPAttributes(
-      "command" -> KeyDefinition("String", List("get init state", "execute"), Some("get init state")),
+      "command" -> KeyDefinition("String", List("get init state", "execute","re-filter enabled by state"), Some("get init state")),
       "state" -> KeyDefinition("State", List(), Some(SPValue(State(Map())))),
       "operation" -> KeyDefinition("ID", List(), Some(SPValue(ID.newID)))
     )
@@ -49,7 +49,7 @@ class Simulation extends Actor with ServiceSupport with DESModelingSupport {
 
       progress ! SPAttributes("progress" -> "starting simulation")
 
-      println(r.attributes)
+//      println(r.attributes)
 
       val setup = transform(Simulation.transformTuple)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
@@ -70,15 +70,28 @@ class Simulation extends Actor with ServiceSupport with DESModelingSupport {
           val initState = idleState match {
             case State(map) => State(map ++ ops.map(_.id -> OperationState.init).toMap)
           }
-          println("initial state: " + initState)
+//          println("initial state: " + initState)
           val enabledOps = ops.filter(_.conditions.filter(_.attributes.getAs[String]("kind").getOrElse("") == "precondition").headOption
             match {
               case Some(cond) => cond.eval(initState)
               case None => true
             })
-          println("enabled operations: " + enabledOps)
+//          println("enabled operations: " + enabledOps)
           replyTo ! Response(List(), SPAttributes("simluation" -> "get init state",
             "newstate" -> initState, "enabled" -> enabledOps.map(_.id)),
+            rnr.req.service, rnr.req.reqID)
+          terminate(progress)
+
+        case "re-filter enabled by state" =>
+          val state = setup.state
+          val enabledOps = ops.filter(_.conditions.filter(_.attributes.getAs[String]("kind").getOrElse("") == "precondition").headOption
+            match {
+              case Some(cond) => cond.eval(state)
+              case None => true
+            })
+//          println("enabled operations: " + enabledOps)
+          replyTo ! Response(List(), SPAttributes("simluation" -> "get init state",
+            "newstate" -> state, "enabled" -> enabledOps.map(_.id)),
             rnr.req.service, rnr.req.reqID)
           terminate(progress)
 
@@ -86,8 +99,8 @@ class Simulation extends Actor with ServiceSupport with DESModelingSupport {
           val state = setup.state
           val op = ops.find(_.id == setup.operation).get
 
-          println("state before execute: " + state)
-          println("op to execute: " + op)
+//          println("state before execute: " + state)
+//          println("op to execute: " + op)
 
           // todo: check if op is enabled
           val newState = op.next(state)

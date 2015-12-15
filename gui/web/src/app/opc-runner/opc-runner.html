@@ -41,9 +41,9 @@
                     </thead>
                     <tbody ng-repeat="op in vm.operations | orderBy:'name' |  filter:vm.opsFilterQuery">
                         <tr>
-                            <td class="col-md-4">{{op.name}}</td>
-                            <td class="col-md-4">{{op.state}}</td>
-                            <td class="col-md-4"><center><input type="checkbox" ng-model="op.item.attributes.autostart"/></center></td>
+                            <td class="col-md-5">{{op.name}}</td>
+                            <td class="col-md-5">{{op.state}}</td>
+                            <td class="col-md-2"><center><input type="checkbox" ng-model="op.item.attributes.autostart"/></center></td>
                         </tr>
                     </tbody>
                 </table>
