@@ -35,9 +35,9 @@
                 <label>Filter operations: <input ng-model="vm.opsFilterQuery"></label>
                 <table>
                     <thead>
-                        <th class="col-md-4">Operation</th>
-                        <th class="col-md-4">State</th>
-                        <th class="col-md-4">Autorun</th>
+                        <th class="col-md-5">Operation</th>
+                        <th class="col-md-5">State</th>
+                        <th class="col-md-2">Autorun</th>
                     </thead>
                     <tbody ng-repeat="op in vm.operations | orderBy:'name' |  filter:vm.opsFilterQuery">
                         <tr>
@@ -62,6 +62,18 @@
                             <td class="col-md-4"></td>
                         </tr>
                     </tbody>
+                </table>
+                <table ng-repeat="dev in vm.devices | orderBy:'item.name'">
+                    <thead>
+                        <th class="col-md-6">Device</th>
+                        <th class="col-md-4">Pose</th>
+                        <th class="col-md-2">Pose name</th>
+                    </thead>
+                    <tr>
+                        <td class="col-md-6">{{dev.item.name}}</td>
+                        <td class="col-md-4"><small>{{dev.current_pose}}</small></td>
+                        <td class="col-md-2"><b>{{dev.current_pose_name}}</b></td>
+                    </tr>
                 </table>
             </div>
         </div>
