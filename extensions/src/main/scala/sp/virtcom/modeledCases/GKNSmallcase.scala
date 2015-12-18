@@ -36,7 +36,7 @@ case class GKNSmallcase(modelName: String = "GKN - weld station") extends Collec
       SPAttributes(aResourceTrans("vRobot_pos", "in", s"pickingAtLoadStn$nr", "in"))
     )
     rop(s"ParkFixture$nr", SPAttributes(aCarrierTrans(s"vRobot_car", atStart = "tool_fixture_welded", atComplete = "tool")) merge
-      SPAttributes(aResourceTrans("vRobot_pos", "in", s"parkingAtLoadStn$nr", "in"))
+      SPAttributes(aResourceTrans("vRobot_pos", "weldGunStand", s"parkingAtLoadStn$nr", "in"))
     )
   }
 
@@ -55,15 +55,20 @@ case class GKNSmallcase(modelName: String = "GKN - weld station") extends Collec
   //Unload in chamber
   rop("FixtureFromChamber", SPAttributes(aCarrierTrans("vChamber_car", atStart = s"weld1", atComplete = "empty")) merge
     SPAttributes(aCarrierTrans(s"vRobot_car", atStart = s"tool", atComplete = s"tool_fixture_welded")) merge
-    SPAttributes(aResourceTrans("vRobot_pos", "weldGunStand", s"fixtureFromChamber", "in"))
+    SPAttributes(aResourceTrans("vRobot_pos", "weldGunStand", s"fixtureFromChamber", "weldGunStand"))
   )
   x("chamberZone", s"vRobot_pos==fixtureFromChamber && vChamber_status!=opened", attributes = hAtt("GKN"))
+
+  rop("ToChamber", SPAttributes(aResourceTrans("vRobot_pos", "weldGunStand", s"weldGunStandToinChamber", "inChamber")))
+  rop("FromChamber", SPAttributes(aResourceTrans("vRobot_pos", "inChamber", s"inChamberToWeldgunStand", "weldGunStand")))
+  x("chamberZone", s"vRobot_pos==weldGunStandToinChamber && vChamber_status!=opened", attributes = hAtt("GKN"))
+  x("chamberZone", s"vRobot_pos==inChamberToWeldgunStand && vChamber_status!=opened", attributes = hAtt("GKN"))
 
   //Weld in chamber
   rop(s"Weld", SPAttributes(aCarrierTrans("vChamber_car", atStart = s"weld0", atComplete = s"weld1")) merge
     SPAttributes(aCarrierTrans("vRobot_car", atStart = s"tool_cut", atComplete = s"tool")) merge
-    SPAttributes(aResourceTrans("vRobot_pos", "weldGunStand", s"welding", "weldGunStand"))
+    SPAttributes(aResourceTrans("vRobot_pos", "inChamber", s"weldingInChamber", "inChamber"))
   )
 
-  x("chamberZone", s"vRobot_pos==welding && vChamber_status!=closed", attributes = hAtt("GKN"))
+  x("chamberZone", s"vRobot_pos==weldingInChamber && vChamber_status!=closed", attributes = hAtt("GKN"))
 }
