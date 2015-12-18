@@ -28,6 +28,7 @@
         vm.opsFilterQuery = "";
         vm.operations = "";
         vm.varsFilterQuery = "";
+        vm.devsFilterQuery = "";
         vm.variables = "";
         vm.manualEnabled = [];
         vm.manualOpsFilterQuery = "";
