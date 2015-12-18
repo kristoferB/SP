@@ -15,11 +15,7 @@ import akka.camel._
 
 import scala.util._
 
-/**
- * Some unclear interfaces. What is items?
- */
-
-case class PSsetup(command: String, sops: List[ID])
+case class PSsetup(command: String, sops: List[ID], txid: String)
 
 object ProcessSimulateService extends SPService {
   val specification = SPAttributes(
@@ -28,8 +24,9 @@ object ProcessSimulateService extends SPService {
       "description" -> "Pull/push data from/to Process Simulate"
     ),
     "setup" -> SPAttributes(
-      "command" -> KeyDefinition("String", List("export seq", "import", "import_single", "update sim ids"), Some("export seq")),
-      "sops" -> KeyDefinition("List[ID]", List(), Some(SPValue(List())))
+      "command" -> KeyDefinition("String", List("export seq", "import basic ops", "import all", "import single", "update sim ids"), Some("export seq")),
+      "sops" -> KeyDefinition("List[ID]", List(), Some(SPValue(List()))),
+      "txid" -> KeyDefinition("String", List(), Some(""))
     )
   )
 
@@ -69,8 +66,9 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
 
       val res = setup.command match {
         case "export seq" => exportSeq(core.model, ids, setup.sops, progress)
-        case "import" => fetch(core.model, ids, progress)
-        case "import_single" => fetch_single(core.model, ids, progress)
+        case "import basic ops" => fetch(core.model, ids, progress)
+        case "import all" => fetch_all(core.model, ids, progress)
+        case "import single" => fetch_single(core.model, ids, setup.txid, progress)
         case "update sim ids" => updateSimIds(ids, progress)
         case _ => throw new Exception("No such command! How to do this the scala way?")
       }
@@ -140,10 +138,10 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
 
     val items = handlePSAnswer(f)
     items.map { list => Response(list, SPAttributes("info" -> "create_op_chain"), rnr.req.service, rnr.req.reqID) }
-  }  
+  }
 
   def updateSimIds(ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
-    lazy val json = SPAttributes("command" -> "get_all_tx_objects") toJson
+    lazy val json = SPAttributes("command" -> "get_tx_basic_ops") toJson
     val f = psAmq ? json
 
     progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
@@ -175,25 +173,41 @@ class ProcessSimulateService(modelHandler: ActorRef, psAmq: ActorRef) extends Ac
     }
   }
 
+  private def addHierarchy(ids : List[IDAble], s : String) = {
+    ids.map(x => x match {
+      case i:Operation => i.copy(attributes = i.attributes merge SPAttributes("hierarchy" -> Set(s)))
+      case i:Thing => i.copy(attributes = i.attributes merge SPAttributes("hierarchy" -> Set(s)))
+      case i:SOPSpec => i.copy(attributes = i.attributes merge SPAttributes("hierarchy" -> Set(s)))
+    })
+  }
+
   def fetch(model: Option[ID], ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
+    val json = SPAttributes("command" -> "get_tx_basic_ops") toJson
+
+    val f = psAmq ? json
+    progress ! SPAttributes("progress" -> "Message sent to PS. Waiting for answer")
+
+    val items = handlePSAnswer(f)
+    items.map { list => Response(addHierarchy(list, "PS Basic Operations"), SPAttributes("info" -> "get_tx_basic_ops"), rnr.req.service, rnr.req.reqID) }
+  }
+
+  def fetch_all(model: Option[ID], ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
     val json = SPAttributes("command" -> "get_all_tx_objects") toJson
 
     val f = psAmq ? json
-    progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
+    progress ! SPAttributes("progress" -> "Message sent to PS. Waiting for answer")
 
     val items = handlePSAnswer(f)
-    items.map { list => Response(list, SPAttributes("info" -> "get_all_tx_objects"), rnr.req.service, rnr.req.reqID) }
+    items.map { list => Response(addHierarchy(list, "PS All Items"), SPAttributes("info" -> "get_all_tx_objects"), rnr.req.service, rnr.req.reqID) }
   }
 
-  def fetch_single(model: Option[ID], ids: List[IDAble], progress: ActorRef)(implicit rnr: RequestNReply) = {
-    val txid = "" // params.getAs[String]("txid").getOrElse("")
-
+  def fetch_single(model: Option[ID], ids: List[IDAble], txid: String, progress: ActorRef)(implicit rnr: RequestNReply) = {
     val json = SPAttributes("command" -> "get_tx_object", "params" -> Map("txid" -> txid)) toJson
     val f = psAmq ? json
-    progress ! SPAttributes("progress" -> "Message send to PS. Waiting for answer")
+    progress ! SPAttributes("progress" -> "Message sent to PS. Waiting for answer")
 
     val items = handlePSAnswer(f)
-    items.map { list => Response(list, SPAttributes("info" -> "get_all_tx_objects"), rnr.req.service, rnr.req.reqID) }
+    items.map { list => Response(list, SPAttributes("silent" -> true,"info" -> "get_tx_object"), rnr.req.service, rnr.req.reqID) }
   }
 
   def handlePSAnswer(f: Future[Any])(implicit rnr: RequestNReply): Future[List[IDAble]] = {
