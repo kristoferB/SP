@@ -1,4 +1,5 @@
 name := "SequencePlanner"
+scalaVersion := "2.11.7"
 
 lazy val default = Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.4.0-RC3",
