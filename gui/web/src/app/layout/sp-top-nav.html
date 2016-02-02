@@ -12,14 +12,14 @@
     </div>
 
     <ul class="nav navbar-nav pull-right">
-        <li class="navbar-user" dropdown>
-            <a href="" class="" dropdown-toggle id="user-dropdown">
+        <li class="navbar-user" uib-dropdown>
+            <a href="" class="" uib-dropdown-toggle id="user-dropdown">
                 <span>Kristofer</span><b class="caret"></b>
                 <span class="thumb-sm avatar pull-right">
                     <img src="images/a0.jpg" alt="..." />
                 </span>
             </a>
-            <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="user-dropdown">
+            <ul class="uib-dropdown-menu uib-dropdown-menu-right" aria-labelledby="user-dropdown">
                 <li><a ui-sref="models"><i class="fa fa-files-o"></i> Manage models</a></li>
                 <li><a ui-sref="settings"><i class="fa fa-cog"></i> Settings</a></li>
                 <li><a><i class="fa fa-user"></i> Profile</a></li>
@@ -40,13 +40,13 @@
                     <span>Create Model</span>
                 </a>
             </li>
-            <li dropdown id="new-widget-dropdown" ng-show="vm.$state.is('dashboard')">
-                <a dropdown-toggle id="new-widget-btn">
+            <li uib-dropdown id="new-widget-dropdown" ng-show="vm.$state.is('dashboard')">
+                <a uib-dropdown-toggle id="new-widget-btn">
                     <i class="fa fa-plus"></i>
                     <span>New Widget</span> <span class="caret"></span>
                 </a>
-                <ul class="dropdown-menu" role="menu">
-                    <li ng-repeat="widgetKind in ::vm.dashboardService.widgetKinds" id="{{::(widgetKind.title | slugify) + '-dropdown-item'}}"
+                <ul class="uib-dropdown-menu" role="menu">
+                    <li ng-repeat="widgetKind in ::vm.dashboardService.widgetKinds" id="{{::(widgetKind.title | slugify) + '-uib-dropdown-item'}}"
                         ng-click="vm.dashboardService.addWidget(vm.dashboardService.storage.dashboards[0], widgetKind)">
                         <a href="">{{::widgetKind.title}}</a>
                     </li>

@@ -19,7 +19,7 @@
   "dependencies": {
     "angular": "1.4.4",
     "angular-animate": "1.4.4",
-    "angular-bootstrap": "0.12.1",
+    "angular-bootstrap": "0.14.3",
     "angular-bootstrap-confirm": "~0.3.0",
     "angular-dialog-service": "~5.2.8",
     "angular-filter": "0.5.5",

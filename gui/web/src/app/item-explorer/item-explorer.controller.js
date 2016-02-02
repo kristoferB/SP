@@ -8,9 +8,9 @@
         .module('app.itemExplorer')
         .controller('ItemExplorerController', ItemExplorerController);
 
-    ItemExplorerController.$inject = ['$scope', 'logger', 'itemService', '$modal', 'dashboardService', '$rootScope', 'uuid4'];
+    ItemExplorerController.$inject = ['$scope', 'logger', 'itemService', '$uibModal', 'dashboardService', '$rootScope', 'uuid4'];
     /* @ngInject */
-    function ItemExplorerController($scope, logger, itemService, $modal, dashboardService, $rootScope, uuid4) {
+    function ItemExplorerController($scope, logger, itemService, $uibModal, dashboardService, $rootScope, uuid4) {
         var vm = this;
         vm.widget = $scope.$parent.$parent.$parent.vm.widget;
         vm.dashboard = $scope.$parent.$parent.$parent.vm.dashboard;
@@ -290,7 +290,7 @@
 
 
         function createItem(itemKind) {
-            var modalInstance = $modal.open({
+            var modalInstance = $uibModal.open({
                 templateUrl: '/app/item-explorer/create-item.html',
                 controller: 'CreateItemController',
                 controllerAs: 'vm',

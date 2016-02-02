@@ -22,7 +22,7 @@
     }
 
     /* @ngInject */
-    TopNavController.$inject = ['modelService', 'dashboardService', '$state', '$modal'];
+    TopNavController.$inject = ['modelService', 'dashboardService', '$state', '$uibModal'];
 
     function TopNavController(modelService, dashboardService, $state, $modal) {
         var vm = this;
@@ -32,7 +32,7 @@
         vm.createModel = createModel;
 
         function createModel() {
-            var modalInstance = $modal.open({
+            var modalInstance = $uibModal.open({
                 templateUrl: '/app/models/createmodel.html',
                 controller: 'CreateModelController',
                 controllerAs: 'vm'

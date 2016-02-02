@@ -18,7 +18,7 @@
           </tr>
           <tr ng-repeat-end ng-class-odd="'odd-row'" ng-class-even="'even-row'">
             <td colspan="99" class="hiddenRow">
-	      <div collapse="!rowSettings[diff.version].expandInfo">
+	      <div uib-collapse="!rowSettings[diff.version].expandInfo">
 		<table class="table">
                   <tr><td>Updated items:</td><td>{{diff.diff.updatedItems}}</td></tr>
                   <tr><td>Deleted items:</td><td>{{diff.diff.deletedItems}}</td></tr>

@@ -9,9 +9,9 @@
         .controller('SOPMakerController', SOPMakerController);
 
     SOPMakerController.$inject = ['$element', '$scope', 'sopDrawer', 'itemService', 'logger', 'dashboardService',
-                                  '$modal', 'uuid4', 'dialogs','$rootScope'];
+                                  '$uibModal', 'uuid4', 'dialogs','$rootScope'];
     /* @ngInject */
-    function SOPMakerController($element, $scope, sopDrawer, itemService, logger, dashboardService, $modal, uuid4,
+    function SOPMakerController($element, $scope, sopDrawer, itemService, logger, dashboardService, $uibModal, uuid4,
                                 dialogs,$rootScope) {
         var vm = this, paper = null;
         var widgetModel = $scope.$parent.$parent.$parent.vm;
@@ -149,7 +149,7 @@
                     isa: 'SOPSpec'
                 };
 
-                var saveAsModal = $modal.open({
+                var saveAsModal = $uibModal.open({
                     templateUrl: '/app/sop-maker/save-as.html',
                     controller: 'SaveAsController',
                     controllerAs: 'vm',
