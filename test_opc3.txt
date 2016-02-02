@@ -1,3 +1,0 @@
-{"messType":"REG","id":"9999"}
-{"messType":"WRITE","id":"9999", "mess":{"PS.ChamberCloseStart":false}}
-

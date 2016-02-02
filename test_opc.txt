@@ -1,4 +1,0 @@
-{"messType":"REG","id":"9999"}
-{"messType":"SUBSCRIBE","id":"9999", "mess":{"PS.ParkFixtureEnd":""}}
-{"messType":"WRITE","id":"9999", "mess":{"PS.ParkFixtureStart":true}}
-{"messType":"WRITE","id":"9999", "mess":{"PS.ChamberOpenStart":true}}
