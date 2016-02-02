@@ -16,6 +16,7 @@ import akka.pattern.ask
 import scala.concurrent._
 import scala.concurrent.duration._
 import akka.camel._
+import scala.util.Properties
 
 case class OPCSubscribe(variables: List[String])
 case class OPCWrite(variableMap: Map[String, SPValue])
@@ -27,7 +28,8 @@ class OpcDAClientConnection(master : ActorRef) extends Actor {
   import context.system
   import context.dispatcher
 
-  val remote = new InetSocketAddress("localhost", 7070)
+  val opcAddr = Properties.envOrElse("OPC_ADDR", "localhost")
+  val remote = new InetSocketAddress(opcAddr, 7070)
   val clientID = java.util.UUID.randomUUID().toString
   val regMessage = ByteString("{\"messType\":\"REG\",\"id\":\"" + clientID + "\"}" + "\n")
 
