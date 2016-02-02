@@ -146,7 +146,8 @@
 
       current.events.push(data);
       if (isRespons){
-        logger.success("Service "+s+" completed")
+        var isSilent = !(_.isUndefined(data.attributes.silent)) && data.attributes.silent;
+        if(!isSilent) logger.success("Service "+s+" completed")
         current.includesResponse = true;
         service.eventQue = removeOldEventQues(service.eventQue);
         console.log(data);

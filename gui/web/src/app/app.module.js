@@ -14,7 +14,8 @@
         'app.itemExplorer',
         'app.sopMaker',
         'app.spServices',
-        'app.trajectories'
+        'app.trajectories',
+        'app.opcRunner'
     ]);
 
 })();

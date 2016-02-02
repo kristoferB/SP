@@ -1,12 +1,12 @@
 package sp.virtcom
 
 import akka.actor._
-import sp.domain.{HierarchyRoot, SPAttributes}
+import sp.domain.{SPValue, HierarchyRoot, SPAttributes}
 import sp.services.AddHierarchies
 import sp.system._
 import sp.system.{ServiceLauncher, SPService}
 import sp.system.messages._
-import sp.virtcom.modeledCases.{GKNcase, ROARcase, PSLFloorRoofCase, VolvoWeldConveyerCase}
+import sp.virtcom.modeledCases._
 import sp.domain.Logic._
 
 /**
@@ -18,12 +18,20 @@ import sp.domain.Logic._
  */
 
 object CreateOpsFromManualModelService extends SPService {
+  val models = List(
+    VolvoWeldConveyerCase(),
+    GKNcase(),
+    GKNSmallcase(),
+    ROARcase(),
+    PSLFloorRoofCase()
+  )
+
   val specification = SPAttributes(
     "service" -> SPAttributes(
       "description" -> "Creates operations for a manual model"
     ),
     "setup" -> SPAttributes(
-      "model" -> KeyDefinition("String", List(VolvoWeldConveyerCase().modelName, GKNcase().modelName, ROARcase().modelName, PSLFloorRoofCase().modelName), Some(VolvoWeldConveyerCase().modelName))
+      "model" -> KeyDefinition("String", models.map(m => SPValue(m.modelName)), Some(GKNSmallcase().modelName))
     )
   )
 
@@ -58,14 +66,10 @@ class CreateOpsFromManualModelService extends Actor with ServiceSupport with Add
 
       val selectedModel = transform(CreateOpsFromManualModelService.transformTuple)
 
-      var manualModel: CollectorModel = GKNcase()
-      if (selectedModel.model.equals(PSLFloorRoofCase().modelName)) {
-        manualModel = PSLFloorRoofCase()
-      } else if (selectedModel.model.equals(ROARcase().modelName)) {
-        manualModel = ROARcase()
-      } else if (selectedModel.model.equals(VolvoWeldConveyerCase().modelName)) {
-        manualModel = VolvoWeldConveyerCase()
-      }
+      val modelMap = CreateOpsFromManualModelService.models.map(m => m.modelName -> m).toMap
+
+
+      val manualModel = modelMap.getOrElse(selectedModel.model, GKNcase())
 
       import CollectorModelImplicits._
 
