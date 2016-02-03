@@ -15,7 +15,8 @@
         'app.sopMaker',
         'app.spServices',
         'app.trajectories',
-        'app.opcRunner'
+        'app.opcRunner',
+        'app.conditionEditor'
     ]);
 
 })();
