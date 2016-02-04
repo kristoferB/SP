@@ -23,7 +23,9 @@
             deleteModel: deleteModel,
             deleteItem: deleteItem,
             getNewID: getNewID,
-            errorToString: errorToString
+            errorToString: errorToString,
+            exportModel: exportModel,
+            importModel: importModel
         };
 
         return service;
@@ -101,6 +103,9 @@
                 return $q.reject(msg);
             }
         }
+
+        function exportModel(modelID){return getStuff(API.modelExport(modelID), 'export model')}
+        function importModel(modelData){return postStuff(API.modelImport, 'import model', modelData)}
 
 
 

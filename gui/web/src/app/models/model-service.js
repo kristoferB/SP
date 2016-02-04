@@ -16,7 +16,9 @@
             updateName: updateName,
             createModel: createModel,
             deleteModel: deleteModel,
-            getModel: getModel
+            getModel: getModel,
+            exportModel: exportModel,
+            importModel: importModel
         };
         var storage = $sessionStorage.$default({
             activeModelID: null
@@ -135,6 +137,14 @@
 
         function deleteModel(id) {
             restService.deleteModel(id);
+        }
+
+        function exportModel(id) {
+            return restService.exportModel(id);
+        }
+
+        function importModel(modelData) {
+            return restService.importModel(modelData);
         }
 
         function updateName(model, name) {

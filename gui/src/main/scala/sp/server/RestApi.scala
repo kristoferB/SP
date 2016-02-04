@@ -177,11 +177,22 @@ trait ModelAPI extends SPApiHelpers {
             entity(as[CreateModelNewID]) { cmd => callSP(CreateModel(ID.newID, cmd.name, cmd.attributes))}
         }
     } ~
+      path("import"){
+        post {
+          implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
+          entity(as[ImportModel]) {im =>
+            callSP(im)
+          }
+        }
+      } ~
       pathPrefix(JavaUUID) { model =>
         / {
           get { callSP(GetModelInfo(model)) } ~
           post { updateModelInfo } ~
           delete { callSP(DeleteModel(model)) }
+        } ~
+        path("export"){
+          get { callSP(ExportModel(model)) }
         } ~
           pathPrefix(Segment){ typeOfItems =>
             IDHandler(model) ~
@@ -356,6 +367,7 @@ trait SPApiHelpers extends HttpService with Json4SSP {
     case r: Progress => complete(r)
     case item: IDAble => complete(item)
     case ri: RuntimeInfo => complete(ri)
+    case im: ImportModel => complete(im)
     case RuntimeInfos(xs) => complete(xs)
     case RuntimeKindInfos(xs) => complete(xs)
     case e: SPError => complete(StatusCodes.InternalServerError, e)
@@ -365,6 +377,7 @@ trait SPApiHelpers extends HttpService with Json4SSP {
 //    case e: UpdateError => complete(e)
 //    case MissingID(id, mess) => complete(StatusCodes.NotFound, s"id: $id $mess")
     case r: sp.runtimes.opc.RuntimeState => complete(r)
+    case SPOK => complete("OK")
     case a: Any  => complete("reply from application is not converted: " +a.toString)
   }
 

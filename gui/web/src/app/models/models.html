@@ -17,6 +17,10 @@
                                 <i class="fa fa-folder-open-o"></i> Open
                             </button>
 
+                            <button class="btn btn-xs btn-primary" ng-click="vm.exportModel(m.id)">
+                                <i class="fa fa-download"></i> Export
+                            </button>
+
                             <button
                                 class="btn btn-xs btn-danger"
                                 mwl-confirm
@@ -36,6 +40,29 @@
                 </tbody>
             </table>
         </sp-widget>
+
+
+                        <sp-widget widget="vm.importTitle" show-close-btn="false" class="item-editor">
+                            <div class="panel-toolbar">
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Format"
+                                            ng-click="vm.editor.format()"><i class="fa fa-align-left"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Compact"
+                                            ng-click="vm.editor.compact()"><i class="fa fa-align-justify"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-default" uib-tooltip="Compact"
+                                            ng-click="vm.importModel()">Import
+                                    </button>
+
+                                </div>
+                                <div class="panel-content" json-editor="vm.editorLoaded" ng-model="vm.modelJson" options="vm.options"
+                                     ng-model-options="{debounce:400}"></div>
+
+                            </div>
+
+
+                        </sp-widget>
 
     </div>
 </section>

@@ -50,6 +50,13 @@ class ModelHandler extends PersistentActor {
       }
       else sender ! SPError(s"Model ${del.model} does not exist.")
 
+    case imp @ ImportModel(id, mi, ids, h) => {
+      if (!modelMap.contains(id)) {
+        self ! CreateModel(id, mi.name, mi.attributes)
+        self ! imp
+      } else
+        modelMap(id) forward imp
+    }
     case m: ModelCommand =>
       if (modelMap.contains(m.model)) modelMap(m.model) forward m
       else sender ! SPError(s"Model ${m.model} does not exist.")

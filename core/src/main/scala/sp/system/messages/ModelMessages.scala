@@ -36,6 +36,9 @@ case class DeleteIDs(model: ID, items: List[ID], info: SPAttributes = SPAttribut
 case class Revert(model: ID, toVersion: Long) extends ModelUpdate
 case class DeleteModel(model: ID) extends ModelUpdate
 
+case class ExportModel(model: ID) extends ModelCommand
+case class ImportModel(model: ID, info: ModelInfo, ids: List[IDAble], history: List[ModelDiff]) extends ModelCommand
+
 
 // API output
 

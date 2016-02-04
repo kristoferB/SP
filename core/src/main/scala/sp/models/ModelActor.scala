@@ -87,6 +87,10 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
           info.name,
           info.attributes.addTimeStamp
         )
+
+        println("model revert diff upd: "+ diff.updatedItems.map(_.name))
+        println("model revert diff del: "+ diff.deletedItems.map(_.name))
+
         self ! (diff, reply)
       }
 
@@ -105,6 +109,24 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
     case "printState" => println(s"$model: $state")
     case "snapshot" => saveSnapshot(state)
     case GetModels => sender ! getModelInfo
+    case ExportModel(id) => {
+      val mi = getModelInfo.copy(history = List())
+      val res = ImportModel(model, mi, state.idMap.values.toList, List())
+      println(s"export")
+      sender() ! res
+    }
+    case ImportModel(id, mi, ids, h) => {
+      val reply = sender()
+      val diffUpd = createDiffUpd(ids, SPAttributes("info"->"Model imported"), true)
+      val idsKeys = ids.map(_.id).toSet
+      val dels = state.idMap.filterKeys(id => !idsKeys.contains(id))
+      println(s"import")
+      diffUpd.left.map(err => reply ! err)
+      diffUpd.right.map{diff =>
+        store(diff.copy(deletedItems = dels.values.toList, name = mi.name, modelAttr = mi.attributes), reply ! SPOK)
+      }
+    }
+
   }
 
 
@@ -184,9 +206,9 @@ trait ModelActorState  {
   }
 
 
-  def createDiffUpd(ids: List[IDAble], info: SPAttributes): Either[SPError, ModelDiff] = {
+  def createDiffUpd(ids: List[IDAble], info: SPAttributes, allowNoChanges: Boolean = false): Either[SPError, ModelDiff] = {
     val upd = ids filter(!state.items.contains(_))
-    if (upd.isEmpty) Left(SPError("No changes identified"))
+    if (upd.isEmpty && !allowNoChanges) Left(SPError("No changes identified"))
     else {
       val updInfo = if (info.obj.isEmpty) SPAttributes("info"->s"updated: ${ids.map(_.name).mkString(",")}") else info
       Right(ModelDiff(model,
