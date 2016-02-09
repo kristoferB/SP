@@ -20,34 +20,32 @@
 
         <div class="btn-group">
             <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Save"
-                    ng-class="{'disabled': !vm.widget.storage.atLeastOneItemChanged}" ng-click="vm.save()"><i class="fa fa-floppy-o"></i>
+                    ng-class="{'disabled': !vm.widget.storage.okToSave}" ng-click="vm.save()"><i class="fa fa-floppy-o"></i>
             </button>
-        </div>
-
-
-        <div class="btn-group"
-             ng-if="vm.options.mode === 'code' || vm.options.mode === 'text'">
-            <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Format"
-                    ng-click="vm.editor.format()"><i class="fa fa-align-left"></i>
-            </button>
-            <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Compact"
-                    ng-click="vm.editor.compact()"><i class="fa fa-align-justify"></i>
-            </button>
-        </div>
-
-        <span ng-show="vm.editor.searchBox.dom.search.value.length > 0" class="search-matches pull-right">
-            {{vm.editor.searchBox.results.length || "no"}} results
-        </span>
-
-        <div uib-collapse="!vm.showDetail">
-            <div class="input-group">
-                <input class="input-sm form-control" type="search" ng-model="vm.transformService"
-                       ng-change="vm.transform()">
-            </div>
         </div>
 
     </div>
-
-    <div class="panel-content">{{vm.widget.storage.data}}</div>
+    <div class="panel-content">
+        <div ng-repeat="op in vm.widget.storage.operations">
+            <h4>{{op.item.name}}</h4>
+            <div ng-repeat="cond in op.conditions">
+                <b>{{cond.attributes.kind}}</b>
+                <form role="form">
+                    <div class="form-group">
+                        <label>Guard</label>
+                        <textarea width="100%" spellcheck="false" class="form-control" uib-tooltip={{cond.guardParseError}}
+                                  ng-class="{ error: cond.guardParseError!='', valid: cond.guardParseError=='' }"
+                                  ng-model="cond.guard" ng-change="vm.checkGuard(cond)"/>
+                        <label>Action{{cond.actions.length>1?'s':''}}</label>
+                        <div ng-repeat="act in cond.actions">
+                            <textarea width="100%" spellcheck="false" class="form-control" uib-tooltip={{act.actionParseError}}
+                                      ng-class="{ error: act.actionParseError!='', valid: act.actionParseError=='' }"
+                                      ng-model="act.action" ng-change="vm.checkAction(act)"/>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
 </div>

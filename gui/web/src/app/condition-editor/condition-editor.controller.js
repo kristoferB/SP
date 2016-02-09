@@ -8,17 +8,19 @@
         .module('app.conditionEditor')
         .controller('ConditionEditorController', ConditionEditorController);
 
-    ConditionEditorController.$inject = ['$timeout', 'itemService', '$scope', 'dialogs', 'dashboardService', 'spServicesService'];
+    ConditionEditorController.$inject = ['$timeout', 'itemService', '$scope', 'dialogs', 'dashboardService', 'spServicesService','restService','modelService'];
     /* @ngInject */
-    function ConditionEditorController($timeout, itemService, $scope, dialogs, dashboardService, spServicesService) {
+    function ConditionEditorController($timeout, itemService, $scope, dialogs, dashboardService, spServicesService, restService,modelService) {
         var vm = this;
         vm.widget = $scope.$parent.widget;
         vm.setMode = setMode;
-        vm.modes = ['tree', 'code'];
+        vm.modes = ['raw', 'transformations'];
         vm.options = {
-            mode: 'tree'
+            mode: 'raw'
         };
-        vm.test = test;
+        vm.checkGuard = checkGuard;
+        vm.checkAction = checkAction;
+        vm.save = save;
         activate();
 
         function activate() {
@@ -31,9 +33,7 @@
                     dashboardService.closeWidget(vm.widget.id);
                 });});
 
-            actOnSelectionChanges();
-            vm.widget.storage.data = {};
-
+            vm.widget.storage.operations = [];
             actOnSelectionChanges();
         }
 
@@ -43,17 +43,40 @@
                     return itemService.selected;
                 },
                 function(nowSelected, previouslySelected) {
-                    // do some checks here
-                    vm.widget.storage.data = nowSelected;
+                    var isSame = (nowSelected.length == previouslySelected.length) && nowSelected.every(function (element, index) {
+                        return element === previouslySelected[index];
+                    });
+
+                    if(!isSame) {
+                        vm.widget.storage.operations = [];
+                        for(var i = 0; i < nowSelected.length; i++) {
+                            if(nowSelected[i].isa == 'Operation') {
+                                var op = { item: nowSelected[i], conditions: [] };
+                                _.each(op.item.conditions, function (cond) {
+                                    var c = { kind: cond.attributes.kind, guard: '',
+                                              parsedGuard: cond.guard,
+                                              guardParseError: '', actions: [] };
+                                    backendPrintGuard(cond.guard, c);
+                                    _.each(cond.action, function (act) {
+                                        var a = { action: '', parsedAction: act, actionParseError: '' };
+                                        backendPrintAction(act, a);
+                                        c.actions.push(a);
+                                    });
+                                    op.conditions.push(c);
+                                });
+                                vm.widget.storage.operations.push(op);
+                            }
+                        }
+                    }
                 }
             );
-        }        
+        }
 
         function resetWidgetStorage() {
             vm.widget.storage = {
                 data: {},
                 itemChanged: {},
-                atLeastOneItemChanged: false
+                okToSave: true
             };
         }
 
@@ -63,67 +86,130 @@
             }
         }
 
-        function guardAsText(prop) {
-            var operator;
-            if(prop.isa === 'EQ' || prop.isa === 'NEQ' || prop.isa === 'GREQ' || prop.isa === 'LEEQ' || prop.isa === 'GR' || prop.isa === 'LE') {
-                var left = handleProp(prop.left),
-                    right = handleProp(prop.right);
-                if(prop.isa === 'EQ') {
-                    operator = ' == ';
-                } else if(prop.isa === 'NEQ') {
-                    operator = ' != ';
-                } else if(prop.isa === 'GREQ') {
-                    operator = ' >= ';
-                } else if(prop.isa === 'LEEQ') {
-                    operator = ' <= ';
-                } else if(prop.isa === 'GR') {
-                    operator = ' > ';
-                } else { //prop.isa === 'LE')
-                    operator = ' < ';
-                }
-                if(left === right) {
-                    return '';
-                } else {
-                    return left + operator + right;
-                }
-            } else if(prop.isa === 'AND' || prop.isa === 'OR') {
-                operator = ' ' + prop.isa + ' ';
-                var line = '';
-                for(var i = 0; i < prop.props.length; i++) {
-                    if(i > 0) {
-                        line = line + operator;
-                    }
-                    line = line + handleProp(prop.props[i]);
-                }
-                return line;
-            } else if(prop.isa === 'NOT') {
-                return '!' + handleProp(prop.p);
-            } else {
-                return '';
-            }
-        };
+        function save() {
+            _.each(vm.widget.storage.operations, function(op) {
+                // "reassemble" conditions, i.e. loop through and update
+                var conds = _.map(op.conditions, function(c) {
+                    return { guard: c.parsedGuard,
+                             action: _.map(c.actions, function(a) { return a.parsedAction; })
+                           };
+                });
 
-        function actionAsText(action) {
-            var textLine = '';
-
-            for(var i = 0; i < action.length; i++) {
-                if(i > 0) {
-                    textLine = textLine + '; ';
+                var item = op.item;
+                for(var i = 0; i<conds.length;++i){
+                    item.conditions[i].guard = conds[i].guard;
+                    item.conditions[i].action = conds[i].action;
                 }
-                var actionValue = false;
-                if (action[i].value.isa == "SVIDEval")
-                    actionValue = action[i].value.isa.id;
-                else actionValue = action[i].value.v;
 
-                textLine = textLine + getNameFromId(action[i].id) + ' = ' + actionValue;
-            }
-            return textLine;
-        };
-
-        function test() {
-            _.foreach(vm.widget.storage.data, function (item) {
-                
+                var centralItem = itemService.getItem(item.id);
+                itemService.saveItem(item);
             });
+        }
+
+        function backendParseGuard(cond) {
+            var idF = restService.getNewID();
+            var answerF = idF.then(function(id){
+                var message = {
+                    "command":"parseGuard",
+                    "toParse":cond.guard,
+                    "core":{
+                        "model":modelService.activeModel.id,
+                        "responseToModel":false,
+                        "includeIDAbles": [],
+                        "onlyResponse":true
+                    },
+                    "reqID":id
+                };
+                return restService.postToServiceInstance(message, "PropositionParser");
+            });
+
+            return answerF.then(function(serviceAnswer){
+                if(_.isUndefined(serviceAnswer.attributes.parseError)) {
+                    cond.parsedGuard = serviceAnswer.attributes.proposition;
+                    cond.guardParseError = '';
+                } else {
+                    cond.guardParseError = serviceAnswer.attributes.parseError;
+                }
+            });
+        }
+
+        function backendParseAction(act) {
+            var idF = restService.getNewID();
+            var answerF = idF.then(function(id){
+                var message = {
+                    "command":"parseAction",
+                    "toParse":act.action,
+                    "core":{
+                        "model":modelService.activeModel.id,
+                        "responseToModel":false,
+                        "includeIDAbles": [],
+                        "onlyResponse":true
+                    },
+                    "reqID":id
+                };
+                return restService.postToServiceInstance(message, "PropositionParser");
+            });
+
+            return answerF.then(function(serviceAnswer){
+                if(_.isUndefined(serviceAnswer.attributes.parseError)) {
+                    act.parsedAction = serviceAnswer.attributes.action;
+                    act.actionParseError = '';
+                } else {
+                    act.actionParseError = serviceAnswer.attributes.parseError;
+                }
+            });
+        }
+
+        function backendPrintGuard(prop, obj) {
+            var idF = restService.getNewID();
+            var answerF = idF.then(function(id){
+                var message = {
+                    "command":"printGuard",
+                    "toPrint":prop,
+                    "core":{
+                        "model":modelService.activeModel.id,
+                        "responseToModel":false,
+                        "includeIDAbles": [],
+                        "onlyResponse":true
+                    },
+                    "reqID":id
+                };
+                return restService.postToServiceInstance(message, "PropositionParser");
+            });
+
+            return answerF.then(function(serviceAnswer){
+                obj.guard = serviceAnswer.attributes.print;
+            });
+        }
+
+        function backendPrintAction(action, obj) {
+            var idF = restService.getNewID();
+            var answerF = idF.then(function(id){
+                var message = {
+                    "command":"printAction",
+                    "toPrint":action,
+                    "core":{
+                        "model":modelService.activeModel.id,
+                        "responseToModel":false,
+                        "includeIDAbles": [],
+                        "onlyResponse":true
+                    },
+                    "reqID":id
+                };
+                return restService.postToServiceInstance(message, "PropositionParser");
+            });
+
+            return answerF.then(function(serviceAnswer){
+                obj.action = serviceAnswer.attributes.print;
+            });
+        }
+
+        function checkGuard(cond) {
+            backendParseGuard(cond);
+        }
+
+        function checkAction(cond) {
+            backendParseAction(cond);
         }
     }
 })();
