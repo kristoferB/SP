@@ -1,6 +1,6 @@
 package sp.launch
 
-import sp.services.PropositionParserActor
+import sp.services.PropositionParserService
 import sp.system.ServiceExample
 import sp.system.messages._
 
@@ -26,7 +26,7 @@ object Areus //extends App
 
   // Register services here
   serviceHandler ! RegisterService("PropositionParser",
-    system.actorOf(PropositionParserActor.props, "PropositionParser"))
+    system.actorOf(PropositionParserService.props, "PropositionParser"))
 
   import sp.services.relations._
   serviceHandler ! RegisterService("Relations",
