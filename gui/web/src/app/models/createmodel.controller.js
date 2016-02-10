@@ -5,20 +5,20 @@
         .module('app.models')
         .controller('CreateModelController', CreateModelController);
 
-    CreateModelController.$inject = ['$modalInstance'];
+    CreateModelController.$inject = ['$uibModalInstance'];
     /* @ngInject */
-    function CreateModelController($modalInstance) {
+    function CreateModelController($uibModalInstance) {
         var vm = this;
         vm.name = '';
         vm.save = save;
         vm.cancel = cancel;
 
         function save() {
-            $modalInstance.close(vm.name);
+            $uibModalInstance.close(vm.name);
         }
 
         function cancel() {
-            $modalInstance.dismiss('cancel');
+            $uibModalInstance.dismiss('cancel');
         }
 
     }
