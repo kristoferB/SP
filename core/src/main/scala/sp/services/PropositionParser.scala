@@ -45,8 +45,6 @@ class PropositionParserService extends Actor with ServiceSupport {
       val progress = context.actorOf(progressHandler)
       progress ! SPAttributes("progress" -> "starting prop parser")
 
-      println(r.attributes)
-
       val command = r.attributes.getAs[String]("command").get
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
