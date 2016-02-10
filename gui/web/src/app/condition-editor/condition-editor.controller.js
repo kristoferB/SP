@@ -18,9 +18,17 @@
         vm.options = {
             mode: 'raw'
         };
+        vm.conditionTypes = [ { label: 'Precondition', isa: 'precondition' },
+                              { label: 'Postcondition', isa: 'postcondition' }
+                            ];
         vm.checkGuard = checkGuard;
         vm.checkAction = checkAction;
         vm.save = save;
+        vm.newAction = newAction;
+        vm.deleteAction = deleteAction;
+        vm.deleteCondition = deleteCondition;
+        vm.newCondition = newCondition;
+        vm.sorter = sorter;
         activate();
 
         function activate() {
@@ -55,7 +63,7 @@
                                 _.each(op.item.conditions, function (cond) {
                                     var c = { kind: cond.attributes.kind, guard: '',
                                               parsedGuard: cond.guard,
-                                              guardParseError: '', actions: [] };
+                                              guardParseError: '', actions: [], deleted: false };
                                     backendPrintGuard(cond.guard, c);
                                     _.each(cond.action, function (act) {
                                         var a = { action: '', parsedAction: act, actionParseError: '' };
@@ -67,6 +75,7 @@
                                 vm.widget.storage.operations.push(op);
                             }
                         }
+                        updateOkToSave();
                     }
                 }
             );
@@ -80,29 +89,98 @@
             };
         }
 
+        function updateOkToSave() {
+            var ok = true;
+            _.each(vm.widget.storage.operations, function(op) {
+                // check for parse errors
+                _.each(op.conditions, function(c) {
+                    if(!c.deleted) {
+                        if(c.guardParseError!='') ok = false;
+                        _.each(c.actions, function(a) {
+                            if(a.actionParseError!='') ok = false;
+                        });
+                    }
+                });
+            });
+
+            if(ok) {
+                // check for actual changes
+                var changes = false;
+                _.each(vm.widget.storage.operations, function(op) {
+                    var item = getNewItem(op);
+                    var centralItem = itemService.getItem(item.id);
+                    if(!_.isEqual(item, centralItem)) {
+                        changes = true;
+                    }
+                });
+                ok = changes;
+            }
+            vm.widget.storage.okToSave = ok;
+        }
+
         function setMode(mode) {
             vm.options.mode = mode;
             if (mode === 'code') {
             }
         }
 
-        function save() {
-            _.each(vm.widget.storage.operations, function(op) {
-                // "reassemble" conditions, i.e. loop through and update
-                var conds = _.map(op.conditions, function(c) {
-                    return { guard: c.parsedGuard,
-                             action: _.map(c.actions, function(a) { return a.parsedAction; })
-                           };
-                });
+        function sorter(c) {
+            if(c.kind == 'precondition') return 0;
+            if(c.kind == 'postcondition') return 1;
+            return 2;
+        }
 
-                var item = op.item;
-                for(var i = 0; i<conds.length;++i){
-                    item.conditions[i].guard = conds[i].guard;
-                    item.conditions[i].action = conds[i].action;
+        function newCondition(op,condType) {
+            var cond = {isa:'PropositionCondition',guard:{},action:[],attributes:{kind:condType.isa}};
+            op.item.conditions.push(cond);
+            var c = { kind: cond.attributes.kind, guard: '',
+                      parsedGuard: cond.guard,
+                      guardParseError: '', actions: [], deleted: false };
+            backendParseGuard(c);
+            op.conditions.push(c);
+        }
+
+        function deleteCondition(cond) {
+            cond.deleted=true;
+            updateOkToSave();
+        }
+
+        function newAction(actions) {
+            var a = { action: '', parsedAction: {}, actionParseError: '' };
+            actions.push(a);
+            backendParseAction(a);
+        }
+
+        function deleteAction(actions, act) {
+            var i = actions.indexOf(act);
+            if(i>=0) actions.splice(i,1);
+            updateOkToSave();
+        }
+
+        function getNewItem(op) {
+            // clone original item, loop through conditions and update (and remove)
+            var item = JSON.parse(JSON.stringify(op.item));
+            var new_conds = [];
+            for(var i = 0; i<op.conditions.length;++i){
+                if(!op.conditions[i].deleted) {
+                    item.conditions[i].guard = op.conditions[i].parsedGuard;
+                    item.conditions[i].action = _.map(op.conditions[i].actions, function(a) { return a.parsedAction; });
+                    new_conds.push(item.conditions[i]);
                 }
+            }
+            item.conditions = new_conds;
+            return item;
+        }
 
+        function save() {
+            if(!vm.widget.storage.okToSave) return; // possible to click disabled button
+
+            _.each(vm.widget.storage.operations, function(op) {
+                var item = getNewItem(op);
                 var centralItem = itemService.getItem(item.id);
-                itemService.saveItem(item);
+                if(!_.isEqual(item, centralItem)) {
+                    itemService.saveItem(item);
+                }
             });
         }
 
@@ -130,6 +208,7 @@
                 } else {
                     cond.guardParseError = serviceAnswer.attributes.parseError;
                 }
+                updateOkToSave();
             });
         }
 
@@ -157,6 +236,7 @@
                 } else {
                     act.actionParseError = serviceAnswer.attributes.parseError;
                 }
+                updateOkToSave();
             });
         }
 
@@ -208,8 +288,8 @@
             backendParseGuard(cond);
         }
 
-        function checkAction(cond) {
-            backendParseAction(cond);
+        function checkAction(action) {
+            backendParseAction(action);
         }
     }
 })();

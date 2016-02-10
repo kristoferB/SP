@@ -28,8 +28,23 @@
     <div class="panel-content">
         <div ng-repeat="op in vm.widget.storage.operations">
             <h4>{{op.item.name}}</h4>
-            <div ng-repeat="cond in op.conditions">
-                <b>{{cond.attributes.kind}}</b>
+            <div class="btn-group" uib-dropdown>
+                <button type="button" class="btn btn-sm btn-default btn-notext uib-dropdown-toggle"
+                        id="create-item-dropdown" uib-dropdown-toggle uib-tooltip="New condition">
+                    <i class="fa fa-plus"></i><i class="caret" style="margin-left: 5px;"></i>
+                </button>
+                <ul class="uib-dropdown-menu" role="menu" aria-labelledby="create-item-dropdown">
+                    <li ng-repeat="condType in ::vm.conditionTypes">
+                        <a ng-click="vm.newCondition(op,condType)">
+                            {{::condType.label}}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div ng-repeat="cond in op.conditions | orderBy:vm.sorter" ng-if="cond.deleted!=true">
+                <b>{{cond.kind}}</b>
+                <button class="btn btn-sm btn-notext" uib-tooltip="Delete condition" ng-click="vm.deleteCondition(cond)"><i class="fa fa-close"></i></button>
                 <form role="form">
                     <div class="form-group">
                         <label>Guard</label>
@@ -37,7 +52,9 @@
                                   ng-class="{ error: cond.guardParseError!='', valid: cond.guardParseError=='' }"
                                   ng-model="cond.guard" ng-change="vm.checkGuard(cond)"/>
                         <label>Action{{cond.actions.length>1?'s':''}}</label>
+                        <button class="btn btn-sm btn-notext" uib-tooltip="New action" ng-click="vm.newAction(cond.actions)"><i class="fa fa-plus"></i></button>
                         <div ng-repeat="act in cond.actions">
+                            <button class="btn btn-sm btn-notext" uib-tooltip="Delete action" ng-click="vm.deleteAction(cond.actions,act)"><i class="fa fa-close"></i></button>
                             <textarea width="100%" spellcheck="false" class="form-control" uib-tooltip={{act.actionParseError}}
                                       ng-class="{ error: act.actionParseError!='', valid: act.actionParseError=='' }"
                                       ng-model="act.action" ng-change="vm.checkAction(act)"/>
