@@ -36,10 +36,13 @@
                 resetWidgetStorage();
             }
             $scope.$on('closeRequest', function() {
-                var dialog = dialogs.confirm('Confirm close','You have unsaved changes. Do you still want to close?');
-                dialog.result.then(function(){
+                if(vm.widget.storage.okToSave) {
+                    var dialog = dialogs.confirm('Confirm close','You have unsaved changes. Do you still want to close?');
+                    dialog.result.then(function(){ dashboardService.closeWidget(vm.widget.id); });
+                } else {
                     dashboardService.closeWidget(vm.widget.id);
-                });});
+                }
+            });
 
             vm.widget.storage.operations = [];
             actOnSelectionChanges();
@@ -85,7 +88,7 @@
             vm.widget.storage = {
                 data: {},
                 itemChanged: {},
-                okToSave: true
+                okToSave: false
             };
         }
 
