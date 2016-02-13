@@ -407,7 +407,8 @@ trait Json4SSP {
   import org.json4s.native.Serialization._
   import org.json4s.{ Formats, MappingException }
 
-  import sp.domain.Logic._
+  import sp.system.messages.JsonFormatsMessage._
+
 
   def json4sUnmarshaller[T: Manifest] =
     Unmarshaller[T](MediaTypes.`application/json`) {

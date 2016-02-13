@@ -171,7 +171,7 @@ class ModalaService(amqProducer: ActorRef) extends Actor with ServiceSupport wit
       )
     }
 
-    times
+    //times
 
 
     val marks = markPoses.map{case (i, zone) =>

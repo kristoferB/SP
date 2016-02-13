@@ -1,18 +1,21 @@
 name := "SequencePlanner"
 scalaVersion := "2.11.7"
 
-lazy val default = Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.4.0-RC3",
-  "com.typesafe.akka" %% "akka-testkit" % "2.4.0-RC3",
+lazy val akka = Seq(
+  "com.typesafe.akka" %% "akka-actor" % "2.4.1",
+  "com.typesafe.akka" %% "akka-testkit" % "2.4.1",
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
-  "com.github.nscala-time" %% "nscala-time" % "2.0.0",
-  "org.json4s" %% "json4s-native" % "3.2.11",
-  "org.json4s" %% "json4s-ext" % "3.2.11",
   "org.slf4j" % "slf4j-simple" % "1.7.7"
 )
 
+lazy val json = Seq(
+  "com.github.nscala-time" %% "nscala-time" % "2.0.0",
+  "org.json4s" %% "json4s-native" % "3.2.11",
+  "org.json4s" %% "json4s-ext" % "3.2.11"
+)
+
 lazy val commonSettings = Seq(
-  version := "0.5.0-SNAPSHOT",
+  version := "0.6.0-SNAPSHOT",
   scalaVersion := "2.11.7",
   resolvers ++= Seq(
     "Sonatype OSS Snapshots" at "https://oss.sonatype.org/Releases",
@@ -33,23 +36,27 @@ lazy val commonSettings = Seq(
 
 
 lazy val root = project.in( file(".") )
-   .aggregate(core, gui, extensions, launch)
+   .aggregate(core, domain, gui, extensions, launch)
 
-lazy val core = project.
+lazy val domain = project.
   settings(commonSettings: _*).
-  settings(libraryDependencies ++= default)
+  settings(libraryDependencies ++= json)
 
-lazy val gui = project.dependsOn(core).
+lazy val core = project.dependsOn(domain).
   settings(commonSettings: _*).
-  settings(libraryDependencies ++= default)
+  settings(libraryDependencies ++= akka ++ json)
 
-lazy val extensions = project.dependsOn(core).
+lazy val gui = project.dependsOn(domain, core).
   settings(commonSettings: _*).
-  settings(libraryDependencies ++= default)
+  settings(libraryDependencies ++= akka ++ json)
 
-lazy val launch = project.dependsOn(core, gui, extensions).
+lazy val extensions = project.dependsOn(domain, core).
   settings(commonSettings: _*).
-  settings(libraryDependencies ++= default)
+  settings(libraryDependencies ++= akka ++ json)
+
+lazy val launch = project.dependsOn(domain, core, gui, extensions).
+  settings(commonSettings: _*).
+  settings(libraryDependencies ++= akka ++ json)
 
 
 
