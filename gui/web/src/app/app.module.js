@@ -16,7 +16,8 @@
         'app.spServices',
         'app.trajectories',
         'app.opcRunner',
-        'app.conditionEditor'
+        'app.conditionEditor',
+        'app.exampleWidget'
     ]);
 
 })();
