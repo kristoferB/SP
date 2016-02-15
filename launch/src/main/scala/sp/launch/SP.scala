@@ -159,6 +159,19 @@ object SP extends App {
   //    val file = Source.fromFile("./testFiles/gitIgnore/module1.json").getLines().mkString("\n")
   //    jsonActor ! Request("someString", SPAttributes("file" -> file, "name" -> "preloadedModel"))
 
+
+
+  import sp.plc._
+  serviceHandler ! RegisterService(
+    "PLCControl",
+    system.actorOf(PLCControl.props(eventHandler), "PLCControl"),
+    PLCControl.specification,
+    PLCControl.transformation
+  )
+
+
+
+
   // launch REST API
   sp.server.LaunchGUI.launch
 }

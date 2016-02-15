@@ -90,7 +90,7 @@
                 error: error,
                 type: event.isa,
                 ids: event.ids
-            }
+            };
 
             vm.currentProgess[event.service] = info;
         }
