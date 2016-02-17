@@ -44,11 +44,6 @@
                   if (_.has(resp, 'attributes.result')){
                       vm.result = resp.attributes.result;
                   }
-              },
-              function(resp){
-                  if (_.has(resp, 'attributes.result')){
-                      vm.result = resp.attributes.result;
-                  }
               }
             )
 

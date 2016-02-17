@@ -6,7 +6,6 @@ package sp.server
 
 import akka.actor._
 import akka.io.Tcp.PeerClosed
-import org.json4s.native.JsonMethods._
 import sp.system.messages._
 import spray.can.Http
 import spray.http.HttpHeaders._
@@ -46,10 +45,12 @@ trait ServerSideEventsDirectives {
             }
 
             import sp.domain._
-            import sp.domain.Logic._
             def receive = {
               case e: SPEvent => {
-                val data = SPValue(e).toJson
+                import sp.system.messages.JsonFormatsMessage._
+                import org.json4s.native.JsonMethods._
+
+                val data = org.json4s.native.JsonMethods.compact(render(SPValue(e)))
                 val ev = e.getClass.getSimpleName
                 ctx.responder ! MessageChunk(s"event: $ev\ndata:$data\n\n")
               }
