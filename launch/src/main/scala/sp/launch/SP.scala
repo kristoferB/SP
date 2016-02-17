@@ -177,7 +177,13 @@ object SP extends App {
     ExampleService.transformation
   )
 
-
+  import sp.calculator._
+  serviceHandler ! RegisterService(
+    "Calculator",
+    system.actorOf(Calculator.props, "Calculator"),
+    Calculator.specification,
+    Calculator.transformation
+  )
 
 
 

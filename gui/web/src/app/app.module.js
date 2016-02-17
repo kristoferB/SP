@@ -18,7 +18,8 @@
         'app.opcRunner',
         'app.conditionEditor',
         'app.exampleWidget',
-        'app.operationControl'
+        'app.operationControl',
+        'app.calculator'
     ]);
 
 })();

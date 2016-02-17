@@ -62,7 +62,7 @@ class ExampleService extends Actor with ServiceSupport {
       val id: ID = transform(ExampleService.transformTuple._2)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
       println(s"core is always included: $core")
-      
+
       // Send progress if your calculations take some time (> 0.5 sec)
       progress ! SPAttributes("progress" -> "we are making it")
 

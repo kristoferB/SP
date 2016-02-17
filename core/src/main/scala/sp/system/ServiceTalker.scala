@@ -59,7 +59,7 @@ class ServiceTalker(service: ActorRef,
       killMe
     }
     case r @ Response(ids, attr, _, _) => {
-      if (handleAttr.responseToModel) {
+      if (handleAttr.responseToModel && handleAttr.model.isDefined) {
         modelHandler ! UpdateIDs(handleAttr.model.get, ids, attr)
       }
       replyTo ! r
@@ -120,7 +120,7 @@ object ServiceTalker {
 
   def serviceHandlerAttributes = SPAttributes("core" -> SPAttributes(
     "model"-> KeyDefinition("Option[ID]", List(), Some(JNothing)),
-    "responseToModel"->KeyDefinition("Boolean", List(true, false), Some(true)),
+    "responseToModel"->KeyDefinition("Boolean", List(true, false), Some(false)),
     "includeIDAbles"->KeyDefinition("List[ID]", List(), Some(SPValue(List[IDAble]()))),
     "onlyResponse"->KeyDefinition("Boolean", List(true, false), Some(false))
   ))
@@ -130,6 +130,7 @@ object ServiceTalker {
 
   def validateRequest(req: Request, serviceAttributes: SPAttributes, transform: List[TransformValue[_]])= {
     val attr = req.attributes
+    println(s"ServceTalker got: $attr")
     val expectAttrs = serviceAttributes.findObjectsWithKeysAs[KeyDefinition](List("ofType", "domain"))
     val errorsAttr = analyseAttr(attr, expectAttrs)
     if (errorsAttr.nonEmpty) Left(errorsAttr) else {

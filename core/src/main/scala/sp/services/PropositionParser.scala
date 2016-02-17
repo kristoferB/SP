@@ -15,7 +15,8 @@ import org.json4s._
  * The service parse a string into a proposition and returns it.
  * Send a request including attributes:
  * "model" -> "the name of the model"
- * "parse" -> "the string to parse" e.g. r1.tool==kalle AND r2 = false
+ * "command" -> parse
+ * "toParse" -> "the string to parse" e.g. r1.tool==kalle AND r2 = false
  * If we need better performance from multiple requests in the future,
  * we can have multiple actors in a round robin.
   **/
@@ -24,7 +25,8 @@ object PropositionParserService extends SPService {
     "service" -> SPAttributes(
       "group" -> "Hidden",
       "description" -> "Parse and print proposition conditions"
-    )
+    ),
+    "command"->KeyDefinition("String", List("parseGuard", "printGuard", "parseAction", "printAction"), Some("parseGuard"))
   )
 
 

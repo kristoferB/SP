@@ -65,6 +65,10 @@
           message = request.data;
         }
 
+      console.log("call")
+      console.log(request);
+      console.log(message);
+
       var idF = restService.getNewID();
       var answerF = idF.then(function(id){
         addEventListener(id, responseCallBack, progressCallback);
@@ -132,7 +136,10 @@
       var id = data.reqID;
       var isRespons = !(_.isUndefined(data.isa)) && data.isa == 'Response';
 
-      var current = service.eventQue[id]
+      console.log("events for services");
+      console.log(data);
+
+      var current = service.eventQue[id];
       if (_.isUndefined(current)) {
         current = {
           service: s,
@@ -147,7 +154,7 @@
       current.events.push(data);
       if (isRespons){
         var isSilent = !(_.isUndefined(data.attributes.silent)) && data.attributes.silent;
-        if(!isSilent) logger.success("Service "+s+" completed")
+        if(!isSilent) logger.success("Service "+s+" completed");
         current.includesResponse = true;
         service.eventQue = removeOldEventQues(service.eventQue);
         console.log(data);
@@ -166,7 +173,7 @@
       if (completed.length < 10){return que}
 
       var sorted = _.sortByAll(completed, ['counter']);
-      var noOld = _.takeRight(sorted, 5)
+      var noOld = _.takeRight(sorted, 5);
       return _.indexBy(noOld, 'reqID')
     }
 
@@ -179,10 +186,9 @@
     }
 
     function reloadSelectedItems() {
-        var toReturn = _.map(itemService.selected, function(item){
+        return  _.map(itemService.selected, function(item){
             return item.id;
         });
-        return toReturn;
     }
 
   }

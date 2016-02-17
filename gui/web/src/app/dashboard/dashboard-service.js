@@ -34,6 +34,7 @@
                 {sizeX: 6, sizeY: 4, title: 'OPC Runner', template: 'app/opc-runner/opc-runner.html'},
                 {sizeX: 4, sizeY: 4, title: 'Example Widget', template: 'app/example-widget/example-widget.html'},
                 {sizeX: 4, sizeY: 4, title: 'Operation Control', template: 'app/operation-control/operation-control.html'},
+                {sizeX: 4, sizeY: 4, title: 'Calculator', template: 'app/calculator/calculator.html'},
             ]
         };
 

@@ -50,10 +50,18 @@
     </button>
 </div>
 
-<div ng-if="vm.isA == 'String' || vm.isA == 'Int'">
+<div ng-if="vm.isA == 'String'">
     <form role="form">
         <div class="form-group">
             <input type="text" class="form-control" ng-model="vm.attributes"/>
+        </div>
+    </form>
+</div>
+
+<div ng-if="vm.isA == 'Int'">
+    <form role="form">
+        <div class="form-group">
+            <input type="number" class="form-control" ng-model="vm.attributes"/>
         </div>
     </form>
 </div>
