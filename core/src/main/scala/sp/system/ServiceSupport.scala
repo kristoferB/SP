@@ -39,7 +39,7 @@ trait ServiceSupport {
     transformO.get
   }
 
-  def getAttr[T](transform: SPAttributes => Option[T], error: String = "could translate the attributes in the service")(implicit rnr: RequestNReply): Option[T] = {
+  def getAttr[T](transform: SPAttributes => Option[T], error: String = "couldn't translate the attributes in the service")(implicit rnr: RequestNReply): Option[T] = {
     val result = transform(rnr.req.attributes)
     if (result.isEmpty) rnr.reply ! SPError(error + s"\nreq: ${rnr.req}")
     result

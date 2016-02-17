@@ -169,6 +169,15 @@ object SP extends App {
     OperationControl.transformation
   )
 
+  import sp.exampleService._
+  serviceHandler ! RegisterService(
+    "ExampleService",
+    system.actorOf(ExampleService.props, "ExampleService"),
+    ExampleService.specification,
+    ExampleService.transformation
+  )
+
+
 
 
 

@@ -65,9 +65,10 @@ case class Progress(attributes: SPAttributes, service: String, reqID: ID) extend
 
 /**
  * Used by an service for defining its input for a UI.
- * @param ofType
- * @param domain
- * @param default
+ * @param ofType The scala type name that is expected, like "String", "Int", "Boolean", "Option[ID]"...
+ * @param domain Include a list of possible values. If empty, any value is possible
+ * @param default Include a default value if the key is missing. If None (and the ofType is not an Option)
+  *                the service will return an error
  */
 case class KeyDefinition(ofType: String, domain: List[SPValue] = List(), default: Option[SPValue] = None)
 
