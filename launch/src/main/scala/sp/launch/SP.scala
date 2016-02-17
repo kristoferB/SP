@@ -134,26 +134,26 @@ object SP extends App {
     system.actorOf(Simulation.props, "Simulation"), Simulation.specification, Simulation.transformation)
 
   // activemq + process simulate stuff
-  import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
-  import akka.camel.{ CamelExtension, CamelMessage, Consumer, Producer }
-  import org.apache.activemq.camel.component.ActiveMQComponent
-  import sp.processSimulateImporter._
-
-  val camel = CamelExtension(system)
-  val camelContext = camel.context
-  camelContext.addComponent("activemq", ActiveMQComponent.activeMQComponent(s"tcp://${settings.activeMQ}:61616"))
-  val psamq = system.actorOf(Props[ProcessSimulateAMQ], "ProcessSimulateAMQ")
-  serviceHandler ! RegisterService("ProcessSimulate",
-    system.actorOf(ProcessSimulateService.props(modelHandler, psamq), "ProcessSimulate"),
-    ProcessSimulateService.specification,
-    ProcessSimulateService.transformation)
-
-  import sp.areus.modalaService._
-  val modalaamqProducer = system.actorOf(Props[ModalaAMQProducer], "ModalaAMQProducer")
-  serviceHandler ! RegisterService("Modala",
-    system.actorOf(ModalaService.props(modalaamqProducer), "Modala"),
-    ModalaService.specification,
-    ModalaService.transformation)
+//  import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
+//  import akka.camel.{ CamelExtension, CamelMessage, Consumer, Producer }
+//  import org.apache.activemq.camel.component.ActiveMQComponent
+//  import sp.processSimulateImporter._
+//
+//  val camel = CamelExtension(system)
+//  val camelContext = camel.context
+//  camelContext.addComponent("activemq", ActiveMQComponent.activeMQComponent(s"tcp://${settings.activeMQ}:61616"))
+//  val psamq = system.actorOf(Props[ProcessSimulateAMQ], "ProcessSimulateAMQ")
+//  serviceHandler ! RegisterService("ProcessSimulate",
+//    system.actorOf(ProcessSimulateService.props(modelHandler, psamq), "ProcessSimulate"),
+//    ProcessSimulateService.specification,
+//    ProcessSimulateService.transformation)
+//
+//  import sp.areus.modalaService._
+//  val modalaamqProducer = system.actorOf(Props[ModalaAMQProducer], "ModalaAMQProducer")
+//  serviceHandler ! RegisterService("Modala",
+//    system.actorOf(ModalaService.props(modalaamqProducer), "Modala"),
+//    ModalaService.specification,
+//    ModalaService.transformation)
 
   //  //Preload model from json-importer
   //    val file = Source.fromFile("./testFiles/gitIgnore/module1.json").getLines().mkString("\n")
@@ -161,12 +161,12 @@ object SP extends App {
 
 
 
-  import sp.plc._
+  import sp.control._
   serviceHandler ! RegisterService(
-    "PLCControl",
-    system.actorOf(PLCControl.props(eventHandler), "PLCControl"),
-    PLCControl.specification,
-    PLCControl.transformation
+    "OperationControl",
+    system.actorOf(OperationControl.props(eventHandler), "OperationControl"),
+    OperationControl.specification,
+    OperationControl.transformation
   )
 
 

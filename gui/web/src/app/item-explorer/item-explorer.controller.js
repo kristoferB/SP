@@ -239,6 +239,8 @@
                 state: root.state ? root.state : {opened: false}
             };
 
+            console.log("nu skall vi ta bort")
+            console.log(root)
             vm.treeInstance.jstree(true).delete_node(root);
             vm.treeInstance.jstree(true).create_node('#',newRoot, 'last');
         }

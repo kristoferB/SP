@@ -20,8 +20,8 @@ package object domain {
       }
       JObject(res.toList)
     }
-    def apply() = JObject()
-    def apply(fs: List[JField]): JObject = JObject(fs.toList)
+    def apply(): SPAttributes = JObject()
+    def apply(fs: List[JField]): SPAttributes = JObject(fs.toList)
     def fromJson(json: String) = {
       try {
         org.json4s.native.JsonMethods.parse(json) match {
@@ -38,9 +38,9 @@ package object domain {
     def apply[T](v: T)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]): SPValue = {
       Extraction.decompose(v)
     }
-    def apply(s: String) = JString(s)
-    def apply(i: Int) = JInt(i)
-    def apply(b: Boolean) = JBool(b)
+    def apply(s: String): SPValue = JString(s)
+    def apply(i: Int): SPValue = JInt(i)
+    def apply(b: Boolean): SPValue = JBool(b)
     def fromJson(json: String): Option[SPValue] = {
       try {
         Some(org.json4s.native.JsonMethods.parse(json))

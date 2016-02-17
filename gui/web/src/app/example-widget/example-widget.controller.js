@@ -8,9 +8,9 @@
       .module('app.exampleWidget')
       .controller('exampleWidgetController', exampleWidgetController);
 
-    exampleWidgetController.$inject = ['$scope', 'eventService'];
+    exampleWidgetController.$inject = ['$scope', 'dashboardService', 'eventService'];
     /* @ngInject */
-    function exampleWidgetController($scope, eventService) {
+    function exampleWidgetController($scope, dashboardService, eventService) {
         var vm = this;
 
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what

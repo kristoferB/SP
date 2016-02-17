@@ -333,7 +333,7 @@ trait ServiceAPI extends SPApiHelpers {
         implicit def ju[T: Manifest] =  json4sUnmarshaller[T]
         post {
           entity(as[SPAttributes]) { attr =>
-            val id = attr.getAs[ID]("reqID").get //.getOrElse(ID.newID) for testing
+            val id = attr.getAs[ID]("reqID").getOrElse(ID.newID)
             callSP(Request(service, attr, List(), id))
         }}
       }

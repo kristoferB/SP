@@ -17,7 +17,8 @@
         'app.trajectories',
         'app.opcRunner',
         'app.conditionEditor',
-        'app.exampleWidget'
+        'app.exampleWidget',
+        'app.operationControl'
     ]);
 
 })();
