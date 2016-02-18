@@ -185,6 +185,14 @@ object SP extends App {
     Calculator.transformation
   )
 
+  import sp.psl._
+  serviceHandler ! RegisterService(
+    "PSLModel",
+    system.actorOf(PSLModel.props, "PSLModel"),
+    PSLModel.specification,
+    PSLModel.transformation
+  )
+
 
 
   // launch REST API
