@@ -31,41 +31,53 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
       // Resources
       val r2 = makeResource("r2",
-        List("position", "mode"),
-        List("moveHomeToFixture"->List("speed"), "moveFixtureToHome"->List())
+        List("position", "mode"),// the state variables defining the state of the resource
+        List(
+          "moveHomeToFixture"->List("mode", "speed"), // the abilities of the resource. Includes the parameters as well as the state of the ability
+          "moveFixtureToHome"->List("mode"))
       )
 
       val flS2 = makeResource("flexlinkS2",
         List("stopper", "mode"),
-        List("open"->List(), "close"->List())
+        List("open"->List("mode"), "close"->List("mode"))
       )
 
+
+      val items = r2._2 ++ flS2._2
+      val itemMap = items.map(x => x.name -> x.id) toMap
+
+      // This info will later on be filled by a service on the bus
+      val connectionList = List(
+        db(itemMap, "r2.moveHomeToFixture",       "boolean",    109, 0, 0),
+        db(itemMap, "r2.moveHomeToFixture.mode",  "integer",    109, 2, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed"))
+//        db(itemMap, "r2.moveFixtureToHome",       "boolean",    109, 0, 0),
+//        db(itemMap, "r2.moveFixtureToHome.mode",  "integer",    109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")),
+//        db(itemMap, "r2.moveFixtureToHome.speed", "integer",    109, 0, 0),
+//        db(itemMap, "r2.position",                "integer",    109, 0, 0, Map(0->"home", 1->"atFlexlink", 2->"atFixture")),
+//        db(itemMap, "r2.mode",                    "integer",    109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing")),
+//        db(itemMap, "flexlinkS2.open",            "boolean",    109, 0, 0),
+//        db(itemMap, "flexlinkS2.open.mode",       "integer",    109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")),
+//        db(itemMap, "flexlinkS2.close",           "boolean",    109, 0, 0),
+//        db(itemMap, "flexlinkS2.close.mode",      "Int",        109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")),
+//        db(itemMap, "flexlinkS2.stopper",         "boolean",    109, 0, 0),
+//        db(itemMap, "flexlinkS2.mode",            "integer",    109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing"))
+      ).flatten
+
       val connection = Thing("PLCConnection", SPAttributes(
-        "connection"->SPAttributes(
-          makeTuple(DBConnection("R2.moveHomeToFixture", "boolean", 150, 0, 0)),
-          makeTuple(DBConnection("R2.moveFixtureToHome", "boolean", 150, 0, 1)),
-          makeTuple(DBConnection("R2.moveFixtureToHome.speed", "int", 150, 2, 0)),
-          makeTuple(DBConnection("R2.position", "int", 151, 0, 0, Map(0->"home", 1->"atFlexlink", 2->"atFixture"))),
-          makeTuple(DBConnection("R2.mode", "int", 151, 0, 1, Map(0->"notReady", 1->"ready", 2->"working"))),
-          makeTuple(DBConnection("flexlinkS2.open", "boolean", 160, 0, 0)),
-          makeTuple(DBConnection("flexlinkS2.close", "boolean", 160, 0, 1)),
-          makeTuple(DBConnection("flexlinkS2.stopper", "boolean", 161, 0, 0)),
-          makeTuple(DBConnection("flexlinkS2.mode", "int", 161, 2, 0, Map(0->"notReady", 1->"ready", 2->"working")))
-        )
+        "connection"->connectionList
       ))
 
       val root = HierarchyRoot("Resources", List(r2._1, flS2._1))
-      val items = r2._2 ++ flS2._2 :+ root :+ connection
 
 
-      replyTo ! Response(items, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
+      replyTo ! Response(items :+ root :+ connection, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
 
     }
   }
 }
 
 
-case class DBConnection(name: String, valueType: String, db: Int, byte: Int = 0, bit: Int = 0, intMap: Map[Int, String] = Map())
+case class DBConnection(name: String, valueType: String, db: Int, byte: Int = 0, bit: Int = 0, intMap: Map[Int, String] = Map(), id: ID = ID.newID)
 
 trait ModelMaking {
   def makeResource(name: String, state: List[String], abilities: List[(String, List[String])]) = {
@@ -83,8 +95,8 @@ trait ModelMaking {
     (hier, temp)
   }
 
-  def makeTuple(db: DBConnection) = {
-    db.name -> db
+  def db(items: Map[String, ID], name: String, valueType: String, db: Int, byte: Int = 0, bit: Int = 0, intMap: Map[Int, String] = Map()) = {
+    items.get(name).map(id => DBConnection(name, valueType, db, byte, bit, intMap, id))
   }
 
 }
