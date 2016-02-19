@@ -52,7 +52,7 @@ case class BusSetup(busIP: String, publishTopic: String, subscribeTopic: String)
 
 case class AddressValues(db: Int, byte: Int, bit: Int)
 case class DBValue(name: String, id: ID, value: SPValue, valueType: String, address: AddressValues)
-case class DBConnection(name: String, valueType: String, db: Int, byte: Int, bit: Int, intMap: Map[Int, String], id: ID)
+case class DBConnection(name: String, valueType: String, db: Int, byte: Int, bit: Int, intMap: Map[SPValue, SPValue], id: ID)
 
 
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
@@ -111,7 +111,6 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
         c ! ConsumeFromTopic(s.subscribeTopic)
         theBus = Some(c)
         eventHandler ! Progress(SPAttributes("theBus"-> "Connected"), serviceName.get, serviceID)
-        eventHandler ! Response(List(), SPAttributes("state"-> state), serviceName.get, serviceID)
       }
     }
     case ConnectionFailed(request, reason) => {
@@ -119,8 +118,6 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
     }
     case mess @ AMQMessage(body, prop, headers) => {
       val resp = SPAttributes.fromJson(body.toString)
-      println("PLC Control got: "+body)
-
       for {
         m <- resp
         list <- m.getAs[List[SPAttributes]]("dbs")
@@ -129,10 +126,11 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
         id <- l.getAs[ID]("id")
         value <- l.getAs[SPValue]("value")
       } yield {
-        state = state add (id -> value)
+        val updV = connectionMap.get(id).flatMap(_.intMap.get(value)).getOrElse(value)
+        state = state add (id -> updV)
       }
       // fixa här
-      eventHandler ! Response(List(), SPAttributes("resp"->resp, "state"->state), serviceName.get, serviceID)
+      eventHandler ! Response(List(), SPAttributes("state"->state), serviceName.get, serviceID)
     }
     case ConnectionInterrupted(ca, x) => {
       println("connection closed")
@@ -151,7 +149,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       setup = Some(s)
       serviceName = Some(rnr.req.service)
       idMap = rnr.req.ids.map(x => x.id -> x).toMap
-      state = setupState(rnr.req.ids)
+      //state = setupState(rnr.req.ids)
       ReActiveMQExtension(context.system).manager ! GetConnection(s"nio://${s.busIP}:61616")
   }
 
@@ -221,13 +219,16 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
         connectionMap.get(id).map(x => DBValue(x.name, x.id, value, x.valueType, AddressValues(x.db, x.byte, x.bit)))
       } toList
       val paramFromString = paramsString.flatMap(getDBFromString)
+      val paramToWrite = params.state.flatMap{case (id, value) =>
+        idMap.get(id).map(item => SPAttributes("id"->id, "name"->item.name, "value"->value))
+      }
 
-      val oDB = connectionMap.get(id).map{db => DBValue(item.name, item.id, true, "boolean", AddressValues(db.db, db.byte, db.bit))}
+      val oDB = connectionMap.get(id).map{db => DBValue(item.name, item.id, true, db.valueType, AddressValues(db.db, db.byte, db.bit))}
 
       val command = SPAttributes(
         "id" -> id,
         "name" -> item.name,
-        "parameters" -> paramDB   // change this to name and id later
+        "parameters" -> paramToWrite
       )
       val dbs = paramDB ++ List(paramFromString, oDB).flatten
 
@@ -235,7 +236,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
         "resource"->resourceInfo,
         "commands"->List(command),
         "command"->"write",
-        "dbs"-> (dbs)
+        "dbs"-> dbs
       )
 
       sendMessage(mess)
@@ -262,8 +263,8 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       val bit = split(2).toInt
       val v = split(3)
       val value = if (Try{v.toInt}.isSuccess) SPValue(v.toInt) else if (Try{v.toBoolean}.isSuccess) SPValue(v.toBoolean) else SPValue(false)
-      val vt = if (value.isInstanceOf[JInt]) "int" else "boolean"
-      DBValue("raw", ID.newID, split(3), vt, AddressValues(db, byte, bit))
+      val vt = if (value.isInstanceOf[JInt]) "int" else "bool"
+      DBValue("raw", ID.newID, value, vt, AddressValues(db, byte, bit))
     }
 
     res.toOption

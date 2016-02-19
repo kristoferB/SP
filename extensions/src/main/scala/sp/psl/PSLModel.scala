@@ -48,19 +48,19 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
       // This info will later on be filled by a service on the bus
       val connectionList = List(
-        db(itemMap, "r2.moveHomeToFixture",       "boolean",    109, 0, 0),
-        db(itemMap, "r2.moveHomeToFixture.mode",  "integer",    109, 2, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed"))
-//        db(itemMap, "r2.moveFixtureToHome",       "boolean",    109, 0, 0),
-//        db(itemMap, "r2.moveFixtureToHome.mode",  "integer",    109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")),
-//        db(itemMap, "r2.moveFixtureToHome.speed", "integer",    109, 0, 0),
-//        db(itemMap, "r2.position",                "integer",    109, 0, 0, Map(0->"home", 1->"atFlexlink", 2->"atFixture")),
-//        db(itemMap, "r2.mode",                    "integer",    109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing")),
-//        db(itemMap, "flexlinkS2.open",            "boolean",    109, 0, 0),
-//        db(itemMap, "flexlinkS2.open.mode",       "integer",    109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")),
-//        db(itemMap, "flexlinkS2.close",           "boolean",    109, 0, 0),
-//        db(itemMap, "flexlinkS2.close.mode",      "Int",        109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")),
-//        db(itemMap, "flexlinkS2.stopper",         "boolean",    109, 0, 0),
-//        db(itemMap, "flexlinkS2.mode",            "integer",    109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing"))
+        db(itemMap, "r2.moveHomeToFixture",       "bool",    109, 0, 0),
+        db(itemMap, "r2.moveHomeToFixture.mode",  "int",    109, 2, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed"))
+//        db(itemMap, "r2.moveFixtureToHome",       "bool",    109, 0, 0),
+//        db(itemMap, "r2.moveFixtureToHome.mode",  "int",    109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")),
+//        db(itemMap, "r2.moveFixtureToHome.speed", "int",    109, 0, 0),
+//        db(itemMap, "r2.position",                "int",    109, 0, 0, Map(0->"home", 1->"atFlexlink", 2->"atFixture")),
+//        db(itemMap, "r2.mode",                    "int",    109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing")),
+//        db(itemMap, "flexlinkS2.open",            "bool",    109, 0, 0),
+//        db(itemMap, "flexlinkS2.open.mode",       "int",    109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")),
+//        db(itemMap, "flexlinkS2.close",           "bool",    109, 0, 0),
+//        db(itemMap, "flexlinkS2.close.mode",      "int",        109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")),
+//        db(itemMap, "flexlinkS2.stopper",         "bool",    109, 0, 0),
+//        db(itemMap, "flexlinkS2.mode",            "int",    109, 0, 0, Map(0->"notReady", 1->"ready", 2->"executing"))
       ).flatten
 
       val connection = Thing("PLCConnection", SPAttributes(
@@ -77,7 +77,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 }
 
 
-case class DBConnection(name: String, valueType: String, db: Int, byte: Int = 0, bit: Int = 0, intMap: Map[Int, String] = Map(), id: ID = ID.newID)
+case class DBConnection(name: String, valueType: String, db: Int, byte: Int = 0, bit: Int = 0, intMap: Map[SPValue, String] = Map(), id: ID = ID.newID)
 
 trait ModelMaking {
   def makeResource(name: String, state: List[String], abilities: List[(String, List[String])]) = {
@@ -96,7 +96,7 @@ trait ModelMaking {
   }
 
   def db(items: Map[String, ID], name: String, valueType: String, db: Int, byte: Int = 0, bit: Int = 0, intMap: Map[Int, String] = Map()) = {
-    items.get(name).map(id => DBConnection(name, valueType, db, byte, bit, intMap, id))
+    items.get(name).map(id => DBConnection(name, valueType, db, byte, bit, intMap.map{case (k,v) => SPValue(k)->v}, id))
   }
 
 }
