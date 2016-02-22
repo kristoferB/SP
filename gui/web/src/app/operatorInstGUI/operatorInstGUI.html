@@ -1,0 +1,23 @@
+<div ng-controller="operatorInstGUIController as vm" class="simple-widget">
+    <div class="panel-content">
+
+
+
+
+        <img src="/images/Frame.png" alt="Frame view" style="width:302px;height:402px;position: absolute;top: 0px; left: 0px; z-index: 2">
+        <img ng-src="/images/{{vm.position[0]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 32px; left: 32px;z-index: 1">
+        <img ng-src="/images/{{vm.position[1]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 32px; left: 202px;z-index: 1">
+        <img ng-src="/images/{{vm.position[2]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 120px; left: 32px;z-index: 1">
+        <img ng-src="/images/{{vm.position[3]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 121px; left: 202px;z-index: 1">
+        <img ng-src="/images/{{vm.position[4]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 218px; left: 32px;z-index: 1">
+        <img ng-src="/images/{{vm.position[5]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 218px; left: 202px;z-index: 1">
+        <img ng-src="/images/{{vm.position[6]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 308px; left: 32px;z-index: 1">
+        <img ng-src="/images/{{vm.position[7]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 308px; left: 202px;z-index: 1">
+
+        <h1>HEJ</h1>
+        <button type="button" style="top: 50px; left:350px;width:150px;height:150px; position:absolute" class="btn btn.sm btn-primary" ng-click="vm.imDone('true')">
+            <i class="fa fa-thumbs-up fa-5x"></i>
+        </button>
+        <h1 style="position:absolute; left:350px;top: 150px;">{{vm.result}}</h1>
+    </div>
+</div>
