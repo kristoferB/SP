@@ -186,6 +186,15 @@ object SP extends App {
   )
 
 
+  import sp.TobbeG._
+  serviceHandler ! RegisterService(
+    "TobbeG",
+    system.actorOf(TobbeG.props, "TobbeG"),
+    TobbeG.specification,
+    TobbeG.transformation
+  )
+
+
 
   // launch REST API
   sp.server.LaunchGUI.launch
