@@ -27,7 +27,6 @@
     return service;
 
     function activate() {
-
       eventService.addListener('ServiceError', onEvent);
       eventService.addListener('Progress', onEvent);
       eventService.addListener('Response', onEvent);
@@ -43,7 +42,7 @@
     function getService(name){
       var f = _.find(service.spServices, function(s){
         return s.name == name
-      })
+      });
       return f;
     }
 
@@ -58,28 +57,47 @@
 
 
     function callService(spService, request, responseCallBack, progressCallback) {
+      var deferred = $q.defer();
 
-        var message = {};
+      var message = {};
 
-        if (_.isObject(request.data)){
-          message = request.data;
+      if (_.isObject(request.data)){
+        message = request.data;
+      } else if (_.isObject(request)){
+        message = request;
+      }
+
+      if (!_.has(message, 'core')){
+        message.core = {
+          'model': reloadModelID(),
+          'responseToModel': false
         }
+      }
 
       console.log("call")
       console.log(request);
       console.log(message);
 
+      var serviceName = '';
+      if (_.has(spService, 'name')){
+        serviceName = spService.name;
+      } else {
+        serviceName = spService;
+      }
+
       var idF = restService.getNewID();
       var answerF = idF.then(function(id){
         addEventListener(id, responseCallBack, progressCallback);
         message.reqID = id;
-        return restService.postToServiceInstance(message, spService.name)
-      });
+        return restService.postToServiceInstance(message, serviceName)
+      }, function(error){logger.error(error); deferred.reject(error);});
 
-      return answerF.then(function(serviceAnswer){
+      answerF.then(function(serviceAnswer){
         //logger.info('service answer: ' + JSON.stringify(serviceAnswer) + '.');
-        return serviceAnswer;
-      })
+        deferred.resolve(serviceAnswer);
+      }, function(error){logger.error(error); deferred.reject(error);});
+
+      return deferred.promise;
 
     }
 
@@ -105,7 +123,7 @@
       }
 
       function catchErrors(event) {
-        var msg = restService.errorToString(event)
+        var msg = restService.errorToString(event);
         if (msg !== ""){
           logger.error(msg);
         }
