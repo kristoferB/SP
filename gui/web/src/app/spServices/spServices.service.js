@@ -152,10 +152,10 @@
     function onEvent(data){
       var s = data.service;
       var id = data.reqID;
-      var isRespons = !(_.isUndefined(data.isa)) && data.isa == 'Response';
+      var isResponse = !(_.isUndefined(data.isa)) && data.isa == 'Response';
 
-      console.log("events for services");
-      console.log(data);
+      //console.log("events for services");
+      //console.log(data);
 
       var current = service.eventQue[id];
       if (_.isUndefined(current)) {
@@ -170,7 +170,7 @@
       }
 
       current.events.push(data);
-      if (isRespons){
+      if (isResponse){
         var isSilent = !(_.isUndefined(data.attributes.silent)) && data.attributes.silent;
         if(!isSilent) logger.success("Service "+s+" completed");
         current.includesResponse = true;
