@@ -2,16 +2,12 @@
     <div class="panel-content">
         <!-- lägg till senare, just nu laddas alla items -->
         <div ng-if="!vm.control.connected" style="padding: 10px;">
-            <b>To start, select the items (operations and variables) that constitute your model. Then click "get initial state"</b>
-            <textarea class="form-control" ng-model="vm.selected" ng-list/>
-            <button class="btn btn-default" ng-click="vm.reload_selection()">
-                <i class="fa fa-download"></i>
-                get selected items
-            </button>
-            <button class="btn btn-default" ng-click="vm.attributes = []">
-                <i class="fa fa-times"></i>
-                clear
-            </button>
+            <b>The resource tree id.</b>
+            <input class="form-control" ng-model="vm.resourcesID"/>
+            <b>Specification of connection details</b>
+            <input class="form-control" ng-model="vm.connectionDetailsID"/>
+
+
             <button type="button" class="btn btn-sm btn-primary" ng-click="vm.connect()">
                 <i class="fa fa-play"></i> Connect
             </button>
@@ -29,13 +25,22 @@
                     </thead>
                     <tbody ng-repeat="resource in vm.control.resourceTree | orderBy:'name' |  filter:vm.opsFilterQuery">
                         <tr><td>{{resource.name}}</td><td></td><td></td><td></td></tr>
-                        <tr ng-repeat="ab in resource.abilities">
+                        <tr ng-repeat-start="ab in resource.abilities">
                             <td></td>
                             <td>{{ab.name}}</td>
                             <td>{{vm.getState(ab.id)}}</td>
                             <td><button type="button" class="btn btn-sm btn-primary" ng-click="vm.execute_op(ab.id)">
                                 <i class="fa fa-play"></i>
                             </button></td>
+                        </tr>
+                        <tr ng-repeat="p in ab.parameters">
+                            <td></td>
+                            <td>{{p.name}}</td>
+                            <td>{{vm.getState(p.id)}}</td>
+                            <td></td>
+                        </tr>
+                        <tr ng-repeat-end>
+
                         </tr>
                         <tr ng-repeat="st in resource.state">
                             <td></td>

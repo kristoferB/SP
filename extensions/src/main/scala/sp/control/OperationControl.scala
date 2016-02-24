@@ -136,7 +136,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
         state = state add (id -> updV)
       }
 
-      eventHandler ! Response(List(), SPAttributes("state"->state, "resourceTree"-> resourceTree), serviceName.get, serviceID)
+      eventHandler ! Response(List(), SPAttributes("state"->state, "resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
     }
     case ConnectionInterrupted(ca, x) => {
       println("connection closed")
@@ -237,7 +237,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       }
 
 
-      val flippState = state.get(id).flatMap(_.to[Boolean]).map(!_).get
+      val flippState = state.get(id).flatMap(_.to[Boolean]).map(!_).getOrElse(false)
       println(s"the state: ${state.get(id)}")
       println(s"the state: $flippState")
 
