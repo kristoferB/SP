@@ -23,12 +23,15 @@
                             ];
         vm.checkGuard = checkGuard;
         vm.checkAction = checkAction;
+        vm.checkExpr = checkExpr;
         vm.save = save;
         vm.newAction = newAction;
         vm.deleteAction = deleteAction;
         vm.deleteCondition = deleteCondition;
         vm.newCondition = newCondition;
         vm.sorter = sorter;
+        vm.newExpr = newExpr;
+        vm.deleteExpr = deleteExpr;
         activate();
 
         function activate() {
@@ -45,7 +48,48 @@
             });
 
             vm.widget.storage.operations = [];
+            updateSelection(itemService.selected, []);
             actOnSelectionChanges();
+        }
+
+        function updateSelection(nowSelected, previouslySelected) {
+            var isSame = (nowSelected.length == previouslySelected.length) && nowSelected.every(function (element, index) {
+                return element === previouslySelected[index];
+            });
+
+            if(!isSame) {
+                vm.widget.storage.operations = [];
+                vm.widget.storage.sops = [];
+                for(var i = 0; i < nowSelected.length; i++) {
+                    if(nowSelected[i].isa == 'Operation') {
+                        var op = { item: nowSelected[i], conditions: [] };
+                        _.each(op.item.conditions, function (cond) {
+                            var c = { kind: cond.attributes.kind, guard: '',
+                                      parsedGuard: cond.guard,
+                                      guardParseError: '', actions: [], deleted: false };
+                            backendPrintGuard(cond.guard, c);
+                            _.each(cond.action, function (act) {
+                                var a = { action: '', parsedAction: act, actionParseError: '' };
+                                backendPrintAction(act, a);
+                                c.actions.push(a);
+                            });
+                            op.conditions.push(c);
+                        });
+                        vm.widget.storage.operations.push(op);
+                    }
+                    else if(nowSelected[i].isa == 'SOPSpec') {
+                        var sop = { item: nowSelected[i], expressions: [] };
+                        _.each(sop.item.attributes.forbiddenExpressions, function (expr) {
+                            var e = { expr: expr,
+                                      parsedExpr: expr,
+                                      exprParseError: '', deleted: false };
+                            sop.expressions.push(e);
+                        });
+                        vm.widget.storage.sops.push(sop);
+                    }
+                }
+                updateOkToSave();
+            }
         }
 
         function actOnSelectionChanges() {
@@ -53,35 +97,7 @@
                 function() {
                     return itemService.selected;
                 },
-                function(nowSelected, previouslySelected) {
-                    var isSame = (nowSelected.length == previouslySelected.length) && nowSelected.every(function (element, index) {
-                        return element === previouslySelected[index];
-                    });
-
-                    if(!isSame) {
-                        vm.widget.storage.operations = [];
-                        for(var i = 0; i < nowSelected.length; i++) {
-                            if(nowSelected[i].isa == 'Operation') {
-                                var op = { item: nowSelected[i], conditions: [] };
-                                _.each(op.item.conditions, function (cond) {
-                                    var c = { kind: cond.attributes.kind, guard: '',
-                                              parsedGuard: cond.guard,
-                                              guardParseError: '', actions: [], deleted: false };
-                                    backendPrintGuard(cond.guard, c);
-                                    _.each(cond.action, function (act) {
-                                        var a = { action: '', parsedAction: act, actionParseError: '' };
-                                        backendPrintAction(act, a);
-                                        c.actions.push(a);
-                                    });
-                                    op.conditions.push(c);
-                                });
-                                vm.widget.storage.operations.push(op);
-                            }
-                        }
-                        updateOkToSave();
-                    }
-                }
-            );
+                updateSelection);
         }
 
         function resetWidgetStorage() {
@@ -105,17 +121,35 @@
                     }
                 });
             });
+            _.each(vm.widget.storage.sops, function(sop) {
+                // check for parse errors
+                _.each(sop.expressions, function(e) {
+                    if(!e.deleted && e.exprParseError!='') ok = false;
+                });
+            });
 
             if(ok) {
                 // check for actual changes
                 var changes = false;
                 _.each(vm.widget.storage.operations, function(op) {
-                    var item = getNewItem(op);
+                    var item = getNewOp(op);
                     var centralItem = itemService.getItem(item.id);
                     if(!_.isEqual(item, centralItem)) {
                         changes = true;
                     }
                 });
+                _.each(vm.widget.storage.sops, function(sop) {
+                    var item = getNewSOP(sop);
+                    var centralItem = itemService.getItem(item.id);
+                    if(!_.isEqual(item, centralItem)) {
+                        changes = true;
+                    } else {
+                        console.log('no changes:');
+                        console.log(item);
+                    }
+                });
+
+                // TODO: separate changes and parse errors.
                 ok = changes;
             }
             vm.widget.storage.okToSave = ok;
@@ -160,7 +194,21 @@
             updateOkToSave();
         }
 
-        function getNewItem(op) {
+        function newExpr(exprs) {
+            var e = { expr: '',
+                      parsedExpr: {},
+                      exprParseError: '', deleted: false };
+            exprs.push(e);
+            checkExpr(e);
+        }
+
+        function deleteExpr(exprs, expr) {
+            var i = exprs.indexOf(expr);
+            if(i>=0) exprs.splice(i,1);
+            updateOkToSave();
+        }        
+
+        function getNewOp(op) {
             // clone original item, loop through conditions and update (and remove)
             var item = JSON.parse(JSON.stringify(op.item));
             var new_conds = [];
@@ -175,11 +223,32 @@
             return item;
         }
 
+        function getNewSOP(sop) {
+            // clone original item, loop through forbidden exprs and update (and remove)
+            var item = JSON.parse(JSON.stringify(sop.item));
+            var new_exprs = [];
+            for(var i = 0; i<sop.expressions.length;++i){
+                if(!sop.expressions[i].deleted) {
+                    new_exprs.push(sop.expressions[i].expr);
+                }
+            }
+            item.attributes.forbiddenExpressions = new_exprs;
+            console.log(item);
+            return item;
+        }
+        
         function save() {
             if(!vm.widget.storage.okToSave) return; // possible to click disabled button
 
             _.each(vm.widget.storage.operations, function(op) {
-                var item = getNewItem(op);
+                var item = getNewOp(op);
+                var centralItem = itemService.getItem(item.id);
+                if(!_.isEqual(item, centralItem)) {
+                    itemService.saveItem(item);
+                }
+            });
+            _.each(vm.widget.storage.sops, function(sop) {
+                var item = getNewSOP(sop);
                 var centralItem = itemService.getItem(item.id);
                 if(!_.isEqual(item, centralItem)) {
                     itemService.saveItem(item);
@@ -294,5 +363,34 @@
         function checkAction(action) {
             backendParseAction(action);
         }
+
+        function checkExpr(expr) {
+            var idF = restService.getNewID();
+            var answerF = idF.then(function(id){
+                var message = {
+                    "command":"parseGuard",
+                    "toParse":expr.expr,
+                    "core":{
+                        "model":modelService.activeModel.id,
+                        "responseToModel":false,
+                        "includeIDAbles": [],
+                        "onlyResponse":true
+                    },
+                    "reqID":id
+                };
+                return restService.postToServiceInstance(message, "PropositionParser");
+            });
+
+            return answerF.then(function(serviceAnswer){
+                if(_.isUndefined(serviceAnswer.attributes.parseError)) {
+                    expr.parsedExpr = serviceAnswer.attributes.proposition;
+                    expr.exprParseError = '';
+                } else {
+                    expr.exprParseError = serviceAnswer.attributes.parseError;
+                }
+                updateOkToSave();
+            });
+
+        }        
     }
 })();

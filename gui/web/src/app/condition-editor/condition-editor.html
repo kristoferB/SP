@@ -63,6 +63,21 @@
                 </form>
             </div>
         </div>
+        <div ng-repeat="sop in vm.widget.storage.sops">
+            <h4>{{sop.item.name}}</h4>
+            <form role="form">
+                <div class="form-group">
+                    <label>Forbidden expression{{sop.expressions.length>1?'s':''}}</label>
+                        <button class="btn btn-sm btn-notext" uib-tooltip="New expression" ng-click="vm.newExpr(sop.expressions)"><i class="fa fa-plus"></i></button>
+                        <div ng-repeat="expr in sop.expressions">
+                            <button class="btn btn-sm btn-notext" uib-tooltip="Delete expression" ng-click="vm.deleteExpr(sop.expressions,expr)"><i class="fa fa-close"></i></button>
+                            <textarea width="100%" spellcheck="false" class="form-control" uib-tooltip={{expr.exprParseError}}
+                                      ng-class="{ error: expr.exprParseError!='', valid: expr.exprParseError=='' }"
+                                      ng-model="expr.expr" ng-change="vm.checkExpr(expr)"/>
+                        </div>
+                    </div>
+                </form>
+        </div>
     </div>
 
 </div>
