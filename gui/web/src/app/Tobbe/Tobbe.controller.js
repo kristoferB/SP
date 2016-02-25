@@ -26,152 +26,131 @@
         vm.getProperColor = getProperColor;
         vm.saveNumber = saveNumber;
         vm.reset = reset;
+        vm.build = build;
+        vm.tryTheTower = tryTheTower;
 
         vm.calc = calc;
 
+        vm.ButtonColour = {
+            kub: [
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0]
+            ]
+        };
+
+        //Remove these when done
+        vm.debug = 0;
+        vm.debug2 = 0;
+
         activate();
 
-
         function activate() {
-            $scope.$on('closeRequest', function() {
+            $scope.$on('closeRequest', function () {
                 dashboardService.closeWidget(vm.widget.id);
             });
         }
 
-        function calc(sign){
+        function calc(sign) {
             //spServicesService.callService();
-            var mess = {"data": {"a":vm.a, "b":vm.b, "sign":sign}};
+            var mess = {"data": {"a": vm.a, "b": vm.b, "sign": sign}};
 
             spServicesService.callService(spServicesService.getService("TobbeG"),
                 mess,
-                function(resp){
-                    if (_.has(resp, 'attributes.result')){
+                function (resp) {
+                    if (_.has(resp, 'attributes.result')) {
                         vm.result = resp.attributes.result;
                     }
                 }
             )
         }
-/*
-        function getProperColor($number)
-        {
-            var mess = {"color": {"number":number}};
 
-            spServicesService.callService(spServicesService.getService("TobbeG"),
-                mess,
-                function(resp){
-                    if (_.has(resp, 'attributes.result')){
-                        vm.resultColor = resp.attributes.result;
-                    }
-                }
-            )
-        }
+        /*
+         function getProperColor($number)
+         {
+         var mess = {"color": {"number":number}};
 
- */
-        vm.button41 = {Value: 0};vm.button42 = {Value: 0};vm.button43 = {Value: 0};vm.button44 = {Value: 0};
-        vm.button31 = {Value: 0};vm.button32 = {Value: 0};vm.button33 = {Value: 0};vm.button34 = {Value: 0};
-        vm.button21 = {Value: 0};vm.button22 = {Value: 0};vm.button23 = {Value: 0};vm.button24 = {Value: 0};
-        vm.button11 = {Value: 0};vm.button12 = {Value: 0};vm.button13 = {Value: 0};vm.button14 = {Value: 0};
+         spServicesService.callService(spServicesService.getService("TobbeG"),
+         mess,
+         function(resp){
+         if (_.has(resp, 'attributes.result')){
+         vm.resultColor = resp.attributes.result;
+         }
+         }
+         )
+         }
 
-        vm.vmarr = [
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0]
-        ];
-        /**
-         * This function resets the colour of every button.
-         * It does this by passing "1" as an argument to
-         * the function setColour in the .html file.
          */
-        function reset(){
-            //Row 4
-            setColor('button41', vm.button41, 1);
-            setColor('button42', vm.button42, 1);
-            setColor('button43', vm.button43, 1);
-            setColor('button44', vm.button44, 1);
-            //Row 3
-            setColor('button31', vm.button31, 1);
-            setColor('button32', vm.button32, 1);
-            setColor('button33', vm.button33, 1);
-            setColor('button34', vm.button34, 1);
-            //Row 2
-            setColor('button21', vm.button21, 1);
-            setColor('button22', vm.button22, 1);
-            setColor('button23', vm.button23, 1);
-            setColor('button24', vm.button24, 1);
-            //Row 1
-            setColor('button11', vm.button11, 1);
-            setColor('button12', vm.button12, 1);
-            setColor('button13', vm.button13, 1);
-            setColor('button14', vm.button14, 1);
+
+        /**
+         * Change the colour of a button.
+         * @param btn
+         * @param row
+         * @param column
+         * @param reset
+         */
+        function setColor(btn, row, column, reset) {
+            var property = document.getElementById(btn);
+
+            switch (vm.ButtonColour.kub[row][column]) {
+                case 0: //YELLOW = 1
+                    property.style.backgroundColor = "#ffff1a";
+                    break;
+                case 1://GREEN = 2
+                    property.style.backgroundColor = "#00cc00";
+                    break;
+                case 2://RED = 3
+                    property.style.backgroundColor = "#e60000";
+                    break;
+                case 3://BLUE = 4
+                    property.style.backgroundColor = "#0080ff";
+                    break;
+                default:
+                    property.style.backgroundColor = "#FFFFFF";
+            }
+
+            vm.ButtonColour.kub[row][column] = ++vm.ButtonColour.kub[row][column] % 5;
+
+            if (reset) {
+                property.style.backgroundColor = "#FFFFFF"
+                vm.ButtonColour.kub[row][column] = 0;
+            }
         }
 
         /**
          * Denna funktionen kör setColor functionen.
          * Om det inte behövs köras något mer kan den
          * tas bort och spridas ut bland knapparna.
-         * @param number
+         * @param row
+         * @param column
          */
-        function saveNumber(number){
-
-            setColor('button' + number, eval('vm.button' + number), 0);
-
-            /*switch(number) {
-                case 41:
-                    setColor('button41', vm.button41, 0);
-                    break;
-                case 42:
-                    setColor('button42', vm.button42, 0);
-                    break;
-                case 43:
-                    setColor('button43', vm.button43, 0);
-                    break;
-                case 44:
-                    setColor('button44', vm.button44, 0);
-                    break;
-                case 31:
-                    setColor('button31', vm.button31, 0);
-                    break;
-                case 32:
-                    setColor('button32', vm.button32, 0);
-                    break;
-                case 33:
-                    setColor('button33', vm.button33, 0);
-                    break;
-                case 34:
-                    setColor('button34', vm.button34, 0);
-                    break;
-                case 21:
-                    setColor('button21', vm.button21, 0);
-                    break;
-                case 22:
-                    setColor('button22', vm.button22, 0);
-                    break;
-                case 23:
-                    setColor('button23', vm.button23, 0);
-                    break;
-                case 24:
-                    setColor('button24', vm.button24, 0);
-                    break;
-                case 11:
-                    setColor('button11', vm.button11, 0);
-                    break;
-                case 12:
-                    setColor('button12', vm.button12, 0);
-                    break;
-                case 13:
-                    setColor('button13', vm.button13, 0);
-                    break;
-                case 14:
-                    setColor('button14', vm.button14, 0);
-                    break;
-            }
-            */
-
+        function saveNumber(row, column) {
+            //setColor('button' + number, eval('vm.button' + number), 0);
+            //setColor('button' + number, eval('vm.ButtonColour.kub[' + row + '][' + column + ']'), 0);
+            setColor('button' + eval(row * 10 + column + 11), row, column, 0);
+            tryTheTower(0);
+            vm.debug = row;
+            vm.debug2 = column;
         }
 
-        function getProperColor()
-        {
+        /**
+         * Resets the colour of every button.
+         */
+        function reset() {
+            for (var i = 0; i < 4; i++) {
+                for (var j = 0; j < 4; j++) {
+                    setColor('button' + eval(i * 10 + j + 11), i, j, 1);
+                }
+            }
+            var property = document.getElementById('buttonBuild');
+            property.style.backgroundColor = "#ffffff";
+        }
+
+        /**
+         * Does not work!
+         */
+        function getProperColor() {
             if ($var > 0 && $var <= 5)
                 vm.resultColor = '#00FF00';
             else if ($var >= 6 && $var <= 10)
@@ -180,6 +159,51 @@
                 vm.resultColor = '#FF0000';
         }
 
+        /**
+         * work in progress
+         */
+        function build() {
+            //alert('hej');
+        }
 
+        /**
+         * Checks if the tower is allowed to be built and
+         * updates the build-button colour accordingly.
+         * It also displays some messages.
+         * @param display
+         */
+        function tryTheTower(display) {
+            var property = document.getElementById('buttonBuild');
+            var shallNotPass = 0;
+            var anyCubesAtAll = 0;
+
+            for (var column = 0; column < 4; column++) {
+                var temp = 0;
+                for (var row = 3; row > -1; row--) {
+                    if (temp && !vm.ButtonColour.kub[row][column]) {
+                        shallNotPass = 1;
+                    }
+                    if (vm.ButtonColour.kub[row][column]) {
+                        temp = 1;
+                        anyCubesAtAll = 1;
+                    }
+                }
+            }
+            if(shallNotPass)
+                property.style.backgroundColor = "#ff3333";
+            else if(anyCubesAtAll)
+                property.style.backgroundColor = "#66ff66";
+            else
+                property.style.backgroundColor = "#ffffff";
+
+            if(display) {
+                if (shallNotPass)
+                    alert('Your Tower Shall Not Pass!');
+                else if(anyCubesAtAll)
+                    alert('OK');
+                else
+                    alert('You Need to Choose at Least One');
+            }
+        }
     }
 })();
