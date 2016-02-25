@@ -48,6 +48,7 @@
             });
 
             vm.widget.storage.operations = [];
+            vm.widget.storage.sops = [];
             updateSelection(itemService.selected, []);
             actOnSelectionChanges();
         }
@@ -220,6 +221,7 @@
                 }
             }
             item.conditions = new_conds;
+            console.log(item);
             return item;
         }
 
