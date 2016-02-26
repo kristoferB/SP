@@ -58,16 +58,8 @@ object operatorService extends SPService {
       case "blue"   => blue
       case "empty"  => empty
       case _        => operMessage(x)
-      })
-
-
-
-    /*ls.map(x => if ("yellow") yellow 
-           else if ("red")    red
-           else if ("green")  green
-           else if ("blue")   blue
-           else if ("empty")  empty
-           else               operMessage(x))*/
+      }
+    )
   }
 }
 
@@ -78,11 +70,8 @@ object operatorService extends SPService {
       case r@Request(service, attr, ids, reqID) => {
         val replyTo = sender()
         implicit val rnr = RequestNReply(r, replyTo)
-        System.out.println("Hej")
         val done: Boolean = transform(operatorService.transformTuple)
 
-        System.out.println(sender())
-        System.out.println("Hej")
         var res = List("green","green","green","green","green","green","green","green")
         var hejsan = operatorService.parseColour(res)
         replyTo ! Response(List(), SPAttributes("result" -> hejsan), rnr.req.service, rnr.req.reqID)
