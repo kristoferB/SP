@@ -1,22 +1,109 @@
 <div ng-controller="operatorInstGUIController as vm" class="simple-widget">
+<style> 
+#palettep1 {
+    border-radius: 5px;
+    background: {{vm.result[0]}};
+    padding: 20px; 
+    width: 65px;
+    height: 65px;
+    position: absolute;
+    top: 20px;
+    left: 20px;    
+}
+#palettep2 {
+    border-radius: 5px;
+    background: {{vm.result[1]}};
+    padding: 20px; 
+    width: 65px;
+    height: 65px;
+    position: absolute;
+    top: 20px;
+    left: 120px;     
+}
+#palettep3 {
+    border-radius: 5px;
+    background: {{vm.result[2]}};
+    padding: 20px; 
+    width: 65px;
+    height: 65px;
+    position: absolute;
+    top: 105px;
+    left: 20px;
+}
+#palettep4 {
+    border-radius: 5px;
+    background: {{vm.result[3]}};
+    padding: 20px; 
+    width: 65px;
+    height: 65px;
+    position: absolute;
+    top: 105px;
+    left: 120px;    
+}
+#palettep5 {
+    border-radius: 5px;
+    background: {{vm.result[4]}};
+    padding: 20px; 
+    width: 65px;
+    height: 65px;
+    position: absolute;
+    top: 190px;
+    left: 20px;    
+}
+#palettep6 {
+    border-radius: 5px;
+    background: {{vm.result[5]}};
+    padding: 20px; 
+    width: 65px;
+    height: 65px;
+    position: absolute;
+    top: 190px;
+    left: 120px;    
+}
+#palettep7 {
+    border-radius: 5px;
+    background: {{vm.result[6]}};
+    padding: 20px; 
+    width: 65px;
+    height: 65px;
+    position: absolute;
+    top: 275px;
+    left: 20px;    
+}
+#palettep8 {
+    border-radius: 5px;
+    background: {{vm.result[7]}};
+    padding: 20px; 
+    width: 65px;
+    height: 65px;
+    position: absolute;
+    top: 275px;
+    left: 120px;    
+}
+#palette {
+    border-radius: 5px;
+    background: {{"#C0C0C0"}};
+    padding: 20px; 
+    width: 205px;
+    height: 360px;
+    position: absolute;
+    top: 0px;
+    left: 0px;    
+}
+</style>
     <div class="panel-content">
+        <p id="palette"></p>
+        <p id="palettep1"></p>
+        <p id="palettep2"></p>
+        <p id="palettep3"></p>
+        <p id="palettep4"></p>
+        <p id="palettep5"></p>
+        <p id="palettep6"></p>
+        <p id="palettep7"></p>
+        <p id="palettep8"></p>
 
-
-
-
-        <img src="/images/Frame.png" alt="Frame view" style="width:302px;height:402px;position: absolute;top: 0px; left: 0px; z-index: 2">
-        <img ng-src="/images/{{vm.position[0]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 32px; left: 32px;z-index: 1">
-        <img ng-src="/images/{{vm.position[1]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 32px; left: 202px;z-index: 1">
-        <img ng-src="/images/{{vm.position[2]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 120px; left: 32px;z-index: 1">
-        <img ng-src="/images/{{vm.position[3]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 121px; left: 202px;z-index: 1">
-        <img ng-src="/images/{{vm.position[4]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 218px; left: 32px;z-index: 1">
-        <img ng-src="/images/{{vm.position[5]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 218px; left: 202px;z-index: 1">
-        <img ng-src="/images/{{vm.position[6]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 308px; left: 32px;z-index: 1">
-        <img ng-src="/images/{{vm.position[7]}}Block.png" alt="Frame view" style="width:66px;height:66px; position: absolute; top: 308px; left: 202px;z-index: 1">
-
-        <h1>HEJ</h1>
-        <button type="button" style="top: 50px; left:350px;width:150px;height:150px; position:absolute" class="btn btn.sm btn-primary" ng-click="vm.imDone('true')">
-            <i class="fa fa-thumbs-up fa-5x"></i>
+        <button type="button" style="top: 310px; left:280px;width:150px;height:50px; position:absolute" class="btn btn.sm btn-primary" ng-click="vm.imDone(true)">
+            <i class="fa fa-thumbs-up"></i>
         </button>
         <h1 style="position:absolute; left:350px;top: 150px;">{{vm.result}}</h1>
     </div>
