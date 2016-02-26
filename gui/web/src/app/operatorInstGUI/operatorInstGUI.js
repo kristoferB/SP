@@ -21,8 +21,9 @@
         vm.scope = $scope;
         vm.result = vm.position
         vm.imDone = imDone;
+        vm.done = false
         activate();
-        vm.position = ["blank", "blank", "blank", "blank", "blank", "blank", "blank", "blank"];
+        vm.palett = ["#fff","#fff","#fff","#fff","#fff","#fff","#fff","#fff"];
 
 
         function activate() {
@@ -32,14 +33,14 @@
 
         }
         function imDone(done){
-            vm.position = ["blank", "blank", "blank", "blank", "blank", "blank", "blank", "blank"];
+
             var mess = {"data": {"done": done}};
 
             spServicesService.callService(
                 spServicesService.getService("operatorService"),mess,
                 function(resp) {
                     if(_.has(resp, "attributes.result")){
-                        vm.position = resp.attributes.result;
+                        vm.palett = resp.attributes.result;
                     }
                 })
 
