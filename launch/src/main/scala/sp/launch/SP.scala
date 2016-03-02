@@ -193,6 +193,14 @@ object SP extends App {
     PSLModel.transformation
   )
 
+  import sp.runnerService._
+  serviceHandler ! RegisterService(
+    "RunnerService",
+    system.actorOf(RunnerService.props(eventHandler, "OperationControl"), "RunnerService"),
+    RunnerService.specification,
+    RunnerService.transformation
+  )
+
 
 
   // launch REST API

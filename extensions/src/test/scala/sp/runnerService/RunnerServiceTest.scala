@@ -11,7 +11,7 @@ import sp.system.messages._
 import scala.concurrent.duration._
 
 /**
- * Created by Kristofer on 2014-06-17.
+ * Created by Kristofer on 2016-03-02.
  */
 class RunnerServiceTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
@@ -48,8 +48,7 @@ class RunnerServiceTest(_system: ActorSystem) extends TestKit(_system) with Impl
 
       val r = Request("RunnerService",
         SPAttributes(
-          "SOP" -> sopSpec.id,
-          "setup" -> Map("onlyOperations"-> false, "searchMethod"->"theGood")
+          "SOP" -> sopSpec.id
         ),
         longList
       )

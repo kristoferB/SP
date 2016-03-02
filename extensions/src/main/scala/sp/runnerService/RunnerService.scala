@@ -29,18 +29,13 @@ object RunnerService extends SPService {
       "description" -> "A service to run SOP's in SP"
     ),
     "SOP" -> KeyDefinition("Option[ID]", List(), Some("")
-    ),
-    "command" -> SPAttributes(
-      "commandType"->KeyDefinition("String", List("connect", "disconnect", "status", "subscribe", "unsubscribe", "execute", "raw"), Some("connect")),
-      "execute" -> KeyDefinition("Option[ID]", List(), None)//,
-      )
+    )
   )
 
   val transformTuple  = (
-    TransformValue("SOP", _.getAs[ID]("SOP")),
-    TransformValue("command", _.getAs[String]("command"))
+    TransformValue("SOP", _.getAs[ID]("SOP"))
     )
-  val transformation = transformToList(transformTuple.productIterator.toList)
+  val transformation = List(transformTuple)
   //def props(eventHandler: ActorRef) = Props(classOf[RunnerService], eventHandler)
   def props(eventHandler: ActorRef, operationController: String) =
     ServiceLauncher.props(Props(classOf[RunnerService], eventHandler, operationController))
@@ -48,7 +43,7 @@ object RunnerService extends SPService {
 
 // Inkluderar eventHandler och namnet på servicen operationController. Skickas med i SP.scala
 class RunnerService(eventHandler: ActorRef, operationController: String) extends Actor with ServiceSupport {
-  val serviceID = ID.newID
+  import context.dispatcher
 
   var parents: Map[SOP, SOP] = Map()
   var activeSteps: List[SOP] = List()
@@ -64,9 +59,7 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
       // include this if you whant to send progress messages. Send attributes to it during calculations
       val progress = context.actorOf(progressHandler)
 
-      val sopID = transform(RunnerService.transformTuple._1)
-      val command = transform(RunnerService.transformTuple._2)
-      val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
+      val sopID = transform(RunnerService.transformTuple)
 
       //lista av tuplar som vi gör om till map
       val idMap: Map[ID, IDAble] = ids.map(item => item.id -> item).toMap
@@ -79,12 +72,16 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
       sop.foreach(executeSOP)
 
 
-      replyTo ! Response(List(), SPAttributes("result" -> "done"), rnr.req.service, rnr.req.reqID)
-      self ! PoisonPill
+
     }
       // Vi får states från Operation control
     case r @ Response(ids, attr, service, _) if service == operationController => {
       // Till att börja med är dessa tomma, så vi säger att alla som kör blir färdiga
+      val res = activeSteps.map(stepCompleted)
+
+      if (res.foldLeft(false)(_ || _)){
+
+      }
 
     }
   }
@@ -132,14 +129,17 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
 
         // Om alla är färdiga -> stepCompleted(p)
         // annars vänta
+        false
       }
       case Some(p: Sequence) => {
         // plocka nästa ur sekvensen och kör -> execute(nextSOP)
         // uppdatera activeSteps
         // om det var sista steget -> stepCompleted(p)
+        false
       }
       case None => {
         // nu är vi färdiga
+        true
       }
     }
 
