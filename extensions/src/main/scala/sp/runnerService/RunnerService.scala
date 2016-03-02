@@ -42,17 +42,27 @@ object RunnerService extends SPService {
     )
   val transformation = transformToList(transformTuple.productIterator.toList)
   //def props(eventHandler: ActorRef) = Props(classOf[RunnerService], eventHandler)
-  def props = ServiceLauncher.props(Props(classOf[RunnerService]))
+  def props(eventHandler: ActorRef, operationController: String) =
+    ServiceLauncher.props(Props(classOf[RunnerService], eventHandler, operationController))
 }
 
-//borde inte låta RunnerService ha ModelMaking trait egentligen....
-class RunnerService extends Actor with ServiceSupport with ModelMaking {
+// Inkluderar eventHandler och namnet på servicen operationController. Skickas med i SP.scala
+class RunnerService(eventHandler: ActorRef, operationController: String) extends Actor with ServiceSupport {
   val serviceID = ID.newID
+
+  var parents: Map[SOP, SOP] = Map()
+  var activeSteps: List[SOP] = List()
+  var parallelRuns: Map[Parallel, List[SOP]] = Map()
+  var state: State = State(Map())
+
 
   def receive = {
     case r@Request(service, attr, ids, reqID) => {
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
+
+      // include this if you whant to send progress messages. Send attributes to it during calculations
+      val progress = context.actorOf(progressHandler)
 
       val sopID = transform(RunnerService.transformTuple._1)
       val command = transform(RunnerService.transformTuple._2)
@@ -60,96 +70,97 @@ class RunnerService extends Actor with ServiceSupport with ModelMaking {
 
       //lista av tuplar som vi gör om till map
       val idMap: Map[ID, IDAble] = ids.map(item => item.id -> item).toMap
+      val sop = Try{idMap(sopID).asInstanceOf[SOP]}
 
-      //sop:en finns i idMap, fås som IDAble, men vi gör en for comp så den fås som ID
-      val sop = for {
-        item <- idMap.get(sopID) if item.isInstanceOf[SOP]
-      } yield {
-        item.asInstanceOf[SOP]
-      }
+      // Makes the parentmap
+      sop.foreach(createSOPMap)
 
-      //lista med id
-      val list = sop.map(runASop)
+      // Starts the first op
+      sop.foreach(executeSOP)
 
-      //plockar ut db,byte,bit - adress - som tillhör den/de abilities som ligger i abilitiesUsed
-      //val address = getAddressToAbility(abilitiesUsed)
 
-      //val myCommand = SPAttributes(
-      //"writeToAddress" -> address,
-      //"command" -> command
-      //)
-      //sendRaw(myCommand)
-
-      //hur gör vi med detta?
       replyTo ! Response(List(), SPAttributes("result" -> "done"), rnr.req.service, rnr.req.reqID)
       self ! PoisonPill
     }
-  }
+      // Vi får states från Operation control
+    case r @ Response(ids, attr, service, _) if service == operationController => {
+      // Till att börja med är dessa tomma, så vi säger att alla som kör blir färdiga
 
-  def runASop(sop:SOP): Future[String] = {
-    sop match{
-      case p: Parallel =>
-        println(s"Nu är vi i parallel $p")
-        val fSeq = p.sop.foreach(runASop)
-        Future.sequence(fSeq).map { list =>
-          "done"//kolla sen så att den verkligen är done!
-        }
-      case s: Sequence =>
-        if(s.sop.isEmpty) Future("done")
-        else {
-          val f = runASop(s.sop.head)
-          f.flatmap(str => str match {
-            case "done" => runASop(Sequence(s.sop.tail))
-          })
-        }
-      case h: Hierarchy =>
-        val f = kristofersActor ? executeMeID(h.operation)
     }
   }
 
-  def getOperation (sop: SOP) : List[Operation] = {
-    val opList: List[Operation] = Nil
-    for(o: Operation <- sop){
-    opList :+ o
-    }
-    return opList
-  }
 
-  def execute (opList: List[Operation], sopType: String)={
-    sopType match{
-      case "parallel" =>{
-        //execute(opList) - ska köra alla operationer i opList samtidigt
-        //nya execute skickar till operation control
-        //skicka något tillbaka som säger till när den exekverat klart
-      }
-      case "alternative"=>{
-        //skicka på något sätt
-      }
-      case "sequence"=>{
-        //for(o<-opList){execute(o), och skickar med när o är klar så nästa i for-loopen kan köra}
-        //skickar tillbaka när hela opList har körts igenom så att for(s<- sopList ovan vet och kan skicka nästa sop till något annat)
-      }
-      case "hierarchy"=>{
-        //skicka på något sätt
-      }
-      case "noMatch"=>{
-        //skicka felmeddelande?
-      }
+  def createSOPMap(x: SOP): Unit = {
+    x.sop.foreach { c =>
+      parents = parents + (c -> x)
+      createSOPMap(c) // terminerar när en SOP inte har några barn
     }
   }
 
-  def getClassOfSop(sop: SOP): String ={
+  def executeSOP(sop: SOP): Unit = {
     sop match {
-      case s: Parallel => "parallel"
-      //case s: Alternative => "alternative"
-      //case s: Arbitrary => "arbitrary"
-      case s: Sequence => "sequence"
-      //case s: SometimeSequence => "sometimeSequence"
-      //case s: Other => "other"
-      //case s: Hierarchy => "hierarchy"
-      case _ => "noMatch"
+      case x: Parallel => x.sop.foreach(executeSOP)
+      case x: Sequence if x.sop.nonEmpty => executeSOP(x.sop.head)
+      case x: Hierarchy => {
+        startID(x.operation)
+        activeSteps = activeSteps :+ x
+      }
+      case x => println(s"Hmm, vi fick $x i executeSOP")
     }
   }
+
+  import scala.concurrent._
+  import scala.concurrent.duration._
+  def startID(id: ID) = {
+    // Skickar ett tomt svar efter 2s.
+    context.system.scheduler.scheduleOnce(2000 milliseconds, self,
+      Response(List(),
+        SPAttributes("state"-> SPAttributes()),
+        operationController,
+        ID.newID
+      ))
+  }
+
+
+  // Anropas när ett steg blir klart
+  def stepCompleted(complSOP: SOP) = {
+    parents.get(complSOP) match {
+      case Some(p: Parallel) => {
+        val alreadyDoneSteps = parallelRuns.get(p)
+        if (alreadyDoneSteps.isEmpty)
+          parallelRuns = parallelRuns + (p->List(complSOP))
+
+        // Om alla är färdiga -> stepCompleted(p)
+        // annars vänta
+      }
+      case Some(p: Sequence) => {
+        // plocka nästa ur sekvensen och kör -> execute(nextSOP)
+        // uppdatera activeSteps
+        // om det var sista steget -> stepCompleted(p)
+      }
+      case None => {
+        // nu är vi färdiga
+      }
+    }
+
+  }
+
+
+
+
+
+
+
+}
+
+
+trait SOPRunner {
+  var parents: Map[SOP, SOP] = Map()
+  var activeSteps: List[SOP] = List()
+  var parallelRuns: Map[Parallel, List[SOP]]
+
+
+
 }
 
 
