@@ -49,12 +49,14 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
   var activeSteps: List[SOP] = List()
   var parallelRuns: Map[Parallel, List[SOP]] = Map()
   var state: State = State(Map())
+  var reply: Option[RequestNReply] = None
 
 
   def receive = {
     case r@Request(service, attr, ids, reqID) => {
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
+      reply = Some(rnr)
 
       // include this if you whant to send progress messages. Send attributes to it during calculations
       val progress = context.actorOf(progressHandler)
@@ -63,13 +65,16 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
 
       //lista av tuplar som vi gör om till map
       val idMap: Map[ID, IDAble] = ids.map(item => item.id -> item).toMap
-      val sop = Try{idMap(sopID).asInstanceOf[SOP]}
+      val sop = Try{idMap(sopID).asInstanceOf[SOPSpec].sop}.map(xs => Parallel(xs:_*))
 
       // Makes the parentmap
       sop.foreach(createSOPMap)
+      println("we go a sop: "+sop)
+
 
       // Starts the first op
       sop.foreach(executeSOP)
+      progress ! SPAttributes("activeOps"->activeSteps)
 
 
 
@@ -77,10 +82,15 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
       // Vi får states från Operation control
     case r @ Response(ids, attr, service, _) if service == operationController => {
       // Till att börja med är dessa tomma, så vi säger att alla som kör blir färdiga
+
+      println(s"we got a state change")
+
       val res = activeSteps.map(stepCompleted)
 
+      // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
       if (res.foldLeft(false)(_ || _)){
-
+        reply.foreach(rnr => rnr.reply ! Response(List(), SPAttributes("status"->"done"), rnr.req.service, rnr.req.reqID))
+        self ! PoisonPill
       }
 
     }
@@ -95,6 +105,7 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
   }
 
   def executeSOP(sop: SOP): Unit = {
+    println(s"executing sop $sop")
     sop match {
       case x: Parallel => x.sop.foreach(executeSOP)
       case x: Sequence if x.sop.nonEmpty => executeSOP(x.sop.head)
@@ -121,6 +132,7 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
 
   // Anropas när ett steg blir klart
   def stepCompleted(complSOP: SOP) = {
+    println(s"step $complSOP is completed. Parent is ${parents.get(complSOP)}")
     parents.get(complSOP) match {
       case Some(p: Parallel) => {
         val alreadyDoneSteps = parallelRuns.get(p)
@@ -154,14 +166,6 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
 }
 
 
-trait SOPRunner {
-  var parents: Map[SOP, SOP] = Map()
-  var activeSteps: List[SOP] = List()
-  var parallelRuns: Map[Parallel, List[SOP]]
-
-
-
-}
 
 
 

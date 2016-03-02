@@ -57,7 +57,9 @@ class RunnerServiceTest(_system: ActorSystem) extends TestKit(_system) with Impl
 
       fishForMessage(10 seconds){
         case x: Response => println(x); true;
-        case x => println(x); false
+        //case x => println(x); false // anv denna om progress skall skrivas ut
+        // lägg till tester här baserat på progress.
+        case x => false
       }
     }
   }
