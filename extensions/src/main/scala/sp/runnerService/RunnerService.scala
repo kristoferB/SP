@@ -58,20 +58,18 @@ class RunnerService extends Actor with ServiceSupport with ModelMaking {
       val command = transform(RunnerService.transformTuple._2)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
-      //plockar ut den ability som utgör SOP med id sopID
-      //val abilitiesUsed = getAbilityToID(sopID)
+      //lista av tuplar som vi gör om till map
+      val idMap: Map[ID, IDAble] = ids.map(item => item.id -> item).toMap
 
-      val sop = operationIDToSOP(sopID)
-      val sopList: List[SOP] = Nil
-      for (s: SOP <- sop) {
-        sopList :+ s
+      //sop:en finns i idMap, fås som IDAble, men vi gör en for comp så den fås som ID
+      val sop = for {
+        item <- idMap.get(sopID) if item.isInstanceOf[SOP]
+      } yield {
+        item.asInstanceOf[SOP]
       }
 
-      for (s <- sopList) {
-        execute(getOperation(s), getClassOfSop(s))
-        //någonting som väntar på svar....
-
-      }
+      //lista med id
+      val list = sop.map(runASop)
 
       //plockar ut db,byte,bit - adress - som tillhör den/de abilities som ligger i abilitiesUsed
       //val address = getAddressToAbility(abilitiesUsed)
@@ -85,6 +83,27 @@ class RunnerService extends Actor with ServiceSupport with ModelMaking {
       //hur gör vi med detta?
       replyTo ! Response(List(), SPAttributes("result" -> "done"), rnr.req.service, rnr.req.reqID)
       self ! PoisonPill
+    }
+  }
+
+  def runASop(sop:SOP): Future[String] = {
+    sop match{
+      case p: Parallel =>
+        println(s"Nu är vi i parallel $p")
+        val fSeq = p.sop.foreach(runASop)
+        Future.sequence(fSeq).map { list =>
+          "done"//kolla sen så att den verkligen är done!
+        }
+      case s: Sequence =>
+        if(s.sop.isEmpty) Future("done")
+        else {
+          val f = runASop(s.sop.head)
+          f.flatmap(str => str match {
+            case "done" => runASop(Sequence(s.sop.tail))
+          })
+        }
+      case h: Hierarchy =>
+        val f = kristofersActor ? executeMeID(h.operation)
     }
   }
 
@@ -106,18 +125,9 @@ class RunnerService extends Actor with ServiceSupport with ModelMaking {
       case "alternative"=>{
         //skicka på något sätt
       }
-      case "arbitrary"=>{
-        //skicka på något sätt
-      }
       case "sequence"=>{
         //for(o<-opList){execute(o), och skickar med när o är klar så nästa i for-loopen kan köra}
         //skickar tillbaka när hela opList har körts igenom så att for(s<- sopList ovan vet och kan skicka nästa sop till något annat)
-      }
-      case "sometimeSequence"=>{
-        //skicka på något sätt
-      }
-      case "other"=>{
-        //skicka på något sätt
       }
       case "hierarchy"=>{
         //skicka på något sätt
@@ -131,12 +141,12 @@ class RunnerService extends Actor with ServiceSupport with ModelMaking {
   def getClassOfSop(sop: SOP): String ={
     sop match {
       case s: Parallel => "parallel"
-      case s: Alternative => "alternative"
-      case s: Arbitrary => "arbitrary"
+      //case s: Alternative => "alternative"
+      //case s: Arbitrary => "arbitrary"
       case s: Sequence => "sequence"
-      case s: SometimeSequence => "sometimeSequence"
-      case s: Other => "other"
-      case s: Hierarchy => "hierarchy"
+      //case s: SometimeSequence => "sometimeSequence"
+      //case s: Other => "other"
+      //case s: Hierarchy => "hierarchy"
       case _ => "noMatch"
     }
   }
