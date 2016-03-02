@@ -98,6 +98,7 @@ class RunnerService extends Actor with ServiceSupport {
   //och kollar vilken typ den har (parallell eller sequence), för att veta hur den ska köra
   //sina barn. När ett barn har kört klart kommer den då säga till sin förälder att den är klar
   //och när alla barn till en förälder körts klart går man vidare i kedjan till nästa förälder
+  // TODO: kanske borde använda en treemap? måste nämligen vara noga med att börja med rätt parent
   def createASopMap(sop: SOP): Map[SOP, List[SOP]] ={
     val sopSeq = sop.sop
     val nmbrOfChildren = sopSeq.length-1
