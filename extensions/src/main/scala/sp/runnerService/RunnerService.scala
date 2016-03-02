@@ -5,7 +5,6 @@ import sp.domain.Logic._
 import sp.domain._
 import sp.system._
 import sp.system.messages._
-import akka.actor._
 import com.codemettle.reactivemq._
 import com.codemettle.reactivemq.ReActiveMQMessages._
 import com.codemettle.reactivemq.model._
@@ -31,14 +30,13 @@ object RunnerService extends SPService {
     "SOP" -> KeyDefinition("Option[ID]", List(), Some("")
     ),
     "command" -> SPAttributes(
-      "commandType"->KeyDefinition("String", List("connect", "disconnect", "status", "subscribe", "unsubscribe", "execute", "raw"), Some("connect")),
-      "execute" -> KeyDefinition("Option[ID]", List(), None)//,
+      "commandType"->KeyDefinition("String", List("connect", "disconnect", "status", "subscribe", "unsubscribe", "execute", "raw"), Some("connect"))
       )
   )
 
   val transformTuple  = (
-    TransformValue("SOP", _.getAs[ID]("SOP")),
-    TransformValue("command", _.getAs[String]("command"))
+    TransformValue("command", _.getAs[String]("command")),
+    TransformValue("SOP", _.getAs[ID]("SOP"))
     )
   val transformation = transformToList(transformTuple.productIterator.toList)
   //def props(eventHandler: ActorRef) = Props(classOf[RunnerService], eventHandler)
@@ -54,8 +52,8 @@ class RunnerService extends Actor with ServiceSupport with ModelMaking {
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
 
-      val sopID = transform(RunnerService.transformTuple._1)
-      val command = transform(RunnerService.transformTuple._2)
+      val commands = transform(RunnerService.transformTuple._1)
+      val sopID = transform(RunnerService.transformTuple._2)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
       //lista av tuplar som vi gör om till map
@@ -71,16 +69,6 @@ class RunnerService extends Actor with ServiceSupport with ModelMaking {
       //lista med id
       val list = sop.map(runASop)
 
-      //plockar ut db,byte,bit - adress - som tillhör den/de abilities som ligger i abilitiesUsed
-      //val address = getAddressToAbility(abilitiesUsed)
-
-      //val myCommand = SPAttributes(
-      //"writeToAddress" -> address,
-      //"command" -> command
-      //)
-      //sendRaw(myCommand)
-
-      //hur gör vi med detta?
       replyTo ! Response(List(), SPAttributes("result" -> "done"), rnr.req.service, rnr.req.reqID)
       self ! PoisonPill
     }
@@ -90,22 +78,31 @@ class RunnerService extends Actor with ServiceSupport with ModelMaking {
     sop match{
       case p: Parallel =>
         println(s"Nu är vi i parallel $p")
-        val fSeq = p.sop.foreach(runASop)
-        Future.sequence(fSeq).map { list =>
-          "done"//kolla sen så att den verkligen är done!
+        val fSeq = p.sop.map(runASop)
+        Future.sequence(fSeq).map{ list =>
+          "done"//kolla sen så att alla verkligen är done!
         }
       case s: Sequence =>
+        println(s"Nu är vi i sequence $s")
         if(s.sop.isEmpty) Future("done")
         else {
           val f = runASop(s.sop.head)
-          f.flatmap(str => str match {
-            case "done" => runASop(Sequence(s.sop.tail))
+          f.flatMap(str => str match {
+            case "done" =>
+              runASop(Sequence(s.sop.tail))
           })
         }
       case h: Hierarchy =>
-        val f = kristofersActor ? executeMeID(h.operation)
+        println(s"Nu är vi i hierarki $h")
+        val f = test(h.operation)
+        f.map(x => x match {
+          case "done" => "done" //return true
+          case "error" => "nope"
+        })
     }
   }
+
+  def test(id: ID) = Future("done")
 
   def getOperation (sop: SOP) : List[Operation] = {
     val opList: List[Operation] = Nil
