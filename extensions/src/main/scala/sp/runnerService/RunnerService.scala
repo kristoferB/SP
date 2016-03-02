@@ -1,22 +1,20 @@
 package sp.runnerService
 
 import akka.actor._
-import sp.domain.Logic._
-import sp.domain._
-import sp.system._
-import sp.system.messages._
+
 import com.codemettle.reactivemq._
 import com.codemettle.reactivemq.ReActiveMQMessages._
 import com.codemettle.reactivemq.model._
 import org.json4s.JsonAST.JInt
 import sp.domain.logic.IDAbleLogic
 import scala.concurrent._
+import scala.concurrent.ExecutionContext.Implicits.global
 import sp.system.messages._
 import sp.system._
 import sp.domain._
 import sp.domain.Logic._
 import sp.extensions._
-import sp.psl.{ModelMaking, PSLModel}
+import sp.psl._
 import scala.util.Try
 import sp.domain.SOP._
 
@@ -28,23 +26,16 @@ object RunnerService extends SPService {
       "description" -> "A service to run SOP's in SP"
     ),
     "SOP" -> KeyDefinition("Option[ID]", List(), Some("")
-    ),
-    "command" -> SPAttributes(
-      "commandType"->KeyDefinition("String", List("connect", "disconnect", "status", "subscribe", "unsubscribe", "execute", "raw"), Some("connect"))
-      )
+    )
   )
 
-  val transformTuple  = (
-    TransformValue("command", _.getAs[String]("command")),
-    TransformValue("SOP", _.getAs[ID]("SOP"))
-    )
+  val transformTuple  = TransformValue("SOP", _.getAs[ID]("SOP"))
   val transformation = transformToList(transformTuple.productIterator.toList)
   //def props(eventHandler: ActorRef) = Props(classOf[RunnerService], eventHandler)
   def props = ServiceLauncher.props(Props(classOf[RunnerService]))
 }
 
-//borde inte låta RunnerService ha ModelMaking trait egentligen....
-class RunnerService extends Actor with ServiceSupport with ModelMaking {
+class RunnerService extends Actor with ServiceSupport {
   val serviceID = ID.newID
 
   def receive = {
@@ -52,8 +43,7 @@ class RunnerService extends Actor with ServiceSupport with ModelMaking {
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
 
-      val commands = transform(RunnerService.transformTuple._1)
-      val sopID = transform(RunnerService.transformTuple._2)
+      val sopID = transform(RunnerService.transformTuple)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
       //lista av tuplar som vi gör om till map
@@ -89,7 +79,7 @@ class RunnerService extends Actor with ServiceSupport with ModelMaking {
           val f = runASop(s.sop.head)
           f.flatMap(str => str match {
             case "done" =>
-              runASop(Sequence(s.sop.tail))
+              runASop(Sequence() ++ s.sop.tail)
           })
         }
       case h: Hierarchy =>
@@ -104,13 +94,14 @@ class RunnerService extends Actor with ServiceSupport with ModelMaking {
 
   def test(id: ID) = Future("done")
 
+  /*
   def getOperation (sop: SOP) : List[Operation] = {
     val opList: List[Operation] = Nil
     for(o: Operation <- sop){
     opList :+ o
     }
     return opList
-  }
+  }*/
 
   def execute (opList: List[Operation], sopType: String)={
     sopType match{

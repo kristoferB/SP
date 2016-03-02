@@ -189,14 +189,6 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
       ).flatten
 
-
-
-      val op1 = makeOperation(
-        opName = "op1",
-        itemMap,
-        madeOfAbilities = List("ability1", "ability2")
-      )
-
       val connection = SPSpec("PLCConnection", SPAttributes(
         "connection"->connectionList,
         "specification"-> "PLCConnection"
@@ -221,8 +213,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
       val root = HierarchyRoot("Resources", List(r2._1, r4._1, r5._1, s1._1, s2._1, s3._1, s4._1, flexLink._1, h1._1))
       val opRoot = HierarchyRoot("Operations", List())
-      val abilitySop = HierarchyRoot("AbilitySop", List())
-      replyTo ! Response(items :+ root :+ opRoot :+ abilitySop :+ connection, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
+      replyTo ! Response(items :+ root :+ opRoot :+ connection, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
 
     }
   }
@@ -232,18 +223,12 @@ case class DBConnection(name: String, valueType: String, db: Int, byte: Int = 0,
 
 
 trait ModelMaking {
-  val idOfAbility = scala.collection.mutable.Map[ID, String]()
-  val abilityToID = scala.collection.mutable.Map[String, ID]()
-  val abilityOfAbilityName = scala.collection.mutable.Map[String, Operation]()
   def makeResource(name: String, state: List[String], abilities: List[(String, List[String])]) = {
     val t = Thing(name)
     val stateVars = state.map(x => Thing(s"$name.$x", SPAttributes("variableType"->"state")))
     val ab = abilities.map{case (n, parameters) =>
       val abilityName = name +"."+n
       val o = Operation(abilityName, List(), SPAttributes("operationType"->"ability"))
-      idOfAbility + (o.id -> abilityName)
-      abilityOfAbilityName + (abilityName -> o)
-      abilityToID + (abilityName -> o.id)
       (o, parameters.map{x =>
         val pName = x.replaceFirst("p_", "")
         val isP = x.startsWith("p_")
@@ -258,22 +243,6 @@ trait ModelMaking {
     (hier, temp)
   }
 
-  //returnerar det id till ability med namnet name
-  def getIDToAbility(name:String): ID ={
-    return abilityToID(name)
-  }
-
-  //returnerar just nu bara en string eftersom mappningen är 1:1
-  //tänker att en SOP av abilities först och just denna SOP har bara en ability
-  def getAbilityToID(sopID: ID): String ={
-    return idOfAbility(sopID)
-  }
-
-  //returnerar den ability (operation) som har namnet abilityName
-  def getAbilityOfAbilityName(abilityName: String): Operation ={
-    return abilityOfAbilityName(abilityName)
-  }
-
   def makeOperation(opName: String, itemMap: Map[String, ID], madeOfAbilities: List[String])={
     val name = opName
     val attributes = SPAttributes()
@@ -281,29 +250,14 @@ trait ModelMaking {
       attributes ++ SPAttributes("ability" -> itemMap(ability))
     }
     val op = Operation(name, List(), attributes)
-    val abil = madeOfAbilities.map(x => Thing(s"$name.$x", SPAttributes("variableType"->"abilities")))
-    val hier = HierarchyNode(op.id, abil.map(x => HierarchyNode(x.id)))
-    val temp: List[IDAble] = op :: abil
-    (hier, temp)
-  }
-
-  //är tänkt att skapa en sop av abilities men tar just nu bara in en ability i form av en sträng
-  def makeAbilitySOP(ability: String){
-    val mySOP = SOP(Sequence(getAbilityOfAbilityName(ability)))
-    //val hier = HierarchyNode(getIDToAbility(ability))
-    //val temp: List[IDAble] = List(getAbilityOfAbilityName(ability))
+    //val abil = madeOfAbilities.map(x => Thing(s"$name.$x", SPAttributes("variableType"->"abilities")))
+    //val hier = HierarchyNode(op.id, abil.map(x => HierarchyNode(x.id)))
+    //val temp: List[IDAble] = op :: abil
     //(hier, temp)
   }
 
-  val addressToAbility = scala.collection.mutable.Map[String, List[Int]]()
   def db(items: Map[String, ID], name: String, valueType: String, db:Int, byte: Int, bit: Int, intMap: Map[Int, String] = Map()) = {
     items.get(name).map(id => DBConnection(name, valueType, db, byte, bit, intMap.map{case (k,v) => k.toString->v}, id))
-    addressToAbility + (name -> List(db, byte, bit))
-  }
-
-  //returnerar den adress som tillhör den ability som heter name
-  def getAddressToAbility(name:String): List[Int] ={
-    return addressToAbility(name)
   }
 }
 
