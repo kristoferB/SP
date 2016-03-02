@@ -56,7 +56,7 @@ class DummySopService extends Actor with ServiceSupport {
       val o23 = Operation("o23", List(), SPAttributes("time" -> 4.23))
       val opsEx = List(o11, o12, o13, o21, o22, o23)
 
-      val sopSeq = SOP(Sequence(o11, o12, o13), Sequence(o21, o22, o23))
+      val sopSeq = SOP(Sequence(o11, o12, o13), Sequence(o21, o22, o23), Parallel(o11,o12))
       val sopArbi = SOP(Arbitrary(o12, o22))
 
       val conditions = sp.domain.logic.SOPLogic.extractOperationConditions(List(sopSeq, sopArbi), "traj")
