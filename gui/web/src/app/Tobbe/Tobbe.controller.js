@@ -23,14 +23,16 @@
         vm.bigR = 255;
         vm.$var = 0;
         vm.resultColor = '#00FF00';
+
+        //functions
         vm.getProperColor = getProperColor;
         vm.saveNumber = saveNumber;
         vm.reset = reset;
         vm.build = build;
         vm.tryTheTower = tryTheTower;
-
         vm.calc = calc;
 
+        //Contains the colours of the cubes
         vm.ButtonColour = {
             kub: [
                 [0, 0, 0, 0],
@@ -65,23 +67,6 @@
                 }
             )
         }
-
-        /*
-         function getProperColor($number)
-         {
-         var mess = {"color": {"number":number}};
-
-         spServicesService.callService(spServicesService.getService("TobbeG"),
-         mess,
-         function(resp){
-         if (_.has(resp, 'attributes.result')){
-         vm.resultColor = resp.attributes.result;
-         }
-         }
-         )
-         }
-
-         */
 
         /**
          * Change the colour of a button.
