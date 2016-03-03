@@ -30,36 +30,33 @@
             $scope.$on('closeRequest', function() {
                 dashboardService.closeWidget(vm.widget.id);
             });
-
+            //Some problem with the listner here
+            eventService.addListener('Response',dummyFunction())
+            function dummyFunction(data){
+                console.log("Listener ")
+            }
         }
         function imDone(done){
+            var dummyArray = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+            var mess = {"data": {"getNext": done,"buildOrder": dummyArray}};
 
-            var mess = {"data": {"done": done}};
-
-            spServicesService.callService(
-                spServicesService.getService("operatorService"),mess,
-                function(resp) {
-                    if(_.has(resp, "attributes.result")){
-                        vm.palett = resp.attributes.result;
-                    }
-                })
-
-        }
-/*
-        function imDone(done){
-            var mess = {"data": {"done": done}};
-            console.log("hej")
-            console.log(spServicesService.getService("operatorService"));
             spServicesService.callService(
                 spServicesService.getService("operatorService"),mess,
                 function(resp) {
                     if(_.has(resp, "attributes.result")){
                         vm.result = resp.attributes.result;
+                        console.log("Hej" + vm.result[8]);
+                        /*
+                        Check if response is completly blank, if blank set variable true and update palett
+                        Otherwise just update palett
+                        Create a listener and a function that when the variable is true and an event happens,
+                        set variable to false and update palett.
+                        Variable Should be init to true
+                        */
                     }
-                }
-            )
+                })
+
         }
-*/
         function listen(event){
             vm.eventLog.unshift(event);
             vm.scope.$apply();
