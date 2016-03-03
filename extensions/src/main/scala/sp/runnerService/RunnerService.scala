@@ -229,7 +229,7 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
 
 
   // Anropas när ett steg blir klart
-  def stepCompleted(complSOP: SOP) = {
+  def stepCompleted(complSOP: SOP): Boolean = {
     println(s"step $complSOP is completed. Parent is ${parents.get(complSOP)}")
     parents.get(complSOP) match {
       case Some(p: Parallel) => {
