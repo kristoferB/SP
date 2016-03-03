@@ -30,6 +30,7 @@
         vm.reset = reset;
         vm.build = build;
         vm.tryTheTower = tryTheTower;
+        vm.randomTower = randomTower;
         vm.calc = calc;
 
         //Contains the colours of the cubes
@@ -190,5 +191,23 @@
                     alert('You Need to Choose at Least One');
             }
         }
+
+        function randomTower() {
+            for (var column = 0; column < 4; column++) {
+                var stopPlacingCubes = 0;
+                for (var row = 0; row > 3; row--) {
+                    var tempColour = Math.floor((Math.random() * 5));
+                    if(tempColour && !stopPlacingCubes){
+                        vm.ButtonColour.kub[row][column] = tempColour;
+                        saveNumber(row, column);
+                    }
+                    else{
+                        stopPlacingCubes = 1;
+                    }
+                }
+            }
+        }
+
+
     }
 })();
