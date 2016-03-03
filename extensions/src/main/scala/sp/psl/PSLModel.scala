@@ -121,16 +121,16 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
 
         // r5-robot som är detsamma som r4, siffror ska ändras senare
-        db(itemMap, "r5.gripping",                  "bool",   999, 0, 0), // ändras då den ska greppa någonting
-        db(itemMap, "r5.gripping.mode",             "int",    999, 0, 2, Map(0->"notReady", 3->"completed")),
-        db(itemMap, "r5.moveToStart",               "bool",   998, 0, 0), // ändras då den ska flytta sig till start
-        db(itemMap, "r5.moveToStart.start_parameter", "bool", 998, 0, 1), // om vi har fått in en startparameter eller inte
-        db(itemMap, "r5.moveToStart.mode",          "int",    998, 0, 2, stateMap),
-        db(itemMap, "r5.moveToEnd",                 "bool",  997, 0, 0),
-        db(itemMap, "r5.moveToEnd.end_parameter",   "bool",   997, 0, 1),
-        db(itemMap, "r5.moveToEnd.mode",            "int",    997, 0, 2, stateMap),
-        db(itemMap, "r5.position",                  "int",    996, 0, 0, Map(0->"home", 1->"atLR4", 2->"atLR5", 3->"atBP")),
-        db(itemMap, "r5.mode",                      "int",    996, 0, 1, stateMap),
+          db(itemMap, "r5.gripping",                  "bool",   999, 0, 0), // ändras då den ska greppa någonting
+          db(itemMap, "r5.gripping.mode",             "int",    999, 0, 2, Map(0->"notReady", 3->"completed")),
+          db(itemMap, "r5.moveToStart",               "bool",   998, 0, 0), // ändras då den ska flytta sig till start
+          db(itemMap, "r5.moveToStart.start_parameter", "bool", 998, 0, 1), // om vi har fått in en startparameter eller inte
+          db(itemMap, "r5.moveToStart.mode",          "int",    998, 0, 2, stateMap),
+          db(itemMap, "r5.moveToEnd",                 "bool",  997, 0, 0),
+          db(itemMap, "r5.moveToEnd.end_parameter",   "bool",   997, 0, 1),
+          db(itemMap, "r5.moveToEnd.mode",            "int",    997, 0, 2, stateMap),
+          db(itemMap, "r5.position",                  "int",    996, 0, 0, Map(0->"home", 1->"atLR4", 2->"atLR5", 3->"atBP")),
+          db(itemMap, "r5.mode",                      "int",    996, 0, 1, stateMap),
 
 
         //r4-robot som är detsamma som r5, siffror ska ändras senare'
@@ -242,6 +242,7 @@ trait ModelMaking {
 
     (hier, temp)
   }
+
 
   def makeOperation(opName: String, itemMap: Map[String, ID], madeOfAbilities: List[String])={
     val name = opName
