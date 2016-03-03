@@ -18,7 +18,7 @@
 
         vm.a = 0;
         vm.b = 0;
-        vm.result = 0;
+        vm.result = [];
 
         vm.bigR = 255;
         vm.$var = 0;
@@ -31,7 +31,9 @@
         vm.build = build;
         vm.tryTheTower = tryTheTower;
         vm.randomTower = randomTower;
+        vm.sendOrder = sendOrder;
         vm.calc = calc;
+
 
         //Contains the colours of the cubes
         vm.ButtonColour = {
@@ -42,6 +44,11 @@
                 [0, 0, 0, 0]
             ]
         };
+        /*
+        En sak som bör fixas är att färgerna iallafall har rätt nummer så de är i bokstavsordning
+        1 = Blue, 2 = Green, 3 = Red, 4 = Yellow
+        0 = Tom/vit
+         */
 
         //Remove these when done
         vm.debug = 0;
@@ -53,17 +60,25 @@
             $scope.$on('closeRequest', function () {
                 dashboardService.closeWidget(vm.widget.id);
             });
+
         }
 
-        function calc(sign) {
-            //spServicesService.callService();
-            var mess = {"data": {"a": vm.a, "b": vm.b, "sign": sign}};
+        function sendOrder() {
+            var getNext = false;
+            var buildOrder = [
+                vm.ButtonColour.kub[0][0],vm.ButtonColour.kub[0][1],vm.ButtonColour.kub[0][2],vm.ButtonColour.kub[0][3],
+                vm.ButtonColour.kub[1][0],vm.ButtonColour.kub[1][1],vm.ButtonColour.kub[1][2],vm.ButtonColour.kub[1][3],
+                vm.ButtonColour.kub[2][0],vm.ButtonColour.kub[2][1],vm.ButtonColour.kub[2][2],vm.ButtonColour.kub[2][3],
+                vm.ButtonColour.kub[3][0],vm.ButtonColour.kub[3][1],vm.ButtonColour.kub[3][2],vm.ButtonColour.kub[3][3]
+            ];
 
-            spServicesService.callService(spServicesService.getService("TobbeG"),
+            var mess = {"data": {getNext: getNext, "buildOrder": buildOrder}};
+            spServicesService.callService(spServicesService.getService("operatorService"),
                 mess,
                 function (resp) {
                     if (_.has(resp, 'attributes.result')) {
                         vm.result = resp.attributes.result;
+                        console.log("Hej" + vm.result[8]);
                     }
                 }
             )
@@ -185,8 +200,11 @@
             if(display) {
                 if (shallNotPass)
                     alert('Your Tower Shall Not Pass!');
-                else if(anyCubesAtAll)
+                else if(anyCubesAtAll) {
+                    sendOrder();
                     alert('OK');
+                }
+
                 else
                     alert('You Need to Choose at Least One');
             }
