@@ -20,7 +20,9 @@
         'app.exampleWidget',
         'app.operationControl',
         'app.calculator',
-        'app.Tobbe'
+        'app.Tobbe',
+        'app.rasmus',
+        'app.operatorInstGUI'
     ]);
 
 })();

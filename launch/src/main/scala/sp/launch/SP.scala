@@ -186,6 +186,7 @@ object SP extends App {
   )
 
 
+
   import sp.TobbeG._
   serviceHandler ! RegisterService(
     "TobbeG",
@@ -194,7 +195,20 @@ object SP extends App {
     TobbeG.transformation
   )
 
-
+  import sp.rasmus._
+  serviceHandler ! RegisterService(
+    "Rasmus",
+    system.actorOf(rasmus.props, "Rasmus"),
+    rasmus.specification,
+    rasmus.transformation
+  )
+  import sp.operatorService._
+  serviceHandler ! RegisterService(
+    "operatorService",
+    system.actorOf(operatorService.props, "operatorService"),
+    operatorService.specification,
+    operatorService.transformation
+  )
 
   // launch REST API
   sp.server.LaunchGUI.launch

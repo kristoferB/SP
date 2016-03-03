@@ -1,0 +1,24 @@
+<div ng-controller="rasmusController as vm" class="simple-widget">
+    <div class="panel-content">
+
+
+        <input type ="number" ng-model="vm.a" class="form-control">
+        <input type ="number" ng-model="vm.b" class="form-control">
+
+        <button type="button" class="btn btn.sm btn-primary" ng-click="vm.calc('+')">
+            <i class="fa fa-plus"></i>
+        </button>
+
+        <button type="button" class="btn btn.sm btn-primary" ng-click="vm.calc('-')">
+            <i class="fa fa-minus"></i>
+        </button>
+
+        <button type="button" class="btn btn.sm btn-primary" ng-click="vm.calc('*')">
+            <i class="fa fa-times"></i>
+        </button>
+        <h1>{{vm.result}}</h1>
+        <h2>Frame</h2>
+        <img ng-src="{{vm.picture}}" alt="Frame view" style="width:302px;height:402px;">
+<!--Skall tydligen vara mindre buggigt med ng-src än src om man skall visa olika bilder med {{hash}} -->
+    </div>
+</div>

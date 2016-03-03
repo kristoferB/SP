@@ -34,8 +34,12 @@
                 {sizeX: 6, sizeY: 4, title: 'OPC Runner', template: 'app/opc-runner/opc-runner.html'},
                 {sizeX: 4, sizeY: 4, title: 'Example Widget', template: 'app/example-widget/example-widget.html'},
                 {sizeX: 4, sizeY: 4, title: 'Operation Control', template: 'app/operation-control/operation-control.html'},
+
                 {sizeX: 4, sizeY: 4, title: 'calculator', template: 'app/calculator/calculator.html'},
                 {sizeX: 4, sizeY: 4, title: 'Tobbe', template: 'app/Tobbe/Tobbe.html'},
+                {sizeX: 4, sizeY: 4, title: 'Calculator', template: 'app/calculator/calculator.html'},
+                {sizeX: 4, sizeY: 4, title: 'rasmus', template: 'app/rasmus/rasmus.html'},
+                {sizeX: 4, sizeY: 4, title: 'operatorInstGUI', template: 'app/operatorInstGUI/operatorInstGUI.html'},
             ]
         };
 
