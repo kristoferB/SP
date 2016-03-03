@@ -29,9 +29,8 @@ object RunnerService extends SPService {
     )
   )
 
-  val transformTuple  = (
-    TransformValue("SOP", _.getAs[ID]("SOP"))
-    )
+  val transformTuple  = TransformValue("SOP", _.getAs[ID]("SOP"))
+
   val transformation = List(transformTuple)
   //def props(eventHandler: ActorRef) = Props(classOf[RunnerService], eventHandler)
   def props(eventHandler: ActorRef, operationController: String) =
@@ -76,7 +75,7 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
 
 
     }
-      // Vi får states från Operation control
+    // Vi får states från Operation control
     case r @ Response(ids, attr, service, _) if service == operationController => {
       // Till att börja med är dessa tomma, så vi säger att alla som kör blir färdiga
 
@@ -90,107 +89,107 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
         self ! PoisonPill
       }
 
-  def runASop(sop:SOP): Future[String] = {
-    sop match {
-      case p: Parallel =>
-        println(s"Nu är vi i parallel $p")
-        val fSeq = p.sop.map(runASop)
-        Future.sequence(fSeq).map { list =>
-          "done" //kolla sen så att alla verkligen är done!
+      def runASop(sop:SOP): Future[String] = {
+        sop match {
+          case p: Parallel =>
+            println(s"Nu är vi i parallel $p")
+            val fSeq = p.sop.map(runASop)
+            Future.sequence(fSeq).map { list =>
+              "done" //kolla sen så att alla verkligen är done!
+            }
+          case s: Sequence =>
+            println(s"Nu är vi i sequence $s")
+            if (s.sop.isEmpty) Future("done")
+            else {
+              val f = runASop(s.sop.head)
+              f.flatMap(str => str match {
+                case "done" =>
+                  runASop(Sequence() ++ s.sop.tail)
+              })
+            }
+          case h: Hierarchy =>
+            println(s"Nu är vi i hierarki $h")
+            val f = test(h.operation)
+            f.map(x => x match {
+              case "done" => "done" //return true
+              case "error" => "nope"
+            })
         }
-      case s: Sequence =>
-        println(s"Nu är vi i sequence $s")
-        if (s.sop.isEmpty) Future("done")
-        else {
-          val f = runASop(s.sop.head)
-          f.flatMap(str => str match {
-            case "done" =>
-              runASop(Sequence() ++ s.sop.tail)
-          })
-        }
-      case h: Hierarchy =>
-        println(s"Nu är vi i hierarki $h")
-        val f = test(h.operation)
-        f.map(x => x match {
-          case "done" => "done" //return true
-          case "error" => "nope"
-        })
-    }
-  }
-
-  val sopMap: Map[SOP, List[SOP]] = Map() //parent -> child
-  //Tanken är man skapar en map där föräldrar pekar på  sina barn (key -> value)
-  //detta kommer sedan användas när man kör en SOP genom att man börjar med en förälder
-  //och kollar vilken typ den har (parallell eller sequence), för att veta hur den ska köra
-  //sina barn. När ett barn har kört klart kommer den då säga till sin förälder att den är klar
-  //och när alla barn till en förälder körts klart går man vidare i kedjan till nästa förälder
-  // TODO: kanske borde använda en treemap? måste nämligen vara noga med att börja med rätt parent
-  def createASopMap(sop: SOP): Map[SOP, List[SOP]] ={
-    val sopSeq = sop.sop
-    val nmbrOfChildren = sopSeq.length-1
-    if (sop.sop.isEmpty) {
-      sopMap
-    }else if (nmbrOfChildren == 0) {
-      sopMap + (sop -> List())
-    } else if (nmbrOfChildren > 0){
-      val sopList = List()
-      for(child <- sopSeq){
-        child -> sopList
-        createASopMap(child)
       }
-      sopMap + (sop -> sopList)
-    } else {
-      println("something went wrong")
-    }
-    sopMap
-  }
 
-def test(id: ID) = Future("done")
+      val sopMap: Map[SOP, List[SOP]] = Map() //parent -> child
+      //Tanken är man skapar en map där föräldrar pekar på  sina barn (key -> value)
+      //detta kommer sedan användas när man kör en SOP genom att man börjar med en förälder
+      //och kollar vilken typ den har (parallell eller sequence), för att veta hur den ska köra
+      //sina barn. När ett barn har kört klart kommer den då säga till sin förälder att den är klar
+      //och när alla barn till en förälder körts klart går man vidare i kedjan till nästa förälder
+      // TODO: kanske borde använda en treemap? måste nämligen vara noga med att börja med rätt parent
+      def createASopMap(sop: SOP): Map[SOP, List[SOP]] ={
+        val sopSeq = sop.sop
+        val nmbrOfChildren = sopSeq.length-1
+        if (sop.sop.isEmpty) {
+          sopMap
+        }else if (nmbrOfChildren == 0) {
+          sopMap + (sop -> List())
+        } else if (nmbrOfChildren > 0){
+          val sopList = List()
+          for(child <- sopSeq){
+            child -> sopList
+            createASopMap(child)
+          }
+          sopMap + (sop -> sopList)
+        } else {
+          println("something went wrong")
+        }
+        sopMap
+      }
 
-/*
-def getOperation (sop: SOP) : List[Operation] = {
-  val opList: List[Operation] = Nil
-  for(o: Operation <- sop){
-  opList :+ o
-  }
-  return opList
-}*/
+      def test(id: ID) = Future("done")
 
-def execute (opList: List[Operation], sopType: String)={
-  sopType match{
-  case "parallel" =>{
-  //execute(opList) - ska köra alla operationer i opList samtidigt
-  //nya execute skickar till operation control
-  //skicka något tillbaka som säger till när den exekverat klart
-}
-  case "alternative"=>{
-  //skicka på något sätt
-}
-  case "sequence"=>{
-  //for(o<-opList){execute(o), och skickar med när o är klar så nästa i for-loopen kan köra}
-  //skickar tillbaka när hela opList har körts igenom så att for(s<- sopList ovan vet och kan skicka nästa sop till något annat)
-}
-  case "hierarchy"=>{
-  //skicka på något sätt
-}
-  case "noMatch"=>{
-  //skicka felmeddelande?
-}
-}
-}
+      /*
+      def getOperation (sop: SOP) : List[Operation] = {
+        val opList: List[Operation] = Nil
+        for(o: Operation <- sop){
+        opList :+ o
+        }
+        return opList
+      }*/
 
-  def getClassOfSop(sop: SOP): String ={
-  sop match {
-  case s: Parallel => "parallel"
-  //case s: Alternative => "alternative"
-  //case s: Arbitrary => "arbitrary"
-  case s: Sequence => "sequence"
-  //case s: SometimeSequence => "sometimeSequence"
-  //case s: Other => "other"
-  //case s: Hierarchy => "hierarchy"
-  case _ => "noMatch"
-}
-}
+      def execute (opList: List[Operation], sopType: String)={
+        sopType match{
+          case "parallel" =>{
+            //execute(opList) - ska köra alla operationer i opList samtidigt
+            //nya execute skickar till operation control
+            //skicka något tillbaka som säger till när den exekverat klart
+          }
+          case "alternative"=>{
+            //skicka på något sätt
+          }
+          case "sequence"=>{
+            //for(o<-opList){execute(o), och skickar med när o är klar så nästa i for-loopen kan köra}
+            //skickar tillbaka när hela opList har körts igenom så att for(s<- sopList ovan vet och kan skicka nästa sop till något annat)
+          }
+          case "hierarchy"=>{
+            //skicka på något sätt
+          }
+          case "noMatch"=>{
+            //skicka felmeddelande?
+          }
+        }
+      }
+
+      def getClassOfSop(sop: SOP): String ={
+        sop match {
+          case s: Parallel => "parallel"
+          //case s: Alternative => "alternative"
+          //case s: Arbitrary => "arbitrary"
+          case s: Sequence => "sequence"
+          //case s: SometimeSequence => "sometimeSequence"
+          //case s: Other => "other"
+          //case s: Hierarchy => "hierarchy"
+          case _ => "noMatch"
+        }
+      }
 
     }
   }
@@ -237,12 +236,30 @@ def execute (opList: List[Operation], sopType: String)={
         val alreadyDoneSteps = parallelRuns.get(p)
         if (alreadyDoneSteps.isEmpty)
           parallelRuns = parallelRuns + (p->List(complSOP))
-
+        else if(p.sop.length > alreadyDoneSteps.size)
+          complSOP -> alreadyDoneSteps
+        else if(p.sop.length == alreadyDoneSteps.size)
+          stepCompleted(p)
+        // TODO: fixa!
+        else {
+          println("something went wrong in stepCompleted")
+        }
         // Om alla är färdiga -> stepCompleted(p)
         // annars vänta
         false
       }
       case Some(p: Sequence) => {
+        val parentSeq = p.sop
+        val nbrOfChildren = parentSeq.length
+        val current = parentSeq.indexOf(complSOP)
+        if (current < nbrOfChildren) {
+          activeSteps.filterNot(element => element == complSOP)
+          executeSOP(parentSeq(current + 1))
+        }
+        else {
+          stepCompleted(p)
+          // TODO: fixa!
+        }
         // plocka nästa ur sekvensen och kör -> execute(nextSOP)
         // uppdatera activeSteps
         // om det var sista steget -> stepCompleted(p)
@@ -253,7 +270,6 @@ def execute (opList: List[Operation], sopType: String)={
         true
       }
     }
-
   }
 
 
@@ -261,7 +277,7 @@ def execute (opList: List[Operation], sopType: String)={
 
 
 
-  }
+}
 
 
 
