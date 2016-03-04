@@ -8,7 +8,6 @@ import com.codemettle.reactivemq.model._
 import org.json4s.JsonAST.JInt
 import sp.domain.logic.IDAbleLogic
 import scala.concurrent._
-import scala.concurrent.ExecutionContext.Implicits.global
 import sp.system.messages._
 import sp.system._
 import sp.domain._
@@ -54,7 +53,7 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
       implicit val rnr = RequestNReply(r, replyTo)
       reply = Some(rnr)
 
-      // include this if you whant to send progress messages. Send attributes to it during calculations
+      // include this if you want to send progress messages. Send attributes to it during calculations
       val progress = context.actorOf(progressHandler)
 
       val sopID = transform(RunnerService.transformTuple)
@@ -66,7 +65,7 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
 
       // Makes the parentmap
       sop.foreach(createSOPMap)
-      println("we go a sop: "+sop)
+      println("we got a sop: "+sop)
 
 
       // Starts the first op
@@ -87,34 +86,6 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
       if (res.foldLeft(false)(_ || _)){
         reply.foreach(rnr => rnr.reply ! Response(List(), SPAttributes("status"->"done"), rnr.req.service, rnr.req.reqID))
         self ! PoisonPill
-      }
-
-      def runASop(sop:SOP): Future[String] = {
-        sop match {
-          case p: Parallel =>
-            println(s"Nu är vi i parallel $p")
-            val fSeq = p.sop.map(runASop)
-            Future.sequence(fSeq).map { list =>
-              "done" //kolla sen så att alla verkligen är done!
-            }
-          case s: Sequence =>
-            println(s"Nu är vi i sequence $s")
-            if (s.sop.isEmpty) Future("done")
-            else {
-              val f = runASop(s.sop.head)
-              f.flatMap(str => str match {
-                case "done" =>
-                  runASop(Sequence() ++ s.sop.tail)
-              })
-            }
-          case h: Hierarchy =>
-            println(s"Nu är vi i hierarki $h")
-            val f = test(h.operation)
-            f.map(x => x match {
-              case "done" => "done" //return true
-              case "error" => "nope"
-            })
-        }
       }
 
       val sopMap: Map[SOP, List[SOP]] = Map() //parent -> child
@@ -144,39 +115,6 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
         sopMap
       }
 
-      def test(id: ID) = Future("done")
-
-      /*
-      def getOperation (sop: SOP) : List[Operation] = {
-        val opList: List[Operation] = Nil
-        for(o: Operation <- sop){
-        opList :+ o
-        }
-        return opList
-      }*/
-
-      def execute (opList: List[Operation], sopType: String)={
-        sopType match{
-          case "parallel" =>{
-            //execute(opList) - ska köra alla operationer i opList samtidigt
-            //nya execute skickar till operation control
-            //skicka något tillbaka som säger till när den exekverat klart
-          }
-          case "alternative"=>{
-            //skicka på något sätt
-          }
-          case "sequence"=>{
-            //for(o<-opList){execute(o), och skickar med när o är klar så nästa i for-loopen kan köra}
-            //skickar tillbaka när hela opList har körts igenom så att for(s<- sopList ovan vet och kan skicka nästa sop till något annat)
-          }
-          case "hierarchy"=>{
-            //skicka på något sätt
-          }
-          case "noMatch"=>{
-            //skicka felmeddelande?
-          }
-        }
-      }
 
       def getClassOfSop(sop: SOP): String ={
         sop match {
@@ -240,7 +178,6 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
           complSOP -> alreadyDoneSteps
         else if(p.sop.length == alreadyDoneSteps.size)
           stepCompleted(p)
-        // TODO: fixa!
         else {
           println("something went wrong in stepCompleted")
         }
@@ -258,7 +195,6 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
         }
         else {
           stepCompleted(p)
-          // TODO: fixa!
         }
         // plocka nästa ur sekvensen och kör -> execute(nextSOP)
         // uppdatera activeSteps
@@ -271,12 +207,6 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
       }
     }
   }
-
-
-
-
-
-
 }
 
 
