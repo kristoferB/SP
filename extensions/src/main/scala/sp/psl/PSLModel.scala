@@ -30,11 +30,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
-      // test
-     /* val hej = makeOperation(
-        name = "hej"
 
-      )*/
       // Resources
       val r2 = makeResource(
         name = "r2",
@@ -45,12 +41,6 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
           "moveFixtureToBuildingPlace" -> List("mode"),
           "moveTowerToTable" -> List("mode")
         )
-      )
-
-      val hissStation1 = makeResource(
-        name = "hs1",
-        state=List("mode"),
-        abilities = List("ner"->List("mode"))
       )
 
       val r5 = makeResource(
@@ -105,20 +95,18 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
       val h1 = makeResource (
         name = "h1",
-        state = List("up", "down", "mode"),
-        abilities = List("up"->List("mode"))
+        state = List("mode"),
+        abilities = List("up"->List("mode"), "down"->List("mode"))
       )
 
 
-      val items = r2._2 ++ r4._2 ++ r5._2 ++ s1._2 ++ s2._2 ++ s3._2 ++ s4._2 ++ flexLink._2 ++ h1._2 ++ hissStation1._2
+      val items = r2._2 ++ r4._2 ++ r5._2 ++ s1._2 ++ s2._2 ++ s3._2 ++ s4._2 ++ flexLink._2 ++ h1._2
       val itemMap = items.map(x => x.name -> x.id) toMap
       val stateMap = Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")
 
       // This info will later on be filled by a service on the bus
       val connectionList = List(
         //robot r2, siffror ska ändras senare
-        //db(itemMap, "hs1.ner", "bool", 135, 0, 1),
-
         db(itemMap, "r2.movePaletteToStock",      "bool",   135, 0, 1),
         db(itemMap, "r2.movePaletteToStock.mode", "int",    950, 4, 0, stateMap),
         db(itemMap, "r2.movePaletteToFlexlink",   "bool",   950, 0, 1),
@@ -197,7 +185,11 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         //flexlinkbandet, ihopblandat!!
         db(itemMap, "flexlink.run",       "bool", 111, 0, 0),
         db(itemMap, "flexlink.run.mode",  "bool", 111, 0, 1, stateMap),
-        db(itemMap, "flexLink.mode",      "bool", 111, 0, 2)
+        db(itemMap, "flexLink.mode",      "bool", 111, 0, 2),
+
+        db(itemMap, "h1.up", "bool", 135, 0, 0),
+        db(itemMap, "h1.down", "bool", 135, 0, 1),
+        db(itemMap, "h1.mode", "int", 135, 1, 1, stateMap)
 
       ).flatten
 
@@ -205,9 +197,6 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         "connection"->connectionList,
         "specification"-> "PLCConnection"
       ))
-
-      //val soppa = makeAbilitySOP("r2.movePaletteToStock")
-
 
 
       // Here you can make the operations
@@ -223,7 +212,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       //operations exempel
 
 
-      val root = HierarchyRoot("Resources", List(r2._1, r4._1, r5._1, s1._1, s2._1, s3._1, s4._1, flexLink._1, h1._1, hissStation1._1))
+      val root = HierarchyRoot("Resources", List(r2._1, r4._1, r5._1, s1._1, s2._1, s3._1, s4._1, flexLink._1, h1._1))
       //val opRoot = HierarchyRoot("Operations", List())
       replyTo ! Response(items :+ root :+ connection, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
 
