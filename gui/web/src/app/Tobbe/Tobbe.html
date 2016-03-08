@@ -11,15 +11,16 @@
     left: 0px;
 }
 #activeColor {
-    border-radius: 5px;
-    background: {{vm.activeColour}};
-    padding: 20px;
+    border-radius: 20px;
+    background: {{vm.buttonBG}};
+    padding: 10px;
     width: 30px;
     height: 30px;
     position: absolute;
     top: 115px;
     left: 325px;
 }
+
 </style>
     <div class="panel-content">
      <p id="veryNiceBg"></p>
@@ -110,16 +111,16 @@
                 </button>
 
                 <button type="button" class="btn btn-sm btn-primary" style="width:40px;height:40px;background-color:#ffff66;border-radius: 5px; position: absolute; top: 70px; left: 320px"
-                        ng-click="vm.activeColour = 1" id="buttonYellow" value = "buttonYellow";>
+                        ng-click="vm.setActiveColor(1)" id="buttonYellow" value = "buttonYellow";>
                 </button>
                 <button type="button" class="btn btn-sm btn-primary" style="width:40px;height:40px;background-color:#5cd65c;border-radius: 5px; position: absolute; top: 110px; left: 280px"
-                        ng-click="vm.activeColour = 2" id="buttonGreen" value = "buttonGreen";>
+                        ng-click="vm.setActiveColor(2)" id="buttonGreen" value = "buttonGreen";>
                 </button>
                 <button type="button" class="btn btn-sm btn-primary" style="width:40px;height:40px;background-color:#0066ff;border-radius: 5px; position: absolute; top: 110px; left: 360px"
-                        ng-click="vm.activeColour = 4" id="buttonBlue" value = "buttonBlue";>
+                        ng-click="vm.setActiveColor(4)" id="buttonBlue" value = "buttonBlue";>
                 </button>
                 <button type="button" class="btn btn-sm btn-primary" style="width:40px;height:40px;background-color:#ff3333;border-radius: 5px; position: absolute; top: 150px; left: 320px"
-                        ng-click="vm.activeColour = 3" id="buttonRed" value = "buttonRed";>
+                        ng-click="vm.setActiveColor(3)" id="buttonRed" value = "buttonRed";>
                 </button>
             <!--</div>-->
         </div>

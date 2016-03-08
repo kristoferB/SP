@@ -22,10 +22,12 @@
 
         vm.bigR = 255;
         vm.$var = 0;
+        vm.buttonBG = "#ffffff"
         vm.resultColor = '#00FF00';
         vm.activeColour = 0;
 
         //functions
+        vm.setActiveColor = setActiveColor;
         vm.saveNumber = saveNumber;
         vm.reset = reset;
         vm.tryTheTower = tryTheTower;
@@ -54,6 +56,27 @@
         vm.debug2 = 0;
 
         activate();
+
+        function setActiveColor(int) {
+            vm.activeColour = int;
+            switch (vm.activeColour) {
+                case 1://YELLOW = 1
+                    vm.buttonBG = "#ffff66";
+                    break;
+                case 2://GREEN = 2
+                    vm.buttonBG = "#5cd65c";
+                    break;
+                case 3://RED = 3
+                    vm.buttonBG = "#ff3333";
+                    break;
+                case 4://BLUE = 4
+                    vm.buttonBG = "#0066ff";
+                    break;
+                default:
+                    vm.buttonBG= "#FFFFFF";
+            }
+
+        }
 
         function activate() {
             $scope.$on('closeRequest', function () {
