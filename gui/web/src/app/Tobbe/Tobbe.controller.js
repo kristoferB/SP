@@ -23,17 +23,18 @@
         vm.bigR = 255;
         vm.$var = 0;
         vm.resultColor = '#00FF00';
+        vm.activeColour = 0;
 
         //functions
         vm.getProperColor = getProperColor;
         vm.saveNumber = saveNumber;
         vm.reset = reset;
-        vm.build = build;
         vm.tryTheTower = tryTheTower;
         vm.randomTower = randomTower;
         vm.sendOrder = sendOrder;
-
-
+        vm.UpdateCubes = UpdateCubes;
+        vm.preDefined = preDefined;
+        
         //Contains the colours of the cubes
         vm.ButtonColour = {
             kub: [
@@ -70,7 +71,6 @@
                 vm.ButtonColour.kub[2][0],vm.ButtonColour.kub[2][1],vm.ButtonColour.kub[2][2],vm.ButtonColour.kub[2][3],
                 vm.ButtonColour.kub[3][0],vm.ButtonColour.kub[3][1],vm.ButtonColour.kub[3][2],vm.ButtonColour.kub[3][3]
             ];
-
             var mess = {"data": {getNext: getNext, "buildOrder": buildOrder}};
             spServicesService.callService(spServicesService.getService("operatorService"),
                 mess,
@@ -90,28 +90,31 @@
          * @param column
          * @param reset
          */
-        function setColor(btn, row, column, reset) {
+        function setColor(btn, row, column, setOnly, reset) {
             var property = document.getElementById(btn);
-
+            if (!setOnly) {
+                //vm.ButtonColour.kub[row][column] = ++vm.ButtonColour.kub[row][column] % 5;
+                vm.ButtonColour.kub[row][column] = vm.activeColour;
+            }
             switch (vm.ButtonColour.kub[row][column]) {
-                case 0: //YELLOW = 1
-                    property.style.backgroundColor = "#ffff1a";
+                case 0://WHITE = 0
+                    property.style.backgroundColor = "#FFFFFF";
                     break;
-                case 1://GREEN = 2
-                    property.style.backgroundColor = "#00cc00";
+                case 1://YELLOW = 1
+                    property.style.backgroundColor = "#ffff66";
                     break;
-                case 2://RED = 3
-                    property.style.backgroundColor = "#e60000";
+                case 2://GREEN = 2
+                    property.style.backgroundColor = "#5cd65c";
                     break;
-                case 3://BLUE = 4
-                    property.style.backgroundColor = "#0080ff";
+                case 3://RED = 3
+                    property.style.backgroundColor = "#ff3333";
+                    break;
+                case 4://BLUE = 4
+                    property.style.backgroundColor = "#0066ff";
                     break;
                 default:
                     property.style.backgroundColor = "#FFFFFF";
             }
-
-            vm.ButtonColour.kub[row][column] = ++vm.ButtonColour.kub[row][column] % 5;
-
             if (reset) {
                 property.style.backgroundColor = "#FFFFFF"
                 vm.ButtonColour.kub[row][column] = 0;
@@ -126,12 +129,13 @@
          * @param column
          */
         function saveNumber(row, column) {
-            //setColor('button' + number, eval('vm.button' + number), 0);
-            //setColor('button' + number, eval('vm.ButtonColour.kub[' + row + '][' + column + ']'), 0);
-            setColor('button' + eval(row * 10 + column + 11), row, column, 0);
+            setColor('button' + eval(row * 10 + column + 11), row, column, 0, 0);
             tryTheTower(0);
-            vm.debug = row;
-            vm.debug2 = column;
+        }
+
+        function UpdateCubes(row, column) {
+            setColor('button' + eval(row * 10 + column + 11), row, column, 1, 0);
+            tryTheTower(0);
         }
 
         /**
@@ -140,7 +144,7 @@
         function reset() {
             for (var i = 0; i < 4; i++) {
                 for (var j = 0; j < 4; j++) {
-                    setColor('button' + eval(i * 10 + j + 11), i, j, 1);
+                    setColor('button' + eval(i * 10 + j + 11), i, j, 0, 1);
                 }
             }
             var property = document.getElementById('buttonBuild');
@@ -159,11 +163,17 @@
                 vm.resultColor = '#FF0000';
         }
 
-        /**
-         * work in progress
-         */
-        function build() {
-            //alert('hej');
+        function preDefined() {
+            reset();
+            for (var column = 0; column < 4; column++) {
+                for (var row = 2; row > -1; row--) {
+                    if(row == 1 || column == 1){
+                        vm.ButtonColour.kub[row][column] = 1;
+                    }
+                    else vm.ButtonColour.kub[row][column] = 4;
+                    UpdateCubes(row, column);
+                }
+            }
         }
 
         /**
@@ -212,19 +222,28 @@
         function randomTower() {
             for (var column = 0; column < 4; column++) {
                 var stopPlacingCubes = 0;
-                for (var row = 0; row > 3; row--) {
+                for (var row = 0; row < 4; row++) {
                     var tempColour = Math.floor((Math.random() * 5));
+                    /*
+                    if (Math.floor(Math.random() * 2)){
+                        var tempColour = Math.floor((Math.random() * 4) +1);
+                    }
+                    else tempColour = 0;
+                    */
+                    vm.debug = tempColour;
                     if(tempColour && !stopPlacingCubes){
                         vm.ButtonColour.kub[row][column] = tempColour;
-                        saveNumber(row, column);
+                        vm.debug = tempColour;
                     }
                     else{
+                        vm.ButtonColour.kub[row][column] = 0;
                         stopPlacingCubes = 1;
                     }
+                    UpdateCubes(row, column);
+
                 }
             }
         }
-
 
     }
 })();
