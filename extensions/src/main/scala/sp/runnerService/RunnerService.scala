@@ -71,7 +71,7 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
       // Starts the first op
       sop.foreach(executeSOP)
       progress ! SPAttributes("activeOps"->activeSteps)
-
+      startID(ID.newID)
 
     }
     // Vi får states från Operation control
@@ -80,7 +80,13 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
 
       println(s"we got a state change")
 
-      val res = activeSteps.map(stepCompleted)
+
+      // Plocka ut alla färdiga steg här
+      // Skicka varje färdigt til stepCompl
+      val copyAS = activeSteps
+      activeSteps = List()
+      val res = copyAS.map(stepCompleted)
+      startID(ID.newID)
 
       // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
       if (res.foldLeft(false)(_ || _)){
@@ -88,7 +94,7 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
         self ! PoisonPill
       }
 
-      val sopMap: Map[SOP, List[SOP]] = Map() //parent -> child
+      /* val sopMap: Map[SOP, List[SOP]] = Map() //parent -> child
       //Tanken är man skapar en map där föräldrar pekar på  sina barn (key -> value)
       //detta kommer sedan användas när man kör en SOP genom att man börjar med en förälder
       //och kollar vilken typ den har (parallell eller sequence), för att veta hur den ska köra
@@ -114,7 +120,7 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
         }
         sopMap
       }
-
+*/
 
       def getClassOfSop(sop: SOP): String ={
         sop match {
@@ -141,12 +147,12 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
   }
 
   def executeSOP(sop: SOP): Unit = {
-    println(s"executing sop $sop")
+    if (sop.isInstanceOf[Hierarchy]) println(s"executing sop $sop")
     sop match {
       case x: Parallel => x.sop.foreach(executeSOP)
       case x: Sequence if x.sop.nonEmpty => executeSOP(x.sop.head)
       case x: Hierarchy => {
-        startID(x.operation)
+        //startID(x.operation)
         activeSteps = activeSteps :+ x
       }
       case x => println(s"Hmm, vi fick $x i executeSOP")
@@ -157,9 +163,18 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
   import scala.concurrent.duration._
   def startID(id: ID) = {
     // Skickar ett tomt svar efter 2s.
+
+
+
     context.system.scheduler.scheduleOnce(2000 milliseconds, self,
       Response(List(),
-        SPAttributes("state"-> SPAttributes()),
+        SPAttributes("state"-> SPAttributes(
+          "a0f565e2-e44b-4017-a24e-c7d01e970dec"->"completed",
+          "b0f565e2-e44b-4017-a24e-c7d01e970dec"->"completed",
+          "c0f565e2-e44b-4017-a24e-c7d01e970dec"->"ready",
+          "d0f565e2-e44b-4017-a24e-c7d01e970dec"->"completed",
+          "e0f565e2-e44b-4017-a24e-c7d01e970dec"->"completed"
+        )),
         operationController,
         ID.newID
       ))
@@ -168,38 +183,37 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
 
   // Anropas när ett steg blir klart
   def stepCompleted(complSOP: SOP): Boolean = {
-    println(s"step $complSOP is completed. Parent is ${parents.get(complSOP)}")
+    //println(s"step $complSOP is completed. Parent is ${parents.get(complSOP)}")
     parents.get(complSOP) match {
       case Some(p: Parallel) => {
-        val alreadyDoneSteps = parallelRuns.get(p)
-        if (alreadyDoneSteps.isEmpty)
-          parallelRuns = parallelRuns + (p->List(complSOP))
-        else if(p.sop.length > alreadyDoneSteps.size)
-          complSOP -> alreadyDoneSteps
-        else if(p.sop.length == alreadyDoneSteps.size)
-          stepCompleted(p)
-        else {
-          println("something went wrong in stepCompleted")
+        if (parallelRuns.get(p).isEmpty)
+          parallelRuns = parallelRuns + (p->List()) // lägger till nuvarande sop i en lista med p som key
+
+        parallelRuns = parallelRuns + (p->(parallelRuns(p) :+ complSOP))
+
+        if(p.sop.length > parallelRuns(p).size) {
+          false
         }
+        else       // om alla i parallellen är klara anropas stepComp igen med p
+          stepCompleted(p)
+
         // Om alla är färdiga -> stepCompleted(p)
         // annars vänta
-        false
+
       }
       case Some(p: Sequence) => {
-        val parentSeq = p.sop
+        val parentSeq = p.sop                   // ger hela föräldern i en seq
         val nbrOfChildren = parentSeq.length
         val current = parentSeq.indexOf(complSOP)
-        if (current < nbrOfChildren) {
-          activeSteps.filterNot(element => element == complSOP)
-          executeSOP(parentSeq(current + 1))
-        }
-        else {
+
+        if (current >= nbrOfChildren-1) {     // om det är sista steget i sekvensen -> stepCompleted(p)
           stepCompleted(p)
         }
-        // plocka nästa ur sekvensen och kör -> execute(nextSOP)
-        // uppdatera activeSteps
-        // om det var sista steget -> stepCompleted(p)
-        false
+        else {     // om nuvarande index är mindre än antalet barn tas nuvarande bort ur lista
+          // över aktiva och nästkommande steg i seq startar
+          executeSOP(parentSeq(current + 1))
+          false
+        }
       }
       case None => {
         // nu är vi färdiga

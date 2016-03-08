@@ -35,11 +35,11 @@ class RunnerServiceTest(_system: ActorSystem) extends TestKit(_system) with Impl
 
   "The Service Example" must {
     "filter the items" in {
-      val o1 = Operation("o1")
-      val o2 = Operation("o1")
-      val o3 = Operation("o1")
-      val o4 = Operation("o1")
-      val o5 = Operation("o1")
+      val o1 = Operation("o1", List(), SPAttributes(), ID.makeID("a0f565e2-e44b-4017-a24e-c7d01e970dec").get)
+      val o2 = Operation("o2",List(), SPAttributes(), ID.makeID("b0f565e2-e44b-4017-a24e-c7d01e970dec").get)
+      val o3 = Operation("o3",List(), SPAttributes(), ID.makeID("c0f565e2-e44b-4017-a24e-c7d01e970dec").get)
+      val o4 = Operation("o4",List(), SPAttributes(), ID.makeID("d0f565e2-e44b-4017-a24e-c7d01e970dec").get)
+      val o5 = Operation("o5",List(), SPAttributes(), ID.makeID("e0f565e2-e44b-4017-a24e-c7d01e970dec").get)
       val sop = Parallel(Sequence(o1, Parallel(Sequence(o2, o3), o4), o5))
 
       val sopSpec =  SOPSpec("theSOPSpec", List(sop), SPAttributes())
