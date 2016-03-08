@@ -210,7 +210,14 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
       //import sp.domain.logic.PropositionParser._
       //operations exempel
-
+      val o1 = Operation("o1")
+      val o2 = Operation("o2")
+      val o3 = Operation("o3")
+      val o4 = Operation("o4")
+      val o5 = Operation("o5")
+      val sop = Parallel(Sequence(o1, Parallel(Sequence(o2, o3), o4), o5))
+      val sopSpec =  SOPSpec("theSOPSpec", List(sop), SPAttributes())
+      addSopSpecID(sopSpec, sopSpec.name)
 
       val root = HierarchyRoot("Resources", List(r2._1, r4._1, r5._1, s1._1, s2._1, s3._1, s4._1, flexLink._1, h1._1))
       //val opRoot = HierarchyRoot("Operations", List())
@@ -243,6 +250,13 @@ trait ModelMaking {
 
     (hier, temp)
   }
+
+  //behöver denna under tiden vi hårkodar och testar en SOP, kommer inte behövas senare
+  var sopID: Map[String, ID] = Map()
+  def addSopSpecID(sopSpec: SOPSpec, sopName: String) ={
+    sopID = sopID + (sopName -> sopSpec.id)
+  }
+
 /*
   def makeOperation(opName: String, itemMap: Map[String, ID], madeOfAbilities: List[String])={
     val name = Operation(opName)

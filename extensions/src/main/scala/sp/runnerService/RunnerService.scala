@@ -93,48 +93,6 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
         reply.foreach(rnr => rnr.reply ! Response(List(), SPAttributes("status"->"done"), rnr.req.service, rnr.req.reqID))
         self ! PoisonPill
       }
-
-      /* val sopMap: Map[SOP, List[SOP]] = Map() //parent -> child
-      //Tanken är man skapar en map där föräldrar pekar på  sina barn (key -> value)
-      //detta kommer sedan användas när man kör en SOP genom att man börjar med en förälder
-      //och kollar vilken typ den har (parallell eller sequence), för att veta hur den ska köra
-      //sina barn. När ett barn har kört klart kommer den då säga till sin förälder att den är klar
-      //och när alla barn till en förälder körts klart går man vidare i kedjan till nästa förälder
-      // TODO: kanske borde använda en treemap? måste nämligen vara noga med att börja med rätt parent
-      def createASopMap(sop: SOP): Map[SOP, List[SOP]] ={
-        val sopSeq = sop.sop
-        val nmbrOfChildren = sopSeq.length-1
-        if (sop.sop.isEmpty) {
-          sopMap
-        }else if (nmbrOfChildren == 0) {
-          sopMap + (sop -> List())
-        } else if (nmbrOfChildren > 0){
-          val sopList = List()
-          for(child <- sopSeq){
-            child -> sopList
-            createASopMap(child)
-          }
-          sopMap + (sop -> sopList)
-        } else {
-          println("something went wrong")
-        }
-        sopMap
-      }
-*/
-
-      def getClassOfSop(sop: SOP): String ={
-        sop match {
-          case s: Parallel => "parallel"
-          //case s: Alternative => "alternative"
-          //case s: Arbitrary => "arbitrary"
-          case s: Sequence => "sequence"
-          //case s: SometimeSequence => "sometimeSequence"
-          //case s: Other => "other"
-          //case s: Hierarchy => "hierarchy"
-          case _ => "noMatch"
-        }
-      }
-
     }
   }
 

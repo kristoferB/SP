@@ -122,7 +122,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
     }
     case mess @ AMQMessage(body, prop, headers) => {
       val resp = SPAttributes.fromJson(body.toString)
-      println(s"we got: $resp")
+      println(s"we got a resp from PLC")
       for {
         m <- resp
         list <- m.getAs[List[SPAttributes]]("dbs")
