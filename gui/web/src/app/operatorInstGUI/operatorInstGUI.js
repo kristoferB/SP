@@ -23,7 +23,7 @@
         vm.imDone = imDone;
         vm.done = false
         activate();
-        vm.palett = ["#fff","#fff","#fff","#fff","#fff","#fff","#fff","#fff"];
+        vm.palett = ["#fff","#fff","#fff","#fff","#fff","#fff","#fff","#fff","tom"];
 
 
         function activate() {
@@ -31,10 +31,7 @@
                 dashboardService.closeWidget(vm.widget.id);
             });
             //Some problem with the listner here
-            eventService.addListener('Response',dummyFunction())
-            function dummyFunction(data){
-                console.log("Listener ")
-            }
+            eventService.addListener('Response',vm.listen)
         }
         function imDone(done){
             var dummyArray = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
@@ -44,8 +41,9 @@
                 spServicesService.getService("operatorService"),mess,
                 function(resp) {
                     if(_.has(resp, "attributes.result")){
-                        vm.result = resp.attributes.result;
-                        console.log("Hej" + vm.result[8]);
+                        vm.palett = resp.attributes.result;
+                        console.log("Hej operator" + resp.attributes.result);
+                        //Need to implement some logic about when to listen and when not
                         /*
                         Check if response is completly blank, if blank set variable true and update palett
                         Otherwise just update palett
@@ -60,6 +58,10 @@
         function listen(event){
             vm.eventLog.unshift(event);
             vm.scope.$apply();
+            if (event.service == "operatorService"){
+                if((event.attributes.result[8] == "TillTobbe") && vm.palett[8] == "tom")
+                vm.palett = event.attributes.result
+            }
         }
 
         function clearEventLog(){

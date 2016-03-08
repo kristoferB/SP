@@ -32,7 +32,6 @@
         vm.tryTheTower = tryTheTower;
 
         vm.sendOrder = sendOrder;
-        vm.calc = calc;
 
 
         //Contains the colours of the cubes
