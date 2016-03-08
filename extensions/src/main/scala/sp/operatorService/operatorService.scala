@@ -5,11 +5,51 @@ import sp.domain.Logic._
 import sp.domain._
 import sp.system._
 import sp.system.messages._
-import scala.collection.mutable.Queue
+import scala.collection.mutable.MutableList
+
 object operatorService extends SPService {
-  //var q = new Queue[List[String]]
-  val empty = "#ffffff"
-  var q = List(empty, empty, empty, empty, empty, empty, empty, empty, "Hejhej")
+
+  var q = MutableList[List[String]]();
+  //var k = ;
+
+  def enqueue(ls: List[String]): Unit = {
+    q += ls
+  }
+  def dequeue() = {
+    if(!q.isEmpty){
+      val temp = q.head
+      q = q.tail
+      temp
+    } else {
+     throw new NoSuchElementException
+    }
+  }
+
+  def dummyQueueFunction(ls : List[String]): Unit = {
+    val temp = ls.splitAt(8)
+    enqueue(temp._1)
+    enqueue(temp._2)
+  }
+  val yellow = "#ffff66"; val red = "#ff3333"; val green = "#5cd65c"
+  val blue = "#0066ff"; val empty = "#ffffff"
+
+  def parseColour(ls: List[String]): List[String] = {
+    ls.map(x => x match {
+      case "yellow" => yellow
+      case "red"    => red
+      case "green"  => green
+      case "blue"   => blue
+      case "empty"  => empty
+      case "0"      => empty
+      case "1"      => yellow
+      case "2"      => green
+      case "3"      => red
+      case "4"      => blue
+      case _        => x
+
+    }
+    )
+  }
 
   val specification = SPAttributes(
     "service" -> SPAttributes(
@@ -18,14 +58,11 @@ object operatorService extends SPService {
     "getNext" -> KeyDefinition("Boolean", List(), None),
     "buildOrder" -> KeyDefinition("List[String]", List(), None)
   )
-
   val transformTuple =(
     TransformValue("getNext", _.getAs[Boolean]("getNext")),
     TransformValue("buildOrder", _.getAs[List[String]]("buildOrder"))
     )
-
   val transformation = transformToList(transformTuple.productIterator.toList)
-
   def props = ServiceLauncher.props(Props(classOf[operatorService]))
 
 }
@@ -34,23 +71,47 @@ object operatorService extends SPService {
     def receive = {
       case r@Request(service, attr, ids, reqID) => {
         val replyTo = sender()
+
         implicit val rnr = RequestNReply(r, replyTo)
         val getNext: Boolean = transform(operatorService.transformTuple._1)
-        val buildOrder: List[String] = transform(operatorService.transformTuple._2)
-
-        //var res = List("green","green","green","green","green","green","green","green")
-        //var hejsan = operatorService.parseColour(res)
-
         /*
-        Här saknas anrop till en funktion som tar in getNext och buildOrder,
-        Funktion skall anropa schemaläggaren och lägga till listorna i någonslags kö.
-        Funktion skall retunera en lista av 8 färger i hexkod, och felmeddelande i slutet.
-        Problem:
-        Scala verkar inte gilla att ta in listor i en kö, ev lösning: skicka in object som innehåller listor
-        Lägga på meddelandet i slutet av listan.
-         */
+        Funkar inte riktigt än behöver logiken vart meddelandet kommer ifrån
+        Och då agera på rätt sätt och skicka svars meddelande.
+        Kommer meddelandet ifrån operatorInstGUI  -> Skicka tillbaka head på kön och ejtom
+                                                  -> Om kön är tom skicka tillbaka lista med empty och tom
+        Kommer meddelandet ifrån Tobbe  -> Om q.isEmpty == true, lägg in i kön och skicka tillbaka head.
+                                        -> Annars lägg in i kön och skicka tillbaka tomt
 
-        var res = operatorService.q
+         */
+        var message = List[String]()
+        // En ide här är att skriva om allt som en matcher då de funakr dåligt att skriva över variabler.
+        if(getNext){
+          if(operatorService.q.nonEmpty) {
+            System.out.println("Hej1")
+            message = (operatorService.dequeue() ::: List("ejtom"))
+
+          } else {
+            System.out.println("Hej2")
+            message = List("empty","empty","empty","empty","empty","empty","empty","empty","tom")
+          }
+        } else {
+          if(operatorService.q.isEmpty){
+            System.out.println("Hej3")
+            operatorService.dummyQueueFunction(transform(operatorService.transformTuple._2))
+            //Lägger in i kön, funkar även att köa elementet har 8 i längd
+            message = (operatorService.dequeue() ::: (List("TillTobbe")))
+
+          } else {
+            System.out.println("Hej4")
+            operatorService.dummyQueueFunction(transform(operatorService.transformTuple._2))
+            //k = [["Hej"],["Hej2"], ["Hej3"]];
+            //System.out.println(k)
+            message = List("empty","empty","empty","empty","empty","empty","empty","empty","TillTobbe")
+          }
+        }
+        System.out.println("ElementsInQueue " + operatorService.q.length )
+        val res= operatorService.parseColour(message)
+        System.out.println(res(2))
         replyTo ! Response(List(), SPAttributes("result" -> res), rnr.req.service, rnr.req.reqID)
         self ! PoisonPill
       }
@@ -84,25 +145,6 @@ object operatorService extends SPService {
   * Takes what the human name for a colour is and returns the hexcode
   *
   */
-  val yellow = "#ffff66"; val red = "#ff3333"; val green = "#5cd65c"
-  val blue = "#0066ff"; val empty = "#ffffff"
 
-  def parseColour(ls: List[String]): List[String] = {
-    ls.map(x => x match {
-      case "yellow" => yellow
-      case "red"    => red
-      case "green"  => green
-      case "blue"   => blue
-      case "empty"  => empty
-      case "0"      => empty
-      case "1"      => blue
-      case "2"      => green
-      case "3"      => red
-      case "4"      => yellow
-      case _        => operMessage(x)
-
-      }
-    )
-  }
 }
  */

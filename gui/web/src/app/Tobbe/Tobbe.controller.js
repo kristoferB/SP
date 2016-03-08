@@ -34,9 +34,7 @@
         vm.sendOrder = sendOrder;
         vm.UpdateCubes = UpdateCubes;
         vm.preDefined = preDefined;
-       // vm.calc = calc;
-
-
+        
         //Contains the colours of the cubes
         vm.ButtonColour = {
             kub: [
