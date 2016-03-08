@@ -184,19 +184,17 @@
          */
         function preDefined(number) {
             switch(number) {
-                case 1:
+                case 1://The Swedish flag.
                     reset();
                     for (var column = 0; column < 4; column++) {
                         for (var row = 2; row > -1; row--) {
-                            if(row == 1 || column == 1){
-                                vm.ButtonColour.kub[row][column] = 1;
-                            }
+                            if(row == 1 || column == 1) vm.ButtonColour.kub[row][column] = 1;
                             else vm.ButtonColour.kub[row][column] = 4;
                             UpdateCubes(row, column);
                         }
                     }
                     break;
-                case 2://
+                case 2://Plains, sky and sun.
                     reset();
                     for (var column = 0; column < 4; column++) {
                         for (var row = 3; row > -1; row--) {
