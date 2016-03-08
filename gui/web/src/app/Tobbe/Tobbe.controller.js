@@ -162,17 +162,33 @@
         /**
          * Creates a predefined tower.
          */
-        function preDefined() {
-            reset();
-            for (var column = 0; column < 4; column++) {
-                for (var row = 2; row > -1; row--) {
-                    if(row == 1 || column == 1){
-                        vm.ButtonColour.kub[row][column] = 1;
+        function preDefined(number) {
+            switch(number) {
+                case 1:
+                    reset();
+                    for (var column = 0; column < 4; column++) {
+                        for (var row = 2; row > -1; row--) {
+                            if(row == 1 || column == 1){
+                                vm.ButtonColour.kub[row][column] = 1;
+                            }
+                            else vm.ButtonColour.kub[row][column] = 4;
+                            UpdateCubes(row, column);
+                        }
                     }
-                    else vm.ButtonColour.kub[row][column] = 4;
-                    UpdateCubes(row, column);
-                }
+                    break;
+                case 2://
+                    reset();
+                    for (var column = 0; column < 4; column++) {
+                        for (var row = 3; row > -1; row--) {
+                            if(row == 0) vm.ButtonColour.kub[row][column] = 2;
+                            else if(row > 1 && column > 1)vm.ButtonColour.kub[row][column] = 1;
+                            else vm.ButtonColour.kub[row][column] = 4;
+                            UpdateCubes(row, column);
+                        }
+                    }
+                    break;
             }
+
         }
 
         /**
