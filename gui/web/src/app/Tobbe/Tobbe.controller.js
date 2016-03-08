@@ -26,7 +26,6 @@
         vm.activeColour = 0;
 
         //functions
-        vm.getProperColor = getProperColor;
         vm.saveNumber = saveNumber;
         vm.reset = reset;
         vm.tryTheTower = tryTheTower;
@@ -34,7 +33,7 @@
         vm.sendOrder = sendOrder;
         vm.UpdateCubes = UpdateCubes;
         vm.preDefined = preDefined;
-        
+
         //Contains the colours of the cubes
         vm.ButtonColour = {
             kub: [
@@ -94,6 +93,9 @@
             var property = document.getElementById(btn);
             if (!setOnly) {
                 //vm.ButtonColour.kub[row][column] = ++vm.ButtonColour.kub[row][column] % 5;
+                if(vm.ButtonColour.kub[row][column] == vm.activeColour)
+                    vm.ButtonColour.kub[row][column] = 0;
+                else
                 vm.ButtonColour.kub[row][column] = vm.activeColour;
             }
             switch (vm.ButtonColour.kub[row][column]) {
@@ -122,9 +124,8 @@
         }
 
         /**
-         * Denna funktionen kör setColor functionen.
-         * Om det inte behövs köras något mer kan den
-         * tas bort och spridas ut bland knapparna.
+         * Updates the colour of the button,
+         * It will change the colour!
          * @param row
          * @param column
          */
@@ -133,6 +134,13 @@
             tryTheTower(0);
         }
 
+        /**
+         * Updates the colour of the button,
+         * without changing it!
+         * @param row
+         * @param column
+         * @constructor
+         */
         function UpdateCubes(row, column) {
             setColor('button' + eval(row * 10 + column + 11), row, column, 1, 0);
             tryTheTower(0);
@@ -152,17 +160,8 @@
         }
 
         /**
-         * Does not work!
+         * Creates a predefined tower.
          */
-        function getProperColor() {
-            if ($var > 0 && $var <= 5)
-                vm.resultColor = '#00FF00';
-            else if ($var >= 6 && $var <= 10)
-                vm.resultColor = '#FF8000';
-            else if ($var >= 11)
-                vm.resultColor = '#FF0000';
-        }
-
         function preDefined() {
             reset();
             for (var column = 0; column < 4; column++) {
@@ -186,7 +185,6 @@
             var property = document.getElementById('buttonBuild');
             var shallNotPass = 0;
             var anyCubesAtAll = 0;
-
             for (var column = 0; column < 4; column++) {
                 var temp = 0;
                 for (var row = 3; row > -1; row--) {
@@ -205,7 +203,6 @@
                 property.style.backgroundColor = "#66ff66";
             else
                 property.style.backgroundColor = "#ffffff";
-
             if(display) {
                 if (shallNotPass)
                     alert('Your Tower Shall Not Pass!');
@@ -219,17 +216,14 @@
             }
         }
 
+        /**
+         * Creates a random coloured tower.
+         */
         function randomTower() {
             for (var column = 0; column < 4; column++) {
                 var stopPlacingCubes = 0;
                 for (var row = 0; row < 4; row++) {
                     var tempColour = Math.floor((Math.random() * 5));
-                    /*
-                    if (Math.floor(Math.random() * 2)){
-                        var tempColour = Math.floor((Math.random() * 4) +1);
-                    }
-                    else tempColour = 0;
-                    */
                     vm.debug = tempColour;
                     if(tempColour && !stopPlacingCubes){
                         vm.ButtonColour.kub[row][column] = tempColour;
@@ -240,7 +234,6 @@
                         stopPlacingCubes = 1;
                     }
                     UpdateCubes(row, column);
-
                 }
             }
         }
