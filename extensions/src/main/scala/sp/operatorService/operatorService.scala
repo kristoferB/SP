@@ -10,6 +10,7 @@ import scala.collection.mutable.MutableList
 object operatorService extends SPService {
 
   var q = MutableList[List[String]]();
+  //var k = ;
 
   def enqueue(ls: List[String]): Unit = {
     q += ls
@@ -103,6 +104,8 @@ object operatorService extends SPService {
           } else {
             System.out.println("Hej4")
             operatorService.dummyQueueFunction(transform(operatorService.transformTuple._2))
+            //k = [["Hej"],["Hej2"], ["Hej3"]];
+            //System.out.println(k)
             message = List("empty","empty","empty","empty","empty","empty","empty","empty","TillTobbe")
           }
         }

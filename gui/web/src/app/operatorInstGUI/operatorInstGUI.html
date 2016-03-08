@@ -12,63 +12,63 @@
 }
 #palettep2 {
     border-radius: 5px;
-    background: {{vm.palett[4]}};
-    padding: 20px;
-    width: 65px;
-    height: 65px;
-    position: absolute;
-    top: 20px;
-    left: 120px;
-}
-#palettep3 {
-    border-radius: 5px;
     background: {{vm.palett[1]}};
     padding: 20px;
     width: 65px;
     height: 65px;
     position: absolute;
-    top: 105px;
-    left: 20px;
+    top: 20px;
+    left: 105px;
 }
-#palettep4 {
-    border-radius: 5px;
-    background: {{vm.palett[5]}};
-    padding: 20px;
-    width: 65px;
-    height: 65px;
-    position: absolute;
-    top: 105px;
-    left: 120px;
-}
-#palettep5 {
+#palettep3 {
     border-radius: 5px;
     background: {{vm.palett[2]}};
     padding: 20px;
     width: 65px;
     height: 65px;
     position: absolute;
-    top: 190px;
-    left: 20px;
+    top: 20px;
+    left: 190px;
 }
-#palettep6 {
-    border-radius: 5px;
-    background: {{vm.palett[6]}};
-    padding: 20px;
-    width: 65px;
-    height: 65px;
-    position: absolute;
-    top: 190px;
-    left: 120px;
-}
-#palettep7 {
+#palettep4 {
     border-radius: 5px;
     background: {{vm.palett[3]}};
     padding: 20px;
     width: 65px;
     height: 65px;
     position: absolute;
-    top: 275px;
+    top: 20px;
+    left: 275px;
+}
+#palettep5 {
+    border-radius: 5px;
+    background: {{vm.palett[4]}};
+    padding: 20px;
+    width: 65px;
+    height: 65px;
+    position: absolute;
+    top: 115px;
     left: 20px;
+}
+#palettep6 {
+    border-radius: 5px;
+    background: {{vm.palett[5]}};
+    padding: 20px;
+    width: 65px;
+    height: 65px;
+    position: absolute;
+    top: 115px;
+    left: 105px;
+}
+#palettep7 {
+    border-radius: 5px;
+    background: {{vm.palett[6]}};
+    padding: 20px;
+    width: 65px;
+    height: 65px;
+    position: absolute;
+    top: 115px;
+    left: 190px;
 }
 #palettep8 {
     border-radius: 5px;
@@ -77,15 +77,15 @@
     width: 65px;
     height: 65px;
     position: absolute;
-    top: 275px;
-    left: 120px;
+    top: 115px;
+    left: 275px;
 }
 #palette {
     border-radius: 5px;
     background: {{"#C0C0C0"}};
     padding: 20px;
-    width: 205px;
-    height: 360px;
+    width: 360px;
+    height: 200px;
     position: absolute;
     top: 0px;
     left: 0px;
@@ -102,9 +102,12 @@
         <p id="palettep7"></p>
         <p id="palettep8"></p>
 
-        <button type="button" style="top: 310px; left:280px;width:150px;height:50px; position:absolute" class="btn btn.sm btn-primary" ng-click="vm.imDone(true)">
+        <button type="button" style="top: 325px; left:110px;width:150px;height:50px; position:absolute" class="btn btn.sm btn-primary" ng-click="vm.imDone(true)">
             <i class="fa fa-thumbs-up"></i>
         </button>
-        <h1 style="position:absolute; left:350px;top: 150px;">{{vm.palett}}</h1>
+        <h1 style="top: 190px; left:0px; position:absolute"><b><font size="2"; color="black">Message: </font></b></h1>
+        <textarea rows="5" cols="50" style="position: absolute; left: 0px; top: 215px; width: 360px">
+                {{vm.palett}}
+        </textarea>
     </div>
 </div>
