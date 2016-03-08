@@ -122,9 +122,6 @@
                 vm.ButtonColour.kub[row][column] = vm.activeColour;
             }
             switch (vm.ButtonColour.kub[row][column]) {
-                case 0://WHITE = 0
-                    property.style.backgroundColor = "#FFFFFF";
-                    break;
                 case 1://YELLOW = 1
                     property.style.backgroundColor = "#ffff66";
                     break;
@@ -137,7 +134,7 @@
                 case 4://BLUE = 4
                     property.style.backgroundColor = "#0066ff";
                     break;
-                default:
+                default: //white by default
                     property.style.backgroundColor = "#FFFFFF";
             }
             if (reset) {
