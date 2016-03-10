@@ -12,8 +12,6 @@
     /* @ngInject */
     function operatorInstGUIController($scope, dashboardService, eventService, spServicesService) {
         var vm = this;
-        //vm.picture[0] = "/images/blueBlock.png"
-        //vm.picture[1] = "/images/greenBlock.png"
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
         vm.eventLog = [];
         vm.clearEventLog = clearEventLog;
@@ -22,35 +20,37 @@
         vm.result = vm.position
         vm.imDone = imDone;
         vm.done = false
+
+
+        vm.Palett = {
+            pal: [
+                    ["#fff","#fff","#fff","#fff"],
+                    ["#fff","#fff","#fff","#fff"]
+                 ],
+
+            sendEmpty: [
+                    ["empty","empty","empty","empty"],
+                    ["empty","empty","empty","empty"]
+                 ]                    
+        };
         activate();
-        vm.palett = ["#fff","#fff","#fff","#fff","#fff","#fff","#fff","#fff","tom"];
-
-
+        
         function activate() {
             $scope.$on('closeRequest', function() {
                 dashboardService.closeWidget(vm.widget.id);
             });
             //Some problem with the listner here
-            eventService.addListener('Response',vm.listen)
+            eventService.addListener('Response',vm.listen);
         }
         function imDone(done){
-            var dummyArray = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-            var mess = {"data": {"getNext": done,"buildOrder": dummyArray}};
+            
+            var mess = {"data": {"getNext": done,"buildOrder": vm.Palett.sendEmpty}};
 
             spServicesService.callService(
                 spServicesService.getService("operatorService"),mess,
                 function(resp) {
                     if(_.has(resp, "attributes.result")){
-                        vm.palett = resp.attributes.result;
-                        console.log("Hej operator" + resp.attributes.result);
-                        //Need to implement some logic about when to listen and when not
-                        /*
-                        Check if response is completly blank, if blank set variable true and update palett
-                        Otherwise just update palett
-                        Create a listener and a function that when the variable is true and an event happens,
-                        set variable to false and update palett.
-                        Variable Should be init to true
-                        */
+                        vm.Palett.pal = resp.attributes.result;                    
                     }
                 })
 
@@ -59,8 +59,7 @@
             vm.eventLog.unshift(event);
             vm.scope.$apply();
             if (event.service == "operatorService"){
-                if((event.attributes.result[8] == "TillTobbe") && vm.palett[8] == "tom")
-                vm.palett = event.attributes.result
+                vm.Palett.pal = event.attributes.result
             }
         }
 

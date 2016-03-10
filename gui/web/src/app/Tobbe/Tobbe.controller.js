@@ -86,20 +86,13 @@
         }
 
         function sendOrder() {
-            var getNext = false;
-            var buildOrder = [
-                vm.ButtonColour.kub[0][0],vm.ButtonColour.kub[0][1],vm.ButtonColour.kub[0][2],vm.ButtonColour.kub[0][3],
-                vm.ButtonColour.kub[1][0],vm.ButtonColour.kub[1][1],vm.ButtonColour.kub[1][2],vm.ButtonColour.kub[1][3],
-                vm.ButtonColour.kub[2][0],vm.ButtonColour.kub[2][1],vm.ButtonColour.kub[2][2],vm.ButtonColour.kub[2][3],
-                vm.ButtonColour.kub[3][0],vm.ButtonColour.kub[3][1],vm.ButtonColour.kub[3][2],vm.ButtonColour.kub[3][3]
-            ];
-            var mess = {"data": {getNext: getNext, "buildOrder": buildOrder}};
+
+            var mess = {"data": {getNext: false, "buildOrder": vm.ButtonColour.kub}};
             spServicesService.callService(spServicesService.getService("operatorService"),
                 mess,
                 function (resp) {
                     if (_.has(resp, 'attributes.result')) {
-                        vm.result = resp.attributes.result;
-                        console.log("Hej" + vm.result[8]);
+                        console.log("Hej" + vm.result);
                     }
                 }
             )
