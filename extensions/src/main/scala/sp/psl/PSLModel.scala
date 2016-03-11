@@ -3,12 +3,15 @@ package sp.psl
 import akka.actor._
 import sp.control.AddressValues
 import sp.domain.logic.{PropositionParser, ActionParser, IDAbleLogic}
+import sp.runnerService.RunnerService
 import scala.concurrent._
 import sp.system.messages._
 import sp.system._
 import sp.domain._
 import sp.domain.Logic._
 import sp.domain.Operation
+import com.typesafe.config._
+
 
 
 object PSLModel extends SPService {
@@ -24,12 +27,34 @@ object PSLModel extends SPService {
 
 class PSLModel extends Actor with ServiceSupport with ModelMaking {
   import context.dispatcher
+  //val other = context.actorOf(Props[RunnerService], "OperationControl")
 
   def receive = {
     case r @ Request(service, attr, ids, reqID) => {
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
+
+      val o1 = Operation("o1", List(), SPAttributes(), ID.makeID("a0f565e2-e44b-4017-a24e-c7d01e970dec").get)
+      val o2 = Operation("o2",List(), SPAttributes(), ID.makeID("b0f565e2-e44b-4017-a24e-c7d01e970dec").get)
+      val o3 = Operation("o3",List(), SPAttributes(), ID.makeID("c0f565e2-e44b-4017-a24e-c7d01e970dec").get)
+      val o4 = Operation("o4",List(), SPAttributes(), ID.makeID("d0f565e2-e44b-4017-a24e-c7d01e970dec").get)
+      val o5 = Operation("o5",List(), SPAttributes(), ID.makeID("e0f565e2-e44b-4017-a24e-c7d01e970dec").get)
+      val sop = Parallel(Sequence(o1, Parallel(Sequence(o2, o3), o4), o5))
+
+      val sopSpec =  SOPSpec("theSOPSpec", List(sop), SPAttributes())
+
+      val longList: List[IDAble] = List(o1, o2, o3, o4, o5, sopSpec)
+/*
+      val x = Request("RunnerService",
+        SPAttributes(
+          "SOP" -> sopSpec.id
+        ),
+        longList
+      )
+
+      other ! x
+*/
 
       // Resources
       val r2 = makeResource(
@@ -100,14 +125,14 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       )
 
 
-      val items = r2._2 ++ r4._2 ++ r5._2 ++ s1._2 ++ s2._2 ++ s3._2 ++ s4._2 ++ flexLink._2 ++ h1._2
+      val items = r2._2 ++ r4._2 ++ r5._2 ++ s1._2 ++ s2._2 ++ s3._2 ++ s4._2 ++ flexLink._2 ++ h1._2 ++ longList
       val itemMap = items.map(x => x.name -> x.id) toMap
       val stateMap = Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")
 
       // This info will later on be filled by a service on the bus
       val connectionList = List(
         //robot r2, siffror ska ändras senare
-        db(itemMap, "r2.movePaletteToStock",      "bool",   135, 0, 1),
+        db(itemMap, "r2.movePaletteToStock",      "bool",   950, 4, 1),
         db(itemMap, "r2.movePaletteToStock.mode", "int",    950, 4, 0, stateMap),
         db(itemMap, "r2.movePaletteToFlexlink",   "bool",   950, 0, 1),
         db(itemMap, "r2.movePaletteToFlexlink.mode", "int", 950, 0, 13, stateMap),
@@ -189,7 +214,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
         db(itemMap, "h1.up", "bool", 135, 0, 0),
         db(itemMap, "h1.down", "bool", 135, 0, 1),
-        db(itemMap, "h1.mode", "int", 135, 1, 1, stateMap)
+        db(itemMap, "h1.mode", "int", 135, 2, 0, stateMap)
 
       ).flatten
 
@@ -210,16 +235,8 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
       //import sp.domain.logic.PropositionParser._
       //operations exempel
-      val o1 = Operation("o1")
-      val o2 = Operation("o2")
-      val o3 = Operation("o3")
-      val o4 = Operation("o4")
-      val o5 = Operation("o5")
-      val sop = Parallel(Sequence(o1, Parallel(Sequence(o2, o3), o4), o5))
-      val sopSpec =  SOPSpec("theSOPSpec", List(sop), SPAttributes())
-      addSopSpecID(sopSpec, sopSpec.name)
 
-      val root = HierarchyRoot("Resources", List(r2._1, r4._1, r5._1, s1._1, s2._1, s3._1, s4._1, flexLink._1, h1._1))
+      val root = HierarchyRoot("Resources", List(r2._1, r4._1, r5._1, s1._1, s2._1, s3._1, s4._1, flexLink._1, h1._1, HierarchyNode(sopSpec.id)))
       //val opRoot = HierarchyRoot("Operations", List())
       replyTo ! Response(items :+ root :+ connection, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
 
@@ -252,10 +269,10 @@ trait ModelMaking {
   }
 
   //behöver denna under tiden vi hårkodar och testar en SOP, kommer inte behövas senare
-  var sopID: Map[String, ID] = Map()
+  /*var sopID: Map[String, ID] = Map()
   def addSopSpecID(sopSpec: SOPSpec, sopName: String) ={
     sopID = sopID + (sopName -> sopSpec.id)
-  }
+  }*/
 
 /*
   def makeOperation(opName: String, itemMap: Map[String, ID], madeOfAbilities: List[String])={

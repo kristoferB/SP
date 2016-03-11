@@ -121,9 +121,6 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
   import scala.concurrent.duration._
   def startID(id: ID) = {
     // Skickar ett tomt svar efter 2s.
-
-
-
     context.system.scheduler.scheduleOnce(2000 milliseconds, self,
       Response(List(),
         SPAttributes("state"-> SPAttributes(

@@ -194,11 +194,19 @@ object SP extends App {
   )
 
   import sp.runnerService._
+  val rs = system.actorOf(RunnerService.props(eventHandler, "OperationControl"), "RunnerService")
   serviceHandler ! RegisterService(
     "RunnerService",
-    system.actorOf(RunnerService.props(eventHandler, "OperationControl"), "RunnerService"),
+    rs,
     RunnerService.specification,
     RunnerService.transformation
+  )
+
+  serviceHandler ! RegisterService(
+    "AutoTest",
+    system.actorOf(AutoTest.props(eventHandler,rs), "AutoTest"),
+    AutoTest.specification,
+    AutoTest.transformation
   )
 
 
