@@ -9,7 +9,7 @@ import sp.domain.logic.IDAbleLogic
 import scala.concurrent._
 import sp.system.messages._
 import sp.system._
-import sp.domain._
+import sp.domain.
 import sp.domain.Logic._
 
 import scala.util.Try
