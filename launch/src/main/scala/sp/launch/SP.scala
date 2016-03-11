@@ -185,6 +185,30 @@ object SP extends App {
     Calculator.transformation
   )
 
+  import sp.psl._
+  serviceHandler ! RegisterService(
+    "PSLModel",
+    system.actorOf(PSLModel.props, "PSLModel"),
+    PSLModel.specification,
+    PSLModel.transformation
+  )
+
+  import sp.runnerService._
+  val rs = system.actorOf(RunnerService.props(eventHandler, "OperationControl"), "RunnerService")
+  serviceHandler ! RegisterService(
+    "RunnerService",
+    rs,
+    RunnerService.specification,
+    RunnerService.transformation
+  )
+
+  serviceHandler ! RegisterService(
+    "AutoTest",
+    system.actorOf(AutoTest.props(eventHandler,rs), "AutoTest"),
+    AutoTest.specification,
+    AutoTest.transformation
+  )
+
 
 
   import sp.TobbeG._

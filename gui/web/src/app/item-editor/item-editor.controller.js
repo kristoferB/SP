@@ -62,30 +62,33 @@
         function editorLoaded(editorInstance) {
             vm.editor = editorInstance;
             editorInstance.setName('Selected items');
+            updateSelected(itemService.selected,[]);
             actOnSelectionChanges();
             $scope.$on('itemUpdate', function() {change();});
         }
 
+        function updateSelected(nowSelected, previouslySelected) {
+            if (vm.inSync && !vm.widget.storage.atLeastOneItemChanged) {
+                var isSame = (nowSelected.length == previouslySelected.length) && nowSelected.every(function (element, index) {
+                    return element === previouslySelected[index];
+                });
+                if (!isSame) {
+                    var selected = {};
+                    for (var i = 0; i < nowSelected.length; i++) {
+                        var item = nowSelected[i];
+                        selected[item.name] = item;
+                    }
+                    vm.widget.storage.data = selected;
+                }
+            }
+        }
+        
         function actOnSelectionChanges() {
             $scope.$watchCollection(
                 function() {
                     return itemService.selected;
                 },
-                function(nowSelected, previouslySelected) {
-                    if (vm.inSync && !vm.widget.storage.atLeastOneItemChanged) {
-                        var isSame = (nowSelected.length == previouslySelected.length) && nowSelected.every(function (element, index) {
-                              return element === previouslySelected[index];
-                          });
-                        if (!isSame) {
-                            var selected = {};
-                            for (var i = 0; i < nowSelected.length; i++) {
-                                var item = nowSelected[i];
-                                selected[item.name] = item;
-                            }
-                            vm.widget.storage.data = selected;
-                        }
-                    }
-                }
+                updateSelected
             );
         }
 
