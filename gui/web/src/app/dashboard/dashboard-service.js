@@ -37,9 +37,10 @@
 
                 {sizeX: 4, sizeY: 4, title: 'calculator', template: 'app/calculator/calculator.html'},
                 {sizeX: 4, sizeY: 4, title: 'Tobbe', template: 'app/Tobbe/Tobbe.html'},
+                {sizeX: 4, sizeY: 4, title: 'Tobbe2', template: 'app/Tobbe2/Tobbe2.html'},
                 {sizeX: 4, sizeY: 4, title: 'Calculator', template: 'app/calculator/calculator.html'},
                 {sizeX: 4, sizeY: 4, title: 'rasmus', template: 'app/rasmus/rasmus.html'},
-                {sizeX: 4, sizeY: 4, title: 'operatorInstGUI', template: 'app/operatorInstGUI/operatorInstGUI.html'},
+                {sizeX: 4, sizeY: 4, title: 'operatorInstGUI', template: 'app/operatorInstGUI/operatorInstGUI.html'}
             ]
         };
 

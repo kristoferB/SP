@@ -1,0 +1,37 @@
+<div ng-controller="Tobbe2Controller as vm" class="simple-widget">
+<style>
+#veryNiceBg {
+    border-radius: 5px;
+    background: {{"#C0C0C0"}};
+    padding: 20px;
+    width: 265px;
+    height: 265px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+#activeColor {
+    border-radius: 20px;
+    background: {{vm.buttonBG}};
+    padding: 10px;
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: 115px;
+    left: 325px;
+}
+
+</style>
+    <div class="panel-content">
+     <p id="veryNiceBg"></p>
+     <p id="activeColor"></p>
+
+        <div class="row">   <!-- 4 row -->
+                <button type="button" class="btn btn-4x btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 5px; left: 5px"
+                        ng-click="vm.saveNumber(3,0)" id="button41" value = button41;>
+                </button>
+        </div>
+    </div>
+</div>
+
+

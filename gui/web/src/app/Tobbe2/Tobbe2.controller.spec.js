@@ -1,21 +1,21 @@
 /* jshint -W117, -W030 */
-describe('TobbeController', function() {
+describe('Tobbe2Controller', function() {
     var controller;
 
     beforeEach(function() {
-        bard.appModule('app.Tobbe');
+        bard.appModule('app.Tobbe2');
         bard.inject('$controller', '$log', '$rootScope', '$state');
-        $state.current = {title: 'Tobbe'};
+        $state.current = {title: 'Tobbe2'};
     });
 
     beforeEach(function () {
-        controller = $controller('TobbeController');
+        controller = $controller('Tobbe2Controller');
         $rootScope.$apply();
     });
 
     bard.verifyNoOutstandingHttpRequests();
 
-    describe('Tobbe controller', function() {
+    describe('Tobbe2 controller', function() {
         it('should be created successfully', function () {
             expect(controller).to.be.defined;
         });

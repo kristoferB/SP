@@ -5,12 +5,12 @@
     'use strict';
 
     angular
-      .module('app.Tobbe')
-      .controller('TobbeController', TobbeController);
+      .module('app.Tobbe2')
+      .controller('Tobbe2Controller', Tobbe2Controller);
 
-    TobbeController.$inject = ['$scope', 'dashboardService', 'eventService','spServicesService'];
+    Tobbe2Controller.$inject = ['$scope', 'dashboardService', 'eventService','spServicesService'];
     /* @ngInject */
-    function TobbeController($scope, dashboardService, eventService,spServicesService) {
+    function Tobbe2Controller($scope, dashboardService, eventService,spServicesService) {
         var vm = this;
 
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
