@@ -26,6 +26,8 @@
         vm.resultColor = '#00FF00';
         vm.activeColour = 0;
 
+        vm.newVar = 0;
+
         //functions
         vm.setActiveColor = setActiveColor;
         vm.saveNumber = saveNumber;

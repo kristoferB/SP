@@ -1,35 +1,36 @@
 <div ng-controller="Tobbe2Controller as vm" class="simple-widget">
 <style>
-#veryNiceBg {
-    border-radius: 5px;
-    background: {{"#C0C0C0"}};
-    padding: 20px;
-    width: 265px;
-    height: 265px;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-}
-#activeColor {
-    border-radius: 20px;
-    background: {{vm.buttonBG}};
-    padding: 10px;
-    width: 30px;
-    height: 30px;
-    position: absolute;
-    top: 115px;
-    left: 325px;
-}
-
+    .row {
+        margin: 5px 0px 0px 0px;
+        padding: 10px 15px 0px 15px;
+        //width:60px;
+        height:40px;
+        background: {{"#C0C0C0"}};
+    }
+    .led {
+        border-radius: 20px;
+        //background: {{"#FF00FF"}};
+        width: 20px;
+        height: 20px;
+    }
+    #led1 {background: {{"#FF0000"}};}
+    #led2 {background: {{"#FF0000"}};}
 </style>
-    <div class="panel-content">
-     <p id="veryNiceBg"></p>
-     <p id="activeColor"></p>
 
-        <div class="row">   <!-- 4 row -->
-                <button type="button" class="btn btn-4x btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 5px; left: 5px"
-                        ng-click="vm.saveNumber(3,0)" id="button41" value = button41;>
-                </button>
+    <div class="panel-content">
+        <p id="activeColor"></p>
+
+        <div class="row" style="">
+            <p align="left" style="float: left">Door Closed</p>
+            <p class="led" id="led1" align="right" style="float: right"></p>
+        </div>
+        <div class="row" style="">
+            <p align="left" style="float: left">Plate in front of Robot1</p>
+            <p class="led" id="led2" align="right" style="float: right"></p>
+        </div>
+        <div class="row" style="">
+            <p align="left" style="float: left">Plate in front of Robot2</p>
+            <p class="led" id="led2" align="right" style="float: right"></p>
         </div>
     </div>
 </div>
