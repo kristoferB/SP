@@ -11,6 +11,7 @@ import scala.concurrent._
 import sp.system.messages._
 import sp.system._
 import sp.domain._
+import sp.domain.logic
 import sp.domain.Logic._
 import sp.extensions._
 import sp.psl._
@@ -81,6 +82,23 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
       println(s"we got a state change")
 
 
+      /*val idList: List[ID] = List()
+      ids.foreach(idAble => idList :+ idAble.id)
+      val firstID = idList.head
+      println("first ID: " + firstID)
+      */val state = attr.getAs[SPAttributes]("").get.getAs[State]("state").get
+      //val state = spAttributes.getAs[State]("state").get
+      val spValMap = state.state
+      val updV = spValMap.get(ID.makeID("a0f565e2-e44b-4017-a24e-c7d01e970dec").get).get.toString
+      val updV2 = spValMap.get(ID.makeID("c0f565e2-e44b-4017-a24e-c7d01e970dec").get).get.toString
+      println(updV)
+      println(updV2)
+
+
+
+
+
+
       // Plocka ut alla färdiga steg här
       // Skicka varje färdigt til stepCompl
       val copyAS = activeSteps
@@ -119,6 +137,8 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
 
   import scala.concurrent._
   import scala.concurrent.duration._
+
+
   def startID(id: ID) = {
     // Skickar ett tomt svar efter 2s.
     context.system.scheduler.scheduleOnce(2000 milliseconds, self,

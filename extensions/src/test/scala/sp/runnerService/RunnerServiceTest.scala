@@ -33,6 +33,7 @@ class RunnerServiceTest(_system: ActorSystem) extends TestKit(_system) with Impl
     TestKit.shutdownActorSystem(system)
   }
 
+
   "The Service Example" must {
     "filter the items" in {
       val o1 = Operation("o1", List(), SPAttributes(), ID.makeID("a0f565e2-e44b-4017-a24e-c7d01e970dec").get)

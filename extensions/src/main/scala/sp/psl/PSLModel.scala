@@ -132,6 +132,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       // This info will later on be filled by a service on the bus
       val connectionList = List(
         //robot r2, siffror ska ändras senare
+        /*
         db(itemMap, "r2.movePaletteToStock",      "bool",   950, 4, 1),
         db(itemMap, "r2.movePaletteToStock.mode", "int",    950, 4, 0, stateMap),
         db(itemMap, "r2.movePaletteToFlexlink",   "bool",   950, 0, 1),
@@ -211,7 +212,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         db(itemMap, "flexlink.run",       "bool", 111, 0, 0),
         db(itemMap, "flexlink.run.mode",  "bool", 111, 0, 1, stateMap),
         db(itemMap, "flexLink.mode",      "bool", 111, 0, 2),
-
+*/
         db(itemMap, "h1.up", "bool", 135, 0, 0),
         db(itemMap, "h1.down", "bool", 135, 0, 1),
         db(itemMap, "h1.mode", "int", 135, 2, 0, stateMap)
@@ -236,7 +237,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       //import sp.domain.logic.PropositionParser._
       //operations exempel
 
-      val root = HierarchyRoot("Resources", List(r2._1, r4._1, r5._1, s1._1, s2._1, s3._1, s4._1, flexLink._1, h1._1, HierarchyNode(sopSpec.id)))
+      val root = HierarchyRoot("Resources", List(/*r2._1, r4._1, r5._1, s1._1, s2._1, s3._1, s4._1, flexLink._1,*/ h1._1, HierarchyNode(sopSpec.id)))
       //val opRoot = HierarchyRoot("Operations", List())
       replyTo ! Response(items :+ root :+ connection, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
 
@@ -248,12 +249,15 @@ case class DBConnection(name: String, valueType: String, db: Int, byte: Int = 0,
 
 
 trait ModelMaking {
+  val idMap: Map[ID, String] = Map()
+
   def makeResource(name: String, state: List[String], abilities: List[(String, List[String])]) = {
     val t = Thing(name)
     val stateVars = state.map(x => Thing(s"$name.$x", SPAttributes("variableType"->"state")))
     val ab = abilities.map{case (n, parameters) =>
       val abilityName = name +"."+n
       val o = Operation(abilityName, List(), SPAttributes("operationType"->"ability"))
+      idMap + (o.id -> abilityName)
       (o, parameters.map{x =>
         val pName = x.replaceFirst("p_", "")
         val isP = x.startsWith("p_")
