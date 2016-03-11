@@ -1,6 +1,11 @@
 <div ng-controller="Tobbe2Controller as vm" class="simple-widget">
 <style>
-    .row {
+    /**
+    * The class name needs to be unique. If not
+    * It will affect other widgets with the same
+    * class names.
+    */
+    .row1337 {
         margin: 5px 0px 0px 0px;
         padding: 10px 15px 0px 15px;
         //width:60px;
@@ -15,22 +20,23 @@
     }
     #led1 {background: {{"#FF0000"}};}
     #led2 {background: {{"#FF0000"}};}
+    #led3 {background: {{"#FF0000"}};}
 </style>
 
     <div class="panel-content">
         <p id="activeColor"></p>
 
-        <div class="row" style="">
+        <div class="row1337" style="">
             <p align="left" style="float: left">Door Closed</p>
             <p class="led" id="led1" align="right" style="float: right"></p>
         </div>
-        <div class="row" style="">
+        <div class="row1337" style="">
             <p align="left" style="float: left">Plate in front of Robot1</p>
             <p class="led" id="led2" align="right" style="float: right"></p>
         </div>
-        <div class="row" style="">
+        <div class="row1337" style="">
             <p align="left" style="float: left">Plate in front of Robot2</p>
-            <p class="led" id="led2" align="right" style="float: right"></p>
+            <p class="led" id="led3" align="right" style="float: right"></p>
         </div>
     </div>
 </div>
