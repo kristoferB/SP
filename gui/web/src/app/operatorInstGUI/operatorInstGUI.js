@@ -20,6 +20,7 @@
         vm.result = vm.position
         vm.imDone = imDone;
         vm.done = false
+        vm.message = "Hej"
 
 
         vm.Palett = {
@@ -50,7 +51,8 @@
                 spServicesService.getService("operatorService"),mess,
                 function(resp) {
                     if(_.has(resp, "attributes.result")){
-                        vm.Palett.pal = resp.attributes.result;                    
+                        vm.Palett.pal = resp.attributes.result;
+
                     }
                 })
 
@@ -59,7 +61,8 @@
             vm.eventLog.unshift(event);
             vm.scope.$apply();
             if (event.service == "operatorService"){
-                vm.Palett.pal = event.attributes.result
+                vm.Palett.pal = event.attributes.result;
+                vm.message = resp.attributes.hej;
             }
         }
 

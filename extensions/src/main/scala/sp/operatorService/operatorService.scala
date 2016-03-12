@@ -6,6 +6,7 @@ import sp.domain._
 import sp.system._
 import sp.system.messages._
 import scala.collection.mutable.MutableList
+import sp.system.SPActorSystem.eventHandler
 
 object operatorService extends SPService {
 
@@ -95,8 +96,8 @@ object operatorService extends SPService {
           que = operatorService.latestSent
         }
         que = operatorService.parseColour(que)
-
-        replyTo ! Response(List(), SPAttributes("result" -> que), rnr.req.service, rnr.req.reqID)
+        val pruttlol = List(1,2,3,4,5,6)
+        replyTo ! Response(List(), SPAttributes("result" -> que, "hej" -> pruttlol), rnr.req.service, rnr.req.reqID)
         self ! PoisonPill
       }
     }
