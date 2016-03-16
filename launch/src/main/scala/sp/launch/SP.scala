@@ -202,6 +202,14 @@ object SP extends App {
   )
 
 
+  serviceHandler ! RegisterService(
+    "VariableOperationMapper",
+    system.actorOf(VariableOperationMapper.props, "VariableOperationMapper"),
+    VariableOperationMapper.specification,
+    VariableOperationMapper.transformation
+  )
+
+
 
   // launch REST API
   sp.server.LaunchGUI.launch

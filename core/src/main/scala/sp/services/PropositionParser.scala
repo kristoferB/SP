@@ -109,7 +109,7 @@ class PropositionParserService extends Actor with ServiceSupport {
   def stateVal(x : StateEvaluator, ids: List[IDAble]): String = {
     x match {
       case ValueHolder(v: JValue) => v.extract[String]
-      case SVIDEval(id: ID) => ids.find(x => x.id == id).get.name
+      case SVIDEval(id: ID) => ids.find(x => x.id == id).map(_.name).getOrElse(id.toString)
       case _ => "not implemented"
     }
   }
@@ -131,13 +131,13 @@ class PropositionParserService extends Actor with ServiceSupport {
   }
 
   def prettyPrintAction(ids: List[IDAble])(action: Action): String = {
-    val id = ids.find(x => x.id == action.id).get.name
+    val id = ids.find(x => x.id == action.id).map(_.name).getOrElse(action.id.toString)
     action.value match {
       case INCR(1) => id + "++"
       case INCR(n) => id + " += " + n.toString
       case DECR(1) => id + "--"
       case DECR(n) => id + " -= " + n.toString
-      case ASSIGN(rhs: ID) => id + " := " + ids.find(x => x.id == rhs).get.name
+      case ASSIGN(rhs: ID) => id + " := " + ids.find(x => x.id == rhs).map(_.name).getOrElse(rhs.toString)
       case ValueHolder(v : JValue) => id + " := " + v.extract[String]
       case s@_ => "i forgot something: " + s.toString
     }
