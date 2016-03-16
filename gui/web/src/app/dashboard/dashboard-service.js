@@ -107,6 +107,7 @@
                 if (index > -1) {
                     dashboard.widgets.splice(index, 1);
                     break;
+                    
                 }
             }
         }
