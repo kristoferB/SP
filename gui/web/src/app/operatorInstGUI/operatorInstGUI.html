@@ -9,6 +9,8 @@
     position: absolute;
     top: 20px;
     left: 20px;
+    text-align: center;
+    font: 25px Arial;
 }
 #palettep2 {
     border-radius: 5px;
@@ -19,6 +21,8 @@
     position: absolute;
     top: 20px;
     left: 105px;
+    text-align: center;
+    font: 25px Arial;
 }
 #palettep3 {
     border-radius: 5px;
@@ -29,6 +33,8 @@
     position: absolute;
     top: 20px;
     left: 190px;
+    text-align: center;
+    font: 25px Arial;
 }
 #palettep4 {
     border-radius: 5px;
@@ -39,6 +45,8 @@
     position: absolute;
     top: 20px;
     left: 275px;
+    text-align: center;
+    font: 25px Arial;
 }
 #palettep5 {
     border-radius: 5px;
@@ -49,6 +57,8 @@
     position: absolute;
     top: 115px;
     left: 20px;
+    text-align: center;
+    font: 25px Arial;
 }
 #palettep6 {
     border-radius: 5px;
@@ -59,6 +69,8 @@
     position: absolute;
     top: 115px;
     left: 105px;
+    text-align: center;
+    font: 25px Arial;
 }
 #palettep7 {
     border-radius: 5px;
@@ -69,6 +81,8 @@
     position: absolute;
     top: 115px;
     left: 190px;
+    text-align: center;
+    font: 25px Arial;
 }
 #palettep8 {
     border-radius: 5px;
@@ -79,6 +93,8 @@
     position: absolute;
     top: 115px;
     left: 275px;
+    text-align: center;
+    font: 25px Arial;
 }
 #palette {
     border-radius: 5px;
@@ -93,21 +109,21 @@
 </style>
     <div class="panel-content">
         <p id="palette"></p>
-        <p id="palettep1"></p>
-        <p id="palettep2"></p>
-        <p id="palettep3"></p>
-        <p id="palettep4"></p>
-        <p id="palettep5"></p>
-        <p id="palettep6"></p>
-        <p id="palettep7"></p>
-        <p id="palettep8"></p>
+        <p id="palettep1">1</p>
+        <p id="palettep2">2</p>
+        <p id="palettep3">3</p>
+        <p id="palettep4">4</p>
+        <p id="palettep5">5</p>
+        <p id="palettep6">6</p>
+        <p id="palettep7">7</p>
+        <p id="palettep8">8</p>
 
         <button type="button" style="top: 325px; left:110px;width:150px;height:50px; position:absolute" class="btn btn.sm btn-primary" ng-click="vm.imDone(true)">
             <i class="fa fa-thumbs-up"></i>
         </button>
         <h1 style="top: 190px; left:0px; position:absolute"><b><font size="2"; color="black">Message: </font></b></h1>
         <textarea rows="5" cols="50" style="position: absolute; left: 0px; top: 215px; width: 360px">
-                {{vm.Palett.pal}}
+                {{vm.message}}
         </textarea>
     </div>
 </div>
