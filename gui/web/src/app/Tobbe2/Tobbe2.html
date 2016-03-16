@@ -18,26 +18,52 @@
         width: 20px;
         height: 20px;
     }
-    #led1 {background: {{"#FF0000"}};}
-    #led2 {background: {{"#FF0000"}};}
-    #led3 {background: {{"#FF0000"}};}
+    #ledCelDoor {background: {{"#FF0000"}};}
+    #ledElevator1 {background: {{"#FF0000"}};}
+    #ledElevator2 {background: {{"#FF0000"}};}
+    #ledPlateR1 {background: {{"#FF0000"}};}
+    #ledPlateR2 {background: {{"#FF0000"}};}
+    #ledPlateL1 {background: {{"#FF0000"}};}
+    #ledPlateL2 {background: {{"#FF0000"}};}
+
 </style>
 
     <div class="panel-content">
         <p id="activeColor"></p>
+        <!--Main Door to the Cel-->
+        <div class="row1337" style="">
+            <p align="left" style="float: left">Door to Cel</p>
+            <p class="led" id="ledCelDoor" align="right" style="float: right"></p>
+        </div>
+        <!--Elevators on FlexLink-->
+        <div class="row1337" style="">
+            <p align="left" style="float: left">Elevator 1</p>
+            <p class="led" id="ledElevator1" align="right" style="float: right"></p>
+        </div>
+        <div class="row1337" style="">
+            <p align="left" style="float: left">Elevator 2</p>
+            <p class="led" id="ledElevator2" align="right" style="float: right"></p>
+        </div>
+        <!--Plates in front of Robot 4-->
+        <div class="row1337" style="">
+            <p align="left" style="float: left">Plate R1 (In front of Robot 4) </p>
+            <p class="led" id="ledPlateR1" align="right" style="float: right"></p>
+        </div>
+        <div class="row1337" style="">
+            <p align="left" style="float: left">Plate R2 (In front of Robot 4)</p>
+            <p class="led" id="ledPlateR2" align="right" style="float: right"></p>
+        </div>
+        <!--Plates in front of Robot 5-->
+        <div class="row1337" style="">
+            <p align="left" style="float: left">Plate L1 (In front of Robot 5) </p>
+            <p class="led" id="ledPlateL1" align="right" style="float: right"></p>
+        </div>
+        <div class="row1337" style="">
+            <p align="left" style="float: left">Plate L2 (In front of Robot 5)</p>
+            <p class="led" id="ledPlateL2" align="right" style="float: right"></p>
+        </div>
 
-        <div class="row1337" style="">
-            <p align="left" style="float: left">Door Closed</p>
-            <p class="led" id="led1" align="right" style="float: right"></p>
-        </div>
-        <div class="row1337" style="">
-            <p align="left" style="float: left">Plate in front of Robot1</p>
-            <p class="led" id="led2" align="right" style="float: right"></p>
-        </div>
-        <div class="row1337" style="">
-            <p align="left" style="float: left">Plate in front of Robot2</p>
-            <p class="led" id="led3" align="right" style="float: right"></p>
-        </div>
+
     </div>
 </div>
 
