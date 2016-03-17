@@ -1,0 +1,131 @@
+<div ng-controller="kubInputGUIController as vm" class="simple-widget">
+<style>
+#veryNiceBg {
+    border-radius: 5px;
+    background: {{"#C0C0C0"}};
+    padding: 20px;
+    width: 265px;
+    height: 265px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+#activeColor {
+    border-radius: 20px;
+    background: {{vm.buttonBG}};
+    padding: 10px;
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: 115px;
+    left: 325px;
+}
+
+
+</style>
+    <div class="panel-content">
+     <p id="veryNiceBg"></p>
+     <p id="activeColor"></p>
+
+        <div class="row">   <!-- 4 row -->
+            <!--<div class="col-md-12 col-md-offset-0 text-center">-->
+                <button type="button" class="btn btn-4x btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 5px; left: 5px"
+                        ng-click="vm.saveNumber(3,0)" id="button41" value = button41;>
+                    <!--<i class="fa fa-4x fa-square" style= "color: rgb(0,128,0)"></i>-->
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 5px; left: 70px"
+                        ng-click="vm.saveNumber(3,1)" id="button42" value = "button42";>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 5px; left: 135px"
+                        ng-click="vm.saveNumber(3,2)" id="button43" value = "button43";>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 5px; left: 200px"
+                        ng-click="vm.saveNumber(3,3)" id="button44" value = "button44";>
+                </button>
+
+
+                <br>
+                <!-- 3 row -->
+                <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 70px; left: 5px"
+                        ng-click="vm.saveNumber(2,0)" id="button31" value = "button31";>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 70px; left: 70px"
+                        ng-click="vm.saveNumber(2,1)" id="button32" value = "button32";>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 70px; left: 135px"
+                        ng-click="vm.saveNumber(2,2)" id="button33" value = "button33";>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 70px; left: 200px"
+                        ng-click="vm.saveNumber(2,3)" id="button34" value = "button34";>
+                </button>
+
+
+                <br>
+                <!-- 2 row -->
+                <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 135px; left: 5px"
+                        ng-click="vm.saveNumber(1,0)" id="button21" value = "button21";>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 135px; left: 70px"
+                        ng-click="vm.saveNumber(1,1)" id="button22" value = "button22";>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 135px; left: 135px"
+                        ng-click="vm.saveNumber(1,2)" id="button23" value = "button23";>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 135px; left: 200px"
+                        ng-click="vm.saveNumber(1,3)" id="button24" value = "button24";>
+                </button>
+
+
+                <br>
+                <!-- 1 row -->
+                    <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 200px; left: 5px"
+                            ng-click="vm.saveNumber(0,0)" id="button11" value = "button11";>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 200px; left: 70px"
+                            ng-click="vm.saveNumber(0,1)" id="button12" value = "button12";>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 200px; left: 135px"
+                            ng-click="vm.saveNumber(0,2)" id="button13" value = "button13";>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary" style="width:60px;height:60px;background-color:rgb(255,255,255);border-radius: 5px; position: absolute; top: 200px; left: 200px"
+                            ng-click="vm.saveNumber(0,3)" id="button14" value = "button14";>
+                    </button>
+
+                <!---->
+                <br>
+                <button type="button" class="btn btn-sm btn-primary" style="width:125px;height:60px;background-color:rgb(255,255,255); position: absolute; top: 280px; left: 5px"
+                        ng-click="vm.tryTheTower(1)" id="buttonBuild" value = "buttonBuild";>
+                    <h1 class="text-center">Build</h1>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" style="width:125px;height:60px;background-color:rgb(255,255,255); position: absolute; top: 280px; left: 135px"
+                        ng-click="vm.reset()" id="buttonReset" value = "buttonReset";>
+                    <h1 class="text-center">Reset</h1>
+                </button>
+                <br>
+                <button type="button" class="btn btn-sm btn-primary" style="width:125px;height:60px;background-color:rgb(255,255,255); position: absolute; top: 345px; left: 5px"
+                        ng-click="vm.randomTower()" id="buttonRandom" value = "buttonRandom";>
+                    <h1 class="text-center">Random</h1>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" style="width:125px;height:60px;background-color:rgb(255,255,255); position: absolute; top: 345px; left: 135px"
+                        ng-click="vm.preDefined(2)" id="buttonPreDefined1" value = "buttonPreDefined1";>
+                    <h1 class="text-center">PreDef</h1>
+                </button>
+
+                <button type="button" class="btn btn-sm btn-primary" style="width:40px;height:40px;background-color:#ffff66;border-radius: 5px; position: absolute; top: 70px; left: 320px"
+                        ng-click="vm.setActiveColor(1)" id="buttonYellow" value = "buttonYellow";>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" style="width:40px;height:40px;background-color:#5cd65c;border-radius: 5px; position: absolute; top: 110px; left: 280px"
+                        ng-click="vm.setActiveColor(2)" id="buttonGreen" value = "buttonGreen";>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" style="width:40px;height:40px;background-color:#0066ff;border-radius: 5px; position: absolute; top: 110px; left: 360px"
+                        ng-click="vm.setActiveColor(4)" id="buttonBlue" value = "buttonBlue";>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" style="width:40px;height:40px;background-color:#ff3333;border-radius: 5px; position: absolute; top: 150px; left: 320px"
+                        ng-click="vm.setActiveColor(3)" id="buttonRed" value = "buttonRed";>
+                </button>
+            <!--</div>-->
+        </div>
+    </div>
+</div>
+
+
