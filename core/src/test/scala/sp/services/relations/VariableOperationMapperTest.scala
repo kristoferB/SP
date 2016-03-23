@@ -45,7 +45,7 @@ class VariableOperationMapperTest(_system: ActorSystem) extends TestKit(_system)
       val g3 = parserG.parseStr("t3 == foo").right.get
       val g4 = parserG.parseStr("t2 == 3 and t3 == bar").right.get
 
-      val a1 = parserA.parseStr("t1 = då").right.get
+      val a1 = parserA.parseStr("t1 = r1.moveToFixture").right.get
       val a2 = parserA.parseStr("t2 = 200").right.get
       val a3 = parserA.parseStr("t3 = foobar").right.get
 

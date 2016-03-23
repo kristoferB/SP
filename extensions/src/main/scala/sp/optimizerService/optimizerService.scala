@@ -52,7 +52,7 @@ class optimizerService extends IDAble {
 
   )
   */
-  //psudokod för optimerings algoritme
+  //psudCode for optimerings algoritme
   /*
   tempNode createInitalNode(wallSchem: array[int]){
     var j: int = 0,
