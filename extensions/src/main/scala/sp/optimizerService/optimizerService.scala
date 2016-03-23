@@ -25,7 +25,7 @@ class optimizerService extends IDAble {
     ) extends IDAble{
   }
   case class Node (
-    Int: String,
+    name: Int,
     state: tempState,
     in: Transition,
     out: List(Transition) = List(),
@@ -136,7 +136,7 @@ class optimizerService extends IDAble {
       for(each openNodeList: currentOpenNode){
         if(currentOpenNode != null && !openNodeList.contains(currentOpenNode.name)){
           if(currentNode.fCost < examinedNode.fCost
-          || currentOpenNode.fCost =< examinedNode.fCost && currentOpenNode.gCost =< examinedNode.gCost){
+          || currentOpenNode.fCost == examinedNode.fCost && currentOpenNode.hCost < examinedNode.hCost){
             examinedNode = currentNode,
           }
         }
@@ -145,7 +145,10 @@ class optimizerService extends IDAble {
         break                                           //terminate the while loop
       }
     }
+    val pathOfOPs = List(Operation),
+    while (examinedNode.tail != null){
 
+    }
   }
  */
 }
