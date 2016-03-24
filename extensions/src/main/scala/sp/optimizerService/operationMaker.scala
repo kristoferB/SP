@@ -15,10 +15,10 @@ class operationMaker {
   val parserA = sp.domain.logic.ActionParser(List())
 
   // Things for Guards
-  val cubeSpace1Booked = Thing("cubeSpace1Boked")                              //v1
-  val cubeSpace2Booked = Thing("cubeSpace2Boked")                              //v2
-  val cubeSpace3Booked = Thing("cubeSpace3Boked")                              //v3
-  val cubeSpace4Booked = Thing("cubedSpace4Boked")                             //v4
+  val cubeSpace1Booked = Thing("cubeSpace1Booked")                              //v1
+  val cubeSpace2Booked = Thing("cubeSpace2Booked")                              //v2
+  val cubeSpace3Booked = Thing("cubeSpace3Booked")                              //v3
+  val cubeSpace4Booked = Thing("cubedSpace4Booked")                             //v4
   val buildSpaceBooked = Thing("buildSpaceBooked")
   val R2Booked =  Thing("R2Booked")
   val R5Booked =  Thing("R5Booked")
@@ -48,19 +48,32 @@ class operationMaker {
 
   //Create actions
   val aGenerateOperatorInstructions = parserA.parseStr("generateOperatorInstructions = True").right.get
+val temp = List()
 
   //Operations
-  val init = Operation("Init", List(PropositionCondition(AND(List()), List(aGenerateOperatorInstructions))),SPAttributes(), ID.newID)
-  val R2PalettToR5Pos1 = Operation //
-  val R2PalettToR5Pos2 = Operation
-  val R2PalettToR4Pos1 = Operation
-  val R2PalettToR4Pos2 = Operation
-  val R2PalettRemoveR5Pos1 = Operation
-  val R2PalettRemoveR5Pos2 = Operation
-  val R2PalettRemoveR4Pos1 = Operation
-  val R2PalettRemoveR4Pos2 = Operation
-  val R2PlaceBuildingPalett = Operation
-  val R2RemoveBuildingPalett = Operation
+  //Example
+  //val init = Operation("Init", List(PropositionCondition(AND(List()), List(aGenerateOperatorInstructions))),SPAttributes(), ID.newID)
+
+  //R2 Operations
+  val OR2PalettToR5PalettSpace1 = Operation // (Pos1 clear) Action R2 Booked = True
+  val OR2PalettToR5PalettSpace2 = Operation // (Pos2 clear AND POS1 filled)
+  val OR2PalettToR4PalettSpace1 = Operation // (Pos1 clear)
+  val OR2PalettToR4PalettSpace2 = Operation // (Pos2 clear AND POS1 filled)
+  val OR2PalettRemoveR5PalettSpace1 = Operation // Operation R4BuildFromPos1 Done
+  val OR2PalettRemoveR5PalettSpace2 = Operation // Operation R4BuildFromPos2 Done
+  val OR2PalettRemoveR4PalettSpace1 = Operation // Operation R5BuildFromPos1 Done
+  val OR2PalettRemoveR4PalettSpace2 = Operation // Operation R5BuildFromPos2 Done
+  val OR2PlaceBuildingPalett =   Operation //
+  val OR2RemoveBuildingPalett =  Operation // Operation
+  val OR2RemoveBooking =  Operation // After operations that books R2
+
+  val OR4BuildFromPos1 = Operation //
+  val OR4BuildFromPos2 = Operation //
+  val OR4RemoveBooking = Operation // After operations that books R5
+
+  val OR5BuildFromPos1 = Operation //
+  val OR5BuildFromPos2 = Operation //
+  val OR5RemoveBooking = Operation // After operations that books R5
 }
 
 
