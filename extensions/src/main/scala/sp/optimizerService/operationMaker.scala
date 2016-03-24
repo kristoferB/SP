@@ -11,7 +11,7 @@ class operationMaker {
 
 
   //Init parsers
-  val parserG = sp.domain.logic.PropositionParser(List(cubeSpace1Booked, cubeSpace2Booked, cubeSpace3Booked, cubeSpace4Booked))
+  val parserG = sp.domain.logic.PropositionParser(List())
   val parserA = sp.domain.logic.ActionParser(List())
 
   // Things for Guards
@@ -20,38 +20,38 @@ class operationMaker {
   val cubeSpace3Booked = Thing("cubeSpace3Boked")                              //v3
   val cubeSpace4Booked = Thing("cubedSpace4Boked")                             //v4
   val buildSpaceBooked = Thing("buildSpaceBooked")
-  val R2booked =  Thing("R2booked")
-  val R5booked =  Thing("R5booked")
-  val R4booked =  Thing("R5booked")
-  val R4dodge =   Thing("R4dodge")
-  val R5dodge =   Thing("R5dodge")
+  val R2Booked =  Thing("R2Booked")
+  val R5Booked =  Thing("R5Booked")
+  val R4Booked =  Thing("R5Booked")
+  val R4Dodge =   Thing("R4Dodge")
+  val R5Dodge =   Thing("R5Dodge")
 
   // Things for Actions
-  val R2moveCubePalletTo1 = Thing("R2moveBuildPalletTo1")
-  val R2moveCubePalletTo2 = Thing("R2moveBuildPalletTo3")
-  val R2moveCubePalletTo3 = Thing("R2moveBuildPalletTo3")
-  val R2moveCubePalletTo4 = Thing("R2moveBuildPalletTo4")
-  val R2moveBuildPallet = Thing("R2moveBuildPallet")
+  val R2MoveCubePalletTo1 = Thing("R2MoveBuildPalletTo1")
+  val R2MoveCubePalletTo2 = Thing("R2MoveBuildPalletTo3")
+  val R2MoveCubePalletTo3 = Thing("R2MoveBuildPalletTo3")
+  val R2MoveCubePalletTo4 = Thing("R2MoveBuildPalletTo4")
+  val R2MoveBuildPallet = Thing("R2MoveBuildPallet")
 
 
 
   //Create gaurds
-  val buildSpace1Boked = parserG.parseStr("buildSpace1Boked == true").right.get
-  val buildSpace2Boked = parserG.parseStr("buildSpace2Boked == true").right.get
-  val buildSpace3Boked = parserG.parseStr("buildSpace3Boked == true").right.get
-  val buildSpace4Boked = parserG.parseStr("buildSpace4Boked == true").right.get
-  val R2booked = parserG.parseStr("R2booked == false").right.get
-  val R4booked = parserG.parseStr("R4booked == false").right.get
-  val R5booked = parserG.parseStr("R5booked == false").right.get
-  val R4dodge = parserG.parseStr("R4dodge == true").right.get
-  val R5dodge = parserG.parseStr("R4dodge == true").right.get
+  val buildSpace1Booked = parserG.parseStr("buildSpace1Booked == true").right.get
+  val buildSpace2Booked = parserG.parseStr("buildSpace2Booked == true").right.get
+  val buildSpace3Booked = parserG.parseStr("buildSpace3Booked == true").right.get
+  val buildSpace4Booked = parserG.parseStr("buildSpace4Booked == true").right.get
+  val R2booked = parserG.parseStr("R2Booked == false").right.get
+  val R4booked = parserG.parseStr("R4Booked == false").right.get
+  val R5booked = parserG.parseStr("R5Booked == false").right.get
+  val R4dodge = parserG.parseStr("R4Dodge == true").right.get
+  val R5dodge = parserG.parseStr("R4Dodge == true").right.get
 
   //Create actions
   val aGenerateOperatorInstructions = parserA.parseStr("generateOperatorInstructions = True").right.get
 
   //Operations
   val init = Operation("Init", List(PropositionCondition(AND(List()), List(aGenerateOperatorInstructions))),SPAttributes(), ID.newID)
-  val R2PalettToR5Pos1 = Operation
+  val R2PalettToR5Pos1 = Operation //
   val R2PalettToR5Pos2 = Operation
   val R2PalettToR4Pos1 = Operation
   val R2PalettToR4Pos2 = Operation
