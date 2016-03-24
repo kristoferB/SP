@@ -194,7 +194,7 @@ object SP extends App {
   )
 
   import sp.runnerService._
-  val rs = system.actorOf(RunnerService.props(eventHandler, "OperationControl"), "RunnerService")
+  val rs = system.actorOf(RunnerService.props(eventHandler, serviceHandler, "OperationControl"), "RunnerService")
   serviceHandler ! RegisterService(
     "RunnerService",
     rs,

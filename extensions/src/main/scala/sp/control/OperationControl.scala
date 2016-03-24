@@ -131,7 +131,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
         id <- l.getAs[ID]("id")
         value <- l.getAs[SPValue]("value")
       } yield {
-        var stringRep: String = value.to[Int].map(_.toString).getOrElse(value.to[String].getOrElse(""))
+        val stringRep: String = value.to[Int].map(_.toString).getOrElse(value.to[String].getOrElse(""))
         val updV = connectionMap.get(id).flatMap(x => x.intMap.get(stringRep)).getOrElse(value)
         state = state add (id -> updV)
       }

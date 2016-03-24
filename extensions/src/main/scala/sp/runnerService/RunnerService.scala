@@ -33,12 +33,12 @@ object RunnerService extends SPService {
 
   val transformation = List(transformTuple)
   //def props(eventHandler: ActorRef) = Props(classOf[RunnerService], eventHandler)
-  def props(eventHandler: ActorRef, operationController: String) =
-    ServiceLauncher.props(Props(classOf[RunnerService], eventHandler, operationController))
+  def props(eventHandler: ActorRef, serviceHandler: ActorRef, operationController: String) =
+    ServiceLauncher.props(Props(classOf[RunnerService], eventHandler, serviceHandler, operationController))
 }
 
 // Inkluderar eventHandler och namnet på servicen operationController. Skickas med i SP.scala
-class RunnerService(eventHandler: ActorRef, operationController: String) extends Actor with ServiceSupport {
+class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationController: String) extends Actor with ServiceSupport {
   import context.dispatcher
 
   var parents: Map[SOP, SOP] = Map()
@@ -46,6 +46,7 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
   var parallelRuns: Map[Parallel, List[SOP]] = Map()
   var state: State = State(Map())
   var reply: Option[RequestNReply] = None
+  var readyList: List[ID] = List()
 
 
   def receive = {
@@ -54,49 +55,54 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
       implicit val rnr = RequestNReply(r, replyTo)
       reply = Some(rnr)
 
+      // Lyssna på events från alla
+      eventHandler ! SubscribeToSSE(self)
+
       // include this if you want to send progress messages. Send attributes to it during calculations
       val progress = context.actorOf(progressHandler)
 
       val sopID = transform(RunnerService.transformTuple)
 
-
       //lista av tuplar som vi gör om till map
       val idMap: Map[ID, IDAble] = ids.map(item => item.id -> item).toMap
       val sop = Try{idMap(sopID).asInstanceOf[SOPSpec].sop}.map(xs => Parallel(xs:_*))
 
+      //sop.foreach(s => getAllOperations(s))
+      //val something = getAllOperations(sop)
       // Makes the parentmap
       sop.foreach(createSOPMap)
       println("we got a sop: "+sop)
 
+      //parents.foreach(s => getAllOperations(s))
 
       // Starts the first op
       sop.foreach(executeSOP)
       progress ! SPAttributes("activeOps"->activeSteps)
       startID(ID.newID)
-
     }
+
     // Vi får states från Operation control
     case r @ Response(ids, attr, service, _) if service == operationController => {
       // Till att börja med är dessa tomma, så vi säger att alla som kör blir färdiga
 
       println(s"we got a state change")
 
+      val newState = attr.getAs[SPAttributes]("").get.getAs[State]("state").get
 
-      /*val idList: List[ID] = List()
-      ids.foreach(idAble => idList :+ idAble.id)
-      val firstID = idList.head
-      println("first ID: " + firstID)
-      */val state = attr.getAs[SPAttributes]("").get.getAs[State]("state").get
-      //val state = spAttributes.getAs[State]("state").get
-      val spValMap = state.state
-      val updV = spValMap.get(ID.makeID("a0f565e2-e44b-4017-a24e-c7d01e970dec").get).get.toString
-      val updV2 = spValMap.get(ID.makeID("c0f565e2-e44b-4017-a24e-c7d01e970dec").get).get.toString
-      println(updV)
-      println(updV2)
+      state = State(state.state ++ newState.state.filter{case (id, v)=>
+        state.get(id) != newState.get(id)
+      })
 
 
-
-
+      //lägger till alla ready states i en readyList och tar bort gamla som inte är ready längre
+      state.state.keys.foreach(id => {
+        val temp = state.state.get(id).get.toString
+        if (!readyList.contains(id) && temp == "ready") {
+          readyList :+ id
+        } else if(readyList.contains(id) && temp != "ready") {
+          readyList.filter(_ != id)
+        }
+      })
 
 
       // Plocka ut alla färdiga steg här
@@ -122,24 +128,43 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
     }
   }
 
+  var tictac = 0
   def executeSOP(sop: SOP): Unit = {
     if (sop.isInstanceOf[Hierarchy]) println(s"executing sop $sop")
     sop match {
       case x: Parallel => x.sop.foreach(executeSOP)
       case x: Sequence if x.sop.nonEmpty => executeSOP(x.sop.head)
       case x: Hierarchy => {
-        //startID(x.operation)
-        activeSteps = activeSteps :+ x
+        if (checkPreCond(x.operation)) {
+          tictac = 0
+          startID(x.operation)
+          activeSteps = activeSteps :+ x
+        } else {
+          //timer ish 10 sek
+          tictac = tictac + 1
+          if (tictac < 4) {
+            executeSOP(x)
+          } else {
+            // kasta exception/varning
+          }
+        }
       }
       case x => println(s"Hmm, vi fick $x i executeSOP")
     }
   }
 
+  // kollar om en operations alla preconditions är uppfyllda och kan köras
+  def checkPreCond(id: ID): Boolean = {
+    true
+  }
+
   import scala.concurrent._
   import scala.concurrent.duration._
 
-
   def startID(id: ID) = {
+
+    //askAService(Request(operationController, SPAttributes("command"->SPAttributes("execute"->id))),)
+
     // Skickar ett tomt svar efter 2s.
     context.system.scheduler.scheduleOnce(2000 milliseconds, self,
       Response(List(),
@@ -171,7 +196,6 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
         }
         else       // om alla i parallellen är klara anropas stepComp igen med p
           stepCompleted(p)
-
         // Om alla är färdiga -> stepCompleted(p)
         // annars vänta
 
@@ -185,7 +209,7 @@ class RunnerService(eventHandler: ActorRef, operationController: String) extends
           stepCompleted(p)
         }
         else {     // om nuvarande index är mindre än antalet barn tas nuvarande bort ur lista
-          // över aktiva och nästkommande steg i seq startar
+                   // över aktiva och nästkommande steg i seq startar
           executeSOP(parentSeq(current + 1))
           false
         }
