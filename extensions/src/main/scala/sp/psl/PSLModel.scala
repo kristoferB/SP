@@ -214,9 +214,10 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         db(itemMap, "flexLink.mode",      "bool", 111, 0, 2),
 */
 
-        db(itemMap, "h1.up", "bool", 135, 0, 0),
-        db(itemMap, "h1.down", "bool", 135, 0, 1),
-        db(itemMap, "h1.mode", "int", 135, 2, 0, stateMap)
+        db(itemMap, "h1.up", "bool", 755, 4, 0),
+        db(itemMap, "h1.down", "bool", 755, 4, 1),
+        db(itemMap, "h1.up.mode", "int", 755, 0, 0, stateMap),
+        db(itemMap, "h1.down.mode", "int", 755, 2, 0, stateMap)
 
       ).flatten
 

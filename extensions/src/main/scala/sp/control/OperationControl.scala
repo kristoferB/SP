@@ -21,7 +21,7 @@ object OperationControl extends SPService {
       "group"-> "control" // to organize in gui. maybe use "hide" to hide service in gui
     ),
     "setup" -> SPAttributes(
-      "busIP" -> KeyDefinition("String", List(), Some("0.0.0.0")),
+      "busIP" -> KeyDefinition("String", List(), Some("172.16.205.50")),
       "publishTopic" -> KeyDefinition("String", List(), Some("commands")),
       "subscribeTopic" -> KeyDefinition("String", List(), Some("response"))
     ),
@@ -100,6 +100,8 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
             unsubscribe()
         case "execute" =>
           sendCommands(commands)
+        case "status" =>
+          eventHandler ! Response(List(), SPAttributes("state"->state, "resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
         case "raw" =>
           sendRaw(commands)
         case _ =>

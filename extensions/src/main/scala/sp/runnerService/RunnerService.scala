@@ -1,6 +1,7 @@
 package sp.runnerService
 
 import akka.actor._
+import akka.util.Timeout
 import com.codemettle.reactivemq._
 import com.codemettle.reactivemq.ReActiveMQMessages._
 import com.codemettle.reactivemq.model._
@@ -49,12 +50,15 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   var state: State = State(Map())
   var reply: Option[RequestNReply] = None
   var readyList: List[ID] = List()
+  var sopen: Option[SOP] = None
+  implicit var rnr: RequestNReply = null
+  implicit val timeout = Timeout(2 seconds)
 
 
   def receive = {
     case r@Request(service, attr, ids, reqID) => {
       val replyTo = sender()
-      implicit val rnr = RequestNReply(r, replyTo)
+      rnr = RequestNReply(r, replyTo)
       reply = Some(rnr)
 
       // Lyssna på events från alla
@@ -69,38 +73,47 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       val idMap: Map[ID, IDAble] = ids.map(item => item.id -> item).toMap
       val sop = Try{idMap(sopID).asInstanceOf[SOPSpec].sop}.map(xs => Parallel(xs:_*))
 
+      askAService(Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"status"))),serviceHandler)
+
 
       // Makes the parentmap
       sop.foreach(createSOPMap)
+      sopen = sop.toOption
       println("we got a sop: "+sop)
+
 
 
       // Starts the first op
       sop.foreach(executeSOP)
       progress ! SPAttributes("activeOps"->activeSteps)
-      startID(ID.newID)
+
     }
 
     // Vi får states från Operation control
     case r @ Response(ids, attr, service, _) if service == operationController => {
       println(s"we got a state change")
+      println(attr)
 
-      val newState = attr.getAs[SPAttributes]("").get.getAs[State]("state").get
+      val newState = attr.getAs[State]("state")
 
-      state = State(state.state ++ newState.state.filter{case (id, v)=>
+      newState.foreach{s =>
+        state = State(state.state ++ s.state.filter{case (id, v)=>
         state.get(id) != newState.get(id)
       })
 
 
       //lägger till alla ready states i en readyList och tar bort gamla som inte är ready längre
-      state.state.keys.foreach(id => {
-        val temp = state.state.get(id).get.toString
-        if (!readyList.contains(id) && temp == "ready") {
-          readyList :+ id
-        } else if(readyList.contains(id) && temp != "ready") {
-          readyList.filter(_ != id)
+
+        val readyStates = state.state.filter{case (id, value) =>
+          value == SPValue("ready")
         }
-      })
+
+        readyList = readyStates.keys.toList
+        println(s"readyList: $readyList")
+        println(s"state: $state")
+
+      if (activeSteps.isEmpty)
+        sopen.foreach(executeSOP)
 
 
       // Plocka ut alla färdiga steg här
@@ -108,7 +121,6 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       val copyAS = activeSteps
       activeSteps = List()
       val res = copyAS.map(stepCompleted)
-      startID(ID.newID)
 
 
       // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
@@ -116,6 +128,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
         reply.foreach(rnr => rnr.reply ! Response(List(), SPAttributes("status"->"done"), rnr.req.service, rnr.req.reqID))
         self ! PoisonPill
       }
+    }
     }
   }
 
@@ -148,12 +161,19 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   def checkPreCond(x: Hierarchy): Boolean = {
     val temp = x.conditions.collect{case pc: PropositionCondition => pc}
     val enabled = temp.foldLeft(true)((a, b) => a && b.eval(state))
+    println(s"checking precondition, conditions = $enabled" )
+
+    println(s"readylist: $readyList")
+    println(s"op: ${x.operation}")
 
     readyList.contains(x.operation) && enabled
   }
 
 
-  def startID(id: ID) = { askAService(Request(operationController, SPAttributes("command"->SPAttributes("execute"->id))),serviceHandler) }
+  def startID(id: ID) = {
+    println(s"starting id $id")
+    askAService(Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"execute", "execute"->id))),serviceHandler)
+  }
 
 
   // Anropas när ett steg blir klart
