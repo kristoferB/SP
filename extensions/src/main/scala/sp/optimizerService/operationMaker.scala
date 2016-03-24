@@ -13,6 +13,7 @@ class operationMaker {
 
 
   // Things for Guards
+
   val palettSpace1Booked = Thing("palettSpace1Booked")                              //v1
   val palettSpace2Booked = Thing("palettSpace2Booked")                              //v2
   val palettSpace3Booked = Thing("palettSpace3Booked")                              //v3
@@ -58,19 +59,34 @@ class operationMaker {
 
   //Create actions
   val aGenerateOperatorInstructions = parserA.parseStr("generateOperatorInstructions = True").right.get
+val temp = List()
 
   //Operations
-//  val init = Operation("Init", List(PropositionCondition(AND(List()), List(aGenerateOperatorInstructions))),SPAttributes(), ID.newID)
-  val R2PalettToR5Pos1 = Operation //
-  val R2PalettToR5Pos2 = Operation
-  val R2PalettToR4Pos1 = Operation
-  val R2PalettToR4Pos2 = Operation
-  val R2PalettRemoveR5Pos1 = Operation
-  val R2PalettRemoveR5Pos2 = Operation
-  val R2PalettRemoveR4Pos1 = Operation
-  val R2PalettRemoveR4Pos2 = Operation
-  val R2PlaceBuildingPalett = Operation
-  val R2RemoveBuildingPalett = Operation
+
+  //Example
+  //val init = Operation("Init", List(PropositionCondition(AND(List()), List(aGenerateOperatorInstructions))),SPAttributes(), ID.newID)
+
+  //R2 Operations
+  val OR2PalettToR5PalettSpace1 = Operation // (Pos1 clear) Action R2 Booked = True
+  val OR2PalettToR5PalettSpace2 = Operation // (Pos2 clear AND POS1 filled)
+  val OR2PalettToR4PalettSpace1 = Operation // (Pos1 clear)
+  val OR2PalettToR4PalettSpace2 = Operation // (Pos2 clear AND POS1 filled)
+  val OR2PalettRemoveR5PalettSpace1 = Operation // Operation R4BuildFromPos1 Done
+  val OR2PalettRemoveR5PalettSpace2 = Operation // Operation R4BuildFromPos2 Done
+  val OR2PalettRemoveR4PalettSpace1 = Operation // Operation R5BuildFromPos1 Done
+  val OR2PalettRemoveR4PalettSpace2 = Operation // Operation R5BuildFromPos2 Done
+  val OR2PlaceBuildingPalett =   Operation //
+  val OR2RemoveBuildingPalett =  Operation // Operation
+  val OR2RemoveBooking =  Operation // After operations that books R2
+
+  val OR4BuildFromPos1 = Operation //
+  val OR4BuildFromPos2 = Operation //
+  val OR4RemoveBooking = Operation // After operations that books R5
+
+  val OR5BuildFromPos1 = Operation //
+  val OR5BuildFromPos2 = Operation //
+  val OR5RemoveBooking = Operation // After operations that books R5
+>>>>>>> d7376f429e78d11a747e4b2d3cfd664de7cc1ea7
 }
 
 
