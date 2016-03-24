@@ -1,7 +1,6 @@
 package sp.runnerService
 
 import akka.actor._
-
 import com.codemettle.reactivemq._
 import com.codemettle.reactivemq.ReActiveMQMessages._
 import com.codemettle.reactivemq.model._
@@ -17,6 +16,9 @@ import sp.extensions._
 import sp.psl._
 import scala.util.Try
 import sp.domain.SOP._
+import scala.concurrent.duration._
+import akka.actor.Actor
+import akka.actor.Props
 
 
 object RunnerService extends SPService {
@@ -67,13 +69,11 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       val idMap: Map[ID, IDAble] = ids.map(item => item.id -> item).toMap
       val sop = Try{idMap(sopID).asInstanceOf[SOPSpec].sop}.map(xs => Parallel(xs:_*))
 
-      //sop.foreach(s => getAllOperations(s))
-      //val something = getAllOperations(sop)
+
       // Makes the parentmap
       sop.foreach(createSOPMap)
       println("we got a sop: "+sop)
 
-      //parents.foreach(s => getAllOperations(s))
 
       // Starts the first op
       sop.foreach(executeSOP)
@@ -83,8 +83,6 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
     // Vi får states från Operation control
     case r @ Response(ids, attr, service, _) if service == operationController => {
-      // Till att börja med är dessa tomma, så vi säger att alla som kör blir färdiga
-
       println(s"we got a state change")
 
       val newState = attr.getAs[SPAttributes]("").get.getAs[State]("state").get
@@ -112,6 +110,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       val res = copyAS.map(stepCompleted)
       startID(ID.newID)
 
+
       // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
       if (res.foldLeft(false)(_ || _)){
         reply.foreach(rnr => rnr.reply ! Response(List(), SPAttributes("status"->"done"), rnr.req.service, rnr.req.reqID))
@@ -128,57 +127,33 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
     }
   }
 
-  var tictac = 0
+
   def executeSOP(sop: SOP): Unit = {
     if (sop.isInstanceOf[Hierarchy]) println(s"executing sop $sop")
     sop match {
       case x: Parallel => x.sop.foreach(executeSOP)
       case x: Sequence if x.sop.nonEmpty => executeSOP(x.sop.head)
       case x: Hierarchy => {
-        if (checkPreCond(x.operation)) {
-          tictac = 0
+        if (checkPreCond(x)) {
           startID(x.operation)
           activeSteps = activeSteps :+ x
-        } else {
-          //timer ish 10 sek
-          tictac = tictac + 1
-          if (tictac < 4) {
-            executeSOP(x)
-          } else {
-            // kasta exception/varning
-          }
         }
       }
       case x => println(s"Hmm, vi fick $x i executeSOP")
     }
   }
 
+
   // kollar om en operations alla preconditions är uppfyllda och kan köras
-  def checkPreCond(id: ID): Boolean = {
-    true
+  def checkPreCond(x: Hierarchy): Boolean = {
+    val temp = x.conditions.collect{case pc: PropositionCondition => pc}
+    val enabled = temp.foldLeft(true)((a, b) => a && b.eval(state))
+
+    readyList.contains(x.operation) && enabled
   }
 
-  import scala.concurrent._
-  import scala.concurrent.duration._
 
-  def startID(id: ID) = {
-
-    //askAService(Request(operationController, SPAttributes("command"->SPAttributes("execute"->id))),)
-
-    // Skickar ett tomt svar efter 2s.
-    context.system.scheduler.scheduleOnce(2000 milliseconds, self,
-      Response(List(),
-        SPAttributes("state"-> SPAttributes(
-          "a0f565e2-e44b-4017-a24e-c7d01e970dec"->"completed",
-          "b0f565e2-e44b-4017-a24e-c7d01e970dec"->"completed",
-          "c0f565e2-e44b-4017-a24e-c7d01e970dec"->"ready",
-          "d0f565e2-e44b-4017-a24e-c7d01e970dec"->"completed",
-          "e0f565e2-e44b-4017-a24e-c7d01e970dec"->"completed"
-        )),
-        operationController,
-        ID.newID
-      ))
-  }
+  def startID(id: ID) = { askAService(Request(operationController, SPAttributes("command"->SPAttributes("execute"->id))),serviceHandler) }
 
 
   // Anropas när ett steg blir klart
