@@ -8,27 +8,40 @@ class operationMaker {
 
 
   //Init parsers
-  val parserG = sp.domain.logic.PropositionParser(List())
-  val parserA = sp.domain.logic.ActionParser(List())
+  val parserG = sp.domain.logic.PropositionParser(List(palettSpace1Booked,palettSpace2Booked,palettSpace3Booked,palettSpace4Booked,
+    R2Booked,R4Booked,R5Booked,R4Dodge,R5Dodge,H1NoneEmpty,H1Up,H2Up,H2Empty))
+
 
   // Things for Guards
-  val cubeSpace1Booked = Thing("cubeSpace1Boked")                              //v1
-  val cubeSpace2Booked = Thing("cubeSpace2Boked")                              //v2
-  val cubeSpace3Booked = Thing("cubeSpace3Boked")                              //v3
-  val cubeSpace4Booked = Thing("cubedSpace4Boked")                             //v4
+  val palettSpace1Booked = Thing("palettSpace1Booked")                              //v1
+  val palettSpace2Booked = Thing("palettSpace2Booked")                              //v2
+  val palettSpace3Booked = Thing("palettSpace3Booked")                              //v3
+  val palettSpace4Booked = Thing("palettSpace4Boked")                             //v4
   val buildSpaceBooked = Thing("buildSpaceBooked")
   val R2Booked =  Thing("R2Booked")
   val R5Booked =  Thing("R5Booked")
   val R4Booked =  Thing("R5Booked")
   val R4Dodge =   Thing("R4Dodge")
   val R5Dodge =   Thing("R5Dodge")
+  val H1NoneEmpty = Thing("H4Empty")
+  val H1Up = Thing("H4Up")
+  val H2Empty = Thing("H4Empty")
+  val H2Up = Thing("H4Up")
+
+  val parserA = sp.domain.logic.ActionParser(List(R2PalettToR5Pos1,R2PalettToR5Pos2,R2PalettToR4Pos1,R2PalettToR4Pos2,R2PalettRemoveR5Pos1,
+    R2PalettRemoveR5Pos2,R2PalettRemoveR4Pos1,R2PalettRemoveR4Pos2,R2PlaceBuildingPalett,R2RemoveBuildingPalett))
 
   // Things for Actions
-  val R2MoveCubePalletTo1 = Thing("R2MoveBuildPalletTo1")
-  val R2MoveCubePalletTo2 = Thing("R2MoveBuildPalletTo3")
-  val R2MoveCubePalletTo3 = Thing("R2MoveBuildPalletTo3")
-  val R2MoveCubePalletTo4 = Thing("R2MoveBuildPalletTo4")
-  val R2MoveBuildPallet = Thing("R2MoveBuildPallet")
+  val R2PalettToR5Pos1 = Thing("R2PalettToR5Pos1")
+  val R2PalettToR5Pos2 = Thing("R2PalettToR5Pos2")
+  val R2PalettToR4Pos1 = Thing("R2PalletToR4Pos1")
+  val R2PalettToR4Pos2 = Thing("R2PalettToR4Pos2")
+  val R2PalettRemoveR5Pos1 = Thing("R2PalettRemoveR5Pos1")
+  val R2PalettRemoveR5Pos2 = Thing("R2PalettRemoveR5Pos2")
+  val R2PalettRemoveR4Pos1 = Thing("R2PalettRemoveR4Pos1")
+  val R2PalettRemoveR4Pos2 = Thing("R2PalettRemoveR4Pos2")
+  val R2PlaceBuildingPalett = Thing("R2PlaceBuildingPalett")
+  val R2RemoveBuildingPalett = Thing("R2RemoveBuildingPalett")
 
 
 
@@ -47,7 +60,7 @@ class operationMaker {
   val aGenerateOperatorInstructions = parserA.parseStr("generateOperatorInstructions = True").right.get
 
   //Operations
-  val init = Operation("Init", List(PropositionCondition(AND(List()), List(aGenerateOperatorInstructions))),SPAttributes(), ID.newID)
+//  val init = Operation("Init", List(PropositionCondition(AND(List()), List(aGenerateOperatorInstructions))),SPAttributes(), ID.newID)
   val R2PalettToR5Pos1 = Operation //
   val R2PalettToR5Pos2 = Operation
   val R2PalettToR4Pos1 = Operation
