@@ -1,53 +1,88 @@
+
+
+
+
 import sp.domain._
 import sp.psl._
 import sp.domain.Logic._
 
 
-/**
-  * Created by Dell on 2016-03-22.
-  */
 class operationMaker {
-  //Operation Init
-  /*
-  Thing (Namn, attributes: ?SPAttributes = SPAttributes()?, id)
 
-  Operation(name: String,
-                     conditions: List[Condition] = List(),
-                     attributes: SPAttributes = SPAttributes(),
-                     id: ID = ID.newID)
-För exempel:
-sp/core/src/test/scala/sp/services/relations/variableOperationMapperTest.scala
+/*
 
-      val t1 = Thing("t1")
-      val t2 = Thing("t2")
-      val t3 = Thing("t3")
+  //Init parsers
+  val parserG = sp.domain.logic.PropositionParser(List(newBuildOrder, systemReady))
+  val parserA = sp.domain.logic.ActionParser(List(generateOperatorInstructions))
 
-      val parserG = sp.domain.logic.PropositionParser(List(t1, t2, t3))
-      val parserA = sp.domain.logic.ActionParser(List(t1, t2, t3))
-
-      val g1 = parserG.parseStr("t1 == hej").right.get
-      val g2 = parserG.parseStr("t1 == då and t2 == 0").right.get
-      val g3 = parserG.parseStr("t3 == foo").right.get
-      val g4 = parserG.parseStr("t2 == 3 and t3 == bar").right.get
-
-      val a1 = parserA.parseStr("t1 = r1.moveToFixture").right.get
-      val a2 = parserA.parseStr("t2 = 200").right.get
-      val a3 = parserA.parseStr("t3 = foobar").right.get
+  // Things for Guards
+  val newBuildOrder = Thing("newBuildOrder")
+  val systemReady = Thing("systemReady")
+  val operatorInstructionsGenerated = Thing("operatorInstructionsGenerated")
+  val palettReady = Thing("palettReady")
 
 
-      val o1 = Operation("o1", List(PropositionCondition(g1, List(a1))))
-      val o2 = Operation("o2", List(PropositionCondition(AND(List(g2, g4)), List(a1, a2))))
-      val o3 = Operation("o3", List(PropositionCondition(g3, List(a3))))
+  // Things for Actions
+  val generateOperatorInstructions = Thing("generateOperatorInstructions")
 
-   */
 
-  val t1 = Thing("t1")
 
-  val parserG = sp.domain.logic.PropositionParser(List(t1))
-  val parserA = sp.domain.logic.ActionParser(List(t1))
+  //Create gaurds
+  val gNewBuildOrder = parserG.parseStr("newBuildOrder == true").right.get
+  val gSystemReady = parserG.parseStr("systemReady == true").right.get
+  //Create actions
+  val aGenerateOperatorInstructions = parserA.parseStr("generateOperatorInstructions = True").right.get
 
-  val g1 = parserG.parseStr("t1 == systemReady AND buildOrder").right.get
-  val a1 = parserA.parseStr("t1 = r1.moveToFixture").right.get
+  //Operations
+  val init = Operation("Init", List(PropositionCondition(AND(List(gNewBuildOrder,gSystemReady)), List(aGenerateOperatorInstructions))),SPAttributes(), ID.newID)
+  //När det finns instruktioner genererade och palett ej redo, visa instruktioner
+  val materialInput = Operation("materialInput", List(PropositionCondition()))
+  //När en palett är redo, kör band och sätt palett ej redo
+  val flexLinkRun = Operation
+*/
 
-  val o1 = Operation("init", List(PropositionCondition(g1, List(a1))))
+  //Init parsers
+  val parserG = sp.domain.logic.PropositionParser(List(cubeSpace1Booked, cubeSpace2Booked, cubeSpace3Booked, cubeSpace4Booked))
+  val parserA = sp.domain.logic.ActionParser(List())
+
+  // Things for Guards
+  val cubeSpace1Booked = Thing("cubeSpace1Boked")                              //v1
+  val cubeSpace2Booked = Thing("cubeSpace2Boked")                              //v2
+  val cubeSpace3Booked = Thing("cubeSpace3Boked")                              //v3
+  val cubeSpace4Booked = Thing("cubedSpace4Boked")                              //v4
+  val buildSpaceBooked = Thing("buildSpaceBooked")
+  val R2booked = Thing("R2booked")
+  val R5booked = Thing("R5booked")
+  val R4booked = Thing("R5booked")
+  val R4dodge = Thing("R4dodge")
+  val R5dodge = Thing("R5dodge")
+
+  // Things for Actions
+  val R2moveCubePalletTo1 = Thing("R2moveBuildPalletTo1")
+  val R2moveCubePalletTo2 = Thing("R2moveBuildPalletTo3")
+  val R2moveCubePalletTo3 = Thing("R2moveBuildPalletTo3")
+  val R2moveCubePalletTo4 = Thing("R2moveBuildPalletTo4")
+  val R2moveBuildPallet = Thing("R2moveBuildPallet")
+
+
+
+  //Create gaurds
+  val buildSpace1Boked = parserG.parseStr("buildSpace1Boked == true").right.get
+  val buildSpace2Boked = parserG.parseStr("buildSpace2Boked == true").right.get
+  val buildSpace3Boked = parserG.parseStr("buildSpace3Boked == true").right.get
+  val buildSpace4Boked = parserG.parseStr("buildSpace4Boked == true").right.get
+  val R2booked = parserG.parseStr("R2booked == false").right.get
+  val R4booked = parserG.parseStr("R4booked == false").right.get
+  val R5booked = parserG.parseStr("R5booked == false").right.get
+  val R4dodge = parserG.parseStr("R4dodge == true").right.get
+  val R5dodge = parserG.parseStr("R4dodge == true").right.get
+
+  //Create actions
+  val aGenerateOperatorInstructions = parserA.parseStr("generateOperatorInstructions = True").right.get
+
+  //Operations
+  val init = Operation("Init", List(PropositionCondition(AND(List()), List(aGenerateOperatorInstructions))),SPAttributes(), ID.newID
+
 }
+
+
