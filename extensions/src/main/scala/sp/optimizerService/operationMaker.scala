@@ -86,7 +86,7 @@ val temp = List()
   val OR5BuildFromPos1 = Operation //
   val OR5BuildFromPos2 = Operation //
   val OR5RemoveBooking = Operation // After operations that books R5
->>>>>>> d7376f429e78d11a747e4b2d3cfd664de7cc1ea7
+
 }
 
 
