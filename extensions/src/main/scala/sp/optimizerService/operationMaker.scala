@@ -1,19 +1,7 @@
 
-
-
-
 import sp.domain._
-import sp.psl._
-import sp.domain.Logic._
-
 
 class operationMaker {
-
-
-  //Init parsers
-  val parserG = sp.domain.logic.PropositionParser(List(buildSpace1Booked, buildSpace2Booked, buildSpace3Booked,
-    buildSpace4Booked,R2Booked,R4Booked,R5Booked, R4Dodge, R5Dodge))
-  val parserA = sp.domain.logic.ActionParser(List())
 
   // Things for Guards
   val buildSpace1Booked = Thing("buildSpace1Booked") //For palettpos1
@@ -26,15 +14,30 @@ class operationMaker {
   val R5Booked =  Thing("R5Booked")               //Book robot 5
   val R4Dodge =   Thing("R4Dodge")                //If robot 4 is in dodge pos
   val R5Dodge =   Thing("R5Dodge")                //If robot 4 is in dodge pos
+  val H1NoneEmpty = Thing("H4Empty")
+  val H1Up = Thing("H4Up")
+  val H2Empty = Thing("H4Empty")
+  val H2Up = Thing("H4Up")
 
   // Things for Actions
-  val aR2MoveCubePalletTo1 = Thing("R2MoveBuildPalletTo1")    //Move the palett from the elevator to pos 1
-  val aR2MoveCubePalletTo2 = Thing("R2MoveBuildPalletTo3")    //Move the palett from the elevator to pos 2
-  val aR2MoveCubePalletTo3 = Thing("R2MoveBuildPalletTo3")    //Move the palett from the elevator to pos 3
-  val aR2MoveCubePalletTo4 = Thing("R2MoveBuildPalletTo4")    //Move the palett from the elevator to pos 4
   val aR2MoveBuildPallet = Thing("R2MoveBuildPallet")         //Move the building platform from the elevator to buildningplace
+  val R2PalettToR5Pos1 = Thing("R2PalettToR5Pos1")
+  val R2PalettToR5Pos2 = Thing("R2PalettToR5Pos2")
+  val R2PalettToR4Pos1 = Thing("R2PalletToR4Pos1")
+  val R2PalettToR4Pos2 = Thing("R2PalettToR4Pos2")
+  val R2PalettRemoveR5Pos1 = Thing("R2PalettRemoveR5Pos1")
+  val R2PalettRemoveR5Pos2 = Thing("R2PalettRemoveR5Pos2")
+  val R2PalettRemoveR4Pos1 = Thing("R2PalettRemoveR4Pos1")
+  val R2PalettRemoveR4Pos2 = Thing("R2PalettRemoveR4Pos2")
+  val R2PlaceBuildingPalett = Thing("R2PlaceBuildingPalett")
+  val R2RemoveBuildingPalett = Thing("R2RemoveBuildingPalett")
 
 
+  val parserG = sp.domain.logic.PropositionParser(List(buildSpace1Booked,buildSpace2Booked,buildSpace3Booked,buildSpace4Booked,
+    R2Booked,R4Booked,R5Booked,R4Dodge,R5Dodge,H1NoneEmpty,H1Up,H2Up,H2Empty))
+
+  val parserA = sp.domain.logic.ActionParser(List(R2PalettToR5Pos1,R2PalettToR5Pos2,R2PalettToR4Pos1,R2PalettToR4Pos2,R2PalettRemoveR5Pos1,
+    R2PalettRemoveR5Pos2,R2PalettRemoveR4Pos1,R2PalettRemoveR4Pos2,R2PlaceBuildingPalett,R2RemoveBuildingPalett))
 
   //Create gaurds
   val gBuildSpace1Booked = parserG.parseStr("buildSpace1Booked == true").right.get
@@ -58,6 +61,7 @@ class operationMaker {
   
 
   //Operations
+
   //Example
  // val init = Operation("Init", List(PropositionCondition(AND(List()), List(aGenerateOperatorInstructions))),SPAttributes(), ID.newID)
 
