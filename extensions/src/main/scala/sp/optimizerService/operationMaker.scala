@@ -94,7 +94,42 @@ class operationMaker {
   val R5PickUpAt26 = Thing("R4PickUpAt26")
   val R5PickUpAt27 = Thing("R4PickUpAt27")
   val R5PickUpAt28 = Thing("R4PickUpAt28")
+  //Discrabes things were R4 can put cubes
+  val R4PutCubeAt11 = Thing("R4PutCubeAt11")
+  val R4PutCubeAt12 = Thing("R4PutCubeAt12")
+  val R4PutCubeAt13 = Thing("R4PutCubeAt13")
+  val R4PutCubeAt14 = Thing("R4PutCubeAt14")
+  val R4PutCubeAt21 = Thing("R4PutCubeAt21")
+  val R4PutCubeAt22 = Thing("R4PutCubeAt22")
+  val R4PutCubeAt23 = Thing("R4PutCubeAt23")
+  val R4PutCubeAt24 = Thing("R4PutCubeAt24")
+  val R4PutCubeAt31 = Thing("R4PutCubeAt31")
+  val R4PutCubeAt32 = Thing("R4PutCubeAt32")
+  val R4PutCubeAt33 = Thing("R4PutCubeAt33")
+  val R4PutCubeAt34 = Thing("R4PutCubeAt34")
+  val R4PutCubeAt41 = Thing("R4PutCubeAt41")
+  val R4PutCubeAt42 = Thing("R4PutCubeAt42")
+  val R4PutCubeAt43 = Thing("R4PutCubeAt43")
+  val R4PutCubeAt44 = Thing("R4PutCubeAt44")
+  //Discrabes things were R5 can put cubes
+  val R5PutCubeAt11 = Thing("R5PutCubeAt11")
+  val R5PutCubeAt12 = Thing("R5PutCubeAt12")
+  val R5PutCubeAt13 = Thing("R5PutCubeAt13")
+  val R5PutCubeAt14 = Thing("R5PutCubeAt14")
+  val R5PutCubeAt21 = Thing("R5PutCubeAt21")
+  val R5PutCubeAt22 = Thing("R5PutCubeAt22")
+  val R5PutCubeAt23 = Thing("R5PutCubeAt23")
+  val R5PutCubeAt24 = Thing("R5PutCubeAt24")
+  val R5PutCubeAt31 = Thing("R5PutCubeAt31")
+  val R5PutCubeAt32 = Thing("R5PutCubeAt32")
+  val R5PutCubeAt33 = Thing("R5PutCubeAt33")
+  val R5PutCubeAt34 = Thing("R5PutCubeAt34")
+  val R5PutCubeAt41 = Thing("R5PutCubeAt41")
+  val R5PutCubeAt42 = Thing("R5PutCubeAt42")
+  val R5PutCubeAt43 = Thing("R5PutCubeAt43")
+  val R5PutCubeAt44 = Thing("R5PutCubeAt44")
 
+//Iniate parsers--------------------------------------------------------------------------------------------------------
 
   val parserG = sp.domain.logic.PropositionParser(List(buildSpace1Booked, buildSpace2Booked, buildSpace3Booked, buildSpace4Booked,
     R2Booked, R4Booked, R5Booked, R4Dodge, R5Dodge, H1NoneEmpty, H1Up, H2Up, H2Empty, buildSpotBooked,buildPallet1Empty,buildPallet2Empty,
@@ -106,7 +141,11 @@ class operationMaker {
     R4PickUpAt11, R4PickUpAt12, R4PickUpAt13, R4PickUpAt14, R4PickUpAt15, R4PickUpAt16, R4PickUpAt17, R4PickUpAt18,
     R4PickUpAt21, R4PickUpAt22, R4PickUpAt23, R4PickUpAt24, R4PickUpAt25, R4PickUpAt26, R4PickUpAt27, R4PickUpAt28,
     R5PickUpAt11, R5PickUpAt12, R5PickUpAt13, R5PickUpAt14, R5PickUpAt15, R5PickUpAt16, R5PickUpAt17, R5PickUpAt18,
-    R5PickUpAt21, R5PickUpAt22, R5PickUpAt23, R5PickUpAt24, R5PickUpAt25, R5PickUpAt26, R5PickUpAt27, R5PickUpAt28))
+    R5PickUpAt21, R5PickUpAt22, R5PickUpAt23, R5PickUpAt24, R5PickUpAt25, R5PickUpAt26, R5PickUpAt27, R5PickUpAt28,
+    R4PutCubeAt11,R4PutCubeAt12,R4PutCubeAt13,R4PutCubeAt14,R4PutCubeAt21,R4PutCubeAt22,R4PutCubeAt23,R4PutCubeAt24,
+    R4PutCubeAt31,R4PutCubeAt32,R4PutCubeAt33,R4PutCubeAt34,R4PutCubeAt41,R4PutCubeAt42,R4PutCubeAt43,R4PutCubeAt44,
+    R5PutCubeAt11,R5PutCubeAt12,R5PutCubeAt13,R5PutCubeAt14,R5PutCubeAt21,R5PutCubeAt22,R5PutCubeAt23,R5PutCubeAt24,
+    R5PutCubeAt31,R5PutCubeAt32,R5PutCubeAt33,R5PutCubeAt34,R5PutCubeAt41,R5PutCubeAt42,R5PutCubeAt43,R5PutCubeAt44))
 
   //Create gaurds-------------------------------------------------------------------------------------------------------
   val gBuildSpace1Booked = parserG.parseStr("buildSpace1Booked == true").right.get
@@ -199,6 +238,40 @@ class operationMaker {
   val aR5HoldingCube = parserA.parseStr("R5HoldingCube = true").right.get
   val aR4NotHoldingCube = parserA.parseStr("R4HoldingCube = false").right.get
   val aR5NotHoldingCube = parserA.parseStr("R5HoldingCube = false").right.get
+  //Discrabes Actions were R4 can put cubes
+  val aR4PutCubeAt11 = parserA.parseStr("R4PutCubeAt11").right.get
+  val aR4PutCubeAt12 = parserA.parseStr("R4PutCubeAt12").right.get
+  val aR4PutCubeAt13 = parserA.parseStr("R4PutCubeAt13").right.get
+  val aR4PutCubeAt14 = parserA.parseStr("R4PutCubeAt14").right.get
+  val aR4PutCubeAt21 = parserA.parseStr("R4PutCubeAt21").right.get
+  val aR4PutCubeAt22 = parserA.parseStr("R4PutCubeAt22").right.get
+  val aR4PutCubeAt23 = parserA.parseStr("R4PutCubeAt23").right.get
+  val aR4PutCubeAt24 = parserA.parseStr("R4PutCubeAt24").right.get
+  val aR4PutCubeAt31 = parserA.parseStr("R4PutCubeAt31").right.get
+  val aR4PutCubeAt32 = parserA.parseStr("R4PutCubeAt32").right.get
+  val aR4PutCubeAt33 = parserA.parseStr("R4PutCubeAt33").right.get
+  val aR4PutCubeAt34 = parserA.parseStr("R4PutCubeAt34").right.get
+  val aR4PutCubeAt41 = parserA.parseStr("R4PutCubeAt41").right.get
+  val aR4PutCubeAt42 = parserA.parseStr("R4PutCubeAt42").right.get
+  val aR4PutCubeAt43 = parserA.parseStr("R4PutCubeAt43").right.get
+  val aR4PutCubeAt44 = parserA.parseStr("R4PutCubeAt44").right.get
+  //Discrabes Actions were R5 can put cubes
+  val aR5PutCubeAt11 = parserA.parseStr("R5PutCubeAt11").right.get
+  val aR5PutCubeAt12 = parserA.parseStr("R5PutCubeAt12").right.get
+  val aR5PutCubeAt13 = parserA.parseStr("R5PutCubeAt13").right.get
+  val aR5PutCubeAt14 = parserA.parseStr("R5PutCubeAt14").right.get
+  val aR5PutCubeAt21 = parserA.parseStr("R5PutCubeAt21").right.get
+  val aR5PutCubeAt22 = parserA.parseStr("R5PutCubeAt22").right.get
+  val aR5PutCubeAt23 = parserA.parseStr("R5PutCubeAt23").right.get
+  val aR5PutCubeAt24 = parserA.parseStr("R5PutCubeAt24").right.get
+  val aR5PutCubeAt31 = parserA.parseStr("R5PutCubeAt31").right.get
+  val aR5PutCubeAt32 = parserA.parseStr("R5PutCubeAt32").right.get
+  val aR5PutCubeAt33 = parserA.parseStr("R5PutCubeAt33").right.get
+  val aR5PutCubeAt34 = parserA.parseStr("R5PutCubeAt34").right.get
+  val aR5PutCubeAt41 = parserA.parseStr("R5PutCubeAt41").right.get
+  val aR5PutCubeAt42 = parserA.parseStr("R5PutCubeAt42").right.get
+  val aR5PutCubeAt43 = parserA.parseStr("R5PutCubeAt43").right.get
+  val aR5PutCubeAt44 = parserA.parseStr("R5PutCubeAt44").right.get
 
   //Operations----------------------------------------------------------------------------------------------------------
 
@@ -279,6 +352,40 @@ class operationMaker {
   val OR5PickUpAt26 = Operation("OR5PickUpAt26", List(PropositionCondition(AND(List(NOT(gR5Booked),gBuildSpace4Booked)), List(aR5PickUpAt26,aBookR5,aR5HoldingCube))))
   val OR5PickUpAt27 = Operation("OR5PickUpAt27", List(PropositionCondition(AND(List(NOT(gR5Booked),gBuildSpace4Booked)), List(aR5PickUpAt27,aBookR5,aR5HoldingCube))))
   val OR5PickUpAt28 = Operation("OR5PickUpAt28", List(PropositionCondition(AND(List(NOT(gR5Booked),gBuildSpace4Booked)), List(aR5PickUpAt28,aBookR5,aR5HoldingCube))))
+  //Ops for placing cubes with R4
+  val OR4PutCubeAt11 = Operation("OR4PutCubeAt11", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt11,aR4NotHoldingCube))))
+  val OR4PutCubeAt12 = Operation("OR4PutCubeAt12", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt12,aR4NotHoldingCube))))
+  val OR4PutCubeAt13 = Operation("OR4PutCubeAt13", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt13,aR4NotHoldingCube))))
+  val OR4PutCubeAt14 = Operation("OR4PutCubeAt14", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt14,aR4NotHoldingCube))))
+  val OR4PutCubeAt21 = Operation("OR4PutCubeAt21", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt21,aR4NotHoldingCube))))
+  val OR4PutCubeAt22 = Operation("OR4PutCubeAt22", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt22,aR4NotHoldingCube))))
+  val OR4PutCubeAt23 = Operation("OR4PutCubeAt23", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt23,aR4NotHoldingCube))))
+  val OR4PutCubeAt24 = Operation("OR4PutCubeAt24", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt24,aR4NotHoldingCube))))
+  val OR4PutCubeAt31 = Operation("OR4PutCubeAt31", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt31,aR4NotHoldingCube))))
+  val OR4PutCubeAt32 = Operation("OR4PutCubeAt32", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt32,aR4NotHoldingCube))))
+  val OR4PutCubeAt33 = Operation("OR4PutCubeAt33", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt33,aR4NotHoldingCube))))
+  val OR4PutCubeAt34 = Operation("OR4PutCubeAt34", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt34,aR4NotHoldingCube))))
+  val OR4PutCubeAt41 = Operation("OR4PutCubeAt41", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt41,aR4NotHoldingCube))))
+  val OR4PutCubeAt42 = Operation("OR4PutCubeAt42", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt42,aR4NotHoldingCube))))
+  val OR4PutCubeAt43 = Operation("OR4PutCubeAt43", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt43,aR4NotHoldingCube))))
+  val OR4PutCubeAt44 = Operation("OR4PutCubeAt44", List(PropositionCondition(AND(List(NOT(gR4Booked),gR4HoldingCube)), List(aR4PutCubeAt44,aR4NotHoldingCube))))
+  //Ops for placing cubes with R5
+  val OR5PutCubeAt11 = Operation("OR5PutCubeAt11", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt11,aR5NotHoldingCube))))
+  val OR5PutCubeAt12 = Operation("OR5PutCubeAt12", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt12,aR5NotHoldingCube))))
+  val OR5PutCubeAt13 = Operation("OR5PutCubeAt13", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt13,aR5NotHoldingCube))))
+  val OR5PutCubeAt14 = Operation("OR5PutCubeAt14", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt14,aR5NotHoldingCube))))
+  val OR5PutCubeAt21 = Operation("OR5PutCubeAt21", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt21,aR5NotHoldingCube))))
+  val OR5PutCubeAt22 = Operation("OR5PutCubeAt22", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt22,aR5NotHoldingCube))))
+  val OR5PutCubeAt23 = Operation("OR5PutCubeAt23", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt23,aR5NotHoldingCube))))
+  val OR5PutCubeAt24 = Operation("OR5PutCubeAt24", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt24,aR5NotHoldingCube))))
+  val OR5PutCubeAt31 = Operation("OR5PutCubeAt31", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt31,aR5NotHoldingCube))))
+  val OR5PutCubeAt32 = Operation("OR5PutCubeAt32", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt32,aR5NotHoldingCube))))
+  val OR5PutCubeAt33 = Operation("OR5PutCubeAt33", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt33,aR5NotHoldingCube))))
+  val OR5PutCubeAt34 = Operation("OR5PutCubeAt34", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt34,aR5NotHoldingCube))))
+  val OR5PutCubeAt41 = Operation("OR5PutCubeAt41", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt41,aR5NotHoldingCube))))
+  val OR5PutCubeAt42 = Operation("OR5PutCubeAt42", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt42,aR5NotHoldingCube))))
+  val OR5PutCubeAt43 = Operation("OR5PutCubeAt43", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt43,aR5NotHoldingCube))))
+  val OR5PutCubeAt44 = Operation("OR5PutCubeAt44", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt44,aR5NotHoldingCube))))
 
 }
 
