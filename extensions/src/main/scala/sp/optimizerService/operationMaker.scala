@@ -202,6 +202,9 @@ class operationMaker {
   val aR2PalettRemoveR4Pos2 = parserA.parseStr("R2PalettRemoveR4Pos2 = true").right.get
   val aR2PlaceBuildingPalett = parserA.parseStr("R2PlaceBuildingPalett = true").right.get
   val aR2RemoveBuildingPalett = parserA.parseStr("R2RemoveBuildingPalett = true").right.get
+  //Change status of bulding pallets
+  val aNewBuildingPalettComplete = parserA.parseStr("buildingPalettComplete = false").right.get
+  val aBuildingPalettIsComplete = parserA.parseStr("buildingPalettComplete = true").right.get
   //Actions for picking up cubes for R4 and pallet 1
   val aR4PickUpAt11 = parserA.parseStr("R4PickUpAt11 = true").right.get
   val aR4PickUpAt12 = parserA.parseStr("R4PickUpAt12 = true").right.get
@@ -305,11 +308,11 @@ class operationMaker {
   //
   val OR2RemoveBuildingPalett = Operation("OR2RemoveBuildingPalett", List(PropositionCondition(AND(List(NOT(gR2Booked),NOT(gR5Booked),NOT(gR4Booked),gBuildSpotBooked,gBuildingPalettComplete)), List(aBookR2,aBuildSpotUnBook,aR2RemoveBuildingPalett))))
   // Operation
-  val OR2RemoveBookingR2 = Operation("OR2RemoveBookingR2", List(PropositionCondition(AND(List(gR2OPComplete)), List(aUnBookR2))))
+  val OR2RemoveBooking = Operation("OR2RemoveBooking", List(PropositionCondition(AND(List(gR2OPComplete)), List(aUnBookR2))))
   // After operations that books R2
-  val OR2RemoveBookingR4 = Operation("OR2RemoveBookingR4", List(PropositionCondition(AND(List(gR4OPComplete)), List(aUnBookR4))))
+  val OR4RemoveBooking = Operation("OR2RemoveBooking", List(PropositionCondition(AND(List(gR4OPComplete)), List(aUnBookR4))))
   // After operations that books R4
-  val OR2RemoveBookingR5 = Operation("OR2RemoveBookingR5", List(PropositionCondition(AND(List(gR5OPComplete)), List(aUnBookR5))))
+  val OR5RemoveBooking = Operation("OR2RemoveBooking", List(PropositionCondition(AND(List(gR5OPComplete)), List(aUnBookR5))))
   // After operations that books R5
   //OPs for picking up cubes by R4 at spot 1
   val OR4PickUpAt11 = Operation("OR4PickUpAt11", List(PropositionCondition(AND(List(NOT(gR4Booked),gBuildSpaceR1Booked)), List(aR4PickUpAt11,aBookR4,aR4HoldingCube))))
@@ -381,16 +384,23 @@ class operationMaker {
   val OR5PutCubeAt42 = Operation("OR5PutCubeAt42", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt42,aR5NotHoldingCube))))
   val OR5PutCubeAt43 = Operation("OR5PutCubeAt43", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt43,aR5NotHoldingCube))))
   val OR5PutCubeAt44 = Operation("OR5PutCubeAt44", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt44,aR5NotHoldingCube))))
-
+  //special OPs for pre-defined towers
+  val ONewBuildingPalettComplete = Operation("ONewBuildingPalettComplete", List(PropositionCondition(AND(List(AlwaysTrue)),List(aNewBuildingPalettComplete))))
+  val OBuildingIsPalettComplete = Operation("OBuildingPalettIsComplete", List(PropositionCondition(AND(List(AlwaysTrue)),List(aBuildingPalettIsComplete))))
 
 // val sopSeq = SOP(Sequence(o11, o12, o13), Sequence(o21, o22, o23), Parallel(o11,o12))
   val thaSop = SOP(
     Sequence(
-      Sequence(OR2PlaceBuildingPalett,OR2PalettToR5PalettSpace1),
+      Sequence(OR2PlaceBuildingPalett, OR2RemoveBooking, OR2PalettToR5PalettSpace1, OR2RemoveBooking),ONewBuildingPalettComplete,
       Parallel(
-        Sequence(OR2PalettToR4PalettSpace1,OR4PickUpAt11,OR4PutCubeAt11,OR4PickUpAt12,OR4PutCubeAt21,OR4PickUpAt15,OR4PutCubeAt12,OR4PickUpAt16,OR4PutCubeAt22),
-        Sequence(OR5PickUpAt11,OR5PutCubeAt13,OR5PickUpAt15,OR5PutCubeAt14,OR5PickUpAt12,OR5PutCubeAt23,OR5PickUpAt16,OR5PutCubeAt24)),
-      Sequence(OR2RemoveBuildingPalett,OR2PalettRemoveR4PalettSpace1,OR2PalettRemoveR5PalettSpace1)
+        Sequence(OR2PalettToR4PalettSpace1,OR2RemoveBooking,OR4PickUpAt15,OR4PutCubeAt12,OR4RemoveBooking,OR4PickUpAt11, OR4PutCubeAt11,
+          OR4RemoveBooking,OR4PickUpAt17,OR4PutCubeAt12,OR4RemoveBooking,OR4PickUpAt12,OR4PutCubeAt21,OR4RemoveBooking, OR4PickUpAt17,
+          OR4PutCubeAt32,OR4RemoveBooking,OR4PickUpAt13,OR4PutCubeAt31,OR4RemoveBooking,OR4PickUpAt18,OR4PutCubeAt42,OR4RemoveBooking,
+          OR4PickUpAt14,OR4PutCubeAt41,OR4RemoveBooking),
+        Sequence(OR5PickUpAt11,OR5PutCubeAt13,OR5RemoveBooking,OR5PickUpAt15,OR5PutCubeAt14,OR5RemoveBooking,OR5PickUpAt12,OR5PutCubeAt23,OR5RemoveBooking,
+          OR5PickUpAt16,OR5PutCubeAt24,OR5RemoveBooking,OR5PickUpAt13,OR5PutCubeAt33,OR5RemoveBooking,OR5PickUpAt17,OR5PutCubeAt34,OR5RemoveBooking,
+          OR5PickUpAt14,OR5PutCubeAt43,OR5RemoveBooking,OR5PickUpAt18,OR5PutCubeAt44,OR5RemoveBooking)),
+      Sequence(OBuildingIsPalettComplete,OR2RemoveBuildingPalett, OR2RemoveBooking, OR2PalettRemoveR4PalettSpace1, OR2RemoveBooking, OR2PalettRemoveR5PalettSpace1, OR2RemoveBooking)
     )
   //Here is were the next tower would be.
   )
