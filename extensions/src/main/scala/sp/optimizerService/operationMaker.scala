@@ -280,35 +280,25 @@ class operationMaker {
 
   //R2 Operations
   //AND(List(NOT(gBuildSpace1Booked), NOT(gR2booked)))
-  val OR2PalettToR5PalettSpace1 = Operation("OR2PalettToR5PalettSpace1",
-    List(PropositionCondition(AND(List(NOT(gBuildSpace1Booked), NOT(gR2Booked), NOT(gR5Booked))), List(aBookR2,aR2PalettToR5Pos1,aBuildSpace1Book))))
+  val OR2PalettToR5PalettSpace1 = Operation("OR2PalettToR5PalettSpace1", List(PropositionCondition(AND(List(NOT(gBuildSpace1Booked), NOT(gR2Booked), NOT(gR5Booked))), List(aBookR2,aR2PalettToR5Pos1,aBuildSpace1Book))))
   // (Pos1 clear) Action R2 Booked = True
-  val OR2PalettToR5PalettSpace2 = Operation("OR2PalettToR5PalettSpace2",
-    List(PropositionCondition(AND(List(NOT(gBuildSpace2Booked), NOT(gR2Booked), NOT(gR5Booked), gBuildSpace1Booked, gR5dodge)), List(aBookR2,aR2PalettToR5Pos2,aBuildSpace2Book))))
+  val OR2PalettToR5PalettSpace2 = Operation("OR2PalettToR5PalettSpace2", List(PropositionCondition(AND(List(NOT(gBuildSpace2Booked), NOT(gR2Booked), NOT(gR5Booked), gBuildSpace1Booked, gR5dodge)), List(aBookR2,aR2PalettToR5Pos2,aBuildSpace2Book))))
   // (Pos2 clear AND POS1 filled)
-  val OR2PalettToR4PalettSpace1 = Operation("OR2PalettToR4PalettSpace1",
-    List(PropositionCondition(AND(List(NOT(gBuildSpace3Booked), NOT(gR2Booked), NOT(gR4Booked))), List(aBookR2,aR2PalettToR4Pos1,aBuildSpace3Book))))
+  val OR2PalettToR4PalettSpace1 = Operation("OR2PalettToR4PalettSpace1", List(PropositionCondition(AND(List(NOT(gBuildSpace3Booked), NOT(gR2Booked), NOT(gR4Booked))), List(aBookR2,aR2PalettToR4Pos1,aBuildSpace3Book))))
   // (Pos1 clear)
-  val OR2PalettToR4PalettSpace2 = Operation("OR2PalettToR4PalettSpace2",
-  List(PropositionCondition(AND(List(NOT(gBuildSpace4Booked), NOT(gR2Booked), NOT(gR4Booked), gBuildSpace3Booked)), List(aBookR2,aR2PalettToR4Pos1,aBuildSpace4Book))))
+  val OR2PalettToR4PalettSpace2 = Operation("OR2PalettToR4PalettSpace2", List(PropositionCondition(AND(List(NOT(gBuildSpace4Booked), NOT(gR2Booked), NOT(gR4Booked), gBuildSpace3Booked)), List(aBookR2,aR2PalettToR4Pos1,aBuildSpace4Book))))
     // (Pos2 clear AND POS1 filled)
-  val OR2PalettRemoveR5PalettSpace1 = Operation("OR2PalettRemoveR5PalettSpace1",
-      List(PropositionCondition(AND(List(NOT(gR2Booked),OR(List(gBuildPallet1Empty,gBuildPallet2Empty)))), List(aR2PalettRemoveR5Pos1,aBookR2,aBuildSpace1UnBook))))
+  val OR2PalettRemoveR5PalettSpace1 = Operation("OR2PalettRemoveR5PalettSpace1", List(PropositionCondition(AND(List(NOT(gR2Booked),OR(List(gBuildPallet1Empty,gBuildPallet2Empty)))), List(aR2PalettRemoveR5Pos1,aBookR2,aBuildSpace1UnBook))))
   // Operation R4BuildFromPos1 Done
-  val OR2PalettRemoveR5PalettSpace2 = Operation("OR2PalettRemoveR5PalettSpace2",
-    List(PropositionCondition(AND(List(NOT(gR2Booked),OR(List(gBuildPallet1Empty,gBuildPallet2Empty)))), List(aR2PalettRemoveR5Pos2,aBookR2,aBuildSpace2UnBook))))
+  val OR2PalettRemoveR5PalettSpace2 = Operation("OR2PalettRemoveR5PalettSpace2", List(PropositionCondition(AND(List(NOT(gR2Booked),OR(List(gBuildPallet1Empty,gBuildPallet2Empty)))), List(aR2PalettRemoveR5Pos2,aBookR2,aBuildSpace2UnBook))))
   // Operation R4BuildFromPos2 Done
-  val OR2PalettRemoveR4PalettSpace1 = Operation("OR2PalettRemoveR4PalettSpace1",
-    List(PropositionCondition(AND(List(NOT(gR2Booked),OR(List(gBuildPallet1Empty,gBuildPallet2Empty)))), List(aR2PalettRemoveR4Pos1,aBookR2,aBuildSpace3UnBook))))
+  val OR2PalettRemoveR4PalettSpace1 = Operation("OR2PalettRemoveR4PalettSpace1", List(PropositionCondition(AND(List(NOT(gR2Booked),OR(List(gBuildPallet1Empty,gBuildPallet2Empty)))), List(aR2PalettRemoveR4Pos1,aBookR2,aBuildSpace3UnBook))))
   // Operation R5BuildFromPos1 Done
-  val OR2PalettRemoveR4PalettSpace2 = Operation("OR2PalettRemoveR4PalettSpace2",
-    List(PropositionCondition(AND(List(NOT(gR2Booked),OR(List(gBuildPallet1Empty,gBuildPallet2Empty)))), List(aR2PalettRemoveR4Pos2,aBookR2,aBuildSpace4UnBook))))
+  val OR2PalettRemoveR4PalettSpace2 = Operation("OR2PalettRemoveR4PalettSpace2", List(PropositionCondition(AND(List(NOT(gR2Booked),OR(List(gBuildPallet1Empty,gBuildPallet2Empty)))), List(aR2PalettRemoveR4Pos2,aBookR2,aBuildSpace4UnBook))))
   // Operation R5BuildFromPos2 Done
-  val OR2PlaceBuildingPalett = Operation("OR2PlaceBuildingPalett",
-    List(PropositionCondition(AND(List(NOT(gR2Booked),NOT(gR5Booked),NOT(gR4Booked),NOT(gBuildSpotBooked))), List(aBookR2,aR2PlaceBuildingPalett,aBuildSpotBook))))
+  val OR2PlaceBuildingPalett = Operation("OR2PlaceBuildingPalett", List(PropositionCondition(AND(List(NOT(gR2Booked),NOT(gR5Booked),NOT(gR4Booked),NOT(gBuildSpotBooked))), List(aBookR2,aR2PlaceBuildingPalett,aBuildSpotBook))))
   //
-  val OR2RemoveBuildingPalett = Operation("OR2RemoveBuildingPalett",
-  List(PropositionCondition(AND(List(NOT(gR2Booked),NOT(gR5Booked),NOT(gR4Booked),gBuildSpotBooked,gBuildingPalettComplete)), List(aBookR2,aBuildSpotUnBook,aR2RemoveBuildingPalett))))
+  val OR2RemoveBuildingPalett = Operation("OR2RemoveBuildingPalett", List(PropositionCondition(AND(List(NOT(gR2Booked),NOT(gR5Booked),NOT(gR4Booked),gBuildSpotBooked,gBuildingPalettComplete)), List(aBookR2,aBuildSpotUnBook,aR2RemoveBuildingPalett))))
   // Operation
   val OR2RemoveBookingR2 = Operation("OR2RemoveBookingR2", List(PropositionCondition(AND(List(gR2OPComplete)), List(aUnBookR2))))
   // After operations that books R2
@@ -387,7 +377,9 @@ class operationMaker {
   val OR5PutCubeAt43 = Operation("OR5PutCubeAt43", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt43,aR5NotHoldingCube))))
   val OR5PutCubeAt44 = Operation("OR5PutCubeAt44", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt44,aR5NotHoldingCube))))
 
-  List()
+
+// val sopSeq = SOP(Sequence(o11, o12, o13), Sequence(o21, o22, o23), Parallel(o11,o12))
+  val thaSop = SOP(Sequence(OR2PlaceBuildingPalett,OR2PalettToR5PalettSpace1),Parallel(Sequence(OR2PalettToR4PalettSpace1),Sequence()))
 
 }
 
