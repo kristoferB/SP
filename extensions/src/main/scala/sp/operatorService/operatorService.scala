@@ -15,8 +15,13 @@ object operatorService extends SPService {
   var latestSent = List(List("Hej"));
 
   def enqueuePalette(palette: List[List[String]]): Unit = {
-      if (palette.length > 2)
-        q = q ++ MutableList(palette.take(2)) ++ MutableList(palette.tail.tail);
+    System.out.println("Number of lists: " + palette.length)
+    if (palette.length > 2) {
+    val temp1 = MutableList(List(List(palette(0)(0), palette(1)(0), palette(2)(0), palette(3)(0)),List(palette(0)(1), palette(1)(1), palette(2)(1), palette(3)(1))))
+    val temp2 = MutableList(List(List(palette(0)(2), palette(1)(2), palette(2)(2), palette(3)(2)),List(palette(0)(3), palette(1)(3), palette(2)(3), palette(3)(3))))
+    q = q ++ temp1 ++ temp2
+    //q = q ++ MutableList(palette.take(2)) ++ MutableList(palette.tail.tail);
+  }
       else
         q = q ++ MutableList(palette)
   }
@@ -55,6 +60,7 @@ object operatorService extends SPService {
     TransformValue("getNext", _.getAs[Boolean]("getNext")),
     TransformValue("buildOrder", _.getAs[List[List[String]]]("buildOrder"))
     )
+
   val transformation = transformToList(transformTuple.productIterator.toList)
   def props = ServiceLauncher.props(Props(classOf[operatorService]))
 
