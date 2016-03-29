@@ -387,6 +387,8 @@ class operationMaker {
   val OR5PutCubeAt43 = Operation("OR5PutCubeAt43", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt43,aR5NotHoldingCube))))
   val OR5PutCubeAt44 = Operation("OR5PutCubeAt44", List(PropositionCondition(AND(List(NOT(gR5Booked),gR5HoldingCube)), List(aR5PutCubeAt44,aR5NotHoldingCube))))
 
+  List()
+
 }
 
 
