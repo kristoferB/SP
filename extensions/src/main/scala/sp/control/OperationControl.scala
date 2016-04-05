@@ -67,7 +67,8 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
   var idMap: Map[ID, IDAble] = Map()
   var connectionMap: Map[ID, DBConnection] = Map()
   var resourceTree: List[ResourceInTree] = List()
-  var runAndModeMap: Map[ID, (ID,ID)] = Map()
+  var abilityToRun: Map[ID,ID] = Map()
+  var modeToAbility: Map[ID,ID] = Map()
 
   def receive = {
     case r @ Request(service, attr, ids, reqID) => {
@@ -87,7 +88,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
           setupBus(s, rnr)
           setupConnection(connection, rnr)
           makeResourceTree(connection)
-          createRunAndModeMap(ids)
+          createRunAndModeMaps(ids)
         case "disconnect" =>
           disconnect();
         case "subscribe" =>
@@ -110,7 +111,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
 
       }
 
-      replyTo ! Response(List(), connectedAttribute(), service, serviceID)
+      replyTo ! Response(List(), connectedAttribute() merge SPAttributes("silent"->true), service, serviceID)
 
     }
     case ConnectionEstablished(request, c) => {
@@ -137,7 +138,12 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       } yield {
         val stringRep: String = value.to[Int].map(_.toString).getOrElse(value.to[String].getOrElse(""))
         val updV = connectionMap.get(id).flatMap(x => x.intMap.get(stringRep)).getOrElse(value)
-        state = state add (id -> updV)
+
+        // if this is a "mode" variable, map id to ability id instead
+        modeToAbility.get(id) match {
+          case Some(aid) => state = state add (aid -> updV)
+          case None => state = state add (id -> updV)
+        }
       }
 
       eventHandler ! Response(List(), SPAttributes("state"->state, "resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
@@ -191,17 +197,24 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
     }
   }
 
-  def createRunAndModeMap(ids: List[IDAble])  = {
+  def createRunAndModeMaps(ids: List[IDAble])  = {
     // TODO: HACK! Use the hierarchy...
     val ops = ids.filter(_.isInstanceOf[Operation])
     val abilities = ops.filter(_ match {case o: Operation => o.attributes.getAs[String]("operationType").getOrElse("")=="ability"})
     val things = ids.filter(_.isInstanceOf[Thing])
 
-    runAndModeMap = abilities.map({ a =>
-      val m = things.find(t=>a.name+".mode"==t.name).get
-      val r = things.find(t=>a.name+".run"==t.name).get
-      (a.id,m.id,r.id)
-    }).map(_ match { case (a,b,c)=>a->((b,c))}).toMap
+    abilityToRun = (for {
+      a <- abilities
+      r <- things.find(t=>a.name+".run"==t.name)
+    } yield {
+      (a.id -> r.id)
+    }).toMap
+    modeToAbility = (for {
+      a <- abilities
+      m <- things.find(t=>a.name+".mode"==t.name)
+    } yield {
+      (m.id -> a.id)
+    }).toMap
   }
 
   def findConnectionDetails(list: List[IDAble]) = {
@@ -255,16 +268,12 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       }
 
       // HACK
-      val rid = runAndModeMap.get(id).getOrElse((ID.newID,ID.newID))._1
-      val mid = runAndModeMap.get(id).getOrElse((ID.newID,ID.newID))._2
+      val rid = abilityToRun.get(id).getOrElse(ID.newID)
+      // flip RUN and write it to PLC
+      val runState = state.get(rid).flatMap(_.to[Boolean]).map(!_).getOrElse(false)
+      println(s"the new state of run: $runState")
 
-      // flip MODE and write it to RUN
-      val flippState = state.get(mid).flatMap(_.to[Boolean]).map(!_).getOrElse(false)
-      println(s"the state of mode: ${state.get(mid)}")
-      println(s"the new state of run: $flippState")
-
-
-      val oDB = connectionMap.get(rid).map{db => DBValue(item.name, item.id, flippState, db.valueType, AddressValues(db.db, db.byte, db.bit))}
+      val oDB = connectionMap.get(rid).map{db => DBValue(item.name, item.id, runState, db.valueType, AddressValues(db.db, db.byte, db.bit))}
 
       val command = SPAttributes(
         "id" -> id,

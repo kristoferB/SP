@@ -125,7 +125,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
       // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
       if (res.foldLeft(false)(_ || _)){
-        reply.foreach(rnr => rnr.reply ! Response(List(), SPAttributes("status"->"done"), rnr.req.service, rnr.req.reqID))
+        reply.foreach(rnr => rnr.reply ! Response(List(), SPAttributes("status"->"done", "silent"->true), rnr.req.service, rnr.req.reqID))
         self ! PoisonPill
       }
     }
