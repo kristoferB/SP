@@ -67,6 +67,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
   var idMap: Map[ID, IDAble] = Map()
   var connectionMap: Map[ID, DBConnection] = Map()
   var resourceTree: List[ResourceInTree] = List()
+  var runAndModeMap: Map[ID, (ID,ID)] = Map()
 
   def receive = {
     case r @ Request(service, attr, ids, reqID) => {
@@ -86,6 +87,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
           setupBus(s, rnr)
           setupConnection(connection, rnr)
           makeResourceTree(connection)
+          createRunAndModeMap(ids)
         case "disconnect" =>
           disconnect();
         case "subscribe" =>
@@ -188,6 +190,20 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       connectionMap = list.map(db => db.id->db).toMap
     }
   }
+
+  def createRunAndModeMap(ids: List[IDAble])  = {
+    // TODO: HACK! Use the hierarchy...
+    val ops = ids.filter(_.isInstanceOf[Operation])
+    val abilities = ops.filter(_ match {case o: Operation => o.attributes.getAs[String]("operationType").getOrElse("")=="ability"})
+    val things = ids.filter(_.isInstanceOf[Thing])
+
+    runAndModeMap = abilities.map({ a =>
+      val m = things.find(t=>a.name+".mode"==t.name).get
+      val r = things.find(t=>a.name+".run"==t.name).get
+      (a.id,m.id,r.id)
+    }).map(_ match { case (a,b,c)=>a->((b,c))}).toMap
+  }
+
   def findConnectionDetails(list: List[IDAble]) = {
     list.find{i => i.attributes.getAs[String]("specification").contains("PLCConnection")}.map(_.id)
   }
@@ -232,19 +248,23 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
 
       val paramDB = params.state.flatMap{case (id, value) =>
         connectionMap.get(id).map(x => DBValue(x.name, x.id, value, x.valueType, AddressValues(x.db, x.byte, x.bit)))
-      } toList
+      }.toList
       val paramFromString = paramsString.flatMap(getDBFromString)
       val paramToWrite = params.state.flatMap{case (id, value) =>
         idMap.get(id).map(item => SPAttributes("id"->id, "name"->item.name, "value"->value))
       }
 
+      // HACK
+      val rid = runAndModeMap.get(id).getOrElse((ID.newID,ID.newID))._1
+      val mid = runAndModeMap.get(id).getOrElse((ID.newID,ID.newID))._2
 
-      val flippState = state.get(id).flatMap(_.to[Boolean]).map(!_).getOrElse(false)
-      println(s"the state: ${state.get(id)}")
-      println(s"the state: $flippState")
+      // flip MODE and write it to RUN
+      val flippState = state.get(mid).flatMap(_.to[Boolean]).map(!_).getOrElse(false)
+      println(s"the state of mode: ${state.get(mid)}")
+      println(s"the new state of run: $flippState")
 
 
-      val oDB = connectionMap.get(id).map{db => DBValue(item.name, item.id, flippState, db.valueType, AddressValues(db.db, db.byte, db.bit))}
+      val oDB = connectionMap.get(rid).map{db => DBValue(item.name, item.id, flippState, db.valueType, AddressValues(db.db, db.byte, db.bit))}
 
       val command = SPAttributes(
         "id" -> id,

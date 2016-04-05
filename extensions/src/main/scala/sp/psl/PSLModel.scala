@@ -121,12 +121,12 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       val h1 = makeResource (
         name = "h1",
         state = List("mode"),
-        abilities = List("up"->List("mode"), "down"->List("mode"))
+        abilities = List("up"->List(), "down"->List())
       )
 
 
       val items = r2._2 ++ r4._2 ++ r5._2 ++ s1._2 ++ s2._2 ++ s3._2 ++ s4._2 ++ flexLink._2 ++ h1._2 ++ longList
-      val itemMap = items.map(x => x.name -> x.id) toMap
+      val itemMap = items.map(x => x.name -> x.id).toMap
       val stateMap = Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")
 
       // This info will later on be filled by a service on the bus
@@ -214,8 +214,8 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         db(itemMap, "flexLink.mode",      "bool", 111, 0, 2),
 */
 
-        db(itemMap, "h1.up", "bool", 755, 4, 0),
-        db(itemMap, "h1.down", "bool", 755, 4, 1),
+        db(itemMap, "h1.up.run", "bool", 755, 4, 0),
+        db(itemMap, "h1.down.run", "bool", 755, 4, 1),
         db(itemMap, "h1.up.mode", "int", 755, 0, 0, stateMap),
         db(itemMap, "h1.down.mode", "int", 755, 2, 0, stateMap)
 
@@ -256,7 +256,8 @@ trait ModelMaking {
   def makeResource(name: String, state: List[String], abilities: List[(String, List[String])]) = {
     val t = Thing(name)
     val stateVars = state.map(x => Thing(s"$name.$x", SPAttributes("variableType"->"state")))
-    val ab = abilities.map{case (n, parameters) =>
+    val ab = abilities.map{case (n, params) =>
+      val parameters = params ++ List("run","mode") // all abilities have these
       val abilityName = name +"."+n
       val o = Operation(abilityName, List(), SPAttributes("operationType"->"ability"))
       idMap + (o.id -> abilityName)
