@@ -45,7 +45,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   import context.dispatcher
 
   var parents: Map[SOP, SOP] = Map()
-  var activeSteps: List[SOP] = List()
+  var activeSteps: List[Hierarchy] = List()
   var parallelRuns: Map[Parallel, List[SOP]] = Map()
   var state: State = State(Map())
   var reply: Option[RequestNReply] = None
@@ -84,7 +84,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
 
       // Starts the first op
-      sop.foreach(executeSOP)
+//      sop.foreach(executeSOP)
       progress ! SPAttributes("activeOps"->activeSteps)
 
     }
@@ -92,43 +92,44 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
     // Vi får states från Operation control
     case r @ Response(ids, attr, service, _) if service == operationController => {
       println(s"we got a state change")
-      println(attr)
 
       val newState = attr.getAs[State]("state")
-
       newState.foreach{s =>
         state = State(state.state ++ s.state.filter{case (id, v)=>
-        state.get(id) != newState.get(id)
-      })
-
+          state.get(id) != newState.get(id)
+        })}
 
       //lägger till alla ready states i en readyList och tar bort gamla som inte är ready längre
 
-        val readyStates = state.state.filter{case (id, value) =>
-          value == SPValue("ready")
-        }
-
-        readyList = readyStates.keys.toList
-        println(s"readyList: $readyList")
-        println(s"state: $state")
-
-      if (activeSteps.isEmpty)
-        sopen.foreach(executeSOP)
-
-
-      // Plocka ut alla färdiga steg här
-      // Skicka varje färdigt til stepCompl
-      val copyAS = activeSteps
-      activeSteps = List()
-      val res = copyAS.map(stepCompleted)
-
-
-      // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
-      if (res.foldLeft(false)(_ || _)){
-        reply.foreach(rnr => rnr.reply ! Response(List(), SPAttributes("status"->"done", "silent"->true), rnr.req.service, rnr.req.reqID))
-        self ! PoisonPill
+      val readyStates = state.state.filter{case (id, value) =>
+        value == SPValue("ready")
       }
-    }
+
+      readyList = readyStates.keys.toList
+      println(s"readyList: $readyList")
+      println(s"state: $state")
+
+      // if there is nothing started yet
+      if(activeSteps.isEmpty) {
+        sopen.foreach(executeSOP)
+        println("after first new state, started execution")
+      } else {
+        val completedIDs = state.state.filter{case (i,v) => v == SPValue("completed")}.keys.toList
+        // find which "activeSteps" the ids correspond to
+        val activeCompleted = activeSteps.filter(x=>completedIDs.contains(x.operation))
+        // execute completed to flop run bit
+        activeCompleted.foreach(x=>startID(x.operation))
+        // remove the completed ids
+        activeSteps = activeSteps.filterNot(x=>completedIDs.contains(x.operation))
+        println(s"Activesteps contains: $activeSteps")
+        val res = activeCompleted.map(stepCompleted)
+        // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
+        if (res.foldLeft(false)(_ || _)){
+          println("RunnerService: All done")
+          reply.foreach(rnr => rnr.reply ! Response(List(), SPAttributes("status"->"done", "silent"->true), rnr.req.service, rnr.req.reqID))
+          self ! PoisonPill
+        }
+      }
     }
   }
 
@@ -150,6 +151,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
         if (checkPreCond(x)) {
           startID(x.operation)
           activeSteps = activeSteps :+ x
+          println(s"Started ${x.operation}, activeSteps: $activeSteps")
         }
       }
       case x => println(s"Hmm, vi fick $x i executeSOP")
@@ -212,6 +214,10 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       case None => {
         // nu är vi färdiga
         true
+      }
+      case x@_ => {
+        println(s"stepcompleted: got $x")
+        false
       }
     }
   }
