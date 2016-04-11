@@ -123,9 +123,14 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         state = List("mode"),
         abilities = List("up"->List(), "down"->List())
       )
+      val h2 = makeResource (
+        name = "h2",
+        state = List("mode"),
+        abilities = List("up"->List(), "down"->List())
+      )
 
 
-      val items = r2._2 ++ r4._2 ++ r5._2 ++ s1._2 ++ s2._2 ++ s3._2 ++ s4._2 ++ flexLink._2 ++ h1._2 ++ longList
+      val items = r2._2 ++ r4._2 ++ r5._2 ++ s1._2 ++ s2._2 ++ s3._2 ++ s4._2 ++ flexLink._2 ++ h1._2 ++ h2._2 ++ longList
       val itemMap = items.map(x => x.name -> x.id).toMap
       val stateMap = Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")
 
@@ -214,10 +219,15 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         db(itemMap, "flexLink.mode",      "bool", 111, 0, 2),
 */
 
-        db(itemMap, "h1.up.run", "bool", 755, 4, 0),
-        db(itemMap, "h1.down.run", "bool", 755, 4, 1),
+        db(itemMap, "h1.up.run", "bool", 755, 8, 0),
+        db(itemMap, "h1.down.run", "bool", 755, 8, 1),
         db(itemMap, "h1.up.mode", "int", 755, 0, 0, stateMap),
-        db(itemMap, "h1.down.mode", "int", 755, 2, 0, stateMap)
+        db(itemMap, "h1.down.mode", "int", 755, 2, 0, stateMap),
+
+        db(itemMap, "h2.up.run", "bool", 755, 8, 2),
+        db(itemMap, "h2.down.run", "bool", 755, 8, 3),
+        db(itemMap, "h2.up.mode", "int", 755, 4, 0, stateMap),
+        db(itemMap, "h2.down.mode", "int", 755, 6, 0, stateMap)
 
       ).flatten
 
@@ -239,7 +249,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       //import sp.domain.logic.PropositionParser._
       //operations exempel
 
-      val root = HierarchyRoot("Resources", List(/*r2._1, r4._1, r5._1, s1._1, s2._1, s3._1, s4._1, flexLink._1,*/ h1._1, HierarchyNode(sopSpec.id)))
+      val root = HierarchyRoot("Resources", List(/*r2._1, r4._1, r5._1, s1._1, s2._1, s3._1, s4._1, flexLink._1,*/ h1._1, h2._1, HierarchyNode(sopSpec.id)))
       //val opRoot = HierarchyRoot("Operations", List())
       replyTo ! Response(items :+ root :+ connection, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
 
