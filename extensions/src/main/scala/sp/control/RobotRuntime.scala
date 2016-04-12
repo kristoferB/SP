@@ -7,7 +7,7 @@ import com.codemettle.reactivemq.model._
 import sp.domain.Logic._
 import sp.domain._
 import sp.system._
-import sp.system.messages._
+import sp.system.messages.{TransformValue, _}
 
 object RobotRuntime extends SPService {
   object Commands extends Enumeration {
@@ -32,76 +32,67 @@ object RobotRuntime extends SPService {
       "robotDataPoint" -> KeyDefinition("String", List(), None)
     ),
     "command" -> SPAttributes(
-      "commandType"    -> KeyDefinition("String", Commands.stringList, Some(Commands.Connect.toString))
+      "kind" -> KeyDefinition("String", Commands.stringList, Some(Commands.Connect.toString))
     )
   )
 
-  val transformValues  = (
-    TransformValue("setup", _.getAs[BusSetup]("setup")),
-    TransformValue("command", _.getAs[SPAttributes]("command"))
-  )
+  val transformValues = new {
+    val command = TransformValue("command", _.getAs[Command]("command"))
+    val setup = TransformValue("setup", _.getAs[BusSetup]("setup"))
+    def list = List(command,setup)
+  }
 
-  val transformation = transformToList(transformValues.productIterator.toList)
+  val transformation = transformToList(transformValues.list)
   def props(eventHandler: ActorRef) = Props(classOf[OperationControl], eventHandler)
 }
 
 case class BusSetup(busIP: String, publishTopic: String, subscribeTopic: String)
+case class Command(kind: Command)
 
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
 class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
   val serviceID = ID.newID
   var busSetup: Option[BusSetup] = None
-  var theBus: Option[ActorRef] = None
+  var bus: Option[ActorRef] = None
   var serviceName: Option[String] = None
 
   def receive = {
-    case r @ Request(service, attr, ids, reqID) =>
+    case request @ Request(service, attr, ids, reqID) =>
       // Always include the following lines. Are used by the helper functions
-      val replyTo = sender()
-      implicit val requestNReply = RequestNReply(r, replyTo)
+      val theSender = sender()
+      implicit val requestAndSender = RequestNReply(request, theSender)
 
-      val setup = transform(RobotRuntime.transformValues._1)
-      val commands = transform(RobotRuntime.transformValues._2)
-
-      val commandType = commands.getAs[String]("commandType").get
-      println("CommandType: " + commandType)
+      val command = transform(RobotRuntime.transformValues.command)
+      println("Got command: " + command)
 
       import RobotRuntime.Commands._
 
-      RobotRuntime.Commands.withName(commandType) match {
-        case Connect => connect(setup, requestNReply)
+      command.kind match {
+        case Connect =>
+          val setup = transform(RobotRuntime.transformValues.setup)
+          connect(setup, requestAndSender)
         case Disconnect => disconnect()
         case Subscribe => subscribe()
         case Unsubscribe => unsubscribe()
       }
 
-      replyTo ! Response(List(), SPAttributes(), service, serviceID)
+      theSender ! Response(List(), SPAttributes(), service, serviceID)
 
-    case ConnectionEstablished(request, c) =>
-      println("connected: " + request)
-      busSetup.foreach{ s =>
-        c ! ConsumeFromTopic(s.subscribeTopic)
-        theBus = Some(c)
-        eventHandler ! Progress(SPAttributes("theBus" -> "Connected"), serviceName.get, serviceID)
+    case ConnectionEstablished(request, connection) =>
+      println("Connected: " + request)
+      busSetup.foreach { setup =>
+        connection ! ConsumeFromTopic(setup.subscribeTopic)
+        bus = Some(connection)
+        eventHandler ! Progress(SPAttributes("connected" -> true), serviceName.get, serviceID)
       }
 
     case ConnectionFailed(request, reason) =>
       println("Failed: " + reason)
 
     case mess @ AMQMessage(body, prop, headers) =>
-      val resp = SPAttributes.fromJson(body.toString)
-      println(s"We got: $resp")
-      for {
-        m <- resp
-        list <- m.getAs[List[SPAttributes]]("dbs")
-      } yield for {
-        l <- list
-        id <- l.getAs[ID]("id")
-        value <- l.getAs[SPValue]("value")
-      } yield {
-
-      }
-      eventHandler ! Response(List(), SPAttributes(), serviceName.get, serviceID)
+      val robotEvent = SPAttributes.fromJson(body.toString)
+      println(s"We got: $robotEvent")
+      eventHandler ! Response(List(), guiEvent, serviceName.get, serviceID)
 
     case ConnectionInterrupted(ca, x) =>
       println("Connection closed.")
@@ -121,14 +112,14 @@ class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
   def disconnect() = {
     println("Disconnecting from bus.")
     unsubscribe()
-    theBus.foreach(_ ! CloseConnection)
+    bus.foreach(_ ! CloseConnection)
     this.busSetup = None
-    this.theBus = None
+    this.bus = None
   }
 
   def subscribe() = {
     val mess = SPAttributes(
-      "command"->"subscribe"
+      "command" -> "subscribe"
     )
     sendMessage(mess)
     eventHandler ! Response(List(), SPAttributes(), serviceName.get, serviceID)
@@ -136,30 +127,14 @@ class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
 
   def unsubscribe() = {
     val mess = SPAttributes(
-      "command"->"unsubscribe"
+      "command" -> "unsubscribe"
     )
     sendMessage(mess)
   }
 
-  def sendCommands(commands: SPAttributes) = {
-    commands.getAs[ID]("execute").foreach { id =>
-
-      val command = SPAttributes(
-        "id" -> id
-      )
-
-      val mess = SPAttributes(
-        "commands" -> List(command),
-        "command" -> "write"
-      )
-
-      sendMessage(mess)
-    }
-  }
-
   def sendMessage(mess: SPAttributes) = {
     for {
-      bus <- theBus
+      bus <- bus
       s <- busSetup
     } yield {
       println(s"sending: ${mess.toJson}")
@@ -171,5 +146,3 @@ class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
     disconnect()
   }
 }
-
-
