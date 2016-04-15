@@ -8,6 +8,10 @@ import sp.system._
 import sp.domain._
 import sp.domain.Logic._
 
+import com.codemettle.reactivemq._
+import com.codemettle.reactivemq.ReActiveMQMessages._
+import com.codemettle.reactivemq.model._
+
 
 object Calculator extends SPService {
   val specification = SPAttributes(
@@ -24,7 +28,7 @@ object Calculator extends SPService {
     TransformValue("a", _.getAs[Int]("a")),
     TransformValue("b", _.getAs[Int]("b")),
     TransformValue("sign", _.getAs[String]("sign"))
-  )
+    )
   val transformation = transformToList(transformTuple.productIterator.toList)
   def props = ServiceLauncher.props(Props(classOf[Calculator]))
 }
@@ -48,13 +52,25 @@ class Calculator extends Actor with ServiceSupport {
         case "-"=> a-b
       }
       replyTo ! Response(List(), SPAttributes("result"->res), rnr.req.service, rnr.req.reqID)
-      self ! PoisonPill
+
+      ReActiveMQExtension(context.system).manager ! GetConnection(s"tcp://129.16.140.27:61616") // nio://localhost:61616")
     }
+    case ConnectionEstablished(request, c) => {
+      println("connected:"+request)
+      val mess = SPAttributes(
+        "a string from sp"->"hello world",
+        "an integer from sp"-> 43
+      )
+      println("sending message: " + AMQMessage(mess.toJson).toString());
+      c ! SendMessage(Queue("ROS-IN"), AMQMessage(mess.toJson))
+      c ! ConsumeFromQueue("ROS-OUT")
+      //      self ! PoisonPill
+    }
+    case mess @ AMQMessage(body, prop, headers) => {
+      println(s"got stomp message: " + body.toString)
+    }
+
   }
 
 
 }
-
-
-
-
