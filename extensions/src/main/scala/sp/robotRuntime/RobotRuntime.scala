@@ -8,6 +8,8 @@ import sp.domain.Logic._
 import sp.domain._
 import sp.system._
 import sp.system.messages.{TransformValue, _}
+import org.json4s.native.Serialization.{read, write}
+import com.github.nscala_time.time.Imports._
 
 object RobotRuntime extends SPService {
   object Commands extends Enumeration {
@@ -51,6 +53,8 @@ case class Command(kind: Command)
 
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
 class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
+  implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
+
   val serviceID = ID.newID
   var busSetup: Option[BusSetup] = None
   var bus: Option[ActorRef] = None
@@ -90,9 +94,15 @@ class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
       println("Failed: " + reason)
 
     case mess @ AMQMessage(body, prop, headers) =>
-      val robotEvent = SPAttributes.fromJson(body.toString)
+      //val robotEvent = SPAttributes.fromJson(body.toString)
+      val robotEvent = modifyEvent(body.toString)
       println(s"We got: $robotEvent")
-      eventHandler ! Response(List(), robotEvent.get, serviceName.get, serviceID)
+      //eventHandler ! Response(List(), guiEvent, serviceName.get, serviceID)
+      eventHandler ! Response(List(), robotEvent, serviceName.get, serviceID)
+      * robotevent.get returns SPAttributes and sends to gui updater?
+      * Transformations? What does the updater want?
+      * If it wants it all send as is.
+      */
 
     case ConnectionInterrupted(ca, x) =>
       println("Connection closed.")
@@ -100,6 +110,16 @@ class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
 
     case x =>
       println("Robot runtime received a message it couldn't handle: " + x)
+  }
+
+  // added by Henrik
+  def modifyEvent(jsonString: String): SPAttributes = {
+    val extPp: ExtendedPointerPosition = read[ExtendedPointerPosition](jsonString)
+    val extPpPos: PointerPosition = extPp.PointerPosition
+    val minPp: MinimalPointerPosition = MinimalPointerPosition(extPpPos.RobotId, extPpPos.Address, extPpPos.Data.Task,
+      extPpPos.Data.Position.ModuleName, extPpPos.Data.Position.RoutineName, extPp.Operation)
+    val json = write(minPp)
+    SPAttributes.fromJson(json).get
   }
 
   def connect(setup: BusSetup, rnr: RequestNReply) = {
@@ -146,3 +166,42 @@ class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
     disconnect()
   }
 }
+
+// added by Henrik
+case class ExtendedPointerPosition (PointerPosition: PointerPosition,
+                                    Operation: String)
+
+case class MinimalPointerPosition (RobotId: String,
+                                   Address: DataAddress,
+                                   Task: Task,
+                                   ModuleName: String,
+                                   RoutineName: String,
+                                   Operation: String)
+
+case class PointerPosition (RobotId: String,
+                            Address: DataAddress,
+                            Data: PointerPositionData)
+
+case class DataAddress (Domain: String,
+                        Kind: String,
+                        Path: String)
+
+case class PointerPositionData (Task: Task,
+                                Position: Position,
+                                EventTime: DateTime)
+
+case class Task (TaskName: String,
+                 TaskType: Int,
+                 Cycle: Int,
+                 ExecutionType: Int,
+                 ExecutionStatus: Int)
+
+case class Position (ModuleName: String,
+                     RoutineName: String,
+                     Range: Range)
+
+case class Range (Begin: Location,
+                  End: Location)
+
+case class Location (Column: Int,
+                     Row: Int)

@@ -11,7 +11,8 @@ lazy val akka = Seq(
 lazy val json = Seq(
   "com.github.nscala-time" %% "nscala-time" % "2.0.0",
   "org.json4s" %% "json4s-native" % "3.2.11",
-  "org.json4s" %% "json4s-ext" % "3.2.11"
+  "org.json4s" %% "json4s-ext" % "3.2.11",
+  "org.json4s" %% "json4s-jackson" % "3.2.11"
 )
 
 lazy val commonSettings = Seq(
