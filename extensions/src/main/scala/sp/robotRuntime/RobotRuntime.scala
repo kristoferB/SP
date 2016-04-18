@@ -99,7 +99,7 @@ class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
       println(s"We got: $robotEvent")
       //eventHandler ! Response(List(), guiEvent, serviceName.get, serviceID)
       eventHandler ! Response(List(), robotEvent, serviceName.get, serviceID)
-      * robotevent.get returns SPAttributes and sends to gui updater?
+      /* robotevent.get returns SPAttributes and sends to gui updater?
       * Transformations? What does the updater want?
       * If it wants it all send as is.
       */
@@ -114,10 +114,10 @@ class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
 
   // added by Henrik
   def modifyEvent(jsonString: String): SPAttributes = {
-    val extPp: ExtendedPointerPosition = read[ExtendedPointerPosition](jsonString)
-    val extPpPos: PointerPosition = extPp.PointerPosition
-    val minPp: MinimalPointerPosition = MinimalPointerPosition(extPpPos.RobotId, extPpPos.Address, extPpPos.Data.Task,
-      extPpPos.Data.Position.ModuleName, extPpPos.Data.Position.RoutineName, extPp.Operation)
+    val extPp: IncomingPP = read[IncomingPP](jsonString)
+    val extPpPos: PPEvent = extPp.PointerPosition
+    val minPp: PPToGUI = PPToGUI(extPpPos.RobotId, extPpPos.Address, extPpPos.Data.Task,
+      extPpPos.Data.Position.ModuleName, extPpPos.Data.Position.RoutineName, extPp.Instruction)
     val json = write(minPp)
     SPAttributes.fromJson(json).get
   }
@@ -168,19 +168,19 @@ class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
 }
 
 // added by Henrik
-case class ExtendedPointerPosition (PointerPosition: PointerPosition,
-                                    Operation: String)
+case class IncomingPP(PointerPosition: PPEvent,
+                      Instruction: String)
 
-case class MinimalPointerPosition (RobotId: String,
-                                   Address: DataAddress,
-                                   Task: Task,
-                                   ModuleName: String,
-                                   RoutineName: String,
-                                   Operation: String)
+case class PPToGUI(RobotId: String,
+                   Address: DataAddress,
+                   Task: Task,
+                   ModuleName: String,
+                   RoutineName: String,
+                   Instruction: String)
 
-case class PointerPosition (RobotId: String,
-                            Address: DataAddress,
-                            Data: PointerPositionData)
+case class PPEvent(RobotId: String,
+                   Address: DataAddress,
+                   Data: PointerPositionData)
 
 case class DataAddress (Domain: String,
                         Kind: String,
