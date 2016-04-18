@@ -1,4 +1,4 @@
-package sp.control
+package sp.robotRuntime
 
 import akka.actor._
 import com.codemettle.reactivemq.ReActiveMQMessages._
@@ -43,7 +43,7 @@ object RobotRuntime extends SPService {
   }
 
   val transformation = transformToList(transformValues.list)
-  def props(eventHandler: ActorRef) = Props(classOf[OperationControl], eventHandler)
+  def props(eventHandler: ActorRef) = Props(classOf[RobotRuntime], eventHandler)
 }
 
 case class BusSetup(busIP: String, publishTopic: String, subscribeTopic: String)
@@ -92,7 +92,7 @@ class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
     case mess @ AMQMessage(body, prop, headers) =>
       val robotEvent = SPAttributes.fromJson(body.toString)
       println(s"We got: $robotEvent")
-      eventHandler ! Response(List(), guiEvent, serviceName.get, serviceID)
+      eventHandler ! Response(List(), robotEvent.get, serviceName.get, serviceID)
 
     case ConnectionInterrupted(ca, x) =>
       println("Connection closed.")
