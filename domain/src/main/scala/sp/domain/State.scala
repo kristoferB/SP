@@ -1,6 +1,9 @@
 package sp.domain
 
-case class State(state: Map[ID, SPValue])
+case class State(state: Map[ID, SPValue]) {
+  def add(tuple: (ID, SPValue)) = State(state.+(tuple))
+  def add(m: Map[ID, SPValue]) = State(state ++ m)
+}
 
 
 

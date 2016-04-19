@@ -8,51 +8,28 @@
       .module('app.operationControl')
       .controller('operationControlController', operationControlController);
 
-    operationControlController.$inject = ['$scope', 'dashboardService','logger', 'modelService','itemService','restService','eventService'];
+    operationControlController.$inject = ['$scope', 'dashboardService','logger', 'modelService','itemService','restService','eventService', 'operationControlService'];
     /* @ngInject */
-    function operationControlController($scope, dashboardService, logger, modelService,itemService,restService,eventService) {
+    function operationControlController($scope, dashboardService, logger, modelService,itemService,restService,eventService, operationControlService) {
         var vm = this;
 
         vm.widget = $scope.$parent.$parent.$parent.vm.widget;
-
-        vm.operations = itemService.items;
-        vm.variables = [];
-        vm.state = null;
-
-
+        vm.control = operationControlService;
         vm.manualOpsFilterQuery = "";
+        vm.items = itemService.items;
         vm.execute_op = execute_op;
-
+        vm.getState = getState;
 
         vm.connect = connect;
-        vm.connected = false;
         vm.connectedMessage = 'Not connected'
 
         vm.serviceID = '';
         vm.serviceName = 'OperationControl';
-        vm.busIP = '0.0.0.0';
+        vm.busIP = '172.16.205.50';
         vm.publishTopic = 'commands';
-        vm.subscribeTopic = 'stateEvents';
-
-
-        var messageTemplate = {
-            "setup": {
-                "busIP": vm.busIP,
-                "publishTopic":vm.publishTopic,
-                "subscribeTopic":vm.subscribeTopic,
-            },
-            "core":{
-                "model":modelService.activeModel.id,
-                "responseToModel":false,
-                "includeIDAbles": [],
-                "onlyResponse":false
-            },
-            "command": {
-                "execute": "",
-                "parameters": {}
-            }
-        };
-
+        vm.subscribeTopic = 'response';
+        vm.connectionDetailsID = '473bca54-13ac-40c8-ba1b-af4019f239f4';
+        vm.resourcesID = 'eb959122-d0ad-4228-84c6-7fb6a515ee30';
 
         //vm.run_op = run_op;
         //vm.get_init_state = get_init_state;
@@ -71,10 +48,7 @@
         //vm.get_autostart = get_autostart;
         //vm.set_autostart = set_autostart;
 
-
         activate();
-
-
 
         function activate() {
             $scope.$on('closeRequest', function() {
@@ -83,19 +57,6 @@
 
             });
 
-            eventService.addListener('ServiceError', on_state_event);
-            eventService.addListener('Progress', on_state_event);
-            eventService.addListener('Response', on_state_event);
-
-
-            // Ev Lägg till senare
-            //eventService.addListener('ModelDiff', on_model_diff);
-            //function on_model_diff(data) {
-            //    console.log('RE-filter enabled ops...');
-            //    if(vm.state) re_filter_enabled();
-            //}
-
-            connect();
         }
 
         function on_state_event(event){
@@ -105,25 +66,24 @@
 
         }
 
-
-        function connect(){
-            restService.postToServiceInstance(messageTemplate, vm.serviceName).then(function(resp){
-                console.log('koppling');
-                console.log(resp);
-
-                if (_.has(resp, 'reqID')){vm.serviceID = resp.reqID}
-                if (_.has(resp, 'attributes.theBus')){
-                    vm.connected = resp.attributes.theBus == 'Connected';
-                    vm.connectedMessage = resp.attributes.theBus;
-                }
-
-            })
+        function getState(id){
+            return vm.control.state[id];
         }
 
-        function execute_op(state, id) {
-            var mess = messageTemplate;
-            mess.command.startOP = id;
-            return restService.postToServiceInstance(mess, vm.serviceName);
+
+        function connect(){
+            operationControlService.connect({
+                'ip':vm.busIP,
+                'publish':vm.publishTopic,
+                'subscribe': vm.subscribeTopic
+            }, vm.connectionDetailsID, vm.resourcesID);
+
+            vm.connected = true;
+
+        }
+
+        function execute_op(id, params) {
+            vm.control.execute(id, params);
         }
     }
 })();
