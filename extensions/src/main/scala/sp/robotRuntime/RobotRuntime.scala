@@ -94,15 +94,9 @@ class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
       println("Failed: " + reason)
 
     case mess @ AMQMessage(body, prop, headers) =>
-      //val robotEvent = SPAttributes.fromJson(body.toString)
       val robotEvent = modifyEvent(body.toString)
       println(s"We got: $robotEvent")
-      //eventHandler ! Response(List(), guiEvent, serviceName.get, serviceID)
       eventHandler ! Response(List(), robotEvent, serviceName.get, serviceID)
-      /* robotevent.get returns SPAttributes and sends to gui updater?
-      * Transformations? What does the updater want?
-      * If it wants it all send as is.
-      */
 
     case ConnectionInterrupted(ca, x) =>
       println("Connection closed.")
@@ -114,11 +108,11 @@ class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
 
   // added by Henrik
   def modifyEvent(jsonString: String): SPAttributes = {
-    val extPp: IncomingPP = read[IncomingPP](jsonString)
-    val extPpPos: PPEvent = extPp.PointerPosition
-    val minPp: PPToGUI = PPToGUI(extPpPos.RobotId, extPpPos.Address, extPpPos.Data.Task,
-      extPpPos.Data.Position.ModuleName, extPpPos.Data.Position.RoutineName, extPp.Instruction)
-    val json = write(minPp)
+    val event: IncomingPP = read[IncomingPP](jsonString)
+    val toGUI: PPToGUI = PPToGUI(event.robotId, event.robotDataAddress, event.instruction,
+      event.programPointerPosition.task, event.programPointerPosition.position.moduleName,
+      event.programPointerPosition.position.routineName)
+    val json = write(toGUI)
     SPAttributes.fromJson(json).get
   }
 
@@ -168,40 +162,38 @@ class RobotRuntime(eventHandler: ActorRef) extends Actor with ServiceSupport {
 }
 
 // added by Henrik
-case class IncomingPP(PointerPosition: PPEvent,
-                      Instruction: String)
+case class IncomingPP(robotId: String,
+                      robotDataAddress: RobotDataAddress,
+                      instruction: String,
+                      programPointerPosition: PointerPosition)
 
-case class PPToGUI(RobotId: String,
-                   Address: DataAddress,
-                   Task: Task,
-                   ModuleName: String,
-                   RoutineName: String,
-                   Instruction: String)
+case class PPToGUI(robotId: String,
+                   robotDataAddress: RobotDataAddress,
+                   instruction: String,
+                   task: Task,
+                   moduleName: String,
+                   routineName: String)
 
-case class PPEvent(RobotId: String,
-                   Address: DataAddress,
-                   Data: PointerPositionData)
+case class RobotDataAddress(domain: String,
+                            kind: String,
+                            path: String)
 
-case class DataAddress (Domain: String,
-                        Kind: String,
-                        Path: String)
+case class PointerPosition(task: Task,
+                           position: Position,
+                           eventTime: DateTime)
 
-case class PointerPositionData (Task: Task,
-                                Position: Position,
-                                EventTime: DateTime)
+case class Task(name: String,
+                `type`: Int,
+                cycle: Int,
+                executionType: Int,
+                executionStatus: Int)
 
-case class Task (TaskName: String,
-                 TaskType: Int,
-                 Cycle: Int,
-                 ExecutionType: Int,
-                 ExecutionStatus: Int)
+case class Position(moduleName: String,
+                    routineName: String,
+                    range: Range)
 
-case class Position (ModuleName: String,
-                     RoutineName: String,
-                     Range: Range)
+case class Range(begin: Location,
+                 end: Location)
 
-case class Range (Begin: Location,
-                  End: Location)
-
-case class Location (Column: Int,
-                     Row: Int)
+case class Location(column: Int,
+                    row: Int)
