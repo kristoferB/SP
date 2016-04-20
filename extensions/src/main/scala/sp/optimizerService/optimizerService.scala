@@ -8,50 +8,35 @@ import sp.extensions._
 /**
   * Created by Kristian Eide on 2016-03-09.
   */
-class optimizerService extends IDAble {
-/*
-  case class TempState (
-//    name: String,
-    values: List(Contiodns) = List(),
-    id: ID = id.newID()
-    ) extends IDAble{
-  }
-  case class Transition (
-    gCost: Int,
-    head: tempState,
-    tail: tempState,
-    OPs: List(tempOP) = List(),
-    id: ID = id.newID()
-    ) extends IDAble{
-  }
-  case class Node (
-    name: Int,
-    state: tempState,
-    in: Transition,
-    out: List(Transition) = List(),
-    gCost: Int,
-    hCost: Int,
-    fCost: int,
-    id: ID = id.newID()
-    ) extends IDAble {
+class optimizerService {
+
+  case class State(stateV: List[Thing]) {
+    val stateVar: List[Thing] = stateV
   }
 
-  case class TempOP(
-  condisitons: List(condition) = List(),
-  actions: List(abillity) = List(),
-  gCost: Int,
-  id: ID = id.newID()
-  )  extends IDAble{
+  case class Transition(gCostIn: Int, headIn: Node, tailIn: Node, OPsIn: List[Operation]) {
+    val gCost: Int = gCostIn
+    val head: Node = headIn
+    val tail: Node = tailIn
+    val OPs: List[Operation] = OPsIn
   }
 
-  var opLIST: List(TempOP) = List(
-  var runFlexlink: TeamOP = new TempOP List(condition) = List((moveOut || moveIN), List(abillity)= List(flexlink.run = true)),
-  var loadBuildPallets: TeamOP = new TempOP List(condition) = List((orderBuild && operatorReady), List(abillity)= List(operatorLoading = true)),
-  var loadBuildPallets: TeamOP = new TempOP List(condition) = List((orderMaterial && operatorReady), List(abillity)= List(operatorLoading = true)),
-  var raiseGive: TeamOP = new TempOP List(condition) = List((), List(abillity)= List()), //ingen abiility då detta sker automatiskt då det finns pallet vid stop
+  case class Node(nameIn: Int, stateIn: State, inIn: Transition, outIn: List[Transition], gCostIn: Int, hCostIn: Int, fCostIn: Int) {
+    val name: Int = nameIn
+    val state: State = stateIn
+    val inTran: Transition = inIn
+    val outTran: List[Transition] = outIn
 
-  )
-  */
+  }
+
+  case class TempOP(gCostIn: Int, OPsIn: List[Operation] ) {
+    val gCost: Int = gCostIn
+    val OPs: List[Operation] = OPsIn
+  }
+
+
+
+
   //psudCode for optimerings algoritme
   /*
   tempNode createInitalNode(wallSchem: array[int]){
@@ -151,4 +136,6 @@ class optimizerService extends IDAble {
     }
   }
  */
+
+
 }
