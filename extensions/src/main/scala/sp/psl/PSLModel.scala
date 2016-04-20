@@ -23,6 +23,8 @@ object PSLModel extends SPService {
   )
   val transformation: List[TransformValue[_]] = List()
   def props = Props(classOf[PSLModel])
+  //def props(eventHandler: ActorRef, serviceHandler: ActorRef, runnerService: String) =
+    //ServiceLauncher.props(Props(classOf[PSLModel], eventHandler, serviceHandler, runnerService))
 }
 
 class PSLModel extends Actor with ServiceSupport with ModelMaking {
@@ -45,197 +47,132 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       val sopSpec =  SOPSpec("theSOPSpec", List(sop), SPAttributes())
 
       val longList: List[IDAble] = List(o1, o2, o3, o4, o5, sopSpec)
-/*
-      val x = Request("RunnerService",
-        SPAttributes(
-          "SOP" -> sopSpec.id
-        ),
-        longList
-      )
+      /*
+            val x = Request("RunnerService",
+              SPAttributes(
+                "SOP" -> sopSpec.id
+              ),
+              longList
+            )
 
-      other ! x
-*/
+            other ! x
+      */
 
       // Resources
-      val r2 = makeResource(
-        name = "r2",
-        state = List("position", "mode"),// the state variables defining the state of the resource
-        abilities = List(
-          "movePaletteToStock" -> List("mode"),
-          "movePaletteToFlexlink" -> List("mode"),
-          "moveFixtureToBuildingPlace" -> List("mode"),
-          "moveTowerToTable" -> List("mode")
-        )
-      )
 
-      val r5 = makeResource(
-        name = "r5",
-        state = List("position", "mode"),
-        abilities = List(
-          "gripping" -> List("mode"),
-          "moveToStart" -> List("start_parameter", "mode"),
-          "moveToEnd" -> List("end_parameter", "mode")
-        )
-      )
-
-      val r4 = makeResource(
-        name = "r4",
-        state = List("position", "mode"),
-        abilities = List(
-          "gripping" -> List("mode"),
-          "moveToStart" -> List("start_parameter", "mode"),
-          "moveToEnd" -> List("end_parameter", "mode")
-        )
-      )
-
-      val s1 = makeResource(
-        name = "s1",
-        state = List("stop", "mode"),
-        abilities = List("open"->List("mode"), "close"->List("mode"))
-      )
-
-      val s2 = makeResource(
-        name = "s2",
-        state = List("stop", "mode"),
-        abilities = List("open"->List("mode"), "close"->List("mode"))
-      )
-
-      val s3 = makeResource(
-        name = "s3",
-        state = List("stop", "mode"),
-        abilities = List("open"->List("mode"), "close"->List("mode"))
-      )
-
-      val s4 = makeResource(
-        name = "s4",
-        state = List("stop", "mode"),
-        abilities = List("open"->List("mode"), "close"->List("mode"))
-      )
-
-      val flexLink = makeResource (
-        name = "flexlink",
-        state = List("mode"),
-        abilities = List("run"->List("mode"))
-      )
-
-      val h1 = makeResource (
-        name = "h1",
-        state = List("mode"),
-        abilities = List("up"->List(), "down"->List())
-      )
       val h2 = makeResource (
         name = "h2",
         state = List("mode"),
         abilities = List("up"->List(), "down"->List())
       )
+      val h3 = makeResource (
+        name = "h3",
+        state = List("mode"),
+        abilities = List("up"->List(), "down"->List())
+      )
+
+      //skicka klossplatta till operatör
+      val toOper = makeResource (
+        name = "toOper",
+        state = List("mode"),
+        abilities = List("run"->List())
+      )
+
+      //skicka klossplatta till hiss in
+      val toRobo = makeResource (
+        name = "toRobo",
+        state = List("mode"),
+        abilities = List("run"->List())
+      )
+
+      val R5 = makeResource (
+        name = "R5",
+        state = List("mode"),
+        abilities = List("pickBlock"->List(), "placeBlock"->List(),
+        "toHome"->List(), "toDodge"->List())
+      )
+
+      val R4 = makeResource (
+        name = "R4",
+        state = List("mode"),
+        abilities = List("pickBlock"->List(), "placeBlock"->List(),
+          "toHome"->List(), "toDodge"->List())
+      )
+
+      val R2 = makeResource (
+        name = "R2",
+        state = List("mode"),
+        abilities = List("elevatorStn2ToHomeTable"->List(), "homeTableToHomeBP" ->List(),
+          "homeTableToElevatorStn3"->List(), "homeBPToHomeTable"->List(),
+          "placeAtPos"->List(), "pickAtPos"->List())
+      )
+
+      val sensorIH2 = makeResource (
+        name = "IH2",
+        state = List("mode"),
+        abilities = List()
+      )
 
 
-      val items = r2._2 ++ r4._2 ++ r5._2 ++ s1._2 ++ s2._2 ++ s3._2 ++ s4._2 ++ flexLink._2 ++ h1._2 ++ h2._2 ++ longList
+      val items = h2._2 ++ h3._2 ++ toOper._2 ++ toRobo._2 ++ R5._2 ++ R4._2 ++ R2._2 ++ longList ++ sensorIH2._2
       val itemMap = items.map(x => x.name -> x.id).toMap
       val stateMap = Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")
 
       // This info will later on be filled by a service on the bus
       val connectionList = List(
-        //robot r2, siffror ska ändras senare
-        /*
-        db(itemMap, "r2.movePaletteToStock",      "bool",   950, 4, 1),
-        db(itemMap, "r2.movePaletteToStock.mode", "int",    950, 4, 0, stateMap),
-        db(itemMap, "r2.movePaletteToFlexlink",   "bool",   950, 0, 1),
-        db(itemMap, "r2.movePaletteToFlexlink.mode", "int", 950, 0, 13, stateMap),
-        db(itemMap, "r2.moveFixtureToBuildingPlace", "bool", 950, 1, 1),
-        db(itemMap, "r2.moveFixtureToBuildingPlace.mode", "int", 950, 1, 2, stateMap),
-        db(itemMap, "r2.moveTowerToTable",        "bool",   950, 2, 0),
-        db(itemMap, "r2.moveTowerToTable.mode",   "int",    950, 2, 1, stateMap),
-        db(itemMap, "r2.position",                "int",    950, 4, 0, Map(0->"home", 1->"atH1", 2->"atH2", 3->"atLBP", 4->"atBP",
-          5->"atLR4", 6->"atLR5", 7->"atLP")),
-        db(itemMap, "r2.mode",                    "int",    950, 4, 0, stateMap),
+        db(itemMap, "h2.up.run", "bool", 135, 0, 0),
+        db(itemMap, "h2.down.run", "bool", 135, 0, 1),
+        db(itemMap, "h2.up.mode", "int", 135, 2, 0, stateMap),
+        db(itemMap, "h2.down.mode", "int", 135, 4, 0, stateMap),
 
+        db(itemMap, "h3.up.run", "bool", 140, 0, 0),
+        db(itemMap, "h3.down.run", "bool", 140, 0, 1),
+        db(itemMap, "h3.up.mode", "int", 140, 2, 0, stateMap),
+        db(itemMap, "h3.down.mode", "int", 140, 4, 0, stateMap),
 
-        // r5-robot som är detsamma som r4, siffror ska ändras senare
-        db(itemMap, "r5.gripping",                  "bool",   999, 0, 0), // ändras då den ska greppa någonting
-        db(itemMap, "r5.gripping.mode",             "int",    999, 0, 2, Map(0->"notReady", 3->"completed")),
-        db(itemMap, "r5.moveToStart",               "bool",   998, 0, 0), // ändras då den ska flytta sig till start
-        db(itemMap, "r5.moveToStart.start_parameter", "bool", 998, 0, 1), // om vi har fått in en startparameter eller inte
-        db(itemMap, "r5.moveToStart.mode",          "int",    998, 0, 2, stateMap),
-        db(itemMap, "r5.moveToEnd",                 "bool",  997, 0, 0),
-        db(itemMap, "r5.moveToEnd.end_parameter",   "bool",   997, 0, 1),
-        db(itemMap, "r5.moveToEnd.mode",            "int",    997, 0, 2, stateMap),
-        db(itemMap, "r5.position",                  "int",    996, 0, 0, Map(0->"home", 1->"atLR4", 2->"atLR5", 3->"atBP")),
-        db(itemMap, "r5.mode",                      "int",    996, 0, 1, stateMap),
+        db(itemMap, "toOper.run", "bool", 139, 0, 0),
+        db(itemMap, "toOper.mode", "int", 139, 2, 0, stateMap),
+        db(itemMap, "toRobo.run", "bool", 139, 0, 1),
+        db(itemMap, "toRobo.mode", "int", 139, 4, 0, stateMap),
 
+        db(itemMap, "R5.pickBlock.run", "bool", 128, 0, 0),
+        db(itemMap, "R5.pickBlock.mode", "int", 128, 2, 0, stateMap),
+        db(itemMap, "R5.placeBlock.run", "bool", 128, 0, 1),
+        db(itemMap, "R5.placeBlock.mode", "int", 128, 4, 0, stateMap),
+        db(itemMap, "R5.toHome.run", "bool", 128, 0, 2),
+        db(itemMap, "R5.toHome.mode", "int", 128, 6, 0, stateMap),
+        db(itemMap, "R5.toDodge.run", "bool", 128, 0, 3),
+        db(itemMap, "R5.toDodge.mode", "int", 128, 8, 0, stateMap),
 
-        //r4-robot som är detsamma som r5, siffror ska ändras senare'
-        db(itemMap, "r4.gripping",                  "bool",   999, 0, 0), // ändras då den ska greppa någonting
-        db(itemMap, "r4.gripping.mode",             "int",    999, 0, 2, Map(0->"notReady", 3->"completed")),
-        db(itemMap, "r4.moveToStart",               "bool",   998, 0, 0), // ändras då den ska flytta sig till start
-        db(itemMap, "r4.moveToStart.start_parameter", "bool", 998, 0, 1), // om vi har fått in en startparameter eller inte
-        db(itemMap, "r4.moveToStart.mode",          "int",    998, 0, 2, stateMap),
-        db(itemMap, "r4.moveToEnd",                 "bool",  997, 0, 0),
-        db(itemMap, "r4.moveToEnd.end_parameter",   "bool",   997, 0, 1),
-        db(itemMap, "r4.moveToEnd.mode",            "int",    997, 0, 2, stateMap),
-        db(itemMap, "r4.position",                  "int",    996, 0, 0, Map(0->"home", 1->"atLR4", 2->"atLR5", 3->"atBP")),
-        db(itemMap, "r4.mode",                      "int",    996, 0, 1, stateMap),
+        db(itemMap, "R4.pickBlock.run", "bool", 128, 0, 0),
+        db(itemMap, "R4.pickBlock.mode", "int", 128, 2, 0, stateMap),
+        db(itemMap, "R4.placeBlock.run", "bool", 128, 0, 1),
+        db(itemMap, "R4.placeBlock.mode", "int", 128, 4, 0, stateMap),
+        db(itemMap, "R4.toHome.run", "bool", 128, 0, 2),
+        db(itemMap, "R4.toHome.mode", "int", 128, 6, 0, stateMap),
+        db(itemMap, "R4.toDodge.run", "bool", 128, 0, 3),
+        db(itemMap, "R4.toDodge.mode", "int", 128, 8, 0, stateMap),
 
+        db(itemMap, "elevatorStn2ToHomeTable.run", "bool",126,0,0),
+        db(itemMap, "homeTableToHomeBP.run", "bool",126,0,1),
+        db(itemMap, "homeTableToElevatorStn3.run", "bool",126,0,2),
+        db(itemMap, "homeBPToHomeTable.run", "bool",126,0,3),
+        db(itemMap, "placeAtPos.run", "bool",126,0,4),
+        db(itemMap, "pickAtPos.run", "bool",126,0,5),
+        db(itemMap, "elevatorStn2ToHomeTable.mode", "int", 216, 2, 0, stateMap),
+        db(itemMap, "homeTableToHomeBP.mode", "int", 126, 4, 0, stateMap),
+        db(itemMap, "homeTableToElevatorStn3.mode", "int", 126, 6, 0, stateMap),
+        db(itemMap, "homeBPToHomeTable.mode", "int", 126, 8, 0, stateMap),
+        db(itemMap, "placeAtPos.run", "int", 126, 10, 0, stateMap),
+        db(itemMap, "pickAtPos.run", "int", 126, 12, 0, stateMap),
 
-        //stoppet där köbildning av paletter kommer skapas
-        db(itemMap,"s1.open",             "bool", 950, 1, 2),
-        db(itemMap, "s1.open.mode",       "int", 950, 1, 3, stateMap),
-        db(itemMap, "s1.close",           "bool", 950, 1, 4),
-        db(itemMap, "s1.close.mode",       "bool", 950, 1, 5),
-        db(itemMap, "s1.stop",             "bool", 950, 2, 1),
-        db(itemMap, "s1.mode",            "int", 950, 2, 2, Map(0->"open", 1->"closed")),
-
-
-        //stoppet vid operatören
-        db(itemMap,"s2.open",             "bool", 950, 1, 2),
-        db(itemMap, "s2.open.mode",       "int", 950, 1, 3, stateMap),
-        db(itemMap, "s2.close",           "bool", 950, 1, 4),
-        db(itemMap, "s2.close.mode",       "bool", 950, 1, 5),
-        db(itemMap, "s2.stop",             "bool", 950, 2, 1),
-        db(itemMap, "s2.mode",            "int", 950, 2, 2, Map(0->"open", 1->"closed")),
-
-
-        // stoppet vid hiss1
-        db(itemMap,"s3.open",             "bool", 950, 1, 2),
-        db(itemMap, "s3.open.mode",       "int", 950, 1, 3, stateMap),
-        db(itemMap, "s3.close",           "bool", 950, 1, 4),
-        db(itemMap, "s3.close.mode",      "bool", 950, 1, 5),
-        db(itemMap, "s3.stop",            "bool", 950, 2, 1),
-        db(itemMap, "s3.mode",            "int", 950, 2, 2, Map(0->"open", 1->"closed")),
-
-
-        //stoppet vid hiss2
-        db(itemMap, "s4.open",            "bool", 950, 1, 2),
-        db(itemMap, "s4.open.mode",       "int", 950, 1, 3, stateMap),
-        db(itemMap, "s4.close",           "bool", 950, 1, 4),
-        db(itemMap, "s4.close.mode",       "bool", 950, 1, 5),
-        db(itemMap, "s4.stop",             "bool", 950, 2, 1),
-        db(itemMap, "s4.mode",            "int", 950, 2, 2, Map(0->"open", 1->"closed")),
-
-
-        //flexlinkbandet, ihopblandat!!
-        db(itemMap, "flexlink.run",       "bool", 111, 0, 0),
-        db(itemMap, "flexlink.run.mode",  "bool", 111, 0, 1, stateMap),
-        db(itemMap, "flexLink.mode",      "bool", 111, 0, 2),
-*/
-
-        db(itemMap, "h1.up.run", "bool", 755, 8, 0),
-        db(itemMap, "h1.down.run", "bool", 755, 8, 1),
-        db(itemMap, "h1.up.mode", "int", 755, 0, 0, stateMap),
-        db(itemMap, "h1.down.mode", "int", 755, 2, 0, stateMap),
-
-        db(itemMap, "h2.up.run", "bool", 755, 8, 2),
-        db(itemMap, "h2.down.run", "bool", 755, 8, 3),
-        db(itemMap, "h2.up.mode", "int", 755, 4, 0, stateMap),
-        db(itemMap, "h2.down.mode", "int", 755, 6, 0, stateMap)
-
+        db(itemMap, "IH2.mode", "bool", 755, 8, 4)
       ).flatten
 
       val connection = SPSpec("PLCConnection", SPAttributes(
         "connection"->connectionList,
         "specification"-> "PLCConnection"
       ))
-
 
       // Here you can make the operations
       // Look into the Operation class in domain
@@ -249,10 +186,8 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       //import sp.domain.logic.PropositionParser._
       //operations exempel
 
-      val root = HierarchyRoot("Resources", List(/*r2._1, r4._1, r5._1, s1._1, s2._1, s3._1, s4._1, flexLink._1,*/ h1._1, h2._1, HierarchyNode(sopSpec.id)))
-      //val opRoot = HierarchyRoot("Operations", List())
+      val root = HierarchyRoot("Resources", List(h2._1, h3._1, toOper._1, toRobo._1, R5._1, R4._1, R2._1, sensorIH2._1, HierarchyNode(sopSpec.id)))
       replyTo ! Response(items :+ root :+ connection, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
-
     }
   }
 }
@@ -261,16 +196,13 @@ case class DBConnection(name: String, valueType: String, db: Int, byte: Int = 0,
 
 
 trait ModelMaking {
-  val idMap: Map[ID, String] = Map()
-
   def makeResource(name: String, state: List[String], abilities: List[(String, List[String])]) = {
     val t = Thing(name)
     val stateVars = state.map(x => Thing(s"$name.$x", SPAttributes("variableType"->"state")))
     val ab = abilities.map{case (n, params) =>
       val parameters = params ++ List("run","mode") // all abilities have these
-      val abilityName = name +"."+n
+    val abilityName = name +"."+n
       val o = Operation(abilityName, List(), SPAttributes("operationType"->"ability"))
-      idMap + (o.id -> abilityName)
       (o, parameters.map{x =>
         val pName = x.replaceFirst("p_", "")
         val isP = x.startsWith("p_")
@@ -284,26 +216,6 @@ trait ModelMaking {
 
     (hier, temp)
   }
-
-  //behöver denna under tiden vi hårkodar och testar en SOP, kommer inte behövas senare
-  /*var sopID: Map[String, ID] = Map()
-  def addSopSpecID(sopSpec: SOPSpec, sopName: String) ={
-    sopID = sopID + (sopName -> sopSpec.id)
-  }*/
-
-/*
-  def makeOperation(opName: String, itemMap: Map[String, ID], madeOfAbilities: List[String])={
-    val name = Operation(opName)
-    val attributes = SPAttributes()
-    for(ability <- madeOfAbilities){
-      attributes ++ SPAttributes("ability" -> itemMap(ability))
-    }
-    //val op = Operation(opName, List(), attributes)
-    //val abil = madeOfAbilities.map(x => Thing(s"$name.$x", SPAttributes("variableType"->"abilities")))
-    //val hier = HierarchyNode(op.id, abil.map(x => HierarchyNode(x.id)))
-    //val temp: List[IDAble] = op :: abil
-    //(hier, temp)
-  }*/
 
   def db(items: Map[String, ID], name: String, valueType: String, db:Int, byte: Int, bit: Int, intMap: Map[Int, String] = Map()) = {
     items.get(name).map(id => DBConnection(name, valueType, db, byte, bit, intMap.map{case (k,v) => k.toString->v}, id))

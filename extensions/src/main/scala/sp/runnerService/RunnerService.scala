@@ -21,6 +21,8 @@ import scala.concurrent.duration._
 import akka.actor.Actor
 import akka.actor.Props
 
+case class AbilityStructure(name: String, parameter: Option[Int])
+
 
 object RunnerService extends SPService {
   val specification = SPAttributes(
@@ -51,12 +53,15 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   var reply: Option[RequestNReply] = None
   var readyList: List[ID] = List()
   var sopen: Option[SOP] = None
+  var operationAbilityMap = Map[ID, AbilityStructure]()
+  var abilityMap = Map[String, Operation]()
   implicit var rnr: RequestNReply = null
   implicit val timeout = Timeout(2 seconds)
 
 
+
   def receive = {
-    case r@Request(service, attr, ids, reqID) => {
+    case r @ Request(service, attr, ids, reqID) => {
       val replyTo = sender()
       rnr = RequestNReply(r, replyTo)
       reply = Some(rnr)
@@ -73,8 +78,17 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       val idMap: Map[ID, IDAble] = ids.map(item => item.id -> item).toMap
       val sop = Try{idMap(sopID).asInstanceOf[SOPSpec].sop}.map(xs => Parallel(xs:_*))
 
+      val ops = ids.collect{case o:Operation => o}
+      operationAbilityMap = ops.flatMap{ o =>
+        o.attributes.getAs[AbilityStructure]("ability").map(o.id -> _)
+      }.toMap
+
+      val abilities = ops.collect{case o: Operation if o.attributes.getAs[String]("operationType").getOrElse("not") == "ability" => o}
+      abilityMap = abilities.map(o => o.name -> o).toMap
+
       askAService(Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"status"))),serviceHandler)
 
+      sop.foreach(createSOPMapPSL)
 
       // Makes the parentmap
       sop.foreach(createSOPMap)
@@ -84,7 +98,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
 
       // Starts the first op
-//      sop.foreach(executeSOP)
+      //      sop.foreach(executeSOP)
       progress ! SPAttributes("activeOps"->activeSteps)
 
     }
@@ -133,6 +147,10 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
     }
   }
 
+  def createSOPMapPSL (x:SOP): Unit = {
+
+  }
+
 
   def createSOPMap(x: SOP): Unit = {
     x.sop.foreach { c =>
@@ -140,7 +158,6 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       createSOPMap(c) // terminerar när en SOP inte har några barn
     }
   }
-
 
   def executeSOP(sop: SOP): Unit = {
     if (sop.isInstanceOf[Hierarchy]) println(s"executing sop $sop")
@@ -206,7 +223,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
           stepCompleted(p)
         }
         else {     // om nuvarande index är mindre än antalet barn tas nuvarande bort ur lista
-                   // över aktiva och nästkommande steg i seq startar
+          // över aktiva och nästkommande steg i seq startar
           executeSOP(parentSeq(current + 1))
           false
         }
