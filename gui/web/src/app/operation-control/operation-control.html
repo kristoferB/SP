@@ -1,67 +1,69 @@
-<div ng-controller="operationControlController as vm">
+<div ng-controller="operationControlController as vm" class="simple-widget">
     <div class="panel-content">
         <!-- lägg till senare, just nu laddas alla items -->
-        <div ng-if="false" style="padding: 10px;">
-            <b>To start, select the items (operations and variables) that constitute your model. Then click "get initial state"</b>
-            <textarea class="form-control" ng-model="vm.selected" ng-list/>
-            <button class="btn btn-default" ng-click="vm.reload_selection()">
-                <i class="fa fa-download"></i>
-                get selected items
-            </button>
-            <button class="btn btn-default" ng-click="vm.attributes = []">
-                <i class="fa fa-times"></i>
-                clear
-            </button>
-            <button type="button" class="btn btn-sm btn-primary" ng-click="vm.get_init_state()">
-                <i class="fa fa-play"></i> Get initial state
+        <div ng-if="!vm.control.connected" style="padding: 10px;">
+            <b>The resource tree id.</b>
+            <input class="form-control" ng-model="vm.resourcesID"/>
+            <b>Specification of connection details</b>
+            <input class="form-control" ng-model="vm.connectionDetailsID"/>
+
+
+            <button type="button" class="btn btn-sm btn-primary" ng-click="vm.connect()">
+                <i class="fa fa-play"></i> Connect
             </button>
         </div>
-        <div ng-if="true">
-            <div style="padding: 10px; float: left; width: 50%">
-                <h4>Enabled operations</h4>
-                <label>Filter operations: <input ng-model="vm.manualOpsFilterQuery"></label>
-                <table ng-repeat="op in vm.operations | orderBy:'name' | filter:vm.manualOpsFilterQuery">
-                    <tr>
-                        <td style="padding: 5px">
-                            <button type="button" class="btn btn-sm btn-primary" ng-click="vm.execute_op(vm.state,op.id)">
-                                <i class="fa fa-play"></i>{{op.name}}
-                            </button>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <div style="padding: 10px; float: right; width: 50%">
-                <h4>System state</h4>
-                <label>Filter operations: <input ng-model="vm.opsFilterQuery"></label>
+        <div ng-if="vm.control.connected">
+            <div>
+                <h4>Controlled resources</h4>
+                <label>Filter resources: <input ng-model="vm.opsFilterQuery"></label>
                 <table width="100%" border="1">
                     <thead>
-                        <th class="col-md-6">Operation</th>
-                        <th class="col-md-4">State</th>
-                        <th class="col-md-2">Autorun</th>
+                        <th>resource</th>
+                        <th>item</th>
+                        <th>value</th>
+                        <th>run</th>
                     </thead>
-                    <tbody ng-repeat="op in vm.operations | orderBy:'name' |  filter:vm.opsFilterQuery">
-                        <tr>
-                            <td>{{op.name}}</td>
-                            <td>{{op.state}}</td>
-                            <td><center><input type="checkbox" ng-model="op.item.attributes.autostart"/></center></td>
+                    <tbody ng-repeat="resource in vm.control.resourceTree | orderBy:'name' |  filter:vm.opsFilterQuery">
+                        <tr><td>{{resource.name}}</td><td></td><td></td><td></td></tr>
+                        <tr ng-repeat-start="ab in resource.abilities">
+                            <td></td>
+                            <td>{{ab.name}}</td>
+                            <td>{{vm.getState(ab.id)}}</td>
+                            <td><button type="button" class="btn btn-sm btn-primary" ng-click="vm.execute_op(ab.id)">
+                                <i class="fa fa-play"></i>
+                            </button></td>
+                        </tr>
+                        <tr ng-repeat="p in ab.parameters">
+                            <td></td>
+                            <td>{{p.name}}</td>
+                            <td>{{vm.getState(p.id)}}</td>
+                            <td></td>
+                        </tr>
+                        <tr ng-repeat-end>
+
+                        </tr>
+                        <tr ng-repeat="st in resource.state">
+                            <td></td>
+                            <td>{{st.name}}</td>
+                            <td>{{vm.getState(st.id)}}</td>
+                            <td></td>
                         </tr>
                     </tbody>
                 </table>
                 <br>
-                <label>Filter variables: <input ng-model="vm.varsFilterQuery"></label>
-                <table width="100%" border="1">
-                    <thead>
-                        <th class="col-md-6">Variable</th>
-                        <th class="col-md-6">State</th>
-                    </thead>
-                    <tbody ng-repeat="op in vm.variables | orderBy:'name' |  filter:vm.varsFilterQuery">
-                        <tr>
-                            <td>{{op.name}}</td>
-                            <td>{{op.state}}</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <!--<label>Filter variables: <input ng-model="vm.varsFilterQuery"></label>-->
+                <!--<table width="100%" border="1">-->
+                    <!--<thead>-->
+                        <!--<th class="col-md-6">Variable</th>-->
+                        <!--<th class="col-md-6">State</th>-->
+                    <!--</thead>-->
+                    <!--<tbody ng-repeat="op in vm.variables | orderBy:'name' |  filter:vm.varsFilterQuery">-->
+                        <!--<tr>-->
+                            <!--<td>{{op.name}}</td>-->
+                            <!--<td>{{op.state}}</td>-->
+                        <!--</tr>-->
+                    <!--</tbody>-->
+                <!--</table>-->
             </div>
         </div>
 

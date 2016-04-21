@@ -23,6 +23,7 @@
         vm.message = "Hej"
 
 
+
         vm.Palett = {
             pal: [
                     ["#fff","#fff","#fff","#fff"],
@@ -32,10 +33,10 @@
             sendEmpty: [
                     ["empty","empty","empty","empty"],
                     ["empty","empty","empty","empty"]
-                 ]                    
+                 ]
         };
         activate();
-        
+
         function activate() {
             $scope.$on('closeRequest', function() {
                 dashboardService.closeWidget(vm.widget.id);
@@ -44,7 +45,7 @@
             eventService.addListener('Response',vm.listen);
         }
         function imDone(done){
-            
+
             var mess = {"data": {"getNext": done,"buildOrder": vm.Palett.sendEmpty}};
 
             spServicesService.callService(

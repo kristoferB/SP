@@ -120,7 +120,7 @@ object ServiceTalker {
 
   def serviceHandlerAttributes = SPAttributes("core" -> SPAttributes(
     "model"-> KeyDefinition("Option[ID]", List(), Some(JNothing)),
-    "responseToModel"->KeyDefinition("Boolean", List(true, false), Some(false)),
+    "responseToModel"->KeyDefinition("Boolean", List(true, false), Some(true)),
     "includeIDAbles"->KeyDefinition("List[ID]", List(), Some(SPValue(List[IDAble]()))),
     "onlyResponse"->KeyDefinition("Boolean", List(true, false), Some(false))
   ))
@@ -130,7 +130,7 @@ object ServiceTalker {
 
   def validateRequest(req: Request, serviceAttributes: SPAttributes, transform: List[TransformValue[_]])= {
     val attr = req.attributes
-    println(s"ServceTalker got: $attr")
+    //println(s"ServceTalker got: $attr")
     val expectAttrs = serviceAttributes.findObjectsWithKeysAs[KeyDefinition](List("ofType", "domain"))
     val errorsAttr = analyseAttr(attr, expectAttrs)
     if (errorsAttr.nonEmpty) Left(errorsAttr) else {
