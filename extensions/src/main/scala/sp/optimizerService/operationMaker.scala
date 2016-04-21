@@ -169,6 +169,7 @@ class operationMaker {
     R5HoldingCube) ++ listOfPickedUpCubes ++ listOfPutDownCubes)
 
 //Create gaurds-------------------------------------------------------------------------------------------------------
+
 //Guards for buildspace
   val gR4BuildSpace1Booked = parserG.parseStr("R4BuildSpace1Book == true").right.get
   val gR4BuildSpace2Booked = parserG.parseStr("R4BuildSpace2Book == true").right.get
