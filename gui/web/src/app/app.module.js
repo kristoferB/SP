@@ -20,7 +20,6 @@
         'app.exampleWidget',
         'app.operationControl',
         'app.calculator',
-        'app.Tobbe',
         'app.Tobbe2',
         'app.rasmus',
         'app.kubInputGUI',
