@@ -177,6 +177,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         db(itemMap, "r4.mode",                      "int",    996, 0, 1, stateMap),
 
 
+
         //stoppet där köbildning av paletter kommer skapas
         db(itemMap,"s1.open",             "bool", 950, 1, 2),
         db(itemMap, "s1.open.mode",       "int", 950, 1, 3, stateMap),
