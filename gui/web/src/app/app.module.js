@@ -19,7 +19,10 @@
         'app.conditionEditor',
         'app.exampleWidget',
         'app.operationControl',
-        'app.calculator'
+        'app.calculator',
+        'app.Tobbe',
+        'app.rasmus',
+        'app.operatorInstGUI'
     ]);
 
 })();

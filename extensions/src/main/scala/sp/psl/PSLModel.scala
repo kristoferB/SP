@@ -3,12 +3,15 @@ package sp.psl
 import akka.actor._
 import sp.control.AddressValues
 import sp.domain.logic.{PropositionParser, ActionParser, IDAbleLogic}
+import sp.runnerService.RunnerService
 import scala.concurrent._
 import sp.system.messages._
 import sp.system._
 import sp.domain._
 import sp.domain.Logic._
 import sp.domain.Operation
+import com.typesafe.config._
+
 
 
 object PSLModel extends SPService {
@@ -20,10 +23,13 @@ object PSLModel extends SPService {
   )
   val transformation: List[TransformValue[_]] = List()
   def props = Props(classOf[PSLModel])
+  //def props(eventHandler: ActorRef, serviceHandler: ActorRef, runnerService: String) =
+    //ServiceLauncher.props(Props(classOf[PSLModel], eventHandler, serviceHandler, runnerService))
 }
 
 class PSLModel extends Actor with ServiceSupport with ModelMaking {
   import context.dispatcher
+  //val other = context.actorOf(Props[RunnerService], "OperationControl")
 
   def receive = {
     case r @ Request(service, attr, ids, reqID) => {
@@ -31,81 +37,90 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       implicit val rnr = RequestNReply(r, replyTo)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
+      val o1 = Operation("o1", List(), SPAttributes(), ID.makeID("a0f565e2-e44b-4017-a24e-c7d01e970dec").get)
+      val o2 = Operation("o2",List(), SPAttributes(), ID.makeID("b0f565e2-e44b-4017-a24e-c7d01e970dec").get)
+      val o3 = Operation("o3",List(), SPAttributes(), ID.makeID("c0f565e2-e44b-4017-a24e-c7d01e970dec").get)
+      val o4 = Operation("o4",List(), SPAttributes(), ID.makeID("d0f565e2-e44b-4017-a24e-c7d01e970dec").get)
+      val o5 = Operation("o5",List(), SPAttributes(), ID.makeID("e0f565e2-e44b-4017-a24e-c7d01e970dec").get)
+      val sop = Parallel(Sequence(o1, Parallel(Sequence(o2, o3), o4), o5))
+
+      val sopSpec =  SOPSpec("theSOPSpec", List(sop), SPAttributes())
+
+      val longList: List[IDAble] = List(o1, o2, o3, o4, o5, sopSpec)
+      /*
+            val x = Request("RunnerService",
+              SPAttributes(
+                "SOP" -> sopSpec.id
+              ),
+              longList
+            )
+
+            other ! x
+      */
+
       // Resources
-      val r2 = makeResource(
-        name = "r2",
-        state = List("position", "mode"),// the state variables defining the state of the resource
-        abilities = List(
-          "movePaletteToStock" -> List("mode"),
-          "movePaletteToFlexlink" -> List("mode"),
-          "moveFixtureToBuildingPlace" -> List("mode"),
-          "moveTowerToTable" -> List("mode")
-        )
-      )
 
-      val r5 = makeResource(
-        name = "r5",
-        state = List("position", "mode"),
-        abilities = List(
-          "gripping" -> List("mode"),
-          "moveToStart" -> List("start_parameter", "mode"),
-          "moveToEnd" -> List("end_parameter", "mode")
-        )
-      )
-
-      val r4 = makeResource(
-        name = "r4",
-        state = List("position", "mode"),
-        abilities = List(
-          "gripping" -> List("mode"),
-          "moveToStart" -> List("start_parameter", "mode"),
-          "moveToEnd" -> List("end_parameter", "mode")
-        )
-      )
-
-      val s1 = makeResource(
-        name = "s1",
-        state = List("stop", "mode"),
-        abilities = List("open"->List("mode"), "close"->List("mode"))
-      )
-
-      val s2 = makeResource(
-        name = "s2",
-        state = List("stop", "mode"),
-        abilities = List("open"->List("mode"), "close"->List("mode"))
-      )
-
-      val s3 = makeResource(
-        name = "s3",
-        state = List("stop", "mode"),
-        abilities = List("open"->List("mode"), "close"->List("mode"))
-      )
-
-      val s4 = makeResource(
-        name = "s4",
-        state = List("stop", "mode"),
-        abilities = List("open"->List("mode"), "close"->List("mode"))
-      )
-
-      val flexLink = makeResource (
-        name = "flexlink",
+      val h2 = makeResource (
+        name = "h2",
         state = List("mode"),
-        abilities = List("run"->List("mode"))
+        abilities = List("up"->List(), "down"->List())
+      )
+      val h3 = makeResource (
+        name = "h3",
+        state = List("mode"),
+        abilities = List("up"->List(), "down"->List())
       )
 
-      val h1 = makeResource (
-        name = "h1",
-        state = List("up", "down", "mode"),
-        abilities = List("up"->List("mode"))
+      //skicka klossplatta till operatör
+      val toOper = makeResource (
+        name = "toOper",
+        state = List("mode"),
+        abilities = List("run"->List())
+      )
+
+      //skicka klossplatta till hiss in
+      val toRobo = makeResource (
+        name = "toRobo",
+        state = List("mode"),
+        abilities = List("run"->List())
+      )
+
+      val R5 = makeResource (
+        name = "R5",
+        state = List("mode"),
+        abilities = List("pickBlock"->List(), "placeBlock"->List(),
+        "toHome"->List(), "toDodge"->List())
+      )
+
+      val R4 = makeResource (
+        name = "R4",
+        state = List("mode"),
+        abilities = List("pickBlock"->List(), "placeBlock"->List(),
+          "toHome"->List(), "toDodge"->List())
+      )
+
+      val R2 = makeResource (
+        name = "R2",
+        state = List("mode"),
+        abilities = List("elevatorStn2ToHomeTable"->List(), "homeTableToHomeBP" ->List(),
+          "homeTableToElevatorStn3"->List(), "homeBPToHomeTable"->List(),
+          "placeAtPos"->List(), "pickAtPos"->List())
+      )
+
+      val sensorIH2 = makeResource (
+        name = "IH2",
+        state = List("mode"),
+        abilities = List()
       )
 
 
-      val items = r2._2 ++ r4._2 ++ r5._2 ++ s1._2 ++ s2._2 ++ s3._2 ++ s4._2 ++ flexLink._2 ++ h1._2
-      val itemMap = items.map(x => x.name -> x.id) toMap
+      val items = h2._2 ++ h3._2 ++ toOper._2 ++ toRobo._2 ++ R5._2 ++ R4._2 ++ R2._2 ++ longList ++ sensorIH2._2
+      val itemMap = items.map(x => x.name -> x.id).toMap
       val stateMap = Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")
 
       // This info will later on be filled by a service on the bus
       val connectionList = List(
+
         //robot r2, siffror ska ändras senare
         db(itemMap, "r2.movePaletteToStock",      "bool",   950, 0, 0),
         db(itemMap, "r2.movePaletteToStock.mode", "int",    950, 4, 0, stateMap),
@@ -185,7 +200,56 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         //flexlinkbandet, ihopblandat!!
         db(itemMap, "flexlink.run",       "bool", 111, 0, 0),
         db(itemMap, "flexlink.run.mode",  "bool", 111, 0, 1, stateMap),
-        db(itemMap, "flexLink.mode",      "bool", 111, 0, 2)
+        db(itemMap, "flexLink.mode",      "bool", 111, 0, 2),
+
+
+        db(itemMap, "h2.up.run", "bool", 135, 0, 0),
+        db(itemMap, "h2.down.run", "bool", 135, 0, 1),
+        db(itemMap, "h2.up.mode", "int", 135, 2, 0, stateMap),
+        db(itemMap, "h2.down.mode", "int", 135, 4, 0, stateMap),
+
+        db(itemMap, "h3.up.run", "bool", 140, 0, 0),
+        db(itemMap, "h3.down.run", "bool", 140, 0, 1),
+        db(itemMap, "h3.up.mode", "int", 140, 2, 0, stateMap),
+        db(itemMap, "h3.down.mode", "int", 140, 4, 0, stateMap),
+
+        db(itemMap, "toOper.run", "bool", 139, 0, 0),
+        db(itemMap, "toOper.mode", "int", 139, 2, 0, stateMap),
+        db(itemMap, "toRobo.run", "bool", 139, 0, 1),
+        db(itemMap, "toRobo.mode", "int", 139, 4, 0, stateMap),
+
+        db(itemMap, "R5.pickBlock.run", "bool", 128, 0, 0),
+        db(itemMap, "R5.pickBlock.mode", "int", 128, 2, 0, stateMap),
+        db(itemMap, "R5.placeBlock.run", "bool", 128, 0, 1),
+        db(itemMap, "R5.placeBlock.mode", "int", 128, 4, 0, stateMap),
+        db(itemMap, "R5.toHome.run", "bool", 128, 0, 2),
+        db(itemMap, "R5.toHome.mode", "int", 128, 6, 0, stateMap),
+        db(itemMap, "R5.toDodge.run", "bool", 128, 0, 3),
+        db(itemMap, "R5.toDodge.mode", "int", 128, 8, 0, stateMap),
+
+        db(itemMap, "R4.pickBlock.run", "bool", 128, 0, 0),
+        db(itemMap, "R4.pickBlock.mode", "int", 128, 2, 0, stateMap),
+        db(itemMap, "R4.placeBlock.run", "bool", 128, 0, 1),
+        db(itemMap, "R4.placeBlock.mode", "int", 128, 4, 0, stateMap),
+        db(itemMap, "R4.toHome.run", "bool", 128, 0, 2),
+        db(itemMap, "R4.toHome.mode", "int", 128, 6, 0, stateMap),
+        db(itemMap, "R4.toDodge.run", "bool", 128, 0, 3),
+        db(itemMap, "R4.toDodge.mode", "int", 128, 8, 0, stateMap),
+
+        db(itemMap, "elevatorStn2ToHomeTable.run", "bool",126,0,0),
+        db(itemMap, "homeTableToHomeBP.run", "bool",126,0,1),
+        db(itemMap, "homeTableToElevatorStn3.run", "bool",126,0,2),
+        db(itemMap, "homeBPToHomeTable.run", "bool",126,0,3),
+        db(itemMap, "placeAtPos.run", "bool",126,0,4),
+        db(itemMap, "pickAtPos.run", "bool",126,0,5),
+        db(itemMap, "elevatorStn2ToHomeTable.mode", "int", 216, 2, 0, stateMap),
+        db(itemMap, "homeTableToHomeBP.mode", "int", 126, 4, 0, stateMap),
+        db(itemMap, "homeTableToElevatorStn3.mode", "int", 126, 6, 0, stateMap),
+        db(itemMap, "homeBPToHomeTable.mode", "int", 126, 8, 0, stateMap),
+        db(itemMap, "placeAtPos.run", "int", 126, 10, 0, stateMap),
+        db(itemMap, "pickAtPos.run", "int", 126, 12, 0, stateMap),
+
+        db(itemMap, "IH2.mode", "bool", 755, 8, 4)
 
       ).flatten
 
@@ -193,10 +257,6 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         "connection"->connectionList,
         "specification"-> "PLCConnection"
       ))
-
-      //val soppa = makeAbilitySOP("r2.movePaletteToStock")
-
-
 
       // Here you can make the operations
       // Look into the Operation class in domain
@@ -210,11 +270,8 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       //import sp.domain.logic.PropositionParser._
       //operations exempel
 
-
-      val root = HierarchyRoot("Resources", List(r2._1, r4._1, r5._1, s1._1, s2._1, s3._1, s4._1, flexLink._1, h1._1))
-      val opRoot = HierarchyRoot("Operations", List())
-      replyTo ! Response(items :+ root :+ opRoot :+ connection, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
-
+      val root = HierarchyRoot("Resources", List(h2._1, h3._1, toOper._1, toRobo._1, R5._1, R4._1, R2._1, sensorIH2._1, HierarchyNode(sopSpec.id)))
+      replyTo ! Response(items :+ root :+ connection, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
     }
   }
 }
@@ -226,8 +283,9 @@ trait ModelMaking {
   def makeResource(name: String, state: List[String], abilities: List[(String, List[String])]) = {
     val t = Thing(name)
     val stateVars = state.map(x => Thing(s"$name.$x", SPAttributes("variableType"->"state")))
-    val ab = abilities.map{case (n, parameters) =>
-      val abilityName = name +"."+n
+    val ab = abilities.map{case (n, params) =>
+      val parameters = params ++ List("run","mode") // all abilities have these
+    val abilityName = name +"."+n
       val o = Operation(abilityName, List(), SPAttributes("operationType"->"ability"))
       (o, parameters.map{x =>
         val pName = x.replaceFirst("p_", "")
@@ -244,6 +302,7 @@ trait ModelMaking {
   }
 
 
+
   def makeOperation(opName: String, itemMap: Map[String, ID], madeOfAbilities: List[String])={
     val name = opName
     val attributes = SPAttributes()
@@ -256,6 +315,7 @@ trait ModelMaking {
     //val temp: List[IDAble] = op :: abil
     //(hier, temp)
   }
+
 
   def db(items: Map[String, ID], name: String, valueType: String, db:Int, byte: Int, bit: Int, intMap: Map[Int, String] = Map()) = {
     items.get(name).map(id => DBConnection(name, valueType, db, byte, bit, intMap.map{case (k,v) => k.toString->v}, id))

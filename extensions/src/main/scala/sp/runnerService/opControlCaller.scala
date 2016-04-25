@@ -33,7 +33,7 @@ class OPControlCaller(eventHandler: ActorRef, serviceHandler: ActorRef, operatio
             exec(kv._1)
             kv._2 ! "done"
           } else if (str == "notReady"){
-            kv._2 ! "error"
+            kv._2 ! "errror"
           }
         }
 
