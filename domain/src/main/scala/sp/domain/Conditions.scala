@@ -39,15 +39,20 @@ object Proposition {
   implicit def strToProp(str: String)(implicit idables: List[IDAble] = List()): Proposition = parseStr(str, idables).get
 }
 
+trait PropositionEvaluator extends Proposition {
+  val left: StateEvaluator
+  val right: StateEvaluator
+}
+
 case class AND(props: List[Proposition]) extends Proposition
 case class OR(props: List[Proposition]) extends Proposition
 case class NOT(p: Proposition) extends Proposition
-case class EQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
-case class NEQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
-case class GREQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
-case class LEEQ(left: StateEvaluator, right: StateEvaluator) extends Proposition
-case class GR(left: StateEvaluator, right: StateEvaluator) extends Proposition
-case class LE(left: StateEvaluator, right: StateEvaluator) extends Proposition
+case class EQ(left: StateEvaluator, right: StateEvaluator) extends PropositionEvaluator
+case class NEQ(left: StateEvaluator, right: StateEvaluator) extends PropositionEvaluator
+case class GREQ(left: StateEvaluator, right: StateEvaluator) extends PropositionEvaluator
+case class LEEQ(left: StateEvaluator, right: StateEvaluator) extends PropositionEvaluator
+case class GR(left: StateEvaluator, right: StateEvaluator) extends PropositionEvaluator
+case class LE(left: StateEvaluator, right: StateEvaluator) extends PropositionEvaluator
 
 // dummy Propositions used in algorithms
 case object AlwaysTrue extends Proposition
