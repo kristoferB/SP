@@ -135,6 +135,89 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
       // This info will later on be filled by a service on the bus
       val connectionList = List(
+
+        //robot r2, siffror ska ändras senare
+        db(itemMap, "r2.movePaletteToStock",      "bool",   950, 0, 0),
+        db(itemMap, "r2.movePaletteToStock.mode", "int",    950, 4, 0, stateMap),
+        db(itemMap, "r2.movePaletteToFlexlink",   "bool",   950, 0, 1),
+        db(itemMap, "r2.movePaletteToFlexlink.mode", "int", 950, 0, 13, stateMap),
+        db(itemMap, "r2.moveFixtureToBuildingPlace", "bool", 950, 1, 1),
+        db(itemMap, "r2.moveFixtureToBuildingPlace.mode", "int", 950, 1, 2, stateMap),
+        db(itemMap, "r2.moveTowerToTable",        "bool",   950, 2, 0),
+        db(itemMap, "r2.moveTowerToTable.mode",   "int",    950, 2, 1, stateMap),
+        db(itemMap, "r2.position",                "int",    950, 4, 0, Map(0->"home", 1->"atH1", 2->"atH2", 3->"atLBP", 4->"atBP",
+          5->"atLR4", 6->"atLR5", 7->"atLP")),
+        db(itemMap, "r2.mode",                    "int",    950, 4, 0, stateMap),
+
+
+        // r5-robot som är detsamma som r4, siffror ska ändras senare
+          db(itemMap, "r5.gripping",                  "bool",   999, 0, 0), // ändras då den ska greppa någonting
+          db(itemMap, "r5.gripping.mode",             "int",    999, 0, 2, Map(0->"notReady", 3->"completed")),
+          db(itemMap, "r5.moveToStart",               "bool",   998, 0, 0), // ändras då den ska flytta sig till start
+          db(itemMap, "r5.moveToStart.start_parameter", "bool", 998, 0, 1), // om vi har fått in en startparameter eller inte
+          db(itemMap, "r5.moveToStart.mode",          "int",    998, 0, 2, stateMap),
+          db(itemMap, "r5.moveToEnd",                 "bool",  997, 0, 0),
+          db(itemMap, "r5.moveToEnd.end_parameter",   "bool",   997, 0, 1),
+          db(itemMap, "r5.moveToEnd.mode",            "int",    997, 0, 2, stateMap),
+          db(itemMap, "r5.position",                  "int",    996, 0, 0, Map(0->"home", 1->"atLR4", 2->"atLR5", 3->"atBP")),
+          db(itemMap, "r5.mode",                      "int",    996, 0, 1, stateMap),
+
+
+        //r4-robot som är detsamma som r5, siffror ska ändras senare'
+        db(itemMap, "r4.gripping",                  "bool",   999, 0, 0), // ändras då den ska greppa någonting
+        db(itemMap, "r4.gripping.mode",             "int",    999, 0, 2, Map(0->"notReady", 3->"completed")),
+        db(itemMap, "r4.moveToStart",               "bool",   998, 0, 0), // ändras då den ska flytta sig till start
+        db(itemMap, "r4.moveToStart.start_parameter", "bool", 998, 0, 1), // om vi har fått in en startparameter eller inte
+        db(itemMap, "r4.moveToStart.mode",          "int",    998, 0, 2, stateMap),
+        db(itemMap, "r4.moveToEnd",                 "bool",  997, 0, 0),
+        db(itemMap, "r4.moveToEnd.end_parameter",   "bool",   997, 0, 1),
+        db(itemMap, "r4.moveToEnd.mode",            "int",    997, 0, 2, stateMap),
+        db(itemMap, "r4.position",                  "int",    996, 0, 0, Map(0->"home", 1->"atLR4", 2->"atLR5", 3->"atBP")),
+        db(itemMap, "r4.mode",                      "int",    996, 0, 1, stateMap),
+
+
+        //stoppet där köbildning av paletter kommer skapas
+        db(itemMap,"s1.open",             "bool", 950, 1, 2),
+        db(itemMap, "s1.open.mode",       "int", 950, 1, 3, stateMap),
+        db(itemMap, "s1.close",           "bool", 950, 1, 4),
+        db(itemMap, "s1.close.mode",       "bool", 950, 1, 5),
+        db(itemMap, "s1.stop",             "bool", 950, 2, 1),
+        db(itemMap, "s1.mode",            "int", 950, 2, 2, Map(0->"open", 1->"closed")),
+
+
+        //stoppet vid operatören
+        db(itemMap,"s2.open",             "bool", 950, 1, 2),
+        db(itemMap, "s2.open.mode",       "int", 950, 1, 3, stateMap),
+        db(itemMap, "s2.close",           "bool", 950, 1, 4),
+        db(itemMap, "s2.close.mode",       "bool", 950, 1, 5),
+        db(itemMap, "s2.stop",             "bool", 950, 2, 1),
+        db(itemMap, "s2.mode",            "int", 950, 2, 2, Map(0->"open", 1->"closed")),
+
+
+        // stoppet vid hiss1
+        db(itemMap,"s3.open",             "bool", 950, 1, 2),
+        db(itemMap, "s3.open.mode",       "int", 950, 1, 3, stateMap),
+        db(itemMap, "s3.close",           "bool", 950, 1, 4),
+        db(itemMap, "s3.close.mode",      "bool", 950, 1, 5),
+        db(itemMap, "s3.stop",            "bool", 950, 2, 1),
+        db(itemMap, "s3.mode",            "int", 950, 2, 2, Map(0->"open", 1->"closed")),
+
+
+        //stoppet vid hiss2
+        db(itemMap, "s4.open",            "bool", 950, 1, 2),
+        db(itemMap, "s4.open.mode",       "int", 950, 1, 3, stateMap),
+        db(itemMap, "s4.close",           "bool", 950, 1, 4),
+        db(itemMap, "s4.close.mode",       "bool", 950, 1, 5),
+        db(itemMap, "s4.stop",             "bool", 950, 2, 1),
+        db(itemMap, "s4.mode",            "int", 950, 2, 2, Map(0->"open", 1->"closed")),
+
+
+        //flexlinkbandet, ihopblandat!!
+        db(itemMap, "flexlink.run",       "bool", 111, 0, 0),
+        db(itemMap, "flexlink.run.mode",  "bool", 111, 0, 1, stateMap),
+        db(itemMap, "flexLink.mode",      "bool", 111, 0, 2),
+
+
         db(itemMap, "h2.up.run", "bool", 135, 0, 0),
         db(itemMap, "h2.down.run", "bool", 135, 0, 1),
         db(itemMap, "h2.up.mode", "int", 135, 2, 0, stateMap),
@@ -195,6 +278,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         db(itemMap, "R2.pickAtPos.run", "int", 126, 12, 0, stateMap),
 
         db(itemMap, "IH2.mode", "bool", 755, 8, 4)
+
       ).flatten
 
       val connection = SPSpec("PLCConnection", SPAttributes(
@@ -241,6 +325,22 @@ trait ModelMaking {
 
     (hier, temp)
   }
+
+
+
+  def makeOperation(opName: String, itemMap: Map[String, ID], madeOfAbilities: List[String])={
+    val name = opName
+    val attributes = SPAttributes()
+    for(ability <- madeOfAbilities){
+      attributes ++ SPAttributes("ability" -> itemMap(ability))
+    }
+    val op = Operation(name, List(), attributes)
+    //val abil = madeOfAbilities.map(x => Thing(s"$name.$x", SPAttributes("variableType"->"abilities")))
+    //val hier = HierarchyNode(op.id, abil.map(x => HierarchyNode(x.id)))
+    //val temp: List[IDAble] = op :: abil
+    //(hier, temp)
+  }
+
 
   def db(items: Map[String, ID], name: String, valueType: String, db:Int, byte: Int, bit: Int, intMap: Map[Int, String] = Map()) = {
     items.get(name).map(id => DBConnection(name, valueType, db, byte, bit, intMap.map{case (k,v) => k.toString->v}, id))
