@@ -88,6 +88,11 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       println("abilities = " + abilities)
       abilityMap = abilities.map(o => o.name+".run" -> o).toMap
 
+      //val parameters = ids.collect{case o:Operation => o}
+      //parameterMap = parameters.flatMap{ o =>
+      //o.attributes.getAs[AbilityStructure]("ability").map(o.id -> o.parameter)
+      //}.toMap
+
 
       //println("abilityMap created with" + abilityMap.keySet.head)
 
@@ -213,6 +218,8 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
   def startID(id: ID) = {
     println(s"startID : starting id $id")
+    val absOp = operationAbilityMap.get(id).get
+
     askAService(Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"execute", "execute"->id))),serviceHandler)
   }
 
