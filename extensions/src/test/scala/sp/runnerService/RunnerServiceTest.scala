@@ -45,8 +45,7 @@ class RunnerServiceTest(_system: ActorSystem) extends TestKit(_system) with Impl
 
       val sopSpec =  SOPSpec("theSOPSpec", List(sop), SPAttributes())
 
-      val longList: List[IDAble] = List(o1, o2, o3, o4, o5, sopSpec)
-
+      val longList: List[IDAble] = List(o1, o2, o3, o4, o5, sopSpec
       val r = Request("RunnerService",
         SPAttributes(
           "SOP" -> sopSpec.id
