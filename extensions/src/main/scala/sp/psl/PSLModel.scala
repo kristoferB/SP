@@ -27,7 +27,7 @@ object PSLModel extends SPService {
     //ServiceLauncher.props(Props(classOf[PSLModel], eventHandler, serviceHandler, runnerService))
 }
 
-case class AbilityStructure(name: String, parameter: Option[Int])
+case class AbilityStructure(name: String, parameter: Option[(String, Int)])
 
 class PSLModel extends Actor with ServiceSupport with ModelMaking {
   import context.dispatcher
@@ -40,22 +40,22 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
 
-      val o1 = Operation("h2", List(), SPAttributes("ability"-> AbilityStructure("h2.up.run", Some(-1))))
-      val o2 = Operation("h2",List(), SPAttributes("ability"-> AbilityStructure("h2.down.run", Some(-1))))
-      val o3 = Operation("h3",List(), SPAttributes("ability"-> AbilityStructure("h3.up.run", Some(-1))))
-      val o4 = Operation("h3",List(), SPAttributes("ability"-> AbilityStructure("h3.down.run", Some(-1))))
-      val o5 = Operation("R2.elevatorStn2ToHomeTable.run", List(), SPAttributes("ability"-> AbilityStructure("R2.elevatorStn2ToHomeTable.run", Some(-1))))
-      val sop = Parallel(Sequence(o1, Sequence(o2, o3), o4))
+      val o1 = Operation("r4", List(), SPAttributes("ability"-> AbilityStructure("h2.up.run", None)))
+      val o2 = Operation("R4_pick",List(), SPAttributes("ability"-> AbilityStructure("R4.pickBlock.run", Some("R4.pickBlock.pos", 3))))
+      val o3 = Operation("h3",List(), SPAttributes("ability"-> AbilityStructure("h3.up.run", None)))
+      val o4 = Operation("h3",List(), SPAttributes("ability"-> AbilityStructure("h3.down.run", None)))
+
+      val sop = Parallel(Sequence(o2, Sequence(o1, o3), o4))
 
       val sopSpec =  SOPSpec("theSOPSpec", List(sop), SPAttributes())
 
-      val longList: List[IDAble] = List(o1, o2, o3, o4, o5, sopSpec)
+      val longList: List[IDAble] = List(o1, o2, o3, o4, sopSpec)
 
       //test
-      val op1 = Operation("h1.up.run", List(), SPAttributes("ability"-> AbilityStructure("h1.up.run", Some(-1))), ID.makeID("a0f565e2-e44b-4017-a24e-c7d01e970dec").get)
-      val op2 = Operation("h1.down.run", List(), SPAttributes("ability"-> AbilityStructure("h1.down.run", Some(-1))))
-      val op3 = Operation("h4.up.run", List(), SPAttributes("ability"-> AbilityStructure("h4.up.run", Some(-1))))
-      val op4 = Operation("h4.down.run", List(), SPAttributes("ability"-> AbilityStructure("h4.down.run", Some(-1))))
+      val op1 = Operation("h1.up.run", List(), SPAttributes("ability"-> AbilityStructure("h1.up.run", None)))
+      val op2 = Operation("h1.down.run", List(), SPAttributes("ability"-> AbilityStructure("h1.down.run", None)))
+      val op3 = Operation("h4.up.run", List(), SPAttributes("ability"-> AbilityStructure("h4.up.run", None)))
+      val op4 = Operation("h4.down.run", List(), SPAttributes("ability"-> AbilityStructure("h4.down.run", None)))
       val aSOP = Parallel(Sequence(op1, Parallel(Sequence(op2, op3), op4)))
 
       val thaSOP = SOPSpec("thaSOP", List(aSOP), SPAttributes())
@@ -98,8 +98,8 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
       val R4 = makeResource (
         name = "R4",
-        state = List("mode", "parameters"),
-        abilities = List("pickBlock"->List(), "placeBlock"->List(),
+        state = List("mode"),
+        abilities = List("pickBlock"->List("p_pos"), "placeBlock"->List("p_pos"),
           "toHome"->List(), "toDodge"->List())
       )
 
@@ -127,6 +127,12 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         name = "h4",
         state = List("mode"),
         abilities = List("up"->List(), "down"->List())
+      )
+
+      val opInstruct = makeResource (
+        name = "opInstruct",
+        state = List("mode"),
+        abilities = List("show"->List())
       )
 
       val items = h2._2 ++ h3._2 ++ toOper._2 ++ toRobo._2 ++ R5._2 ++ R4._2 ++ R2._2 ++ longList ++ sensorIH2._2 ++ aList ++ h1._2 ++ h4._2
@@ -157,10 +163,10 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         db(itemMap, "h4.down.mode", "int", 755, 6, 0, stateMap),
         //
 
-        db(itemMap, "toOper.run", "bool", 139, 0, 0),
-        db(itemMap, "toOper.mode", "int", 139, 2, 0, stateMap),
-        db(itemMap, "toRobo.run", "bool", 139, 0, 1),
-        db(itemMap, "toRobo.mode", "int", 139, 4, 0, stateMap),
+        db(itemMap, "toOper.mode.run", "bool", 139, 0, 0),
+        db(itemMap, "toOper.move.mode", "int", 139, 2, 0, stateMap),
+        db(itemMap, "toRobo.move.run", "bool", 139, 0, 1),
+        db(itemMap, "toRobo.move.mode", "int", 139, 4, 0, stateMap),
 
         db(itemMap, "R5.pickBlock.run", "bool", 132, 0, 0),
         db(itemMap, "R5.pickBlock.mode", "int", 132, 2, 0, stateMap),
@@ -172,6 +178,8 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         db(itemMap, "R5.toDodge.mode", "int", 132, 8, 0, stateMap),
 
         db(itemMap, "R4.pickBlock.run", "bool", 128, 0, 0),
+        db(itemMap, "R4.pickBlock.pos", "int", 128, 10, 0),
+        db(itemMap, "R4.placeBlock.pos", "int", 128, 10, 0),
         db(itemMap, "R4.pickBlock.mode", "int", 128, 2, 0, stateMap),
         db(itemMap, "R4.placeBlock.run", "bool", 128, 0, 1),
         db(itemMap, "R4.placeBlock.mode", "int", 128, 4, 0, stateMap),
@@ -179,7 +187,6 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         db(itemMap, "R4.toHome.mode", "int", 128, 6, 0, stateMap),
         db(itemMap, "R4.toDodge.run", "bool", 128, 0, 3),
         db(itemMap, "R4.toDodge.mode", "int", 128, 8, 0, stateMap),
-        db(itemMap, "R4.parameters", "int", 128, 10, 0),
 
         db(itemMap, "R2.elevatorStn2ToHomeTable.run", "bool",126,0,0),
         db(itemMap, "R2.homeTableToHomeBP.run", "bool",126,0,1),
@@ -193,6 +200,9 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         db(itemMap, "R2.homeBPToHomeTable.mode", "int", 126, 8, 0, stateMap),
         db(itemMap, "R2.placeAtPos.run", "int", 126, 10, 0, stateMap),
         db(itemMap, "R2.pickAtPos.run", "int", 126, 12, 0, stateMap),
+
+        db(itemMap, "opInstruct.show.run", "bool", 234, 2, 3),
+        db(itemMap, "opInstruct.show.mode", "int", 344, 2, 2, stateMap),
 
         db(itemMap, "IH2.mode", "bool", 755, 8, 4)
 

@@ -21,7 +21,7 @@ import scala.concurrent.duration._
 import akka.actor.Actor
 import akka.actor.Props
 
-case class AbilityStructure(name: String, parameter: Option[Int])
+case class AbilityStructure(name: String, parameter: Option[(String, Int)])
 
 object RunnerService extends SPService {
   val specification = SPAttributes(
@@ -55,6 +55,8 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   var sopen: Option[SOP] = None
   var operationAbilityMap = Map[ID, AbilityStructure]() // fejk id till abilityStructure
   var abilityMap = Map[String, Operation]()             // namn till äkta operation
+  var realToFakeID: Map[ID, ID] = Map()
+  var parameterMap: Map[String, ID] = Map()
   implicit var rnr: RequestNReply = null
   implicit val timeout = Timeout(2 seconds)
 
@@ -84,19 +86,28 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
         o.attributes.getAs[AbilityStructure]("ability").map(o.id -> _)
       }.toMap
 
+      val things = ids.collect{case t: Thing => t}
+      parameterMap = things.map(t => t.name -> t.id).toMap
+
       val abilities = ops.collect{case o: Operation if o.attributes.getAs[String]("operationType").getOrElse("not") == "ability" => o}
       println("abilities = " + abilities)
       abilityMap = abilities.map(o => o.name+".run" -> o).toMap
 
-      //val parameters = ids.collect{case o:Operation => o}
-      //parameterMap = parameters.flatMap{ o =>
-      //o.attributes.getAs[AbilityStructure]("ability").map(o.id -> o.parameter)
-      //}.toMap
+      val keys = abilityMap.keySet
+      operationAbilityMap.foreach{ case (fakeID, abStruct) =>
+        if(keys.contains(abStruct.name)) {
+          val realID = abilityMap.get(abStruct.name).get.id
+          realToFakeID = realToFakeID + (realID -> fakeID)
+        }
+      }
 
 
       //println("abilityMap created with" + abilityMap.keySet.head)
 
       askAService(Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"status"))),serviceHandler)
+
+      println(s"operationAbilityMap is: $operationAbilityMap")
+      println(s"abilityMap is: $abilityMap")
 
 
       // Makes the parentmap
@@ -218,9 +229,21 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
   def startID(id: ID) = {
     println(s"startID : starting id $id")
-    val absOp = operationAbilityMap.get(id).get
+    val fakeID = realToFakeID.get(id).get
+    val abStructToFake = operationAbilityMap.get(fakeID).get
+    val paraMap: Map[ID,SPValue] = abStructToFake.parameter match {
+      case None => Map()
+      case Some((str, num)) =>
+        val paraID = parameterMap.get(str).get
+        Map(paraID -> SPValue(num))
+    }
 
-    askAService(Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"execute", "execute"->id))),serviceHandler)
+    println(s"paraMap is: $paraMap")
+
+    val attr = SPAttributes("command"->SPAttributes("commandType"->"execute", "execute"->id,
+      "parameters" -> State(paraMap)))
+
+    askAService(Request(operationController, attr), serviceHandler)
   }
 
 

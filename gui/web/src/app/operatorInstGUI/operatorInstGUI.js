@@ -31,10 +31,10 @@
             sendEmpty: [
                     ["empty","empty","empty","empty"],
                     ["empty","empty","empty","empty"]
-                 ]                    
+                 ]
         };
         activate();
-        
+
         function activate() {
             $scope.$on('closeRequest', function() {
                 dashboardService.closeWidget(vm.widget.id);
@@ -43,14 +43,14 @@
             eventService.addListener('Response',vm.listen);
         }
         function imDone(done){
-            
+
             var mess = {"data": {"getNext": done,"buildOrder": vm.Palett.sendEmpty}};
 
             spServicesService.callService(
-                spServicesService.getService("operatorService"),mess,
+                spServicesService.getService("OperationControl"),mess,
                 function(resp) {
                     if(_.has(resp, "attributes.result")){
-                        vm.Palett.pal = resp.attributes.result;                    
+                        vm.Palett.pal = resp.attributes.result;
                     }
                 })
 
