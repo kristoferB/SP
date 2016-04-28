@@ -31,7 +31,8 @@ object TobbeG extends SPService {
   )
   val transformation = transformToList(transformTuple.productIterator.toList)
 
-  // incl ServiceLauncher if you want unique actors per request
+
+    // incl ServiceLauncher if you want unique actors per request
   def props = ServiceLauncher.props(Props(classOf[TobbeG]))
 
   // use this line if you only want one actor
@@ -41,6 +42,8 @@ object TobbeG extends SPService {
 case class MyServiceParams(param1: Boolean, param2: String)
 
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
+// Inkluderar eventHandler och namnet på servicen operationController. Skickas med i SP.scala
+//(eventHandler: ActorRef, serviceHandler: ActorRef, operationController: String)
 class TobbeG extends Actor with ServiceSupport {
   import context.dispatcher
 
@@ -50,6 +53,9 @@ class TobbeG extends Actor with ServiceSupport {
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
+
+      // Lyssna på events från alla
+      //eventHandler ! SubscribeToSSE(self)
 
       // include this if you want to send progress messages. Send attributes to it during calculations
       val progress = context.actorOf(progressHandler)
@@ -64,32 +70,40 @@ class TobbeG extends Actor with ServiceSupport {
         case 0 => 0
         case 1 => 1
       }
-/*
-      function getProperColor($number)
-      {
-        if ($var > 0 && $var <= 5)
-          return '#00FF00';
-        else if ($var >= 6 && $var <= 10)
-        return = '#FF8000';
-        else if ($var >= 11)
-        return = '#FF0000';
-      }
-      */
+
+      /* THIS IS TAKEN FROM RunnerService.SCALA
+
+      val abilities = ops.collect{case o: Operation if o.attributes.getAs[String]("operationType").getOrElse("not") == "ability" => o}
+      abilityMap = abilities.map(o => o.name -> o).toMap
+
+      askAService(Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"status"))),serviceHandler)
+
+    }
+
+    // Vi får states från Operation control
+    case r @ Response(ids, attr, service, _) if service == operationController => {
+      println(s"we got a state change")
+
+      val newState = attr.getAs[State]("state")
+      newState.foreach{s =>
+        state = State(state.state ++ s.state.filter{case (id, v)=>
+          state.get(id) != newState.get(id)
+        })}
+
+       */
+
+
+
       // Send progress if your calculations take some time (> 0.5 sec)
       progress ! SPAttributes("progress" -> "we are making it")
 
-
       replyTo ! Response(List(), SPAttributes("result"-> res), rnr.req.service, rnr.req.reqID)
-
 
       // Terminate self and progress. If you do not use ServiceLauncher, only terminate progress
       self ! PoisonPill
       progress ! PoisonPill
-
     }
   }
-
-
 }
 
 
