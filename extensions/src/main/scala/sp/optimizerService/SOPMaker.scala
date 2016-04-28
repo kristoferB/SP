@@ -6,6 +6,7 @@ import sp.domain.{Operation, Sequence}
   * Created by Kristian Eide on 2016-03-29.
   */
 class SOPMaker {
+  /*
   var SOP = SOP()
   def makeSOP(ls: List[List[String]]): Unit = {
     SOP = SOP(Sequence())
@@ -22,4 +23,5 @@ class SOPMaker {
   def getCubePlacingOperations(ls: List[List[String]]): List[Operation] = {
 
   }
+  */
 }
