@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    angular.module('app.Tobbe', [
+    angular.module('app.kubInputGUI', [
         'app.core',
         'app.widgets'
       ]);

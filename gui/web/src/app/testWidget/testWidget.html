@@ -1,0 +1,16 @@
+<div ng-controller="testWidgetController as vm" class="simple-widget">
+    <div class="panel-content">
+                <input type="number" ng-model="vm.a" class="form-control" id="inputA" >
+                <input type="number" ng-model="vm.b" class="form-control" id="inputB" >
+                <button type="button" class="btn btn-sm btn-primary" ng-click="vm.calc('+')">
+                    <i class="fa fa-plus"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" ng-click="vm.calc('-')">
+                    <i class="fa fa-minus"></i>
+                </button>
+                 <button type="button" class="btn btn-sm btn-primary" ng-click="vm.calc('x')">
+                <i class="fa fa-circle"></i>
+                </button>
+        <h1>{{vm.result}}</h1>
+    </div>
+</div>

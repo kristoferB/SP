@@ -141,6 +141,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
       // This info will later on be filled by a service on the bus
       val connectionList = List(
+
         db(itemMap, "h2.up.run", "bool", 135, 0, 0),
         db(itemMap, "h2.down.run", "bool", 135, 0, 1),
         db(itemMap, "h2.up.mode", "int", 135, 2, 0, stateMap),
