@@ -40,7 +40,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
 
-      val o1 = Operation("r4", List(), SPAttributes("ability"-> AbilityStructure("h2.up.run", None)))
+      val o1 = Operation("R4", List(), SPAttributes("ability"-> AbilityStructure("R4.pickBlock.run", None)))
       val o2 = Operation("R4_pick",List(), SPAttributes("ability"-> AbilityStructure("R4.pickBlock.run", Some("R4.pickBlock.pos", 3))))
       val o3 = Operation("h3",List(), SPAttributes("ability"-> AbilityStructure("h3.up.run", None)))
       val o4 = Operation("h3",List(), SPAttributes("ability"-> AbilityStructure("h3.down.run", None)))
@@ -50,7 +50,6 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       val sopSpec =  SOPSpec("theSOPSpec", List(sop), SPAttributes())
 
       val longList: List[IDAble] = List(o1, o2, o3, o4, sopSpec)
-
       //test
       val op1 = Operation("h1.up.run", List(), SPAttributes("ability"-> AbilityStructure("h1.up.run", None)))
       val op2 = Operation("h1.down.run", List(), SPAttributes("ability"-> AbilityStructure("h1.down.run", None)))
@@ -92,7 +91,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       val R5 = makeResource (
         name = "R5",
         state = List("mode"),
-        abilities = List("pickBlock"->List(), "placeBlock"->List(),
+        abilities = List("pickBlock"->List("p_pos"), "placeBlock"->List("p_pos"),
         "toHome"->List(), "toDodge"->List())
       )
 
@@ -134,6 +133,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         state = List("mode"),
         abilities = List("show"->List())
       )
+
 
       val items = h2._2 ++ h3._2 ++ toOper._2 ++ toRobo._2 ++ R5._2 ++ R4._2 ++ R2._2 ++ longList ++ sensorIH2._2 ++ aList ++ h1._2 ++ h4._2
       val itemMap = items.map(x => x.name -> x.id).toMap

@@ -77,22 +77,26 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
       val sopID = transform(RunnerService.transformTuple)
 
-      //lista av tuplar som vi gör om till map
+      //list of tuples into maps
       val idMap: Map[ID, IDAble] = ids.map(item => item.id -> item).toMap
       val sop = Try{idMap(sopID).asInstanceOf[SOPSpec].sop}.map(xs => Parallel(xs:_*))
 
+      // maps all "fake" ids to an AbilityStructure
       val ops = ids.collect{case o:Operation => o}
       operationAbilityMap = ops.flatMap{ o =>
         o.attributes.getAs[AbilityStructure]("ability").map(o.id -> _)
       }.toMap
 
+      // saves all parameters into a map
       val things = ids.collect{case t: Thing => t}
       parameterMap = things.map(t => t.name -> t.id).toMap
 
+      // maps all names of abilities to the real operation id
       val abilities = ops.collect{case o: Operation if o.attributes.getAs[String]("operationType").getOrElse("not") == "ability" => o}
       println("abilities = " + abilities)
       abilityMap = abilities.map(o => o.name+".run" -> o).toMap
 
+      // maps all real ids to "fake" ids
       val keys = abilityMap.keySet
       operationAbilityMap.foreach{ case (fakeID, abStruct) =>
         if(keys.contains(abStruct.name)) {
@@ -101,26 +105,20 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
         }
       }
 
-
-      //println("abilityMap created with" + abilityMap.keySet.head)
-
       askAService(Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"status"))),serviceHandler)
 
       println(s"operationAbilityMap is: $operationAbilityMap")
       println(s"abilityMap is: $abilityMap")
-
 
       // Makes the parentmap
       sop.foreach(createSOPMap)
       sopen = sop.toOption
       println("we got a sop: "+sop)
 
-      // Starts the first op
-      //      sop.foreach(executeSOP)
       progress ! SPAttributes("activeOps"->activeSteps)
     }
 
-    // Vi får states från Operation control
+    // We get states from Operation control
     case r @ Response(ids, attr, service, _) if service == operationController => {
       println(s"we got a state change")
 
