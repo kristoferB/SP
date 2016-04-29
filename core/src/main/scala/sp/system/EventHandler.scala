@@ -26,8 +26,6 @@ class EventHandler extends Actor {
     }
     case other => println("not impl yet: "+ other)
   }
-
-  
 }
 
 object EventHandler {
