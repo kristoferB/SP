@@ -92,7 +92,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       val R5 = makeResource (
         name = "R5",
         state = List("mode"),
-        abilities = List("pickBlock"->List(), "placeBlock"->List(),
+        abilities = List("pickBlock"->List("p_pos"), "placeBlock"->List("p_pos"),
         "toHome"->List(), "toDodge"->List())
       )
 
@@ -170,6 +170,8 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
         db(itemMap, "R5.pickBlock.run", "bool", 132, 0, 0),
         db(itemMap, "R5.pickBlock.mode", "int", 132, 2, 0, stateMap),
+        db(itemMap, "R4.pickBlock.pos", "int", 132, 10, 0),
+        db(itemMap, "R4.placeBlock.pos", "int", 132, 10, 0),
         db(itemMap, "R5.placeBlock.run", "bool", 132, 0, 1),
         db(itemMap, "R5.placeBlock.mode", "int", 132, 4, 0, stateMap),
         db(itemMap, "R5.toHome.run", "bool", 132, 0, 2),
