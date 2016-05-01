@@ -173,8 +173,8 @@ object SP extends App {
   serviceHandler ! RegisterService(
     "RobotCycleAnalysis",
     system.actorOf(RobotCycleAnalysis.props(eventHandler), "RobotCycleAnalysis"),
-    OperationControl.specification,
-    OperationControl.transformation
+    RobotCycleAnalysis.specification,
+    RobotCycleAnalysis.transformation
   )
 
   import sp.exampleService._

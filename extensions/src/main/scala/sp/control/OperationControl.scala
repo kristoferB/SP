@@ -44,7 +44,7 @@ object OperationControl extends SPService {
   )
 
   val transformation = transformToList(transformTuple.productIterator.toList)
-  def props(eventHandler: ActorRef) = Props(classOf[OperationControl], eventHandler)
+  def props(eventHandler: ActorRef) = ServiceLauncher.props(Props(classOf[OperationControl], eventHandler))
 }
 
 
