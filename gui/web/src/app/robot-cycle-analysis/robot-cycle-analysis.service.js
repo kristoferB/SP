@@ -14,13 +14,18 @@
 
         var service = {
             state: {
+                availableCycles: [],
+                availableWorkCells: [],
                 busSettings: {
                     host: null,
                     port: null,
                     topic: null
                 },
                 busConnected: null,
-                robotsListenedTo: []
+                chosenWorkCell: null,
+                historicalCycles: [],
+                liveCycle: null,
+                liveWorkCell: null
             },
             connectToBus: connectToBus,
             disconnectFromBus: disconnectFromBus
@@ -40,24 +45,26 @@
         }
 
         function onEvent(ev){
-            if (_.has(ev, "busConnected"))
-                state.busConnected = ev.busConnected;
-            if (_.has(ev, "busSettings"))
-                state.busSettings = ev.busSettings;
-            if (_.has(ev, "robotsListenedTo"))
-                state.robotsListenedTo = ev.robotsListenedTo;
-            if (_.has(ev, "robot")) {
-                if (_.has(ev, "isListenedTo")) {
-                    if (ev.isListenedTo)
-                        state.robotsListenedTo.push(ev.robot);
-                    else
-                        state.robotsListenedTo = _(state.robotsListenedTo).filter(function(item) {
-                            return item.name !== ev.robot.name;
-                        });
-                }
-                if (_.has(ev, "routineStartOrStop")) {
-                    
-                }
+            if (_.has(ev, 'busConnected'))
+                service.state.busConnected = ev.busConnected;
+            if (_.has(ev, 'busSettings'))
+                service.state.busSettings = ev.busSettings;
+            if (_.has(ev, 'availableWorkCells'))
+                service.state.availableWorkCells = ev.availableWorkCells;
+            if (_.has(ev, 'availableCycles'))
+                service.state.availableCycles = ev.availableCycles;
+            if (_.has(ev, 'cycle')) {
+                if (ev.cycle.id == "current")
+                    service.state.liveCycle = ev.cycle;
+                else
+                    service.state.historicalCycles.push(ev.cycle);
+            }
+            if (_.has(ev, 'routineEvent')) {
+                if (service.state.liveCycle !== null)
+                    service.state.liveCycle.routineEvents.push(ev.routineEvent);
+            }
+            if (_.has(ev, 'liveWorkCell')) {
+                state.liveWorkCell = ev.liveWorkCell;
             }
 
         }

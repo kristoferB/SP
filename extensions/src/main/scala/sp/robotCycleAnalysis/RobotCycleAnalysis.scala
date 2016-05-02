@@ -11,7 +11,7 @@ import sp.system.messages.{TransformValue, _}
 import org.json4s.native.Serialization._
 import com.github.nscala_time.time.Imports._
 import org.json4s.JValue
-import org.json4s.JsonAST.JNothing
+import org.json4s.JsonAST.{JArray, JNothing}
 import sp.robotCycleAnalysis.RobotCycleAnalysis.Commands.Command
 
 object RobotCycleAnalysis extends SPService {
@@ -20,9 +20,10 @@ object RobotCycleAnalysis extends SPService {
     val SetupBus = Value("setupBus")
     val ConnectToBus = Value("connectToBus")
     val DisconnectFromBus = Value("disconnectFromBus")
-    val ListenToRobot = Value("listenToRobot")
-    val StopListeningToRobot = Value("stopListeningToRobot")
-    val GetRobotCycle = Value("getRobotCycle")
+    val StartLiveWatch = Value("startLiveWatch")
+    val StopLiveWatch = Value("stopLiveWatch")
+    val GetCycle = Value("getCycle")
+    val GetAvailableCycles = Value("getAvailableCycles")
     val GetServiceState = Value("getServiceState")
     def stringList = this.values.toList.map(_.toString).asInstanceOf[List[SPValue]]
   }
@@ -36,23 +37,30 @@ object RobotCycleAnalysis extends SPService {
       "port"  -> KeyDefinition("Int", List(), Some(61616)),
       "topic" -> KeyDefinition("String", List(), Some("LISA"))
     ),
-    "robot" -> SPAttributes(
-      "name" -> KeyDefinition("String", List(), Some("unknown"))
+    "workCell" -> SPAttributes(
+      "name" -> KeyDefinition("String", List(), Some("not set"))
     ),
-    "command"   -> KeyDefinition("String", Commands.stringList, Some("getServiceState")),
+    "timeSpan" -> SPAttributes(
+      "start" -> KeyDefinition("String", List(), Some("not set")),
+      "stop" -> KeyDefinition("String", List(), Some("not set"))
+    ),
+    "command" -> KeyDefinition("String", Commands.stringList, Some("getServiceState")),
     "cycle"   -> SPAttributes(
-      "id" -> KeyDefinition("String", List(), Some("current"))
+      "id"      -> KeyDefinition("Option[String]", List(), None),
+      "current" -> KeyDefinition("Option[Boolean]", List(), None)
     )
   )
 
   case class TransformValues(busSettings: TransformValue[BusSettings],
-                             robot: TransformValue[Robot],
+                             workCell: TransformValue[WorkCell],
+                             timeSpan: TransformValue[TimeSpan],
                              command: TransformValue[String],
                              cycle: TransformValue[Cycle])
 
   val transformValues = TransformValues(
     TransformValue("busSettings", _.getAs[BusSettings]("busSettings")),
-    TransformValue("robot", _.getAs[Robot]("robot")),
+    TransformValue("workCell", _.getAs[WorkCell]("workCell")),
+    TransformValue("timeSpan", _.getAs[TimeSpan]("timeSpan")),
     TransformValue("command", _.getAs[String]("command")),
     TransformValue("cycle", _.getAs[Cycle]("cycle"))
   )
@@ -63,8 +71,12 @@ object RobotCycleAnalysis extends SPService {
 
 case class BusSettings(host: String, port: Int, topic: String)
 case class Robot(name: String)
-case class Cycle(id: String, routineStartsAndStops: Option[List[RoutineStartOrStop]])
-case class RoutineStartOrStop(routine: Routine, start: Boolean, time: DateTime)
+case class WorkCell(name: String, robots: Option[List[Robot]])
+case class TimeSpan(start: DateTime, stop: DateTime)
+case class Cycle(id: Option[ID], current: Option[Boolean], workCell: Option[WorkCell], events: Option[Map[String, List[CycleEvent]]])
+trait CycleEvent { def start: Boolean; def time: DateTime; }
+case class RoutineStartOrStop(start: Boolean, time: DateTime, robot: Robot, routine: Routine) extends CycleEvent
+case class CycleStartOrStop(start: Boolean, time: DateTime) extends CycleEvent
 case class Routine(number: Int, name: String, description: String)
 
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
@@ -76,7 +88,8 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
   var busSettings: Option[BusSettings] = None
   var bus: Option[ActorRef] = None
 
-  var robotsListenedTo: List[Robot] = List.empty
+  var liveWorkCell: Option[WorkCell] = None
+  var availableWorkCells: List[WorkCell] = List.empty
 
   def receive = {
     case request @ Request(service, attr, ids, reqID) =>
@@ -104,36 +117,42 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
         case DisconnectFromBus =>
           disconnectFromBus()
           answerOK(sender)
-        case ListenToRobot =>
-          val robot = transform(transformValues.robot)
-          robotsListenedTo = robot :: robotsListenedTo
+        case StartLiveWatch =>
+          val workCell = transform(transformValues.workCell)
+          liveWorkCell = Some(workCell)
           val mess = SPAttributes(
-            "robot" -> robot,
-            "isListenedTo" -> true
+            "liveWorkCell" -> liveWorkCell
           )
           sendViaSSE(mess)
           answerOK(sender)
-        case StopListeningToRobot =>
-          val robot = transform(transformValues.robot)
-          robotsListenedTo = robotsListenedTo.filter(_.name != robot.name)
+        case StopLiveWatch =>
+          liveWorkCell = None
           val mess = SPAttributes(
-            "robot" -> robot,
-            "isListenedTo" -> false
+            "liveWorkCell" -> liveWorkCell
           )
           sendViaSSE(mess)
           answerOK(sender)
         case GetServiceState =>
-          val state = SPAttributes(
+          val mess = SPAttributes(
             "busSettings" -> busSettings,
             "busConnected" -> bus.isDefined,
-            "robotsListenedTo" -> robotsListenedTo
+            "liveWorkCell" -> liveWorkCell,
+            "availableWorkCells" -> availableWorkCells
           )
-          theSender ! Response(List(), state, spServiceName, spServiceID)
-        case GetRobotCycle =>
-          val robot = transform(transformValues.robot)
+          theSender ! Response(List(), mess, spServiceName, spServiceID)
+        case GetAvailableCycles =>
+          val workCell = transform(transformValues.workCell)
+          val timeSpan = transform(transformValues.timeSpan)
+          val mess = SPAttributes(
+            "workCell" -> workCell,
+            "timeSpan" -> timeSpan,
+            "availableCycles" -> null
+          )
+          sendToBus(mess)
+          answerOK(sender)
+        case GetCycle =>
           val cycle = transform(transformValues.cycle)
           val mess = SPAttributes(
-            "robot" -> robot,
             "cycle" -> cycle
           )
           sendToBus(mess)
@@ -146,6 +165,10 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
         bus = Some(busConnection)
         println("Bus connection established: " + request)
         notifyConnectionStatus()
+        val mess = SPAttributes(
+          "workCells" -> null
+        )
+        sendToBus(mess)
       }
 
     case ConnectionFailed(request, reason) =>
@@ -160,14 +183,18 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
 
       val json = body.toString
       val jObject = parse(json)
+      val spAttributes = SPAttributes.fromJson(json).get
 
-      if (jObject.has("robot")) {
-        if (jObject.has("cycle") && (jObject \ "cycle").has("routineStartsAndStops") ) {
-          sendViaSSE(SPAttributes.fromJson(json).get)
-        } else if (jObject.has("routineStartOrStop")) {
-          if (robotsListenedTo.exists(r => r.name == (jObject \ "robot" \ "name").to[String].get))
-            sendViaSSE(SPAttributes.fromJson(json).get)
-        }
+      val isCycles = jObject.has("workCell") && jObject.has("cycles")
+      val isCycle = jObject.has("cycle") && (jObject \ "cycle").has("routineEvents")
+      val isRoutineEvent = jObject.has("routineEvent") && liveWorkCell.isDefined &&
+        liveWorkCell.get.name == (jObject \ "routineEvent" \ "workCell" \ "name").to[String].get
+      val isWorkCells = jObject.has("workCells")
+
+      if (isCycle || isCycles || isRoutineEvent)
+        sendViaSSE(spAttributes)
+      else if (isWorkCells) {
+        availableWorkCells = read[Map[String, WorkCell]](json)
       }
 
     case ConnectionInterrupted(ca, x) =>
