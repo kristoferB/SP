@@ -326,7 +326,7 @@ class operationMaker extends Actor with ServiceSupport {
         aR5NotHoldingCube,aUseTwoPalettesFalse
       )++aListOfPutDownCubesFalse++aListOfPickedUpCubesFalse++aListOfCubesToPlacedFalse++aChangeStatusBuildingPalettesFalse)))
       //use two pallets
-      val OUseTwoPallets = Operation( "OUseTwoPallets",PropositionCondition(AlwaysTrue,List(aUseTwoPalettesTrue)))
+      //val OUseTwoPallets = Operation( "OUseTwoPallets",PropositionCondition(AND(List(AlwaysTrue)),List(aUseTwoPalettesTrue)))
       //operator Ops
       val OMoveInBuildingPalette1 = Operation("OMoveInBuildingPalette1", List(PropositionCondition(AND(List(NOT(gBuildingPalette1In),gInit)),List(aBuildingPalette1In,aInitDone))))
       val OMoveInBuildingPalette2 = Operation("OMoveInBuildingPalette1", List(PropositionCondition(AND(List(NOT(gBuildingPalette1In),gUseTwoPalettes)),List(aBuildingPalette2In))))
@@ -464,7 +464,7 @@ class operationMaker extends Actor with ServiceSupport {
 
       //Operation which tells when towers is comeplete
       // use XNOR for all 16 pos
-       val OBuildingPaletteComplete = Operation("OBuildingPaletteComplete",PropositionCondition(EQ(Int1,Int2),List(aBuildingPaletteIsComplete,aBuildPalette1Empty,aBuildPalette2Empty)))
+      val OBuildingPaletteComplete = Operation("OBuildingPaletteComplete",List(PropositionCondition(AND(List(gListOfPutDownCubes(0),gListOfCubesToPlaced(0))),List(aBuildingPaletteIsComplete,aBuildPalette1Empty,aBuildPalette2Empty))))
       // inrcement finns i propsistion condition och göra tester
 
       //Elevator 2 Operations
