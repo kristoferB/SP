@@ -185,6 +185,14 @@ object SP extends App {
     Calculator.transformation
   )
 
+  import sp.optimizerService._
+  serviceHandler ! RegisterService(
+    "Operation Maker",
+    system.actorOf(operationMaker.props, "operationMaker"),
+    Calculator.specification,
+    Calculator.transformation
+  )
+
   import sp.psl._
   serviceHandler ! RegisterService(
     "PSLModel",
