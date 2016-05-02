@@ -24,6 +24,7 @@ object RobotCycleAnalysis extends SPService {
     val StopLiveWatch = Value("stopLiveWatch")
     val GetCycle = Value("getCycle")
     val GetAvailableCycles = Value("getAvailableCycles")
+    val GetAvailableWorkCells = Value("getAvailableWorkCells")
     val GetServiceState = Value("getServiceState")
     def stringList = this.values.toList.map(_.toString).asInstanceOf[List[SPValue]]
   }
@@ -72,8 +73,8 @@ object RobotCycleAnalysis extends SPService {
 case class BusSettings(host: String, port: Int, topic: String)
 case class Robot(name: String)
 case class WorkCell(name: String, robots: Option[List[Robot]])
-case class TimeSpan(start: DateTime, stop: DateTime)
-case class Cycle(id: Option[ID], current: Option[Boolean], workCell: Option[WorkCell], events: Option[Map[String, List[CycleEvent]]])
+case class TimeSpan(start: String, stop: String)
+case class Cycle(id: Option[ID], workCell: Option[WorkCell], events: Option[Map[String, List[CycleEvent]]])
 trait CycleEvent { def start: Boolean; def time: DateTime; }
 case class RoutineStartOrStop(start: Boolean, time: DateTime, robot: Robot, routine: Routine) extends CycleEvent
 case class CycleStartOrStop(start: Boolean, time: DateTime) extends CycleEvent
@@ -88,7 +89,7 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
   var busSettings: Option[BusSettings] = None
   var bus: Option[ActorRef] = None
 
-  var liveWorkCell: Option[WorkCell] = None
+  var liveWorkCells: List[WorkCell] = List.empty
   var availableWorkCells: List[WorkCell] = List.empty
 
   def receive = {
@@ -119,16 +120,17 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
           answerOK(sender)
         case StartLiveWatch =>
           val workCell = transform(transformValues.workCell)
-          liveWorkCell = Some(workCell)
+          liveWorkCells = workCell :: liveWorkCells
           val mess = SPAttributes(
-            "liveWorkCell" -> liveWorkCell
+            "addedLiveWatch" -> workCell
           )
           sendViaSSE(mess)
           answerOK(sender)
         case StopLiveWatch =>
-          liveWorkCell = None
+          val workCell = transform(transformValues.workCell)
+          liveWorkCells = liveWorkCells.filter(w => w.name != workCell.name)
           val mess = SPAttributes(
-            "liveWorkCell" -> liveWorkCell
+            "removedLiveWatch" -> workCell
           )
           sendViaSSE(mess)
           answerOK(sender)
@@ -136,7 +138,7 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
           val mess = SPAttributes(
             "busSettings" -> busSettings,
             "busConnected" -> bus.isDefined,
-            "liveWorkCell" -> liveWorkCell,
+            "liveWorkCells" -> liveWorkCells,
             "availableWorkCells" -> availableWorkCells
           )
           theSender ! Response(List(), mess, spServiceName, spServiceID)
@@ -150,6 +152,11 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
           )
           sendToBus(mess)
           answerOK(sender)
+        case GetAvailableWorkCells =>
+          val mess = SPAttributes(
+            "availableWorkCells" -> availableWorkCells
+          )
+          theSender ! Response(List(), mess, spServiceName, spServiceID)
         case GetCycle =>
           val cycle = transform(transformValues.cycle)
           val mess = SPAttributes(
@@ -166,7 +173,7 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
         println("Bus connection established: " + request)
         notifyConnectionStatus()
         val mess = SPAttributes(
-          "workCells" -> null
+          "availableWorkCells" -> null
         )
         sendToBus(mess)
       }
@@ -185,16 +192,16 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
       val jObject = parse(json)
       val spAttributes = SPAttributes.fromJson(json).get
 
-      val isCycles = jObject.has("workCell") && jObject.has("cycles")
-      val isCycle = jObject.has("cycle") && (jObject \ "cycle").has("routineEvents")
-      val isRoutineEvent = jObject.has("routineEvent") && liveWorkCell.isDefined &&
-        liveWorkCell.get.name == (jObject \ "routineEvent" \ "workCell" \ "name").to[String].get
-      val isWorkCells = jObject.has("workCells")
+      val isAvailableCycles = jObject.has("workCell") && jObject.has("availableCycles")
+      val isCycle = jObject.has("cycle") && (jObject \ "cycle").has("events")
+      val isCycleEvent = jObject.has("cycleEvent") &&
+        liveWorkCells.exists(w => w.name == (jObject \ "cycleEvent" \ "workCell" \ "name").to[String].get)
+      val isAvailableWorkCells = jObject.has("availableWorkCells")
 
-      if (isCycle || isCycles || isRoutineEvent)
+      if (isCycle || isAvailableCycles || isCycleEvent)
         sendViaSSE(spAttributes)
-      else if (isWorkCells) {
-        availableWorkCells = read[Map[String, WorkCell]](json)
+      else if (isAvailableWorkCells) {
+        availableWorkCells = read[List[WorkCell]](json)
       }
 
     case ConnectionInterrupted(ca, x) =>

@@ -14,7 +14,6 @@
 
         var service = {
             state: {
-                availableCycles: [],
                 availableWorkCells: [],
                 busSettings: {
                     host: null,
@@ -22,11 +21,9 @@
                     topic: null
                 },
                 busConnected: null,
-                chosenWorkCell: null,
-                historicalCycles: [],
-                liveCycle: null,
-                liveWorkCell: null
+                liveWorkCells: null
             },
+            setupBus: setupBus,
             connectToBus: connectToBus,
             disconnectFromBus: disconnectFromBus
         };
@@ -38,49 +35,36 @@
         return service;
 
         function activate() {
-            eventService.addListener('ServiceError', onEvent);
-            eventService.addListener('Progress', onEvent);
             eventService.addListener('Response', onEvent);
             getServiceState();
         }
 
         function onEvent(ev){
+            console.log("Robot cycle analysis service received ", ev);
             if (_.has(ev, 'busConnected'))
                 service.state.busConnected = ev.busConnected;
-            if (_.has(ev, 'busSettings'))
+            if (_.has(ev, 'busSettings')) {
+                console.log("Bus settings received in robot cycle analysis service.");
                 service.state.busSettings = ev.busSettings;
+            }
             if (_.has(ev, 'availableWorkCells'))
                 service.state.availableWorkCells = ev.availableWorkCells;
-            if (_.has(ev, 'availableCycles'))
-                service.state.availableCycles = ev.availableCycles;
-            if (_.has(ev, 'cycle')) {
-                if (ev.cycle.id == "current")
-                    service.state.liveCycle = ev.cycle;
-                else
-                    service.state.historicalCycles.push(ev.cycle);
-            }
-            if (_.has(ev, 'routineEvent')) {
-                if (service.state.liveCycle !== null)
-                    service.state.liveCycle.routineEvents.push(ev.routineEvent);
-            }
-            if (_.has(ev, 'liveWorkCell')) {
-                state.liveWorkCell = ev.liveWorkCell;
-            }
-
+            if (_.has(ev, 'addedLiveWatch'))
+                service.state.liveWorkCells.push(ev.addedLiveWatch);
+            if (_.has(ev, 'removedLiveWatch'))
+                _.filter(service.state.liveWorkCells, function (liveWorkCell) {
+                    return liveWorkCell.name !== ev.removedLiveWatch.name;
+                });
         }
 
         function getServiceState() {
             return postCommand("getServiceState").then(updateState);
         }
 
-        function setupBus(host, port, topic) {
+        function setupBus(busSettings) {
             var message = {
                 command: "setupBus",
-                busSettings: {
-                    host: host,
-                    port: port,
-                    topic: topic
-                }
+                busSettings: busSettings
             };
             return postToSP(message);
         }
@@ -111,8 +95,11 @@
         }
 
         function updateState(spServiceState) {
-            console.log("RobotCycleAnalysis: State was updated");
-            service.state = spServiceState;
+            console.log("RobotCycleAnalysis: Service state was updated");
+            service.state.availableWorkCells = spServiceState.availableWorkCells;
+            service.state.busSettings = spServiceState.busSettings;
+            service.state.busConnected = spServiceState.busConnected;
+            service.state.liveWorkCells = spServiceState.liveWorkCells;
         }
     }
 

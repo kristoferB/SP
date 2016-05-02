@@ -1,4 +1,17 @@
-<div ng-controller="robotCycleAnalysisController as vm" class="simple-widget">
+<div ng-controller="RobotCycleAnalysisController as vm" class="simple-widget">
+    <div class="panel-toolbar">
+        <div class="btn-group">
+            <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Setup bus"
+                    ng-click="vm.setupBus()"><i class="fa fa-cog"></i>
+            </button>
+            <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Connect to bus"
+                    ng-click="vm.connectToBus()"><i class="fa fa-arrow-up"></i>
+            </button>
+            <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Disconnect from bus"
+                    ng-click="vm.disconnectFromBus()"><i class="fa fa-arrow-down"></i>
+            </button>
+        </div>
+    </div>
     <div class="panel-content">
 
     </div>
