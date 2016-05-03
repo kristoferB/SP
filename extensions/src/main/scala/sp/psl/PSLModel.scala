@@ -140,7 +140,9 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
         db(itemMap, "R5.pickBlock.run", "bool", 132, 0, 0),
         db(itemMap, "R5.pickBlock.mode", "int", 132, 2, 0, stateMap),
-        db(itemMap, "R%.pickBlock.pos", "int", 132, 10, 0),
+
+        db(itemMap, "R5.pickBlock.pos", "int", 132, 10, 0),
+        db(itemMap, "R5.placeBlock.pos", "int", 132, 10, 0),
         db(itemMap, "R5.placeBlock.run", "bool", 132, 0, 1),
         db(itemMap, "R5.placeBlock.mode", "int", 132, 4, 0, stateMap),
         db(itemMap, "R5.placeBlock.pos", "int", 132, 10, 0),
