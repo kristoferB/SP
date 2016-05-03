@@ -49,17 +49,12 @@
             var mess = {"data": {"getNext": done,"buildOrder": vm.Palett.sendEmpty}};
 
             spServicesService.callService(
-                spServicesService.getService("OperationControl"),mess,
+                spServicesService.getService("operatorService"),mess,
                 function(resp) {
                     if(_.has(resp, "attributes.result")){
                         vm.Palett.pal = resp.attributes.result;
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/KubInputGUI
                     }
                 })
-
         }
         function listen(event){
             vm.eventLog.unshift(event);

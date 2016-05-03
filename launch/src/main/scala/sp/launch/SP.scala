@@ -227,13 +227,6 @@ object SP extends App {
     TobbeG.transformation
   )
 
-  import sp.rasmus._
-  serviceHandler ! RegisterService(
-    "Rasmus",
-    system.actorOf(rasmus.props, "Rasmus"),
-    rasmus.specification,
-    rasmus.transformation
-  )
   import sp.operatorService._
   serviceHandler ! RegisterService(
     "operatorService",

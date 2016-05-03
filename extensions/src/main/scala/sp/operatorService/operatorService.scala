@@ -71,20 +71,20 @@ object operatorService extends SPService {
       case r@Request(service, attr, ids, reqID) => {
         val replyTo = sender()
         implicit val rnr = RequestNReply(r, replyTo)
-        var getNext: Boolean = transform(operatorService.transformTuple._1)
+        val getNext: Boolean = transform(operatorService.transformTuple._1)
         var que = List.fill(2)(List.fill(4)("empty"))
         
         if (getNext && operatorService.q.isEmpty) {
           operatorService.emptySent = true
         }
 
-        else if (getNext && !operatorService.q.isEmpty) {
+        else if (getNext && operatorService.q.nonEmpty) {
           que = operatorService.q.head
           operatorService.latestSent = que
           operatorService.dequeuePalette()
           operatorService.emptySent = false
         }
-        else if (!getNext &&  operatorService.q.isEmpty) {
+        else if (!getNext && operatorService.q.isEmpty) {
           operatorService.enqueuePalette(transform(operatorService.transformTuple._2))
           if (operatorService.emptySent) {
               que = operatorService.q.head
@@ -97,7 +97,7 @@ object operatorService extends SPService {
 
 
         }
-        else if (!getNext && !operatorService.q.isEmpty) {
+        else if (!getNext && operatorService.q.nonEmpty) {
           operatorService.enqueuePalette(transform(operatorService.transformTuple._2))
           que = operatorService.latestSent
         }

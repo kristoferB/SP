@@ -65,7 +65,6 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
   var resourceTree: List[ResourceInTree] = List()
   var abilityToRun: Map[ID,ID] = Map()
   var modeToAbility: Map[ID,ID] = Map()
-  //var positionToRun: Map[ID,ID] = Map()
 
   def receive = {
     case r @ Request(service, attr, ids, reqID) => {
@@ -205,13 +204,6 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
     } yield {
       (m.id -> a.id)
     }).toMap
-    /*positionToRun = (for {
-      a <- abilities
-      p <- things.find(t => a.name + ".pick" == t.name)
-    } yield {
-      (a.id -> p.id)
-    }).toMap
-    */
   }
 
   def findConnectionDetails(list: List[IDAble]) = {

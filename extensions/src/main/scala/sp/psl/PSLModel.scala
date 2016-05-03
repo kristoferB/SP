@@ -40,34 +40,27 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
 
-      val o1 = Operation("R4", List(), SPAttributes("ability"-> AbilityStructure("R4.pickBlock.run", None)))
-      val o2 = Operation("R4_pick",List(), SPAttributes("ability"-> AbilityStructure("R4.pickBlock.run", Some("R4.pickBlock.pos", 3))))
-      val o3 = Operation("h3",List(), SPAttributes("ability"-> AbilityStructure("h3.up.run", None)))
-      val o4 = Operation("h3",List(), SPAttributes("ability"-> AbilityStructure("h3.down.run", None)))
-
-      val sop = Parallel(Sequence(o2, Sequence(o1, o3), o4))
+      val o1 = Operation("R4_pick2",List(), SPAttributes("ability"-> AbilityStructure("R4.pickBlock.run", Some("R4.pickBlock.pos", 2))))
+      val o2 = Operation("R4_place3",List(), SPAttributes("ability"-> AbilityStructure("R4.placeBlock.run", Some("R4.placeBlock.pos", 3))))
+      val o3 = Operation("R4_pick4",List(), SPAttributes("ability"-> AbilityStructure("R4.pickBlock.run", Some("R4.pickBlock.pos", 4))))
+      val o4 = Operation("R4_place5",List(), SPAttributes("ability"-> AbilityStructure("R4.placeBlock.run", Some("R4.placeBlock.pos", 5))))
+      val o5 = Operation("h1.up.run", List(), SPAttributes("ability"-> AbilityStructure("h1.up.run", None)))
+      val o6 = Operation("h1.down.run", List(), SPAttributes("ability"-> AbilityStructure("h1.down.run", None)))
+      val o7 = Operation("h4.up.run", List(), SPAttributes("ability"-> AbilityStructure("h4.up.run", None)))
+      val o8 = Operation("h4.down.run", List(), SPAttributes("ability"-> AbilityStructure("h4.down.run", None)))
+      val sop = Parallel(Sequence(o1, o2, o3, o4))
 
       val sopSpec =  SOPSpec("theSOPSpec", List(sop), SPAttributes())
 
-      val longList: List[IDAble] = List(o1, o2, o3, o4, sopSpec)
-      //test
-      val op1 = Operation("h1.up.run", List(), SPAttributes("ability"-> AbilityStructure("h1.up.run", None)))
-      val op2 = Operation("h1.down.run", List(), SPAttributes("ability"-> AbilityStructure("h1.down.run", None)))
-      val op3 = Operation("h4.up.run", List(), SPAttributes("ability"-> AbilityStructure("h4.up.run", None)))
-      val op4 = Operation("h4.down.run", List(), SPAttributes("ability"-> AbilityStructure("h4.down.run", None)))
-      val aSOP = Parallel(Sequence(op1, Parallel(Sequence(op2, op3), op4)))
-
-      val thaSOP = SOPSpec("thaSOP", List(aSOP), SPAttributes())
-
-      val aList: List[IDAble] = List(op1, op2, op3, op4, thaSOP)
+      val longList: List[IDAble] = List(o1, o2, o3, o4, o5, o6, o7, o8, sopSpec)
 
       // Resources
-
       val h2 = makeResource (
         name = "h2",
         state = List("mode"),
         abilities = List("up"->List(), "down"->List())
       )
+
       val h3 = makeResource (
         name = "h3",
         state = List("mode"),
@@ -116,18 +109,6 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         abilities = List()
       )
 
-      // test
-      val h1 = makeResource (
-        name = "h1",
-        state = List("mode"),
-        abilities = List("up"->List(), "down"->List())
-      )
-      val h4 = makeResource (
-        name = "h4",
-        state = List("mode"),
-        abilities = List("up"->List(), "down"->List())
-      )
-
       val opInstruct = makeResource (
         name = "opInstruct",
         state = List("mode"),
@@ -135,7 +116,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       )
 
 
-      val items = h2._2 ++ h3._2 ++ toOper._2 ++ toRobo._2 ++ R5._2 ++ R4._2 ++ R2._2 ++ longList ++ sensorIH2._2 ++ aList ++ h1._2 ++ h4._2
+      val items = h2._2 ++ h3._2 ++ toOper._2 ++ toRobo._2 ++ R5._2 ++ R4._2 ++ R2._2 ++ longList ++ sensorIH2._2
       val itemMap = items.map(x => x.name -> x.id).toMap
       val stateMap = Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")
 
@@ -152,18 +133,6 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         db(itemMap, "h3.up.mode", "int", 140, 2, 0, stateMap),
         db(itemMap, "h3.down.mode", "int", 140, 4, 0, stateMap),
 
-        //test
-        db(itemMap, "h1.up.run", "bool", 755, 8, 0),
-        db(itemMap, "h1.down.run", "bool", 755, 8, 1),
-        db(itemMap, "h1.up.mode", "int", 755, 0, 0, stateMap),
-        db(itemMap, "h1.down.mode", "int", 755, 2, 0, stateMap),
-
-        db(itemMap, "h4.up.run", "bool", 755, 8, 2),
-        db(itemMap, "h4.down.run", "bool", 755, 8, 3),
-        db(itemMap, "h4.up.mode", "int", 755, 4, 0, stateMap),
-        db(itemMap, "h4.down.mode", "int", 755, 6, 0, stateMap),
-        //
-
         db(itemMap, "toOper.mode.run", "bool", 139, 0, 0),
         db(itemMap, "toOper.move.mode", "int", 139, 2, 0, stateMap),
         db(itemMap, "toRobo.move.run", "bool", 139, 0, 1),
@@ -171,8 +140,10 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
         db(itemMap, "R5.pickBlock.run", "bool", 132, 0, 0),
         db(itemMap, "R5.pickBlock.mode", "int", 132, 2, 0, stateMap),
+        db(itemMap, "R%.pickBlock.pos", "int", 132, 10, 0),
         db(itemMap, "R5.placeBlock.run", "bool", 132, 0, 1),
         db(itemMap, "R5.placeBlock.mode", "int", 132, 4, 0, stateMap),
+        db(itemMap, "R5.placeBlock.pos", "int", 132, 10, 0),
         db(itemMap, "R5.toHome.run", "bool", 132, 0, 2),
         db(itemMap, "R5.toHome.mode", "int", 132, 6, 0, stateMap),
         db(itemMap, "R5.toDodge.run", "bool", 132, 0, 3),
@@ -223,7 +194,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       // incl all operations in response.
 
 
-      val root = HierarchyRoot("Resources", List(h2._1, h3._1, toOper._1, toRobo._1, R5._1, R4._1, R2._1, h1._1, h4._1, sensorIH2._1, HierarchyNode(sopSpec.id), HierarchyNode(thaSOP.id)))
+      val root = HierarchyRoot("Resources", List(h2._1, h3._1, toOper._1, toRobo._1, R5._1, R4._1, R2._1, sensorIH2._1, HierarchyNode(sopSpec.id)))
       replyTo ! Response(items :+ root :+ connection, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
     }
   }

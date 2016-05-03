@@ -26,12 +26,12 @@
             });
 
         }
-        
+
 
         function sendOrder() {
 
             var mess = {"data": {getNext: false, "buildOrder": vm.ButtonColour.kub}};
-            spServicesService.callService(spServicesService.getService("operatorService"),
+            spServicesService.callService(spServicesService.getService("runnerService"),
                 mess,
                 function (resp) {
                     if (_.has(resp, 'attributes.result')) {
