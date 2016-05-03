@@ -60,9 +60,7 @@
         function postItem(item, modelID) { return postStuff(API.item(modelID, item.id), 'model actor', item); }
         function postItems(data, modelID) { return postStuff(API.items(modelID), 'model actor', data); }
         function postToServiceHandler(data) { return postStuff(API.serviceHandler, 'service handler', data); }
-        function postToServiceInstance(data, serviceID) {
-            return postStuff(API.serviceInstance(serviceID), serviceID, data);
-        }
+        function postToServiceInstance(data, serviceID) { return postStuff(API.serviceInstance(serviceID), serviceID, data); }
 
         function postStuff(restURL, receiver, data) {
             return $http.post(restURL, data)

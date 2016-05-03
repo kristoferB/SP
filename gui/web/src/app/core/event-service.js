@@ -35,9 +35,6 @@
             }
             service.eventSource.addEventListener(target, function(e) {
                 var data = angular.fromJson(e.data);
-                console.log('Event Service: Received event for target ' + target + '.');
-                console.log(e);
-                console.log(data);
                 $rootScope.$apply(handlerFunc(data));
             });
             logger.info('Event Service: Added an SSE listener for target ' + target + '.');

@@ -169,6 +169,14 @@ object SP extends App {
     OperationControl.transformation
   )
 
+  import sp.robotCycleAnalysis._
+  serviceHandler ! RegisterService(
+    "RobotCycleAnalysis",
+    system.actorOf(RobotCycleAnalysis.props(eventHandler), "RobotCycleAnalysis"),
+    RobotCycleAnalysis.specification,
+    RobotCycleAnalysis.transformation
+  )
+
   import sp.exampleService._
   serviceHandler ! RegisterService(
     "ExampleService",
