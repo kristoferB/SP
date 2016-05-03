@@ -8,20 +8,18 @@
       .module('app.robotCycleAnalysis')
       .controller('RobotCycleAnalysisController', RobotCycleAnalysisController);
 
-    RobotCycleAnalysisController.$inject = ['$scope', 'dashboardService', 'robotCycleAnalysisService', 'eventService', '$uibModal'];
+    RobotCycleAnalysisController.$inject = ['$scope', '$uibModal', 'dashboardService', 'robotCycleAnalysisService', 'eventService'];
     /* @ngInject */
-    function RobotCycleAnalysisController($scope, dashboardService, robotCycleAnalysisService, eventService, $uibModal) {
+    function RobotCycleAnalysisController($scope, $uibModal, dashboardService, robotCycleAnalysisService, eventService) {
         var vm = this;
-
-        vm.widget = $scope.$parent.$parent.$parent.vm.widget;
-        vm.control = RobotCycleAnalysisController;
-
-        vm.connectToBus = robotCycleAnalysisService.connectToBus;
-        vm.disconnectFromBus = robotCycleAnalysisService.disconnectFromBus;
-        vm.setupBus = setupBus;
+        
         vm.chosenWorkCell = null;
+        vm.control = RobotCycleAnalysisController;
         vm.historicalCycles = [];
         vm.liveEvents = [];
+        vm.service = robotCycleAnalysisService;
+        vm.setupBus = setupBus;
+        vm.widget = $scope.$parent.$parent.$parent.vm.widget;
 
         activate();
 
@@ -31,18 +29,14 @@
                 dashboardService.closeWidget(vm.widget.id);
             });
             eventService.addListener('Response', onEvent);
+            eventService.addListener('Progress', onEvent);
         }
 
         function setupBus() {
             var modalInstance = $uibModal.open({
                 templateUrl: '/app/robot-cycle-analysis/setup-bus.html',
                 controller: 'SetupBusController',
-                controllerAs: 'vm',
-                resolve: {
-                    robotCycleAnalysisService: function () {
-                        return robotCycleAnalysisService;
-                    }
-                }
+                controllerAs: 'vm'
             });
 
             modalInstance.result.then(function(busSettings) {

@@ -5,11 +5,19 @@
                     ng-click="vm.setupBus()"><i class="fa fa-cog"></i>
             </button>
             <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Connect to bus"
-                    ng-click="vm.connectToBus()"><i class="fa fa-arrow-up"></i>
+                    ng-click="vm.service.connectToBus()" ng-disabled="vm.service.state.busConnected">
+                <i class="fa fa-arrow-up"></i>
             </button>
             <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Disconnect from bus"
-                    ng-click="vm.disconnectFromBus()"><i class="fa fa-arrow-down"></i>
+                    ng-click="vm.service.disconnectFromBus()" ng-disabled="!vm.service.state.busConnected">
+                <i class="fa fa-arrow-down"></i>
             </button>
+        </div>
+        <div class="btn-group">
+            <p ng-show="vm.service.state.busConnected && !vm.service.state.connectionInterrupted">Connected</p>
+            <p ng-show="vm.service.state.busConnected && vm.service.state.connectionInterrupted">Connection interrupted</p>
+            <p ng-show="!vm.service.state.busConnected">Disconnected</p>
+            <p ng-show="vm.service.state.busConnected === null">Unknown</p>
         </div>
     </div>
     <div class="panel-content">

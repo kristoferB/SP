@@ -8,9 +8,9 @@
     .module('app.robotCycleAnalysis')
     .factory('robotCycleAnalysisService', robotCycleAnalysisService);
 
-    robotCycleAnalysisService.$inject = ['eventService', 'spServicesService'];
+    robotCycleAnalysisService.$inject = ['eventService', 'spServicesService', 'logger'];
     /* @ngInject */
-    function robotCycleAnalysisService(eventService, spServicesService) {
+    function robotCycleAnalysisService(eventService, spServicesService, logger) {
 
         var service = {
             state: {
@@ -21,6 +21,7 @@
                     topic: null
                 },
                 busConnected: null,
+                connectionInterrupted: null,
                 liveWorkCells: null
             },
             setupBus: setupBus,
@@ -36,24 +37,32 @@
 
         function activate() {
             eventService.addListener('Response', onEvent);
+            eventService.addListener('Progress', onEvent);
+            eventService.addListener('ServiceError', onError);
             getServiceState();
         }
 
-        function onEvent(ev){
-            console.log("Robot cycle analysis service received ", ev);
-            if (_.has(ev, 'busConnected'))
-                service.state.busConnected = ev.busConnected;
-            if (_.has(ev, 'busSettings')) {
-                console.log("Bus settings received in robot cycle analysis service.");
-                service.state.busSettings = ev.busSettings;
-            }
-            if (_.has(ev, 'availableWorkCells'))
-                service.state.availableWorkCells = ev.availableWorkCells;
-            if (_.has(ev, 'addedLiveWatch'))
-                service.state.liveWorkCells.push(ev.addedLiveWatch);
-            if (_.has(ev, 'removedLiveWatch'))
+        function onError(ev) {
+            if (_.has(ev.serviceError, "error"))
+                logger.error(ev.serviceError.error)
+        }
+
+        function onEvent(ev) {
+            console.log('Robot cycle analysis service received response or progress event ', ev);
+            var attrs = ev.attributes;
+            if (_.has(attrs, 'busConnected'))
+                service.state.busConnected = attrs.busConnected;
+            if (_.has(attrs, 'connectionInterrupted'))
+                service.state.connectionInterrupted = attrs.connectionInterrupted;
+            if (_.has(attrs, 'busSettings'))
+                service.state.busSettings = attrs.busSettings;
+            if (_.has(attrs, 'availableWorkCells'))
+                service.state.availableWorkCells = attrs.availableWorkCells;
+            if (_.has(attrs, 'addedLiveWatch'))
+                service.state.liveWorkCells.push(attrs.addedLiveWatch);
+            if (_.has(attrs, 'removedLiveWatch'))
                 _.filter(service.state.liveWorkCells, function (liveWorkCell) {
-                    return liveWorkCell.name !== ev.removedLiveWatch.name;
+                    return liveWorkCell.name !== attrs.removedLiveWatch.name;
                 });
         }
 
@@ -95,11 +104,7 @@
         }
 
         function updateState(spServiceState) {
-            console.log("RobotCycleAnalysis: Service state was updated");
-            service.state.availableWorkCells = spServiceState.availableWorkCells;
-            service.state.busSettings = spServiceState.busSettings;
-            service.state.busConnected = spServiceState.busConnected;
-            service.state.liveWorkCells = spServiceState.liveWorkCells;
+            _.merge(service.state, spServiceState.attributes);
         }
     }
 

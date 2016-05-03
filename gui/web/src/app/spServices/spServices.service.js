@@ -74,10 +74,6 @@
         }
       }
 
-      console.log("call")
-      console.log(request);
-      console.log(message);
-
       var serviceName = '';
       if (_.has(spService, 'name')){
         serviceName = spService.name;

@@ -44,7 +44,7 @@ object OperationControl extends SPService {
   )
 
   val transformation = transformToList(transformTuple.productIterator.toList)
-  def props(eventHandler: ActorRef) = ServiceLauncher.props(Props(classOf[OperationControl], eventHandler))
+  def props(eventHandler: ActorRef) = Props(classOf[OperationControl], eventHandler)
 }
 
 
@@ -69,6 +69,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
   var resourceTree: List[ResourceInTree] = List()
 
   def receive = {
+    case RegisterService(s, _, _,_) => println(s"Service $s is registered")
     case r @ Request(service, attr, ids, reqID) => {
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()
