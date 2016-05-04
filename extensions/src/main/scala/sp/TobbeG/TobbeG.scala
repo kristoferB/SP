@@ -19,15 +19,12 @@ object TobbeG extends SPService {
       "group"-> "aMenuGroup" // to organize in gui. maybe use "hide" to hide service in gui
     ),
     "number" -> KeyDefinition("Int", List(), None)
-    //"b" -> KeyDefinition("Int", List(), None),
-    //"sign" -> KeyDefinition("String", List("+","-"), Some("+"))
   )
 
   // Include transformations when validating the request
   val transformTuple  = (
     TransformValue("number", _.getAs[Int]("a")),
     TransformValue("b", _.getAs[Int]("b"))
-    //TransformValue("sign", _.getAs[String]("sign"))
   )
   val transformation = transformToList(transformTuple.productIterator.toList)
 
@@ -61,43 +58,6 @@ class TobbeG extends Actor with ServiceSupport {
       val progress = context.actorOf(progressHandler)
 
       println(s"example service got: $r")
-
-      val number: Int = transform(TobbeG.transformTuple._1)
-      val b: Int = transform(TobbeG.transformTuple._2)
-      //val sign: String = transform(TobbeG.transformTuple._3)
-
-      val res: Int = number match {
-        case 0 => 0
-        case 1 => 1
-      }
-
-      /* THIS IS TAKEN FROM RunnerService.SCALA
-
-      val abilities = ops.collect{case o: Operation if o.attributes.getAs[String]("operationType").getOrElse("not") == "ability" => o}
-      abilityMap = abilities.map(o => o.name -> o).toMap
-
-      askAService(Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"status"))),serviceHandler)
-
-    }
-
-    // Vi får states från Operation control
-    case r @ Response(ids, attr, service, _) if service == operationController => {
-      println(s"we got a state change")
-
-      val newState = attr.getAs[State]("state")
-      newState.foreach{s =>
-        state = State(state.state ++ s.state.filter{case (id, v)=>
-          state.get(id) != newState.get(id)
-        })}
-
-       */
-
-
-
-      // Send progress if your calculations take some time (> 0.5 sec)
-      progress ! SPAttributes("progress" -> "we are making it")
-
-      replyTo ! Response(List(), SPAttributes("result"-> res), rnr.req.service, rnr.req.reqID)
 
       // Terminate self and progress. If you do not use ServiceLauncher, only terminate progress
       self ! PoisonPill
