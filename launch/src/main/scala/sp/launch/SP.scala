@@ -209,7 +209,7 @@ object SP extends App {
     PSLModel.transformation
   )
 
-  import sp.runnerService._
+  import sp.psl.runnerService._
   val rs = system.actorOf(RunnerService.props(eventHandler, serviceHandler, "OperationControl"), "RunnerService")
   serviceHandler ! RegisterService(
     "RunnerService",
@@ -243,12 +243,12 @@ object SP extends App {
     TobbeG.transformation
   )
 
-  import sp.operatorService._
+  import sp.psl.OperatorService._
   serviceHandler ! RegisterService(
     "operatorService",
-    system.actorOf(operatorService.props, "operatorService"),
-    operatorService.specification,
-    operatorService.transformation
+    system.actorOf(OperatorService.props, "operatorService"),
+    OperatorService.specification,
+    OperatorService.transformation
   )
 
   // launch REST API

@@ -1,4 +1,4 @@
-package sp.runnerService
+package sp.psl.runnerService
 
 import akka.actor._
 import akka.testkit._
@@ -23,7 +23,7 @@ class RunnerServiceTest(_system: ActorSystem) extends TestKit(_system) with Impl
 
   val p = TestProbe()
   val e = TestProbe()
-  val sh = system.actorOf(RunnerService.props(p.ref, "OperationControl"))
+  val sh = system.actorOf(RunnerService.props(p.ref, p.ref, "OperationControl"))
 
   override def beforeAll: Unit = {
 
@@ -45,7 +45,7 @@ class RunnerServiceTest(_system: ActorSystem) extends TestKit(_system) with Impl
 
       val sopSpec =  SOPSpec("theSOPSpec", List(sop), SPAttributes())
 
-      val longList: List[IDAble] = List(o1, o2, o3, o4, o5, sopSpec
+      val longList: List[IDAble] = List(o1, o2, o3, o4, o5, sopSpec)
       val r = Request("RunnerService",
         SPAttributes(
           "SOP" -> sopSpec.id

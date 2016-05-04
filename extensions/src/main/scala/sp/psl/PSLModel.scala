@@ -3,7 +3,7 @@ package sp.psl
 import akka.actor._
 import sp.control.AddressValues
 import sp.domain.logic.{PropositionParser, ActionParser, IDAbleLogic}
-import sp.runnerService.RunnerService
+import sp.psl.runnerService.RunnerService
 import scala.concurrent._
 import sp.system.messages._
 import sp.system._

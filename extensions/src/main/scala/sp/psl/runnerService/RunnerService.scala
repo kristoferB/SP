@@ -1,4 +1,4 @@
-package sp.runnerService
+package sp.psl.runnerService
 
 import akka.actor._
 import akka.util.Timeout
