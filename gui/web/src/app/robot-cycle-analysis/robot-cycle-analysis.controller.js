@@ -19,6 +19,7 @@
         vm.liveEvents = [];
         vm.service = robotCycleAnalysisService;
         vm.setupBus = setupBus;
+        vm.selectWorkCell = selectWorkCell;
         vm.widget = $scope.$parent.$parent.$parent.vm.widget;
 
         activate();
@@ -29,7 +30,6 @@
                 dashboardService.closeWidget(vm.widget.id);
             });
             eventService.addListener('Response', onEvent);
-            eventService.addListener('Progress', onEvent);
         }
 
         function setupBus() {
@@ -41,6 +41,18 @@
 
             modalInstance.result.then(function(busSettings) {
                 robotCycleAnalysisService.setupBus(busSettings);
+            });
+        }
+
+        function selectWorkCell() {
+            var modalInstance = $uibModal.open({
+                templateUrl: '/app/robot-cycle-analysis/select-work-cell.html',
+                controller: 'SelectWorkCellController',
+                controllerAs: 'vm'
+            });
+
+            modalInstance.result.then(function(selectedWorkCell) {
+                robotCycleAnalysisService.activeWorkCell = selectedWorkCell;
             });
         }
 

@@ -11,6 +11,7 @@
         var vm = this;
         vm.busSettings = {};
         vm.save = save;
+        vm.saving = false;
         vm.cancel = cancel;
         
         activate();

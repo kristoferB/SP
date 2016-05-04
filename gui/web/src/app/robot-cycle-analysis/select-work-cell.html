@@ -1,0 +1,16 @@
+<main class="modal-body wrapper-lg">
+    <h3 class="modal-title m-b">Select work cell</h3>
+    <p>Select which work cell to study.</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th><th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="workCell in vm.service.availableWorkCells">
+                <td>{{workCell.name}}</td><td>{{workCell.description}}</td>
+            </tr>
+        </tbody>
+    </table>
+</main>

@@ -86,12 +86,12 @@
         addEventListener(id, responseCallBack, progressCallback);
         message.reqID = id;
         return restService.postToServiceInstance(message, serviceName)
-      }, function(error){logger.error(error); deferred.reject(error);});
+      }, function(error){deferred.reject(error);});
 
       answerF.then(function(serviceAnswer){
         //logger.info('service answer: ' + JSON.stringify(serviceAnswer) + '.');
         deferred.resolve(serviceAnswer);
-      }, function(error){logger.error(error); deferred.reject(error);});
+      }, function(error){deferred.reject(error);});
 
       return deferred.promise;
 
@@ -107,7 +107,7 @@
         };
       }
       current.response.push(responseCallBack);
-      current.progress.push(catchErrors);
+      //current.progress.push(catchErrors);
 
       service.eventListeners[reqID] = current;
 
@@ -118,13 +118,13 @@
         })
       }
 
-      function catchErrors(event) {
+      /*function catchErrors(event) {
         var msg = restService.errorToString(event);
         if (msg !== ""){
           logger.error(msg);
         }
         progressCallback(event);
-      }
+      }*/
     }
 
     function sendEventToListener(e){

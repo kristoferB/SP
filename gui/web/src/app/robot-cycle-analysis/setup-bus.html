@@ -11,7 +11,7 @@
             <input type="text" ng-model="vm.busSettings.topic" name="topic" id="topicInput" class="form-control" required="" placeholder="Enter a topic"/>
         </div>
         <div class="clearfix">
-            <button class="btn btn-success pull-right" ng-disabled="vm.form.$invalid" ng-click="vm.save()"
+            <button class="btn btn-success pull-right" ng-disabled="vm.form.$invalid || vm.saving" ng-click="vm.save()"
                 id="save-button">Save</button>
         </div>
     </form>

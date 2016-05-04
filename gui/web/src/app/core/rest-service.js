@@ -75,7 +75,7 @@
             function fail(error) {
                 console.log("got an error");
                 console.log(error.data);
-                var msg = 'Service: ' + receiver  + ' failed:\n' + errorToString(error.data);
+                var msg = 'An error occurred in ' + receiver  + ':\n' + errorToString(error.data);
                 logger.error(msg);
                 return $q.reject(msg);
             }

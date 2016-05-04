@@ -15,18 +15,20 @@
         var service = {
             state: {
                 availableWorkCells: [],
+                activeWorkCell: null,
                 busSettings: {
                     host: null,
                     port: null,
                     topic: null
                 },
                 busConnected: null,
-                connectionInterrupted: null,
+                isInterrupted: null,
                 liveWorkCells: null
             },
             setupBus: setupBus,
             connectToBus: connectToBus,
-            disconnectFromBus: disconnectFromBus
+            disconnectFromBus: disconnectFromBus,
+            requestAvailableWorkCells: requestAvailableWorkCells
         };
 
         var spServiceName = 'RobotCycleAnalysis';
@@ -36,24 +38,17 @@
         return service;
 
         function activate() {
-            eventService.addListener('Response', onEvent);
-            eventService.addListener('Progress', onEvent);
-            eventService.addListener('ServiceError', onError);
+            eventService.addListener('Response', onResponse);
             getServiceState();
         }
 
-        function onError(ev) {
-            if (_.has(ev.serviceError, "error"))
-                logger.error(ev.serviceError.error)
-        }
-
-        function onEvent(ev) {
-            console.log('Robot cycle analysis service received response or progress event ', ev);
+        function onResponse(ev) {
+            console.log('Robot cycle analysis received response ', ev);
             var attrs = ev.attributes;
             if (_.has(attrs, 'busConnected'))
                 service.state.busConnected = attrs.busConnected;
-            if (_.has(attrs, 'connectionInterrupted'))
-                service.state.connectionInterrupted = attrs.connectionInterrupted;
+            if (_.has(attrs, 'isInterrupted'))
+                service.state.isInterrupted = attrs.isInterrupted;
             if (_.has(attrs, 'busSettings'))
                 service.state.busSettings = attrs.busSettings;
             if (_.has(attrs, 'availableWorkCells'))
@@ -84,6 +79,10 @@
 
         function disconnectFromBus() {
             return postCommand("disconnectFromBus")
+        }
+
+        function requestAvailableWorkCells() {
+            return postCommand("requestAvailableWorkCells")
         }
 
         function postCommand(command) {
