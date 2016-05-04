@@ -20,7 +20,6 @@ import sp.domain.SOP._
 import scala.concurrent.duration._
 import akka.actor.Actor
 import akka.actor.Props
-import sp.operatorService._
 
 case class AbilityStructure(name: String, parameter: Option[(String, Int)])
 

@@ -235,18 +235,10 @@ object SP extends App {
 
 
 
-  import sp.TobbeG._
-  serviceHandler ! RegisterService(
-    "TobbeG",
-    system.actorOf(TobbeG.props, "TobbeG"),
-    TobbeG.specification,
-    TobbeG.transformation
-  )
-
   import sp.psl.OperatorService._
   serviceHandler ! RegisterService(
     "operatorService",
-    system.actorOf(OperatorService.props, "operatorService"),
+    system.actorOf(OperatorService.props(serviceHandler), "operatorService"),
     OperatorService.specification,
     OperatorService.transformation
   )

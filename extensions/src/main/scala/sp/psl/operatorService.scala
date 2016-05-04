@@ -40,43 +40,22 @@ object OperatorService extends SPService {
         val rawTower = transform(OperatorService.transformTuple._2)
         val suggestedPos = transform(OperatorService.transformTuple._3)
 
+
+        println(s"raw tower: $rawTower")
         val tower = makeTower(rawTower)
-        if (verifyTower())
+        println(s"tower: $tower")
 
-        val getNext: Boolean = transform(OperatorService.transformTuple._1)
-        var que = List.fill(2)(List.fill(4)("empty"))
-
-        if (getNext && OperatorService.q.isEmpty) {
-          OperatorService.emptySent = true
-        }
-
-        else if (getNext && OperatorService.q.nonEmpty) {
-          que = OperatorService.q.head
-          OperatorService.latestSent = que
-          OperatorService.dequeuePalette()
-          OperatorService.emptySent = false
-        }
-        else if (!getNext && OperatorService.q.isEmpty) {
-          OperatorService.enqueuePalette(transform(OperatorService.transformTuple._2))
-          if (OperatorService.emptySent) {
-              que = OperatorService.q.head
-              OperatorService.latestSent = que
-              OperatorService.dequeuePalette()
-          }
-          else {
-            que = OperatorService.latestSent
-          }
-
+        tower.foreach{t =>
 
         }
-        else if (!getNext && OperatorService.q.nonEmpty) {
-          OperatorService.enqueuePalette(transform(OperatorService.transformTuple._2))
-          que = OperatorService.latestSent
+
+        if (tower.isEmpty){
+          //return error
         }
-        que = OperatorService.parseColour(que)
-        val pruttlol = List(1,2,3,4,5,6)
-        replyTo ! Response(List(), SPAttributes("result" -> que, "hej" -> pruttlol), rnr.req.service, rnr.req.reqID)
-        self ! PoisonPill
+
+
+        //replyTo ! Response(List(), SPAttributes("result" -> que, "hej" -> pruttlol), rnr.req.service, rnr.req.reqID)
+        //self ! PoisonPill
       }
     }
   }
@@ -84,25 +63,25 @@ object OperatorService extends SPService {
 
 trait TowerBuilder {
   def makeTower(xs: List[List[String]]) = {
-    for {
-      c <- xs.map(_.zipWithIndex).zipWithIndex
-      r <- c._1
-      color <- matchColor(r._1)
+    val t = for {
+      r <- xs.map(_.zipWithIndex).zipWithIndex
+      c <- r._1
+      color <- matchColor(c._1)
     } yield {Brick(r._2, c._2, color)}
+    verifyTower(t)
   }
 
   def verifyTower(t: List[Brick]) = {
     val cols = t.groupBy(_.col)
     val ok = cols.foldLeft(Map[Int, Boolean]()){(a, b) =>
       val sorted = b._2.sortWith(_.row > _.row)
-      val res = sorted.isEmpty || sorted.head.row == sorted.size
+      val res = sorted.isEmpty || sorted.head.row == sorted.size-1
       a + (b._1 -> res)
     }
     ok.foreach(b => if (!b._2) println(s"Column ${b._1} is not ok: ${cols(b._1)}"))
-    ok.values.fold(true)(_ && _)
+    if (ok.values.fold(true)(_ && _)) Some(t) else None
   }
 
-  def splitTower
 
   def matchColor(color: String): Option[BrickColor] = {
     color match {
@@ -114,7 +93,7 @@ trait TowerBuilder {
       case "2"      => Some(Green)
       case "3"      => Some(Red)
       case "4"      => Some(Blue)
-      case _        => None[BrickColor]
+      case _        => None
     }
   }
 }
