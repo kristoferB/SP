@@ -32,13 +32,14 @@
         }
 
         function onEvent(ev){
-            console.log('operator instructions event...');
-
             if (!_.has(ev, 'reqID') || ev.reqID !== service.serviceID) return;
 
             if (_.has(ev, 'attributes.theBus')){
-                service.connected = ev.attributes.theBus === 'Connected';
-                console.log('connected = ' + service.connected);
+                // there is no disconnect...
+                if(ev.attributes.theBus === 'Connected') {
+                    console.log('operator instructions connected...');
+                    service.connected = true;
+                }
             }
 
             if (_.has(ev, 'attributes.operatorInstructions')){
@@ -59,6 +60,7 @@
                 console.log(repl);
                 if (messageOK(repl) && _.has(repl, 'reqID')){
                     service.serviceID = repl.reqID;
+                    service.connected = true;
                 }
             });
         }

@@ -17,6 +17,7 @@
         vm.eventLog = [];
         vm.scope = $scope;
         vm.connect = connect;
+        vm.getColor = getColor;
 
         // bus connection stuff
         vm.connection = operatorInstGUIService;
@@ -30,17 +31,17 @@
                                  vm.subscribeTopic);
         }
 
-        vm.Palett = {
-            pal: [
-                    ["#fff","#fff","#fff","#fff"],
-                    ["#fff","#fff","#fff","#fff"]
-                 ],
+        function getColor(pos) {
+            if(_.has(vm.connection.operatorInstructions.colors)) {
+                var str = vm.connection.operatorInstructions.colors[pos];
+                if(str == 'green') return '#66cc33';
+                if(str == 'red') return '#cc3344';
+                if(str == 'blue') return '#4433cc';
+                if(str == 'empty') return '#fff';
+            }
+            return '#000';
+        }
 
-            sendEmpty: [
-                    ["empty","empty","empty","empty"],
-                    ["empty","empty","empty","empty"]
-                 ]
-        };
         activate();
 
         function activate() {

@@ -2,7 +2,7 @@
     <style>
         #palettep1 {
         border-radius: 5px;
-        background: {{vm.Palett.pal[1][0]}};
+        background: {{vm.getColor(0)}};
         padding: 20px;
         width: 65px;
         height: 65px;
@@ -14,7 +14,7 @@
         }
         #palettep2 {
         border-radius: 5px;
-        background: {{vm.Palett.pal[1][1]}};
+        background: {{vm.getColor(1)}};
         padding: 20px;
         width: 65px;
         height: 65px;
@@ -26,7 +26,7 @@
         }
         #palettep3 {
         border-radius: 5px;
-        background: {{vm.Palett.pal[1][2]}};
+        background: {{vm.getColor(2)}};
         padding: 20px;
         width: 65px;
         height: 65px;
@@ -38,7 +38,7 @@
         }
         #palettep4 {
         border-radius: 5px;
-        background: {{vm.Palett.pal[1][3]}};
+        background: {{vm.getColor(3)}};
         padding: 20px;
         width: 65px;
         height: 65px;
@@ -50,7 +50,7 @@
         }
         #palettep5 {
         border-radius: 5px;
-        background: {{vm.Palett.pal[0][0]}};
+        background: {{vm.getColor(4)}};
         padding: 20px;
         width: 65px;
         height: 65px;
@@ -62,7 +62,7 @@
         }
         #palettep6 {
         border-radius: 5px;
-        background: {{vm.Palett.pal[0][1]}};
+        background: {{vm.getColor(5)}};
         padding: 20px;
         width: 65px;
         height: 65px;
@@ -74,7 +74,7 @@
         }
         #palettep7 {
         border-radius: 5px;
-        background: {{vm.Palett.pal[0][2]}};
+        background: {{vm.getColor(6)}};
         padding: 20px;
         width: 65px;
         height: 65px;
@@ -86,7 +86,7 @@
         }
         #palettep8 {
         border-radius: 5px;
-        background: {{vm.Palett.pal[0][3]}};
+        background: {{vm.getColor(7)}};
         padding: 20px;
         width: 65px;
         height: 65px;
@@ -115,10 +115,10 @@
             </button>
         </div>
         <div ng-if="vm.connection.connected">
-            <div ng-if="vm.connection.operatorInstructions == {}">
+            <div ng-if="!_.has(vm.connection.operatorInstructions.colors)">
                 <h3>Waiting for operator instructions...</h3>
             </div>
-            <div ng-if="vm.connection.operatorInstructions != {}">
+            <div ng-if="_.has(vm.connection.operatorInstructions.colors)">
                 <p id="palette"></p>
                 <p id="palettep1">1</p>
                 <p id="palettep2">2</p>
@@ -129,7 +129,7 @@
                 <p id="palettep7">7</p>
                 <p id="palettep8">8</p>
 
-                <button type="button" style="top: 325px; left:110px;width:150px;height:50px; position:absolute" class="btn btn.sm btn-primary" ng-click="vm.connection.done()">
+                <button type="button" style="top: 325px; left:110px;width:150px;height:50px; position:absolute" class="btn btn.sm btn-primary" ng-click="vm.connection.done(vm.connection.operatorInstructions.id)">
                     <i class="fa fa-thumbs-up"></i>
                 </button>
                 <h1 style="top: 190px; left:0px; position:absolute"><b><font size="2"; color="black">Message: </font></b></h1>

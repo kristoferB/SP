@@ -24,12 +24,13 @@ object OperatorInstructions extends SPService {
       "publishTopic" -> KeyDefinition("String", List(), Some("commands")),
       "subscribeTopic" -> KeyDefinition("String", List(), Some("response"))
     ),
-    "command" -> KeyDefinition("String", List("connect", "disconnect", "done"), Some("connect")
-    )
+    "command" -> KeyDefinition("String", List("connect", "disconnect", "done"), Some("connect")),
+    "doneID" -> KeyDefinition("ID", List(), Some(SPValue(ID.newID)))
   )
   val transformTuple  = (
     TransformValue("setup", _.getAs[BusSetup]("setup")),
-    TransformValue("command", _.getAs[String]("command"))
+    TransformValue("command", _.getAs[String]("command")),
+    TransformValue("doneID", _.getAs[ID]("doneID"))
   )
   val transformation = transformToList(transformTuple.productIterator.toList)
   def props(eventHandler: ActorRef) = ServiceLauncher.props(Props(classOf[OperatorInstructions], eventHandler))
@@ -63,18 +64,19 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
         case "disconnect" =>
           disconnect()
         case "done" =>
-          sendDone()
+          val id = transform(OperatorInstructions.transformTuple._3)
+          sendDone(id)
         case _ =>
-          println("no such command")
+          sender ! SPError("Ill formed request");
       }
-      replyTo ! Response(List(), connectedAttribute() merge SPAttributes("silent"->true), service, serviceID)
+      replyTo ! Response(List(), connectedAttribute(), service, serviceID)
     }
     case ConnectionEstablished(request, c) => {
       println("connected:"+request)
       setup.foreach{ s=>
         c ! ConsumeFromTopic(s.subscribeTopic)
         theBus = Some(c)
-        eventHandler ! Progress(SPAttributes("theBus"-> "Connected"), serviceName.get, serviceID)
+        eventHandler ! Response(List(), connectedAttribute(), serviceName.get, serviceID)
       }
     }
     case ConnectionFailed(request, reason) => {
@@ -83,9 +85,11 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
     case mess @ AMQMessage(body, prop, headers) => {
       val resp = SPAttributes.fromJson(body.toString)
       println(s"new instruction on the bus")
-      val colors = resp.flatMap(_.getAs[List[String]]("operator_instructions"))
-      val opinstr = SPAttributes("colors" -> colors, "textMessage" -> "Please do this")
-      eventHandler ! Response(List(), SPAttributes("operatorInstructions"->opinstr, "silent"->true), serviceName.get, serviceID)
+      case class OperatorInstructionMessage(id: ID, colors: List[String], textMessage: String)
+      val msgs = resp.flatMap(_.getAs[OperatorInstructionMessage]("operator_instructions"))
+      msgs.foreach { oi =>
+        eventHandler ! Response(List(), SPAttributes("operatorInstructions"->oi, "silent"->true), serviceName.get, serviceID)
+      }
     }
     case ConnectionInterrupted(ca, x) => {
       println("connection closed")
@@ -105,11 +109,11 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
 
   def connectedAttribute() = {
     if (setup.isEmpty)
-      SPAttributes("theBus"->"Not connected")
+      SPAttributes("theBus"->"Not connected") merge SPAttributes("silent"->true)
     else if (theBus.isEmpty)
-      SPAttributes("theBus"->"Connecting")
+      SPAttributes("theBus"->"Connecting") merge SPAttributes("silent"->true)
     else
-      SPAttributes("theBus"->"Connected")
+      SPAttributes("theBus"->"Connected") merge SPAttributes("silent"->true)
   }
 
   def disconnect() = {
@@ -129,9 +133,10 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
     }
   }
 
-  def sendDone() = {
+  def sendDone(id: ID) = {
     val mess = SPAttributes(
-      "command"->"operatorDone"
+      "command"->"operatorDone",
+      "id" -> id
     )
     sendMessage(mess)
   }
