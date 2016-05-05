@@ -8,21 +8,27 @@
       .module('app.operatorInstGUI')
       .controller('operatorInstGUIController', operatorInstGUIController);
 
-    operatorInstGUIController.$inject = ['$scope', 'dashboardService', 'eventService','spServicesService'];
+    operatorInstGUIController.$inject = ['$scope', 'dashboardService', 'eventService','spServicesService','restService','operatorInstGUIService'];
     /* @ngInject */
-    function operatorInstGUIController($scope, dashboardService, eventService, spServicesService) {
+    function operatorInstGUIController($scope, dashboardService, eventService, spServicesService, restService,
+                                       operatorInstGUIService) {
         var vm = this;
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
         vm.eventLog = [];
-        vm.clearEventLog = clearEventLog;
-        vm.listen = listen;
         vm.scope = $scope;
-        vm.result = vm.position
-        vm.imDone = imDone;
-        vm.done = false
-        vm.message = "Hej"
+        vm.connect = connect;
 
+        // bus connection stuff
+        vm.connection = operatorInstGUIService;
+        vm.busIP = '129.16.26.22';
+        vm.publishTopic = 'commands';
+        vm.subscribeTopic = 'response';
 
+        function connect() {
+            vm.connection.connect(vm.busIP,
+                                 vm.publishTopic,
+                                 vm.subscribeTopic);
+        }
 
         vm.Palett = {
             pal: [
@@ -41,32 +47,6 @@
             $scope.$on('closeRequest', function() {
                 dashboardService.closeWidget(vm.widget.id);
             });
-            //Some problem with the listner here
-            eventService.addListener('Response',vm.listen);
-        }
-        function imDone(done){
-
-            var mess = {"data": {"getNext": done,"buildOrder": vm.Palett.sendEmpty}};
-
-            spServicesService.callService(
-                spServicesService.getService("operatorService"),mess,
-                function(resp) {
-                    if(_.has(resp, "attributes.result")){
-                        vm.Palett.pal = resp.attributes.result;
-                    }
-                })
-        }
-        function listen(event){
-            vm.eventLog.unshift(event);
-            vm.scope.$apply();
-            if (event.service == "operatorService"){
-                vm.Palett.pal = event.attributes.result;
-                vm.message = resp.attributes.hej;
-            }
-        }
-
-        function clearEventLog(){
-            vm.eventLog = [];
         }
 
 

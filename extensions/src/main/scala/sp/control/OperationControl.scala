@@ -21,7 +21,7 @@ object OperationControl extends SPService {
       "group"-> "control" // to organize in gui. maybe use "hide" to hide service in gui
     ),
     "setup" -> SPAttributes(
-      "busIP" -> KeyDefinition("String", List(), Some("172.16.205.50")),
+      "busIP" -> KeyDefinition("String", List(), Some("129.16.26.22")),
       "publishTopic" -> KeyDefinition("String", List(), Some("commands")),
       "subscribeTopic" -> KeyDefinition("String", List(), Some("response"))
     ),

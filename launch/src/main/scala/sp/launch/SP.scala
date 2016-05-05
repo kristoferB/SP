@@ -233,8 +233,6 @@ object SP extends App {
     VariableOperationMapper.transformation
   )
 
-
-
   import sp.psl.OperatorService._
   serviceHandler ! RegisterService(
     "operatorService",
@@ -242,6 +240,13 @@ object SP extends App {
     OperatorService.specification,
     OperatorService.transformation
   )
+
+  serviceHandler ! RegisterService(
+    "OperatorInstructions",
+    system.actorOf(OperatorInstructions.props(eventHandler), "OperatorInstructions"),
+    OperatorInstructions.specification,
+    OperatorInstructions.transformation
+  )  
 
   // launch REST API
   sp.server.LaunchGUI.launch
