@@ -24,7 +24,7 @@ class TowerHandlingTests extends FreeSpec {
 
       val tower = logic.makeTower(exampleTower)
       println(tower)
-      assert(tower.map(_.toSet) == Some(Set(Brick(0, 1, Red), Brick(0, 2, Yellow),Brick(1, 1, Blue))))
+      assert(tower.map(_.toSet).contains(Set(Brick(1, 2, Red), Brick(1, 3, Yellow),Brick(2, 2, Blue))))
 
     }
     "A tower should not be created if not correct" in {
@@ -37,7 +37,20 @@ class TowerHandlingTests extends FreeSpec {
 
       val tower = logic.makeTower(exampleTower)
       println(tower)
+      assert(tower == None)
+    }
+    "A tower should be correctly sorted" in {
+      val logic = new TowerBuilder {}
 
+      val exampleTower = List(
+        List("empty", "red", "yellow", "1"),
+        List("empty", "blue", "red", "")
+      )
+
+      val tower = logic.makeTower(exampleTower)
+      val sorted = logic.sortBricks(tower.get)
+      println(sorted)
+      //assert(tower == None)
     }
   }
 
