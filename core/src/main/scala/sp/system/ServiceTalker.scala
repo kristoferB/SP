@@ -77,7 +77,9 @@ class ServiceTalker(service: ActorRef,
     }
     case e: SPError => {
       replyTo ! e
-      eventHandler.foreach(_ ! ServiceError(request.service, request.reqID, e))
+      if (!handleAttr.onlyResponse) {
+        eventHandler.foreach(_ ! ServiceError(request.service, request.reqID, e))
+      }
       killMe
     }
     case x if sender() == service => {

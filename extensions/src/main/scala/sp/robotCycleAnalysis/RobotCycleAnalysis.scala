@@ -293,7 +293,7 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
     }
 
   def addErrorDescription[T](result: Either[SPErrorString, T], generalErrorDescription: String): Either[SPErrorString, T] = result match {
-      case Left(e)    => Left(SPErrorString(generalErrorDescription + " " + result.left.get.error))
+      case Left(e)    => Left(SPErrorString(generalErrorDescription + " Reason: " + result.left.get.error))
       case r@Right(_) => r
     }
 
@@ -308,6 +308,9 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
   def toResponse(message: SPAttributes): Response =
     Response(List(), message, spServiceName, spServiceID)
 
+  def toServiceError(error: SPError): ServiceError =
+    ServiceError(spServiceName, spServiceID, error)
+
   def okResponse(): Response =
     toResponse(SPAttributes())
 
@@ -315,8 +318,11 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
     eventHandler ! toResponse(message)
 
   def notifyIfError[T](result: Either[SPErrorString, T]): Unit =
-    if (result.isLeft)
-      eventHandler ! result.left.get
+    if (result.isLeft) {
+      println("Notifying error " + result.left.get)
+      eventHandler ! toServiceError(result.left.get)
+    }
+
 
   def notifyIfError[T](result: Either[SPErrorString, T], error: String): Unit =
       notifyIfError(addErrorDescription(result, error))

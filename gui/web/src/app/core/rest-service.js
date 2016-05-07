@@ -75,7 +75,7 @@
             function fail(error) {
                 console.log("got an error");
                 console.log(error.data);
-                var msg = 'An error occurred in ' + receiver  + ':\n' + errorToString(error.data);
+                var msg = 'An error occurred in ' + receiver  + ':' + errorToString(error.data);
                 logger.error(msg);
                 return $q.reject(msg);
             }
@@ -119,7 +119,7 @@
                 })
             }
             if (!angular.isUndefined(error.error)){
-                msg = msg + '<br/>\n' + error.error
+                msg = msg + '\n' + error.error
             }
             if (!angular.isUndefined(error.serviceError)){
                 msg = msg + '<br/>\n' + 'Error from Service: '+error.service+ " request id: "+error.reqID;

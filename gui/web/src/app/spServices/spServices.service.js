@@ -107,7 +107,7 @@
         };
       }
       current.response.push(responseCallBack);
-      //current.progress.push(catchErrors);
+      current.progress.push(catchErrors);
 
       service.eventListeners[reqID] = current;
 
@@ -118,13 +118,13 @@
         })
       }
 
-      /*function catchErrors(event) {
+      function catchErrors(event) {
         var msg = restService.errorToString(event);
         if (msg !== ""){
           logger.error(msg);
         }
         progressCallback(event);
-      }*/
+      }
     }
 
     function sendEventToListener(e){

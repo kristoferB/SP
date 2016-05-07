@@ -31,7 +31,7 @@
     "angular-uuid4": "~0.3.0",
     "angular-xeditable": "0.1.9",
     "bootstrap": "3.3.4",
-    "font-awesome": "4.3.0",
+    "font-awesome": "4.6.2",
     "font-source-sans-pro": "0.1.0",
     "jquery": "2.1.4",
     "jsoneditor": "~4",
@@ -46,5 +46,17 @@
   "resolutions": {
     "angular": "1.4.4",
     "bootstrap": "3.3.4"
+  },
+  "overrides": {
+    "bootstrap": {
+      "main":[
+        "dist/css/bootstrap.css"
+      ]
+    },
+    "font-awesome": {
+      "main":[
+        "css/font-awesome.css"
+      ]
+    }
   }
 }

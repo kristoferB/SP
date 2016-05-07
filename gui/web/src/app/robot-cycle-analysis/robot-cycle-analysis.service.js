@@ -39,7 +39,13 @@
 
         function activate() {
             eventService.addListener('Response', onResponse);
+            eventService.addListener('ServiceError', onError);
             getServiceState();
+        }
+
+        function onError(ev) {
+            if (ev.service == spServiceName && _.has(ev.serviceError, 'error'))
+                logger.error(ev.serviceError.error);
         }
 
         function onResponse(ev) {
