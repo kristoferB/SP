@@ -17,7 +17,7 @@
         activate();
 
         function activate() {
-            angular.copy(robotCycleAnalysisService.state.busSettings, vm.busSettings);
+            angular.copy(robotCycleAnalysisService.busSettings, vm.busSettings);
         }
 
         function save() {

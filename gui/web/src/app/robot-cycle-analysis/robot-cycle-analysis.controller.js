@@ -52,7 +52,7 @@
             });
 
             modalInstance.result.then(function(selectedWorkCell) {
-                robotCycleAnalysisService.activeWorkCell = selectedWorkCell;
+                vm.chosenWorkCell = selectedWorkCell;
             });
         }
 

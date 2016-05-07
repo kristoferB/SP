@@ -13,22 +13,19 @@
     function robotCycleAnalysisService(eventService, spServicesService, logger) {
 
         var service = {
-            state: {
-                availableWorkCells: [],
-                activeWorkCell: null,
-                busSettings: {
-                    host: null,
-                    port: null,
-                    topic: null
-                },
-                busConnected: null,
-                isInterrupted: null,
-                liveWorkCells: null
+            availableWorkCells: null,
+            busSettings: {
+                host: null,
+                port: null,
+                topic: null
             },
-            setupBus: setupBus,
+            busConnected: null,
             connectToBus: connectToBus,
             disconnectFromBus: disconnectFromBus,
-            requestAvailableWorkCells: requestAvailableWorkCells
+            isInterrupted: null,
+            liveWorkCells: null,
+            requestAvailableWorkCells: requestAvailableWorkCells,
+            setupBus: setupBus
         };
 
         var spServiceName = 'RobotCycleAnalysis';
@@ -52,17 +49,17 @@
             console.log('Robot cycle analysis received response ', ev);
             var attrs = ev.attributes;
             if (_.has(attrs, 'busConnected'))
-                service.state.busConnected = attrs.busConnected;
+                service.busConnected = attrs.busConnected;
             if (_.has(attrs, 'isInterrupted'))
-                service.state.isInterrupted = attrs.isInterrupted;
+                service.isInterrupted = attrs.isInterrupted;
             if (_.has(attrs, 'busSettings'))
-                service.state.busSettings = attrs.busSettings;
+                service.busSettings = attrs.busSettings;
             if (_.has(attrs, 'availableWorkCells'))
-                service.state.availableWorkCells = attrs.availableWorkCells;
+                service.availableWorkCells = attrs.availableWorkCells;
             if (_.has(attrs, 'addedLiveWatch'))
-                service.state.liveWorkCells.push(attrs.addedLiveWatch);
+                service.liveWorkCells.push(attrs.addedLiveWatch);
             if (_.has(attrs, 'removedLiveWatch'))
-                _.filter(service.state.liveWorkCells, function (liveWorkCell) {
+                _.filter(service.liveWorkCells, function (liveWorkCell) {
                     return liveWorkCell.name !== attrs.removedLiveWatch.name;
                 });
         }
@@ -109,7 +106,7 @@
         }
 
         function updateState(spServiceState) {
-            _.merge(service.state, spServiceState.attributes);
+            _.merge(service, spServiceState.attributes);
         }
     }
 

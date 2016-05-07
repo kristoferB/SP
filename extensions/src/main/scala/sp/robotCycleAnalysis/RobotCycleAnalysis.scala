@@ -201,7 +201,7 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
 
   def requestAvailableWorkCells() = {
     val mess = SPAttributes(
-      "availableWorkCells" -> null
+      "abbRobotCommand" -> "getAvailableWorkCells"
     )
     notifyIfError(sendToBus(mess), "Failed to request available work cells.")
   }
@@ -234,7 +234,7 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
     val isCycle = jObject.has("cycle") && (jObject \ "cycle").has("events")
     val isCycleEvent = jObject.has("cycleEvent") &&
       liveWorkCells.exists(w => w.name == (jObject \ "cycleEvent" \ "workCell" \ "name").to[String].get)
-    val isAvailableWorkCells = jObject.has("availableWorkCells") && (jObject \ "availableWorkCells") != JNull
+    val isAvailableWorkCells = jObject.has("availableWorkCells")
 
     if (isCycle || isAvailableCycles || isCycleEvent || isAvailableWorkCells) {
       val spAttributes = SPAttributes.fromJson(json).get

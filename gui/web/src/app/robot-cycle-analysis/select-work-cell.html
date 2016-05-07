@@ -1,15 +1,22 @@
 <main class="modal-body wrapper-lg">
     <h3 class="modal-title m-b">Select work cell</h3>
-    <p>Select which work cell to study.</p>
-    <table>
+    <p>Click on the work cell you want to study.</p>
+    <table class="table table-hover">
         <thead>
             <tr>
                 <th>Name</th><th>Description</th>
             </tr>
         </thead>
         <tbody>
-            <tr ng-repeat="workCell in vm.service.availableWorkCells">
-                <td>{{workCell.name}}</td><td>{{workCell.description}}</td>
+            <tr>
+                <td colspan="2" ng-show="vm.service.availableWorkCells == null">The ABB robot service did not respond.</td>
+                <td colspan="2"
+                    ng-show="vm.service.availableWorkCells != null && vm.service.availableWorkCells.length == 0">
+                    There are no work cells available.
+                </td>
+            </tr>
+            <tr ng-repeat="workCell in vm.service.availableWorkCells" ng-click="vm.select(workCell)">
+                <td>{{workCell.name}}</td><td>{{workCell.description}}
             </tr>
         </tbody>
     </table>
