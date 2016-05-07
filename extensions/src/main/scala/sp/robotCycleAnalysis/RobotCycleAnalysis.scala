@@ -21,7 +21,7 @@ object RobotCycleAnalysis extends SPService {
     val StartLiveWatch = Value("startLiveWatch")
     val StopLiveWatch = Value("stopLiveWatch")
     val RequestCycle = Value("requestCycle")
-    val RequestAvailableCycles = Value("requestAvailableCycles")
+    val SearchCycles = Value("searchCycles")
     val RequestAvailableWorkCells = Value("requestAvailableWorkCells")
     val GetServiceState = Value("getServiceState")
     def stringList = this.values.toList.map(_.toString).asInstanceOf[List[SPValue]]
@@ -45,8 +45,7 @@ object RobotCycleAnalysis extends SPService {
     ),
     "command" -> KeyDefinition("String", Commands.stringList, Some("getServiceState")),
     "cycle"   -> SPAttributes(
-      "id"      -> KeyDefinition("Option[String]", List(), None),
-      "current" -> KeyDefinition("Option[Boolean]", List(), None)
+      "id"      -> KeyDefinition("Option[String]", List(), None)
     )
   )
 
@@ -70,7 +69,7 @@ object RobotCycleAnalysis extends SPService {
 
 case class BusSettings(host: String, port: Int, topic: String)
 case class Robot(name: String)
-case class WorkCell(name: String, robots: Option[List[Robot]])
+case class WorkCell(name: String, description: String)
 case class TimeSpan(start: String, stop: String)
 case class Cycle(id: Option[ID], workCell: Option[WorkCell], events: Option[Map[String, List[CycleEvent]]])
 trait CycleEvent { def start: Boolean; def time: DateTime; }
@@ -114,8 +113,8 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
         case DisconnectFromBus => answer = disconnectFromBus()
         case GetServiceState => answer = getServiceState
         case RequestAvailableWorkCells => requestAvailableWorkCells()
-        case RequestAvailableCycles => requestAvailableCycles(postedTimeSpan, postedWorkCell)
         case RequestCycle => requestCycle(postedCycle)
+        case SearchCycles => searchCycles(postedCycle, postedTimeSpan, postedWorkCell)
         case SetupBus => setupBus(postedBusSettings)
         case StartLiveWatch => startLiveWatch(postedWorkCell)
         case StopLiveWatch => stopLiveWatch(postedWorkCell)
@@ -190,24 +189,26 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
     Some(toResponse(mess))
   }
 
-  def requestAvailableCycles(timeSpan: TimeSpan, workCell: WorkCell) = {
+  def searchCycles(cycle: Cycle, timeSpan: TimeSpan, workCell: WorkCell) = {
     val mess = SPAttributes(
-      "availableCycles" -> null,
+      "robotCycleCommand" -> "searchCycles",
+      "cycle" -> cycle,
       "timeSpan" -> timeSpan,
       "workCell" -> workCell
     )
-    notifyIfError(sendToBus(mess), "Failed to request available cycles.")
+    notifyIfError(sendToBus(mess), "Failed to search for cycles.")
   }
 
   def requestAvailableWorkCells() = {
-    val mess = SPAttributes(
-      "abbRobotCommand" -> "getAvailableWorkCells"
-    )
+    val mess = SPAttributes("abbRobotCommand" -> "getAvailableWorkCells")
     notifyIfError(sendToBus(mess), "Failed to request available work cells.")
   }
 
   def requestCycle(cycle: Cycle) = {
-    val mess = SPAttributes("cycle" -> cycle)
+    val mess = SPAttributes(
+      "cycle" -> cycle,
+      "robotCycleCommand" -> "getCycle"
+    )
     notifyIfError(sendToBus(mess), "Failed to request a cycle.")
   }
 
@@ -230,13 +231,13 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
     val json = body.toString
     val jObject = parse(json)
 
-    val isAvailableCycles = jObject.has("workCell") && jObject.has("availableCycles")
+    val isCycleSearchResult = jObject.has("cycleSearchResult") && jObject.has("workCell")
     val isCycle = jObject.has("cycle") && (jObject \ "cycle").has("events")
     val isCycleEvent = jObject.has("cycleEvent") &&
       liveWorkCells.exists(w => w.name == (jObject \ "cycleEvent" \ "workCell" \ "name").to[String].get)
     val isAvailableWorkCells = jObject.has("availableWorkCells")
 
-    if (isCycle || isAvailableCycles || isCycleEvent || isAvailableWorkCells) {
+    if (isCycle || isCycleSearchResult || isCycleEvent || isAvailableWorkCells) {
       val spAttributes = SPAttributes.fromJson(json).get
       sendResponseViaSSE(spAttributes)
     }

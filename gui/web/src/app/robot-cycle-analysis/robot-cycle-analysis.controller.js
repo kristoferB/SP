@@ -12,7 +12,8 @@
     /* @ngInject */
     function RobotCycleAnalysisController($scope, $uibModal, dashboardService, robotCycleAnalysisService, eventService) {
         var vm = this;
-        
+
+        vm.addCycle = addCycle;
         vm.chosenWorkCell = null;
         vm.control = RobotCycleAnalysisController;
         vm.historicalCycles = [];
@@ -41,6 +42,23 @@
 
             modalInstance.result.then(function(busSettings) {
                 robotCycleAnalysisService.setupBus(busSettings);
+            });
+        }
+
+        function addCycle() {
+            var modalInstance = $uibModal.open({
+                templateUrl: '/app/robot-cycle-analysis/add-cycle.html',
+                controller: 'AddCycleController',
+                controllerAs: 'vm',
+                resolve: {
+                    workCell: function() {
+                        return vm.chosenWorkCell;
+                    }
+                }
+            });
+
+            modalInstance.result.then(function(selectedCycle) {
+
             });
         }
 

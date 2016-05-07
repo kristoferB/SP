@@ -15,6 +15,8 @@
 
         return service;
 
+
+
         /* global EventSource */
         function createEventSource() {
             if (typeof(EventSource) !== 'undefined') {
@@ -38,6 +40,10 @@
                 $rootScope.$apply(handlerFunc(data));
             });
             logger.info('Event Service: Added an SSE listener for target ' + target + '.');
+        }
+
+        function removeListener(eventType, listener) {
+            service.eventSource.removeListener(eventType, listener);
         }
 
     }

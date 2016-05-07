@@ -25,6 +25,7 @@
             isInterrupted: null,
             liveWorkCells: null,
             requestAvailableWorkCells: requestAvailableWorkCells,
+            searchCycles: searchCycles,
             setupBus: setupBus
         };
 
@@ -84,8 +85,21 @@
             return postCommand("disconnectFromBus")
         }
 
+        function searchCycles(message) {
+            message['command'] = 'searchCycles';
+            return postToSP(message);
+        }
+
         function requestAvailableWorkCells() {
             return postCommand("requestAvailableWorkCells")
+        }
+
+        function requestCycle(cycle) {
+            var message = {
+                command: "requestCycle",
+                cycle: cycle
+            };
+            return postToSP(message);
         }
 
         function postCommand(command) {

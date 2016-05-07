@@ -1,0 +1,42 @@
+<main class="modal-body wrapper-lg">
+    <h3 class="modal-title m-b">Add cycle</h3>
+    <p>Enter some data and hit the search button. Then click the cycle you want to add to your view.</p>
+
+    <form name="vm.searchForm" novalidate>
+        <div class="form-group">
+            <label for="cycleIdInput">Host</label>
+            <input type="text" ng-model="vm.searchQuery.cycle.id" name="cycleId" id="cycleIdInput" class="form-control"
+                   placeholder="Enter a cycle id" autofocus />
+            <label for="fromTimeInput">Port</label>
+            <input type="text" ng-model="vm.searchQuery.timeSpan.from" name="fromTime" id="fromTimeInput"
+                   class="form-control" required="" placeholder="From time"/>
+            <label for="toTimeInput">Topic</label>
+            <input type="text" ng-model="vm.searchQuery.timeSpan.to" name="toTime" id="toTimeInput"
+                   class="form-control" required="" placeholder="To time"/>
+        </div>
+        <div class="clearfix">
+            <button class="btn btn-success pull-right" ng-disabled="vm.searchForm.$invalid" ng-click="vm.search()"
+                    id="search-button">Search</button>
+        </div>
+    </form>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Id</th><th>Start</th><th>Stop</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="3" ng-show="vm.cycleSearchResult == null">Awaiting search result...</td>
+                <td colspan="3"
+                    ng-show="vm.cycleSearchResult != null && vm.cycleSearchResult.length == 0">
+                    Found no cycles for this search query.
+                </td>
+            </tr>
+            <tr ng-repeat="cycle in vm.cycleSearchResult" ng-click="vm.select(cycle)">
+                <td>{{cycle.id}}</td><td>{{cycle.start}}</td><td>{{cycle.stop}}</td>
+            </tr>
+        </tbody>
+    </table>
+</main>
