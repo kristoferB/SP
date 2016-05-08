@@ -8,6 +8,7 @@ import sp.domain.Logic._
 import sp.domain.{SPAttributes, _}
 import sp.system._
 import sp.system.messages.{TransformValue, _}
+import sp.system.SPActorSystem._
 import com.github.nscala_time.time.Imports._
 import org.json4s.JValue
 import org.json4s.JsonAST.JNothing
@@ -32,12 +33,13 @@ object RobotCycleAnalysis extends SPService {
       "group" -> "control" // to organize in gui. maybe use "hide" to hide service in gui
     ),
     "busSettings" -> SPAttributes(
-      "host"  -> KeyDefinition("String", List(), Some("0.0.0.0")),
-      "port"  -> KeyDefinition("Int", List(), Some(61616)),
-      "topic" -> KeyDefinition("String", List(), Some("LISA"))
+      "host"  -> KeyDefinition("String", List(), Some(settings.activeMQ)),
+      "port"  -> KeyDefinition("Int", List(), Some(settings.activeMQPort)),
+      "topic" -> KeyDefinition("String", List(), Some(settings.activeMQTopic))
     ),
     "workCell" -> SPAttributes(
-      "name" -> KeyDefinition("String", List(), Some("not set"))
+      "name"        -> KeyDefinition("String", List(), Some("not set")),
+      "description" -> KeyDefinition("String", List(), Some("not set"))
     ),
     "timeSpan" -> SPAttributes(
       "start" -> KeyDefinition("String", List(), Some("not set")),
@@ -71,7 +73,8 @@ case class BusSettings(host: String, port: Int, topic: String)
 case class Robot(name: String)
 case class WorkCell(name: String, description: String)
 case class TimeSpan(start: String, stop: String)
-case class Cycle(id: Option[ID], workCell: Option[WorkCell], events: Option[Map[String, List[CycleEvent]]])
+case class Cycle(id: Option[ID], start: Option[String], stop: Option[String], workCell: Option[WorkCell],
+                 events: Option[Map[String, List[CycleEvent]]])
 trait CycleEvent { def start: Boolean; def time: DateTime; }
 case class RoutineStartOrStop(start: Boolean, time: DateTime, robot: Robot, routine: Routine) extends CycleEvent
 case class CycleStartOrStop(start: Boolean, time: DateTime) extends CycleEvent
@@ -83,7 +86,7 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
 
   val spServiceID = ID.newID
   val spServiceName = self.path.name
-  var busSettings: Option[BusSettings] = None
+  var busSettings: Option[BusSettings] = Some(BusSettings(settings.activeMQ, settings.activeMQPort, settings.activeMQTopic))
   var bus: Option[ActorRef] = None
   var isInterrupted = false
 
@@ -191,17 +194,43 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
 
   def searchCycles(cycle: Cycle, timeSpan: TimeSpan, workCell: WorkCell) = {
     val mess = SPAttributes(
-      "robotCycleCommand" -> "searchCycles",
-      "cycle" -> cycle,
-      "timeSpan" -> timeSpan,
-      "workCell" -> workCell
+      "robotCycleSearchQuery" -> SPAttributes(
+        "cycle" -> cycle,
+        "timeSpan" -> timeSpan,
+        "workCell" -> workCell
+      )
     )
     notifyIfError(sendToBus(mess), "Failed to search for cycles.")
+    // TEMPORARY RETURN OF A RESULT UNTIL A SERVICE FOR SEARCHING CYCLES IS READY
+    val responseMess = SPAttributes(
+      "cycleSearchResult" -> List(
+        SPAttributes(
+          "id" -> ID.newID,
+          "start" -> DateTime.now.minusHours(1),
+          "stop" -> DateTime.now.minusHours(1).plus(Period.minutes(2))
+        )
+      ),
+      "workCell" -> SPAttributes(
+        "name" -> "117956",
+        "description" -> "Mount rear doors"
+      )
+    )
+    eventHandler ! toResponse(responseMess)
   }
 
   def requestAvailableWorkCells() = {
     val mess = SPAttributes("abbRobotCommand" -> "getAvailableWorkCells")
     notifyIfError(sendToBus(mess), "Failed to request available work cells.")
+    // TEMPORARY WHEN ON NON-WINDOWS COMPUTER
+    val responseMess = SPAttributes(
+      "availableWorkCells" -> List(
+        SPAttributes(
+          "name" -> "117956",
+          "description" -> "Mount rear doors"
+        )
+      )
+    )
+    eventHandler ! toResponse(responseMess)
   }
 
   def requestCycle(cycle: Cycle) = {

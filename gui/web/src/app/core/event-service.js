@@ -10,7 +10,8 @@
     function eventService($rootScope, API, logger) {
         var service = {
             addListener: addListener,
-            eventSource: null
+            eventSource: null,
+            removeListener: removeListener
         };
 
         return service;
@@ -43,7 +44,7 @@
         }
 
         function removeListener(eventType, listener) {
-            service.eventSource.removeListener(eventType, listener);
+            service.eventSource.removeEventListener(eventType, listener);
         }
 
     }

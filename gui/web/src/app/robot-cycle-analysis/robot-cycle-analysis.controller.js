@@ -14,7 +14,6 @@
         var vm = this;
 
         vm.addCycle = addCycle;
-        vm.chosenWorkCell = null;
         vm.control = RobotCycleAnalysisController;
         vm.historicalCycles = [];
         vm.liveEvents = [];
@@ -26,6 +25,10 @@
         activate();
 
         function activate() {
+            if (vm.widget.storage === undefined) {
+                vm.widget.storage = {};
+                vm.widget.storage.chosenWorkCell = null;
+            }
             $scope.$on('closeRequest', function() {
                 // maybe add some clean up here
                 dashboardService.closeWidget(vm.widget.id);
@@ -52,7 +55,7 @@
                 controllerAs: 'vm',
                 resolve: {
                     workCell: function() {
-                        return vm.chosenWorkCell;
+                        return vm.widget.storage.chosenWorkCell;
                     }
                 }
             });
@@ -70,7 +73,7 @@
             });
 
             modalInstance.result.then(function(selectedWorkCell) {
-                vm.chosenWorkCell = selectedWorkCell;
+                vm.widget.storage.chosenWorkCell = selectedWorkCell;
             });
         }
 

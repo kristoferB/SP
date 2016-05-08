@@ -32,5 +32,7 @@ class SPSettings(system: ExtendedActorSystem) extends Extension {
   val buildFolder: String = system.settings.config getString "sp.buildFolder"
   val devMode: Boolean = system.settings.config getBoolean "sp.devMode"
   val activeMQ: String = system.settings.config getString "sp.activeMQ"
+  val activeMQPort: Int = system.settings.config getInt  "sp.activeMQPort"
+  val activeMQTopic: String = system.settings.config getString "sp.activeMQTopic"
 
 }

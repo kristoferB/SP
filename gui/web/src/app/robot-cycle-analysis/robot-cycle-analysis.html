@@ -16,19 +16,20 @@
         </div>
 
         <div class="btn-group">
-            <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Chosen work cell"
+            <button class="btn btn-sm btn-default" uib-tooltip="Chosen work cell"
                     ng-click="vm.selectWorkCell()" ng-disabled="!vm.service.busConnected">
                 <i class="fa fa-industry"></i>
-                <span ng-show="vm.chosenWorkCell === null">None</span>
-                <span ng-show="vm.chosenWorkCell !== null">
-                    {{vm.chosenWorkCell.name}}: {{vm.chosenWorkCell.description}}
+                <span ng-show="vm.widget.storage.chosenWorkCell === null">None</span>
+                <span ng-show="vm.widget.storage.chosenWorkCell !== null">
+                    {{vm.widget.storage.chosenWorkCell.name}}: {{vm.widget.storage.chosenWorkCell.description}}
                 </span>
             </button>
         </div>
 
         <div class="btn-group">
             <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Add cycle"
-                    ng-click="vm.addCycle()"><i class="fa fa-plus"></i>
+                    ng-click="vm.addCycle()" ng-disabled="vm.widget.storage.chosenWorkCell === null">
+                <i class="fa fa-plus"></i>
             </button>
         </div>
 

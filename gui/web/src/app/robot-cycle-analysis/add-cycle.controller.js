@@ -9,6 +9,7 @@
     /* @ngInject */
     function AddCycleController($uibModalInstance, robotCycleAnalysisService, workCell, eventService, $scope) {
         var vm = this;
+
         vm.cancel = cancel;
         vm.cycleSearchResult = null;
         vm.search = search;
@@ -17,24 +18,39 @@
                 id: null
             },
             timeSpan: {
-                start: null,
-                stop: null
+                from: getCurrentDateMinusOneHour(),
+                to: getCurrentDate()
             },
             workCell: workCell
         };
         vm.select = select;
-        
+
         activate();
+
+
 
         function activate() {
             eventService.addListener('Response', onResponse);
-            $scope.$on('modal.closing', function(event, data) {
+            $scope.$on('modal.closing', function() {
                 eventService.removeListener('Response', onResponse);
             })
         }
 
         function cancel() {
             $uibModalInstance.dismiss('cancel');
+        }
+
+        function getCurrentDate() {
+            var date = new Date();
+            date.setSeconds(0);
+            date.setMilliseconds(0);
+            return date;
+        }
+
+        function getCurrentDateMinusOneHour() {
+            var date = getCurrentDate();
+            date.setHours(date.getHours() - 1);
+            return date;
         }
 
         function onResponse(ev) {
@@ -46,7 +62,7 @@
 
         function search() {
             vm.foundCycles = null;
-            robotCycleAnalysisService.searchCycles(searchQuery);
+            robotCycleAnalysisService.searchCycles(vm.searchQuery);
         }
 
         function select(selectedCycle) {
