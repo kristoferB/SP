@@ -55,7 +55,7 @@
 
         function onResponse(ev) {
             var attrs = ev.attributes;
-            if (_.has(attrs, 'cycleSearchResult') && _.has(attrs, 'workCell') && attrs.workCell.name === workCell.name) {
+            if (_.has(attrs, 'cycleSearchResult') && attrs.workCellName === workCell.name) {
                 vm.cycleSearchResult = attrs.cycleSearchResult;
             }
         }
@@ -65,8 +65,8 @@
             robotCycleAnalysisService.searchCycles(vm.searchQuery);
         }
 
-        function select(selectedCycle) {
-            $uibModalInstance.close(selectedCycle);
+        function select(selectedCycleId) {
+            $uibModalInstance.close([selectedCycleId]);
         }
 
     }

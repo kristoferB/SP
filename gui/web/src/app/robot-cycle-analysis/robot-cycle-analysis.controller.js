@@ -15,11 +15,12 @@
 
         vm.addCycle = addCycle;
         vm.control = RobotCycleAnalysisController;
-        vm.historicalCycles = [];
+        vm.duration = duration;
         vm.liveEvents = [];
         vm.service = robotCycleAnalysisService;
         vm.setupBus = setupBus;
         vm.selectWorkCell = selectWorkCell;
+        vm.timeFromCycleStart = timeFromCycleStart;
         vm.widget = $scope.$parent.$parent.$parent.vm.widget;
 
         activate();
@@ -28,12 +29,31 @@
             if (vm.widget.storage === undefined) {
                 vm.widget.storage = {};
                 vm.widget.storage.chosenWorkCell = null;
+                vm.widget.storage.historicalCycles = [];
             }
             $scope.$on('closeRequest', function() {
                 // maybe add some clean up here
                 dashboardService.closeWidget(vm.widget.id);
             });
-            eventService.addListener('Response', onEvent);
+            eventService.addListener('Response', onResponse);
+        }
+
+        function onResponse(ev){
+            var attrs = ev.attributes;
+            if (_.has(attrs, 'robotCyclesResponse'))
+                if (vm.widget.storage !== undefined &&
+                    vm.widget.storage.chosenWorkCell !== undefined &&
+                    attrs.robotCyclesResponse.workCellName === vm.widget.storage.chosenWorkCell.name) {
+                    /*for (let cycle of attrs.robotCyclesResponse.foundCycles) {
+                        for (let robot of cycle.events) {
+                            for (let event of robot) {
+                                event.time = new Date(event.time);
+                            }
+                        }
+                        vm.widget.storage.historicalCycles.push(cycle);
+                    }*/
+                    vm.widget.storage.historicalCycles.push(...attrs.robotCyclesResponse.foundCycles);
+                }
         }
 
         function setupBus() {
@@ -48,6 +68,20 @@
             });
         }
 
+        function duration(event) {
+            let start = new Date(event.start);
+            let stop = new Date(event.stop);
+            let durationInMs = stop - start;
+            return durationInMs / 1000;
+        }
+        
+        function timeFromCycleStart(cycle, event) {
+            let cycleStart = new Date(cycle.start);
+            let eventStart = new Date(event.start);
+            let durationInMs = eventStart - cycleStart;
+            return durationInMs / 1000;
+        }
+
         function addCycle() {
             var modalInstance = $uibModal.open({
                 templateUrl: '/app/robot-cycle-analysis/add-cycle.html',
@@ -60,8 +94,8 @@
                 }
             });
 
-            modalInstance.result.then(function(selectedCycle) {
-
+            modalInstance.result.then(function(selectedCycleIds) {
+                robotCycleAnalysisService.requestCycles(selectedCycleIds);
             });
         }
 
@@ -75,15 +109,6 @@
             modalInstance.result.then(function(selectedWorkCell) {
                 vm.widget.storage.chosenWorkCell = selectedWorkCell;
             });
-        }
-
-        function onEvent(ev){
-            if (_.has(ev, 'availableCycles'))
-                vm.state.availableCycles = ev.availableCycles;
-            if (_.has(ev, 'cycle'))
-                vm.historicalCycles.push(ev.cycle);
-            if (_.has(ev, 'cycleEvent'))
-                vm.liveEvents.push(ev.cycleEvent);
         }
 
     }

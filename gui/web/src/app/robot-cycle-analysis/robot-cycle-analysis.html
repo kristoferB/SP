@@ -1,4 +1,4 @@
-<div ng-controller="RobotCycleAnalysisController as vm" class="simple-widget">
+<div ng-controller="RobotCycleAnalysisController as vm" class="robot-cycle-analysis">
     <div class="panel-toolbar">
 
         <div class="btn-group">
@@ -42,6 +42,15 @@
     </div>
 
     <div class="panel-content">
-
+        <p colspan="3" ng-show="vm.widget.storage.historicalCycles.length == 0">No cycles added yet.</p>
+        <div class="cycle" ng-repeat="cycle in vm.widget.storage.historicalCycles">
+            <div class="robot" ng-repeat="(robot, events) in cycle.events">
+                {{robot}}
+                <div class="event" ng-repeat="(eventId, event) in events"
+                     ng-style="{ left: 3*vm.timeFromCycleStart(cycle, event), width: 3*vm.duration(event) }">
+                    {{vm.duration(event)}}
+                </div>
+            </div>
+        </div>
     </div>
 </div>

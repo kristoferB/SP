@@ -25,6 +25,7 @@
             isInterrupted: null,
             liveWorkCells: null,
             requestAvailableWorkCells: requestAvailableWorkCells,
+            requestCycles: requestCycles,
             searchCycles: searchCycles,
             setupBus: setupBus
         };
@@ -94,10 +95,12 @@
             return postCommand("requestAvailableWorkCells")
         }
 
-        function requestCycle(cycle) {
+        function requestCycles(cycleIds) {
             var message = {
-                command: "requestCycle",
-                cycle: cycle
+                command: "requestCycles",
+                robotCyclesRequest: {
+                    cycleIds: cycleIds
+                }
             };
             return postToSP(message);
         }

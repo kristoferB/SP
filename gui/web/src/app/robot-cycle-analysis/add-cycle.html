@@ -40,7 +40,7 @@
                     Found no cycles for this search query.
                 </td>
             </tr>
-            <tr ng-repeat="cycle in vm.cycleSearchResult" ng-click="vm.select(cycle)">
+            <tr ng-repeat="cycle in vm.cycleSearchResult" ng-click="vm.select(cycle.id)">
                 <td>{{cycle.id}}</td>
                 <td>{{cycle.start | date:'yyyy-MM-dd HH:mm'}}</td>
                 <td>{{cycle.stop | date:'yyyy-MM-dd HH:mm'}}</td>
