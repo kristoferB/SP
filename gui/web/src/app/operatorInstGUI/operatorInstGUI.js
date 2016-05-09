@@ -34,12 +34,13 @@
         function getColor(pos) {
             if(_.has(vm.connection.operatorInstructions.colors)) {
                 var str = vm.connection.operatorInstructions.colors[pos];
-                if(str == 'green') return '#66cc33';
-                if(str == 'red') return '#cc3344';
-                if(str == 'blue') return '#4433cc';
-                if(str == 'empty') return '#fff';
+                if(str == 'empty'  || str == '0') return '#ffffff';
+                if(str == 'yellow' || str == '1') return '#aaff55';                
+                if(str == 'green'  || str == '2') return '#66ce33';
+                if(str == 'red'    || str == '3') return '#cc3344';
+                if(str == 'blue'   || str == '4') return '#4433cc';
             }
-            return '#000';
+            return '#000000';
         }
 
         activate();
