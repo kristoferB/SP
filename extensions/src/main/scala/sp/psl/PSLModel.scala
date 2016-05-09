@@ -45,7 +45,7 @@ class PSLModel extends Actor with ServiceSupport with ThePSLModel {
   }
 }
 
-case class DBConnection(name: String, valueType: String, db: Int, byte: Int = 0, bit: Int = 0, intMap: Map[String, String] = Map(), id: ID = ID.newID)
+case class DBConnection(name: String, valueType: String, db: Int, byte: Int = 0, bit: Int = 0, intMap: Map[String, String] = Map(), id: ID = ID.newID, busAddress: String = "")
 
 trait ThePSLModel extends Resources with DBConnector{
   def getCompleteModel: List[IDAble] = {
@@ -176,8 +176,8 @@ trait Resources extends ModelMaking {
 }
 
 trait DBConnector {
-  def db(items: Map[String, ID], name: String, valueType: String, db:Int, byte: Int, bit: Int, intMap: Map[Int, String] = Map()) = {
-    items.get(name).map(id => DBConnection(name, valueType, db, byte, bit, intMap.map{case (k,v) => k.toString->v}, id))
+  def db(items: Map[String, ID], name: String, valueType: String, db:Int, byte: Int, bit: Int, intMap: Map[Int, String] = Map(), busAddress: String = "") = {
+    items.get(name).map(id => DBConnection(name, valueType, db, byte, bit, intMap.map{case (k,v) => k.toString->v}, id, busAddress))
   }
 
   def getDBMap(itemMap: Map[String, ID]) = {
@@ -231,7 +231,11 @@ trait DBConnector {
       db(itemMap, "R2.homeTableToElevatorStn3.mode", "int", 126, 6, 0, stateMap),
       db(itemMap, "R2.homeBPToHomeTable.mode", "int", 126, 8, 0, stateMap),
       db(itemMap, "R2.placeAtPos.run", "int", 126, 10, 0, stateMap),
-      db(itemMap, "R2.pickAtPos.run", "int", 126, 12, 0, stateMap)
+      db(itemMap, "R2.pickAtPos.run", "int", 126, 12, 0, stateMap),
+
+      db(itemMap, "Operator.loadFixture.run", "bool", 0, 0, 0, Map(), "operatorInstructions.run"),
+      db(itemMap, "Operator.loadFixture.mode", "int", 0, 0, 0, stateMap, "operatorInstructions.mode"),
+      db(itemMap, "Operator.loadFixture.brickPositions", "bool", 0, 0, 0, Map(), "operatorInstructions.brickPositions")
 
     ).flatten
   }

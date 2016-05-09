@@ -7,6 +7,7 @@ import com.codemettle.reactivemq._
 import com.codemettle.reactivemq.ReActiveMQMessages._
 import com.codemettle.reactivemq.model._
 import org.json4s.JsonAST.JBool
+import org.json4s.JsonAST.JArray
 import sp.domain.logic.IDAbleLogic
 import sp.system.messages._
 import sp.system._
@@ -50,8 +51,10 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
   var setup: Option[BusSetup] = None
   var serviceName: Option[String] = None
   var subscriptions: Map[ID, DBValue] = Map()
-  var run: Boolean = false // running
-  var mode: Boolean = false  // finished
+  var run: Boolean = false // start
+  var mode: Int = 0  // notReady, ready, executing, finished
+
+  val addressPrefix = "operatorInstructions"
 
   def receive = {
     case r @ Request(service, attr, ids, reqID) => {
@@ -84,6 +87,9 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
         c ! ConsumeFromTopic(s.subscribeTopic)
         theBus = Some(c)
         eventHandler ! Response(List(), connectedAttribute(), serviceName.get, serviceID)
+        // ready!
+        mode = 1
+        sendState
       }
     }
     case ConnectionFailed(request, reason) => {
@@ -95,7 +101,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
 
       resp.getAs[String]("command") match {
         case Some("subscribe") =>
-          resp.getAs[List[DBValue]]("data").foreach { oi =>
+          resp.getAs[List[DBValue]]("dbs").foreach { oi =>
             oi.map { dbv =>
               dbv.address match {
                 case BusAddress(_) => subscriptions += (dbv.id -> dbv)
@@ -106,23 +112,6 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
             sendState
           }
         case Some("write") =>
-          val oi = for {
-            cmds <- resp.getAs[List[SPAttributes]]("commands")
-          } yield {
-            for {
-              cmd <- cmds
-              params <- cmd.getAs[List[SPAttributes]]("parameters")
-            } yield {
-              for {
-                param <- params
-                operInstr <- param.getAs[List[Brick]]("build_instruction")
-              } yield {
-                operInstr
-              }
-            }
-          }
-          eventHandler ! Response(List(), SPAttributes("operatorInstructions"->oi, "silent"->true), serviceName.get, serviceID)
-
           // set variables... (only run exist. hack it)
           for {
             dbs <- resp.getAs[List[DBValue]]("dbs")
@@ -130,18 +119,29 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
             db <- dbs
           } for {
             r <- db.address match {
-              case BusAddress("run") => db.value match { // the only valid "address"
+              case BusAddress(addr) if addr == addressPrefix + ".run" => db.value match {
                 case JBool(b) => Some(b)
                 case _ => Some(false)
               }
               case _ => None // skip these
             }
+            p <- db.address match {
+              case BusAddress(addr) if addr == addressPrefix + ".brickPositions" => db.value match {
+                case JArray(bricks) => Some(bricks)
+                case _ => Some(List())
+              }
+              case _ => None // skip these
+            }
           } yield {
+            // set run
             run = r
-          }
+            if(run) mode = 2 // run flag set, executing until we are done
+            else mode = 1 // run flag reset, ready to start again
+            sendState // send new state
 
-          // send new state
-          sendState
+            // send instructions to ui (parameter)
+            eventHandler ! Response(List(), SPAttributes("operatorInstructions"->p, "silent"->true), serviceName.get, serviceID)
+          }
 
         case x@_ =>
           println("Unexpected " + x + " from " + body.toString)
@@ -160,8 +160,8 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
   def sendState = {
     val data = subscriptions.map { case (k,v) =>
       val value = v.address match {
-        case BusAddress("run") => run
-        case BusAddress("mode") => mode
+        case BusAddress(addr) if addr == addressPrefix + ".run" => run
+        case BusAddress(addr) if addr == addressPrefix + ".mode" => mode
         case s@_ => {
           println("subscription does not exist: " + s)
           false
@@ -207,8 +207,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
   }
 
   def sendDone(id: ID) = {
-    mode = true
-    run = false
+    mode = 3 // completed
     sendState
   }
 
