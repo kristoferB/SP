@@ -47,8 +47,11 @@ object OperationControl extends SPService {
 
 case class BusSetup(busIP: String, publishTopic: String, subscribeTopic: String)
 
-case class AddressValues(db: Int, byte: Int, bit: Int)
-case class DBValue(name: String, id: ID, value: SPValue, valueType: String, address: AddressValues)
+sealed class Address
+case class PLCAddress(db: Int, byte: Int, bit: Int) extends Address
+case class BusAddress(name: String) extends Address
+
+case class DBValue(name: String, id: ID, value: SPValue, valueType: String, address: Address)
 case class DBConnection(name: String, valueType: String, db: Int, byte: Int, bit: Int, intMap: Map[String, SPValue], id: ID)
 
 
@@ -222,7 +225,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
   def subscribe() = {
     val mess = SPAttributes(
       "command"->"subscribe",
-      "dbs"-> this.connectionMap.values.map(x=>DBValue(x.name, x.id, 0, x.valueType, AddressValues(x.db, x.byte, x.bit)))
+      "dbs"-> this.connectionMap.values.map(x=>DBValue(x.name, x.id, 0, x.valueType, PLCAddress(x.db, x.byte, x.bit)))
     )
     sendMessage(mess)
 
@@ -247,7 +250,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       val item = idMap.getOrElse(id, Operation("dummy"))
 
       val paramDB = params.state.flatMap{case (id, value) =>
-        connectionMap.get(id).map(x => DBValue(x.name, x.id, value, x.valueType, AddressValues(x.db, x.byte, x.bit)))
+        connectionMap.get(id).map(x => DBValue(x.name, x.id, value, x.valueType, PLCAddress(x.db, x.byte, x.bit)))
       }.toList
       val paramFromString = paramsString.flatMap(getDBFromString)
       val paramToWrite = params.state.flatMap{case (id, value) =>
@@ -259,7 +262,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       val runState = state.get(rid).flatMap(_.to[Boolean]).map(!_).getOrElse(false)
       println(s"the new state of run: $runState")
 
-      val oDB = connectionMap.get(rid).map{db => DBValue(item.name, item.id, runState, db.valueType, AddressValues(db.db, db.byte, db.bit))}
+      val oDB = connectionMap.get(rid).map{db => DBValue(item.name, item.id, SPValue(runState), db.valueType, PLCAddress(db.db, db.byte, db.bit))}
 
       val command = SPAttributes(
         "id" -> id,
@@ -298,7 +301,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       val v = split(3)
       val value = if (Try{v.toInt}.isSuccess) SPValue(v.toInt) else if (Try{v.toBoolean}.isSuccess) SPValue(v.toBoolean) else SPValue(false)
       val vt = if (value.isInstanceOf[JInt]) "int" else "bool"
-      DBValue("raw", ID.newID, value, vt, AddressValues(db, byte, bit))
+      DBValue("raw", ID.newID, value, vt, PLCAddress(db, byte, bit))
     }
     res.toOption
   }

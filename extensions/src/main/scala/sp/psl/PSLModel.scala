@@ -1,7 +1,6 @@
 package sp.psl
 
 import akka.actor._
-import sp.control.AddressValues
 import sp.domain.logic.{PropositionParser, ActionParser, IDAbleLogic}
 import sp.psl.runnerService.RunnerService
 import scala.concurrent._
