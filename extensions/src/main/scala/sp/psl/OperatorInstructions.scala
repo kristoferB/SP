@@ -132,18 +132,19 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
             v
           }
 
-          println(newRun);
-          println(newP);
-
+          if(newRun.nonEmpty && newP.nonEmpty) {
             // set run
-          run = newRun.foldLeft(true)(_&&_)
-          if(run) mode = 2 // run flag set, executing until we are done
-          else mode = 1 // run flag reset, ready to start again
-          sendState // send new state
+            run = newRun.foldLeft(true)(_&&_)
+            if(run) mode = 2 // run flag set, executing until we are done
+            else mode = 1 // run flag reset, ready to start again
+            sendState // send new state
 
-          // send instructions to ui (parameter)
-          eventHandler ! Response(List(), SPAttributes("operatorInstructions"->newP, "silent"->true), serviceName.get, serviceID)
+            // send instructions to ui (parameter)
+            val p = newP.flatten
 
+            println("new run: " + run + " new parameters: " + p);
+            eventHandler ! Response(List(), SPAttributes("operatorInstructions"->p, "silent"->true), serviceName.get, serviceID)
+          }
         case x@_ =>
           println("Unexpected " + x + " from " + body.toString)
       }
@@ -161,8 +162,8 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
   def sendState = {
     val dbs = subscriptions.map { case (k,v) =>
       val value = v.address.to[BusAddress] match {
-        case Some(addr) if addr == addressPrefix + ".run" => SPValue(run)
-        case Some(addr) if addr == addressPrefix + ".mode" => SPValue(mode)
+        case Some(addr) if addr.name == addressPrefix + ".run" => SPValue(run)
+        case Some(addr) if addr.name == addressPrefix + ".mode" => SPValue(mode)
         case s@_ => {
           println("subscription does not exist: " + s)
           SPValue(false)
