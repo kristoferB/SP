@@ -32,13 +32,15 @@
         }
 
         function getColor(pos) {
-            if(_.has(vm.connection.operatorInstructions.colors)) {
-                var str = vm.connection.operatorInstructions.colors[pos];
-                if(str == 'empty'  || str == '0') return '#ffffff';
-                if(str == 'yellow' || str == '1') return '#aaff55';                
-                if(str == 'green'  || str == '2') return '#66ce33';
-                if(str == 'red'    || str == '3') return '#cc3344';
-                if(str == 'blue'   || str == '4') return '#4433cc';
+            if(_.isArray(vm.connection.operatorInstructions) &&
+               pos < vm.connection.operatorInstructions.length) {
+                var brick = vm.connection.operatorInstructions[pos];
+                if(brick.color == 'Empty'  || brick.color == '0') return '#ffffff';
+                if(brick.color == 'Yellow' || brick.color == '1') return '#aaff55';
+                if(brick.color == 'Green'  || brick.color == '2') return '#66ce33';
+                if(brick.color == 'Red'    || brick.color == '3') return '#cc3344';
+                if(brick.color == 'Blue'   || brick.color == '4') return '#4433cc';
+                console.log(brick);
             }
             return '#000000';
         }

@@ -16,7 +16,7 @@
             connected: false,
             serviceID: '',
             done: done,
-            operatorInstructions: {}
+            operatorInstructions: [] // list of bricks
         };
 
         const serviceName = 'OperatorInstructions';

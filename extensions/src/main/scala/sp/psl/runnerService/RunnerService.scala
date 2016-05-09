@@ -186,11 +186,12 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
   // kollar om en operations alla preconditions är uppfyllda och kan köras
   def checkPreCond(x: Operation): Boolean = {
-    val temp = x.conditions.collect{case pc: PropositionCondition => pc}
-    val enabled = temp.foldLeft(true)((a, b) => a && b.eval(state))
-    println(s"checking precondition, conditions = $enabled" )
-    println("We got: " + (readyList.contains(x.id) && enabled))
-    readyList.contains(x.id) && enabled
+    true
+    // val temp = x.conditions.collect{case pc: PropositionCondition => pc}
+    // val enabled = temp.foldLeft(true)((a, b) => a && b.eval(state))
+    // println(s"checking precondition, conditions = $enabled" )
+    // println("We got: " + (readyList.contains(x.id) && enabled))
+    // readyList.contains(x.id) && enabled
   }
 
 

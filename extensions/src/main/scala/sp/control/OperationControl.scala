@@ -42,7 +42,7 @@ object OperationControl extends SPService {
     TransformValue("command", _.getAs[SPAttributes]("command"))
   )
   val transformation = transformToList(transformTuple.productIterator.toList)
-  def props(eventHandler: ActorRef) = ServiceLauncher.props(Props(classOf[OperationControl], eventHandler))
+  def props(eventHandler: ActorRef) = Props(classOf[OperationControl], eventHandler)
 }
 
 case class BusSetup(busIP: String, publishTopic: String, subscribeTopic: String)
@@ -70,6 +70,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
   var modeToAbility: Map[ID,ID] = Map()
 
   def receive = {
+//    case x if { println(x); false } => x
     case r @ Request(service, attr, ids, reqID) => {
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()
@@ -214,7 +215,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
   }
 
   def disconnect() = {
-    println("stänger")
+    println("OperationControl Disconnecting")
     unsubscribe()
     theBus.foreach(_ ! CloseConnection)
     //theBus.foreach(_ ! PoisonPill)
@@ -351,7 +352,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
   }
 
   override def postStop() = {
-    println("stänger")
+    println("OperationControl PostStop")
     disconnect()
   }
 }

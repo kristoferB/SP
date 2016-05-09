@@ -36,7 +36,7 @@ object OperatorInstructions extends SPService {
     TransformValue("doneID", _.getAs[ID]("doneID"))
   )
   val transformation = transformToList(transformTuple.productIterator.toList)
-  def props(eventHandler: ActorRef) = ServiceLauncher.props(Props(classOf[OperatorInstructions], eventHandler))
+  def props(eventHandler: ActorRef) = Props(classOf[OperatorInstructions], eventHandler)
 }
 
 case class BusSetup(busIP: String, publishTopic: String, subscribeTopic: String)
@@ -57,6 +57,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
   val addressPrefix = "operatorInstructions"
 
   def receive = {
+    case x if { println(x); false } => x
     case r @ Request(service, attr, ids, reqID) => {
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()
@@ -82,7 +83,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
       replyTo ! Response(List(), connectedAttribute(), service, serviceID)
     }
     case ConnectionEstablished(request, c) => {
-      println("connected:"+request)
+      println("OperatorInstructions connected to the bus:"+request)
       setup.foreach{ s=>
         c ! ConsumeFromTopic(s.subscribeTopic)
         theBus = Some(c)
@@ -96,15 +97,16 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
       println("failed:"+reason)
     }
     case mess @ AMQMessage(body, prop, headers) => {
+      println(s"new instruction on the bus!!!!!!!")
       val resp = SPAttributes.fromJson(body.toString).getOrElse(SPAttributes())
-      println(s"new instruction on the bus")
 
       resp.getAs[String]("command") match {
         case Some("subscribe") =>
+          println("OperatorInstructions: got subscribe command")
           resp.getAs[List[DBValue]]("dbs").foreach { oi =>
             oi.map { dbv =>
               dbv.address match {
-                case BusAddress(_) => subscriptions += (dbv.id -> dbv)
+                case BusAddress(_) => { println("subscribing..."); subscriptions += (dbv.id -> dbv) }
                 case _ => // skip these
               }
             }
@@ -112,6 +114,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
             sendState
           }
         case Some("write") =>
+          println("OperatorInstructions: got write command")
           // set variables... (only run exist. hack it)
           for {
             dbs <- resp.getAs[List[DBValue]]("dbs")
@@ -158,7 +161,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
   }
 
   def sendState = {
-    val data = subscriptions.map { case (k,v) =>
+    val dbs = subscriptions.map { case (k,v) =>
       val value = v.address match {
         case BusAddress(addr) if addr == addressPrefix + ".run" => run
         case BusAddress(addr) if addr == addressPrefix + ".mode" => mode
@@ -169,7 +172,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
       }
       SPAttributes("id" -> k, "value" -> value)
     }.toList
-    val mess = SPAttributes("data" -> data)
+    val mess = SPAttributes("dbs" -> dbs)
     sendMessage(mess)
   }
 
