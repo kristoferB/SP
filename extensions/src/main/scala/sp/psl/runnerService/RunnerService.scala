@@ -70,7 +70,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       eventHandler ! SubscribeToSSE(self)
 
       // include this if you want to send progress messages. Send attributes to it during calculations
-      progress = context.actorOf(progressHandler)
+     // progress = context.actorOf(progressHandler)
 
       val sopID = transform(RunnerService.transformTuple._1)
       station = transform(RunnerService.transformTuple._2)

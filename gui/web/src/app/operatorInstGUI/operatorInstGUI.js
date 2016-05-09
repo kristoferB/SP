@@ -22,8 +22,8 @@
         // bus connection stuff
         vm.connection = operatorInstGUIService;
         vm.busIP = '129.16.26.22';
-        vm.publishTopic = 'commands';
-        vm.subscribeTopic = 'response';
+        vm.publishTopic = 'response';
+        vm.subscribeTopic = 'commands';
 
         function connect() {
             vm.connection.connect(vm.busIP,

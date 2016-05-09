@@ -24,8 +24,8 @@ object OperatorInstructions extends SPService {
     ),
     "setup" -> SPAttributes(
       "busIP" -> KeyDefinition("String", List(), Some("129.16.26.22")),
-      "publishTopic" -> KeyDefinition("String", List(), Some("commands")),
-      "subscribeTopic" -> KeyDefinition("String", List(), Some("response"))
+      "publishTopic" -> KeyDefinition("String", List(), Some("response")),
+      "subscribeTopic" -> KeyDefinition("String", List(), Some("commands"))
     ),
     "command" -> KeyDefinition("String", List("connect", "disconnect", "done"), Some("connect")),
     "doneID" -> KeyDefinition("ID", List(), Some(SPValue(ID.newID)))
@@ -57,7 +57,6 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
   val addressPrefix = "operatorInstructions"
 
   def receive = {
-    case x if { println(x); false } => x
     case r @ Request(service, attr, ids, reqID) => {
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()
@@ -102,11 +101,12 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
 
       resp.getAs[String]("command") match {
         case Some("subscribe") =>
-          println("OperatorInstructions: got subscribe command")
+          println("OperatorInstructions: got subscribe command -- " + resp)
           resp.getAs[List[DBValue]]("dbs").foreach { oi =>
             oi.map { dbv =>
-              dbv.address match {
-                case BusAddress(_) => { println("subscribing..."); subscriptions += (dbv.id -> dbv) }
+              println("dbv: " + dbv);
+              dbv.address.to[BusAddress] match {
+                case Some(a) => { println("subscribing..."); subscriptions += (dbv.id -> dbv) }
                 case _ => // skip these
               }
             }
@@ -114,37 +114,35 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
             sendState
           }
         case Some("write") =>
-          println("OperatorInstructions: got write command")
+          println("OperatorInstructions: got write command -- " + resp)
           // set variables... (only run exist. hack it)
-          for {
-            dbs <- resp.getAs[List[DBValue]]("dbs")
-          } for {
-            db <- dbs
-          } for {
-            r <- db.address match {
-              case BusAddress(addr) if addr == addressPrefix + ".run" => db.value match {
-                case JBool(b) => Some(b)
-                case _ => Some(false)
-              }
-              case _ => None // skip these
-            }
-            p <- db.address match {
-              case BusAddress(addr) if addr == addressPrefix + ".brickPositions" => db.value match {
-                case JArray(bricks) => Some(bricks)
-                case _ => Some(List())
-              }
-              case _ => None // skip these
-            }
+          val newRun = for {
+            db <- resp.getAs[List[DBValue]]("dbs").getOrElse(List())
+            r <- db.address.to[BusAddress] if r.name == addressPrefix + ".run"
+            v <- db.value.to[Boolean]
           } yield {
-            // set run
-            run = r
-            if(run) mode = 2 // run flag set, executing until we are done
-            else mode = 1 // run flag reset, ready to start again
-            sendState // send new state
-
-            // send instructions to ui (parameter)
-            eventHandler ! Response(List(), SPAttributes("operatorInstructions"->p, "silent"->true), serviceName.get, serviceID)
+            v
           }
+
+          val newP = for {
+            db <- resp.getAs[List[DBValue]]("dbs").getOrElse(List())
+            r <- db.address.to[BusAddress] if r.name == addressPrefix + ".brickPositions"
+            v <- db.value.to[List[Brick]]
+          } yield {
+            v
+          }
+
+          println(newRun);
+          println(newP);
+
+            // set run
+          run = newRun.foldLeft(true)(_&&_)
+          if(run) mode = 2 // run flag set, executing until we are done
+          else mode = 1 // run flag reset, ready to start again
+          sendState // send new state
+
+          // send instructions to ui (parameter)
+          eventHandler ! Response(List(), SPAttributes("operatorInstructions"->newP, "silent"->true), serviceName.get, serviceID)
 
         case x@_ =>
           println("Unexpected " + x + " from " + body.toString)
@@ -162,12 +160,12 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
 
   def sendState = {
     val dbs = subscriptions.map { case (k,v) =>
-      val value = v.address match {
-        case BusAddress(addr) if addr == addressPrefix + ".run" => run
-        case BusAddress(addr) if addr == addressPrefix + ".mode" => mode
+      val value = v.address.to[BusAddress] match {
+        case Some(addr) if addr == addressPrefix + ".run" => SPValue(run)
+        case Some(addr) if addr == addressPrefix + ".mode" => SPValue(mode)
         case s@_ => {
           println("subscription does not exist: " + s)
-          false
+          SPValue(false)
         }
       }
       SPAttributes("id" -> k, "value" -> value)
@@ -219,6 +217,3 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
     disconnect()
   }
 }
-
-
-
