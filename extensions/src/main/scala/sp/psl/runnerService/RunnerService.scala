@@ -94,7 +94,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       println("abilities = " + abilities)
       abilityMap = abilities.map(o => o.id -> o).toMap
 
-      askAService(Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"status"))),serviceHandler)
+      serviceHandler ! Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"status")))
 
       // Makes the parentmap
       sop.foreach(createSOPMap)
@@ -205,7 +205,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
     val attr = SPAttributes("command"->SPAttributes("commandType"->"execute", "execute"->abID,
       "parameters" -> State(paraMap)))
 
-    askAService(Request(operationController, attr), serviceHandler)
+    serviceHandler ! Request(operationController, attr)
   }
 
 
