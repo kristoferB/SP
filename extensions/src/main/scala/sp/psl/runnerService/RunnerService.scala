@@ -21,7 +21,7 @@ import scala.concurrent.duration._
 import akka.actor.Actor
 import akka.actor.Props
 
-case class AbilityStructure(name: String, parameter: Option[(String, Int)])
+//case class AbilityStructure(name: String, parameter: Option[(String, Int)])
 
 object RunnerService extends SPService {
   val specification = SPAttributes(
@@ -53,7 +53,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   var readyList: List[ID] = List()
   var sopen: Option[SOP] = None
   var operationAbilityMap = Map[ID, AbilityStructure]() // operation ID to AbilityStructure
-  var abilityMap = Map[String, Operation]()             // Ability name to ability (operation)
+  var abilityMap = Map[ID, Operation]()             // Ability name to ability (operation)
   var parameterMap: Map[String, ID] = Map()
   var station: String = ""
   var progress: ActorRef = self
@@ -92,7 +92,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       // maps all names of abilities to the ability id
       val abilities = ops.collect{case o: Operation if o.attributes.getAs[String]("operationType").getOrElse("not") == "ability" => o}
       println("abilities = " + abilities)
-      abilityMap = abilities.map(o => o.name+".run" -> o).toMap
+      abilityMap = abilities.map(o => o.id -> o).toMap
 
       askAService(Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"status"))),serviceHandler)
 
@@ -131,7 +131,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
         println("completed ids = " + completedIDs)
 
         val opsThatHasCompletedAbilities = (operationAbilityMap.filter{case (o, struct) =>
-          val abilityId = abilityMap(struct.name).id
+          val abilityId = struct.id
           completedIDs.contains(abilityId)
         }).keySet
 
@@ -170,7 +170,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       case x: Sequence if x.sop.nonEmpty => executeSOP(x.sop.head)
       case x: Hierarchy => {
         val abs = operationAbilityMap.get(x.operation).get
-        val a = abilityMap.get(abs.name).get
+        val a = abilityMap(abs.id)
         if (checkPreCond(a)) {
           startID(x.operation)
           activeSteps = activeSteps :+ x
@@ -196,15 +196,12 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
   def startID(id: ID) = {
     var paraMap: Map[ID, SPValue] = Map()
-    val abStructToFake = operationAbilityMap.get(id).get
-    paraMap = abStructToFake.parameter match {
-      case None => Map()
-      case Some((str, num)) =>
-        val paraID = parameterMap.get(str).get
-        Map(paraID -> SPValue(num))
-      }
+    val abStructToFake = operationAbilityMap(id)
+    paraMap = abStructToFake.parameters.map(p => p.id -> p.value).toMap
+
+
     println(s"paraMap is: $paraMap")
-    val abID = abilityMap(abStructToFake.name).id
+    val abID = abStructToFake.id
     val attr = SPAttributes("command"->SPAttributes("commandType"->"execute", "execute"->abID,
       "parameters" -> State(paraMap)))
 
