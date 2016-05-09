@@ -29,14 +29,14 @@ object RunnerService extends SPService {
       "group"-> "runner",
       "description" -> "A service to run SOP's in SP"
     ),
-    "SOP" -> KeyDefinition("Option[ID]", List(), Some("")
+      "SOP" -> KeyDefinition("Option[ID]", List(), Some("")),
+      "station" -> KeyDefinition("String", List(), Some("noStation")
     )
   )
 
-  val transformTuple  = TransformValue("SOP", _.getAs[ID]("SOP"))
+  val transformTuple  = (TransformValue("SOP", _.getAs[ID]("SOP")), TransformValue("station", _.getAs[String]("station")))
 
-  val transformation = List(transformTuple)
-  //def props(eventHandler: ActorRef) = Props(classOf[RunnerService], eventHandler)
+  val transformation = transformToList(transformTuple.productIterator.toList)
   def props(eventHandler: ActorRef, serviceHandler: ActorRef, operationController: String) =
     ServiceLauncher.props(Props(classOf[RunnerService], eventHandler, serviceHandler, operationController))
 }
@@ -55,6 +55,8 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   var operationAbilityMap = Map[ID, AbilityStructure]() // operation ID to AbilityStructure
   var abilityMap = Map[String, Operation]()             // Ability name to ability (operation)
   var parameterMap: Map[String, ID] = Map()
+  var station: String = ""
+  var progress: ActorRef = self
   implicit var rnr: RequestNReply = null
   implicit val timeout = Timeout(2 seconds)
 
@@ -68,9 +70,10 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       eventHandler ! SubscribeToSSE(self)
 
       // include this if you want to send progress messages. Send attributes to it during calculations
-      val progress = context.actorOf(progressHandler)
+      progress = context.actorOf(progressHandler)
 
-      val sopID = transform(RunnerService.transformTuple)
+      val sopID = transform(RunnerService.transformTuple._1)
+      station = transform(RunnerService.transformTuple._2)
 
       //list of tuples into maps
       val idMap: Map[ID, IDAble] = ids.map(item => item.id -> item).toMap
@@ -98,7 +101,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       sopen = sop.toOption
       println(s"we got a sop: $sop")
 
-      progress ! SPAttributes("activeOps"->activeSteps)
+      progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
     }
 
     // We get states from Operation control
@@ -122,6 +125,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       if(activeSteps.isEmpty) {
         sopen.foreach(executeSOP)
         println("activeStep empty -> start executing SOP")
+        progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
       } else {
         val completedIDs = state.state.filter{case (i,v) => v == SPValue("completed")}.keys.toList
         println("completed ids = " + completedIDs)
@@ -142,8 +146,10 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
         // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
         if (res.foldLeft(false)(_ || _)){
           println("RunnerService: All done")
-          reply.foreach(rnr => rnr.reply ! Response(List(), SPAttributes("status"->"done", "silent"->true), rnr.req.service, rnr.req.reqID))
+          reply.foreach(rnr => rnr.reply ! Response(List(), SPAttributes("station"->station,"status"->"done", "silent"->true), rnr.req.service, rnr.req.reqID))
           self ! PoisonPill
+        } else {
+          progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
         }
       }
     }

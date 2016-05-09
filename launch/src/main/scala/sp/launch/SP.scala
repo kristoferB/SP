@@ -218,12 +218,12 @@ object SP extends App {
     RunnerService.transformation
   )
 
-  serviceHandler ! RegisterService(
-    "AutoTest",
-    system.actorOf(AutoTest.props(eventHandler,rs), "AutoTest"),
-    AutoTest.specification,
-    AutoTest.transformation
-  )
+//  serviceHandler ! RegisterService(
+//    "AutoTest",
+//    system.actorOf(AutoTest.props(eventHandler,rs), "AutoTest"),
+//    AutoTest.specification,
+//    AutoTest.transformation
+//  )
 
 
   serviceHandler ! RegisterService(
@@ -233,12 +233,18 @@ object SP extends App {
     VariableOperationMapper.transformation
   )
 
-  import sp.psl.OperatorService._
   serviceHandler ! RegisterService(
     "operatorService",
     system.actorOf(OperatorService.props(serviceHandler), "operatorService"),
     OperatorService.specification,
     OperatorService.transformation
+  )
+
+  serviceHandler ! RegisterService(
+    "OrderHandler",
+    system.actorOf(OrderHandler.props(serviceHandler), "OrderHandler"),
+    OrderHandler.specification,
+    OrderHandler.transformation
   )
 
   serviceHandler ! RegisterService(

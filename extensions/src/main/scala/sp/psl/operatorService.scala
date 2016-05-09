@@ -44,36 +44,54 @@ class OperatorService(sh: ActorRef) extends Actor with ServiceSupport with Tower
       val rawTower = transform(OperatorService.transformTuple._2)
       val tower = makeTower(rawTower)
 
+      println("hej")
+
       tower.foreach{t =>
-        val (f1, f2) = divideTowerOnRobots(t, fixturePosition)
-        val ops = ids.collect{case o: Operation if o.attributes.getAs[Behavior]("behavior").nonEmpty => o}
+        val paraSOP = towerToSOP(t, fixturePosition, ids)
+        val sopSpec = SOPSpec("tower", List(paraSOP._1))
+        val updIds = sopSpec :: paraSOP._2 ++ ids
 
-        val f1Ops = getBrickOperations(f1, ops)
-        val f2Ops = getBrickOperations(f2, ops)
+        val towerStation = Map("tower" -> sopSpec.id)
 
-        // add R2 operations!
-        val seqF1 = Sequence(f1Ops.map(o => Hierarchy(o.id)):_*)
-        val seqF2 = Sequence(f2Ops.map(o => Hierarchy(o.id)):_*)
+        println("The tower: "+ t)
 
-        val paraSOP = Parallel(seqF1, seqF2)
-
-        //sh ! Request("OrderHandler")
-
+        sh ! Request("OrderHandler", SPAttributes(
+          "order" -> SPAttributes(
+            "id"->ID.newID,
+            "name"-> towerName(t),
+            "stations"-> towerStation
+          )
+        ), updIds)
       }
 
       if (tower.isEmpty){
-        //return error
+        println("tower could not be parsed: "+ rawTower)
       }
 
 
-      //replyTo ! Response(List(), SPAttributes("result" -> que, "hej" -> pruttlol), rnr.req.service, rnr.req.reqID)
+      replyTo ! Response(List(), SPAttributes("tower" -> tower), rnr.req.service, rnr.req.reqID)
       //self ! PoisonPill
     }
+    case error: SPError => println(s"Operator Service got an error: $error")
   }
 }
 
 
 trait TowerBuilder {
+  def towerToSOP(t: List[Brick],fixturePosition: Int, ids: List[IDAble]) = {
+    val (f1, f2) = divideTowerOnRobots(t, fixturePosition)
+    val ops = ids.collect{case o: Operation if o.attributes.getAs[Behavior]("behavior").nonEmpty => o}
+
+    val f1Ops = getBrickOperations(f1, ops)
+    val f2Ops = getBrickOperations(f2, ops)
+
+    // add R2 operations!
+    val seqF1 = Sequence(f1Ops.map(o => Hierarchy(o.id)):_*)
+    val seqF2 = Sequence(f2Ops.map(o => Hierarchy(o.id)):_*)
+
+    (Parallel(seqF1, seqF2), f1Ops ++ f2Ops)
+  }
+
   def makeTower(xs: List[List[String]]) = {
     val t = for {
       r <- xs.map(_.zipWithIndex).zipWithIndex
@@ -132,6 +150,8 @@ trait TowerBuilder {
       List(updPick, updPlace).flatten
     }
   }
+
+  def towerName(xs: List[Brick]) = xs.map(_.color).mkString("_")
 
   def matchColor(color: String): Option[BrickColor] = {
     color match {
