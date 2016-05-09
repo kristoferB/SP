@@ -49,17 +49,21 @@ class OperatorService(sh: ActorRef) extends Actor with ServiceSupport with Tower
       tower.foreach{t =>
         val paraSOP = towerToSOP(t, fixturePosition, ids)
         val sopSpec = SOPSpec("tower", List(paraSOP._1))
-        val updIds = sopSpec :: paraSOP._2 ++ ids
+        val sopSpecLoad = SOPSpec("load", List(paraSOP._2))
+        val updIds = sopSpec :: sopSpecLoad :: paraSOP._3 ++ ids
 
-        val towerStation = Map("tower" -> sopSpec.id)
+        val stations = Map("tower" -> sopSpec.id, "load" -> sopSpecLoad.id)
 
-        println("The tower: "+ t)
+        println("The tower: ")
+        t.map(println)
+        println("")
+        paraSOP._3.map(println)
 
         sh ! Request("OrderHandler", SPAttributes(
           "order" -> SPAttributes(
             "id"->ID.newID,
             "name"-> towerName(t),
-            "stations"-> towerStation
+            "stations"-> stations
           )
         ), updIds)
       }
@@ -85,11 +89,14 @@ trait TowerBuilder {
     val f1Ops = getBrickOperations(f1, ops)
     val f2Ops = getBrickOperations(f2, ops)
 
+    val loadOps = getLoadOps(f1, f2, ops)
+
     // add R2 operations!
     val seqF1 = Sequence(f1Ops.map(o => Hierarchy(o.id)):_*)
     val seqF2 = Sequence(f2Ops.map(o => Hierarchy(o.id)):_*)
+    val seqLoad = Sequence(loadOps.map(o => Hierarchy(o.id)):_*)
 
-    (Parallel(seqF1, seqF2), f1Ops ++ f2Ops)
+    (Parallel(seqF1, seqF2), seqLoad, f1Ops ++ f2Ops ++ loadOps)
   }
 
   def makeTower(xs: List[List[String]]) = {
@@ -149,6 +156,42 @@ trait TowerBuilder {
 
       List(updPick, updPlace).flatten
     }
+  }
+
+  def getLoadOps(f1: List[Brick], f2: List[Brick], ops: List[Operation]) = {
+    val opsNB = ops.flatMap{case o => o.attributes.getAs[Behavior]("behavior").map(o->_)}
+    val load = opsNB.find(_._2.op == "load")
+    val fixture = opsNB.find(_._2.op == "fixture")
+
+
+    val l = load.map{o =>
+      val abF1 = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, SPValue(f1))))
+      val abF2 = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, SPValue(f2))))
+      val f1o = o._1.copy(name = o._1.name+"_1",id = ID.newID,
+        attributes = o._1.attributes + ("ability"->abF1) + ("bricks"->f1))
+      val f2o = o._1.copy(name = o._1.name+"_2",id = ID.newID,
+        attributes = o._1.attributes + ("ability"->abF2) + ("bricks"->f2))
+      (f1o, f2o)
+    }
+    val f = fixture.map{o =>
+      val f1Pos = f1.headOption.map(_.fixturePos).getOrElse(1)
+      val f2Pos = f2.headOption.map(_.fixturePos).getOrElse(3)
+
+      val abF1 = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, SPValue(f1Pos))))
+      val abF2 = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, SPValue(f2Pos))))
+      val f1o = o._1.copy(name = o._1.name+"_1",id = ID.newID,
+        attributes = o._1.attributes + ("ability"->abF1) + ("bricks"->f1))
+      val f2o = o._1.copy(name = o._1.name+"_2",id = ID.newID,
+        attributes = o._1.attributes + ("ability"->abF2) + ("bricks"->f2))
+      (f1o, f2o)
+    }
+
+    (for {
+      loads <- l
+      fix <- f
+    } yield List(loads._1, fix._1, loads._2, fix._2)).getOrElse(List())
+
+
   }
 
   def towerName(xs: List[Brick]) = xs.map(_.color).mkString("_")
