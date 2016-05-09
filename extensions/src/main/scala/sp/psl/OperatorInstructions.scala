@@ -37,6 +37,9 @@ object OperatorInstructions extends SPService {
 }
 
 case class BusSetup(busIP: String, publishTopic: String, subscribeTopic: String)
+case class SubscribeData(name: String, id: ID, address: String) // address is "run" and "mode"
+case class OperatorInstructionData(id: ID, colors: List[String], textMessage: String)
+
 
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
 class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSupport {
@@ -45,6 +48,9 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
   var theBus: Option[ActorRef] = None
   var setup: Option[BusSetup] = None
   var serviceName: Option[String] = None
+  var subscriptions: Map[ID, SubscribeData] = Map()
+  var run: Boolean = false // running
+  var mode: Boolean = false  // finished
 
   def receive = {
     case r @ Request(service, attr, ids, reqID) => {
@@ -83,14 +89,28 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
       println("failed:"+reason)
     }
     case mess @ AMQMessage(body, prop, headers) => {
-      val resp = SPAttributes.fromJson(body.toString)
+      val resp = SPAttributes.fromJson(body.toString).getOrElse(SPAttributes())
       println(s"new instruction on the bus")
-      case class OperatorInstructionMessage(id: ID, colors: List[String], textMessage: String)
-      val msgs = resp.flatMap(_.getAs[OperatorInstructionMessage]("operator_instructions"))
-      msgs.foreach { oi =>
-        eventHandler ! Response(List(), SPAttributes("operatorInstructions"->oi, "silent"->true), serviceName.get, serviceID)
+
+      resp.getAs[String]("command") match {
+        case Some("subscribe") =>
+          resp.getAs[List[SubscribeData]]("data").foreach { oi =>
+            oi.map(x => subscriptions += (x.id -> x))
+            // reply with updated state
+            sendState
+          }
+        case Some("write") =>
+          resp.getAs[OperatorInstructionData]("data").foreach { oi =>
+            mode = false
+            run = true
+            sendState
+            eventHandler ! Response(List(), SPAttributes("operatorInstructions"->oi, "silent"->true), serviceName.get, serviceID)
+          }
+        case x@_ =>
+          println("Unexpected " + x + " from " + body.toString)
       }
     }
+
     case ConnectionInterrupted(ca, x) => {
       println("connection closed")
       setup = None
@@ -98,6 +118,18 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
     case x => {
       println("no match for message: "+x)
     }
+  }
+
+  def sendState = {
+    val data = subscriptions.map { case (k,v) =>
+      val value =
+        if(v.address == "mode") mode
+        else if(v.address == "run") run
+        else false
+      SPAttributes("id" -> k, "value" -> value)
+    }.toList
+    val mess = SPAttributes("data" -> data)
+    sendMessage(mess)
   }
 
   def setupBus(s: BusSetup, rnr: RequestNReply) = {
@@ -134,11 +166,9 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
   }
 
   def sendDone(id: ID) = {
-    val mess = SPAttributes(
-      "command"->"operatorDone",
-      "id" -> id
-    )
-    sendMessage(mess)
+    mode = true
+    run = false
+    sendState
   }
 
   override def postStop() = {
