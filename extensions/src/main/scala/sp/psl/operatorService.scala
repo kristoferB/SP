@@ -196,29 +196,24 @@ trait TowerBuilder {
 
   def towerName(xs: List[Brick]) = xs.map(_.color).mkString("_")
 
-  def matchColor(color: String): Option[BrickColor] = {
+  def matchColor(color: String): Option[String] = {
     color match {
-      case "yellow" => Some(Yellow)
-      case "red"    => Some(Red)
-      case "green"  => Some(Green)
-      case "blue"   => Some(Blue)
-      case "1"      => Some(Yellow)
-      case "2"      => Some(Green)
-      case "3"      => Some(Red)
-      case "4"      => Some(Blue)
+      case "yellow" => Some("Yellow")
+      case "red"    => Some("Red")
+      case "green"  => Some("Green")
+      case "blue"   => Some("Blue")
+      case "1"      => Some("Yellow")
+      case "2"      => Some("Green")
+      case "3"      => Some("Red")
+      case "4"      => Some("Blue")
       case _        => None
     }
   }
 }
 
 
-case class Brick(row: Int, col: Int, color: BrickColor, fixture: Int = -1, fixturePos: Int = -1)
+case class Brick(row: Int, col: Int, color: String, fixture: Int = -1, fixturePos: Int = -1)
 case class Behavior(op: String, ability: ID, parameter: ID, pick: Option[List[Int]], place: Option[List[Int]])
 
 
-sealed trait BrickColor
-case object Yellow extends BrickColor
-case object Red extends BrickColor
-case object Green extends BrickColor
-case object Blue extends BrickColor
 

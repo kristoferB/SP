@@ -19,7 +19,7 @@
             operatorInstructions: [] // list of bricks
         };
 
-        const serviceName = 'OperatorInstructions';
+        var serviceName = 'OperatorInstructions';
 
         activate();
 
