@@ -34,7 +34,7 @@
         function getColor(row,col) {
             if(_.isArray(vm.connection.operatorInstructions)) {
                 var brick = _.find(vm.connection.operatorInstructions,function(b) {
-                    b.row == row && b.col == col;
+                    return b.row == row && b.col == col;
                 });
                 if(_.isUndefined(brick)) return '#ffffff'; // empty
                 var color = brick.color;
