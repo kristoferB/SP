@@ -241,21 +241,12 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
         SPAttributes(
           "name" -> "117956",
           "description" -> "Mount rear doors",
-          "robots" -> List(
-            SPAttributes(
-              "name" -> "R1",
-              "description" -> "Picks up rear left door and puts it into place",
-              "routines" -> List(
-                "27" -> SPAttributes(
-                  "name" -> "MoveP12P43",
-                  "description" -> "Picking up rear left door"
-                )
-              )
+          "robots" -> SPAttributes(
+            "R1" -> SPAttributes(
+              "description" -> "Picks up rear left door and puts it into place"
             ),
-            SPAttributes(
-              "name" -> "R2",
-              "description" -> "Fixates rear left door",
-              "routines" -> List()
+            "R2" -> SPAttributes(
+              "description" -> "Fixates rear left door"
             )
           )
         )
@@ -297,11 +288,26 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
             "stop"  -> DateTime.now.minusHours(6).plusMinutes(2),
             "events" -> SPAttributes(
               "R1" -> SPAttributes(),
-              "R2" -> SPAttributes(
-                ID.newID.toString -> SPAttributes(
-                  "routineNumber" -> 27,
-                  "start" -> DateTime.now.minusHours(6).plusSeconds(20),
-                  "stop" -> DateTime.now.minusHours(6).plusSeconds(30)
+              "R2" -> List(
+                SPAttributes(
+                  "routine" -> "PickUpRearLeft",
+                  "start" -> true,
+                  "time" -> DateTime.now.minusHours(6).plusSeconds(10)
+                ),
+                SPAttributes(
+                  "routine" -> "PickUpRearLeft",
+                  "start" -> false,
+                  "time" -> DateTime.now.minusHours(6).plusSeconds(20)
+                ),
+                SPAttributes(
+                  "routine" -> "MoveToBody",
+                  "start" -> true,
+                  "time" -> DateTime.now.minusHours(6).plusSeconds(25)
+                ),
+                SPAttributes(
+                  "routine" -> "MoveToBody",
+                  "start" -> false,
+                  "time" -> DateTime.now.minusHours(6).plusSeconds(40)
                 )
               )
             )

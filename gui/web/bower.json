@@ -41,20 +41,22 @@
     "ngstorage": "0.3.7",
     "raphael": "~2.1.4",
     "toastr": "2.1.0",
-    "bootstrap-contextmenu": "~0.2.0"
+    "bootstrap-contextmenu": "~0.2.0",
+    "angular-gantt": "^1.2.13"
   },
   "resolutions": {
     "angular": "1.4.4",
-    "bootstrap": "3.3.4"
+    "bootstrap": "3.3.4",
+    "moment": ">=2.8.0 <3.0.0"
   },
   "overrides": {
     "bootstrap": {
-      "main":[
+      "main": [
         "dist/css/bootstrap.css"
       ]
     },
     "font-awesome": {
-      "main":[
+      "main": [
         "css/font-awesome.css"
       ]
     }

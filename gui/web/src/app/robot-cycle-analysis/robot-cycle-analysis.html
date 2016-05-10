@@ -42,15 +42,28 @@
     </div>
 
     <div class="panel-content">
-        <p colspan="3" ng-show="vm.widget.storage.historicalCycles.length == 0">No cycles added yet.</p>
+        <!--<p colspan="3" ng-show="vm.widget.storage.historicalCycles.length == 0">No cycles added yet.</p>
         <div class="cycle" ng-repeat="cycle in vm.widget.storage.historicalCycles">
-            <div class="robot" ng-repeat="(robot, events) in cycle.events">
-                {{robot}}
-                <div class="event" ng-repeat="(eventId, event) in events"
-                     ng-style="{ left: 3*vm.timeFromCycleStart(cycle, event), width: 3*vm.duration(event) }">
-                    {{vm.duration(event)}}
-                </div>
-            </div>
+
+        </div>-->
+        <div gantt data=vm.data options="vm.options" api="vm.registerApi">
+            <gantt-table enabled="true">
+            </gantt-table>
         </div>
     </div>
 </div>
+
+<!--<div class="time-line">
+    <p class="time-stamp" ng-repeat="timeStamp in vm.timeStamps(cycle)">{{ timeStamp | date:'mm:ss' }}</p>
+</div>
+<div class="robot-row" ng-repeat="(robotName, robotEvents) in cycle.events">
+    <div class="robot-name">{{ robotName }}</div>
+    <div class="robot-events">
+        <div class="robot-event" ng-repeat="robotEvent in robotEvents"
+             uib-tooltip="{{ robotEvent.routine }}" ng-if="robotEvent.start === false"
+             ng-style="{ backgroundColor: vm.stringToColor(robotEvent.routine),
+                         marginLeft: vm.calcLeftMargin(cycle, robotEvents, robotEvent),
+                         width: vm.calcWidth(cycle, robotEvents, robotEvent) }">
+        </div>
+    </div>
+</div>-->

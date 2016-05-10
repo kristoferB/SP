@@ -3,6 +3,8 @@
 
     angular.module('app.robotCycleAnalysis', [
         'app.core',
-        'app.widgets'
+        'app.widgets',
+        'gantt',
+        'gantt.table'
       ]);
 })();

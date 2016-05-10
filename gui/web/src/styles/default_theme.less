@@ -280,17 +280,16 @@ a {
         }
 
         .panel-body {
-            flex: 1 1 0;
-            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             background-color: @gridster_panel_background;
 
 
             [ng-controller] {
-                position: absolute;
+                flex: 1;
                 display: flex;
                 flex-direction: column;
-                height: 100%;
-                width: 100%;
 
                 .panel-toolbar {
                     padding: 15px 16px;
@@ -312,7 +311,7 @@ a {
                 }
 
                 .panel-content {
-                    flex: 1 1 0;
+                    flex: 1;
                     position: relative;
                     margin-left: 15px;
                     margin-right: 15px;
@@ -442,11 +441,7 @@ a {
 /* Robot Cycle Analysis */
 
 .robot-cycle-analysis {
-    .event {
-        display: inline-block;
-        background-color: #36a530;
-        position: absolute;
-    }
+
 }
 
 

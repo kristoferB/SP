@@ -14,13 +14,68 @@
         var vm = this;
 
         vm.addCycle = addCycle;
+        //vm.calcLeftMargin = calcLeftMargin;
+        //vm.calcWidth = calcWidth;
         vm.control = RobotCycleAnalysisController;
-        vm.duration = duration;
+        vm.data = [
+            {
+                name: 'row1',
+                tasks: [
+                    {
+                        name: 'task1',
+                        from: new Date(10000),
+                        to: new Date(20000),
+                        color: stringToColor('ehjk')
+                    },
+                    {
+                        name: 'task2',
+                        from: new Date(25000),
+                        to: new Date(30000),
+                        color: stringToColor('wesdf')
+                    }
+                ]
+            },
+            {
+                name: 'row2',
+                tasks: [
+                    {
+                        name: 'task3',
+                        from: new Date(5000),
+                        to: new Date(12000),
+                        color: stringToColor('vxa')
+                    },
+                    {
+                        name: 'task4',
+                        from: new Date(19000),
+                        to: new Date(27000),
+                        color: stringToColor('ASCC')
+                    }
+                ]
+            }
+        ];
+        vm.getRoutineInfo = getRoutineInfo;
         vm.liveEvents = [];
+        vm.options = {
+            fromDate: new Date(0),
+            headers: ['second'],
+            headersFormats: {
+                second: 'ss'
+            },
+            viewScale: '5 seconds'
+        };
+        vm.registerApi = registerApi;
+        vm.scale = 3;
         vm.service = robotCycleAnalysisService;
         vm.setupBus = setupBus;
         vm.selectWorkCell = selectWorkCell;
-        vm.timeFromCycleStart = timeFromCycleStart;
+        vm.stringToColor = stringToColor;
+        //vm.timeFromCycleStart = timeFromCycleStart;
+        //vm.timeStamps = makeTimeStamps;
+        vm.timeSpans = [{
+                name: 'Hej',
+                from: new Date(0),
+                to: new Date(35000)
+        }];
         vm.widget = $scope.$parent.$parent.$parent.vm.widget;
 
         activate();
@@ -36,6 +91,45 @@
                 dashboardService.closeWidget(vm.widget.id);
             });
             eventService.addListener('Response', onResponse);
+        }
+
+        function addCycle() {
+            var modalInstance = $uibModal.open({
+                templateUrl: '/app/robot-cycle-analysis/add-cycle.html',
+                controller: 'AddCycleController',
+                controllerAs: 'vm',
+                resolve: {
+                    workCell: function() {
+                        return vm.widget.storage.chosenWorkCell;
+                    }
+                }
+            });
+
+            modalInstance.result.then(function(selectedCycleIds) {
+                robotCycleAnalysisService.requestCycles(selectedCycleIds);
+            });
+        }
+
+        /*function calcLeftMargin(cycle, robotEvents, robotEvent) {
+            let index = robotEvents.indexOf(robotEvent);
+            if (index === 0)
+                return 0;
+            let previousStop = index === 1 ? new Date(cycle.start) : new Date(robotEvents[index - 2].time);
+            let start = new Date(robotEvents[index - 1].time);
+            return (start - previousStop) / 1000 * vm.scale;
+        }
+
+        function calcWidth(cycle, robotEvents, robotEvent) {
+            let index = robotEvents.indexOf(robotEvent);
+            let start = index === 0 ? new Date(cycle.start) : new Date(robotEvents[index - 1].time);
+            let stop = new Date(robotEvent.time);
+            return (stop - start) / 1000 * vm.scale;
+        }*/
+
+        function getRoutineInfo(robotName, robotEvent) {
+            let routineNumber = robotEvent.routineNumber;
+            let routine = vm.widget.storage.chosenWorkCell.robots[robotName].routines[routineNumber];
+            return routineNumber + ": " + routine.name + "\n" + routine.description;
         }
 
         function onResponse(ev){
@@ -56,46 +150,9 @@
                 }
         }
 
-        function setupBus() {
-            var modalInstance = $uibModal.open({
-                templateUrl: '/app/robot-cycle-analysis/setup-bus.html',
-                controller: 'SetupBusController',
-                controllerAs: 'vm'
-            });
-
-            modalInstance.result.then(function(busSettings) {
-                robotCycleAnalysisService.setupBus(busSettings);
-            });
-        }
-
-        function duration(event) {
-            let start = new Date(event.start);
-            let stop = new Date(event.stop);
-            let durationInMs = stop - start;
-            return durationInMs / 1000;
-        }
-        
-        function timeFromCycleStart(cycle, event) {
-            let cycleStart = new Date(cycle.start);
-            let eventStart = new Date(event.start);
-            let durationInMs = eventStart - cycleStart;
-            return durationInMs / 1000;
-        }
-
-        function addCycle() {
-            var modalInstance = $uibModal.open({
-                templateUrl: '/app/robot-cycle-analysis/add-cycle.html',
-                controller: 'AddCycleController',
-                controllerAs: 'vm',
-                resolve: {
-                    workCell: function() {
-                        return vm.widget.storage.chosenWorkCell;
-                    }
-                }
-            });
-
-            modalInstance.result.then(function(selectedCycleIds) {
-                robotCycleAnalysisService.requestCycles(selectedCycleIds);
+        function registerApi(api) {
+            api.core.on.ready($scope, function () {
+                api.side.setWidth(100);
             });
         }
 
@@ -110,6 +167,50 @@
                 vm.widget.storage.chosenWorkCell = selectedWorkCell;
             });
         }
+
+        function setupBus() {
+            var modalInstance = $uibModal.open({
+                templateUrl: '/app/robot-cycle-analysis/setup-bus.html',
+                controller: 'SetupBusController',
+                controllerAs: 'vm'
+            });
+
+            modalInstance.result.then(function(busSettings) {
+                robotCycleAnalysisService.setupBus(busSettings);
+            });
+        }
+
+        function stringToColor(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            let colour = '#';
+            for (let i = 0; i < 3; i++) {
+                let value = (hash >> (i * 8)) & 0xFF;
+                colour += ('00' + value.toString(16)).substr(-2);
+            }
+            return colour;
+        }
+
+        /*function timeFromCycleStart(cycle, event) {
+            let cycleStart = new Date(cycle.start);
+            let eventStart = new Date(event.start);
+            let durationInMs = eventStart - cycleStart;
+            return durationInMs / 1000;
+        }*/
+
+        /*function makeTimeStamps(cycle) {
+            let start = new Date(cycle.start);
+            let stop = new Date(cycle.stop);
+            let duration = stop - start;
+            let stampInterval = 20000;
+            let noOfStamps = Math.ceil(duration/stampInterval);
+            let timeStamps = [];
+            for (let i = 0; i < noOfStamps; i++)
+                timeStamps.push(new Date(stampInterval * i));
+            return timeStamps;
+        }*/
 
     }
 })();
