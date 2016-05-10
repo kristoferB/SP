@@ -102,9 +102,13 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
           else
             unsubscribe()
         case "start" =>
-          sendCommands(commands)
+          commands.getAs[ID]("execute").foreach { id =>
+            sendStartStop(commands, id, true)
+          }
         case "stop" =>
-          sendCommands(commands)
+          commands.getAs[ID]("execute").foreach { id =>
+            sendStartStop(commands, id, false)
+          }
         case "status" =>
           eventHandler ! Response(List(), SPAttributes("state"->state, "resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
         case "raw" =>
