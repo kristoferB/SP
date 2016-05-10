@@ -140,7 +140,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
         val activeCompleted = activeSteps.filter(x=>opsThatHasCompletedAbilities.contains(x.operation))
 
         // execute completed to flop run bit
-        activeCompleted.foreach(x=>startID(x.operation))
+        activeCompleted.foreach(x=>stopID(x.operation))
         // remove the completed ids
         activeSteps = activeSteps.filterNot(x=>opsThatHasCompletedAbilities.contains(x.operation))
 
@@ -197,14 +197,14 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   }
 
 
-  def startID(id: ID) = {
+  def stopID(id: ID) = {
     var paraMap: Map[ID, SPValue] = Map()
     val abStructToFake = operationAbilityMap(id)
     paraMap = abStructToFake.parameters.map(p => p.id -> p.value).toMap
 
 
     println(s"---------------")
-    println(s"---------------")
+    println(s"-- RESET RUN --")
     println(s"---------------")
 
     println(s"op: $id")
@@ -218,7 +218,31 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
 
     val abID = abStructToFake.id
-    val attr = SPAttributes("command"->SPAttributes("commandType"->"execute", "execute"->abID,
+    val attr = SPAttributes("command"->SPAttributes("commandType"->"stop", "execute"->abID,
+      "parameters" -> State(paraMap)))
+
+    serviceHandler ! Request(operationController, attr)
+  }
+
+  def startID(id: ID) = {
+    var paraMap: Map[ID, SPValue] = Map()
+    val abStructToFake = operationAbilityMap(id)
+    paraMap = abStructToFake.parameters.map(p => p.id -> p.value).toMap
+
+    println(s"---------------")
+    println(s"--  SET RUN  --")
+    println(s"---------------")
+
+    println(s"op: $id")
+    println(s"ab: $abStructToFake")
+
+    println(s"---------------")
+    println(s"---------------")
+    println(s"---------------")
+
+
+    val abID = abStructToFake.id
+    val attr = SPAttributes("command"->SPAttributes("commandType"->"start", "execute"->abID,
       "parameters" -> State(paraMap)))
 
     serviceHandler ! Request(operationController, attr)
