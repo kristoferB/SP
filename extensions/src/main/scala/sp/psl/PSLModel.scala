@@ -108,8 +108,16 @@ trait ThePSLModel extends Resources with DBConnector{
         op = "fixture",
         pick = List(),
         place = List(),
-        ability = itemMap("flexlink.fixtureToRobot"),
-        parameter = itemMap("flexlink.fixtureToRobot.pos")
+        ability = itemMap("Flexlink.fixtureToRobot"),
+        parameter = itemMap("Flexlink.fixtureToRobot.pos")
+      ),
+      OpTowerTypeDef(
+        name ="FixtureToOperator",
+        op = "fixture",
+        pick = List(),
+        place = List(),
+        ability = itemMap("Flexlink.fixtureToOperator"),
+        parameter = itemMap("Flexlink.fixtureToOperator.no")
       )
 
     ))
@@ -136,9 +144,9 @@ trait Resources extends ModelMaking {
 
     //skicka klossplatta till operatör
     val flexlink = makeResource (
-      name = "flexlink",
+      name = "Flexlink",
       state = List("running"),
-      abilities = List("fixtureToRobot"-> List("pos"))
+      abilities = List("fixtureToRobot"-> List("pos"), "fixtureToOperator"-> List("no"))
     )
 
     val R5 = makeResource (
@@ -160,7 +168,8 @@ trait Resources extends ModelMaking {
       state = List(),
       abilities = List("elevatorStn2ToHomeTable"->List(), "homeTableToHomeBP" ->List(),
         "homeTableToElevatorStn3"->List(), "homeBPToHomeTable"->List(),
-        "placeAtPos"->List("pos"), "pickAtPos"->List("pos"))
+        "placeAtPos"->List("pos"), "pickAtPos"->List("pos"), "deliverTower"->List(),
+        "pickBuildPlate"->List())
     )
 
     val operator = makeResource (
@@ -194,9 +203,13 @@ trait DBConnector {
       db(itemMap, "h3.up.mode", "int", 140, 2, 0, stateMap),
       db(itemMap, "h3.down.mode", "int", 140, 4, 0, stateMap),
 
-      db(itemMap, "flexlink.sendFixtureToRobot.run", "bool", 139, 0, 0),
-      db(itemMap, "flexlink.sendFixtureToRobot.mode", "int", 139, 2, 0, stateMap),
-      //kolla adress // db(itemMap, "flexlink.running", "int", 139, 2, 0, stateMap),
+      db(itemMap, "Flexlink.fixtureToOperator.run", "bool", 139, 0, 0),
+      db(itemMap, "Flexlink.fixtureToRobot.run", "bool", 139, 0, 1),
+      db(itemMap, "Flexlink.fixtureToOperator.mode", "int", 139, 2, 0, stateMap),
+      db(itemMap, "Flexlink.fixtureToRobot.mode", "int", 139, 4, 0, stateMap),
+      db(itemMap, "Flexlink.fixtureToOperator.no", "int", 139, 6, 0, stateMap),
+      db(itemMap, "Flexlink.fixtureToRobot.pos", "int", 139, 10, 0, stateMap),
+      //kolla adress // db(itemMap, "Flexlink.running", "int", 139, 2, 0, stateMap),
 
       db(itemMap, "R5.pickBlock.run", "bool", 132, 0, 0),
       db(itemMap, "R5.pickBlock.mode", "int", 132, 2, 0, stateMap),
@@ -226,12 +239,16 @@ trait DBConnector {
       db(itemMap, "R2.homeBPToHomeTable.run", "bool",126,0,3),
       db(itemMap, "R2.placeAtPos.run", "bool",126,0,4),
       db(itemMap, "R2.pickAtPos.run", "bool",126,0,5),
+      db(itemMap, "R2.deliverTower.run", "bool",126,0,6),
+      db(itemMap, "R2.pickBuildPlate.run", "bool",126,0,7),
       db(itemMap, "R2.elevatorStn2ToHomeTable.mode", "int", 126, 2, 0, stateMap),
       db(itemMap, "R2.homeTableToHomeBP.mode", "int", 126, 4, 0, stateMap),
       db(itemMap, "R2.homeTableToElevatorStn3.mode", "int", 126, 6, 0, stateMap),
       db(itemMap, "R2.homeBPToHomeTable.mode", "int", 126, 8, 0, stateMap),
       db(itemMap, "R2.placeAtPos.run", "int", 126, 10, 0, stateMap),
       db(itemMap, "R2.pickAtPos.run", "int", 126, 12, 0, stateMap),
+      db(itemMap, "R2.deliverTower.run", "int", 126, 14, 0, stateMap),
+      db(itemMap, "R2.pickBuildPlate.run", "int", 126, 16, 0, stateMap),
 
       db(itemMap, "Operator.loadFixture.run", "bool", 0, 0, 0, Map(), "operatorInstructions.run"),
       db(itemMap, "Operator.loadFixture.mode", "int", 0, 0, 0, stateMap, "operatorInstructions.mode"),

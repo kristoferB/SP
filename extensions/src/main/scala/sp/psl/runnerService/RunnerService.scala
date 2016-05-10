@@ -135,6 +135,8 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
           completedIDs.contains(abilityId)
         }).keySet
 
+        println(s"ops that has been compl: $opsThatHasCompletedAbilities")
+
         val activeCompleted = activeSteps.filter(x=>opsThatHasCompletedAbilities.contains(x.operation))
 
         // execute completed to flop run bit
@@ -201,7 +203,20 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
     paraMap = abStructToFake.parameters.map(p => p.id -> p.value).toMap
 
 
-    println(s"paraMap is: $paraMap")
+    println(s"---------------")
+    println(s"---------------")
+    println(s"---------------")
+
+    println(s"op: $id")
+    println(s"ab: $abStructToFake")
+
+
+
+    println(s"---------------")
+    println(s"---------------")
+    println(s"---------------")
+
+
     val abID = abStructToFake.id
     val attr = SPAttributes("command"->SPAttributes("commandType"->"execute", "execute"->abID,
       "parameters" -> State(paraMap)))

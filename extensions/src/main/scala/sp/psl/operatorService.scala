@@ -44,7 +44,6 @@ class OperatorService(sh: ActorRef) extends Actor with ServiceSupport with Tower
       val rawTower = transform(OperatorService.transformTuple._2)
       val tower = makeTower(rawTower)
 
-      println("hej")
 
       tower.foreach{t =>
         val paraSOP = towerToSOP(t, fixturePosition, ids)
@@ -56,8 +55,7 @@ class OperatorService(sh: ActorRef) extends Actor with ServiceSupport with Tower
 
         println("The tower: ")
         t.map(println)
-        println("")
-        paraSOP._3.map(println)
+
 
         sh ! Request("OrderHandler", SPAttributes(
           "order" -> SPAttributes(
@@ -161,8 +159,8 @@ trait TowerBuilder {
   def getLoadOps(f1: List[Brick], f2: List[Brick], ops: List[Operation]) = {
     val opsNB = ops.flatMap{case o => o.attributes.getAs[Behavior]("behavior").map(o->_)}
     val load = opsNB.find(_._2.op == "load")
-    val fixture = opsNB.find(_._2.op == "fixture")
-
+    val fixture = opsNB.find(x => x._2.op == "fixture" && x._1.name == "FixtureToRobots")
+    val feedFix = opsNB.find(x => x._2.op == "fixture" && x._1.name == "FixtureToOperator")
 
     val l = load.map{o =>
       val abF1 = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, SPValue(f1))))
@@ -186,10 +184,18 @@ trait TowerBuilder {
       (f1o, f2o)
     }
 
+    val feed = feedFix.map{o =>
+      val no = {if (f1.nonEmpty) 1 else 0} +  {if (f2.nonEmpty) 1 else 0}
+      val ab = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, no)))
+      o._1.copy(name = o._1.name+s"_$no",id = ID.newID,
+        attributes = o._1.attributes + ("ability"->ab))
+    }
+
     (for {
       loads <- l
       fix <- f
-    } yield List(loads._1, fix._1, loads._2, fix._2)).getOrElse(List())
+      feedMe <- feed
+    } yield List(feedMe, loads._1, fix._1, loads._2, fix._2)).getOrElse(List())
 
 
   }
@@ -197,7 +203,7 @@ trait TowerBuilder {
   def towerName(xs: List[Brick]) = xs.map(_.color).mkString("_")
 
   def matchColor(color: String): Option[String] = {
-    color match {
+    color.toLowerCase match {
       case "yellow" => Some("Yellow")
       case "red"    => Some("Red")
       case "green"  => Some("Green")
