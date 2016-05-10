@@ -55,6 +55,8 @@ case class DBValue(name: String, id: ID, value: SPValue, valueType: String, addr
 case class DBConnection(name: String, valueType: String, db: Int, byte: Int, bit: Int, intMap: Map[String, SPValue], id: ID)
 
 
+case class IDWithName(id: ID, name: String, value: SPValue)
+
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
 class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport {
   import context.dispatcher
@@ -64,6 +66,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
   var setup: Option[BusSetup] = None
   var serviceName: Option[String] = None
   var state: State = State(Map())
+  var stateWithName:List[IDWithName]= List()
   var idMap: Map[ID, IDAble] = Map()
   var connectionMap: Map[ID, DBConnection] = Map()
   var resourceTree: List[ResourceInTree] = List()
@@ -104,7 +107,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
         case "execute" =>
           sendCommands(commands)
         case "status" =>
-          eventHandler ! Response(List(), SPAttributes("state"->state, "resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
+          eventHandler ! Response(List(), SPAttributes("state"->state, "stateWithName"->stateWithName, "resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
         case "raw" =>
           sendRaw(commands)
         case _ =>
@@ -146,7 +149,12 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
         }
       }
 
-      eventHandler ! Response(List(), SPAttributes("state"->state, "resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
+      stateWithName = state.state.flatMap{case (id, value) =>
+        val item = idMap.get(id)
+        item.map(i => IDWithName(id, i.name, value))
+      }.toList
+
+      eventHandler ! Response(List(), SPAttributes("state"->state, "stateWithName"->stateWithName, "resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
     }
     case ConnectionInterrupted(ca, x) => {
       println("connection closed")

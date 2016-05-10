@@ -82,8 +82,18 @@
             $scope.$on('closeRequest', function () {
                 dashboardService.closeWidget(vm.widget.id);
             });
-
+            eventService.addListener('ServiceError', onEvent);
+            eventService.addListener('Progress', onEvent);
+            eventService.addListener('Response', onEvent);
         }
+
+
+
+
+    function onEvent() {
+        console.log("It has to be done");
+        reset();
+    }
 
         function sendOrder() {
 

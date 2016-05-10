@@ -250,7 +250,9 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         db(itemMap, "placeAtPos.run", "int", 126, 10, 0, stateMap),
         db(itemMap, "pickAtPos.run", "int", 126, 12, 0, stateMap),
 
+        //Sensor värden
         db(itemMap, "IH2.mode", "bool", 755, 8, 4)
+
 
       ).flatten
 

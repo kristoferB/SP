@@ -20,13 +20,21 @@
 
         activate();
 
+
         function activate() {
             $scope.$on('closeRequest', function () {
                 dashboardService.closeWidget(vm.widget.id);
             });
-
+            eventService.addListener('ServiceError', onEvent);
+            eventService.addListener('Progress', onEvent);
+            eventService.addListener('Response', onEvent);
         }
-        
+
+        function onEvent(ev) {
+            console.log("test");
+            print("test");
+            print(ev);
+        }
 
         function sendOrder() {
 
