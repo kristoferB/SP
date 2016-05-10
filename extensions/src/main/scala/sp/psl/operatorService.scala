@@ -129,7 +129,7 @@ trait TowerBuilder {
   def updateFixturePosition(xs: List[Brick], fixture: Int) = xs.zipWithIndex.map(z => z._1.copy(fixturePos = z._2+1, fixture = fixture))
 
   def divideTowerOnRobots(t: List[Brick], fixturePosition: Int) = {
-    val (r2Bricks, r1Bricks) = t.partition(_.col <=2)
+    val (r1Bricks, r2Bricks) = t.partition(_.col <=2)
 
     val R1Fix = updateFixturePosition(sortBricks(r1Bricks), fixturePosition)
     val R2Fix = updateFixturePosition(sortBricks(r2Bricks, takeLeft = false), fixturePosition+2)

@@ -105,7 +105,7 @@ trait ThePSLModel extends Resources with DBConnector{
         name ="PlaceBlocksR4",
         op = "tower",
         pick = List(),
-        place = List(3,4),
+        place = List(1,2),
         ability = itemMap("R4.placeBlock"),
         parameter  = itemMap("R4.placeBlock.pos")
 
@@ -114,7 +114,7 @@ trait ThePSLModel extends Resources with DBConnector{
         name ="PlaceBlocksR5",
         op = "tower",
         pick = List(),
-        place = List(1,2),
+        place = List(3,4),
         ability = itemMap("R5.placeBlock"),
         parameter = itemMap("R5.placeBlock.pos")
       ),
