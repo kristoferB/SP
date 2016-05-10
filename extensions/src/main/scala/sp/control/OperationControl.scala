@@ -130,7 +130,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
     }
     case mess @ AMQMessage(body, prop, headers) => {
       val resp = SPAttributes.fromJson(body.toString)
-      println(s"we got a resp from PLC")
+      //println(s"we got a resp from PLC")
       for {
         m <- resp
         list <- m.getAs[List[SPAttributes]]("dbs")
@@ -165,7 +165,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       serviceName = Some(rnr.req.service)
       idMap = rnr.req.ids.map(x => x.id -> x).toMap
       //state = setupState(rnr.req.ids)
-      println(s"connectiong: $s")
+      println(s"connecting: $s")
       ReActiveMQExtension(context.system).manager ! GetConnection(s"nio://${s.busIP}:61616")
   }
 

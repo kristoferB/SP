@@ -62,6 +62,30 @@ trait ThePSLModel extends Resources with DBConnector{
 
     val ops  = makeMeOperationTypes(List(
       OpTowerTypeDef(
+        name ="PickPlatesR2",
+        op = "R2",
+        pick = List(1,2,3,4,5),
+        place = List(),
+        ability = itemMap("R2.pickAtPos"),
+        parameter = itemMap("R2.pickBlock.pos")
+      ),
+      OpTowerTypeDef(
+        name ="PlaceElevatorR2",
+        op = "R2",
+        pick = List(),
+        place = List(),
+        ability = itemMap("R2.homeTableToElevatorStn3"),
+        parameter = itemMap("R2.homeTableToElevatorStn3")
+      ),
+      OpTowerTypeDef(
+        name ="PlaceTableR2",
+        op = "R2",
+        pick = List(),
+        place = List(),
+        ability = itemMap("R2.deliverTower"),
+        parameter = itemMap("R2.deliverTower")
+      ),
+      OpTowerTypeDef(
         name ="PickBlocksR4",
         op = "tower",
         pick = List(1,2),
@@ -207,8 +231,8 @@ trait DBConnector {
       db(itemMap, "Flexlink.fixtureToRobot.run", "bool", 139, 0, 1),
       db(itemMap, "Flexlink.fixtureToOperator.mode", "int", 139, 2, 0, stateMap),
       db(itemMap, "Flexlink.fixtureToRobot.mode", "int", 139, 4, 0, stateMap),
-      db(itemMap, "Flexlink.fixtureToOperator.no", "int", 139, 6, 0, stateMap),
-      db(itemMap, "Flexlink.fixtureToRobot.pos", "int", 139, 10, 0, stateMap),
+      db(itemMap, "Flexlink.fixtureToOperator.no", "int", 139, 6, 0),
+      db(itemMap, "Flexlink.fixtureToRobot.pos", "int", 139, 10, 0),
       //kolla adress // db(itemMap, "Flexlink.running", "int", 139, 2, 0, stateMap),
 
       db(itemMap, "R5.pickBlock.run", "bool", 132, 0, 0),

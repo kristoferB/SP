@@ -198,6 +198,18 @@
                         }
                     }
                     break;
+                case 3:
+                    reset();
+                    for (var column = 0; column < 4; column++) {
+                        for (var row = 3; row > -1; row--) {
+                            if(row == 0 && column == 1) vm.ButtonColour.kub[row][column] = 1;
+                            if(row == 0 && column == 2) vm.ButtonColour.kub[row][column] = 2;
+                            if(row == 1 && column == 1) vm.ButtonColour.kub[row][column] = 3;
+                            if(row == 1 && column == 2) vm.ButtonColour.kub[row][column] = 4;
+                            UpdateCubes(row, column);
+                        }
+                    }
+                    break;
             }
 
         }
