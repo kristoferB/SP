@@ -101,7 +101,6 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
 
       resp.getAs[String]("command") match {
         case Some("subscribe") =>
-          println("OperatorInstructions: got subscribe command -- " + resp)
           resp.getAs[List[DBValue]]("dbs").foreach { oi =>
             oi.map { dbv =>
               println("dbv: " + dbv);
@@ -114,7 +113,6 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
             sendState
           }
         case Some("write") =>
-          println("OperatorInstructions: got write command -- " + resp)
           // set variables... (only run exist. hack it)
           val newRun = for {
             db <- resp.getAs[List[DBValue]]("dbs").getOrElse(List())
@@ -138,13 +136,14 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
             if(run) mode = 2 // run flag set, executing until we are done
             else mode = 1 // run flag reset, ready to start again
             sendState // send new state
-          }
 
-          if(newP.nonEmpty) {
-            // send instructions to ui (parameter)
-            val p = newP.flatten
-            println("new run: " + run + " new parameters: " + p);
-            eventHandler ! Response(List(), SPAttributes("operatorInstructions"->p, "silent"->true), serviceName.get, serviceID)
+            println("operator instructions -- new run: " + run)
+            if(run && newP.nonEmpty) {
+              // send instructions to ui (parameter) -- only when we start
+              val p = newP.flatten
+              println("operator instructions -- new parameters: " + p);
+              eventHandler ! Response(List(), SPAttributes("operatorInstructions"->p, "silent"->true), serviceName.get, serviceID)
+            }
           }
         case x@_ =>
           println("Unexpected " + x + " from " + body.toString)
