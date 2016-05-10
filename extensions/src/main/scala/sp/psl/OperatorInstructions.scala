@@ -132,16 +132,17 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
             v
           }
 
-          if(newRun.nonEmpty && newP.nonEmpty) {
+          if(newRun.nonEmpty) {
             // set run
             run = newRun.foldLeft(true)(_&&_)
             if(run) mode = 2 // run flag set, executing until we are done
             else mode = 1 // run flag reset, ready to start again
             sendState // send new state
+          }
 
+          if(newP.nonEmpty) {
             // send instructions to ui (parameter)
             val p = newP.flatten
-
             println("new run: " + run + " new parameters: " + p);
             eventHandler ! Response(List(), SPAttributes("operatorInstructions"->p, "silent"->true), serviceName.get, serviceID)
           }

@@ -70,7 +70,7 @@
                 'command': 'done'
             };
             spServicesService.callService(serviceName,{'data':mess});
-            service.operatorInstructions = {};
+            service.operatorInstructions = [];
         }
 
         function messageOK(mess){

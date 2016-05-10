@@ -31,18 +31,19 @@
                                   vm.subscribeTopic);
         }
 
-        function getColor(pos) {
-            if(_.isArray(vm.connection.operatorInstructions) &&
-               pos < vm.connection.operatorInstructions.length) {
-                var brick = vm.connection.operatorInstructions[pos];
-                if(brick.color == 'Empty'  || brick.color == '0') return '#ffffff';
-                if(brick.color == 'Yellow' || brick.color == '1') return '#aaff55';
-                if(brick.color == 'Green'  || brick.color == '2') return '#66ce33';
-                if(brick.color == 'Red'    || brick.color == '3') return '#cc3344';
-                if(brick.color == 'Blue'   || brick.color == '4') return '#4433cc';
-                console.log(brick);
+        function getColor(row,col) {
+            if(_.isArray(vm.connection.operatorInstructions)) {
+                var bricks = _.find(vm.connection.operatorInstructions,function(brick) {
+                    brick.row == row && brick.col == col;
+                });
+                if(bricks.length == 0) return '#ffffff';
+                var color = bricks[0].color;
+                if(color == 'Yellow' || color == '1') return '#aaff55';
+                if(color == 'Green'  || color == '2') return '#66ce33';
+                if(color == 'Red'    || color == '3') return '#cc3344';
+                if(color == 'Blue'   || color == '4') return '#4433cc';
             }
-            return '#000000';
+            return '#000000'; // error
         }
 
         activate();
