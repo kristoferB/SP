@@ -27,8 +27,8 @@
 
         function connect() {
             vm.connection.connect(vm.busIP,
-                                 vm.publishTopic,
-                                 vm.subscribeTopic);
+                                  vm.publishTopic,
+                                  vm.subscribeTopic);
         }
 
         function getColor(pos) {

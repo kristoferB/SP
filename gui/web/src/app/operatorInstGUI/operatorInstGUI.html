@@ -115,10 +115,10 @@
             </button>
         </div>
         <div ng-if="vm.connection.connected">
-            <div ng-if="!_.has(vm.connection.operatorInstructions.colors)">
+            <div ng-if="vm.connection.operatorInstructions.length == 0">
                 <h3>Waiting for operator instructions...</h3>
             </div>
-            <div ng-if="_.has(vm.connection.operatorInstructions.colors)">
+            <div ng-if="vm.connection.operatorInstructions.length > 0">
                 <p id="palette"></p>
                 <p id="palettep1">1</p>
                 <p id="palettep2">2</p>
@@ -129,13 +129,13 @@
                 <p id="palettep7">7</p>
                 <p id="palettep8">8</p>
 
-                <button type="button" style="top: 325px; left:110px;width:150px;height:50px; position:absolute" class="btn btn.sm btn-primary" ng-click="vm.connection.done(vm.connection.operatorInstructions.id)">
+                <button type="button" style="top: 325px; left:110px;width:150px;height:50px; position:absolute" class="btn btn.sm btn-primary" ng-click="vm.connection.done()">
                     <i class="fa fa-thumbs-up"></i>
                 </button>
                 <h1 style="top: 190px; left:0px; position:absolute"><b><font size="2"; color="black">Message: </font></b></h1>
-                <textarea rows="5" cols="50" style="position: absolute; left: 0px; top: 215px; width: 360px">
-                    {{vm.connection.operatorInstructions.textMessage}}
-                </textarea>
+                <!-- <textarea rows="5" cols="50" style="position: absolute; left: 0px; top: 215px; width: 360px"> -->
+                <!--     {{vm.connection.operatorInstructions.textMessage}} -->
+                <!-- </textarea> -->
             </div>
         </div>
     </div>
