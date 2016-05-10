@@ -31,17 +31,17 @@
                                   vm.subscribeTopic);
         }
 
-        function getColor(row,col) {
+        function getColor(fp) {
             if(_.isArray(vm.connection.operatorInstructions)) {
                 var brick = _.find(vm.connection.operatorInstructions,function(b) {
-                    return b.row == row && b.col == col;
+                    return b.fixturePos == fp;
                 });
                 if(_.isUndefined(brick)) return '#ffffff'; // empty
                 var color = brick.color;
-                if(color == 'Yellow' || color == '1') return '#aaff55';
-                if(color == 'Green'  || color == '2') return '#66ce33';
-                if(color == 'Red'    || color == '3') return '#cc3344';
-                if(color == 'Blue'   || color == '4') return '#4433cc';
+                if(color == 'Yellow' || color == '1') return '#ffff66';
+                if(color == 'Green'  || color == '2') return '#5cd65c';
+                if(color == 'Red'    || color == '3') return '#ff3333';
+                if(color == 'Blue'   || color == '4') return '#0066ff';
             }
             return '#000000'; // error
         }
