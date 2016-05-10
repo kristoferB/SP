@@ -28,8 +28,8 @@
         vm.busIP = '129.16.26.22';
         vm.publishTopic = 'commands';
         vm.subscribeTopic = 'response';
-        vm.connectionDetailsID = '05ff87a2-d33c-4041-9dcd-ed0875e1b2fb';
-        vm.resourcesID = '59f029e9-7dfd-4970-9019-7de9a44880d0';
+        vm.connectionDetailsID = '738969d7-fe01-4802-986e-a08266dcf1e9';
+        vm.resourcesID = '5eec7572-b0d4-49d3-873f-106647e13856';
 
         //vm.run_op = run_op;
         //vm.get_init_state = get_init_state;

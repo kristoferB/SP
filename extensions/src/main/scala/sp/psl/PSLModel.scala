@@ -67,7 +67,7 @@ trait ThePSLModel extends Resources with DBConnector{
         pick = List(1,2,3,4,5),
         place = List(),
         ability = itemMap("R2.pickAtPos"),
-        parameter = itemMap("R2.pickBlock.pos")
+        parameter = itemMap("R2.pickAtPos.pos")
       ),
       OpTowerTypeDef(
         name ="PlaceElevatorR2",
@@ -262,17 +262,19 @@ trait DBConnector {
       db(itemMap, "R2.homeTableToElevatorStn3.run", "bool",126,0,2),
       db(itemMap, "R2.homeBPToHomeTable.run", "bool",126,0,3),
       db(itemMap, "R2.placeAtPos.run", "bool",126,0,4),
+      db(itemMap, "R2.placeAtPos.pos", "bool",126,18,0),
       db(itemMap, "R2.pickAtPos.run", "bool",126,0,5),
+      db(itemMap, "R2.pickAtPos.pos", "int",126,18,0),
       db(itemMap, "R2.deliverTower.run", "bool",126,0,6),
       db(itemMap, "R2.pickBuildPlate.run", "bool",126,0,7),
       db(itemMap, "R2.elevatorStn2ToHomeTable.mode", "int", 126, 2, 0, stateMap),
       db(itemMap, "R2.homeTableToHomeBP.mode", "int", 126, 4, 0, stateMap),
       db(itemMap, "R2.homeTableToElevatorStn3.mode", "int", 126, 6, 0, stateMap),
       db(itemMap, "R2.homeBPToHomeTable.mode", "int", 126, 8, 0, stateMap),
-      db(itemMap, "R2.placeAtPos.run", "int", 126, 10, 0, stateMap),
-      db(itemMap, "R2.pickAtPos.run", "int", 126, 12, 0, stateMap),
-      db(itemMap, "R2.deliverTower.run", "int", 126, 14, 0, stateMap),
-      db(itemMap, "R2.pickBuildPlate.run", "int", 126, 16, 0, stateMap),
+      db(itemMap, "R2.placeAtPos.mode", "int", 126, 10, 0, stateMap),
+      db(itemMap, "R2.pickAtPos.mode", "int", 126, 12, 0, stateMap),
+      db(itemMap, "R2.deliverTower.mode", "int", 126, 14, 0, stateMap),
+      db(itemMap, "R2.pickBuildPlate.mode", "int", 126, 16, 0, stateMap),
 
       db(itemMap, "Operator.loadFixture.run", "bool", 0, 0, 0, Map(), "operatorInstructions.run"),
       db(itemMap, "Operator.loadFixture.mode", "int", 0, 0, 0, stateMap, "operatorInstructions.mode"),

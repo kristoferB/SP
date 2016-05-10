@@ -98,7 +98,7 @@ trait TowerBuilder {
 
     val brickSeq: List[SOP] = Parallel(seqF1, seqF2) :: unLoadOps._3.map(o=>Hierarchy(o.id))
 
-    (Sequence(brickSeq:_*), seqLoad, f1Ops ++ f2Ops ++ loadOps)
+    (Sequence(brickSeq:_*), seqLoad, f1Ops ++ f2Ops ++ loadOps ++ unLoadOps._1 ++ unLoadOps._2 ++ unLoadOps._3)
   }
 
   def makeTower(xs: List[List[String]]) = {
@@ -140,8 +140,8 @@ trait TowerBuilder {
   def getBrickOperations(bricks: List[Brick], ops: List[Operation]) = {
     val opsNB = ops.flatMap{case o => o.attributes.getAs[Behavior]("behavior").map(o->_)}
     bricks.flatMap { b =>
-      val pick = opsNB.find(_._2.pick.getOrElse(List()).contains(b.fixture))
-      val place = opsNB.find(_._2.place.getOrElse(List()).contains(b.col))
+      val pick = opsNB.find(x => x._2.op == "tower" && x._2.pick.getOrElse(List()).contains(b.fixture))
+      val place = opsNB.find(x => x._2.op == "tower" && x._2.place.getOrElse(List()).contains(b.col))
 
       val updPick = pick.map{o =>
         val no = b.fixture*10 + b.fixturePos
