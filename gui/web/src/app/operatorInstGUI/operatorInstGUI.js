@@ -33,11 +33,11 @@
 
         function getColor(row,col) {
             if(_.isArray(vm.connection.operatorInstructions)) {
-                var bricks = _.find(vm.connection.operatorInstructions,function(brick) {
-                    brick.row == row && brick.col == col;
+                var brick = _.find(vm.connection.operatorInstructions,function(b) {
+                    b.row == row && b.col == col;
                 });
-                if(bricks.length == 0) return '#ffffff';
-                var color = bricks[0].color;
+                if(_.isUndefined(brick)) return '#ffffff'; // empty
+                var color = brick.color;
                 if(color == 'Yellow' || color == '1') return '#aaff55';
                 if(color == 'Green'  || color == '2') return '#66ce33';
                 if(color == 'Red'    || color == '3') return '#cc3344';
