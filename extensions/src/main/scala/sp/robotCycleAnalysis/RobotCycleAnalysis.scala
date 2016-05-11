@@ -80,7 +80,7 @@ case class RobotCyclesRequest(cycleIds: Option[List[String]])
 case class BusSettings(host: String, port: Int, topic: String)
 case class Robot(name: String)
 case class WorkCell(name: String, description: String)
-case class TimeSpan(start: String, stop: String)
+case class TimeSpan(from: String, to: String)
 case class Cycle(id: Option[ID], start: Option[String], stop: Option[String], workCell: Option[WorkCell],
                  events: Option[Map[String, List[CycleEvent]]])
 trait CycleEvent { def start: Boolean; def time: DateTime; }
@@ -284,30 +284,22 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
         "foundCycles" -> List(
           SPAttributes(
             "id" -> ID.newID,
-            "start" -> DateTime.now.minusHours(6),
-            "stop"  -> DateTime.now.minusHours(6).plusMinutes(2),
-            "events" -> SPAttributes(
+            "from" -> DateTime.now.minusHours(6),
+            "to"  -> DateTime.now.minusHours(6).plusMinutes(2),
+            "activities" -> SPAttributes(
               "R1" -> SPAttributes(),
-              "R2" -> List(
-                SPAttributes(
-                  "routine" -> "PickUpRearLeft",
-                  "start" -> true,
-                  "time" -> DateTime.now.minusHours(6).plusSeconds(10)
-                ),
-                SPAttributes(
-                  "routine" -> "PickUpRearLeft",
-                  "start" -> false,
-                  "time" -> DateTime.now.minusHours(6).plusSeconds(20)
-                ),
-                SPAttributes(
-                  "routine" -> "MoveToBody",
-                  "start" -> true,
-                  "time" -> DateTime.now.minusHours(6).plusSeconds(25)
-                ),
-                SPAttributes(
-                  "routine" -> "MoveToBody",
-                  "start" -> false,
-                  "time" -> DateTime.now.minusHours(6).plusSeconds(40)
+              "R2" -> SPAttributes(
+                "routines" -> List(
+                  SPAttributes(
+                    "name" -> "PickUpRearLeft",
+                    "from" -> DateTime.now.minusHours(6).plusSeconds(10),
+                    "to" -> DateTime.now.minusHours(6).plusSeconds(20)
+                  ),
+                  SPAttributes(
+                    "name" -> "MoveToBody",
+                    "from" -> DateTime.now.minusHours(6).plusSeconds(25),
+                    "to" -> DateTime.now.minusHours(6).plusSeconds(40)
+                  )
                 )
               )
             )

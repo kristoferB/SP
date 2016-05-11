@@ -16,8 +16,8 @@
         vm.addCycle = addCycle;
         //vm.calcLeftMargin = calcLeftMargin;
         //vm.calcWidth = calcWidth;
-        vm.control = RobotCycleAnalysisController;
-        vm.data = [
+        //vm.control = RobotCycleAnalysisController;
+        /*vm.data = [
             {
                 name: 'row1',
                 tasks: [
@@ -52,11 +52,11 @@
                     }
                 ]
             }
-        ];
-        vm.getRoutineInfo = getRoutineInfo;
+        ];*/
+        //vm.getRoutineInfo = getRoutineInfo;
         vm.liveEvents = [];
         vm.options = {
-            fromDate: new Date(0),
+            //fromDate: new Date(0),
             headers: ['second'],
             headersFormats: {
                 second: 'ss'
@@ -64,11 +64,12 @@
             viewScale: '5 seconds'
         };
         vm.registerApi = registerApi;
+        vm.removeCycle = removeCycle;
         vm.scale = 3;
         vm.service = robotCycleAnalysisService;
         vm.setupBus = setupBus;
         vm.selectWorkCell = selectWorkCell;
-        vm.stringToColor = stringToColor;
+        //vm.stringToColor = stringToColor;
         //vm.timeFromCycleStart = timeFromCycleStart;
         //vm.timeStamps = makeTimeStamps;
         vm.timeSpans = [{
@@ -87,7 +88,6 @@
                 vm.widget.storage.historicalCycles = [];
             }
             $scope.$on('closeRequest', function() {
-                // maybe add some clean up here
                 dashboardService.closeWidget(vm.widget.id);
             });
             eventService.addListener('Response', onResponse);
@@ -126,6 +126,29 @@
             return (stop - start) / 1000 * vm.scale;
         }*/
 
+        function cycleToGantt(cycle) {
+            let ganttData = [];
+            console.log(cycle);
+            _.forOwn(cycle.activities, function(activityTypes, robotName) {
+                let row = {
+                    name: robotName,
+                    tasks: []
+                };
+                _.forOwn(activityTypes, function(activities) {
+                    for (let activity of activities) {
+                        row.tasks.push({
+                            name: activity.name,
+                            from: new Date(activity.from),
+                            to: new Date(activity.to),
+                            color: stringToColor(activity.name)
+                        });
+                    }
+                });
+                ganttData.push(row);
+            });
+            return ganttData;
+        }
+
         function getRoutineInfo(robotName, robotEvent) {
             let routineNumber = robotEvent.routineNumber;
             let routine = vm.widget.storage.chosenWorkCell.robots[robotName].routines[routineNumber];
@@ -138,15 +161,12 @@
                 if (vm.widget.storage !== undefined &&
                     vm.widget.storage.chosenWorkCell !== undefined &&
                     attrs.robotCyclesResponse.workCellName === vm.widget.storage.chosenWorkCell.name) {
-                    /*for (let cycle of attrs.robotCyclesResponse.foundCycles) {
-                        for (let robot of cycle.events) {
-                            for (let event of robot) {
-                                event.time = new Date(event.time);
-                            }
-                        }
+                    for (let cycle of attrs.robotCyclesResponse.foundCycles) {
+                        cycle.ganttData = cycleToGantt(cycle);
+                        console.log(cycle);
                         vm.widget.storage.historicalCycles.push(cycle);
-                    }*/
-                    vm.widget.storage.historicalCycles.push(...attrs.robotCyclesResponse.foundCycles);
+                    }
+                    //vm.widget.storage.historicalCycles.push(...attrs.robotCyclesResponse.foundCycles);
                 }
         }
 
@@ -154,6 +174,13 @@
             api.core.on.ready($scope, function () {
                 api.side.setWidth(100);
             });
+        }
+
+        function removeCycle(cycle) {
+            let index = vm.widget.storage.historicalCycles.indexOf(cycle);
+            if (index > -1) {
+                vm.widget.storage.historicalCycles.splice(index, 1);
+            }
         }
 
         function selectWorkCell() {
