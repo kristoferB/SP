@@ -80,6 +80,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       val connection = transform(OperationControl.transformTuple._2)
       val commands = transform(OperationControl.transformTuple._3)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
+      serviceName = Some(service)
 
       println("Commands: " + commands.getAs[String]("commandType"))
 

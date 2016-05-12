@@ -42,7 +42,7 @@ object RunnerService extends SPService {
 }
 
 // Inkluderar eventHandler och namnet på servicen operationController. Skickas med i SP.scala
-class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationController: String) extends Actor with ServiceSupport {
+class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationController: String) extends Actor with ServiceSupport with SOPPrinterLogic{
   import context.dispatcher
 
   var parents: Map[SOP, SOP] = Map()
@@ -100,7 +100,12 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       // Makes the parentmap
       sop.foreach(createSOPMap)
       sopen = sop.toOption
-      println(s"we got a sop: $sop")
+      println(s"we got a sop:")
+      println("----------")
+      println(sop)
+      println("----------")
+      sop.foreach(_.printMe(idMap))
+      println("----------")
 
       progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
     }
@@ -297,8 +302,40 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   }
 }
 
+// move to SOP logic
+trait SOPPrinterLogic {
 
+  implicit class SOPPrinter(sop: SOP) {
 
+    def printMe(ids: Map[ID, IDAble], prefix: String = ""): Unit = {
+      def toString(x: SOP) = {
+        if (sop.isInstanceOf[Hierarchy]){
+          val o = ids.get(sop.asInstanceOf[Hierarchy].operation)
+          o.map(x => prefix + x.name + " ("+x.id+")").getOrElse("")
+        } else {
+          val t = sop match {
+            case x: Parallel => "P"
+            case x: Sequence => "S"
+          }
+          prefix + t
+        }
+      }
+
+      if (sop.isInstanceOf[Hierarchy]){
+        val o = ids.get(sop.asInstanceOf[Hierarchy].operation)
+        o.foreach(x => println(prefix + x.name + " ("+x.id+")"))
+      } else {
+        val t = sop match {
+          case x: Parallel => "P"
+          case x: Sequence => "S"
+        }
+        println(prefix + t)
+      }
+      sop.sop.foreach(x => x.printMe(ids,s"$prefix > "))
+    }
+  }
+
+}
 
 
 

@@ -54,7 +54,7 @@ class OperatorService(sh: ActorRef) extends Actor with ServiceSupport with Tower
         val stations = Map("tower" -> sopSpec.id, "load" -> sopSpecLoad.id)
 
         println("The tower: ")
-        t.map(println)
+        paraSOP._4.map(println)
 
 
         sh ! Request("OrderHandler", SPAttributes(
@@ -79,31 +79,34 @@ class OperatorService(sh: ActorRef) extends Actor with ServiceSupport with Tower
 }
 
 
-trait TowerBuilder {
+
+
+trait TowerBuilder extends TowerOperationTypes {
+
   def towerToSOP(t: List[Brick],fixturePosition: Int, ids: List[IDAble]) = {
     val (f1, f2) = divideTowerOnRobots(t, fixturePosition)
-    val ops = ids.collect{case o: Operation if o.attributes.getAs[Behavior]("behavior").nonEmpty => o}
+    val nameMap = ids.map(x => x.name -> x).toMap
 
-    val f1Ops = getBrickOperations(f1, ops)
-    val f2Ops = getBrickOperations(f2, ops)
+    val f1Ops = getBrickOperations(f1, nameMap)
+    val f2Ops = getBrickOperations(f2, nameMap)
+    val loadOps = getLoadOps(f1, f2, nameMap)
+    val unLoadOps = getUnloadOps(f1, f2, nameMap)
 
-    val loadOps = getLoadOps(f1, f2, ops)
-
-    val unLoadOps = getUnloadOps(f1, f2, ops)
-
+    val allOps = f1Ops ++ f2Ops ++ loadOps ++ unLoadOps._1 ++ unLoadOps._2 ++ unLoadOps._3
 
     val seqF1 = Sequence((f1Ops ++ unLoadOps._1).map(o => Hierarchy(o.id)):_*)
     val seqF2 = Sequence((f2Ops ++ unLoadOps._2).map(o => Hierarchy(o.id)):_*)
     val seqLoad = Sequence(loadOps.map(o => Hierarchy(o.id)):_*)
+    val seqUnloadTower = unLoadOps._3.map(o=>Hierarchy(o.id))
 
-    val brickSeq: List[SOP] = Parallel(seqF1, seqF2) :: unLoadOps._3.map(o=>Hierarchy(o.id))
+    val brickSeq: List[SOP] = Parallel(seqF1, seqF2) :: seqUnloadTower
 
-    (Sequence(brickSeq:_*), seqLoad, f1Ops ++ f2Ops ++ loadOps ++ unLoadOps._1 ++ unLoadOps._2 ++ unLoadOps._3)
+    (Sequence(brickSeq:_*), seqLoad, allOps, f1 ++ f2)
   }
 
   def makeTower(xs: List[List[String]]) = {
     val t = for {
-      r <- xs.map(_.zipWithIndex).zipWithIndex
+      r <- xs.map(_.reverse.zipWithIndex).zipWithIndex
       c <- r._1
       color <- matchColor(c._1)
     } yield {Brick(r._2+1, c._2+1, color)}
@@ -129,7 +132,7 @@ trait TowerBuilder {
   def updateFixturePosition(xs: List[Brick], fixture: Int) = xs.zipWithIndex.map(z => z._1.copy(fixturePos = z._2+1, fixture = fixture))
 
   def divideTowerOnRobots(t: List[Brick], fixturePosition: Int) = {
-    val (r1Bricks, r2Bricks) = t.partition(_.col <=2)
+    val (r1Bricks, r2Bricks) = t.partition(_.col >=3)
 
     val R1Fix = updateFixturePosition(sortBricks(r1Bricks), fixturePosition)
     val R2Fix = updateFixturePosition(sortBricks(r2Bricks, takeLeft = false), fixturePosition+2)
@@ -137,110 +140,58 @@ trait TowerBuilder {
     (R1Fix, R2Fix)
   }
 
-  def getBrickOperations(bricks: List[Brick], ops: List[Operation]) = {
-    val opsNB = ops.flatMap{case o => o.attributes.getAs[Behavior]("behavior").map(o->_)}
-    bricks.flatMap { b =>
-      val pick = opsNB.find(x => x._2.op == "tower" && x._2.pick.getOrElse(List()).contains(b.fixture))
-      val place = opsNB.find(x => x._2.op == "tower" && x._2.place.getOrElse(List()).contains(b.col))
-
-      val updPick = pick.map{o =>
-        val no = b.fixture*10 + b.fixturePos
-        val ab = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, no)))
-        o._1.copy(name = o._1.name +"_"+ no, id = ID.newID,
-          attributes = o._1.attributes + ("ability"->ab) + ("brick"->b) )
-      }
-      val updPlace = place.map{o =>
-        val no = b.row*10 + b.col
-        val ab = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, no)))
-        o._1.copy(name = o._1.name +"_"+ no,id = ID.newID,
-          attributes = o._1.attributes + ("ability"->ab) + ("brick"->b))
-      }
-
-      List(updPick, updPlace).flatten
-    }
-  }
-
-  def getLoadOps(f1: List[Brick], f2: List[Brick], ops: List[Operation]) = {
-    val opsNB = ops.flatMap{case o => o.attributes.getAs[Behavior]("behavior").map(o->_)}
-    val load = opsNB.find(_._2.op == "load")
-    val fixture = opsNB.find(x => x._2.op == "fixture" && x._1.name == "FixtureToRobots")
-    val feedFix = opsNB.find(x => x._2.op == "fixture" && x._1.name == "FixtureToOperator")
-
-    val l = load.map{o =>
-      val abF1 = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, SPValue(f1))))
-      val abF2 = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, SPValue(f2))))
-      val f1o = o._1.copy(name = o._1.name+"_1",id = ID.newID,
-        attributes = o._1.attributes + ("ability"->abF1) + ("bricks"->f1))
-      val f2o = o._1.copy(name = o._1.name+"_2",id = ID.newID,
-        attributes = o._1.attributes + ("ability"->abF2) + ("bricks"->f2))
-      (f1o, f2o)
-    }
-    val f = fixture.map{o =>
-      val f1Pos = f1.headOption.map(_.fixture).getOrElse(1)
-      val f2Pos = f2.headOption.map(_.fixture).getOrElse(3)
-
-      val abF1 = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, SPValue(f1Pos))))
-      val abF2 = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, SPValue(f2Pos))))
-      val f1o = o._1.copy(name = o._1.name+"_"+f1Pos,id = ID.newID,
-        attributes = o._1.attributes + ("ability"->abF1) + ("bricks"->f1))
-      val f2o = o._1.copy(name = o._1.name+"_"+f2Pos,id = ID.newID,
-        attributes = o._1.attributes + ("ability"->abF2) + ("bricks"->f2))
-      (f1o, f2o)
-    }
-
-    val feed = feedFix.map{o =>
-      val no = {if (f1.nonEmpty) 1 else 0} +  {if (f2.nonEmpty) 1 else 0}
-      val ab = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, no)))
-      o._1.copy(name = o._1.name+s"_$no",id = ID.newID,
-        attributes = o._1.attributes + ("ability"->ab))
-    }
-
-    (for {
-      loads <- l
-      fix <- f
-      feedMe <- feed
-    } yield List(feedMe, loads._1, fix._1, loads._2, fix._2)).getOrElse(List())
-  }
-
-  def getUnloadOps(f1: List[Brick], f2: List[Brick], ops: List[Operation]) = {
-    val opsNB = ops.flatMap{case o => o.attributes.getAs[Behavior]("behavior").map(o->_)}
-    val pickPlates = opsNB.find(x => x._2.op == "R2" && x._2.pick.nonEmpty)
-    val placeE = opsNB.find(x => x._2.op == "R2" && x._1.name == "PlaceElevatorR2")
-    val placeT = opsNB.find(x => x._2.op == "R2" && x._1.name == "PlaceTableR2")
-
-    val pick = pickPlates.map{o =>
-      val f1Pos = f1.headOption.map(_.fixture).getOrElse(1)
-      val f2Pos = f2.headOption.map(_.fixture).getOrElse(3)
-      val abF1 = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, f1Pos)))
-      val abF2 = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, f2Pos)))
-      val abT = AbilityStructure(o._2.ability, List(AbilityParameter(o._2.parameter, 5)))
-      val f1o = o._1.copy(name = o._1.name+"_"+f1Pos,id = ID.newID,
-        attributes = o._1.attributes + ("ability"->abF1) )
-      val f2o = o._1.copy(name = o._1.name+"_"+f2Pos,id = ID.newID,
-        attributes = o._1.attributes + ("ability"->abF2) )
-      val pTower = o._1.copy(name = o._1.name+"_Tower",id = ID.newID,
-        attributes = o._1.attributes + ("ability"->abT))
-      (f1o, f2o, pTower)
-    }
-    val placeElavator = placeE.map(o => o._1.copy(id = ID.newID,
-      attributes = o._1.attributes + ("ability"->AbilityStructure(o._2.ability, List())) ))
-
-    val placeTower = placeT.map(o => o._1.copy(id = ID.newID,
-      attributes = o._1.attributes + ("ability"->AbilityStructure(o._2.ability, List())) ))
-
-    (for {
-      p <- pick
-      pe <- placeElavator
-      pt <- placeTower
+  def getBrickOperations(bricks: List[Brick], nameMap: Map[String, IDAble]) = {
+    val res = for {
+      b <- bricks
     } yield {
-      (List(p._1, pe),
-        List(p._2, pe.copy(id = ID.newID)),
-        List(p._3, pt)
-        )
-    }).getOrElse((List(), List(), List()))
+      val piPos = b.fixture*10 + b.fixturePos
+      val plPos = b.row*10 + b.col
+      val robot = b.col match {
+        case c if c >= 3 => "R4"
+        case _ => "R5"
+      }
+      val pick = makeOperationWithParameter(robot, "pickBlock", "pos", piPos, nameMap)
+      val place = makeOperationWithParameter(robot, "placeBlock", "pos", plPos, nameMap)
+
+      List(pick, place)
+    }
+    res.flatten
+  }
+
+  def getLoadOps(f1: List[Brick], f2: List[Brick], nameMap: Map[String, IDAble]) = {
+    val feedFix = makeOperationWithParameter("Flexlink", "fixtureToOperator", "no", {if (f1.nonEmpty) 1 else 0} +  {if (f2.nonEmpty) 1 else 0}, nameMap)
+
+    def fixToRMake(bO: Option[Brick]) = {
+      bO.map(b => List(makeOperationWithParameter("Flexlink", "fixtureToRobot", "pos", b.fixture, nameMap))).getOrElse(List())
+    }
+    val f1ToR = fixToRMake(f1.headOption)
+    val f2ToR = fixToRMake(f2.headOption)
+
+    def instrToOpMake(f: List[Brick]) = makeOperationWithParameter("Operator", "loadFixture", "brickPositions", SPValue(f) , nameMap)
+    val fBuild = (instrToOpMake(f1), instrToOpMake(f2))
+
+    List(feedFix, fBuild._1) ++ (f1ToR :+ fBuild._2) ++ f2ToR
+  }
+
+  def getUnloadOps(f1: List[Brick], f2: List[Brick], nameMap: Map[String, IDAble]) = {
+    def fixOutMake(bO: Option[Brick]) = {
+      bO.map(b => List(makeOperationWithParameter("R2", "pickAtPos", "pos", b.fixture, nameMap))).getOrElse(List())
+    }
+    val f1Out = fixOutMake(f1.headOption)
+    val f2Out = fixOutMake(f2.headOption)
+
+    val placeElevatorF1 = makeOperation("R2", "homeTableToElevatorStn3", nameMap)
+    val placeElevatorF2 = placeElevatorF1.copy(id = ID.newID)
+
+    val pickBaseOut = makeOperationWithParameter("R2", "pickAtPos", "pos", 5, nameMap)
+    val placetable = makeOperation("R2", "deliverTower", nameMap)
 
 
+    val outSeqF1 = f1Out ++ {if (f1Out.nonEmpty) List(placeElevatorF1) else List()}
+    val outSeqF2 = f2Out ++ {if (f2Out.nonEmpty) List(placeElevatorF2) else List()}
+    val outSeqTower = List(pickBaseOut, placetable)
 
+    (outSeqF1, outSeqF2, outSeqTower)
   }
 
   def towerName(xs: List[Brick]) = xs.map(_.color).mkString("_")
@@ -264,5 +215,19 @@ trait TowerBuilder {
 case class Brick(row: Int, col: Int, color: String, fixture: Int = -1, fixturePos: Int = -1)
 case class Behavior(op: String, ability: ID, parameter: ID, pick: Option[List[Int]], place: Option[List[Int]])
 
+trait TowerOperationTypes {
+  def makeOperationWithParameter(resource: String, ability: String, parameter: String, value: SPValue, nameMap: Map[String, IDAble]) = {
+    val ab = nameMap(s"$resource.$ability")
+    val p = nameMap(s"$resource.$ability.$parameter")
+    val valueJson = if (value.isInstanceOf[SPAttributes]) "" else "_"+value.toJson
+    Operation(s"O_$ability${resource}$valueJson", List(), attributes = SPAttributes("ability" -> AbilityStructure(ab.id, List(AbilityParameter(p.id, value)))))
+  }
 
+  def makeOperation(resource: String, ability: String, nameMap: Map[String, IDAble]) = {
+    val ab = nameMap(s"$resource.$ability")
+    Operation(s"O_$ability${resource}", List(), attributes = SPAttributes("ability" -> AbilityStructure(ab.id, List())))
+  }
+
+
+}
 

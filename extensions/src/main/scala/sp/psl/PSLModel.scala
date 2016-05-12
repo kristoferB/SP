@@ -27,7 +27,13 @@ object PSLModel extends SPService {
 }
 
 case class AbilityParameter(id: ID, value: SPValue)
-case class AbilityStructure(id: ID, parameters: List[AbilityParameter])
+case class AbilityStructure(id: ID,
+                            parameters: List[AbilityParameter] = List(),
+                            state: State = State(Map()))
+
+
+
+
 
 class PSLModel extends Actor with ServiceSupport with ThePSLModel {
   import context.dispatcher
@@ -60,88 +66,61 @@ trait ThePSLModel extends Resources with DBConnector{
       "specification"-> "PLCConnection"
     ))
 
+    // In the future, the matching should be on an ability type structure
+    // Also the sequence now created in OperatorService should be mad based on
+    // conditions here
     val ops  = makeMeOperationTypes(List(
       OpTowerTypeDef(
         name ="PickPlatesR2",
-        op = "R2",
-        pick = List(1,2,3,4,5),
-        place = List(),
         ability = itemMap("R2.pickAtPos"),
-        parameter = itemMap("R2.pickAtPos.pos")
+        parameters = List(itemMap("R2.pickAtPos.pos") -> 0)
       ),
       OpTowerTypeDef(
         name ="PlaceElevatorR2",
-        op = "R2",
-        pick = List(),
-        place = List(),
         ability = itemMap("R2.homeTableToElevatorStn3"),
-        parameter = itemMap("R2.homeTableToElevatorStn3")
+        parameters = List()
       ),
       OpTowerTypeDef(
         name ="PlaceTableR2",
-        op = "R2",
-        pick = List(),
-        place = List(),
         ability = itemMap("R2.deliverTower"),
-        parameter = itemMap("R2.deliverTower")
+        parameters = List()
       ),
       OpTowerTypeDef(
         name ="PickBlocksR4",
-        op = "tower",
-        pick = List(1,2),
-        place = List(),
         ability = itemMap("R4.pickBlock"),
-        parameter = itemMap("R4.pickBlock.pos")
+        parameters = List(itemMap("R4.pickBlock.pos") -> 0)
       ),
       OpTowerTypeDef(
         name ="PickBlocksR5",
-        op = "tower",
-        pick = List(3,4),
-        place = List(),
         ability = itemMap("R5.pickBlock"),
-        parameter  = itemMap("R5.pickBlock.pos")
+        parameters  = List(itemMap("R5.pickBlock.pos") -> 0)
       ),
       OpTowerTypeDef(
         name ="PlaceBlocksR4",
-        op = "tower",
-        pick = List(),
-        place = List(1,2),
         ability = itemMap("R4.placeBlock"),
-        parameter  = itemMap("R4.placeBlock.pos")
+        parameters  = List(itemMap("R4.placeBlock.pos") -> 0)
 
       ),
       OpTowerTypeDef(
         name ="PlaceBlocksR5",
-        op = "tower",
-        pick = List(),
-        place = List(3,4),
         ability = itemMap("R5.placeBlock"),
-        parameter = itemMap("R5.placeBlock.pos")
+        parameters = List(itemMap("R5.placeBlock.pos") -> 0)
       ),
       OpTowerTypeDef(
         name ="LoadFixtureOp",
-        op = "load",
-        pick = List(),
-        place = List(),
         ability = itemMap("Operator.loadFixture"),
-        parameter  = itemMap("Operator.loadFixture.brickPositions")
+        parameters  = List(itemMap("Operator.loadFixture.brickPositions") -> 0)
 
       ),
       OpTowerTypeDef(
         name ="FixtureToRobots",
-        op = "fixture",
-        pick = List(),
-        place = List(),
         ability = itemMap("Flexlink.fixtureToRobot"),
-        parameter = itemMap("Flexlink.fixtureToRobot.pos")
+        parameters = List(itemMap("Flexlink.fixtureToRobot.pos") -> 0)
       ),
       OpTowerTypeDef(
         name ="FixtureToOperator",
-        op = "fixture",
-        pick = List(),
-        place = List(),
         ability = itemMap("Flexlink.fixtureToOperator"),
-        parameter = itemMap("Flexlink.fixtureToOperator.no")
+        parameters = List(itemMap("Flexlink.fixtureToOperator.no") -> 0)
       )
 
     ))
@@ -156,50 +135,75 @@ trait Resources extends ModelMaking {
   def getResources = {
     // Make these sub resources to Flexlink
     val h2 = makeResource (
-      name = "h2",
+      name = "H2",
       state = List(),
-      abilities = List("up"->List(), "down"->List())
+      abilities = List(
+        AbilityDefinition(name = "up"),
+        AbilityDefinition("down")
+      )
     )
     val h3 = makeResource (
-      name = "h3",
+      name = "H3",
       state = List(),
-      abilities = List("up"->List(), "down"->List())
+      abilities = List(
+        AbilityDefinition(name = "up"),
+        AbilityDefinition("down")
+      )
     )
 
     //skicka klossplatta till operatör
     val flexlink = makeResource (
       name = "Flexlink",
       state = List("running"),
-      abilities = List("fixtureToRobot"-> List("pos"), "fixtureToOperator"-> List("no"))
+      abilities = List(
+        AbilityDefinition(name = "fixtureToRobot", parameters = List(sOrP("pos", 0))),
+        AbilityDefinition("fixtureToOperator", List(sOrP("no", 2)))
+      )
+
     )
 
     val R5 = makeResource (
       name = "R5",
       state = List(),
-      abilities = List("pickBlock"->List("pos"), "placeBlock"->List("pos"),
-        "toHome"->List(), "toDodge"->List())
+      abilities = List(
+        AbilityDefinition("pickBlock",  List(sOrP("pos", 0))),
+        AbilityDefinition("placeBlock", List(sOrP("pos", 0))),
+        AbilityDefinition("toHome"),
+        AbilityDefinition("toDodge")
+      )
     )
 
     val R4 = makeResource (
       name = "R4",
       state = List(),
-      abilities = List("pickBlock"->List("pos"), "placeBlock"->List("pos"),
-        "toHome"->List(), "toDodge"->List())
+      abilities = List(
+        AbilityDefinition("pickBlock",  List(sOrP("pos", 0))),
+        AbilityDefinition("placeBlock", List(sOrP("pos", 0))),
+        AbilityDefinition("toHome"),
+        AbilityDefinition("toDodge")
+      )
     )
 
     val R2 = makeResource (
       name = "R2",
       state = List(),
-      abilities = List("elevatorStn2ToHomeTable"->List(), "homeTableToHomeBP" ->List(),
-        "homeTableToElevatorStn3"->List(), "homeBPToHomeTable"->List(),
-        "placeAtPos"->List("pos"), "pickAtPos"->List("pos"), "deliverTower"->List(),
-        "pickBuildPlate"->List())
+      abilities = List(
+        AbilityDefinition("pickAtPos",  List(sOrP("pos", 0))),
+        AbilityDefinition("placeAtPos", List(sOrP("pos", 0))),
+        AbilityDefinition("homeTableToElevatorStn3"),
+        AbilityDefinition("elevatorStn2ToHomeTable"),
+        AbilityDefinition("deliverTower"),
+        AbilityDefinition("pickBuildPlate")
+      )
     )
 
     val operator = makeResource (
       name = "Operator",
       state = List(),
-      abilities = List("loadFixture"->List("brickPositions"))
+      abilities = List(
+        AbilityDefinition("loadFixture"),
+        AbilityDefinition("brickPositions")
+      )
     )
 
     val root = HierarchyRoot("Resources", List(flexlink._1, operator._1, R2._1, R4._1, R5._1, h2._1, h3._1))
@@ -217,15 +221,15 @@ trait DBConnector {
     val stateMap = Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")
 
     List(
-      db(itemMap, "h2.up.run", "bool", 135, 0, 0),
-      db(itemMap, "h2.down.run", "bool", 135, 0, 1),
-      db(itemMap, "h2.up.mode", "int", 135, 2, 0, stateMap),
-      db(itemMap, "h2.down.mode", "int", 135, 4, 0, stateMap),
+      db(itemMap, "H2.up.run", "bool", 135, 0, 0),
+      db(itemMap, "H2.down.run", "bool", 135, 0, 1),
+      db(itemMap, "H2.up.mode", "int", 135, 2, 0, stateMap),
+      db(itemMap, "H2.down.mode", "int", 135, 4, 0, stateMap),
 
-      db(itemMap, "h3.up.run", "bool", 140, 0, 0),
-      db(itemMap, "h3.down.run", "bool", 140, 0, 1),
-      db(itemMap, "h3.up.mode", "int", 140, 2, 0, stateMap),
-      db(itemMap, "h3.down.mode", "int", 140, 4, 0, stateMap),
+      db(itemMap, "H3.up.run", "bool", 140, 0, 0),
+      db(itemMap, "H3.down.run", "bool", 140, 0, 1),
+      db(itemMap, "H3.up.mode", "int", 140, 2, 0, stateMap),
+      db(itemMap, "H3.down.mode", "int", 140, 4, 0, stateMap),
 
       db(itemMap, "Flexlink.fixtureToOperator.run", "bool", 139, 0, 0),
       db(itemMap, "Flexlink.fixtureToRobot.run", "bool", 139, 0, 1),
@@ -258,23 +262,23 @@ trait DBConnector {
       db(itemMap, "R4.toDodge.mode", "int", 128, 8, 0, stateMap),
 
       db(itemMap, "R2.elevatorStn2ToHomeTable.run", "bool",126,0,0),
-      db(itemMap, "R2.homeTableToHomeBP.run", "bool",126,0,1),
+      db(itemMap, "R2.elevatorStn2ToHomeTable.mode", "int", 126, 2, 0, stateMap),
       db(itemMap, "R2.homeTableToElevatorStn3.run", "bool",126,0,2),
-      db(itemMap, "R2.homeBPToHomeTable.run", "bool",126,0,3),
+      db(itemMap, "R2.homeTableToElevatorStn3.mode", "int", 126, 6, 0, stateMap),
       db(itemMap, "R2.placeAtPos.run", "bool",126,0,4),
       db(itemMap, "R2.placeAtPos.pos", "bool",126,18,0),
+      db(itemMap, "R2.placeAtPos.mode", "int", 126, 10, 0, stateMap),
       db(itemMap, "R2.pickAtPos.run", "bool",126,0,5),
       db(itemMap, "R2.pickAtPos.pos", "int",126,18,0),
-      db(itemMap, "R2.deliverTower.run", "bool",126,0,6),
-      db(itemMap, "R2.pickBuildPlate.run", "bool",126,0,7),
-      db(itemMap, "R2.elevatorStn2ToHomeTable.mode", "int", 126, 2, 0, stateMap),
-      db(itemMap, "R2.homeTableToHomeBP.mode", "int", 126, 4, 0, stateMap),
-      db(itemMap, "R2.homeTableToElevatorStn3.mode", "int", 126, 6, 0, stateMap),
-      db(itemMap, "R2.homeBPToHomeTable.mode", "int", 126, 8, 0, stateMap),
-      db(itemMap, "R2.placeAtPos.mode", "int", 126, 10, 0, stateMap),
       db(itemMap, "R2.pickAtPos.mode", "int", 126, 12, 0, stateMap),
+      db(itemMap, "R2.deliverTower.run", "bool",126,0,6),
       db(itemMap, "R2.deliverTower.mode", "int", 126, 14, 0, stateMap),
+      db(itemMap, "R2.pickBuildPlate.run", "bool",126,0,7),
       db(itemMap, "R2.pickBuildPlate.mode", "int", 126, 16, 0, stateMap),
+      //db(itemMap, "R2.homeTableToHomeBP.run", "bool",126,0,1),
+      //db(itemMap, "R2.homeBPToHomeTable.run", "bool",126,0,3),
+      //db(itemMap, "R2.homeTableToHomeBP.mode", "int", 126, 4, 0, stateMap),
+      //db(itemMap, "R2.homeBPToHomeTable.mode", "int", 126, 8, 0, stateMap),
 
       db(itemMap, "Operator.loadFixture.run", "bool", 0, 0, 0, Map(), "operatorInstructions.run"),
       db(itemMap, "Operator.loadFixture.mode", "int", 0, 0, 0, stateMap, "operatorInstructions.mode"),
@@ -284,20 +288,28 @@ trait DBConnector {
   }
 }
 
+// Only used for modeling here
+case class sOrP(name: String, value: SPValue)
+case class AbilityDefinition(name: String, parameters: List[sOrP]=List(), states: List[sOrP]=List(), abilityType: SPValue = "")
+
 trait ModelMaking {
-  def makeResource(name: String, state: List[String], abilities: List[(String, List[String])]) = {
+  def makeResource(name: String, state: List[String], abilities: List[AbilityDefinition]) = {
     val t = Thing(name)
     val stateVars = Thing(s"$name.mode", SPAttributes("variableType"->"state")) :: state.map(x => Thing(s"$name.$x", SPAttributes("variableType"->"state")))
-    val ab = abilities.map{case (n, params) =>
-      val parameters = params ++ List("run","mode") // all abilities have these
-    val abilityName = name +"."+n
-      val o = Operation(abilityName, List(), SPAttributes("operationType"->"ability"))
-      (o, parameters.map{x =>
-        val pName = x.replaceFirst("p_", "")
-        val isP = x.startsWith("p_")
-        val attr = if (isP) "parameter" else "state"
-        Thing(abilityName+"."+pName, SPAttributes("variableType"->attr))
-      })
+    val ab = abilities.map{as =>
+
+      val abilityName = name +"."+as.name
+      val o = Operation(abilityName, List(), SPAttributes("operationType"->"ability", "abilityType"->as.abilityType))
+
+      val parameters = (as.parameters ++ List(sOrP("run", false))).map{ p =>
+        Thing(abilityName+"."+p.name, SPAttributes("variableType"->"parameter", "init"->p.value))
+      }
+      val states = (as.states ++ List(sOrP("mode", 0))).map{ p =>
+        Thing(abilityName+"."+p.name, SPAttributes("variableType"->"state", "init"->p.value))
+      }
+
+      (o, parameters ++ states)
+
     }
     val abHir = ab.map{case (op, para) => HierarchyNode(op.id, para.map(p => HierarchyNode(p.id)))}
     val hier = HierarchyNode(t.id, stateVars.map(x => HierarchyNode(x.id)) ++ abHir)
@@ -306,18 +318,13 @@ trait ModelMaking {
     (hier, temp)
   }
 
-  case class OpTowerTypeDef(name: String, op: String, pick: List[Int], place: List[Int], ability: ID, parameter: ID)
+  case class OpTowerTypeDef(name: String, ability: ID, parameters: List[(ID, Int)])
   def makeMeOperationTypes(xs: List[OpTowerTypeDef]): List[IDAble] = {
     xs.map{x =>
-      val b = SPAttributes(
-        "op" -> x.op,
-        "ability" -> x.ability,
-        "parameter" -> x.parameter
-      ) + {if (x.pick.nonEmpty) SPAttributes("pick"->x.pick) else SPAttributes()} +
-        {if (x.place.nonEmpty) SPAttributes("place"->x.place) else SPAttributes()}
+      val ab = AbilityStructure(x.ability, x.parameters.map(p => AbilityParameter(p._1, p._2)))
       Operation(x.name, List(), SPAttributes(
         "operationType"->"operation",
-        "behavior" -> b
+        "ability"-> ab
       ))
     }
   }

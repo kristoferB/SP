@@ -24,7 +24,7 @@ class TowerHandlingTests extends FreeSpec {
 
       val tower = logic.makeTower(exampleTower)
       println(tower)
-      assert(tower.map(_.toSet).contains(Set(Brick(1, 2, "Red"), Brick(1, 3, "Yellow"),Brick(2, 2, "Blue"))))
+      assert(tower.map(_.toSet).contains(Set(Brick(1, 3, "Red"), Brick(1, 2, "Yellow"),Brick(2, 3, "Blue"))))
 
     }
     "A tower should not be created if not correct" in {
