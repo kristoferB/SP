@@ -40,7 +40,7 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
 
-      //ev ! SubscribeToSSE(self)
+      ev ! SubscribeToSSE(self)
 
       val newOrder = transform(OrderHandler.transformTuple)
       val order = SPOrder(newOrder.id, newOrder.name, newOrder.stations, ids.map(x => x.id -> x).toMap)
