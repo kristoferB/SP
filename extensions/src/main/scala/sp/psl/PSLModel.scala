@@ -66,66 +66,8 @@ trait ThePSLModel extends Resources with DBConnector{
       "specification"-> "PLCConnection"
     ))
 
-    // In the future, the matching should be on an ability type structure
-    // Also the sequence now created in OperatorService should be mad based on
-    // conditions here
-    val ops  = makeMeOperationTypes(List(
-      OpTowerTypeDef(
-        name ="PickPlatesR2",
-        ability = itemMap("R2.pickAtPos"),
-        parameters = List(itemMap("R2.pickAtPos.pos") -> 0)
-      ),
-      OpTowerTypeDef(
-        name ="PlaceElevatorR2",
-        ability = itemMap("R2.homeTableToElevatorStn3"),
-        parameters = List()
-      ),
-      OpTowerTypeDef(
-        name ="PlaceTableR2",
-        ability = itemMap("R2.deliverTower"),
-        parameters = List()
-      ),
-      OpTowerTypeDef(
-        name ="PickBlocksR4",
-        ability = itemMap("R4.pickBlock"),
-        parameters = List(itemMap("R4.pickBlock.pos") -> 0)
-      ),
-      OpTowerTypeDef(
-        name ="PickBlocksR5",
-        ability = itemMap("R5.pickBlock"),
-        parameters  = List(itemMap("R5.pickBlock.pos") -> 0)
-      ),
-      OpTowerTypeDef(
-        name ="PlaceBlocksR4",
-        ability = itemMap("R4.placeBlock"),
-        parameters  = List(itemMap("R4.placeBlock.pos") -> 0)
 
-      ),
-      OpTowerTypeDef(
-        name ="PlaceBlocksR5",
-        ability = itemMap("R5.placeBlock"),
-        parameters = List(itemMap("R5.placeBlock.pos") -> 0)
-      ),
-      OpTowerTypeDef(
-        name ="LoadFixtureOp",
-        ability = itemMap("Operator.loadFixture"),
-        parameters  = List(itemMap("Operator.loadFixture.brickPositions") -> 0)
-
-      ),
-      OpTowerTypeDef(
-        name ="FixtureToRobots",
-        ability = itemMap("Flexlink.fixtureToRobot"),
-        parameters = List(itemMap("Flexlink.fixtureToRobot.pos") -> 0)
-      ),
-      OpTowerTypeDef(
-        name ="FixtureToOperator",
-        ability = itemMap("Flexlink.fixtureToOperator"),
-        parameters = List(itemMap("Flexlink.fixtureToOperator.no") -> 0)
-      )
-
-    ))
-
-    items ++ ops :+ connection
+    items :+ connection
   }
 
 
@@ -201,8 +143,7 @@ trait Resources extends ModelMaking {
       name = "Operator",
       state = List(),
       abilities = List(
-        AbilityDefinition("loadFixture"),
-        AbilityDefinition("brickPositions")
+        AbilityDefinition("loadFixture", List(sOrP("brickPositions",0)))
       )
     )
 

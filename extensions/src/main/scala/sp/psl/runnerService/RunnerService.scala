@@ -153,11 +153,16 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
         val res = activeCompleted.map(stepCompleted)
         // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
         if (res.foldLeft(false)(_ || _)){
+          val resp = Response(List(), SPAttributes("station"->station,"status"->"done", "silent"->true), rnr.req.service, rnr.req.reqID)
           println(s"-----------------------------")
           println(s"-- RunnerService: All done --")
           println(s"-- $station - $sopen --")
+          println(s"-- resp: $resp --")
+          //println(s"-- $reply --")
           println(s"-----------------------------")
-          reply.foreach(rnr => rnr.reply ! Response(List(), SPAttributes("station"->station,"status"->"done", "silent"->true), rnr.req.service, rnr.req.reqID))
+
+          reply.foreach(rnr => rnr.reply ! resp)
+          eventHandler ! resp
           self ! PoisonPill
         } else {
           progress ! SPAttributes("station"->station,"activeOps"->activeSteps)

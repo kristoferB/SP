@@ -26,19 +26,21 @@ object OrderHandler extends SPService {
     )
 
   val transformation: List[TransformValue[_]] = List(transformTuple)
-  def props(serviceHandler: ActorRef) = Props(classOf[OrderHandler], serviceHandler)
+  def props(serviceHandler: ActorRef, eventHandler: ActorRef) = Props(classOf[OrderHandler], serviceHandler, eventHandler)
 }
 
 // An order for a set of stations, where a station is a name and an ID for a SOP
 case class OrderDefinition(id: ID, name: String, stations: Map[String, ID])
 case class SPOrder(id: ID, name: String, stations: Map[String, ID], idMap: Map[ID, IDAble])
 
-class OrderHandler(sh: ActorRef) extends Actor with ServiceSupport with OrderHandlerLogic {
+class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport with OrderHandlerLogic {
 
   def receive = {
     case r @ Request(_, attr, ids, id) =>
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
+
+      //ev ! SubscribeToSSE(self)
 
       val newOrder = transform(OrderHandler.transformTuple)
       val order = SPOrder(newOrder.id, newOrder.name, newOrder.stations, ids.map(x => x.id -> x).toMap)
@@ -46,18 +48,26 @@ class OrderHandler(sh: ActorRef) extends Actor with ServiceSupport with OrderHan
       println(s"new order: $newOrder")
       addNewOrder(order)
 
+      ev ! Progress(SPAttributes("status"->"new", "order"->newOrder), "OrderHandler", id)
+
       replyTo ! Response(List(), SPAttributes("status"-> "order received"), r.service, r.reqID)
 
-    case Progress(attr, "RunnerService", id) => println(s"got a progress: $attr")
+    case Progress(attr, "RunnerService", id) => println(s"order handler got a progress: $attr")
 
-    case Response(ids, attr, "RunnerService", id) => println(s"got a response: $attr")
-
-
+    case Response(ids, attr, "RunnerService", id) =>
+      println(s"Order handler got a response: $attr")
+      val station = attr.getAs[String]("station")
+      val complStationOrder = station.flatMap(orderInStationCompleted)
+      complStationOrder.map(order =>
+        ev ! Progress(SPAttributes("status"->"completed", "station"->station, "order"->OrderDefinition(order.id, order.name, order.stations)), "OrderHandler", ID.newID)
+      )
+    case r @ Response(ids, attr, service, id) => println(s"order handler got a response, but no match: $r")
   }
 
   def startStationOrder(order: ActiveOrder) = {
     val req = Request("RunnerService", SPAttributes("SOP"->order.sop.id,"station"->order.station), order.order.idMap.values.toList)
     sh ! req
+    ev ! Progress(SPAttributes("status"->"stationOrder", "station"->order.station, "sop"->order.sop, "order"->OrderDefinition(order.order.id, order.order.name, order.order.stations)), "OrderHandler", ID.newID)
   }
 }
 
@@ -80,12 +90,29 @@ sealed trait OrderHandlerLogic {
     )
   }
 
+  def orderInStationCompleted(station: String) = {
+    val updOrder = for {
+      ao <- activeStations.get(station)
+      or = ao.order
+      compl <- orderCompleted.get(or)
+    } yield {
+      val complStations = station :: compl.completedStations
+      val allStations = or.stations.keySet
+      val allDone = complStations.toSet == allStations
+      or -> compl.copy(complStations, allDone)
+    }
+    updOrder.foreach(co => orderCompleted = orderCompleted + co)
+    if (updOrder.isEmpty) println(s"The station $station is not active")
+    nextStationOrder(station)
+    updOrder.map(_._1)
+  }
+
   def nextStationOrder(station: String) = {
     val nextOrder = orders.find(o =>
       o.stations.keySet.contains(station) && (!orderCompleted.contains(o) || !orderCompleted(o).completedStations.contains(station))
     )
     val ao = nextOrder.flatMap(o => activateOrder(station, o))
-    if (ao.isEmpty) println(s"Wrong in nextStationOrder: $station")
+    if (ao.isEmpty) println(s"No more orders for station: $station")
 
     ao.foreach(startStationOrder)
   }

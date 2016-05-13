@@ -242,7 +242,7 @@ object SP extends App {
 
   serviceHandler ! RegisterService(
     "OrderHandler",
-    system.actorOf(OrderHandler.props(serviceHandler), "OrderHandler"),
+    system.actorOf(OrderHandler.props(serviceHandler, eventHandler), "OrderHandler"),
     OrderHandler.specification,
     OrderHandler.transformation
   )
