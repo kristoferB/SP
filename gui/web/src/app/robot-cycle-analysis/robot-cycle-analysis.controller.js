@@ -8,145 +8,197 @@
       .module('app.robotCycleAnalysis')
       .controller('RobotCycleAnalysisController', RobotCycleAnalysisController);
 
-    RobotCycleAnalysisController.$inject = ['$scope', '$uibModal', 'dashboardService', 'robotCycleAnalysisService', 'eventService'];
+    RobotCycleAnalysisController.$inject = ['$scope', '$uibModal', 'dashboardService', 'robotCycleAnalysisService', 'eventService', '$interval'];
     /* @ngInject */
-    function RobotCycleAnalysisController($scope, $uibModal, dashboardService, robotCycleAnalysisService, eventService) {
-        var vm = this;
+    function RobotCycleAnalysisController($scope, $uibModal, dashboardService, robotCycleAnalysisService, eventService, $interval) {
+        var activityTypes = ['routines'],
+            dateTimeFormat = 'yyyy-MM-dd HH:mm:ss',
+            intervalPromise = null,
+            liveChartTimeOpened = new Date(),
+            liveChartUpdateInterval = 3000,
+            liveTimeSpan = 120000,
+            minutesSecondsFormat = 'mm:ss',
+            timeFormat = 'HH:mm:ss',
+            vm = this;
 
-        vm.addCycle = addCycle;
-        //vm.calcLeftMargin = calcLeftMargin;
-        //vm.calcWidth = calcWidth;
-        //vm.control = RobotCycleAnalysisController;
-        /*vm.data = [
-            {
-                name: 'row1',
-                tasks: [
-                    {
-                        name: 'task1',
-                        from: new Date(10000),
-                        to: new Date(20000),
-                        color: stringToColor('ehjk')
-                    },
-                    {
-                        name: 'task2',
-                        from: new Date(25000),
-                        to: new Date(30000),
-                        color: stringToColor('wesdf')
-                    }
-                ]
-            },
-            {
-                name: 'row2',
-                tasks: [
-                    {
-                        name: 'task3',
-                        from: new Date(5000),
-                        to: new Date(12000),
-                        color: stringToColor('vxa')
-                    },
-                    {
-                        name: 'task4',
-                        from: new Date(19000),
-                        to: new Date(27000),
-                        color: stringToColor('ASCC')
-                    }
-                ]
-            }
-        ];*/
-        //vm.getRoutineInfo = getRoutineInfo;
-        vm.liveEvents = [];
-        vm.options = {
-            //fromDate: new Date(0),
-            headers: ['second'],
-            headersFormats: {
-                second: 'ss'
-            },
-            viewScale: '5 seconds'
-        };
+        vm.historicalFromDate = new Date(0);
+        vm.liveChartData = [];
+        vm.liveChartTooltipContent =
+            '{{task.model.name}}<br/>' +
+            '<small>' +
+            '{{task.model.from.format(\'' + timeFormat + '\')}} - ' +
+            '{{task.model.to.format(\'' + timeFormat + '\')}}<br/>' +
+            '{{task.model.duration / 1000 | number:0}} s' +
+            '</small>';
+        vm.liveFromDate = null;
+        vm.liveToDate = null;
         vm.registerApi = registerApi;
         vm.removeCycle = removeCycle;
-        vm.scale = 3;
+        vm.searchCycles = searchCycles;
         vm.service = robotCycleAnalysisService;
         vm.setupBus = setupBus;
         vm.selectWorkCell = selectWorkCell;
-        //vm.stringToColor = stringToColor;
-        //vm.timeFromCycleStart = timeFromCycleStart;
-        //vm.timeStamps = makeTimeStamps;
-        vm.timeSpans = [{
-                name: 'Hej',
-                from: new Date(0),
-                to: new Date(35000)
-        }];
+        vm.taskTooltipContent =
+            '{{task.model.name}}<br/>' +
+            '<small>' +
+            '{{task.model.absoluteTime.from | date:\'' + dateTimeFormat + '\'}} - ' +
+            '{{task.model.absoluteTime.to | date:\'' + dateTimeFormat + '\'}}<br/>' +
+            '{{task.model.from.format(\'' + minutesSecondsFormat + '\')}} - ' +
+            '{{task.model.to.format(\'' + minutesSecondsFormat + '\')}}<br/>' +
+            '{{task.model.duration / 1000 | number:0}} s' +
+            '</small>';
+        vm.toggleLiveChart = toggleLiveChart;
+        vm.treeContent =
+            '<span class="gantt-label-actual-text">{{row.model.name}}</span>' +
+            '<span uib-tooltip="Remove" tooltip-placement="left" class="btn btn-default btn-xs btn-notext fa fa-close" ng-if="row.model.type === \'cycle\'" ' +
+            'ng-click="this.gantt.$scope.$parent.vm.removeCycle(row.model.id)"></span>';
         vm.widget = $scope.$parent.$parent.$parent.vm.widget;
 
         activate();
 
         function activate() {
             if (vm.widget.storage === undefined) {
-                vm.widget.storage = {};
-                vm.widget.storage.chosenWorkCell = null;
-                vm.widget.storage.historicalCycles = [];
+                vm.widget.storage = {
+                    chosenWorkCell: null,
+                    ganttData: [],
+                    showLiveChart: false
+                };
+            }
+            if (vm.widget.storage.chosenWorkCell !== null) {
+                setupLiveChart();
+                toggleLiveChartTimer();
             }
             $scope.$on('closeRequest', function() {
+                eventService.removeListener('Response', onResponse);
                 dashboardService.closeWidget(vm.widget.id);
             });
             eventService.addListener('Response', onResponse);
         }
 
-        function addCycle() {
-            var modalInstance = $uibModal.open({
-                templateUrl: '/app/robot-cycle-analysis/add-cycle.html',
-                controller: 'AddCycleController',
-                controllerAs: 'vm',
-                resolve: {
-                    workCell: function() {
-                        return vm.widget.storage.chosenWorkCell;
-                    }
+        function addRobotEvent(ev) {
+            let activityTypeRow = _.find(vm.liveChartData, function(row) { return row.id === ev.robotId + '-' + ev.activityType; });
+            if (ev.isStart) {
+                activityTypeRow.tasks.push({
+                    color: stringToColor(ev.name),
+                    duration: new Date() - new Date(ev.time),
+                    from: new Date(ev.time),
+                    id: ev.activityId,
+                    name: ev.name,
+                    running: true,
+                    to: new Date()
+                });
+            } else {
+                let activity = _.find(activityTypeRow.tasks, function(task) { return task.id === ev.activityId; });
+                if (activity === undefined) {
+                    console.log('got stop but found no activity');
+                    activityTypeRow.tasks.push({
+                        color: stringToColor(ev.name),
+                        duration: new Date() - liveChartTimeOpened,
+                        from: liveChartTimeOpened,
+                        id: ev.activityId,
+                        name: ev.name,
+                        running: false,
+                        to: new Date()
+                    });
+                } else {
+                    activity.running = false;
+                    activity.to = new Date(ev.time);
+                    activity.duration = new Date(activity.to) - new Date(activity.from);
                 }
-            });
-
-            modalInstance.result.then(function(selectedCycleIds) {
-                robotCycleAnalysisService.requestCycles(selectedCycleIds);
-            });
+            }
         }
 
-        /*function calcLeftMargin(cycle, robotEvents, robotEvent) {
-            let index = robotEvents.indexOf(robotEvent);
-            if (index === 0)
-                return 0;
-            let previousStop = index === 1 ? new Date(cycle.start) : new Date(robotEvents[index - 2].time);
-            let start = new Date(robotEvents[index - 1].time);
-            return (start - previousStop) / 1000 * vm.scale;
-        }
-
-        function calcWidth(cycle, robotEvents, robotEvent) {
-            let index = robotEvents.indexOf(robotEvent);
-            let start = index === 0 ? new Date(cycle.start) : new Date(robotEvents[index - 1].time);
-            let stop = new Date(robotEvent.time);
-            return (stop - start) / 1000 * vm.scale;
-        }*/
-
-        function cycleToGantt(cycle) {
-            let ganttData = [];
-            console.log(cycle);
-            _.forOwn(cycle.activities, function(activityTypes, robotName) {
-                let row = {
-                    name: robotName,
-                    tasks: []
+        function setupLiveChart() {
+            updateLiveChartTimeInterval();
+            let liveChartData = [];
+            for (let robot of vm.widget.storage.chosenWorkCell.robots) {
+                let robotRow = {
+                    children: [],
+                    id: robot.id,
+                    name: robot.id
                 };
-                _.forOwn(activityTypes, function(activities) {
+                for (let activityType of activityTypes) {
+                    let activityTypeRowId = robot.id + '-' + activityType;
+                    let activityTypeRow = {
+                        id: activityTypeRowId,
+                        name: activityType,
+                        tasks: []
+                    };
+                    robotRow.children.push(activityTypeRowId);
+                    liveChartData.push(activityTypeRow);
+                }
+                liveChartData.push(robotRow);
+            }
+            vm.liveChartData.length = 0;
+            vm.liveChartData.push(...liveChartData);
+        }
+
+        function cycleToGanttRows(cycle) {
+            let ganttData = [];
+            let cycleRow = {
+                children: [],
+                duration: new Date(cycle.from) - new Date(cycle.to),
+                id: cycle.id,
+                name: cycle.id.substring(0, 8),
+                tasks: [{
+                    absoluteTime: {
+                        from: cycle.from,
+                        to: cycle.to
+                    },
+                    duration: new Date(cycle.to) - new Date(cycle.from),
+                    from: 0,
+                    name: 'Cycle ' + cycle.id.substring(0, 8),
+                    to: new Date(cycle.to) - new Date(cycle.from)
+                }],
+                type: "cycle"
+            };
+            _.forOwn(cycle.activities, function(activityTypes, robotName) {
+                let robotRowId = toRobotRowId(cycle.id, robotName);
+                cycleRow.children.push(robotRowId);
+                let robotRow = {
+                    children: [],
+                    id: robotRowId,
+                    name: robotName,
+                    type: "robot"
+                };
+                _.forOwn(activityTypes, function(activities, activityType) {
+                    let activityTypeRowId = toActivityRowId(cycle.id, robotName, activityType);
+                    robotRow.children.push(activityTypeRowId);
+                    let activityTypeRow = {
+                        id: activityTypeRowId,
+                        name: activityType,
+                        tasks: [],
+                        type: "activityType"
+                    };
                     for (let activity of activities) {
-                        row.tasks.push({
+                        activityTypeRow.tasks.push({
+                            absoluteTime: {
+                                from: activity.from,
+                                to: activity.to
+                            },
+                            color: stringToColor(activity.name),
+                            duration: new Date(activity.to) - new Date(activity.from),
+                            from: new Date(activity.from) - new Date(cycle.from),
                             name: activity.name,
-                            from: new Date(activity.from),
-                            to: new Date(activity.to),
-                            color: stringToColor(activity.name)
+                            to: new Date(activity.to) - new Date(cycle.from)
                         });
                     }
+                    ganttData.push(activityTypeRow);
                 });
-                ganttData.push(row);
+                ganttData.push(robotRow);
             });
+            ganttData.push(cycleRow);
+            console.log("ganttData: ", ganttData);
             return ganttData;
+        }
+
+        function getLongestCycleTime() {
+            let longestCycleTime = 0;
+            for (let cycleRow of vm.widget.storage.ganttData) {
+                if (cycleRow.duration > longestCycleTime)
+                    longestCycleTime = cycleRow.duration;
+            }
+            return longestCycleTime;
         }
 
         function getRoutineInfo(robotName, robotEvent) {
@@ -157,30 +209,48 @@
 
         function onResponse(ev){
             var attrs = ev.attributes;
-            if (_.has(attrs, 'robotCyclesResponse'))
-                if (vm.widget.storage !== undefined &&
-                    vm.widget.storage.chosenWorkCell !== undefined &&
-                    attrs.robotCyclesResponse.workCellName === vm.widget.storage.chosenWorkCell.name) {
-                    for (let cycle of attrs.robotCyclesResponse.foundCycles) {
-                        cycle.ganttData = cycleToGantt(cycle);
-                        console.log(cycle);
-                        vm.widget.storage.historicalCycles.push(cycle);
-                    }
-                    //vm.widget.storage.historicalCycles.push(...attrs.robotCyclesResponse.foundCycles);
-                }
+            if (_.has(attrs, 'robotEvent'))
+                if (vm.widget.storage.chosenWorkCell !== null &&
+                    attrs.robotEvent.workCellId === vm.widget.storage.chosenWorkCell.id)
+                    addRobotEvent(attrs.robotEvent);
         }
 
         function registerApi(api) {
             api.core.on.ready($scope, function () {
-                api.side.setWidth(100);
+                api.side.setWidth(200);
             });
         }
 
-        function removeCycle(cycle) {
-            let index = vm.widget.storage.historicalCycles.indexOf(cycle);
-            if (index > -1) {
-                vm.widget.storage.historicalCycles.splice(index, 1);
+        function removeCycle(rowId) {
+            let row = _.find(vm.widget.storage.ganttData, function(row) { return row.id === rowId; });
+            if (row.hasOwnProperty("children")) {
+                for (let childRowId of row.children) {
+                    removeCycle(childRowId);
+                }
             }
+            _.remove(vm.widget.storage.ganttData, function(el) {
+                return el === row;
+            });
+        }
+
+        function searchCycles() {
+            var modalInstance = $uibModal.open({
+                templateUrl: '/app/robot-cycle-analysis/search-cycle.html',
+                controller: 'SearchCycleController',
+                controllerAs: 'vm',
+                resolve: {
+                    workCell: function() {
+                        return vm.widget.storage.chosenWorkCell;
+                    }
+                }
+            });
+
+            modalInstance.result.then(function(selectedCycles) {
+                for (let cycle of selectedCycles) {
+                    let ganttRows = cycleToGanttRows(cycle);
+                    vm.widget.storage.ganttData.push(...ganttRows);
+                }
+            });
         }
 
         function selectWorkCell() {
@@ -192,6 +262,7 @@
 
             modalInstance.result.then(function(selectedWorkCell) {
                 vm.widget.storage.chosenWorkCell = selectedWorkCell;
+                setupLiveChart();
             });
         }
 
@@ -220,24 +291,53 @@
             return colour;
         }
 
-        /*function timeFromCycleStart(cycle, event) {
-            let cycleStart = new Date(cycle.start);
-            let eventStart = new Date(event.start);
-            let durationInMs = eventStart - cycleStart;
-            return durationInMs / 1000;
-        }*/
+        function toActivityRowId(cycleId, robotName, activityType) {
+            return cycleId + '-' + robotName + '-' + activityType;
+        }
 
-        /*function makeTimeStamps(cycle) {
-            let start = new Date(cycle.start);
-            let stop = new Date(cycle.stop);
-            let duration = stop - start;
-            let stampInterval = 20000;
-            let noOfStamps = Math.ceil(duration/stampInterval);
-            let timeStamps = [];
-            for (let i = 0; i < noOfStamps; i++)
-                timeStamps.push(new Date(stampInterval * i));
-            return timeStamps;
-        }*/
+        function toRobotRowId(cycleId, robotName) {
+            return cycleId + '-' + robotName;
+        }
 
+        function toggleLiveChart() {
+            if (vm.widget.storage.showLiveChart) {
+                robotCycleAnalysisService.stopLiveWatch(vm.widget.storage.chosenWorkCell.id);
+                vm.widget.storage.showLiveChart = false;
+            } else {
+                liveChartTimeOpened = new Date();
+                updateLiveChartTimeInterval();
+                robotCycleAnalysisService.startLiveWatch(vm.widget.storage.chosenWorkCell.id);
+                vm.widget.storage.showLiveChart = true;
+            }
+            toggleLiveChartTimer();
+        }
+
+        function toggleLiveChartTimer() {
+            if (vm.widget.storage.showLiveChart)
+                intervalPromise = $interval(updateLiveChart, liveChartUpdateInterval);
+            else
+                $interval.cancel(intervalPromise);
+        }
+
+        function updateLiveChart() {
+            updateLiveChartTimeInterval();
+            updateRunningActivities();
+        }
+
+        function updateLiveChartTimeInterval() {
+            vm.liveFromDate = new Date(new Date() - liveTimeSpan);
+            vm.liveToDate = new Date(new Date() + liveChartUpdateInterval);
+        }
+
+        function updateRunningActivities() {
+            let activityRows = _.filter(vm.liveChartData, { 'type': 'activityType' });
+            for (let activityRow of activityRows) {
+                let runningActivities = _.filter(activityRow.tasks, { 'isRunning': true });
+                for (let runningActivity of runningActivities) {
+                    runningActivity.duration = new Date() - new Date(runningActivity.from);
+                    runningActivity.to = new Date();
+                }
+            }
+        }
     }
 })();

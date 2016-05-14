@@ -442,12 +442,43 @@ a {
 
 .robot-cycle-analysis {
 
+    .live-chart {
+        margin-bottom: 10px;
+    }
+
     .panel {
         margin: 5px;
     }
 
     .panel-title {
         font-size: 13px;
+    }
+
+    .gantt-task-content {
+        color: white;
+    }
+
+    .gantt-label-text {
+        .gantt-label-actual-text{
+            margin-right: 10px;
+        }
+
+        .btn {
+            margin-left: 5px;
+            margin-bottom: 2px;
+        }
+    }
+
+    .gantt-tree-header-row {
+        position: relative;
+        .gantt-label-text {
+            padding-top: 0.3em;
+        }
+    }
+
+    .no-cycles-text {
+        text-align: center;
+        margin-top: 80px;
     }
 
 }
@@ -475,9 +506,14 @@ a {
     -webkit-box-shadow: 0 1px 1px rgba(90, 90, 90, 0.1);
     box-shadow: 0 1px 1px rgba(90, 90, 90, 0.1);
 
-    &:hover:not(.disabled), &:focus:not(.disabled) {
+    &:hover:not(.disabled) {
         background-color: @button_default_background_hover !important;
         border-color: @button_default_border_color_hover;
+    }
+
+    &:focus {
+        background-color: @button_default_background;
+        border-color: @button_default_border_color;
     }
 }
 

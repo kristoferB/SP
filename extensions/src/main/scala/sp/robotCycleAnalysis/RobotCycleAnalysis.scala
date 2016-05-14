@@ -1,5 +1,7 @@
 package sp.robotCycleAnalysis
 
+import java.util.concurrent.TimeUnit
+
 import akka.actor._
 import com.codemettle.reactivemq.ReActiveMQMessages._
 import com.codemettle.reactivemq._
@@ -11,9 +13,10 @@ import sp.system.messages.{TransformValue, _}
 import sp.system.SPActorSystem._
 import com.github.nscala_time.time.Imports._
 import org.json4s.JValue
-import org.json4s.JsonAST.JNothing
+import org.json4s.JsonAST.{JBool, JNothing}
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.duration.FiniteDuration
 
 object RobotCycleAnalysis extends SPService {
   object Commands extends Enumeration {
@@ -23,7 +26,6 @@ object RobotCycleAnalysis extends SPService {
     val DisconnectFromBus = Value("disconnectFromBus")
     val StartLiveWatch = Value("startLiveWatch")
     val StopLiveWatch = Value("stopLiveWatch")
-    val RequestCycles = Value("requestCycles")
     val SearchCycles = Value("searchCycles")
     val RequestAvailableWorkCells = Value("requestAvailableWorkCells")
     val GetServiceState = Value("getServiceState")
@@ -39,37 +41,27 @@ object RobotCycleAnalysis extends SPService {
       "port"  -> KeyDefinition("Int", List(), Some(settings.activeMQPort)),
       "topic" -> KeyDefinition("String", List(), Some(settings.activeMQTopic))
     ),
-    "workCell" -> SPAttributes(
-      "name"        -> KeyDefinition("String", List(), Some("not set")),
-      "description" -> KeyDefinition("String", List(), Some("not set"))
-    ),
+    "workCellId" -> KeyDefinition("String", List(), Some("not set")),
     "timeSpan" -> SPAttributes(
-      "start" -> KeyDefinition("String", List(), Some("not set")),
-      "stop" -> KeyDefinition("String", List(), Some("not set"))
+      "from" -> KeyDefinition("String", List(), Some("not set")),
+      "to" -> KeyDefinition("String", List(), Some("not set"))
     ),
     "command" -> KeyDefinition("String", Commands.stringList, Some("getServiceState")),
-    "cycle"   -> SPAttributes(
-      "id"      -> KeyDefinition("Option[String]", List(), None)
-    ),
-    "robotCyclesRequest" -> SPAttributes(
-      "cycleIds" -> KeyDefinition("Option[List[String]]", List(), None)
-    )
+    "cycleId" -> KeyDefinition("String", List(), Some("not set"))
   )
 
   case class TransformValues(busSettings: TransformValue[BusSettings],
-                             workCell: TransformValue[WorkCell],
+                             workCellId: TransformValue[String],
                              timeSpan: TransformValue[TimeSpan],
                              command: TransformValue[String],
-                             cycle: TransformValue[Cycle],
-                             robotCyclesRequest: TransformValue[RobotCyclesRequest])
+                             cycleId: TransformValue[String])
 
   val transformValues = TransformValues(
     TransformValue("busSettings", _.getAs[BusSettings]("busSettings")),
-    TransformValue("workCell", _.getAs[WorkCell]("workCell")),
+    TransformValue("workCellId", _.getAs[String]("workCellId")),
     TransformValue("timeSpan", _.getAs[TimeSpan]("timeSpan")),
     TransformValue("command", _.getAs[String]("command")),
-    TransformValue("cycle", _.getAs[Cycle]("cycle")),
-    TransformValue("robotCyclesRequest", _.getAs[RobotCyclesRequest]("robotCyclesRequest"))
+    TransformValue("cycleId", _.getAs[String]("cycleId"))
   )
 
   override val transformation = transformToList(transformValues.productIterator.toList)
@@ -79,10 +71,7 @@ object RobotCycleAnalysis extends SPService {
 case class RobotCyclesRequest(cycleIds: Option[List[String]])
 case class BusSettings(host: String, port: Int, topic: String)
 case class Robot(name: String)
-case class WorkCell(name: String, description: String)
 case class TimeSpan(from: String, to: String)
-case class Cycle(id: Option[ID], start: Option[String], stop: Option[String], workCell: Option[WorkCell],
-                 events: Option[Map[String, List[CycleEvent]]])
 trait CycleEvent { def start: Boolean; def time: DateTime; }
 case class RoutineStartOrStop(start: Boolean, time: DateTime, robot: Robot, routine: Routine) extends CycleEvent
 case class CycleStartOrStop(start: Boolean, time: DateTime) extends CycleEvent
@@ -98,8 +87,40 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
     settings.activeMQTopic))
   var bus: Option[ActorRef] = None
   var isInterrupted = false
+  var liveWorkCells: List[String] = List.empty
 
-  var liveWorkCells: List[WorkCell] = List.empty
+  import scala.concurrent.ExecutionContext.Implicits.global
+  // Test schedule
+  var latestActivityId: Option[ID] = None
+  system.scheduler.schedule(FiniteDuration(0L, TimeUnit.SECONDS), FiniteDuration(5L, TimeUnit.SECONDS))(fakeRobotEventToBus)
+
+  def fakeRobotEventToBus = {
+    val activityId =
+      if (latestActivityId.isDefined) {
+        val id = latestActivityId.get
+        latestActivityId = None
+        id
+      }
+      else {
+        val id = ID.newID
+        latestActivityId = Some(id)
+        id
+      }
+
+    val mess = SPAttributes(
+      "robotEvent" -> SPAttributes(
+        "workCellId" -> "117956",
+        "activityId" -> activityId,
+        "activityType" -> "routines",
+        "name" -> "Moving",
+        "isStart" -> latestActivityId.isDefined,
+        "robotId" -> "R2",
+        "time" -> DateTime.now
+      )
+    )
+    if (bus.isDefined)
+      sendToBus(mess)
+  }
 
   def receive = {
     case RegisterService(s, _, _,_) => println(s"Service $s is registered")
@@ -110,10 +131,9 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
       import RobotCycleAnalysis.Commands._
 
       val postedBusSettings = transform(transformValues.busSettings)
-      val postedCycle = transform(transformValues.cycle)
-      val postedRobotCyclesRequest = transform(transformValues.robotCyclesRequest)
+      val postedCycleId = transform(transformValues.cycleId)
       val postedTimeSpan = transform(transformValues.timeSpan)
-      val postedWorkCell = transform(transformValues.workCell)
+      val postedWorkCellId = transform(transformValues.workCellId)
 
       val commandString = transform(transformValues.command)
       val command = Commands.withName(commandString)
@@ -126,11 +146,10 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
         case DisconnectFromBus => answer = disconnectFromBus()
         case GetServiceState => answer = getServiceState
         case RequestAvailableWorkCells => requestAvailableWorkCells()
-        case RequestCycles => requestCycles(postedRobotCyclesRequest)
-        case SearchCycles => searchCycles(postedCycle, postedTimeSpan, postedWorkCell)
+        case SearchCycles => searchCycles(postedCycleId, postedTimeSpan, postedWorkCellId)
         case SetupBus => setupBus(postedBusSettings)
-        case StartLiveWatch => startLiveWatch(postedWorkCell)
-        case StopLiveWatch => stopLiveWatch(postedWorkCell)
+        case StartLiveWatch => startLiveWatch(postedWorkCellId)
+        case StopLiveWatch => stopLiveWatch(postedWorkCellId)
       }
 
       answer match {
@@ -176,18 +195,22 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
     maybeError(result, "Failed to disconnect from the bus.")
   }
 
-  def startLiveWatch(postedWorkCell: WorkCell) = {
-    liveWorkCells = postedWorkCell :: liveWorkCells
+  def startLiveWatch(postedWorkCellId: String) = {
+    liveWorkCells = postedWorkCellId :: liveWorkCells
     val mess = SPAttributes(
-      "addedLiveWatch" -> postedWorkCell
+      "addedLiveWatch" -> SPAttributes(
+        "workCellId" -> postedWorkCellId
+      )
     )
     sendResponseViaSSE(mess)
   }
 
-  def stopLiveWatch(postedWorkCell: WorkCell) = {
-    liveWorkCells = liveWorkCells.filter(w => w.name != postedWorkCell.name)
+  def stopLiveWatch(postedWorkCellId: String) = {
+    liveWorkCells = liveWorkCells.filter(w => w != postedWorkCellId)
     val mess = SPAttributes(
-      "removedLiveWatch" -> postedWorkCell
+      "removedLiveWatch" -> SPAttributes(
+        "workCellId" -> postedWorkCellId
+      )
     )
     sendResponseViaSSE(mess)
   }
@@ -202,90 +225,26 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
     Some(toResponse(mess))
   }
 
-  def searchCycles(cycle: Cycle, timeSpan: TimeSpan, workCell: WorkCell) = {
+  def searchCycles(cycleId: String, timeSpan: TimeSpan, workCellId: String) = {
     val mess = SPAttributes(
       "robotCycleSearchQuery" -> SPAttributes(
-        "cycle" -> cycle,
+        "cycleId" -> cycleId,
         "timeSpan" -> timeSpan,
-        "workCell" -> workCell
+        "workCellId" -> workCellId
       )
     )
     notifyIfError(sendToBus(mess), "Failed to search for cycles.")
 
     // TEMPORARY RETURN OF A RESULT UNTIL A SERVICE FOR SEARCHING CYCLES IS READY
-    var cycleSearchResult = new ListBuffer[SPAttributes]()
-    var time = DateTime.now.minusHours(6)
-    for (_ <- 1 to 40) {
-      val cycle = SPAttributes(
-        "id" -> ID.newID,
-        "start" -> time,
-        "stop" -> time.plus(Period.minutes(2))
-      )
-      time = time.plus(Period.minutes(3))
-      cycleSearchResult += cycle
-    }
+
     val responseMess = SPAttributes(
-      "cycleSearchResult" -> cycleSearchResult,
-      "workCellName" -> "117956"
-    )
-    eventHandler ! toResponse(responseMess)
-  }
-
-  def requestAvailableWorkCells() = {
-    val mess = SPAttributes("abbRobotCommand" -> "getAvailableWorkCells")
-    notifyIfError(sendToBus(mess), "Failed to request available work cells.")
-
-    // TEMPORARY WHEN ON NON-WINDOWS COMPUTER
-    val responseMess = SPAttributes(
-      "availableWorkCells" -> List(
-        SPAttributes(
-          "name" -> "117956",
-          "description" -> "Mount rear doors",
-          "robots" -> SPAttributes(
-            "R1" -> SPAttributes(
-              "description" -> "Picks up rear left door and puts it into place"
-            ),
-            "R2" -> SPAttributes(
-              "description" -> "Fixates rear left door"
-            )
-          )
-        )
-      )
-    )
-    eventHandler ! toResponse(responseMess)
-  }
-
-  def requestCycles(robotCyclesRequest: RobotCyclesRequest) = {
-    val mess = for {
-      ids <- setErrorIfNone(robotCyclesRequest.cycleIds, "The request misses a list of cycle ids.").right
-    } yield SPAttributes(
-      "robotCyclesRequest" -> SPAttributes(
-        "cycleIds" -> ids
-      )
-    )
-
-    /*val mess = SPAttributes(
-      "robotCyclesRequest" -> SPAttributes(
-        "cycleIds" -> robotCyclesRequest.cycleIds
-      )
-    )*/
-
-    val result = for {
-      m <- mess.right
-      s <- sendToBus(m).right
-    } yield Unit
-
-    notifyIfError(result, "Failed to request cycles.")
-
-    // TEMPORARY RESPONSE UNTIL A SERVICE FOR REQUESTING CYCLES IS READY
-    val responseMess = SPAttributes(
-      "robotCyclesResponse" -> SPAttributes(
-        "workCellName" -> "117956",
+      "robotCycleSearchResult" -> SPAttributes(
+        "workCellId" -> "117956",
         "foundCycles" -> List(
           SPAttributes(
             "id" -> ID.newID,
             "from" -> DateTime.now.minusHours(6),
-            "to"  -> DateTime.now.minusHours(6).plusMinutes(2),
+            "to"  -> DateTime.now.minusHours(6).plusMinutes(1).plusSeconds(45),
             "activities" -> SPAttributes(
               "R1" -> SPAttributes(),
               "R2" -> SPAttributes(
@@ -302,6 +261,33 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
                   )
                 )
               )
+            )
+          )
+        )
+      )
+    )
+
+    eventHandler ! toResponse(responseMess)
+  }
+
+  def requestAvailableWorkCells() = {
+    val mess = SPAttributes("abbRobotCommand" -> "getAvailableWorkCells")
+    notifyIfError(sendToBus(mess), "Failed to request available work cells.")
+
+    // TEMPORARY WHEN ON NON-WINDOWS COMPUTER
+    val responseMess = SPAttributes(
+      "availableWorkCells" -> List(
+        SPAttributes(
+          "id" -> "117956",
+          "description" -> "Mount rear doors",
+          "robots" -> List(
+            SPAttributes(
+              "id" -> "R1",
+              "description" -> "Picks up rear left door and puts it into place"
+            ),
+            SPAttributes(
+              "id" -> "R2",
+              "description" -> "Fixates rear left door"
             )
           )
         )
@@ -329,13 +315,13 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
     val json = body.toString
     val jObject = parse(json)
 
-    val isCycleSearchResult = jObject.has("cycleSearchResult") && jObject.has("workCell")
+    val isCycleSearchResult = jObject.has("cycleSearchResult") && jObject.has("workCellId")
     val isCycle = jObject.has("cycle") && (jObject \ "cycle").has("events")
-    val isCycleEvent = jObject.has("cycleEvent") &&
-      liveWorkCells.exists(w => w.name == (jObject \ "cycleEvent" \ "workCell" \ "name").to[String].get)
+    val isRobotEvent = jObject.has("robotEvent") &&
+      liveWorkCells.contains((jObject \ "robotEvent" \ "workCellId").to[String].get)
     val isAvailableWorkCells = jObject.has("availableWorkCells")
 
-    if (isCycle || isCycleSearchResult || isCycleEvent || isAvailableWorkCells) {
+    if (isCycle || isCycleSearchResult || isRobotEvent || isAvailableWorkCells) {
       val spAttributes = SPAttributes.fromJson(json).get
       sendResponseViaSSE(spAttributes)
     }
@@ -364,7 +350,7 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
       b <- getBus.right
       s <- getBusSettings.right
     } yield {
-      println(s"sending: ${mess.toJson}")
+      //println(s"sending: ${mess.toJson}")
       b ! SendMessage(Topic(s.topic), AMQMessage(mess.toJson))
     }
     addErrorDescription(result, "Failed to send message to bus.")
@@ -404,8 +390,10 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
   def maybeError[T](either: Either[SPErrorString, T], error: String): Option[SPErrorString] =
     maybeError(addErrorDescription(either, error))
 
-  def toResponse(message: SPAttributes): Response =
-    Response(List(), message, spServiceName, spServiceID)
+  def toResponse(message: SPAttributes): Response = {
+    val mess = SPAttributes("silent" -> JBool(true) :: message.obj)
+    Response(List(), mess, spServiceName, spServiceID)
+  }
 
   def toServiceError(error: SPError): ServiceError =
     ServiceError(spServiceName, spServiceID, error)

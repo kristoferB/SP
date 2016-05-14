@@ -1,11 +1,11 @@
 <main class="modal-body wrapper-lg">
-    <h3 class="modal-title m-b">Add cycle</h3>
+    <h3 class="modal-title m-b">Search cycles</h3>
     <p>Enter some data and hit the search button. Then click the cycle you want to add to your view.</p>
 
     <form name="vm.searchForm" novalidate>
         <div class="form-group">
             <label for="cycleIdInput">Id</label>
-            <input type="text" ng-model="vm.searchQuery.cycle.id" name="cycleId" id="cycleIdInput" class="form-control"
+            <input type="text" ng-model="vm.searchQuery.cycleId" name="cycleId" id="cycleIdInput" class="form-control"
                    placeholder="Enter a cycle id" autofocus />
             <label for="fromDateInput">From date</label>
             <input type="date" ng-model="vm.searchQuery.timeSpan.from" name="fromDate" id="fromDateInput"
@@ -34,16 +34,16 @@
         </thead>
         <tbody>
             <tr>
-                <td colspan="3" ng-show="vm.cycleSearchResult == null">Awaiting search result...</td>
+                <td colspan="3" ng-show="vm.foundCycles == null">Awaiting search result...</td>
                 <td colspan="3"
-                    ng-show="vm.cycleSearchResult != null && vm.cycleSearchResult.length == 0">
+                    ng-show="vm.foundCycles != null && vm.foundCycles.length == 0">
                     Found no cycles for this search query.
                 </td>
             </tr>
-            <tr ng-repeat="cycle in vm.cycleSearchResult" ng-click="vm.select(cycle.id)">
+            <tr ng-repeat="cycle in vm.foundCycles" ng-click="vm.select(cycle)">
                 <td>{{cycle.id}}</td>
-                <td>{{cycle.start | date:'yyyy-MM-dd HH:mm'}}</td>
-                <td>{{cycle.stop | date:'yyyy-MM-dd HH:mm'}}</td>
+                <td>{{cycle.from | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+                <td>{{cycle.to | date:'yyyy-MM-dd HH:mm:ss'}}</td>
             </tr>
         </tbody>
     </table>

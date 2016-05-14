@@ -3,41 +3,32 @@
 
     angular
         .module('app.robotCycleAnalysis')
-        .controller('AddCycleController', AddCycleController);
+        .controller('SearchCycleController', SearchCycleController);
 
-    AddCycleController.$inject = ['$uibModalInstance', 'robotCycleAnalysisService', 'workCell', 'eventService', '$scope'];
+    SearchCycleController.$inject = ['$uibModalInstance', 'robotCycleAnalysisService', 'workCell', 'eventService', '$scope'];
     /* @ngInject */
-    function AddCycleController($uibModalInstance, robotCycleAnalysisService, workCell, eventService, $scope) {
+    function SearchCycleController($uibModalInstance, robotCycleAnalysisService, workCell, eventService, $scope) {
         var vm = this;
-
-        vm.cancel = cancel;
-        vm.cycleSearchResult = null;
+        
+        vm.foundCycles = null;
         vm.search = search;
         vm.searchQuery = {
-            cycle: {
-                id: null
-            },
+            cycleId: null,
             timeSpan: {
                 from: getCurrentDateMinusOneHour(),
                 to: getCurrentDate()
             },
-            workCell: workCell
+            workCellId: workCell.id
         };
         vm.select = select;
 
         activate();
-
-
-
+        
         function activate() {
             eventService.addListener('Response', onResponse);
             $scope.$on('modal.closing', function() {
                 eventService.removeListener('Response', onResponse);
             })
-        }
-
-        function cancel() {
-            $uibModalInstance.dismiss('cancel');
         }
 
         function getCurrentDate() {
@@ -55,8 +46,8 @@
 
         function onResponse(ev) {
             var attrs = ev.attributes;
-            if (_.has(attrs, 'cycleSearchResult') && attrs.workCellName === workCell.name) {
-                vm.cycleSearchResult = attrs.cycleSearchResult;
+            if (_.has(attrs, 'robotCycleSearchResult') && attrs.robotCycleSearchResult.workCellId === workCell.id) {
+                vm.foundCycles = attrs.robotCycleSearchResult.foundCycles;
             }
         }
 
@@ -65,8 +56,8 @@
             robotCycleAnalysisService.searchCycles(vm.searchQuery);
         }
 
-        function select(selectedCycleId) {
-            $uibModalInstance.close([selectedCycleId]);
+        function select(selectedCycle) {
+            $uibModalInstance.close([selectedCycle]);
         }
 
     }

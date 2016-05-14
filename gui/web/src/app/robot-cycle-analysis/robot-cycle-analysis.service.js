@@ -13,7 +13,6 @@
     function robotCycleAnalysisService(eventService, spServicesService, logger) {
 
         var service = {
-            availableWorkCells: null,
             busSettings: {
                 host: null,
                 port: null,
@@ -23,11 +22,11 @@
             connectToBus: connectToBus,
             disconnectFromBus: disconnectFromBus,
             isInterrupted: null,
-            liveWorkCells: null,
             requestAvailableWorkCells: requestAvailableWorkCells,
-            requestCycles: requestCycles,
             searchCycles: searchCycles,
-            setupBus: setupBus
+            setupBus: setupBus,
+            startLiveWatch: startLiveWatch,
+            stopLiveWatch: stopLiveWatch
         };
 
         var spServiceName = 'RobotCycleAnalysis';
@@ -48,7 +47,6 @@
         }
 
         function onResponse(ev) {
-            console.log('Robot cycle analysis received response ', ev);
             var attrs = ev.attributes;
             if (_.has(attrs, 'busConnected'))
                 service.busConnected = attrs.busConnected;
@@ -56,8 +54,6 @@
                 service.isInterrupted = attrs.isInterrupted;
             if (_.has(attrs, 'busSettings'))
                 service.busSettings = attrs.busSettings;
-            if (_.has(attrs, 'availableWorkCells'))
-                service.availableWorkCells = attrs.availableWorkCells;
             if (_.has(attrs, 'addedLiveWatch'))
                 service.liveWorkCells.push(attrs.addedLiveWatch);
             if (_.has(attrs, 'removedLiveWatch'))
@@ -79,11 +75,11 @@
         }
 
         function connectToBus() {
-            return postCommand("connectToBus")
+            return postCommand('connectToBus');
         }
 
         function disconnectFromBus() {
-            return postCommand("disconnectFromBus")
+            return postCommand('disconnectFromBus');
         }
 
         function searchCycles(message) {
@@ -91,18 +87,24 @@
             return postToSP(message);
         }
 
-        function requestAvailableWorkCells() {
-            return postCommand("requestAvailableWorkCells")
-        }
-
-        function requestCycles(cycleIds) {
+        function startLiveWatch(workCellId) {
             var message = {
-                command: "requestCycles",
-                robotCyclesRequest: {
-                    cycleIds: cycleIds
-                }
+                command: 'startLiveWatch',
+                workCellId: workCellId
             };
             return postToSP(message);
+        }
+
+        function stopLiveWatch(workCellId) {
+            var message = {
+                command: 'stopLiveWatch',
+                workCellId: workCellId
+            };
+            return postToSP(message);
+        }
+
+        function requestAvailableWorkCells() {
+            return postCommand('requestAvailableWorkCells');
         }
 
         function postCommand(command) {

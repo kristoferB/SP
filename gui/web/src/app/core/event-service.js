@@ -16,8 +16,6 @@
 
         return service;
 
-
-
         /* global EventSource */
         function createEventSource() {
             if (typeof(EventSource) !== 'undefined') {

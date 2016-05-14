@@ -4,7 +4,10 @@
     angular.module('app.robotCycleAnalysis', [
         'app.core',
         'app.widgets',
+        'ui.tree',
         'gantt',
-        'gantt.table'
+        'gantt.groups',
+        'gantt.tooltips',
+        'gantt.tree'
       ]);
 })();
