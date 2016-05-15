@@ -16,7 +16,6 @@
             intervalPromise = null,
             liveChartTimeOpened = new Date(),
             liveChartUpdateInterval = 3000,
-            liveTimeSpan = 120000,
             minutesSecondsFormat = 'mm:ss',
             timeFormat = 'HH:mm:ss',
             vm = this;
@@ -35,9 +34,10 @@
         vm.registerApi = registerApi;
         vm.removeCycle = removeCycle;
         vm.searchCycles = searchCycles;
-        vm.service = robotCycleAnalysisService;
-        vm.setupBus = setupBus;
         vm.selectWorkCell = selectWorkCell;
+        vm.service = robotCycleAnalysisService;
+        vm.setLiveChartWidth = setLiveChartWidth;
+        vm.setupBus = setupBus;
         vm.taskTooltipContent =
             '{{task.model.name}}<br/>' +
             '<small>' +
@@ -61,6 +61,7 @@
                 vm.widget.storage = {
                     chosenWorkCell: null,
                     ganttData: [],
+                    liveChartWidth: 1,
                     showLiveChart: false
                 };
             }
@@ -90,7 +91,6 @@
             } else {
                 let activity = _.find(activityTypeRow.tasks, function(task) { return task.id === ev.activityId; });
                 if (activity === undefined) {
-                    console.log('got stop but found no activity');
                     activityTypeRow.tasks.push({
                         color: stringToColor(ev.name),
                         duration: new Date() - liveChartTimeOpened,
@@ -102,35 +102,10 @@
                     });
                 } else {
                     activity.running = false;
-                    activity.to = new Date(ev.time);
+                    activity.to = moment(ev.time);
                     activity.duration = new Date(activity.to) - new Date(activity.from);
                 }
             }
-        }
-
-        function setupLiveChart() {
-            updateLiveChartTimeInterval();
-            let liveChartData = [];
-            for (let robot of vm.widget.storage.chosenWorkCell.robots) {
-                let robotRow = {
-                    children: [],
-                    id: robot.id,
-                    name: robot.id
-                };
-                for (let activityType of activityTypes) {
-                    let activityTypeRowId = robot.id + '-' + activityType;
-                    let activityTypeRow = {
-                        id: activityTypeRowId,
-                        name: activityType,
-                        tasks: []
-                    };
-                    robotRow.children.push(activityTypeRowId);
-                    liveChartData.push(activityTypeRow);
-                }
-                liveChartData.push(robotRow);
-            }
-            vm.liveChartData.length = 0;
-            vm.liveChartData.push(...liveChartData);
         }
 
         function cycleToGanttRows(cycle) {
@@ -233,6 +208,17 @@
             });
         }
 
+        function removeOldLiveTasks() {
+            let activityTypeRows = _.filter(vm.liveChartData, function(row) {
+                return row.type === 'activityType';
+            });
+            for (let activityTypeRow of activityTypeRows) {
+               _.remove(activityTypeRow.tasks, function (task) {
+                   return task.to.isBefore(vm.liveFromDate);
+               });
+            }
+        }
+
         function searchCycles() {
             var modalInstance = $uibModal.open({
                 templateUrl: '/app/robot-cycle-analysis/search-cycle.html',
@@ -266,6 +252,24 @@
             });
         }
 
+        function setLiveChartWidth() {
+            var modalInstance = $uibModal.open({
+                templateUrl: '/app/robot-cycle-analysis/set-live-chart-width.html',
+                controller: 'SetLiveChartWidthController',
+                controllerAs: 'vm',
+                resolve: {
+                    width: function () {
+                        return vm.widget.storage.liveChartWidth;
+                    }
+                }
+            });
+
+            modalInstance.result.then(function(width) {
+                vm.widget.storage.liveChartWidth = width;
+                updateLiveChartTimeInterval();
+            });
+        }
+
         function setupBus() {
             var modalInstance = $uibModal.open({
                 templateUrl: '/app/robot-cycle-analysis/setup-bus.html',
@@ -276,6 +280,33 @@
             modalInstance.result.then(function(busSettings) {
                 robotCycleAnalysisService.setupBus(busSettings);
             });
+        }
+
+        function setupLiveChart() {
+            updateLiveChartTimeInterval();
+            let liveChartData = [];
+            for (let robot of vm.widget.storage.chosenWorkCell.robots) {
+                let robotRow = {
+                    children: [],
+                    id: robot.id,
+                    name: robot.id,
+                    type: 'robot'
+                };
+                for (let activityType of activityTypes) {
+                    let activityTypeRowId = robot.id + '-' + activityType;
+                    let activityTypeRow = {
+                        id: activityTypeRowId,
+                        name: activityType,
+                        tasks: [],
+                        type: 'activityType'
+                    };
+                    robotRow.children.push(activityTypeRowId);
+                    liveChartData.push(activityTypeRow);
+                }
+                liveChartData.push(robotRow);
+            }
+            vm.liveChartData.length = 0;
+            vm.liveChartData.push(...liveChartData);
         }
 
         function stringToColor(str) {
@@ -322,11 +353,13 @@
         function updateLiveChart() {
             updateLiveChartTimeInterval();
             updateRunningActivities();
+            removeOldLiveTasks();
         }
 
         function updateLiveChartTimeInterval() {
-            vm.liveFromDate = new Date(new Date() - liveTimeSpan);
-            vm.liveToDate = new Date(new Date() + liveChartUpdateInterval);
+            let now = new Date();
+            vm.liveFromDate = new Date(now.setSeconds(0) - (vm.widget.storage.liveChartWidth - 1) * 60000);
+            vm.liveToDate = now.setSeconds(59);
         }
 
         function updateRunningActivities() {
