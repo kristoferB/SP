@@ -214,7 +214,7 @@
             });
             for (let activityTypeRow of activityTypeRows) {
                _.remove(activityTypeRow.tasks, function (task) {
-                   return task.to.isBefore(vm.liveFromDate);
+                   return !task.running && task.to.isBefore(vm.liveFromDate);
                });
             }
         }
