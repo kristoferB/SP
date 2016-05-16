@@ -17,10 +17,20 @@
 
         //functions
         vm.sendOrder = sendOrder;
-        //MyCtrl();
         activate();
 
         vm.value = 1;
+
+
+        angular.module('staticSelect', [])
+            .controller('Tobbe2Controller', ['$scope', function($scope) {
+                $scope.data = {
+                    singleSelect: null,
+                    multipleSelect: [],
+                    option1: "option-1"
+                };
+            }]);
+
 
         function activate() {
             $scope.$on('closeRequest', function () {
@@ -30,19 +40,6 @@
             eventService.addListener('Progress', onEvent);
             eventService.addListener('Response', onEvent);
         }
-
-        /*
-        function MyCtrl($scope) {
-            $scope.organizations = ['a', 'b', 'c', 'd', 'e'];
-            $scope.referral = {
-                organization: $scope.organizations[2]
-            };
-
-            $scope.options = [{ name: "a", id: 1 }, { name: "b", id: 2 }];
-            $scope.selectedOption = $scope.options[1];
-
-        }
-        */
 
 
         function onEvent(ev) {
@@ -88,12 +85,5 @@
                 }
             )
         }
-
-
-
-
-
-
-
     }
 })();
