@@ -191,8 +191,10 @@
                     reset();
                     for (var column = 0; column < 4; column++) {
                         for (var row = 2; row > -1; row--) {
-                            if(row == 1 || column == 1) vm.ButtonColour.kub[row][column] = 1;
-                            else vm.ButtonColour.kub[row][column] = 4;
+                            if(row == 1 || column == 1)
+                                vm.ButtonColour.kub[row][column] = 1;
+                            else
+                                vm.ButtonColour.kub[row][column] = 4;
                             UpdateCubes(row, column);
                         }
                     }
@@ -201,9 +203,12 @@
                     reset();
                     for (var column = 0; column < 4; column++) {
                         for (var row = 3; row > -1; row--) {
-                            if(row == 0) vm.ButtonColour.kub[row][column] = 2;
-                            else if(row > 1 && column > 1)vm.ButtonColour.kub[row][column] = 1;
-                            else vm.ButtonColour.kub[row][column] = 4;
+                            if(row == 0)
+                                vm.ButtonColour.kub[row][column] = 2;
+                            else if(row > 1 && column > 1)
+                                vm.ButtonColour.kub[row][column] = 1;
+                            else
+                                vm.ButtonColour.kub[row][column] = 4;
                             UpdateCubes(row, column);
                         }
                     }
@@ -241,9 +246,9 @@
             else
                 property.style.backgroundColor = "#ffffff";
             if(display) {
-                if (shallNotPass)
+                if (shallNotPass) {
                     alert('Your Tower Shall Not Pass!');
-                else if(anyCubesAtAll) {
+                } else if(anyCubesAtAll) {
                     sendOrder();
                     alert('OK');
                 }

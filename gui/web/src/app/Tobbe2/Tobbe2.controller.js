@@ -17,7 +17,7 @@
 
         //functions
         vm.sendOrder = sendOrder;
-
+        //MyCtrl();
         activate();
 
         vm.value = 1;
@@ -31,12 +31,26 @@
             eventService.addListener('Response', onEvent);
         }
 
+        /*
+        function MyCtrl($scope) {
+            $scope.organizations = ['a', 'b', 'c', 'd', 'e'];
+            $scope.referral = {
+                organization: $scope.organizations[2]
+            };
+
+            $scope.options = [{ name: "a", id: 1 }, { name: "b", id: 2 }];
+            $scope.selectedOption = $scope.options[1];
+
+        }
+        */
+
+
         function onEvent(ev) {
             console.log("SensorGUI Test");
             console.log(ev);
 
             if (_.has(ev, 'attributes.stateWithName')) {
-                service.stateWithName = ev.attributes.stateWithName;
+                //service.stateWithName = ev.attributes.stateWithName;
                 if (ev.attributes.stateWithName.name.equals("IH2.mode")) {
                     vm.value = ev.attributes.stateWithName.value;
                 }
@@ -74,6 +88,9 @@
                 }
             )
         }
+
+
+
 
 
 

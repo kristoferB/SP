@@ -28,6 +28,31 @@
 
 </style>
 
+    <script>
+    var app = angular.module("demo", []);
+
+    app.controller("dropdownDemo", function($scope) {
+    $scope.colours = [{
+    name: "Red",
+    hex: "#F21B1B"
+    }, {
+    name: "Blue",
+    hex: "#1B66F2"
+    }, {
+    name: "Green",
+    hex: "#07BA16"
+    }];
+    $scope.colour = "";
+    });
+
+    scope.$watch("selected", function(value) {
+    scope.isPlaceholder = scope.selected[scope.property] === undefined;
+    scope.display = scope.selected[scope.property];
+
+    </script>
+
+
+
     <div class="panel-content">
         <p id="activeColor"></p>
         <!--Main Door to the Cel-->
@@ -65,6 +90,18 @@
         <div class="row1337" style="">
             <p>{{vm.value}}</p>
         </div>
+
+        <div>
+            <div ng-controller="Contact">
+                <select name="" id="" ng-model="selected_person" ng-options="person in people">
+                    <option value></option>
+                </select>
+                <span>{{property !== undefined ? item[property] : item}}</span>
+                <i class="fa fa-check"></i>
+            </div>
+        </div>
+
+
 
 
 
