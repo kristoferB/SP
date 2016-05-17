@@ -8,7 +8,7 @@
     .row1337 {
         margin: 5px 0px 0px 0px;
         padding: 10px 15px 30px 15px;
-        //width:60px;
+        /*width:60px;*/
         height:40px;
         background: {{"#C0C0C0"}};
     }
@@ -19,7 +19,7 @@
         background: {{"#C0C0C0"}};
     }
     .row0 {
-        margin: 0px 0px 0px 0px;
+        margin: 0px 5px 0px 5px;
         padding: 10px 0px 0px 0px;
         height:40px;
         background: {{"#C0C0C0"}};
@@ -33,10 +33,8 @@
         //background: {{"#FF00FF"}};
         width: 20px;
         height: 20px;
+        margin: 0px 50px 0px 0px;
     }
-    #ledCelDoor {background: {{"#FF0000"}};}
-    #ledElevator1 {background: {{"#FF0000"}};}
-    #ledElevator2 {background: {{"#FF0000"}};}
     #ledPlateR1 {background: {{"#FF0000"}};}
     #ledPlateR2 {background: {{"#FF0000"}};}
     #ledPlateL1 {background: {{"#FF0000"}};}
@@ -92,12 +90,25 @@
     <!--Dropdown list-->
     <div class="row1338" style="">
         <p class="row0"  align="left" style="float: left">Robot 2</p>
+        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
+                ng-click="vm.activate2(0)" id="buttonR2Reset" value = "buttonR2Reset";>
+            <p style="color:rgb(0,0,0);padding: 5px 0px 0px 0px;">Place</p>
+        </button>
+        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
+                ng-click="vm.activate2(1)" id="buttonR2Run" value = "buttonR2Run";>
+            <p style="color:rgb(0,0,0);padding: 5px 0px 0px 0px;">Pick</p>
+        </button>
         <div class="dropdown" style="float: right">
-            <button ng-click="vm.myFunction()" class="dropbtn">Dropdown</button>
+            <button ng-click="vm.myFunction()" class="dropbtn">Choose Operation</button>
             <div id="myDropdown" class="dropdown-content">
-                <a href="#">Link 1</a>
-                <a href="#">Link 2</a>
-                <a href="#">Link 3</a>
+                <a href="#">H1</a>
+                <a href="#">H2</a>
+                <a href="#">Table</a>
+                <a href="#">Workbench</a>
+                <a href="#">Plate 1</a>
+                <a href="#">Plate 2</a>
+                <a href="#">Plate 3</a>
+                <a href="#">Plate 4</a>
             </div>
         </div>
     </div>
@@ -105,96 +116,88 @@
     <!--Elevator 1-->
     <div class="row1338" style="">
         <p class="row0"  align="left" style="float: left">Elevator 1</p>
-        <p class="led" id="H1" align="right" style="float: right"></p>
-        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:40px;height:40px;background-color:rgb(255,255,255);"
-                ng-click="vm.activate2(1)" id="buttonH1UP" value = "buttonH1UP";>
-        </button>
-        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:40px;height:40px;background-color:rgb(255,255,255);"
+        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
                 ng-click="vm.activate2(0)" id="buttonH1DOWN" value = "buttonH1DOWN";>
+            <p style="color:rgb(0,0,0);padding: 5px 0px 0px 0px;">Down</p>
+        </button>
+        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
+                ng-click="vm.activate2(1)" id="buttonH1UP" value = "buttonH1UP";>
+            <p style="color:rgb(0,0,0);padding: 5px 0px 0px 0px;">Up</p>
         </button>
     </div>
 
     <!--Elevator 2-->
     <div class="row1338" style="">
         <p class="row0" align="left" style="float: left">Elevator 2</p>
-        <p class="led" id="H2" align="right" style="float: right"></p>
-        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:40px;height:40px;background-color:rgb(255,255,255);"
-                ng-click="vm.activate2(1)" id="buttonH2UP" value = "buttonH2UP";>
-        </button>
-        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:40px;height:40px;background-color:rgb(255,255,255);"
+        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
                 ng-click="vm.activate2(0)" id="buttonH2DOWN" value = "buttonH2DOWN";>
+            <p style="color:rgb(0,0,0);padding: 5px 0px 0px 0px;">Down</p>
+        </button>
+        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
+                ng-click="vm.activate2(1)" id="buttonH2UP" value = "buttonH2UP";>
+            <p style="color:rgb(0,0,0);padding: 5px 0px 0px 0px;">Up</p>
         </button>
     </div>
 
     <!--Robot 4-->
     <div  class="row1338" style="">
         <p class="row0"  align="left" style="float: left">Robot 4</p>
-        <p class="led" id="R4" align="right" style="float: right"></p>
-        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:40px;height:40px;background-color:rgb(255,255,255);"
-                ng-click="vm.activate2(1)" id="buttonR4HOME" value = "buttonR4HOME";>
-        </button>
-        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:40px;height:40px;background-color:rgb(255,255,255);"
+        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
                 ng-click="vm.activate2(0)" id="buttonR4DODGE" value = "buttonR4DODGE";>
+            <p style="color:rgb(0,0,0);padding: 5px 0px 0px 0px;">Dodge</p>
+        </button>
+        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
+                ng-click="vm.activate2(1)" id="buttonR4HOME" value = "buttonR4HOME";>
+            <p style="color:rgb(0,0,0);padding: 5px 0px 0px 0px;">Home</p>
         </button>
     </div>
 
     <!--Robot 5-->
     <div class="row1338" style="">
         <p class="row0"  align="left" style="float: left">Robot 5</p>
-        <p class="led" id="R5" align="right" style="float: right"></p>
-        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:40px;height:40px;background-color:rgb(255,255,255);"
-                ng-click="vm.activate2(1)" id="buttonR5HOME" value = "buttonR5HOME";>
-        </button>
-        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:40px;height:40px;background-color:rgb(255,255,255);"
+
+        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
                 ng-click="vm.activate2(0)" id="buttonR5DODGE" value = "buttonR5DODGE";>
+            <p style="color:rgb(0,0,0);padding: 5px 0px 0px 0px;">Dodge</p>
+        </button>
+        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
+                ng-click="vm.activate2(1)" id="buttonR5HOME" value = "buttonR5HOME";>
+            <p style="color:rgb(0,0,0);padding: 5px 0px 0px 0px;">Home</p>
         </button>
     </div>
 
     <!--Flexlink-->
     <div class="row1338" style="">
         <p class="row0"  align="left" style="float: left">Flexlink</p>
-        <p class="led" id="Flexlink" align="right" style="float: right"></p>
-        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:40px;height:40px;background-color:rgb(255,255,255);"
-                ng-click="vm.activate2(1)" id="buttonFlexlinkStart" value = "buttonFlexlinkStart";>
-        </button>
-        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:40px;height:40px;background-color:rgb(255,255,255);"
+        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
                 ng-click="vm.activate2(0)" id="buttonFlexlinkStop" value = "buttonFlexlinkStop";>
+            <p style="color:rgb(0,0,0);padding: 5px 0px 0px 0px;">Dodge</p>
+        </button>
+        <button type="button" class="btn btn-sm btn-primary" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
+                ng-click="vm.activate2(1)" id="buttonFlexlinkStart" value = "buttonFlexlinkStart";>
+            <p style="color:rgb(0,0,0);padding: 5px 0px 0px 0px;">Home</p>
         </button>
     </div>
 
     <!--****************************Sensors****************************-->
 
-    <!--Main Door to the Cel-->
-    <div class="row1337" style="">
-        <p align="left" style="float: left">Door to Cel</p>
-        <p class="led" id="ledCelDoor" align="right" style="float: right"></p>
-    </div>
-    <!--Elevators on FlexLink-->
-    <div class="row1337" style="">
-        <p align="left" style="float: left">Elevator 1</p>
-        <p class="led" id="ledElevator1" align="right" style="float: right"></p>
-    </div>
-    <div class="row1337" style="">
-        <p align="left" style="float: left">Elevator 2</p>
-        <p class="led" id="ledElevator2" align="right" style="float: right"></p>
-    </div>
     <!--Plates in front of Robot 4-->
     <div class="row1337" style="">
         <p align="left" style="float: left">Plate R1 (In front of Robot 4) </p>
-        <p class="led" id="ledPlateR1" align="right" style="float: right"></p>
+        <p class="led" id="ledPlateR1" style="float: right"></p>
     </div>
     <div class="row1337" style="">
         <p align="left" style="float: left">Plate R2 (In front of Robot 4)</p>
-        <p class="led" id="ledPlateR2" align="right" style="float: right"></p>
+        <p class="led" id="ledPlateR2" style="float: right"></p>
     </div>
     <!--Plates in front of Robot 5-->
     <div class="row1337" style="">
         <p align="left" style="float: left">Plate L1 (In front of Robot 5) </p>
-        <p class="led" id="ledPlateL1" align="right" style="float: right"></p>
+        <p class="led" id="ledPlateL1" style="float: right"></p>
     </div>
     <div class="row1337" style="">
         <p align="left" style="float: left">Plate L2 (In front of Robot 5)</p>
-        <p class="led" id="ledPlateL2" align="right" style="float: right"></p>
+        <p class="led" id="ledPlateL2" style="float: right"></p>
     </div>
     <div class="row1337" style="">
         <p>{{vm.debug14}}</p>
