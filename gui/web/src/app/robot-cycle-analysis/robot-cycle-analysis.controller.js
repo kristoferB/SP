@@ -71,6 +71,7 @@
             }
             $scope.$on('closeRequest', function() {
                 eventService.removeListener('Response', onResponse);
+                $interval.cancel(intervalPromise);
                 dashboardService.closeWidget(vm.widget.id);
             });
             eventService.addListener('Response', onResponse);
