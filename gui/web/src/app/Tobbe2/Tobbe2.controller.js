@@ -54,6 +54,60 @@
             }
         }
 
+    resSel: {
+        H1:         {
+                        name: 'Elevator 1',
+                        resource: [
+                            {id: '135 0 0 true', action: 'Up'},
+                            {id: '135 0 1 true', action: 'Down'}
+                        ]
+                    },
+        H2:         {
+                        name: 'Elevator 2',
+                        resource: [
+                            {id: '140 0 0 true', action: 'Up'},
+                            {id: '140 0 1 true', action: 'Up'}
+                        ]
+                    },
+        Flexlink:   {   
+                        name: 'Flexlink',
+                        resource: [
+                            {id: '139 0 SAKNAS true', action: 'Start'},
+                            {id: '139 0 SAKNAS true', action: 'Stop'}
+                        ]
+                    },
+        R4:         {
+                        name: 'Robot 4',
+                        resource: [
+                            {id: '128 0 2 true', action: 'Home'},
+                            {id: '128 0 3 true', action: 'Dodge'}
+                        ]
+
+                    },
+        R5:         {
+                        name: 'Robot 4',
+                        resource: [
+                            {id: '132 0 2 true', action: 'Home'},
+                            {id: '132 0 3 true', action: 'Dodge'}
+                        ]
+
+                    }
+        };
+    resMult: {    
+        R2:         {
+                        name: 'Robot 2',
+                        resource: [
+                            {id: '127 18 0 1', action: 'Set at position 1'},
+                            {id: '127 18 0 2', action: 'Set at position 2'},
+                            {id: '127 18 0 3', action: 'Set at position 3'},
+                            {id: '127 18 0 4', action: 'Set at position 4'},
+                            {id: '127 18 0 5', action: 'Set at position 5'},
+                            {id: '127 0 5 true', action: 'Pick at set position'},
+                            {id: '127 0 2 true', action: 'Place at elevator 2'},
+                            {id: '127 0 6 true', action: 'Place at table'},
+                        ]
+        }
+    };            
 
         function activate2(int) {
             if(int == 1)
