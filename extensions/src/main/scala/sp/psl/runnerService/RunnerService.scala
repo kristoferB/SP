@@ -161,10 +161,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
           //println(s"-- $reply --")
           println(s"-----------------------------")
 
-          // Kan bli problem här om plötsligt order handler får flera responses från denna.
-          // Alltså både via reply och eventhandler. Just nu kommer inte reply fram.
-          // reply.foreach(rnr => rnr.reply ! resp)
-          eventHandler ! resp
+          reply.foreach(rnr => rnr.reply ! resp)
           self ! PoisonPill
         } else {
           progress ! SPAttributes("station"->station,"activeOps"->activeSteps)

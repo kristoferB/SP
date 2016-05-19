@@ -40,8 +40,6 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
 
-      ev ! SubscribeToSSE(self)
-
       val newOrder = transform(OrderHandler.transformTuple)
       val order = SPOrder(newOrder.id, newOrder.name, newOrder.stations, ids.map(x => x.id -> x).toMap)
 
@@ -84,9 +82,9 @@ sealed trait OrderHandlerLogic {
 
   def addNewOrder(order: SPOrder) = {
     orders = orders :+ order
-    order.stations.keys.foreach(s =>
-      if (!activeStations.keySet.contains(s))
+    order.stations.keys.foreach(s => {
         nextStationOrder(s)
+      }
     )
   }
 
