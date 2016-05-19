@@ -163,7 +163,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
           // Kan bli problem här om plötsligt order handler får flera responses från denna.
           // Alltså både via reply och eventhandler. Just nu kommer inte reply fram.
-          reply.foreach(rnr => rnr.reply ! resp)
+          // reply.foreach(rnr => rnr.reply ! resp)
           eventHandler ! resp
           self ! PoisonPill
         } else {

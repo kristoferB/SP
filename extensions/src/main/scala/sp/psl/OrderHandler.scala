@@ -61,7 +61,7 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
       complStationOrder.map(order =>
         ev ! Progress(SPAttributes("status"->"completed", "station"->station, "order"->OrderDefinition(order.id, order.name, order.stations)), "OrderHandler", ID.newID)
       )
-    case r @ Response(ids, attr, service, id) => println(s"order handler got a response, but no match: $r")
+    case r @ Response(ids, attr, service, id) => // println(s"order handler got a response, but no match: $r")
   }
 
   def startStationOrder(order: ActiveOrder) = {
@@ -94,8 +94,8 @@ sealed trait OrderHandlerLogic {
     val updOrder = for {
       ao <- activeStations.get(station)
       or = ao.order
-      compl <- orderCompleted.get(or)
     } yield {
+      val compl = orderCompleted.get(or).getOrElse(CompletedOrders(List(), false))
       val complStations = station :: compl.completedStations
       val allStations = or.stations.keySet
       val allDone = complStations.toSet == allStations
