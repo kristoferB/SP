@@ -58,6 +58,8 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   var parameterMap: Map[String, ID] = Map()
   var station: String = ""
   var progress: ActorRef = self
+  var soppen: ID = ID.newID
+
   implicit var rnr: RequestNReply = null
   implicit val timeout = Timeout(2 seconds)
 
@@ -74,6 +76,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
      // progress = context.actorOf(progressHandler)
 
       val sopID = transform(RunnerService.transformTuple._1)
+      soppen = sopID
       station = transform(RunnerService.transformTuple._2)
 
       //list of tuples into maps
@@ -82,9 +85,9 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
       // maps all operation ids to an AbilityStructure
       val ops = ids.collect{case o:Operation => o}
-      operationAbilityMap = ops.flatMap{ o =>
-        o.attributes.getAs[AbilityStructure]("ability").map(o.id -> _)
-      }.toMap
+        operationAbilityMap = ops.flatMap{ o =>
+          o.attributes.getAs[AbilityStructure]("ability").map(o.id -> _)
+        }.toMap
 
       // saves all parameters into a map
       val things = ids.collect{case t: Thing if t.name.endsWith(".pos")  => t}
@@ -92,7 +95,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
       // maps all names of abilities to the ability id
       val abilities = ops.collect{case o: Operation if o.attributes.getAs[String]("operationType").getOrElse("not") == "ability" => o}
-      //println("abilities = " + abilities)
+        //println("abilities = " + abilities)
       abilityMap = abilities.map(o => o.id -> o).toMap
 
       serviceHandler ! Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"status")))
@@ -100,11 +103,11 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       // Makes the parentmap
       sop.foreach(createSOPMap)
       sopen = sop.toOption
-      println(s"we got a sop:")
+        println(s"we got a sop:")
       println("----------")
       println(sop)
-      println("----------")
-      sop.foreach(_.printMe(idMap))
+//      println("----------")
+//      sop.foreach(_.printMe(idMap))
       println("----------")
 
       progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
@@ -153,7 +156,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
         val res = activeCompleted.map(stepCompleted)
         // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
         if (res.foldLeft(false)(_ || _)){
-          val resp = Response(List(), SPAttributes("station"->station,"status"->"done", "silent"->true), rnr.req.service, rnr.req.reqID)
+          val resp = Response(List(), SPAttributes("station"->station,"sop"->soppen, "status"->"done", "silent"->true), rnr.req.service, rnr.req.reqID)
           println(s"-----------------------------")
           println(s"-- RunnerService: All done --")
           println(s"-- $station - $sopen --")
@@ -161,7 +164,9 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
           //println(s"-- $reply --")
           println(s"-----------------------------")
 
-          reply.foreach(rnr => rnr.reply ! resp)
+          // reply.foreach(rnr => rnr.reply ! resp)
+          eventHandler ! resp
+
           self ! PoisonPill
         } else {
           progress ! SPAttributes("station"->station,"activeOps"->activeSteps)

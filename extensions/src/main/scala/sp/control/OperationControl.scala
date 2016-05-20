@@ -82,7 +82,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
       serviceName = Some(service)
 
-      println("Commands: " + commands.getAs[String]("commandType"))
+      // println("Commands: " + commands.getAs[String]("commandType"))
 
       commands.getAs[String]("commandType").get match {
         case "connect" =>
@@ -156,7 +156,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       setup = None
     }
     case x => {
-      println("PLC control got message "+x)
+      // println("PLC control got message "+x)
       //sender() ! SPError("What do you want me to do? "+ x)
     }
   }
@@ -272,7 +272,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       val rid = abilityToRun.get(id).getOrElse(ID.newID)
       // flip RUN and write it to PLC
       val runState = start // state.get(rid).flatMap(_.to[Boolean]).map(!_).getOrElse(false)
-      println(s"the new state of run: $runState")
+      // println(s"the new state of run: $runState")
 
       val oDB = connectionMap.get(rid).map{db => DBValue(item.name, item.id, SPValue(runState), db.valueType,
         if(db.busAddress == "") SPValue(PLCAddress(db.db, db.byte, db.bit)) else SPValue(BusAddress(db.busAddress)))}
@@ -355,7 +355,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       bus <- theBus
       s <- setup
     } yield {
-      println(s"sending: ${mess.toJson}")
+      // println(s"sending: ${mess.toJson}")
       bus ! SendMessage(Topic(s.publishTopic), AMQMessage(mess.toJson))
     }
   }

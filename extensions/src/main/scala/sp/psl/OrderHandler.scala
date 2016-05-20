@@ -34,6 +34,7 @@ case class OrderDefinition(id: ID, name: String, stations: Map[String, ID])
 case class SPOrder(id: ID, name: String, stations: Map[String, ID], idMap: Map[ID, IDAble])
 
 class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport with OrderHandlerLogic {
+  var completedSops: Set[ID] = Set()
 
   def receive = {
     case r @ Request(_, attr, ids, id) =>
@@ -46,6 +47,8 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
       println(s"new order: $newOrder")
       addNewOrder(order)
 
+      ev ! SubscribeToSSE(self)
+
       ev ! Progress(SPAttributes("status"->"new", "order"->newOrder), "OrderHandler", id)
 
       replyTo ! Response(List(), SPAttributes("status"-> "order received"), r.service, r.reqID)
@@ -53,12 +56,23 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
     case Progress(attr, "RunnerService", id) => println(s"order handler got a progress: $attr")
 
     case Response(ids, attr, "RunnerService", id) =>
+      println("====================================")
+      println("=== ORDER HANDLER ==================")
+      println("====================================")
+
       println(s"Order handler got a response: $attr")
       val station = attr.getAs[String]("station")
-      val complStationOrder = station.flatMap(orderInStationCompleted)
-      complStationOrder.map(order =>
-        ev ! Progress(SPAttributes("status"->"completed", "station"->station, "order"->OrderDefinition(order.id, order.name, order.stations)), "OrderHandler", ID.newID)
-      )
+      val sop = attr.getAs[ID]("sop").get
+      if(completedSops.contains(sop)) {
+        println(s"Order handler response already processed...")
+      } else {
+        completedSops += sop
+        println(s"Order handler completing sop...")
+        val complStationOrder = station.flatMap(orderInStationCompleted)
+        complStationOrder.map(order =>
+          ev ! Progress(SPAttributes("status"->"completed", "station"->station, "order"->OrderDefinition(order.id, order.name, order.stations)), "OrderHandler", ID.newID)
+        )
+      }
     case r @ Response(ids, attr, service, id) => // println(s"order handler got a response, but no match: $r")
   }
 
