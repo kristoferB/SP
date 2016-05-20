@@ -24,7 +24,8 @@
         'app.rasmus',
         'app.kubInputGUI',
         'app.operatorInstGUI',
-        'app.robotCycleAnalysis'
+        'app.robotCycleAnalysis',
+        'app.activeOrder'
     ]);
 
 })();
