@@ -20,9 +20,21 @@
         activate();
         vm.myFunction = myFunction;
         vm.activate2 = activate2;
+        vm.dropdownList = dropdownList;
 
+        vm.selectedDropdown = null;
         vm.value = 1;
         vm.debug14 = 0;
+
+        vm.dropdownListEnum = {
+            H1 : 0,
+            H2 : 1,
+            Table : 2
+        }
+
+        function dropdownList(string){
+            vm.selectedDropdown = vm.dropdownListEnum;
+        }
 
         angular.module('staticSelect', [])
             .controller('Tobbe2Controller', ['$scope', function($scope) {
@@ -54,7 +66,6 @@
             }
         }
 
-
         function activate2(int) {
             if(int == 1)
                 vm.debug14++;
@@ -82,25 +93,6 @@
                     vm.value = ev.attributes.stateWithName.value;
                 }
             }
-
-            /*
-            if (!_.has(ev, 'reqID') || ev.reqID !== service.controlServiceID) return;
-
-            if (_.has(ev, 'attributes.theBus')){
-                if (ev.attributes.theBus === 'Connected' && ! service.connected){
-                    sendTo(service.latestMess, 'subscribe');
-                }
-                service.connected = ev.attributes.theBus === 'Connected'
-            }
-
-            if (_.has(ev, 'attributes.state')){
-                service.state = ev.attributes.state;
-            }
-            if (_.has(ev, 'attributes.resourceTree')){
-                service.resourceTree = ev.attributes.resourceTree;
-            }
-
-            */
         }
 
         function sendOrder() {

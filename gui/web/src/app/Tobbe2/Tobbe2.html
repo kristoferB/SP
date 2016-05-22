@@ -81,7 +81,6 @@
 
     /* Change color of dropdown links on hover */
     .dropdown-content a:hover {background-color: #f1f1f1}
-
     /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
     .show {display:block;}
 </style>
@@ -101,14 +100,14 @@
         <div class="dropdown" style="float: right">
             <button ng-click="vm.myFunction()" class="dropbtn">Choose Operation</button>
             <div id="myDropdown" class="dropdown-content">
-                <a href="#">H1</a>
-                <a href="#">H2</a>
-                <a href="#">Table</a>
-                <a href="#">Workbench</a>
-                <a href="#">Plate 1</a>
-                <a href="#">Plate 2</a>
-                <a href="#">Plate 3</a>
-                <a href="#">Plate 4</a>
+                <a ng-click="vm.dropdownList('H1')">H1</a>
+                <a ng-click="vm.dropdownList('H2')">H2</a>
+                <a ng-click="vm.dropdownList('Table')">Table</a>
+                <a ng-click="vm.dropdownList('Workbench')">Workbench</a>
+                <a ng-click="vm.dropdownList('Plate 1')">Plate 1</a>
+                <a ng-click="vm.dropdownList('Plate 2')">Plate 2</a>
+                <a ng-click="vm.dropdownList('Plate 3')">Plate 3</a>
+                <a ng-click="vm.dropdownList('Plate 4')">Plate 4</a>
             </div>
         </div>
     </div>
@@ -200,7 +199,7 @@
         <p class="led" id="ledPlateL2" style="float: right"></p>
     </div>
     <div class="row1337" style="">
-        <p>{{vm.debug14}}</p>
+        <p>{{vm.selectedDropdown}}</p>
     </div>
 
     </div>
