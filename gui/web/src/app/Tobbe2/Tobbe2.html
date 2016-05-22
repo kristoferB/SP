@@ -7,39 +7,13 @@
     * It will affect other widgets with the same
     * class names.
     */
-    .row1337 {
-        margin: 5px 0px 0px 0px;
-        padding: 10px 15px 30px 15px;
-        /*width:60px;*/
-        height:40px;
-        background: {{"#C0C0C0"}};
-    }
+
     .row1338 {
         margin: 5px 0px 0px 0px;
         padding: 0px 15px 0px 15px;
         height:40px;
         background: {{"#C0C0C0"}};
     }
-    .row0 {
-        margin: 0px 5px 0px 5px;
-        padding: 10px 0px 0px 0px;
-        height:40px;
-        background: {{"#C0C0C0"}};
-    }
-    .colourX {
-        background: {{"#C0C0C0"}};
-    }
-    .led {
-        border-radius: 20px;
-        //background: {{"#FF00FF"}};
-        width: 20px;
-        height: 20px;
-        margin: 0px 50px 0px 0px;
-    }
-    #ledPlateR1 {background: {{"#FF0000"}};}
-    #ledPlateR2 {background: {{"#FF0000"}};}
-    #ledPlateL1 {background: {{"#FF0000"}};}
-    #ledPlateL2 {background: {{"#FF0000"}};}
     /* Dropdown Button */
     .dropbtn {
         background-color: #4CAF50;
@@ -87,47 +61,28 @@
 
 <div>
 <body ng-app="ngrepeatSelect">
-<div>
+<div><!--The Buttons-->
     <form name="myForm2" ng-repeat="resurs in vm.data.resSel">
         <div class="row1338" style="">
             <h align="left">{{resurs.name}}</h>
             <button type="button" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
-                    ng-click="vm.tobbelito(action.id)" ng-repeat="action in resurs.resource">{{action.action}}</button>
+                    ng-click="" ng-repeat="action in resurs.resource">{{action.action}}</button>
         </div>
     </form>
 </div>
-<div>
+<div><!--The pulldowns-->
   <form name="myForm" ng-repeat="resurs in vm.data.resMult">
     <div class="row1338" style="">
         <h align="left"> {{resurs.name}} </h>
         <button type="button" style="float: right;width:120px;height:40px;background-color:rgb(255,255,255);"
-                ng-click="vm.tobbelito(option.id)">Run</button>
-
+                ng-click="">Run</button>
         <div class="dropdown" style="float: right">
             <button ng-click="vm.myFunction()" class="dropbtn">{{resurs.currVal}}</button>
             <div id="myDropdown" class="dropdown-content">
-                <a href="#" ng-click= "resurs.currVal=option.action" ng-repeat="option in resurs.resource" value="{{option.id}}">{{option.action}}</a>
-            </div>
-        </div>
-        </div>
-        <!--<select style="float: right" ng-model="hej">
-            <option ng-repeat="option in resurs.resource" value="{{option.id}}">{{option.action}}</option>
-        </select>
-        -->
-
-
-    <!--<div class="container">
-        <div gridster="vm.gridsterOptions">
-            <ul>
-                <li gridster-item="widget" ng-repeat="widget in vm.dashboard.widgets">
-                    <sp-widget widget="widget" show-close-btn="true">
-                        <ng-include src="widget.template" include-replace></ng-include>
-                    </sp-widget>
-                </li>
-            </ul>
+                <a href="#" ng-repeat="option in resurs.resource" ng-click="resurs.currVal = option.action" value="{{option.id}}">{{option.action}}</a>
+            </div><!--vm.editMe($parent.$index) ng-click="resurs.currVal = option.action"-->
         </div>
     </div>
-    -->
   </form>
 </div>
 </body>

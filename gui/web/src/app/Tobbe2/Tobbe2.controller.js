@@ -31,28 +31,22 @@
         vm.placeyplaceholder = 'Chose operation'
         vm.myFunction = myFunction;
         vm.activate2 = activate2;
-        vm.tobbelito = tobbelito
         vm.value = 1;
         vm.debug14 = 0;
+
+        vm.editMe = editMe;
+
+        function editMe(name){
+
+            //vm.data.resMult[rowInList].currVal = vm.data.resMult[rowInList].resource[optionInResource].id;
+            //console.log(rowInList);
+            console.log(name);
+        }
 
         vm.data = {
             resMult: [
                 {
                     name: 'Robot 2',
-                    resource: [
-                        {id: '127 18 0 1', action: 'Set at position 1'},
-                        {id: '127 18 0 2', action: 'Set at position 2'},
-                        {id: '127 18 0 3', action: 'Set at position 3'},
-                        {id: '127 18 0 4', action: 'Set at position 4'},
-                        {id: '127 18 0 5', action: 'Set at position 5'},
-                        {id: '127 0 5 true', action: 'Pick at set position'},
-                        {id: '127 0 2 true', action: 'Place at elevator 2'},
-                        {id: '127 0 6 true', action: 'Place at table'},
-                    ],
-                    currVal: 'Choose operation'
-                },
-                {
-                    name: 'Robot 3',
                     resource: [
                         {id: '127 18 0 1', action: 'Set at position 1'},
                         {id: '127 18 0 2', action: 'Set at position 2'},
@@ -96,12 +90,11 @@
                     ]
                 },
                 {
-                    name: 'Robot 4',
+                    name: 'Robot 3',
                     resource: [
                         {id: '128 0 2 true', action: 'Home'},
                         {id: '128 0 3 true', action: 'Dodge'}
                     ]
-
                 },
                 {
                     name: 'Robot 4',
@@ -109,7 +102,6 @@
                         {id: '132 0 2 true', action: 'Home'},
                         {id: '132 0 3 true', action: 'Dodge'}
                     ]
-
                 }
             ],
             singleShow: [
@@ -202,10 +194,6 @@
                     vm.value = ev.attributes.stateWithName.value;
                 }
             }
-        }
-        
-        function tobbelito(string) {
-            console.log(string);
         }
 
         function sendOrder() {
