@@ -49,21 +49,23 @@
                         {id: '127 0 2 true', action: 'Place at elevator 2'},
                         {id: '127 0 6 true', action: 'Place at table'},
                     ],
-                    currVal: 'Choose operation'
+                    currVal: 'Choose operation',
+                    currID: 'null'
                 },
                 {
                     name: 'Robot 3',
                     resource: [
-                        {id: '127 18 0 1', action: 'Set at position 1'},
-                        {id: '127 18 0 2', action: 'Set at position 2'},
-                        {id: '127 18 0 3', action: 'Set at position 3'},
+                        {id: '127 18 0 1', action: 'Set at position 5'},
+                        {id: '127 18 0 2', action: 'Set at position 5'},
+                        {id: '127 18 0 3', action: 'Set at position 5'},
                         {id: '127 18 0 4', action: 'Set at position 4'},
-                        {id: '127 18 0 5', action: 'Set at position 5'},
+                        {id: '127 18 0 5', action: 'Set at position 5  arefgaregq w qfq wfe qef 12r3 qdwf q fq 3f43 qfdq e q3f '},
                         {id: '127 0 5 true', action: 'Pick at set position'},
                         {id: '127 0 2 true', action: 'Place at elevator 2'},
                         {id: '127 0 6 true', action: 'Place at table'},
                     ],
-                    currVal: 'Choose operation'
+                    currVal: 'Choose operation',
+                    currID: 'null'
                 }
             ],
             resSel: [
@@ -126,8 +128,9 @@
 
         /* When the user clicks on the button,
          toggle between hiding and showing the dropdown content */
-        function myFunction() {
-            document.getElementById("myDropdown").classList.toggle("show");
+        function myFunction(something) {
+            document.getElementById(something).classList.toggle("show");
+            console.log(document.getElementById("myDropdown"))
         }
 
         // Close the dropdown menu if the user clicks outside of it
