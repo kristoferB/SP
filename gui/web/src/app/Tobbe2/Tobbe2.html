@@ -27,7 +27,9 @@
         height: 30px;
         width: 30px;
         margin: 5px 43px 0px 0px;
-<    }
+        background: radial-gradient(circle at 15px 15px, #5cabff, #000);
+    }
+
 
     /* Dropdown Button */
     .dropbtn {
@@ -38,8 +40,6 @@
         border: none;
         cursor: pointer;
         min-width: 160px;
-
-
     }
     /* Dropdown button on hover & focus */
     .dropbtn:hover, .dropbtn:focus {
@@ -93,7 +93,7 @@
     <div class="row1338" style="">
         <h class="centerText">{{resurs.name}}</h>
         <button type="button" style="float: right; width:120px; height:40px; background-color:rgb(255,255,255);"
-                ng-click="vm.sendRawDB(resurs.currID)">Run</button>
+                ng-click="vm.myFunction(resurs.name)">Run</button>
         <div class="dropdown" style="float: right">
             <button ng-click="vm.myFunction(resurs.name)" class="dropbtn">{{resurs.currVal}}</button>
             <div id={{resurs.name}} class="dropdown-content">
@@ -116,7 +116,7 @@
         <form name="myForm" ng-repeat="resurs in vm.data.singleShow">
             <div class="row1338" style="">
                 <h class="centerText"> {{resurs.name}} </h>
-                <figure class="circle" style="float: right"></figure>
+                <figure id={{resurs.id}} class="circle" style="float: right"></figure>
             </div>
         </form>
     </div>
