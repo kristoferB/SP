@@ -28,6 +28,7 @@
         //functions¨
         vm.adressToRaw = adressToRaw;
         vm.parseColour = parseColour;
+        vm.parseColourCompliment = parseColourCompliment;
         vm.sendOrder = sendOrder;
         vm.sendRawDB = sendRawDB;
         activate();
@@ -240,6 +241,7 @@
         }
 
         function parseColour(item, index) {
+
             if (!(_.isUndefined(item.address))) {
                 console.log("here we are")
             var hej = adressToRaw(item.address) +' true';
@@ -259,6 +261,7 @@
         function adressToRaw(params) {
             return params.db + ' ' + params.byte + ' ' + params.bit;
         }
+
 
         function sendRawDB(params) {
             var mess = service.latestMess;
