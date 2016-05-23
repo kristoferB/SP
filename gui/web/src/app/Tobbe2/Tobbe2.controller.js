@@ -31,6 +31,7 @@
         activate();
         vm.placeyplaceholder = 'Chose operation'
         vm.myFunction = myFunction;
+        vm.changeColor = changeColor;
         vm.activate2 = activate2;
         vm.value = 1;
         vm.debug14 = 0;
@@ -106,6 +107,20 @@
                 }
             ]
         };
+
+        function changeColor(circleID, colour) {
+            var property = document.getElementById(circleID);
+            switch (colour) {
+                case 'green':
+                    property.style.background = "radial-gradient(circle at 15px 15px, #5cd65c, #000)";//green
+                    break;
+                case 'red':
+                    property.style.background = "radial-gradient(circle at 15px 15px, #ff3333, #000)";//red
+                    break;
+                default:
+                    break;
+            }
+        }
 
         /* When the user clicks on the button,
          toggle between hiding and showing the dropdown content */
