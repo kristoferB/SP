@@ -26,17 +26,25 @@
 
         //functions
         vm.sendOrder = sendOrder;
-        
+
         activate();
         vm.placeyplaceholder = 'Chose operation'
         vm.myFunction = myFunction;
         vm.activate2 = activate2;
-        vm.tobbelito = tobbelito
         vm.value = 1;
         vm.debug14 = 0;
 
+        vm.editMe = editMe;
+
+        function editMe(name){
+
+            //vm.data.resMult[rowInList].currVal = vm.data.resMult[rowInList].resource[optionInResource].id;
+            //console.log(rowInList);
+            console.log(name);
+        }
+
         vm.data = {
-            resMult: [    
+            resMult: [
                 {
                     name: 'Robot 2',
                     resource: [
@@ -90,7 +98,7 @@
                         {id: '140 0 1 true', action: 'Down'}
                     ]
                 },
-                {   
+                {
                     name: 'Flexlink',
                     resource: [
                         {id: '139 0 SAKNAS true', action: 'Start'},
@@ -98,12 +106,11 @@
                     ]
                 },
                 {
-                    name: 'Robot 4',
+                    name: 'Robot 3',
                     resource: [
                         {id: '128 0 2 true', action: 'Home'},
                         {id: '128 0 3 true', action: 'Dodge'}
                     ]
-
                 },
                 {
                     name: 'Robot 4',
@@ -111,7 +118,6 @@
                         {id: '132 0 2 true', action: 'Home'},
                         {id: '132 0 3 true', action: 'Dodge'}
                     ]
-
                 }
             ],
             singleShow: [
@@ -125,12 +131,10 @@
 
         };
 
-
         /* When the user clicks on the button,
          toggle between hiding and showing the dropdown content */
         function myFunction(something) {
             document.getElementById(something).classList.toggle("show");
-            console.log(document.getElementById("myDropdown"))
         }
 
         // Close the dropdown menu if the user clicks outside of it
@@ -147,7 +151,6 @@
                 }
             }
         }
-   
 
         function activate2(int) {
             if(int == 1)
@@ -164,7 +167,7 @@
             eventService.addListener('Progress', onEvent);
             eventService.addListener('Response', onEvent);
         }
-    
+
     function onEvent(ev){
       console.log("control service");
       console.log(ev);
@@ -207,11 +210,6 @@
                     vm.value = ev.attributes.stateWithName.value;
                 }
             }
-
-
-        }
-        function tobbelito(string) {
-            console.log(string);
         }
 
         function sendOrder() {
@@ -264,6 +262,6 @@
             };
             spServicesService.callService('OperationControl',{'data':mess});
         }
-    
+
     }
 })();

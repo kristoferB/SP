@@ -7,39 +7,13 @@
     * It will affect other widgets with the same
     * class names.
     */
-    .row1337 {
-        margin: 5px 0px 0px 0px;
-        padding: 10px 15px 30px 15px;
-        /*width:60px;*/
-        height:40px;
-        background: {{"#C0C0C0"}};
-    }
+
     .row1338 {
         margin: 5px 0px 0px 0px;
         padding: 0px 15px 0px 15px;
         height:40px;
         background: {{"#C0C0C0"}};
     }
-    .row0 {
-        margin: 0px 5px 0px 5px;
-        padding: 10px 0px 0px 0px;
-        height:40px;
-        background: {{"#C0C0C0"}};
-    }
-    .colourX {
-        background: {{"#C0C0C0"}};
-    }
-    .led {
-        border-radius: 20px;
-        //background: {{"#FF00FF"}};
-        width: 20px;
-        height: 20px;
-        margin: 0px 50px 0px 0px;
-    }
-    #ledPlateR1 {background: {{"#FF0000"}};}
-    #ledPlateR2 {background: {{"#FF0000"}};}
-    #ledPlateL1 {background: {{"#FF0000"}};}
-    #ledPlateL2 {background: {{"#FF0000"}};}
     /* Dropdown Button */
     .dropbtn {
         background-color: #4CAF50;
@@ -91,21 +65,22 @@
 
 <div>
 <body ng-app="ngrepeatSelect">
-<div>
+<div><!--The Buttons-->
     <form name="myForm2" ng-repeat="resurs in vm.data.resSel">
         <div class="row1338" style="">
             <h align="left">{{resurs.name}}</h>
-            <button type="button" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);" 
-                    ng-click="vm.tobbelito(action.id)" ng-repeat="action in resurs.resource">{{action.action}}</button>
+            <button type="button" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
+                    ng-click="" ng-repeat="action in resurs.resource">{{action.action}}</button>
         </div>
     </form>
 </div>
-<div>
+<div><!--The pulldowns-->
   <form name="myForm" ng-repeat="resurs in vm.data.resMult">
     <div class="row1338" style="">
         <h align="left"> {{resurs.name}} </h>
+
         <button type="button" style="float: right; width:120px; height:40px; background-color:rgb(255,255,255);"
-                ng-click="vm.tobbelito(resurs.currID)">Run</button>
+                ng-click="vm.sendRaw(resurs.currID)">Run</button>
         <div class="dropdown" style="float: right">
             <button ng-click="vm.myFunction(resurs.name)" class="dropbtn">{{resurs.currVal}}</button>
             <div id={{resurs.name}} class="dropdown-content">
@@ -121,6 +96,7 @@
                 ng-click="vm.tobbelito(option.id)">{{hejsan}}</button>
     </div>
     </form>-->
+
 
 
   </form>
