@@ -35,14 +35,6 @@
         vm.value = 1;
         vm.debug14 = 0;
 
-        vm.editMe = editMe;
-
-        function editMe(name) {
-
-            //vm.data.resMult[rowInList].currVal = vm.data.resMult[rowInList].resource[optionInResource].id;
-            //console.log(rowInList);
-            console.log(name);
-        }
 
         vm.data = {
             resMult: [
@@ -197,32 +189,30 @@
         }
 
         function connect(bus, connectionSpecID, resourcesID){
-        var mess = {
-            'setup': {
-                'busIP': bus.ip,
-                'publishTopic': bus.publish,
-                'subscribeTopic': bus.subscribe
+            var mess = {
+                'setup': {
+                    'busIP': bus.ip,
+                    'publishTopic': bus.publish,
+                    'subscribeTopic': bus.subscribe
+                }
+            };
+            var conn = {};
+            if (angular.isDefined(connectionSpecID)){
+                conn.connectionDetails = connectionSpecID
             }
-        };
-        var conn = {};
-        if (angular.isDefined(connectionSpecID)){
-            conn.connectionDetails = connectionSpecID
-        }
-        if (angular.isDefined(resourcesID)){
-            conn.resources = resourcesID
-        }
-        mess.connection = conn;
-
-        sendTo(mess, 'connect').then(function(repl){
-            console.log("inside first connection");
-            console.log(repl);
-            if (messageOK(repl) && _.has(repl, 'reqID')){
-                service.controlServiceID = repl.reqID;
+            if (angular.isDefined(resourcesID)){
+                conn.resources = resourcesID
             }
-        });
+            mess.connection = conn;
 
-        service.latestMess = mess;
-
+            sendTo(mess, 'connect').then(function(repl){
+                console.log("inside first connection");
+                console.log(repl);
+                if (messageOK(repl) && _.has(repl, 'reqID')){
+                    service.controlServiceID = repl.reqID;
+                }
+            });
+            service.latestMess = mess;
         }
 
 
@@ -235,6 +225,15 @@
             };
             spServicesService.callService('OperationControl',{'data':mess});
         }
-
     }
 })();
+
+
+
+
+
+
+
+
+
+

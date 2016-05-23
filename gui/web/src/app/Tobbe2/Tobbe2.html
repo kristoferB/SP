@@ -14,6 +14,21 @@
         height:40px;
         background: {{"#C0C0C0"}};
     }
+    .centerText {
+        padding: 10px 0px 0px 0px;
+        width:60px;
+        float:left;
+    }
+
+    .circle {
+        display: block;
+        background: black;
+        border-radius: 100%;
+        height: 30px;
+        width: 30px;
+        margin: 5px 43px 0px 0px;
+        background: radial-gradient(circle at 10px 10px, #5cabff, #000);
+    }
 
     /* Dropdown Button */
     .dropbtn {
@@ -64,7 +79,7 @@
 <div><!--The Buttons-->
     <form name="myForm2" ng-repeat="resurs in vm.data.resSel">
         <div class="row1338">
-            <h>{{resurs.name}}</h>
+                <h class="centerText">{{resurs.name}}</h>
             <button type="button" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
                     ng-click="vm.sendRawDB(action.id)" ng-repeat="action in resurs.resource">{{action.action}}</button>
         </div>
@@ -73,7 +88,7 @@
 <div><!--The pulldowns-->
   <form name="myForm" ng-repeat="resurs in vm.data.resMult">
     <div class="row1338" style="">
-        <h align="left">{{resurs.name}}</h>
+        <h class="centerText">{{resurs.name}}</h>
         <button type="button" style="float: right; width:120px; height:40px; background-color:rgb(255,255,255);"
                 ng-click="vm.sendRawDB(resurs.currID)">Run</button>
         <div class="dropdown" style="float: right">
@@ -93,15 +108,15 @@
     </form>-->
 
   </form>
-</div>
-<div>
-<form name="myForm" ng-repeat="resurs in vm.data.singleShow">
-    <div class="row1338" style="">
-        <h align="left"> {{resurs.name}} </h>
-
-        </div>
+    </div>
+    <div>
+        <form name="myForm" ng-repeat="resurs in vm.data.singleShow">
+            <div class="row1338" style="">
+                <h class="centerText"> {{resurs.name}} </h>
+                <figure class="circle" style="float: right"></figure>
+            </div>
         </form>
-        </div>
+    </div>
 </body>
 </div>
 
