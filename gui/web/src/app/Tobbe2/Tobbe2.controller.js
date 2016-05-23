@@ -19,14 +19,18 @@
             resourceTree: [],
             latestMess: {},
             connect: connect,
-            execute: execute
+            sendRawDB: sendRawDB
         };
+
+
+
+
 
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
 
         //functions
         vm.sendOrder = sendOrder;
-
+        vm.sendRawDB = sendRawDB;
         activate();
         vm.placeyplaceholder = 'Chose operation'
         vm.myFunction = myFunction;
@@ -53,21 +57,6 @@
                         {id: '127 18 0 3', action: 'Set at position 3'},
                         {id: '127 18 0 4', action: 'Set at position 4'},
                         {id: '127 18 0 5', action: 'Set at position 5'},
-                        {id: '127 0 5 true', action: 'Pick at set position'},
-                        {id: '127 0 2 true', action: 'Place at elevator 2'},
-                        {id: '127 0 6 true', action: 'Place at table'},
-                    ],
-                    currVal: 'Choose operation',
-                    currID: 'null'
-                },
-                {
-                    name: 'Robot 3',
-                    resource: [
-                        {id: '127 18 0 1', action: 'Set at position 5'},
-                        {id: '127 18 0 2', action: 'Set at position 5'},
-                        {id: '127 18 0 3', action: 'Set at position 5'},
-                        {id: '127 18 0 4', action: 'Set at position 4'},
-                        {id: '127 18 0 5', action: 'Set at position 5  arefgaregq w qfq wfe qef 12r3 qdwf q fq 3f43 qfdq e q3f '},
                         {id: '127 0 5 true', action: 'Pick at set position'},
                         {id: '127 0 2 true', action: 'Place at elevator 2'},
                         {id: '127 0 6 true', action: 'Place at table'},
@@ -184,6 +173,7 @@
 
       if (_.has(ev, 'attributes.state')){
         service.state = ev.attributes.state;
+        console.log(service.state)
       }
       if (_.has(ev, 'attributes.resourceTree')){
         service.resourceTree = ev.attributes.resourceTree;
@@ -200,17 +190,27 @@
       })
     }
 
-        function onEvent(ev) {
-            console.log("SensorGUI Test");
-            console.log(ev);
+    function onEvent(ev){
+      console.log("control service");
+      console.log(ev);
 
-            if (_.has(ev, 'attributes.stateWithName')) {
-                //service.stateWithName = ev.attributes.stateWithName;
-                if (ev.attributes.stateWithName.name.equals("IH2.mode")) {
-                    vm.value = ev.attributes.stateWithName.value;
-                }
-            }
+
+      if (!_.has(ev, 'reqID') || ev.reqID !== service.controlServiceID) return;
+
+      if (_.has(ev, 'attributes.theBus')){
+        if (ev.attributes.theBus === 'Connected' && ! service.connected){
+          sendTo(service.latestMess, 'subscribe');
         }
+        service.connected = ev.attributes.theBus === 'Connected'
+      }
+
+      if (_.has(ev, 'attributes.state')){
+        service.state = ev.attributes.state;
+      }
+      if (_.has(ev, 'attributes.resourceTree')){
+        service.resourceTree = ev.attributes.resourceTree;
+      }
+    }
 
         function sendOrder() {
 
@@ -253,14 +253,15 @@
         service.latestMess = mess;
 
         }
-        function sendRawDB(param)
+ 
 
 
-        function execute(params) {
+        function sendRawDB(params) {
             var mess = service.latestMess;
+            console.log(params);
             mess.command = {
                 'commandType': 'raw',
-                'parameters': params
+                'raw': params
             };
             spServicesService.callService('OperationControl',{'data':mess});
         }

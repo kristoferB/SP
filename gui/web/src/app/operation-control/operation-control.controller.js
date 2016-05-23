@@ -25,7 +25,7 @@
 
         vm.serviceID = '';
         vm.serviceName = 'OperationControl';
-        vm.busIP = '172.16.205.50';
+        vm.busIP = '172.16.205.51';
         vm.publishTopic = 'commands';
         vm.subscribeTopic = 'response';
         vm.connectionDetailsID = '473bca54-13ac-40c8-ba1b-af4019f239f4';
