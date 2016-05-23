@@ -5,12 +5,12 @@
     'use strict';
 
     angular
-      .module('app.Tobbe2')
-      .controller('Tobbe2Controller', Tobbe2Controller);
+        .module('app.Tobbe2')
+        .controller('Tobbe2Controller', Tobbe2Controller);
 
-    Tobbe2Controller.$inject = ['$scope', 'dashboardService', 'eventService','spServicesService'];
+    Tobbe2Controller.$inject = ['$scope', 'dashboardService', 'eventService', 'spServicesService'];
     /* @ngInject */
-    function Tobbe2Controller($scope, dashboardService, eventService,spServicesService) {
+    function Tobbe2Controller($scope, dashboardService, eventService, spServicesService) {
         var vm = this;
         var service = {
             connected: false,
@@ -19,14 +19,15 @@
             resourceTree: [],
             latestMess: {},
             connect: connect,
-            execute: execute
+            sendRawDB: sendRawDB
         };
+
 
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
 
         //functions
         vm.sendOrder = sendOrder;
-
+        vm.sendRawDB = sendRawDB;
         activate();
         vm.placeyplaceholder = 'Chose operation'
         vm.myFunction = myFunction;
@@ -36,7 +37,7 @@
 
         vm.editMe = editMe;
 
-        function editMe(name){
+        function editMe(name) {
 
             //vm.data.resMult[rowInList].currVal = vm.data.resMult[rowInList].resource[optionInResource].id;
             //console.log(rowInList);
@@ -53,21 +54,6 @@
                         {id: '127 18 0 3', action: 'Set at position 3'},
                         {id: '127 18 0 4', action: 'Set at position 4'},
                         {id: '127 18 0 5', action: 'Set at position 5'},
-                        {id: '127 0 5 true', action: 'Pick at set position'},
-                        {id: '127 0 2 true', action: 'Place at elevator 2'},
-                        {id: '127 0 6 true', action: 'Place at table'},
-                    ],
-                    currVal: 'Choose operation',
-                    currID: 'null'
-                },
-                {
-                    name: 'Robot 3',
-                    resource: [
-                        {id: '127 18 0 1', action: 'Set at position 5'},
-                        {id: '127 18 0 2', action: 'Set at position 5'},
-                        {id: '127 18 0 3', action: 'Set at position 5'},
-                        {id: '127 18 0 4', action: 'Set at position 4'},
-                        {id: '127 18 0 5', action: 'Set at position 5  arefgaregq w qfq wfe qef 12r3 qdwf q fq 3f43 qfdq e q3f '},
                         {id: '127 0 5 true', action: 'Pick at set position'},
                         {id: '127 0 2 true', action: 'Place at elevator 2'},
                         {id: '127 0 6 true', action: 'Place at table'},
@@ -126,9 +112,7 @@
                     id: 'db hej hej',
                     value: 'false'
                 }
-
             ]
-
         };
 
         /* When the user clicks on the button,
@@ -138,7 +122,7 @@
         }
 
         // Close the dropdown menu if the user clicks outside of it
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             if (!event.target.matches('.dropbtn')) {
 
                 var dropdowns = document.getElementsByClassName("dropdown-content");
@@ -153,7 +137,7 @@
         }
 
         function activate2(int) {
-            if(int == 1)
+            if (int == 1)
                 vm.debug14++;
             else
                 vm.debug14--;
@@ -168,28 +152,6 @@
             eventService.addListener('Response', onEvent);
         }
 
-        function onEvent(ev){
-          console.log("control service");
-          console.log(ev);
-
-
-          if (!_.has(ev, 'reqID') || ev.reqID !== service.controlServiceID) return;
-
-          if (_.has(ev, 'attributes.theBus')){
-            if (ev.attributes.theBus === 'Connected' && ! service.connected){
-              sendTo(service.latestMess, 'subscribe');
-            }
-            service.connected = ev.attributes.theBus === 'Connected'
-          }
-
-          if (_.has(ev, 'attributes.state')){
-            service.state = ev.attributes.state;
-          }
-          if (_.has(ev, 'attributes.resourceTree')){
-            service.resourceTree = ev.attributes.resourceTree;
-          }
-        }
-
     function updateItems(){
       var its = _.filter(itemService.items, function(o){
         return (angular.isDefined(o.id) && angular.isDefined(service.state[o.id]))
@@ -200,6 +162,26 @@
       })
     }
 
+    function onEvent(ev){
+      console.log("control service");
+      console.log(ev);
+
+      if (!_.has(ev, 'reqID') || ev.reqID !== service.controlServiceID) return;
+
+      if (_.has(ev, 'attributes.theBus')){
+        if (ev.attributes.theBus === 'Connected' && ! service.connected){
+          sendTo(service.latestMess, 'subscribe');
+        }
+        service.connected = ev.attributes.theBus === 'Connected'
+      }
+
+      if (_.has(ev, 'attributes.state')){
+        service.state = ev.attributes.state;
+      }
+      if (_.has(ev, 'attributes.resourceTree')){
+        service.resourceTree = ev.attributes.resourceTree;
+      }
+    }
 
         function sendOrder() {
 
@@ -244,11 +226,12 @@
         }
 
 
-        function execute(params) {
+        function sendRawDB(params) {
             var mess = service.latestMess;
+            console.log(params);
             mess.command = {
                 'commandType': 'raw',
-                'parameters': params
+                'raw': params
             };
             spServicesService.callService('OperationControl',{'data':mess});
         }

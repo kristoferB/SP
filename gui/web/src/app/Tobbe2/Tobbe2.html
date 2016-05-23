@@ -67,7 +67,7 @@
         <div class="row1338">
             <h>{{resurs.name}}</h>
             <button type="button" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
-                    ng-click="" ng-repeat="action in resurs.resource">{{action.action}}</button>
+                    ng-click="vm.sendRawDB(action.id)" ng-repeat="action in resurs.resource">{{action.action}}</button>
         </div>
     </form>
 </div>
@@ -76,7 +76,7 @@
     <div class="row1338" style="">
         <h align="left">{{resurs.name}}</h>
         <button type="button" style="float: right; width:120px; height:40px; background-color:rgb(255,255,255);"
-                ng-click="vm.sendRaw(resurs.currID)">Run</button>
+                ng-click="vm.sendRawDB(resurs.currID)">Run</button>
         <div class="dropdown" style="float: right">
             <button ng-click="vm.myFunction(resurs.name)" class="dropbtn">{{resurs.currVal}}</button>
             <div id={{resurs.name}} class="dropdown-content">
