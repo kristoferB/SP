@@ -131,7 +131,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
     case mess @ AMQMessage(body, prop, headers) => {
       val resp = SPAttributes.fromJson(body.toString)
       println(s"we got a resp from PLC")
-      for {
+      val dbs = for {
         m <- resp
         list <- m.getAs[List[SPAttributes]]("dbs")
       } yield for {
@@ -147,6 +147,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
           case Some(aid) => state = state add (aid -> updV)
           case None => state = state add (id -> updV)
         }
+        l
       }
 
       stateWithName = state.state.flatMap{case (id, value) =>
@@ -154,7 +155,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
         item.map(i => IDWithName(id, i.name, value))
       }.toList
 
-      eventHandler ! Response(List(), SPAttributes("state"->state, "stateWithName"->stateWithName, "resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
+      eventHandler ! Response(List(), SPAttributes("state"->state, "stateWithName"->stateWithName, "dbs"-> dbs,"resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
     }
     case ConnectionInterrupted(ca, x) => {
       println("connection closed")

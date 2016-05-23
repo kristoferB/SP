@@ -25,7 +25,9 @@
 
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
 
-        //functions
+        //functions¨
+
+        vm.parseColour = parseColour;
         vm.sendOrder = sendOrder;
         vm.sendRawDB = sendRawDB;
         activate();
@@ -41,9 +43,9 @@
                 {
                     name: 'Robot 2',
                     resource: [
-                        {id: '127 18 0 1', action: 'Set at position 1'},
-                        {id: '127 18 0 2', action: 'Set at position 2'},
-                        {id: '127 18 0 3', action: 'Set at position 3'},
+                        {id: '127 18 0 1', action: 'Set at position 1', value: 'false'},
+                        {id: '127 18 0 2', action: 'Set at position 2', value: 'false'},
+                        {id: '127 18 0 3', action: 'Set at position 3', value: 'false'},
                         {id: '127 18 0 4', action: 'Set at position 4'},
                         {id: '127 18 0 5', action: 'Set at position 5'},
                         {id: '127 0 5 true', action: 'Pick at set position'},
@@ -155,8 +157,15 @@
     }
 
     function onEvent(ev){
-      console.log("control service");
-      console.log(ev);
+      //console.log("control service");
+      //console.log(ev);
+
+      if (ev.isa == "Response" && ev.service == "OperationControl" && !(_.isUndefined(ev.attributes.dbs)) ) {
+        console.log(ev);
+        console.log("tjohopp");
+        ev.attributes.dbs.forEach(vm.parseColour);
+
+      }
 
       if (!_.has(ev, 'reqID') || ev.reqID !== service.controlServiceID) return;
 
@@ -213,6 +222,10 @@
                 }
             });
             service.latestMess = mess;
+        }
+
+        function parseColour(item, index) {
+            console.log(item.address, item.value);
         }
 
 
