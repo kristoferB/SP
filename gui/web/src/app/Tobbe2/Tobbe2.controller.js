@@ -26,7 +26,7 @@
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
 
         //functions¨
-
+        vm.adressToRaw = adressToRaw;
         vm.parseColour = parseColour;
         vm.sendOrder = sendOrder;
         vm.sendRawDB = sendRawDB;
@@ -37,7 +37,7 @@
         vm.activate2 = activate2;
         vm.value = 1;
         vm.debug14 = 0;
-
+        vm.someshit = someshit;
 
         vm.data = {
             resMult: [
@@ -47,11 +47,11 @@
                         {id: '127 18 0 1', action: 'Set at position 1', value: 'false'},
                         {id: '127 18 0 2', action: 'Set at position 2', value: 'false'},
                         {id: '127 18 0 3', action: 'Set at position 3', value: 'false'},
-                        {id: '127 18 0 4', action: 'Set at position 4'},
-                        {id: '127 18 0 5', action: 'Set at position 5'},
-                        {id: '127 0 5 true', action: 'Pick at set position'},
-                        {id: '127 0 2 true', action: 'Place at elevator 2'},
-                        {id: '127 0 6 true', action: 'Place at table'},
+                        {id: '127 18 0 4', action: 'Set at position 4', value: 'false'},
+                        {id: '127 18 0 5', action: 'Set at position 5', value: 'false'},
+                        {id: '127 0 5 true', action: 'Pick at set position', value: 'false'},
+                        {id: '127 0 2 true', action: 'Place at elevator 2', value: 'false'},
+                        {id: '127 0 6 true', action: 'Place at table', value: 'false'},
                     ],
                     currVal: 'Choose operation',
                     currID: 'null'
@@ -61,43 +61,43 @@
                 {
                     name: 'Mode',
                     resource: [
-                        {id: '135 0 SAKNAS true', action: 'Manual'},
-                        {id: '135 0 SAKNAS true', action: 'Auto'}
+                        {id: '135 0 SAKNAS true', action: 'Manual', value: 'false'},
+                        {id: '135 0 SAKNAS true', action: 'Auto', value: 'false'}
                     ]
                 },
                 {
                     name: 'Elevator 1',
                     resource: [
-                        {id: '135 0 0 true', action: 'Up'},
-                        {id: '135 0 1 true', action: 'Down'}
+                        {id: '135 0 0 true', action: 'Up', value: 'false'},
+                        {id: '135 0 1 true', action: 'Down', value: 'false'}
                     ]
                 },
                 {
                     name: 'Elevator 2',
                     resource: [
-                        {id: '140 0 0 true', action: 'Up'},
-                        {id: '140 0 1 true', action: 'Down'}
+                        {id: '140 0 0 true', action: 'Up', value: 'false'},
+                        {id: '140 0 1 true', action: 'Down', value: 'false'}
                     ]
                 },
                 {
                     name: 'Flexlink',
                     resource: [
-                        {id: '139 0 SAKNAS true', action: 'Start'},
-                        {id: '139 0 SAKNAS true', action: 'Stop'}
+                        {id: '139 0 SAKNAS true', action: 'Start', value: 'false'},
+                        {id: '139 0 SAKNAS true', action: 'Stop', value: 'false'}
                     ]
                 },
                 {
                     name: 'Robot 3',
                     resource: [
-                        {id: '128 0 2 true', action: 'Home'},
-                        {id: '128 0 3 true', action: 'Dodge'}
+                        {id: '128 0 2 true', action: 'Home', value: 'false'},
+                        {id: '128 0 3 true', action: 'Dodge', value: 'false'}
                     ]
                 },
                 {
                     name: 'Robot 4',
                     resource: [
-                        {id: '132 0 2 true', action: 'Home'},
-                        {id: '132 0 3 true', action: 'Dodge'}
+                        {id: '132 0 2 true', action: 'Home', value: 'false'},
+                        {id: '132 0 3 true', action: 'Dodge', value: 'false'}
                     ]
                 }
             ],
@@ -240,9 +240,25 @@
         }
 
         function parseColour(item, index) {
-            console.log(item.address, item.value);
+            if (!(_.isUndefined(item.address))) {
+                console.log("here we are")
+            var hej = adressToRaw(item.address) +' true';
+            console.log(hej);
+            console.log(vm.data.resSel);
+            console.log(_.find(vm.data.resSel, someshit));
+            console.log(adressToRaw(item.address)+" : " + item.value);
+            }
+        }
+        function someshit(param1){
+            console.log(param1);
+            var prutt = (_.find(param1.resource, function(r) {console.log("printing r"); console.log(r); r.id == "135 0 1 true";}));
+            console.log(prutt)
+            return prutt
         }
 
+        function adressToRaw(params) {
+            return params.db + ' ' + params.byte + ' ' + params.bit;
+        }
 
         function sendRawDB(params) {
             var mess = service.latestMess;
