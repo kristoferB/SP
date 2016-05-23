@@ -45,13 +45,13 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
       val order = SPOrder(newOrder.id, newOrder.name, newOrder.stations, ids.map(x => x.id -> x).toMap)
 
       println(s"new order: $newOrder")
+      ev ! Progress(SPAttributes("status"->"new", "order"->newOrder), "OrderHandler", id)
+
       addNewOrder(order)
 
       ev ! SubscribeToSSE(self)
 
-      ev ! Progress(SPAttributes("status"->"new", "order"->newOrder), "OrderHandler", id)
-
-      replyTo ! Response(List(), SPAttributes("status"-> "order received"), r.service, r.reqID)
+      replyTo ! Response(List(), SPAttributes("status"-> "order received", "silent"->true), r.service, r.reqID)
 
     case Progress(attr, "RunnerService", id) => println(s"order handler got a progress: $attr")
 
@@ -97,7 +97,10 @@ sealed trait OrderHandlerLogic {
   def addNewOrder(order: SPOrder) = {
     orders = orders :+ order
     order.stations.keys.foreach(s => {
-        nextStationOrder(s)
+      activeStations.get(s) match {
+        case None => nextStationOrder(s)
+        case _ => ()
+        }
       }
     )
   }
