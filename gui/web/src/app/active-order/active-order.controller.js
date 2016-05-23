@@ -8,14 +8,16 @@
       .module('app.activeOrder')
       .controller('activeOrderController', activeOrderController);
 
-    activeOrderController.$inject = ['$scope', 'dashboardService', 'spServicesService'];
+    activeOrderController.$inject = ['$scope', 'dashboardService', 'spServicesService','eventService'];
     /* @ngInject */
-    function activeOrderController($scope, dashboardService, spServicesService) {
+    function activeOrderController($scope, dashboardService, spServicesService, eventService) {
         var vm = this;
         vm.widget = $scope.$parent.$parent.$parent.vm.widget;
-        vm.a = 3;
-        vm.b = 7;
+        vm.a = 0;
+        vm.b = 0;
         vm.getColor = getColor;
+        vm.messages = '';
+        var messages = '';
 
         vm.ButtonColor = {
             kub: [
@@ -47,7 +49,38 @@
                 [0, 0, 0, 0],
                 [0, 0, 0, 0],
                 [0, 0, 0, 0]
-            ]
+            ];
+        }
+
+        function reverseMessages() {
+            return messages.split("\n").reverse().join("\n");
+        }
+
+        function onEvent(event) {
+            if(!(_.isUndefined(event.service)) && event.service != "OrderHandler") return;
+            if(_.isUndefined(event.isa)) return;
+            if(event.isa != "Progress") return;
+            if(_.isUndefined(event.attributes.status)) return;
+            var attr = event.attributes;
+            if(attr.status == 'new') {
+                console.log('added');
+                messages += 'Added new order: ' + attr.order.name + '\n';
+                vm.b++;
+            } else if(attr.status == 'completed') {
+                console.log('finishing');
+                messages += 'Order: + ' + attr.order.name + ' -- Completed station ' + attr.station + '\n';
+                if(attr.station == 'tower') {
+                    // tower complete
+                    vm.a++;
+                }
+            } else if(attr.status == 'stationOrder') {
+                console.log('starting');
+                messages += 'Order: ' + attr.order.name + ' -- Starting station ' + attr.station + '\n';
+                if(attr.station == 'tower') {
+                    if(vm.a == 0) vm.a = 1;
+                }
+            }
+            vm.messages = reverseMessages();
         }
 
         vm.spservice = spServicesService;
@@ -57,6 +90,8 @@
             $scope.$on('closeRequest', function() {
                 dashboardService.closeWidget(vm.widget.id);
             });
+
+            eventService.addListener('Progress', onEvent);
         }
 
     }
