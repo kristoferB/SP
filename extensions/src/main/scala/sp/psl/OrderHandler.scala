@@ -127,7 +127,10 @@ sealed trait OrderHandlerLogic {
       o.stations.keySet.contains(station) && (!orderCompleted.contains(o) || !orderCompleted(o).completedStations.contains(station))
     )
     val ao = nextOrder.flatMap(o => activateOrder(station, o))
-    if (ao.isEmpty) println(s"No more orders for station: $station")
+    if (ao.isEmpty) {
+      println(s"No more orders for station: $station")
+      activeStations -= station
+    }
 
     ao.foreach(startStationOrder)
   }

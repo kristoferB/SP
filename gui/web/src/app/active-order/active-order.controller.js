@@ -68,10 +68,11 @@
                 vm.b++;
             } else if(attr.status == 'completed') {
                 console.log('finishing');
-                messages += 'Order: + ' + attr.order.name + ' -- Completed station ' + attr.station + '\n';
+                messages += 'Order: ' + attr.order.name + ' -- Completed station ' + attr.station + '\n';
                 if(attr.station == 'tower') {
                     // tower complete
                     vm.a++;
+                    if(vm.a > vm.b) vm.a = vm.b;
                 }
             } else if(attr.status == 'stationOrder') {
                 console.log('starting');

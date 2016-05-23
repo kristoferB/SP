@@ -104,11 +104,11 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
             unsubscribe()
         case "start" =>
           commands.getAs[ID]("execute").foreach { id =>
-            sendStartStop(commands, id, true)
+            sendStart(commands, id)
           }
         case "stop" =>
           commands.getAs[ID]("execute").foreach { id =>
-            sendStartStop(commands, id, false)
+            sendStop(commands, id)
           }
         case "status" =>
           eventHandler ! Response(List(), SPAttributes("state"->state, "resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
@@ -252,7 +252,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
     sendMessage(mess)
   }
 
-  def sendStartStop(commands: SPAttributes, id: ID, start: Boolean) = {
+  def sendStart(commands: SPAttributes, id: ID) = {
       val params = commands.getAs[State]("parameters").getOrElse(State(Map()))
       val paramsString = commands.getAs[String]("parameters")
 
@@ -271,7 +271,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       // HACK
       val rid = abilityToRun.get(id).getOrElse(ID.newID)
       // flip RUN and write it to PLC
-      val runState = start // state.get(rid).flatMap(_.to[Boolean]).map(!_).getOrElse(false)
+      val runState = true // state.get(rid).flatMap(_.to[Boolean]).map(!_).getOrElse(false)
       // println(s"the new state of run: $runState")
 
       val oDB = connectionMap.get(rid).map{db => DBValue(item.name, item.id, SPValue(runState), db.valueType,
@@ -293,12 +293,39 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       sendMessage(mess)
   }
 
+  def sendStop(commands: SPAttributes, id: ID) = {
+      val resourceInfo = SPAttributes("id" -> ID.newID, "name" -> "plc") // will later be used to match receiver
+      val item = idMap.getOrElse(id, Operation("dummy"))
+
+      val rid = abilityToRun.get(id).getOrElse(ID.newID)
+      val runState = false // state.get(rid).flatMap(_.to[Boolean]).map(!_).getOrElse(false)
+
+      val oDB = connectionMap.get(rid).map{db => DBValue(item.name, item.id, SPValue(runState), db.valueType,
+        if(db.busAddress == "") SPValue(PLCAddress(db.db, db.byte, db.bit)) else SPValue(BusAddress(db.busAddress)))}
+
+      val command = SPAttributes(
+        "id" -> id,
+        "name" -> item.name,
+        "parameters" -> List()
+      )
+      val dbs = List(oDB)
+
+      val mess = SPAttributes(
+        "resource"->resourceInfo,
+        "commands"->List(command),
+        "command"->"write",
+        "dbs"-> dbs
+      )
+    println(s"sending: $mess")
+      sendMessage(mess)
+  }  
+
   def sendCommands(commands: SPAttributes) = {
     commands.getAs[ID]("start").foreach { id =>
-      sendStartStop(commands, id, true)
+      sendStart(commands, id)
     }
     commands.getAs[ID]("stop").foreach { id =>
-      sendStartStop(commands, id, false)
+      sendStop(commands, id)
     }    
   }
 
