@@ -28,6 +28,7 @@
         //functions¨
 
         vm.parseColour = parseColour;
+        vm.parseColourCompliment = parseColourCompliment;
         vm.sendOrder = sendOrder;
         vm.sendRawDB = sendRawDB;
         activate();
@@ -240,9 +241,12 @@
         }
 
         function parseColour(item, index) {
-            console.log(item.address, item.value);
+            item.forEach(parseColourCompliment);
+            //console.log(item.address, item.value, item);
         }
-
+        function parseColourCompliment(item, index) {
+            console.log(item);
+        }
 
         function sendRawDB(params) {
             var mess = service.latestMess;
