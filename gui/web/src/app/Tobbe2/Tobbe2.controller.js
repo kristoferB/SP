@@ -253,6 +253,8 @@
         service.latestMess = mess;
 
         }
+        function sendRawDB(param)
+
 
         function execute(params) {
             var mess = service.latestMess;
