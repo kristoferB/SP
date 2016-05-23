@@ -14,6 +14,7 @@
         height:40px;
         background: {{"#C0C0C0"}};
     }
+
     /* Dropdown Button */
     .dropbtn {
         background-color: #4CAF50;
@@ -43,10 +44,7 @@
         background-color: #f9f9f9;
         min-width: 160px;
         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        height:200px;
-        overflow:hidden;
-        overflow-y:scroll;
-        z-index: 1;
+
     }
     /* Links inside the dropdown */
     .dropdown-content a {
@@ -67,8 +65,8 @@
 <body ng-app="ngrepeatSelect">
 <div><!--The Buttons-->
     <form name="myForm2" ng-repeat="resurs in vm.data.resSel">
-        <div class="row1338" style="">
-            <h align="left">{{resurs.name}}</h>
+        <div class="row1338">
+            <h>{{resurs.name}}</h>
             <button type="button" style="float: right;width:60px;height:40px;background-color:rgb(255,255,255);"
                     ng-click="" ng-repeat="action in resurs.resource">{{action.action}}</button>
         </div>
@@ -77,8 +75,7 @@
 <div><!--The pulldowns-->
   <form name="myForm" ng-repeat="resurs in vm.data.resMult">
     <div class="row1338" style="">
-        <h align="left"> {{resurs.name}} </h>
-
+        <h align="left">{{resurs.name}}</h>
         <button type="button" style="float: right; width:120px; height:40px; background-color:rgb(255,255,255);"
                 ng-click="vm.sendRaw(resurs.currID)">Run</button>
         <div class="dropdown" style="float: right">
