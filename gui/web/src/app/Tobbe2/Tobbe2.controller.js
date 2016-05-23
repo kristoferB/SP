@@ -168,27 +168,27 @@
             eventService.addListener('Response', onEvent);
         }
 
-    function onEvent(ev){
-      console.log("control service");
-      console.log(ev);
+        function onEvent(ev){
+          console.log("control service");
+          console.log(ev);
 
 
-      if (!_.has(ev, 'reqID') || ev.reqID !== service.controlServiceID) return;
+          if (!_.has(ev, 'reqID') || ev.reqID !== service.controlServiceID) return;
 
-      if (_.has(ev, 'attributes.theBus')){
-        if (ev.attributes.theBus === 'Connected' && ! service.connected){
-          sendTo(service.latestMess, 'subscribe');
+          if (_.has(ev, 'attributes.theBus')){
+            if (ev.attributes.theBus === 'Connected' && ! service.connected){
+              sendTo(service.latestMess, 'subscribe');
+            }
+            service.connected = ev.attributes.theBus === 'Connected'
+          }
+
+          if (_.has(ev, 'attributes.state')){
+            service.state = ev.attributes.state;
+          }
+          if (_.has(ev, 'attributes.resourceTree')){
+            service.resourceTree = ev.attributes.resourceTree;
+          }
         }
-        service.connected = ev.attributes.theBus === 'Connected'
-      }
-
-      if (_.has(ev, 'attributes.state')){
-        service.state = ev.attributes.state;
-      }
-      if (_.has(ev, 'attributes.resourceTree')){
-        service.resourceTree = ev.attributes.resourceTree;
-      }
-    }
 
     function updateItems(){
       var its = _.filter(itemService.items, function(o){
@@ -200,17 +200,6 @@
       })
     }
 
-        function onEvent(ev) {
-            console.log("SensorGUI Test");
-            console.log(ev);
-
-            if (_.has(ev, 'attributes.stateWithName')) {
-                //service.stateWithName = ev.attributes.stateWithName;
-                if (ev.attributes.stateWithName.name.equals("IH2.mode")) {
-                    vm.value = ev.attributes.stateWithName.value;
-                }
-            }
-        }
 
         function sendOrder() {
 
@@ -253,7 +242,6 @@
         service.latestMess = mess;
 
         }
-        function sendRawDB(param)
 
 
         function execute(params) {
