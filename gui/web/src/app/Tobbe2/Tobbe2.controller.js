@@ -100,14 +100,14 @@
                         {id: '141 0 1', action: 'Mode', value: '#FFFFFF'}
                     ]
                 }
-            ],
+            ]/*,
             singleShow: [
                 {
                     name: 'Sensor 1',
                     id: 'db hej hej',
                     value: 'false'
                 }
-            ]
+            ]*/
         };
 
         function changeColor(circleID, colour) {
@@ -243,7 +243,7 @@
             if (!(_.isUndefined(item.address))) {
                 var theKey = adressToRaw(item.address);
                 var theValue = item.value;
-                console.log(theValue);
+                //console.log(theValue);
                 searchObj( vm.data, theKey, theValue );
                 //var oki = _.find(vm.data.resSel, someshit);
                 //console.log(oki)
@@ -266,10 +266,7 @@
                 }
 
                 if( obj[key] === keyToFind ){
-                    console.log("this is the data")
-                    console.log(data);
                     obj.value = parseColourTrueFalse(data);
-                    console.log(obj);
                 }
 
             }
