@@ -176,8 +176,6 @@
       //console.log(ev);
 
       if (ev.isa == "Response" && ev.service == "OperationControl" && !(_.isUndefined(ev.attributes.dbs)) ) {
-        console.log(ev);
-        console.log("tjohopp");
         ev.attributes.dbs.forEach(vm.parseColour);
 
       }
@@ -243,13 +241,12 @@
             if (!(_.isUndefined(item.address))) {
                 var theKey = adressToRaw(item.address);
                 var theValue = item.value;
-                //console.log(theValue);
                 searchObj( vm.data, theKey, theValue );
-                //var oki = _.find(vm.data.resSel, someshit);
-                //console.log(oki)
+                //var oki = _.find(vm.data.resSel, hejhej);
+
             }
         }
-        //function someshit(param1){
+        //function hejhej(param1){
         //    return !_.isUndefined(_.find(param1.resource, function(r) {return r.id == '135 0 1 true';}));
         //}
 
@@ -274,8 +271,8 @@
         }
 
         function parseColourTrueFalse(value) {
-            if (value === true) return '#70db70';
-            else if (value === false) return '#ff4d4d';
+            if (value === true) return '#99e699';
+            else if (value === false) return '#ff6666';
             else return '#FFFFFF';
         }
 
