@@ -67,6 +67,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
       println("Command: " + command)
+      eventHandler ! SubscribeToSSE(self)
 
       command match {
         case "connect" =>
@@ -94,6 +95,15 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
     }
     case ConnectionFailed(request, reason) => {
       println("Operator instruction AMQ failed:"+reason)
+    }
+    case r @ Response(ids, attr, service, _) if service == "OperationControl" => {
+      // high level force reset...
+      if(attr.getAs[Boolean]("reset").getOrElse(false)) {
+        println("OperatorInstructions: High level force reset! Resetting.")
+        run = false
+        mode = 1
+        eventHandler ! Response(List(), SPAttributes("resetOperatorInstructions"->true, "silent"->true), serviceName.get, serviceID)
+      }
     }
     case mess @ AMQMessage(body, prop, headers) => {
       //println(s"new instruction on the bus!!!!!!!")
@@ -155,7 +165,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
       setup = None
     }
     case x => {
-      println("Operator instr no match for message: "+x)
+      // println("Operator instr no match for message: "+x)
     }
   }
 
@@ -165,7 +175,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
         case Some(addr) if addr.name == addressPrefix + ".run" => SPValue(run)
         case Some(addr) if addr.name == addressPrefix + ".mode" => SPValue(mode)
         case s@_ => {
-          println("op instruction subscription does not exist: " + s)
+          // println("op instruction subscription does not exist: " + s)
           SPValue(false)
         }
       }

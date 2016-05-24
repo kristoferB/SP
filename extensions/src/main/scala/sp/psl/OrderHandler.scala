@@ -73,6 +73,15 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
           ev ! Progress(SPAttributes("status"->"completed", "station"->station, "order"->OrderDefinition(order.id, order.name, order.stations)), "OrderHandler", ID.newID)
         )
       }
+    case r @ Response(ids, attr, service, _) if service == "OperationControl" => {
+      // high level force reset...
+      if(attr.getAs[Boolean]("reset").getOrElse(false)) {
+        println("OrderHandler: High level force reset! Resetting.")
+        completedSops = Set()
+        resetOrders
+        ev ! Progress(SPAttributes("status"->"reset"), "OrderHandler", ID.newID)
+      }
+    }
     case r @ Response(ids, attr, service, id) => // println(s"order handler got a response, but no match: $r")
   }
 
@@ -93,6 +102,11 @@ sealed trait OrderHandlerLogic {
   var orderCompleted = Map[SPOrder, CompletedOrders]()
   var activeStations = Map[String, ActiveOrder]()
 
+  def resetOrders = {
+    orders = List()
+    orderCompleted = Map()
+    activeStations = Map()
+  }
 
   def addNewOrder(order: SPOrder) = {
     orders = orders :+ order

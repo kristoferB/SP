@@ -30,7 +30,7 @@ object OperationControl extends SPService {
       "connectionDetails" -> KeyDefinition("Option[ID]", List(), None)
     ),
     "command" -> SPAttributes(
-      "commandType"->KeyDefinition("String", List("connect", "disconnect", "status", "subscribe", "unsubscribe", "start", "stop", "raw"), Some("connect")),
+      "commandType"->KeyDefinition("String", List("connect", "disconnect", "status", "subscribe", "unsubscribe", "start", "stop", "raw", "reset"), Some("connect")),
       "execute" -> KeyDefinition("Option[ID]", List(), None),
       "parameters" -> KeyDefinition("Option[State]", List(), None),
       "raw" -> KeyDefinition("String", List(), Some("")) // db byte bit value
@@ -112,6 +112,8 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
           }
         case "status" =>
           eventHandler ! Response(List(), SPAttributes("state"->state, "resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
+        case "reset" =>
+          eventHandler ! Response(List(), SPAttributes("reset"->true, "silent"->true), serviceName.get, serviceID)
         case "raw" =>
           sendRaw(commands)
         case _ =>

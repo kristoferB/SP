@@ -62,7 +62,11 @@
             if(event.isa != "Progress") return;
             if(_.isUndefined(event.attributes.status)) return;
             var attr = event.attributes;
-            if(attr.status == 'new') {
+            if(attr.status == 'reset') {
+                vm.a = 0;
+                vm.b = 0;
+                messages = '';
+            } else if(attr.status == 'new') {
                 console.log('added');
                 messages += 'Added new order: ' + attr.order.name + '\n';
                 vm.b++;
@@ -78,7 +82,7 @@
                 console.log('starting');
                 messages += 'Order: ' + attr.order.name + ' -- Starting station ' + attr.station + '\n';
                 if(attr.station == 'tower') {
-                    if(vm.a == 0) vm.a = 1;
+                    if(vm.a == vm.b) vm.a++;
                 }
             }
             vm.messages = reverseMessages();

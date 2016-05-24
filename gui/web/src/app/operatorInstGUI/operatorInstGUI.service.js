@@ -42,7 +42,12 @@
                 }
             }
 
-            if (_.has(ev, 'attributes.operatorInstructions')){
+            if (_.has(ev, 'attributes.resetOperatorInstructions')){
+                if(ev.attributes.resetOperatorInstructions) {
+                    service.operatorInstructions = [];
+                }
+                service.operatorInstructions = ev.attributes.operatorInstructions;
+            } else if (_.has(ev, 'attributes.operatorInstructions')){
                 service.operatorInstructions = ev.attributes.operatorInstructions;
             }            
         }
