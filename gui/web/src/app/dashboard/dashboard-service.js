@@ -38,7 +38,7 @@
                 {sizeX: 4, sizeY: 4, title: 'some crap hej', template: 'app/operation-control/operation-control.html'},
                 
                 {sizeX: 4, sizeY: 4, title: 'calculator', template: 'app/calculator/calculator.html'},
-                {sizeX: 4, sizeY: 4, title: 'ResetGUI', template: 'app/Tobbe2/Tobbe2.html'},
+                {sizeX: 8, sizeY: 6, title: 'ResetGUI', template: 'app/Tobbe2/Tobbe2.html'},
                 {sizeX: 4, sizeY: 4, title: 'kubInputGUI', template: 'app/kubInputGUI/kubInputGUI.html'},
                 {sizeX: 4, sizeY: 4, title: 'Calculator', template: 'app/calculator/calculator.html'},
                 {sizeX: 4, sizeY: 4, title: 'rasmus', template: 'app/rasmus/rasmus.html'},
