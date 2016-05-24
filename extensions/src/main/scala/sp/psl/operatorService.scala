@@ -25,7 +25,7 @@ object OperatorService extends SPService {
     )
 
   val transformation = transformToList(transformTuple.productIterator.toList)
-  def props(serviceHandler: ActorRef) = ServiceLauncher.props(Props(classOf[OperatorService], serviceHandler))
+  def props(serviceHandler: ActorRef) = Props(classOf[OperatorService], serviceHandler)
 
 }
 class OperatorService(sh: ActorRef) extends Actor with ServiceSupport with TowerBuilder {
@@ -72,7 +72,6 @@ class OperatorService(sh: ActorRef) extends Actor with ServiceSupport with Tower
 
 
       replyTo ! Response(List(), SPAttributes("tower" -> tower), rnr.req.service, rnr.req.reqID)
-      self ! PoisonPill
     }
     case error: SPError => println(s"Operator Service got an error: $error")
   }
