@@ -59,13 +59,6 @@
             ],
             resSel: [
                 {
-                    name: 'Mode',
-                    resource: [
-                        {id: '135 0 SAKNAS true', action: 'Manual', value: 'false'},
-                        {id: '135 0 SAKNAS false', action: 'Auto', value: 'false'}
-                    ]
-                },
-                {
                     name: 'Elevator 1',
                     resource: [
                         {id: '135 0 0', action: 'Up', value: 'false'},
@@ -75,15 +68,15 @@
                 {
                     name: 'Elevator 2',
                     resource: [
-                        {id: '140 0 0 true', action: 'Up', value: 'false'},
-                        {id: '140 0 1 true', action: 'Down', value: 'false'}
+                        {id: '140 0 0', action: 'Up', value: 'false'},
+                        {id: '140 0 1', action: 'Down', value: 'false'}
                     ]
                 },
                 {
                     name: 'Flexlink',
                     resource: [
-                        {id: '139 0 SAKNAS', action: 'Start', value: 'false'},
-                        {id: '139 0 SAKNAS', action: 'Stop', value: 'false'}
+                        {id: '138 16 0', action: 'Start', value: 'false'},
+                        {id: '138 16 1 ', action: 'Stop', value: 'false'}
                     ]
                 },
                 {
@@ -249,7 +242,7 @@
         function parseColour(item, index) {
             if (!(_.isUndefined(item.address))) {
                 console.log("here we are")
-            var hej = adressToRaw(item.address) +' true';
+            var hej = adressToRaw(item.address);
             var oki = _.find(vm.data.resSel, someshit);
             console.log(oki)
             }
