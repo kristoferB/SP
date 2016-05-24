@@ -21,7 +21,7 @@
             connect: connect,
             sendRawDB: sendRawDB
         };
-
+        vm.hej = 'null'
 
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
 
@@ -37,21 +37,21 @@
         vm.activate2 = activate2;
         vm.value = 1;
         vm.debug14 = 0;
-        vm.someshit = someshit;
-
+        vm.parseColourTrueFalse = parseColourTrueFalse;
+        vm.searchObj = searchObj;
         vm.data = {
             resMult: [
                 {
                     name: 'Robot 2',
                     resource: [
-                        {id: '127 18 0 1', action: 'Set at position 1', value: 'false'},
-                        {id: '127 18 0 2', action: 'Set at position 2', value: 'false'},
-                        {id: '127 18 0 3', action: 'Set at position 3', value: 'false'},
-                        {id: '127 18 0 4', action: 'Set at position 4', value: 'false'},
-                        {id: '127 18 0 5', action: 'Set at position 5', value: 'false'},
-                        {id: '127 0 5 true', action: 'Pick at set position', value: 'false'},
-                        {id: '127 0 2 true', action: 'Place at elevator 2', value: 'false'},
-                        {id: '127 0 6 true', action: 'Place at table', value: 'false'},
+                        {id: '127 18 0 1', action: 'Set at position 1', value: '#FFFFFF'},
+                        {id: '127 18 0 2', action: 'Set at position 2', value: '#FFFFFF'},
+                        {id: '127 18 0 3', action: 'Set at position 3', value: '#FFFFFF'},
+                        {id: '127 18 0 4', action: 'Set at position 4', value: '#FFFFFF'},
+                        {id: '127 18 0 5', action: 'Set at position 5', value: '#FFFFFF'},
+                        {id: '127 0 5 true', action: 'Pick at set position', value: '#FFFFFF'},
+                        {id: '127 0 2 true', action: 'Place at elevator 2', value: '#FFFFFF'},
+                        {id: '127 0 6 true', action: 'Place at table', value: '#FFFFFF'},
                     ],
                     currVal: 'Choose operation',
                     currID: 'null'
@@ -61,43 +61,43 @@
                 {
                     name: 'Elevator 1',
                     resource: [
-                        {id: '135 0 0', action: 'Up', value: 'false'},
-                        {id: '135 0 1', action: 'Down', value: 'false'}
+                        {id: '135 0 0', action: 'Up', value: '#FFFFFF'},
+                        {id: '135 0 1', action: 'Down', value: '#FFFFFF'}
                     ]
                 },
                 {
                     name: 'Elevator 2',
                     resource: [
-                        {id: '140 0 0', action: 'Up', value: 'false'},
-                        {id: '140 0 1', action: 'Down', value: 'false'}
+                        {id: '140 0 0', action: 'Up', value: '#FFFFFF'},
+                        {id: '140 0 1', action: 'Down', value: '#FFFFFF'}
                     ]
                 },
                 {
                     name: 'Flexlink',
                     resource: [
-                        {id: '138 16 0', action: 'Start', value: 'false'},
-                        {id: '138 16 1 ', action: 'Stop', value: 'false'}
+                        {id: '138 16 0', action: 'Start', value: '#FFFFFF'},
+                        {id: '138 16 1 ', action: 'Stop', value: '#FFFFFF'}
                     ]
                 },
                 {
                     name: 'Robot 3',
                     resource: [
-                        {id: '128 0 2', action: 'Home', value: 'false'},
-                        {id: '128 0 3', action: 'Dodge', value: 'false'}
+                        {id: '128 0 2', action: 'Home', value: '#FFFFFF'},
+                        {id: '128 0 3', action: 'Dodge', value: '#FFFFFF'}
                     ]
                 },
                 {
                     name: 'Robot 4',
                     resource: [
-                        {id: '132 0 2', action: 'Home', value: 'false'},
-                        {id: '132 0 3', action: 'Dodge', value: 'false'}
+                        {id: '132 0 2', action: 'Home', value: '#FFFFFF'},
+                        {id: '132 0 3', action: 'Dodge', value: '#FFFFFF'}
                     ]
                 },
                 {
                     name: 'Reset PLC',
                     resource: [
-                        {id: '141 0 0', action: 'Set'},
-                        {id: '141 0 1', action: 'Mode'}
+                        {id: '141 0 0', action: 'Set', value: '#FFFFFF'},
+                        {id: '141 0 1', action: 'Mode', value: '#FFFFFF'}
                     ]
                 }
             ],
@@ -241,19 +241,45 @@
 
         function parseColour(item, index) {
             if (!(_.isUndefined(item.address))) {
-                console.log("here we are")
-            var hej = adressToRaw(item.address);
-            var oki = _.find(vm.data.resSel, someshit);
-            console.log(oki)
+                var theKey = adressToRaw(item.address);
+                var theValue = item.value;
+                console.log(theValue);
+                searchObj( vm.data, theKey, theValue );
+                //var oki = _.find(vm.data.resSel, someshit);
+                //console.log(oki)
             }
         }
-        function someshit(param1){
-            return !_.isUndefined(_.find(param1.resource, function(r) {return r.id == '135 0 1 true';}));
-        }
+        //function someshit(param1){
+        //    return !_.isUndefined(_.find(param1.resource, function(r) {return r.id == '135 0 1 true';}));
+        //}
 
         function adressToRaw(params) {
-            var rawValue = params.db + ' ' + params.byte + ' ' + params.bit;
-            return rawValue;
+            return params.db + ' ' + params.byte + ' ' + params.bit;
+        }
+
+        function searchObj( obj, keyToFind, data ){
+
+            for( var key in obj ) {
+
+                if( typeof obj[key] === 'object' ){
+                    searchObj( obj[key], keyToFind, data );
+                }
+
+                if( obj[key] === keyToFind ){
+                    console.log("this is the data")
+                    console.log(data);
+                    obj.value = parseColourTrueFalse(data);
+                    console.log(obj);
+                }
+
+            }
+
+        }
+
+        function parseColourTrueFalse(value) {
+            if (value === true) return '#70db70';
+            else if (value === false) return '#ff4d4d';
+            else return '#FFFFFF';
         }
 
         function sendRawDB(params) {
