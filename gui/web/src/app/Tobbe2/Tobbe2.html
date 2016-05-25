@@ -46,7 +46,7 @@
         color: #6e6e6e;
         font: bold 12px Helvetica, Arial, sans-serif;
         text-decoration: none;
-        text-shadow: 0 1px 0 #fff;
+        /*text-shadow: 0 1px 0 #fff;*/
         padding: 11px 18px;
         /* position: relative; */
         display: inline-block;
@@ -54,14 +54,13 @@
         -moz-transition: border .218s;
         -o-transition: border-color .218s;
         transition: border-color .218s;
-        background:{{action.value}};
         background: -webkit-gradient(linear, 0% 40%, 0% 70%, from(#F5F5F5), to(#F1F1F1));
         background: -moz-linear-gradient(linear, 0% 40%, 0% 70%, from(#F5F5F5), to(#F1F1F1));
-        border: solid 1px #dcdcdc;
+        border: none;
         border-radius: 4px;
         -webkit-border-radius: 4px;
         -moz-border-radius: 4px;
-        margin-right: 2px;
+        margin-right: 1px;
         float: right;
         width:70px;
         height:40px;
@@ -90,7 +89,6 @@
         color: #6e6e6e;
         font: bold 12px Helvetica, Arial, sans-serif;
         text-decoration: none;
-        text-shadow: 0 1px 0 #fff;
         padding: 11px 18px;
         position: relative;
         display: inline-block;
@@ -100,13 +98,13 @@
         transition: border-color .218s;
 
     background:#4db8ff;
-    background: -webkit-gradient(linear, 0% 40%, 0% 70%, from(#F5F5F5), to(#F1F1F1));
-    background: -moz-linear-gradient(linear, 0% 40%, 0% 70%, from(#F5F5F5), to(#F1F1F1));
-    border: solid 1px #dcdcdc;
+    /*background: -webkit-gradient(linear, 0% 40%, 0% 70%, from(#F5F5F5), to(#F1F1F1));
+    background: -moz-linear-gradient(linear, 0% 40%, 0% 70%, from(#F5F5F5), to(#F1F1F1));*/
+    border: none;
     border-radius: 4px;
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
-    margin-right: 2px;
+    margin-right: 1px;
     min-width:160px;
     height:40px;
     outline: 0;
@@ -181,7 +179,7 @@
         <div class="row1338">
             <img ng-src="{{resurs.image}}" class="iconStyle" hspace= "10">
             <h class="centerText">{{resurs.name}}</h>
-            <button type="button" class ="button"
+            <button type="button" class ="button" style="background:{{action.value}};" 
                     ng-click="vm.sendRawDB(action.id+' '+checked)" ng-repeat="action in resurs.resource">{{action.action}}</button>
             <input type="checkbox" style="float: right;transform: translate(-80%, 80%) scale(2,2);" ng-model="checked" ng-init="checked=true">
         </div>
