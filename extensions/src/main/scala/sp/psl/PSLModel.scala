@@ -149,8 +149,15 @@ trait Resources extends ModelMaking {
       )
     )
 
-    val root = HierarchyRoot("Resources", List(flexlink._1, operator._1, R2._1, R4._1, R5._1, h2._1, h3._1))
-    h2._2 ++ h3._2 ++ flexlink._2 ++ operator._2 ++ R5._2 ++ R4._2 ++ R2._2 :+ root
+    val safety = makeResource (
+      name = "Safety",
+      state = List(),
+      abilities = List(
+        AbilityDefinition("manmode"),
+        AbilityDefinition("forcereset")))
+
+    val root = HierarchyRoot("Resources", List(flexlink._1, operator._1, R2._1, R4._1, R5._1, h2._1, h3._1, safety._1))
+    h2._2 ++ h3._2 ++ flexlink._2 ++ operator._2 ++ R5._2 ++ R4._2 ++ R2._2 ++ safety._2 :+ root
 
   }
 }
@@ -226,7 +233,11 @@ trait DBConnector {
 
       db(itemMap, "Operator.loadFixture.run", "bool", 0, 0, 0, Map(), "operatorInstructions.run"),
       db(itemMap, "Operator.loadFixture.mode", "int", 0, 0, 0, stateMap, "operatorInstructions.mode"),
-      db(itemMap, "Operator.loadFixture.brickPositions", "bool", 0, 0, 0, Map(), "operatorInstructions.brickPositions")
+      db(itemMap, "Operator.loadFixture.brickPositions", "bool", 0, 0, 0, Map(), "operatorInstructions.brickPositions"),
+
+      db(itemMap, "Safety.manmode", "bool", 141, 0, 1),
+      db(itemMap, "Safety.forcereset", "bool", 141, 0, 0)
+
 
     ).flatten
   }

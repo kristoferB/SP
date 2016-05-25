@@ -8,10 +8,11 @@
         .module('app.Tobbe2')
         .controller('Tobbe2Controller', Tobbe2Controller);
 
-    Tobbe2Controller.$inject = ['$scope', 'dashboardService', 'eventService', 'spServicesService'];
+    Tobbe2Controller.$inject = ['$scope', 'dashboardService', 'eventService', 'spServicesService', 'operationControlService'];
     /* @ngInject */
-    function Tobbe2Controller($scope, dashboardService, eventService, spServicesService) {
+    function Tobbe2Controller($scope, dashboardService, eventService, spServicesService, operationControlService) {
         var vm = this;
+        vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
         var service = {
             connected: false,
             controlServiceID: '',
@@ -22,8 +23,7 @@
             sendRawDB: sendRawDB
         };
         vm.hej = 'null'
-
-        vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
+        vm.control = operationControlService;
 
         //functions¨
         vm.adressToRaw = adressToRaw;
@@ -39,6 +39,7 @@
         vm.debug14 = 0;
         vm.parseColourTrueFalse = parseColourTrueFalse;
         vm.searchObj = searchObj;
+        vm.reset = reset;
         vm.data = {
             resMult: [
                 {
@@ -279,6 +280,10 @@
 
             }
 
+        }
+
+        function reset() {
+            vm.control.reset();
         }
 
         function parseColourTrueFalse(value) {
