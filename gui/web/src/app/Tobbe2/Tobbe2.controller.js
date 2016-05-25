@@ -54,7 +54,8 @@
                         {id: '127 0 6 true', action: 'Place at table', value: '#FFFFFF'},
                     ],
                     currVal: 'Choose operation',
-                    currID: 'null'
+                    currID: 'null',
+                    image: 'images/Industry-Robot-icon.png'
                 }
             ],
             resSel: [
@@ -89,7 +90,7 @@
                         {id: '128 0 2', action: 'Home', value: '#FFFFFF'},
                         {id: '128 0 3', action: 'Dodge', value: '#FFFFFF'}
                     ],
-        image: 'images/Industry-Robot-icon.png'
+                    image: 'images/Industry-Robot-icon.png'
 
                 },
                 {
