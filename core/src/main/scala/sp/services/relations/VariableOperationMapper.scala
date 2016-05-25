@@ -81,12 +81,10 @@ class VariableOperationMapper extends Actor with ServiceSupport {
       updAVars = updAVars + (a.id -> updL)
     }
 
-    o.conditions.foreach { cond =>
-      cond match {
+    o.conditions.foreach {
         case PropositionCondition(guard, actions, _) =>
           fromGuard(guard)
           actions.map(fromAction)
-      }
     }
 
 

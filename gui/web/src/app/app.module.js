@@ -23,7 +23,8 @@
         'app.Tobbe2',
         'app.rasmus',
         'app.kubInputGUI',
-        'app.operatorInstGUI'
+        'app.operatorInstGUI',
+        'app.robotCycleAnalysis'
     ]);
 
 })();

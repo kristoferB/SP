@@ -141,7 +141,7 @@ class CreateGanttChart extends Actor with ServiceSupport with CalcMethods {
       reply ! r
 
     case x =>
-      sender() ! SPError("What do you whant me to do? " + x)
+      sender() ! SPError("What do you want me to do? " + x)
       self ! PoisonPill
   }
 

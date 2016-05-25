@@ -1,19 +1,66 @@
-package sp.runnerService
+package sp.psl
 
 import akka.actor._
 import akka.testkit._
 import com.typesafe.config._
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike, FreeSpec}
 import sp.domain._
 import sp.domain.Logic._
 import sp.system.messages._
 
 import scala.concurrent.duration._
 
+
+class TowerHandlingTests extends FreeSpec {
+
+  "when creating a tower" - {
+    "A tower should be created if correct" in {
+      val logic = new TowerBuilder {}
+
+      val exampleTower = List(
+        List("empty", "red", "yellow", "empty"),
+        List("empty", "blue", "empty", "empty")
+      )
+
+      val tower = logic.makeTower(exampleTower)
+      println(tower)
+      assert(tower.map(_.toSet).contains(Set(Brick(1, 3, "Red"), Brick(1, 2, "Yellow"),Brick(2, 3, "Blue"))))
+
+    }
+    "A tower should not be created if not correct" in {
+      val logic = new TowerBuilder {}
+
+      val exampleTower = List(
+        List("empty", "red", "yellow", "empty"),
+        List("empty", "blue", "empty", "blue")
+      )
+
+      val tower = logic.makeTower(exampleTower)
+      println(tower)
+      assert(tower == None)
+    }
+    "A tower should be correctly sorted" in {
+      val logic = new TowerBuilder {}
+
+      val exampleTower = List(
+        List("empty", "red", "yellow", "1"),
+        List("empty", "blue", "red", "")
+      )
+
+      val tower = logic.makeTower(exampleTower)
+      val sorted = logic.sortBricks(tower.get)
+      println(sorted)
+      //assert(tower == None)
+    }
+  }
+
+}
+
+
 /**
- * Created by Kristofer on 2016-03-02.
- */
-class RunnerServiceTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
+  * Created by kristofer on 2016-05-04.
+  */
+class OperatorServiceTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
 
   def this() = this(ActorSystem("myTest", ConfigFactory.parseString(
@@ -23,7 +70,7 @@ class RunnerServiceTest(_system: ActorSystem) extends TestKit(_system) with Impl
 
   val p = TestProbe()
   val e = TestProbe()
-  val sh = system.actorOf(RunnerService.props(p.ref, "OperationControl"))
+  val sh = system.actorOf(OperatorService.props(p.ref), "OperatorService")
 
   override def beforeAll: Unit = {
 
@@ -46,7 +93,6 @@ class RunnerServiceTest(_system: ActorSystem) extends TestKit(_system) with Impl
       val sopSpec =  SOPSpec("theSOPSpec", List(sop), SPAttributes())
 
       val longList: List[IDAble] = List(o1, o2, o3, o4, o5, sopSpec)
-
       val r = Request("RunnerService",
         SPAttributes(
           "SOP" -> sopSpec.id
