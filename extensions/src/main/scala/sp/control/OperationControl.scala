@@ -21,7 +21,7 @@ object OperationControl extends SPService {
       "group"-> "control" // to organize in gui. maybe use "hide" to hide service in gui
     ),
     "setup" -> SPAttributes(
-      "busIP" -> KeyDefinition("String", List(), Some("172.16.205.50")),
+      "busIP" -> KeyDefinition("String", List(), Some("129.16.26.22")),
       "publishTopic" -> KeyDefinition("String", List(), Some("commands")),
       "subscribeTopic" -> KeyDefinition("String", List(), Some("response"))
     ),
@@ -30,29 +30,29 @@ object OperationControl extends SPService {
       "connectionDetails" -> KeyDefinition("Option[ID]", List(), None)
     ),
     "command" -> SPAttributes(
-      "commandType"->KeyDefinition("String", List("connect", "disconnect", "status", "subscribe", "unsubscribe", "execute", "raw"), Some("connect")),
+      "commandType"->KeyDefinition("String", List("connect", "disconnect", "status", "subscribe", "unsubscribe", "start", "stop", "raw"), Some("connect")),
       "execute" -> KeyDefinition("Option[ID]", List(), None),
       "parameters" -> KeyDefinition("Option[State]", List(), None),
       "raw" -> KeyDefinition("String", List(), Some("")) // db byte bit value
     )
   )
-
   val transformTuple  = (
     TransformValue("setup", _.getAs[BusSetup]("setup")),
     TransformValue("connection", _.getAs[SPAttributes]("connection")),
     TransformValue("command", _.getAs[SPAttributes]("command"))
   )
-
   val transformation = transformToList(transformTuple.productIterator.toList)
   def props(eventHandler: ActorRef) = Props(classOf[OperationControl], eventHandler)
 }
 
-
 case class BusSetup(busIP: String, publishTopic: String, subscribeTopic: String)
 
-case class AddressValues(db: Int, byte: Int, bit: Int)
-case class DBValue(name: String, id: ID, value: SPValue, valueType: String, address: AddressValues)
-case class DBConnection(name: String, valueType: String, db: Int, byte: Int, bit: Int, intMap: Map[String, SPValue], id: ID)
+sealed class Address
+case class PLCAddress(db: Int, byte: Int, bit: Int) extends Address
+case class BusAddress(name: String) extends Address
+
+case class DBValue(name: String, id: ID, value: SPValue, valueType: String, address: SPValue)
+case class DBConnection(name: String, valueType: String, db: Int, byte: Int, bit: Int, intMap: Map[String, SPValue], id: ID, busAddress: String)
 
 
 case class IDWithName(id: ID, name: String, value: SPValue)
@@ -61,7 +61,6 @@ case class IDWithName(id: ID, name: String, value: SPValue)
 class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport {
   import context.dispatcher
   val serviceID = ID.newID
-
   var theBus: Option[ActorRef] = None
   var setup: Option[BusSetup] = None
   var serviceName: Option[String] = None
@@ -74,6 +73,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
   var modeToAbility: Map[ID,ID] = Map()
 
   def receive = {
+//    case x if { println(x); false } => x
     case r @ Request(service, attr, ids, reqID) => {
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()
@@ -83,6 +83,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       val connection = transform(OperationControl.transformTuple._2)
       val commands = transform(OperationControl.transformTuple._3)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
+      serviceName = Some(service)
 
       println("Commands: " + commands.getAs[String]("commandType"))
 
@@ -104,18 +105,21 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
             replyTo ! SPError("The bus must be connected before unsubscription. Current status: "+connectedAttribute())
           else
             unsubscribe()
-        case "execute" =>
-          sendCommands(commands)
+        case "start" =>
+          commands.getAs[ID]("execute").foreach { id =>
+            sendStartStop(commands, id, true)
+          }
+        case "stop" =>
+          commands.getAs[ID]("execute").foreach { id =>
+            sendStartStop(commands, id, false)
+          }
         case "status" =>
           eventHandler ! Response(List(), SPAttributes("state"->state, "stateWithName"->stateWithName, "resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
         case "raw" =>
           sendRaw(commands)
         case _ =>
-
       }
-
       replyTo ! Response(List(), connectedAttribute() merge SPAttributes("silent"->true), service, serviceID)
-
     }
     case ConnectionEstablished(request, c) => {
       println("connected:"+request)
@@ -130,7 +134,8 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
     }
     case mess @ AMQMessage(body, prop, headers) => {
       val resp = SPAttributes.fromJson(body.toString)
-      println(s"we got a resp from PLC")
+
+
       val dbs = for {
         m <- resp
         list <- m.getAs[List[SPAttributes]]("dbs")
@@ -150,32 +155,31 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
         l
       }
 
+
       stateWithName = state.state.flatMap{case (id, value) =>
         val item = idMap.get(id)
         item.map(i => IDWithName(id, i.name, value))
       }.toList
 
       eventHandler ! Response(List(), SPAttributes("state"->state, "stateWithName"->stateWithName, "dbs"-> dbs,"resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
+
     }
     case ConnectionInterrupted(ca, x) => {
       println("connection closed")
       setup = None
     }
-
     case x => {
       println("PLC control got message "+x)
-      //sender() ! SPError("What do you whant me to do? "+ x)
+      //sender() ! SPError("What do you want me to do? "+ x)
     }
   }
-
-
 
   def setupBus(s: BusSetup, rnr: RequestNReply) = {
       setup = Some(s)
       serviceName = Some(rnr.req.service)
       idMap = rnr.req.ids.map(x => x.id -> x).toMap
       //state = setupState(rnr.req.ids)
-      println(s"connectiong: $s")
+      println(s"connecting: $s")
       ReActiveMQExtension(context.system).manager ! GetConnection(s"nio://${s.busIP}:61616")
   }
 
@@ -230,9 +234,8 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
     list.find{i => i.attributes.getAs[String]("specification").contains("PLCConnection")}.map(_.id)
   }
 
-
   def disconnect() = {
-    println("stänger")
+    println("OperationControl Disconnecting")
     unsubscribe()
     theBus.foreach(_ ! CloseConnection)
     //theBus.foreach(_ ! PoisonPill)
@@ -240,11 +243,14 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
     this.theBus = None
   }
 
-
   def subscribe() = {
     val mess = SPAttributes(
       "command"->"subscribe",
-      "dbs"-> this.connectionMap.values.map(x=>DBValue(x.name, x.id, 0, x.valueType, AddressValues(x.db, x.byte, x.bit)))
+      "dbs"-> this.connectionMap.values.map(x=>
+        DBValue(x.name, x.id, 0, x.valueType,
+          if(x.busAddress == "") SPValue(PLCAddress(x.db, x.byte, x.bit))
+          else SPValue(BusAddress(x.busAddress))
+        ))
     )
     sendMessage(mess)
 
@@ -259,9 +265,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
     sendMessage(mess)
   }
 
-
-  def sendCommands(commands: SPAttributes) = {
-    commands.getAs[ID]("execute").foreach { id =>
+  def sendStartStop(commands: SPAttributes, id: ID, start: Boolean) = {
       val params = commands.getAs[State]("parameters").getOrElse(State(Map()))
       val paramsString = commands.getAs[String]("parameters")
 
@@ -269,20 +273,22 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       val item = idMap.getOrElse(id, Operation("dummy"))
 
       val paramDB = params.state.flatMap{case (id, value) =>
-        connectionMap.get(id).map(x => DBValue(x.name, x.id, value, x.valueType, AddressValues(x.db, x.byte, x.bit)))
+        connectionMap.get(id).map(x => DBValue(x.name, x.id, value, x.valueType,
+          if(x.busAddress == "") SPValue(PLCAddress(x.db, x.byte, x.bit))
+          else SPValue(BusAddress(x.busAddress))))
       }.toList
       val paramFromString = paramsString.flatMap(getDBFromString)
       val paramToWrite = params.state.flatMap{case (id, value) =>
         idMap.get(id).map(item => SPAttributes("id"->id, "name"->item.name, "value"->value))
       }
-
       // HACK
       val rid = abilityToRun.get(id).getOrElse(ID.newID)
       // flip RUN and write it to PLC
-      val runState = state.get(rid).flatMap(_.to[Boolean]).map(!_).getOrElse(false)
+      val runState = start // state.get(rid).flatMap(_.to[Boolean]).map(!_).getOrElse(false)
       println(s"the new state of run: $runState")
 
-      val oDB = connectionMap.get(rid).map{db => DBValue(item.name, item.id, runState, db.valueType, AddressValues(db.db, db.byte, db.bit))}
+      val oDB = connectionMap.get(rid).map{db => DBValue(item.name, item.id, SPValue(runState), db.valueType,
+        if(db.busAddress == "") SPValue(PLCAddress(db.db, db.byte, db.bit)) else SPValue(BusAddress(db.busAddress)))}
 
       val command = SPAttributes(
         "id" -> id,
@@ -297,10 +303,16 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
         "command"->"write",
         "dbs"-> dbs
       )
-
       sendMessage(mess)
+  }
 
+  def sendCommands(commands: SPAttributes) = {
+    commands.getAs[ID]("start").foreach { id =>
+      sendStartStop(commands, id, true)
     }
+    commands.getAs[ID]("stop").foreach { id =>
+      sendStartStop(commands, id, false)
+    }    
   }
 
   def sendRaw(commands: SPAttributes)= {
@@ -323,9 +335,8 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       val v = split(3)
       val value = if (Try{v.toInt}.isSuccess) SPValue(v.toInt) else if (Try{v.toBoolean}.isSuccess) SPValue(v.toBoolean) else SPValue(false)
       val vt = if (value.isInstanceOf[JInt]) "int" else "bool"
-      DBValue("raw", ID.newID, value, vt, AddressValues(db, byte, bit))
+      DBValue("raw", ID.newID, value, vt, SPValue(PLCAddress(db, byte, bit)))
     }
-
     res.toOption
   }
 
@@ -342,7 +353,6 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
         val abilities = r.children.filter(_.children.nonEmpty).map{ab =>
           val par = ab.children.map{p => ItemInTree(p.item, nameMap(p.item))}
           AbilityInTree(ab.item, nameMap(ab.item), par)
-
         }
         val st = r.children.filter(_.children.isEmpty).map{ab =>
           ItemInTree(ab.item, nameMap(ab.item))
@@ -351,11 +361,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       }
       this.resourceTree = temp
     }
-
   }
-
-
-
 
   def sendMessage(mess: SPAttributes) = {
     for {
@@ -367,20 +373,14 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
     }
   }
 
-
   def makeDummyState() = {
     this.idMap
   }
 
-
-
-
   override def postStop() = {
-    println("stänger")
+    println("OperationControl PostStop")
     disconnect()
   }
-
-
 }
 
 case class ItemInTree(id: ID, name: String)

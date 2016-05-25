@@ -40,7 +40,9 @@
                 {sizeX: 4, sizeY: 4, title: 'kubInputGUI', template: 'app/kubInputGUI/kubInputGUI.html'},
                 {sizeX: 4, sizeY: 4, title: 'Calculator', template: 'app/calculator/calculator.html'},
                 {sizeX: 4, sizeY: 4, title: 'rasmus', template: 'app/rasmus/rasmus.html'},
-                {sizeX: 4, sizeY: 4, title: 'operatorInstGUI', template: 'app/operatorInstGUI/operatorInstGUI.html'}
+                {sizeX: 4, sizeY: 4, title: 'operatorInstGUI', template: 'app/operatorInstGUI/operatorInstGUI.html'},
+                {sizeX: 4, sizeY: 4, title: 'Robot Cycle Analysis', template: 'app/robot-cycle-analysis/robot-cycle-analysis.html'},
+                {sizeX: 4, sizeY: 4, title: 'Calculator', template: 'app/calculator/calculator.html'}
             ]
         };
 

@@ -196,6 +196,7 @@
         if (ev.attributes.theBus === 'Connected' && ! service.connected){
           sendTo(service.latestMess, 'subscribe');
         }
+
         service.connected = ev.attributes.theBus === 'Connected'
       }
 
@@ -210,7 +211,7 @@
         function sendOrder() {
 
             var mess = {"data": {getNext: false, "buildOrder": vm.ButtonColour.kub}};
-            spServicesService.callService(spServicesService.getService("operatorService"),
+            spServicesService.callService(spServicesService.getService("runnerService"),
                 mess,
                 function (resp) {
                     if (_.has(resp, 'attributes.result')) {

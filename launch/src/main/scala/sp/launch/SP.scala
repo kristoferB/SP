@@ -169,6 +169,14 @@ object SP extends App {
     OperationControl.transformation
   )
 
+  import sp.robotCycleAnalysis._
+  serviceHandler ! RegisterService(
+    "RobotCycleAnalysis",
+    system.actorOf(RobotCycleAnalysis.props(eventHandler), "RobotCycleAnalysis"),
+    RobotCycleAnalysis.specification,
+    RobotCycleAnalysis.transformation
+  )
+
   import sp.exampleService._
   serviceHandler ! RegisterService(
     "ExampleService",
@@ -185,6 +193,14 @@ object SP extends App {
     Calculator.transformation
   )
 
+  import sp.optimizerService._
+  serviceHandler ! RegisterService(
+    "Operation Maker",
+    system.actorOf(operationMaker.props, "operationMaker"),
+    Calculator.specification,
+    Calculator.transformation
+  )
+
   import sp.psl._
   serviceHandler ! RegisterService(
     "PSLModel",
@@ -193,7 +209,7 @@ object SP extends App {
     PSLModel.transformation
   )
 
-  import sp.runnerService._
+  import sp.psl.runnerService._
   val rs = system.actorOf(RunnerService.props(eventHandler, serviceHandler, "OperationControl"), "RunnerService")
   serviceHandler ! RegisterService(
     "RunnerService",
@@ -202,12 +218,12 @@ object SP extends App {
     RunnerService.transformation
   )
 
-  serviceHandler ! RegisterService(
-    "AutoTest",
-    system.actorOf(AutoTest.props(eventHandler,rs), "AutoTest"),
-    AutoTest.specification,
-    AutoTest.transformation
-  )
+//  serviceHandler ! RegisterService(
+//    "AutoTest",
+//    system.actorOf(AutoTest.props(eventHandler,rs), "AutoTest"),
+//    AutoTest.specification,
+//    AutoTest.transformation
+//  )
 
 
   serviceHandler ! RegisterService(
@@ -217,30 +233,26 @@ object SP extends App {
     VariableOperationMapper.transformation
   )
 
-
-
-  import sp.TobbeG._
-  serviceHandler ! RegisterService(
-    "TobbeG",
-    system.actorOf(TobbeG.props, "TobbeG"),
-    TobbeG.specification,
-    TobbeG.transformation
-  )
-
-  import sp.rasmus._
-  serviceHandler ! RegisterService(
-    "Rasmus",
-    system.actorOf(rasmus.props, "Rasmus"),
-    rasmus.specification,
-    rasmus.transformation
-  )
-  import sp.operatorService._
   serviceHandler ! RegisterService(
     "operatorService",
-    system.actorOf(operatorService.props, "operatorService"),
-    operatorService.specification,
-    operatorService.transformation
+    system.actorOf(OperatorService.props(serviceHandler), "operatorService"),
+    OperatorService.specification,
+    OperatorService.transformation
   )
+
+  serviceHandler ! RegisterService(
+    "OrderHandler",
+    system.actorOf(OrderHandler.props(serviceHandler), "OrderHandler"),
+    OrderHandler.specification,
+    OrderHandler.transformation
+  )
+
+  serviceHandler ! RegisterService(
+    "OperatorInstructions",
+    system.actorOf(OperatorInstructions.props(eventHandler), "OperatorInstructions"),
+    OperatorInstructions.specification,
+    OperatorInstructions.transformation
+  )  
 
   // launch REST API
   sp.server.LaunchGUI.launch

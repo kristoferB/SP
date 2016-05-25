@@ -31,6 +31,7 @@
         vm.connectionDetailsID = '63a58020-2723-468b-94dc-8d801c63eee7';
         vm.resourcesID = '2891d984-3575-4e5b-b67a-83dc094d539c';
 
+
         //vm.run_op = run_op;
         //vm.get_init_state = get_init_state;
         //vm.state = null;
