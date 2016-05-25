@@ -133,20 +133,10 @@ object SP extends App {
   serviceHandler ! RegisterService("Simulation",
     system.actorOf(Simulation.props, "Simulation"), Simulation.specification, Simulation.transformation)
 
-  // activemq + process simulate stuff
-//  import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
-//  import akka.camel.{ CamelExtension, CamelMessage, Consumer, Producer }
-//  import org.apache.activemq.camel.component.ActiveMQComponent
-//  import sp.processSimulateImporter._
-//
-//  val camel = CamelExtension(system)
-//  val camelContext = camel.context
-//  camelContext.addComponent("activemq", ActiveMQComponent.activeMQComponent(s"tcp://${settings.activeMQ}:61616"))
-//  val psamq = system.actorOf(Props[ProcessSimulateAMQ], "ProcessSimulateAMQ")
-//  serviceHandler ! RegisterService("ProcessSimulate",
-//    system.actorOf(ProcessSimulateService.props(modelHandler, psamq), "ProcessSimulate"),
-//    ProcessSimulateService.specification,
-//    ProcessSimulateService.transformation)
+  import sp.virtcom.ProcessSimulate
+  serviceHandler ! RegisterService("ProcessSimulate",
+    system.actorOf(ProcessSimulate.props(eventHandler), "ProcessSimulate"),
+    ProcessSimulate.specification, ProcessSimulate.transformation)
 //
 //  import sp.areus.modalaService._
 //  val modalaamqProducer = system.actorOf(Props[ModalaAMQProducer], "ModalaAMQProducer")

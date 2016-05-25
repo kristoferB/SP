@@ -1,0 +1,16 @@
+<div ng-controller="processSimulateController as vm" class="simple-widget">
+    <div class="panel-content">
+        <!-- lägg till senare, just nu laddas alla items -->
+        <div ng-if="!vm.ps.connected" style="padding: 10px;">
+            <h2>Connect to the bus</h2>
+            <button type="button" class="btn btn-sm btn-primary" ng-click="vm.connect()">
+                <i class="fa fa-play"></i> Connect
+            </button>
+        </div>
+        <div ng-if="vm.ps.connected">
+            <div>
+                <h2>Connected</h2>
+            </div>
+        </div>
+    </div>
+</div>
