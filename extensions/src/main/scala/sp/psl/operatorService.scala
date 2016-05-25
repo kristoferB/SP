@@ -94,9 +94,9 @@ trait TowerBuilder extends TowerOperationTypes {
     val allOps = f1Ops ++ f2Ops ++ loadOps ++ unLoadOps._1 ++ unLoadOps._2 ++ unLoadOps._3
 
     val seqF1 = Sequence((f1Ops ++ unLoadOps._1).map(o => Hierarchy(o.id)):_*)
-    val seqF2 = Sequence((f2Ops ++ unLoadOps._2).map(o => Hierarchy(o.id)):_*)
+    val seqF2 = Sequence((f2Ops).map(o => Hierarchy(o.id)):_*)
     val seqLoad = Sequence(loadOps.map(o => Hierarchy(o.id)):_*)
-    val seqUnloadTower = unLoadOps._3.map(o=>Hierarchy(o.id))
+    val seqUnloadTower = (unLoadOps._3++ unLoadOps._2).map(o=>Hierarchy(o.id))
 
     val brickSeq: List[SOP] = Parallel(seqF1, seqF2) :: seqUnloadTower
 
@@ -158,37 +158,38 @@ trait TowerBuilder extends TowerOperationTypes {
   }
 
   def getLoadOps(f1: List[Brick], f2: List[Brick], nameMap: Map[String, IDAble]) = {
-    val feedFix = makeOperationWithParameter("Flexlink", "fixtureToOperator", "no", {if (f1.nonEmpty) 1 else 0} +  {if (f2.nonEmpty) 1 else 0}, nameMap)
+    val feedFix = Some(makeOperationWithParameter("Flexlink", "fixtureToOperator", "no", {if (f1.nonEmpty) 1 else 0} +  {if (f2.nonEmpty) 1 else 0}, nameMap))
 
     def fixToRMake(bO: Option[Brick]) = {
-      bO.map(b => List(makeOperationWithParameter("Flexlink", "fixtureToRobot", "pos", b.fixture, nameMap))).getOrElse(List())
+      bO.map(b => makeOperationWithParameter("Flexlink", "fixtureToRobot", "pos", b.fixture, nameMap))
     }
     val f1ToR = fixToRMake(f1.headOption)
     val f2ToR = fixToRMake(f2.headOption)
 
-    def instrToOpMake(f: List[Brick]) = makeOperationWithParameter("Operator", "loadFixture", "brickPositions", SPValue(f) , nameMap)
+    def instrToOpMake(f: List[Brick]) = if (f.nonEmpty) Some(makeOperationWithParameter("Operator", "loadFixture", "brickPositions", SPValue(f) , nameMap)) else None
     val fBuild = (instrToOpMake(f1), instrToOpMake(f2))
 
-    List(feedFix, fBuild._1) ++ (f1ToR :+ fBuild._2) ++ f2ToR
+    val res = List(feedFix, fBuild._1, f1ToR, fBuild._2, f2ToR).flatten
+    res
   }
 
   def getUnloadOps(f1: List[Brick], f2: List[Brick], nameMap: Map[String, IDAble]) = {
     def fixOutMake(bO: Option[Brick]) = {
-      bO.map(b => List(makeOperationWithParameter("R2", "pickAtPos", "pos", b.fixture, nameMap))).getOrElse(List())
+      bO.map(b => makeOperationWithParameter("R2", "pickAtPos", "pos", b.fixture, nameMap))
     }
     val f1Out = fixOutMake(f1.headOption)
     val f2Out = fixOutMake(f2.headOption)
 
-    val placeElevatorF1 = makeOperation("R2", "homeTableToElevatorStn3", nameMap)
-    val placeElevatorF2 = placeElevatorF1.copy(id = ID.newID)
+    val placeElevatorF1 = if (f1.nonEmpty) Some(makeOperation("R2", "homeTableToElevatorStn3", nameMap)) else None
+    val placeElevatorF2 = if (f2.nonEmpty) Some(makeOperation("R2", "homeTableToElevatorStn3", nameMap)) else None
 
-    val pickBaseOut = makeOperationWithParameter("R2", "pickAtPos", "pos", 5, nameMap)
-    val placetable = makeOperation("R2", "deliverTower", nameMap)
+    val pickBaseOut = Some(makeOperationWithParameter("R2", "pickAtPos", "pos", 5, nameMap))
+    val placetable = Some(makeOperation("R2", "deliverTower", nameMap))
 
 
-    val outSeqF1 = f1Out ++ {if (f1Out.nonEmpty) List(placeElevatorF1) else List()}
-    val outSeqF2 = f2Out ++ {if (f2Out.nonEmpty) List(placeElevatorF2) else List()}
-    val outSeqTower = List(pickBaseOut, placetable)
+    val outSeqF1 = List(f1Out, placeElevatorF1).flatten
+    val outSeqF2 = List(f2Out, placeElevatorF2).flatten
+    val outSeqTower = List(pickBaseOut, placetable).flatten
 
     (outSeqF1, outSeqF2, outSeqTower)
   }
