@@ -85,7 +85,7 @@
     <form name="myForm2" ng-repeat="resurs in vm.data.resSel">
         <div class="row1338">
             <h class="centerText">{{resurs.name}}</h>
-            <button type="button" style="float: right;width:60px;height:40px;background:{{action.value}};border: none"
+            <button type="button" style="float: right;width:60px;height:40px;background:{{action.value}};border: none; margin-right: 1px;"
                     ng-click="vm.sendRawDB(action.id+' '+checked)" ng-repeat="action in resurs.resource">{{action.action}}</button>
             <input type="checkbox" style="float: right;transform: translate(-80%, 80%) scale(2,2);" ng-model="checked" ng-init="checked=true">
         </div>
