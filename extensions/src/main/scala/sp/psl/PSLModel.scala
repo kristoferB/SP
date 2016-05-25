@@ -44,7 +44,6 @@ class PSLModel extends Actor with ServiceSupport with ThePSLModel {
       implicit val rnr = RequestNReply(r, replyTo)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
-
       val items = getCompleteModel
 
       replyTo ! Response(items, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
@@ -67,66 +66,8 @@ trait ThePSLModel extends Resources with DBConnector{
       "specification"-> "PLCConnection"
     ))
 
-    // In the future, the matching should be on an ability type structure
-    // Also the sequence now created in OperatorService should be mad based on
-    // conditions here
-    val ops  = makeMeOperationTypes(List(
-      OpTowerTypeDef(
-        name ="PickPlatesR2",
-        ability = itemMap("R2.pickAtPos"),
-        parameters = List(itemMap("R2.pickAtPos.pos") -> 0)
-      ),
-      OpTowerTypeDef(
-        name ="PlaceElevatorR2",
-        ability = itemMap("R2.homeTableToElevatorStn3"),
-        parameters = List()
-      ),
-      OpTowerTypeDef(
-        name ="PlaceTableR2",
-        ability = itemMap("R2.deliverTower"),
-        parameters = List()
-      ),
-      OpTowerTypeDef(
-        name ="PickBlocksR4",
-        ability = itemMap("R4.pickBlock"),
-        parameters = List(itemMap("R4.pickBlock.pos") -> 0)
-      ),
-      OpTowerTypeDef(
-        name ="PickBlocksR5",
-        ability = itemMap("R5.pickBlock"),
-        parameters  = List(itemMap("R5.pickBlock.pos") -> 0)
-      ),
-      OpTowerTypeDef(
-        name ="PlaceBlocksR4",
-        ability = itemMap("R4.placeBlock"),
-        parameters  = List(itemMap("R4.placeBlock.pos") -> 0)
 
-      ),
-      OpTowerTypeDef(
-        name ="PlaceBlocksR5",
-        ability = itemMap("R5.placeBlock"),
-        parameters = List(itemMap("R5.placeBlock.pos") -> 0)
-      ),
-      OpTowerTypeDef(
-        name ="LoadFixtureOp",
-        ability = itemMap("Operator.loadFixture"),
-        parameters  = List(itemMap("Operator.loadFixture.brickPositions") -> 0)
-
-      ),
-      OpTowerTypeDef(
-        name ="FixtureToRobots",
-        ability = itemMap("Flexlink.fixtureToRobot"),
-        parameters = List(itemMap("Flexlink.fixtureToRobot.pos") -> 0)
-      ),
-      OpTowerTypeDef(
-        name ="FixtureToOperator",
-        ability = itemMap("Flexlink.fixtureToOperator"),
-        parameters = List(itemMap("Flexlink.fixtureToOperator.no") -> 0)
-      )
-
-    ))
-
-    items ++ ops :+ connection
+    items :+ connection
   }
 
 
@@ -198,16 +139,13 @@ trait Resources extends ModelMaking {
       )
     )
 
-
     val operator = makeResource (
       name = "Operator",
       state = List(),
       abilities = List(
-        AbilityDefinition("loadFixture"),
-        AbilityDefinition("brickPositions")
+        AbilityDefinition("loadFixture", List(sOrP("brickPositions",0)))
       )
     )
-
 
     val root = HierarchyRoot("Resources", List(flexlink._1, operator._1, R2._1, R4._1, R5._1, h2._1, h3._1))
     h2._2 ++ h3._2 ++ flexlink._2 ++ operator._2 ++ R5._2 ++ R4._2 ++ R2._2 :+ root
@@ -219,7 +157,6 @@ trait DBConnector {
   def db(items: Map[String, ID], name: String, valueType: String, db:Int, byte: Int, bit: Int, intMap: Map[Int, String] = Map(), busAddress: String = "") = {
     items.get(name).map(id => DBConnection(name, valueType, db, byte, bit, intMap.map{case (k,v) => k.toString->v}, id, busAddress))
   }
-
 
   def getDBMap(itemMap: Map[String, ID]) = {
     val stateMap = Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")
@@ -289,7 +226,6 @@ trait DBConnector {
       db(itemMap, "Operator.loadFixture.brickPositions", "bool", 0, 0, 0, Map(), "operatorInstructions.brickPositions")
 
     ).flatten
-
   }
 }
 
@@ -323,7 +259,6 @@ trait ModelMaking {
     (hier, temp)
   }
 
-
   case class OpTowerTypeDef(name: String, ability: ID, parameters: List[(ID, Int)])
   def makeMeOperationTypes(xs: List[OpTowerTypeDef]): List[IDAble] = {
     xs.map{x =>
@@ -332,7 +267,6 @@ trait ModelMaking {
         "operationType"->"operation",
         "ability"-> ab
       ))
-
     }
   }
 
