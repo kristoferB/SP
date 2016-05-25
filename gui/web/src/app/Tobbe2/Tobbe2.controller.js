@@ -82,7 +82,7 @@
                         {id: '138 16 0', action: 'Start', value: '#FFFFFF'},
                         {id: '138 16 1 ', action: 'Stop', value: '#FFFFFF'}
                     ],
-                    image: 'images/flexlink-icon.png'
+                    image: 'images/conveyor-icon2.png'
                 },
                 {
                     name: 'Robot 3',
@@ -107,7 +107,7 @@
                         {id: '141 0 0', action: 'Set', value: '#FFFFFF'},
                         {id: '141 0 1', action: 'Mode', value: '#FFFFFF'}
                     ],
-        image: 'images/plc-icon.jpg'
+        image: 'images/plc-icon2.png'
                 }
             ]/*,
             singleShow: [
