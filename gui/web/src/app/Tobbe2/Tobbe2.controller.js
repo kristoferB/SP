@@ -255,7 +255,6 @@
                 var theValue = item.value;
                 
                 if (theKey === '138 16 2') {
-                    console.log(theValue)
                     theKey = '138 16 0';
                     searchObj( vm.data, theKey, theValue);
                     theKey = '138 16 1';
