@@ -3,7 +3,7 @@ angular.module('ngrepeatSelect', [])
    $scope.data = {
     repeatSelect: null,
     availableOptions: [
-      {resource: 'Elevator 1', 
+      {resource: 'Elevator 1',
       	idlist: ['135, 0, 0, true', '135, 0, 1, true'],
       	action: ['up','down']},
       {resource: 'Elevator 2',

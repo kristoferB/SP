@@ -54,7 +54,8 @@
                         {id: '127 0 6 true', action: 'Place at table', value: '#FFFFFF'},
                     ],
                     currVal: 'Choose operation',
-                    currID: 'null'
+                    currID: 'null',
+                    image: 'images/Industry-Robot-icon.png'
                 }
             ],
             resSel: [
@@ -63,49 +64,58 @@
                     resource: [
                         {id: '135 0 0', action: 'Up', value: '#FFFFFF'},
                         {id: '135 0 1', action: 'Down', value: '#FFFFFF'}
-                    ]
+                    ],
+                    image: 'images/elevator-icon.png'
                 },
                 {
                     name: 'Elevator 2',
                     resource: [
                         {id: '140 0 0', action: 'Up', value: '#FFFFFF'},
                         {id: '140 0 1', action: 'Down', value: '#FFFFFF'}
-                    ]
+                    ],
+                    image: 'images/elevator-icon.png'
+
                 },
                 {
                     name: 'Flexlink',
                     resource: [
                         {id: '138 16 0', action: 'Start', value: '#FFFFFF'},
-                        {id: '138 16 1', action: 'Stop', value: '#FFFFFF'}
-                    ]
+                        {id: '138 16 1 ', action: 'Stop', value: '#FFFFFF'}
+                    ],
+                    image: 'images/flexlink-icon.png'
                 },
                 {
                     name: 'Robot 3',
                     resource: [
                         {id: '128 0 2', action: 'Home', value: '#FFFFFF'},
                         {id: '128 0 3', action: 'Dodge', value: '#FFFFFF'}
-                    ]
+                    ],
+                    image: 'images/Industry-Robot-icon.png'
+
                 },
                 {
                     name: 'Robot 4',
                     resource: [
                         {id: '132 0 2', action: 'Home', value: '#FFFFFF'},
                         {id: '132 0 3', action: 'Dodge', value: '#FFFFFF'}
-                    ]
+                    ],
+        image: 'images/Industry-Robot-icon.png'
                 },
                 {
                     name: 'Reset PLC',
                     resource: [
                         {id: '141 0 0', action: 'Set', value: '#FFFFFF'},
                         {id: '141 0 1', action: 'Mode', value: '#FFFFFF'}
-                    ]
+                    ],
+        image: 'images/plc-icon.jpg'
                 }
             ]/*,
             singleShow: [
                 {
                     name: 'Sensor 1',
                     id: 'db hej hej',
-                    value: 'false'
+                    value: 'false',
+                    image: 'images/elevator-icon.png'
                 }
             ]*/
         };
