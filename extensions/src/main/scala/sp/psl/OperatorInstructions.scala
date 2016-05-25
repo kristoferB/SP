@@ -67,6 +67,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
       println("Command: " + command)
+      eventHandler ! SubscribeToSSE(self)
 
       command match {
         case "connect" =>
@@ -93,19 +94,28 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
       }
     }
     case ConnectionFailed(request, reason) => {
-      println("failed:"+reason)
+      println("Operator instruction AMQ failed:"+reason)
+    }
+    case r @ Response(ids, attr, service, _) if service == "OperationControl" => {
+      // high level force reset...
+      if(attr.getAs[Boolean]("reset").getOrElse(false)) {
+        println("OperatorInstructions: High level force reset! Resetting.")
+        run = false
+        mode = 1
+        eventHandler ! Response(List(), SPAttributes("resetOperatorInstructions"->true, "silent"->true), serviceName.get, serviceID)
+      }
     }
     case mess @ AMQMessage(body, prop, headers) => {
-      println(s"new instruction on the bus!!!!!!!")
+      //println(s"new instruction on the bus!!!!!!!")
       val resp = SPAttributes.fromJson(body.toString).getOrElse(SPAttributes())
 
       resp.getAs[String]("command") match {
         case Some("subscribe") =>
           resp.getAs[List[DBValue]]("dbs").foreach { oi =>
             oi.map { dbv =>
-              println("dbv: " + dbv);
+              //println("dbv: " + dbv);
               dbv.address.to[BusAddress] match {
-                case Some(a) => { println("subscribing..."); subscriptions += (dbv.id -> dbv) }
+                case Some(a) => { subscriptions += (dbv.id -> dbv) }
                 case _ => // skip these
               }
             }
@@ -151,11 +161,11 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
     }
 
     case ConnectionInterrupted(ca, x) => {
-      println("connection closed")
+      println("Operator instr AMQ connection closed")
       setup = None
     }
     case x => {
-      println("no match for message: "+x)
+      // println("Operator instr no match for message: "+x)
     }
   }
 
@@ -165,7 +175,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
         case Some(addr) if addr.name == addressPrefix + ".run" => SPValue(run)
         case Some(addr) if addr.name == addressPrefix + ".mode" => SPValue(mode)
         case s@_ => {
-          println("subscription does not exist: " + s)
+          // println("op instruction subscription does not exist: " + s)
           SPValue(false)
         }
       }
@@ -178,7 +188,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
   def setupBus(s: BusSetup, rnr: RequestNReply) = {
       setup = Some(s)
       serviceName = Some(rnr.req.service)
-      println(s"connecting to $s")
+      println(s"op instr connecting to $s")
       ReActiveMQExtension(context.system).manager ! GetConnection(s"nio://${s.busIP}:61616")
   }
 
@@ -192,7 +202,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
   }
 
   def disconnect() = {
-    println("disconnecting from the bus")
+    println("op instr disconnecting from the bus")
     theBus.foreach(_ ! CloseConnection)
     this.setup = None
     this.theBus = None
@@ -203,7 +213,7 @@ class OperatorInstructions(eventHandler: ActorRef) extends Actor with ServiceSup
       bus <- theBus
       s <- setup
     } yield {
-      println(s"sending: ${mess.toJson}")
+      println(s"operator instruction sending: ${mess.toJson}")
       bus ! SendMessage(Topic(s.publishTopic), AMQMessage(mess.toJson))
     }
   }

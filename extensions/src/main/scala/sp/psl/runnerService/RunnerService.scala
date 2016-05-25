@@ -58,6 +58,8 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   var parameterMap: Map[String, ID] = Map()
   var station: String = ""
   var progress: ActorRef = self
+  var soppen: ID = ID.newID
+
   implicit var rnr: RequestNReply = null
   implicit val timeout = Timeout(2 seconds)
 
@@ -74,6 +76,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
      // progress = context.actorOf(progressHandler)
 
       val sopID = transform(RunnerService.transformTuple._1)
+      soppen = sopID
       station = transform(RunnerService.transformTuple._2)
 
       //list of tuples into maps
@@ -82,9 +85,9 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
       // maps all operation ids to an AbilityStructure
       val ops = ids.collect{case o:Operation => o}
-      operationAbilityMap = ops.flatMap{ o =>
-        o.attributes.getAs[AbilityStructure]("ability").map(o.id -> _)
-      }.toMap
+        operationAbilityMap = ops.flatMap{ o =>
+          o.attributes.getAs[AbilityStructure]("ability").map(o.id -> _)
+        }.toMap
 
       // saves all parameters into a map
       val things = ids.collect{case t: Thing if t.name.endsWith(".pos")  => t}
@@ -92,7 +95,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
       // maps all names of abilities to the ability id
       val abilities = ops.collect{case o: Operation if o.attributes.getAs[String]("operationType").getOrElse("not") == "ability" => o}
-      //println("abilities = " + abilities)
+        //println("abilities = " + abilities)
       abilityMap = abilities.map(o => o.id -> o).toMap
 
       serviceHandler ! Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"status")))
@@ -100,11 +103,11 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       // Makes the parentmap
       sop.foreach(createSOPMap)
       sopen = sop.toOption
-      println(s"we got a sop:")
+        println(s"we got a sop:")
       println("----------")
       println(sop)
-      println("----------")
-      sop.foreach(_.printMe(idMap))
+//      println("----------")
+//      sop.foreach(_.printMe(idMap))
       println("----------")
 
       progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
@@ -112,55 +115,67 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
     // We get states from Operation control
     case r @ Response(ids, attr, service, _) if service == operationController => {
-      //println(s"we got a state change")
-
-      val newState = attr.getAs[State]("state")
-      newState.foreach{s =>
-        state = State(state.state ++ s.state.filter{case (id, v)=>
-          state.get(id) != newState.get(id)
-        })}
-
-      //lägger till alla ready states i en readyList och tar bort gamla som inte är ready längre
-      val readyStates = state.state.filter{case (id, value) =>
-        value == SPValue("ready")
-      }
-      readyList = readyStates.keys.toList
-      //println(s"readyList: $readyList")
-
-      // if there is nothing started yet
-      if(activeSteps.isEmpty) {
-        sopen.foreach(executeSOP)
-        //println("activeStep empty -> start executing SOP")
-        progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
+      // high level force reset...
+      if(attr.getAs[Boolean]("reset").getOrElse(false)) {
+        println("RunnerService: High level force reset! Exiting.")
+        self ! PoisonPill
       } else {
-        val completedIDs = state.state.filter{case (i,v) => v == SPValue("completed")}.keys.toList
-        //println("completed ids = " + completedIDs)
+        //println(s"we got a state change")
 
-        val opsThatHasCompletedAbilities = (operationAbilityMap.filter{case (o, struct) =>
-          val abilityId = struct.id
-          completedIDs.contains(abilityId)
-        }).keySet
+        val newState = attr.getAs[State]("state")
+        newState.foreach{s =>
+          state = State(state.state ++ s.state.filter{case (id, v)=>
+            state.get(id) != newState.get(id)
+          })}
 
-        //println(s"ops that has been compl: $opsThatHasCompletedAbilities")
+        //lägger till alla ready states i en readyList och tar bort gamla som inte är ready längre
+        val readyStates = state.state.filter{case (id, value) =>
+          value == SPValue("ready")
+        }
+        readyList = readyStates.keys.toList
+        //println(s"readyList: $readyList")
 
-        val activeCompleted = activeSteps.filter(x=>opsThatHasCompletedAbilities.contains(x.operation))
-
-        // execute completed to flop run bit
-        activeCompleted.foreach(x=>stopID(x.operation))
-        // remove the completed ids
-        activeSteps = activeSteps.filterNot(x=>opsThatHasCompletedAbilities.contains(x.operation))
-
-        val res = activeCompleted.map(stepCompleted)
-        // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
-        if (res.foldLeft(false)(_ || _)){
-          println(s"-----------------------------")
-          println(s"-- RunnerService: All done --")
-          println(s"-- $station - $sopen --")
-          println(s"-----------------------------")
-          reply.foreach(rnr => rnr.reply ! Response(List(), SPAttributes("station"->station,"status"->"done", "silent"->true), rnr.req.service, rnr.req.reqID))
-          self ! PoisonPill
-        } else {
+        // if there is nothing started yet
+        if(activeSteps.isEmpty) {
+          sopen.foreach(executeSOP)
+          //println("activeStep empty -> start executing SOP")
           progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
+        } else {
+          val completedIDs = state.state.filter{case (i,v) => v == SPValue("completed")}.keys.toList
+          //println("completed ids = " + completedIDs)
+
+          val opsThatHasCompletedAbilities = (operationAbilityMap.filter{case (o, struct) =>
+            val abilityId = struct.id
+            completedIDs.contains(abilityId)
+          }).keySet
+
+          //println(s"ops that has been compl: $opsThatHasCompletedAbilities")
+
+          val activeCompleted = activeSteps.filter(x=>opsThatHasCompletedAbilities.contains(x.operation))
+
+          // execute completed to flop run bit
+          activeCompleted.foreach(x=>stopID(x.operation))
+          // remove the completed ids
+          activeSteps = activeSteps.filterNot(x=>opsThatHasCompletedAbilities.contains(x.operation))
+
+          val res = activeCompleted.map(stepCompleted)
+          // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
+          if (res.foldLeft(false)(_ || _)){
+            val resp = Response(List(), SPAttributes("station"->station,"sop"->soppen, "status"->"done", "silent"->true), rnr.req.service, rnr.req.reqID)
+            println(s"-----------------------------")
+            println(s"-- RunnerService: All done --")
+            println(s"-- $station - $sopen --")
+            println(s"-- resp: $resp --")
+            //println(s"-- $reply --")
+            println(s"-----------------------------")
+
+            // reply.foreach(rnr => rnr.reply ! resp)
+            eventHandler ! resp
+
+            self ! PoisonPill
+          } else {
+            progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
+          }
         }
       }
     }

@@ -18,7 +18,8 @@
       resourceTree: [],
       latestMess: {},
       connect: connect,
-      execute: execute
+      execute: execute,
+      reset: reset
     };
 
     activate();
@@ -102,7 +103,13 @@
       spServicesService.callService('OperationControl',{'data':mess});
     }
 
-
+    function reset() {
+      var mess = service.latestMess;
+      mess.command = {
+        'commandType': 'reset'
+      };
+      spServicesService.callService('OperationControl',{'data':mess});
+    }
 
     function sendTo(mess, command){
       mess.command = {'commandType': command};

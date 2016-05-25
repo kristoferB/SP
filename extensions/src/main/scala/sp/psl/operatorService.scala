@@ -72,7 +72,6 @@ class OperatorService(sh: ActorRef) extends Actor with ServiceSupport with Tower
 
 
       replyTo ! Response(List(), SPAttributes("tower" -> tower), rnr.req.service, rnr.req.reqID)
-      //self ! PoisonPill
     }
     case error: SPError => println(s"Operator Service got an error: $error")
   }

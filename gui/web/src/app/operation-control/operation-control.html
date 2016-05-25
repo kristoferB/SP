@@ -14,6 +14,9 @@
         </div>
         <div ng-if="vm.control.connected">
             <div>
+                <button type="button" class="btn" ng-click="vm.reset()">
+                    <i class="fa fa-recycle"></i>Reset high level
+                </button>
                 <h4>Controlled resources</h4>
                 <label>Filter resources: <input ng-model="vm.opsFilterQuery"></label>
                 <table width="100%" border="1">
