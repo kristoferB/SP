@@ -14,7 +14,8 @@
         var service = {
             connected: false,
             serviceID: '',
-            connect: connect
+            connect: connect,
+            command: command
         };
 
         activate();
@@ -38,14 +39,18 @@
         function connect(ip, topic){
             var mess = {
                 'setup': {
-                    'ip': 'localhost',
-                    'topic': 'ps'
+                    'ip': ip,
+                    'topic': topic
                 },
                 'command':{
                     'type':'connect'
                 }
             };
-            spServicesService.callService('ProcessSimulate',{'data':mess}).then(function(repl){
+            command(mess);
+        }
+
+        function command(message) {
+            spServicesService.callService('ProcessSimulate',{'data':message}).then(function(repl){
                 if (mok(repl) && _.has(repl, 'reqID')){
                     service.serviceID = repl.reqID;
                 }

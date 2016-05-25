@@ -20,9 +20,14 @@
         vm.connect = connect;
         vm.connectedMessage = 'Not connected';
 
+        vm.exportSequence = exportSequence;
+        vm.updateSimIDs = updateSimIDs;
+        vm.importAll = importAll;
+        vm.importBasic = importBasic;
+
         vm.serviceName = 'ProcessSimulate';
         vm.busIP = 'localhost';
-        vm.topic = 'ps';
+        vm.topic = 'PS';
 
         activate();
 
@@ -35,11 +40,52 @@
         }
 
         function connect(){
-            processSimulateService.connect({
-                'ip':vm.busIP,
-                'topic':vm.topic
-            }, vm.connectionDetailsID, vm.resourcesID);
-            vm.connected = true;
+            processSimulateService.connect(vm.busIP,vm.topic);
+        }
+
+        function exportSequence() {
+            var sops = _.map(itemService.selected, function(x) {return x.id;});
+            var mess = {
+                'command':{
+                    'type':'export seq',
+                    'sops':sops
+                }
+            };
+            processSimulateService.command(mess);
+        }
+        function updateSimIDs() {
+            var mess = {
+                'command':{
+                    'type':'update sim ids'
+                }
+            };
+            processSimulateService.command(mess);
+        }
+        function importAll() {
+            var mess = {
+                'command':{
+                    'type':'import all'
+                }
+            };
+            processSimulateService.command(mess);
+        }
+        function importBasic() {
+            var mess = {
+                'command':{
+                    'type':'import basic ops'
+                }
+            };
+            processSimulateService.command(mess);
+        }
+        function importSingle() {
+            var txid = '';
+            var mess = {
+                'command':{
+                    'type':'import single',
+                    'txid':txid
+                }
+            };
+            processSimulateService.command(mess);
         }
     }
 })();

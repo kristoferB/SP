@@ -14,6 +14,8 @@ import scala.concurrent.duration._
 import com.codemettle.reactivemq._
 import com.codemettle.reactivemq.ReActiveMQMessages._
 import com.codemettle.reactivemq.model._
+import sp.services.AddHierarchies
+import org.json4s.JString
 
 import scala.util._
 
@@ -25,8 +27,8 @@ object ProcessSimulate extends SPService {
     ),
     "setup" -> SPAttributes(
       "ip" -> KeyDefinition("String", List(), Some("0.0.0.0")),
-      "topic" -> KeyDefinition("String", List(), Some("ps"))
-    ),    
+      "topic" -> KeyDefinition("String", List(), Some("PS"))
+    ),
     "command" -> SPAttributes(
       "type" -> KeyDefinition("String", List("connect","disconnect",
         "export seq", "import basic ops", "import all", "import single", "update sim ids"), Some("export seq")),
@@ -38,15 +40,15 @@ object ProcessSimulate extends SPService {
   val transformTuple = (
     TransformValue("setup", _.getAs[BusSetup]("setup")),
     TransformValue("command", _.getAs[SPAttributes]("command"))
-    )
+  )
   val transformation = transformToList(transformTuple.productIterator.toList)
 
-  def props(eventHandler: ActorRef) = Props(classOf[ProcessSimulate], eventHandler)
+  def props(modelHandler: ActorRef, eventHandler: ActorRef) = Props(classOf[ProcessSimulate], modelHandler, eventHandler)
 }
 
 case class BusSetup(ip: String, topic: String)
 
-class ProcessSimulate(eventHandler: ActorRef) extends Actor with ServiceSupport {
+class ProcessSimulate(modelHandler: ActorRef, eventHandler: ActorRef) extends Actor with ServiceSupport with AddHierarchies {
   implicit val timeout = Timeout(100.seconds)
   val serviceID = ID.newID
   var bus: Option[ActorRef] = None
@@ -61,17 +63,24 @@ class ProcessSimulate(eventHandler: ActorRef) extends Actor with ServiceSupport 
       implicit val rnr = RequestNReply(r, replyTo)
       val setup = transform(ProcessSimulate.transformTuple._1)
       val command = transform(ProcessSimulate.transformTuple._2)
-      
-      val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
-      command.getAs[String]("type").get match {
-        case "connect" => connect(setup)
-        case "disconnect" => disconnect
-        case "export seq" => exportSeq(ids, command.getAs[List[ID]]("sops").getOrElse(List()))
-        case _ =>
+      for {
+        c <- r.attributes.getAs[ServiceHandlerAttributes]("core")
+        m <- c.model
+      } yield {
+        command.getAs[String]("type").get match {
+          case "connect" => connect(setup)
+          case "disconnect" => disconnect
+          case "export seq" => exportSequence(m, ids, command.getAs[List[ID]]("sops").getOrElse(List()))
+          case "import basic ops" => getBasicOps(m, ids)
+          case "import all" => getAllItems(m, ids)
+          case "import single" => getSingleItem(m, ids, command.getAs[String]("txid").getOrElse(""))
+          case "update sim ids" => updateSimIds(m, ids)
+          case _ =>
+        }
       }
 
-      replyTo ! Response(List(), connectedAttribute, service, serviceID)
+      replyTo ! Response(List(), connectedAttribute merge SPAttributes("silent"->true), service, serviceID)
     }
     case ConnectionEstablished(request, c) => {
       println("connected:"+request)
@@ -84,15 +93,17 @@ class ProcessSimulate(eventHandler: ActorRef) extends Actor with ServiceSupport 
     case ConnectionFailed(request, reason) => {
       println("failed:"+reason)
     }
-      
+
     case _ => sender ! SPError("Ill formed request");
   }
 
   def connect(s: BusSetup)(implicit rnr: RequestNReply) = {
-    setup = Some(s)
-    serviceName = Some(rnr.req.service)
-    println(s"ProcessSimulate: connecting to bus: $setup")
-    ReActiveMQExtension(context.system).manager ! GetConnection(s"nio://${s.ip}:61616")
+    if(bus.isEmpty) {
+      setup = Some(s)
+      serviceName = Some(rnr.req.service)
+      println(s"ProcessSimulate: connecting to bus: $setup")
+      ReActiveMQExtension(context.system).manager ! GetConnection(s"nio://${s.ip}:61616")
+    }
   }
 
   def connectedAttribute = {
@@ -102,26 +113,25 @@ class ProcessSimulate(eventHandler: ActorRef) extends Actor with ServiceSupport 
       SPAttributes("bus"->"Connecting")
     else
       SPAttributes("bus"->"Connected")
-  }  
+  }
 
   def disconnect = {
     println("ProcessSimulate: disconnecting from the bus.")
     bus.foreach(_ ! CloseConnection)
     setup = None
-    bus = None    
+    bus = None
   }
 
   override def postStop() = {
     disconnect
   }
-  
+
   def terminate(progress: ActorRef): Unit = {
     self ! PoisonPill
     progress ! PoisonPill
   }
 
   def createExportJsonHelper(sop : SOP, ids: List[IDAble], ack : SPAttributes=SPAttributes()) : SPAttributes = {
-    import org.json4s.JString
     sop match {
       case h: Hierarchy =>
         val ops = ids.find(o => o.id == h.operation)
@@ -154,43 +164,109 @@ class ProcessSimulate(eventHandler: ActorRef) extends Actor with ServiceSupport 
     }
   }
 
-  def exportSeq(ids: List[IDAble], sops: List[ID])(implicit rnr: RequestNReply) = {
-    val sopspecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec]).filter(sop => sops.contains(sop.id))
+  def exportSequence(model: ID, ids: List[IDAble], sops: List[ID])(implicit rnr: RequestNReply) = {
+    val sopspecs = ids.flatMap { case s: SOPSpec if sops.contains(s.id) => Some(s); case _ => None }
 
-    val json = SPAttributes("command" -> "create_op_chains",
+    val message = SPAttributes("command" -> "create_op_chains",
       "params" -> SPAttributes("op_chains" -> sopspecs.map { spec =>
         val sop = spec.sop.map(createExportJsonHelper(_, ids))
         SPAttributes("name" -> spec.name, "sop" -> sop)
-      })).pretty
-    
+      }))
 
-    eventHandler ! Progress(SPAttributes("progress" -> "Request sent to PS. Waiting for answer"),
-      serviceName.get, serviceID)
-    bus.map {_ ? json}.foreach(handlePSAnswer(_).foreach(l=>{
-      eventHandler ! Response(l, SPAttributes("info" -> "create_op_chain"), serviceName.get, serviceID)
-    }))
+    askPS(model, message, "create_op_chains")
   }
 
-  def handlePSAnswer(f: Future[Any])(implicit rnr: RequestNReply): Future[List[IDAble]] = {
+  def addHierarchy(ids : List[IDAble], s : String) = {
+    val uids = ids.map(x => x match { // TODO: real ugly...
+      case i:Operation => i.copy(attributes = i.attributes merge SPAttributes("hierarchy" -> Set(s)))
+      case i:Thing => i.copy(attributes = i.attributes merge SPAttributes("hierarchy" -> Set(s)))
+      case i:SOPSpec => i.copy(attributes = i.attributes merge SPAttributes("hierarchy" -> Set(s)))
+    })
+    ids ++ addHierarchies(uids, "hierarchy")
+  }
+
+  def getBasicOps(model: ID, ids: List[IDAble]) = {
+    val message = SPAttributes("command" -> "get_tx_basic_ops")
+    askPS(model, message, "get_tx_basic_ops", addHierarchy(_, "PS Basic Ops"))
+  }
+
+  def getAllItems(model: ID, ids: List[IDAble]) = {
+    val message = SPAttributes("command" -> "get_all_tx_objects")
+    askPS(model, message, "get_all_tx_objects", addHierarchy(_, "PS All Items"))
+  }
+
+  def getSingleItem(model: ID, ids: List[IDAble], txid: String) = {
+    val message = SPAttributes("command" -> "get_tx_object", "params" -> Map("txid" -> txid))
+    askPS(model, message, "get_tx_object")
+  }
+
+  def updateSimIds(model: ID, ids: List[IDAble]) = {
+    val message = SPAttributes("command" -> "get_tx_basic_ops")
+    val opsInSP = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
+    askPS(model, message, "update_sim_ids", {
+      idablesFromPS =>
+        lazy val opsFromPS = idablesFromPS.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
+        lazy val opsFromPSName_Map = opsFromPS.map(o => o.name -> o).toMap
+        lazy val opsInSPName_Map = opsInSP.map(o => o.name -> o).toMap
+        lazy val updatedSPOps = opsInSPName_Map.flatMap { case (spOpName, spOp) =>
+          for {
+            psOp <- opsFromPSName_Map.get(spOpName)
+            txidValue <- psOp.attributes.getAs[String]("txid")
+          } yield {
+            val ssValue = psOp.attributes.getAs[Option[String]]("starting_signal").getOrElse(None)
+            val esValue = psOp.attributes.getAs[Option[String]]("ending_signal").getOrElse(None)
+            val durValue = psOp.attributes.getAs[Double]("duration").getOrElse(0)
+            val updatedAttr = (spOp.attributes transformField { case ("simop", _) => ("simop", SPValue(txidValue)) }).to[SPAttributes].getOrElse(spOp.attributes)
+            val updatedAttr1 = (updatedAttr transformField { case ("txid", _) => ("txid", SPValue(txidValue)) }).to[SPAttributes].getOrElse(updatedAttr)
+            val updatedAttr2 = (updatedAttr1 transformField { case ("starting_signal", _) => ("starting_signal", SPValue(ssValue)) }).to[SPAttributes].getOrElse(updatedAttr1)
+            val updatedAttr3 = (updatedAttr2 transformField { case ("ending_signal", _) => ("ending_signal", SPValue(esValue)) }).to[SPAttributes].getOrElse(updatedAttr2)
+            val updatedAttr4 = (updatedAttr3 transformField { case ("duration", _) => ("duration", SPValue(durValue)) }).to[SPAttributes].getOrElse(updatedAttr3)
+            if(spOp.attributes.toString != updatedAttr4.toString) {
+              println(spOp.name)
+              println(updatedAttr4)
+            }
+            spOp.copy(attributes = updatedAttr4)
+          }
+        }
+        println(s"Updated attributes for ${updatedSPOps.size} operations. ${updatedSPOps.map(_.name).mkString(", ")}")
+        updatedSPOps.toList
+    })
+  }
+
+  def handlePSAnswer(f: Future[Any]): Future[Either[List[IDAble],String]] = {
     // finds error by exception, since then the future fails
-    f.map { answer =>
-      val json = answer.asInstanceOf[AMQMessage].body.toString
-      val psres = SPAttributes.fromJson(json).get
-      val responseType = psres.getAs[String]("response_type").get
+    f.map { case AMQMessage(body, props, headers) =>
+      val psres = SPAttributes.fromJson(body.toString).get
+      val responseType = psres.getAs[String]("response_type")
 
       responseType match {
-        case "simple_ok" => List()
-        case "list_of_items" => psres.getAs[List[IDAble]]("items").getOrElse(List())
-        case "item" => List(psres.getAs[IDAble]("item")).flatMap(x=>x)
-        case "error" => {
-          val error_message = psres.getAs[String]("error").get
-          throw new Exception(s"PS Error: $error_message")
-        }
-        case x@_ => {
-          throw new Exception(s"Unrecognized response $x")
-        }
+        case Some("simple_ok") => Left(List())
+        case Some("list_of_items") => Left(psres.getAs[List[IDAble]]("items").getOrElse(List()))
+        case Some("item") => Left(List(psres.getAs[IDAble]("item")).flatMap(x=>x))
+        case Some("error") => Right(psres.getAs[String]("error").getOrElse("No error string defined"))
+        case Some(x) => Right(s"Unrecognized response $x")
+        case None => Right("No response_type")
       }
+      case x@_ => Right("Unexpected response type $s")
     }
   }
 
+  def askPS(model: ID, message: SPAttributes, responseInfo: String, responseTransformation: List[IDAble]=>List[IDAble] = identity) = {
+    eventHandler ! Progress(SPAttributes("progress" -> "Request sent to PS. Waiting for answer"),
+      serviceName.get, serviceID)
+    val json = message.pretty
+    val f = for {
+      b <- bus
+      s <- setup
+    } yield {
+      b ? RequestMessage(Queue(s.topic), AMQMessage(json))
+    }
+    f.foreach(handlePSAnswer(_).foreach{
+      case Left(l) =>
+        modelHandler ! UpdateIDs(model, responseTransformation(l), SPAttributes("info"->responseInfo))
+        eventHandler ! Response(responseTransformation(l), SPAttributes("info" -> responseInfo), serviceName.get, serviceID)
+      case Right(s) =>
+        eventHandler ! Response(List(), SPAttributes("error" -> s, "info" -> responseInfo), serviceName.get, serviceID)
+    })
+  }
 }

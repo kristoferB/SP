@@ -135,7 +135,7 @@ object SP extends App {
 
   import sp.virtcom.ProcessSimulate
   serviceHandler ! RegisterService("ProcessSimulate",
-    system.actorOf(ProcessSimulate.props(eventHandler), "ProcessSimulate"),
+    system.actorOf(ProcessSimulate.props(modelHandler,eventHandler), "ProcessSimulate"),
     ProcessSimulate.specification, ProcessSimulate.transformation)
 //
 //  import sp.areus.modalaService._
