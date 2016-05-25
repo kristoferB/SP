@@ -133,8 +133,8 @@ trait TowerBuilder extends TowerOperationTypes {
   def divideTowerOnRobots(t: List[Brick], fixturePosition: Int) = {
     val (r1Bricks, r2Bricks) = t.partition(_.col >=3)
 
-    val R1Fix = updateFixturePosition(sortBricks(r1Bricks), fixturePosition)
-    val R2Fix = updateFixturePosition(sortBricks(r2Bricks, takeLeft = false), fixturePosition+2)
+    val R1Fix = updateFixturePosition(sortBricks(r1Bricks, takeLeft = false), fixturePosition)
+    val R2Fix = updateFixturePosition(sortBricks(r2Bricks), fixturePosition+2)
 
     (R1Fix, R2Fix)
   }
