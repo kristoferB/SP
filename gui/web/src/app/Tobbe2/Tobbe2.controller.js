@@ -80,7 +80,7 @@
                     name: 'Flexlink',
                     resource: [
                         {id: '138 16 0', action: 'Start', value: '#FFFFFF'},
-                        {id: '138 16 1 ', action: 'Stop', value: '#FFFFFF'}
+                        {id: '138 16 1', action: 'Stop', value: '#FFFFFF'}
                     ],
                     image: 'images/conveyor-icon2.png'
                 },

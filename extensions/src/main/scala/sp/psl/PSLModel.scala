@@ -99,7 +99,9 @@ trait Resources extends ModelMaking {
       state = List("running"),
       abilities = List(
         AbilityDefinition(name = "fixtureToRobot", parameters = List(sOrP("pos", 0))),
-        AbilityDefinition("fixtureToOperator", List(sOrP("no", 2)))
+        AbilityDefinition("fixtureToOperator", List(sOrP("no", 2))),
+        AbilityDefinition("start"),
+        AbilityDefinition("stop")
       )
 
     )
@@ -178,7 +180,8 @@ trait DBConnector {
       db(itemMap, "Flexlink.fixtureToRobot.mode", "int", 139, 4, 0, stateMap),
       db(itemMap, "Flexlink.fixtureToOperator.no", "int", 139, 6, 0),
       db(itemMap, "Flexlink.fixtureToRobot.pos", "int", 139, 10, 0),
-      //kolla adress // db(itemMap, "Flexlink.running", "int", 139, 2, 0, stateMap),
+      db(itemMap, "Flexlink.start", "bool", 138, 16, 0),
+      db(itemMap, "Flexlink.stop", "bool", 138, 16, 1),
 
       db(itemMap, "R5.pickBlock.run", "bool", 132, 0, 0),
       db(itemMap, "R5.pickBlock.mode", "int", 132, 2, 0, stateMap),
