@@ -34,8 +34,6 @@
                 {sizeX: 6, sizeY: 4, title: 'OPC Runner', template: 'app/opc-runner/opc-runner.html'},
                 {sizeX: 4, sizeY: 4, title: 'Example Widget', template: 'app/example-widget/example-widget.html'},
                 {sizeX: 4, sizeY: 4, title: 'Operation Control', template: 'app/operation-control/operation-control.html'},
-
-                {sizeX: 4, sizeY: 4, title: 'some crap hej', template: 'app/operation-control/operation-control.html'},
                 
                 {sizeX: 4, sizeY: 4, title: 'calculator', template: 'app/calculator/calculator.html'},
                 {sizeX: 8, sizeY: 6, title: 'ResetGUI', template: 'app/Tobbe2/Tobbe2.html'},

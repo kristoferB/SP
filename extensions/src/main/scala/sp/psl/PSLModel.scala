@@ -65,6 +65,11 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
         state = List("mode"),
         abilities = List("up"->List(), "down"->List())
       )
+      val flexLink = makeResource (
+        name = "flexLink",
+        state = List("mode"),
+        abilities = List("run"->List(), "halt"->List())
+      )
       val h3 = makeResource (
         name = "h3",
         state = List("mode"),
@@ -114,7 +119,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       )
 
 
-      val items = h2._2 ++ h3._2 ++ toOper._2 ++ toRobo._2 ++ R5._2 ++ R4._2 ++ R2._2 ++ longList ++ sensorIH2._2
+      val items = h2._2 ++ h3._2 ++ toOper._2 ++ toRobo._2 ++ R5._2 ++ R4._2 ++ R2._2 ++ longList ++ sensorIH2._2 ++ flexLink._2
       val itemMap = items.map(x => x.name -> x.id).toMap
       val stateMap = Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")
 
@@ -199,9 +204,9 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
 
 
         //flexlinkbandet, ihopblandat!!
-        db(itemMap, "flexlink.run",       "bool", 111, 0, 0),
-        db(itemMap, "flexlink.run.mode",  "bool", 111, 0, 1, stateMap),
-        db(itemMap, "flexLink.mode",      "bool", 111, 0, 2),
+        db(itemMap, "flexLink.run",       "bool", 138, 16, 0),
+        db(itemMap, "flexLink.halt",       "bool", 138, 16, 1),
+
 
 
         db(itemMap, "h2.up.run", "bool", 135, 0, 0),
@@ -273,7 +278,7 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       //import sp.domain.logic.PropositionParser._
       //operations exempel
 
-      val root = HierarchyRoot("Resources", List(h2._1, h3._1, toOper._1, toRobo._1, R5._1, R4._1, R2._1, sensorIH2._1, HierarchyNode(sopSpec.id)))
+      val root = HierarchyRoot("Resources", List(h2._1, h3._1, toOper._1, toRobo._1, flexLink._1, R5._1, R4._1, R2._1, sensorIH2._1, HierarchyNode(sopSpec.id)))
       replyTo ! Response(items :+ root :+ connection, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
     }
   }
