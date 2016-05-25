@@ -101,7 +101,8 @@ trait Resources extends ModelMaking {
         AbilityDefinition(name = "fixtureToRobot", parameters = List(sOrP("pos", 0))),
         AbilityDefinition("fixtureToOperator", List(sOrP("no", 2))),
         AbilityDefinition("start"),
-        AbilityDefinition("stop")
+        AbilityDefinition("stop"),
+        AbilityDefinition("onoroff")
       )
 
     )
@@ -189,6 +190,7 @@ trait DBConnector {
       db(itemMap, "Flexlink.fixtureToRobot.pos", "int", 139, 10, 0),
       db(itemMap, "Flexlink.start", "bool", 138, 16, 0),
       db(itemMap, "Flexlink.stop", "bool", 138, 16, 1),
+      db(itemMap, "Flexlink.onoroff", "bool", 138, 16, 2),
 
       db(itemMap, "R5.pickBlock.run", "bool", 132, 0, 0),
       db(itemMap, "R5.pickBlock.mode", "int", 132, 2, 0, stateMap),

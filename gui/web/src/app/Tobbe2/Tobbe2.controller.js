@@ -253,7 +253,16 @@
             if (!(_.isUndefined(item.address))) {
                 var theKey = adressToRaw(item.address);
                 var theValue = item.value;
-                searchObj( vm.data, theKey, theValue );
+                
+                if (theKey === '138 16 2') {
+                    console.log(theValue)
+                    theKey = '138 16 0';
+                    searchObj( vm.data, theKey, theValue);
+                    theKey = '138 16 1';
+                    searchObj( vm.data, theKey, !theValue);
+                }
+                
+                else searchObj( vm.data, theKey, theValue );
                 //var oki = _.find(vm.data.resSel, hejhej);
 
             }
