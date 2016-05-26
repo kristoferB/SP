@@ -45,14 +45,11 @@
                 {
                     name: 'Robot 2',
                     resource: [
-                        {id: '127 18 0 1', action: 'Set at position 1', value: '#FFFFFF'},
-                        {id: '127 18 0 2', action: 'Set at position 2', value: '#FFFFFF'},
-                        {id: '127 18 0 3', action: 'Set at position 3', value: '#FFFFFF'},
-                        {id: '127 18 0 4', action: 'Set at position 4', value: '#FFFFFF'},
-                        {id: '127 18 0 5', action: 'Set at position 5', value: '#FFFFFF'},
-                        {id: '127 0 5 true', action: 'Pick at set position', value: '#FFFFFF'},
-                        {id: '127 0 2 true', action: 'Place at elevator 2', value: '#FFFFFF'},
-                        {id: '127 0 6 true', action: 'Place at table', value: '#FFFFFF'},
+                        {id: '126 18 0', set: '1', action: 'Set at position 1', value: '#FFFFFF'},
+                        {id: '126 18 0', set: '2', action: 'Set at position 2', value: '#FFFFFF'},
+                        {id: '126 18 0', set: '3', action: 'Set at position 3', value: '#FFFFFF'},
+                        {id: '126 18 0', set: '4', action: 'Set at position 4', value: '#FFFFFF'},
+                        {id: '126 18 0', set: '5', action: 'Set at position 5', value: '#FFFFFF'}
                     ],
                     currVal: 'Choose operation',
                     currID: 'null',
@@ -109,7 +106,19 @@
                         {id: '141 0 1', action: 'Mode', value: '#FFFFFF'}
                     ],
         image: 'images/plc-icon2.png'
+                },
+                {
+                    name: 'Robot 2',
+                    resource: [
+                        {id: '126 0 5', action: 'Pick at', value: '#FFFFFF'},
+                        {id: '126 0 4', action: 'Place at position', value: '#FFFFFF'},
+                        {id: '126 0 2', action: 'Place at h2', value: '#FFFFFF'},
+                        {id: '126 0 6', action: 'Place at table', value: '#FFFFFF'}
+                    ],
+        image: 'images/Industry-Robot-icon.png'
+
                 }
+                        
             ]/*,
             singleShow: [
                 {
@@ -253,7 +262,7 @@
             if (!(_.isUndefined(item.address))) {
                 var theKey = adressToRaw(item.address);
                 var theValue = item.value;
-                
+                if (theKey === '138 16 0' || theKey === '138 16 1') return;
                 if (theKey === '138 16 2') {
                     theKey = '138 16 0';
                     searchObj( vm.data, theKey, theValue);

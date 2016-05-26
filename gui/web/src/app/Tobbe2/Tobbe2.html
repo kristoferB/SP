@@ -44,7 +44,7 @@
     /* Buttons */
     .button {
         color: #6e6e6e;
-        font: bold 12px Helvetica, Arial, sans-serif;
+        font: bold 10px Helvetica, Arial, sans-serif;
         text-decoration: none;
         /*text-shadow: 0 1px 0 #fff;*/
         padding: 11px 18px;
@@ -62,7 +62,7 @@
         -moz-border-radius: 4px;
         margin-right: 1px;
         float: right;
-        width:70px;
+        width:80px;
         height:40px;
         outline: 0;
 
@@ -171,9 +171,13 @@
     /*Old button style
     //style="float: right;width:60px;height:40px;background:{{action.value}}; */
 </style>
+<div class="panel-content">
+
 <!--<button type="button" class="btn" ng-click="vm.reset()">
                     <img ng-src="images/icon.png" style="width:20px; height:14px;transform: translate(-20%, -10%);">Reset high level</button>-->
+
 <button type="button" class="btn" ng-click="vm.reset()"><i class="fa fa-recycle"></i>Reset high level</button>
+
 <div>
 <body ng-app="ngrepeatSelect">
 <div><!--The Buttons-->
@@ -194,7 +198,7 @@
         <h class="centerText">{{resurs.name}}</h>
 
         <button type="button" class="button"
-                ng-click="vm.myFunction(resurs.name)">Run</button>
+                ng-click="vm.sendRawDB(resurs.currID)">Run</button>
         <div class="dropdown" style="float: right">
             <button ng-click="vm.myFunction(resurs.name)" class="dropbtn">{{resurs.currVal}}</button>
             <div id={{resurs.name}} class="dropdown-content">
@@ -223,7 +227,7 @@
     </div>
 </body>
 </div>
-
+</div>
 </div>
 
 
