@@ -112,7 +112,7 @@
                     resource: [
                         {id: '126 0 5', action: 'Pick at position', value: '#FFFFFF'},
                         {id: '126 0 4', action: 'Place at position', value: '#FFFFFF'},
-                        {id: '126 0 2', action: 'Place at elevator 2', value: '#FFFFFF'},
+                        {id: '126 0 2', action: 'Place at h3', value: '#FFFFFF'},
                         {id: '126 0 6', action: 'Place at table', value: '#FFFFFF'}
                     ],
         image: 'images/Industry-Robot-icon.png'
