@@ -103,7 +103,9 @@
                     name: 'Reset PLC',
                     resource: [
                         {id: '141 0 0', action: 'Set', value: '#FFFFFF'},
-                        {id: '141 0 1', action: 'Mode', value: '#FFFFFF'}
+                        {id: '141 0 1', action: 'Mode', value: '#FFFFFF'},
+                        {id: '141 0 2', action: 'Force palett 0', value: '#FFFFFF'},
+                        {id: '141 0 3', action: 'Force palett 1', value: '#FFFFFF'}
                     ],
         image: 'images/plc-icon2.png'
                 },
