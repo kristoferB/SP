@@ -262,7 +262,6 @@
                     alert('Your Tower Shall Not Pass!');
                 } else if(anyCubesAtAll) {
                     sendOrder();
-                    alert('OK');
                 }
 
                 else
