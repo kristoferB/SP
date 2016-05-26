@@ -51,7 +51,7 @@
                         {id: '126 18 0', set: '4', action: 'Set at position 4', value: '#FFFFFF'},
                         {id: '126 18 0', set: '5', action: 'Set at position 5', value: '#FFFFFF'}
                     ],
-                    currVal: 'Choose operation',
+                    currVal: 'Choose place',
                     currID: 'null',
                     image: 'images/Industry-Robot-icon.png'
                 }
