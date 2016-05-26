@@ -91,8 +91,8 @@
 
 
     function onEvent() {
-        console.log("It has to be done");
-        reset();
+        //console.log("It has to be done");
+        //reset();
     }
 
         function sendOrder() {
