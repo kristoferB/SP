@@ -58,7 +58,7 @@
             ],
             resSel: [
                 {
-                    name: 'Elevator 1',
+                    name: 'Elevator 2',
                     resource: [
                         {id: '135 0 0', action: 'Up', value: '#FFFFFF'},
                         {id: '135 0 1', action: 'Down', value: '#FFFFFF'}
@@ -66,7 +66,7 @@
                     image: 'images/elevator-icon.png'
                 },
                 {
-                    name: 'Elevator 2',
+                    name: 'Elevator 3',
                     resource: [
                         {id: '140 0 0', action: 'Up', value: '#FFFFFF'},
                         {id: '140 0 1', action: 'Down', value: '#FFFFFF'}
@@ -83,7 +83,7 @@
                     image: 'images/conveyor-icon2.png'
                 },
                 {
-                    name: 'Robot 3',
+                    name: 'Robot 4',
                     resource: [
                         {id: '128 0 2', action: 'Home', value: '#FFFFFF'},
                         {id: '128 0 3', action: 'Dodge', value: '#FFFFFF'}
@@ -92,7 +92,7 @@
 
                 },
                 {
-                    name: 'Robot 4',
+                    name: 'Robot 5',
                     resource: [
                         {id: '132 0 2', action: 'Home', value: '#FFFFFF'},
                         {id: '132 0 3', action: 'Dodge', value: '#FFFFFF'}
@@ -110,9 +110,9 @@
                 {
                     name: 'Robot 2',
                     resource: [
-                        {id: '126 0 5', action: 'Pick at', value: '#FFFFFF'},
+                        {id: '126 0 5', action: 'Pick at position', value: '#FFFFFF'},
                         {id: '126 0 4', action: 'Place at position', value: '#FFFFFF'},
-                        {id: '126 0 2', action: 'Place at h2', value: '#FFFFFF'},
+                        {id: '126 0 2', action: 'Place at elevator 2', value: '#FFFFFF'},
                         {id: '126 0 6', action: 'Place at table', value: '#FFFFFF'}
                     ],
         image: 'images/Industry-Robot-icon.png'
