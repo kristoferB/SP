@@ -202,7 +202,7 @@
         <div class="dropdown" style="float: right">
             <button ng-click="vm.myFunction(resurs.name)" class="dropbtn">{{resurs.currVal}}</button>
             <div id={{resurs.name}} class="dropdown-content">
-                <a href="#" ng-click= "resurs.currVal=option.action;resurs.currID=option.id"
+                <a href="#" ng-click= "resurs.currVal=option.action;resurs.currID=option.id+' '+option.set"
                     ng-repeat="option in resurs.resource" value="{{option.id}}">{{option.action}}</a>
             </div>
         </div>
