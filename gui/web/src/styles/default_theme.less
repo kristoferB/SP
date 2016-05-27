@@ -64,7 +64,7 @@
 @dropdown_menu_background_hover: #edf1f2;
 @dropdown_menu_background_divider: #e5e5e5;
 
-// navbar 
+// navbar
 @navbar_background: #fff;
 @navbar_color: #58666e;
 // this is the SP logo orange
@@ -280,17 +280,16 @@ a {
         }
 
         .panel-body {
-            flex: 1 1 0;
-            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             background-color: @gridster_panel_background;
 
 
             [ng-controller] {
-                position: absolute;
+                flex: 1;
                 display: flex;
                 flex-direction: column;
-                height: 100%;
-                width: 100%;
 
                 .panel-toolbar {
                     padding: 15px 16px;
@@ -312,7 +311,7 @@ a {
                 }
 
                 .panel-content {
-                    flex: 1 1 0;
+                    flex: 1;
                     position: relative;
                     margin-left: 15px;
                     margin-right: 15px;
@@ -439,6 +438,55 @@ a {
     }
 }
 
+/* Robot Cycle Analysis */
+
+.robot-cycle-analysis {
+
+    .live-chart {
+        margin-bottom: 10px;
+    }
+
+    .panel {
+        margin: 5px;
+    }
+
+    .panel-title {
+        font-size: 13px;
+    }
+
+    .panel-content {
+        overflow: auto;
+    }
+
+    .gantt-task-content {
+        color: white;
+    }
+
+    .gantt-label-text {
+        .gantt-label-actual-text{
+            margin-right: 10px;
+        }
+
+        .btn {
+            margin-left: 5px;
+            margin-bottom: 2px;
+        }
+    }
+
+    .gantt-tree-header-row {
+        position: relative;
+        .gantt-label-text {
+            padding-top: 0.3em;
+        }
+    }
+
+    .no-cycles-text {
+        text-align: center;
+        margin-top: 80px;
+    }
+
+}
+
 
 /* trajectory */
 
@@ -462,9 +510,14 @@ a {
     -webkit-box-shadow: 0 1px 1px rgba(90, 90, 90, 0.1);
     box-shadow: 0 1px 1px rgba(90, 90, 90, 0.1);
 
-    &:hover:not(.disabled), &:focus:not(.disabled) {
+    &:hover:not(.disabled) {
         background-color: @button_default_background_hover !important;
         border-color: @button_default_border_color_hover;
+    }
+
+    &:focus {
+        background-color: @button_default_background;
+        border-color: @button_default_border_color;
     }
 }
 
@@ -651,7 +704,7 @@ select {
 
 .open > .uib-dropdown-menu {
     //opacity: 1;
-    
+
 
     > li {
         > a {

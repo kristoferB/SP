@@ -9,9 +9,16 @@
     /* @ngInject */
     function SetupBusController($uibModalInstance, robotCycleAnalysisService) {
         var vm = this;
-        vm.busSettings = robotCycleAnalysisService.state.busSettings;
+        vm.busSettings = {};
         vm.save = save;
+        vm.saving = false;
         vm.cancel = cancel;
+        
+        activate();
+
+        function activate() {
+            angular.copy(robotCycleAnalysisService.busSettings, vm.busSettings);
+        }
 
         function save() {
             $uibModalInstance.close(vm.busSettings);

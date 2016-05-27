@@ -74,10 +74,6 @@
         }
       }
 
-      console.log("call")
-      console.log(request);
-      console.log(message);
-
       var serviceName = '';
       if (_.has(spService, 'name')){
         serviceName = spService.name;
@@ -90,12 +86,12 @@
         addEventListener(id, responseCallBack, progressCallback);
         message.reqID = id;
         return restService.postToServiceInstance(message, serviceName)
-      }, function(error){logger.error(error); deferred.reject(error);});
+      }, function(error){deferred.reject(error);});
 
       answerF.then(function(serviceAnswer){
         //logger.info('service answer: ' + JSON.stringify(serviceAnswer) + '.');
         deferred.resolve(serviceAnswer);
-      }, function(error){logger.error(error); deferred.reject(error);});
+      }, function(error){deferred.reject(error);});
 
       return deferred.promise;
 
@@ -175,7 +171,6 @@
         if(!isSilent) logger.success("Service "+s+" completed");
         current.includesResponse = true;
         service.eventQue = removeOldEventQues(service.eventQue);
-        console.log(data);
       }
       service.eventQue[id] = current;
 

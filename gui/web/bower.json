@@ -28,24 +28,38 @@
     "angular-sanitize": "1.4.4",
     "angular-smart-table": "2.1.1",
     "angular-ui-router": "0.2.12",
+    "angular-ui-tree": "2.15.0",
     "angular-uuid4": "~0.3.0",
     "angular-xeditable": "0.1.9",
     "bootstrap": "3.3.4",
-    "font-awesome": "4.3.0",
+    "font-awesome": "4.6.2",
     "font-source-sans-pro": "0.1.0",
     "jquery": "2.1.4",
     "jsoneditor": "~4",
-    "lodash": "3.10.0",
+    "lodash": "4.12.0",
     "moment": "2.6.0",
     "ng-js-tree": "~0.0.6",
     "ngstorage": "0.3.7",
     "raphael": "~2.1.4",
     "toastr": "2.1.0",
-    "bootstrap-contextmenu": "~0.2.0"
+    "bootstrap-contextmenu": "~0.2.0",
+    "angular-gantt": "^1.2.13"
   },
   "resolutions": {
     "angular": "1.4.4",
     "bootstrap": "3.3.4",
-    "angular-bootstrap": "0.12.1"
+    "moment": ">=2.8.0 <3.0.0"
+  },
+  "overrides": {
+    "bootstrap": {
+      "main": [
+        "dist/css/bootstrap.css"
+      ]
+    },
+    "font-awesome": {
+      "main": [
+        "css/font-awesome.css"
+      ]
+    }
   }
 }

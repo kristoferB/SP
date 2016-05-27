@@ -10,7 +10,8 @@
     function eventService($rootScope, API, logger) {
         var service = {
             addListener: addListener,
-            eventSource: null
+            eventSource: null,
+            removeListener: removeListener
         };
 
         return service;
@@ -38,6 +39,10 @@
                 $rootScope.$apply(handlerFunc(data));
             });
             logger.info('Event Service: Added an SSE listener for target ' + target + '.');
+        }
+
+        function removeListener(eventType, listener) {
+            service.eventSource.removeEventListener(eventType, listener);
         }
 
     }

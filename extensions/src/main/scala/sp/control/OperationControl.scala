@@ -21,7 +21,7 @@ object OperationControl extends SPService {
       "group"-> "control" // to organize in gui. maybe use "hide" to hide service in gui
     ),
     "setup" -> SPAttributes(
-      "busIP" -> KeyDefinition("String", List(), Some("129.16.26.22")),
+      "busIP" -> KeyDefinition("String", List(), Some("0.0.0.0")),
       "publishTopic" -> KeyDefinition("String", List(), Some("commands")),
       "subscribeTopic" -> KeyDefinition("String", List(), Some("response"))
     ),
@@ -73,7 +73,6 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
   var modeToAbility: Map[ID,ID] = Map()
 
   def receive = {
-//    case x if { println(x); false } => x
     case r @ Request(service, attr, ids, reqID) => {
       // Always include the following lines. Are used by the helper functions
       val replyTo = sender()

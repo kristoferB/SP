@@ -8,24 +8,25 @@
     .module('app.robotCycleAnalysis')
     .factory('robotCycleAnalysisService', robotCycleAnalysisService);
 
-    robotCycleAnalysisService.$inject = ['eventService', 'spServicesService'];
+    robotCycleAnalysisService.$inject = ['eventService', 'spServicesService', 'logger'];
     /* @ngInject */
-    function robotCycleAnalysisService(eventService, spServicesService) {
+    function robotCycleAnalysisService(eventService, spServicesService, logger) {
 
         var service = {
-            state: {
-                availableWorkCells: [],
-                busSettings: {
-                    host: null,
-                    port: null,
-                    topic: null
-                },
-                busConnected: null,
-                liveWorkCells: null
+            busSettings: {
+                host: null,
+                port: null,
+                topic: null
             },
-            setupBus: setupBus,
+            busConnected: null,
             connectToBus: connectToBus,
-            disconnectFromBus: disconnectFromBus
+            disconnectFromBus: disconnectFromBus,
+            isInterrupted: null,
+            requestAvailableWorkCells: requestAvailableWorkCells,
+            searchCycles: searchCycles,
+            setupBus: setupBus,
+            startLiveWatch: startLiveWatch,
+            stopLiveWatch: stopLiveWatch
         };
 
         var spServiceName = 'RobotCycleAnalysis';
@@ -35,25 +36,29 @@
         return service;
 
         function activate() {
-            eventService.addListener('Response', onEvent);
+            eventService.addListener('Response', onResponse);
+            eventService.addListener('ServiceError', onError);
             getServiceState();
         }
 
-        function onEvent(ev){
-            console.log("Robot cycle analysis service received ", ev);
-            if (_.has(ev, 'busConnected'))
-                service.state.busConnected = ev.busConnected;
-            if (_.has(ev, 'busSettings')) {
-                console.log("Bus settings received in robot cycle analysis service.");
-                service.state.busSettings = ev.busSettings;
-            }
-            if (_.has(ev, 'availableWorkCells'))
-                service.state.availableWorkCells = ev.availableWorkCells;
-            if (_.has(ev, 'addedLiveWatch'))
-                service.state.liveWorkCells.push(ev.addedLiveWatch);
-            if (_.has(ev, 'removedLiveWatch'))
-                _.filter(service.state.liveWorkCells, function (liveWorkCell) {
-                    return liveWorkCell.name !== ev.removedLiveWatch.name;
+        function onError(ev) {
+            if (ev.service == spServiceName && _.has(ev.serviceError, 'error'))
+                logger.error(ev.serviceError.error);
+        }
+
+        function onResponse(ev) {
+            var attrs = ev.attributes;
+            if (_.has(attrs, 'busConnected'))
+                service.busConnected = attrs.busConnected;
+            if (_.has(attrs, 'isInterrupted'))
+                service.isInterrupted = attrs.isInterrupted;
+            if (_.has(attrs, 'busSettings'))
+                service.busSettings = attrs.busSettings;
+            if (_.has(attrs, 'addedLiveWatch'))
+                service.liveWorkCells.push(attrs.addedLiveWatch);
+            if (_.has(attrs, 'removedLiveWatch'))
+                _.filter(service.liveWorkCells, function (liveWorkCell) {
+                    return liveWorkCell.name !== attrs.removedLiveWatch.name;
                 });
         }
 
@@ -70,11 +75,36 @@
         }
 
         function connectToBus() {
-            return postCommand("connectToBus")
+            return postCommand('connectToBus');
         }
 
         function disconnectFromBus() {
-            return postCommand("disconnectFromBus")
+            return postCommand('disconnectFromBus');
+        }
+
+        function searchCycles(message) {
+            message['command'] = 'searchCycles';
+            return postToSP(message);
+        }
+
+        function startLiveWatch(workCellId) {
+            var message = {
+                command: 'startLiveWatch',
+                workCellId: workCellId
+            };
+            return postToSP(message);
+        }
+
+        function stopLiveWatch(workCellId) {
+            var message = {
+                command: 'stopLiveWatch',
+                workCellId: workCellId
+            };
+            return postToSP(message);
+        }
+
+        function requestAvailableWorkCells() {
+            return postCommand('requestAvailableWorkCells');
         }
 
         function postCommand(command) {
@@ -95,11 +125,7 @@
         }
 
         function updateState(spServiceState) {
-            console.log("RobotCycleAnalysis: Service state was updated");
-            service.state.availableWorkCells = spServiceState.availableWorkCells;
-            service.state.busSettings = spServiceState.busSettings;
-            service.state.busConnected = spServiceState.busConnected;
-            service.state.liveWorkCells = spServiceState.liveWorkCells;
+            _.merge(service, spServiceState.attributes);
         }
     }
 
