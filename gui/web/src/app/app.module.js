@@ -22,7 +22,8 @@
         'app.kubInputGUI',
         'app.operatorInstGUI',
         'app.robotCycleAnalysis',
-        'app.activeOrder'
+        'app.activeOrder',
+        'app.Tobbe2'
     ]);
 
 })();
