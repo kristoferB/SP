@@ -32,7 +32,7 @@
                 {sizeX: 6, sizeY: 4, title: 'Service List', template: 'app/spServices/spServices.html'},
                 {sizeX: 6, sizeY: 4, title: 'Trajectories', template: 'app/trajectories/trajectories.html'},
                 {sizeX: 6, sizeY: 4, title: 'OPC Runner', template: 'app/opc-runner/opc-runner.html'},
-                {sizeX: 4, sizeY: 4, title: 'Process Simulate', template: 'app/process-simulate/process-simulate.html'}
+                {sizeX: 4, sizeY: 4, title: 'Process Simulate', template: 'app/process-simulate/process-simulate.html'},
                 {sizeX: 4, sizeY: 4, title: 'Operation Control', template: 'app/operation-control/operation-control.html'},
                 {sizeX: 4, sizeY: 4, title: 'kubInputGUI', template: 'app/kubInputGUI/kubInputGUI.html'},
                 {sizeX: 4, sizeY: 4, title: 'operatorInstGUI', template: 'app/operatorInstGUI/operatorInstGUI.html'},

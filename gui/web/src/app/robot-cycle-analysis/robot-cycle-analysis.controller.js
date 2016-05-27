@@ -78,7 +78,7 @@
         }
 
         function addRobotEvent(ev) {
-            let activityTypeRow = _.find(vm.liveChartData, function(row) { return row.id === ev.robotId + '-' + ev.activityType; });
+            var activityTypeRow = _.find(vm.liveChartData, function(row) { return row.id === ev.robotId + '-' + ev.activityType; });
             if (ev.isStart) {
                 activityTypeRow.tasks.push({
                     color: stringToColor(ev.name),
@@ -90,7 +90,7 @@
                     to: new Date()
                 });
             } else {
-                let activity = _.find(activityTypeRow.tasks, function(task) { return task.id === ev.activityId; });
+                var activity = _.find(activityTypeRow.tasks, function(task) { return task.id === ev.activityId; });
                 if (activity === undefined) {
                     activityTypeRow.tasks.push({
                         color: stringToColor(ev.name),
@@ -110,8 +110,8 @@
         }
 
         function cycleToGanttRows(cycle) {
-            let ganttData = [];
-            let cycleRow = {
+            var ganttData = [];
+            var cycleRow = {
                 children: [],
                 duration: new Date(cycle.from) - new Date(cycle.to),
                 id: cycle.id,
@@ -129,24 +129,24 @@
                 type: "cycle"
             };
             _.forOwn(cycle.activities, function(activityTypes, robotName) {
-                let robotRowId = toRobotRowId(cycle.id, robotName);
+                var robotRowId = toRobotRowId(cycle.id, robotName);
                 cycleRow.children.push(robotRowId);
-                let robotRow = {
+                var robotRow = {
                     children: [],
                     id: robotRowId,
                     name: robotName,
                     type: "robot"
                 };
                 _.forOwn(activityTypes, function(activities, activityType) {
-                    let activityTypeRowId = toActivityRowId(cycle.id, robotName, activityType);
+                    var activityTypeRowId = toActivityRowId(cycle.id, robotName, activityType);
                     robotRow.children.push(activityTypeRowId);
-                    let activityTypeRow = {
+                    var activityTypeRow = {
                         id: activityTypeRowId,
                         name: activityType,
                         tasks: [],
                         type: "activityType"
                     };
-                    for (let activity of activities) {
+                    for (var activity of activities) {
                         activityTypeRow.tasks.push({
                             absoluteTime: {
                                 from: activity.from,
@@ -169,8 +169,8 @@
         }
 
         function getLongestCycleTime() {
-            let longestCycleTime = 0;
-            for (let cycleRow of vm.widget.storage.ganttData) {
+            var longestCycleTime = 0;
+            for (var cycleRow of vm.widget.storage.ganttData) {
                 if (cycleRow.duration > longestCycleTime)
                     longestCycleTime = cycleRow.duration;
             }
@@ -178,8 +178,8 @@
         }
 
         function getRoutineInfo(robotName, robotEvent) {
-            let routineNumber = robotEvent.routineNumber;
-            let routine = vm.widget.storage.chosenWorkCell.robots[robotName].routines[routineNumber];
+            var routineNumber = robotEvent.routineNumber;
+            var routine = vm.widget.storage.chosenWorkCell.robots[robotName].routines[routineNumber];
             return routineNumber + ": " + routine.name + "\n" + routine.description;
         }
 
@@ -198,9 +198,9 @@
         }
 
         function removeCycle(rowId) {
-            let row = _.find(vm.widget.storage.ganttData, function(row) { return row.id === rowId; });
+            var row = _.find(vm.widget.storage.ganttData, function(row) { return row.id === rowId; });
             if (row.hasOwnProperty("children")) {
-                for (let childRowId of row.children) {
+                for (var childRowId of row.children) {
                     removeCycle(childRowId);
                 }
             }
@@ -210,10 +210,10 @@
         }
 
         function removeOldLiveTasks() {
-            let activityTypeRows = _.filter(vm.liveChartData, function(row) {
+            var activityTypeRows = _.filter(vm.liveChartData, function(row) {
                 return row.type === 'activityType';
             });
-            for (let activityTypeRow of activityTypeRows) {
+            for (var activityTypeRow of activityTypeRows) {
                _.remove(activityTypeRow.tasks, function (task) {
                    return !task.running && task.to.isBefore(vm.liveFromDate);
                });
@@ -233,8 +233,8 @@
             });
 
             modalInstance.result.then(function(selectedCycles) {
-                for (let cycle of selectedCycles) {
-                    let ganttRows = cycleToGanttRows(cycle);
+                for (var cycle of selectedCycles) {
+                    var ganttRows = cycleToGanttRows(cycle);
                     vm.widget.storage.ganttData.push(...ganttRows);
                 }
             });
@@ -285,17 +285,17 @@
 
         function setupLiveChart() {
             updateLiveChartTimeInterval();
-            let liveChartData = [];
-            for (let robot of vm.widget.storage.chosenWorkCell.robots) {
-                let robotRow = {
+            var liveChartData = [];
+            for (var robot of vm.widget.storage.chosenWorkCell.robots) {
+                var robotRow = {
                     children: [],
                     id: robot.id,
                     name: robot.id,
                     type: 'robot'
                 };
-                for (let activityType of activityTypes) {
-                    let activityTypeRowId = robot.id + '-' + activityType;
-                    let activityTypeRow = {
+                for (var activityType of activityTypes) {
+                    var activityTypeRowId = robot.id + '-' + activityType;
+                    var activityTypeRow = {
                         id: activityTypeRowId,
                         name: activityType,
                         tasks: [],
@@ -311,13 +311,13 @@
         }
 
         function stringToColor(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
+            var hash = 0;
+            for (var i = 0; i < str.length; i++) {
                 hash = str.charCodeAt(i) + ((hash << 5) - hash);
             }
-            let colour = '#';
-            for (let i = 0; i < 3; i++) {
-                let value = (hash >> (i * 8)) & 0xFF;
+            var colour = '#';
+            for (var i = 0; i < 3; i++) {
+                var value = (hash >> (i * 8)) & 0xFF;
                 colour += ('00' + value.toString(16)).substr(-2);
             }
             return colour;
@@ -358,16 +358,16 @@
         }
 
         function updateLiveChartTimeInterval() {
-            let now = new Date();
+            var now = new Date();
             vm.liveFromDate = new Date(now.setSeconds(0) - (vm.widget.storage.liveChartWidth - 1) * 60000);
             vm.liveToDate = now.setSeconds(59);
         }
 
         function updateRunningActivities() {
-            let activityRows = _.filter(vm.liveChartData, { 'type': 'activityType' });
-            for (let activityRow of activityRows) {
-                let runningActivities = _.filter(activityRow.tasks, { 'isRunning': true });
-                for (let runningActivity of runningActivities) {
+            var activityRows = _.filter(vm.liveChartData, { 'type': 'activityType' });
+            for (var activityRow of activityRows) {
+                var runningActivities = _.filter(activityRow.tasks, { 'isRunning': true });
+                for (var runningActivity of runningActivities) {
                     runningActivity.duration = new Date() - new Date(runningActivity.from);
                     runningActivity.to = new Date();
                 }

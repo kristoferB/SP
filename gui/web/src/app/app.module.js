@@ -16,7 +16,7 @@
         'app.spServices',
         'app.trajectories',
         'app.opcRunner',
-        'app.processSimulate'
+        'app.processSimulate',
         'app.conditionEditor',
         'app.operationControl',
         'app.kubInputGUI',
