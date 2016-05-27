@@ -16,10 +16,9 @@
         'app.spServices',
         'app.trajectories',
         'app.opcRunner',
+        'app.processSimulate'
         'app.conditionEditor',
-        'app.exampleWidget',
         'app.operationControl',
-        'app.calculator',
         'app.kubInputGUI',
         'app.operatorInstGUI',
         'app.robotCycleAnalysis',

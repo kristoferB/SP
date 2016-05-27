@@ -1,5 +1,5 @@
 package sp.areus.modalaService
-
+/*
 import akka.actor._
 import sp.domain.logic.{ActionParser, PropositionParser}
 import sp.system._
@@ -269,3 +269,4 @@ class ModalaService(amqProducer: ActorRef) extends Actor with ServiceSupport wit
 }
 
 case class StartNEnd(start: Double, end: Double)
+*/

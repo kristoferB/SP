@@ -12,7 +12,6 @@ import akka.util._
 import akka.pattern.ask
 import scala.concurrent._
 import scala.concurrent.duration._
-import akka.camel._
 
 import scala.util._
 
