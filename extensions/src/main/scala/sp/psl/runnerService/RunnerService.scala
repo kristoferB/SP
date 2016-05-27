@@ -104,10 +104,10 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       sop.foreach(createSOPMap)
       sopen = sop.toOption
         println(s"we got a sop:")
-      println("----------")
+//      println("----------")
       println(sop)
 //      println("----------")
-//      sop.foreach(_.printMe(idMap))
+      sop.foreach(_.printMe(idMap))
       println("----------")
 
       progress ! SPAttributes("station"->station,"activeOps"->activeSteps)

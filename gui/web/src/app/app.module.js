@@ -20,8 +20,6 @@
         'app.exampleWidget',
         'app.operationControl',
         'app.calculator',
-        'app.Tobbe2',
-        'app.rasmus',
         'app.kubInputGUI',
         'app.operatorInstGUI',
         'app.robotCycleAnalysis',

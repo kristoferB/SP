@@ -57,13 +57,15 @@ class OperatorService(sh: ActorRef) extends Actor with ServiceSupport with Tower
         paraSOP._4.map(println)
 
 
-        sh ! Request("OrderHandler", SPAttributes(
-          "order" -> SPAttributes(
-            "id"->ID.newID,
-            "name"-> towerName(t),
-            "stations"-> stations
-          )
-        ), updIds)
+        if (paraSOP._3.nonEmpty) {
+          sh ! Request("OrderHandler", SPAttributes(
+            "order" -> SPAttributes(
+              "id" -> ID.newID,
+              "name" -> towerName(t),
+              "stations" -> stations
+            )
+          ), updIds)
+        }
       }
 
       if (tower.isEmpty){
@@ -94,11 +96,13 @@ trait TowerBuilder extends TowerOperationTypes {
     val allOps = f1Ops ++ f2Ops ++ loadOps ++ unLoadOps._1 ++ unLoadOps._2 ++ unLoadOps._3
 
     val seqF1 = Sequence((f1Ops ++ unLoadOps._1).map(o => Hierarchy(o.id)):_*)
-    val seqF2 = Sequence((f2Ops).map(o => Hierarchy(o.id)):_*)
+    val seqF2 = Sequence(f2Ops.map(o => Hierarchy(o.id)):_*)
     val seqLoad = Sequence(loadOps.map(o => Hierarchy(o.id)):_*)
     val seqUnloadTower = (unLoadOps._3++ unLoadOps._2).map(o=>Hierarchy(o.id))
 
-    val brickSeq: List[SOP] = Parallel(seqF1, seqF2) :: seqUnloadTower
+    val buildSOP: SOP = if (seqF1.isEmpty) seqF2 else if (seqF2.isEmpty) seqF1 else Parallel(seqF1, seqF2)
+
+    val brickSeq: List[SOP] = buildSOP :: seqUnloadTower
 
     (Sequence(brickSeq:_*), seqLoad, allOps, f1 ++ f2)
   }

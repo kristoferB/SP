@@ -177,29 +177,22 @@ object SP extends App {
     RobotCycleAnalysis.transformation
   )
 
-  import sp.exampleService._
-  serviceHandler ! RegisterService(
-    "ExampleService",
-    system.actorOf(ExampleService.props, "ExampleService"),
-    ExampleService.specification,
-    ExampleService.transformation
-  )
+//  import sp.exampleService._
+//  serviceHandler ! RegisterService(
+//    "ExampleService",
+//    system.actorOf(ExampleService.props, "ExampleService"),
+//    ExampleService.specification,
+//    ExampleService.transformation
+//  )
+//
+//  import sp.calculator._
+//  serviceHandler ! RegisterService(
+//    "Calculator",
+//    system.actorOf(Calculator.props, "Calculator"),
+//    Calculator.specification,
+//    Calculator.transformation
+//  )
 
-  import sp.calculator._
-  serviceHandler ! RegisterService(
-    "Calculator",
-    system.actorOf(Calculator.props, "Calculator"),
-    Calculator.specification,
-    Calculator.transformation
-  )
-
-  import sp.optimizerService._
-  serviceHandler ! RegisterService(
-    "Operation Maker",
-    system.actorOf(operationMaker.props, "operationMaker"),
-    Calculator.specification,
-    Calculator.transformation
-  )
 
   import sp.psl._
   serviceHandler ! RegisterService(

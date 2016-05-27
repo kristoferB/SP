@@ -35,6 +35,7 @@ case class SPOrder(id: ID, name: String, stations: Map[String, ID], idMap: Map[I
 
 class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport with OrderHandlerLogic {
   var completedSops: Set[ID] = Set()
+  ev ! SubscribeToSSE(self)
 
   def receive = {
     case r @ Request(_, attr, ids, id) =>
@@ -49,7 +50,6 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
 
       addNewOrder(order)
 
-      ev ! SubscribeToSSE(self)
 
       replyTo ! Response(List(), SPAttributes("status"-> "order received", "silent"->true), r.service, r.reqID)
 
