@@ -32,7 +32,7 @@
             listenToModelEvents();
             var promises = [getAllModels()];
             return $q.all(promises).then(function() {
-                logger.info('Model Service: Loaded ' + service.models.length + ' models through REST.');
+                logger.log('Model Service: Loaded ' + service.models.length + ' models through REST.');
                 restoreActiveModel(storage.activeModelID);
             });
         }

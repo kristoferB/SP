@@ -8,9 +8,9 @@
       .module('app.robotCycleAnalysis')
       .controller('RobotCycleAnalysisController', RobotCycleAnalysisController);
 
-    RobotCycleAnalysisController.$inject = ['$scope', '$uibModal', 'dashboardService', 'robotCycleAnalysisService', 'eventService', '$interval'];
+    RobotCycleAnalysisController.$inject = ['$scope', '$uibModal', 'dashboardService', 'robotCycleAnalysisService', 'eventService', '$interval', 'logger'];
     /* @ngInject */
-    function RobotCycleAnalysisController($scope, $uibModal, dashboardService, robotCycleAnalysisService, eventService, $interval) {
+    function RobotCycleAnalysisController($scope, $uibModal, dashboardService, robotCycleAnalysisService, eventService, $interval, logger) {
         var activityTypes = ['routines', 'wait'],
             dateTimeFormat = 'yyyy-MM-dd HH:mm:ss',
             intervalPromise = null,
@@ -108,6 +108,18 @@
                     activity.to = moment(ev.time);
                     activity.duration = new Date(activity.to) - new Date(activity.from);
                 }
+            }
+        }
+
+        function addCycleToHistoricalGantt(selectedCycle) {
+            if (_.some(vm.widget.storage.ganttData, function (row) {
+                    return row.id === selectedCycle.id
+                })) {
+                logger.error("Cycle " + selectedCycle.id + " has already been added.");
+            } else {
+                let ganttRows = cycleToGanttRows(selectedCycle);
+                vm.widget.storage.ganttData.push(...ganttRows);
+                logger.info("Cycle " + selectedCycle.id + " was added.");
             }
         }
 
@@ -214,21 +226,17 @@
         }
 
         function searchCycles() {
-            var modalInstance = $uibModal.open({
+            $uibModal.open({
                 templateUrl: '/app/robot-cycle-analysis/search-cycle.html',
                 controller: 'SearchCycleController',
                 controllerAs: 'vm',
                 resolve: {
+                    addCycle: function() {
+                        return addCycleToHistoricalGantt;
+                    },
                     workCell: function() {
                         return vm.widget.storage.chosenWorkCell;
                     }
-                }
-            });
-
-            modalInstance.result.then(function(selectedCycles) {
-                for (let cycle of selectedCycles) {
-                    let ganttRows = cycleToGanttRows(cycle);
-                    vm.widget.storage.ganttData.push(...ganttRows);
                 }
             });
         }

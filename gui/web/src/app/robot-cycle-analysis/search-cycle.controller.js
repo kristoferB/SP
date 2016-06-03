@@ -5,11 +5,12 @@
         .module('app.robotCycleAnalysis')
         .controller('SearchCycleController', SearchCycleController);
 
-    SearchCycleController.$inject = ['$uibModalInstance', 'robotCycleAnalysisService', 'workCell', 'eventService', '$scope'];
+    SearchCycleController.$inject = ['$uibModalInstance', 'robotCycleAnalysisService', 'workCell', 'eventService', '$scope', 'addCycle'];
     /* @ngInject */
-    function SearchCycleController($uibModalInstance, robotCycleAnalysisService, workCell, eventService, $scope) {
+    function SearchCycleController($uibModalInstance, robotCycleAnalysisService, workCell, eventService, $scope, addCycle) {
         var vm = this;
 
+        vm.addCycle = addCycle;
         vm.foundCycles = null;
         vm.search = search;
         vm.searchQuery = {
@@ -20,8 +21,7 @@
             },
             workCellId: workCell.id
         };
-        vm.select = select;
-
+        
         activate();
 
         function activate() {
@@ -46,7 +46,6 @@
 
         function onResponse(ev) {
             let attrs = angular.fromJson(ev.data).attributes;
-            console.log(attrs);
             if (_.has(attrs, 'foundCycles') && attrs.workCellId === workCell.id) {
                 vm.foundCycles = attrs.foundCycles;
                 $scope.$apply();
@@ -56,10 +55,6 @@
         function search() {
             vm.foundCycles = null;
             robotCycleAnalysisService.searchCycles(vm.searchQuery);
-        }
-
-        function select(selectedCycle) {
-            $uibModalInstance.close([selectedCycle]);
         }
 
     }

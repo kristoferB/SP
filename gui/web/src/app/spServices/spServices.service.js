@@ -33,7 +33,7 @@
 
       var promises = [getRegisteredSpServices()];
       return $q.all(promises).then(function() {
-        logger.info('spServices service: Loaded ' + service.spServices + ' spServices through REST.');
+        logger.log('spServices service: Loaded ' + service.spServices + ' spServices through REST.');
       });
 
     }

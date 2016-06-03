@@ -59,7 +59,7 @@ object fakes {
     )
   }
 
-  val foundCycles = SPAttributes(
+  def foundCycles = SPAttributes(
     "foundCycles" -> List(
       SPAttributes(
         "activities" -> SPAttributes(
