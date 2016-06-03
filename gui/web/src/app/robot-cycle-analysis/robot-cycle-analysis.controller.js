@@ -72,21 +72,22 @@
             $scope.$on('closeRequest', function() {
                 eventService.removeListener('Response', onResponse);
                 $interval.cancel(intervalPromise);
+                stopLiveWatch();
                 dashboardService.closeWidget(vm.widget.id);
             });
-            eventService.addListener('Response', onResponse);
+            eventService.eventSource.addEventListener('Response', onResponse);
         }
 
-        function addActivityOrCycleEvent(ev, rowId, taskId) {
+        function addActivityOrCycleEvent(ev, rowId, taskId, name) {
             let row = _.find(vm.liveChartData, function(aRow) { return aRow.id === rowId; });
 
             if (ev.isStart) {
                 row.tasks.push({
-                    color: stringToColor(ev.name),
+                    color: stringToColor(name),
                     duration: new Date() - new Date(ev.time),
                     from: new Date(ev.time),
                     id: taskId,
-                    name: ev.name,
+                    name: name,
                     running: true,
                     to: new Date()
                 });
@@ -94,11 +95,11 @@
                 let activity = _.find(row.tasks, function(task) { return task.id === taskId; });
                 if (activity === undefined) {
                     row.tasks.push({
-                        color: stringToColor(ev.name),
+                        color: stringToColor(name),
                         duration: new Date() - liveChartTimeOpened,
                         from: liveChartTimeOpened,
                         id: taskId,
-                        name: ev.name,
+                        name: name,
                         running: false,
                         to: new Date()
                     });
@@ -169,36 +170,20 @@
             return ganttData;
         }
 
-        /*function getLongestCycleTime() {
-            let longestCycleTime = 0;
-            for (let cycleRow of vm.widget.storage.ganttData) {
-                if (cycleRow.duration > longestCycleTime)
-                    longestCycleTime = cycleRow.duration;
-            }
-            return longestCycleTime;
-        }*/
-
         function getRobotById(robotId) {
             return _.find(vm.widget.storage.chosenWorkCell.robots, function (robot) { return robot.id === robotId; })
         }
 
-        /*function getRoutineInfo(robotName, robotEvent) {
-            let routineNumber = robotEvent.routineNumber;
-            let routine = vm.widget.storage.chosenWorkCell.robots[robotName].routines[routineNumber];
-            return routineNumber + ": " + routine.name + "\n" + routine.description;
-        }*/
-
         function onResponse(ev){
-            var attrs = ev.attributes;
-            console.log(attrs);
+            let attrs = angular.fromJson(ev.data).attributes;
             if (_.has(attrs, 'activityId'))
                 if (vm.widget.storage.chosenWorkCell !== null &&
                     attrs.workCellId === vm.widget.storage.chosenWorkCell.id)
-                    addActivityOrCycleEvent(attrs, toLiveActivityRowId(attrs.robotId, attrs.type), attrs.activityId);
+                    addActivityOrCycleEvent(attrs, toLiveActivityRowId(attrs.robotId, attrs.type), attrs.activityId, attrs.name);
             if (_.has(attrs, 'cycleId'))
                 if (vm.widget.storage.chosenWorkCell !== null &&
                     attrs.workCellId === vm.widget.storage.chosenWorkCell.id)
-                    addActivityOrCycleEvent(attrs, "cycleRow", attrs.activityId);
+                    addActivityOrCycleEvent(attrs, "cycleRow", attrs.cycleId, 'Cycle');
         }
 
         function registerApi(api) {
@@ -220,12 +205,10 @@
         }
 
         function removeOldLiveTasks() {
-            let activityTypeRows = _.filter(vm.liveChartData, function(row) {
-                return row.type === 'activityType';
-            });
-            for (let activityTypeRow of activityTypeRows) {
-               _.remove(activityTypeRow.tasks, function (task) {
-                   return !task.running && task.to.isBefore(vm.liveFromDate);
+            let rows = vm.liveChartData;
+            for (let row of rows) {
+               _.remove(row.tasks, function (task) {
+                   return !task.running && task.to.isBefore !== undefined && task.to.isBefore(vm.liveFromDate);
                });
             }
         }
@@ -258,6 +241,7 @@
             });
 
             modalInstance.result.then(function(selectedWorkCell) {
+                stopLiveWatch();
                 vm.widget.storage.chosenWorkCell = selectedWorkCell;
                 setupLiveChart();
             });
@@ -327,6 +311,12 @@
             vm.liveChartData.push(cycleRow);
         }
 
+        function stopLiveWatch() {
+            if (vm.widget.storage.chosenWorkCell !== null)
+                robotCycleAnalysisService.stopLiveWatch(vm.widget.storage.chosenWorkCell.id);
+            vm.widget.storage.showLiveChart = false;
+        }
+
         function stringToColor(str) {
             let hash = 0;
             for (let i = 0; i < str.length; i++) {
@@ -353,10 +343,9 @@
         }
 
         function toggleLiveChart() {
-            if (vm.widget.storage.showLiveChart) {
-                robotCycleAnalysisService.stopLiveWatch(vm.widget.storage.chosenWorkCell.id);
-                vm.widget.storage.showLiveChart = false;
-            } else {
+            if (vm.widget.storage.showLiveChart)
+                stopLiveWatch();
+            else {
                 liveChartTimeOpened = new Date();
                 updateLiveChartTimeInterval();
                 robotCycleAnalysisService.startLiveWatch(vm.widget.storage.chosenWorkCell.id);

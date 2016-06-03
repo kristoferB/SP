@@ -18,7 +18,6 @@
         function activate() {
             eventService.eventSource.addEventListener('Response', onResponse);
             $scope.$on('modal.closing', function() {
-                console.log("Work Cell modal is closing.");
                 eventService.removeListener('Response', onResponse);
             });
             robotCycleAnalysisService.publishWorkCellListOpenedEvent();
@@ -26,7 +25,6 @@
 
         function onResponse(ev) {
             let attrs = angular.fromJson(ev.data).attributes;
-            console.log(attrs);
             if (_.has(attrs, 'workCells'))
                 vm.workCells = attrs.workCells;
         }

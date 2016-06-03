@@ -35,4 +35,7 @@ class SPSettings(system: ExtendedActorSystem) extends Extension {
   val activeMQPort: Int = system.settings.config getInt  "sp.activeMQPort"
   val activeMQTopic: String = system.settings.config getString "sp.activeMQTopic"
 
+  val rcaEmitFakeEvents = system.settings.config getBoolean "sp.robotCycleAnalysis.emitFakeEvents"
+
+
 }

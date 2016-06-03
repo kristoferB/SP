@@ -1,6 +1,5 @@
 package sp.robotCycleAnalysis
 
-import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration.FiniteDuration
@@ -14,12 +13,13 @@ import sp.system._
 import sp.system.messages.{TransformValue, _}
 import sp.system.SPActorSystem._
 import com.github.nscala_time.time.Imports._
-import org.json4s.{DefaultFormats, JValue}
+import org.json4s.JValue
 import org.json4s.JsonAST.{JBool, JNothing}
 import org.json4s._
 import org.json4s.native.Serialization.write
 
 object RobotCycleAnalysis extends SPService {
+  // Service Definition
   object Commands extends Enumeration {
     type Command = Value
     val SetupBus = Value("setupBus")
@@ -80,12 +80,9 @@ case class Routine(number: Int, name: String, description: String)
 
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
 class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSupport {
-  //implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
-  val customDateFormat = new DefaultFormats {
-    override def dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX")
-  }
-  implicit val formats = customDateFormat ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
+  implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
 
+  // State
   val spServiceID = ID.newID
   val spServiceName = self.path.name
   var busSettings: Option[BusSettings] = Some(BusSettings(settings.activeMQ, settings.activeMQPort,
@@ -93,37 +90,6 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
   var bus: Option[ActorRef] = None
   var isInterrupted = false
   var liveWorkCells: List[String] = List.empty
-
-  /*import scala.concurrent.ExecutionContext.Implicits.global
-  // Test schedule
-  var latestActivityId: Option[ID] = None
-  system.scheduler.schedule(FiniteDuration(0L, TimeUnit.SECONDS), FiniteDuration(5L, TimeUnit.SECONDS))(fakeRobotEventToBus)
-
-  def fakeRobotEventToBus = {
-    val activityId =
-      if (latestActivityId.isDefined) {
-        val id = latestActivityId.get
-        latestActivityId = None
-        id
-      }
-      else {
-        val id = ID.newID
-        latestActivityId = Some(id)
-        id
-      }
-
-    val mess = SPAttributes(
-      "activityId" -> activityId,
-      "isStart" -> latestActivityId.isDefined,
-      "name" -> "Moving",
-      "robotId" -> "10.200.39.150",
-      "time" -> DateTime.now,
-      "type" -> "routines",
-      "workCellId" -> "1741000"
-    )
-    if (bus.isDefined)
-      sendToBus(mess)
-  }*/
 
   def receive = {
     case RegisterService(s, _, _,_) => println(s"Service $s is registered")
@@ -141,8 +107,6 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
       val commandString = transform(transformValues.command)
       val command = Commands.withName(commandString)
       var answer: Option[SPEvent] = None
-
-      println("Got command: " + command)
 
       command match {
         case ConnectToBus => answer = connectToBus()
@@ -236,44 +200,9 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
     )
     notifyIfError(sendToBus(mess), "Failed to search for cycles.")
 
-    // TEMPORARY RETURN OF A RESULT UNTIL A SERVICE FOR SEARCHING CYCLES IS READY
+    if (settings.rcaEmitFakeEvents)
+      sendToBus(fakes.foundCycles)
 
-    /*val responseMess = SPAttributes(
-      "cycleSearchResult" -> SPAttributes(
-        "foundCycles" -> List(
-          SPAttributes(
-            "activities" -> SPAttributes(
-              "10.200.39.100" -> SPAttributes(),
-              "10.200.39.150" -> SPAttributes(
-                "routines" -> List(
-                  SPAttributes(
-                    "id" -> ID.newID,
-                    "from" -> DateTime.now.minusHours(6).plusSeconds(10),
-                    "name" -> "PickUpRearLeft",
-                    "to" -> DateTime.now.minusHours(6).plusSeconds(20),
-                    "type" -> "routines"
-                  ),
-                  SPAttributes(
-                    "id" -> ID.newID,
-                    "from" -> DateTime.now.minusHours(6).plusSeconds(25),
-                    "name" -> "MoveToBody",
-                    "to" -> DateTime.now.minusHours(6).plusSeconds(40),
-                    "type" -> "routines"
-                  )
-                )
-              )
-            ),
-            "from" -> DateTime.now.minusHours(6),
-            "id" -> ID.newID,
-            "to"  -> DateTime.now.minusHours(6).plusMinutes(1).plusSeconds(45),
-            "workCellId" -> "1741000"
-          )
-        ),
-        "workCellId" -> "1741000"
-      )
-    )
-
-    eventHandler ! toResponse(responseMess)*/
   }
 
   def publishWorkCellListOpenedEvent() = {
@@ -283,26 +212,8 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
     )
     notifyIfError(sendToBus(mess), "Failed to publish workCellListOpened event.")
 
-    // TEMPORARY WHEN ON NON-WINDOWS COMPUTER
-    /*val responseMess = SPAttributes(
-      "workCells" -> List(
-        SPAttributes(
-          "id" -> "1741000",
-          "description" -> "Mount rear doors",
-          "robots" -> List(
-            SPAttributes(
-              "id" -> "10.200.39.100",
-              "name" -> "R1"
-            ),
-            SPAttributes(
-              "id" -> "10.200.39.150",
-              "name" -> "R2"
-            )
-          )
-        )
-      )
-    )
-    eventHandler ! toResponse(responseMess)*/
+    if (settings.rcaEmitFakeEvents)
+      sendToBus(fakes.workCells)
   }
 
   def connectionEstablished(request: ConnectionRequest, busConnection: ActorRef) = {
@@ -384,6 +295,23 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
 
   override def postStop() = {
     disconnectFromBus()
+  }
+
+  if (settings.rcaEmitFakeEvents) {
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    system.scheduler.schedule(FiniteDuration(0L, TimeUnit.SECONDS), FiniteDuration(4L, TimeUnit.SECONDS))(sendFakeActivityEvent())
+    system.scheduler.schedule(FiniteDuration(0L, TimeUnit.SECONDS), FiniteDuration(12L, TimeUnit.SECONDS))(sendFakeCycleEvent())
+
+    def sendFakeActivityEvent() = {
+      if (bus.isDefined)
+        sendToBus(fakes.activityEvent)
+    }
+
+    def sendFakeCycleEvent() = {
+      if (bus.isDefined)
+        sendToBus(fakes.cycleEvent)
+    }
   }
 
   // --- Generic helper functions --- //
