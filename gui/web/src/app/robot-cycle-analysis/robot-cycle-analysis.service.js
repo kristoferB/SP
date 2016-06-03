@@ -22,7 +22,7 @@
             connectToBus: connectToBus,
             disconnectFromBus: disconnectFromBus,
             isInterrupted: null,
-            requestAvailableWorkCells: requestAvailableWorkCells,
+            publishWorkCellListOpenedEvent: publishWorkCellListOpenedEvent,
             searchCycles: searchCycles,
             setupBus: setupBus,
             startLiveWatch: startLiveWatch,
@@ -103,8 +103,8 @@
             return postToSP(message);
         }
 
-        function requestAvailableWorkCells() {
-            return postCommand('requestAvailableWorkCells');
+        function publishWorkCellListOpenedEvent() {
+            return postCommand('publishWorkCellListOpenedEvent');
         }
 
         function postCommand(command) {

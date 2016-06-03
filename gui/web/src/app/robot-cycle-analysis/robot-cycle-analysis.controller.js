@@ -11,7 +11,7 @@
     RobotCycleAnalysisController.$inject = ['$scope', '$uibModal', 'dashboardService', 'robotCycleAnalysisService', 'eventService', '$interval'];
     /* @ngInject */
     function RobotCycleAnalysisController($scope, $uibModal, dashboardService, robotCycleAnalysisService, eventService, $interval) {
-        var activityTypes = ['routines'],
+        var activityTypes = ['routines', 'wait'],
             dateTimeFormat = 'yyyy-MM-dd HH:mm:ss',
             intervalPromise = null,
             liveChartTimeOpened = new Date(),
@@ -77,26 +77,27 @@
             eventService.addListener('Response', onResponse);
         }
 
-        function addRobotEvent(ev) {
-            let activityTypeRow = _.find(vm.liveChartData, function(row) { return row.id === ev.robotId + '-' + ev.activityType; });
+        function addActivityOrCycleEvent(ev, rowId, taskId) {
+            let row = _.find(vm.liveChartData, function(aRow) { return aRow.id === rowId; });
+
             if (ev.isStart) {
-                activityTypeRow.tasks.push({
+                row.tasks.push({
                     color: stringToColor(ev.name),
                     duration: new Date() - new Date(ev.time),
                     from: new Date(ev.time),
-                    id: ev.activityId,
+                    id: taskId,
                     name: ev.name,
                     running: true,
                     to: new Date()
                 });
             } else {
-                let activity = _.find(activityTypeRow.tasks, function(task) { return task.id === ev.activityId; });
+                let activity = _.find(row.tasks, function(task) { return task.id === taskId; });
                 if (activity === undefined) {
-                    activityTypeRow.tasks.push({
+                    row.tasks.push({
                         color: stringToColor(ev.name),
                         duration: new Date() - liveChartTimeOpened,
                         from: liveChartTimeOpened,
-                        id: ev.activityId,
+                        id: taskId,
                         name: ev.name,
                         running: false,
                         to: new Date()
@@ -128,17 +129,18 @@
                 }],
                 type: "cycle"
             };
-            _.forOwn(cycle.activities, function(activityTypes, robotName) {
-                let robotRowId = toRobotRowId(cycle.id, robotName);
+            _.forOwn(cycle.activities, function(activityTypes, robotId) {
+                let robotRowId = toRobotRowId(cycle.id, robotId);
+                let robot = getRobotById(robotId);
                 cycleRow.children.push(robotRowId);
                 let robotRow = {
                     children: [],
                     id: robotRowId,
-                    name: robotName,
+                    name: robot.name,
                     type: "robot"
                 };
                 _.forOwn(activityTypes, function(activities, activityType) {
-                    let activityTypeRowId = toActivityRowId(cycle.id, robotName, activityType);
+                    let activityTypeRowId = toActivityRowId(cycle.id, robotId, activityType);
                     robotRow.children.push(activityTypeRowId);
                     let activityTypeRow = {
                         id: activityTypeRowId,
@@ -164,31 +166,38 @@
                 ganttData.push(robotRow);
             });
             ganttData.push(cycleRow);
-            console.log("ganttData: ", ganttData);
             return ganttData;
         }
 
-        function getLongestCycleTime() {
+        /*function getLongestCycleTime() {
             let longestCycleTime = 0;
             for (let cycleRow of vm.widget.storage.ganttData) {
                 if (cycleRow.duration > longestCycleTime)
                     longestCycleTime = cycleRow.duration;
             }
             return longestCycleTime;
+        }*/
+
+        function getRobotById(robotId) {
+            return _.find(vm.widget.storage.chosenWorkCell.robots, function (robot) { return robot.id === robotId; })
         }
 
-        function getRoutineInfo(robotName, robotEvent) {
+        /*function getRoutineInfo(robotName, robotEvent) {
             let routineNumber = robotEvent.routineNumber;
             let routine = vm.widget.storage.chosenWorkCell.robots[robotName].routines[routineNumber];
             return routineNumber + ": " + routine.name + "\n" + routine.description;
-        }
+        }*/
 
         function onResponse(ev){
             var attrs = ev.attributes;
-            if (_.has(attrs, 'robotEvent'))
+            if (_.has(attrs, 'activityId'))
                 if (vm.widget.storage.chosenWorkCell !== null &&
-                    attrs.robotEvent.workCellId === vm.widget.storage.chosenWorkCell.id)
-                    addRobotEvent(attrs.robotEvent);
+                    attrs.workCellId === vm.widget.storage.chosenWorkCell.id)
+                    addActivityOrCycleEvent(attrs, toLiveActivityRowId(attrs.robotId, attrs.type), attrs.activityId);
+            if (_.has(attrs, 'cycleId'))
+                if (vm.widget.storage.chosenWorkCell !== null &&
+                    attrs.workCellId === vm.widget.storage.chosenWorkCell.id)
+                    addActivityOrCycleEvent(attrs, "cycleRow", attrs.activityId);
         }
 
         function registerApi(api) {
@@ -284,17 +293,24 @@
         }
 
         function setupLiveChart() {
+            vm.liveChartData.length = 0;
             updateLiveChartTimeInterval();
-            let liveChartData = [];
+            let cycleRow = {
+                children: [],
+                id: "cycleRow",
+                name: "cycles",
+                tasks: [],
+                type: "cycle"
+            };
             for (let robot of vm.widget.storage.chosenWorkCell.robots) {
                 let robotRow = {
                     children: [],
                     id: robot.id,
-                    name: robot.id,
+                    name: robot.name,
                     type: 'robot'
                 };
                 for (let activityType of activityTypes) {
-                    let activityTypeRowId = robot.id + '-' + activityType;
+                    let activityTypeRowId = toLiveActivityRowId(robot.id, activityType);
                     let activityTypeRow = {
                         id: activityTypeRowId,
                         name: activityType,
@@ -302,12 +318,12 @@
                         type: 'activityType'
                     };
                     robotRow.children.push(activityTypeRowId);
-                    liveChartData.push(activityTypeRow);
+                    vm.liveChartData.push(activityTypeRow);
                 }
-                liveChartData.push(robotRow);
+                cycleRow.children.push(robot.id);
+                vm.liveChartData.push(robotRow);
             }
-            vm.liveChartData.length = 0;
-            vm.liveChartData.push(...liveChartData);
+            vm.liveChartData.push(cycleRow);
         }
 
         function stringToColor(str) {
@@ -323,12 +339,16 @@
             return colour;
         }
 
-        function toActivityRowId(cycleId, robotName, activityType) {
-            return cycleId + '-' + robotName + '-' + activityType;
+        function toActivityRowId(cycleId, robotId, activityType) {
+            return cycleId + '-' + robotId + '-' + activityType;
         }
 
-        function toRobotRowId(cycleId, robotName) {
-            return cycleId + '-' + robotName;
+        function toLiveActivityRowId(robotId, activityType) {
+            return robotId + '-' + activityType;
+        }
+
+        function toRobotRowId(cycleId, robotId) {
+            return cycleId + '-' + robotId;
         }
 
         function toggleLiveChart() {

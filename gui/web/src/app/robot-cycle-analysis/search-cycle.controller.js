@@ -9,7 +9,7 @@
     /* @ngInject */
     function SearchCycleController($uibModalInstance, robotCycleAnalysisService, workCell, eventService, $scope) {
         var vm = this;
-        
+
         vm.foundCycles = null;
         vm.search = search;
         vm.searchQuery = {
@@ -23,7 +23,7 @@
         vm.select = select;
 
         activate();
-        
+
         function activate() {
             eventService.addListener('Response', onResponse);
             $scope.$on('modal.closing', function() {
@@ -46,8 +46,8 @@
 
         function onResponse(ev) {
             var attrs = ev.attributes;
-            if (_.has(attrs, 'robotCycleSearchResult') && attrs.robotCycleSearchResult.workCellId === workCell.id) {
-                vm.foundCycles = attrs.robotCycleSearchResult.foundCycles;
+            if (_.has(attrs, 'cycleSearchResult') && attrs.cycleSearchResult.workCellId === workCell.id) {
+                vm.foundCycles = attrs.cycleSearchResult.foundCycles;
             }
         }
 
