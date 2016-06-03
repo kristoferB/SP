@@ -25,7 +25,7 @@
         activate();
 
         function activate() {
-            eventService.addListener('Response', onResponse);
+            eventService.eventSource.addEventListener('Response', onResponse);
             $scope.$on('modal.closing', function() {
                 eventService.removeListener('Response', onResponse);
             })
@@ -45,9 +45,11 @@
         }
 
         function onResponse(ev) {
-            var attrs = ev.attributes;
-            if (_.has(attrs, 'cycleSearchResult') && attrs.cycleSearchResult.workCellId === workCell.id) {
-                vm.foundCycles = attrs.cycleSearchResult.foundCycles;
+            let attrs = angular.fromJson(ev.data).attributes;
+            console.log(attrs);
+            if (_.has(attrs, 'foundCycles') && attrs.workCellId === workCell.id) {
+                vm.foundCycles = attrs.foundCycles;
+                $scope.$apply();
             }
         }
 

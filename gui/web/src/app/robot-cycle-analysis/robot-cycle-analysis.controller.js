@@ -190,6 +190,7 @@
 
         function onResponse(ev){
             var attrs = ev.attributes;
+            console.log(attrs);
             if (_.has(attrs, 'activityId'))
                 if (vm.widget.storage.chosenWorkCell !== null &&
                     attrs.workCellId === vm.widget.storage.chosenWorkCell.id)

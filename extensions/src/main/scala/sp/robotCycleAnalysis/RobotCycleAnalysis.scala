@@ -1,7 +1,9 @@
 package sp.robotCycleAnalysis
 
+import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
 
+import scala.concurrent.duration.FiniteDuration
 import akka.actor._
 import com.codemettle.reactivemq.ReActiveMQMessages._
 import com.codemettle.reactivemq._
@@ -12,10 +14,10 @@ import sp.system._
 import sp.system.messages.{TransformValue, _}
 import sp.system.SPActorSystem._
 import com.github.nscala_time.time.Imports._
-import org.json4s.JValue
+import org.json4s.{DefaultFormats, JValue}
 import org.json4s.JsonAST.{JBool, JNothing}
-
-import scala.concurrent.duration.FiniteDuration
+import org.json4s._
+import org.json4s.native.Serialization.write
 
 object RobotCycleAnalysis extends SPService {
   object Commands extends Enumeration {
@@ -78,7 +80,11 @@ case class Routine(number: Int, name: String, description: String)
 
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
 class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSupport {
-  implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
+  //implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
+  val customDateFormat = new DefaultFormats {
+    override def dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX")
+  }
+  implicit val formats = customDateFormat ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
 
   val spServiceID = ID.newID
   val spServiceName = self.path.name
@@ -88,7 +94,7 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
   var isInterrupted = false
   var liveWorkCells: List[String] = List.empty
 
-  import scala.concurrent.ExecutionContext.Implicits.global
+  /*import scala.concurrent.ExecutionContext.Implicits.global
   // Test schedule
   var latestActivityId: Option[ID] = None
   system.scheduler.schedule(FiniteDuration(0L, TimeUnit.SECONDS), FiniteDuration(5L, TimeUnit.SECONDS))(fakeRobotEventToBus)
@@ -117,7 +123,7 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
     )
     if (bus.isDefined)
       sendToBus(mess)
-  }
+  }*/
 
   def receive = {
     case RegisterService(s, _, _,_) => println(s"Service $s is registered")
@@ -224,17 +230,15 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
 
   def searchCycles(cycleId: String, timeSpan: TimeSpan, workCellId: String) = {
     val mess = SPAttributes(
-      "cycleSearchQuery" -> SPAttributes(
         "cycleId" -> cycleId,
         "timeSpan" -> timeSpan,
         "workCellId" -> workCellId
-      )
     )
     notifyIfError(sendToBus(mess), "Failed to search for cycles.")
 
     // TEMPORARY RETURN OF A RESULT UNTIL A SERVICE FOR SEARCHING CYCLES IS READY
 
-    val responseMess = SPAttributes(
+    /*val responseMess = SPAttributes(
       "cycleSearchResult" -> SPAttributes(
         "foundCycles" -> List(
           SPAttributes(
@@ -269,19 +273,18 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
       )
     )
 
-    eventHandler ! toResponse(responseMess)
+    eventHandler ! toResponse(responseMess)*/
   }
 
   def publishWorkCellListOpenedEvent() = {
     val mess = SPAttributes(
-      "workCellListOpened" -> SPAttributes(
-        "service" -> "spRuntime"
-      )
+      "event" -> "workCellListOpened",
+      "service" -> "spRuntime"
     )
     notifyIfError(sendToBus(mess), "Failed to publish workCellListOpened event.")
 
     // TEMPORARY WHEN ON NON-WINDOWS COMPUTER
-    val responseMess = SPAttributes(
+    /*val responseMess = SPAttributes(
       "workCells" -> List(
         SPAttributes(
           "id" -> "1741000",
@@ -299,7 +302,7 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
         )
       )
     )
-    eventHandler ! toResponse(responseMess)
+    eventHandler ! toResponse(responseMess)*/
   }
 
   def connectionEstablished(request: ConnectionRequest, busConnection: ActorRef) = {
@@ -321,12 +324,18 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
     val json = body.toString
     val jObject = parse(json)
 
-    val isCycleSearchResult = jObject.has("cycleSearchResult") && jObject.has("workCellId")
-    //val isCycle = jObject.has("cycle") && (jObject \ "cycle").has("events")
-    val isCycleEvent = jObject.has("cycleId") && jObject.has("workCellId")
+    val isCycleSearchResult = jObject.has("foundCycles")
+    val isCycleEvent = jObject.has("cycleId") && !jObject.has("timeSpan") && jObject.has("workCellId") &&
+      liveWorkCells.contains((jObject \ "workCellId").to[String].get)
     val isActivityEvent = jObject.has("activityId") && jObject.has("workCellId") &&
       liveWorkCells.contains((jObject \ "workCellId").to[String].get)
     val isWorkCells = jObject.has("workCells")
+
+    if (isCycleSearchResult)
+      println("Got an cycle search result")
+
+    if (isWorkCells)
+      println("Got a work cell list.")
 
     if (isCycleSearchResult || isCycleEvent || isActivityEvent || isWorkCells) {
       val spAttributes = SPAttributes.fromJson(json).get
@@ -358,7 +367,7 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
       s <- getBusSettings.right
     } yield {
       //println(s"sending: ${mess.toJson}")
-      b ! SendMessage(Topic(s.topic), AMQMessage(mess.toJson))
+      b ! SendMessage(Topic(s.topic), AMQMessage(write(mess))) // mess.toJson
     }
     addErrorDescription(result, "Failed to send message to bus.")
   }
