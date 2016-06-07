@@ -46,13 +46,6 @@
                 <i class="fa fa-arrows-h"></i>
             </button>
         </div>
-
-        <!--<div class="btn-group">
-            <p ng-show="vm.service.busConnected && !vm.service.connectionInterrupted">Connected</p>
-            <p ng-show="vm.service.busConnected && vm.service.connectionInterrupted">Connection interrupted</p>
-            <p ng-show="!vm.service.busConnected">Disconnected</p>
-            <p ng-show="vm.service.busConnected === null">Unknown</p>
-        </div>-->
     </div>
 
     <div class="panel-content">
@@ -62,7 +55,7 @@
         </p>
         <div gantt data="vm.liveChartData" headers="['minute']" ng-show="vm.widget.storage.showLiveChart"
              headers-formats="{ minute: 'HH:mm', second: 'ss' }" from-date="vm.liveFromDate" to-date="vm.liveToDate"
-             view-scale="'minute'" class="live-chart">
+             view-scale="'minute'" class="live-chart" current-date="'line'" current-date-value="vm.currentTime">
             <gantt-groups display="'promote'"></gantt-groups>
             <gantt-tooltips content="vm.liveChartTooltipContent" delay="200"></gantt-tooltips>
             <gantt-tree header="'Live Chart'"></gantt-tree>
@@ -76,28 +69,3 @@
         </div>
     </div>
 </div>
-
-<!--<div class="panel" ng-repeat="cycle in vm.widget.storage.historicalCycles">
-            <div class="panel-heading">
-                <span class="panel-title">Cycle {{ cycle.id }} from {{ cycle.from | date:'yyyy-MM-dd HH:mm' }} to {{ cycle.to | date:'yyyy-MM-dd HH:mm' }}</span>
-                <span class="fa fa-times pull-right widget-close-btn" ng-click="vm.removeCycle(cycle)"></span>
-            </div>
-            <div gantt data="cycle.ganttData" options="vm.options" api="vm.registerApi">
-                <gantt-table></gantt-table>
-            </div>
-        </div>-->
-
-<!--<div class="time-line">
-    <p class="time-stamp" ng-repeat="timeStamp in vm.timeStamps(cycle)">{{ timeStamp | date:'mm:ss' }}</p>
-</div>
-<div class="robot-row" ng-repeat="(robotName, robotEvents) in cycle.events">
-    <div class="robot-name">{{ robotName }}</div>
-    <div class="robot-events">
-        <div class="robot-event" ng-repeat="robotEvent in robotEvents"
-             uib-tooltip="{{ robotEvent.routine }}" ng-if="robotEvent.start === false"
-             ng-style="{ backgroundColor: vm.stringToColor(robotEvent.routine),
-                         marginLeft: vm.calcLeftMargin(cycle, robotEvents, robotEvent),
-                         width: vm.calcWidth(cycle, robotEvents, robotEvent) }">
-        </div>
-    </div>
-</div>-->

@@ -43,7 +43,8 @@
     "raphael": "~2.1.4",
     "toastr": "2.1.0",
     "bootstrap-contextmenu": "~0.2.0",
-    "angular-gantt": "^1.2.13"
+    "angular-gantt": "^1.2.13",
+    "to-color-filter": "^1.0.1"
   },
   "resolutions": {
     "angular": "1.4.4",

@@ -53,8 +53,8 @@
                 name: name,
                 widgets: []
             };
-            logger.info('Dashboard Controller: Added a dashboard with name ' + widget.title + ' and index '
-                + widget.id + '.');
+            logger.info('Dashboard Controller: Added a dashboard with name ' + dashboard.title + ' and index '
+                + dashboard.id + '.');
         }
 
         function getDashboard(id) {
@@ -78,7 +78,7 @@
                 widget.storage = additionalData;
             }
             dashboard.widgets.push(widget);
-            logger.info('Dashboard Controller: Added an ' + widget.title + ' widget with index '
+            logger.log('Dashboard Controller: Added a ' + widget.title + ' widget with index '
                 + widget.id + ' to dashboard ' + dashboard.name + '.');
         }
 

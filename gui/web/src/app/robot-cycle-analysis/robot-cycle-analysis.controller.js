@@ -8,18 +8,19 @@
       .module('app.robotCycleAnalysis')
       .controller('RobotCycleAnalysisController', RobotCycleAnalysisController);
 
-    RobotCycleAnalysisController.$inject = ['$scope', '$uibModal', 'dashboardService', 'robotCycleAnalysisService', 'eventService', '$interval', 'logger'];
+    RobotCycleAnalysisController.$inject = ['$scope', '$uibModal', 'dashboardService', 'robotCycleAnalysisService', 'eventService', '$interval', 'logger', '$filter', '$timeout'];
     /* @ngInject */
-    function RobotCycleAnalysisController($scope, $uibModal, dashboardService, robotCycleAnalysisService, eventService, $interval, logger) {
+    function RobotCycleAnalysisController($scope, $uibModal, dashboardService, robotCycleAnalysisService, eventService, $interval, logger, $filter, $timeout) {
         var activityTypes = ['routines', 'wait'],
             dateTimeFormat = 'yyyy-MM-dd HH:mm:ss',
             intervalPromise = null,
             liveChartTimeOpened = new Date(),
-            liveChartUpdateInterval = 3000,
+            liveChartUpdateInterval = 1000,
             minutesSecondsFormat = 'mm:ss',
             timeFormat = 'HH:mm:ss',
             vm = this;
 
+        vm.currentTime = new Date();
         vm.historicalFromDate = new Date(0);
         vm.liveChartData = [];
         vm.liveChartTooltipContent =
@@ -61,7 +62,7 @@
                 vm.widget.storage = {
                     chosenWorkCell: null,
                     ganttData: [],
-                    liveChartWidth: 1,
+                    liveChartWidth: 3,
                     showLiveChart: false
                 };
             }
@@ -82,32 +83,36 @@
             let row = _.find(vm.liveChartData, function(aRow) { return aRow.id === rowId; });
 
             if (ev.isStart) {
-                row.tasks.push({
-                    color: stringToColor(name),
-                    duration: new Date() - new Date(ev.time),
-                    from: new Date(ev.time),
-                    id: taskId,
-                    name: name,
-                    running: true,
-                    to: new Date()
-                });
+                $timeout(addStartEvent, 1000, false);
             } else {
                 let activity = _.find(row.tasks, function(task) { return task.id === taskId; });
                 if (activity === undefined) {
                     row.tasks.push({
-                        color: stringToColor(name),
+                        color: '#' + $filter('tocolor')(name),
                         duration: new Date() - liveChartTimeOpened,
                         from: liveChartTimeOpened,
                         id: taskId,
                         name: name,
-                        running: false,
+                        isRunning: false,
                         to: new Date()
                     });
                 } else {
-                    activity.running = false;
+                    activity.isRunning = false;
                     activity.to = moment(ev.time);
                     activity.duration = new Date(activity.to) - new Date(activity.from);
                 }
+            }
+
+            function addStartEvent() {
+                row.tasks.push({
+                    color: '#' + $filter('tocolor')(name),
+                    duration: new Date() - new Date(ev.time),
+                    from: new Date(ev.time),
+                    id: taskId,
+                    name: name,
+                    isRunning: true,
+                    to: new Date()
+                });
             }
         }
 
@@ -167,7 +172,7 @@
                                 from: activity.from,
                                 to: activity.to
                             },
-                            color: stringToColor(activity.name),
+                            color: '#' + $filter('tocolor')(activity.name),
                             duration: new Date(activity.to) - new Date(activity.from),
                             from: new Date(activity.from) - new Date(cycle.from),
                             name: activity.name,
@@ -220,7 +225,7 @@
             let rows = vm.liveChartData;
             for (let row of rows) {
                _.remove(row.tasks, function (task) {
-                   return !task.running && task.to.isBefore !== undefined && task.to.isBefore(vm.liveFromDate);
+                   return !task.isRunning && task.to.isBefore !== undefined && task.to.isBefore(vm.liveFromDate);
                });
             }
         }
@@ -325,19 +330,6 @@
             vm.widget.storage.showLiveChart = false;
         }
 
-        function stringToColor(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            let colour = '#';
-            for (let i = 0; i < 3; i++) {
-                let value = (hash >> (i * 8)) & 0xFF;
-                colour += ('00' + value.toString(16)).substr(-2);
-            }
-            return colour;
-        }
-
         function toActivityRowId(cycleId, robotId, activityType) {
             return cycleId + '-' + robotId + '-' + activityType;
         }
@@ -382,14 +374,17 @@
         }
 
         function updateRunningActivities() {
-            let activityRows = _.filter(vm.liveChartData, { 'type': 'activityType' });
-            for (let activityRow of activityRows) {
+            let now = new Date();
+            let to = new Date();
+            to.setSeconds(to.getSeconds() - 1);
+            for (let activityRow of vm.liveChartData) {
                 let runningActivities = _.filter(activityRow.tasks, { 'isRunning': true });
                 for (let runningActivity of runningActivities) {
-                    runningActivity.duration = new Date() - new Date(runningActivity.from);
-                    runningActivity.to = new Date();
+                    runningActivity.duration = now - new Date(runningActivity.from);
+                    runningActivity.to = to;
                 }
             }
+            vm.currentTime = to;
         }
     }
 })();
