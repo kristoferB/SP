@@ -105,6 +105,11 @@ object SP extends App {
     CreateParallelInstanceService.specification,
     CreateParallelInstanceService.transformation)
 
+  serviceHandler ! RegisterService("SimpleShortestPath",
+    system.actorOf(SimpleShortestPath.props, "SimpleShortestPath"),
+    SimpleShortestPath.specification, SimpleShortestPath.transformation)
+
+
   import sp.areus._
 
   serviceHandler ! RegisterService("ImportLogFiles",
@@ -137,6 +142,12 @@ object SP extends App {
   serviceHandler ! RegisterService("ProcessSimulate",
     system.actorOf(ProcessSimulate.props(modelHandler,eventHandler), "ProcessSimulate"),
     ProcessSimulate.specification, ProcessSimulate.transformation)
+
+  import sp.virtcom.VolvoRobotSchedule
+  serviceHandler ! RegisterService("VolvoRobotSchedule",
+    system.actorOf(VolvoRobotSchedule.props(serviceHandler), "VolvoRobotSchedule"),
+    VolvoRobotSchedule.specification, VolvoRobotSchedule.transformation)
+
 //
 //  import sp.areus.modalaService._
 //  val modalaamqProducer = system.actorOf(Props[ModalaAMQProducer], "ModalaAMQProducer")

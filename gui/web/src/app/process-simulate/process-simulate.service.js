@@ -15,7 +15,9 @@
             connected: false,
             serviceID: '',
             connect: connect,
-            command: command
+            disconnect: disconnect,
+            command: command,
+            roots: []
         };
 
         activate();
@@ -34,6 +36,10 @@
             if (_.has(ev, 'attributes.bus')){
                 service.connected = ev.attributes.bus === 'Connected';
             }
+
+            if (_.has(ev, 'attributes.roots')){
+                service.roots = ev.attributes.roots;
+            }
         }
 
         function connect(ip, topic){
@@ -47,6 +53,18 @@
                 }
             };
             command(mess);
+        }
+
+        function disconnect(){
+            var mess = {
+                'command':{
+                    'type':'disconnect'
+                }
+            };
+            command(mess);
+            service.connected = false;
+            service.serviceID = '';
+            service.roots = [];
         }
 
         function command(message) {

@@ -22,6 +22,24 @@
                             </button>
                     </td></tr>
                     <tr><td style="padding: 10px">
+                            <button class="btn" ng-click="vm.importHierarchyRoots()">
+                                <i class="fa fa-arrow-circle-left"></i> Update hierarchy roots
+                            </button>
+                    </td></tr>
+
+                    <tr><td style="padding: 10px">
+                            <form name="myForm">
+                                <label for="opHier">Import operation hierarchy:</label>
+                                <select name="opHier" id="mySelect"
+                                        ng-options="root.name for root in vm.ps.roots track by root.txid"
+                                        ng-model="vm.selectedRoot"></select>
+                            </form>
+                            <button class="btn" ng-click="vm.importHierarchy(vm.selectedRoot.txid)">
+                                <i class="fa fa-arrow-circle-left"></i> Import hierarchy
+                            </button>
+                    </td></tr>
+
+                    <tr><td style="padding: 10px">
                             <button class="btn" ng-click="vm.updateSimIDs()">
                                 <i class="fa fa-chain"></i> Update id mapping
                             </button>
@@ -31,6 +49,18 @@
                                 <i class="fa fa-arrow-right"></i> Export selected sops
                             </button>
                     </td></tr>
+
+                    <tr><td style="padding: 10px">
+                            <button class="btn" ng-click="vm.disconnect()">
+                                <i class="fa fa-unlink"></i> Disconnect
+                            </button>
+                    </td></tr>
+
+                    <tr><td style="padding: 10px">
+                            <button class="btn" ng-click="vm.testSomeStuff()">
+                                <i class="fa fa-unlink"></i> Test Some Stuff
+                            </button>
+                    </td></tr>                    
                 </table>
             </div>
         </div>

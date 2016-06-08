@@ -31,7 +31,8 @@ object ProcessSimulate extends SPService {
     ),
     "command" -> SPAttributes(
       "type" -> KeyDefinition("String", List("connect","disconnect",
-        "export seq", "import basic ops", "import all", "import single", "update sim ids"), Some("export seq")),
+        "export seq", "import basic ops", "import all", "import single", "update sim ids","import hierarchy roots",
+        "get_operation_hierarchy"), Some("export seq")),
       "sops" -> KeyDefinition("List[ID]", List(), Some(SPValue(List()))),
       "txid" -> KeyDefinition("String", List(), Some(""))
     )
@@ -76,6 +77,13 @@ class ProcessSimulate(modelHandler: ActorRef, eventHandler: ActorRef) extends Ac
           case "import all" => getAllItems(m, ids)
           case "import single" => getSingleItem(m, ids, command.getAs[String]("txid").getOrElse(""))
           case "update sim ids" => updateSimIds(m, ids)
+          case "import hierarchy roots" =>
+            val message = SPAttributes("command" -> "get_operation_roots")
+            askPS(m, message, "import hierarchy roots")
+          case "get_operation_hierarchy" =>
+            val txid = command.getAs[String]("txid").getOrElse("");
+            val message = SPAttributes("command" -> "get_operation_hierarchy", "txid" -> txid)
+            askPS(m, message, "get operation hierarchy")
           case _ =>
         }
       }
@@ -120,6 +128,7 @@ class ProcessSimulate(modelHandler: ActorRef, eventHandler: ActorRef) extends Ac
     bus.foreach(_ ! CloseConnection)
     setup = None
     bus = None
+    serviceName = None
   }
 
   override def postStop() = {
@@ -205,44 +214,71 @@ class ProcessSimulate(modelHandler: ActorRef, eventHandler: ActorRef) extends Ac
     val opsInSP = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
     askPS(model, message, "update_sim_ids", {
       idablesFromPS =>
-        lazy val opsFromPS = idablesFromPS.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
-        lazy val opsFromPSName_Map = opsFromPS.map(o => o.name -> o).toMap
-        lazy val opsInSPName_Map = opsInSP.map(o => o.name -> o).toMap
-        lazy val updatedSPOps = opsInSPName_Map.flatMap { case (spOpName, spOp) =>
-          for {
-            psOp <- opsFromPSName_Map.get(spOpName)
-            txidValue <- psOp.attributes.getAs[String]("txid")
-          } yield {
-            val ssValue = psOp.attributes.getAs[Option[String]]("starting_signal").getOrElse(None)
-            val esValue = psOp.attributes.getAs[Option[String]]("ending_signal").getOrElse(None)
-            val durValue = psOp.attributes.getAs[Double]("duration").getOrElse(0)
-            val updatedAttr = (spOp.attributes transformField { case ("simop", _) => ("simop", SPValue(txidValue)) }).to[SPAttributes].getOrElse(spOp.attributes)
-            val updatedAttr1 = (updatedAttr transformField { case ("txid", _) => ("txid", SPValue(txidValue)) }).to[SPAttributes].getOrElse(updatedAttr)
-            val updatedAttr2 = (updatedAttr1 transformField { case ("starting_signal", _) => ("starting_signal", SPValue(ssValue)) }).to[SPAttributes].getOrElse(updatedAttr1)
-            val updatedAttr3 = (updatedAttr2 transformField { case ("ending_signal", _) => ("ending_signal", SPValue(esValue)) }).to[SPAttributes].getOrElse(updatedAttr2)
-            val updatedAttr4 = (updatedAttr3 transformField { case ("duration", _) => ("duration", SPValue(durValue)) }).to[SPAttributes].getOrElse(updatedAttr3)
-            if(spOp.attributes.toString != updatedAttr4.toString) {
-              println(spOp.name)
-              println(updatedAttr4)
-            }
-            spOp.copy(attributes = updatedAttr4)
+      lazy val opsFromPS = idablesFromPS.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
+      lazy val opsFromPSName_Map = opsFromPS.map(o => o.name -> o).toMap
+      lazy val opsInSPName_Map = opsInSP.map(o => o.name -> o).toMap
+      lazy val updatedSPOps = opsInSPName_Map.flatMap { case (spOpName, spOp) =>
+        for {
+          psOp <- opsFromPSName_Map.get(spOpName)
+          txidValue <- psOp.attributes.getAs[String]("txid")
+        } yield {
+          val ssValue = psOp.attributes.getAs[Option[String]]("starting_signal").getOrElse(None)
+          val esValue = psOp.attributes.getAs[Option[String]]("ending_signal").getOrElse(None)
+          val durValue = psOp.attributes.getAs[Double]("duration").getOrElse(0)
+          val updatedAttr = (spOp.attributes transformField { case ("simop", _) => ("simop", SPValue(txidValue)) }).to[SPAttributes].getOrElse(spOp.attributes)
+          val updatedAttr1 = (updatedAttr transformField { case ("txid", _) => ("txid", SPValue(txidValue)) }).to[SPAttributes].getOrElse(updatedAttr)
+          val updatedAttr2 = (updatedAttr1 transformField { case ("starting_signal", _) => ("starting_signal", SPValue(ssValue)) }).to[SPAttributes].getOrElse(updatedAttr1)
+          val updatedAttr3 = (updatedAttr2 transformField { case ("ending_signal", _) => ("ending_signal", SPValue(esValue)) }).to[SPAttributes].getOrElse(updatedAttr2)
+          val updatedAttr4 = (updatedAttr3 transformField { case ("duration", _) => ("duration", SPValue(durValue)) }).to[SPAttributes].getOrElse(updatedAttr3)
+          if(spOp.attributes.toString != updatedAttr4.toString) {
+            println(spOp.name)
+            println(updatedAttr4)
           }
+          spOp.copy(attributes = updatedAttr4)
         }
-        println(s"Updated attributes for ${updatedSPOps.size} operations. ${updatedSPOps.map(_.name).mkString(", ")}")
-        updatedSPOps.toList
+      }
+      println(s"Updated attributes for ${updatedSPOps.size} operations. ${updatedSPOps.map(_.name).mkString(", ")}")
+      updatedSPOps.toList
     })
   }
 
-  def handlePSAnswer(f: Future[Any]): Future[Either[List[IDAble],String]] = {
+  def getOpsWithHierarchy(attr: SPAttributes): Either[(List[IDAble],SPAttributes),String] = {
+    def hiernode(idmap: Map[String, IDAble], node: SPAttributes): HierarchyNode = {
+      val idable = node.getAs[IDAble]("idable").getOrElse(Thing("hiernode_error", attributes=node))
+      val txid = idable.attributes.getAs[String]("txid").getOrElse("")
+      val children = node.getAs[List[SPAttributes]]("children").getOrElse(List())
+      HierarchyNode(idmap(txid).id, children.map(hiernode(idmap,_)))
+    }
+    
+    def idables(node: SPAttributes): List[IDAble] = {
+      val idable = node.getAs[IDAble]("idable").getOrElse(Thing("idable_error", attributes=node))
+      val children = node.getAs[List[SPAttributes]]("children").getOrElse(List())
+      idable :: children.map(idables(_)).flatten
+    }
+    attr.getAs[SPAttributes]("root") match {
+      case Some(rootNode) =>
+        val ids = idables(rootNode)
+        val idMap = ids.map(i=>i.attributes.getAs[String]("txid").getOrElse("")->i).toMap
+        val rootChildren = rootNode.getAs[List[SPAttributes]]("children").get.map(hiernode(idMap,_))
+        val hierarchyRoot = HierarchyRoot(rootNode.getAs[String]("name").get, rootChildren)
+        Left((hierarchyRoot :: ids),SPAttributes())
+      case None => Right("no root node")
+    }
+  }
+
+  def handlePSAnswer(f: Future[Any]): Future[Either[(List[IDAble],SPAttributes),String]] = {
     // finds error by exception, since then the future fails
     f.map { case AMQMessage(body, props, headers) =>
       val psres = SPAttributes.fromJson(body.toString).get
+      // println(psres.pretty)
       val responseType = psres.getAs[String]("response_type")
 
       responseType match {
-        case Some("simple_ok") => Left(List())
-        case Some("list_of_items") => Left(psres.getAs[List[IDAble]]("items").getOrElse(List()))
-        case Some("item") => Left(List(psres.getAs[IDAble]("item")).flatMap(x=>x))
+        case Some("simple_ok") => Left((List(),SPAttributes()))
+        case Some("list_of_items") => Left((psres.getAs[List[IDAble]]("items").getOrElse(List()),SPAttributes()))
+        case Some("hierarchy_roots") => Left((List(),psres merge SPAttributes("silent"->true)))
+        case Some("hierarchy") => getOpsWithHierarchy(psres)
+        case Some("item") => Left((List(psres.getAs[IDAble]("item")).flatMap(x=>x),SPAttributes()))
         case Some("error") => Right(psres.getAs[String]("error").getOrElse("No error string defined"))
         case Some(x) => Right(s"Unrecognized response $x")
         case None => Right("No response_type")
@@ -262,9 +298,9 @@ class ProcessSimulate(modelHandler: ActorRef, eventHandler: ActorRef) extends Ac
       b ? RequestMessage(Queue(s.topic), AMQMessage(json))
     }
     f.foreach(handlePSAnswer(_).foreach{
-      case Left(l) =>
-        modelHandler ! UpdateIDs(model, responseTransformation(l), SPAttributes("info"->responseInfo))
-        eventHandler ! Response(responseTransformation(l), SPAttributes("info" -> responseInfo), serviceName.get, serviceID)
+      case Left((l,a)) =>
+        if(l.nonEmpty) modelHandler ! UpdateIDs(model, responseTransformation(l), SPAttributes("info"->responseInfo))
+        eventHandler ! Response(List(), a merge SPAttributes("info" -> responseInfo), serviceName.get, serviceID)
       case Right(s) =>
         eventHandler ! Response(List(), SPAttributes("error" -> s, "info" -> responseInfo), serviceName.get, serviceID)
     })
