@@ -523,14 +523,18 @@
                     menuItems[40] = {
                         label: 'Delete item',
                         action: function() {
-                            itemService.deleteItem(node.data.id);
+                            _.forEach(itemService.selected, function(c){
+                                itemService.deleteItem(c.id);
+                            });
                         }
                     };
                 } else {
                     menuItems[30] = {
                         label: 'Delete item',
                         action: function(){
-                            itemService.deleteItem(node.id);
+                            _.forEach(itemService.selected, function(c){
+                                itemService.deleteItem(c.id);
+                            });
                         }
                     };
                 }
