@@ -523,8 +523,12 @@
                     menuItems[40] = {
                         label: 'Delete item',
                         action: function() {
+                            var items = [];
                             _.forEach(itemService.selected, function(c){
-                                itemService.deleteItem(c.id);
+                                if (items.indexOf(c.id) == -1) {
+                                    itemService.deleteItem(c.id);
+                                    items.push(c.id);
+                                }
                             });
                         }
                     };
@@ -532,8 +536,12 @@
                     menuItems[30] = {
                         label: 'Delete item',
                         action: function(){
+                            var items = [];
                             _.forEach(itemService.selected, function(c){
-                                itemService.deleteItem(c.id);
+                                if (items.indexOf(c.id) == -1) {
+                                    itemService.deleteItem(c.id);
+                                    items.push(c.id);
+                                }
                             });
                         }
                     };
