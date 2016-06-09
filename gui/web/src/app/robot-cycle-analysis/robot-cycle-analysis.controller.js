@@ -83,7 +83,15 @@
             let row = _.find(vm.liveChartData, function(aRow) { return aRow.id === rowId; });
 
             if (ev.isStart) {
-                $timeout(addStartEvent, 1000, false);
+                row.tasks.push({
+                    color: '#' + $filter('tocolor')(name),
+                    duration: new Date() - new Date(ev.time),
+                    from: new Date(ev.time),
+                    id: taskId,
+                    name: name,
+                    isRunning: true,
+                    to: new Date()
+                });
             } else {
                 let activity = _.find(row.tasks, function(task) { return task.id === taskId; });
                 if (activity === undefined) {
@@ -101,18 +109,6 @@
                     activity.to = moment(ev.time);
                     activity.duration = new Date(activity.to) - new Date(activity.from);
                 }
-            }
-
-            function addStartEvent() {
-                row.tasks.push({
-                    color: '#' + $filter('tocolor')(name),
-                    duration: new Date() - new Date(ev.time),
-                    from: new Date(ev.time),
-                    id: taskId,
-                    name: name,
-                    isRunning: true,
-                    to: new Date()
-                });
             }
         }
 
