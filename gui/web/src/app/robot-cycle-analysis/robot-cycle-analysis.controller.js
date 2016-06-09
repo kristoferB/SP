@@ -12,7 +12,7 @@
     /* @ngInject */
     function RobotCycleAnalysisController($scope, $uibModal, dashboardService, robotCycleAnalysisService, eventService, $interval, logger, $filter, $timeout) {
         var activityTypes = ['routines', 'wait'],
-            dateTimeFormat = 'yyyy-MM-dd HH:mm:ss',
+            //dateTimeFormat = 'yyyy-MM-dd HH:mm:ss',
             intervalPromise = null,
             liveChartTimeOpened = new Date(),
             liveChartUpdateInterval = 1000,
@@ -42,8 +42,8 @@
         vm.taskTooltipContent =
             '{{task.model.name}}<br/>' +
             '<small>' +
-            '{{task.model.absoluteTime.from | date:\'' + dateTimeFormat + '\'}} - ' +
-            '{{task.model.absoluteTime.to | date:\'' + dateTimeFormat + '\'}}<br/>' +
+            '{{task.model.absoluteTime.from | date:\'' + timeFormat + '\'}} - ' +
+            '{{task.model.absoluteTime.to | date:\'' + timeFormat + '\'}}<br/>' +
             '{{task.model.from.format(\'' + minutesSecondsFormat + '\')}} - ' +
             '{{task.model.to.format(\'' + minutesSecondsFormat + '\')}}<br/>' +
             '{{task.model.duration / 1000 | number:0}} s' +
