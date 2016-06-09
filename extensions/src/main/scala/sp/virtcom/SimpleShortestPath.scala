@@ -22,7 +22,7 @@ object SimpleShortestPath extends SPService {
   val specification = SPAttributes(
     "service" -> SPAttributes(
       "group" -> "External",
-      "description" -> "Find the shortest (in time) sequence satisfying the input sequence and goes back to the initial state."
+      "description" -> "Complete all operations asap. (Variables need to end up at initial state after the ops are completed)"
     )
   )
   val transformTuple = ()
@@ -81,6 +81,7 @@ class SimpleShortestPath extends Actor with ServiceSupport with DESModelingSuppo
       })
     }
 
+    // adapted from Michael Ummels
     def go(active: PriorityMap[Node,Double], res: Map[Node, Double], pred: Map[Node, Node]):
         (Map[Node, Double], Map[Node, Node]) =
       if (active.isEmpty) (res, pred)
@@ -107,7 +108,6 @@ class SimpleShortestPath extends Actor with ServiceSupport with DESModelingSuppo
     val (res,pred) = go(PriorityMap(initNode -> 0.0), Map(), Map())
     val t1 = System.nanoTime()
 
-    // create a sop
     def findPath(curNode: Node, pred: Map[Node,Node], acum: List[Node]): List[Node] = {
       pred.get(curNode) match {
         case Some(src) =>
@@ -117,22 +117,25 @@ class SimpleShortestPath extends Actor with ServiceSupport with DESModelingSuppo
       }
     }
     val path = findPath(goalNode, pred, List())
-    def getTimes(path: List[Node], olr: Set[Operation]=Set(),
-      start: Map[ID, Double]=Map(),finish: Map[ID, Double]=Map()):
+
+    def getTimes(path: List[Node], olr: Set[Operation]=Set(), start: Map[ID, Double]=Map(),finish: Map[ID, Double]=Map()):
         (Map[ID, Double],Map[ID, Double]) = {
       path match {
         case x::xs =>
-          val nowrunning = x.running.map(_._1).toSet
-          val started = nowrunning.diff(olr)
-          val finished = olr.diff(nowrunning)
-          val t = res(x)
-          val ns = start ++ started.map(_.id -> t).toMap
-          val nf = finish ++ finished.map(_.id -> t).toMap
-          getTimes(xs,nowrunning,ns,nf)
+          val nr = x.running.map(_._1).toSet
+          val s = nr.diff(olr)
+          val f = olr.diff(nr)
+          getTimes(xs,nr,start ++ s.map(_.id -> res(x)).toMap,finish ++ f.map(_.id -> res(x)).toMap)
         case Nil => (start,finish)
       }
     }
     val (start,finish) = getTimes(path)
+
+    // sanity check
+    ops.foreach { op =>
+      val dur = op.attributes.getAs[Double]("duration").getOrElse(0.0)
+      assert(Math.abs(finish(op.id) - start(op.id) - dur) < 0.000001)
+    }
 
     def rel(op1: ID,op2: ID): SOP = {
       if(finish(op1) <= start(op2))
@@ -147,7 +150,7 @@ class SimpleShortestPath extends Actor with ServiceSupport with DESModelingSuppo
       op1 <- ops
       op2 <- ops if(op1 != op2)
         } yield Set(op1.id,op2.id)).toSet
-    println(pairs.size)
+
     val rels = pairs.map { x => (x -> rel(x.toList(0),x.toList(1))) }.toMap
     val sop = makeTheSop(ops.map(_.id), rels, EmptySOP)
 
