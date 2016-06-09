@@ -1,13 +1,14 @@
 package sp.robotCycleAnalysis
 
 import com.github.nscala_time.time.Imports._
+import sp.domain.Logic._
 import sp.domain.{ID, SPAttributes}
 
 /**
   * Created by daniel on 2016-06-03.
   */
 object fakes {
-  implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
+  //implicit val formats = jsonFormats // org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
   var latestActivityId: Option[ID] = None
 
   def activityEvent = {

@@ -80,7 +80,7 @@ case class Routine(number: Int, name: String, description: String)
 
 // Add constructor parameters if you need access to modelHandler and ServiceHandler etc
 class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSupport {
-  implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
+  //implicit val formats = jsonFormats // org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
 
   // State
   val spServiceID = ID.newID
