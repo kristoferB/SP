@@ -187,6 +187,7 @@ object SP extends App {
 //    ExampleService.specification,
 //    ExampleService.transformation
 //  )
+
 //
 //  import sp.calculator._
 //  mediator ! Publish("serviceHandler", RegisterService)(
