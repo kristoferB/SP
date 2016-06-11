@@ -377,10 +377,10 @@
                 let runningActivities = _.filter(activityRow.tasks, { 'isRunning': true });
                 for (let runningActivity of runningActivities) {
                     runningActivity.duration = now - new Date(runningActivity.from);
-                    runningActivity.to = to;
+                    runningActivity.to = now;
                 }
             }
-            vm.currentTime = to;
+            vm.currentTime = now;
         }
     }
 })();
