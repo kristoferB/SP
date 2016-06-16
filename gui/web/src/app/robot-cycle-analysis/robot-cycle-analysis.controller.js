@@ -125,8 +125,8 @@
         }
 
         function cycleToGanttRows(cycle) {
-            let ganttData = [];
-            let cycleRow = {
+            var ganttData = [];
+            var cycleRow = {
                 children: [],
                 duration: new Date(cycle.from) - new Date(cycle.to),
                 id: cycle.id,
@@ -147,7 +147,7 @@
                 let robotRowId = toRobotRowId(cycle.id, robotId);
                 let robot = getRobotById(robotId);
                 cycleRow.children.push(robotRowId);
-                let robotRow = {
+                var robotRow = {
                     children: [],
                     id: robotRowId,
                     name: robot.name,
@@ -156,13 +156,13 @@
                 _.forOwn(activityTypes, function(activities, activityType) {
                     let activityTypeRowId = toActivityRowId(cycle.id, robotId, activityType);
                     robotRow.children.push(activityTypeRowId);
-                    let activityTypeRow = {
+                    var activityTypeRow = {
                         id: activityTypeRowId,
                         name: activityType,
                         tasks: [],
                         type: "activityType"
                     };
-                    for (let activity of activities) {
+                    for (var activity of activities) {
                         activityTypeRow.tasks.push({
                             absoluteTime: {
                                 from: activity.from,
@@ -206,9 +206,9 @@
         }
 
         function removeCycle(rowId) {
-            let row = _.find(vm.widget.storage.ganttData, function(row) { return row.id === rowId; });
+            var row = _.find(vm.widget.storage.ganttData, function(row) { return row.id === rowId; });
             if (row.hasOwnProperty("children")) {
-                for (let childRowId of row.children) {
+                for (var childRowId of row.children) {
                     removeCycle(childRowId);
                 }
             }

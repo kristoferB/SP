@@ -1,12 +1,16 @@
 package sp.psl
 
 import akka.actor._
-import sp.domain.logic.IDAbleLogic
+import sp.domain.logic.{PropositionParser, ActionParser, IDAbleLogic}
+import sp.psl.runnerService.RunnerService
 import scala.concurrent._
 import sp.system.messages._
 import sp.system._
 import sp.domain._
 import sp.domain.Logic._
+import sp.domain.Operation
+import com.typesafe.config._
+
 
 
 object PSLModel extends SPService {
@@ -18,9 +22,20 @@ object PSLModel extends SPService {
   )
   val transformation: List[TransformValue[_]] = List()
   def props = Props(classOf[PSLModel])
+  //def props(eventHandler: ActorRef, serviceHandler: ActorRef, runnerService: String) =
+    //ServiceLauncher.props(Props(classOf[PSLModel], eventHandler, serviceHandler, runnerService))
 }
 
-class PSLModel extends Actor with ServiceSupport with ModelMaking {
+case class AbilityParameter(id: ID, value: SPValue)
+case class AbilityStructure(id: ID,
+                            parameters: List[AbilityParameter] = List(),
+                            state: State = State(Map()))
+
+
+
+
+
+class PSLModel extends Actor with ServiceSupport with ThePSLModel {
   import context.dispatcher
 
   def receive = {
@@ -29,83 +44,233 @@ class PSLModel extends Actor with ServiceSupport with ModelMaking {
       implicit val rnr = RequestNReply(r, replyTo)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
-      // Resources
-      val r2 = makeResource(
-        name = "r2",
-        state = List("position", "mode"),// the state variables defining the state of the resource
-        abilities = List(
-          "moveHomeToFixture"->List("p_aParameter", "mode", "mirror"), // the abilities of the resource. Includes the parameters as well as the state of the ability
-          "moveFixtureToHome"->List("mode"))
-      )
+      val items = getCompleteModel
 
-      val flS2 = makeResource(
-        name = "flexlinkS2",
-        state = List("stopper", "mode"),
-        abilities = List("open"->List("mode"), "close"->List("mode"))
-      )
-
-
-      val items = r2._2 ++ flS2._2
-      val itemMap = items.map(x => x.name -> x.id) toMap
-
-      // This info will later on be filled by a service on the bus
-      val connectionList = List(
-        db(itemMap, "r2.moveHomeToFixture",       "bool",    950, 0, 0),
-        db(itemMap, "r2.moveHomeToFixture.aParameter", "bool",    950, 0, 1),
-        db(itemMap, "r2.moveHomeToFixture.mode",  "int",    950, 4, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")),
-        db(itemMap, "r2.moveHomeToFixture.mirror", "bool",    950, 0, 5),
-//        db(itemMap, "r2.moveFixtureToHome",       "bool",    950, 0, 1),
-//        db(itemMap, "r2.moveFixtureToHome.mode",  "int",    950, 4, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")),
-//        db(itemMap, "r2.moveFixtureToHome.speed", "int",    950, 2, 0),
-        db(itemMap, "r2.position",                "int",    950, 4, 0, Map(0->"home", 1->"atFlexlink", 2->"atFixture")),
-        db(itemMap, "r2.mode",                    "int",    950, 4, 0, Map(0->"notReady", 1->"ready", 2->"executing")) //,
-//        db(itemMap, "flexlinkS2.open",            "bool",    950, 0, 2),
-//        db(itemMap, "flexlinkS2.open.mode",       "bool",    950, 0, 6),
-//        db(itemMap, "flexlinkS2.close",           "bool",    950, 0, 3),
-//        db(itemMap, "flexlinkS2.close.mode",      "int",        950, 4, 0, Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")),
-//        db(itemMap, "flexlinkS2.stopper",         "bool",    950, 0, 6),
-//        db(itemMap, "flexlinkS2.mode",            "int",    950, 4, 0, Map(0->"notReady", 1->"ready", 2->"executing"))
-      ).flatten
-
-      val connection = SPSpec("PLCConnection", SPAttributes(
-        "connection"->connectionList,
-        "specification"-> "PLCConnection"
-      ))
-
-      val root = HierarchyRoot("Resources", List(r2._1, flS2._1))
-
-
-      // Here you can make the operations
-      // Look into the Operation class in domain
-      // use PropositionParser to parse strings into guards and actions.
-      // make a function that makes the operations like the makeResource
-      // to simplify your modeling.
-      // send in items to the parser
-      // incl all operations in response.
-
-
-      replyTo ! Response(items :+ root :+ connection, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
-
+      replyTo ! Response(items, SPAttributes("info"->"Items created from PSLModel service"), rnr.req.service, rnr.req.reqID)
     }
   }
 }
 
+case class DBConnection(name: String, valueType: String, db: Int, byte: Int = 0, bit: Int = 0, intMap: Map[String, String] = Map(), id: ID = ID.newID, busAddress: String = "")
 
-case class DBConnection(name: String, valueType: String, db: Int, byte: Int = 0, bit: Int = 0, intMap: Map[String, String] = Map(), id: ID = ID.newID)
+trait ThePSLModel extends Resources with DBConnector{
+  def getCompleteModel: List[IDAble] = {
+
+    val items = getResources
+    val itemMap = items.map(x => x.name -> x.id).toMap
+
+    // This info will later on be filled by a service on the bus
+    val connectionList = getDBMap(itemMap)
+    val connection = SPSpec("PLCConnection", SPAttributes(
+      "connection"->connectionList,
+      "specification"-> "PLCConnection"
+    ))
+
+
+    items :+ connection
+  }
+
+
+}
+
+trait Resources extends ModelMaking {
+  def getResources = {
+    // Make these sub resources to Flexlink
+    val h2 = makeResource (
+      name = "H2",
+      state = List(),
+      abilities = List(
+        AbilityDefinition(name = "up"),
+        AbilityDefinition("down")
+      )
+    )
+    val h3 = makeResource (
+      name = "H3",
+      state = List(),
+      abilities = List(
+        AbilityDefinition(name = "up"),
+        AbilityDefinition("down")
+      )
+    )
+
+    //skicka klossplatta till operatör
+    val flexlink = makeResource (
+      name = "Flexlink",
+      state = List("running"),
+      abilities = List(
+        AbilityDefinition(name = "fixtureToRobot", parameters = List(sOrP("pos", 0))),
+        AbilityDefinition("fixtureToOperator", List(sOrP("no", 2))),
+        AbilityDefinition("start"),
+        AbilityDefinition("stop"),
+        AbilityDefinition("onoroff")
+      )
+
+    )
+
+    val R5 = makeResource (
+      name = "R5",
+      state = List(),
+      abilities = List(
+        AbilityDefinition("pickBlock",  List(sOrP("pos", 0))),
+        AbilityDefinition("placeBlock", List(sOrP("pos", 0))),
+        AbilityDefinition("toHome"),
+        AbilityDefinition("toDodge")
+      )
+    )
+
+    val R4 = makeResource (
+      name = "R4",
+      state = List(),
+      abilities = List(
+        AbilityDefinition("pickBlock",  List(sOrP("pos", 0))),
+        AbilityDefinition("placeBlock", List(sOrP("pos", 0))),
+        AbilityDefinition("toHome"),
+        AbilityDefinition("toDodge")
+      )
+    )
+
+    val R2 = makeResource (
+      name = "R2",
+      state = List(),
+      abilities = List(
+        AbilityDefinition("pickAtPos",  List(sOrP("pos", 0))),
+        AbilityDefinition("placeAtPos", List(sOrP("pos", 0))),
+        AbilityDefinition("homeTableToElevatorStn3"),
+        AbilityDefinition("elevatorStn2ToHomeTable"),
+        AbilityDefinition("deliverTower"),
+        AbilityDefinition("pickBuildPlate")
+      )
+    )
+
+    val operator = makeResource (
+      name = "Operator",
+      state = List(),
+      abilities = List(
+        AbilityDefinition("loadFixture", List(sOrP("brickPositions",0)))
+      )
+    )
+
+    val safety = makeResource (
+      name = "Safety",
+      state = List(),
+      abilities = List(
+        AbilityDefinition("manmode"),
+        AbilityDefinition("forcereset"),
+        AbilityDefinition("Forcepalett1"),
+        AbilityDefinition("Forcepalett0")))
+
+    val root = HierarchyRoot("Resources", List(flexlink._1, operator._1, R2._1, R4._1, R5._1, h2._1, h3._1, safety._1))
+    h2._2 ++ h3._2 ++ flexlink._2 ++ operator._2 ++ R5._2 ++ R4._2 ++ R2._2 ++ safety._2 :+ root
+
+  }
+}
+
+trait DBConnector {
+  def db(items: Map[String, ID], name: String, valueType: String, db:Int, byte: Int, bit: Int, intMap: Map[Int, String] = Map(), busAddress: String = "") = {
+    items.get(name).map(id => DBConnection(name, valueType, db, byte, bit, intMap.map{case (k,v) => k.toString->v}, id, busAddress))
+  }
+
+  def getDBMap(itemMap: Map[String, ID]) = {
+    val stateMap = Map(0->"notReady", 1->"ready", 2->"executing", 3->"completed")
+
+    List(
+      db(itemMap, "H2.up.run", "bool", 135, 0, 0),
+      db(itemMap, "H2.down.run", "bool", 135, 0, 1),
+      db(itemMap, "H2.up.mode", "int", 135, 2, 0, stateMap),
+      db(itemMap, "H2.down.mode", "int", 135, 4, 0, stateMap),
+
+      db(itemMap, "H3.up.run", "bool", 140, 0, 0),
+      db(itemMap, "H3.down.run", "bool", 140, 0, 1),
+      db(itemMap, "H3.up.mode", "int", 140, 2, 0, stateMap),
+      db(itemMap, "H3.down.mode", "int", 140, 4, 0, stateMap),
+
+      db(itemMap, "Flexlink.fixtureToOperator.run", "bool", 139, 0, 0),
+      db(itemMap, "Flexlink.fixtureToRobot.run", "bool", 139, 0, 1),
+      db(itemMap, "Flexlink.fixtureToOperator.mode", "int", 139, 2, 0, stateMap),
+      db(itemMap, "Flexlink.fixtureToRobot.mode", "int", 139, 4, 0, stateMap),
+      db(itemMap, "Flexlink.fixtureToOperator.no", "int", 139, 6, 0),
+      db(itemMap, "Flexlink.fixtureToRobot.pos", "int", 139, 10, 0),
+      db(itemMap, "Flexlink.start", "bool", 138, 16, 0),
+      db(itemMap, "Flexlink.stop", "bool", 138, 16, 1),
+      db(itemMap, "Flexlink.onoroff", "bool", 138, 16, 2),
+
+      db(itemMap, "R5.pickBlock.run", "bool", 132, 0, 0),
+      db(itemMap, "R5.pickBlock.mode", "int", 132, 2, 0, stateMap),
+      db(itemMap, "R5.pickBlock.pos", "int", 132, 10, 0),
+      db(itemMap, "R5.placeBlock.run", "bool", 132, 0, 1),
+      db(itemMap, "R5.placeBlock.mode", "int", 132, 4, 0, stateMap),
+      db(itemMap, "R5.placeBlock.pos", "int", 132, 10, 0),
+      db(itemMap, "R5.toHome.run", "bool", 132, 0, 2),
+      db(itemMap, "R5.toHome.mode", "int", 132, 6, 0, stateMap),
+      db(itemMap, "R5.toDodge.run", "bool", 132, 0, 3),
+      db(itemMap, "R5.toDodge.mode", "int", 132, 8, 0, stateMap),
+
+      db(itemMap, "R4.pickBlock.run", "bool", 128, 0, 0),
+      db(itemMap, "R4.pickBlock.pos", "int", 128, 10, 0),
+      db(itemMap, "R4.placeBlock.pos", "int", 128, 10, 0),
+      db(itemMap, "R4.pickBlock.mode", "int", 128, 2, 0, stateMap),
+      db(itemMap, "R4.placeBlock.run", "bool", 128, 0, 1),
+      db(itemMap, "R4.placeBlock.mode", "int", 128, 4, 0, stateMap),
+      db(itemMap, "R4.toHome.run", "bool", 128, 0, 2),
+      db(itemMap, "R4.toHome.mode", "int", 128, 6, 0, stateMap),
+      db(itemMap, "R4.toDodge.run", "bool", 128, 0, 3),
+      db(itemMap, "R4.toDodge.mode", "int", 128, 8, 0, stateMap),
+
+      db(itemMap, "R2.elevatorStn2ToHomeTable.run", "bool",126,0,0),
+      db(itemMap, "R2.elevatorStn2ToHomeTable.mode", "int", 126, 2, 0, stateMap),
+      db(itemMap, "R2.homeTableToElevatorStn3.run", "bool",126,0,2),
+      db(itemMap, "R2.homeTableToElevatorStn3.mode", "int", 126, 6, 0, stateMap),
+      db(itemMap, "R2.placeAtPos.run", "bool",126,0,4),
+      db(itemMap, "R2.placeAtPos.pos", "bool",126,18,0),
+      db(itemMap, "R2.placeAtPos.mode", "int", 126, 10, 0, stateMap),
+      db(itemMap, "R2.pickAtPos.run", "bool",126,0,5),
+      db(itemMap, "R2.pickAtPos.pos", "int",126,18,0),
+      db(itemMap, "R2.pickAtPos.mode", "int", 126, 12, 0, stateMap),
+      db(itemMap, "R2.deliverTower.run", "bool",126,0,6),
+      db(itemMap, "R2.deliverTower.mode", "int", 126, 14, 0, stateMap),
+      db(itemMap, "R2.pickBuildPlate.run", "bool",126,0,7),
+      db(itemMap, "R2.pickBuildPlate.mode", "int", 126, 16, 0, stateMap),
+      //db(itemMap, "R2.homeTableToHomeBP.run", "bool",126,0,1),
+      //db(itemMap, "R2.homeBPToHomeTable.run", "bool",126,0,3),
+      //db(itemMap, "R2.homeTableToHomeBP.mode", "int", 126, 4, 0, stateMap),
+      //db(itemMap, "R2.homeBPToHomeTable.mode", "int", 126, 8, 0, stateMap),
+
+      db(itemMap, "Operator.loadFixture.run", "bool", 0, 0, 0, Map(), "operatorInstructions.run"),
+      db(itemMap, "Operator.loadFixture.mode", "int", 0, 0, 0, stateMap, "operatorInstructions.mode"),
+      db(itemMap, "Operator.loadFixture.brickPositions", "bool", 0, 0, 0, Map(), "operatorInstructions.brickPositions"),
+
+      db(itemMap, "Safety.manmode", "bool", 141, 0, 1),
+      db(itemMap, "Safety.forcereset", "bool", 141, 0, 0),
+      db(itemMap, "Safety.Forcepalett0", "bool", 141, 0, 2),
+      db(itemMap, "Safety.Forcepalett1", "bool", 141, 0, 3)
+
+
+    ).flatten
+  }
+}
+
+// Only used for modeling here
+case class sOrP(name: String, value: SPValue)
+case class AbilityDefinition(name: String, parameters: List[sOrP]=List(), states: List[sOrP]=List(), abilityType: SPValue = "")
 
 trait ModelMaking {
-  def makeResource(name: String, state: List[String], abilities: List[(String, List[String])]) = {
+  def makeResource(name: String, state: List[String], abilities: List[AbilityDefinition]) = {
     val t = Thing(name)
-    val stateVars = state.map(x => Thing(s"$name.$x", SPAttributes("variableType"->"state")))
-    val ab = abilities.map{case (n, parameters) =>
-      val abilityName = name +"."+n
-      val o = Operation(abilityName, List(), SPAttributes("operationType"->"ability"))
-      (o, parameters.map{x =>
-        val pName = x.replaceFirst("p_", "")
-        val isP = x.startsWith("p_")
-        val attr = if (isP) "parameter" else "state"
-        Thing(abilityName+"."+pName, SPAttributes("variableType"->attr))
-      })
+    val stateVars = Thing(s"$name.mode", SPAttributes("variableType"->"state")) :: state.map(x => Thing(s"$name.$x", SPAttributes("variableType"->"state")))
+    val ab = abilities.map{as =>
+
+      val abilityName = name +"."+as.name
+      val o = Operation(abilityName, List(), SPAttributes("operationType"->"ability", "abilityType"->as.abilityType))
+
+      val parameters = (as.parameters ++ List(sOrP("run", false))).map{ p =>
+        Thing(abilityName+"."+p.name, SPAttributes("variableType"->"parameter", "init"->p.value))
+      }
+      val states = (as.states ++ List(sOrP("mode", 0))).map{ p =>
+        Thing(abilityName+"."+p.name, SPAttributes("variableType"->"state", "init"->p.value))
+      }
+
+      (o, parameters ++ states)
+
     }
     val abHir = ab.map{case (op, para) => HierarchyNode(op.id, para.map(p => HierarchyNode(p.id)))}
     val hier = HierarchyNode(t.id, stateVars.map(x => HierarchyNode(x.id)) ++ abHir)
@@ -114,11 +279,20 @@ trait ModelMaking {
     (hier, temp)
   }
 
-  def db(items: Map[String, ID], name: String, valueType: String, db: Int, byte: Int = 0, bit: Int = 0, intMap: Map[Int, String] = Map()) = {
-    items.get(name).map(id => DBConnection(name, valueType, db, byte, bit, intMap.map{case (k,v) => k.toString->v}, id))
+  case class OpTowerTypeDef(name: String, ability: ID, parameters: List[(ID, Int)])
+  def makeMeOperationTypes(xs: List[OpTowerTypeDef]): List[IDAble] = {
+    xs.map{x =>
+      val ab = AbilityStructure(x.ability, x.parameters.map(p => AbilityParameter(p._1, p._2)))
+      Operation(x.name, List(), SPAttributes(
+        "operationType"->"operation",
+        "ability"-> ab
+      ))
+    }
   }
 
+
 }
+
 
 
 

@@ -21,15 +21,17 @@
         vm.getState = getState;
 
         vm.connect = connect;
-        vm.connectedMessage = 'Not connected'
+        vm.connectedMessage = 'Not connected';
 
         vm.serviceID = '';
         vm.serviceName = 'OperationControl';
-        vm.busIP = '172.16.205.50';
+        vm.busIP = '172.16.205.51';
         vm.publishTopic = 'commands';
         vm.subscribeTopic = 'response';
-        vm.connectionDetailsID = '56f80441-d3bd-48ee-b370-db5e1814f375';
-        vm.resourcesID = '7b38accc-1ff4-4874-a8ff-e273c7e8f9c2';
+        vm.connectionDetailsID = '9ed1789d-1b61-4f30-a0ed-231527505431';
+        vm.resourcesID = '3cd368e9-4b4f-49db-a60c-aa63c072242a';
+
+        vm.reset = reset;
 
         //vm.run_op = run_op;
         //vm.get_init_state = get_init_state;
@@ -85,5 +87,10 @@
         function execute_op(id, params) {
             vm.control.execute(id, params);
         }
+
+        function reset() {
+            vm.control.reset();
+        }
+
     }
 })();

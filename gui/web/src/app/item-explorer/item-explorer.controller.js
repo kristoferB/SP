@@ -523,14 +523,26 @@
                     menuItems[40] = {
                         label: 'Delete item',
                         action: function() {
-                            itemService.deleteItem(node.data.id);
+                            var items = [];
+                            _.forEach(itemService.selected, function(c){
+                                if (items.indexOf(c.id) == -1) {
+                                    itemService.deleteItem(c.id);
+                                    items.push(c.id);
+                                }
+                            });
                         }
                     };
                 } else {
                     menuItems[30] = {
                         label: 'Delete item',
                         action: function(){
-                            itemService.deleteItem(node.id);
+                            var items = [];
+                            _.forEach(itemService.selected, function(c){
+                                if (items.indexOf(c.id) == -1) {
+                                    itemService.deleteItem(c.id);
+                                    items.push(c.id);
+                                }
+                            });
                         }
                     };
                 }

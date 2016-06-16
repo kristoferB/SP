@@ -34,25 +34,38 @@ object SOPMaker {
   def props = Props(classOf[SOPMaker])
 }
 
-trait MakeASop extends Groupify with Sequencify {
+trait MakeASop {
   import SOPLogic._
+
+  def groupThem(sops: List[SOP], relations: Map[Set[ID], SOP]) = {
+    val groupOthers = groupify(sops, relations, _.isInstanceOf[Other], Other.apply)
+
+    val groupAlternatives = groupify(groupOthers, relations, _.isInstanceOf[Alternative], Alternative.apply)
+    groupify(groupAlternatives, relations, x => x.isInstanceOf[Parallel] || x.isInstanceOf[Arbitrary], Parallel.apply)
+  }
+
+  def cleanSop(sop: SOP): SOP = {
+    sop match {
+      case EmptySOP => EmptySOP
+      case x: Parallel if x.sop.size == 1 =>
+        x.sop.head match {
+          case y: Parallel => cleanSop(x.modify(y.sop))
+          case _ => sop.modify(sop.sop.map(cleanSop))
+        }
+      case _ => sop.modify(sop.sop.map(cleanSop))
+    }
+  }
+
   def makeTheSop(ops: List[ID], relations: Map[Set[ID], SOP], base: SOP = EmptySOP) = {
     val sopOps = makeSOPsFromOpsID(ops)
 
-    val groupOthers = groupify(sopOps, relations, _.isInstanceOf[Other], Other.apply)
-
-
-    val groupAlternatives = groupify(groupOthers, relations, _.isInstanceOf[Alternative], Alternative.apply)
-    val groupParallel = groupify(groupAlternatives, relations, x => x.isInstanceOf[Parallel] || x.isInstanceOf[Arbitrary], Parallel.apply)
+    val groupParallel = groupThem(sopOps, relations)
     val result = sequencify(groupParallel, relations, base)
 
-    addMissingRelations(result, relations)
-
+    val withMissing = addMissingRelations(result, relations)
+    withMissing.map(cleanSop)
   }
-}
 
-//TODO: Move these to domain.logic. SOP logic
-trait Groupify {
   def makeSOPsFromOpsID(ops: List[ID]): List[SOP] = ops map SOP.apply
 
   /**
@@ -138,14 +151,6 @@ trait Groupify {
 
   }
 
-
-}
-
-trait Sequencify {
-
-  // move shared algorithms to common trait or move all to domain logic
-  val groupAlgo = new Groupify {}
-
   case class Node(s: SOP, pre: Node, succ: Node, other: Node)
   object emptyNode extends Node(null, null, null, null) {
     override def toString = "emptyNode"
@@ -160,16 +165,13 @@ trait Sequencify {
     val nodeRelations = (for {
       x <- updSops
       y <- updSops if x != y
-    } yield Set(x, y) -> groupAlgo.identifySOPRelation(x, y, relations)).toMap
+    } yield Set(x, y) -> identifySOPRelation(x, y, relations)).toMap
 
-    //
-
-    val node = align(updSops, nodeRelations, base)
-
-    sopify(node, nodeRelations) toList
+    val node = align(updSops, nodeRelations, relations, base)
+    sopify(node, relations) toList
   }
 
-  def align(nodes: Seq[SOP], rel: Map[Set[SOP], SOP],  base: SOP = EmptySOP) : Node = {
+  def align(nodes: Seq[SOP], rel: Map[Set[SOP], SOP], relations: Map[Set[ID], SOP], base: SOP = EmptySOP) : Node = {
     nodes.toList match {
       case Nil => emptyNode
       case EmptySOP :: Nil => emptyNode
@@ -183,13 +185,22 @@ trait Sequencify {
 
         val preSuccOther = set.foldLeft((List[SOP](), List[SOP](), List[SOP]())){
           case ((pre, succ, other), n) => {
-            if (checkIfSeq(n, b, rel(Set(n, b)))) (n :: pre, succ, other)
-            else if (checkIfSeq(b, n, rel(Set(n, b)))) (pre, n :: succ, other)
+            if (checkIfSeq(n, b, identifySOPRelation(n, b, relations))) (n :: pre, succ, other)
+            else if (checkIfSeq(b, n, identifySOPRelation(b, n, relations))) (pre, n :: succ, other)
             else (pre, succ, n :: other)
           }
         }
 
-        Node(b, align(preSuccOther._1, rel, base), align(preSuccOther._2, rel, base), align(preSuccOther._3, rel, base))
+        def upd(x: List[SOP]) = x.map{
+          case s: SOP if s.isEmpty => s
+          case s: SOP => s.modify(sequencify(s.sop, relations, base))
+        }
+
+        val updPSO = (upd(groupThem(preSuccOther._1, relations)),
+          upd(groupThem(preSuccOther._2, relations)),
+          upd(groupThem(preSuccOther._3, relations)))
+
+        Node(b, align(updPSO._1, rel, relations, base), align(updPSO._2, rel, relations, base), align(updPSO._3, rel, relations, base))
       }
     }
   }
@@ -205,12 +216,12 @@ trait Sequencify {
 
 
   // fix sometime in seq
-  def sopify(n: Node, relations: Map[Set[SOP], SOP]): Seq[SOP] = {
+  def sopify(n: Node, rels: Map[Set[ID], SOP]): Seq[SOP] = {
     val sorted = sortNodes(n)
 
     sorted map {
       case x::Nil => x.s
-      case seq @ x::xs => createSequenceSOP(seq, relations)
+      case seq @ x::xs => createSequenceSOP(seq, rels)
       case Nil => EmptySOP
     }
   }
@@ -233,12 +244,12 @@ trait Sequencify {
     moreSeq :+ aSeq
   }
 
-  private def createSequenceSOP(seq: Seq[Node], relations: Map[Set[SOP], SOP]): SOP = {
+  private def createSequenceSOP(seq: Seq[Node], rels: Map[Set[ID], SOP]): SOP = {
     def getSomtimeSeq(left: Seq[Node], prev: SOP, result: SOP): (SOP, Seq[Node]) = {
       left.toList match {
         case Nil => (result, left)
         case x::xs => {
-          relations(Set(x.s, prev)) match {
+          identifySOPRelation(x.s, prev, rels) match {
             case s: SometimeSequence => getSomtimeSeq(xs, x.s, result + x.s)
             case s: Sequence => (result, left)
           }
@@ -251,7 +262,8 @@ trait Sequencify {
         case Nil => result
         case x::Nil => result + x.s
         case x::xs => {
-          val rel = relations(Set(x.s, xs.head.s))
+          val rel = identifySOPRelation(x.s, xs.head.s, rels)
+          // val rel = relations(Set(x.s, xs.head.s))
           rel match {
             case s: SometimeSequence => {
               val someTime = SometimeSequence(x.s)

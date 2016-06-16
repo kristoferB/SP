@@ -40,12 +40,15 @@ class VariableOperationMapperTest(_system: ActorSystem) extends TestKit(_system)
       val parserG = sp.domain.logic.PropositionParser(List(t1, t2, t3))
       val parserA = sp.domain.logic.ActionParser(List(t1, t2, t3))
 
+
+
+
       val g1 = parserG.parseStr("t1 == hej").right.get
       val g2 = parserG.parseStr("t1 == då and t2 == 0").right.get
       val g3 = parserG.parseStr("t3 == foo").right.get
       val g4 = parserG.parseStr("t2 == 3 and t3 == bar").right.get
 
-      val a1 = parserA.parseStr("t1 = då").right.get
+      val a1 = parserA.parseStr("t1 = r1.moveToFixture").right.get
       val a2 = parserA.parseStr("t2 = 200").right.get
       val a3 = parserA.parseStr("t3 = foobar").right.get
 

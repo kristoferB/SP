@@ -16,11 +16,14 @@
         'app.spServices',
         'app.trajectories',
         'app.opcRunner',
+        'app.processSimulate',
         'app.conditionEditor',
-        'app.exampleWidget',
         'app.operationControl',
-        'app.calculator',
-        'app.robotCycleAnalysis'
+        'app.kubInputGUI',
+        'app.operatorInstGUI',
+        'app.robotCycleAnalysis',
+        'app.activeOrder',
+        'app.Tobbe2'
     ]);
 
 })();

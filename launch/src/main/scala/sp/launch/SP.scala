@@ -105,6 +105,11 @@ object SP extends App {
     CreateParallelInstanceService.specification,
     CreateParallelInstanceService.transformation)
 
+  serviceHandler ! RegisterService("SimpleShortestPath",
+    system.actorOf(SimpleShortestPath.props, "SimpleShortestPath"),
+    SimpleShortestPath.specification, SimpleShortestPath.transformation)
+
+
   import sp.areus._
 
   serviceHandler ! RegisterService("ImportLogFiles",
@@ -133,20 +138,16 @@ object SP extends App {
   serviceHandler ! RegisterService("Simulation",
     system.actorOf(Simulation.props, "Simulation"), Simulation.specification, Simulation.transformation)
 
-  // activemq + process simulate stuff
-//  import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
-//  import akka.camel.{ CamelExtension, CamelMessage, Consumer, Producer }
-//  import org.apache.activemq.camel.component.ActiveMQComponent
-//  import sp.processSimulateImporter._
-//
-//  val camel = CamelExtension(system)
-//  val camelContext = camel.context
-//  camelContext.addComponent("activemq", ActiveMQComponent.activeMQComponent(s"tcp://${settings.activeMQ}:61616"))
-//  val psamq = system.actorOf(Props[ProcessSimulateAMQ], "ProcessSimulateAMQ")
-//  serviceHandler ! RegisterService("ProcessSimulate",
-//    system.actorOf(ProcessSimulateService.props(modelHandler, psamq), "ProcessSimulate"),
-//    ProcessSimulateService.specification,
-//    ProcessSimulateService.transformation)
+  import sp.virtcom.ProcessSimulate
+  serviceHandler ! RegisterService("ProcessSimulate",
+    system.actorOf(ProcessSimulate.props(modelHandler,eventHandler), "ProcessSimulate"),
+    ProcessSimulate.specification, ProcessSimulate.transformation)
+
+  import sp.virtcom.VolvoRobotSchedule
+  serviceHandler ! RegisterService("VolvoRobotSchedule",
+    system.actorOf(VolvoRobotSchedule.props(serviceHandler), "VolvoRobotSchedule"),
+    VolvoRobotSchedule.specification, VolvoRobotSchedule.transformation)
+
 //
 //  import sp.areus.modalaService._
 //  val modalaamqProducer = system.actorOf(Props[ModalaAMQProducer], "ModalaAMQProducer")
@@ -177,21 +178,22 @@ object SP extends App {
     RobotCycleAnalysis.transformation
   )
 
-  import sp.exampleService._
-  serviceHandler ! RegisterService(
-    "ExampleService",
-    system.actorOf(ExampleService.props, "ExampleService"),
-    ExampleService.specification,
-    ExampleService.transformation
-  )
+//  import sp.exampleService._
+//  serviceHandler ! RegisterService(
+//    "ExampleService",
+//    system.actorOf(ExampleService.props, "ExampleService"),
+//    ExampleService.specification,
+//    ExampleService.transformation
+//  )
+//
+//  import sp.calculator._
+//  serviceHandler ! RegisterService(
+//    "Calculator",
+//    system.actorOf(Calculator.props, "Calculator"),
+//    Calculator.specification,
+//    Calculator.transformation
+//  )
 
-  import sp.calculator._
-  serviceHandler ! RegisterService(
-    "Calculator",
-    system.actorOf(Calculator.props, "Calculator"),
-    Calculator.specification,
-    Calculator.transformation
-  )
 
   import sp.psl._
   serviceHandler ! RegisterService(
@@ -201,6 +203,22 @@ object SP extends App {
     PSLModel.transformation
   )
 
+  import sp.psl.runnerService._
+  val rs = system.actorOf(RunnerService.props(eventHandler, serviceHandler, "OperationControl"), "RunnerService")
+  serviceHandler ! RegisterService(
+    "RunnerService",
+    rs,
+    RunnerService.specification,
+    RunnerService.transformation
+  )
+
+//  serviceHandler ! RegisterService(
+//    "AutoTest",
+//    system.actorOf(AutoTest.props(eventHandler,rs), "AutoTest"),
+//    AutoTest.specification,
+//    AutoTest.transformation
+//  )
+
 
   serviceHandler ! RegisterService(
     "VariableOperationMapper",
@@ -209,7 +227,26 @@ object SP extends App {
     VariableOperationMapper.transformation
   )
 
+  serviceHandler ! RegisterService(
+    "operatorService",
+    system.actorOf(OperatorService.props(serviceHandler), "operatorService"),
+    OperatorService.specification,
+    OperatorService.transformation
+  )
 
+  serviceHandler ! RegisterService(
+    "OrderHandler",
+    system.actorOf(OrderHandler.props(serviceHandler, eventHandler), "OrderHandler"),
+    OrderHandler.specification,
+    OrderHandler.transformation
+  )
+
+  serviceHandler ! RegisterService(
+    "OperatorInstructions",
+    system.actorOf(OperatorInstructions.props(eventHandler), "OperatorInstructions"),
+    OperatorInstructions.specification,
+    OperatorInstructions.transformation
+  )  
 
   // launch REST API
   sp.server.LaunchGUI.launch

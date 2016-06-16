@@ -57,7 +57,7 @@
         }
 
         function get_pose_name(current_pose, poses) {
-            const eps = 0.1; // arbitrary
+            var eps = 0.1; // arbitrary
             var pose = _.find(poses, function(p) {
                 return pose_dist(current_pose, p.jointvalues) < eps && p.name !== 'HOME';
             });
