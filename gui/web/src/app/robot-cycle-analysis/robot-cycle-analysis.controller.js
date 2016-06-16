@@ -80,7 +80,7 @@
         }
 
         function addActivityOrCycleEvent(ev, rowId, taskId, name) {
-            let row = _.find(vm.liveChartData, function(aRow) { return aRow.id === rowId; });
+            var row = _.find(vm.liveChartData, function(aRow) { return aRow.id === rowId; });
 
             if (ev.isStart) {
                 row.tasks.push({
@@ -93,7 +93,7 @@
                     to: new Date()
                 });
             } else {
-                let activity = _.find(row.tasks, function(task) { return task.id === taskId; });
+                var activity = _.find(row.tasks, function(task) { return task.id === taskId; });
                 if (activity === undefined) {
                     row.tasks.push({
                         color: '#' + $filter('tocolor')(name),
@@ -112,19 +112,19 @@
             }
         }
 
-        function addCycleToHistoricalGantt(selectedCycle) {
+        function addCycvaroHistoricalGantt(selectedCycle) {
             if (_.some(vm.widget.storage.ganttData, function (row) {
                     return row.id === selectedCycle.id
                 })) {
                 logger.error("Cycle " + selectedCycle.id + " has already been added.");
             } else {
-                let ganttRows = cycleToGanttRows(selectedCycle);
+                var ganttRows = cycvaroGanttRows(selectedCycle);
                 vm.widget.storage.ganttData.push(...ganttRows);
                 logger.info("Cycle " + selectedCycle.id + " was added.");
             }
         }
 
-        function cycleToGanttRows(cycle) {
+        function cycvaroGanttRows(cycle) {
             var ganttData = [];
             var cycleRow = {
                 children: [],
@@ -144,8 +144,8 @@
                 type: "cycle"
             };
             _.forOwn(cycle.activities, function(activityTypes, robotId) {
-                let robotRowId = toRobotRowId(cycle.id, robotId);
-                let robot = getRobotById(robotId);
+                var robotRowId = toRobotRowId(cycle.id, robotId);
+                var robot = getRobotById(robotId);
                 cycleRow.children.push(robotRowId);
                 var robotRow = {
                     children: [],
@@ -154,7 +154,7 @@
                     type: "robot"
                 };
                 _.forOwn(activityTypes, function(activities, activityType) {
-                    let activityTypeRowId = toActivityRowId(cycle.id, robotId, activityType);
+                    var activityTypeRowId = toActivityRowId(cycle.id, robotId, activityType);
                     robotRow.children.push(activityTypeRowId);
                     var activityTypeRow = {
                         id: activityTypeRowId,
@@ -188,7 +188,7 @@
         }
 
         function onResponse(ev){
-            let attrs = angular.fromJson(ev.data).attributes;
+            var attrs = angular.fromJson(ev.data).attributes;
             if (_.has(attrs, 'activityId'))
                 if (vm.widget.storage.chosenWorkCell !== null &&
                     attrs.workCellId === vm.widget.storage.chosenWorkCell.id)
@@ -218,8 +218,8 @@
         }
 
         function removeOldLiveTasks() {
-            let rows = vm.liveChartData;
-            for (let row of rows) {
+            var rows = vm.liveChartData;
+            for (var row of rows) {
                _.remove(row.tasks, function (task) {
                    return !task.isRunning && task.to.isBefore !== undefined && task.to.isBefore(vm.liveFromDate);
                });
@@ -233,7 +233,7 @@
                 controllerAs: 'vm',
                 resolve: {
                     addCycle: function() {
-                        return addCycleToHistoricalGantt;
+                        return addCycvaroHistoricalGantt;
                     },
                     workCell: function() {
                         return vm.widget.storage.chosenWorkCell;
@@ -289,23 +289,23 @@
         function setupLiveChart() {
             vm.liveChartData.length = 0;
             updateLiveChartTimeInterval();
-            let cycleRow = {
+            var cycleRow = {
                 children: [],
                 id: "cycleRow",
                 name: "cycles",
                 tasks: [],
                 type: "cycle"
             };
-            for (let robot of vm.widget.storage.chosenWorkCell.robots) {
-                let robotRow = {
+            for (var robot of vm.widget.storage.chosenWorkCell.robots) {
+                var robotRow = {
                     children: [],
                     id: robot.id,
                     name: robot.name,
                     type: 'robot'
                 };
-                for (let activityType of activityTypes) {
-                    let activityTypeRowId = toLiveActivityRowId(robot.id, activityType);
-                    let activityTypeRow = {
+                for (var activityType of activityTypes) {
+                    var activityTypeRowId = toLiveActivityRowId(robot.id, activityType);
+                    var activityTypeRow = {
                         id: activityTypeRowId,
                         name: activityType,
                         tasks: [],
@@ -364,18 +364,18 @@
         }
 
         function updateLiveChartTimeInterval() {
-            let now = new Date();
+            var now = new Date();
             vm.liveFromDate = new Date(now.setSeconds(0) - (vm.widget.storage.liveChartWidth - 1) * 60000);
             vm.liveToDate = now.setSeconds(59);
         }
 
         function updateRunningActivities() {
-            let now = new Date();
-            let to = new Date();
+            var now = new Date();
+            var to = new Date();
             to.setSeconds(to.getSeconds() - 1);
-            for (let activityRow of vm.liveChartData) {
-                let runningActivities = _.filter(activityRow.tasks, { 'isRunning': true });
-                for (let runningActivity of runningActivities) {
+            for (var activityRow of vm.liveChartData) {
+                var runningActivities = _.filter(activityRow.tasks, { 'isRunning': true });
+                for (var runningActivity of runningActivities) {
                     runningActivity.duration = now - new Date(runningActivity.from);
                     runningActivity.to = now;
                 }
