@@ -42,7 +42,13 @@
                     <tbody ng-repeat="op in vm.operations | orderBy:'name' |  filter:vm.opsFilterQuery">
                         <tr>
                             <td>{{op.name}}</td>
-                            <td>{{op.state}}</td>
+                            <td><div ng-if="op.state=='executing'">
+                                    <u><a ng-click="vm.force_finish(op.item.id)" style="cursor:pointer;" uib-tooltip="click here to force finish event">{{op.state}}</a></u>
+                                </div>
+                                <div ng-if="op.state!='executing'">
+                                    {{op.state}}
+                                </div>
+                            </td>
                             <td><center><input type="checkbox" ng-model="op.item.attributes.autostart"/></center></td>
                         </tr>
                     </tbody>

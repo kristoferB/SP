@@ -26,7 +26,7 @@
         vm.get_item_name = get_item_name;
         vm.get_item_state = get_item_state;
         vm.opsFilterQuery = "";
-        vm.operations = "";
+        vm.operations = [];
         vm.varsFilterQuery = "";
         vm.devsFilterQuery = "";
         vm.variables = "";
@@ -34,6 +34,7 @@
         vm.manualOpsFilterQuery = "";
         vm.get_autostart = get_autostart;
         vm.set_autostart = set_autostart;
+        vm.force_finish = force_finish;
 
         // pose/state test
         vm.devices = [];
@@ -117,6 +118,13 @@
             if(!(_.isUndefined(event.isa)) && event.isa != "Response") return;
             console.log('operation finished ' + itemService.getItem(event.attributes.op).name);
             execute_op(vm.state, event.attributes.op);
+        }
+
+        function force_finish(opID) {
+            if(vm.state[opID] == "e") {
+                console.log('FORCE FINISHING OP: ' + opID);
+                execute_op(vm.state, opID);
+            }
         }
 
         function autostart() {
