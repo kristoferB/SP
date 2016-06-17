@@ -9,13 +9,13 @@
         </thead>
         <tbody>
             <tr>
-                <td colspan="2" ng-show="vm.availableWorkCells === null">The ABB robot service did not respond.</td>
+                <td colspan="2" ng-show="vm.workCells === null">The ABB robot service did not respond.</td>
                 <td colspan="2"
-                    ng-show="vm.availableWorkCells !== null && vm.availableWorkCells.length === 0">
+                    ng-show="vm.workCells !== null && vm.workCells.length === 0">
                     There are no work cells available.
                 </td>
             </tr>
-            <tr ng-repeat="workCell in vm.availableWorkCells" ng-click="vm.select(workCell)">
+            <tr ng-repeat="workCell in vm.workCells" ng-click="vm.select(workCell)">
                 <td>{{workCell.id}}</td><td>{{workCell.description}}
             </tr>
         </tbody>

@@ -26,7 +26,7 @@
 
         function activate() {
             enableWidgetDrag();
-            logger.info('Dashboard Controller: Activated Dashboard view.');
+            logger.log('Dashboard Controller: Activated Dashboard view.');
         }
 
         function enableWidgetDrag() {

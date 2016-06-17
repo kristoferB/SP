@@ -18,7 +18,7 @@
 
         function activate() {
             giveFeedbackOnDropTargets();
-            logger.success('Shell Controller: ' + config.appTitle + ' loaded!', null);
+            logger.log('Shell Controller: ' + config.appTitle + ' loaded!', null);
         }
 
         function giveFeedbackOnDropTargets() {

@@ -22,6 +22,10 @@ project/project
 *.iml
 *.iws
 
+# eclipse
+.metadata/
+.metadata
+
 # journal
 journal/
 snapshots/

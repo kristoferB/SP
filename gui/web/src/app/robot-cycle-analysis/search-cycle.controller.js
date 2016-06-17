@@ -5,11 +5,12 @@
         .module('app.robotCycleAnalysis')
         .controller('SearchCycleController', SearchCycleController);
 
-    SearchCycleController.$inject = ['$uibModalInstance', 'robotCycleAnalysisService', 'workCell', 'eventService', '$scope'];
+    SearchCycleController.$inject = ['$uibModalInstance', 'robotCycleAnalysisService', 'workCell', 'eventService', '$scope', 'addCycle'];
     /* @ngInject */
-    function SearchCycleController($uibModalInstance, robotCycleAnalysisService, workCell, eventService, $scope) {
+    function SearchCycleController($uibModalInstance, robotCycleAnalysisService, workCell, eventService, $scope, addCycle) {
         var vm = this;
-        
+
+        vm.addCycle = addCycle;
         vm.foundCycles = null;
         vm.search = search;
         vm.searchQuery = {
@@ -20,12 +21,11 @@
             },
             workCellId: workCell.id
         };
-        vm.select = select;
-
-        activate();
         
+        activate();
+
         function activate() {
-            eventService.addListener('Response', onResponse);
+            eventService.eventSource.addEventListener('Response', onResponse);
             $scope.$on('modal.closing', function() {
                 eventService.removeListener('Response', onResponse);
             })
@@ -45,19 +45,16 @@
         }
 
         function onResponse(ev) {
-            var attrs = ev.attributes;
-            if (_.has(attrs, 'robotCycleSearchResult') && attrs.robotCycleSearchResult.workCellId === workCell.id) {
-                vm.foundCycles = attrs.robotCycleSearchResult.foundCycles;
+            let attrs = angular.fromJson(ev.data).attributes;
+            if (_.has(attrs, 'foundCycles') && attrs.workCellId === workCell.id) {
+                vm.foundCycles = attrs.foundCycles;
+                $scope.$apply();
             }
         }
 
         function search() {
             vm.foundCycles = null;
             robotCycleAnalysisService.searchCycles(vm.searchQuery);
-        }
-
-        function select(selectedCycle) {
-            $uibModalInstance.close([selectedCycle]);
         }
 
     }

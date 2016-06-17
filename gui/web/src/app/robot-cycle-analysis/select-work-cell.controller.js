@@ -10,23 +10,23 @@
     function SelectWorkCellController($uibModalInstance, robotCycleAnalysisService, eventService, $scope) {
         var vm = this;
 
-        vm.availableWorkCells = null;
+        vm.workCells = null;
         vm.select = select;
 
         activate();
 
         function activate() {
-            eventService.addListener('Response', onResponse);
+            eventService.eventSource.addEventListener('Response', onResponse);
             $scope.$on('modal.closing', function() {
                 eventService.removeListener('Response', onResponse);
             });
-            robotCycleAnalysisService.requestAvailableWorkCells();
+            robotCycleAnalysisService.publishWorkCellListOpenedEvent();
         }
 
         function onResponse(ev) {
-            var attrs = ev.attributes;
-            if (_.has(attrs, 'availableWorkCells'))
-                vm.availableWorkCells = attrs.availableWorkCells;
+            let attrs = angular.fromJson(ev.data).attributes;
+            if (_.has(attrs, 'workCells'))
+                vm.workCells = attrs.workCells;
         }
 
         function select(selectedWorkCell) {

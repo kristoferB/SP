@@ -38,7 +38,7 @@
                 var data = angular.fromJson(e.data);
                 $rootScope.$apply(handlerFunc(data));
             });
-            logger.info('Event Service: Added an SSE listener for target ' + target + '.');
+            logger.log('Event Service: Added an SSE listener for target ' + target + '.');
         }
 
         function removeListener(eventType, listener) {

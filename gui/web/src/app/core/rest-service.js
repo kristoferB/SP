@@ -44,7 +44,7 @@
                 .catch(fail);
 
             function success(response) {
-                logger.info('REST Service: Successfully fetched ' + response.data.length + ' ' + itemKind + ' through REST.');
+                logger.log('REST Service: Successfully fetched ' + response.data.length + ' ' + itemKind + ' through REST.');
                 return response.data;
             }
 
@@ -68,7 +68,7 @@
                 .catch(fail);
 
             function success(response) {
-                logger.info('REST Service: Successfully posted data to ' + receiver + '.');
+                logger.log('REST Service: Successfully posted data to ' + receiver + '.');
                 return response.data;
             }
 
@@ -91,7 +91,7 @@
                 .catch(fail);
 
             function success(response) {
-                logger.info('REST Service: Successfully sent deletion/stop request for ' + itemKind + '.');
+                logger.log('REST Service: Successfully sent deletion/stop request for ' + itemKind + '.');
                 return response.data;
             }
 
