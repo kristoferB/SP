@@ -237,7 +237,7 @@ case object SOPLogic {
 
     val conds = makeConds(cond, otherCond)
 
-    println(s"conds: $cond")
+    //println(s"conds: $cond")
 
     sops map(updateSOP(_, conds))
   }
@@ -280,7 +280,7 @@ case object SOPLogic {
         id2 <- seqs
         rels <- relations.get(Set(id1, id2)) if rels == Sequence(id1, id2)
       } yield {
-        println(s"remove $id1")
+        //println(s"remove $id1")
         id1
       }
 
@@ -292,8 +292,8 @@ case object SOPLogic {
         id -> AND(filteredProps)
     }
 
-    println(s"temp: $temp" )
-    println(s"Filtered: $filteredMap" )
+    //println(s"temp: $temp" )
+    //println(s"Filtered: $filteredMap" )
 
     filteredMap
 
