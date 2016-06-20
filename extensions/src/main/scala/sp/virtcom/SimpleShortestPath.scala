@@ -57,55 +57,54 @@ class SimpleShortestPath extends Actor with ServiceSupport with DESModelingSuppo
   // finish all ops asap
   def dijkstra(things: List[Thing], ops: List[Operation]): SOP = {
     import de.ummels.prioritymap.PriorityMap
+    val opsmap = ops.map(o=>o.id -> o).toMap
     val opsvars = ops.map(o => o.id -> sp.domain.logic.OperationLogic.OperationState.inDomain).toMap
     val statevars = things.map(sv => sv.id -> sv.inDomain).toMap ++ opsvars
     implicit val props = EvaluateProp(statevars, Set(), ThreeStateDefinition)
     val initState = State(getIdleState(things.toSet).state ++ ops.map(_.id -> OperationState.init).toMap)
     val goalState = State(getIdleState(things.toSet).state ++ ops.map(_.id -> OperationState.finished).toMap)
-    val inf = Double.PositiveInfinity
-    case class Node(state: State, running: PriorityMap[Operation, Double] = PriorityMap()) {
-      override def equals(o: Any) = o match {
-        case rhs: Node => this.state == rhs.state
-        case _ => false
-      }
-      override def hashCode = state.hashCode
-    }
+    val inf = Long.MaxValue
+    case class Node(state: State, running: PriorityMap[ID, Long] = PriorityMap())
     val initNode = Node(initState)
     val goalNode = Node(goalState)
 
-    def filterOnPreconds(ops: List[Operation], state: State) = {
-      ops.filter(_.conditions.filter(_.attributes.getAs[String]("kind").getOrElse("") == "precondition").headOption
+    def canStartOps(state: State) = {
+      val initOps = ops.filter(o=>state(o.id)==OperationState.init)
+      initOps.filter(_.conditions.filter(_.attributes.getAs[String]("kind").getOrElse("") == "precondition").headOption
         match {
         case Some(cond) => cond.eval(state)
         case None => true
       })
     }
 
+    def getDur(o: Operation): Long = (o.attributes.getAs[Double]("duration").getOrElse(0.0) * 100.0).round
+
     // adapted from Michael Ummels
-    def go(active: PriorityMap[Node,Double], res: Map[Node, Double], pred: Map[Node, Node]):
-        (Map[Node, Double], Map[Node, Node]) =
+    def search(active: PriorityMap[Node,Long], res: Map[Node, Long], pred: Map[Node, Node]):
+        (Map[Node, Long], Map[Node, Node]) =
       if (active.isEmpty) (res, pred)
       else if(active.head._1 == goalNode) (res + active.head, pred) // only care about the goal...
       else {
         val (node,t) = active.head
-        if(res.size % 1000 == 0) {
+
+        if(res.size > 0 && res.size % 1000 == 0) {
           println("------------------------------------------------------------------------------")
           println("Searched " + res.size + " nodes, " + active.size + " open nodes, at time: " + t)
         }
-        val start = filterOnPreconds(ops, node.state).map(o => {
-          (Node(o.next(node.state), node.running + (o -> (t + o.attributes.getAs[Double]("duration").getOrElse(0.0)))),t)
+        val start = canStartOps(node.state).map(o => {
+          (Node(o.next(node.state), node.running + (o.id -> (t + getDur(o)))),t)
         })
         val finish = if(node.running.nonEmpty) {
-          val (op,deadline) = node.running.head
-          List((Node(op.next(node.state), node.running - op),deadline))
+          val (opid,deadline) = node.running.head
+          List((Node(opsmap(opid).next(node.state), node.running - opid),deadline))
         } else List()
 
         val betterNeighbors = (start++finish).filter{case (n,nt) => !res.contains(n) && nt < active.getOrElse(n, inf)}
-        go(active.tail ++ betterNeighbors, res + (node -> t), pred ++ betterNeighbors.map(_._1->node))
+        search(active.tail ++ betterNeighbors, res + (node -> t), pred ++ betterNeighbors.map(_._1->node))
       }
 
     val t0 = System.nanoTime()
-    val (res,pred) = go(PriorityMap(initNode -> 0.0), Map(), Map())
+    val (res,pred) = search(PriorityMap(initNode -> 0), Map(), Map())
     val t1 = System.nanoTime()
 
     def findPath(curNode: Node, pred: Map[Node,Node], acum: List[Node]): List[Node] = {
@@ -118,14 +117,14 @@ class SimpleShortestPath extends Actor with ServiceSupport with DESModelingSuppo
     }
     val path = findPath(goalNode, pred, List())
 
-    def getTimes(path: List[Node], olr: Set[Operation]=Set(), start: Map[ID, Double]=Map(),finish: Map[ID, Double]=Map()):
-        (Map[ID, Double],Map[ID, Double]) = {
+    def getTimes(path: List[Node], olr: Set[ID]=Set(), start: Map[ID, Long]=Map(),finish: Map[ID, Long]=Map()):
+        (Map[ID, Long],Map[ID, Long]) = {
       path match {
         case x::xs =>
           val nr = x.running.map(_._1).toSet
           val s = nr.diff(olr)
           val f = olr.diff(nr)
-          getTimes(xs,nr,start ++ s.map(_.id -> res(x)).toMap,finish ++ f.map(_.id -> res(x)).toMap)
+          getTimes(xs,nr,start ++ s.map(_ -> res(x)).toMap,finish ++ f.map(_ -> res(x)).toMap)
         case Nil => (start,finish)
       }
     }
@@ -133,8 +132,9 @@ class SimpleShortestPath extends Actor with ServiceSupport with DESModelingSuppo
 
     // sanity check
     ops.foreach { op =>
-      val dur = op.attributes.getAs[Double]("duration").getOrElse(0.0)
-      assert(Math.abs(finish(op.id) - start(op.id) - dur) < 0.000001)
+      val dur = getDur(op)
+      // println(op.name + ": " + start(op.id) + " - " + dur + " --> " + finish(op.id))
+      assert(finish(op.id) - start(op.id) - dur == 0)
     }
 
     def rel(op1: ID,op2: ID): SOP = {
