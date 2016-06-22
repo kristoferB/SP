@@ -47,11 +47,11 @@ trait MakeASop {
   def cleanSop(sop: SOP): SOP = {
     sop match {
       case EmptySOP => EmptySOP
-      case x: Parallel if x.sop.size == 1 =>
-        x.sop.head match {
-          case y: Parallel => cleanSop(x.modify(y.sop))
-          case _ => sop.modify(sop.sop.map(cleanSop))
-        }
+      case x if x.sop.size == 1 =>
+        cleanSop(x.modify(x.sop.head.sop))
+      case x: Other => // hack for demo!! TODO: fix root cause
+        val ns = Parallel(x.sop:_*)
+        ns.modify(ns.sop.map(cleanSop))
       case _ => sop.modify(sop.sop.map(cleanSop))
     }
   }

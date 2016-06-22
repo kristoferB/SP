@@ -18,15 +18,21 @@ import scala.util.{Success, Failure}
 import org.json4s._
 import scala.annotation.tailrec
 
+case class Parameters(waitAllowed: Boolean, longest: Boolean)
+
 object SimpleShortestPath extends SPService {
   val specification = SPAttributes(
     "service" -> SPAttributes(
       "group" -> "External",
       "description" -> "Complete all operations asap. (Variables need to end up at initial state after the ops are completed)"
+    ),
+    "parameters" -> SPAttributes(
+      "waitAllowed" -> KeyDefinition("Boolean", List(), Some(true)),
+      "longest" -> KeyDefinition("Boolean", List(), Some(false))
     )
   )
-  val transformTuple = ()
-  val transformation = List()
+  val transformTuple = (TransformValue("parameters", _.getAs[Parameters]("parameters")))
+  val transformation = transformToList(transformTuple.productIterator.toList)
   def props() = ServiceLauncher.props(Props(classOf[SimpleShortestPath]))
 }
 
@@ -43,10 +49,12 @@ class SimpleShortestPath extends Actor with ServiceSupport with DESModelingSuppo
       progress ! SPAttributes("progress" -> "starting search")
 
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
+      val params = transform(SimpleShortestPath.transformTuple)
       val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
       val things = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing])
 
-      val rl = List(SOPSpec("Result", List(dijkstra(things,ops))))
+      val resultName = "Result_" + (if(params.longest) "long" else "short") + "_" + (if(params.waitAllowed) "wait" else "noWait")
+      val rl = List(SOPSpec(resultName, List(dijkstra(things,ops,params.waitAllowed,params.longest))))
       replyTo ! Response(rl, SPAttributes(), rnr.req.service, rnr.req.reqID)
       self ! PoisonPill
       progress ! PoisonPill
@@ -55,7 +63,7 @@ class SimpleShortestPath extends Actor with ServiceSupport with DESModelingSuppo
   }
 
   // finish all ops asap
-  def dijkstra(things: List[Thing], ops: List[Operation]): SOP = {
+  def dijkstra(things: List[Thing], ops: List[Operation], waitAllowed: Boolean = true, longest: Boolean = false): SOP = {
     import de.ummels.prioritymap.PriorityMap
     val opsmap = ops.map(o=>o.id -> o).toMap
     val opsvars = ops.map(o => o.id -> sp.domain.logic.OperationLogic.OperationState.inDomain).toMap
@@ -77,7 +85,9 @@ class SimpleShortestPath extends Actor with ServiceSupport with DESModelingSuppo
       })
     }
 
-    def getDur(o: Operation): Long = (o.attributes.getAs[Double]("duration").getOrElse(0.0) * 100.0).round
+    def getDur(o: Operation): Long =
+      if(longest) 1000000 - (o.attributes.getAs[Double]("duration").getOrElse(0.0) * 100.0).round
+      else (o.attributes.getAs[Double]("duration").getOrElse(0.0) * 100.0).round
 
     // adapted from Michael Ummels
     def search(active: PriorityMap[Node,Long], res: Map[Node, Long], pred: Map[Node, Node]):
@@ -99,7 +109,8 @@ class SimpleShortestPath extends Actor with ServiceSupport with DESModelingSuppo
           List((Node(opsmap(opid).next(node.state), node.running - opid),deadline))
         } else List()
 
-        val betterNeighbors = (start++finish).filter{case (n,nt) => !res.contains(n) && nt < active.getOrElse(n, inf)}
+        val potential = if(waitAllowed) start ++ finish else if(start.isEmpty) finish else start
+        val betterNeighbors = potential.filter{case (n,nt) => !res.contains(n) && nt < active.getOrElse(n, inf)}
         search(active.tail ++ betterNeighbors, res + (node -> t), pred ++ betterNeighbors.map(_._1->node))
       }
 
