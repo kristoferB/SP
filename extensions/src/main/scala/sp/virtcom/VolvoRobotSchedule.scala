@@ -162,8 +162,37 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
       import CollectorModelImplicits._
       val uids = collector.parseToIDables()
       val hids = uids ++ addHierarchies(uids, "hierarchy")
-      replyTo ! Response(hids, SPAttributes(), rnr.req.service, rnr.req.reqID)
-      terminate(progress)
+
+      // now, extend model and run synthesis
+      for {
+        Response(ids,_,_,_) <- askAService(Request("ExtendIDablesBasedOnAttributes",
+          SPAttributes("core" -> ServiceHandlerAttributes(model = None,
+            responseToModel = false,onlyResponse = true, includeIDAbles = List())),
+          hids, ID.newID), sh)
+
+        ids_merged = hids.filter(x=> !ids.exists(y=>y.id==x.id)) ++ ids
+
+        Response(ids2,_,_,_) <- askAService(Request("SynthesizeModelBasedOnAttributes",
+          SPAttributes("core" -> ServiceHandlerAttributes(model = None,
+            responseToModel = false, onlyResponse = true, includeIDAbles = List())),
+          ids_merged, ID.newID), sh)
+
+        ids_merged2 = ids_merged.filter(x=> !ids2.exists(y=>y.id==x.id)) ++ ids2
+
+        Response(shortest,_,_,_) <- askAService(Request("SimpleShortestPath",
+          SPAttributes("core" -> ServiceHandlerAttributes(model = None,
+            responseToModel = false,onlyResponse = true, includeIDAbles = List()),
+            "parameters" -> SPAttributes("waitAllowed" -> true, "longest" -> false)),
+          ids_merged2, ID.newID), sh)
+        Response(longest,_,_,_) <- askAService(Request("SimpleShortestPath",
+          SPAttributes("core" -> ServiceHandlerAttributes(model = None,
+            responseToModel = false,onlyResponse = true, includeIDAbles = List()),
+            "parameters" -> SPAttributes("waitAllowed" -> false, "longest" -> true)),
+          ids_merged2, ID.newID), sh)        
+      } yield {
+        replyTo ! Response(ids_merged2 ++ shortest ++ longest, SPAttributes(), rnr.req.service, rnr.req.reqID)
+        terminate(progress)
+      }
     }
     case _ => sender ! SPError("Ill formed request");
   }

@@ -1,0 +1,37 @@
+<div ng-controller="volvoRobotSchedulingController as vm" class="simple-widget">
+    <div class="panel-content" style="padding: 10px;">
+        <table>
+            <thead>
+                <tr><td><h5>
+                            <div ng-if="vm.selectedSchedules.length == 0">
+                                Please select robot schedules
+                            </div>
+                            <div ng-if="vm.selectedSchedules.length > 0">
+                                Press calculate when done selecting
+                            </div>
+                </h5></td></tr>
+            </thead>
+            <tbody ng-repeat="s in vm.selectedSchedules | orderBy:'name'">
+                <tr>
+                    <td style="padding: 5px">
+                        <button type="button" class="btn btn-sm btn-primary" ng-click="vm.removeSchedule(s)">
+                            <i class="fa fa-close"></i> {{s.name}} 
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <br><br>
+        <button class="btn" ng-click="vm.calculate()">
+            <i class="fa fa-bolt"></i> Calculate using Supremica
+        </button>
+        <div ng-if="vm.state == 'calculating'">
+            Running calculations...
+        </div>
+        <div ng-if="vm.state == 'done'">
+            Calculations done!
+        </div>
+        
+    </div>
+</div>

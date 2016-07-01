@@ -38,7 +38,8 @@
                 {sizeX: 4, sizeY: 4, title: 'operatorInstGUI', template: 'app/operatorInstGUI/operatorInstGUI.html'},
                 {sizeX: 4, sizeY: 4, title: 'ResetGUI', template: 'app/Tobbe2/Tobbe2.html'},
                 {sizeX: 4, sizeY: 4, title: 'Active Order', template: 'app/active-order/active-order.html'},
-                {sizeX: 4, sizeY: 4, title: 'Robot Cycle Analysis', template: 'app/robot-cycle-analysis/robot-cycle-analysis.html'}
+                {sizeX: 4, sizeY: 4, title: 'Robot Cycle Analysis', template: 'app/robot-cycle-analysis/robot-cycle-analysis.html'},
+                {sizeX: 4, sizeY: 4, title: 'Volvo Robot Scheduling Tool', template: 'app/volvo-robot-scheduling/volvo-robot-scheduling.html'}
             ]
         };
 
