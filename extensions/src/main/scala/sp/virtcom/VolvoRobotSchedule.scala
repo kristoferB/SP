@@ -172,25 +172,30 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
 
         ids_merged = hids.filter(x=> !ids.exists(y=>y.id==x.id)) ++ ids
 
-        Response(ids2,_,_,_) <- askAService(Request("SynthesizeModelBasedOnAttributes",
+        Response(ids2,synthAttr,_,_) <- askAService(Request("SynthesizeModelBasedOnAttributes",
           SPAttributes("core" -> ServiceHandlerAttributes(model = None,
             responseToModel = false, onlyResponse = true, includeIDAbles = List())),
           ids_merged, ID.newID), sh)
 
+        numstates = synthAttr.getAs[Int]("nbrOfStatesInSupervisor").getOrElse("-1")
+
         ids_merged2 = ids_merged.filter(x=> !ids2.exists(y=>y.id==x.id)) ++ ids2
 
-        Response(shortest,_,_,_) <- askAService(Request("SimpleShortestPath",
+        Response(shortest,shortAttr,_,_) <- askAService(Request("SimpleShortestPath",
           SPAttributes("core" -> ServiceHandlerAttributes(model = None,
             responseToModel = false,onlyResponse = true, includeIDAbles = List()),
             "parameters" -> SPAttributes("waitAllowed" -> true, "longest" -> false)),
           ids_merged2, ID.newID), sh)
+        mintime = shortAttr.getAs[Double]("time").getOrElse(Double.PositiveInfinity)
         Response(longest,_,_,_) <- askAService(Request("SimpleShortestPath",
           SPAttributes("core" -> ServiceHandlerAttributes(model = None,
             responseToModel = false,onlyResponse = true, includeIDAbles = List()),
             "parameters" -> SPAttributes("waitAllowed" -> false, "longest" -> true)),
-          ids_merged2, ID.newID), sh)        
+          ids_merged2, ID.newID), sh)
       } yield {
-        replyTo ! Response(ids_merged2 ++ shortest ++ longest, SPAttributes(), rnr.req.service, rnr.req.reqID)
+        val resAttr = SPAttributes("numStates"-> numstates, "minTime" -> mintime,
+          "shortSOP" -> shortest.head.id, "longSOP" -> longest.head.id)
+        replyTo ! Response(ids_merged2 ++ shortest ++ longest, resAttr, rnr.req.service, rnr.req.reqID)
         terminate(progress)
       }
     }

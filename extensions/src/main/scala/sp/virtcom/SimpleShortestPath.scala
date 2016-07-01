@@ -54,8 +54,9 @@ class SimpleShortestPath extends Actor with ServiceSupport with DESModelingSuppo
       val things = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing])
 
       val resultName = "Result_" + (if(params.longest) "long" else "short") + "_" + (if(params.waitAllowed) "wait" else "noWait")
-      val rl = List(SOPSpec(resultName, List(dijkstra(things,ops,params.waitAllowed,params.longest))))
-      replyTo ! Response(rl, SPAttributes(), rnr.req.service, rnr.req.reqID)
+      val (sop,time) = dijkstra(things,ops,params.waitAllowed,params.longest)
+      val rl = List(SOPSpec(resultName, List(sop)))
+      replyTo ! Response(rl, SPAttributes("time"->time), rnr.req.service, rnr.req.reqID)
       self ! PoisonPill
       progress ! PoisonPill
     }
@@ -63,7 +64,7 @@ class SimpleShortestPath extends Actor with ServiceSupport with DESModelingSuppo
   }
 
   // finish all ops asap
-  def dijkstra(things: List[Thing], ops: List[Operation], waitAllowed: Boolean = true, longest: Boolean = false): SOP = {
+  def dijkstra(things: List[Thing], ops: List[Operation], waitAllowed: Boolean = true, longest: Boolean = false): (SOP, Double) = {
     import de.ummels.prioritymap.PriorityMap
     val opsmap = ops.map(o=>o.id -> o).toMap
     val opsvars = ops.map(o => o.id -> sp.domain.logic.OperationLogic.OperationState.inDomain).toMap
@@ -167,6 +168,6 @@ class SimpleShortestPath extends Actor with ServiceSupport with DESModelingSuppo
 
     println("Goal state at t="+res(goalNode)+" found after " + (t1 - t0)/1E9 + "s and " + res.size + " searched nodes.")
      
-    sop.head
+    (sop.head, res(goalNode)/100.0)
   }
 }
