@@ -323,6 +323,13 @@
         function stopLiveWatch() {
             if (vm.widget.storage.chosenWorkCell !== null)
                 robotCycleAnalysisService.stopLiveWatch(vm.widget.storage.chosenWorkCell.id);
+            for (var row of vm.liveChartData) {
+                if (row.tasks !== undefined) {
+                    for (var task of row.tasks) {
+                        task.isRunning = false;
+                    }
+                }
+            }
             vm.widget.storage.showLiveChart = false;
         }
 
