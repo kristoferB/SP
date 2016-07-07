@@ -5,9 +5,9 @@
         .module('app.dashboard')
         .factory('dashboardService', dashboardService);
 
-    dashboardService.$inject = ['$sessionStorage', 'logger'];
+    dashboardService.$inject = ['$sessionStorage', 'logger', '$ocLazyLoad'];
     /* @ngInject */
-    function dashboardService($sessionStorage, logger) {
+    function dashboardService($sessionStorage, logger, $ocLazyLoad) {
         var service = {
             addDashboard: addDashboard,
             getDashboard: getDashboard,
@@ -84,6 +84,10 @@
             dashboard.widgets.push(widget);
             logger.log('Dashboard Controller: Added a ' + widget.title + ' widget with index '
                 + widget.id + ' to dashboard ' + dashboard.name + '.');
+            
+            console.log('******************');
+            console.log($ocLazyLoad);
+            $ocLazyLoad.load('EEEEEEEdsDUMMieFil3.js');
         }
 
         function getWidget(id) {
