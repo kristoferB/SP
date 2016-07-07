@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html ng-app="app" ng-controller="ShellController as vm">
 <head>
     <style>
@@ -30,8 +31,7 @@
     <!-- endbower -->
     <!-- endbuild -->
 
-    <link rel="stylesheet" ng-href="/.tmp/{{vm.settingsService.storage.theme || 'default'}}_theme.css" />
-
+    <link href="styles.less" type="text/plain" rel="stylesheet/less"/>
     <!-- build:css styles/app.css -->
     <!-- inject:css -->
 
@@ -39,11 +39,14 @@
     <!-- endbuild -->
 </head>
 <body>
+   
+  
     <div ng-include="'app/layout/shell.html'"></div>
-
+  
     <!-- build:js js/lib.js -->
     <!-- bower:js -->
     <script src="../bower_components/jquery/dist/jquery.js"></script>
+    <script src="../bower_components/less/dist/less.js"></script>
     <script src="../bower_components/angular/angular.js"></script>
     <script src="../bower_components/angular-animate/angular-animate.js"></script>
     <script src="../bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>

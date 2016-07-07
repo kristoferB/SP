@@ -2,7 +2,9 @@ package sp.server
 
 import akka.actor._
 import sp.system.SPActorSystem._
+import spray.http.MediaType
 import spray.routing._
+import spray.http.MediaTypes._
 
 /**
  * Created by Kristofer on 2014-06-19.
@@ -29,5 +31,4 @@ class SPWebServer extends Actor with SPRoute {
     getFromDirectory(srcFolder) ~
     getFromFile(srcFolder + "/index.html")
   }
-
 }

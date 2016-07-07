@@ -5,21 +5,25 @@
         .module('app.dashboard')
         .controller('DashboardController', DashboardController);
 
-    DashboardController.$inject = ['logger', '$state', '$timeout', 'dashboardService', '$rootScope'];
+    DashboardController.$inject = ['logger', '$state', '$timeout', 'dashboardService', '$rootScope', 'settingsService'];
     /* @ngInject */
-    function DashboardController(logger, $state, $timeout, dashboardService, $rootScope) {
+    function DashboardController(logger, $state, $timeout, dashboardService, $rootScope, settingsService) {
         var vm = this;
         vm.dashboard = dashboardService.getDashboard(1);
         vm.title = $state.current.title;
+       
         vm.gridsterOptions = {
             outerMargin: false,
             columns: 12,
             swapping: true,
+            margins: [settingsService.getLayoutTheme().gridster_panel_margin,
+                      settingsService.getLayoutTheme().gridster_panel_margin],
             draggable: {
                 enabled: false,
                 handle: '.panel-heading'
             }
         };
+
         vm.dashboardService = dashboardService;
 
         activate();

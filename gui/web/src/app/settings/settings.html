@@ -6,17 +6,31 @@
                     <table>
                         <tbody>
                             <tr>
-                                <td>Theme</td>
+                                <td>Color theme</td>
                                 <td>
-                                    <select class="form-control input-sm" ng-model="vm.settingsService.storage.theme"
-                                            ng-options="theme for theme in vm.themes"></select>
+                                    <select class="form-control input-sm" ng-model="vm.settingsService.storage.current_color_theme"
+                                            ng-options="color_theme for color_theme in vm.settingsService.color_themes"></select>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+                <div class="settings-table-container">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>Layout theme</td>
+                                <td>
+                                    <select class="form-control input-sm" ng-model="vm.settingsService.storage.current_layout_theme"
+                                            ng-options="theme for theme in vm.settingsService.layout_themes"></select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                <button ng-click="vm.settingsService.theme_refreshed()">
+                    Refresh
+                </button>
             </form>
         </sp-widget>
-
     </div>
 </section>
