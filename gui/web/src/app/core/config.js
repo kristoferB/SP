@@ -33,5 +33,18 @@
         dialogsProvider.setSize('md');
         dialogsProvider.useFontAwesome();
     }
+    
+    core.config(function($ocLazyLoadProvider) {
+        $ocLazyLoadProvider.config({
+            //debug: true,
+            //events: true,
+            modules: [{
+                name: 'gridModule',
+                files: [
+                    'js/gridModule.js'
+                ]
+            }]
+        });
+    });
 
 })();
