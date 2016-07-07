@@ -38,6 +38,7 @@ module.exports = function() {
         js: [
             clientApp + '**/*.module.js',
             clientApp + '**/*.js',
+            '!' + clientApp + 'lazy-widgets/**',
             '!' + specs,
             '!' + e2eSpecs
         ],

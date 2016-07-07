@@ -24,7 +24,7 @@
                 widgetID: 1,
                 dashboardID: 2
             }),
-            widgetKinds: [
+            widgetKinds: [/*
                 {sizeX: 4, sizeY: 4, title: 'Item Explorer', template: 'app/item-explorer/item-explorer.html'},
                 {sizeX: 4, sizeY: 4, title: 'Item Editor', template: 'app/item-editor/item-editor.html'},
                 {sizeX: 6, sizeY: 4, title: 'Condition Editor', template: 'app/condition-editor/condition-editor.html'},
@@ -33,13 +33,16 @@
                 {sizeX: 6, sizeY: 4, title: 'Trajectories', template: 'app/trajectories/trajectories.html'},
                 {sizeX: 6, sizeY: 4, title: 'OPC Runner', template: 'app/opc-runner/opc-runner.html'},
                 {sizeX: 4, sizeY: 4, title: 'Process Simulate', template: 'app/process-simulate/process-simulate.html'},
-                {sizeX: 4, sizeY: 4, title: 'Operation Control', template: 'app/operation-control/operation-control.html'},
-                {sizeX: 4, sizeY: 4, title: 'kubInputGUI', template: 'app/kubInputGUI/kubInputGUI.html'},
+                {sizeX: 4, sizeY: 4, title: 'Operation Control', template: 'app/operation-control/operation-control.html'},*/
+                {sizeX: 4, sizeY: 4, title: 'kubInputGUI',
+                template: 'app/lazy-widgets/kubInputGUI/kubInputGUI.html',
+                jsfiles: ['app/lazy-widgets/kubInputGUI/kubInputGUI.module.js',
+                        'app/lazy-widgets/kubInputGUI/kubInputGUI.controller.js']}/*
                 {sizeX: 4, sizeY: 4, title: 'operatorInstGUI', template: 'app/operatorInstGUI/operatorInstGUI.html'},
                 {sizeX: 4, sizeY: 4, title: 'ResetGUI', template: 'app/Tobbe2/Tobbe2.html'},
                 {sizeX: 4, sizeY: 4, title: 'Active Order', template: 'app/active-order/active-order.html'},
                 {sizeX: 4, sizeY: 4, title: 'Eds Widget', template: 'app/EdsWidget/EdsWidget.html'},
-                {sizeX: 4, sizeY: 4, title: 'Robot Cycle Analysis', template: 'app/robot-cycle-analysis/robot-cycle-analysis.html'}
+                {sizeX: 4, sizeY: 4, title: 'Robot Cycle Analysis', template: 'app/robot-cycle-analysis/robot-cycle-analysis.html'}*/
             ]
         };
 
@@ -76,18 +79,16 @@
         }
 
         function addWidget(dashboard, widgetKind, additionalData) {
-            var widget = angular.copy(widgetKind, {});
-            widget.id = service.storage.widgetID++;
-            if (additionalData !== undefined) {
-                widget.storage = additionalData;
-            }
-            dashboard.widgets.push(widget);
-            logger.log('Dashboard Controller: Added a ' + widget.title + ' widget with index '
-                + widget.id + ' to dashboard ' + dashboard.name + '.');
-            
-            console.log('******************');
-            console.log($ocLazyLoad);
-            $ocLazyLoad.load('EEEEEEEdsDUMMieFil3.js');
+            $ocLazyLoad.load(widgetKind.jsfiles).then(function() {
+                var widget = angular.copy(widgetKind, {});
+                widget.id = service.storage.widgetID++;
+                if (additionalData !== undefined) {
+                    widget.storage = additionalData;
+                }
+                dashboard.widgets.push(widget);
+                logger.log('Dashboard Controller: Added a ' + widget.title + ' widget with index '
+                    + widget.id + ' to dashboard ' + dashboard.name + '.');
+            });
         }
 
         function getWidget(id) {

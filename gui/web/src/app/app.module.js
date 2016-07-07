@@ -19,7 +19,7 @@
         'app.processSimulate',
         'app.conditionEditor',
         'app.operationControl',
-        'app.kubInputGUI',
+        //'app.kubInputGUI',
         'app.operatorInstGUI',
         'app.robotCycleAnalysis',
         'app.activeOrder',
