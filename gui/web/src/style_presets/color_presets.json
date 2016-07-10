@@ -69,7 +69,7 @@
 
 	"dark": {
 		"body_color": "#140253",
-		"body_background": "#darkgray",
+		"body_background": "#222222",
 		"header_color": "#140253",
 
 		"jstree_color": "gray",
@@ -86,7 +86,7 @@
 		"dialog_header_confirm_span_color": "#777",
 
 		"gridster_panel_background": "#888888",
-		"gridster_content_background": "black",
+		"gridster_content_background": "#333333",
 		"gridster_panel_heading_background": "#cccccc",
 
 		"button_default_color": "#58666e",

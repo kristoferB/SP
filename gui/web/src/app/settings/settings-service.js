@@ -8,9 +8,9 @@
     settingsService.$inject = ['$localStorage', '$http'];
     /* @ngInject */
     function settingsService($localStorage, $http) {
-        $localStorage.$reset();
+        //For debugging: clears localstorage
+        //$localStorage.$reset();
         
-
         var service = {
             storage: $localStorage.$default({
                 saved_color_themes: {default_white: {}},
@@ -31,6 +31,7 @@
                 saved_layout_themes: ['standard']
             }, 
             
+            showHeaders: true,
             theme_refreshed: theme_refreshed,
             getLayoutTheme: getLayoutTheme,
             getColorTheme: getColorTheme
