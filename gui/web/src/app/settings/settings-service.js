@@ -23,8 +23,8 @@
                 current_color_theme: 'default_white',
                 current_layout_theme: 'standard',
 
-                gridlock: false,
-                navbar_shown: true,
+                gridlock: false
+                
             }),
             availible_options: {
                 saved_color_themes: ['default_white'],
@@ -32,9 +32,11 @@
             }, 
             
             showHeaders: true,
+            showNavbar: true,
             theme_refreshed: theme_refreshed,
             getLayoutTheme: getLayoutTheme,
-            getColorTheme: getColorTheme
+            getColorTheme: getColorTheme,
+            toggleNavbar: toggleNavbar
         };
 
         activate();
@@ -46,12 +48,24 @@
             theme_refreshed();
         }
         function theme_refreshed(){
+            //merge config variables into the .less file
             less.modifyVars(
                 Object.assign(
                     getColorTheme(),
-                    getLayoutTheme()
+                    getLayoutTheme(),
+                    {showNavbar:service.showNavbar}
                 )
             );
+        }
+
+        function toggleNavbar(){
+            service.showNavbar = !service.showNavbar;
+            theme_refreshed();
+        }
+
+        function toggleHeaders(){
+            service.showHeaders = !service.showHeaders;
+            theme_refreshed();
         }
 
         function getColorTheme(){
@@ -81,6 +95,8 @@
                 }
             );
         }
+
+
     }
 })();
 

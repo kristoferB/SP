@@ -27,9 +27,13 @@
                             </tr>
                         </tbody>
                     </table>
-                <button ng-click="vm.settingsService.theme_refreshed()">
-                    Refresh
-                </button>
+                    <label>Enable headers
+                        <input type="checkbox" ng-model="vm.settingsService.showHeaders">
+                    </label>
+                    <button ng-click="vm.settingsService.theme_refreshed()">
+                        Save options
+                    </button>
+                </div>
             </form>
         </sp-widget>
     </div>

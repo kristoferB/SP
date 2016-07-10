@@ -68,9 +68,9 @@
 	},
 
 	"dark": {
-		"body_color": "#140253",
+		"body_color": "#ffffff",
 		"body_background": "#222222",
-		"header_color": "#140253",
+		"header_color": "#000000",
 
 		"jstree_color": "gray",
 		"jstree_background": "black",

@@ -92,6 +92,9 @@
 @pagination_color_hover: #333;
 @pagination_background_hover: #fafafa;
 
+@showHeader: true;
+@showNavbar: true;
+
 * {
     font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -145,14 +148,24 @@
 }
 
 /* end of Helper classes */
-
 body {
-    font-size: 14px;
-    line-height: 1.42857143em;
-    color: @body_color;
-    background: @body_background;
-    padding-top: 50px;
-    -webkit-font-smoothing: antialiased;
+    & when (@showNavbar){
+        font-size: 14px;
+        line-height: 1.42857143em;
+        color: @body_color;
+        background: @body_background;
+        padding-top: 50px;
+        -webkit-font-smoothing: antialiased;   
+    }
+    & when (@showNavbar = false){
+        font-size: 14px;
+        line-height: 1.42857143em;
+        color: @body_color;
+        background: @body_background;
+        padding-top: 0px;
+        -webkit-font-smoothing: antialiased;   
+    }
+
 }
 
 body .container {
@@ -264,21 +277,24 @@ a {
         border: none;
         width: 12px;
         height: 12px;
+
     }
     
     .panel {
+
         display: flex;
         flex-direction: column;
         height: 100%;
         border-radius: @gridster_panel_border_radius + 1;
 
         .panel-heading {
+
             padding-top:@gridster_header_padding;
             padding-bottom:@gridster_header_padding;
             background-color: @gridster_panel_heading_background;
             border-top-left-radius: @gridster_panel_border_radius;
             border-top-right-radius: @gridster_panel_border_radius;
-            
+
 
             flex: 0 0 auto;
 
@@ -286,6 +302,7 @@ a {
                 transition-delay: 50ms;
                 opacity: 1;
                 visibility: visible;
+
             }
 
             .widget-close-btn {
@@ -294,10 +311,12 @@ a {
                 line-height: 20px;
                 opacity: 0;
                 visibility: hidden;
+
             }
         }
     
         .panel-body {
+
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -308,6 +327,7 @@ a {
 
 
             [ng-controller] {
+
                 flex: 1;
                 display: flex;
                 flex-direction: column;
@@ -352,6 +372,7 @@ a {
         }
 
         .panel-footer {
+             color: #222222;
             border: none;
         }
     }
