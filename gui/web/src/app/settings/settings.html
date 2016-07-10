@@ -9,7 +9,7 @@
                                 <td>Color theme</td>
                                 <td>
                                     <select class="form-control input-sm" ng-model="vm.settingsService.storage.current_color_theme"
-                                            ng-options="color_theme for color_theme in vm.settingsService.color_themes"></select>
+                                            ng-options="color_theme for color_theme in vm.settingsService.availible_options.saved_color_themes"></select>
                                 </td>
                             </tr>
                         </tbody>
@@ -22,7 +22,7 @@
                                 <td>Layout theme</td>
                                 <td>
                                     <select class="form-control input-sm" ng-model="vm.settingsService.storage.current_layout_theme"
-                                            ng-options="theme for theme in vm.settingsService.layout_themes"></select>
+                                            ng-options="theme for theme in vm.settingsService.availible_options.saved_layout_themes"></select>
                                 </td>
                             </tr>
                         </tbody>

@@ -11,8 +11,6 @@
         var vm = this;
         vm.title = $state.current.title;
         vm.widget = {title: "Appearance"};
-        vm.themes = settingsService.themes;
-        vm.layouts = settingsService.layouts;
         vm.settingsService = settingsService;
         
         activate();
