@@ -11,7 +11,6 @@
 		"view_header_color": "#58666e",
 		"view_header_background": "#f6f8f8",
 
-
 		"a_color": "#3332",
 		"a_hover_color": "#888",
 
@@ -127,7 +126,6 @@
 		"navbar_header_background": "#de691c",
 		"navbar_brand_title_color": "#fff",
 
-	
 		"pagination_color": "#666",
 		"pagination_background": "#fff",
 		"pagination_color_hover": "#333",

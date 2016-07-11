@@ -53,7 +53,8 @@
                 Object.assign(
                     getColorTheme(),
                     getLayoutTheme(),
-                    {showNavbar:service.showNavbar}
+                    {showNavbar:service.showNavbar},
+                    {showHeaders:service.showHeaders}  
                 )
             );
         }
@@ -90,13 +91,12 @@
                     for(var key in response.data){
                         service.availible_options[variable].push(key);    
                     }
+                    theme_refreshed();
                 }, function errorCallback(response) {
                     console.log("TODO: handle this error better");
                 }
             );
         }
-
-
     }
 })();
 

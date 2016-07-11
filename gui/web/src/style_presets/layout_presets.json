@@ -2,25 +2,29 @@
 	"standard": {
 		"gridster_panel_margin": 10,
 
-		"body_padding": "20px", 
+		"body_padding": "10px", 
 		"gridster_panel_border_radius":          "5px",
-		"gridster_panel_toolbar_padding":        "15px 16px", 
-		"gridster_panel_content_margin_left":    "15px", 
-		"gridster_panel_content_margin_right":   "15px",
-		"gridster_panel_content_margin_bottom":  "15px",
+		"gridster_panel_toolbar_padding":        "5px", 
+		"gridster_panel_content_margin_left":    "5px", 
+		"gridster_panel_content_margin_right":   "5px",
+		"gridster_panel_content_margin_bottom":  "5px",
+		"gridster_panel_content_margin_top":	 "5px",
 		"gridster_panel_content_border":         "1px",
 
 		"gridster_header_padding":				 "4px"	
 	},
+
+	
 	"compact": {
 		"gridster_panel_margin": 0,
 
 		"body_padding": "0px", 
 		"gridster_panel_border_radius":          "0px",
-		"gridster_panel_toolbar_padding":        "1px 3px", 
-		"gridster_panel_content_margin_left":    "3px", 
-		"gridster_panel_content_margin_right":   "3px",
-		"gridster_panel_content_margin_bottom":  "3px",
+		"gridster_panel_toolbar_padding":        "2px", 
+		"gridster_panel_content_margin_left":    "2px", 
+		"gridster_panel_content_margin_right":   "2px",
+		"gridster_panel_content_margin_bottom":  "2px",
+		"gridster_panel_content_margin_top":	 "2px",
 		"gridster_panel_content_border":         "1px",
 
 		"gridster_header_padding":				 "4px"

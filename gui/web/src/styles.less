@@ -1,15 +1,17 @@
 // *** LAYOUT ***
 
 // body
-@body_padding: 20px; 
+@body_padding: 10px; 
 
 // gridster
 @gridster_panel_border_radius:          10px;
-@gridster_panel_toolbar_padding:        15px 16px; 
+@gridster_panel_toolbar_padding:        15px; 
 @gridster_panel_content_margin_left:    15px; 
 @gridster_panel_content_margin_right:   15px;
 @gridster_panel_content_margin_bottom:  15px;
+@gridster_panel_content_margin_top:     15px;
 @gridster_panel_content_border:         1px;
+
 // *** COLORS ***
 
 // body
@@ -27,7 +29,7 @@
 @view_header_color: #58666e;
 @view_header_background: #f6f8f8;
 
-// a
+// a 
 @a_color: #333;
 @a_hover_color: #888;
 
@@ -92,7 +94,7 @@
 @pagination_color_hover: #333;
 @pagination_background_hover: #fafafa;
 
-@showHeader: true;
+@showHeaders: true;
 @showNavbar: true;
 
 * {
@@ -291,10 +293,9 @@ a {
 
             padding-top:@gridster_header_padding;
             padding-bottom:@gridster_header_padding;
+            border-top-left-radius:  @gridster_panel_border_radius;
+            border-top-right-radius:  @gridster_panel_border_radius;
             background-color: @gridster_panel_heading_background;
-            border-top-left-radius: @gridster_panel_border_radius;
-            border-top-right-radius: @gridster_panel_border_radius;
-
 
             flex: 0 0 auto;
 
@@ -316,7 +317,6 @@ a {
         }
     
         .panel-body {
-
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -324,10 +324,15 @@ a {
             border-bottom-left-radius: @gridster_panel_border_radius;
             border-bottom-right-radius: @gridster_panel_border_radius;
 
+            & when(@showHeaders = false){
+                border-top-left-radius:  @gridster_panel_border_radius;
+                border-top-right-radius:  @gridster_panel_border_radius;
+            }
+           
 
 
             [ng-controller] {
-
+                
                 flex: 1;
                 display: flex;
                 flex-direction: column;
@@ -336,7 +341,11 @@ a {
                 border-top-right-radius: @gridster_panel_border_radius;
 
                 .panel-toolbar {
-                    padding: @gridster_panel_toolbar_padding;
+                    padding-top: @gridster_panel_toolbar_padding;
+                    padding-bottom: @gridster_panel_toolbar_padding - @gridster_panel_content_margin_top;
+                    padding-left: @gridster_panel_toolbar_padding;
+                    padding-right: @gridster_panel_toolbar_padding;
+
                     flex: 0 0 auto;
 
                     button:not(.input-group-btn button) {
@@ -350,13 +359,14 @@ a {
 
                     .btn-group button {
                         margin-right: 0;
-                        margin-left: -1px;
+                        margin-left: 0;
                     }
                 }
 
                 .panel-content {
                     flex: 1;
                     position: relative;
+                    margin-top: @gridster_panel_content_margin_top;
                     margin-left: @gridster_panel_content_margin_left;
                     margin-right: @gridster_panel_content_margin_right;
                     margin-bottom: @gridster_panel_content_margin_bottom;
@@ -372,7 +382,6 @@ a {
         }
 
         .panel-footer {
-             color: #222222;
             border: none;
         }
     }
@@ -381,7 +390,6 @@ a {
 /* Item Editor */
 
 .item-editor {
-
     .jsoneditor {
         position: absolute;
         border: none;
