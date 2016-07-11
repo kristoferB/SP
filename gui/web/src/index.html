@@ -37,8 +37,28 @@
 
     <!-- endinject -->
     <!-- endbuild -->
+
+
+    <!-- ng2 dependencies -->
+    <script src="../node_modules/core-js/client/shim.min.js"></script>
+    <script src="../node_modules/zone.js/dist/zone.js"></script>
+    <script src="../node_modules/reflect-metadata/Reflect.js"></script>
+    <script src="../node_modules/systemjs/dist/system.src.js"></script>
+
+    <script src="systemjs.config.js"></script>
+
+
 </head>
 <body>
+
+    <!-- ng2-stuff -->
+    <script>
+        console.log(System);
+        System.import('ng2things')
+            .then(null, console.error.bind(console));
+    </script>
+
+
     <div ng-include="'app/layout/shell.html'"></div>
 
     <!-- build:js js/lib.js -->
