@@ -13,7 +13,13 @@ import sp.system.SPActorSystem.eventHandler
 import sp.domain._
 import sp.domain.Logic._
 
-class ModelHandler extends PersistentActor {
+
+import akka.cluster.Cluster
+import akka.cluster.ClusterEvent._
+import akka.actor.ActorLogging
+import akka.actor.Actor
+
+class ModelHandler extends PersistentActor with ActorLogging  {
   override def persistenceId = "modelhandler"
   implicit val timeout = Timeout(1 seconds)
   import context.dispatcher
@@ -21,8 +27,29 @@ class ModelHandler extends PersistentActor {
   private var modelMap: Map[ID, ActorRef] = Map()
   private var viewMap: Map[String, ActorRef] = Map()
 
+  val cluster = Cluster(context.system)
+
+  // subscribe to cluster changes, re-subscribe when restart
+  override def preStart(): Unit = {
+    //#subscribe
+    cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
+      classOf[MemberEvent], classOf[UnreachableMember])
+    //#subscribe
+  }
+  override def postStop(): Unit = cluster.unsubscribe(self)
+
   def receiveCommand = {
     //case mess @ _ if {println(s"handler got: $mess from $sender"); false} => Unit
+
+    case MemberUp(member) =>
+      log.info("Member is Up: {}", member.address)
+    case UnreachableMember(member) =>
+      log.info("Member detected as unreachable: {}", member)
+    case MemberRemoved(member, previousStatus) =>
+      log.info("Member is Removed: {} after {}",
+        member.address, previousStatus)
+    case _: MemberEvent => // ignore
+
 
     case cm @ CreateModel(id, name, attr) =>
       val reply = sender()
@@ -94,11 +121,15 @@ class ModelHandler extends PersistentActor {
 
   def viewNameMaker(id: ID, v: Long) = id.toString() + " - Version: " + v
 
+  var reMod = Map[ID, CreateModel]()
   def receiveRecover = {
     case cm: CreateModel  =>
-      addModel(cm)
+      reMod = reMod + (cm.id->cm)
     case dm: DeleteModel =>
-      deleteModel(dm)
+      reMod = reMod - dm.model
+    case RecoveryCompleted =>
+      reMod.values.foreach(addModel)
+      reMod = Map()
   }
 
 }

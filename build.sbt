@@ -1,18 +1,23 @@
 name := "SequencePlanner"
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 lazy val akka = Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.4.1",
-  "com.typesafe.akka" %% "akka-testkit" % "2.4.1",
-  "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
+  "com.typesafe.akka" %% "akka-actor" % "2.4.8",
+  "com.typesafe.akka" %% "akka-cluster" % "2.4.8",
+  "com.typesafe.akka" %% "akka-cluster-tools" % "2.4.8",
+  "com.typesafe.akka" %% "akka-testkit" % "2.4.8",
+  "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test",
   "org.slf4j" % "slf4j-simple" % "1.7.7"
 )
 
 lazy val json = Seq(
-  "com.github.nscala-time" %% "nscala-time" % "2.0.0",
-  "org.json4s" %% "json4s-native" % "3.2.11",
-  "org.json4s" %% "json4s-ext" % "3.2.11",
-  "org.json4s" %% "json4s-jackson" % "3.2.11"
+  "com.github.nscala-time" %% "nscala-time" % "2.12.0",
+  "org.json4s" %% "json4s-native" % "3.4.0",
+  "org.json4s" %% "json4s-ext" % "3.4.0"
+)
+
+lazy val support = Seq(
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
 )
 
 lazy val commonSettings = Seq(
@@ -41,7 +46,7 @@ lazy val root = project.in( file(".") )
 
 lazy val domain = project.
   settings(commonSettings: _*).
-  settings(libraryDependencies ++= json)
+  settings(libraryDependencies ++= json ++ support)
 
 lazy val core = project.dependsOn(domain).
   settings(commonSettings: _*).

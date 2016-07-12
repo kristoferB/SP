@@ -7,10 +7,10 @@ import akka.actor._
  * The starting object
  * Created by Kristofer on 2014-06-06.
  */
-object SPActorSystem {
+object SPActorSystem  {
 
   // The actor system used by all parts of SP. Maybe we will allow remote actors in the future
-  implicit val system = ActorSystem("sequenceplanner")
+  implicit val system = ActorSystem("SP")
 
   val eventHandler = system.actorOf(EventHandler.props, "eventHandler")
   val modelHandler = system.actorOf(ModelHandler.props, "modelHandler")
@@ -25,6 +25,15 @@ object SPActorSystem {
   val settings = SPSettings(system)
 
 }
+
+//object RunMe extends App {
+//  import SPActorSystem._
+//
+//  val s = system
+//
+//}
+
+
 
 case class SPHandlers(
            modelHandler : ActorRef,

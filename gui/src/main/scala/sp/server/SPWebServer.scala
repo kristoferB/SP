@@ -1,22 +1,30 @@
 package sp.server
 
 import akka.actor._
-import sp.system.SPActorSystem._
+import akka.util.Timeout
+import scala.concurrent.duration._
 import spray.routing._
 
 /**
  * Created by Kristofer on 2014-06-19.
  */
 class SPWebServer extends Actor with SPRoute {
-  override val eventHandler : ActorRef= sp.system.SPActorSystem.eventHandler
-  override val modelHandler : ActorRef= sp.system.SPActorSystem.modelHandler
-  override val runtimeHandler : ActorRef= sp.system.SPActorSystem.runtimeHandler
-  override val serviceHandler : ActorRef= sp.system.SPActorSystem.serviceHandler
-  override val userHandler : ActorRef= sp.system.SPActorSystem.userHandler
+
+  import akka.pattern.{ ask, pipe }
+  import system.dispatcher
+
+  val eh = context.actorSelection("../eventHandler")
+
+  override val eventHandler = context.actorSelection("../eventHandler")
+  override val modelHandler = context.actorSelection("../modelHandler")
+  override val runtimeHandler = context.actorSelection("../runtimeHandler")
+  override val serviceHandler = context.actorSelection("../serviceHandler")
+  override val userHandler = context.actorSelection("../userHandler")
   implicit val system = context.system
 
-  val webFolder: String = settings.webFolder
-  val srcFolder: String = if(settings.devMode) settings.devFolder else settings.buildFolder
+  val webFolder: String = sp.system.SPActorSystem.settings.webFolder
+  val srcFolder: String = if(sp.system.SPActorSystem.settings.devMode)
+    sp.system.SPActorSystem.settings.devFolder else sp.system.SPActorSystem.settings.buildFolder
 
   def actorRefFactory = context
   def receive = runRoute(api ~ staticRoute)

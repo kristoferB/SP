@@ -2,18 +2,19 @@ package sp.server
 
 import akka.io.IO
 import spray.can.Http
-import akka.actor.Props
-import sp.system.SPActorSystem._
+import akka.actor._
 
 /**
  * Used by the SP launcher file
  * Created by Kristofer on 2014-06-19.
  */
-object LaunchGUI {//extends MySslConfiguration {
+object LaunchGUI extends App {//extends MySslConfiguration {
   def launch = {
 
-    val interface = settings.interface
-    val port = settings.port
+  implicit val system = ActorSystem("SP")
+
+    val interface = system.settings.config getString "sp.interface"
+    val port = system.settings.config getInt "sp.port"
 
     val service = system.actorOf(Props(classOf[SPWebServer]), "sprayServer")
 
@@ -28,4 +29,5 @@ object LaunchGUI {//extends MySslConfiguration {
 
 
   }
+  launch
 }

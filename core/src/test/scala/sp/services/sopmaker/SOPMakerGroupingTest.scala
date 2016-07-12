@@ -236,7 +236,7 @@ class SOPMakerGroupingTest extends FreeSpec with Matchers with Defs {
 }
 }
 
-trait Defs extends Groupify with MakeASop{
+trait Defs extends MakeASop{
 
 
   val o1 = Operation("o1").id
