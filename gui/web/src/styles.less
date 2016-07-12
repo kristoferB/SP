@@ -5,11 +5,11 @@
 
 // gridster
 @gridster_panel_border_radius:          10px;
-@gridster_panel_toolbar_padding:        15px; 
-@gridster_panel_content_margin_left:    15px; 
-@gridster_panel_content_margin_right:   15px;
-@gridster_panel_content_margin_bottom:  15px;
-@gridster_panel_content_margin_top:     15px;
+@gridster_panel_toolbar_padding:        10px; 
+@gridster_panel_content_margin_left:    10px; 
+@gridster_panel_content_margin_right:   10px;
+@gridster_panel_content_margin_bottom:  10px;
+@gridster_panel_content_margin_top:     10px;
 @gridster_panel_content_border:         1px;
 
 // *** COLORS ***
@@ -279,7 +279,6 @@ a {
         border: none;
         width: 12px;
         height: 12px;
-
     }
     
     .panel {
@@ -317,6 +316,10 @@ a {
         }
     
         .panel-body {
+
+            border: @gridster_panel_content_border solid @gridster_panel_border;
+            overflow-y: auto; 
+            overflow-x: auto;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -325,12 +328,10 @@ a {
             border-bottom-right-radius: @gridster_panel_border_radius;
 
             & when(@showHeaders = false){
-                border-top-left-radius:  @gridster_panel_border_radius;
-                border-top-right-radius:  @gridster_panel_border_radius;
+                border-top-left-radius: @gridster_panel_border_radius;
+                border-top-right-radius: @gridster_panel_border_radius;
             }
            
-
-
             [ng-controller] {
                 
                 flex: 1;
@@ -342,7 +343,7 @@ a {
 
                 .panel-toolbar {
                     padding-top: @gridster_panel_toolbar_padding;
-                    padding-bottom: @gridster_panel_toolbar_padding - @gridster_panel_content_margin_top;
+                    padding-bottom: @gridster_panel_toolbar_padding;
                     padding-left: @gridster_panel_toolbar_padding;
                     padding-right: @gridster_panel_toolbar_padding;
 
@@ -366,11 +367,11 @@ a {
                 .panel-content {
                     flex: 1;
                     position: relative;
-                    margin-top: @gridster_panel_content_margin_top;
-                    margin-left: @gridster_panel_content_margin_left;
-                    margin-right: @gridster_panel_content_margin_right;
-                    margin-bottom: @gridster_panel_content_margin_bottom;
-                    border: @gridster_panel_content_border solid @gridster_panel_border;
+                    //margin-top: @gridster_panel_content_margin_top;
+                    //margin-left: @gridster_panel_content_margin_left;
+                    //margin-right: @gridster_panel_content_margin_right;
+                    //margin-bottom: @gridster_panel_content_margin_bottom;
+                   // border: @gridster_panel_content_border solid @gridster_panel_border;
                     background-color: @gridster_content_background;
 
                     &:focus {
@@ -378,7 +379,6 @@ a {
                     }
                 }
             }
-
         }
 
         .panel-footer {
