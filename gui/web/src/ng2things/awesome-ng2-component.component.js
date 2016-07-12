@@ -9,17 +9,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
-var HeroDetailComponent = (function () {
-    function HeroDetailComponent() {
+var AwesomeNG2Component = (function () {
+    function AwesomeNG2Component() {
     }
-    HeroDetailComponent = __decorate([
+    AwesomeNG2Component = __decorate([
         core_1.Component({
-            selector: 'hero-detail',
-            template: "\n    <h2>Windstorm details!</h2>\n    <div><label>id: </label>1</div>\n  "
+            selector: 'awesome-ng2-component',
+            template: "\n    <h2>Hello from Angular2!</h2>\n    <div><label>id: </label>1</div>\n  "
         }), 
         __metadata('design:paramtypes', [])
-    ], HeroDetailComponent);
-    return HeroDetailComponent;
+    ], AwesomeNG2Component);
+    return AwesomeNG2Component;
 }());
-exports.HeroDetailComponent = HeroDetailComponent;
-//# sourceMappingURL=hero-detail.component.js.map
+exports.AwesomeNG2Component = AwesomeNG2Component;
+//# sourceMappingURL=awesome-ng2-component.component.js.map

@@ -1,5 +1,5 @@
 //import {Component} from '@angular/core';
-import { HeroDetailComponent } from './hero-detail.component';
+import { AwesomeNG2Component } from './awesome-ng2-component.component';
 //import { upgradeAdapter } from './upgrade_adapter';
 import {UpgradeAdapter} from '@angular/upgrade';
 //import {bootstrap} from '@angular/platform-browser-dynamic';
@@ -9,7 +9,7 @@ declare var angular: any;
 
 var adapter: UpgradeAdapter = new UpgradeAdapter();
 
-angular.module('myApp')
-  .directive('heroDetail', adapter.downgradeNg2Component(HeroDetailComponent));
+angular.module('app')
+  .directive('awesomeNg2Component', adapter.downgradeNg2Component(AwesomeNG2Component));
 console.log("we here?");
-adapter.bootstrap(document.body, ['myApp']);
+adapter.bootstrap(document.documentElement, ['app']);

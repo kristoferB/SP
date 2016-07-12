@@ -1,11 +1,11 @@
 "use strict";
 //import {Component} from '@angular/core';
-var hero_detail_component_1 = require('./hero-detail.component');
+var awesome_ng2_component_component_1 = require('./awesome-ng2-component.component');
 //import { upgradeAdapter } from './upgrade_adapter';
 var upgrade_1 = require('@angular/upgrade');
 var adapter = new upgrade_1.UpgradeAdapter();
-angular.module('myApp')
-    .directive('heroDetail', adapter.downgradeNg2Component(hero_detail_component_1.HeroDetailComponent));
+angular.module('app')
+    .directive('awesomeNg2Component', adapter.downgradeNg2Component(awesome_ng2_component_component_1.AwesomeNG2Component));
 console.log("we here?");
-adapter.bootstrap(document.body, ['myApp']);
+adapter.bootstrap(document.documentElement, ['app']);
 //# sourceMappingURL=main.js.map
