@@ -45,8 +45,7 @@
     "bootstrap-contextmenu": "~0.2.0",
     "angular-gantt": "^1.2.13",
     "to-color-filter": "^1.0.1",
-    "oclazyload": "ocLazyLoad#^1.0.9",
-    "angular-ui-grid": "^3.2.1"
+    "oclazyload": "ocLazyLoad#^1.0.9"
   },
   "resolutions": {
     "angular": "1.4.4",

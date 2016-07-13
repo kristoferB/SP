@@ -5,9 +5,9 @@
         .module('app.dashboard')
         .factory('dashboardService', dashboardService);
 
-    dashboardService.$inject = ['$sessionStorage', 'logger', '$ocLazyLoad'];
+    dashboardService.$inject = ['$sessionStorage', 'logger', '$ocLazyLoad', '$http'];
     /* @ngInject */
-    function dashboardService($sessionStorage, logger, $ocLazyLoad) {
+    function dashboardService($sessionStorage, logger, $ocLazyLoad, $http) {
         var service = {
             addDashboard: addDashboard,
             getDashboard: getDashboard,
@@ -23,29 +23,17 @@
                 }],
                 widgetID: 1,
                 dashboardID: 2
-            }),
-            widgetKinds: [/*
-                {sizeX: 4, sizeY: 4, title: 'Item Explorer', template: 'app/item-explorer/item-explorer.html'},
-                {sizeX: 4, sizeY: 4, title: 'Item Editor', template: 'app/item-editor/item-editor.html'},
-                {sizeX: 6, sizeY: 4, title: 'Condition Editor', template: 'app/condition-editor/condition-editor.html'},
-                {sizeX: 4, sizeY: 4, title: 'SOP Maker', template: 'app/sop-maker/sop-maker.html'},
-                {sizeX: 6, sizeY: 4, title: 'Service List', template: 'app/spServices/spServices.html'},
-                {sizeX: 6, sizeY: 4, title: 'Trajectories', template: 'app/trajectories/trajectories.html'},
-                {sizeX: 6, sizeY: 4, title: 'OPC Runner', template: 'app/opc-runner/opc-runner.html'},
-                {sizeX: 4, sizeY: 4, title: 'Process Simulate', template: 'app/process-simulate/process-simulate.html'},
-                {sizeX: 4, sizeY: 4, title: 'Operation Control', template: 'app/operation-control/operation-control.html'},*/
-                {sizeX: 4, sizeY: 4, title: 'kubInputGUI',
-                template: 'app/lazy-widgets/kubInputGUI/kubInputGUI.html',
-                jsfiles: ['app/lazy-widgets/kubInputGUI/kubInputGUI.module.js',
-                        'app/lazy-widgets/kubInputGUI/kubInputGUI.controller.js']}/*
-                {sizeX: 4, sizeY: 4, title: 'operatorInstGUI', template: 'app/operatorInstGUI/operatorInstGUI.html'},
-                {sizeX: 4, sizeY: 4, title: 'ResetGUI', template: 'app/Tobbe2/Tobbe2.html'},
-                {sizeX: 4, sizeY: 4, title: 'Active Order', template: 'app/active-order/active-order.html'},
-                {sizeX: 4, sizeY: 4, title: 'Robot Cycle Analysis', template: 'app/robot-cycle-analysis/robot-cycle-analysis.html'},
-                {sizeX: 4, sizeY: 4, title: 'ng2Inside', template: 'app/ng2Inside/ng2Inside.html'}
-            ]
+            })//,
+            //widgetKinds: getWidgetList()
         };
 
+        $http.get('/widgetList.json', 'json').
+            then(function(response) {
+                console.log(response.data.widgetList);
+                // bad idea??
+                service.widgetKinds = response.data.widgetList;
+        });
+             
         activate();
 
         return service;
@@ -79,6 +67,7 @@
         }
 
         function addWidget(dashboard, widgetKind, additionalData) {
+               
             $ocLazyLoad.load(widgetKind.jsfiles).then(function() {
                 var widget = angular.copy(widgetKind, {});
                 widget.id = service.storage.widgetID++;
