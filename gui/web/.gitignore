@@ -4,3 +4,5 @@ node_modules
 report
 build/
 typings/
+.tern-port
+.tern-project
