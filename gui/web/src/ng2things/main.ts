@@ -11,5 +11,4 @@ var adapter: UpgradeAdapter = new UpgradeAdapter();
 
 angular.module('app')
   .directive('awesomeNg2Component', adapter.downgradeNg2Component(AwesomeNG2Component));
-console.log("we here?");
 adapter.bootstrap(document.documentElement, ['app']);
