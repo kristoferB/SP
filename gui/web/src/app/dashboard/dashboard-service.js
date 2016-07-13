@@ -39,7 +39,8 @@
                 {sizeX: 4, sizeY: 4, title: 'ResetGUI', template: 'app/Tobbe2/Tobbe2.html'},
                 {sizeX: 4, sizeY: 4, title: 'Active Order', template: 'app/active-order/active-order.html'},
                 {sizeX: 4, sizeY: 4, title: 'Robot Cycle Analysis', template: 'app/robot-cycle-analysis/robot-cycle-analysis.html'},
-                {sizeX: 4, sizeY: 4, title: 'ng2Inside', template: 'app/ng2Inside/ng2Inside.html'}
+                {sizeX: 4, sizeY: 4, title: 'ng2Inside', template: 'app/ng2Inside/ng2Inside.html'},
+                {sizeX: 4, sizeY: 4, title: 'ericaFaces', template: 'app/ericaFaces/ericaFaces.html'}
             ]
         };
 

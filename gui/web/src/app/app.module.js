@@ -24,7 +24,8 @@
         'app.robotCycleAnalysis',
         'app.activeOrder',
         'app.Tobbe2',
-        'app.ng2Inside'
+        'app.ng2Inside',
+        'app.ericaFaces'
     ]);
 
 })();
