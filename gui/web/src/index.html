@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="app" ng-controller="ShellController as vm">
+<html ng-controller="ShellController as vm">
 <head>
     <style>
         /* This helps the ng-show/ng-hide animations start at the right place. */
@@ -11,6 +11,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
     <base href="/">
+
 
     <!-- build:css styles/lib.css -->
     <!-- bower:css -->
@@ -31,16 +32,29 @@
     <!-- endbower -->
     <!-- endbuild -->
 
+
     <link rel="stylesheet" ng-href="/.tmp/{{vm.settingsService.storage.theme || 'default'}}_theme.css" />
+
 
     <!-- build:css styles/app.css -->
     <!-- inject:css -->
 
     <!-- endinject -->
     <!-- endbuild -->
+
+
+    <!-- ng2 dependencies -->
+    <!-- 1. Load libraries -->
+    <!-- Polyfill(s) for older browsers -->
+    <script src="node_modules/core-js/client/shim.min.js"></script>
+    <script src="node_modules/zone.js/dist/zone.js"></script>
+    <script src="node_modules/reflect-metadata/Reflect.js"></script>
+    <script src="node_modules/systemjs/dist/system.src.js"></script>
 </head>
+
 <body>
     <div ng-include="'app/layout/shell.html'"></div>
+
 
     <!-- build:js js/lib.js -->
     <!-- bower:js -->
@@ -84,6 +98,7 @@
     <!-- endbower -->
     <!-- endbuild -->
 
+
     <!-- build:js js/app.js -->
     <!-- inject:js -->
 
@@ -118,6 +133,8 @@
     <script src="/src/app/model-settings/model-settings.module.js"></script>
 
     <script src="/src/app/models/models.module.js"></script>
+
+    <script src="/src/app/ng2Inside/ng2Inside.module.js"></script>
 
     <script src="/src/app/opc-runner/opc-runner.module.js"></script>
 
@@ -209,6 +226,8 @@
 
     <script src="/src/app/models/models.route.js"></script>
 
+    <script src="/src/app/ng2Inside/ng2Inside.controller.js"></script>
+
     <script src="/src/app/opc-runner/opc-runner.controller.js"></script>
 
     <script src="/src/app/opc-runner/opc-runner.service.js"></script>
@@ -275,8 +294,17 @@
 
     <!-- endinject -->
 
+
     <!-- inject:templates:js -->
+
     <!-- endinject -->
     <!-- endbuild -->
+    
+
+    <!-- ng2-stuff -->
+    <script src="../systemjs.config.js"></script>
+    <script>
+        System.import('ng2things').catch(function(err){ console.error(err); });
+    </script>
 </body>
 </html>

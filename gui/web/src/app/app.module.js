@@ -24,7 +24,7 @@
         'app.robotCycleAnalysis',
         'app.activeOrder',
         'app.Tobbe2',
-        'app.EdsWidget'        
+        'app.ng2Inside'
     ]);
 
 })();
