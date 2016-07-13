@@ -1,5 +1,5 @@
 module.exports = function() {
-    var client = './';
+    var client = 'src/';
     //var server = './src/server/';
     var clientApp = client + 'app/';
     var report = './report/';
@@ -9,11 +9,11 @@ module.exports = function() {
     var wiredep = require('wiredep');
     var bowerFiles = wiredep({devDependencies: true})['js'];
     var bower = {
-        json: require(client + 'bower.json'),
-        directory: client + 'bower_components/',
+        json: require('./bower.json'),
+        directory: './bower_components/',
         ignorePath: '../..'
     };
-    var nodeModules = client + 'node_modules';
+    var nodeModules = 'node_modules';
     var specs = clientApp + '**/*.spec.js';
     var e2eSpecs = clientApp + '**/*.e2e-spec.js';
 
@@ -23,8 +23,8 @@ module.exports = function() {
          */
         // all javascript that we want to vet
         alljs: [
-            './**/*.js',
-            '*.js'
+            './src/**/*.js',
+            './*.js'
         ],
         build: './build/',
         client: client,
@@ -50,7 +50,7 @@ module.exports = function() {
         report: report,
         root: root,
         //server: server,
-        source: './',
+        source: 'src/',
         stubsjs: [
             bower.directory + 'angular-mocks/angular-mocks.js',
             client + 'stubs/**/*.js'
@@ -92,8 +92,8 @@ module.exports = function() {
          */
         bower: bower,
         packages: [
-            client + 'package.json',
-            client + 'bower.json'
+            './package.json',
+            './bower.json'
         ],
 
         /**
