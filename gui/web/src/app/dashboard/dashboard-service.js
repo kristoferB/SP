@@ -32,6 +32,8 @@
                 columns: 12,
                 swapping: true,
                 margins: [0,0],
+                floating: false,
+                pushing: false,
                 draggable: {
                     enabled: false,
                     handle: '.panel-heading'

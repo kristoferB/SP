@@ -103,7 +103,6 @@
 
         function update(){
             compile_less();
-            console.log('oh shit waddup');
             configureGridster();
         }
 
