@@ -13,7 +13,7 @@
         //'app.itemEditor',
         //'app.itemExplorer',
         //'app.sopMaker',
-        'app.spServices',
+        //'app.spServices',
         //'app.trajectories',
         //'app.opcRunner',
         //'app.processSimulate',
@@ -22,7 +22,7 @@
         //'app.kubInputGUI',
         //'app.operatorInstGUI',
         //'app.robotCycleAnalysis',
-        'app.activeOrder',
+        //'app.activeOrder'
         //'app.Tobbe2',
         //'app.ng2Inside'
     ]);
