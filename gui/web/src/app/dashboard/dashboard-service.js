@@ -24,6 +24,23 @@
                 widgetID: 1,
                 dashboardID: 2
             }),
+
+            setPanelLock: setPanelLock,
+            setPanelMargins: setPanelMargins,
+            gridsterOptions : {
+                outerMargin: false,
+                columns: 12,
+                swapping: true,
+                margins: [0,0],
+                draggable: {
+                    enabled: false,
+                    handle: '.panel-heading'
+                },
+                resizable:{
+                    enabled: false
+                }
+            },
+
             widgetKinds: [
                 {sizeX: 4, sizeY: 4, title: 'Item Explorer', template: 'app/item-explorer/item-explorer.html'},
                 {sizeX: 4, sizeY: 4, title: 'Item Editor', template: 'app/item-editor/item-editor.html'},
@@ -100,6 +117,15 @@
             return widget;
         }
 
+        function setPanelLock(isLocked){
+            service.gridsterOptions.draggable.enabled = !service.gridsterOptions.draggable.enabled;
+            service.gridsterOptions.resizable.enabled = !service.gridsterOptions.resizable.enabled;
+        }
+        function setPanelMargins(margin){
+            service.gridsterOptions.margins[0] = margin;
+            service.gridsterOptions.margins[1] = margin;
+        }
+
         function closeWidget(id) {
             for(var i = 0; i < service.storage.dashboards.length; i++) {
                 var dashboard = service.storage.dashboards[i];
@@ -107,7 +133,6 @@
                 if (index > -1) {
                     dashboard.widgets.splice(index, 1);
                     break;
-
                 }
             }
         }

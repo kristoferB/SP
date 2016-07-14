@@ -236,7 +236,7 @@ gulp.task('optimize', ['inject'], function() {
         // Get the custom javascript
         .pipe(jsAppFilter)
         .pipe($.ngAnnotate({add: true}))
-        .pipe($.uglify())
+        .pipe($.uglify())  // this line causes a crash
         .pipe(getHeader())
         .pipe(jsAppFilter.restore())
         // Get the vendor javascript

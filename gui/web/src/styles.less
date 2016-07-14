@@ -1,3 +1,17 @@
+// *** LAYOUT ***
+
+// body
+@body_padding: 10px; 
+
+// gridster
+@gridster_panel_border_radius:          10px;
+@gridster_panel_toolbar_padding:        10px; 
+@gridster_panel_content_margin_left:    10px; 
+@gridster_panel_content_margin_right:   10px;
+@gridster_panel_content_margin_bottom:  10px;
+@gridster_panel_content_margin_top:     10px;
+@gridster_panel_content_border:         1px;
+
 // *** COLORS ***
 
 // body
@@ -15,7 +29,7 @@
 @view_header_color: #58666e;
 @view_header_background: #f6f8f8;
 
-// a
+// a 
 @a_color: #333;
 @a_hover_color: #888;
 
@@ -27,6 +41,8 @@
 @gridster_panel_background: #f5f5f5;
 @gridster_content_background: white;
 @gridster_panel_heading_background: #f5f5f5;
+@gridster_panel_border: #dee5e7;
+@gridster_header_padding: 2px;
 
 // buttons
 @button_default_color: #58666e;
@@ -78,7 +94,8 @@
 @pagination_color_hover: #333;
 @pagination_background_hover: #fafafa;
 
-// *** BASE CSS, NOT THEMING! ***
+@showHeaders: true;
+@showNavbar: true;
 
 * {
     font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -133,20 +150,30 @@
 }
 
 /* end of Helper classes */
-
 body {
-    font-size: 14px;
-    line-height: 1.42857143em;
-    color: @body_color;
-    background: @body_background;
-    padding-top: 50px;
-    -webkit-font-smoothing: antialiased;
+    & when (@showNavbar){
+        font-size: 14px;
+        line-height: 1.42857143em;
+        color: @body_color;
+        background: @body_background;
+        padding-top: 50px;
+        -webkit-font-smoothing: antialiased;   
+    }
+    & when (@showNavbar = false){
+        font-size: 14px;
+        line-height: 1.42857143em;
+        color: @body_color;
+        background: @body_background;
+        padding-top: 0px;
+        -webkit-font-smoothing: antialiased;   
+    }
+
 }
 
-    body .container {
-        padding: 20px;
-        width: 100%;
-    }
+body .container {
+    padding: @body_padding;
+    width: 100%;
+}
 
 
 h1, h2, h3, h4, h5, h6, .panel-title {
@@ -253,13 +280,20 @@ a {
         width: 12px;
         height: 12px;
     }
-
+    
     .panel {
+
         display: flex;
         flex-direction: column;
         height: 100%;
+        border-radius: @gridster_panel_border_radius + 1;
 
         .panel-heading {
+
+            padding-top:@gridster_header_padding;
+            padding-bottom:@gridster_header_padding;
+            border-top-left-radius:  @gridster_panel_border_radius;
+            border-top-right-radius:  @gridster_panel_border_radius;
             background-color: @gridster_panel_heading_background;
 
             flex: 0 0 auto;
@@ -268,6 +302,7 @@ a {
                 transition-delay: 50ms;
                 opacity: 1;
                 visibility: visible;
+
             }
 
             .widget-close-btn {
@@ -276,23 +311,42 @@ a {
                 line-height: 20px;
                 opacity: 0;
                 visibility: hidden;
+
             }
         }
-
+    
         .panel-body {
+
+            border: @gridster_panel_content_border solid @gridster_panel_border;
+            overflow-y: auto; 
+            overflow-x: auto;
             flex: 1;
             display: flex;
             flex-direction: column;
             background-color: @gridster_panel_background;
+            border-bottom-left-radius: @gridster_panel_border_radius;
+            border-bottom-right-radius: @gridster_panel_border_radius;
 
-
+            & when(@showHeaders = false){
+                border-top-left-radius: @gridster_panel_border_radius;
+                border-top-right-radius: @gridster_panel_border_radius;
+            }
+           
             [ng-controller] {
+                
                 flex: 1;
                 display: flex;
                 flex-direction: column;
 
+                border-top-left-radius: @gridster_panel_border_radius;
+                border-top-right-radius: @gridster_panel_border_radius;
+
                 .panel-toolbar {
-                    padding: 15px 16px;
+                    padding-top: @gridster_panel_toolbar_padding;
+                    padding-bottom: @gridster_panel_toolbar_padding;
+                    padding-left: @gridster_panel_toolbar_padding;
+                    padding-right: @gridster_panel_toolbar_padding;
+
                     flex: 0 0 auto;
 
                     button:not(.input-group-btn button) {
@@ -306,17 +360,18 @@ a {
 
                     .btn-group button {
                         margin-right: 0;
-                        margin-left: -1px;
+                        margin-left: 0;
                     }
                 }
 
                 .panel-content {
                     flex: 1;
                     position: relative;
-                    margin-left: 15px;
-                    margin-right: 15px;
-                    margin-bottom: 15px;
-                    border: 1px solid #dee5e7;
+                    //margin-top: @gridster_panel_content_margin_top;
+                    //margin-left: @gridster_panel_content_margin_left;
+                    //margin-right: @gridster_panel_content_margin_right;
+                    //margin-bottom: @gridster_panel_content_margin_bottom;
+                   // border: @gridster_panel_content_border solid @gridster_panel_border;
                     background-color: @gridster_content_background;
 
                     &:focus {
@@ -324,7 +379,6 @@ a {
                     }
                 }
             }
-
         }
 
         .panel-footer {
@@ -336,7 +390,6 @@ a {
 /* Item Editor */
 
 .item-editor {
-
     .jsoneditor {
         position: absolute;
         border: none;
