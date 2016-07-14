@@ -5,9 +5,9 @@
         .module('app.dashboard')
         .factory('dashboardService', dashboardService);
 
-    dashboardService.$inject = ['$sessionStorage', 'logger', '$ocLazyLoad', '$http'];
+    dashboardService.$inject = ['$sessionStorage', 'logger', '$ocLazyLoad', 'widgetListService'];
     /* @ngInject */
-    function dashboardService($sessionStorage, logger, $ocLazyLoad, $http) {
+    function dashboardService($sessionStorage, logger, $ocLazyLoad, widgetListService) {
         var service = {
             addDashboard: addDashboard,
             getDashboard: getDashboard,
@@ -23,17 +23,16 @@
                 }],
                 widgetID: 1,
                 dashboardID: 2
-            })//,
-            //widgetKinds: getWidgetList()
+            })
         };
 
-        $http.get('/widgetList.json', 'json').
-            then(function(response) {
-                console.log(response.data.widgetList);
-                // bad idea??
-                service.widgetKinds = response.data.widgetList;
+        // asynchronicity doesn't cause a problem, verifiable with
+        // setTimeout(function() {service.widgetKinds = list;}, 10000);
+        // menu-items will be viewable after those 10 seconds
+        widgetListService.list(function(list) {
+            service.widgetKinds = list;
         });
-             
+
         activate();
 
         return service;
