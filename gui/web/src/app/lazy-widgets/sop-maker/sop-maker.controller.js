@@ -150,7 +150,7 @@
                 };
 
                 var saveAsModal = $uibModal.open({
-                    templateUrl: '/app/sop-maker/save-as.html',
+                    templateUrl: '/app/lazy-widgets/sop-maker/save-as.html',
                     controller: 'SaveAsController',
                     controllerAs: 'vm',
                     resolve: {
