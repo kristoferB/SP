@@ -40,7 +40,7 @@
                 "app/lazy-widgets/opc-runner/opc-runner.service.js",
                 "app/lazy-widgets/opc-runner/opc-runner.controller.js"]},
         {"sizeX": 4, "sizeY": 4, "title": "Process Simulate",
-            "template": "app/lazy-widgets/process-simulate/process-simulate-html",
+            "template": "app/lazy-widgets/process-simulate/process-simulate.html",
             "jsfiles": ["app/lazy-widgets/process-simulate/process-simulate.module.js",
                 "app/lazy-widgets/process-simulate/process-simulate.service.js",
                 "app/lazy-widgets/process-simulate/process-simulate.controller.js"]},
