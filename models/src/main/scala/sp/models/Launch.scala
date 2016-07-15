@@ -4,6 +4,7 @@ import akka.actor._
 
 
 
+
 object Launch extends App {
 
   implicit val system = ActorSystem("SP")
@@ -18,6 +19,7 @@ object Launch extends App {
 }
 
 
+
 class ClusterMonitor extends Actor with ActorLogging {
 
   // special setup to monitor cluster
@@ -26,7 +28,7 @@ class ClusterMonitor extends Actor with ActorLogging {
   import akka.cluster.pubsub._
 
   val cluster = Cluster(context.system)
-  import DistributedPubSubMediator.{ Put, Subscribe }
+  import DistributedPubSubMediator.{ Put, Subscribe, Publish }
   val mediator = DistributedPubSub(context.system).mediator
   mediator ! Subscribe("modelMessages", self)
   mediator ! Subscribe("modelEvents", self)

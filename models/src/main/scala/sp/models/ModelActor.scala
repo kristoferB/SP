@@ -69,7 +69,6 @@ object ModelCommandAPI extends SPCommunicationAPI {
     classOf[Items],
     classOf[Item]
   )
-
 }
 
 
@@ -113,17 +112,12 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       val reply = sender()
       ModelCommandAPI.readPF(x){
             case x: PutAttributes if x.model == model =>
-              val diff = ModelDiff(
-                model,
-                List(),
-                List(),
+              val diff = ModelDiff(model,List(),List(),
                 SPAttributes("info"->"new model attributes"),
-                state.version,
-                state.version + 1,
-                x.name.getOrElse(state.name),
-                x.attributes.getOrElse(state.attributes).addTimeStamp)
+                state.version,state.version + 1,
+                x.name.getOrElse(state.name), x.attributes.getOrElse(state.attributes).addTimeStamp)
               store(diff, {
-                reply ! "OK"
+                reply ! ModelCommandAPI.write(SPOK())
                 val ac = AttributesChanged(model, diff.name, diff.version, diff.modelAttr)
                 mediator ! Publish("modelEvents", ModelCommandAPI.write(ac))
               })
@@ -132,7 +126,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
               createDiffUpd(x.items, x.info) match {
                 case Right(diff) =>
                   store(diff, {
-                    reply ! "OK"
+                    reply ! ModelCommandAPI.write(SPOK())
                     val ic = ItemsChanged(model, diff.updatedItems, diff.version, diff.diffInfo)
                     mediator ! Publish("modelEvents", ModelCommandAPI.write(ic))
 
@@ -178,8 +172,8 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
 //      val reply = sender
 //      createDiffDel(dels.toSet, info) match {
 //        case Right(diff) =>
-//          reply ! "OK"
-//          store(diff, reply ! "OK")
+//          reply ! ModelCommandAPI.write(SPOK())
+//          store(diff, reply ! ModelCommandAPI.write(SPOK()))
 //        case Left(error) => reply ! error
 //      }
 
@@ -187,7 +181,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       val attr = cm.attributes.getOrElse(SPAttributes())
       val diff = ModelDiff(model, List(), List(), SPAttributes("info"->"new model attributes"), state.version, state.version + 1, cm.name, attr.addTimeStamp)
       val reply = sender
-      store(diff, reply ! "OK")
+      store(diff, reply ! ModelCommandAPI.write(SPOK()))
 
 //    case UpdateModelInfo(_, ModelInfo(m, newName, v, attribute, _)) =>
 //      val reply = sender

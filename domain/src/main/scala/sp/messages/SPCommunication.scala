@@ -42,13 +42,14 @@ trait SPCommunicationAPI {
         pfSPMessages.isDefinedAt(mess)
     }
 
-    if (!spMess){
+    spMess || {
       Try(org.json4s.native.Serialization.read[MessageType](x)) match {
         case Failure(thr) =>
-          orElse(write(SPError("Couldn't parse message", Some(SPAttributes("parseError"->thr.getMessage)))))
+          orElse(write(SPError("Couldn't parse message", Some(SPAttributes("parseError" -> thr.getMessage)))))
           true // return true here since it actually did something
         case Success(mess) =>
           if (pf.isDefinedAt(mess)) pf(mess)
+          pf.isDefinedAt(mess)
       }
     }
 

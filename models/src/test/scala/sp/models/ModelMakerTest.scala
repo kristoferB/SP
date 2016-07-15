@@ -6,7 +6,10 @@ import com.typesafe.config._
 import org.scalatest._
 import sp.domain._
 import sp.messages._
+
 import scala.util._
+import akka.cluster.pubsub._
+import DistributedPubSubMediator.{Publish, Subscribe}
 
 import scala.concurrent.duration._
 
@@ -26,13 +29,17 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
       |akka.persistence.journal.plugin = "akka.persistence.journal.inmem"
       |akka.persistence.snapshot-store.plugin = "akka.persistence.snapshot-store.local"
       |akka.persistence.snapshot-store.local.dir = "target/snapshotstest/"
-      |akka.loglevel = DEBUG
+      |akka.loglevel = "OFF"
       |akka.actor.provider = "akka.cluster.ClusterActorRefProvider"
+      |akka.remote.netty.tcp.hostname="127.0.0.1"
+      |akka.remote.netty.hostname.port=2551
+      |akka.cluster.seed-nodes=["akka.tcp://SP@127.0.0.1:2551"]
     """.stripMargin)))
 
 
 
   val mh = system.actorOf(ModelMaker.props(MockMaker.props), "modelHandler")
+  val mm = system.actorOf(MockMaker.props(ID.newID), "mockMakerSub")
 
 
   override def beforeAll: Unit = {
@@ -80,6 +87,40 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
           se.isInstanceOf[SPOK]
       }
     }
+    "create and delete Model" in {
+      val id = ID.newID
+      val cm = CreateModel("hej", None, Some(id))
+      val dm = DeleteModel(id)
+
+      val mediator = DistributedPubSub(system).mediator
+//      val chatMember1 = TestProbe()
+//      mediator ! Subscribe("modelevents", chatMember1.ref)
+//
+//      chatMember1.fishForMessage(1 second){
+//        case x => println("fishing got: "+x); true
+//      }
+
+
+      mediator ! Publish("modelmessages", ModelMakerAPI.write(cm))
+      mediator ! Publish("modelmessages", ModelMakerAPI.write(StatusRequest()))
+      mediator ! Publish("modelmessages", dm)
+
+      //mh ! ModelMakerAPI.write(cm)
+      //mh ! ModelMakerAPI.write(dm)
+
+
+//      chatMember1.fishForMessage(1 second){
+//        case x => println("fishing got: "+x); true
+//      }
+
+      fishForMessage(3 seconds) {
+        case m: String =>
+          println("create got reply: "+m)
+          val se = ModelMakerAPI.readSPMessage(m).get
+          se.isInstanceOf[SPOK]
+          true
+      }
+    }
   }
 
 
@@ -89,8 +130,11 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
 }
 
 class MockMaker(id: ID) extends Actor {
+
+  val mediator = DistributedPubSub(context.system).mediator
+  mediator ! Subscribe("modelevents", self)
   def receive = {
-    case x => println("maker got : "+ x)
+    case x => println("MockMaker got : "+ x)
   }
 }
 
