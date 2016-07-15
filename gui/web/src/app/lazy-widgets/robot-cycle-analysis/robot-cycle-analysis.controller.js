@@ -228,7 +228,7 @@
 
         function searchCycles() {
             $uibModal.open({
-                templateUrl: '/app/robot-cycle-analysis/search-cycle.html',
+                templateUrl: '/app/lazy-widgets/robot-cycle-analysis/search-cycle.html',
                 controller: 'SearchCycleController',
                 controllerAs: 'vm',
                 resolve: {
@@ -244,7 +244,7 @@
 
         function selectWorkCell() {
             var modalInstance = $uibModal.open({
-                templateUrl: '/app/robot-cycle-analysis/select-work-cell.html',
+                templateUrl: '/app/lazy-widgets/robot-cycle-analysis/select-work-cell.html',
                 controller: 'SelectWorkCellController',
                 controllerAs: 'vm'
             });
@@ -258,7 +258,7 @@
 
         function setLiveChartWidth() {
             var modalInstance = $uibModal.open({
-                templateUrl: '/app/robot-cycle-analysis/set-live-chart-width.html',
+                templateUrl: '/app/lazy-widgets/robot-cycle-analysis/set-live-chart-width.html',
                 controller: 'SetLiveChartWidthController',
                 controllerAs: 'vm',
                 resolve: {
@@ -276,7 +276,7 @@
 
         function setupBus() {
             var modalInstance = $uibModal.open({
-                templateUrl: '/app/robot-cycle-analysis/setup-bus.html',
+                templateUrl: '/app/lazy-widgets/robot-cycle-analysis/setup-bus.html',
                 controller: 'SetupBusController',
                 controllerAs: 'vm'
             });

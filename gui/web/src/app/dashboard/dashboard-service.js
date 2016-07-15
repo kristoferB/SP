@@ -5,9 +5,9 @@
         .module('app.dashboard')
         .factory('dashboardService', dashboardService);
 
-    dashboardService.$inject = ['$sessionStorage', 'logger'];
+    dashboardService.$inject = ['$sessionStorage', 'logger', '$ocLazyLoad', 'widgetListService'];
     /* @ngInject */
-    function dashboardService($sessionStorage, logger) {
+    function dashboardService($sessionStorage, logger, $ocLazyLoad, widgetListService) {
         var service = {
             addDashboard: addDashboard,
             getDashboard: getDashboard,
@@ -39,27 +39,15 @@
                 resizable:{
                     enabled: false
                 }
-            },
-
-            widgetKinds: [
-                {sizeX: 4, sizeY: 4, title: 'Item Explorer', template: 'app/item-explorer/item-explorer.html'},
-                {sizeX: 4, sizeY: 4, title: 'Item Editor', template: 'app/item-editor/item-editor.html'},
-                {sizeX: 6, sizeY: 4, title: 'Condition Editor', template: 'app/condition-editor/condition-editor.html'},
-                {sizeX: 4, sizeY: 4, title: 'SOP Maker', template: 'app/sop-maker/sop-maker.html'},
-                {sizeX: 6, sizeY: 4, title: 'Service List', template: 'app/spServices/spServices.html'},
-                {sizeX: 6, sizeY: 4, title: 'Trajectories', template: 'app/trajectories/trajectories.html'},
-                {sizeX: 6, sizeY: 4, title: 'OPC Runner', template: 'app/opc-runner/opc-runner.html'},
-                {sizeX: 4, sizeY: 4, title: 'Process Simulate', template: 'app/process-simulate/process-simulate.html'},
-                {sizeX: 4, sizeY: 4, title: 'Operation Control', template: 'app/operation-control/operation-control.html'},
-                {sizeX: 4, sizeY: 4, title: 'kubInputGUI', template: 'app/kubInputGUI/kubInputGUI.html'},
-                {sizeX: 4, sizeY: 4, title: 'operatorInstGUI', template: 'app/operatorInstGUI/operatorInstGUI.html'},
-                {sizeX: 4, sizeY: 4, title: 'ResetGUI', template: 'app/Tobbe2/Tobbe2.html'},
-                {sizeX: 4, sizeY: 4, title: 'Active Order', template: 'app/active-order/active-order.html'},
-                {sizeX: 4, sizeY: 4, title: 'Robot Cycle Analysis', template: 'app/robot-cycle-analysis/robot-cycle-analysis.html'},
-                {sizeX: 4, sizeY: 4, title: 'ng2Inside', template: 'app/ng2Inside/ng2Inside.html'},
-                {sizeX: 4, sizeY: 4, title: 'ericaFaces', template: 'app/ericaFaces/ericaFaces.html'}
-            ]
+            }
         };
+
+        // asynchronicity doesn't cause a problem, verifiable with
+        // setTimeout(function() {service.widgetKinds = list;}, 10000);
+        // menu-items will be viewable after those 10 seconds
+        widgetListService.list(function(list) {
+            service.widgetKinds = list;
+        });
 
         activate();
 
@@ -94,14 +82,17 @@
         }
 
         function addWidget(dashboard, widgetKind, additionalData) {
-            var widget = angular.copy(widgetKind, {});
-            widget.id = service.storage.widgetID++;
-            if (additionalData !== undefined) {
-                widget.storage = additionalData;
-            }
-            dashboard.widgets.push(widget);
-            logger.log('Dashboard Controller: Added a ' + widget.title + ' widget with index '
-                + widget.id + ' to dashboard ' + dashboard.name + '.');
+               
+            $ocLazyLoad.load(widgetKind.jsfiles).then(function() {
+                var widget = angular.copy(widgetKind, {});
+                widget.id = service.storage.widgetID++;
+                if (additionalData !== undefined) {
+                    widget.storage = additionalData;
+                }
+                dashboard.widgets.push(widget);
+                logger.log('Dashboard Controller: Added a ' + widget.title + ' widget with index '
+                    + widget.id + ' to dashboard ' + dashboard.name + '.');
+            });
         }
 
         function getWidget(id) {

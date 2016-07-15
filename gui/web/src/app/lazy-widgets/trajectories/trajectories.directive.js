@@ -14,7 +14,7 @@
 
         var directive = {
             restrict: 'EA',
-            templateUrl: 'app/trajectories/trajectories.directive.html',
+            templateUrl: 'app/lazy-widgets/trajectories/trajectories.directive.html',
             scope: {
                 operations: '=',
                 marks: '=',

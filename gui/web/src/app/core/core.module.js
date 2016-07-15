@@ -6,7 +6,7 @@
             'ngAnimate', 'ngSanitize', 'gridster', 'ngStorage', 'ngJsTree', 'uuid4',
             'blocks.exception', 'blocks.logger', 'blocks.router', 'mwl.confirm', 'dialogs.main',
             'dialogs.default-translations', 'pascalprecht.translate', 'ui.router', 'smart-table', 'xeditable',
-            'ui.bootstrap', 'angular.filter', 'nvd3', 'toColorFilter'
+            'ui.bootstrap', 'angular.filter', 'nvd3', 'toColorFilter', 'oc.lazyLoad'
         ])
         .run(runBlock);
 

@@ -5,7 +5,7 @@
   'use strict';
 
   angular
-    .module('app.operationControl')
+    .module('app.core')
     .factory('operationControlService', operationControlService);
 
   operationControlService.$inject = ['$q','logger', 'eventService', 'spServicesService', 'restService', 'itemService'];

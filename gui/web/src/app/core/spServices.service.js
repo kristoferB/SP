@@ -5,7 +5,7 @@
   'use strict';
 
   angular
-    .module('app.spServices')
+    .module('app.core')
     .factory('spServicesService', spServicesService);
 
   spServicesService.$inject = ['$q', 'logger', 'restService', 'modelService', 'itemService', 'eventService', '$rootScope'];
