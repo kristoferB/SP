@@ -19,6 +19,7 @@
             "template": "app/lazy-widgets/sop-maker/sop-maker.html",
             "jsfiles": ["app/lazy-widgets/sop-maker/sop-maker.module.js",
                 "app/lazy-widgets/sop-maker/sop-maker.controller.js",
+                "app/lazy-widgets/sop-maker/save-as.controller.js",
                 "app/lazy-widgets/sop-maker/sop-calcer.js",
                 "app/lazy-widgets/sop-maker/sop-drawer.js",
                 "app/lazy-widgets/sop-maker/save-as.html"]},
