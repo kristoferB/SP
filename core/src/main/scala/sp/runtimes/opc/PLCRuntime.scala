@@ -10,7 +10,6 @@ import org.json4s._
 import sp.domain._
 import sp.system.messages._
 import sp.system.SPActorSystem._
-import sp.domain.Logic._
 import org.json4s.native.Serialization._
 import scala.concurrent.Await
 
@@ -28,7 +27,10 @@ class PLCRuntime(about: RuntimeInfo) extends Actor {
   var sseChannels: List[ActorRef] = Nil
   var lastEventID: Int = 0
 
+    import sp.domain.Logic._
   def receive = {
+
+
 
     case SimpleMessage(_, attr) =>
       val reply = sender

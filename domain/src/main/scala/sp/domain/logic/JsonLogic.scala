@@ -2,12 +2,17 @@ package sp.domain.logic
 
 import org.json4s._
 import sp.domain._
+import sp.messages._
 
 
 /**
  * Created by kristofer on 15-05-27.
  */
 object JsonLogic extends JsonLogics
+
+trait JsonImplicit extends JsonLogics {
+  implicit val formats = new JsonFormats {}
+}
 
 trait JsonLogics {
   trait JsonFormats extends DefaultFormats {
@@ -46,14 +51,18 @@ trait JsonLogics {
       classOf[ASSIGN],
       classOf[ValueHolder],
       classOf[SVIDEval],
-      classOf[PropositionCondition]
-
+      classOf[PropositionCondition],
+      classOf[SPError],
+      classOf[SPACK],
+      classOf[SPOK],
+      classOf[StatusRequest],
+      classOf[Status]
     ))
   }
-  def jsonFormats = new JsonFormats {}
-  implicit val formats2 = jsonFormats
+
 
   def timeStamp = {
+    implicit val formats2 = new JsonFormats {}
     Extraction.decompose(org.joda.time.DateTime.now)
   }
 
@@ -87,6 +96,7 @@ trait JsonLogics {
       }
       case JArray(xs) => {
         import sp.domain.logic.AttributeLogic._
+        implicit val formats2 = new JsonFormats {}
         val filtered = for {
           sv @ JObject(xs) <- xs
           key <- sv.getAs[ID]("id")
@@ -112,6 +122,7 @@ trait JsonLogics {
     },
     {
       case x: RelationMap =>
+        implicit val formats2 = new JsonFormats {}
         val remap = x.relations map{
           case (ops, sop) =>
             SPAttributes("operations" -> ops, "sop" -> sop)

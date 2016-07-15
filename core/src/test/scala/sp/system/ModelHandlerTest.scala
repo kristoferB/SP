@@ -21,7 +21,7 @@ import sp.domain._
 class ModelHandlerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
 
-  def this() = this(ActorSystem("myTest", ConfigFactory.parseString(
+  def this() = this(ActorSystem("SP", ConfigFactory.parseString(
     """
       |akka.persistence.journal.plugin = "akka.persistence.journal.inmem"
       |akka.persistence.snapshot-store.plugin = "akka.persistence.snapshot-store.local"

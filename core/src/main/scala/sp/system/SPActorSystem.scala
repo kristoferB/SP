@@ -12,11 +12,11 @@ object SPActorSystem  {
   // The actor system used by all parts of SP. Maybe we will allow remote actors in the future
   implicit val system = ActorSystem("SP")
 
-  val eventHandler = system.actorOf(EventHandler.props, "eventHandler")
-  val modelHandler = system.actorOf(ModelHandler.props, "modelHandler")
-  val serviceHandler = system.actorOf(ServiceHandler.props(modelHandler, eventHandler), "serviceHandler")
-  val runtimeHandler = system.actorOf(RuntimeHandler.props, "runtimeHandler")
-  val userHandler = system.actorOf(sp.users.UserHandler.props, "userHandler")
+  val eventHandler = system.actorOf(Props[Dummy], "eventHandler")
+  val modelHandler = system.actorOf(Props[Dummy])
+  val serviceHandler = system.actorOf(Props[Dummy])
+  val runtimeHandler = system.actorOf(Props[Dummy])
+  val userHandler = system.actorOf(Props[Dummy])
 
   // TODO: Send this to all handlers instead of during construction
   val handlers = SPHandlers(modelHandler, serviceHandler, eventHandler)
@@ -25,6 +25,8 @@ object SPActorSystem  {
   val settings = SPSettings(system)
 
 }
+
+
 
 //object RunMe extends App {
 //  import SPActorSystem._
@@ -41,3 +43,10 @@ case class SPHandlers(
            eventHandler : ActorRef
 )
 
+class Dummy extends Actor {
+
+  def receive = {
+    case in ⇒
+      println("The dummy got a message")
+  }
+}

@@ -8,7 +8,7 @@ import akka.pattern.pipe
 import scala.concurrent.duration._
 import sp.system.messages._
 import akka.persistence._
-import sp.system.SPActorSystem.eventHandler
+
 
 import sp.domain._
 import sp.domain.Logic._
@@ -16,18 +16,32 @@ import sp.domain.Logic._
 
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent._
-import akka.actor.ActorLogging
-import akka.actor.Actor
+import akka.cluster.pubsub._
+
+
+
+object TemporaryLauncher extends App {
+  implicit val system = ActorSystem("SP")
+  system.actorOf(ModelHandler.props, "modelHandler")
+}
 
 class ModelHandler extends PersistentActor with ActorLogging  {
   override def persistenceId = "modelhandler"
   implicit val timeout = Timeout(1 seconds)
   import context.dispatcher
 
+  // temp
+  val eventHandler = context.actorOf(EventHandler.props)
+
   private var modelMap: Map[ID, ActorRef] = Map()
   private var viewMap: Map[String, ActorRef] = Map()
 
   val cluster = Cluster(context.system)
+
+  import DistributedPubSubMediator.{ Put, Subscribe }
+  val mediator = DistributedPubSub(context.system).mediator
+  mediator ! Put(self)
+  mediator ! Subscribe("modelMessages", self)
 
   // subscribe to cluster changes, re-subscribe when restart
   override def preStart(): Unit = {

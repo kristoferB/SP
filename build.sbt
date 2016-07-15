@@ -1,5 +1,6 @@
 name := "SequencePlanner"
 scalaVersion := "2.11.8"
+version := "0.6.0-SNAPSHOT"
 
 lazy val akka = Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.4.8",
@@ -21,8 +22,7 @@ lazy val support = Seq(
 )
 
 lazy val commonSettings = Seq(
-  version := "0.6.0-SNAPSHOT",
-  scalaVersion := "2.11.7",
+  scalaVersion := "2.11.8",
   resolvers ++= Seq(
     "Sonatype OSS Snapshots" at "https://oss.sonatype.org/Releases",
     "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/"),
@@ -47,6 +47,14 @@ lazy val root = project.in( file(".") )
 lazy val domain = project.
   settings(commonSettings: _*).
   settings(libraryDependencies ++= json ++ support)
+
+lazy val models = project.dependsOn(domain).
+  settings(commonSettings: _*).
+  settings(libraryDependencies ++= akka ++ json)
+
+
+
+
 
 lazy val core = project.dependsOn(domain).
   settings(commonSettings: _*).
