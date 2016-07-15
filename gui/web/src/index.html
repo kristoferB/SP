@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html ng-controller="ShellController as vm">
 <head>
     <style>
@@ -31,8 +32,7 @@
     <!-- endbower -->
     <!-- endbuild -->
 
-
-    <link rel="stylesheet" ng-href="/.tmp/{{vm.settingsService.storage.theme || 'default'}}_theme.css" />
+    <link href="styles.less" type="*" rel="stylesheet/less"/>
 
 
     <!-- build:css styles/app.css -->
@@ -52,12 +52,15 @@
 </head>
 
 <body>
+   
+  
     <div ng-include="'app/layout/shell.html'"></div>
 
 
     <!-- build:js js/lib.js -->
     <!-- bower:js -->
     <script src="../bower_components/jquery/dist/jquery.js"></script>
+    <script src="../bower_components/less/dist/less.js"></script>
     <script src="../bower_components/angular/angular.js"></script>
     <script src="../bower_components/angular-animate/angular-animate.js"></script>
     <script src="../bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
@@ -114,6 +117,8 @@
 
     <script src="/src/app/dashboard/dashboard.module.js"></script>
 
+    <script src="/src/app/ericaFaces/ericaFaces.module.js"></script>
+
     <script src="/src/app/layout/layout.module.js"></script>
 
     <script src="/src/app/model-settings/model-settings.module.js"></script>
@@ -165,6 +170,8 @@
     <script src="/src/app/dashboard/dashboard.controller.js"></script>
 
     <script src="/src/app/dashboard/dashboard.route.js"></script>
+
+    <script src="/src/app/ericaFaces/ericaFaces.controller.js"></script>
 
     <script src="/src/app/layout/shell.controller.js"></script>
 

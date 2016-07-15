@@ -80,7 +80,11 @@
                 "app/lazy-widgets/robot-cycle-analysis/set-live-chart-width.controller.js",
                 "app/lazy-widgets/robot-cycle-analysis/setup-bus.html",
                 "app/lazy-widgets/robot-cycle-analysis/setup-bus.controller.js"]},
-        {"sizeX": 4, "sizeY": 4, "title": "Angular2 Inside",
+       {"sizeX": 4, "sizeY": 4, "title": "ERICA Faces",
+            "template": "app/lazy-widgets/ericaFaces/ericaFaces.html",
+            "jsfiles": ["app/lazy-widgets/ericaFaces/ericaFaces.module.js",
+                "app/lazy-widgets/ericaFaces/ericaFaces.controller.js"]},
+       {"sizeX": 4, "sizeY": 4, "title": "Angular2 Inside",
             "template": "app/lazy-widgets/ng2Inside/ng2Inside.html",
             "jsfiles": ["app/lazy-widgets/ng2Inside/ng2Inside.module.js",
                 "app/lazy-widgets/ng2Inside/ng2Inside.controller.js"]}]
