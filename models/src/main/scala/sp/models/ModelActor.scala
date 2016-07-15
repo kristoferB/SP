@@ -90,7 +90,7 @@ case class ModelDiff(model: ID,
 /**
  * Created by Kristofer on 2014-06-12.
  */
-class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
+class ModelActor(val model: ID) extends PersistentActor with ModelActorState with ActorLogging  {
   override def persistenceId = model.toString()
   implicit val timeout = Timeout(2 seconds)
   import context.dispatcher
@@ -109,72 +109,11 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
 
     case x: String =>
       val reply = sender()
-      ModelCommandAPI.readPF(x){
-            case x: PutAttributes if x.model == model =>
-              val diff = ModelDiff(model,List(),List(),
-                SPAttributes("info"->"new model attributes"),
-                state.version,state.version + 1,
-                x.name.getOrElse(state.name), x.attributes.getOrElse(state.attributes).addTimeStamp)
-              store(diff, {
-                reply ! ModelCommandAPI.write(SPOK())
-                val ac = AttributesChanged(model, diff.name, diff.version, diff.modelAttr)
-                mediator ! Publish("modelEvents", ModelCommandAPI.write(ac))
-              })
+      val res = ModelCommandAPI.readPF(x){messageAPI(reply)} {spMessageAPI} {reply ! _}
+      if (!res) log.info("ModelMaker didn't match the string "+x)
 
-            case x: PutItems if x.model == model =>
-              createDiffUpd(x.items, x.info) match {
-                case Right(diff) =>
-                  store(diff, {
-                    reply ! ModelCommandAPI.write(SPOK())
-                    val ic = ItemsChanged(model, diff.updatedItems, diff.version, diff.diffInfo)
-                    mediator ! Publish("modelEvents", ModelCommandAPI.write(ic))
-
-                  })
-                case Left(error) => reply ! ModelCommandAPI.write(error)
-              }
-
-            case x: DeleteItems if x.model == model =>
-
-
-            case x: Revert if x.model == model =>
-            case x: Import if x.model == model =>
-            case x: GetAttributes if x.model == model =>
-            case x: GetHistory if x.model == model =>
-            case x: GetItems if x.model == model =>
-            case x: GetItem if x.model == model =>
-            case x: GetItemsContainingID if x.model == model =>
-
-
-      }
-      {
-        case s: StatusRequest => mediator ! Publish("modelevents", ModelCommandAPI.write(sp.messages.Status(SPAttributes(
-          "service"->"Model",
-          "modelAttributes"->Attributes(model, state.name, state.version, state.attributes))
-        )))
-      }
-    {reply ! _}
-
-
-
-
-//    case upd @ UpdateIDs(m, ids, info) =>
-//      val reply = sender
-//      createDiffUpd(ids, info) match {
-//        case Right(diff) =>
-//          store(diff, {
-//            reply ! diff
-//          })
-//        case Left(error) => reply ! error
-//      }
-//
-//    case DeleteIDs(m, dels, info) =>
-//      val reply = sender
-//      createDiffDel(dels.toSet, info) match {
-//        case Right(diff) =>
-//          reply ! ModelCommandAPI.write(SPOK())
-//          store(diff, reply ! ModelCommandAPI.write(SPOK()))
-//        case Left(error) => reply ! error
-//      }
+    case x: ModelMessages => messageAPI(sender())(x)
+    case x: SPMessages => spMessageAPI(x)
 
     case cm: CreateModel =>
       val attr = cm.attributes.getOrElse(SPAttributes())
@@ -182,88 +121,164 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       val reply = sender
       store(diff, reply ! ModelCommandAPI.write(SPOK()))
 
-//    case UpdateModelInfo(_, ModelInfo(m, newName, v, attribute, _)) =>
-//      val reply = sender
-//      val diff = ModelDiff(
-//        model,
-//        List(),
-//        List(),
-//        SPAttributes("info"->"new model attributes"),
-//        state.version,
-//        state.version + 1,
-//        newName,
-//        attribute.addTimeStamp)
-//
-//      store(diff, reply ! SPOK)
-
-//    case Revert(_, v) =>
-//      val reply = sender
-//      val view = context.actorOf(sp.models.ModelView.props(model, v, "modelReverter"))
-//      val infoF = view ? GetModels
-//      val itemsF = view ? GetIds(model, List())
-//      for {
-//        info <- infoF.mapTo[ModelInfo]
-//        items <- itemsF.mapTo[SPIDs]
-//      } yield {
-//        val itemMap = items.items.map(x=> x.id -> x) toMap
-//        val upd = itemMap.filter{case (id, x) =>
-//          !state.idMap.contains(id) || state.idMap(id) != x
-//        }
-//        val del = state.idMap.filter{case (id, x) =>
-//          !itemMap.contains(id)
-//        }
-//
-//        val diff = ModelDiff(
-//          model,
-//          upd.values.toList,
-//          del.values.toList,
-//          SPAttributes("info"->s"reverted back to version $v"),
-//          state.version,
-//          state.version + 1,
-//          info.name,
-//          info.attributes.addTimeStamp
-//        )
-//
-//        println("model revert diff upd: "+ diff.updatedItems.map(_.name))
-//        println("model revert diff del: "+ diff.deletedItems.map(_.name))
-//
-//        self ! (diff, reply)
-//      }
-
-//    case (diff: ModelDiff, reply: ActorRef) =>
-//      store(diff, reply ! getModelInfo)
+    case x => log.debug("Model maker got a message it did not response to: "+x)
 
 
-    /**
-     * TODO: This is a temporary solution. When we go more production
-     * the Query should be in a separate actor. 140630
-     * Query handled in trait below
-     */
-//    case mess: ModelQuery =>
-//      queryMessage(sender, mess)
-//
-//    case "printState" => println(s"$model: $state")
-//    case "snapshot" => saveSnapshot(state)
-//    case GetModels => sender ! getModelInfo
-//    case ExportModel(id) => {
-//      val mi = getModelInfo.copy(history = List())
-//      val res = ImportModel(model, mi, state.idMap.values.toList, List())
-//      println(s"export")
-//      sender() ! res
-//    }
-//    case ImportModel(id, mi, ids, h) => {
-//      val reply = sender()
-//      val diffUpd = createDiffUpd(ids, SPAttributes("info"->"Model imported"), true)
-//      val idsKeys = ids.map(_.id).toSet
-//      val dels = state.idMap.filterKeys(id => !idsKeys.contains(id))
-//      println(s"import")
-//      diffUpd.left.map(err => reply ! err)
-//      diffUpd.right.map{diff =>
-//        store(diff.copy(deletedItems = dels.values.toList, name = mi.name, modelAttr = mi.attributes), reply ! SPOK)
-//      }
-//    }
 
   }
+
+  def messageAPI(reply: ActorRef): PartialFunction[ModelMessages, Unit] = {
+    case x: PutAttributes if x.model == model =>
+      val diff = ModelDiff(model,List(),List(),
+        SPAttributes("info"->"new model attributes"),
+        state.version,state.version + 1,
+        x.name.getOrElse(state.name), x.attributes.getOrElse(state.attributes).addTimeStamp)
+      store(diff, {
+        reply ! ModelCommandAPI.write(SPOK())
+        val ac = AttributesChanged(model, diff.name, diff.version, diff.modelAttr)
+        publish(ModelCommandAPI.write(ac))
+      })
+
+    case x: PutItems if x.model == model =>
+      createDiffUpd(x.items, x.info) match {
+        case Right(diff) =>
+          store(diff, {
+            reply ! ModelCommandAPI.write(SPOK())
+            val ic = ItemsChanged(model, diff.updatedItems, diff.version, diff.diffInfo)
+            publish(ModelCommandAPI.write(ic))
+
+          })
+        case Left(error) => reply ! ModelCommandAPI.write(error)
+      }
+
+    case x: DeleteItems if x.model == model =>
+
+
+    case x: Revert if x.model == model =>
+    case x: Import if x.model == model =>
+    case x: GetAttributes if x.model == model =>
+    case x: GetHistory if x.model == model =>
+    case x: GetItems if x.model == model =>
+    case x: GetItem if x.model == model =>
+    case x: GetItemsContainingID if x.model == model =>
+  }
+
+  def spMessageAPI: PartialFunction[SPMessages, Unit] = {
+    case s: StatusRequest => publish(ModelCommandAPI.write(sp.messages.StatusResponse(SPAttributes(
+      "service"->"Model",
+      "modelAttributes"->Attributes(model, state.name, state.version, state.attributes))
+    )))
+  }
+
+
+
+
+
+
+
+  //    case upd @ UpdateIDs(m, ids, info) =>
+  //      val reply = sender
+  //      createDiffUpd(ids, info) match {
+  //        case Right(diff) =>
+  //          store(diff, {
+  //            reply ! diff
+  //          })
+  //        case Left(error) => reply ! error
+  //      }
+  //
+  //    case DeleteIDs(m, dels, info) =>
+  //      val reply = sender
+  //      createDiffDel(dels.toSet, info) match {
+  //        case Right(diff) =>
+  //          reply ! ModelCommandAPI.write(SPOK())
+  //          store(diff, reply ! ModelCommandAPI.write(SPOK()))
+  //        case Left(error) => reply ! error
+  //      }
+
+  //    case UpdateModelInfo(_, ModelInfo(m, newName, v, attribute, _)) =>
+  //      val reply = sender
+  //      val diff = ModelDiff(
+  //        model,
+  //        List(),
+  //        List(),
+  //        SPAttributes("info"->"new model attributes"),
+  //        state.version,
+  //        state.version + 1,
+  //        newName,
+  //        attribute.addTimeStamp)
+  //
+  //      store(diff, reply ! SPOK)
+
+  //    case Revert(_, v) =>
+  //      val reply = sender
+  //      val view = context.actorOf(sp.models.ModelView.props(model, v, "modelReverter"))
+  //      val infoF = view ? GetModels
+  //      val itemsF = view ? GetIds(model, List())
+  //      for {
+  //        info <- infoF.mapTo[ModelInfo]
+  //        items <- itemsF.mapTo[SPIDs]
+  //      } yield {
+  //        val itemMap = items.items.map(x=> x.id -> x) toMap
+  //        val upd = itemMap.filter{case (id, x) =>
+  //          !state.idMap.contains(id) || state.idMap(id) != x
+  //        }
+  //        val del = state.idMap.filter{case (id, x) =>
+  //          !itemMap.contains(id)
+  //        }
+  //
+  //        val diff = ModelDiff(
+  //          model,
+  //          upd.values.toList,
+  //          del.values.toList,
+  //          SPAttributes("info"->s"reverted back to version $v"),
+  //          state.version,
+  //          state.version + 1,
+  //          info.name,
+  //          info.attributes.addTimeStamp
+  //        )
+  //
+  //        println("model revert diff upd: "+ diff.updatedItems.map(_.name))
+  //        println("model revert diff del: "+ diff.deletedItems.map(_.name))
+  //
+  //        self ! (diff, reply)
+  //      }
+
+  //    case (diff: ModelDiff, reply: ActorRef) =>
+  //      store(diff, reply ! getModelInfo)
+
+
+  /**
+    * TODO: This is a temporary solution. When we go more production
+    * the Query should be in a separate actor. 140630
+    * Query handled in trait below
+    */
+  //    case mess: ModelQuery =>
+  //      queryMessage(sender, mess)
+  //
+  //    case "printState" => println(s"$model: $state")
+  //    case "snapshot" => saveSnapshot(state)
+  //    case GetModels => sender ! getModelInfo
+  //    case ExportModel(id) => {
+  //      val mi = getModelInfo.copy(history = List())
+  //      val res = ImportModel(model, mi, state.idMap.values.toList, List())
+  //      println(s"export")
+  //      sender() ! res
+  //    }
+  //    case ImportModel(id, mi, ids, h) => {
+  //      val reply = sender()
+  //      val diffUpd = createDiffUpd(ids, SPAttributes("info"->"Model imported"), true)
+  //      val idsKeys = ids.map(_.id).toSet
+  //      val dels = state.idMap.filterKeys(id => !idsKeys.contains(id))
+  //      println(s"import")
+  //      diffUpd.left.map(err => reply ! err)
+  //      diffUpd.right.map{diff =>
+  //        store(diff.copy(deletedItems = dels.values.toList, name = mi.name, modelAttr = mi.attributes), reply ! SPOK)
+  //      }
+  //    }
+
+
+
+
 
 
   def store(diff: ModelDiff, after: => Unit = Unit) = {
@@ -273,6 +288,8 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       after
     }
   }
+
+  def publish(json: String) = mediator ! Publish("modelevents", json)
 
 }
 

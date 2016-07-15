@@ -56,7 +56,7 @@ trait JsonLogics {
       classOf[SPACK],
       classOf[SPOK],
       classOf[StatusRequest],
-      classOf[Status]
+      classOf[StatusResponse]
     ))
   }
 

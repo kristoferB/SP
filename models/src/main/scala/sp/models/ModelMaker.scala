@@ -99,7 +99,7 @@ class ModelMaker(modelActorMaker: ID => Props) extends PersistentActor with Acto
 
   def spMessageAPI: PartialFunction[SPMessages, Unit] = {
     case s: StatusRequest =>
-      mediator ! Publish("modelevents", ModelMakerAPI.write(sp.messages.Status(SPAttributes("service"->"ModelMaker", "noOfModels"->modelMap.keys.size, "models"->modelMap.keys.toList))))
+      mediator ! Publish("modelevents", ModelMakerAPI.write(sp.messages.StatusResponse(SPAttributes("service"->"ModelMaker", "noOfModels"->modelMap.keys.size, "models"->modelMap.keys.toList))))
   }
 
 
