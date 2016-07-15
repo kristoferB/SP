@@ -1,7 +1,6 @@
 package sp.models
 
 import akka.actor._
-import akka.cluster.client.ClusterClient.Publish
 import akka.pattern.ask
 import akka.util.Timeout
 
@@ -97,9 +96,9 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
   import context.dispatcher
 
   import akka.cluster.pubsub._
-  import DistributedPubSubMediator.{ Put, Subscribe }
+  import DistributedPubSubMediator._
   val mediator = DistributedPubSub(context.system).mediator
-  mediator ! Subscribe("modelMessages", self)
+  mediator ! Subscribe("modelmessages", self)
   mediator ! Put(self)
 
   implicit val formats = ModelCommandAPI.formats
@@ -148,10 +147,10 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
 
       }
       {
-        case s: StatusRequest => mediator ! ModelCommandAPI.write(sp.messages.Status(SPAttributes(
+        case s: StatusRequest => mediator ! Publish("modelevents", ModelCommandAPI.write(sp.messages.Status(SPAttributes(
           "service"->"Model",
           "modelAttributes"->Attributes(model, state.name, state.version, state.attributes))
-        ))
+        )))
       }
     {reply ! _}
 

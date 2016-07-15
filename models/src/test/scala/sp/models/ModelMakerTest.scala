@@ -134,7 +134,7 @@ class MockMaker(id: ID) extends Actor {
   val mediator = DistributedPubSub(context.system).mediator
   mediator ! Subscribe("modelevents", self)
   def receive = {
-    case x => println("MockMaker got : "+ x)
+    case x => println("sp.models.MockMaker got : "+ x)
   }
 }
 
