@@ -124,6 +124,8 @@
 
     <script src="/src/app/widgets/widgets.module.js"></script>
 
+    <script src="/src/app/awesome-ng2-component.component.js"></script>
+
     <script src="/src/app/blocks/exception/exception-handler.provider.js"></script>
 
     <script src="/src/app/blocks/exception/exception.service.js"></script>
@@ -162,11 +164,15 @@
 
     <script src="/src/app/dashboard/dashboard.route.js"></script>
 
+    <script src="/src/app/erica-components/faces.component.js"></script>
+
     <script src="/src/app/layout/shell.component.js"></script>
 
     <script src="/src/app/layout/shell.controller.js"></script>
 
     <script src="/src/app/layout/sp-top-nav.component.js"></script>
+
+    <script src="/src/app/main.js"></script>
 
     <script src="/src/app/model-settings/model-settings.controller.js"></script>
 
@@ -206,7 +212,8 @@
     <!-- ng2-stuff -->
     <script src="../systemjs.config.js"></script>
     <script>
-        System.import('ng2things').catch(function(err){ console.error(err); });
+        System.import('app').catch(function(err){ console.error(err); });
     </script>
+    <app>Loading...</app>
 </body>
 </html>
