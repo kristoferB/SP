@@ -1,12 +1,12 @@
 "use strict";
-//import {Component} from '@angular/core';
+var platform_browser_dynamic_1 = require('@angular/platform-browser-dynamic');
+var upgrade_adapter_1 = require('./upgrade_adapter');
+var app_component_1 = require('./layout/app.component');
 var awesome_ng2_component_component_1 = require('./awesome-ng2-component.component');
 var faces_component_1 = require('./erica-components/faces.component');
-//import { upgradeAdapter } from './upgrade_adapter';
-var upgrade_1 = require('@angular/upgrade');
-var adapter = new upgrade_1.UpgradeAdapter();
 angular.module('app')
-    .directive('awesomeNg2Component', adapter.downgradeNg2Component(awesome_ng2_component_component_1.AwesomeNG2Component))
-    .directive('facesComponent', adapter.downgradeNg2Component(faces_component_1.Faces));
-adapter.bootstrap(document.documentElement, ['app']);
+    .directive('awesomeNg2Component', upgrade_adapter_1.upgradeAdapter.downgradeNg2Component(awesome_ng2_component_component_1.AwesomeNG2Component))
+    .directive('facesComponent', upgrade_adapter_1.upgradeAdapter.downgradeNg2Component(faces_component_1.Faces));
+upgrade_adapter_1.upgradeAdapter.bootstrap(document.documentElement, ['app']);
+platform_browser_dynamic_1.bootstrap(app_component_1.AppComponent);
 //# sourceMappingURL=main.js.map
