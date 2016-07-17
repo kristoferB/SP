@@ -2,23 +2,23 @@
     'use strict';
 
     angular
-        .module('app.layout')
-        .directive('htTopNav', htTopNav);
+        .module('app')
+        .component('htTopNav', htTopNavOptions());
 
     /* @ngInject */
-    function htTopNav () {
-        var directive = {
-            scope: {},
-            bindToController: {
+    function htTopNavOptions() {
+        var options = {
+            scope: {}, // possibly unused since component-refactor
+            bindToController: { // possibly unused since component-refactor
                 'navline': '='
             },
             controller: TopNavController,
             controllerAs: 'vm',
-            restrict: 'EA',
+            restrict: 'EA', // possibly unused since component-refactor
             templateUrl: 'app/layout/sp-top-nav.html'
         };
 
-        return directive;
+        return options;
     }
 
     /* @ngInject */
