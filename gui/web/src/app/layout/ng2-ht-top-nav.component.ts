@@ -12,4 +12,15 @@ import { upgradeAdapter } from '../upgrade_adapter';
 })
 
 export class Ng2HtTopNavComponent {
+
+    showNavbar: boolean = false;
+    togglePanelLock: void;
+    toggleNavbar: void;
+
+    constructor(@Inject('settingsService') settingsService) {
+        this.showNavbar = settingsService.showNavbar;
+        this.togglePanelLock = settingsService.togglePanelLock;
+        this.toggleNavbar = settingsService.toggleNavbar;
+    }
+
 }

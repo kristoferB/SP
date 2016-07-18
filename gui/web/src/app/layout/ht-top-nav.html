@@ -1,10 +1,9 @@
-<!--<div ng-if="vm.settingsService.showNavbar">-->
-<div>
+<div *ngIf="showNavbar">
     <nav class="navbar navbar-fixed-top navbar-inverse">
         <div class="navbar-header">
             <a href="/" class="navbar-brand">
                 <img src="images/splogo_all_white.svg" class="navbar-logo" alt="." />
-                <span ng-click="vm.settingsService.toggleNavbar()" class="brand-title">Sequence<br />Planner</span>
+                <span (click)="toggleNavbar()" class="brand-title">Sequence<br />Planner</span>
 
             </a>
             <a class="btn navbar-btn navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -33,5 +32,5 @@
 -->
 
 <div class="navbar-toggle-button">
-    <button ng-click="vm.settingsService.togglePanelLock()">lock</button>
+    <button (click)="togglePanelLock()">lock</button>
 </div>
