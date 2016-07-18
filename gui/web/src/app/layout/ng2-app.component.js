@@ -12,13 +12,11 @@ var core_1 = require('@angular/core');
 var ng2_shell_component_1 = require('./ng2-shell.component');
 var Ng2AppComponent = (function () {
     function Ng2AppComponent() {
-        this.title = 'Angular2 root app';
-        this.title = 'eller är det?';
     }
     Ng2AppComponent = __decorate([
         core_1.Component({
             selector: 'ng2-app',
-            template: '<h1> {{ title }} </h1><ng2-shell></ng2-shell>',
+            template: '<ng2-shell></ng2-shell>',
             styleUrls: [],
             directives: [ng2_shell_component_1.Ng2ShellComponent],
             providers: []
