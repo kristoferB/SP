@@ -2,7 +2,7 @@
     'use strict';
 
     angular
-        .module('app.layout')
+        .module('app')
         .controller('ShellController', ShellController);
 
     ShellController.$inject = ['config', 'logger', '$document', 'settingsService'];
