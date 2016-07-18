@@ -54,8 +54,6 @@
 <body>
    
   
-    <shell></shell>
-
     <!-- build:js js/lib.js -->
     <!-- bower:js -->
     <script src="../bower_components/jquery/dist/jquery.js"></script>
@@ -124,8 +122,6 @@
 
     <script src="/src/app/widgets/widgets.module.js"></script>
 
-    <script src="/src/app/app.component.js"></script>
-
     <script src="/src/app/awesome-ng2-component.component.js"></script>
 
     <script src="/src/app/blocks/exception/exception-handler.provider.js"></script>
@@ -167,6 +163,8 @@
     <script src="/src/app/dashboard/dashboard.route.js"></script>
 
     <script src="/src/app/erica-components/faces.component.js"></script>
+
+    <script src="/src/app/layout/ng2-app.component.js"></script>
 
     <script src="/src/app/layout/shell.component.js"></script>
 
@@ -218,6 +216,6 @@
     <script>
         System.import('app').catch(function(err){ console.error(err); });
     </script>
-    <app>Loading...</app>
+    <ng2-app>Loading...</ng2-app>
 </body>
 </html>

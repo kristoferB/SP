@@ -14,7 +14,7 @@
             },
             controller: TopNavController,
             controllerAs: 'vm',
-            restrict: 'EA', // possibly unused since component-refactor
+            restrict: 'E', // must be set to 'E' for upgradability
             templateUrl: 'app/layout/sp-top-nav.html'
         };
 
