@@ -1,12 +1,13 @@
 import { Component, Inject } from '@angular/core';
 
 import { upgradeAdapter } from '../upgrade_adapter';
+import { Ng2HtTopNavComponent } from './ng2-ht-top-nav.component';
 
 @Component({
   selector: 'ng2-shell',
   templateUrl: 'app/layout/shell.html',
   styleUrls: [],
-  directives: [upgradeAdapter.upgradeNg1Component('htTopNav'),
+  directives: [Ng2HtTopNavComponent,
             upgradeAdapter.upgradeNg1Component('upgUiView')],
   providers: []
 })

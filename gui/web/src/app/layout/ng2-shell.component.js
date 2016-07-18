@@ -13,6 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require('@angular/core');
 var upgrade_adapter_1 = require('../upgrade_adapter');
+var ng2_ht_top_nav_component_1 = require('./ng2-ht-top-nav.component');
 var Ng2ShellComponent = (function () {
     function Ng2ShellComponent(config, logger, $document, settingsService) {
         this.vm = {}; // TODO
@@ -50,7 +51,7 @@ var Ng2ShellComponent = (function () {
             selector: 'ng2-shell',
             templateUrl: 'app/layout/shell.html',
             styleUrls: [],
-            directives: [upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('htTopNav'),
+            directives: [ng2_ht_top_nav_component_1.Ng2HtTopNavComponent,
                 upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('upgUiView')],
             providers: []
         }),

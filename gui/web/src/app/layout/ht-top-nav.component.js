@@ -12,10 +12,10 @@
             bindToController: { // possibly unused since component-refactor
                 'navline': '='
             },
-            controller: TopNavController,
-            controllerAs: 'vm',
+            //controller: TopNavController,
+            //controllerAs: 'vm',
             restrict: 'E', // must be set to 'E' for upgradability
-            templateUrl: 'app/layout/sp-top-nav.html'
+            templateUrl: 'app/layout/ht-top-nav.html'
         };
 
         return options;
