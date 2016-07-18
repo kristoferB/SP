@@ -13,32 +13,89 @@
             </a>
         </div>
 
-        <ul class="nav navbar-nav pull-right">
-            <li class="navbar-user" uib-dropdown>
-                <a href="" class="" uib-dropdown-toggle id="user-dropdown">
-                    <span>Kristofer</span><b class="caret"></b>
-                </a>
-                <ul class="uib-dropdown-menu uib-dropdown-menu-right  pull-right" aria-labelledby="user-dropdown">
-                    <li><a ui-sref="models"><i class="fa fa-files-o"></i> Manage models</a></li>
-                    <li><a ui-sref="settings"><i class="fa fa-cog"></i> Settings</a></li>
-                    <li><a><i class="fa fa-user"></i> Profile</a></li>
-                    <li><a><i class="fa fa-question"></i> Help</a></li>
-                    <li class="divider"></li>
-                    <li><a><i class="fa fa-sign-out"></i> Logout</a></li>
-                </ul>
-            </li>
-        </ul>
 
         <div class="navbar-collapse collapse box-shadow">
             <ul class="nav navbar-nav">
+                <li uib-dropdown id="Widgets" ng-show=true>
+                    <a uib-dropdown-toggle id="new-widget-btn">
+                        <span>New Widget</span> <span class="caret"></span>
+                    </a>
+                    <ul uib-dropdown-menu class="dropdown-menu-right" role="menu">
+                        <li ng-repeat="widgetKind in ::vm.dashboardService.widgetKinds" id="{{::(widgetKind.title | slugify) + '-uib-dropdown-item'}}"
+                            ng-click="vm.dashboardService.addWidget(vm.dashboardService.storage.dashboards[0], widgetKind)">
+                            <a href="">{{::widgetKind.title}}</a>
+                        </li>
+                    </ul>
+                </li>
+          
+                <li uib-dropdown id="Views" ng-show=true>
+                    <a uib-dropdown-toggle id="new-widget-btn">
+                        <span>View</span> <span class="caret"></span>
+                    </a>
+                    <ul uib-dropdown-menu class="dropdown-menu-right" role="menu">
+                        <li>
+                            <a ui-sref="dashboard" data-target=".navbar-collapse.in">
+                                <i class="fa fa-tachometer"></i> 
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li uib-dropdown id="Models" ng-show=true>
+                    <a uib-dropdown-toggle id="new-widget-btn">
+                        <span>Models</span> 
+                        <span class="caret"></span>
+                    </a>
+                    <ul uib-dropdown-menu class="dropdown-menu-right" role="menu">
+                        <li><a ng-click="vm.createModel()" id="open-create-model-dialog">
+                                <i class="fa fa-plus"></i>
+                                <span>Create</span>
+                        </a></li>
+                        
+                        <li class="divider"></li>
+                     
+                        <li><a ui-sref="models"><i class="fa fa-files-o"></i>  Manage models</a></li>
+
+                        <li class="divider"></li>
+                        
+                        <li><a ui-sref="model-settings" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-cog"></i> {{ vm.modelService.activeModel.name || "No model" }}</a></li>
+
+                        <li class="divider"></li>
+                        
+                        <li ng-repeat="m in vm.models">
+                            <a ng-click="vm.setActiveModel(m)" data-toggle="collapse" data-target=".navbar-collapse.in">
+                                <div ng-if="m.name == vm.modelService.activeModel.name" class="fa fa-angle-right"></div>
+                                {{ m.name }}
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li uib-dropdown id="Widgets" ng-show=true>
+                    <a uib-dropdown-toggle id="new-widget-btn">
+                        <span>Menu</span> <span class="caret"></span>
+                    </a>
+                    <ul uib-dropdown-menu class="dropdown-menu-right" role="menu">
+                        <li><a ui-sref="settings"><i class="fa fa-cog"></i> Settings</a></li>
+                        <li><a><i class="fa fa-user"></i> Profile</a></li>
+                        <li><a><i class="fa fa-question"></i> Help</a></li>
+                        <li class = "divider"></li>
+                        <li><a><i class="fa fa-sign-out"></i> Logout</a></li>
+                    </ul>
+                </li>
+
+<!--
                 <li><a ui-sref="model-settings" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-cog"></i> {{ vm.modelService.activeModel.name || "No model" }}</a></li>
+                
                 <li><a ui-sref="dashboard" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-tachometer"></i> Dashboard</a></li>
+               
                 <li ng-show="vm.$state.is('models')" ng-click="vm.createModel()" id="open-create-model-dialog">
                     <a data-toggle="collapse" data-target=".navbar-collapse.in">
                         <i class="fa fa-plus"></i>
                         <span>Create Model</span>
                     </a>
                 </li>
+               
                 <li uib-dropdown id="new-widget-dropdown" ng-show="vm.$state.is('dashboard')">
                     <a uib-dropdown-toggle id="new-widget-btn">
                         <i class="fa fa-plus"></i>
@@ -51,6 +108,7 @@
                         </li>
                     </ul>
                 </li>
+            -->
             </ul>
         </div>    
     </nav>
@@ -62,8 +120,9 @@
         <button ng-click="vm.settingsService.toggleNavbar()">Enable navbar again. TODO: make this button nice</button>
     </div>
 </div>
--->
+
 
 <div class="navbar-toggle-button">
     <button ng-click="vm.settingsService.togglePanelLock()">lock</button>
 </div>
+-->

@@ -9,7 +9,7 @@
     /* @ngInject */
     function settingsService($localStorage, $http, dashboardService) {
         //For debugging: clears localstorage
-        $localStorage.$reset();
+        //$localStorage.$reset();
         
         // contains defaults for  all options that cannot be defined 
         // directly in the .less file.
@@ -39,7 +39,7 @@
             
             showHeaders: true,
             showNavbar: true,
-            lockEnabled: true,
+            lockEnabled: false,
 
             compile_less: compile_less,
             getLayoutTheme: getLayoutTheme,

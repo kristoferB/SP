@@ -11,12 +11,13 @@
 		"gridster_panel_content_margin_top":	 "5px",
 		"gridster_panel_content_border":         "1px",
 
-		"gridster_header_padding":				 "4px"	
+		"gridster_header_padding":				 "1px",	
+		"gridster_header_font_size":			 "10px"
 	},
 
 	
 	"compact": {
-		"gridster_panel_margin": 0,
+		"gridster_panel_margin": 3,
 
 		"body_padding": "0px", 
 		"gridster_panel_border_radius":          "0px",
@@ -27,7 +28,8 @@
 		"gridster_panel_content_margin_top":	 "2px",
 		"gridster_panel_content_border":         "1px",
 
-		"gridster_header_padding":				 "4px"
+		"gridster_header_padding":				 "1px",
+		"gridster_header_font_size":			 "10px"
 
 	}
 }	

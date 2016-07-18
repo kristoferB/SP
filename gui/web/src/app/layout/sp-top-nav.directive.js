@@ -27,10 +27,16 @@
     function TopNavController(modelService, dashboardService, $state, $uibModal, settingsService) {
         var vm = this;
         vm.modelService = modelService;
+        vm.models = modelService.models;
+        vm.setActiveModel = modelService.setActiveModel;
+        vm.activeModel = modelService.activeModel;
+
         vm.dashboardService = dashboardService;
         vm.settingsService = settingsService;
         vm.$state = $state;
         vm.createModel = createModel;
+        
+     
 
         function createModel() {
             var modalInstance = $uibModal.open({
