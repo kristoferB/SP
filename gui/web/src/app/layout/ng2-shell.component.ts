@@ -6,7 +6,8 @@ import { upgradeAdapter } from '../upgrade_adapter';
   selector: 'ng2-shell',
   templateUrl: 'app/layout/shell.html',
   styleUrls: [],
-  directives: [upgradeAdapter.upgradeNg1Component('htTopNav')],
+  directives: [upgradeAdapter.upgradeNg1Component('htTopNav'),
+            upgradeAdapter.upgradeNg1Component('upgUiView')],
   providers: []
 })
 

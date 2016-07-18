@@ -50,7 +50,8 @@ var Ng2ShellComponent = (function () {
             selector: 'ng2-shell',
             templateUrl: 'app/layout/shell.html',
             styleUrls: [],
-            directives: [upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('htTopNav')],
+            directives: [upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('htTopNav'),
+                upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('upgUiView')],
             providers: []
         }),
         __param(0, core_1.Inject('config')),
