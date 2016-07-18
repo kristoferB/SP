@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
-var upgrade_adapter_1 = require('../upgrade_adapter');
+var ng2_shell_component_1 = require('./ng2-shell.component');
 var Ng2AppComponent = (function () {
     function Ng2AppComponent() {
         this.title = 'Angular2 root app';
@@ -18,9 +18,9 @@ var Ng2AppComponent = (function () {
     Ng2AppComponent = __decorate([
         core_1.Component({
             selector: 'ng2-app',
-            template: '<h1> {{ title }} </h1><shell>gablargh</shell>',
+            template: '<h1> {{ title }} </h1><ng2-shell></ng2-shell>',
             styleUrls: [],
-            directives: [upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('shell')],
+            directives: [ng2_shell_component_1.Ng2ShellComponent],
             providers: []
         }), 
         __metadata('design:paramtypes', [])

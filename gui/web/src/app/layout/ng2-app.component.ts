@@ -1,12 +1,13 @@
 import { Component, Inject } from '@angular/core';
 
 import { upgradeAdapter } from '../upgrade_adapter';
+import { Ng2ShellComponent } from './ng2-shell.component';
 
 @Component({
   selector: 'ng2-app',
-  template: '<h1> {{ title }} </h1><shell>gablargh</shell>',
+  template: '<h1> {{ title }} </h1><ng2-shell></ng2-shell>',
   styleUrls: [],
-  directives: [upgradeAdapter.upgradeNg1Component('shell')],
+  directives: [Ng2ShellComponent],
   providers: []
 })
 

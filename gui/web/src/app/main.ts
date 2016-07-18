@@ -10,4 +10,9 @@ angular.module('app')
   .directive('awesomeNg2Component', upgradeAdapter.downgradeNg2Component(AwesomeNG2Component))
   .directive('facesComponent', upgradeAdapter.downgradeNg2Component(Faces));
 
+upgradeAdapter.upgradeNg1Provider('config');
+upgradeAdapter.upgradeNg1Provider('logger');
+upgradeAdapter.upgradeNg1Provider('$document');
+upgradeAdapter.upgradeNg1Provider('settingsService');
+
 upgradeAdapter.bootstrap(document.documentElement, ['app']);
