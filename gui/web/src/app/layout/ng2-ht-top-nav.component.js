@@ -9,6 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
+var upgrade_adapter_1 = require('../upgrade_adapter');
 var Ng2HtTopNavComponent = (function () {
     function Ng2HtTopNavComponent() {
     }
@@ -17,7 +18,8 @@ var Ng2HtTopNavComponent = (function () {
             selector: 'ng2-ht-top-nav',
             templateUrl: 'app/layout/ht-top-nav.html',
             styleUrls: [],
-            directives: [],
+            directives: [upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('upgUserDropdown'),
+                upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('upgTopNavElements')],
             providers: []
         }), 
         __metadata('design:paramtypes', [])
