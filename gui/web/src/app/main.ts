@@ -1,6 +1,6 @@
 import { upgradeAdapter } from './upgrade_adapter';
 import { Ng2AppComponent } from './layout/ng2-app.component';
-import { AwesomeNG2Component } from './awesome-ng2-component.component';
+import { AwesomeNG2Component } from './lazy-widgets/ng2Inside/awesome-ng2-component.component';
 import { Faces } from './erica-components/faces.component';
 
 declare var angular: any;
