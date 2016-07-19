@@ -12,21 +12,27 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 var core_1 = require('@angular/core');
+var ng2_bootstrap_1 = require('ng2-bootstrap');
 var upgrade_adapter_1 = require('../upgrade_adapter');
 var Ng2HtTopNavComponent = (function () {
     function Ng2HtTopNavComponent(settingsService) {
         this.showNavbar = false;
+        this.showEd = false;
         this.showNavbar = settingsService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
         this.toggleNavbar = settingsService.toggleNavbar;
     }
+    Ng2HtTopNavComponent.prototype.toggleEdVisible = function () {
+        this.showEd = !this.showEd;
+    };
     Ng2HtTopNavComponent = __decorate([
         core_1.Component({
             selector: 'ng2-ht-top-nav',
             templateUrl: 'app/layout/ht-top-nav.html',
             styleUrls: [],
             directives: [upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('upgUserDropdown'),
-                upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('upgTopNavElements')],
+                upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('upgTopNavElements'),
+                ng2_bootstrap_1.DROPDOWN_DIRECTIVES],
             providers: []
         }),
         __param(0, core_1.Inject('settingsService')), 
