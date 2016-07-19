@@ -18,7 +18,7 @@
             <ul class="nav navbar-nav">
                 <li uib-dropdown id="Widgets" ng-show=true>
                     <a uib-dropdown-toggle id="new-widget-btn">
-                        <span>New Widget</span> <span class="caret"></span>
+                        <span>New widget</span> <span class="caret"></span>
                     </a>
                     <ul uib-dropdown-menu class="dropdown-menu-right" role="menu">
                         <li ng-repeat="widgetKind in ::vm.dashboardService.widgetKinds" id="{{::(widgetKind.title | slugify) + '-uib-dropdown-item'}}"
@@ -27,20 +27,34 @@
                         </li>
                     </ul>
                 </li>
-          
+
                 <li uib-dropdown id="Views" ng-show=true>
                     <a uib-dropdown-toggle id="new-widget-btn">
                         <span>View</span> <span class="caret"></span>
                     </a>
                     <ul uib-dropdown-menu class="dropdown-menu-right" role="menu">
-                        <li>
-                            <a ui-sref="dashboard" data-target=".navbar-collapse.in">
-                                <i class="fa fa-tachometer"></i> 
-                                <span>Dashboard</span>
-                            </a>
-                        </li>
+                        
+                        <li><a ui-sref="dashboard" ng-click="vm.normalView()">   
+                            <span>Default</span>
+                        </a></li>
+
+                        <li><a ui-sref="dashboard" ng-click="vm.compactView()">   
+                            <span>Compact</span>
+                        </a></li>
+
+                        <li><a ui-sref="dashboard" ng-click="vm.maximizedContentView()">   
+                            <span>Maximized content</span>
+                        </a></li>
+
+                        <li class="divider"></li>
+                        
+                        <li><a ui-sref="dashboard" ng-click="vm.layoutEditorView()">     
+                            <span>Layout editor</span>
+                        </a></li>
+
                     </ul>
                 </li>
+
                 <li uib-dropdown id="Models" ng-show=true>
                     <a uib-dropdown-toggle id="new-widget-btn">
                         <span>Models</span> 
@@ -49,11 +63,11 @@
                     <ul uib-dropdown-menu class="dropdown-menu-right" role="menu">
                         <li><a ng-click="vm.createModel()" id="open-create-model-dialog">
                                 <i class="fa fa-plus"></i>
-                                <span>Create</span>
+                                <span>New model</span>
                         </a></li>
                         
                         <li class="divider"></li>
-                     
+    
                         <li><a ui-sref="models"><i class="fa fa-files-o"></i>  Manage models</a></li>
 
                         <li class="divider"></li>

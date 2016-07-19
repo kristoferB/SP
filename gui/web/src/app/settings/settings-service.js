@@ -17,7 +17,7 @@
             color: {
                 default_white: {}
             },
-            layout:{
+            layout: {
                 standard: {
                     gridster_panel_margin: 10
                 }

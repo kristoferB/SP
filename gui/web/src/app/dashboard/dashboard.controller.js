@@ -11,7 +11,7 @@
         var vm = this;
         vm.dashboard = dashboardService.getDashboard(1);
         vm.title = $state.current.title;
-       
+        
         vm.gridsterOptions = dashboardService.gridsterOptions;
         vm.dashboardService = dashboardService;
 
@@ -21,11 +21,6 @@
             logger.log('Dashboard Controller: Activated Dashboard view.');
         }
 
-        function togglePanelLock() {
-            $timeout(function() {
-                vm.gridsterOptions.draggable.enabled = !vm.gridsterOptions.draggable.enabled ;
-                vm.gridsterOptions.resizable.enabled = !vm.gridsterOptions.resizable.enabled ;
-            }, 500, false);
-        }
+       
     }
 })();
