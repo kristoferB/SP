@@ -17,21 +17,16 @@ var upgrade_adapter_1 = require('../upgrade_adapter');
 var Ng2HtTopNavComponent = (function () {
     function Ng2HtTopNavComponent(settingsService) {
         this.showNavbar = false;
-        this.showEd = false;
         this.showNavbar = settingsService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
         this.toggleNavbar = settingsService.toggleNavbar;
     }
-    Ng2HtTopNavComponent.prototype.toggleEdVisible = function () {
-        this.showEd = !this.showEd;
-    };
     Ng2HtTopNavComponent = __decorate([
         core_1.Component({
             selector: 'ng2-ht-top-nav',
             templateUrl: 'app/layout/ht-top-nav.html',
             styleUrls: [],
-            directives: [upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('upgUserDropdown'),
-                upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('upgTopNavElements'),
+            directives: [upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('upgTopNavElements'),
                 ng2_bootstrap_1.DROPDOWN_DIRECTIVES],
             providers: []
         }),

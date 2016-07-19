@@ -14,31 +14,24 @@
         </div>
 
         <ul class="nav navbar-nav pull-right">
-            <upg-user-dropdown></upg-user-dropdown>
+            <li dropdown class="navbar-user">
+                <a dropdownToggle>
+                    <span>Kristofer</span><b class="caret"></b>
+                </a>
+                <ul dropdownMenu class="uib-dropdown-menu uib-dropdown-menu-right pull-right">
+                    <li><a ui-sref="models"><i class="fa fa-files-o"></i> Manage models</a></li>
+                    <li><a ui-sref="settings"><i class="fa fa-cog"></i> Settings</a></li>
+                    <li><a><i class="fa fa-user"></i> Profile</a></li>
+                    <li><a><i class="fa fa-question"></i> Help</a></li>
+                    <li class="divider"></li>
+                    <li><a><i class="fa fa-sign-out"></i> Logout</a></li>
+                </ul>
+            </li>
         </ul>
 
         <div class="navbar-collapse collapse box-shadow">
             <upg-top-nav-elements></upg-top-nav-elements>
         </div>
-
-        <!-- dropdown directive marks a dropdown root element -->
-        <div dropdown>
-          <!-- click on dropdown-toggle toggles dropdown state, optional -->
-          <div dropdownToggle>
-              <a>
-                  <span>ng2-boostrap dropdown</span>
-                  <span class="caret"></span>
-              </a>
-          </div>
-          <!-- dropdown-menu holds content which will be shown -->
-          <div dropdownMenu>
-                <ul>
-                    <li *ngFor="let num of [1,2,3,4]">{{ num }}</li>
-                </ul>
-            <!-- this content will be shown if dropdown opened -->
-          </div>
-        </div>
-
     </nav>
 </div>
 
