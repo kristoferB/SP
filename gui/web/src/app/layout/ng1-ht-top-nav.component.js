@@ -1,3 +1,4 @@
+// TODO fixa till test-procedurer för ng2, ta bort denna fil sen
 //(function() {
 //    'use strict';
 //
@@ -15,7 +16,7 @@
 //            //controller: TopNavController,
 //            //controllerAs: 'vm',
 //            restrict: 'E', // must be set to 'E' for upgradability
-//            templateUrl: 'app/layout/ht-top-nav.html'
+//            templateUrl: 'app/layout/sp-top-nav.html'
 //        };
 //
 //        return options;

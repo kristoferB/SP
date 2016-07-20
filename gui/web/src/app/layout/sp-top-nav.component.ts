@@ -1,17 +1,17 @@
 import { Component, Inject } from '@angular/core';
 import { DROPDOWN_DIRECTIVES } from 'ng2-bootstrap';
 
-import { upgradeAdapter } from '../upgrade_adapter';
+import { upgAdapter } from '../upg-helpers/upg-adapter';
 
 @Component({
-  selector: 'ng2-ht-top-nav',
-  templateUrl: 'app/layout/ht-top-nav.html',
+  selector: 'sp-top-nav',
+  templateUrl: 'app/layout/sp-top-nav.component.html',
   styleUrls: [],
   directives: [DROPDOWN_DIRECTIVES],
   providers: []
 })
 
-export class Ng2HtTopNavComponent {
+export class HtTopNavComponent {
 
     showNavbar: boolean;
     togglePanelLock: void;
@@ -54,6 +54,8 @@ export class Ng2HtTopNavComponent {
             });
         }
         
+        // upg-note: ugly custom resolve function will be changed when
+        // widgetListService is rewritten and returns a proper Promise
         var thiz = this;
         widgetListService.list(function(list) {
            thiz.widgetKinds = list;

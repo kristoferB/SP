@@ -1,19 +1,19 @@
 import { Component, Inject } from '@angular/core';
 
-import { upgradeAdapter } from '../upgrade_adapter';
-import { Ng2HtTopNavComponent } from './ng2-ht-top-nav.component';
+import { upgAdapter } from '../upg-helpers/upg-adapter';
+import { HtTopNavComponent } from './sp-top-nav.component';
 
 @Component({
-  selector: 'ng2-shell',
-  templateUrl: 'app/layout/shell.html',
+  selector: 'shell',
+  templateUrl: 'app/layout/shell.component.html',
   styleUrls: [],
-  directives: [Ng2HtTopNavComponent,
-            upgradeAdapter.upgradeNg1Component('upgUiView')],
+  directives: [HtTopNavComponent,
+            upgAdapter.upgradeNg1Component('upgUiView')],
   providers: []
 })
 
 // TODO test this whole class, does it do what the original controller did??
-export class Ng2ShellComponent {
+export class ShellComponent {
 
     angular: any;
 

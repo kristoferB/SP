@@ -13,8 +13,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require('@angular/core');
 var ng2_bootstrap_1 = require('ng2-bootstrap');
-var Ng2HtTopNavComponent = (function () {
-    function Ng2HtTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, settingsService) {
+var HtTopNavComponent = (function () {
+    function HtTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, settingsService) {
         this.showNavbar = settingsService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
         this.toggleNavbar = settingsService.toggleNavbar;
@@ -39,10 +39,10 @@ var Ng2HtTopNavComponent = (function () {
             dashboardService.addWidget(dashboardService.storage.dashboards[0], widgetKind);
         };
     }
-    Ng2HtTopNavComponent = __decorate([
+    HtTopNavComponent = __decorate([
         core_1.Component({
-            selector: 'ng2-ht-top-nav',
-            templateUrl: 'app/layout/ht-top-nav.html',
+            selector: 'sp-top-nav',
+            templateUrl: 'app/layout/sp-top-nav.component.html',
             styleUrls: [],
             directives: [ng2_bootstrap_1.DROPDOWN_DIRECTIVES],
             providers: []
@@ -54,8 +54,8 @@ var Ng2HtTopNavComponent = (function () {
         __param(4, core_1.Inject('$uibModal')),
         __param(5, core_1.Inject('settingsService')), 
         __metadata('design:paramtypes', [Object, Object, Object, Object, Object, Object])
-    ], Ng2HtTopNavComponent);
-    return Ng2HtTopNavComponent;
+    ], HtTopNavComponent);
+    return HtTopNavComponent;
 }());
-exports.Ng2HtTopNavComponent = Ng2HtTopNavComponent;
-//# sourceMappingURL=ng2-ht-top-nav.component.js.map
+exports.HtTopNavComponent = HtTopNavComponent;
+//# sourceMappingURL=sp-top-nav.component.js.map

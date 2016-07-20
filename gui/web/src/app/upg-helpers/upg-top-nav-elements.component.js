@@ -12,7 +12,7 @@
 //            controller: UpgTopNavElementsController,
 //            controllerAs: 'vm',
 //            restrict: 'E', // must be set to 'E' for upgradability
-//            templateUrl: 'app/upgrade-helpers/upg-top-nav-elements.html'
+//            templateUrl: 'app/upg-helpers/upg-top-nav-elements.html'
 //        };
 //
 //        return options;

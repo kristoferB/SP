@@ -1,3 +1,4 @@
+// TODO fixa till test-procedurer för ng2, ta bort denna fil sen
 //(function() {
 //    'use strict';
 //

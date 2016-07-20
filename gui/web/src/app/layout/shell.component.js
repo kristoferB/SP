@@ -12,10 +12,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 var core_1 = require('@angular/core');
-var upgrade_adapter_1 = require('../upgrade_adapter');
-var ng2_ht_top_nav_component_1 = require('./ng2-ht-top-nav.component');
-var Ng2ShellComponent = (function () {
-    function Ng2ShellComponent(config, logger, $document, settingsService) {
+var upg_adapter_1 = require('../upg-helpers/upg-adapter');
+var sp_top_nav_component_1 = require('./sp-top-nav.component');
+var ShellComponent = (function () {
+    function ShellComponent(config, logger, $document, settingsService) {
         this.vm = {}; // TODO
         this.navline = { title: config.appTitle };
         this.config = config;
@@ -25,12 +25,12 @@ var Ng2ShellComponent = (function () {
         this.vm.settingsService = settingsService; // TODO
         this.activate();
     }
-    Ng2ShellComponent.prototype.activate = function () {
+    ShellComponent.prototype.activate = function () {
         this.giveFeedbackOnDropTargets();
         this.logger.log('Shell Controller: ' + this.config.appTitle +
             ' loaded!', null);
     };
-    Ng2ShellComponent.prototype.giveFeedbackOnDropTargets = function () {
+    ShellComponent.prototype.giveFeedbackOnDropTargets = function () {
         this.$document.bind('dnd_move.vakata', onMove);
         function onMove(e, data) {
             var t = this.angular.element(data.event.target);
@@ -46,13 +46,13 @@ var Ng2ShellComponent = (function () {
             }
         }
     };
-    Ng2ShellComponent = __decorate([
+    ShellComponent = __decorate([
         core_1.Component({
-            selector: 'ng2-shell',
-            templateUrl: 'app/layout/shell.html',
+            selector: 'shell',
+            templateUrl: 'app/layout/shell.component.html',
             styleUrls: [],
-            directives: [ng2_ht_top_nav_component_1.Ng2HtTopNavComponent,
-                upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('upgUiView')],
+            directives: [sp_top_nav_component_1.HtTopNavComponent,
+                upg_adapter_1.upgAdapter.upgradeNg1Component('upgUiView')],
             providers: []
         }),
         __param(0, core_1.Inject('config')),
@@ -60,8 +60,8 @@ var Ng2ShellComponent = (function () {
         __param(2, core_1.Inject('$document')),
         __param(3, core_1.Inject('settingsService')), 
         __metadata('design:paramtypes', [Object, Object, Object, Object])
-    ], Ng2ShellComponent);
-    return Ng2ShellComponent;
+    ], ShellComponent);
+    return ShellComponent;
 }());
-exports.Ng2ShellComponent = Ng2ShellComponent;
-//# sourceMappingURL=ng2-shell.component.js.map
+exports.ShellComponent = ShellComponent;
+//# sourceMappingURL=shell.component.js.map
