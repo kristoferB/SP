@@ -38,6 +38,12 @@ module.exports = function() {
         js: [
             clientApp + '**/*.module.js',
             clientApp + '**/*.js',
+            '!' + clientApp + 'erica-components/*',
+            '!' + clientApp + 'upg-helpers/upg-adapter*',
+            '!' + clientApp + 'upg-helpers/upg-convert-stuff*',
+            '!' + clientApp + 'upg-helpers/upg-convert-stuff*',
+            '!' + clientApp + 'main*',
+            '!' + clientApp + 'layout/**',
             '!' + clientApp + 'lazy-widgets/**',
             '!' + specs,
             '!' + e2eSpecs
