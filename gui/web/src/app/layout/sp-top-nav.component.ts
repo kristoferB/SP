@@ -11,7 +11,7 @@ import { upgAdapter } from '../upg-helpers/upg-adapter';
   providers: []
 })
 
-export class HtTopNavComponent {
+export class SpTopNavComponent {
 
     showNavbar: boolean;
     togglePanelLock: void;
@@ -32,7 +32,7 @@ export class HtTopNavComponent {
 
     models: any;
     setActiveModel: (model: any) => void;
-    //activeModelName: string;
+    activeModelName: () => string;
 
     constructor(
         @Inject('modelService') modelService,
@@ -84,6 +84,7 @@ export class HtTopNavComponent {
 
         this.models = modelService.models;
         this.setActiveModel = modelService.setActiveModel;
-        //this.activeModelName = modelService.activeModel.name;
+        this.activeModelName = () => modelService.activeModel ?
+            modelService.activeModel.name : null;
     }
 }

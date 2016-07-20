@@ -51,7 +51,7 @@ var ShellComponent = (function () {
             selector: 'shell',
             templateUrl: 'app/layout/shell.component.html',
             styleUrls: [],
-            directives: [sp_top_nav_component_1.HtTopNavComponent,
+            directives: [sp_top_nav_component_1.SpTopNavComponent,
                 upg_adapter_1.upgAdapter.upgradeNg1Component('upgUiView')],
             providers: []
         }),

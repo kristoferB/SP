@@ -13,9 +13,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require('@angular/core');
 var ng2_bootstrap_1 = require('ng2-bootstrap');
-var HtTopNavComponent = (function () {
-    //activeModelName: string;
-    function HtTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, themeService, settingsService) {
+var SpTopNavComponent = (function () {
+    function SpTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, themeService, settingsService) {
         this.showNavbar = settingsService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
         this.toggleNavbar = settingsService.toggleNavbar;
@@ -47,9 +46,10 @@ var HtTopNavComponent = (function () {
         this.layoutEditorView = themeService.layoutEditorView;
         this.models = modelService.models;
         this.setActiveModel = modelService.setActiveModel;
-        //this.activeModelName = modelService.activeModel.name;
+        this.activeModelName = function () { return modelService.activeModel ?
+            modelService.activeModel.name : null; };
     }
-    HtTopNavComponent = __decorate([
+    SpTopNavComponent = __decorate([
         core_1.Component({
             selector: 'sp-top-nav',
             templateUrl: 'app/layout/sp-top-nav.component.html',
@@ -65,8 +65,8 @@ var HtTopNavComponent = (function () {
         __param(5, core_1.Inject('themeService')),
         __param(6, core_1.Inject('settingsService')), 
         __metadata('design:paramtypes', [Object, Object, Object, Object, Object, Object, Object])
-    ], HtTopNavComponent);
-    return HtTopNavComponent;
+    ], SpTopNavComponent);
+    return SpTopNavComponent;
 }());
-exports.HtTopNavComponent = HtTopNavComponent;
+exports.SpTopNavComponent = SpTopNavComponent;
 //# sourceMappingURL=sp-top-nav.component.js.map

@@ -1,13 +1,13 @@
 import { Component, Inject } from '@angular/core';
 
 import { upgAdapter } from '../upg-helpers/upg-adapter';
-import { HtTopNavComponent } from './sp-top-nav.component';
+import { SpTopNavComponent } from './sp-top-nav.component';
 
 @Component({
   selector: 'shell',
   templateUrl: 'app/layout/shell.component.html',
   styleUrls: [],
-  directives: [HtTopNavComponent,
+  directives: [SpTopNavComponent,
             upgAdapter.upgradeNg1Component('upgUiView')],
   providers: []
 })
