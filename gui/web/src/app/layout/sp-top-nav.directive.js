@@ -22,9 +22,9 @@
     }
 
     /* @ngInject */
-    TopNavController.$inject = ['modelService', 'dashboardService', '$state', '$uibModal','settingsService'];
+    TopNavController.$inject = ['modelService', 'dashboardService', '$state', '$uibModal','themeService'];
 
-    function TopNavController(modelService, dashboardService, $state, $uibModal, settingsService) {
+    function TopNavController(modelService, dashboardService, $state, $uibModal, themeService) {
         var vm = this;
         vm.modelService = modelService;
         vm.models = modelService.models;
@@ -32,14 +32,13 @@
         vm.activeModel = modelService.activeModel;
 
         vm.dashboardService = dashboardService;
-        vm.settingsService = settingsService;
         vm.$state = $state;
         vm.createModel = createModel;
         vm.normalView = normalView;
         vm.compactView = compactView;
         vm.maximizedContentView = maximizedContentView;
         vm.layoutEditorView = layoutEditorView;
-     
+        vm.showNavbar = themeService.showNavbar;
 
         function createModel() {
             var modalInstance = $uibModal.open({
@@ -56,25 +55,25 @@
         function normalView(){
             vm.dashboardService.setPanelLock(false);
              dashboardService.setPanelMargins(10);
-             settingsService.showHeaders = true;
+             themeService.showHeaders = true;
         }
         
         function compactView(){
             dashboardService.setPanelLock(false);
             dashboardService.setPanelMargins(3);
-            settingsService.showHeaders = true;
+            themeService.showHeaders = true;
         }
         
         function maximizedContentView(){
             dashboardService.setPanelLock(false);
             dashboardService.setPanelMargins(0);
-            settingsService.showHeaders = false;
+            themeService.showHeaders = false;
         }
 
         function layoutEditorView(){
             dashboardService.setPanelLock(true);
             dashboardService.setPanelMargins(20);
-            settingsService.showHeaders = true;
+            themeService.showHeaders = true;
         }
     }
 })();
