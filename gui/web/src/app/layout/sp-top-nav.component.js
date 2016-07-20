@@ -31,6 +31,8 @@ var HtTopNavComponent = (function () {
                 modelService.createModel(chosenName);
             });
         };
+        // upg-note: ugly custom resolve function will be changed when
+        // widgetListService is rewritten and returns a proper Promise
         var thiz = this;
         widgetListService.list(function (list) {
             thiz.widgetKinds = list;
