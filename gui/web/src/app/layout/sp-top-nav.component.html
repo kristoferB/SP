@@ -1,4 +1,4 @@
-<div *ngIf="showNavbar">
+<div *ngIf="true">
     <nav class="navbar navbar-fixed-top navbar-inverse">
         <div class="navbar-header">
             <a href="/" class="navbar-brand">
@@ -13,41 +13,11 @@
             </a>
         </div>
 
-        <ul class="nav navbar-nav pull-right">
-            <li dropdown class="navbar-user">
-                <a dropdownToggle>
-                    <span>Kristofer</span><b class="caret"></b>
-                </a>
-                <ul dropdownMenu class="uib-dropdown-menu uib-dropdown-menu-right pull-right">
-                    <!-- upg-note: serfs in this file changed to hrefs
-                        because we have no ng2-router yet. The function is
-                        the same as long as url and state-name are. -->
-                    <li><a href="models"><i class="fa fa-files-o"></i> Manage models</a></li>
-                    <li><a href="settings"><i class="fa fa-cog"></i> Settings</a></li>
-                    <li><a><i class="fa fa-user"></i> Profile</a></li>
-                    <li><a><i class="fa fa-question"></i> Help</a></li>
-                    <li class="divider"></li>
-                    <li><a><i class="fa fa-sign-out"></i> Logout</a></li>
-                </ul>
-            </li>
-        </ul>
-
         <div class="navbar-collapse collapse box-shadow">
             <ul class="nav navbar-nav">
-
-                <li><a href="model-settings" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-cog"></i> {{ activeModel() || "No model" }}</a></li>
-                <li><a href="dashboard" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-tachometer"></i> Dashboard</a></li>
-                <li *ngIf="!isState('models')" (click)="createModel()" id="open-create-model-dialog">
-                    <a data-toggle="collapse" data-target=".navbar-collapse.in">
-                        <i class="fa fa-plus"></i>
-                        <span>Create Model</span>
-                    </a>
-                </li>
-
-                <li dropdown id="new-widget-dropdown" *ngIf="isState('dashboard')">
+                <li dropdown id="Widgets" *ngIf="true">
                     <a dropdownToggle id="new-widget-btn">
-                        <i class="fa fa-plus"></i>
-                        <span>New Widget</span> <span class="caret"></span>
+                        <span>New widget</span> <span class="caret"></span>
                     </a>
                     <ul dropdownMenu class="uib-dropdown-menu" role="menu">
                         <li *ngFor="let widgetKind of widgetKinds" 
@@ -57,20 +27,81 @@
                         </li>
                     </ul>
                 </li>
+
+                <li dropdown id="Views" *ngIf="true">
+                    <a dropdownToggle id="new-widget-btn">
+                        <span>View</span> <span class="caret"></span>
+                    </a>
+                    <ul dropdownMenu class="dropdown-menu-right" role="menu">
+                        <!-- upg-note: serfs in this file changed to hrefs
+                            because we have no ng2-router yet. The function is
+                            the same as long as url and state-name are. -->
+                        <li><a href="dashboard" (click)="normalView()">   
+                            <span>Default</span>
+                        </a></li>
+
+                        <li><a href="dashboard" (click)="compactView()">   
+                            <span>Compact</span>
+                        </a></li>
+
+                        <li><a href="dashboard" (click)="maximizedContentView()">   
+                            <span>Maximized content</span>
+                        </a></li>
+
+                        <li class="divider"></li>
+                        
+                        <li><a href="dashboard" (click)="layoutEditorView()">     
+                            <span>Layout editor</span>
+                        </a></li>
+
+                    </ul>
+                </li>
+
+                <li dropdown id="Models" *ngIf="true">
+                    <a dropdownToggle id="new-widget-btn">
+                        <span>Models</span> 
+                        <span class="caret"></span>
+                    </a>
+                    <ul dropdownMenu class="dropdown-menu-right" role="menu">
+                        <li><a (click)="createModel()" id="open-create-model-dialog">
+                                <i class="fa fa-plus"></i>
+                                <span>New model</span>
+                        </a></li>
+                        
+                        <li class="divider"></li>
+    
+                        <li><a href="models"><i class="fa fa-files-o"></i>  Manage models</a></li>
+
+                        <li class="divider"></li>
+                        
+                        <li><a href="model-settings" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-cog"></i> {{ activeModel() || "No model" }}</a></li>
+
+                        <li class="divider"></li>
+                        
+                        <!--
+                        <li *ngFor="let m of models">
+                            <a (click)="setActiveModel(m)" data-toggle="collapse" data-target=".navbar-collapse.in">
+                                <div *ngIf="m.name == activeModelName()" class="fa fa-angle-right"></div>
+                                {{ m.name }}
+                            </a>
+                        </li>
+                        -->
+                    </ul>
+                </li>
+
+                <li dropdown id="Widgets" *ngIf="true">
+                    <a dropdownToggle id="new-widget-btn">
+                        <span>Menu</span> <span class="caret"></span>
+                    </a>
+                    <ul dropdownMenu class="dropdown-menu-right" role="menu">
+                        <li><a href="settings"><i class="fa fa-cog"></i> Settings</a></li>
+                        <li><a><i class="fa fa-user"></i> Profile</a></li>
+                        <li><a><i class="fa fa-question"></i> Help</a></li>
+                        <li class = "divider"></li>
+                        <li><a><i class="fa fa-sign-out"></i> Logout</a></li>
+                    </ul>
+                </li>
             </ul>
         </div>
     </nav>
-</div>
-
-
-<!--
-<div ng-if="!vm.settingsService.showNavbar">
-    <div class="navbar-toggle-button">
-        <button ng-click="vm.settingsService.toggleNavbar()">Enable navbar again. TODO: make this button nice</button>
-    </div>
-</div>
--->
-
-<div class="navbar-toggle-button">
-    <button (click)="togglePanelLock()">lock</button>
 </div>

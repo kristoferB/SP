@@ -22,7 +22,6 @@
 
         activate();
 
-
         function activate() {
             $scope.$on('closeRequest', function() {
                 dashboardService.closeWidget(vm.widget.id);

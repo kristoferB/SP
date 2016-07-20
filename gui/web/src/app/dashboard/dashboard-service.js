@@ -32,9 +32,12 @@
                 columns: 12,
                 swapping: true,
                 margins: [0,0],
+                floating: false,
+                pushing: false,
+                swapping: false,
                 draggable: {
                     enabled: false,
-                    handle: '.panel-heading'
+                    handle: '.panel-default'
                 },
                 resizable:{
                     enabled: false
@@ -109,9 +112,10 @@
         }
 
         function setPanelLock(isLocked){
-            service.gridsterOptions.draggable.enabled = !service.gridsterOptions.draggable.enabled;
-            service.gridsterOptions.resizable.enabled = !service.gridsterOptions.resizable.enabled;
+            service.gridsterOptions.draggable.enabled = isLocked;
+            service.gridsterOptions.resizable.enabled = isLocked;
         }
+        
         function setPanelMargins(margin){
             service.gridsterOptions.margins[0] = margin;
             service.gridsterOptions.margins[1] = margin;

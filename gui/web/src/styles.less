@@ -97,6 +97,8 @@
 @showHeaders: true;
 @showNavbar: true;
 
+@gridster_header_font_size: 16px;
+
 * {
     font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -274,7 +276,6 @@ a {
 /* Gridster Widgets */
 
 .gridster {
-
     .handle-se {
         border: none;
         width: 12px;
@@ -282,11 +283,14 @@ a {
     }
     
     .panel {
-
+        background-color: @gridster_panel_background;
         display: flex;
         flex-direction: column;
         height: 100%;
         border-radius: @gridster_panel_border_radius + 1;
+        .panel-title {
+            font-size: @gridster_header_font_size;
+        }
 
         .panel-heading {
 
@@ -315,6 +319,14 @@ a {
             }
         }
     
+        .panel-settings {
+            align-self: center;
+            width: -moz-fit-content;
+            margin-top: 30%;
+            background-color: @gridster_panel_background;
+        }
+     
+
         .panel-body {
 
             border: @gridster_panel_content_border solid @gridster_panel_border;
@@ -386,6 +398,95 @@ a {
         }
     }
 }
+
+/* Widgets not in gridster */
+.panel-heading {
+    padding-top:@gridster_header_padding;
+    padding-bottom:@gridster_header_padding;
+    border-top-left-radius:  @gridster_panel_border_radius;
+    border-top-right-radius:  @gridster_panel_border_radius;
+    background-color: @gridster_panel_heading_background;
+
+    flex: 0 0 auto;
+
+    &:hover .widget-close-btn {
+        transition-delay: 50ms;
+        opacity: 1;
+        visibility: visible;
+
+    }
+
+    .widget-close-btn {
+        transition: opacity 100ms ease 0ms, visibility 0ms ease 200ms;
+        cursor: pointer;
+        line-height: 20px;
+        opacity: 0;
+        visibility: hidden;
+
+    }
+}
+
+.panel-body {
+
+    border: @gridster_panel_content_border solid @gridster_panel_border;
+    overflow-y: auto; 
+    overflow-x: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: @gridster_panel_background;
+    border-bottom-left-radius: @gridster_panel_border_radius;
+    border-bottom-right-radius: @gridster_panel_border_radius;
+
+    & when(@showHeaders = false){
+        border-top-left-radius: @gridster_panel_border_radius;
+        border-top-right-radius: @gridster_panel_border_radius;
+    }
+   
+    [ng-controller] {
+        
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        border-top-left-radius: @gridster_panel_border_radius;
+        border-top-right-radius: @gridster_panel_border_radius;
+
+        .panel-toolbar {
+            padding-top: @gridster_panel_toolbar_padding;
+            padding-bottom: @gridster_panel_toolbar_padding;
+            padding-left: @gridster_panel_toolbar_padding;
+            padding-right: @gridster_panel_toolbar_padding;
+
+            flex: 0 0 auto;
+
+            button:not(.input-group-btn button) {
+                //width: 60px;
+                margin-right: 10px;
+            }
+
+            .btn-group:not([uib-dropdown]) {
+                margin-right: 10px;
+            }
+
+            .btn-group button {
+                margin-right: 0;
+                margin-left: 0;
+            }
+        }
+
+        .panel-content {
+            flex: 1;
+            position: relative;
+            background-color: @gridster_content_background;
+
+            &:focus {
+                outline: none;
+            }
+        }
+    }
+}
+
 
 /* Item Editor */
 
@@ -793,13 +894,15 @@ select {
         margin-right: 10px;
         display: flex;
         float: left;
-        min-width: 200px;
+        min-width: 120px;
     }
 
     .navbar-brand {
-        line-height: 50px;
-        padding: 0 20px;
+        line-height: 0px;
+        padding: 0 5px;
         display: flex;
+        padding-right: 10px;
+        padding-left: 10px;
         align-items: center;
     }
 
@@ -859,6 +962,7 @@ select {
     }
 
     .nav > li > a {
+        cursor: pointer;
         padding-top: 15px;
         padding-bottom: 15px;
     }
@@ -873,11 +977,11 @@ select {
 }
 
 .navbar-inverse .navbar-nav {
-
+    float: right;
     margin: 0;
 
     > li {
-
+        cursor: pointer;
         &.open > a {
             &, &:hover, &:focus {
                 background-color: rgba(0, 0, 0, 0.05);

@@ -1,0 +1,13 @@
+{
+    "body_padding": "10px", 
+    "gridster_panel_border_radius":          "5px",
+    "gridster_panel_toolbar_padding":        "25px", 
+    "gridster_panel_content_margin_left":    "25px", 
+    "gridster_panel_content_margin_right":   "25px",
+    "gridster_panel_content_margin_bottom":  "25px",
+    "gridster_panel_content_margin_top":     "25px",
+    "gridster_panel_content_border":         "10px",
+
+    "gridster_header_padding":               "1px", 
+    "gridster_header_font_size":             "10px"
+} 

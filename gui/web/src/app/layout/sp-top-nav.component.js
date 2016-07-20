@@ -14,7 +14,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 var core_1 = require('@angular/core');
 var ng2_bootstrap_1 = require('ng2-bootstrap');
 var HtTopNavComponent = (function () {
-    function HtTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, settingsService) {
+    //activeModelName: string;
+    function HtTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, themeService, settingsService) {
         this.showNavbar = settingsService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
         this.toggleNavbar = settingsService.toggleNavbar;
@@ -40,6 +41,13 @@ var HtTopNavComponent = (function () {
         this.addWidget = function (widgetKind) {
             dashboardService.addWidget(dashboardService.storage.dashboards[0], widgetKind);
         };
+        this.normalView = themeService.normalView;
+        this.compactView = themeService.compactView;
+        this.maximizedContentView = themeService.maximizedContentView;
+        this.layoutEditorView = themeService.layoutEditorView;
+        this.models = modelService.models;
+        this.setActiveModel = modelService.setActiveModel;
+        //this.activeModelName = modelService.activeModel.name;
     }
     HtTopNavComponent = __decorate([
         core_1.Component({
@@ -54,8 +62,9 @@ var HtTopNavComponent = (function () {
         __param(2, core_1.Inject('widgetListService')),
         __param(3, core_1.Inject('$state')),
         __param(4, core_1.Inject('$uibModal')),
-        __param(5, core_1.Inject('settingsService')), 
-        __metadata('design:paramtypes', [Object, Object, Object, Object, Object, Object])
+        __param(5, core_1.Inject('themeService')),
+        __param(6, core_1.Inject('settingsService')), 
+        __metadata('design:paramtypes', [Object, Object, Object, Object, Object, Object, Object])
     ], HtTopNavComponent);
     return HtTopNavComponent;
 }());

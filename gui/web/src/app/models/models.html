@@ -34,7 +34,6 @@
                                 cancel-button-type="default">
                                 <i class="fa fa-trash-o"></i> Delete
                             </button>
-
                         </td>
                     </tr>
                 </tbody>
@@ -42,27 +41,27 @@
         </sp-widget>
 
 
-                        <sp-widget widget="vm.importTitle" show-close-btn="false" class="item-editor">
-                            <div class="panel-toolbar">
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Format"
-                                            ng-click="vm.editor.format()"><i class="fa fa-align-left"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Compact"
-                                            ng-click="vm.editor.compact()"><i class="fa fa-align-justify"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-default" uib-tooltip="Compact"
-                                            ng-click="vm.importModel()">Import
-                                    </button>
+        <sp-widget widget="vm.importTitle" show-close-btn="false" class="item-editor">
+            <div class="panel-toolbar">
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Format"
+                            ng-click="vm.editor.format()"><i class="fa fa-align-left"></i>
+                    </button>
+                    <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Compact"
+                            ng-click="vm.editor.compact()"><i class="fa fa-align-justify"></i>
+                    </button>
+                    <button class="btn btn-sm btn-default" uib-tooltip="Compact"
+                            ng-click="vm.importModel()">Import
+                    </button>
 
-                                </div>
-                                <div class="panel-content" json-editor="vm.editorLoaded" ng-model="vm.modelJson" options="vm.options"
-                                     ng-model-options="{debounce:400}"></div>
+                </div>
+                <div class="panel-content" json-editor="vm.editorLoaded" ng-model="vm.modelJson" options="vm.options"
+                     ng-model-options="{debounce:400}"></div>
 
-                            </div>
+            </div>
 
 
-                        </sp-widget>
+        </sp-widget>
 
     </div>
 </section>

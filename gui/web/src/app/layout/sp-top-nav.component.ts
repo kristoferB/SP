@@ -25,12 +25,22 @@ export class HtTopNavComponent {
     addWidget: (widgetKind: any) => void;
     widgetKindTitle: string;
 
+    normalView: () => void;
+    compactView: () => void;
+    maximizedContentView: () => void;
+    layoutEditorView: () => void;
+
+    models: any;
+    setActiveModel: (model: any) => void;
+    //activeModelName: string;
+
     constructor(
         @Inject('modelService') modelService,
         @Inject('dashboardService') dashboardService,
         @Inject('widgetListService') widgetListService,
         @Inject('$state') $state,
         @Inject('$uibModal') $uibModal,
+        @Inject('themeService') themeService,
         @Inject('settingsService') settingsService
     ) {
         this.showNavbar = settingsService.showNavbar;
@@ -66,5 +76,14 @@ export class HtTopNavComponent {
                 dashboardService.storage.dashboards[0], widgetKind
             );
         }
+
+        this.normalView = themeService.normalView;
+        this.compactView = themeService.compactView;
+        this.maximizedContentView = themeService.maximizedContentView;
+        this.layoutEditorView = themeService.layoutEditorView;
+
+        this.models = modelService.models;
+        this.setActiveModel = modelService.setActiveModel;
+        //this.activeModelName = modelService.activeModel.name;
     }
 }

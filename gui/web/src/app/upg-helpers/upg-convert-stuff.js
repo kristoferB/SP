@@ -16,6 +16,7 @@ function upgConvertStuff(upgAdapter) {
     upgAdapter.upgradeNg1Provider('widgetListService');
     upgAdapter.upgradeNg1Provider('$state');
     upgAdapter.upgradeNg1Provider('$uibModal');
+    upgAdapter.upgradeNg1Provider('themeService');
 }
 exports.upgConvertStuff = upgConvertStuff;
 //# sourceMappingURL=upg-convert-stuff.js.map
