@@ -28,13 +28,16 @@
         return directive;
     }
 
-    SPWidgetController.$inject = ['$scope','settingsService'];
+    SPWidgetController.$inject = ['$scope','settingsService','themeService'];
 
-    function SPWidgetController($scope, settingsService) {
+    function SPWidgetController($scope, settingsService, themeService) {
         var vm = this;
         vm.requestClose = requestClose;
         vm.title = angular.copy(vm.widget.title, '');
         vm.settingsService = settingsService;
+        vm.showHeaders = themeService.showHeaders;
+        vm.showWidgetOptions = themeService.showWidgetOptions;
+        vm.themeService = themeService;
         function requestClose() {
             $scope.$broadcast('closeRequest', vm.widget.id);
         }

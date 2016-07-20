@@ -8,15 +8,12 @@
                             <tr>
                                 <td>Color theme</td>
                                 <td>
-                                    <select class="form-control input-sm" ng-model="vm.settingsService.storage.currentColor"
+                                    <select ng-click="vm.updateColorTheme()" class="form-control input-sm" ng-model="vm.settingsService.storage.currentColor"
                                     ng-options="color_theme for color_theme in vm.colorOptions"></select>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-                    <button ng-click="vm.updateColorTheme()">
-                        Save options
-                    </button>
                 </div>
             </form>
         </sp-widget>

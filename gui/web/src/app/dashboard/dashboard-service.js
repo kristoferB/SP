@@ -37,7 +37,7 @@
                 swapping: false,
                 draggable: {
                     enabled: false,
-                    handle: '.panel-heading'
+                    handle: '.panel-default'
                 },
                 resizable:{
                     enabled: false

@@ -21,6 +21,12 @@
 
             showHeaders: true,
             showNavbar: true,
+            showWidgetOptions: false,
+
+            normalView: normalView,
+            compactView: compactView,
+            maximizedContentView: maximizedContentView,
+            layoutEditorView: layoutEditorView,
 
             setColorTheme: setColorTheme
         };
@@ -60,6 +66,14 @@
             configureGridster();
         }
 
+        function enableHeaders(){
+            service.showHeaders = true;
+        }
+
+        function disableHeaders(){
+            service.showHeaders = false;
+        }
+
         function assignFromServer(url, variable){
             $http.get(url, "json").
                 then(function successCallback(response) {
@@ -69,6 +83,38 @@
                     console.log(response);
                 }
             );
+        }
+
+        function normalView(){
+            dashboardService.setPanelLock(false);
+            service.storage.gridsterConstants.margin = 10;
+            enableHeaders();
+            service.showWidgetOptions = false;
+            setLayoutTheme("normalView");
+        }
+        
+        function compactView(){
+            dashboardService.setPanelLock(false);
+            service.storage.gridsterConstants.margin = 3;
+            enableHeaders();
+            service.showWidgetOptions = false;
+            setLayoutTheme("compactView");
+        }
+        
+        function maximizedContentView(){
+            dashboardService.setPanelLock(false);
+            service.storage.gridsterConstants.margin = 0;
+            disableHeaders();
+            service.showWidgetOptions = false;
+            setLayoutTheme("maximizedContentView");  
+        }
+
+        function layoutEditorView(){
+            dashboardService.setPanelLock(true);
+            service.storage.gridsterConstants.margin = 10;
+            enableHeaders();
+            service.showWidgetOptions = true;
+            setLayoutTheme("layoutEditorView");
         }
     }
 })();

@@ -34,10 +34,10 @@
         vm.dashboardService = dashboardService;
         vm.$state = $state;
         vm.createModel = createModel;
-        vm.normalView = normalView;
-        vm.compactView = compactView;
-        vm.maximizedContentView = maximizedContentView;
-        vm.layoutEditorView = layoutEditorView;
+        vm.normalView = themeService.normalView;
+        vm.compactView = themeService.compactView;
+        vm.maximizedContentView = themeService.maximizedContentView;
+        vm.layoutEditorView = themeService.layoutEditorView;
         vm.showNavbar = themeService.showNavbar;
 
         function createModel() {
@@ -50,30 +50,6 @@
             modalInstance.result.then(function(chosenName) {
                 modelService.createModel(chosenName);
             });
-        }
-
-        function normalView(){
-            vm.dashboardService.setPanelLock(false);
-             dashboardService.setPanelMargins(10);
-             themeService.showHeaders = true;
-        }
-        
-        function compactView(){
-            dashboardService.setPanelLock(false);
-            dashboardService.setPanelMargins(3);
-            themeService.showHeaders = true;
-        }
-        
-        function maximizedContentView(){
-            dashboardService.setPanelLock(false);
-            dashboardService.setPanelMargins(0);
-            themeService.showHeaders = false;
-        }
-
-        function layoutEditorView(){
-            dashboardService.setPanelLock(true);
-            dashboardService.setPanelMargins(20);
-            themeService.showHeaders = true;
         }
     }
 })();
