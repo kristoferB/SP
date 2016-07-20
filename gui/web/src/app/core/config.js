@@ -33,5 +33,4 @@
         dialogsProvider.setSize('md');
         dialogsProvider.useFontAwesome();
     }
-
 })();

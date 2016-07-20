@@ -13,7 +13,7 @@
     function spServicesForm($compile) {
         var directive = {
             restrict: 'EA',
-            templateUrl: 'app/spServices/spServices.directive.html',
+            templateUrl: 'app/lazy-widgets/spServices/spServices.directive.html',
             scope: {
                 attributes: '=',
                 structure: '=',

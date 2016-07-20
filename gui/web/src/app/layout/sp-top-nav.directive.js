@@ -22,9 +22,9 @@
     }
 
     /* @ngInject */
-    TopNavController.$inject = ['modelService', 'dashboardService', '$state', '$uibModal','themeService'];
+    TopNavController.$inject = ['modelService', 'dashboardService', '$state', '$uibModal', 'settingsService', 'themeService'];
 
-    function TopNavController(modelService, dashboardService, $state, $uibModal, themeService) {
+    function TopNavController(modelService, dashboardService, $state, $uibModal, settingsService, themeService) {
         var vm = this;
         vm.modelService = modelService;
         vm.models = modelService.models;
@@ -32,6 +32,7 @@
         vm.activeModel = modelService.activeModel;
 
         vm.dashboardService = dashboardService;
+        vm.settingsService = settingsService;
         vm.$state = $state;
         vm.createModel = createModel;
         vm.normalView = themeService.normalView;

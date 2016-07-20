@@ -1,0 +1,14 @@
+{
+  "plugins": {
+    "commonjs": {
+    },
+    "node": {
+    },
+    "requirejs": {
+    },
+    "node_resolve": {
+    },
+    "angular": {
+    }
+  }
+}

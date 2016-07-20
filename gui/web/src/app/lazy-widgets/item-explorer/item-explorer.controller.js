@@ -303,7 +303,7 @@
 
         function createItem(itemKind) {
             var modalInstance = $uibModal.open({
-                templateUrl: '/app/item-explorer/create-item.html',
+                templateUrl: '/app/lazy-widgets/item-explorer/create-item.html',
                 controller: 'CreateItemController',
                 controllerAs: 'vm',
                 resolve: {
