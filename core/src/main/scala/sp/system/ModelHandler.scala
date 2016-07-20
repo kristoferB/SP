@@ -28,7 +28,6 @@ class ModelHandler extends PersistentActor {
       val reply = sender()
       if (!modelMap.contains(id)){
         persist(cm){n =>
-          println(s"The modelHandler creates a new model called ${cm.name} id: ${cm.id}")
           addModel(n)
           modelMap(n.id) ! n
           val info = ModelInfo(id, name, 1, attr, List())
@@ -94,11 +93,15 @@ class ModelHandler extends PersistentActor {
 
   def viewNameMaker(id: ID, v: Long) = id.toString() + " - Version: " + v
 
+  var reMod = Map[ID, CreateModel]()
   def receiveRecover = {
     case cm: CreateModel  =>
-      addModel(cm)
+      reMod = reMod + (cm.id->cm)
     case dm: DeleteModel =>
-      deleteModel(dm)
+      reMod = reMod - dm.model
+    case RecoveryCompleted =>
+      reMod.values.foreach(addModel)
+      reMod = Map()
   }
 
 }
