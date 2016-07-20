@@ -6,7 +6,7 @@
     "gridster_panel_content_margin_right":   "25px",
     "gridster_panel_content_margin_bottom":  "25px",
     "gridster_panel_content_margin_top":     "25px",
-    "gridster_panel_content_border":         "50px",
+    "gridster_panel_content_border":         "10px",
 
     "gridster_header_padding":               "1px", 
     "gridster_header_font_size":             "10px"

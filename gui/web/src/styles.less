@@ -283,7 +283,7 @@ a {
     }
     
     .panel {
-
+        background-color: @gridster_panel_background;
         display: flex;
         flex-direction: column;
         height: 100%;
@@ -319,6 +319,14 @@ a {
             }
         }
     
+        .panel-settings {
+            align-self: center;
+            width: -moz-fit-content;
+            margin-top: 30%;
+            background-color: @gridster_panel_background;
+        }
+     
+
         .panel-body {
 
             border: @gridster_panel_content_border solid @gridster_panel_border;
