@@ -34,22 +34,31 @@
                     </a>
                     <ul uib-dropdown-menu class="dropdown-menu-right" role="menu">
                         
-                        <li><a ui-sref="dashboard" ng-click="vm.normalView()">   
+                        <li><a ui-sref="dashboard" ng-click="vm.normalView()">  
+                            <div ng-if="vm.themeService.currentView == 'normalView'" class="fa fa-angle-right"></div>     
                             <span>Default</span>
                         </a></li>
 
-                        <li><a ui-sref="dashboard" ng-click="vm.compactView()">   
+                        <li><a ui-sref="dashboard" ng-click="vm.compactView()">  
+                            <div ng-if="vm.themeService.currentView == 'compactView'" class="fa fa-angle-right"></div>     
                             <span>Compact</span>
                         </a></li>
 
                         <li><a ui-sref="dashboard" ng-click="vm.maximizedContentView()">   
+                            <div ng-if="vm.themeService.currentView == 'maximizedContentView'" class="fa fa-angle-right"></div>     
                             <span>Maximized content</span>
                         </a></li>
 
                         <li class="divider"></li>
                         
-                        <li><a ui-sref="dashboard" ng-click="vm.layoutEditorView()">     
-                            <span>Layout editor</span>
+                        <li><a ui-sref="dashboard" ng-click="vm.enableEditorMode()">
+                            <div ng-if="vm.themeService.editorModeEnabled" class="fa fa-angle-right"></div>     
+                            <span>Edit mode</span>
+                        </a></li>
+
+                         <li><a ui-sref="dashboard" ng-click="vm.disableEditorMode()">   
+                            <div ng-if="!vm.themeService.editorModeEnabled" class="fa fa-angle-right"></div>       
+                            <span>View mode</span> 
                         </a></li>
 
                     </ul>

@@ -26,7 +26,13 @@
             normalView: normalView,
             compactView: compactView,
             maximizedContentView: maximizedContentView,
-            layoutEditorView: layoutEditorView,
+            
+            enableEditorMode: enableEditorMode,
+            disableEditorMode: disableEditorMode,
+
+            editorModeEnabled: false,
+
+            currentView: "normalView",
 
             setColorTheme: setColorTheme
         };
@@ -86,35 +92,36 @@
         }
 
         function normalView(){
-            dashboardService.setPanelLock(false);
+            service.currentView = "normalView";
             service.storage.gridsterConstants.margin = 10;
             enableHeaders();
-            service.showWidgetOptions = false;
             setLayoutTheme("normalView");
         }
         
         function compactView(){
-            dashboardService.setPanelLock(false);
+            service.currentView = "compactView";
             service.storage.gridsterConstants.margin = 3;
             enableHeaders();
-            service.showWidgetOptions = false;
             setLayoutTheme("compactView");
         }
         
         function maximizedContentView(){
-            dashboardService.setPanelLock(false);
+            service.currentView = "maximizedContentView";   
             service.storage.gridsterConstants.margin = 0;
             disableHeaders();
-            service.showWidgetOptions = false;
             setLayoutTheme("maximizedContentView");  
         }
 
-        function layoutEditorView(){
+        function enableEditorMode(){
+            service.editorModeEnabled = true;
             dashboardService.setPanelLock(true);
-            service.storage.gridsterConstants.margin = 10;
-            enableHeaders();
             service.showWidgetOptions = true;
-            setLayoutTheme("layoutEditorView");
+        }
+
+        function disableEditorMode(){
+            service.editorModeEnabled = false;
+            dashboardService.setPanelLock(false);
+            service.showWidgetOptions = false;
         }
     }
 })();
