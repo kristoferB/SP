@@ -13,25 +13,47 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require('@angular/core');
 var ng2_bootstrap_1 = require('ng2-bootstrap');
-var upgrade_adapter_1 = require('../upgrade_adapter');
 var Ng2HtTopNavComponent = (function () {
-    function Ng2HtTopNavComponent(settingsService) {
-        this.showNavbar = false;
+    function Ng2HtTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, settingsService) {
         this.showNavbar = settingsService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
         this.toggleNavbar = settingsService.toggleNavbar;
+        this.activeModel = function () { return modelService.activeModel ?
+            modelService.activeModel.name : null; };
+        this.isState = $state.is;
+        this.createModel = function () {
+            var modalInstance = $uibModal.open({
+                templateUrl: '/app/models/createmodel.html',
+                controller: 'CreateModelController',
+                controllerAs: 'vm'
+            });
+            modalInstance.result.then(function (chosenName) {
+                modelService.createModel(chosenName);
+            });
+        };
+        var thiz = this;
+        widgetListService.list(function (list) {
+            thiz.widgetKinds = list;
+        });
+        this.addWidget = function (widgetKind) {
+            dashboardService.addWidget(dashboardService.storage.dashboards[0], widgetKind);
+        };
     }
     Ng2HtTopNavComponent = __decorate([
         core_1.Component({
             selector: 'ng2-ht-top-nav',
             templateUrl: 'app/layout/ht-top-nav.html',
             styleUrls: [],
-            directives: [upgrade_adapter_1.upgradeAdapter.upgradeNg1Component('upgTopNavElements'),
-                ng2_bootstrap_1.DROPDOWN_DIRECTIVES],
+            directives: [ng2_bootstrap_1.DROPDOWN_DIRECTIVES],
             providers: []
         }),
-        __param(0, core_1.Inject('settingsService')), 
-        __metadata('design:paramtypes', [Object])
+        __param(0, core_1.Inject('modelService')),
+        __param(1, core_1.Inject('dashboardService')),
+        __param(2, core_1.Inject('widgetListService')),
+        __param(3, core_1.Inject('$state')),
+        __param(4, core_1.Inject('$uibModal')),
+        __param(5, core_1.Inject('settingsService')), 
+        __metadata('design:paramtypes', [Object, Object, Object, Object, Object, Object])
     ], Ng2HtTopNavComponent);
     return Ng2HtTopNavComponent;
 }());

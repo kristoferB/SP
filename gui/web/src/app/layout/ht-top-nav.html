@@ -30,7 +30,31 @@
         </ul>
 
         <div class="navbar-collapse collapse box-shadow">
-            <upg-top-nav-elements></upg-top-nav-elements>
+            <ul class="nav navbar-nav">
+
+                <li><a href="model-settings" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-cog"></i> {{ activeModel() || "No model" }}</a></li>
+                <li><a href="dashboard" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-tachometer"></i> Dashboard</a></li>
+                <li *ngIf="!isState('models')" (click)="createModel()" id="open-create-model-dialog">
+                    <a data-toggle="collapse" data-target=".navbar-collapse.in">
+                        <i class="fa fa-plus"></i>
+                        <span>Create Model</span>
+                    </a>
+                </li>
+
+                <li dropdown id="new-widget-dropdown" *ngIf="isState('dashboard')">
+                    <a dropdownToggle id="new-widget-btn">
+                        <i class="fa fa-plus"></i>
+                        <span>New Widget</span> <span class="caret"></span>
+                    </a>
+                    <ul dropdownMenu class="uib-dropdown-menu" role="menu">
+                        <li *ngFor="let widgetKind of widgetKinds" 
+                            (click)="addWidget(widgetKind)">
+                            <!--id="{{(widgetKind.title | slugify) + '-uib-dropdown-item'}}"> what is this used for?-->
+                            <a href="">{{ widgetKind.title }}</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
         </div>
     </nav>
 </div>

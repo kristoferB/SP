@@ -11,5 +11,10 @@ upgrade_adapter_1.upgradeAdapter.upgradeNg1Provider('config');
 upgrade_adapter_1.upgradeAdapter.upgradeNg1Provider('logger');
 upgrade_adapter_1.upgradeAdapter.upgradeNg1Provider('$document');
 upgrade_adapter_1.upgradeAdapter.upgradeNg1Provider('settingsService');
+upgrade_adapter_1.upgradeAdapter.upgradeNg1Provider('modelService');
+upgrade_adapter_1.upgradeAdapter.upgradeNg1Provider('dashboardService');
+upgrade_adapter_1.upgradeAdapter.upgradeNg1Provider('widgetListService');
+upgrade_adapter_1.upgradeAdapter.upgradeNg1Provider('$state');
+upgrade_adapter_1.upgradeAdapter.upgradeNg1Provider('$uibModal');
 upgrade_adapter_1.upgradeAdapter.bootstrap(document.documentElement, ['app']);
 //# sourceMappingURL=main.js.map

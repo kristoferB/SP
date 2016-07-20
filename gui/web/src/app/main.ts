@@ -14,5 +14,10 @@ upgradeAdapter.upgradeNg1Provider('config');
 upgradeAdapter.upgradeNg1Provider('logger');
 upgradeAdapter.upgradeNg1Provider('$document');
 upgradeAdapter.upgradeNg1Provider('settingsService');
+upgradeAdapter.upgradeNg1Provider('modelService');
+upgradeAdapter.upgradeNg1Provider('dashboardService');
+upgradeAdapter.upgradeNg1Provider('widgetListService');
+upgradeAdapter.upgradeNg1Provider('$state');
+upgradeAdapter.upgradeNg1Provider('$uibModal');
 
 upgradeAdapter.bootstrap(document.documentElement, ['app']);
