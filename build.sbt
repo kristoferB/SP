@@ -52,7 +52,9 @@ lazy val models = project.dependsOn(domain).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= akka ++ json)
 
-
+lazy val macros = project.
+  settings(commonSettings: _*).
+  settings(libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _))
 
 
 

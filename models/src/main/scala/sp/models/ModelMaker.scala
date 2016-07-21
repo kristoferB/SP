@@ -6,7 +6,7 @@ import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 import scala.concurrent.duration._
 import akka.persistence._
 import sp.domain._
-import sp.domain.Logic._
+import sp.domain.LogicNoImplicit._
 import sp.messages._
 
 import scala.util.{Failure, Success, Try}
@@ -56,9 +56,10 @@ class ModelMaker(modelActorMaker: ID => Props) extends PersistentActor with Acto
 
 
   def receiveCommand = {
-    //case mess @ _ if {println(s"ModelMaker got: $mess from $sender"); false} => Unit
+    case mess @ _ if {println(s"ModelMaker got: $mess from $sender"); false} => Unit
 
     case x: String =>
+
       val reply = sender()
       val res = ModelMakerAPI.readPF(x){messageAPI(reply)} {spMessageAPI} {reply ! _}
       if (!res) log.info("ModelMaker didn't match the string "+x)
@@ -104,7 +105,7 @@ class ModelMaker(modelActorMaker: ID => Props) extends PersistentActor with Acto
 
 
   def addModel(cm: CreateModel) = {
-    val newModelH = context.actorOf(modelActorMaker(cm.model.get))
+    val newModelH = context.actorOf(modelActorMaker(cm.model.get), cm.model.get.toString)
     modelMap += (cm.model.get -> newModelH)
   }
 

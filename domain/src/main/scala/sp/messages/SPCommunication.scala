@@ -20,6 +20,7 @@ trait SPCommunicationAPI {
   lazy val spFormats = new JsonFormats{}
   lazy val formats = new JsonFormats {override val typeHints = ShortTypeHints(spFormats.typeHints.hints ++ apiFormats)}
 
+
   def write[T](x: T)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = SPValue(x).toJson
 
   /**
@@ -39,7 +40,7 @@ trait SPCommunicationAPI {
       case Failure(thr) => false
       case Success(mess) =>
         if (pfSPMessages.isDefinedAt(mess)) pfSPMessages(mess)
-        pfSPMessages.isDefinedAt(mess)
+        true
     }
 
     spMess || {
@@ -68,5 +69,7 @@ trait SPCommunicationAPI {
 
 
 }
+
+
 
 

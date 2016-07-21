@@ -25,6 +25,7 @@ case class Revert(model: ID, toVersion: Long) extends ModelMessages
 case class Import(model: ID, name: String, version: Long, attributes: SPAttributes, items: List[IDAble], history: List[ModelMessages]) extends ModelMessages
 
 // events
+case class ModelCreated(model: ID, name: String, version: Long, attributes: SPAttributes) extends ModelMessages
 case class AttributesChanged(model: ID, name: String, version: Long, attributes: SPAttributes) extends ModelMessages
 case class ItemsChanged(model: ID, items: List[IDAble], version: Long, info: SPAttributes) extends ModelMessages
 case class ItemsDeleted(model: ID, items: List[ID], version: Long, info: SPAttributes) extends ModelMessages
@@ -45,7 +46,7 @@ case class Items(model: ID, items: List[IDAble]) extends ModelMessages
 case class Item(model: ID, item: IDAble) extends ModelMessages
 
 
-object ModelCommandAPI extends SPCommunicationAPI {
+object ModelMessagesAPI extends SPCommunicationAPI {
   type MessageType = ModelMessages
   val apiFormats = List(
     classOf[PutAttributes],
@@ -53,6 +54,7 @@ object ModelCommandAPI extends SPCommunicationAPI {
     classOf[DeleteItems],
     classOf[Revert],
     classOf[Import],
+    classOf[ModelCreated],
     classOf[AttributesChanged],
     classOf[ItemsChanged],
     classOf[ItemsDeleted],
@@ -101,7 +103,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState wit
   mediator ! Subscribe("modelmessages", self)
   mediator ! Put(self)
 
-  implicit val formats = ModelCommandAPI.formats
+  implicit val formats = ModelMessagesAPI.formats
 
 
   def receiveCommand = {
@@ -109,19 +111,21 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState wit
 
     case x: String =>
       val reply = sender()
-      val res = ModelCommandAPI.readPF(x){messageAPI(reply)} {spMessageAPI} {reply ! _}
+      val res = ModelMessagesAPI.readPF(x){messageAPI(reply)} {spMessageAPI} {reply ! _}
       if (!res) log.info("ModelMaker didn't match the string "+x)
 
     case x: ModelMessages => messageAPI(sender())(x)
     case x: SPMessages => spMessageAPI(x)
 
     case cm: CreateModel =>
+      println(s"model actor got: $cm")
       val attr = cm.attributes.getOrElse(SPAttributes())
       val diff = ModelDiff(model, List(), List(), SPAttributes("info"->"new model attributes"), state.version, state.version + 1, cm.name, attr.addTimeStamp)
       val reply = sender
-      store(diff, reply ! ModelCommandAPI.write(SPOK()))
+      reply ! ModelMessagesAPI.write(SPOK())
+      store(diff, publish(ModelMessagesAPI.write(ModelCreated(model, state.name, state.version, state.attributes))))
 
-    case x => log.debug("Model maker got a message it did not response to: "+x)
+    case x => log.debug("Model actor got a message it did not response to: "+x)
 
 
 
@@ -134,27 +138,37 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState wit
         state.version,state.version + 1,
         x.name.getOrElse(state.name), x.attributes.getOrElse(state.attributes).addTimeStamp)
       store(diff, {
-        reply ! ModelCommandAPI.write(SPOK())
+        reply ! ModelMessagesAPI.write(SPOK())
         val ac = AttributesChanged(model, diff.name, diff.version, diff.modelAttr)
-        publish(ModelCommandAPI.write(ac))
+        publish(ModelMessagesAPI.write(ac))
       })
 
     case x: PutItems if x.model == model =>
       createDiffUpd(x.items, x.info) match {
         case Right(diff) =>
+          reply ! ModelMessagesAPI.write(SPOK())
           store(diff, {
-            reply ! ModelCommandAPI.write(SPOK())
-            val ic = ItemsChanged(model, diff.updatedItems, diff.version, diff.diffInfo)
-            publish(ModelCommandAPI.write(ic))
-
+            val mess = ItemsChanged(model, diff.updatedItems, diff.version, diff.diffInfo)
+            publish(ModelMessagesAPI.write(mess))
           })
-        case Left(error) => reply ! ModelCommandAPI.write(error)
+        case Left(error) => reply ! ModelMessagesAPI.write(error)
       }
 
     case x: DeleteItems if x.model == model =>
-
+      createDiffDel(x.items.toSet, x.info) match {
+        case Right(diff) =>
+          reply ! ModelMessagesAPI.write(SPOK())
+          store(diff, {
+            val mess = ItemsDeleted(model, diff.deletedItems.map(_.id), diff.version, diff.diffInfo)
+            publish(ModelMessagesAPI.write(mess))
+          })
+        case Left(error) => reply ! error
+      }
 
     case x: Revert if x.model == model =>
+
+
+
     case x: Import if x.model == model =>
     case x: GetAttributes if x.model == model =>
     case x: GetHistory if x.model == model =>
@@ -164,7 +178,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState wit
   }
 
   def spMessageAPI: PartialFunction[SPMessages, Unit] = {
-    case s: StatusRequest => publish(ModelCommandAPI.write(sp.messages.StatusResponse(SPAttributes(
+    case s: StatusRequest => publish(ModelMessagesAPI.write(sp.messages.StatusResponse(SPAttributes(
       "service"->"Model",
       "modelAttributes"->Attributes(model, state.name, state.version, state.attributes))
     )))
