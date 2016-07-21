@@ -9,7 +9,9 @@
     /* @ngInject */
     function DashboardController(logger, $state, $timeout, dashboardService, $rootScope) {
         var vm = this;
-        vm.dashboard = dashboardService.getDashboard(1);
+        dashboardService.getDashboard(1, function(dashboard) {
+            vm.dashboard = dashboard;
+        });
         vm.title = $state.current.title;
        
         vm.gridsterOptions = dashboardService.gridsterOptions;

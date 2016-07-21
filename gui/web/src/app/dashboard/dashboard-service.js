@@ -19,7 +19,8 @@
                 dashboards: [{
                     id: 1,
                     name: 'My Board',
-                    widgets: []
+                    widgets: [],
+                    requiredFiles: []
                 }],
                 widgetID: 1,
                 dashboardID: 2
@@ -70,12 +71,15 @@
                 + dashboard.id + '.');
         }
 
-        function getDashboard(id) {
+        function getDashboard(id, callback) {
             var index = _.findIndex(service.storage.dashboards, {id: id});
             if (index === -1) {
                 return null
             } else {
-                return service.storage.dashboards[index];
+                var dashboard = service.storage.dashboards[index];
+                $ocLazyLoad.load(dashboard.requiredFiles).then(function() {
+                    callback(dashboard);
+                });
             }
         }
 
@@ -85,8 +89,13 @@
         }
 
         function addWidget(dashboard, widgetKind, additionalData) {
-               
-            $ocLazyLoad.load(widgetKind.jsfiles).then(function() {
+
+            var requiredFiles = widgetKind.jsfiles;
+            for (var index in requiredFiles) {
+                console.log(requiredFiles[index]);
+                dashboard.requiredFiles.push(requiredFiles[index]);
+            }
+            $ocLazyLoad.load(requiredFiles).then(function() {
                 var widget = angular.copy(widgetKind, {});
                 widget.id = service.storage.widgetID++;
                 if (additionalData !== undefined) {
