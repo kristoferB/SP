@@ -13,6 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require('@angular/core');
 var angular2_grid_1 = require('angular2-grid');
+var upg_adapter_1 = require('../upg-helpers/upg-adapter');
 var Ng2DashboardComponent = (function () {
     function Ng2DashboardComponent(logger, $state, 
         //@Inject('$timeout') $timeout,
@@ -20,11 +21,11 @@ var Ng2DashboardComponent = (function () {
         var _this = this;
         dashboardService.getDashboard(1, function (dashboard) {
             _this.dashboard = dashboard;
+            _this.widgets = dashboard.widgets;
         });
         this.title = $state.current.title;
         this.gridsterOptions = dashboardService.gridsterOptions;
         this.ngGridOptions = dashboardService.ngGridOptions;
-        this.widgets = dashboardService.widgets;
         //this.togglePanelLock = () => {
         //    $timeout( () => {
         //        this.gridsterOptions.draggable.enabled =
@@ -39,7 +40,8 @@ var Ng2DashboardComponent = (function () {
             selector: 'ng2-dashboard',
             templateUrl: 'app/dashboard/ng2-dashboard.component.html',
             styleUrls: [],
-            directives: [angular2_grid_1.NgGrid, angular2_grid_1.NgGridItem],
+            directives: [angular2_grid_1.NgGrid, angular2_grid_1.NgGridItem,
+                upg_adapter_1.upgAdapter.upgradeNg1Component('spWidget')],
             providers: []
         }),
         __param(0, core_1.Inject('logger')),

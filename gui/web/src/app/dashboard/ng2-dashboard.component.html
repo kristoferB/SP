@@ -1,9 +1,10 @@
 <section id="dashboard-view" class="mainbar">
 
     <div [ngGrid]="ngGridOptions">
-        <div *ngFor="let num of [1,2,3,4,5]" [ngGridItem]="{ 'sizex': 4 }">
-            <div class="title">{{ num }}</div>
-            <h1>a widget</h1>
+        <div *ngFor="let widget of widgets" [ngGridItem]="{ 'sizex': 4 }">
+            <sp-widget widget="widget" dashboard="dashboard" show-close-btn="true">
+                <h1>a widget</h1>
+            </sp-widget>
         </div>
     </div>
 

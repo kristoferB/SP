@@ -7,7 +7,8 @@ import { upgAdapter } from '../upg-helpers/upg-adapter';
   selector: 'ng2-dashboard',
   templateUrl: 'app/dashboard/ng2-dashboard.component.html',
   styleUrls: [],
-  directives: [NgGrid, NgGridItem],
+  directives: [NgGrid, NgGridItem,
+            upgAdapter.upgradeNg1Component('spWidget')],
   providers: []
 })
 
@@ -17,7 +18,7 @@ export class Ng2DashboardComponent {
     title: string;
     gridsterOptions: any;
     ngGridOptions: any;
-    widgets: any;
+    widgets: any[];
     togglePanelLock: () => void; // funkar ej än
 
     constructor(
@@ -28,11 +29,11 @@ export class Ng2DashboardComponent {
         ) {
             dashboardService.getDashboard(1, (dashboard) => {
                 this.dashboard = dashboard;
+                this.widgets = dashboard.widgets;
             });
             this.title = $state.current.title;
             this.gridsterOptions = dashboardService.gridsterOptions;
             this.ngGridOptions = dashboardService.ngGridOptions;
-            this.widgets = dashboardService.widgets;
             //this.togglePanelLock = () => {
             //    $timeout( () => {
             //        this.gridsterOptions.draggable.enabled =

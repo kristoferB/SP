@@ -3,7 +3,7 @@
 
     angular
         .module('app.widgets')
-        .directive('spWidget', spWidget);
+        .component('spWidget', spWidget());
 
     spWidget.$inject = [];
     /* @ngInject */
@@ -11,11 +11,11 @@
         var directive = {
             restrict: 'E',
             templateUrl: 'app/widgets/sp-widget.html',
-            controller: SPWidgetController,
-            controllerAs: 'vm',
+            //controller: SPWidgetController,
+            //controllerAs: 'vm',
             scope: {},
             transclude: true,
-            replace: true,
+            //replace: true,
             bindToController: {
                 widget: '=',
                 dashboard: '=',
