@@ -9,11 +9,15 @@
     '@angular':                   'node_modules/@angular',
     'angular2-in-memory-web-api': 'node_modules/angular2-in-memory-web-api',
     'rxjs':                       'node_modules/rxjs',
-    'd3':                         'node_modules/d3/build/d3.js'
+    'd3':                         'node_modules/d3/build/d3.js',
+    // ng2-bootstrap needs moment apparently
+    'moment':                     'node_modules/moment/moment.js',
+    'ng2-bootstrap':              'node_modules/ng2-bootstrap'
   };
   // packages tells the System loader how to load when no filename and/or no extension
   var packages = {
-    'ng2things':                        { main: 'main.js',  defaultExtension: 'js' },
+    'ng2-bootstrap': { main: 'ng2-bootstrap.js', defaultExtension: 'js' },
+    'app':                        { main: 'main.js',  defaultExtension: 'js' },
     'rxjs':                       { defaultExtension: 'js' },
     'angular2-in-memory-web-api': { main: 'index.js', defaultExtension: 'js' }//,
     //'d3': { main: 'index.js', defaultExtension: 'js' }

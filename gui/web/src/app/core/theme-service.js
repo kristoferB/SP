@@ -26,7 +26,7 @@
             normalView: normalView,
             compactView: compactView,
             maximizedContentView: maximizedContentView,
-            
+
             enableEditorMode: enableEditorMode,
             disableEditorMode: disableEditorMode,
 
@@ -97,19 +97,19 @@
             enableHeaders();
             setLayoutTheme("normalView");
         }
-        
+
         function compactView(){
             service.currentView = "compactView";
             service.storage.gridsterConstants.margin = 3;
             enableHeaders();
             setLayoutTheme("compactView");
         }
-        
+
         function maximizedContentView(){
-            service.currentView = "maximizedContentView";   
+            service.currentView = "maximizedContentView";
             service.storage.gridsterConstants.margin = 0;
             disableHeaders();
-            setLayoutTheme("maximizedContentView");  
+            setLayoutTheme("maximizedContentView");
         }
 
         function enableEditorMode(){

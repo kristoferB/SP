@@ -11,10 +11,10 @@ import * as d3 from 'd3';
     template: `
         <div style="position:relative;">
         <svg class="face_chart" style="display: block; margin:0 auto; font-weight:bold;" ></svg>
-            <img id="bertilpil" class="fejsss" src="ng2things/erica-components/icons/Trend_ok.svg"
+            <img id="bertilpil" class="fejsss" src="app/erica-components/icons/Trend_ok.svg"
                 width="45%"
                 height="45%" />
-            <img id="lottapil" class="fejsss" src="ng2things/erica-components/icons/Trend_bra.svg"
+            <img id="lottapil" class="fejsss" src="app/erica-components/icons/Trend_bra.svg"
                 width="45%"
                 height="45%" />
         </div>
@@ -103,13 +103,13 @@ export class Faces implements OnInit {
         var picPath: string;
         switch(mood) {
             case 1:
-                picPath = "ng2things/erica-components/icons/Nyckeltal_bra.svg";
+                picPath = "app/erica-components/icons/Nyckeltal_bra.svg";
                 break;
             case 0:
-                picPath = "ng2things/erica-components/icons/Nyckeltal_ok.svg";
+                picPath = "app/erica-components/icons/Nyckeltal_ok.svg";
                 break;
             case -1:
-                picPath = "ng2things/erica-components/icons/Nyckeltal_bad.svg";
+                picPath = "app/erica-components/icons/Nyckeltal_bad.svg";
                 break;
         }
         return picPath;
@@ -119,13 +119,13 @@ export class Faces implements OnInit {
         var picPath: string;
         switch(trend) {
             case 1:
-                picPath = "ng2things/erica-components/icons/Trend_bra.svg";
+                picPath = "app/erica-components/icons/Trend_bra.svg";
                 break;
             case 0:
-                picPath = "ng2things/erica-components/icons/Trend_ok.svg";
+                picPath = "app/erica-components/icons/Trend_ok.svg";
                 break;
             case -1:
-                picPath = "ng2things/erica-components/icons/Trend_bad.svg";
+                picPath = "app/erica-components/icons/Trend_bad.svg";
                 break;
         }
         return picPath;

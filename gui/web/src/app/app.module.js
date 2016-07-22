@@ -8,7 +8,6 @@
         'app.modelSettings',
         'app.dashboard',
         'app.settings',
-        'app.layout',
         'app.tables'
     ]);
 

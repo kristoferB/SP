@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html ng-controller="ShellController as vm">
+<html>
 <head>
     <style>
         /* This helps the ng-show/ng-hide animations start at the right place. */
@@ -54,9 +54,6 @@
 <body>
    
   
-    <div ng-include="'app/layout/shell.html'"></div>
-
-
     <!-- build:js js/lib.js -->
     <!-- bower:js -->
     <script src="../bower_components/jquery/dist/jquery.js"></script>
@@ -115,8 +112,6 @@
 
     <script src="/src/app/dashboard/dashboard.module.js"></script>
 
-    <script src="/src/app/layout/layout.module.js"></script>
-
     <script src="/src/app/model-settings/model-settings.module.js"></script>
 
     <script src="/src/app/models/models.module.js"></script>
@@ -167,10 +162,6 @@
 
     <script src="/src/app/dashboard/dashboard.route.js"></script>
 
-    <script src="/src/app/layout/shell.controller.js"></script>
-
-    <script src="/src/app/layout/sp-top-nav.directive.js"></script>
-
     <script src="/src/app/model-settings/model-settings.controller.js"></script>
 
     <script src="/src/app/model-settings/model-settings.route.js"></script>
@@ -195,6 +186,10 @@
 
     <script src="/src/app/tables/sp-table.directive.js"></script>
 
+    <script src="/src/app/upg-helpers/upg-top-nav-elements.component.js"></script>
+
+    <script src="/src/app/upg-helpers/upg-ui-view.component.js"></script>
+
     <script src="/src/app/widgets/sp-widget.directive.js"></script>
 
     <!-- endinject -->
@@ -206,10 +201,13 @@
     <!-- endbuild -->
     
 
+    <script src="../node_modules/ng2-bootstrap/bundles/ng2-bootstrap.min.js"></script>
     <!-- ng2-stuff -->
     <script src="../systemjs.config.js"></script>
     <script>
-        System.import('ng2things').catch(function(err){ console.error(err); });
+        System.import('app').catch(function(err){ console.error(err); });
     </script>
+    <!-- upg-note: shell is the ng2 root-component, as for now -->
+    <shell>Loading...</shell>
 </body>
 </html>

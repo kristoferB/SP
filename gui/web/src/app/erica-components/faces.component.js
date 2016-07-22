@@ -63,13 +63,13 @@ var Faces = (function () {
         var picPath;
         switch (mood) {
             case 1:
-                picPath = "ng2things/erica-components/icons/Nyckeltal_bra.svg";
+                picPath = "app/erica-components/icons/Nyckeltal_bra.svg";
                 break;
             case 0:
-                picPath = "ng2things/erica-components/icons/Nyckeltal_ok.svg";
+                picPath = "app/erica-components/icons/Nyckeltal_ok.svg";
                 break;
             case -1:
-                picPath = "ng2things/erica-components/icons/Nyckeltal_bad.svg";
+                picPath = "app/erica-components/icons/Nyckeltal_bad.svg";
                 break;
         }
         return picPath;
@@ -78,13 +78,13 @@ var Faces = (function () {
         var picPath;
         switch (trend) {
             case 1:
-                picPath = "ng2things/erica-components/icons/Trend_bra.svg";
+                picPath = "app/erica-components/icons/Trend_bra.svg";
                 break;
             case 0:
-                picPath = "ng2things/erica-components/icons/Trend_ok.svg";
+                picPath = "app/erica-components/icons/Trend_ok.svg";
                 break;
             case -1:
-                picPath = "ng2things/erica-components/icons/Trend_bad.svg";
+                picPath = "app/erica-components/icons/Trend_bad.svg";
                 break;
         }
         return picPath;
@@ -225,7 +225,7 @@ var Faces = (function () {
     Faces = __decorate([
         core_1.Component({
             selector: 'faces',
-            template: "\n        <div style=\"position:relative;\">\n        <svg class=\"face_chart\" style=\"display: block; margin:0 auto; font-weight:bold;\" ></svg>\n            <img id=\"bertilpil\" class=\"fejsss\" src=\"ng2things/erica-components/icons/Trend_ok.svg\"\n                width=\"45%\"\n                height=\"45%\" />\n            <img id=\"lottapil\" class=\"fejsss\" src=\"ng2things/erica-components/icons/Trend_bra.svg\"\n                width=\"45%\"\n                height=\"45%\" />\n        </div>\n        ",
+            template: "\n        <div style=\"position:relative;\">\n        <svg class=\"face_chart\" style=\"display: block; margin:0 auto; font-weight:bold;\" ></svg>\n            <img id=\"bertilpil\" class=\"fejsss\" src=\"app/erica-components/icons/Trend_ok.svg\"\n                width=\"45%\"\n                height=\"45%\" />\n            <img id=\"lottapil\" class=\"fejsss\" src=\"app/erica-components/icons/Trend_bra.svg\"\n                width=\"45%\"\n                height=\"45%\" />\n        </div>\n        ",
             styles: ["\n        .fejsss {\n            position:absolute;\n        }\n        #bertil {\n            top: 37%;\n            left: -10.5%;\n        }\n        #lotta {\n            top: 37%;\n            left: 65%;\n        }\n        #bertilpil {\n            top: 70%;\n            left: 2.5%;\n        } \n        #lottapil {\n            top: 70%;\n            left: 53%;\n        } \n        "] //,
         }), 
         __metadata('design:paramtypes', [])

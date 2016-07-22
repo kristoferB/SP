@@ -12,21 +12,21 @@
     "tests"
   ],
   "devDependencies": {
-    "angular-mocks": "1.4.4",
+    "angular-mocks": "1.5.7",
     "bardjs": "0.1.0",
     "sinon": "http://sinonjs.org/releases/sinon-1.12.1.js"
   },
   "dependencies": {
     "less": "2.6.1",
-    "angular": "1.4.4",
-    "angular-animate": "1.4.4",
+    "angular": "1.5.7",
+    "angular-animate": "1.5.7",
     "angular-bootstrap": "0.14.3",
     "angular-bootstrap-confirm": "~0.3.0",
     "angular-dialog-service": "~5.2.8",
     "angular-filter": "0.5.5",
     "angular-gridster": "0.13.5",
     "angular-nvd3": "~1.0.2",
-    "angular-sanitize": "1.4.4",
+    "angular-sanitize": "1.5.7",
     "angular-smart-table": "2.1.1",
     "angular-ui-router": "0.2.12",
     "angular-ui-tree": "2.15.0",
@@ -49,9 +49,10 @@
     "oclazyload": "ocLazyLoad#^1.0.9"
   },
   "resolutions": {
-    "angular": "1.4.4",
+    "angular": "1.5.7",
     "bootstrap": "3.3.4",
-    "moment": ">=2.8.0 <3.0.0"
+    "moment": ">=2.8.0 <3.0.0",
+    "angular-sanitize": "1.5.7"
   },
   "overrides": {
     "bootstrap": {
