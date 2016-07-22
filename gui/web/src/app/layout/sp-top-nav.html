@@ -51,12 +51,12 @@
 
                         <li class="divider"></li>
                         
-                        <li><a ui-sref="dashboard" ng-click="vm.enableEditorMode()">
+                        <li><a ng-click="vm.enableEditorMode()">
                             <div ng-if="vm.themeService.editorModeEnabled" class="fa fa-angle-right"></div>     
                             <span>Edit mode</span>
                         </a></li>
 
-                         <li><a ui-sref="dashboard" ng-click="vm.disableEditorMode()">   
+                         <li><a ng-click="vm.disableEditorMode()">   
                             <div ng-if="!vm.themeService.editorModeEnabled" class="fa fa-angle-right"></div>       
                             <span>View mode</span> 
                         </a></li>
