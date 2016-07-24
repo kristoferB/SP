@@ -14,11 +14,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 var core_1 = require('@angular/core');
 var angular2_grid_1 = require('angular2-grid');
 var upg_adapter_1 = require('../upg-helpers/upg-adapter');
+var dcl_view_component_1 = require('./dcl-view.component');
+var awesome_ng2_component_component_1 = require('../lazy-widgets/ng2Inside/awesome-ng2-component.component');
 var Ng2DashboardComponent = (function () {
     function Ng2DashboardComponent(logger, $state, 
         //@Inject('$timeout') $timeout,
         dashboardService) {
         var _this = this;
+        this.asm = awesome_ng2_component_component_1.AwesomeNG2Component;
         dashboardService.getDashboard(1, function (dashboard) {
             _this.dashboard = dashboard;
             _this.widgets = dashboard.widgets;
@@ -40,7 +43,7 @@ var Ng2DashboardComponent = (function () {
             selector: 'ng2-dashboard',
             templateUrl: 'app/dashboard/ng2-dashboard.component.html',
             styleUrls: [],
-            directives: [angular2_grid_1.NgGrid, angular2_grid_1.NgGridItem,
+            directives: [angular2_grid_1.NgGrid, angular2_grid_1.NgGridItem, dcl_view_component_1.DclViewComponent,
                 upg_adapter_1.upgAdapter.upgradeNg1Component('spWidget')],
             providers: []
         }),

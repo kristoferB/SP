@@ -2,17 +2,21 @@ import { Component, Inject } from '@angular/core';
 import { NgGrid, NgGridItem } from 'angular2-grid';
 
 import { upgAdapter } from '../upg-helpers/upg-adapter';
+import { DclViewComponent } from './dcl-view.component';
+import { AwesomeNG2Component } from '../lazy-widgets/ng2Inside/awesome-ng2-component.component';
 
 @Component({
   selector: 'ng2-dashboard',
   templateUrl: 'app/dashboard/ng2-dashboard.component.html',
   styleUrls: [],
-  directives: [NgGrid, NgGridItem,
+  directives: [NgGrid, NgGridItem, DclViewComponent, //AwesomeNG2Component,
             upgAdapter.upgradeNg1Component('spWidget')],
   providers: []
 })
 
 export class Ng2DashboardComponent {
+
+    asm = AwesomeNG2Component;
 
     dashboard: any;
     title: string;
