@@ -2,10 +2,10 @@
 
     <div [ngGrid]="ngGridOptions">
         <div *ngFor="let widget of widgets" [ngGridItem]="{ 'sizex': 4 }">
-            <sp-widget widget="widget" dashboard="dashboard" show-close-btn="true">
+            <sp-widget widget="widget" dashboard="dashboard" show-clone-btn="true">
                 <h1>a widget</h1>
+                <dcl-view [type]="asm"></dcl-view>
             </sp-widget>
-            <dcl-view [type]="asm"></dcl-view>
         </div>
     </div>
 

@@ -11,8 +11,8 @@
         var directive = {
             restrict: 'E',
             templateUrl: 'app/widgets/sp-widget.html',
-            //controller: SPWidgetController,
-            //controllerAs: 'vm',
+            controller: SPWidgetController,
+            controllerAs: 'vm',
             scope: {},
             transclude: true,
             //replace: true,
@@ -33,7 +33,7 @@
     function SPWidgetController($scope, settingsService, themeService) {
         var vm = this;
         vm.requestClose = requestClose;
-        vm.title = angular.copy(vm.widget.title, '');
+        //vm.title = angular.copy(vm.widget.title, '');
         vm.settingsService = settingsService;
         vm.showHeaders = themeService.showHeaders;
         vm.showWidgetOptions = themeService.showWidgetOptions;
