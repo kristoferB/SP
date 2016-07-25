@@ -13,8 +13,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require('@angular/core');
 var ng2_bootstrap_1 = require('ng2-bootstrap');
+var ng2_dashboard_service_1 = require('../dashboard/ng2-dashboard.service');
+var widget_kinds_1 = require('../widget-kinds');
 var SpTopNavComponent = (function () {
-    function SpTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, themeService, settingsService) {
+    function SpTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, themeService, settingsService, ng2DashboardService) {
+        this.ng2DashboardService = ng2DashboardService;
         this.showNavbar = settingsService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
         this.toggleNavbar = settingsService.toggleNavbar;
@@ -33,12 +36,13 @@ var SpTopNavComponent = (function () {
         };
         // upg-note: ugly custom resolve function will be changed when
         // widgetListService is rewritten and returns a proper Promise
-        var thiz = this;
-        widgetListService.list(function (list) {
-            thiz.widgetKinds = list;
-        });
+        //var thiz = this;
+        //widgetListService.list(function(list) {
+        //   thiz.widgetKinds = list;
+        //}); 
+        this.widgetKinds = widget_kinds_1.widgetKinds;
         this.addWidget = function (widgetKind) {
-            dashboardService.addWidget(dashboardService.storage.dashboards[0], widgetKind);
+            ng2DashboardService.addWidget(ng2DashboardService.storage.dashboards[0], widgetKind);
         };
         this.normalView = themeService.normalView;
         this.compactView = themeService.compactView;
@@ -64,7 +68,7 @@ var SpTopNavComponent = (function () {
         __param(4, core_1.Inject('$uibModal')),
         __param(5, core_1.Inject('themeService')),
         __param(6, core_1.Inject('settingsService')), 
-        __metadata('design:paramtypes', [Object, Object, Object, Object, Object, Object, Object])
+        __metadata('design:paramtypes', [Object, Object, Object, Object, Object, Object, Object, ng2_dashboard_service_1.Ng2DashboardService])
     ], SpTopNavComponent);
     return SpTopNavComponent;
 }());

@@ -15,20 +15,27 @@ var core_1 = require('@angular/core');
 var angular2_grid_1 = require('angular2-grid');
 var upg_adapter_1 = require('../upg-helpers/upg-adapter');
 var dcl_view_component_1 = require('./dcl-view.component');
+var ng2_dashboard_service_1 = require('./ng2-dashboard.service');
 var awesome_ng2_component_component_1 = require('../lazy-widgets/ng2Inside/awesome-ng2-component.component');
 var Ng2DashboardComponent = (function () {
     function Ng2DashboardComponent(logger, $state, 
         //@Inject('$timeout') $timeout,
-        dashboardService) {
+        ng1DashboardService, ng2DashboardService) {
         var _this = this;
+        this.ng2DashboardService = ng2DashboardService;
         this.asm = awesome_ng2_component_component_1.AwesomeNG2Component;
-        dashboardService.getDashboard(1, function (dashboard) {
+        //ng1DashboardService.getDashboard(1, (dashboard) => {
+        //    this.dashboard = dashboard;
+        //    this.widgets = dashboard.widgets;
+        //});
+        ng2DashboardService.getDashboard(1, function (dashboard) {
             _this.dashboard = dashboard;
-            _this.widgets = dashboard.widgets;
+            _this.widgets = _this.dashboard.widgets;
         });
         this.title = $state.current.title;
-        this.gridsterOptions = dashboardService.gridsterOptions;
-        this.ngGridOptions = dashboardService.ngGridOptions;
+        //this.gridsterOptions = ng1DashboardService.gridsterOptions;
+        //this.ngGridOptions = ng1DashboardService.ngGridOptions;
+        this.ngGridOptions = ng2DashboardService.ngGridOptions;
         //this.togglePanelLock = () => {
         //    $timeout( () => {
         //        this.gridsterOptions.draggable.enabled =
@@ -45,12 +52,12 @@ var Ng2DashboardComponent = (function () {
             styleUrls: [],
             directives: [angular2_grid_1.NgGrid, angular2_grid_1.NgGridItem, dcl_view_component_1.DclViewComponent,
                 upg_adapter_1.upgAdapter.upgradeNg1Component('spWidget')],
-            providers: []
+            providers: [ng2_dashboard_service_1.Ng2DashboardService]
         }),
         __param(0, core_1.Inject('logger')),
         __param(1, core_1.Inject('$state')),
         __param(2, core_1.Inject('dashboardService')), 
-        __metadata('design:paramtypes', [Object, Object, Object])
+        __metadata('design:paramtypes', [Object, Object, Object, ng2_dashboard_service_1.Ng2DashboardService])
     ], Ng2DashboardComponent);
     return Ng2DashboardComponent;
 }());

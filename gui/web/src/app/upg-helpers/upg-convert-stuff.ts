@@ -28,5 +28,7 @@ export function upgConvertStuff(upgAdapter: UpgradeAdapter): void {
     upgAdapter.upgradeNg1Provider('widgetListService');
     upgAdapter.upgradeNg1Provider('$state');
     upgAdapter.upgradeNg1Provider('$uibModal');
+    upgAdapter.upgradeNg1Provider('$sessionStorage');
+    upgAdapter.upgradeNg1Provider('$ocLazyLoad');
     upgAdapter.upgradeNg1Provider('themeService');
 }

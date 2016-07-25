@@ -3,6 +3,7 @@ import { NgGrid, NgGridItem } from 'angular2-grid';
 
 import { upgAdapter } from '../upg-helpers/upg-adapter';
 import { DclViewComponent } from './dcl-view.component';
+import { Ng2DashboardService } from './ng2-dashboard.service';
 import { AwesomeNG2Component } from '../lazy-widgets/ng2Inside/awesome-ng2-component.component';
 
 @Component({
@@ -11,7 +12,7 @@ import { AwesomeNG2Component } from '../lazy-widgets/ng2Inside/awesome-ng2-compo
   styleUrls: [],
   directives: [NgGrid, NgGridItem, DclViewComponent, //AwesomeNG2Component,
             upgAdapter.upgradeNg1Component('spWidget')],
-  providers: []
+  providers: [Ng2DashboardService]
 })
 
 export class Ng2DashboardComponent {
@@ -29,15 +30,21 @@ export class Ng2DashboardComponent {
         @Inject('logger') logger,
         @Inject('$state') $state,
         //@Inject('$timeout') $timeout,
-        @Inject('dashboardService') dashboardService
+        @Inject('dashboardService') ng1DashboardService,
+        private ng2DashboardService: Ng2DashboardService
         ) {
-            dashboardService.getDashboard(1, (dashboard) => {
+            //ng1DashboardService.getDashboard(1, (dashboard) => {
+            //    this.dashboard = dashboard;
+            //    this.widgets = dashboard.widgets;
+            //});
+            ng2DashboardService.getDashboard(1, (dashboard) => {
                 this.dashboard = dashboard;
-                this.widgets = dashboard.widgets;
+                this.widgets = this.dashboard.widgets;
             });
             this.title = $state.current.title;
-            this.gridsterOptions = dashboardService.gridsterOptions;
-            this.ngGridOptions = dashboardService.ngGridOptions;
+            //this.gridsterOptions = ng1DashboardService.gridsterOptions;
+            //this.ngGridOptions = ng1DashboardService.ngGridOptions;
+            this.ngGridOptions = ng2DashboardService.ngGridOptions;
             //this.togglePanelLock = () => {
             //    $timeout( () => {
             //        this.gridsterOptions.draggable.enabled =

@@ -2,6 +2,9 @@ import { Component, Inject } from '@angular/core';
 import { DROPDOWN_DIRECTIVES } from 'ng2-bootstrap';
 
 import { upgAdapter } from '../upg-helpers/upg-adapter';
+import { Ng2DashboardService } from '../dashboard/ng2-dashboard.service';
+import { WidgetKind } from '../widget-kind';
+import { widgetKinds } from '../widget-kinds';
 
 @Component({
   selector: 'sp-top-nav',
@@ -21,7 +24,7 @@ export class SpTopNavComponent {
     createModel: () => void;
     isState: () => boolean;
     
-    widgetKinds: any[];
+    widgetKinds: WidgetKind[];
     addWidget: (widgetKind: any) => void;
     widgetKindTitle: string;
 
@@ -41,7 +44,8 @@ export class SpTopNavComponent {
         @Inject('$state') $state,
         @Inject('$uibModal') $uibModal,
         @Inject('themeService') themeService,
-        @Inject('settingsService') settingsService
+        @Inject('settingsService') settingsService,
+        private ng2DashboardService: Ng2DashboardService
     ) {
         this.showNavbar = settingsService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
@@ -66,14 +70,15 @@ export class SpTopNavComponent {
         
         // upg-note: ugly custom resolve function will be changed when
         // widgetListService is rewritten and returns a proper Promise
-        var thiz = this;
-        widgetListService.list(function(list) {
-           thiz.widgetKinds = list;
-        }); 
+        //var thiz = this;
+        //widgetListService.list(function(list) {
+        //   thiz.widgetKinds = list;
+        //}); 
+        this.widgetKinds = widgetKinds;
 
         this.addWidget = function(widgetKind: any) { 
-            dashboardService.addWidget(
-                dashboardService.storage.dashboards[0], widgetKind
+            ng2DashboardService.addWidget(
+                ng2DashboardService.storage.dashboards[0], widgetKind
             );
         }
 
