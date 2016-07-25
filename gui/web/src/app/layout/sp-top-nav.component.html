@@ -1,10 +1,20 @@
-<div *ngIf="true">
-    <nav class="navbar navbar-fixed-top navbar-inverse">
-        <div class="navbar-header">
+<div *ngIf="!showNavbar">
+    <nav class="logo navbar-fixed-top">
+        <div (click)="toggleNavbar()" class="navbar-header">
             <a href="/" class="navbar-brand">
                 <img src="images/splogo_all_white.svg" class="navbar-logo" alt="." />
-                <span (click)="toggleNavbar()" class="brand-title">Sequence<br />Planner</span>
+                <span  class="brand-title">Sequence<br />Planner</span>
+            </a>
+        </div>
+    </nav>
+</div>
 
+<div *ngIf="showNavbar">
+    <nav class="navbar navbar-fixed-top navbar-inverse">
+        <div class="navbar-header" (click)="toggleNavbar()">
+            <a href="/" class="navbar-brand">
+                <img src="images/splogo_all_white.svg" class="navbar-logo" alt="." />
+                <span  class="brand-title">Sequence<br />Planner</span>
             </a>
             <a class="btn navbar-btn navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                 <span class="icon-bar"></span>
@@ -15,6 +25,22 @@
 
         <div class="navbar-collapse collapse box-shadow">
             <ul class="nav navbar-nav">
+                <li dropdown id="Dashboards" *ngIf="true">
+                    <a dropdownToggle id="new-widget-btn">
+                        <span>Dashboards</span> <span class="caret"></span>
+                    </a>
+                    <ul dropdownMenu class="dropdown-menu-right" role="menu">
+                        <li>
+                            <a href="">A dashboard</a>
+                            <a href="">Another dashboard</a>
+                            <a href="">Yet another dashboard</a>
+                            <a href="">Model settings</a>
+                            <a href="">General settings</a>
+                            <a href="">TODO: add this feature</a>
+                        </li>
+                    </ul>
+                </li>
+
                 <li dropdown id="Widgets" *ngIf="true">
                     <a dropdownToggle id="new-widget-btn">
                         <span>New widget</span> <span class="caret"></span>

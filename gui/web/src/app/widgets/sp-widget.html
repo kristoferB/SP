@@ -5,22 +5,22 @@
 	    <span class="fa fa-times pull-right widget-close-btn" ng-if="vm.showCloseBtn"
 	          ng-click="vm.requestClose()">
 	    </span>
-	</div> 
+	</div>
 
 	<div ng-show="!vm.themeService.showWidgetOptions" class="panel-body" ng-transclude></div>
 
 	<div ng-show="vm.themeService.showWidgetOptions" class="panel-settings">
 
         <button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Widget settings"
-                ng-click=""><i class="fa fa-edit"></i>   
+                ng-click=""><i class="fa fa-edit"></i>
         </button>
 
         <button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Duplicate widget"
-                ng-click=""><i class="fa fa-copy"></i>   
+                ng-click=""><i class="fa fa-copy"></i>
         </button>
 
 		<button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Isolate widget"
-                ng-click=""><i class="fa fa-eye"></i>            
+                ng-click=""><i class="fa fa-eye"></i>
         </button>
 
         <button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Remove widget"

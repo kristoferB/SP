@@ -15,7 +15,7 @@ export class SpTopNavComponent {
 
     showNavbar: boolean;
     togglePanelLock: void;
-    toggleNavbar: void;
+    toggleNavbar: () => void;
 
     activeModel: () => string;
     createModel: () => void;
@@ -44,9 +44,14 @@ export class SpTopNavComponent {
         @Inject('themeService') themeService,
         @Inject('settingsService') settingsService
     ) {
-        this.showNavbar = settingsService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
-        this.toggleNavbar = settingsService.toggleNavbar;
+
+        this.showNavbar = true;
+        //this.toggleNavbar = themeService.toggleNavbar; // implement it like this when themeService is ng2
+        this.toggleNavbar = function() {
+            this.showNavbar = !this.showNavbar;
+            themeService.toggleNavbar();
+        };
 
         this.activeModel = () => modelService.activeModel ?
             modelService.activeModel.name : null;

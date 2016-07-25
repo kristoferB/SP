@@ -15,9 +15,13 @@ var core_1 = require('@angular/core');
 var ng2_bootstrap_1 = require('ng2-bootstrap');
 var SpTopNavComponent = (function () {
     function SpTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, themeService, settingsService) {
-        this.showNavbar = settingsService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
-        this.toggleNavbar = settingsService.toggleNavbar;
+        this.showNavbar = true;
+        //this.toggleNavbar = themeService.toggleNavbar; // implement it like this when themeService is ng2
+        this.toggleNavbar = function () {
+            this.showNavbar = !this.showNavbar;
+            themeService.toggleNavbar();
+        };
         this.activeModel = function () { return modelService.activeModel ?
             modelService.activeModel.name : null; };
         this.isState = $state.is;

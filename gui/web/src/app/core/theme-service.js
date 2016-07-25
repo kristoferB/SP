@@ -27,6 +27,8 @@
             compactView: compactView,
             maximizedContentView: maximizedContentView,
 
+            toggleNavbar: toggleNavbar,
+
             enableEditorMode: enableEditorMode,
             disableEditorMode: disableEditorMode,
 
@@ -43,6 +45,16 @@
 
         function activate() {
             update();
+            resetGrid(); // TODO do this instead by listening to fullscreen events when this thing gets ng2-ed
+        }
+
+        function resetGrid(){ //TODO rewrite this
+            var navbarHeight = 0;
+            if(service.showNavbar){
+                navbarHeight = 50;
+            }
+            dashboardService.gridsterOptions.rowHeight = (window.innerHeight-navbarHeight) / 8;
+            setTimeout(resetGrid, 0.3);
         }
 
         function configureGridster(){
@@ -54,7 +66,8 @@
             less.modifyVars(
                 Object.assign(
                     service.storage.lessColorConstants,
-                    service.storage.lessLayoutConstants
+                    service.storage.lessLayoutConstants,
+                    {showNavbar: service.showNavbar}
                 )
             );
         }
@@ -65,6 +78,12 @@
 
         function setLayoutTheme(theme){
             assignFromServer("/style_presets/layouts/"+theme, "lessLayoutConstants");
+        }
+
+        function toggleNavbar(){
+            service.showNavbar = !service.showNavbar;
+            console.log('waddup '+service.showNavbar);
+            update();
         }
 
         function update(){
