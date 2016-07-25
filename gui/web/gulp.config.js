@@ -47,7 +47,7 @@ module.exports = function() {
             '!' + clientApp + 'main*',
             '!' + clientApp + 'widget-kind*',
             '!' + clientApp + 'layout/**',
-            '!' + clientApp + 'lazy-widgets/**',
+            //'!' + clientApp + 'lazy-widgets/**',
             '!' + specs,
             '!' + e2eSpecs
         ],
