@@ -24,26 +24,24 @@ var Ng2DashboardComponent = (function () {
         var _this = this;
         this.ng2DashboardService = ng2DashboardService;
         this.asm = awesome_ng2_component_component_1.AwesomeNG2Component;
-        //ng1DashboardService.getDashboard(1, (dashboard) => {
-        //    this.dashboard = dashboard;
-        //    this.widgets = dashboard.widgets;
-        //});
         ng2DashboardService.getDashboard(1, function (dashboard) {
             _this.dashboard = dashboard;
             _this.widgets = _this.dashboard.widgets;
         });
         this.title = $state.current.title;
-        //this.gridsterOptions = ng1DashboardService.gridsterOptions;
-        //this.ngGridOptions = ng1DashboardService.ngGridOptions;
         this.ngGridOptions = ng2DashboardService.ngGridOptions;
-        //this.togglePanelLock = () => {
-        //    $timeout( () => {
-        //        this.gridsterOptions.draggable.enabled =
-        //            !this.gridsterOptions.draggable.enabled;
-        //        this.gridsterOptions.resizable.enabled =
-        //            !this.gridsterOptions.resizable.enabled;
-        //    }, 500, false);
-        //}
+        this.ngGridItemOptions = ng2DashboardService.ngGridItemOptions;
+        this.togglePanelLock = function () {
+            _this.ngGridOptions.draggable = !_this.ngGridOptions.draggable;
+            _this.ngGridOptions.resizable = !_this.ngGridOptions.resizable;
+            // vrf timeout??
+            //$timeout( () => {
+            //    this.gridsterOptions.draggable.enabled =
+            //        !this.gridsterOptions.draggable.enabled;
+            //    this.gridsterOptions.resizable.enabled =
+            //        !this.gridsterOptions.resizable.enabled;
+            //}, 500, false);
+        };
     }
     Ng2DashboardComponent = __decorate([
         core_1.Component({

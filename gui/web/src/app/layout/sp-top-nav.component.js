@@ -18,7 +18,7 @@ var widget_kinds_1 = require('../widget-kinds');
 var SpTopNavComponent = (function () {
     function SpTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, themeService, settingsService, ng2DashboardService) {
         this.ng2DashboardService = ng2DashboardService;
-        this.showNavbar = settingsService.showNavbar;
+        this.showNavbar = themeService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
         this.toggleNavbar = settingsService.toggleNavbar;
         this.activeModel = function () { return modelService.activeModel ?

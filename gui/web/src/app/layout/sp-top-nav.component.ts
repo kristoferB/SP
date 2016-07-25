@@ -47,7 +47,7 @@ export class SpTopNavComponent {
         @Inject('settingsService') settingsService,
         private ng2DashboardService: Ng2DashboardService
     ) {
-        this.showNavbar = settingsService.showNavbar;
+        this.showNavbar = themeService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
         this.toggleNavbar = settingsService.toggleNavbar;
 

@@ -16,7 +16,7 @@
             scope: {},
             transclude: true,
             //replace: true,
-            bindToController: {
+            bindings: {
                 widget: '=',
                 dashboard: '=',
                 /* Q: When is this used? /Patrik 150915

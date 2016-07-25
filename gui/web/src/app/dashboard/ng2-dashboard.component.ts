@@ -23,6 +23,7 @@ export class Ng2DashboardComponent {
     title: string;
     gridsterOptions: any;
     ngGridOptions: any;
+    ngGridItemOptions: any;
     widgets: any[];
     togglePanelLock: () => void; // funkar ej än
 
@@ -33,25 +34,23 @@ export class Ng2DashboardComponent {
         @Inject('dashboardService') ng1DashboardService,
         private ng2DashboardService: Ng2DashboardService
         ) {
-            //ng1DashboardService.getDashboard(1, (dashboard) => {
-            //    this.dashboard = dashboard;
-            //    this.widgets = dashboard.widgets;
-            //});
             ng2DashboardService.getDashboard(1, (dashboard) => {
                 this.dashboard = dashboard;
                 this.widgets = this.dashboard.widgets;
             });
             this.title = $state.current.title;
-            //this.gridsterOptions = ng1DashboardService.gridsterOptions;
-            //this.ngGridOptions = ng1DashboardService.ngGridOptions;
             this.ngGridOptions = ng2DashboardService.ngGridOptions;
-            //this.togglePanelLock = () => {
-            //    $timeout( () => {
-            //        this.gridsterOptions.draggable.enabled =
-            //            !this.gridsterOptions.draggable.enabled;
-            //        this.gridsterOptions.resizable.enabled =
-            //            !this.gridsterOptions.resizable.enabled;
-            //    }, 500, false);
-            //}
+            this.ngGridItemOptions = ng2DashboardService.ngGridItemOptions;
+            this.togglePanelLock = () => {
+                this.ngGridOptions.draggable = !this.ngGridOptions.draggable;
+                this.ngGridOptions.resizable = !this.ngGridOptions.resizable;
+                // vrf timeout??
+                //$timeout( () => {
+                //    this.gridsterOptions.draggable.enabled =
+                //        !this.gridsterOptions.draggable.enabled;
+                //    this.gridsterOptions.resizable.enabled =
+                //        !this.gridsterOptions.resizable.enabled;
+                //}, 500, false);
+            }
         }
 }

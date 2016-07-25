@@ -101,12 +101,19 @@ var Ng2DashboardService = (function () {
             }
         };
         this.ngGridOptions = {
-            'resizable': false,
-            'draggable': false,
+            'resizable': true,
+            'draggable': true,
             'margins': [0],
             'auto_resize': true,
             'maintain_ratio': true,
             'max_cols': 12
+        };
+        this.ngGridItemOptions = {
+            'col': 4,
+            'row': 4,
+            'fixed': true,
+            'dragHandle': '.panel-default',
+            'borderSize': 15 // default
         };
     }
     Ng2DashboardService = __decorate([
