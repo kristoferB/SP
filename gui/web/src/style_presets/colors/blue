@@ -1,6 +1,6 @@
 {
-	"body_color": "#58666e",
-	"body_background": "#476888",
+	"body_color": "#b1cce5",
+	"body_background": "#4273a6",
 	"header_color": "#black",
 
 	"jstree_color": "black",
@@ -16,7 +16,7 @@
 	"dialog_header_confirm_span_color": "#777",
 
 	"gridster_panel_background": "#f5f5f5",
-	"gridster_content_background": "blanchedalmond",
+	"gridster_content_background": "#d3dfea",
 	"gridster_panel_heading_background": "#f5f5f5",
 
 	"button_default_color": "#58666e",
@@ -52,7 +52,7 @@
 	"dropdown_menu_background_hover": "#edf1f2",
 	"dropdown_menu_background_divider": "#e5e5e5",
 
-	"navbar_background": "#000000",
+	"navbar_background": "#113a63",
 	"navbar_color": "#ffffff",
 	"navbar_header_background": "#de691c",
 	"navbar_brand_title_color": "#fff",
@@ -61,5 +61,16 @@
 	"pagination_color": "#666",
 	"pagination_background": "#fff",
 	"pagination_color_hover": "#333",
-	"pagination_background_hover": "#fafafa"
+	"pagination_background_hover": "#fafafa",
+
+    "text_selected": "#dddddd",
+    "text_hover":  "#eeeeee",
+
+    "text_default": "#000000",
+    "text_string": "#00aa00",
+    "text_array":  "#000000",
+    "text_number": "#771100",
+    "text_boolean": "#555500",
+    "text_null": "#000000",
+    "text_invalid": "#ff300"
 }
