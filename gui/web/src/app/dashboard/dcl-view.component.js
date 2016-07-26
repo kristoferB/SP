@@ -50,7 +50,7 @@ var DclViewComponent = (function () {
     DclViewComponent = __decorate([
         core_1.Component({
             selector: 'dcl-view',
-            template: "<div #target></div>"
+            template: '<div #target></div>'
         }), 
         __metadata('design:paramtypes', [core_1.ComponentResolver])
     ], DclViewComponent);

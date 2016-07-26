@@ -71,8 +71,13 @@ export class Ng2DashboardService {
 
         this.addWidget = (dashboard, widgetKind) => {
 
+            var index = widgetKinds.indexOf(widgetKind);
+            console.log('**********index ee');
+            console.log(index);
+
             //var widget = angular.copy(widgetKind, {});
             var widget = Object.create(widgetKind); // TODO copy problems?? // yes: fixed with Object.create
+            widget.index = index;
             widget.id = this.storage.widgetID++;
             //needed??
             //if (additionalData !== undefined) {

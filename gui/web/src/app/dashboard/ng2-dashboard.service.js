@@ -56,8 +56,12 @@ var Ng2DashboardService = (function () {
             _this.storage.dashboards.splice(index, 1);
         };
         this.addWidget = function (dashboard, widgetKind) {
+            var index = widget_kinds_1.widgetKinds.indexOf(widgetKind);
+            console.log('**********index ee');
+            console.log(index);
             //var widget = angular.copy(widgetKind, {});
             var widget = Object.create(widgetKind); // TODO copy problems?? // yes: fixed with Object.create
+            widget.index = index;
             widget.id = _this.storage.widgetID++;
             //needed??
             //if (additionalData !== undefined) {

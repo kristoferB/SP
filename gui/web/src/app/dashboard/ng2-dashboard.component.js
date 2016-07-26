@@ -16,20 +16,20 @@ var angular2_grid_1 = require('angular2-grid');
 var upg_adapter_1 = require('../upg-helpers/upg-adapter');
 var dcl_view_component_1 = require('./dcl-view.component');
 var ng2_dashboard_service_1 = require('./ng2-dashboard.service');
-var awesome_ng2_component_component_1 = require('../lazy-widgets/ng2Inside/awesome-ng2-component.component');
+var widget_kinds_1 = require('../widget-kinds');
 var Ng2DashboardComponent = (function () {
     function Ng2DashboardComponent(logger, $state, 
         //@Inject('$timeout') $timeout,
         ng1DashboardService, ng2DashboardService) {
         var _this = this;
         this.ng2DashboardService = ng2DashboardService;
-        this.asm = awesome_ng2_component_component_1.AwesomeNG2Component;
         ng2DashboardService.getDashboard(1, function (dashboard) {
             _this.dashboard = dashboard;
-            _this.widgets = _this.dashboard.widgets;
+            _this.widgets = dashboard.widgets;
         });
         this.title = $state.current.title;
         this.ngGridOptions = ng2DashboardService.ngGridOptions;
+        this.widgetKinds = widget_kinds_1.widgetKinds;
         this.togglePanelLock = function () {
             _this.ngGridOptions.draggable = !_this.ngGridOptions.draggable;
             _this.ngGridOptions.resizable = !_this.ngGridOptions.resizable;

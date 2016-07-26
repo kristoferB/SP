@@ -3,7 +3,7 @@ import {Component, ComponentRef, ComponentFactory, Input, ViewContainerRef, Comp
 
 @Component({
   selector: 'dcl-view',
-  template: `<div #target></div>`
+  template: '<div #target></div>'
 })
 export class DclViewComponent {
   @ViewChild('target', {read: ViewContainerRef}) target;
