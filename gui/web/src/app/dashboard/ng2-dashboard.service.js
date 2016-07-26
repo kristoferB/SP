@@ -57,13 +57,14 @@ var Ng2DashboardService = (function () {
         };
         this.addWidget = function (dashboard, widgetKind) {
             //var widget = angular.copy(widgetKind, {});
-            var widget = widgetKind; // TODO copy problems??
+            var widget = Object.create(widgetKind); // TODO copy problems?? // yes: fixed with Object.create
             widget.id = _this.storage.widgetID++;
             //needed??
             //if (additionalData !== undefined) {
             //    widget.storage = additionalData;
             //}
             dashboard.widgets.push(widget);
+            widget.gridOptions = Object.create(ngGridItemOptionDefaults);
             logger.log('Dashboard Controller: Added a ' + widget.title + ' widget with index '
                 + widget.id + ' to dashboard ' + dashboard.name + '.');
         };
@@ -108,9 +109,9 @@ var Ng2DashboardService = (function () {
             'maintain_ratio': false,
             'max_cols': 12
         };
-        this.ngGridItemOptions = {
-            'col': 4,
-            'row': 4,
+        var ngGridItemOptionDefaults = {
+            'col': 1,
+            'row': 1,
             'fixed': true,
             'dragHandle': null,
             'borderSize': 15,
