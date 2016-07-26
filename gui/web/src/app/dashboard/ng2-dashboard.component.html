@@ -2,7 +2,7 @@
 
     <div [ngGrid]="ngGridOptions">
         <div *ngFor="let widget of widgets">
-            <sp-widget [widget]="widget" [dashboard]="dashboard" [showCloseBtn]="true" [ngGridItem]="ngGridItemOptions">
+            <sp-widget [widget]="widget" [dashboard]="dashboard" [showCloseBtn]="true" [ngGridItem]="widget.gridOptions">
                 <h1>a widget</h1>
                 <dcl-view [type]="widget.component"></dcl-view>
             </sp-widget>

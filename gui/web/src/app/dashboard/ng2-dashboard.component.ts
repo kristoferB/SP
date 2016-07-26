@@ -40,7 +40,6 @@ export class Ng2DashboardComponent {
             });
             this.title = $state.current.title;
             this.ngGridOptions = ng2DashboardService.ngGridOptions;
-            this.ngGridItemOptions = ng2DashboardService.ngGridItemOptions;
             this.togglePanelLock = () => {
                 this.ngGridOptions.draggable = !this.ngGridOptions.draggable;
                 this.ngGridOptions.resizable = !this.ngGridOptions.resizable;

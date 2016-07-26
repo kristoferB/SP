@@ -4,4 +4,5 @@ export class WidgetKind {
     id: number;
     sizex: number;
     sizey: number;
+    gridOptions: any;
 }

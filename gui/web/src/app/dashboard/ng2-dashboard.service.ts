@@ -17,7 +17,8 @@ export class Ng2DashboardService {
     setPanelLock: (isLocked: boolean) => void;
     setPanelMargins: (margin: number) => void; // typat ok?
     ngGridOptions: any; // TODO typa till key-value?
-    ngGridItemOptions: any;
+    getGridItemOptions: (id: number) => Object;
+
     widgetKinds: any; // ska lösas på något sätt
 
     constructor(
@@ -36,7 +37,7 @@ export class Ng2DashboardService {
             }],
             widgetID: 1,
             dashboardID: 2
-        })
+        });
 
         this.addDashboard = (name) => {
             var dashboard = {
@@ -47,7 +48,7 @@ export class Ng2DashboardService {
             // title changed to name here
             logger.info('Dashboard Controller: Added a dashboard with name ' + dashboard.name + ' and index '
                 + dashboard.id + '.');
-        }
+        };
 
         this.getDashboard = (id, callback) => {
             //var index = _.findIndex(this.storage.dashboards, {id: id});
@@ -59,28 +60,31 @@ export class Ng2DashboardService {
                 var dashboard = this.storage.dashboards[index];
                 callback(dashboard);
             }
-        }
+        };
 
         this.removeDashboard = (id) => {
             //var index = _.findIndex(service.storage.dashboards, {id: id});
             var index = this.storage.dashboards
                         .map( (x) => x.id ).indexOf(id);
             this.storage.dashboards.splice(index, 1);
-        }
+        };
 
         this.addWidget = (dashboard, widgetKind) => {
 
             //var widget = angular.copy(widgetKind, {});
-            var widget = widgetKind; // TODO copy problems??
+            var widget = Object.create(widgetKind); // TODO copy problems?? // yes: fixed with Object.create
             widget.id = this.storage.widgetID++;
             //needed??
             //if (additionalData !== undefined) {
             //    widget.storage = additionalData;
             //}
             dashboard.widgets.push(widget);
+            widget.gridOptions = Object.create(ngGridItemOptionDefaults);
+
             logger.log('Dashboard Controller: Added a ' + widget.title + ' widget with index '
                 + widget.id + ' to dashboard ' + dashboard.name + '.');
-        }
+        };
+
 
         this.getWidget = (id) => {
             var widget = null;
@@ -95,16 +99,16 @@ export class Ng2DashboardService {
                 }
             }
             return widget;
-        }
+        };
 
         this.setPanelLock = (isLocked) => {
             this.ngGridOptions.resizable = isLocked;
             this.ngGridOptions.draggable = isLocked;
-        }
+        };
 
         this.setPanelMargins = (margin) => {
             this.ngGridOptions.margins = margin;
-        }
+        };
 
         this.closeWidget = (id) => {
             for(var i = 0; i < this.storage.dashboards.length; i++) {
@@ -117,7 +121,7 @@ export class Ng2DashboardService {
                     break;
                 }
             }
-        }
+        };
 
         this.ngGridOptions = {
             'resizable': true,
@@ -126,16 +130,16 @@ export class Ng2DashboardService {
             'auto_resize': true,
             'maintain_ratio': false,
             'max_cols': 12
-        }
+        };
 
-        this.ngGridItemOptions = {
-            'col': 4,
-            'row': 4,
+        var ngGridItemOptionDefaults = {
+            'col': 1,
+            'row': 1,
             'fixed': true,
             'dragHandle': null,
             'borderSize': 15, // default
             'resizeHandle': null
-        }
-    }
+        };
 
+    }
 }
