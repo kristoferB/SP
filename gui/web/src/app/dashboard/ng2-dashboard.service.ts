@@ -105,7 +105,7 @@ export class Ng2DashboardService {
         this.setPanelMargins = (margin) => {
             this.ngGridOptions.margins = margin;
         }
-            
+
         this.closeWidget = (id) => {
             for(var i = 0; i < this.storage.dashboards.length; i++) {
                 var dashboard = this.storage.dashboards[i];
@@ -122,9 +122,9 @@ export class Ng2DashboardService {
         this.ngGridOptions = {
             'resizable': true,
             'draggable': true,
-            'margins': [0],
+            'margins': [10],
             'auto_resize': true,
-            'maintain_ratio': true,
+            'maintain_ratio': false,
             'max_cols': 12
         }
 
@@ -132,8 +132,9 @@ export class Ng2DashboardService {
             'col': 4,
             'row': 4,
             'fixed': true,
-            'dragHandle': '.panel-default',
-            'borderSize': 15 // default
+            'dragHandle': null,
+            'borderSize': 15, // default
+            'resizeHandle': null
         }
     }
 

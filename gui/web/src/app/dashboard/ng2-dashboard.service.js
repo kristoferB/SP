@@ -103,17 +103,18 @@ var Ng2DashboardService = (function () {
         this.ngGridOptions = {
             'resizable': true,
             'draggable': true,
-            'margins': [0],
+            'margins': [10],
             'auto_resize': true,
-            'maintain_ratio': true,
+            'maintain_ratio': false,
             'max_cols': 12
         };
         this.ngGridItemOptions = {
             'col': 4,
             'row': 4,
             'fixed': true,
-            'dragHandle': '.panel-default',
-            'borderSize': 15 // default
+            'dragHandle': null,
+            'borderSize': 15,
+            'resizeHandle': null
         };
     }
     Ng2DashboardService = __decorate([
