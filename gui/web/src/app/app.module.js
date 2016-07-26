@@ -8,7 +8,21 @@
         'app.modelSettings',
         'app.dashboard',
         'app.settings',
-        'app.tables'
+        'app.tables',
+        'app.itemEditor',
+        'app.itemExplorer',
+        'app.sopMaker',
+        'app.spServices',
+        'app.trajectories',
+        'app.opcRunner',
+        'app.processSimulate',
+        'app.conditionEditor',
+        'app.operationControl',
+        'app.kubInputGUI',
+        'app.operatorInstGUI',
+        'app.robotCycleAnalysis',
+        'app.activeOrder',
+        'app.Tobbe2'
     ]);
 
 })();

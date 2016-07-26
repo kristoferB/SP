@@ -290,7 +290,8 @@ a {
 
 /* Gridster Widgets */
 
-.gridster {
+.grid {
+    height: 100%;
     .handle-se {
         border: none;
         width: 12px;
@@ -354,6 +355,7 @@ a {
             background-color: @gridster_panel_background;
             border-bottom-left-radius: @gridster_panel_border_radius;
             border-bottom-right-radius: @gridster_panel_border_radius;
+            height: 100%;
 
             & when(@showHeaders = false){
                 border-top-left-radius: @gridster_panel_border_radius;

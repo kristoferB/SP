@@ -14,6 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 var core_1 = require('@angular/core');
 var upg_adapter_1 = require('../upg-helpers/upg-adapter');
 var sp_top_nav_component_1 = require('./sp-top-nav.component');
+var ng2_dashboard_service_1 = require('../dashboard/ng2-dashboard.service');
 var ShellComponent = (function () {
     function ShellComponent(config, logger, $document, settingsService) {
         this.vm = {}; // TODO
@@ -53,7 +54,7 @@ var ShellComponent = (function () {
             styleUrls: [],
             directives: [sp_top_nav_component_1.SpTopNavComponent,
                 upg_adapter_1.upgAdapter.upgradeNg1Component('upgUiView')],
-            providers: []
+            providers: [ng2_dashboard_service_1.Ng2DashboardService]
         }),
         __param(0, core_1.Inject('config')),
         __param(1, core_1.Inject('logger')),

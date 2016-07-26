@@ -43,6 +43,13 @@
                 resizable:{
                     enabled: false
                 }
+            },
+            ngGridOptions: {
+                'resizable': false,
+                'margins': [0],
+                'auto_resize': true,
+                'maintain_ratio': true,
+                'max_cols': 12
             }
         };
 
