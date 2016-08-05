@@ -26,7 +26,7 @@ object SP extends App {
   //    SPAttributes("info"-> "Show status of and control a PLC"))
 
   // Register services here
-  serviceHandler ! RegisterService("PropositionParser",
+  /*serviceHandler ! RegisterService("PropositionParser",
     system.actorOf(PropositionParserService.props, "PropositionParser"))
 
   println("registering relation service")
@@ -177,15 +177,15 @@ object SP extends App {
     RobotCycleAnalysis.specification,
     RobotCycleAnalysis.transformation
   )
-
+  */
     import sp.optimization._
     serviceHandler ! RegisterService(
       "OptimizationCoordinator",
-      system.actorOf(OptimizationCoordinator.props, "OptimizationCoordinator"),
-      OptimizationCoordinator.specification,
-      OptimizationCoordinator.transformation
+      system.actorOf(OptimizationService.props, "OptimizationCoordinator"),
+      OptimizationService.specification,
+      OptimizationService.transformation
     )
-
+  /*
   //  import sp.exampleService._
   //  serviceHandler ! RegisterService(
   //    "ExampleService",
@@ -254,7 +254,8 @@ object SP extends App {
     system.actorOf(OperatorInstructions.props(eventHandler), "OperatorInstructions"),
     OperatorInstructions.specification,
     OperatorInstructions.transformation
-  )  
+  )
+  */
 
   // launch REST API
   sp.server.LaunchGUI.launch
