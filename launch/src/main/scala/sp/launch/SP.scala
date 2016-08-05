@@ -27,6 +27,7 @@ object SP extends App {
 
 
   // Register services here
+
   import sp.services.PropositionParserService
   mediator ! Publish("serviceHandler", RegisterService("PropositionParser",
     system.actorOf(PropositionParserService.props, "PropositionParser")))
