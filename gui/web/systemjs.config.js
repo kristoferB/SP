@@ -12,7 +12,8 @@
     'd3':                         'node_modules/d3/build/d3.js',
     // ng2-bootstrap needs moment apparently
     'moment':                     'node_modules/moment/moment.js',
-    'ng2-bootstrap':              'node_modules/ng2-bootstrap'
+    'ng2-bootstrap':              'node_modules/ng2-bootstrap',
+    'socket.io-client':           'node_modules/socket.io-client/socket.io.js'
   };
   // packages tells the System loader how to load when no filename and/or no extension
   var packages = {

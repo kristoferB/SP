@@ -13,7 +13,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require('@angular/core');
 var d3 = require('d3');
-//import {SocketIO} from './socket-io';
+var socket_io_1 = require('./socket-io');
 var Faces = (function () {
     function Faces() {
     }
@@ -37,9 +37,9 @@ var Faces = (function () {
             }
         };
         Faces.draw(data);
-        //SocketIO.subscribe('smile_face_blue', function(data) {
-        //    Faces.draw(data);
-        //});
+        socket_io_1.SocketIO.subscribe('smile_face_blue', function (data) {
+            Faces.draw(data);
+        });
     };
     Faces.draw = function (data) {
         this.chart = d3.select(this.svgClass);
@@ -226,7 +226,8 @@ var Faces = (function () {
         core_1.Component({
             selector: 'faces',
             template: "\n        <div style=\"position:relative;\">\n        <svg class=\"face_chart\" style=\"display: block; margin:0 auto; font-weight:bold;\" ></svg>\n            <img id=\"bertilpil\" class=\"fejsss\" src=\"app/erica-components/icons/Trend_ok.svg\"\n                width=\"45%\"\n                height=\"45%\" />\n            <img id=\"lottapil\" class=\"fejsss\" src=\"app/erica-components/icons/Trend_bra.svg\"\n                width=\"45%\"\n                height=\"45%\" />\n        </div>\n        ",
-            styles: ["\n        .fejsss {\n            position:absolute;\n        }\n        #bertil {\n            top: 37%;\n            left: -10.5%;\n        }\n        #lotta {\n            top: 37%;\n            left: 65%;\n        }\n        #bertilpil {\n            top: 70%;\n            left: 2.5%;\n        } \n        #lottapil {\n            top: 70%;\n            left: 53%;\n        } \n        "] //,
+            styles: ["\n        .fejsss {\n            position:absolute;\n        }\n        #bertil {\n            top: 37%;\n            left: -10.5%;\n        }\n        #lotta {\n            top: 37%;\n            left: 65%;\n        }\n        #bertilpil {\n            top: 70%;\n            left: 2.5%;\n        } \n        #lottapil {\n            top: 70%;\n            left: 53%;\n        } \n        "],
+            providers: [socket_io_1.SocketIO]
         }), 
         __metadata('design:paramtypes', [])
     ], Faces);

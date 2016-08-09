@@ -4,7 +4,7 @@
 
 import {Component, OnInit} from '@angular/core';
 import * as d3 from 'd3';
-//import {SocketIO} from './socket-io';
+import {SocketIO} from './socket-io';
 
 @Component({
     selector: 'faces',
@@ -39,8 +39,8 @@ import * as d3 from 'd3';
             top: 70%;
             left: 53%;
         } 
-        `]//,
-    //providers: [SocketIO]
+        `],
+    providers: [SocketIO]
 })
 
 export class Faces implements OnInit {
@@ -72,9 +72,9 @@ export class Faces implements OnInit {
 
         Faces.draw(data);
 
-        //SocketIO.subscribe('smile_face_blue', function(data) {
-        //    Faces.draw(data);
-        //});
+        SocketIO.subscribe('smile_face_blue', function(data) {
+            Faces.draw(data);
+        });
     }
 
     static draw(data) {
