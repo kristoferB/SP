@@ -20,7 +20,7 @@
 	"gridster_content_background": "#d3dfea",
 	"gridster_panel_heading_background": "#f5f5f5",
 	"gridster_panel_border": "#ffcf7c",
-	"gridster_panel_content_border": "2px",
+	"gridster_panel_content_border": "1.5px",
 
 	"button_default_color": "#58666e",
 	"button_default_background": "#fff",
@@ -60,7 +60,7 @@
 	"navbar_header_background": "transparent",
 	"navbar_brand_title_color": "#fff",
 	"navbar_dropdown_menu": "#99c343",
-	"navbar_dropdown_menu_hover": "rgba(90, 0, 0, 0.15)",
+	"navbar_dropdown_menu_hover": "rgba(0, 0, 0, 0.15)",
 
 	"other_name": "blue",
 

@@ -10,7 +10,7 @@
 @gridster_panel_content_margin_right:   10px;
 @gridster_panel_content_margin_bottom:  10px;
 @gridster_panel_content_margin_top:     10px;
-@gridster_panel_content_border:         1px;
+@gridster_panel_content_border_width:   1px;
 
 // *** COLORS ***
 
@@ -90,8 +90,8 @@
 // SP logo foreground white
 @navbar_brand_title_color: #fff;
 // navbar dropdowns
-@navbar_dropdown_menu: #0c807e;
-@navbar_dropdown_menu_hover: rgba(0, 0, 0, 0.05); //TODO Varfor dessa inte vill arvas fran angra teman?
+@navbar_dropdown_menu: @navbar_background;
+@navbar_dropdown_menu_hover: rgba(0, 0, 0, 0.05);
 
 @other_name: green;
 
@@ -332,6 +332,8 @@ a {
         height: 100%;
         border-radius: @gridster_panel_border_radius + 1;
         margin-bottom: 0px;
+        border-width: @gridster_panel_content_border_width + 1;
+        border-color: @gridster_panel_border;
 
 
         .panel-heading {
@@ -341,7 +343,7 @@ a {
             border-top-left-radius:  @gridster_panel_border_radius;
             border-top-right-radius:  @gridster_panel_border_radius;
             background-color: @gridster_panel_heading_background;
-            border: @gridster_panel_content_border solid @gridster_panel_border;
+            border-bottom: @gridster_panel_content_border_width solid #cccccc;
 
             flex: 0 0 auto;
 
@@ -372,7 +374,7 @@ a {
 
         .panel-body {
 
-            border: @gridster_panel_content_border solid @gridster_panel_border;
+            //border: @gridster_panel_content_border_width solid @gridster_panel_border;
             overflow-y: auto;
             overflow-x: auto;
             flex: 1;
@@ -427,7 +429,7 @@ a {
                     //margin-left: @gridster_panel_content_margin_left;
                     //margin-right: @gridster_panel_content_margin_right;
                     //margin-bottom: @gridster_panel_content_margin_bottom;
-                   // border: @gridster_panel_content_border solid @gridster_panel_border;
+                   // border: @gridster_panel_content_border_width solid @gridster_panel_border;
                     background-color: @gridster_content_background;
 
                     &:focus {
@@ -473,7 +475,7 @@ a {
 
 .panel-body {
 
-    border: @gridster_panel_content_border solid @gridster_panel_border;
+    //border: @gridster_panel_content_border_width solid @gridster_panel_border;
     overflow-y: auto;
     overflow-x: auto;
     flex: 1;
