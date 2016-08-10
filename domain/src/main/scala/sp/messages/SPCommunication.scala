@@ -15,10 +15,14 @@ import org.json4s._
 trait SPCommunicationAPI {
   type MessageType
   val apiFormats: List[Class[_]]
+  val jsonFormats: List[SPAttributes]
 
 
   lazy val spFormats = new JsonFormats{}
-  lazy val formats = new JsonFormats {override val typeHints = ShortTypeHints(spFormats.typeHints.hints ++ apiFormats)}
+  lazy val formats = new JsonFormats {
+    override val typeHints = ShortTypeHints(spFormats.typeHints.hints ++ apiFormats)
+    override val companions = apiFormats.map(c => c -> this.getClass)
+  }
 
 
   def write[T](x: T)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = SPValue(x).toJson
@@ -69,6 +73,9 @@ trait SPCommunicationAPI {
 
 
 }
+
+case class ServiceMessageDef(tpe: String, keys: List[SPAttributes])
+case class KeyDef(key: String, ofType: String, domain: List[SPValue] = List(), default: Option[SPValue] = None)
 
 
 

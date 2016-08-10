@@ -72,6 +72,8 @@ case class Progress(attributes: SPAttributes, service: String, reqID: ID) extend
  */
 case class KeyDefinition(ofType: String, domain: List[SPValue] = List(), default: Option[SPValue] = None)
 
+
+
 /**
  * Used for validating the request
  * @param transform

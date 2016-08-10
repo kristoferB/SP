@@ -2,15 +2,63 @@ package sp.models
 
 import org.scalatest.{FreeSpec, Matchers}
 import sp.domain.{ID, SPAttributes}
-import sp.messages.StatusRequest
+import sp.messages._
 
 import scala.util.Success
+
+
+object APITEST extends SPCommunicationAPI {
+  sealed trait API
+  case class Test1(p1: String, p2: String) extends API
+  case class Test2(p1: Int, p2: Int) extends API
+  case class Test3(p1: Double, p2: Tom) extends API
+  case class Tom(str: String)
+
+  import sp.domain.LogicNoImplicit._
+  import org.json4s._
+
+
+  override type MessageType = API
+
+
+  // Automatically generate using macros
+  override val apiFormats = List(
+    classOf[Test1],
+    classOf[Test2],
+    classOf[Test3]
+  )
+
+  override val jsonFormats = List(
+
+  )
+
+}
 
 
 /**
   * Testing API handling
   */
 class ModelMakerAPITest extends FreeSpec with Matchers {
+  "CompTest" - {
+    "is it working" in {
+      implicit val f = APITEST.formats
+      val t = APITEST.Test1("hej", "då")
+
+      val json = APITEST.write(t)
+      val json2 = APITEST.write(APITEST.Test3(2, APITEST.Tom("hej")))
+      println(json)
+      println(json2)
+
+
+      val res = APITEST.read(json)
+      println(res)
+      val res2 = APITEST.read(json2)
+      println(res2)
+
+
+    }
+  }
+
   "Json serialization" - {
     "convert and add isa to modelmaker messages" in {
       implicit val formats = ModelMakerAPI.formats

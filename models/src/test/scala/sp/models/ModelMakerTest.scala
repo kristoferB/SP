@@ -10,10 +10,9 @@ import sp.messages._
 import scala.util._
 import akka.cluster.pubsub._
 import DistributedPubSubMediator.{Publish, Subscribe}
+import org.json4s.ShortTypeHints
 
 import scala.concurrent.duration._
-
-
 
 
 

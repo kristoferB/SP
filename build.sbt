@@ -44,7 +44,7 @@ lazy val commonSettings = Seq(
 lazy val root = project.in( file(".") )
    .aggregate(core, domain, gui, extensions, launch)
 
-lazy val domain = project.
+lazy val domain = project.dependsOn(macros).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= json ++ support)
 
@@ -54,8 +54,8 @@ lazy val models = project.dependsOn(domain).
 
 lazy val macros = project.
   settings(commonSettings: _*).
-  settings(libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _))
-
+  settings(libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _)).
+  settings(libraryDependencies ++= json)
 
 
 lazy val core = project.dependsOn(domain).
