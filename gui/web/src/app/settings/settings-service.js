@@ -8,13 +8,13 @@
     settingsService.$inject = ['$localStorage', '$http', 'dashboardService', 'themeService'];
     /* @ngInject */
     function settingsService($localStorage, $http, dashboardService, themeService) {
-              
+
         var service = {
             storage: $localStorage.$default({
                 currentColor: "default_white",
-                availableColors: ["default_white", "blue", "dark"]
+                availableColors: ["default_white", "blue", "dark", "happy"]
             }),
-            
+
             getColorOptions: getColorOptions,
             updateColorTheme: updateColorTheme
         };
@@ -25,7 +25,7 @@
 
         function activate() {
             updateColorTheme();
-        }        
+        }
 
         function updateColorTheme(){
             themeService.setColorTheme(service.storage.currentColor);
