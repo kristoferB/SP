@@ -10,13 +10,14 @@
 @gridster_panel_content_margin_right:   10px;
 @gridster_panel_content_margin_bottom:  10px;
 @gridster_panel_content_margin_top:     10px;
-@gridster_panel_content_border:         1px;
+@gridster_panel_content_border_width:   1px;
 
 // *** COLORS ***
 
 // body
 @body_color: #58666e;
 @body_background: #f0f3f4;
+@body_background_image: "";
 
 // h1, h2, etc.
 @header_color: #777;
@@ -88,6 +89,11 @@
 @navbar_header_background_disabled: #58666e;
 // SP logo foreground white
 @navbar_brand_title_color: #fff;
+// navbar dropdowns
+@navbar_dropdown_menu: @navbar_background;
+@navbar_dropdown_menu_hover: rgba(0, 0, 0, 0.05);
+
+@other_name: green;
 
 
 
@@ -172,7 +178,9 @@ body {
         font-size: 14px;
         line-height: 1.42857143em;
         color: @body_color;
-        background: @body_background;
+        background-color: @body_background;
+        background: @body_background_image no-repeat fixed;
+        background-size: cover;
         padding-top: 50px;
         -webkit-font-smoothing: antialiased;
     }
@@ -180,7 +188,9 @@ body {
         font-size: 14px;
         line-height: 1.42857143em;
         color: @body_color;
-        background: @body_background;
+        background-color: @body_background;
+        background: @body_background_image no-repeat fixed;
+        background-size: cover;
         padding-top: 0px;
         -webkit-font-smoothing: antialiased;
     }
@@ -265,9 +275,26 @@ a {
 }
 
 /* Panels in general */
+.panel-default {
+    color: @header_color;
+    background-color: @gridster_panel_background;
+    border-radius: @gridster_panel_border_radius;
+    height: 100%;
+
+
+    .panel-title {
+        font-size: @gridster_header_font_size;
+        margin: 0px;
+        padding: 0px;
+        position: absolute;
+        right: 50%;
+    }
+}
+
 .panel .panel-body {
     padding: 0;
 }
+
 
 /* Modals */
 
@@ -305,9 +332,9 @@ a {
         height: 100%;
         border-radius: @gridster_panel_border_radius + 1;
         margin-bottom: 0px;
-        .panel-title {
-            font-size: @gridster_header_font_size;
-        }
+        border-width: @gridster_panel_content_border_width + 1;
+        border-color: @gridster_panel_border;
+
 
         .panel-heading {
             text-align: -moz-center;
@@ -316,6 +343,7 @@ a {
             border-top-left-radius:  @gridster_panel_border_radius;
             border-top-right-radius:  @gridster_panel_border_radius;
             background-color: @gridster_panel_heading_background;
+            border-bottom: @gridster_panel_content_border_width solid #cccccc;
 
             flex: 0 0 auto;
 
@@ -346,15 +374,15 @@ a {
 
         .panel-body {
 
-            border: @gridster_panel_content_border solid @gridster_panel_border;
+            //border: @gridster_panel_content_border_width solid @gridster_panel_border;
             overflow-y: auto;
             overflow-x: auto;
             flex: 1;
             display: flex;
             flex-direction: column;
             background-color: @gridster_panel_background;
-            border-bottom-left-radius: @gridster_panel_border_radius;
-            border-bottom-right-radius: @gridster_panel_border_radius;
+            border-bottom-left-radius: inherit;
+            border-bottom-right-radius: inherit;
             height: 100%;
 
             & when(@showHeaders = false){
@@ -401,7 +429,7 @@ a {
                     //margin-left: @gridster_panel_content_margin_left;
                     //margin-right: @gridster_panel_content_margin_right;
                     //margin-bottom: @gridster_panel_content_margin_bottom;
-                   // border: @gridster_panel_content_border solid @gridster_panel_border;
+                   // border: @gridster_panel_content_border_width solid @gridster_panel_border;
                     background-color: @gridster_content_background;
 
                     &:focus {
@@ -424,6 +452,7 @@ a {
     border-top-left-radius:  @gridster_panel_border_radius;
     border-top-right-radius:  @gridster_panel_border_radius;
     background-color: @gridster_panel_heading_background;
+    text-align: -moz-center;
 
     flex: 0 0 auto;
 
@@ -446,7 +475,7 @@ a {
 
 .panel-body {
 
-    border: @gridster_panel_content_border solid @gridster_panel_border;
+    //border: @gridster_panel_content_border_width solid @gridster_panel_border;
     overflow-y: auto;
     overflow-x: auto;
     flex: 1;
@@ -1013,7 +1042,8 @@ select {
     .navbar-header {
         background-color: @navbar_header_background;
         display: flex;
-        float: right;
+        float: left;
+        opacity: .5;
     }
     .navbar-brand {
         line-height: 0px;
@@ -1025,6 +1055,10 @@ select {
         padding-bottom: 5px;
         padding-right: 5px;
         padding-left: 5px;
+
+        &:hover {
+            opacity: 1; //TODO Opacity absolut 1, inte relativt 1.
+        }
     }
     .brand-title {
         margin-left: 10px;
@@ -1049,10 +1083,24 @@ select {
     border: none;
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.05), 0 1px 0 rgba(0, 0, 0, 0.05);
 
+    .dropdown-menu {
+        background: @navbar_dropdown_menu;
+        color: inherit;
+
+
+    }
+    .dropdown-menu > li > a {
+        color: inherit;
+
+        &:hover {
+            background: @navbar_dropdown_menu_hover;
+        }
+    }
+
     .navbar-header {
         background-color: @navbar_header_background;
         display: flex;
-        float: right;
+        float: left;
         min-width: 120px;
     }
 
@@ -1083,11 +1131,13 @@ select {
 
         &:hover {
             background-color: inherit;
+            opacity: .2;
         }
     }
 
     .navbar-collapse {
         padding: 0;
+
     }
 
     @media (max-width: 768px) {
@@ -1139,7 +1189,7 @@ select {
         cursor: pointer;
         &.open > a {
             &, &:hover, &:focus {
-                background-color: rgba(0, 0, 0, 0.05);
+                background-color: @navbar_dropdown_menu_hover;
             }
         }
 
@@ -1147,7 +1197,7 @@ select {
             color: inherit !important;
 
             &:hover {
-                background-color: rgba(0, 0, 0, 0.05);
+                background-color: @navbar_dropdown_menu_hover;
             }
         }
     }

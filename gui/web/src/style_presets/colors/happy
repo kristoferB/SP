@@ -1,7 +1,8 @@
 {
-	"body_color": "#b1cce5",
-	"body_background": "#4273a6",
-	"header_color": "#black",
+	"body_color": "#8a6d3b",
+	"body_background": "#e6dac4",
+	"body_background_image": "url(\"wood2.jpg\")",
+	"header_color": "black",
 
 	"jstree_color": "black",
 	"jstree_background": "blanchedalmond",
@@ -9,7 +10,7 @@
 	"view_header_color": "#58666e",
 	"view_header_background": "#f6f8f8",
 
-	"a_color": "#3332",
+	"a_color": "hsla(221,60%,80%,0.85)",
 	"a_hover_color": "#888",
 
 	"dialog_header_confirm_h_color": "#777",
@@ -18,6 +19,8 @@
 	"gridster_panel_background": "#f5f5f5",
 	"gridster_content_background": "#d3dfea",
 	"gridster_panel_heading_background": "#f5f5f5",
+	"gridster_panel_border": "#ffcf7c",
+	"gridster_panel_content_border": "1.5px",
 
 	"button_default_color": "#58666e",
 	"button_default_background": "#fff",
@@ -45,33 +48,35 @@
 	"button_danger_background_hover": "#d82829",
 
 	"input_group_addon_color": "#58666e",
-	"input_group_addon_background": "#fff",
+	"input_group_addon_background": "#f9f600",
 	"form_control_border_color": "#dee5e7",
 
-	"dropdown_menu_background": "#aaaaaa",
-	"dropdown_menu_background_hover": "#edf1f2",
+	"dropdown_menu_background": "rgba(153,195,67,0.85)",
+	"dropdown_menu_background_hover": "rgba(129, 167, 53, 0.65)",
 	"dropdown_menu_background_divider": "#e5e5e5",
 
-	"navbar_background": "#113a63",
-	"navbar_color": "#ffffff",
-	"navbar_header_background": "#de691c",
+	"navbar_background": "linear-gradient(black, #99c343)",
+	"navbar_color": "#fff",
+	"navbar_header_background": "transparent",
 	"navbar_brand_title_color": "#fff",
-	"navbar_dropdown_menu": "#113a63",
-	"navbar_dropdown_menu_hover": "rgba(90, 0, 0, 0.15)",
+	"navbar_dropdown_menu": "#99c343",
+	"navbar_dropdown_menu_hover": "rgba(0, 0, 0, 0.15)",
+
+	"other_name": "blue",
 
 	"pagination_color": "#666",
 	"pagination_background": "#fff",
 	"pagination_color_hover": "#333",
 	"pagination_background_hover": "#fafafa",
 
-    "text_selected": "#dddddd",
-    "text_hover":  "#eeeeee",
+	"text_selected": "#dddddd",
+	"text_hover":  "#eeeeee",
 
-    "text_default": "#000000",
-    "text_string": "#00aa00",
-    "text_array":  "#000000",
-    "text_number": "#771100",
-    "text_boolean": "#555500",
-    "text_null": "#000000",
-    "text_invalid": "#ff300"
+	"text_default": "#000000",
+	"text_string": "#00aa00",
+	"text_array":  "#000000",
+	"text_number": "#771100",
+	"text_boolean": "#555500",
+	"text_null": "#000000",
+	"text_invalid": "#ff300"
 }
