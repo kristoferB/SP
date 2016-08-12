@@ -17,7 +17,8 @@ var ng2_dashboard_service_1 = require('../dashboard/ng2-dashboard.service');
 var widget_kinds_1 = require('../widget-kinds');
 var SpTopNavComponent = (function () {
     function SpTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, themeService, settingsService, ng2DashboardService) {
-        this.ng2DashboardService = ng2DashboardService;
+        this.dashboards = ng2DashboardService.storage.dashboards;
+        this.setActiveDashboard = ng2DashboardService.setActiveDashboard;
         this.showNavbar = themeService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
         this.showNavbar = true;
@@ -39,6 +40,16 @@ var SpTopNavComponent = (function () {
                 modelService.createModel(chosenName);
             });
         };
+        this.createDashboard = function () {
+            var modalInstance = $uibModal.open({
+                templateUrl: '/app/dashboard/createdashboard.html',
+                controller: 'CreateDashboardController',
+                controllerAs: 'vm'
+            });
+            modalInstance.result.then(function (chosenName) {
+                ng2DashboardService.addDashboard(chosenName);
+            });
+        };
         // upg-note: ugly custom resolve function will be changed when
         // widgetListService is rewritten and returns a proper Promise
         //var thiz = this;
@@ -47,7 +58,7 @@ var SpTopNavComponent = (function () {
         //});
         this.widgetKinds = widget_kinds_1.widgetKinds;
         this.addWidget = function (widgetKind) {
-            ng2DashboardService.addWidget(ng2DashboardService.storage.dashboards[0], widgetKind);
+            ng2DashboardService.addWidget(ng2DashboardService.activeDashboard, widgetKind);
         };
         this.normalView = themeService.normalView;
         this.compactView = themeService.compactView;
@@ -58,6 +69,9 @@ var SpTopNavComponent = (function () {
         this.setActiveModel = modelService.setActiveModel;
         this.activeModelName = function () { return modelService.activeModel ?
             modelService.activeModel.name : null; };
+        //this.activeDashboardName = () => ng2DashboardService.activeDashboardIndex ?
+        //    ng2DashboardService.activeDashboardIndex : null;
+        this.activeDashboardName = function () { return "placeholder"; };
     }
     SpTopNavComponent = __decorate([
         core_1.Component({

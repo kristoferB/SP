@@ -18,14 +18,13 @@ var dcl_view_component_1 = require('./dcl-view.component');
 var ng2_dashboard_service_1 = require('./ng2-dashboard.service');
 var widget_kinds_1 = require('../widget-kinds');
 var Ng2DashboardComponent = (function () {
-    function Ng2DashboardComponent(logger, $state, 
-        //@Inject('$timeout') $timeout,
-        ng1DashboardService, ng2DashboardService) {
+    function Ng2DashboardComponent(logger, $state, ng2DashboardService) {
         var _this = this;
         this.ng2DashboardService = ng2DashboardService;
-        ng2DashboardService.getDashboard(1, function (dashboard) {
-            _this.dashboard = dashboard;
-            _this.widgets = dashboard.widgets;
+        ng2DashboardService.dashboardChanged.subscribe(function (dashboard) {
+            console.log("changed to: " + dashboard.name);
+            _this.dashboard = ng2DashboardService.activeDashboard;
+            _this.widgets = _this.dashboard.widgets;
         });
         this.title = $state.current.title;
         this.ngGridOptions = ng2DashboardService.ngGridOptions;
@@ -33,13 +32,6 @@ var Ng2DashboardComponent = (function () {
         this.togglePanelLock = function () {
             _this.ngGridOptions.draggable = !_this.ngGridOptions.draggable;
             _this.ngGridOptions.resizable = !_this.ngGridOptions.resizable;
-            // vrf timeout??
-            //$timeout( () => {
-            //    this.gridsterOptions.draggable.enabled =
-            //        !this.gridsterOptions.draggable.enabled;
-            //    this.gridsterOptions.resizable.enabled =
-            //        !this.gridsterOptions.resizable.enabled;
-            //}, 500, false);
         };
     }
     Ng2DashboardComponent = __decorate([
@@ -47,14 +39,12 @@ var Ng2DashboardComponent = (function () {
             selector: 'ng2-dashboard',
             templateUrl: 'app/dashboard/ng2-dashboard.component.html',
             styleUrls: [],
-            directives: [angular2_grid_1.NgGrid, angular2_grid_1.NgGridItem, dcl_view_component_1.DclViewComponent,
-                upg_adapter_1.upgAdapter.upgradeNg1Component('spWidget')],
-            providers: [ng2_dashboard_service_1.Ng2DashboardService]
+            directives: [angular2_grid_1.NgGrid, angular2_grid_1.NgGridItem, dcl_view_component_1.DclViewComponent, upg_adapter_1.upgAdapter.upgradeNg1Component('spWidget')],
+            providers: []
         }),
         __param(0, core_1.Inject('logger')),
-        __param(1, core_1.Inject('$state')),
-        __param(2, core_1.Inject('dashboardService')), 
-        __metadata('design:paramtypes', [Object, Object, Object, ng2_dashboard_service_1.Ng2DashboardService])
+        __param(1, core_1.Inject('$state')), 
+        __metadata('design:paramtypes', [Object, Object, ng2_dashboard_service_1.Ng2DashboardService])
     ], Ng2DashboardComponent);
     return Ng2DashboardComponent;
 }());

@@ -30,13 +30,16 @@
                         <span>Dashboards</span> <span class="caret"></span>
                     </a>
                     <ul dropdownMenu class="dropdown-menu-right" role="menu">
-                        <li>
-                            <a href="">A dashboard</a>
-                            <a href="">Another dashboard</a>
-                            <a href="">Yet another dashboard</a>
-                            <a href="">Model settings</a>
-                            <a href="">General settings</a>
-                            <a href="">TODO: add this feature</a>
+                        <li><a (click)="createDashboard()" id="open-create-dashboard-dialog">
+                            <i class="fa fa-plus"></i>
+                            <span>New dashboard</span>
+                        </a></li>
+
+                        <li *ngFor="let m of dashboards">
+                            <a (click)="setActiveDashboard(m)" data-toggle="collapse" data-target=".navbar-collapse.in">
+                                <div *ngIf="m.name == activeDashboardName()" class="fa fa-angle-right"></div>
+                                {{ m.name }}
+                            </a>
                         </li>
                     </ul>
                 </li>

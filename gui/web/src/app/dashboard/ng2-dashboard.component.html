@@ -1,5 +1,6 @@
 <section id="dashboard-view" class="mainbar">
 
+
     <div [ngGrid]="ngGridOptions">
         <div *ngFor="let widget of widgets">
             <sp-widget [widget]="widget" [dashboard]="dashboard" [showCloseBtn]="true" [ngGridItem]="widget.gridOptions">

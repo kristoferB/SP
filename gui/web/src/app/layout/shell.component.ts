@@ -2,7 +2,6 @@ import { Component, Inject } from '@angular/core';
 
 import { upgAdapter } from '../upg-helpers/upg-adapter';
 import { SpTopNavComponent } from './sp-top-nav.component';
-import { Ng2DashboardService } from '../dashboard/ng2-dashboard.service';
 
 @Component({
   selector: 'shell',
@@ -10,7 +9,7 @@ import { Ng2DashboardService } from '../dashboard/ng2-dashboard.service';
   styleUrls: [],
   directives: [SpTopNavComponent,
             upgAdapter.upgradeNg1Component('upgUiView')],
-  providers: [Ng2DashboardService]
+  providers: []
 })
 
 // TODO test this whole class, does it do what the original controller did??
@@ -40,7 +39,7 @@ export class ShellComponent {
             this.$document = $document;
             this.settingsService = settingsService; // TODO
             this.vm.settingsService = settingsService; // TODO
-            
+
             this.activate();
     }
 

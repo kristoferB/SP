@@ -39,6 +39,12 @@ export class SpTopNavComponent {
     setActiveModel: (model: any) => void;
     activeModelName: () => string;
 
+    createDashboard: () => void;
+
+    dashboards: any[];
+    setActiveDashboard: (dashboard: any) => void;
+    activeDashboardName: () => string;
+
     constructor(
         @Inject('modelService') modelService,
         @Inject('dashboardService') dashboardService,
@@ -47,8 +53,11 @@ export class SpTopNavComponent {
         @Inject('$uibModal') $uibModal,
         @Inject('themeService') themeService,
         @Inject('settingsService') settingsService,
-        private ng2DashboardService: Ng2DashboardService
+        ng2DashboardService: Ng2DashboardService
     ) {
+
+        this.dashboards = ng2DashboardService.storage.dashboards;
+        this.setActiveDashboard = ng2DashboardService.setActiveDashboard;
 
         this.showNavbar = themeService.showNavbar;
 
@@ -78,6 +87,19 @@ export class SpTopNavComponent {
             });
         };
 
+        this.createDashboard = function() {
+            var modalInstance = $uibModal.open({
+                templateUrl: '/app/dashboard/createdashboard.html',
+                controller: 'CreateDashboardController',
+                controllerAs: 'vm'
+            });
+
+            modalInstance.result.then(function(chosenName) {
+                ng2DashboardService.addDashboard(chosenName);
+            });
+        };
+
+
         // upg-note: ugly custom resolve function will be changed when
         // widgetListService is rewritten and returns a proper Promise
 
@@ -89,7 +111,7 @@ export class SpTopNavComponent {
 
         this.addWidget = function(widgetKind: any) {
             ng2DashboardService.addWidget(
-                ng2DashboardService.storage.dashboards[0], widgetKind
+                ng2DashboardService.activeDashboard, widgetKind
             );
         };
 
@@ -103,5 +125,9 @@ export class SpTopNavComponent {
         this.setActiveModel = modelService.setActiveModel;
         this.activeModelName = () => modelService.activeModel ?
             modelService.activeModel.name : null;
+
+        //this.activeDashboardName = () => ng2DashboardService.activeDashboardIndex ?
+        //    ng2DashboardService.activeDashboardIndex : null;
+        this.activeDashboardName = () => "placeholder";
     }
 }

@@ -13,41 +13,30 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require('@angular/core');
 var widget_kinds_1 = require('../widget-kinds');
+var Rx_1 = require("rxjs/Rx");
 var Ng2DashboardService = (function () {
     function Ng2DashboardService($sessionStorage, logger, $ocLazyLoad) {
         var _this = this;
-        console.log('I got created!!!!!!!!!!!!1');
-        console.log(widget_kinds_1.widgetKinds);
+        this.dashboardChangedSubject = new Rx_1.Subject();
+        this.dashboardChanged = this.dashboardChangedSubject.asObservable();
         this.storage = $sessionStorage.$default({
-            dashboards: [{
-                    id: 1,
-                    name: 'My Board',
-                    widgets: [] // borttaget: requiredFiles[]
-                }],
+            dashboards: [
+                new Dashboard(0, 'My Board waddup', []),
+                new Dashboard(1, 'Other board', [])
+            ],
             widgetID: 1,
             dashboardID: 2
         });
+        this.activeDashboard = this.storage.dashboards[0];
+        this.setActiveDashboard = function (dashboard) {
+            _this.activeDashboard = dashboard;
+            _this.dashboardChangedSubject.next('woops');
+        };
         this.addDashboard = function (name) {
-            var dashboard = {
-                id: _this.storage.dashboardID++,
-                name: name,
-                widgets: []
-            };
-            // title changed to name here
+            var dashboard = new Dashboard(_this.storage.dashboardID++, name, []);
+            _this.storage.dashboards.push(dashboard);
             logger.info('Dashboard Controller: Added a dashboard with name ' + dashboard.name + ' and index '
                 + dashboard.id + '.');
-        };
-        this.getDashboard = function (id, callback) {
-            //var index = _.findIndex(this.storage.dashboards, {id: id});
-            var index = _this.storage.dashboards
-                .map(function (x) { return x.id; }).indexOf(id);
-            if (index === -1) {
-                return null;
-            }
-            else {
-                var dashboard = _this.storage.dashboards[index];
-                callback(dashboard);
-            }
         };
         this.removeDashboard = function (id) {
             //var index = _.findIndex(service.storage.dashboards, {id: id});
@@ -57,8 +46,6 @@ var Ng2DashboardService = (function () {
         };
         this.addWidget = function (dashboard, widgetKind) {
             var index = widget_kinds_1.widgetKinds.indexOf(widgetKind);
-            console.log('**********index ee');
-            console.log(index);
             //var widget = angular.copy(widgetKind, {});
             var widget = Object.create(widgetKind); // TODO copy problems?? // yes: fixed with Object.create
             widget.index = index;
@@ -109,7 +96,7 @@ var Ng2DashboardService = (function () {
             'resizable': true,
             'draggable': true,
             'margins': [10],
-            'auto_resize': true,
+            'auto_resize': false,
             'maintain_ratio': false,
             'max_cols': 12
         };
@@ -132,4 +119,13 @@ var Ng2DashboardService = (function () {
     return Ng2DashboardService;
 }());
 exports.Ng2DashboardService = Ng2DashboardService;
+var Dashboard = (function () {
+    function Dashboard(id, name, widgets) {
+        this.id = id;
+        this.name = name;
+        this.widgets = widgets;
+    }
+    return Dashboard;
+}());
+exports.Dashboard = Dashboard;
 //# sourceMappingURL=ng2-dashboard.service.js.map
