@@ -37,18 +37,18 @@ export class Ng2DashboardService {
 
         this.storage = $sessionStorage.$default({
             dashboards: [
-                new Dashboard(0, 'My Board waddup', []),
+                new Dashboard(0, 'My Board', []),
                 new Dashboard(1, 'Other board', [])
             ],
             widgetID: 1,
             dashboardID: 2
         });
-        this.activeDashboard = this.storage.dashboards[0];
 
         this.setActiveDashboard = (dashboard: any) => {
             this.activeDashboard = dashboard;
-            this.dashboardChangedSubject.next('woops');
+            this.dashboardChangedSubject.next('this should not be a string but rather the dashboard itself');
         };
+        this.setActiveDashboard(this.storage.dashboards[0]);
 
         this.addDashboard = (name) => {
             var dashboard = new Dashboard(

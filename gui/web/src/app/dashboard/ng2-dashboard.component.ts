@@ -30,6 +30,9 @@ export class Ng2DashboardComponent {
         @Inject('$state') $state,
         private ng2DashboardService: Ng2DashboardService
     ) {
+        // initialize
+        this.dashboard = ng2DashboardService.activeDashboard;
+        this.widgets = this.dashboard.widgets;
 
         ng2DashboardService.dashboardChanged.subscribe(
             (dashboard: any) => {

@@ -21,6 +21,9 @@ var Ng2DashboardComponent = (function () {
     function Ng2DashboardComponent(logger, $state, ng2DashboardService) {
         var _this = this;
         this.ng2DashboardService = ng2DashboardService;
+        // initialize
+        this.dashboard = ng2DashboardService.activeDashboard;
+        this.widgets = this.dashboard.widgets;
         ng2DashboardService.dashboardChanged.subscribe(function (dashboard) {
             console.log("changed to: " + dashboard.name);
             _this.dashboard = ng2DashboardService.activeDashboard;

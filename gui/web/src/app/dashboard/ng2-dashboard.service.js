@@ -21,17 +21,17 @@ var Ng2DashboardService = (function () {
         this.dashboardChanged = this.dashboardChangedSubject.asObservable();
         this.storage = $sessionStorage.$default({
             dashboards: [
-                new Dashboard(0, 'My Board waddup', []),
+                new Dashboard(0, 'My Board', []),
                 new Dashboard(1, 'Other board', [])
             ],
             widgetID: 1,
             dashboardID: 2
         });
-        this.activeDashboard = this.storage.dashboards[0];
         this.setActiveDashboard = function (dashboard) {
             _this.activeDashboard = dashboard;
-            _this.dashboardChangedSubject.next('woops');
+            _this.dashboardChangedSubject.next('this should not be a string but rather the dashboard itself');
         };
+        this.setActiveDashboard(this.storage.dashboards[0]);
         this.addDashboard = function (name) {
             var dashboard = new Dashboard(_this.storage.dashboardID++, name, []);
             _this.storage.dashboards.push(dashboard);
