@@ -15,14 +15,29 @@ var core_1 = require('@angular/core');
 var ng2_bootstrap_1 = require('ng2-bootstrap');
 var ng2_dashboard_service_1 = require('../dashboard/ng2-dashboard.service');
 var widget_kinds_1 = require('../widget-kinds');
+var theme_service_1 = require("../core/theme.service");
 var SpTopNavComponent = (function () {
-    function SpTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, themeService, settingsService, ng2DashboardService) {
+    function SpTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, 
+        //@Inject('themeService') themeService,
+        settingsService, ng2DashboardService, themeService) {
+        // themeService.testSubject.subscribe(
+        //     (fulhack:string) => this.themeChanged(fulhack)
+        // );
+        var _this = this;
+        this.themeChanged = function (callback) {
+            console.log('fuck this shit');
+            console.log(callback);
+            console.log(_this.testColor);
+            _this.testColor = callback;
+        };
+        themeService.coolSubscribe(this.themeChanged);
+        this.testColor = 'black';
+        this.testClass = new test();
         this.dashboards = ng2DashboardService.storage.dashboards;
         this.setActiveDashboard = ng2DashboardService.setActiveDashboard;
         this.showNavbar = themeService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
         this.showNavbar = true;
-        //this.toggleNavbar = themeService.toggleNavbar; // implement it like this when themeService is ng2
         this.toggleNavbar = function () {
             this.showNavbar = !this.showNavbar;
             themeService.toggleNavbar();
@@ -72,6 +87,9 @@ var SpTopNavComponent = (function () {
         //this.activeDashboardName = () => ng2DashboardService.activeDashboardIndex ?
         //    ng2DashboardService.activeDashboardIndex : null;
         this.activeDashboardName = function () { return "placeholder"; };
+        this.getStyle = function () {
+            return "yellow";
+        };
     }
     SpTopNavComponent = __decorate([
         core_1.Component({
@@ -79,18 +97,26 @@ var SpTopNavComponent = (function () {
             templateUrl: 'app/layout/sp-top-nav.component.html',
             styleUrls: [],
             directives: [ng2_bootstrap_1.DROPDOWN_DIRECTIVES],
-            providers: []
+            providers: [],
+            styles: [
+                "\n        .my-class {\n        background-color: yellow;\n        color:green;\n        }\n        "
+            ]
         }),
         __param(0, core_1.Inject('modelService')),
         __param(1, core_1.Inject('dashboardService')),
         __param(2, core_1.Inject('widgetListService')),
         __param(3, core_1.Inject('$state')),
         __param(4, core_1.Inject('$uibModal')),
-        __param(5, core_1.Inject('themeService')),
-        __param(6, core_1.Inject('settingsService')), 
-        __metadata('design:paramtypes', [Object, Object, Object, Object, Object, Object, Object, ng2_dashboard_service_1.Ng2DashboardService])
+        __param(5, core_1.Inject('settingsService')), 
+        __metadata('design:paramtypes', [Object, Object, Object, Object, Object, Object, ng2_dashboard_service_1.Ng2DashboardService, theme_service_1.ThemeService])
     ], SpTopNavComponent);
     return SpTopNavComponent;
 }());
 exports.SpTopNavComponent = SpTopNavComponent;
+var test = (function () {
+    function test() {
+    }
+    return test;
+}());
+exports.test = test;
 //# sourceMappingURL=sp-top-nav.component.js.map

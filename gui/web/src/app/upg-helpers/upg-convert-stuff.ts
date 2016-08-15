@@ -5,6 +5,7 @@ import { Ng2DashboardComponent } from '../dashboard/ng2-dashboard.component';
 import { AwesomeNG2Component } from '../lazy-widgets/ng2Inside/awesome-ng2-component.component';
 import { Faces } from '../erica-components/faces.component';
 import {Ng2DashboardService} from "../dashboard/ng2-dashboard.service";
+import {ThemeService} from "../core/theme.service";
 
 declare var angular: any;
 
@@ -29,9 +30,11 @@ export function upgConvertStuff(upgAdapter: UpgradeAdapter): void {
     upgAdapter.upgradeNg1Provider('widgetListService');
     upgAdapter.upgradeNg1Provider('$state');
     upgAdapter.upgradeNg1Provider('$uibModal');
+    upgAdapter.upgradeNg1Provider('$http');
     upgAdapter.upgradeNg1Provider('$sessionStorage');
     upgAdapter.upgradeNg1Provider('$ocLazyLoad');
     upgAdapter.upgradeNg1Provider('themeService');
     upgAdapter.upgradeNg1Provider('themeService');
     upgAdapter.addProvider(Ng2DashboardService);
+    upgAdapter.addProvider(ThemeService);
 }

@@ -5,13 +5,22 @@ import { upgAdapter } from '../upg-helpers/upg-adapter';
 import { Ng2DashboardService } from '../dashboard/ng2-dashboard.service';
 import { WidgetKind } from '../widget-kind';
 import { widgetKinds } from '../widget-kinds';
+import {ThemeService} from "../core/theme.service";
 
 @Component({
-  selector: 'sp-top-nav',
-  templateUrl: 'app/layout/sp-top-nav.component.html',
-  styleUrls: [],
-  directives: [DROPDOWN_DIRECTIVES],
-  providers: []
+    selector: 'sp-top-nav',
+    templateUrl: 'app/layout/sp-top-nav.component.html',
+    styleUrls: [],
+    directives: [DROPDOWN_DIRECTIVES],
+    providers: [],
+    styles: [
+        `
+        .my-class {
+        background-color: yellow;
+        color:green;
+        }
+        `
+]
 })
 
 export class SpTopNavComponent {
@@ -45,16 +54,37 @@ export class SpTopNavComponent {
     setActiveDashboard: (dashboard: any) => void;
     activeDashboardName: () => string;
 
+    testClass: any;
+    getStyle: () => string;
+    testColor: string;
+    themeChanged: (callbacK: string) => void;
+
     constructor(
         @Inject('modelService') modelService,
         @Inject('dashboardService') dashboardService,
         @Inject('widgetListService') widgetListService,
         @Inject('$state') $state,
         @Inject('$uibModal') $uibModal,
-        @Inject('themeService') themeService,
+        //@Inject('themeService') themeService,
         @Inject('settingsService') settingsService,
-        ng2DashboardService: Ng2DashboardService
+        ng2DashboardService: Ng2DashboardService,
+        themeService: ThemeService
     ) {
+        // themeService.testSubject.subscribe(
+        //     (fulhack:string) => this.themeChanged(fulhack)
+        // );
+
+
+        this.themeChanged = (callback: string) => {
+            console.log('fuck this shit');
+            console.log(callback);
+            console.log(this.testColor);
+            this.testColor = callback;
+        };
+        themeService.coolSubscribe(this.themeChanged);
+
+        this.testColor = 'black';
+        this.testClass = new test();
 
         this.dashboards = ng2DashboardService.storage.dashboards;
         this.setActiveDashboard = ng2DashboardService.setActiveDashboard;
@@ -64,7 +94,6 @@ export class SpTopNavComponent {
         this.togglePanelLock = settingsService.togglePanelLock;
 
         this.showNavbar = true;
-        //this.toggleNavbar = themeService.toggleNavbar; // implement it like this when themeService is ng2
         this.toggleNavbar = function() {
             this.showNavbar = !this.showNavbar;
             themeService.toggleNavbar();
@@ -129,5 +158,21 @@ export class SpTopNavComponent {
         //this.activeDashboardName = () => ng2DashboardService.activeDashboardIndex ?
         //    ng2DashboardService.activeDashboardIndex : null;
         this.activeDashboardName = () => "placeholder";
+
+        this.getStyle = () => {
+            return "yellow";
+        };
+
+
     }
+}
+
+export class test {
+    ohShit: "waddup";
+    backgroundColor:"blue";
+    color: "blue";
+    constructor() {
+
+    }
+
 }
