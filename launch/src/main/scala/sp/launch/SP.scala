@@ -11,6 +11,64 @@ import scala.io.Source
  */
 object SP extends App {
 
+import sp.system._
+import sp.system.messages._
+import sp.domain._
+import sp.domain.Logic._
+import oscar.cp._
+
+class VolvoRobots(params: SPAttributes) extends CPModel {
+  def test = {
+    val names = List("RS1_B940WeldSeg1", "RS1_B940WeldSeg2", "RS1_B941WeldSeg3", "RS1_B940WeldSeg4", "RS2_B940WeldSeg1", "RS2_B941WeldSeg2", "RS2_B940WeldSeg3", "RS2_B940WeldSeg4", "RS2_B941WeldSeg5", "RS2_B940WeldSeg6", "RS2_B941WeldSeg8", "RS2_B941WeldSeg9", "RS3_B941WeldSeg1", "RS3_B940WeldSeg2", "RS3_B941WeldSeg3", "RS3_B940WeldSeg4", "RS4_B940WeldSeg1", "RS4_B940WeldSeg2", "RS4_B941WeldSeg3", "RS4_B940WeldSeg4", "RS4_B940WeldSeg5")
+    val nameMap = names.zipWithIndex.toMap
+    val numTasks = names.size
+    val durations = Array(1600,1000,1600,400,600,200,800,200,200,1200,1000,600,4618,2534,1539,2895,800,800,1000,200,2000);
+    val totalDuration = durations.sum
+
+
+    val precedences = List(("RS1_B940WeldSeg1","RS1_B940WeldSeg2"),("RS1_B940WeldSeg2","RS1_B941WeldSeg3"),("RS1_B941WeldSeg3","RS1_B940WeldSeg4"),("RS2_B940WeldSeg1","RS2_B941WeldSeg2"),("RS2_B941WeldSeg2","RS2_B940WeldSeg3"),("RS2_B940WeldSeg3","RS2_B940WeldSeg4"),("RS2_B940WeldSeg4","RS2_B941WeldSeg5"),("RS2_B941WeldSeg5","RS2_B940WeldSeg6"),("RS2_B940WeldSeg6","RS2_B941WeldSeg8"),("RS2_B941WeldSeg8","RS2_B941WeldSeg9"),("RS3_B941WeldSeg1","RS3_B940WeldSeg2"),("RS3_B940WeldSeg2","RS3_B941WeldSeg3"),("RS3_B941WeldSeg3","RS3_B940WeldSeg4"),("RS4_B940WeldSeg1","RS4_B940WeldSeg2"),("RS4_B940WeldSeg2","RS4_B941WeldSeg3"),("RS4_B941WeldSeg3","RS4_B940WeldSeg4"),("RS4_B940WeldSeg4","RS4_B940WeldSeg5"))
+
+    val mutexes = List(("RS4_B941WeldSeg3", "RS2_B941WeldSeg2"), ("RS4_B940WeldSeg4", "RS2_B940WeldSeg1"), ("RS4_B941WeldSeg3", "RS2_B940WeldSeg3"), ("RS4_B940WeldSeg2", "RS2_B941WeldSeg2"), ("RS4_B940WeldSeg2", "RS2_B940WeldSeg3"), ("RS4_B940WeldSeg2", "RS2_B940WeldSeg1"), ("RS4_B941WeldSeg3", "RS2_B940WeldSeg1"), ("RS4_B940WeldSeg4", "RS2_B941WeldSeg2"), ("RS4_B940WeldSeg4", "RS2_B940WeldSeg3"),("RS4_B940WeldSeg2", "RS1_B941WeldSeg3"), ("RS4_B941WeldSeg3", "RS1_B940WeldSeg4"), ("RS4_B940WeldSeg1", "RS1_B940WeldSeg4"), ("RS4_B941WeldSeg3", "RS1_B941WeldSeg3"), ("RS4_B940WeldSeg1", "RS1_B941WeldSeg3"), ("RS4_B940WeldSeg2", "RS1_B940WeldSeg4"), ("RS1_B941WeldSeg3", "RS4_B940WeldSeg4"), ("RS4_B940WeldSeg4", "RS1_B940WeldSeg4"),("RS3_B940WeldSeg4", "RS1_B940WeldSeg1"), ("RS3_B940WeldSeg2", "RS1_B940WeldSeg1"), ("RS3_B941WeldSeg3", "RS1_B940WeldSeg1"),("RS4_B940WeldSeg5", "RS2_B940WeldSeg4"), ("RS4_B940WeldSeg5", "RS2_B940WeldSeg1"), ("RS4_B940WeldSeg5", "RS2_B941WeldSeg2"), ("RS4_B940WeldSeg5", "RS2_B940WeldSeg3"),("RS2_B941WeldSeg8", "RS3_B941WeldSeg1"))
+ 
+    var startTimes = Array.fill(numTasks)(CPIntVar(0, totalDuration))
+    var endTimes = Array.fill(numTasks)(CPIntVar(0, totalDuration))
+    var makespan = CPIntVar(0 to totalDuration)
+
+    precedences.foreach { case (t1,t2) => add(startTimes(nameMap(t1)) + durations(nameMap(t1)) <= startTimes(nameMap(t2)) ) }
+    mutexes.foreach { case (t1,t2) =>
+      val leq1 = startTimes(nameMap(t1)) + durations(nameMap(t1)) <== startTimes(nameMap(t2))
+      val leq2 = startTimes(nameMap(t2)) + durations(nameMap(t2)) <== startTimes(nameMap(t1))
+      add(leq1 || leq2)
+    }
+
+    names.foreach { n =>
+      add(endTimes(nameMap(n)) == startTimes(nameMap(n)) + durations(nameMap(n)))
+
+      // except for time 0, operations can only start when something finishes
+      // must exist a better way to write this
+      val c = CPIntVar(0, numTasks)
+      add(countEq(c, endTimes, startTimes(nameMap(n))))
+      add(startTimes(nameMap(n)) === 0 || (c >>= 0))
+    }
+    add(maximum(endTimes, makespan))
+
+    minimize(makespan)
+    search(binaryStatic(startTimes ++ Array(makespan)))
+
+    onSolution {
+      println("Makespan: " + makespan)
+      println("Start times: ")
+      names.foreach { name =>
+        println(name + ": " + startTimes(nameMap(name)))
+      }
+    }
+
+    val stats = start() // (nSols = 1)
+    println("stats " + stats)
+  }
+}
+  
+
   import sp.system.SPActorSystem._
 
   import akka.cluster.pubsub.DistributedPubSub
@@ -252,9 +310,16 @@ object SP extends App {
     OperatorInstructions.transformation
   )  )
 
+  println("CP TEST COMING UP")
+  val vr = new VolvoRobots(SPAttributes())
+  vr.test
+
+
+
   // launch REST API
   sp.server.LaunchGUI.launch
   scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
     case x => system.terminate()
   }
+
 }

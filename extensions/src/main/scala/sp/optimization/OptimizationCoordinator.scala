@@ -17,6 +17,7 @@ object OptimizationModels {
   // Define available optimization models
   final val models: List[OptimizationModel] = List(
     new OptimizationModel("Queens",OscaR),
+    new OptimizationModel("VolvoRobots",OscaR),
     new OptimizationModel("send-more-money",MiniZinc)
   )
 
