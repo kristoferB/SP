@@ -1,7 +1,7 @@
 package sp.models
 
 import org.scalatest.{FreeSpec, Matchers}
-import sp.domain.{ID, SPAttributes}
+import sp.domain._
 import sp.messages._
 
 import scala.util.Success
@@ -12,24 +12,68 @@ object APITEST extends SPCommunicationAPI {
   case class Test1(p1: String, p2: String) extends API
   case class Test2(p1: Int, p2: Int) extends API
   case class Test3(p1: Double, p2: Tom) extends API
-  case class Tom(str: String)
 
-  import sp.domain.LogicNoImplicit._
-  import org.json4s._
-
+  sealed trait Support
+  case class Tom(str: String) extends Support
 
   override type MessageType = API
 
 
+
   // Automatically generate using macros
-  override val apiFormats = List(
+  override val apiClasses = List(
     classOf[Test1],
     classOf[Test2],
     classOf[Test3]
   )
 
-  override val jsonFormats = List(
-
+  import sp.domain.LogicNoImplicit._
+  implicit val f =  new sp.domain.logic.JsonLogic.JsonFormats {}
+  // Automatically generate using macros
+  override val apiJson = List(
+    SPAttributes("isa"->"APITEST$Test1",
+      "p1"->KeyDef(
+        key = "p1",
+        ofType = "String",
+        domain = List(),
+        default = Some("hej")),
+      "p2"->KeyDef(
+        key = "p2",
+        ofType = "String",
+        domain = List(),
+        default = Some("då"))
+    ),
+    SPAttributes("isa"->"APITEST$Test2",
+      "p1"->KeyDef(
+        key = "p1",
+        ofType = "Double",
+        domain = List(),
+        default = Some(0.0)),
+      "p2"->KeyDef(
+        key = "p2",
+        ofType = "Double",
+        domain = List(),
+        default = Some(0.0))
+    ),
+    SPAttributes("isa"->"APITEST$Test3",
+      "p1"->KeyDef(
+        key = "p1",
+        ofType = "Double",
+        domain = List(),
+        default = Some(0.0)),
+      "p2"->KeyDef(
+        key = "p2",
+        ofType = "Tom",
+        domain = List(),
+        default = Some(SPValue(Tom("hej"))))
+    ),
+    SPAttributes("isa"->"APITEST$Tom",
+      "str"->KeyDef(
+        key = "str",
+        ofType = "String",
+        domain = List(),
+        default = Some("ja"))
+    )
   )
 
 }

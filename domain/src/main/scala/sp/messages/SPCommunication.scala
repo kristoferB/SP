@@ -14,14 +14,14 @@ import org.json4s._
   */
 trait SPCommunicationAPI {
   type MessageType
-  val apiFormats: List[Class[_]]
-  val jsonFormats: List[SPAttributes]
+  val apiClasses: List[Class[_]]
+  val apiJson: List[SPAttributes]
 
 
   lazy val spFormats = new JsonFormats{}
   lazy val formats = new JsonFormats {
-    override val typeHints = ShortTypeHints(spFormats.typeHints.hints ++ apiFormats)
-    override val companions = apiFormats.map(c => c -> this.getClass)
+    override val typeHints = ShortTypeHints(spFormats.typeHints.hints ++ apiClasses)
+    override val companions = apiClasses.map(c => c -> this.getClass)
   }
 
 
@@ -74,7 +74,7 @@ trait SPCommunicationAPI {
 
 }
 
-case class ServiceMessageDef(tpe: String, keys: List[SPAttributes])
+case class ServiceMessageDef(tpe: String, keys: List[SPValue])
 case class KeyDef(key: String, ofType: String, domain: List[SPValue] = List(), default: Option[SPValue] = None)
 
 

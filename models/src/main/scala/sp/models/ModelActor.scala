@@ -48,7 +48,7 @@ case class Item(model: ID, item: IDAble) extends ModelMessages
 
 object ModelMessagesAPI extends SPCommunicationAPI {
   type MessageType = ModelMessages
-  val apiFormats = List(
+  val apiClasses = List(
     classOf[PutAttributes],
     classOf[PutItems],
     classOf[DeleteItems],
@@ -70,6 +70,8 @@ object ModelMessagesAPI extends SPCommunicationAPI {
     classOf[Items],
     classOf[Item]
   )
+
+  override val apiJson: List[SPAttributes] = List()
 }
 
 

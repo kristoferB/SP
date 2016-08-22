@@ -28,11 +28,13 @@ case class ModelDeleted(model: ID) extends ModelMakerMessages
 
 object ModelMakerAPI extends SPCommunicationAPI {
   override type MessageType = ModelMakerMessages
-  override val apiFormats = List(
+  override val apiClasses = List(
     classOf[CreateModel],
     classOf[DeleteModel],
     classOf[ModelDeleted]
   )
+
+  override val apiJson: List[SPAttributes] = List()
 
 
 }
