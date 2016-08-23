@@ -1,10 +1,12 @@
 package sp.models
 
+import org.json4s.ShortTypeHints
 import org.scalatest.{FreeSpec, Matchers}
 import sp.domain._
 import sp.messages._
 
 import scala.util.Success
+
 
 
 object APITEST extends SPCommunicationAPI {
@@ -13,68 +15,20 @@ object APITEST extends SPCommunicationAPI {
   case class Test2(p1: Int, p2: Int) extends API
   case class Test3(p1: Double, p2: Tom) extends API
 
-  sealed trait Support
-  case class Tom(str: String) extends Support
+  sealed trait SUB
+  case class Tom(str: String) extends SUB
 
   override type MessageType = API
+  override type SUBType = SUB
+  override lazy val apiClasses: List[Class[_]] =   sp.macros.MacroMagic.values[MessageType]
+  override lazy val apiJson: List[String] = sp.macros.MacroMagic.info[MessageType, SUBType]
+
+  // Result json fín apiJson, copy paste in http://jsoneditoronline.org to view
+  /**
+    * [{"isa":"APITEST.Test1","p1":{"key":"p1","ofType":"String"},"p2":{"key":"p2","ofType":"String"}},{"isa":"APITEST.Test2","p1":{"key":"p1","ofType":"Int"},"p2":{"key":"p2","ofType":"Int"}},{"isa":"APITEST.Test3","p1":{"key":"p1","ofType":"Double"},"p2":{"key":"p2","ofType":"APITEST.Tom"}},{"subs":{"APITEST.Tom":{"str":{"key":"str","ofType":"String"}}}}]
+    */
 
 
-
-  // Automatically generate using macros
-  override val apiClasses = List(
-    classOf[Test1],
-    classOf[Test2],
-    classOf[Test3]
-  )
-
-  import sp.domain.LogicNoImplicit._
-  implicit val f =  new sp.domain.logic.JsonLogic.JsonFormats {}
-  // Automatically generate using macros
-  override val apiJson = List(
-    SPAttributes("isa"->"APITEST$Test1",
-      "p1"->KeyDef(
-        key = "p1",
-        ofType = "String",
-        domain = List(),
-        default = Some("hej")),
-      "p2"->KeyDef(
-        key = "p2",
-        ofType = "String",
-        domain = List(),
-        default = Some("då"))
-    ),
-    SPAttributes("isa"->"APITEST$Test2",
-      "p1"->KeyDef(
-        key = "p1",
-        ofType = "Double",
-        domain = List(),
-        default = Some(0.0)),
-      "p2"->KeyDef(
-        key = "p2",
-        ofType = "Double",
-        domain = List(),
-        default = Some(0.0))
-    ),
-    SPAttributes("isa"->"APITEST$Test3",
-      "p1"->KeyDef(
-        key = "p1",
-        ofType = "Double",
-        domain = List(),
-        default = Some(0.0)),
-      "p2"->KeyDef(
-        key = "p2",
-        ofType = "Tom",
-        domain = List(),
-        default = Some(SPValue(Tom("hej"))))
-    ),
-    SPAttributes("isa"->"APITEST$Tom",
-      "str"->KeyDef(
-        key = "str",
-        ofType = "String",
-        domain = List(),
-        default = Some("ja"))
-    )
-  )
 
 }
 
@@ -85,6 +39,7 @@ object APITEST extends SPCommunicationAPI {
 class ModelMakerAPITest extends FreeSpec with Matchers {
   "CompTest" - {
     "is it working" in {
+      println(APITEST.apiClasses)
       implicit val f = APITEST.formats
       val t = APITEST.Test1("hej", "då")
 
@@ -99,30 +54,32 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
       val res2 = APITEST.read(json2)
       println(res2)
 
+      println(APITEST.apiJson)
 
     }
   }
 
+
   "Json serialization" - {
     "convert and add isa to modelmaker messages" in {
       implicit val formats = ModelMakerAPI.formats
-      val cm = CreateModel("hej", Some(SPAttributes("attr" -> "hej")), None)
-      val dm = DeleteModel(ID.makeID("2c99c220-2f72-45e0-b926-3d8e7a08114c").get)
+      val cm = ModelMakerAPI.CreateModel("hej", Some(SPAttributes("attr" -> "hej")), None)
+      val dm = ModelMakerAPI.DeleteModel(ID.makeID("2c99c220-2f72-45e0-b926-3d8e7a08114c").get)
 
       val jsonCM = ModelMakerAPI.write(cm)
       val jsonDM = ModelMakerAPI.write(dm)
 
-      jsonCM shouldEqual """{"isa":"CreateModel","name":"hej","attributes":{"attr":"hej"}}"""
-      jsonDM shouldEqual """{"isa":"DeleteModel","model":"2c99c220-2f72-45e0-b926-3d8e7a08114c"}"""
+      jsonCM shouldEqual """{"isa":"ModelMakerAPI$CreateModel","name":"hej","attributes":{"attr":"hej"}}"""
+      jsonDM shouldEqual """{"isa":"ModelMakerAPI$DeleteModel","model":"2c99c220-2f72-45e0-b926-3d8e7a08114c"}"""
     }
 
     "read modelmaker messages" in {
       implicit val formats = ModelMakerAPI.formats
-      val cm = CreateModel("hej", Some(SPAttributes("attr" -> "hej")), None)
-      val dm = DeleteModel(ID.makeID("2c99c220-2f72-45e0-b926-3d8e7a08114c").get)
+      val cm = ModelMakerAPI.CreateModel("hej", Some(SPAttributes("attr" -> "hej")), None)
+      val dm = ModelMakerAPI.DeleteModel(ID.makeID("2c99c220-2f72-45e0-b926-3d8e7a08114c").get)
 
-      val jsonCM = """{"isa":"CreateModel","name":"hej","attributes":{"attr":"hej"}}"""
-      val jsonDM = """{"isa":"DeleteModel","model":"2c99c220-2f72-45e0-b926-3d8e7a08114c"}"""
+      val jsonCM = """{"isa":"ModelMakerAPI$CreateModel","name":"hej","attributes":{"attr":"hej"}}"""
+      val jsonDM = """{"isa":"ModelMakerAPI$DeleteModel","model":"2c99c220-2f72-45e0-b926-3d8e7a08114c"}"""
 
       ModelMakerAPI.read(jsonCM) shouldEqual Success(cm)
       ModelMakerAPI.read(jsonDM) shouldEqual Success(dm)
@@ -131,14 +88,14 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
 
     "read pf modelmaker messages" in {
       implicit val formats = ModelMakerAPI.formats
-      val cm = CreateModel("hej", Some(SPAttributes("attr" -> "hej")), None)
-      val dm = DeleteModel(ID.makeID("2c99c220-2f72-45e0-b926-3d8e7a08114c").get)
+      val cm = ModelMakerAPI.CreateModel("hej", Some(SPAttributes("attr" -> "hej")), None)
+      val dm = ModelMakerAPI.DeleteModel(ID.makeID("2c99c220-2f72-45e0-b926-3d8e7a08114c").get)
 
-      val jsonCM = """{"isa":"CreateModel","name":"hej","attributes":{"attr":"hej"}}"""
+      val jsonCM = """{"isa":"ModelMakerAPI$CreateModel","name":"hej","attributes":{"attr":"hej"}}"""
 
       var test = false
       ModelMakerAPI.readPF(jsonCM){
-        case cmNew: CreateModel => test = cm == cmNew
+        case cmNew: ModelMakerAPI.CreateModel => test = cm == cmNew
       }
       {PartialFunction.empty}
       {x: String => test = false}
@@ -147,14 +104,14 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
 
     "read pf modelmaker messages and fail" in {
       implicit val formats = ModelMakerAPI.formats
-      val cm = CreateModel("hej", Some(SPAttributes("attr" -> "hej")), None)
-      val dm = DeleteModel(ID.makeID("2c99c220-2f72-45e0-b926-3d8e7a08114c").get)
+      val cm = ModelMakerAPI.CreateModel("hej", Some(SPAttributes("attr" -> "hej")), None)
+      val dm = ModelMakerAPI.DeleteModel(ID.makeID("2c99c220-2f72-45e0-b926-3d8e7a08114c").get)
 
-      val jsonCM = """{"isa":"CreateModel2","name":"hej","attributes":{"attr":"hej"}}"""
+      val jsonCM = """{"isa":"ModelMakerAPI$CreateModel2","name":"hej","attributes":{"attr":"hej"}}"""
 
       var test = false
       ModelMakerAPI.readPF(jsonCM){
-        case cmNew: CreateModel => test = false
+        case cmNew: ModelMakerAPI.CreateModel => test = false
       }
       {PartialFunction.empty}
       {x: String =>
@@ -171,7 +128,7 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
 
       var test = false
       ModelMakerAPI.readPF(jsonR){
-        case cmNew: ModelMakerMessages => test = false
+        case cmNew: ModelMakerAPI.API => test = false
       }
       {case StatusRequest(param) => test = true}
       {x: String => test = false}
@@ -179,13 +136,7 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
     }
 
   }
-//  "Macro" - {
-//    "should work" in {
-//      val test = SealedExample.values[ModelMakerMessages]
-//      println("macro test:")
-//      test.foreach(println)
-//    }
-//  }
+
 
 }
 

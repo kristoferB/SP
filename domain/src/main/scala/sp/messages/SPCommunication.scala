@@ -5,6 +5,8 @@ import sp.domain.LogicNoImplicit._
 import scala.util._
 import org.json4s._
 
+
+
 /**
   * Created by kristofer on 2016-07-15.
   *
@@ -14,8 +16,9 @@ import org.json4s._
   */
 trait SPCommunicationAPI {
   type MessageType
+  type SUBType
   val apiClasses: List[Class[_]]
-  val apiJson: List[SPAttributes]
+  val apiJson: List[String]
 
 
   lazy val spFormats = new JsonFormats{}
@@ -25,7 +28,10 @@ trait SPCommunicationAPI {
   }
 
 
-  def write[T](x: T)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = SPValue(x).toJson
+  def write[T <: AnyRef](x: T)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = {
+    org.json4s.native.Serialization.write[T](x)
+  }
+
 
   /**
     * A helper method for parsing and matching messages.
@@ -74,8 +80,6 @@ trait SPCommunicationAPI {
 
 }
 
-case class ServiceMessageDef(tpe: String, keys: List[SPValue])
-case class KeyDef(key: String, ofType: String, domain: List[SPValue] = List(), default: Option[SPValue] = None)
 
 
 

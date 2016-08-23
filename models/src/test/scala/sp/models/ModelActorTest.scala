@@ -48,6 +48,8 @@ class ModelActorTest(_system: ActorSystem) extends TestKit(_system) with Implici
   val api = ModelMessagesAPI
   implicit val format = ModelMessagesAPI.formats join ModelMakerAPI.formats
 
+  import sp.models.ModelMakerAPI._
+
   "Model maker api should" - {
     "Create a model"  in {
       val probe = TestProbe()

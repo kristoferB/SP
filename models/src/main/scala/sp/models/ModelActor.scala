@@ -14,64 +14,42 @@ import scala.util.{Failure, Success, Try}
 
 
 
-// API - Maybe using protobuf in the future
-sealed trait ModelMessages
-
-// commands
-case class PutAttributes(model: ID, name: Option[String], attributes: Option[SPAttributes]) extends ModelMessages
-case class PutItems(model: ID, items: List[IDAble], info: SPAttributes = SPAttributes()) extends ModelMessages
-case class DeleteItems(model: ID, items: List[ID], info: SPAttributes = SPAttributes()) extends ModelMessages
-case class Revert(model: ID, toVersion: Long) extends ModelMessages
-case class Import(model: ID, name: String, version: Long, attributes: SPAttributes, items: List[IDAble], history: List[ModelMessages]) extends ModelMessages
-
-// events
-case class ModelCreated(model: ID, name: String, version: Long, attributes: SPAttributes) extends ModelMessages
-case class AttributesChanged(model: ID, name: String, version: Long, attributes: SPAttributes) extends ModelMessages
-case class ItemsChanged(model: ID, items: List[IDAble], version: Long, info: SPAttributes) extends ModelMessages
-case class ItemsDeleted(model: ID, items: List[ID], version: Long, info: SPAttributes) extends ModelMessages
-case class Reverted(model: ID, updatedItems: List[IDAble], removedItems: List[ID], name: String, version: Long, attributes: SPAttributes) extends ModelMessages
-case class Loaded(model: ID) extends ModelMessages
-
-// Simple query
-case class GetAttributes(model: ID) extends ModelMessages
-case class GetHistory(model: ID) extends ModelMessages
-case class GetItems(model: ID, filterID: Option[List[ID]] = None, filterName: Option[List[String]] = None) extends ModelMessages
-case class GetItem(model: ID, item: Option[ID], name: Option[String]) extends ModelMessages
-case class GetItemsContainingID(model: ID, id: ID) extends ModelMessages
-
-// query response
-case class Attributes(model: ID, name: String, version: Long, attributes: SPAttributes) extends ModelMessages
-case class History(model: ID, name: String, history: List[SPAttributes]) extends ModelMessages
-case class Items(model: ID, items: List[IDAble]) extends ModelMessages
-case class Item(model: ID, item: IDAble) extends ModelMessages
-
 
 object ModelMessagesAPI extends SPCommunicationAPI {
-  type MessageType = ModelMessages
-  val apiClasses = List(
-    classOf[PutAttributes],
-    classOf[PutItems],
-    classOf[DeleteItems],
-    classOf[Revert],
-    classOf[Import],
-    classOf[ModelCreated],
-    classOf[AttributesChanged],
-    classOf[ItemsChanged],
-    classOf[ItemsDeleted],
-    classOf[Reverted],
-    classOf[Loaded],
-    classOf[GetAttributes],
-    classOf[GetHistory],
-    classOf[GetItems],
-    classOf[GetItem],
-    classOf[GetItemsContainingID],
-    classOf[Attributes],
-    classOf[History],
-    classOf[Items],
-    classOf[Item]
-  )
+  // commands
+  case class PutAttributes(model: ID, name: Option[String], attributes: Option[SPAttributes]) extends API
+  case class PutItems(model: ID, items: List[IDAble], info: SPAttributes = SPAttributes()) extends API
+  case class DeleteItems(model: ID, items: List[ID], info: SPAttributes = SPAttributes()) extends API
+  case class Revert(model: ID, toVersion: Long) extends API
+  case class Import(model: ID, name: String, version: Long, attributes: SPAttributes, items: List[IDAble], history: List[ModelMessagesAPI.API]) extends API
 
-  override val apiJson: List[SPAttributes] = List()
+  // events
+  case class ModelCreated(model: ID, name: String, version: Long, attributes: SPAttributes) extends API
+  case class AttributesChanged(model: ID, name: String, version: Long, attributes: SPAttributes) extends API
+  case class ItemsChanged(model: ID, items: List[IDAble], version: Long, info: SPAttributes) extends API
+  case class ItemsDeleted(model: ID, items: List[ID], version: Long, info: SPAttributes) extends API
+  case class Reverted(model: ID, updatedItems: List[IDAble], removedItems: List[ID], name: String, version: Long, attributes: SPAttributes) extends API
+  case class Loaded(model: ID) extends API
+
+  // Simple query
+  case class GetAttributes(model: ID) extends API
+  case class GetHistory(model: ID) extends API
+  case class GetItems(model: ID, filterID: Option[List[ID]] = None, filterName: Option[List[String]] = None) extends API
+  case class GetItem(model: ID, item: Option[ID], name: Option[String]) extends API
+  case class GetItemsContainingID(model: ID, id: ID) extends API
+
+  // query response
+  case class Attributes(model: ID, name: String, version: Long, attributes: SPAttributes) extends API
+  case class History(model: ID, name: String, history: List[SPAttributes]) extends API
+  case class Items(model: ID, items: List[IDAble]) extends API
+  case class Item(model: ID, item: IDAble) extends API
+
+  sealed trait API
+  sealed trait SUB
+  override type MessageType = API
+  override type SUBType = SUB
+  override lazy val apiClasses: List[Class[_]] =   sp.macros.MacroMagic.values[MessageType]
+  override lazy val apiJson: List[String] = sp.macros.MacroMagic.info[MessageType, SUBType]
 }
 
 
@@ -116,16 +94,16 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState wit
       val res = ModelMessagesAPI.readPF(x){messageAPI(reply)} {spMessageAPI} {reply ! _}
       if (!res) log.info("ModelMaker didn't match the string "+x)
 
-    case x: ModelMessages => messageAPI(sender())(x)
+    case x: ModelMessagesAPI.API => messageAPI(sender())(x)
     case x: SPMessages => spMessageAPI(x)
 
-    case cm: CreateModel =>
+    case cm: ModelMakerAPI.CreateModel =>
       println(s"model actor got: $cm")
       val attr = cm.attributes.getOrElse(SPAttributes())
       val diff = ModelDiff(model, List(), List(), SPAttributes("info"->"new model attributes"), state.version, state.version + 1, cm.name, attr.addTimeStamp)
       val reply = sender
       reply ! ModelMessagesAPI.write(SPOK())
-      store(diff, publish(ModelMessagesAPI.write(ModelCreated(model, state.name, state.version, state.attributes))))
+      store(diff, publish(ModelMessagesAPI.write(ModelMessagesAPI.ModelCreated(model, state.name, state.version, state.attributes))))
 
     case x => log.debug("Model actor got a message it did not response to: "+x)
 
@@ -133,56 +111,56 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState wit
 
   }
 
-  def messageAPI(reply: ActorRef): PartialFunction[ModelMessages, Unit] = {
-    case x: PutAttributes if x.model == model =>
+  def messageAPI(reply: ActorRef): PartialFunction[ModelMessagesAPI.API, Unit] = {
+    case x: ModelMessagesAPI.PutAttributes if x.model == model =>
       val diff = ModelDiff(model,List(),List(),
         SPAttributes("info"->"new model attributes"),
         state.version,state.version + 1,
         x.name.getOrElse(state.name), x.attributes.getOrElse(state.attributes).addTimeStamp)
       store(diff, {
         reply ! ModelMessagesAPI.write(SPOK())
-        val ac = AttributesChanged(model, diff.name, diff.version, diff.modelAttr)
+        val ac = ModelMessagesAPI.AttributesChanged(model, diff.name, diff.version, diff.modelAttr)
         publish(ModelMessagesAPI.write(ac))
       })
 
-    case x: PutItems if x.model == model =>
+    case x: ModelMessagesAPI.PutItems if x.model == model =>
       createDiffUpd(x.items, x.info) match {
         case Right(diff) =>
           reply ! ModelMessagesAPI.write(SPOK())
           store(diff, {
-            val mess = ItemsChanged(model, diff.updatedItems, diff.version, diff.diffInfo)
+            val mess = ModelMessagesAPI.ItemsChanged(model, diff.updatedItems, diff.version, diff.diffInfo)
             publish(ModelMessagesAPI.write(mess))
           })
         case Left(error) => reply ! ModelMessagesAPI.write(error)
       }
 
-    case x: DeleteItems if x.model == model =>
+    case x: ModelMessagesAPI.DeleteItems if x.model == model =>
       createDiffDel(x.items.toSet, x.info) match {
         case Right(diff) =>
           reply ! ModelMessagesAPI.write(SPOK())
           store(diff, {
-            val mess = ItemsDeleted(model, diff.deletedItems.map(_.id), diff.version, diff.diffInfo)
+            val mess = ModelMessagesAPI.ItemsDeleted(model, diff.deletedItems.map(_.id), diff.version, diff.diffInfo)
             publish(ModelMessagesAPI.write(mess))
           })
         case Left(error) => reply ! error
       }
 
-    case x: Revert if x.model == model =>
+    case x: ModelMessagesAPI.Revert if x.model == model =>
 
 
 
-    case x: Import if x.model == model =>
-    case x: GetAttributes if x.model == model =>
-    case x: GetHistory if x.model == model =>
-    case x: GetItems if x.model == model =>
-    case x: GetItem if x.model == model =>
-    case x: GetItemsContainingID if x.model == model =>
+    case x: ModelMessagesAPI.Import if x.model == model =>
+    case x: ModelMessagesAPI.GetAttributes if x.model == model =>
+    case x: ModelMessagesAPI.GetHistory if x.model == model =>
+    case x: ModelMessagesAPI.GetItems if x.model == model =>
+    case x: ModelMessagesAPI.GetItem if x.model == model =>
+    case x: ModelMessagesAPI.GetItemsContainingID if x.model == model =>
   }
 
   def spMessageAPI: PartialFunction[SPMessages, Unit] = {
     case s: StatusRequest => publish(ModelMessagesAPI.write(sp.messages.StatusResponse(SPAttributes(
       "service"->"Model",
-      "modelAttributes"->Attributes(model, state.name, state.version, state.attributes))
+      "modelAttributes"->ModelMessagesAPI.Attributes(model, state.name, state.version, state.attributes))
     )))
   }
 

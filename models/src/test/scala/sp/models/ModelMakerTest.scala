@@ -88,8 +88,8 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
     }
     "create and delete Model" in {
       val id = ID.newID
-      val cm = CreateModel("hej", None, Some(id))
-      val dm = DeleteModel(id)
+      val cm = ModelMakerAPI.CreateModel("hej", None, Some(id))
+      val dm = ModelMakerAPI.DeleteModel(id)
 
       val mediator = DistributedPubSub(system).mediator
 //      val chatMember1 = TestProbe()

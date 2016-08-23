@@ -1,11 +1,5 @@
 package sp.macros
 
-case class APIDefinition(name: String, parameters: List[APIParameters])
-case class APIParameters(param: String,
-                         ofType: String,
-                         default: Option[String] = None,
-                         domain: Option[List[String]] = None)
-
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
@@ -14,7 +8,20 @@ import scala.reflect.macros.blackbox.Context
 object MacroMagic {
   def values[A]: List[Class[_]] = macro values_impl[A]
 
-  def info[A]: List[String] = macro jsonMagic[A]
+  def info[A, B]: List[String] = macro jsonMagic[A, B]
+
+  import scala.reflect.runtime.{universe => ru}
+  def getMeClazzes[A: ru.TypeTag] = {
+    val tpe = ru.weakTypeOf[A].typeSymbol.asClass
+    val mi = ru.runtimeMirror(this.getClass.getClassLoader)
+    val subClasses: List[Class[_]] = tpe.knownDirectSubclasses.toList.map(c => mi.runtimeClass(c.asClass))
+    subClasses
+  }
+
+
+
+
+
 
   def values_impl[A: c.WeakTypeTag](c: Context) = {
     import c.universe._
@@ -31,30 +38,35 @@ object MacroMagic {
 
       """
 
-
   }
 
-  def jsonMagic[A: c.WeakTypeTag](c: Context) = {
+
+
+  def jsonMagic[A: c.WeakTypeTag, B: c.WeakTypeTag](c: Context) = {
     import c.universe._
 
     val tpe = c.weakTypeOf[A].typeSymbol.asClass
     val subClasses = tpe.knownDirectSubclasses.toList
 
-    // Create APIDefinitions here and return based on case classes
-    // get defualt value from case class and domain from predef method domain: Map[String, List[JValue]]
+    val tpeSupport = c.weakTypeOf[B].typeSymbol.asClass
+    val supportClasses = tpeSupport.knownDirectSubclasses.toList
 
 
-
-    val classAndParams = subClasses.collect{
-      case x: ClassSymbol if x.isCaseClass => {
-        val declarations = x.info.decls
-        val ctor = declarations.collectFirst {
-          case m: MethodSymbol if m.isPrimaryConstructor => m
-        }.get
-        x -> ctor.paramLists.head
+    def packageName(sym: Symbol) = {
+      def enclosingPackage(sym: Symbol): Symbol = {
+        if (sym == NoSymbol) NoSymbol
+        else if (sym.isPackage) sym
+        else enclosingPackage(sym.owner)
       }
-    }.toList
+      val pkg = enclosingPackage(sym)
+      if (!pkg.isPackage) ""
+      else pkg.fullName
+    }
 
+    def typeName(sym: Symbol) = {
+      val pkg = packageName(sym)
+      sym.fullName.replaceFirst(pkg+".", "")
+    }
 
     val classAndDefaultValues = subClasses.collect{
       case classSym: ClassSymbol if classSym.isCaseClass => {
@@ -62,58 +74,63 @@ object MacroMagic {
         val apply = moduleSym.typeSignature.decl(TermName("apply")).asMethod
         val kvps = apply.paramLists.head.map(_.asTerm).zipWithIndex.map{ case (p, i) =>
           val pName = p.name.toString
-          val default = if (!p.isParamWithDefault) None
-                        else Some(q"Some($moduleSym.${TermName("apply$default$" + (i + 1))}.toString)")
+          val pType = typeName(p.typeSignature.typeSymbol)
 
-          val pType = p.typeSignature
+          // Need to pick this out by calling the apply default from here
+//          val default = if (!p.isParamWithDefault) None else {
+//            Some(q"Some($moduleSym.${TermName("apply$default$" + (i + 1))}.toString)")
+//          }
 
-          (q"$pName", q"$pType", default)
+          s""" "$pName" : {
+              |"key" : "$pName",
+              |"ofType" : "$pType"
+             |}""".stripMargin
+        }
+
+        val cName = typeName(classSym)
+
+        s"""{
+           |"isa" : "${cName}",
+           |${kvps.mkString(",")}}
+           |""".stripMargin
+
+      }
+    }
+
+
+    val sub = supportClasses.collect{
+      case classSym: ClassSymbol if classSym.isCaseClass => {
+        val moduleSym = classSym.companion
+        val apply = moduleSym.typeSignature.decl(TermName("apply")).asMethod
+        val kvps = apply.paramLists.head.map(_.asTerm).zipWithIndex.map{ case (p, i) =>
+          val pName = p.name.toString
+          val pType = typeName(p.typeSignature.typeSymbol)
+
+          s""" "$pName" : {
+              |  "key" : "$pName",
+              |  "ofType" : "$pType"
+              |}""".stripMargin
+
 
         }
-        classSym -> kvps
+
+        val cName = typeName(classSym)
+
+        s""" "${cName}" : {${kvps.mkString(",")}} """.stripMargin
 
       }
     }
 
-
-
-    val json = classAndDefaultValues.flatMap{case (cl, pr) =>
-      pr.map{p =>
-        val pD = p._3.getOrElse(q"None")
-        q""
-      }
-//      s"""{
-//         |'isa' : '${cl.fullName}',
-//         |'params': {
-//         |${pr.map{p =>
-//        s"{'param': ${q"${p._3}"}}"}.mkString(",\n")}
-//         |}
-//         |}
-//       """.stripMargin
-    }
-
-
+    val sJson = classAndDefaultValues :+ s""" {"subs": {${sub.mkString(",")}}}"""
 
     q"""
-        List(..$json)
+        List(..${sJson})
 
       """
-//
-//      q"${classAndParams2}.toString"
 
 
   }
 
-
-//  def getDefaults[A: c.WeakTypeTag](c: Context) = {
-//    import c.universe._
-//
-//    val classS = c.weakTypeOf[A].typeSymbol.asClass
-//    if (classS.isCaseClass) {
-//      val apply = classS.typeSignature.decl(TermName("apply")).asMethod
-//    }
-//
-//  }
 
 
 

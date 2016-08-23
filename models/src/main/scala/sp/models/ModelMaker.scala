@@ -12,31 +12,22 @@ import sp.messages._
 import scala.util.{Failure, Success, Try}
 
 
-
-// API
-sealed trait ModelMakerMessages
-
-// request
-case class CreateModel(name: String, attributes: Option[SPAttributes], model: Option[ID]) extends ModelMakerMessages
-case class DeleteModel(model: ID) extends ModelMakerMessages
-
-// event
-case class ModelDeleted(model: ID) extends ModelMakerMessages
-// the model itself sends out a model creation event
-
-
-
 object ModelMakerAPI extends SPCommunicationAPI {
-  override type MessageType = ModelMakerMessages
-  override val apiClasses = List(
-    classOf[CreateModel],
-    classOf[DeleteModel],
-    classOf[ModelDeleted]
-  )
+  // request
+  case class CreateModel(name: String, attributes: Option[SPAttributes], model: Option[ID]) extends API
+  case class DeleteModel(model: ID) extends API
 
-  override val apiJson: List[SPAttributes] = List()
+  // event
+  case class ModelDeleted(model: ID) extends API
+  // the model itself sends out a model creation event
 
 
+  sealed trait API
+  sealed trait SUB
+  override type MessageType = API
+  override type SUBType = SUB
+  override lazy val apiClasses: List[Class[_]] =   sp.macros.MacroMagic.values[MessageType]
+  override lazy val apiJson: List[String] = sp.macros.MacroMagic.info[MessageType, SUBType]
 }
 
 
@@ -66,13 +57,13 @@ class ModelMaker(modelActorMaker: ID => Props) extends PersistentActor with Acto
       val res = ModelMakerAPI.readPF(x){messageAPI(reply)} {spMessageAPI} {reply ! _}
       if (!res) log.info("ModelMaker didn't match the string "+x)
 
-    case x: ModelMakerMessages => messageAPI(sender())(x)
+    case x: ModelMakerAPI.API => messageAPI(sender())(x)
     case x: SPMessages => spMessageAPI(x)
     case x => log.debug("Model maker got a message it did not response to: "+x)
   }
 
-  def messageAPI(reply: ActorRef): PartialFunction[ModelMakerMessages, Unit] = {
-    case mess @ sp.models.CreateModel(name, attr, idOption) =>
+  def messageAPI(reply: ActorRef): PartialFunction[ModelMakerAPI.API, Unit] = {
+    case mess @ ModelMakerAPI.CreateModel(name, attr, idOption) =>
       val cm = mess.copy(model = idOption.orElse(Some(ID.newID)))
       if (!modelMap.contains(cm.model.get)) {
         persist(ModelMakerAPI.write(cm)) { n =>
@@ -85,15 +76,15 @@ class ModelMaker(modelActorMaker: ID => Props) extends PersistentActor with Acto
       } else reply ! ModelMakerAPI.write(SPError(s"Model ${cm.name} already exists"))
 
 
-    case del @ sp.models.DeleteModel(id) =>
+    case del @ ModelMakerAPI.DeleteModel(id) =>
       val reply = sender()
       if (modelMap.contains(del.model)) {
         persist(ModelMakerAPI.write(del)) { d =>
           modelMap(del.model) ! PoisonPill
           deleteModel(del)
           reply ! ModelMakerAPI.write(SPOK())
-          val test = ModelMakerAPI.write(ModelDeleted(del.model))
-          mediator ! Publish("modelevents", ModelMakerAPI.write(ModelDeleted(del.model)))
+          val test = ModelMakerAPI.write(ModelMakerAPI.ModelDeleted(del.model))
+          mediator ! Publish("modelevents", ModelMakerAPI.write(ModelMakerAPI.ModelDeleted(del.model)))
           log.info(s"A model was deleted: $del")
         }
       }
@@ -106,12 +97,12 @@ class ModelMaker(modelActorMaker: ID => Props) extends PersistentActor with Acto
   }
 
 
-  def addModel(cm: CreateModel) = {
+  def addModel(cm: ModelMakerAPI.CreateModel) = {
     val newModelH = context.actorOf(modelActorMaker(cm.model.get), cm.model.get.toString)
     modelMap += (cm.model.get -> newModelH)
   }
 
-  def deleteModel(del: DeleteModel) = {
+  def deleteModel(del: ModelMakerAPI.DeleteModel) = {
     if (modelMap.contains(del.model)){
       modelMap = modelMap - del.model
     }
@@ -119,12 +110,12 @@ class ModelMaker(modelActorMaker: ID => Props) extends PersistentActor with Acto
 
   def viewNameMaker(id: ID, v: Long) = id.toString() + " - Version: " + v
 
-  var reMod = Map[ID, CreateModel]()
+  var reMod = Map[ID, ModelMakerAPI.CreateModel]()
   def receiveRecover = {
     case x: String => ModelMakerAPI.readPF(x) {
-      case cm: CreateModel =>
+      case cm: ModelMakerAPI.CreateModel =>
         reMod = reMod + (cm.model.get -> cm)
-      case dm: DeleteModel =>
+      case dm: ModelMakerAPI.DeleteModel =>
         reMod = reMod - dm.model
     }
     {PartialFunction.empty}
