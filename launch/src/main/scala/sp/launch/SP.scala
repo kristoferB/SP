@@ -251,5 +251,8 @@ object SP extends App {
   )  )
 
   // launch REST API
-  sp.server.LaunchGUI.launch
+  //sp.server.LaunchGUI.launch
+  scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
+    case x => system.terminate()
+  }
 }
