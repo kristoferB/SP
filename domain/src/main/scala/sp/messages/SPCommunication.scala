@@ -17,8 +17,8 @@ import org.json4s._
 trait SPCommunicationAPI {
   type MessageType
   type SUBType
-  val apiClasses: List[Class[_]]
-  val apiJson: List[String]
+  lazy val apiClasses: List[Class[_]] = List()
+  lazy val apiJson: List[String] = List()
 
 
   lazy val spFormats = new JsonFormats{}

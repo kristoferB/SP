@@ -30,27 +30,26 @@ class ModelHandler extends PersistentActor with ActorLogging  {
   implicit val timeout = Timeout(1 seconds)
   import context.dispatcher
 
-  // temp
-  val eventHandler = context.actorOf(EventHandler.props)
-
   private var modelMap: Map[ID, ActorRef] = Map()
   private var viewMap: Map[String, ActorRef] = Map()
 
-  val cluster = Cluster(context.system)
 
-  import DistributedPubSubMediator.{ Put, Subscribe }
+
+  val cluster = Cluster(context.system)
+  import DistributedPubSubMediator.{ Put, Subscribe, Publish }
   val mediator = DistributedPubSub(context.system).mediator
   mediator ! Put(self)
-  mediator ! Subscribe("modelMessages", self)
+  mediator ! Subscribe("modelHandler", self)
 
   // subscribe to cluster changes, re-subscribe when restart
   override def preStart(): Unit = {
-    //#subscribe
     cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
       classOf[MemberEvent], classOf[UnreachableMember])
-    //#subscribe
   }
   override def postStop(): Unit = cluster.unsubscribe(self)
+
+
+
 
   def receiveCommand = {
     //case mess @ _ if {println(s"handler got: $mess from $sender"); false} => Unit
@@ -86,7 +85,7 @@ class ModelHandler extends PersistentActor with ActorLogging  {
           deleteModel(del)
           val delMess = ModelDeleted(del.model, SPAttributes())
           reply ! SPOK
-          eventHandler ! delMess
+          mediator ! Publish("eventHandler", delMess)
         }
       }
       else sender ! SPError(s"Model ${del.model} does not exist.")

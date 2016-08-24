@@ -69,12 +69,11 @@ trait RestAPI extends HttpService {
 
 trait SPRoute extends SPApiHelpers with EventAPI with ModelAPI with RuntimeAPI with ServiceAPI {
   val modelHandler: ActorRef
-  val runtimeHandler: ActorSelection
-  val serviceHandler: ActorSelection
-  val userHandler: ActorSelection
-  val eventHandler: ActorSelection
+  val runtimeHandler: ActorRef
+  val serviceHandler: ActorRef
+  val userHandler: ActorRef
+  val eventHandler: ActorRef
 
-  val mediator: ActorRef
 
 
   private implicit val to = timeout
@@ -147,7 +146,7 @@ trait SPRoute extends SPApiHelpers with EventAPI with ModelAPI with RuntimeAPI w
 }
 
 trait EventAPI extends SPApiHelpers {
-  val eventHandler: ActorSelection
+  val eventHandler: ActorRef
   private implicit val to = timeout
 
   def eventAPI =
@@ -262,7 +261,7 @@ trait ModelAPI extends SPApiHelpers {
 
 
 trait RuntimeAPI extends SPApiHelpers {
-  val runtimeHandler: ActorSelection
+  val runtimeHandler: ActorRef
   private implicit val to = timeout
 
   def runtimeapi =
@@ -298,7 +297,7 @@ trait RuntimeAPI extends SPApiHelpers {
 
 
 trait ServiceAPI extends SPApiHelpers {
-  val serviceHandler: ActorSelection
+  val serviceHandler: ActorRef
   private implicit val to = timeout
 
   def serviceapi =

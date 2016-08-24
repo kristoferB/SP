@@ -48,8 +48,11 @@ object MacroMagic {
     val tpe = c.weakTypeOf[A].typeSymbol.asClass
     val subClasses = tpe.knownDirectSubclasses.toList
 
-    val tpeSupport = c.weakTypeOf[B].typeSymbol.asClass
-    val supportClasses = tpeSupport.knownDirectSubclasses.toList
+    val supportClasses = if (c.weakTypeOf[B].typeSymbol.isClass) {
+      val tpeSupport = c.weakTypeOf[B].typeSymbol.asClass
+      tpeSupport.knownDirectSubclasses.toList
+    } else List()
+
 
 
     def packageName(sym: Symbol) = {

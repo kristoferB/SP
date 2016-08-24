@@ -16,7 +16,7 @@ class MacroTest extends FreeSpec with Matchers {
   "Macro" - {
     "should work" in {
       val test = MacroMagic.values[NuSÅ.Test]
-      val test2 = MacroMagic.info[NuSÅ.Test]
+      val test2 = MacroMagic.info[NuSÅ.Test, NuSÅ.Test]
 
       println("macro test:")
       test.foreach(println)

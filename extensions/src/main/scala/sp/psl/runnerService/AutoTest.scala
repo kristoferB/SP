@@ -6,7 +6,6 @@ import sp.domain.SOP._
 import sp.domain._
 import sp.system.messages._
 import sp.system.{SPService, ServiceLauncher, _}
-import sp.system.SPActorSystem.eventHandler
 
 
 /**

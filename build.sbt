@@ -18,7 +18,8 @@ lazy val json = Seq(
 )
 
 lazy val support = Seq(
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+  "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test"
 )
 
 lazy val commonSettings = Seq(
@@ -50,7 +51,7 @@ lazy val domain = project.dependsOn(macros).
 
 lazy val models = project.dependsOn(domain).
   settings(commonSettings: _*).
-  settings(libraryDependencies ++= akka ++ json)
+  settings(libraryDependencies ++= akka ++ json ++ support)
 
 lazy val macros = project.
   settings(commonSettings: _*).
@@ -73,6 +74,10 @@ lazy val extensions = project.dependsOn(domain, core).
 lazy val launch = project.dependsOn(domain, core, gui, extensions).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= akka ++ json)
+
+lazy val services = project.dependsOn(domain).
+  settings(commonSettings: _*).
+  settings(libraryDependencies ++= akka ++ json ++ support)
 
 
 

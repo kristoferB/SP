@@ -23,7 +23,7 @@ class ServiceExampleTest(_system: ActorSystem) extends TestKit(_system) with Imp
 
   val p = TestProbe()
   val e = TestProbe()
-  val sh = system.actorOf(ServiceHandler.props(p.ref, e.ref))
+  val sh = system.actorOf(ServiceHandler.props)
   val s = system.actorOf(ServiceExample.props)
   sh ! RegisterService("test", s, ServiceExample.specification)
 

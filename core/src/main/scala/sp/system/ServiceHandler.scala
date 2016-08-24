@@ -2,15 +2,21 @@ package sp.system
 
 import akka.actor._
 import akka.event.Logging
-import org.json4s.JsonAST.{JObject, JNothing}
+import org.json4s.JsonAST.{JNothing, JObject}
 import sp.domain._
 import sp.system.messages._
 import sp.domain.Logic._
 
-class ServiceHandler(mh: ActorRef, eh: ActorRef) extends Actor{
+class ServiceHandler extends Actor{
   val log = Logging(context.system, this)
   var actors: Map[String, ActorRef] = Map()
   var specs: Map[String, (SPAttributes, List[TransformValue[_]])] = Map()
+
+  import akka.cluster.pubsub.DistributedPubSub
+  import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
+  val mediator = DistributedPubSub(context.system).mediator
+  mediator ! Put(self)
+  mediator ! Subscribe("serviceHandler", self)
 
   def receive = {
     case r @ RegisterService(service, ref, attr, transform) => {
@@ -19,7 +25,7 @@ class ServiceHandler(mh: ActorRef, eh: ActorRef) extends Actor{
         val serviceSpec = attr + ServiceTalker.serviceHandlerAttributes
         specs = specs + (service -> (serviceSpec, transform))
         ref.tell(r, sender)
-        eh ! ServiceInfo(service, serviceSpec)
+        mediator ! Publish("eventHandler", ServiceInfo(service, serviceSpec))
       }
       else sender ! SPError(s"Service $service already registered")
     }
@@ -29,7 +35,7 @@ class ServiceHandler(mh: ActorRef, eh: ActorRef) extends Actor{
         sender() ! r
         actors = actors - s
         specs = specs - s
-        eh ! r
+        mediator ! Publish("eventHandler",  r)
       }
       else sender ! SPError(s"Service ${s} does not exists")
       println(s"Service $s removed")
@@ -42,7 +48,7 @@ class ServiceHandler(mh: ActorRef, eh: ActorRef) extends Actor{
           case Right(req) => {
             //println(s"in servicehandler everything ok: $req")
 
-            val talker = context.actorOf(ServiceTalker.props(actors(s), mh, sender, spec._1, req, Some(eh)))
+            val talker = context.actorOf(ServiceTalker.props(actors(s), sender, spec._1, req))
             talker.tell(req, sender())
           }
           case Left(e) => {
@@ -65,6 +71,6 @@ class ServiceHandler(mh: ActorRef, eh: ActorRef) extends Actor{
 }
 
 object ServiceHandler {
-  def props(modelHandler: ActorRef, eventHandler: ActorRef) = Props(classOf[ServiceHandler], modelHandler, eventHandler)
+  def props = Props(classOf[ServiceHandler])
 }
 

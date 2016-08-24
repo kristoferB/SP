@@ -49,7 +49,7 @@ class ModelActorTest(_system: ActorSystem) extends TestKit(_system) with Implici
   implicit val format = ModelMessagesAPI.formats join ModelMakerAPI.formats
 
   import sp.models.ModelMakerAPI._
-  import sp.models.ModelMessagesAPI._
+  import ModelMessagesAPI._
 
   "Model maker api should" - {
     "Create a model"  in {

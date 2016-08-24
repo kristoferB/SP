@@ -2,6 +2,8 @@ package sp.server
 
 import akka.actor._
 import akka.util.Timeout
+import sp.system.PubActor
+
 import scala.concurrent.duration._
 import spray.routing._
 
@@ -14,18 +16,13 @@ class SPWebServer extends Actor with SPRoute {
   import system.dispatcher
 
 
-  override val eventHandler = context.actorSelection("../eventHandler")
-  override val modelHandler = context.actorOf(Props(classOf[Publisher], "modelMessages"))
-  override val runtimeHandler = context.actorSelection("../runtimeHandler")
-  override val serviceHandler = context.actorSelection("../serviceHandler")
-  override val userHandler = context.actorSelection("../userHandler")
+  override val modelHandler = context.actorOf(PubActor.props("modelHandler"))
+  override val serviceHandler = context.actorOf(PubActor.props("serviceHandler"))
+  override val eventHandler = context.actorOf(PubActor.props("eventHandler"))
+  override val runtimeHandler = context.actorOf(PubActor.props("runtimeHandler"))
+  override val userHandler = context.actorOf(PubActor.props("userHandler"))
   implicit val system = context.system
 
-  import akka.cluster.Cluster
-  import akka.cluster.ClusterEvent._
-  import akka.cluster.pubsub._
-  import DistributedPubSubMediator.{ Put, Subscribe }
-  override val mediator = context.actorOf(Props(classOf[Publisher], "modelMessages"))
 
   val webFolder: String = sp.system.SPActorSystem.settings.webFolder
   val srcFolder: String = if(sp.system.SPActorSystem.settings.devMode)

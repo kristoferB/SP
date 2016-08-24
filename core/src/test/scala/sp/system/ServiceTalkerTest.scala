@@ -72,11 +72,10 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
       val st = system.actorOf(
         ServiceTalker.props(
           service = p.ref,
-          modelHandler = p.ref,
           replyTo = p.ref,
           serviceAttributes = SPAttributes(),
-          request = r,
-          toBus = None))
+          request = r
+        ))
 
       st ! r
       p.expectMsg(100 millis, r)
@@ -90,11 +89,10 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
       val st = system.actorOf(
         ServiceTalker.props(
           service = testA,
-          modelHandler = p.ref,
           replyTo = p.ref,
           serviceAttributes = SPAttributes(),
-          request = r,
-          toBus = None))
+          request = r
+        ))
       dead watch st
 
       st ! r
@@ -108,11 +106,10 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
       val st = system.actorOf(
         ServiceTalker.props(
           service = testA,
-          modelHandler = p.ref,
           replyTo = p.ref,
           serviceAttributes = SPAttributes(),
-          request = r,
-          toBus = None))
+          request = r
+        ))
 
       st ! r
       var b = false
@@ -128,11 +125,10 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
       val st = system.actorOf(
         ServiceTalker.props(
           service = testA,
-          modelHandler = p.ref,
           replyTo = p.ref,
           serviceAttributes = SPAttributes(),
-          request = r,
-          toBus = None))
+          request = r
+        ))
 
       st ! r
       p.fishForMessage(2 second){
@@ -146,11 +142,10 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
       val st = system.actorOf(
         ServiceTalker.props(
           service = testA,
-          modelHandler = testA,
           replyTo = p.ref,
           serviceAttributes = SPAttributes(),
-          request = r,
-          toBus = None))
+          request = r
+        ))
 
       st ! r
       p.expectMsg(1600 millis, Response(List(o), r.attributes, r.service, r.reqID))
@@ -165,11 +160,10 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
       val st = system.actorOf(
         ServiceTalker.props(
           service = testA,
-          modelHandler = empty.ref,
           replyTo = p.ref,
           serviceAttributes = SPAttributes(),
-          request = r,
-          toBus = None))
+          request = r
+        ))
 
       dead watch st
       st ! r
@@ -188,11 +182,10 @@ class ServiceTalkerTest(_system: ActorSystem) extends TestKit(_system) with Impl
       val st = system.actorOf(
         ServiceTalker.props(
           service = empty.ref,
-          modelHandler = p.ref,
           replyTo = p.ref,
           serviceAttributes = SPAttributes(),
-          request = r,
-          toBus = None))
+          request = r
+        ))
 
       st ! r
       p.expectMsgPF(4 seconds){

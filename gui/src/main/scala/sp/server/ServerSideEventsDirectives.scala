@@ -23,7 +23,7 @@ trait ServerSideEventsDirectives {
 
   case class RegisterClosedHandler(handler: () => Unit)
 
-  def sse(channel: String, eventHandler: ActorSelection)(implicit refFactory: ActorRefFactory): Route = {
+  def sse(channel: String, eventHandler: ActorRef)(implicit refFactory: ActorRefFactory): Route = {
     val responseStart = HttpResponse(
       headers = `Cache-Control`(CacheDirectives.`no-cache`) :: Nil,
       entity = ":" + (" " * 2049) + "\n" // 2k padding for IE using Yaffle

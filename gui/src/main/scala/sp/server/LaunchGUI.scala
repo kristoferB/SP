@@ -11,7 +11,7 @@ import akka.actor._
 object LaunchGUI extends App {//extends MySslConfiguration {
   def launch = {
 
-  implicit val system = ActorSystem("SP")
+  implicit val system = sp.system.SPActorSystem.system
 
     val interface = system.settings.config getString "sp.interface"
     val port = system.settings.config getInt "sp.port"

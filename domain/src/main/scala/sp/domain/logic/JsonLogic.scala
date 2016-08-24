@@ -8,7 +8,9 @@ import sp.messages._
 /**
  * Created by kristofer on 15-05-27.
  */
-object JsonLogic extends JsonLogics
+object JsonLogic extends JsonLogics {
+  val theFormat = new JsonFormats {}
+}
 
 trait JsonImplicit extends JsonLogics {
   implicit val formats = new JsonFormats {}
