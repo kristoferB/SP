@@ -13,14 +13,7 @@ import {ThemeService} from "../core/theme.service";
     styleUrls: [],
     directives: [DROPDOWN_DIRECTIVES],
     providers: [],
-    styles: [
-        `
-        .my-class {
-        background-color: yellow;
-        color:green;
-        }
-        `
-]
+    styles: []
 })
 
 export class SpTopNavComponent {
@@ -54,10 +47,9 @@ export class SpTopNavComponent {
     setActiveDashboard: (dashboard: any) => void;
     activeDashboardName: () => string;
 
-    testClass: any;
-    getStyle: () => string;
-    testColor: string;
-    themeChanged: (callbacK: string) => void;
+    currentColor: string;
+    availableColors: string[];
+    setCurrentColor: (color: string) => void;
 
     constructor(
         @Inject('modelService') modelService,
@@ -70,21 +62,9 @@ export class SpTopNavComponent {
         ng2DashboardService: Ng2DashboardService,
         themeService: ThemeService
     ) {
-        // themeService.testSubject.subscribe(
-        //     (fulhack:string) => this.themeChanged(fulhack)
-        // );
-
-
-        this.themeChanged = (callback: string) => {
-            console.log('fuck this shit');
-            console.log(callback);
-            console.log(this.testColor);
-            this.testColor = callback;
-        };
-        themeService.coolSubscribe(this.themeChanged);
-
-        this.testColor = 'black';
-        this.testClass = new test();
+        this.currentColor = "default_white";
+        this.availableColors = ["default_white", "blue", "dark", "happy"];
+        this.setCurrentColor = themeService.setColorTheme;
 
         this.dashboards = ng2DashboardService.storage.dashboards;
         this.setActiveDashboard = ng2DashboardService.setActiveDashboard;
@@ -158,21 +138,6 @@ export class SpTopNavComponent {
         //this.activeDashboardName = () => ng2DashboardService.activeDashboardIndex ?
         //    ng2DashboardService.activeDashboardIndex : null;
         this.activeDashboardName = () => "placeholder";
-
-        this.getStyle = () => {
-            return "yellow";
-        };
-
-
     }
 }
 
-export class test {
-    ohShit: "waddup";
-    backgroundColor:"blue";
-    color: "blue";
-    constructor() {
-
-    }
-
-}

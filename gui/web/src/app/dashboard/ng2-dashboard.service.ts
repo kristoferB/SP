@@ -57,6 +57,7 @@ export class Ng2DashboardService {
                 []
             );
 
+
             this.storage.dashboards.push(dashboard);
 
             logger.info('Dashboard Controller: Added a dashboard with name ' + dashboard.name + ' and index '
@@ -65,7 +66,6 @@ export class Ng2DashboardService {
 
 
         this.removeDashboard = (id) => {
-            //var index = _.findIndex(service.storage.dashboards, {id: id});
             var index = this.storage.dashboards
                         .map( (x) => x.id ).indexOf(id);
             this.storage.dashboards.splice(index, 1);
@@ -74,9 +74,7 @@ export class Ng2DashboardService {
         this.addWidget = (dashboard, widgetKind) => {
 
             var index = widgetKinds.indexOf(widgetKind);
-
-            //var widget = angular.copy(widgetKind, {});
-            var widget = Object.create(widgetKind); // TODO copy problems?? // yes: fixed with Object.create
+            var widget = Object.create(widgetKind);
             widget.index = index;
             widget.id = this.storage.widgetID++;
             //needed??
@@ -111,13 +109,12 @@ export class Ng2DashboardService {
         };
 
         this.setPanelMargins = (margin) => {
-            this.ngGridOptions.margins = margin;
+            this.ngGridOptions.margins = [margin];
         };
 
         this.closeWidget = (id) => {
             for(var i = 0; i < this.storage.dashboards.length; i++) {
                 var dashboard = this.storage.dashboards[i];
-                //var index = _.findIndex(dashboard.widgets, {id: id});
                 var index = this.storage.dashboards
                             .map( (x) => x.id ).indexOf(id);
                 if (index > -1) {

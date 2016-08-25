@@ -39,15 +39,13 @@ var Ng2DashboardService = (function () {
                 + dashboard.id + '.');
         };
         this.removeDashboard = function (id) {
-            //var index = _.findIndex(service.storage.dashboards, {id: id});
             var index = _this.storage.dashboards
                 .map(function (x) { return x.id; }).indexOf(id);
             _this.storage.dashboards.splice(index, 1);
         };
         this.addWidget = function (dashboard, widgetKind) {
             var index = widget_kinds_1.widgetKinds.indexOf(widgetKind);
-            //var widget = angular.copy(widgetKind, {});
-            var widget = Object.create(widgetKind); // TODO copy problems?? // yes: fixed with Object.create
+            var widget = Object.create(widgetKind);
             widget.index = index;
             widget.id = _this.storage.widgetID++;
             //needed??
@@ -78,12 +76,11 @@ var Ng2DashboardService = (function () {
             _this.ngGridOptions.draggable = isLocked;
         };
         this.setPanelMargins = function (margin) {
-            _this.ngGridOptions.margins = margin;
+            _this.ngGridOptions.margins = [margin];
         };
         this.closeWidget = function (id) {
             for (var i = 0; i < _this.storage.dashboards.length; i++) {
                 var dashboard = _this.storage.dashboards[i];
-                //var index = _.findIndex(dashboard.widgets, {id: id});
                 var index = _this.storage.dashboards
                     .map(function (x) { return x.id; }).indexOf(id);
                 if (index > -1) {

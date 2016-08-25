@@ -1,29 +1,12 @@
 <section id="dashboard-view" class="mainbar">
-
-
-    <div [ngGrid]="ngGridOptions">
+    <div [ngGrid]="ng2DashboardService.ngGridOptions" >
         <div *ngFor="let widget of widgets">
             <sp-widget [widget]="widget" [dashboard]="dashboard" [showCloseBtn]="true" [ngGridItem]="widget.gridOptions">
-                <h1>a widget</h1>
-                <dcl-view [type]="widgetKinds[widget.index].component"></dcl-view>
+                <dcl-view [type]="widgetKinds[widget.index].component" ></dcl-view>
             </sp-widget>
         </div>
     </div>
 
-<!--
-
-    <div class="container">
-        <div gridster="vm.gridsterOptions">
-            <ul>
-                <li gridster-item="widget" *ngFor="widget in vm.dashboard.widgets">
-                    <sp-widget widget="widget" dashboard="vm.dashboard" show-close-btn="true">
-                        <ng-include src="widget.template" include-replace></ng-include>
-                    </sp-widget>
-                </li>
-            </ul>
-        </div>
-    </div>
--->
 
     <!--Context menu for nodes in a SOP-maker widget-->
     <div id="op-context-menu">
@@ -34,3 +17,4 @@
     </div>
 
 </section>
+

@@ -20,19 +20,9 @@ var SpTopNavComponent = (function () {
     function SpTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, 
         //@Inject('themeService') themeService,
         settingsService, ng2DashboardService, themeService) {
-        // themeService.testSubject.subscribe(
-        //     (fulhack:string) => this.themeChanged(fulhack)
-        // );
-        var _this = this;
-        this.themeChanged = function (callback) {
-            console.log('fuck this shit');
-            console.log(callback);
-            console.log(_this.testColor);
-            _this.testColor = callback;
-        };
-        themeService.coolSubscribe(this.themeChanged);
-        this.testColor = 'black';
-        this.testClass = new test();
+        this.currentColor = "default_white";
+        this.availableColors = ["default_white", "blue", "dark", "happy"];
+        this.setCurrentColor = themeService.setColorTheme;
         this.dashboards = ng2DashboardService.storage.dashboards;
         this.setActiveDashboard = ng2DashboardService.setActiveDashboard;
         this.showNavbar = themeService.showNavbar;
@@ -87,9 +77,6 @@ var SpTopNavComponent = (function () {
         //this.activeDashboardName = () => ng2DashboardService.activeDashboardIndex ?
         //    ng2DashboardService.activeDashboardIndex : null;
         this.activeDashboardName = function () { return "placeholder"; };
-        this.getStyle = function () {
-            return "yellow";
-        };
     }
     SpTopNavComponent = __decorate([
         core_1.Component({
@@ -98,9 +85,7 @@ var SpTopNavComponent = (function () {
             styleUrls: [],
             directives: [ng2_bootstrap_1.DROPDOWN_DIRECTIVES],
             providers: [],
-            styles: [
-                "\n        .my-class {\n        background-color: yellow;\n        color:green;\n        }\n        "
-            ]
+            styles: []
         }),
         __param(0, core_1.Inject('modelService')),
         __param(1, core_1.Inject('dashboardService')),
@@ -113,10 +98,4 @@ var SpTopNavComponent = (function () {
     return SpTopNavComponent;
 }());
 exports.SpTopNavComponent = SpTopNavComponent;
-var test = (function () {
-    function test() {
-    }
-    return test;
-}());
-exports.test = test;
 //# sourceMappingURL=sp-top-nav.component.js.map

@@ -1,10 +1,14 @@
-import {Component, Inject, NgZone} from '@angular/core';
+import { Component, Inject, NgZone } from '@angular/core';
 import { NgGrid, NgGridItem } from 'angular2-grid';
 
 import { upgAdapter } from '../upg-helpers/upg-adapter';
 import { DclViewComponent } from './dcl-view.component';
 import { Ng2DashboardService } from './ng2-dashboard.service';
 import { widgetKinds } from '../widget-kinds';
+import { ThemeService } from "../core/theme.service";
+
+import { DOCUMENT } from '@angular/platform-browser';
+
 
 @Component({
   selector: 'ng2-dashboard',
@@ -28,8 +32,10 @@ export class Ng2DashboardComponent {
     constructor(
         @Inject('logger') logger,
         @Inject('$state') $state,
-        private ng2DashboardService: Ng2DashboardService
+        private ng2DashboardService: Ng2DashboardService,
+        private themeService: ThemeService
     ) {
+
         // initialize
         this.dashboard = ng2DashboardService.activeDashboard;
         this.widgets = this.dashboard.widgets;
@@ -44,15 +50,12 @@ export class Ng2DashboardComponent {
 
         this.title = $state.current.title;
 
-        this.ngGridOptions = ng2DashboardService.ngGridOptions;
-
         this.widgetKinds = widgetKinds;
 
         this.togglePanelLock = () => {
             this.ngGridOptions.draggable = !this.ngGridOptions.draggable;
             this.ngGridOptions.resizable = !this.ngGridOptions.resizable;
         };
-
     }
 }
 

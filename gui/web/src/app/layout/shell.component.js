@@ -14,8 +14,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 var core_1 = require('@angular/core');
 var upg_adapter_1 = require('../upg-helpers/upg-adapter');
 var sp_top_nav_component_1 = require('./sp-top-nav.component');
+var theme_service_1 = require('../core/theme.service');
 var ShellComponent = (function () {
-    function ShellComponent(config, logger, $document, settingsService) {
+    function ShellComponent(config, logger, $document, settingsService, themeService) {
+        this.themeService = themeService;
         this.vm = {}; // TODO
         this.navline = { title: config.appTitle };
         this.config = config;
@@ -59,7 +61,7 @@ var ShellComponent = (function () {
         __param(1, core_1.Inject('logger')),
         __param(2, core_1.Inject('$document')),
         __param(3, core_1.Inject('settingsService')), 
-        __metadata('design:paramtypes', [Object, Object, Object, Object])
+        __metadata('design:paramtypes', [Object, Object, Object, Object, theme_service_1.ThemeService])
     ], ShellComponent);
     return ShellComponent;
 }());

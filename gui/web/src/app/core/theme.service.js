@@ -14,48 +14,43 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 // //import { Ng2DashboardService } from '../dashboard/ng2-dashboard.service';
 var core_1 = require("@angular/core");
 var ng2_dashboard_service_1 = require("../dashboard/ng2-dashboard.service");
-var Rx_1 = require("rxjs/Rx");
+var platform_browser_1 = require("@angular/platform-browser");
 var ThemeService = (function () {
     function ThemeService(ng2DashboardService, //,
-        http // eventually use the ng2 http here
-        ) {
+        http, // eventually use the ng2 http here
+        document) {
+        // this does not need to exist; functional fo' life
+        // this.storage = {
+        //     gridsterConstants: {
+        //         margin: 10
+        //     },
+        //     // by default, less is unchanged
+        //     lessColorConstants: new Observable<Object>(),
+        //     lessLayoutConstants: new Observable<Object>()
+        // };
         var _this = this;
         this.ng2DashboardService = ng2DashboardService;
-        this.coolSubscribe = function (callback) {
-            _this.testSubject.subscribe(callback);
-        };
-        this.testSubject = new Rx_1.Subject();
-        this.testColor = this.testSubject.asObservable();
-        this.storage = {
-            gridsterConstants: {
-                margin: 10
-            },
-            // by default, less is unchanged
-            lessColorConstants: new Rx_1.Observable(),
-            lessLayoutConstants: new Rx_1.Observable()
-        };
+        this.document = document;
         this.showHeaders = true;
         this.showNavbar = true;
         this.showWidgetOptions = true;
         this.normalView = function () {
-            _this.testSubject.next("blue");
             _this.currentView = "normalView";
-            _this.storage.gridsterConstants.margin = 10;
+            ng2DashboardService.setPanelMargins(10);
             _this.showHeaders = true;
-            _this.setLayoutTheme("normalView");
+            _this.setLayoutTheme("default");
         };
         this.compactView = function () {
-            _this.testSubject.next("green");
             _this.currentView = "compactView";
-            _this.storage.gridsterConstants.margin = 3;
+            ng2DashboardService.setPanelMargins(3);
             _this.showHeaders = true;
-            _this.setLayoutTheme("compactView");
+            _this.setLayoutTheme("compact");
         };
         this.maximizedContentView = function () {
             _this.currentView = "maximizedContentView";
-            _this.storage.gridsterConstants.margin = 0;
+            ng2DashboardService.setPanelMargins(0);
             _this.showHeaders = false;
-            _this.setLayoutTheme("maximizedContentView");
+            _this.setLayoutTheme("maximized_content");
         };
         this.enableEditorMode = function () {
             _this.editorModeEnabled = true;
@@ -69,23 +64,25 @@ var ThemeService = (function () {
         };
         this.toggleNavbar = function () {
             _this.showNavbar = !_this.showNavbar;
-            _this.update();
+            //this.update();
         };
         this.editorModeEnabled = true;
         this.currentView = "test";
         this.setColorTheme = function (theme) {
-            var _this = this;
-            this.httpGet("/style_presets/colors/" + theme, function (res) {
-                _this.storage.lessColorConstants = res;
-                _this.update();
-            });
+            // this.httpGet(
+            //     "/style_presets/colors/" + theme,
+            //     (res: Object) => {
+            //     }
+            // )
+            _this.document.getElementById('color_theme').setAttribute('href', '../.tmp/color/' + theme + '.css');
         };
         this.setLayoutTheme = function (theme) {
-            var _this = this;
-            httpGet("/style_presets/layouts/" + theme, function (res) {
-                _this.storage.lessLayoutConstants = res;
-                _this.update();
-            });
+            // this.httpGet(
+            //     "/style_presets/layouts/" + theme,
+            //     (res: Object) => {
+            //     }
+            // );
+            _this.document.getElementById('layout_theme').setAttribute('href', '../.tmp/layout/' + theme + '.css');
         };
         //  function resetGrid(){ //TODO rewrite this
         //  var navbarHeight = 0;
@@ -94,41 +91,29 @@ var ThemeService = (function () {
         //  }
         //  dashboardService.gridsterOptions.rowHeight = (window.innerHeight-navbarHeight) / 8;
         //  setTimeout(resetGrid, 0.3);
-        //}
+        //  }
+        //
+        // this.httpGet = (url: string, callback: (res: string) => any) => {
+        //     http.get(url, "json").
+        //     then(function successCallback(response) {
+        //             callback(response)
+        //         }, function errorCallback(response) {
+        //             console.log('http request errored');
+        //             console.log(response);
+        //         }
+        //     );
+        // };
         this.configureGridster = function () {
-            ng2DashboardService.setPanelMargins(_this.storage.gridsterConstants.margin);
+            //ng2DashboardService.setPanelMargins(this.storage.gridsterConstants.margin);
         };
-        this.compileLess = function () {
-            //merge config variables into the .less file
-            console.log('recompile less');
-            // less.modifyVars(
-            //     Object.assign(
-            //         this.storage.lessColorConstants,
-            //         this.storage.lessLayoutConstants,
-            //         {showNavbar: this.showNavbar}
-            //     )
-            // );
-        };
-        this.update = function () {
-            _this.compileLess();
-            _this.configureGridster();
-        };
-        function httpGet(url, callback) {
-            http.get(url, "json").
-                then(function successCallback(response) {
-                callback(response);
-            }, function errorCallback(response) {
-                console.log('http request errored');
-                console.log(response);
-            });
-        }
-        this.compileLess();
     }
     ThemeService = __decorate([
         core_1.Injectable(),
         //,
-        __param(1, core_1.Inject('$http')), 
-        __metadata('design:paramtypes', [ng2_dashboard_service_1.Ng2DashboardService, Object])
+        __param(1, core_1.Inject('$http')),
+        // eventually use the ng2 http here
+        __param(2, core_1.Inject(platform_browser_1.DOCUMENT)), 
+        __metadata('design:paramtypes', [ng2_dashboard_service_1.Ng2DashboardService, Object, Object])
     ], ThemeService);
     return ThemeService;
 }());

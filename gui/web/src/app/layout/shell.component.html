@@ -2,6 +2,9 @@
     <header class="clearfix">
         <sp-top-nav navline="navline"></sp-top-nav>
     </header>
+    
+    <div *ngIf="themeService.showNavbar" style="height: 50px" class="alignment-hack"></div>
+
     <section id="content" class="content">
         <div class="view-container">
             <upg-ui-view></upg-ui-view>

@@ -63,13 +63,13 @@
 
         function compileLess(){
             //merge config variables into the .less file
-            less.modifyVars(
-                Object.assign(
-                    service.storage.lessColorConstants,
-                    service.storage.lessLayoutConstants,
-                    {showNavbar: service.showNavbar}
-                )
-            );
+            // less.modifyVars(
+            //     Object.assign(
+            //         service.storage.lessColorConstants,
+            //         service.storage.lessLayoutConstants,
+            //         {showNavbar: service.showNavbar}
+            //     )
+            // );
         }
 
         function setColorTheme(theme){

@@ -17,10 +17,12 @@ var upg_adapter_1 = require('../upg-helpers/upg-adapter');
 var dcl_view_component_1 = require('./dcl-view.component');
 var ng2_dashboard_service_1 = require('./ng2-dashboard.service');
 var widget_kinds_1 = require('../widget-kinds');
+var theme_service_1 = require("../core/theme.service");
 var Ng2DashboardComponent = (function () {
-    function Ng2DashboardComponent(logger, $state, ng2DashboardService) {
+    function Ng2DashboardComponent(logger, $state, ng2DashboardService, themeService) {
         var _this = this;
         this.ng2DashboardService = ng2DashboardService;
+        this.themeService = themeService;
         // initialize
         this.dashboard = ng2DashboardService.activeDashboard;
         this.widgets = this.dashboard.widgets;
@@ -30,7 +32,6 @@ var Ng2DashboardComponent = (function () {
             _this.widgets = _this.dashboard.widgets;
         });
         this.title = $state.current.title;
-        this.ngGridOptions = ng2DashboardService.ngGridOptions;
         this.widgetKinds = widget_kinds_1.widgetKinds;
         this.togglePanelLock = function () {
             _this.ngGridOptions.draggable = !_this.ngGridOptions.draggable;
@@ -47,7 +48,7 @@ var Ng2DashboardComponent = (function () {
         }),
         __param(0, core_1.Inject('logger')),
         __param(1, core_1.Inject('$state')), 
-        __metadata('design:paramtypes', [Object, Object, ng2_dashboard_service_1.Ng2DashboardService])
+        __metadata('design:paramtypes', [Object, Object, ng2_dashboard_service_1.Ng2DashboardService, theme_service_1.ThemeService])
     ], Ng2DashboardComponent);
     return Ng2DashboardComponent;
 }());

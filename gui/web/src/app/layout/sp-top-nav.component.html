@@ -14,7 +14,7 @@
         <div class="navbar-header" (click)="toggleNavbar()">
             <a href="/" class="navbar-brand">
                 <img src="images/splogo_all_white.svg" class="navbar-logo" alt="." />
-                <span [style.background-color]="testColor" class="brand-title">Sequence<br />Planner</span>
+                <span class="brand-title">Sequence<br />Planner</span>
             </a>
             <a class="btn navbar-btn navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                 <span class="icon-bar"></span>
@@ -76,6 +76,15 @@
                         <li><a href="dashboard" (click)="maximizedContentView()">
                             <span>Maximized content</span>
                         </a></li>
+
+                        <li class="divider"></li>
+
+                        <li *ngFor="let m of availableColors">
+                            <a (click)="setCurrentColor(m)" data-toggle="collapse" data-target=".navbar-collapse.in">
+                                <div *ngIf="m == currentColor" class="fa fa-angle-right"></div>
+                                {{ m }}
+                            </a>
+                        </li>
 
                         <li class="divider"></li>
 
