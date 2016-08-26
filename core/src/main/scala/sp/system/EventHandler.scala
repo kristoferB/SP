@@ -13,6 +13,12 @@ class EventHandler extends Actor {
   import context.dispatcher
   val log = Logging(context.system, this)
 
+  import akka.cluster.pubsub.DistributedPubSub
+  import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
+  val mediator = DistributedPubSub(context.system).mediator
+  mediator ! Put(self)
+  mediator ! Subscribe("eventHandler", self)
+
   def receive = {
     case e: SPEvent => sseChannels foreach( _ ! e )
     case SubscribeToSSE(ref) => {

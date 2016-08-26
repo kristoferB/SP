@@ -4,7 +4,6 @@ import akka.actor._
 import sp.domain.logic.{PropositionConditionLogic, ActionParser, PropositionParser}
 import sp.system.messages._
 import sp.domain._
-import sp.domain.Logic._
 import org.json4s.native.Serialization._
 import akka.pattern.ask
 import akka.util.Timeout
@@ -17,6 +16,7 @@ class ImportJSONService(modelHandler: ActorRef) extends Actor with ServiceSuppor
   implicit val timeout = Timeout(1 seconds)
 
   import context.dispatcher
+  import sp.domain.Logic._
 
   def receive = {
     case Request(_, attr, _, _) => {

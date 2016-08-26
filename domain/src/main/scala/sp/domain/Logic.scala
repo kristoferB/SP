@@ -12,8 +12,14 @@ object Logic extends
   OperationLogics with
   ThingLogics with
   PropositionConditionLogics with
-  HierarchyLogics {
+  HierarchyLogics with
+  JsonImplicit
 
-  implicit val formats = jsonFormats
-
-}
+object LogicNoImplicit extends
+  AttributeLogics with
+  StateLogics with
+  JsonLogics with
+  OperationLogics with
+  ThingLogics with
+  PropositionConditionLogics with
+  HierarchyLogics

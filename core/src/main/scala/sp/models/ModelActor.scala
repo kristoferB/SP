@@ -3,14 +3,13 @@ package sp.models
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
-import sp.system.messages
 import scala.concurrent.duration._
 import sp.domain._
 import sp.system.messages._
-import sp.domain.Logic._
+import sp.domain.LogicNoImplicit._
+import sp.system.messages.JsonFormatsMessage._
 import akka.persistence._
 import org.json4s.native.Serialization._
-import sp.system.SPActorSystem.eventHandler
 
 /**
  * Created by Kristofer on 2014-06-12.
@@ -19,6 +18,9 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
   override def persistenceId = model.toString()
   implicit val timeout = Timeout(2 seconds)
   import context.dispatcher
+
+  // temp
+  val eventHandler = context.actorOf(sp.system.EventHandler.props)
 
   def receiveCommand = {
     //case mess @ _ if {println(s"model got: $mess from $sender"); false} => Unit

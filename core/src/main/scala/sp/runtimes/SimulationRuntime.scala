@@ -19,7 +19,11 @@ class SimulationRuntime(about: RuntimeInfo) extends Actor {
   import sp.domain.Logic._
   private implicit val to = Timeout(20 seconds)
   import context.dispatcher
-  import sp.system.SPActorSystem._
+
+  import akka.cluster.pubsub.DistributedPubSub
+  import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
+  val mediator = DistributedPubSub(context.system).mediator
+  // mediator ? Publish("modelHandler",
 
   def receive = {
     case SimpleMessage(_, attr) => {
@@ -34,8 +38,8 @@ class SimulationRuntime(about: RuntimeInfo) extends Actor {
         model <- modelE.right
         state <- stateE.right
       } yield {
-        val opsF = (modelHandler ? GetOperations(model)).mapTo[SPIDs] map(_.items.map(_.asInstanceOf[Operation]))
-        val thingsF = (modelHandler ? GetThings(model)).mapTo[SPIDs] map(_.items.map(_.asInstanceOf[Thing]))
+        val opsF = (mediator ? Publish("modelHandler", GetOperations(model))).mapTo[SPIDs] map(_.items.map(_.asInstanceOf[Operation]))
+        val thingsF = (mediator ? Publish("modelHandler", GetThings(model))).mapTo[SPIDs] map(_.items.map(_.asInstanceOf[Thing]))
 
         for {
           ops <- opsF

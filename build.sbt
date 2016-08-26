@@ -1,23 +1,30 @@
 name := "SequencePlanner"
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
+version := "0.6.0-SNAPSHOT"
 
 lazy val akka = Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.4.1",
-  "com.typesafe.akka" %% "akka-testkit" % "2.4.1",
-  "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
+  "com.typesafe.akka" %% "akka-actor" % "2.4.8",
+  "com.typesafe.akka" %% "akka-cluster" % "2.4.8",
+  "com.typesafe.akka" %% "akka-cluster-tools" % "2.4.8",
+  "com.typesafe.akka" %% "akka-testkit" % "2.4.8",
+  "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test",
+  "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.1",
   "org.slf4j" % "slf4j-simple" % "1.7.7"
 )
 
 lazy val json = Seq(
-  "com.github.nscala-time" %% "nscala-time" % "2.0.0",
-  "org.json4s" %% "json4s-native" % "3.2.11",
-  "org.json4s" %% "json4s-ext" % "3.2.11",
-  "org.json4s" %% "json4s-jackson" % "3.2.11"
+  "com.github.nscala-time" %% "nscala-time" % "2.12.0",
+  "org.json4s" %% "json4s-native" % "3.4.0",
+  "org.json4s" %% "json4s-ext" % "3.4.0"
+)
+
+lazy val support = Seq(
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+  "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test"
 )
 
 lazy val commonSettings = Seq(
-  version := "0.6.0-SNAPSHOT",
-  scalaVersion := "2.11.7",
+  scalaVersion := "2.11.8",
   resolvers ++= Seq(
     "Sonatype OSS Snapshots" at "https://oss.sonatype.org/Releases",
     "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/"),
@@ -39,9 +46,19 @@ lazy val commonSettings = Seq(
 lazy val root = project.in( file(".") )
    .aggregate(core, domain, gui, extensions, launch)
 
-lazy val domain = project.
+lazy val domain = project.dependsOn(macros).
   settings(commonSettings: _*).
+  settings(libraryDependencies ++= json ++ support)
+
+lazy val models = project.dependsOn(domain).
+  settings(commonSettings: _*).
+  settings(libraryDependencies ++= akka ++ json ++ support)
+
+lazy val macros = project.
+  settings(commonSettings: _*).
+  settings(libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _)).
   settings(libraryDependencies ++= json)
+
 
 lazy val core = project.dependsOn(domain).
   settings(commonSettings: _*).
@@ -58,6 +75,10 @@ lazy val extensions = project.dependsOn(domain, core).
 lazy val launch = project.dependsOn(domain, core, gui, extensions).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= akka ++ json)
+
+lazy val services = project.dependsOn(domain).
+  settings(commonSettings: _*).
+  settings(libraryDependencies ++= akka ++ json ++ support)
 
 
 

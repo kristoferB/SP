@@ -13,15 +13,17 @@ import scala.util._
 import scala.concurrent.duration._
 
 class ServiceTalker(service: ActorRef,
-                    modelHandler: ActorRef,
                     replyTo: ActorRef,
                     serviceAttributes: SPAttributes,
-                    request: Request,
-                    eventHandler: Option[ActorRef]) extends Actor {
+                    request: Request) extends Actor {
 
   import context.dispatcher
   implicit val timeout = Timeout(2 seconds)
   val cancelTimeout =  context.system.scheduler.scheduleOnce(3 seconds, self, "timeout")
+
+  import akka.cluster.pubsub.DistributedPubSub
+  import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
+  val mediator = DistributedPubSub(context.system).mediator
 
   val x = request.attributes
   val handleAttr = x.getAs[ServiceHandlerAttributes]("core").getOrElse(
@@ -30,7 +32,7 @@ class ServiceTalker(service: ActorRef,
   def receive = {
     case req @ Request(_, attr, ids, _) => {
       if (handleAttr.model.isDefined && ids.isEmpty) {
-        modelHandler ? GetIds(handleAttr.model.get, List()) onComplete {
+        mediator ? Publish("modelHandler", GetIds(handleAttr.model.get, List())) onComplete {
           case Success(result) => result match {
             case SPIDs(xs) => {
               val filter = xs.filter(item => handleAttr.includeIDAbles.contains(item.id))
@@ -53,18 +55,16 @@ class ServiceTalker(service: ActorRef,
     }
     case "timeout" => {
       replyTo ! SPError(s"Service ${request.service} (actor: $service) is not responding.")
-      eventHandler.foreach(_ ! SPError(s"Service ${request.service} (actor: $service) is not responding."))
-//      context.parent ! RemoveService(request.service)
-//      service ! RemoveService(request.service)
+      mediator ! Publish("eventHandler", SPError(s"Service ${request.service} (actor: $service) is not responding."))
       killMe
     }
     case r @ Response(ids, attr, _, _) => {
       if (handleAttr.responseToModel && handleAttr.model.isDefined) {
-        modelHandler ! UpdateIDs(handleAttr.model.get, ids, attr)
+        mediator ! Publish("modelHandler", UpdateIDs(handleAttr.model.get, ids, attr))
       }
       replyTo ! r
       if (!handleAttr.onlyResponse) {
-        eventHandler.foreach(_ ! r)
+        mediator ! Publish("eventHandler", r)
       }
       killMe
     }
@@ -72,13 +72,13 @@ class ServiceTalker(service: ActorRef,
       cancelTimeout.cancel()
       if (!handleAttr.onlyResponse) {
         replyTo ! r
-        eventHandler.foreach(_ ! r)
+        mediator ! Publish("eventHandler",  r)
       }
     }
     case e: SPError => {
       replyTo ! e
       if (!handleAttr.onlyResponse) {
-        eventHandler.foreach(_ ! ServiceError(request.service, request.reqID, e))
+        mediator ! Publish("eventHandler",  ServiceError(request.service, request.reqID, e))
       }
       killMe
     }
@@ -98,27 +98,11 @@ class ServiceTalker(service: ActorRef,
 
 object ServiceTalker {
   def props(service: ActorRef,
-            modelHandler: ActorRef,
             replyTo: ActorRef,
             serviceAttributes: SPAttributes,
-            request: Request,
-            toBus: Option[ActorRef]) =
-    Props(classOf[ServiceTalker], service, modelHandler, replyTo, serviceAttributes, request, toBus)
+            request: Request) =
+    Props(classOf[ServiceTalker], service, replyTo, serviceAttributes, request)
 
-//  def validateRequest(req: Request, serviceAttributes: SPAttributes, transform: List[TransformValue[_]]) = {
-//    val attr = req.attributes
-//    val expectAttrs = serviceAttributes.findObjectsWithKeysAs[KeyDefinition](List("ofType", "domain"))
-//
-//    val errorsAttr = analyseAttr(attr, expectAttrs)
-//    if (errorsAttr.nonEmpty) Left(errorsAttr) else {
-//      val filled = fillDefaults(attr, expectAttrs)
-//      val transformers: List[TransformValue[_]] = transformServiceHandlerAttributes.++(transform)
-//      val tError = analyseTransform(filled, transform)
-//      if (tError.nonEmpty) Left(tError) else {
-//        Right(req.copy(attributes = filled))
-//      }
-//    }
-//  }
 
   def serviceHandlerAttributes = SPAttributes("core" -> SPAttributes(
     "model"-> KeyDefinition("Option[ID]", List(), Some(JNothing)),

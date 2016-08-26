@@ -1,10 +1,8 @@
 package sp.launch
 
-import sp.runtimes.opc.PLCRuntime
-import sp.services.{ PropositionParserService }
-import sp.system.ServiceExample
+
+import sp.system._
 import sp.system.messages._
-import sp.domain._
 
 import scala.io.Source
 
@@ -14,144 +12,148 @@ import scala.io.Source
 object SP extends App {
 
   import sp.system.SPActorSystem._
-  import sp.domain.Logic._
 
-  // Merge runtimes to services instead
-  //  runtimeHandler ! RegisterRuntimeKind("SimulationRuntime",
-  //  sp.runtimes.SimulationRuntime.props,
-  //  SPAttributes("info"-> "Simulate system behavior by executing operations"))
-  //
-  //  runtimeHandler ! RegisterRuntimeKind("PLCRuntime",
-  //    PLCRuntime.props,
-  //    SPAttributes("info"-> "Show status of and control a PLC"))
+  import akka.cluster.pubsub.DistributedPubSub
+  import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
+  val mediator = DistributedPubSub(system).mediator
+
+  val modelHandler = system.actorOf(PubActor.props("modelHandler"))
+  val serviceHandler = system.actorOf(PubActor.props("serviceHandler"))
+  val eventHandler = system.actorOf(PubActor.props("eventHandler"))
+
+  system.actorOf(ModelHandler.props, "modelHandler")
+  system.actorOf(ServiceHandler.props, "serviceHandler")
+  system.actorOf(EventHandler.props, "eventHandler")
+
 
   // Register services here
-  serviceHandler ! RegisterService("PropositionParser",
-    system.actorOf(PropositionParserService.props, "PropositionParser"))
+  import sp.services.PropositionParserService
+  mediator ! Publish("serviceHandler", RegisterService("PropositionParser",
+    system.actorOf(PropositionParserService.props, "PropositionParser")))
 
   println("registering relation service")
   import sp.services.relations._
-  serviceHandler ! RegisterService("RelationIdentification",
+  mediator ! Publish("serviceHandler", RegisterService("RelationIdentification",
     system.actorOf(RelationIdentification.props, "RelationIdentification"),
     RelationIdentification.specification,
-    RelationIdentification.transformation)
+    RelationIdentification.transformation))
 
   import sp.services.relations._
-  serviceHandler ! RegisterService("Relations",
-    system.actorOf(RelationService.props(modelHandler, serviceHandler, "ConditionsFromSpecsService"), "Relations"))
+  mediator ! Publish("serviceHandler", RegisterService("Relations",
+    system.actorOf(RelationService.props(modelHandler, serviceHandler, "ConditionsFromSpecsService"), "Relations")))
 
   import sp.services.sopmaker._
-  serviceHandler ! RegisterService("SOPMaker",
-    system.actorOf(SOPMakerService.props(modelHandler), "SOPMaker"))
+  mediator ! Publish("serviceHandler", RegisterService("SOPMaker",
+    system.actorOf(SOPMakerService.props(modelHandler), "SOPMaker")))
 
   import sp.services.specificationconverters._
-  serviceHandler ! RegisterService("ConditionsFromSpecsService",
-    system.actorOf(ConditionsFromSpecsService.props(modelHandler), "ConditionsFromSpecsService"))
+  mediator ! Publish("serviceHandler", RegisterService("ConditionsFromSpecsService",
+    system.actorOf(ConditionsFromSpecsService.props(modelHandler), "ConditionsFromSpecsService")))
 
-  serviceHandler ! RegisterService("Example",
+  mediator ! Publish("serviceHandler", RegisterService("Example",
     system.actorOf(ServiceExample.props, "Example"),
     ServiceExample.specification,
-    ServiceExample.transformation)
+    ServiceExample.transformation))
 
   import sp.extensions.DummySopService._
-  serviceHandler ! RegisterService("DummySop",
+  mediator ! Publish("serviceHandler", RegisterService("DummySop",
     system.actorOf(DummySopService.props, "DummySop"),
     DummySopService.specification,
-    DummySopService.transformation)
+    DummySopService.transformation))
 
   //  import sp.areus._
   //
-  //  serviceHandler ! RegisterService("DelmiaV5Service",
+  //  mediator ! Publish("serviceHandler", RegisterService)("DelmiaV5Service",
   //    system.actorOf(DelmiaV5Service.props(modelHandler), "DelmiaV5Service"))
   //
-  //  serviceHandler ! RegisterService("ImportKUKAFileService",
+  //  mediator ! Publish("serviceHandler", RegisterService)("ImportKUKAFileService",
   //    system.actorOf(ImportKUKAFileService.props(modelHandler), "ImportKUKAFileService"))
   //
-  //  serviceHandler ! RegisterService("VCImportService",
+  //  mediator ! Publish("serviceHandler", RegisterService)("VCImportService",
   //    system.actorOf(VCImportService.props(modelHandler), "VCImportService"))
   //
   import sp.jsonImporter._
 
   val jsonActor = system.actorOf(ImportJSONService.props(modelHandler), "ImportJSONService")
-  serviceHandler ! RegisterService("ImportJSONService", jsonActor)
+  mediator ! Publish("serviceHandler", RegisterService("ImportJSONService", jsonActor))
   //
   //  import sp.merger._
   //
-  //  serviceHandler ! RegisterService("ProductAbilityMerger",
+  //  mediator ! Publish("serviceHandler", RegisterService)("ProductAbilityMerger",
   //    system.actorOf(ProductAbilityMerger.props(modelHandler), "ProductAbilityMerger"))
   //
   import sp.virtcom._
 
-  serviceHandler ! RegisterService("CreateOpsFromManualModel",
+  mediator ! Publish("serviceHandler", RegisterService("CreateOpsFromManualModel",
     system.actorOf(CreateOpsFromManualModelService.props, "CreateOpsFromManualModel"),
     CreateOpsFromManualModelService.specification,
-    CreateOpsFromManualModelService.transformation)
+    CreateOpsFromManualModelService.transformation))
 
-  serviceHandler ! RegisterService("SynthesizeModelBasedOnAttributes",
+  mediator ! Publish("serviceHandler", RegisterService("SynthesizeModelBasedOnAttributes",
     system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler), "SynthesizeModelBasedOnAttributes"),
-    SynthesizeModelBasedOnAttributesService.specification)
+    SynthesizeModelBasedOnAttributesService.specification))
 
-  serviceHandler ! RegisterService("ExtendIDablesBasedOnAttributes",
+  mediator ! Publish("serviceHandler", RegisterService("ExtendIDablesBasedOnAttributes",
     system.actorOf(ExtendIDablesBasedOnTheirAttributes.props, "ExtendIDablesBasedOnAttributes"),
-    ExtendIDablesBasedOnTheirAttributes.specification)
+    ExtendIDablesBasedOnTheirAttributes.specification))
 
-  serviceHandler ! RegisterService("CreateInstanceModelFromTypeModel",
+  mediator ! Publish("serviceHandler", RegisterService("CreateInstanceModelFromTypeModel",
     system.actorOf(CreateInstanceModelFromTypeModelService.props, "CreateInstanceModelFromTypeModel"),
     CreateInstanceModelFromTypeModelService.specification,
-    CreateInstanceModelFromTypeModelService.transformation)
+    CreateInstanceModelFromTypeModelService.transformation))
 
-  serviceHandler ! RegisterService("CreateParallelInstance",
+  mediator ! Publish("serviceHandler", RegisterService("CreateParallelInstance",
     system.actorOf(CreateParallelInstanceService.props(serviceHandler), "CreateParallelInstance"),
     CreateParallelInstanceService.specification,
-    CreateParallelInstanceService.transformation)
+    CreateParallelInstanceService.transformation))
 
-  serviceHandler ! RegisterService("SimpleShortestPath",
+  mediator ! Publish("serviceHandler", RegisterService("SimpleShortestPath",
     system.actorOf(SimpleShortestPath.props, "SimpleShortestPath"),
-    SimpleShortestPath.specification, SimpleShortestPath.transformation)
+    SimpleShortestPath.specification, SimpleShortestPath.transformation))
 
 
   import sp.areus._
 
-  serviceHandler ! RegisterService("ImportLogFiles",
+  mediator ! Publish("serviceHandler", RegisterService("ImportLogFiles",
     system.actorOf(ImportLogFiles.props, "ImportLogFiles"),
     ImportLogFiles.specification,
-    ImportLogFiles.transformation)
+    ImportLogFiles.transformation))
 
-  serviceHandler ! RegisterService("createGantt",
+  mediator ! Publish("serviceHandler", RegisterService("createGantt",
     system.actorOf(CreateGanttChart.props, "createGantt"),
     CreateGanttChart.specification,
-    CreateGanttChart.transformation)
-  serviceHandler ! RegisterService("transformTrajectories",
+    CreateGanttChart.transformation))
+  mediator ! Publish("serviceHandler", RegisterService("transformTrajectories",
     system.actorOf(TransformTrajectories.props, "transformTrajectories"),
     TransformTrajectories.specification,
-    TransformTrajectories.transformation)
-  serviceHandler ! RegisterService("MakeGanttTrajectory",
+    TransformTrajectories.transformation))
+  mediator ! Publish("serviceHandler", RegisterService("MakeGanttTrajectory",
     system.actorOf(MakeNewGanttTrajectory.props, "MakeGanttTrajectory"),
     MakeNewGanttTrajectory.specification,
-    MakeNewGanttTrajectory.transformation)
+    MakeNewGanttTrajectory.transformation))
 
   import sp.opcrunner._
 
-  serviceHandler ! RegisterService("OpcRunner",
-    system.actorOf(OpcRunner.props, "OpcRunner"), OpcRunner.specification, OpcRunner.transformation)
+  mediator ! Publish("serviceHandler", RegisterService("OpcRunner",
+    system.actorOf(OpcRunner.props, "OpcRunner"), OpcRunner.specification, OpcRunner.transformation))
 
-  serviceHandler ! RegisterService("Simulation",
-    system.actorOf(Simulation.props, "Simulation"), Simulation.specification, Simulation.transformation)
+  mediator ! Publish("serviceHandler", RegisterService("Simulation",
+    system.actorOf(Simulation.props, "Simulation"), Simulation.specification, Simulation.transformation))
 
   import sp.virtcom.ProcessSimulate
-  serviceHandler ! RegisterService("ProcessSimulate",
+  mediator ! Publish("serviceHandler", RegisterService("ProcessSimulate",
     system.actorOf(ProcessSimulate.props(modelHandler,eventHandler), "ProcessSimulate"),
-    ProcessSimulate.specification, ProcessSimulate.transformation)
+    ProcessSimulate.specification, ProcessSimulate.transformation))
 
   import sp.virtcom.VolvoRobotSchedule
-  serviceHandler ! RegisterService("VolvoRobotSchedule",
+  mediator ! Publish("serviceHandler", RegisterService("VolvoRobotSchedule",
     system.actorOf(VolvoRobotSchedule.props(serviceHandler), "VolvoRobotSchedule"),
-    VolvoRobotSchedule.specification, VolvoRobotSchedule.transformation)
+    VolvoRobotSchedule.specification, VolvoRobotSchedule.transformation))
 
 //
 //  import sp.areus.modalaService._
 //  val modalaamqProducer = system.actorOf(Props[ModalaAMQProducer], "ModalaAMQProducer")
-//  serviceHandler ! RegisterService("Modala",
+//  mediator ! Publish("serviceHandler", RegisterService)("Modala",
 //    system.actorOf(ModalaService.props(modalaamqProducer), "Modala"),
 //    ModalaService.specification,
 //    ModalaService.transformation)
@@ -163,23 +165,23 @@ object SP extends App {
 
 
   import sp.control._
-  serviceHandler ! RegisterService(
+  mediator ! Publish("serviceHandler", RegisterService(
     "OperationControl",
     system.actorOf(OperationControl.props(eventHandler), "OperationControl"),
     OperationControl.specification,
     OperationControl.transformation
-  )
+  ))
 
   import sp.robotCycleAnalysis._
-  serviceHandler ! RegisterService(
+  mediator ! Publish("serviceHandler", RegisterService(
     "RobotCycleAnalysis",
     system.actorOf(RobotCycleAnalysis.props(eventHandler), "RobotCycleAnalysis"),
     RobotCycleAnalysis.specification,
     RobotCycleAnalysis.transformation
-  )
+  ))
 
 //  import sp.exampleService._
-//  serviceHandler ! RegisterService(
+//  mediator ! Publish("serviceHandler", RegisterService)(
 //    "ExampleService",
 //    system.actorOf(ExampleService.props, "ExampleService"),
 //    ExampleService.specification,
@@ -187,7 +189,7 @@ object SP extends App {
 //  )
 //
 //  import sp.calculator._
-//  serviceHandler ! RegisterService(
+//  mediator ! Publish("serviceHandler", RegisterService)(
 //    "Calculator",
 //    system.actorOf(Calculator.props, "Calculator"),
 //    Calculator.specification,
@@ -196,23 +198,23 @@ object SP extends App {
 
 
   import sp.psl._
-  serviceHandler ! RegisterService(
+  mediator ! Publish("serviceHandler", RegisterService(
     "PSLModel",
     system.actorOf(PSLModel.props, "PSLModel"),
     PSLModel.specification,
     PSLModel.transformation
-  )
+  ))
 
   import sp.psl.runnerService._
   val rs = system.actorOf(RunnerService.props(eventHandler, serviceHandler, "OperationControl"), "RunnerService")
-  serviceHandler ! RegisterService(
+  mediator ! Publish("serviceHandler", RegisterService(
     "RunnerService",
     rs,
     RunnerService.specification,
     RunnerService.transformation
-  )
+  ))
 
-//  serviceHandler ! RegisterService(
+//  mediator ! Publish("serviceHandler", RegisterService)(
 //    "AutoTest",
 //    system.actorOf(AutoTest.props(eventHandler,rs), "AutoTest"),
 //    AutoTest.specification,
@@ -220,34 +222,37 @@ object SP extends App {
 //  )
 
 
-  serviceHandler ! RegisterService(
+  mediator ! Publish("serviceHandler", RegisterService(
     "VariableOperationMapper",
     system.actorOf(VariableOperationMapper.props, "VariableOperationMapper"),
     VariableOperationMapper.specification,
     VariableOperationMapper.transformation
-  )
+  ))
 
-  serviceHandler ! RegisterService(
+  mediator ! Publish("serviceHandler", RegisterService(
     "operatorService",
     system.actorOf(OperatorService.props(serviceHandler), "operatorService"),
     OperatorService.specification,
     OperatorService.transformation
-  )
+  ))
 
-  serviceHandler ! RegisterService(
+  mediator ! Publish("serviceHandler", RegisterService(
     "OrderHandler",
     system.actorOf(OrderHandler.props(serviceHandler, eventHandler), "OrderHandler"),
     OrderHandler.specification,
     OrderHandler.transformation
-  )
+  ))
 
-  serviceHandler ! RegisterService(
+  mediator ! Publish("serviceHandler", RegisterService(
     "OperatorInstructions",
     system.actorOf(OperatorInstructions.props(eventHandler), "OperatorInstructions"),
     OperatorInstructions.specification,
     OperatorInstructions.transformation
-  )  
+  )  )
 
   // launch REST API
   sp.server.LaunchGUI.launch
+  scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
+    case x => system.terminate()
+  }
 }

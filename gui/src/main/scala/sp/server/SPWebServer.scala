@@ -1,22 +1,32 @@
 package sp.server
 
 import akka.actor._
-import sp.system.SPActorSystem._
+import akka.util.Timeout
+import sp.system.PubActor
+
+import scala.concurrent.duration._
 import spray.routing._
 
 /**
  * Created by Kristofer on 2014-06-19.
  */
 class SPWebServer extends Actor with SPRoute {
-  override val eventHandler : ActorRef= sp.system.SPActorSystem.eventHandler
-  override val modelHandler : ActorRef= sp.system.SPActorSystem.modelHandler
-  override val runtimeHandler : ActorRef= sp.system.SPActorSystem.runtimeHandler
-  override val serviceHandler : ActorRef= sp.system.SPActorSystem.serviceHandler
-  override val userHandler : ActorRef= sp.system.SPActorSystem.userHandler
+
+  import akka.pattern.{ ask, pipe }
+  import system.dispatcher
+
+
+  override val modelHandler = context.actorOf(PubActor.props("modelHandler"))
+  override val serviceHandler = context.actorOf(PubActor.props("serviceHandler"))
+  override val eventHandler = context.actorOf(PubActor.props("eventHandler"))
+  override val runtimeHandler = context.actorOf(PubActor.props("runtimeHandler"))
+  override val userHandler = context.actorOf(PubActor.props("userHandler"))
   implicit val system = context.system
 
-  val webFolder: String = settings.webFolder
-  val srcFolder: String = if(settings.devMode) settings.devFolder else settings.buildFolder
+
+  val webFolder: String = sp.system.SPActorSystem.settings.webFolder
+  val srcFolder: String = if(sp.system.SPActorSystem.settings.devMode)
+    sp.system.SPActorSystem.settings.devFolder else sp.system.SPActorSystem.settings.buildFolder
 
   def actorRefFactory = context
   def receive = runRoute(api ~ staticRoute)
@@ -30,4 +40,15 @@ class SPWebServer extends Actor with SPRoute {
     getFromFile(srcFolder + "/index.html")
   }
 
+}
+
+import akka.cluster.pubsub._
+class Publisher(topic: String) extends Actor {
+  import DistributedPubSubMediator.Publish
+  val mediator = DistributedPubSub(context.system).mediator
+
+  def receive = {
+    case in ⇒
+      mediator forward Publish(topic, in)
+  }
 }
