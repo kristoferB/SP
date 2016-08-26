@@ -10,10 +10,10 @@
 
     volvoRobotSchedulingController.$inject = ['$scope', 'dashboardService','logger', 'modelService',
                                          'itemService', 'spServicesService', 'restService',
-                                         'eventService', 'volvoRobotSchedulingService'];
+                                         'eventService'];
     /* @ngInject */
     function volvoRobotSchedulingController($scope, dashboardService, logger, modelService, itemService,
-                                       spServicesService, restService, eventService, volvoRobotSchedulingService) {
+                                       spServicesService, restService, eventService) {
         var vm = this;
 
         vm.widget = $scope.$parent.$parent.$parent.vm.widget;
