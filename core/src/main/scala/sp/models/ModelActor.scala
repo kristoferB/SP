@@ -20,7 +20,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
   import context.dispatcher
 
   // temp
-  val eventHandler = context.actorOf(sp.system.EventHandler.props)
+  val eventHandler = context.actorOf(sp.system.PubActor.props("eventHandler"))
 
   def receiveCommand = {
     //case mess @ _ if {println(s"model got: $mess from $sender"); false} => Unit
@@ -39,14 +39,14 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       createDiffDel(dels.toSet, info) match {
         case Right(diff) =>
           reply ! "OK"
-          store(diff, reply ! SPOK)
+          store(diff, reply ! SPOK())
         case Left(error) => reply ! error
       }
 
     case cm: CreateModel =>
       val diff = ModelDiff(model, List(), List(), SPAttributes("info"->"new model attributes"), state.version, state.version + 1, cm.name, cm.attributes.addTimeStamp)
       val reply = sender
-      store(diff, reply ! SPOK)
+      store(diff, reply ! SPOK())
 
     case UpdateModelInfo(_, ModelInfo(m, newName, v, attribute, _)) =>
       val reply = sender
@@ -60,7 +60,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
         newName,
         attribute.addTimeStamp)
 
-      store(diff, reply ! SPOK)
+      store(diff, reply ! SPOK())
 
     case Revert(_, v) =>
       val reply = sender
@@ -125,7 +125,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       println(s"import")
       diffUpd.left.map(err => reply ! err)
       diffUpd.right.map{diff =>
-        store(diff.copy(deletedItems = dels.values.toList, name = mi.name, modelAttr = mi.attributes), reply ! SPOK)
+        store(diff.copy(deletedItems = dels.values.toList, name = mi.name, modelAttr = mi.attributes), reply ! SPOK())
       }
     }
 

@@ -26,7 +26,9 @@ class ModelHandlerTest(_system: ActorSystem) extends TestKit(_system) with Impli
       |akka.persistence.journal.plugin = "akka.persistence.journal.inmem"
       |akka.persistence.snapshot-store.plugin = "akka.persistence.snapshot-store.local"
       |akka.persistence.snapshot-store.local.dir = "target/snapshotstest/"
-      |akka.loglevel = DEBUG
+      |akka.loglevel = "DEBUG"
+      |akka.actor.provider = "akka.cluster.ClusterActorRefProvider"
+      |akka.extensions = ["akka.cluster.pubsub.DistributedPubSub"]
     """.stripMargin)))
 
 
@@ -46,9 +48,10 @@ class ModelHandlerTest(_system: ActorSystem) extends TestKit(_system) with Impli
 
   "The Model Handler" must {
     "create a new model and return success" in {
-      val mid = sp.domain.ID.newID
+      var mid = sp.domain.ID.newID
       mh ! CreateModel(mid, "test2")
-      expectMsgType[ModelInfo]
+      expectMsgType[SPOK]
+
     }
 
     "create a new model and add content" in {
@@ -57,11 +60,13 @@ class ModelHandlerTest(_system: ActorSystem) extends TestKit(_system) with Impli
       val o = Operation("hej")
       var count = 0
       fishForMessage(3 seconds) {
+        case x: SPOK => false
         case m:ModelInfo => mh ! UpdateIDs(mid, List(o)); false
         case SPIDs(ids) if count == 0 => mh ! GetIds(mid,List()); count +=1; false
         case SPIDs(ids) if count == 1 => ids shouldEqual List(o); true
       }
     }
+
 
     // add more test on the model and views
   }

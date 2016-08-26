@@ -1,29 +1,28 @@
 package sp.system
 
+import akka.actor.Actor.Receive
 import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
+
 import scala.concurrent.Future
 import akka.pattern.pipe
+
 import scala.concurrent.duration._
 import sp.system.messages._
 import akka.persistence._
-
-
 import sp.domain._
-import sp.domain.Logic._
-
-
+import sp.domain.LogicNoImplicit._
 import akka.cluster.Cluster
 import akka.cluster.ClusterEvent._
 import akka.cluster.pubsub._
 
 
 
-object TemporaryLauncher extends App {
-  implicit val system = ActorSystem("SP")
-  system.actorOf(ModelHandler.props, "modelHandler")
-}
+//object TemporaryLauncher extends App {
+//  implicit val system = ActorSystem("SP")
+//  system.actorOf(ModelHandler.props, "modelHandler")
+//}
 
 class ModelHandler extends PersistentActor with ActorLogging  {
   override def persistenceId = "modelhandler"
@@ -32,8 +31,6 @@ class ModelHandler extends PersistentActor with ActorLogging  {
 
   private var modelMap: Map[ID, ActorRef] = Map()
   private var viewMap: Map[String, ActorRef] = Map()
-
-
 
   val cluster = Cluster(context.system)
   import DistributedPubSubMediator.{ Put, Subscribe, Publish }
@@ -72,9 +69,9 @@ class ModelHandler extends PersistentActor with ActorLogging  {
           addModel(n)
           modelMap(n.id) ! n
           val info = ModelInfo(id, name, 1, attr, List())
-          reply ! SPOK
+          reply ! SPOK()
         }
-        reply ! SPOK
+        reply ! SPOK()
       } else reply ! SPError("A model with that ID do already exist.")
 
     case del: DeleteModel =>
@@ -84,7 +81,7 @@ class ModelHandler extends PersistentActor with ActorLogging  {
           println(del)
           deleteModel(del)
           val delMess = ModelDeleted(del.model, SPAttributes())
-          reply ! SPOK
+          reply ! SPOK()
           mediator ! Publish("eventHandler", delMess)
         }
       }
@@ -150,3 +147,4 @@ class ModelHandler extends PersistentActor with ActorLogging  {
 object ModelHandler {
   def props = Props(classOf[ModelHandler])
 }
+
