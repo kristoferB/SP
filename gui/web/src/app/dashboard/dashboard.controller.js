@@ -22,12 +22,5 @@
         function activate() {
             logger.log('Dashboard Controller: Activated Dashboard view.');
         }
-
-        function togglePanelLock() {
-            $timeout(function() {
-                vm.gridsterOptions.draggable.enabled = !vm.gridsterOptions.draggable.enabled ;
-                vm.gridsterOptions.resizable.enabled = !vm.gridsterOptions.resizable.enabled ;
-            }, 500, false);
-        }
     }
 })();

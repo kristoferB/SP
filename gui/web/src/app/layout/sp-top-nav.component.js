@@ -13,11 +13,25 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require('@angular/core');
 var ng2_bootstrap_1 = require('ng2-bootstrap');
+var ng2_dashboard_service_1 = require('../dashboard/ng2-dashboard.service');
+var widget_kinds_1 = require('../widget-kinds');
+var theme_service_1 = require("../core/theme.service");
 var SpTopNavComponent = (function () {
-    function SpTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, themeService, settingsService) {
-        this.showNavbar = settingsService.showNavbar;
+    function SpTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, 
+        //@Inject('themeService') themeService,
+        settingsService, ng2DashboardService, themeService) {
+        this.currentColor = "default_white";
+        this.availableColors = ["default_white", "blue", "dark", "happy"];
+        this.setCurrentColor = themeService.setColorTheme;
+        this.dashboards = ng2DashboardService.storage.dashboards;
+        this.setActiveDashboard = ng2DashboardService.setActiveDashboard;
+        this.showNavbar = themeService.showNavbar;
         this.togglePanelLock = settingsService.togglePanelLock;
-        this.toggleNavbar = settingsService.toggleNavbar;
+        this.showNavbar = true;
+        this.toggleNavbar = function () {
+            this.showNavbar = !this.showNavbar;
+            themeService.toggleNavbar();
+        };
         this.activeModel = function () { return modelService.activeModel ?
             modelService.activeModel.name : null; };
         this.isState = $state.is;
@@ -31,23 +45,38 @@ var SpTopNavComponent = (function () {
                 modelService.createModel(chosenName);
             });
         };
+        this.createDashboard = function () {
+            var modalInstance = $uibModal.open({
+                templateUrl: '/app/dashboard/createdashboard.html',
+                controller: 'CreateDashboardController',
+                controllerAs: 'vm'
+            });
+            modalInstance.result.then(function (chosenName) {
+                ng2DashboardService.addDashboard(chosenName);
+            });
+        };
         // upg-note: ugly custom resolve function will be changed when
         // widgetListService is rewritten and returns a proper Promise
-        var thiz = this;
-        widgetListService.list(function (list) {
-            thiz.widgetKinds = list;
-        });
+        //var thiz = this;
+        //widgetListService.list(function(list) {
+        //   thiz.widgetKinds = list;
+        //});
+        this.widgetKinds = widget_kinds_1.widgetKinds;
         this.addWidget = function (widgetKind) {
-            dashboardService.addWidget(dashboardService.storage.dashboards[0], widgetKind);
+            ng2DashboardService.addWidget(ng2DashboardService.activeDashboard, widgetKind);
         };
         this.normalView = themeService.normalView;
         this.compactView = themeService.compactView;
         this.maximizedContentView = themeService.maximizedContentView;
-        this.layoutEditorView = themeService.layoutEditorView;
+        this.enableEditorMode = themeService.enableEditorMode;
+        this.disableEditorMode = themeService.disableEditorMode;
         this.models = modelService.models;
         this.setActiveModel = modelService.setActiveModel;
         this.activeModelName = function () { return modelService.activeModel ?
             modelService.activeModel.name : null; };
+        //this.activeDashboardName = () => ng2DashboardService.activeDashboardIndex ?
+        //    ng2DashboardService.activeDashboardIndex : null;
+        this.activeDashboardName = function () { return "placeholder"; };
     }
     SpTopNavComponent = __decorate([
         core_1.Component({
@@ -55,16 +84,16 @@ var SpTopNavComponent = (function () {
             templateUrl: 'app/layout/sp-top-nav.component.html',
             styleUrls: [],
             directives: [ng2_bootstrap_1.DROPDOWN_DIRECTIVES],
-            providers: []
+            providers: [],
+            styles: []
         }),
         __param(0, core_1.Inject('modelService')),
         __param(1, core_1.Inject('dashboardService')),
         __param(2, core_1.Inject('widgetListService')),
         __param(3, core_1.Inject('$state')),
         __param(4, core_1.Inject('$uibModal')),
-        __param(5, core_1.Inject('themeService')),
-        __param(6, core_1.Inject('settingsService')), 
-        __metadata('design:paramtypes', [Object, Object, Object, Object, Object, Object, Object])
+        __param(5, core_1.Inject('settingsService')), 
+        __metadata('design:paramtypes', [Object, Object, Object, Object, Object, Object, ng2_dashboard_service_1.Ng2DashboardService, theme_service_1.ThemeService])
     ], SpTopNavComponent);
     return SpTopNavComponent;
 }());

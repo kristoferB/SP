@@ -17,7 +17,7 @@
                 state: 'dashboard',
                 config: {
                     url: '/dashboard',
-                    templateUrl: 'app/dashboard/dashboard.html',
+                    template: '<ng2-dashboard></ng2-dashboard>',
                     controller: 'DashboardController',
                     controllerAs: 'vm',
                     title: 'Dashboard',

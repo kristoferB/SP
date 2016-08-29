@@ -41,10 +41,13 @@ module.exports = function() {
             '!' + clientApp + 'erica-components/*',
             '!' + clientApp + 'upg-helpers/upg-adapter*',
             '!' + clientApp + 'upg-helpers/upg-convert-stuff*',
-            '!' + clientApp + 'upg-helpers/upg-convert-stuff*',
+            '!' + clientApp + 'upg-helpers/upg-ng1-widget*',
+            '!' + clientApp + 'dashboard/dcl*',
+            '!' + clientApp + 'dashboard/ng2*',
             '!' + clientApp + 'main*',
+            '!' + clientApp + 'widget-kind*',
             '!' + clientApp + 'layout/**',
-            '!' + clientApp + 'lazy-widgets/**',
+            //'!' + clientApp + 'lazy-widgets/**',
             '!' + specs,
             '!' + e2eSpecs
         ],
@@ -53,7 +56,9 @@ module.exports = function() {
             '**/*.module.js',
             '**/*.js'
         ],
-        less: client + 'styles/*.less',
+        less: [
+            client + 'styles/**/*.less'
+        ],
         report: report,
         root: root,
         //server: server,

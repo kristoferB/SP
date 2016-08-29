@@ -26,7 +26,15 @@
             normalView: normalView,
             compactView: compactView,
             maximizedContentView: maximizedContentView,
-            layoutEditorView: layoutEditorView,
+
+            toggleNavbar: toggleNavbar,
+
+            enableEditorMode: enableEditorMode,
+            disableEditorMode: disableEditorMode,
+
+            editorModeEnabled: false,
+
+            currentView: "normalView",
 
             setColorTheme: setColorTheme
         };
@@ -37,6 +45,16 @@
 
         function activate() {
             update();
+            resetGrid(); // TODO do this instead by listening to fullscreen events when this thing gets ng2-ed
+        }
+
+        function resetGrid(){ //TODO rewrite this
+            var navbarHeight = 0;
+            if(service.showNavbar){
+                navbarHeight = 50;
+            }
+            dashboardService.gridsterOptions.rowHeight = (window.innerHeight-navbarHeight) / 8;
+            setTimeout(resetGrid, 0.3);
         }
 
         function configureGridster(){
@@ -45,12 +63,13 @@
 
         function compileLess(){
             //merge config variables into the .less file
-            less.modifyVars(
-                Object.assign(
-                    service.storage.lessColorConstants,
-                    service.storage.lessLayoutConstants
-                )
-            );
+            // less.modifyVars(
+            //     Object.assign(
+            //         service.storage.lessColorConstants,
+            //         service.storage.lessLayoutConstants,
+            //         {showNavbar: service.showNavbar}
+            //     )
+            // );
         }
 
         function setColorTheme(theme){
@@ -59,6 +78,12 @@
 
         function setLayoutTheme(theme){
             assignFromServer("/style_presets/layouts/"+theme, "lessLayoutConstants");
+        }
+
+        function toggleNavbar(){
+            service.showNavbar = !service.showNavbar;
+            console.log('waddup '+service.showNavbar);
+            update();
         }
 
         function update(){
@@ -86,35 +111,36 @@
         }
 
         function normalView(){
-            dashboardService.setPanelLock(false);
+            service.currentView = "normalView";
             service.storage.gridsterConstants.margin = 10;
             enableHeaders();
-            service.showWidgetOptions = false;
             setLayoutTheme("normalView");
         }
-        
+
         function compactView(){
-            dashboardService.setPanelLock(false);
+            service.currentView = "compactView";
             service.storage.gridsterConstants.margin = 3;
             enableHeaders();
-            service.showWidgetOptions = false;
             setLayoutTheme("compactView");
         }
-        
+
         function maximizedContentView(){
-            dashboardService.setPanelLock(false);
+            service.currentView = "maximizedContentView";
             service.storage.gridsterConstants.margin = 0;
             disableHeaders();
-            service.showWidgetOptions = false;
-            setLayoutTheme("maximizedContentView");  
+            setLayoutTheme("maximizedContentView");
         }
 
-        function layoutEditorView(){
+        function enableEditorMode(){
+            service.editorModeEnabled = true;
             dashboardService.setPanelLock(true);
-            service.storage.gridsterConstants.margin = 10;
-            enableHeaders();
             service.showWidgetOptions = true;
-            setLayoutTheme("layoutEditorView");
+        }
+
+        function disableEditorMode(){
+            service.editorModeEnabled = false;
+            dashboardService.setPanelLock(false);
+            service.showWidgetOptions = false;
         }
     }
 })();

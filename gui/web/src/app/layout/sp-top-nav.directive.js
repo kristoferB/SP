@@ -35,11 +35,16 @@
         vm.settingsService = settingsService;
         vm.$state = $state;
         vm.createModel = createModel;
+
+        vm.themeService = themeService;
         vm.normalView = themeService.normalView;
         vm.compactView = themeService.compactView;
         vm.maximizedContentView = themeService.maximizedContentView;
-        vm.layoutEditorView = themeService.layoutEditorView;
+        vm.enableEditorMode = themeService.enableEditorMode;
+        vm.disableEditorMode = themeService.disableEditorMode;
+        vm.editorModeEnabled = themeService.editorModeEnabled;
         vm.showNavbar = themeService.showNavbar;
+
 
         function createModel() {
             var modalInstance = $uibModal.open({

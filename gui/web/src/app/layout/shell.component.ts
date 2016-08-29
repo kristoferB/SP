@@ -2,6 +2,7 @@ import { Component, Inject } from '@angular/core';
 
 import { upgAdapter } from '../upg-helpers/upg-adapter';
 import { SpTopNavComponent } from './sp-top-nav.component';
+import { ThemeService } from '../core/theme.service';
 
 @Component({
   selector: 'shell',
@@ -18,29 +19,29 @@ export class ShellComponent {
     angular: any;
 
     navline: any;
-
+    
     config: any;
     logger: any;
     $document: any;
     settingsService: any;
 
     vm: any = {}; // TODO
+    showNavbar: boolean;
 
     constructor(
         @Inject('config') config,
-        @Inject('logger') logger,
+	@Inject('logger') logger,
         @Inject('$document') $document,
-        @Inject('settingsService') settingsService
-        ) {
-            this.navline = { title: config.appTitle };
-
-            this.config = config;
-            this.logger = logger;
-            this.$document = $document;
-            this.settingsService = settingsService; // TODO
-            this.vm.settingsService = settingsService; // TODO
-            
-            this.activate();
+        @Inject('settingsService') settingsService,
+        private themeService: ThemeService
+    ) {
+	this.navline = { title: config.appTitle };
+	this.config = config;
+        this.logger = logger;
+        this.$document = $document;
+        this.settingsService = settingsService; // TODO
+        this.vm.settingsService = settingsService; // TODO
+       	this.activate();
     }
 
     private activate() {

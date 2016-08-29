@@ -1,0 +1,537 @@
+// default colors
+
+// body
+@color_unset: #00ff00;
+
+@body_color: @color_unset;
+@body_background: @color_unset;
+@body_background_image: "";
+
+// h1, h2, etc.
+@header_color: @color_unset;
+
+// jstree
+@jstree_color: @color_unset;
+@jstree_background: @color_unset;
+
+// .view-header
+@view_header_color: @color_unset;
+@view_header_background: @color_unset;
+
+// a
+@a_color: @color_unset;
+@a_hover_color: @color_unset;
+
+// dialogs
+@dialog_header_confirm_h_color: @color_unset;
+@dialog_header_confirm_span_color: @color_unset;
+
+// gridster
+@gridster_panel_background: @color_unset;
+@gridster_content_background: @color_unset;
+@gridster_panel_heading_background: @color_unset;
+@gridster_panel_border: @color_unset;
+
+// buttons
+@button_default_color: @color_unset;
+@button_default_background: @color_unset;
+@button_default_border_color: @color_unset;
+@button_default_border_bottom_color: @color_unset;
+@button_default_background_hover: @color_unset;
+@button_default_border_color_hover: @color_unset;
+
+@button_primary_color: @color_unset;
+@button_primary_background: @color_unset;
+@button_primary_color_hover: @color_unset;
+@button_primary_background_hover: @color_unset;
+@button_primary_border_hover: @color_unset;
+
+@button_info_background: @color_unset;
+@button_info_background_hover: @color_unset;
+
+@button_success_background: @color_unset;
+@button_success_background_hover: @color_unset;
+
+@button_warning_background: @color_unset;
+@button_warning_background_hover: @color_unset;
+
+@button_danger_background: @color_unset;
+@button_danger_background_hover: @color_unset;
+
+// forms
+@input_group_addon_color: @color_unset;
+@input_group_addon_background: @color_unset;
+@form_control_border_color: @color_unset; // perhaps don't specify
+
+// dropdown menu
+@dropdown_menu_background: @color_unset;
+@dropdown_menu_background_hover: @color_unset;
+@dropdown_menu_background_divider: @color_unset;
+
+// navbar
+@navbar_background: @color_unset;
+@navbar_color: @color_unset;
+// this is the SP logo orange
+@navbar_header_background: @color_unset; //#df691a; //#f05050;
+@navbar_header_background_disabled: @color_unset;
+// SP logo foreground white
+@navbar_brand_title_color: @color_unset;
+// navbar dropdowns
+@navbar_dropdown_menu: @color_unset;
+@navbar_dropdown_menu_hover: @color_unset;
+
+// pagination
+@pagination_color: @color_unset;
+@pagination_background: @color_unset;
+@pagination_color_hover: @color_unset;
+@pagination_background_hover: @color_unset;
+
+@showHeaders: true;
+@showNavbar: true;
+
+@text_selected: @color_unset;
+@text_hover:  @color_unset;
+
+@text_default: @color_unset;
+@text_string: @color_unset;
+@text_array:  @color_unset;
+@text_number: @color_unset;
+@text_boolean: @color_unset;
+@text_null: @color_unset;
+@text_invalid: @color_unset;
+
+a {
+    color: @a_color;
+    //text-decoration: angular-dialog-serviceone !important;
+}
+
+a:hover {
+    color: @a_hover_color;
+}
+
+body {
+    background: @body_background_image no-repeat fixed;
+    background-color: @body_background;
+}
+
+.panel-default {
+    color: @header_color;
+    background-color: @gridster_panel_background;
+}
+
+.view-header {
+    color: @view_header_color;
+    background-color: @view_header_background;
+}
+
+.dialog-header-confirm {
+    background-color: inherit;
+    h4 {
+        color: @dialog_header_confirm_h_color;
+    }
+    span {
+        color: @dialog_header_confirm_span_color;
+    }
+}
+
+h1, h2, h3, h4, h5, h6, .panel-title {
+    color: @header_color;
+}
+
+.grid {
+    .panel {
+        background-color: @gridster_panel_background;
+        border-color: @gridster_panel_border;
+
+        .panel-heading {
+            background-color: @gridster_panel_heading_background;
+        }
+
+        .panel-settings {
+            background-color: @gridster_panel_background;
+        }
+
+        .panel-body {
+            [ng-controller] {
+                .panel-content {
+                    background-color: @gridster_content_background;
+                }
+            }
+        }
+    }
+}
+
+/* Widgets not in gridster */
+.panel-heading {
+    background-color: @gridster_panel_heading_background;
+}
+
+
+.panel-body {
+    background-color: @gridster_panel_background;
+
+    [ng-controller] {
+        .panel-content {
+            background-color: @gridster_content_background;
+        }
+    }
+}
+
+
+
+.jsoneditor {
+    div.jsoneditor-menu {
+        visibility: hidden;
+        height: 0;
+    }
+
+    div.jsoneditor-outer {
+        color:white;
+        padding-top: 0;
+        position: absolute;
+        margin: 0;
+        div.ace_editor {
+            .ace_scroller {
+                background-color: @gridster_content_background;
+                color: @text_default;
+            }
+            .ace_gutter {
+                background-color: @gridster_panel_background;
+                color: @text_default;
+            }
+            .ace_line {
+                color:@text_default;
+            }
+            .ace_variable{
+                color: @text_default;
+            }
+            .ace_string{
+                color: @text_string;
+            }
+            .ace_number{
+                color: @text_number;
+            }
+            .ace_null{
+                color: @text_null;
+            }
+            .ace_boolean{
+                color: @text_boolean;
+            }
+            .ace_paren {
+                color: @text_default;
+            }
+            .ace_gutter-active-line {
+                background-color: @gridster_content_background;
+            }
+            .ace_active-line {
+                background-color: @gridster_panel_background;
+            }
+
+
+
+            position: absolute;
+            *{
+                font: inherit!important;
+                font-family: monospace;
+            }
+        }
+    }
+    /* dark styling of the editor */
+    div.jsoneditor,
+    div.jsoneditor-menu {
+        color: #ff00ff; //this appears to be unused; setting it to warning-purple
+    }
+    div.jsoneditor-menu {
+        color: #ff00ff; //this appears to be unused; setting it to warning-purple
+    }
+    div.jsoneditor-tree,
+    div.jsoneditor textarea.jsoneditor-text {
+        background-color: @gridster_content_background;
+        color: #ff00ff; //this appears to be unused; setting it to warning-purple
+    }
+    div.jsoneditor-field,
+    div.jsoneditor-value {
+        color: @text_default;
+    }
+    table.jsoneditor-search div.jsoneditor-frame {
+        background: @gridster_content_background;
+    }
+
+    tr.jsoneditor-highlight,
+    tr.jsoneditor-selected {
+        background-color: @text_selected;
+    }
+
+    div.jsoneditor-field[contenteditable=true]:focus,
+    div.jsoneditor-field[contenteditable=true]:hover,
+    div.jsoneditor-value[contenteditable=true]:focus,
+    div.jsoneditor-value[contenteditable=true]:hover,
+    div.jsoneditor-field.jsoneditor-highlight,
+    div.jsoneditor-value.jsoneditor-highlight {
+        background-color: @text_selected;
+        border-color: @text_selected;
+    }
+
+    div.jsoneditor-field.highlight-active,
+    div.jsoneditor-field.highlight-active:focus,
+    div.jsoneditor-field.highlight-active:hover,
+    div.jsoneditor-value.highlight-active,
+    div.jsoneditor-value.highlight-active:focus,
+    div.jsoneditor-value.highlight-active:hover {
+        background-color: @text_hover;
+        border-color: @text_hover;
+    }
+
+    div.jsoneditor-tree button:focus {
+        background-color: @button_default_background;
+    }
+
+    /* coloring of JSON in tree mode */
+    div.jsoneditor-readonly {
+        color: @text_default;
+    }
+    div.jsoneditor td.jsoneditor-separator {
+        color: #ff00ff; //this appearsto be unused; setting it to warning-purple
+    }
+    div.jsoneditor-value.jsoneditor-string {
+        color: @text_string;
+    }
+    div.jsoneditor-value.jsoneditor-object,
+    div.jsoneditor-value.jsoneditor-array {
+        color: @text_array;
+    }
+    div.jsoneditor-value.jsoneditor-number {
+        color: @text_number;
+    }
+    div.jsoneditor-value.jsoneditor-boolean {
+        color: @text_boolean;
+    }
+    div.jsoneditor-value.jsoneditor-null {
+        color: @text_null;
+    }
+    div.jsoneditor-value.jsoneditor-invalid {
+        color: @text_invalid; //
+    }
+
+    position: absolute;
+    border: none;
+}
+
+.jstree-container-ul {
+    background: @jstree_background;
+    color: @jstree_color;
+}
+
+
+/* Buttons */
+.btn-default {
+    color: @button_default_color !important;
+    background-color: @button_default_background;
+    border-color: @button_default_border_color;
+    border-bottom-color: @button_default_border_bottom_color;
+
+    &:hover:not(.disabled) {
+        background-color: @button_default_background_hover !important;
+        border-color: @button_default_border_color_hover;
+    }
+    &:focus {
+        background-color: @button_default_background;
+        border-color: @button_default_border_color;
+    }
+}
+
+
+
+.btn {
+
+    &.btn-addon {
+        i {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        &.btn-default i {
+            background-color: transparent;
+            border-right: 1px solid #dee5e7;
+        }
+    }
+
+    &.btn-primary {
+        color: @button_primary_color !important;
+        background-color: @button_primary_background;
+        border: 1px solid @button_primary_background !important;
+
+        &:hover {
+            color: @button_primary_color_hover!important;
+            background-color: @button_primary_background_hover;
+            border-color: #5a4daa;
+        }
+    }
+}
+
+
+.btn.btn-info {
+    background: @button_info_background !important;
+
+    &:hover {
+        background: @button_info_background_hover !important;
+    }
+}
+
+.btn.btn-success {
+    background: @button_success_background !important;
+
+    &:hover {
+        background: @button_success_background_hover !important;
+    }
+}
+
+.btn.btn-warning {
+    background: @button_warning_background !important;
+
+    &:hover {
+        background: @button_warning_background_hover !important;
+    }
+}
+
+.btn.btn-danger {
+    background: @button_danger_background !important;
+
+    &:hover {
+        background: @button_danger_background_hover !important;
+    }
+}
+
+.error {
+    //   color: #ED2939
+    background-color: #FA989E;
+}
+
+.valid {
+     //  color: #006600
+    background-color: #DDFFDD;
+}
+
+.input-group-addon {
+    background-color: @input_group_addon_background;
+    color: @input_group_addon_color;
+    border-color: #dee5e7;
+}
+
+.form-control {
+    border-color: @form_control_border_color;
+    &::-webkit-input-placeholder { color: #999; }
+    &:-moz-placeholder { color: #999; }
+    &::-moz-placeholder { color: #999; opacity:1; }
+    &:-ms-input-placeholder { color: #999; }
+}
+
+.uib-dropdown-menu, .open > .uib-dropdown-menu {
+    background: @dropdown_menu_background;
+    border: 1px solid #ddd;
+}
+
+.open > .uib-dropdown-menu {
+    > li {
+        > a {
+            &:hover {
+                background: @dropdown_menu_background_hover !important;
+            }
+        }
+    }
+    .divider {
+        background-color: @dropdown_menu_background_divider;
+    }
+}
+
+
+.logo {
+    .navbar-header {
+        background-color: @navbar_header_background;
+        opacity: .5;
+    }
+    .navbar-brand {
+        background: @navbar_header_background;
+    }
+    .brand-title {
+        color: @navbar_brand_title_color;
+    }
+}
+
+
+
+
+.navbar {
+    color: @navbar_color;
+    background: @navbar_background;
+
+    .dropdown-menu {
+        background: @navbar_dropdown_menu;
+        color: inherit;
+    }
+    .dropdown-menu > li > a {
+        color: inherit;
+
+        &:hover {
+            background: @navbar_dropdown_menu_hover;
+        }
+    }
+
+    .navbar-header {
+        background-color: @navbar_header_background;
+    }
+
+    .brand-title {
+        color: @navbar_brand_title_color;
+    }
+
+    .navbar-toggle {
+        &:hover {
+            background-color: inherit;
+            opacity: .2;
+        }
+    }
+}
+
+
+.navbar-inverse .navbar-nav {
+    > li {
+        &.open > a {
+            &, &:hover, &:focus {
+                background-color: @navbar_dropdown_menu_hover;
+            }
+        }
+
+        > a {
+            color: inherit !important;
+
+            &:hover {
+                background-color: @navbar_dropdown_menu_hover;
+            }
+        }
+    }
+}
+
+
+/* Pagination*/
+.pagination {
+    ul > li {
+        > a, > span {
+            background-color: @pagination_background;
+            color: @pagination_color;
+        }
+
+        a:hover {
+            color: @pagination_color_hover;
+            background: @pagination_background_hover;
+        }
+    }
+}
+
+
+/*---------- TABLES ----------*/
+
+.table-striped > tbody > tr:nth-child(2n+1) > td,
+.table-striped > tbody > tr:nth-child(2n+1) > th {
+    background-color: @gridster_panel_background;
+}
+

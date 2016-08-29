@@ -31,7 +31,7 @@
             gridsterOptions : {
                 outerMargin: false,
                 columns: 12,
-                swapping: true,
+                rowHeight: (window.innerHeight-50) / 8,
                 margins: [0,0],
                 floating: false,
                 pushing: false,
@@ -43,6 +43,13 @@
                 resizable:{
                     enabled: false
                 }
+            },
+            ngGridOptions: {
+                'resizable': false,
+                'margins': [0],
+                'auto_resize': true,
+                'maintain_ratio': true,
+                'max_cols': 12
             }
         };
 
@@ -60,6 +67,7 @@
         function activate() {
 
         }
+
 
         function addDashboard(name) {
             var dashboard = {
@@ -124,7 +132,7 @@
             service.gridsterOptions.draggable.enabled = isLocked;
             service.gridsterOptions.resizable.enabled = isLocked;
         }
-        
+
         function setPanelMargins(margin){
             service.gridsterOptions.margins[0] = margin;
             service.gridsterOptions.margins[1] = margin;

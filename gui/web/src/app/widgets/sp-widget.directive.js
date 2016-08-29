@@ -3,7 +3,7 @@
 
     angular
         .module('app.widgets')
-        .directive('spWidget', spWidget);
+        .component('spWidget', spWidget());
 
     spWidget.$inject = [];
     /* @ngInject */
@@ -15,8 +15,8 @@
             controllerAs: 'vm',
             scope: {},
             transclude: true,
-            replace: true,
-            bindToController: {
+            //replace: true,
+            bindings: {
                 widget: '=',
                 dashboard: '=',
                 /* Q: When is this used? /Patrik 150915
@@ -33,7 +33,7 @@
     function SPWidgetController($scope, settingsService, themeService) {
         var vm = this;
         vm.requestClose = requestClose;
-        vm.title = angular.copy(vm.widget.title, '');
+        //vm.title = angular.copy(vm.widget.title, '');
         vm.settingsService = settingsService;
         vm.showHeaders = themeService.showHeaders;
         vm.showWidgetOptions = themeService.showWidgetOptions;

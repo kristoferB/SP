@@ -5,16 +5,15 @@
         .module('app.settings')
         .factory('settingsService', settingsService);
 
-    settingsService.$inject = ['$localStorage', '$http', 'dashboardService', 'themeService'];
+    settingsService.$inject = ['$sessionStorage', '$http', 'dashboardService'];
     /* @ngInject */
-    function settingsService($localStorage, $http, dashboardService, themeService) {
-              
+    function settingsService($sessionStorage, $http, dashboardService) {
         var service = {
-            storage: $localStorage.$default({
+            storage: $sessionStorage.$default({
                 currentColor: "default_white",
-                availableColors: ["default_white", "blue", "dark"]
+                availableColors: ["default_white", "blue", "dark", "happy"]
             }),
-            
+
             getColorOptions: getColorOptions,
             updateColorTheme: updateColorTheme
         };
@@ -25,14 +24,14 @@
 
         function activate() {
             updateColorTheme();
-        }        
+        }
 
         function updateColorTheme(){
-            themeService.setColorTheme(service.storage.currentColor);
+            //downGradedThemeService.setColorTheme(service.storage.currentColor);
         }
 
         function getColorOptions(){
-            return $localStorage.availableColors;
+            return $sessionStorage.availableColors;
         }
     }
 })();
