@@ -16,6 +16,62 @@ import scala.annotation.tailrec
 
 case class RobotScheduleSetup(selectedSchedules: List[ID])
 
+import oscar.cp._
+
+// a bit ugly with names as identifiers
+class RobotOptimization(ops: List[(String,Int)], precedences: List[(String,String)],
+  mutexes: List[(String,String)], forceEndTimes: List[(String,String)], targetTime: Int) extends CPModel {
+  def test = {
+    val d = ops.map{_._2}.toArray
+    val indexMap = ops.map{_._1}.zipWithIndex.toMap
+    val numOps = ops.size
+    val totalDuration = d.sum
+
+    // start times, end times, makespan
+    var s = Array.fill(numOps)(CPIntVar(0, totalDuration))
+    var e = Array.fill(numOps)(CPIntVar(0, totalDuration))
+    var m = CPIntVar(0 to totalDuration)
+
+    forceEndTimes.foreach { case (t1,t2) => add(e(indexMap(t1)) == s(indexMap(t2))) }
+    precedences.foreach { case (t1,t2) => add(e(indexMap(t1)) <= s(indexMap(t2))) }
+    mutexes.foreach { case (t1,t2) =>
+      val leq1 = e(indexMap(t1)) <== s(indexMap(t2))
+      val leq2 = e(indexMap(t2)) <== s(indexMap(t1))
+      add(leq1 || leq2)
+    }
+
+    ops.foreach { case (n,_) =>
+      // except for time 0, operations can only start when something finishes
+      // must exist a better way to write this
+      add(e(indexMap(n)) == s(indexMap(n)) + d(indexMap(n)))
+      val c = CPIntVar(0, numOps)
+      add(countEq(c, e, s(indexMap(n))))
+      // NOTE: only works when all tasks have a duration>0
+      add(s(indexMap(n)) === 0 || (c >>= 0))
+    }
+    add(maximum(e, m))
+
+    minimize((m-targetTime)*(m-targetTime))
+    //add(m==targetTime)
+    search(binaryFirstFail(s++Array(m)))
+
+    var sols = Map[Int, Int]()
+    onSolution {
+      sols += m.value -> (sols.get(m.value).getOrElse(0) + 1)
+      println("Makespan: " + m.value)
+      println("Start times: ")
+      ops.foreach { case (name,d) =>
+        println(name + ": " + s(indexMap(name)).value + " - " + d + " --> " + e(indexMap(name)).value)
+      }
+      sols.foreach { case (k,v) => println(k + ": " + v + " solutions") }
+    }
+
+    val stats = start(nSols = 10, timeLimit = 60)
+    println("===== oscar stats =====\n" + stats)
+  }
+}
+
+
 object VolvoRobotSchedule extends SPService {
   val specification = SPAttributes(
     "service" -> SPAttributes(
@@ -122,9 +178,26 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
 
       val zoneMap = zoneMapsAndOps.foldLeft(Map():Map[Operation,Set[String]])(_++_._1)
 
+      // hack for cp solver
+      var operations: List[(String,Int)] = List()
+      var precedences: List[(String,String)] = List()
+      var mutexes: List[(String,String)] = List()
+      var forceEndTimes: List[(String,String)] = List()
+
       // create ops
       zoneMapsAndOps.foreach { x =>
         val ops = x._2
+        val opnames = ops.map(_.name)
+        val opAndDur = ops.map(o=>(o.name, (o.attributes.getAs[Double]("duration").getOrElse(0.0) * 100.0).round.toInt))
+        operations ++= opAndDur
+        if(ops.size > 1) {
+          val np = ops zip ops.tail
+          precedences ++= np.map{case (o1,o2) => (o1.name,o2.name) }
+          val fe = np.filter{case(o1,o2)=>zoneMap(o1) == zoneMap(o2)}.map{case (o1,o2) => (o1.name,o2.name) }
+          forceEndTimes ++= fe
+          println("Forcing end times" + fe.mkString(","))
+        }
+
         ops.foreach { op =>
           println("Operation " + op.name + " in zones: " + zoneMap(op).mkString(","))
         }
@@ -155,6 +228,7 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
           val o1 = s.toList(0)._2
           val rs2 = robotScheduleVariable(s.toList(1)._1)
           val o2 = s.toList(1)._2
+          mutexes:+=(o1.name,o2.name)
           s"(${rs1} == ${o1.name} && ${rs2} == ${o2.name})" }.mkString(" || ")
         collector.x(zone, Set(forbiddenStr), attributes=h)
       }
@@ -162,6 +236,9 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
       import CollectorModelImplicits._
       val uids = collector.parseToIDables()
       val hids = uids ++ addHierarchies(uids, "hierarchy")
+
+      val ro = new RobotOptimization(operations, precedences, mutexes, forceEndTimes, 14000 /*12683*/)
+      ro.test
 
       // now, extend model and run synthesis
       for {
