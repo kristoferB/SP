@@ -47,6 +47,7 @@ class ModelActor(val model: ID) extends PersistentActor with ModelActorState  {
       val diff = ModelDiff(model, List(), List(), SPAttributes("info"->"new model attributes"), state.version, state.version + 1, cm.name, cm.attributes.addTimeStamp)
       val reply = sender
       store(diff, reply ! SPOK())
+      println(s"The modelHandler creates a new model called ${cm.name} id: ${cm.id}")
 
     case UpdateModelInfo(_, ModelInfo(m, newName, v, attribute, _)) =>
       val reply = sender
@@ -294,6 +295,7 @@ trait ModelActorState  {
       updateState(d)
     }
     case SnapshotOffer(_, snapshot: ModelState) => state = snapshot
+    case RecoveryCompleted => println(s"The model called ${getModelInfo.name} id: ${getModelInfo.id}, has recovered")
   }
 
   def tryWithOption[T](t: => T): Option[T] = {

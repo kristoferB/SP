@@ -65,7 +65,6 @@ class ModelHandler extends PersistentActor with ActorLogging  {
       val reply = sender()
       if (!modelMap.contains(id)){
         persist(cm){n =>
-          println(s"The modelHandler creates a new model called ${cm.name} id: ${cm.id}")
           addModel(n)
           modelMap(n.id) ! n
           val info = ModelInfo(id, name, 1, attr, List())
