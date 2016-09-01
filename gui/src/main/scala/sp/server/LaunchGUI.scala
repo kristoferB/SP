@@ -22,9 +22,9 @@ object LaunchGUI extends App {//extends MySslConfiguration {
 
     println(s"Server started ${system.name}, $interface:$port")
 
-  scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
-    case x => system.terminate()
-  }
+//  scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
+//    case x => system.terminate()
+//  }
 
 
 

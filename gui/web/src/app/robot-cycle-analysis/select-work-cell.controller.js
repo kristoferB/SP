@@ -24,7 +24,7 @@
         }
 
         function onResponse(ev) {
-            let attrs = angular.fromJson(ev.data).attributes;
+            var attrs = angular.fromJson(ev.data).attributes;
             if (_.has(attrs, 'workCells'))
                 vm.workCells = attrs.workCells;
         }

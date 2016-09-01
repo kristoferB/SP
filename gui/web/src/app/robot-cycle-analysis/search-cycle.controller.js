@@ -45,7 +45,7 @@
         }
 
         function onResponse(ev) {
-            let attrs = angular.fromJson(ev.data).attributes;
+            var attrs = angular.fromJson(ev.data).attributes;
             if (_.has(attrs, 'foundCycles') && attrs.workCellId === workCell.id) {
                 vm.foundCycles = attrs.foundCycles;
                 $scope.$apply();
