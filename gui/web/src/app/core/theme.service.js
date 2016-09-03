@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-// //import { Ng2DashboardService } from '../dashboard/ng2-dashboard.service';
 var core_1 = require("@angular/core");
 var ng2_dashboard_service_1 = require("../dashboard/ng2-dashboard.service");
 var platform_browser_1 = require("@angular/platform-browser");
@@ -19,15 +18,6 @@ var ThemeService = (function () {
     function ThemeService(ng2DashboardService, //,
         http, // eventually use the ng2 http here
         document) {
-        // this does not need to exist; functional fo' life
-        // this.storage = {
-        //     gridsterConstants: {
-        //         margin: 10
-        //     },
-        //     // by default, less is unchanged
-        //     lessColorConstants: new Observable<Object>(),
-        //     lessLayoutConstants: new Observable<Object>()
-        // };
         var _this = this;
         this.ng2DashboardService = ng2DashboardService;
         this.document = document;
@@ -69,40 +59,11 @@ var ThemeService = (function () {
         this.editorModeEnabled = true;
         this.currentView = "test";
         this.setColorTheme = function (theme) {
-            // this.httpGet(
-            //     "/style_presets/colors/" + theme,
-            //     (res: Object) => {
-            //     }
-            // )
             _this.document.getElementById('color_theme').setAttribute('href', '../.tmp/color/' + theme + '.css');
         };
         this.setLayoutTheme = function (theme) {
-            // this.httpGet(
-            //     "/style_presets/layouts/" + theme,
-            //     (res: Object) => {
-            //     }
-            // );
             _this.document.getElementById('layout_theme').setAttribute('href', '../.tmp/layout/' + theme + '.css');
         };
-        //  function resetGrid(){ //TODO rewrite this
-        //  var navbarHeight = 0;
-        //  if(this.showNavbar){
-        //  navbarHeight = 50;
-        //  }
-        //  dashboardService.gridsterOptions.rowHeight = (window.innerHeight-navbarHeight) / 8;
-        //  setTimeout(resetGrid, 0.3);
-        //  }
-        //
-        // this.httpGet = (url: string, callback: (res: string) => any) => {
-        //     http.get(url, "json").
-        //     then(function successCallback(response) {
-        //             callback(response)
-        //         }, function errorCallback(response) {
-        //             console.log('http request errored');
-        //             console.log(response);
-        //         }
-        //     );
-        // };
         this.configureGridster = function () {
             //ng2DashboardService.setPanelMargins(this.storage.gridsterConstants.margin);
         };

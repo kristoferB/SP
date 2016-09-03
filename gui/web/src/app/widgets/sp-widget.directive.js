@@ -36,7 +36,7 @@
         //vm.title = angular.copy(vm.widget.title, '');
         vm.settingsService = settingsService;
         vm.showHeaders = themeService.showHeaders;
-        vm.showWidgetOptions = themeService.showWidgetOptions;
+        vm.showWidgetOptions = true; // themeService.showWidgetOptions;
         vm.themeService = themeService;
         function requestClose() {
             $scope.$broadcast('closeRequest', vm.widget.id);
