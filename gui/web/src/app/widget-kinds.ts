@@ -1,8 +1,10 @@
 import { WidgetKind } from './widget-kind';
 import { Faces } from './erica-components/faces.component';
 import { AwesomeNG2Component } from './lazy-widgets/ng2Inside/awesome-ng2-component.component';
+//import { KubInputGUIComponent } from './ng2-kub-input-gui/kub-input-gui.component';
+import { ItemEditorComponent } from './ng2-item-editor/item-editor.component';
 import {
-    ItemEditorComponent,
+    //ItemEditorComponent,
     ItemExplorerComponent,
     SOPMakerComponent,
     TrajectoriesComponent,
@@ -10,7 +12,7 @@ import {
     ProcessSimulateComponent,
     ConditionEditorComponent,
     OperationControlComponent,
-    KubInputGUIComponent,
+    //KubInputGUIComponent,
     OperatorInstGUIComponent,
     RobotCycleAnalysisComponent,
     ActiveOrderComponent,
@@ -20,7 +22,7 @@ import {
 export const widgetKinds: WidgetKind[] = [
   	{ 'component': Faces, 'title': 'ERICA Faces', 				'sizex': 4, 'sizey': 4, 'id': null, 'gridOptions': null },
   	{ 'component': AwesomeNG2Component, 'title': 'ng2Inside', 		'sizex': 4, 'sizey': 4, 'id': null, 'gridOptions': null },
-   	{ 'component': KubInputGUIComponent, 'title': 'upg-kub', 		'sizex': 4, 'sizey': 4, 'id': null, 'gridOptions': null },
+   	//{ 'component': KubInputGUIComponent, 'title': 'upg-kub', 		'sizex': 4, 'sizey': 4, 'id': null, 'gridOptions': null },
    	{ 'component': ItemExplorerComponent, 'title': 'item-explorer', 	'sizex': 4, 'sizey': 4, 'id': null, 'gridOptions': null },
     	{ 'component': ItemEditorComponent, 'title': 'item-editor', 		'sizex': 4, 'sizey': 4, 'id': null, 'gridOptions': null },
     	{ 'component': SOPMakerComponent, 'title': 'sop-maker', 		'sizex': 4, 'sizey': 4, 'id': null, 'gridOptions': null },

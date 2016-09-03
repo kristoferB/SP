@@ -1,0 +1,98 @@
+<div class="item-editor">
+    <div class="panel-toolbar">
+
+        <div class="btn-group">
+            <div class="btn-group" dropdown>
+                <button type="button" class="btn btn-sm btn-default uib-dropdown-toggle" id="mode-dropdown"
+                                                                                         ngclasswashere dropdownToggle> <!--uib-tooltip="Mode">-->
+                                                                                         <!--{{mode | ucfirst}}--> <span class="caret"></span>
+                </button>
+                <ul dropdownMenu class="dropdown-menu" role="menu" aria-labelledby="mode-dropdown">
+                    <li *ngFor="let mode of modes">
+                        <a (click)="setMode(mode)">
+                            <!--{{::mode | ucfirst}}-->
+                            <i class="fa fa-check pull-right" *ngIf="mode === mode"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Save Edited Items"
+                    ngclasswashere (click)="save()"><i class="fa fa-floppy-o"></i>
+            </button>
+        </div>
+
+        <div class="btn-group"
+             *ngIf="mode === 'tree' || mode === 'form' || mode === 'view'">
+            <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Expand All"
+                    (click)="expandAll()"><i class="fa fa-expand"></i>
+            </button>
+            <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Collapse All"
+                    (click)="collapseAll()"><i class="fa fa-compress"></i>
+            </button>
+        </div>
+
+        <div class="btn-group"
+             *ngIf="mode === 'code' || mode === 'text'">
+            <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Format"
+                    (click)="format()"><i class="fa fa-align-left"></i>
+            </button>
+            <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Compact"
+                    (click)="compact()"><i class="fa fa-align-justify"></i>
+            </button>
+        </div>
+
+        <div class="btn-group" *ngIf="mode === 'tree' || mode === 'form'">
+            <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Undo" (click)="_onUndo()"
+                    ngclasswashere><i class="fa fa-undo"></i>
+            </button>
+            <button class="btn btn-sm btn-default btn-notext" uib-tooltip="Redo" (click)="_onRedo()"
+                    ngclasswashere><i class="fa fa-repeat"></i>
+            </button>
+        </div>
+
+        <div class="btn-group" *ngIf="inSync">
+            <input type="checkbox" ng-model="inSync" ng-change="unSync()">
+            in sync
+        </div>
+        <div class="btn-group" *ngIf="!inSync">
+            <button type="button" class="btn btn-default" (click)="showDetail = !showDetail">details</button>
+        </div>
+
+
+        <div class="item-search pull-right"
+             *ngIf="mode === 'tree' || mode === 'form' || mode === 'view'">
+            <div class="input-group">
+                <span class="input-group-addon input-sm"><i class="fa fa-search"></i></span>
+                <input class="input-sm form-control" type="search" ng-model="editor.searchBox.dom.search.value"
+                       ng-change="editor.searchBox._onSearch()">
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-sm btn-notext btn-default" uib-tooltip="Previous"
+                            (click)="editor.searchBox.previous(false)"><i class="fa fa-chevron-up"></i></button>
+                    <button type="button" class="btn btn-sm btn-notext btn-default" uib-tooltip="Next"
+                            (click)="editor.searchBox.next(false)"><i class="fa fa-chevron-down"></i></button>
+                </span>
+            </div>
+        </div>
+
+
+
+        <span *ngIf="editor.searchBox.dom.search.value.length > 0" class="search-matches pull-right">
+            <!--{{vm.editor.searchBox.results.length || "no"}}--> results
+        </span>
+
+        <div uib-collapse="!showDetail">
+            <div class="input-group">
+                <input class="input-sm form-control" type="search" ng-model="transformService"
+                       ng-change="transform()">
+            </div>
+        </div>
+
+    </div>
+
+    <div class="panel-content" json-editor="editorLoaded" ng-model="data" options="options"
+          ng-change="change()" ng-model-options="{debounce:400}"></div>
+
+</div>
