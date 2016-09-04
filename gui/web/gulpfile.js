@@ -143,7 +143,51 @@ gulp.task('wiredep', function() {
         .pipe(gulp.dest(config.client));
 });
 
-gulp.task('inject', ['wiredep', 'styles', 'templatecache'], function() {
+
+
+const typescript = require('gulp-typescript');
+const tscConfig = require('./tsconfig.json');
+
+// clean the contents of the distribution directory
+gulp.task('clean', function () {
+  return del('dist/**/*');
+});
+
+const tsProject = typescript.createProject('tsconfig.json');
+
+// TypeScript compile
+gulp.task('compilets', ['clean', 'installTypings'], function () {
+    return tsProject
+        .src('src/app/**/*.ts')
+        .pipe(typescript({
+            noImplicitAny: false,
+            experimentalDecorators: true,
+            out: 'output.js'
+        }))
+        .pipe(typescript(tscConfig.compilerOptions))
+        .pipe(gulp.dest('dist/app'));
+});
+
+gulp.task('build', ['compile']);
+gulp.task('default', ['build']);
+
+
+
+
+var gulp = require("gulp");
+var gulpTypings = require("gulp-typings");
+ 
+gulp.task("installTypings",function(){
+    var stream = gulp.src("./typings.json")
+        .pipe(gulpTypings()); //will install all typingsfiles in pipeline. 
+    return stream; // by returning stream gulp can listen to events from the stream and knows when it is finished. 
+});
+
+
+
+
+
+gulp.task('inject', ['wiredep', 'styles', 'templatecache', 'compilets'], function() {
     log('Wire up css into the html, after files are ready');
 
     return gulp

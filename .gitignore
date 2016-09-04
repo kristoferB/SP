@@ -1,5 +1,3 @@
-\#*
-
 target/
 bin/
 project/boot/
@@ -27,6 +25,11 @@ project/project
 # eclipse
 .metadata/
 .metadata
+
+# emacs
+\#*\#
+.\#*
+
 
 # journal
 journal/
