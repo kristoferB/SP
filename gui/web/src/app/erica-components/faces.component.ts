@@ -5,6 +5,7 @@
 import {Component, OnInit} from '@angular/core';
 import * as d3 from 'd3';
 import {SocketIO} from './socket-io';
+import {EventBus} from '../core/event-bus.service';
 
 @Component({
     selector: 'faces',
@@ -57,7 +58,7 @@ export class Faces implements OnInit {
     static chart;
 
     ngOnInit() {
-        var data = {
+          var data = {
             'ttd': {
                 'value': 129,
                 'trend': 1, // -1, 0 o 1..?
@@ -75,6 +76,18 @@ export class Faces implements OnInit {
         SocketIO.subscribe('smile_face_blue', function(data) {
             Faces.draw(data);
         });
+
+        console.log("trying out the event-bus");
+        let eventService:EventBus;
+        eventService.subscribeToTopic<string>("test",confirmed,callback);
+        function callback(data2:string){
+            console.log(data2);
+        }
+        function confirmed(){
+            console.log("confirmed!");
+            eventService.tweetToTopic<string>("test","hejhej!");
+        }
+        
     }
 
     static draw(data) {
