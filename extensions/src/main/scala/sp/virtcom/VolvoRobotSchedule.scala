@@ -10,6 +10,7 @@ import akka.util._
 import akka.pattern.ask
 import scala.concurrent.duration._
 import sp.services.AddHierarchies
+import sp.services.sopmaker.MakeASop
 
 import org.json4s._
 import scala.annotation.tailrec
@@ -18,12 +19,12 @@ case class RobotScheduleSetup(selectedSchedules: List[ID])
 
 import oscar.cp._
 
-// a bit ugly with names as identifiers
-class RobotOptimization(ops: List[(String,Int)], precedences: List[(String,String)],
-  mutexes: List[(String,String)], forceEndTimes: List[(String,String)], targetTime: Int) extends CPModel {
+class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
+  mutexes: List[(ID,ID)], forceEndTimes: List[(ID,ID)], targetTime: Int) extends CPModel with MakeASop {
+  val timeFactor = 10.0
   def test = {
-    val d = ops.map{_._2}.toArray
-    val indexMap = ops.map{_._1}.zipWithIndex.toMap
+    val d = ops.map(o=>(o.attributes.getAs[Double]("duration").getOrElse(0.0) * timeFactor).round.toInt).toArray
+    val indexMap = ops.map(_.id).zipWithIndex.toMap
     val numOps = ops.size
     val totalDuration = d.sum
 
@@ -40,34 +41,64 @@ class RobotOptimization(ops: List[(String,Int)], precedences: List[(String,Strin
       add(leq1 || leq2)
     }
 
-    ops.foreach { case (n,_) =>
+    ops.foreach { op =>
       // except for time 0, operations can only start when something finishes
       // must exist a better way to write this
-      add(e(indexMap(n)) == s(indexMap(n)) + d(indexMap(n)))
+      add(e(indexMap(op.id)) == s(indexMap(op.id)) + d(indexMap(op.id)))
       val c = CPIntVar(0, numOps)
-      add(countEq(c, e, s(indexMap(n))))
+      add(countEq(c, e, s(indexMap(op.id))))
       // NOTE: only works when all tasks have a duration>0
-      add(s(indexMap(n)) === 0 || (c >>= 0))
+      add(s(indexMap(op.id)) === 0 || (c >>= 0))
     }
     add(maximum(e, m))
 
-    minimize((m-targetTime)*(m-targetTime))
+    //if(targetTime > 0)
+    //  minimize((m-targetTime)*(m-targetTime))
+    //else
+    minimize(m)
+
     //add(m==targetTime)
     search(binaryFirstFail(s++Array(m)))
 
     var sols = Map[Int, Int]()
+    var ss = List[(Int,List[(ID,Int,Int)])]()
     onSolution {
       sols += m.value -> (sols.get(m.value).getOrElse(0) + 1)
       println("Makespan: " + m.value)
       println("Start times: ")
-      ops.foreach { case (name,d) =>
-        println(name + ": " + s(indexMap(name)).value + " - " + d + " --> " + e(indexMap(name)).value)
+      ops.foreach { op =>
+        println(op.name + ": " + s(indexMap(op.id)).value + " - " +
+          d(indexMap(op.id)) + " --> " + e(indexMap(op.id)).value)
       }
       sols.foreach { case (k,v) => println(k + ": " + v + " solutions") }
+      val ns = ops.map { op => (op.id, s(indexMap(op.id)).value,e(indexMap(op.id)).value) }
+      ss :+= (m.value,ns)
     }
 
-    val stats = start(nSols = 10, timeLimit = 60)
+    val stats = start(timeLimit = 10) // (nSols =1, timeLimit = 60)
     println("===== oscar stats =====\n" + stats)
+    val sops = ss.map { case (makespan, xs) =>
+      val start = xs.map(x=>(x._1,x._2)).toMap
+      val finish = xs.map(x=>(x._1,x._3)).toMap
+      def rel(op1: ID,op2: ID): SOP = {
+        if(finish(op1) <= start(op2))
+          Sequence(op1,op2)
+        else if(finish(op2) <= start(op1))
+          Sequence(op2,op1)
+        else
+          Parallel(op1,op2)
+      }
+
+      val pairs = (for {
+        op1 <- ops
+        op2 <- ops if(op1 != op2)
+          } yield Set(op1.id,op2.id)).toSet
+
+      val rels = pairs.map { x => (x -> rel(x.toList(0),x.toList(1))) }.toMap
+      val sop = makeTheSop(ops.map(_.id), rels, EmptySOP)
+      (makespan/timeFactor, sop.head)
+    }
+    (stats.completed, stats.time, sops)
   }
 }
 
@@ -179,23 +210,20 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
       val zoneMap = zoneMapsAndOps.foldLeft(Map():Map[Operation,Set[String]])(_++_._1)
 
       // hack for cp solver
-      var operations: List[(String,Int)] = List()
-      var precedences: List[(String,String)] = List()
-      var mutexes: List[(String,String)] = List()
-      var forceEndTimes: List[(String,String)] = List()
+      var operations: List[Operation] = List()
+      var precedences: List[(ID,ID)] = List()
+      var mutexes: List[(ID,ID)] = List()
+      var forceEndTimes: List[(ID,ID)] = List()
 
       // create ops
       zoneMapsAndOps.foreach { x =>
         val ops = x._2
-        val opnames = ops.map(_.name)
-        val opAndDur = ops.map(o=>(o.name, (o.attributes.getAs[Double]("duration").getOrElse(0.0) * 100.0).round.toInt))
-        operations ++= opAndDur
+        operations ++= ops
         if(ops.size > 1) {
           val np = ops zip ops.tail
-          precedences ++= np.map{case (o1,o2) => (o1.name,o2.name) }
-          val fe = np.filter{case(o1,o2)=>zoneMap(o1) == zoneMap(o2)}.map{case (o1,o2) => (o1.name,o2.name) }
+          precedences ++= np.map{case (o1,o2) => (o1.id,o2.id) }
+          val fe = np.filter{case(o1,o2)=>zoneMap(o1) == zoneMap(o2)}.map{case (o1,o2) => (o1.id,o2.id) }
           forceEndTimes ++= fe
-          println("Forcing end times" + fe.mkString(","))
         }
 
         ops.foreach { op =>
@@ -222,24 +250,25 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         } yield {
           Set((rs1,o1),(rs2,o2))
         }).toSet
-        
-        val forbiddenStr = forbiddenPairs.map{ s =>
-          val rs1 = robotScheduleVariable(s.toList(0)._1)
-          val o1 = s.toList(0)._2
-          val rs2 = robotScheduleVariable(s.toList(1)._1)
-          val o2 = s.toList(1)._2
-          mutexes:+=(o1.name,o2.name)
-          s"(${rs1} == ${o1.name} && ${rs2} == ${o2.name})" }.mkString(" || ")
-        collector.x(zone, Set(forbiddenStr), attributes=h)
+
+        if(forbiddenPairs.nonEmpty) {
+          val forbiddenStr = forbiddenPairs.map{ s =>
+            val rs1 = robotScheduleVariable(s.toList(0)._1)
+            val o1 = s.toList(0)._2
+            val rs2 = robotScheduleVariable(s.toList(1)._1)
+            val o2 = s.toList(1)._2
+            mutexes:+=(o1.id,o2.id)
+            s"(${rs1} == ${o1.name} && ${rs2} == ${o2.name})" }.mkString(" || ")
+          collector.x(zone, Set(forbiddenStr), attributes=h)
+        }
       }
 
       import CollectorModelImplicits._
       val uids = collector.parseToIDables()
       val hids = uids ++ addHierarchies(uids, "hierarchy")
 
-      val ro = new RobotOptimization(operations, precedences, mutexes, forceEndTimes, 14000 /*12683*/)
-      ro.test
-
+      val ro = new RobotOptimization(operations, precedences, mutexes, forceEndTimes, 0)
+      val roFuture = Future { ro.test }
       // now, extend model and run synthesis
       for {
         Response(ids,_,_,_) <- askAService(Request("ExtendIDablesBasedOnAttributes",
@@ -258,21 +287,13 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
 
         ids_merged2 = ids_merged.filter(x=> !ids2.exists(y=>y.id==x.id)) ++ ids2
 
-        Response(shortest,shortAttr,_,_) <- askAService(Request("SimpleShortestPath",
-          SPAttributes("core" -> ServiceHandlerAttributes(model = None,
-            responseToModel = false,onlyResponse = true, includeIDAbles = List()),
-            "parameters" -> SPAttributes("waitAllowed" -> true, "longest" -> false)),
-          ids_merged2, ID.newID), sh)
-        mintime = shortAttr.getAs[Double]("time").getOrElse(Double.PositiveInfinity)
-        Response(longest,_,_,_) <- askAService(Request("SimpleShortestPath",
-          SPAttributes("core" -> ServiceHandlerAttributes(model = None,
-            responseToModel = false,onlyResponse = true, includeIDAbles = List()),
-            "parameters" -> SPAttributes("waitAllowed" -> false, "longest" -> true)),
-          ids_merged2, ID.newID), sh)
+        (cpCompl,cpTime,cpSols) <- roFuture
+        sops = cpSols.map { case (makespan,sop) =>
+          (makespan,SOPSpec(s"path_${makespan}", List(sop)))
+        }.sortBy(_._1)
       } yield {
-        val resAttr = SPAttributes("numStates"-> numstates, "minTime" -> mintime,
-          "shortSOP" -> shortest.head.id, "longSOP" -> longest.head.id)
-        replyTo ! Response(ids_merged2 ++ shortest ++ longest, resAttr, rnr.req.service, rnr.req.reqID)
+        val resAttr = SPAttributes("numStates"-> numstates, "cpCompleted" -> cpCompl, "cpTime" -> cpTime, "cpSops" -> sops)
+        replyTo ! Response(ids_merged2 ++ sops.map(_._2), resAttr, rnr.req.service, rnr.req.reqID)
         terminate(progress)
       }
     }

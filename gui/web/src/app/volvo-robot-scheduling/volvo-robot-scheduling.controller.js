@@ -25,8 +25,9 @@
         vm.calculate = calculate;
         vm.numStates = 0;
         vm.minTime = 0.0;
-        vm.longSOP = '';
-        vm.shortSOP = '';
+        vm.cpCompleted = false;
+        vm.cpTime = 0.0;
+        vm.sops = [];
         vm.openSOP = openSOP;
         var waitID = '';
 
@@ -53,11 +54,17 @@
 
         function onEvent(ev){
             if(ev.reqID == waitID) {
+                console.log(ev.attributes);
                 vm.numStates = ev.attributes['numStates'];
-                vm.minTime = ev.attributes['minTime'];
-                vm.longSOP = ev.attributes['longSOP'];
-                vm.shortSOP = ev.attributes['shortSOP'];                
-                vm.state = 'done';
+                vm.sops = ev.attributes['cpSops'];
+                if(vm.sops.length == 0) {
+                    vm.state = 'no sols';
+                } else {
+                    vm.minTime = vm.sops[0]._1;
+                    vm.cpCompleted = ev.attributes['cpCompleted'];
+                    vm.cpTime = ev.attributes['cpTime'];
+                    vm.state = 'done';
+                }
             }
         }        
         function activate() {
