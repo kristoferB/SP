@@ -26,7 +26,7 @@ import akka.cluster.pubsub._
 
 class ModelHandler extends PersistentActor with ActorLogging  {
   override def persistenceId = "modelhandler"
-  implicit val timeout = Timeout(1 seconds)
+  implicit val timeout = Timeout(10 seconds)
   import context.dispatcher
 
   private var modelMap: Map[ID, ActorRef] = Map()
