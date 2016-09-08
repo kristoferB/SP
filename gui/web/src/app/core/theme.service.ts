@@ -1,7 +1,7 @@
 import { Injectable, Inject } from "@angular/core";
 import { Ng2DashboardService } from "../dashboard/ng2-dashboard.service";
 import { Subject, Observable } from "rxjs/Rx";
-import {DOCUMENT} from "@angular/platform-browser";
+import { DOCUMENT } from "@angular/platform-browser";
 
 @Injectable()
 export class ThemeService {
@@ -66,7 +66,7 @@ export class ThemeService {
             this.showWidgetOptions = true;
         };
 
-        this.disableEditorMode =  () =>{
+        this.disableEditorMode = () => {
             this.editorModeEnabled = false;
             ng2DashboardService.setPanelLock(false);
             this.showWidgetOptions = false;
@@ -80,12 +80,12 @@ export class ThemeService {
         this.editorModeEnabled = true;
         this.currentView = "test";
 
-        this.setColorTheme = (theme: string) =>  {
-            this.document.getElementById('color_theme').setAttribute('href', '../.tmp/color/'+theme+'.css');
+        this.setColorTheme = (theme: string) => {
+            this.document.getElementById('color_theme').setAttribute('href', '../.tmp/color/' + theme + '.css');
         };
 
         this.setLayoutTheme = (theme: string) => {
-            this.document.getElementById('layout_theme').setAttribute('href', '../.tmp/layout/'+theme+'.css');
+            this.document.getElementById('layout_theme').setAttribute('href', '../.tmp/layout/' + theme + '.css');
 
         };
 
