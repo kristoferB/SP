@@ -16,7 +16,7 @@ var ng2_dashboard_service_1 = require("../dashboard/ng2-dashboard.service");
 var platform_browser_1 = require("@angular/platform-browser");
 var ThemeService = (function () {
     function ThemeService(ng2DashboardService, //,
-        http, // eventually use the ng2 http here
+        //@Inject('$http') http,   // eventually use the ng2 http here
         document) {
         var _this = this;
         this.ng2DashboardService = ng2DashboardService;
@@ -71,10 +71,8 @@ var ThemeService = (function () {
     ThemeService = __decorate([
         core_1.Injectable(),
         //,
-        __param(1, core_1.Inject('$http')),
-        // eventually use the ng2 http here
-        __param(2, core_1.Inject(platform_browser_1.DOCUMENT)), 
-        __metadata('design:paramtypes', [ng2_dashboard_service_1.Ng2DashboardService, Object, Object])
+        __param(1, core_1.Inject(platform_browser_1.DOCUMENT)), 
+        __metadata('design:paramtypes', [ng2_dashboard_service_1.Ng2DashboardService, Object])
     ], ThemeService);
     return ThemeService;
 }());
