@@ -21,7 +21,7 @@ import oscar.cp._
 
 class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
   mutexes: List[(ID,ID)], forceEndTimes: List[(ID,ID)], targetTime: Int) extends CPModel with MakeASop {
-  val timeFactor = 10.0
+  val timeFactor = 1.0 // crude but fast
   def test = {
     val d = ops.map(o=>(o.attributes.getAs[Double]("duration").getOrElse(0.0) * timeFactor).round.toInt).toArray
     val indexMap = ops.map(_.id).zipWithIndex.toMap
@@ -75,7 +75,7 @@ class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
       ss :+= (m.value,ns)
     }
 
-    val stats = start(timeLimit = 10) // (nSols =1, timeLimit = 60)
+    val stats = start(timeLimit = 300) // (nSols =1, timeLimit = 60)
     println("===== oscar stats =====\n" + stats)
     val sops = ss.map { case (makespan, xs) =>
       val start = xs.map(x=>(x._1,x._2)).toMap

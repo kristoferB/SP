@@ -92,7 +92,7 @@
                     'selectedSchedules':selected
                 }
             };
-            spServicesService.callService('VolvoRobotSchedule',{'data':mess}).then(function(repl){
+            spServicesService.callService('VolvoRobotSchedule',{'data':mess},function(x){},function(x){}).then(function(repl){
                 waitID = repl.reqID;
             });
         }
