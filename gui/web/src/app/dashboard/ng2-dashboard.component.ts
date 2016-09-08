@@ -26,7 +26,7 @@ export class Ng2DashboardComponent {
     ngGridOptions: any;
     widgets: any[];
     widgetKinds: any[];
-    togglePanelLock: () => void; // funkar ej än
+    togglePanelLock: () => void; 
     getDashboard: () => any;
 
     constructor(

@@ -57,7 +57,6 @@ export class SpTopNavComponent {
         @Inject('widgetListService') widgetListService,
         @Inject('$state') $state,
         @Inject('$uibModal') $uibModal,
-        //@Inject('themeService') themeService,
         @Inject('settingsService') settingsService,
         ng2DashboardService: Ng2DashboardService,
         themeService: ThemeService

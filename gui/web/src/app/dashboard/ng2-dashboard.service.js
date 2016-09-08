@@ -95,7 +95,8 @@ var Ng2DashboardService = (function () {
             'margins': [10],
             'auto_resize': false,
             'maintain_ratio': false,
-            'max_cols': 12
+            'col_width': window.innerWidth / 12,
+            'row_height': (window.innerHeight - 50) / 8
         };
         var ngGridItemOptionDefaults = {
             'col': 1,

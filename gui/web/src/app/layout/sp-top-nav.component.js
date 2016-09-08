@@ -17,9 +17,7 @@ var ng2_dashboard_service_1 = require('../dashboard/ng2-dashboard.service');
 var widget_kinds_1 = require('../widget-kinds');
 var theme_service_1 = require("../core/theme.service");
 var SpTopNavComponent = (function () {
-    function SpTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, 
-        //@Inject('themeService') themeService,
-        settingsService, ng2DashboardService, themeService) {
+    function SpTopNavComponent(modelService, dashboardService, widgetListService, $state, $uibModal, settingsService, ng2DashboardService, themeService) {
         this.currentColor = "default_white";
         this.availableColors = ["default_white", "blue", "dark", "happy"];
         this.setCurrentColor = themeService.setColorTheme;

@@ -26,6 +26,11 @@ project/project
 .metadata/
 .metadata
 
+# emacs
+\#*\#
+.\#*
+
+
 # journal
 journal/
 snapshots/
