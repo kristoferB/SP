@@ -71,7 +71,7 @@
         message.core = {
           'model': reloadModelID(),
           'responseToModel': false
-        }
+        };
       }
 
       var serviceName = '';
@@ -85,7 +85,7 @@
       var answerF = idF.then(function(id){
         addEventListener(id, responseCallBack, progressCallback);
         message.reqID = id;
-        return restService.postToServiceInstance(message, serviceName)
+        return restService.postToServiceInstance(message, serviceName);
       }, function(error){deferred.reject(error);});
 
       answerF.then(function(serviceAnswer){
@@ -115,7 +115,7 @@
       if (!_.isUndefined(que)) {
         _.forEach(que.events, function(e){
           sendEventToListener(e);
-        })
+        });
       }
 
       function catchErrors(event) {
@@ -130,16 +130,16 @@
     function sendEventToListener(e){
       var current = service.eventListeners[e.reqID];
       if (!_.isUndefined(current)) {
-        console.log(current);
+        // console.log(current);
         if (!(_.isUndefined(e.isa)) && e.isa == 'Response'){
           _.forEach(current.response, function(cb){
             $rootScope.$apply(cb(e));
-          })
+          });
         }
         else {
           _.forEach(current.progress, function(cb){
             $rootScope.$apply(cb(e));
-          })
+          });
         }
       }
     }
