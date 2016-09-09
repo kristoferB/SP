@@ -20,8 +20,8 @@ case class RobotScheduleSetup(selectedSchedules: List[ID])
 import oscar.cp._
 
 class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
-  mutexes: List[(ID,ID)], forceEndTimes: List[(ID,ID)], targetTime: Int) extends CPModel with MakeASop {
-  val timeFactor = 1.0 // crude but fast
+  mutexes: List[(ID,ID)], forceEndTimes: List[(ID,ID)]) extends CPModel with MakeASop {
+  val timeFactor = 100.0
   def test = {
     val d = ops.map(o=>(o.attributes.getAs[Double]("duration").getOrElse(0.0) * timeFactor).round.toInt).toArray
     val indexMap = ops.map(_.id).zipWithIndex.toMap
@@ -33,12 +33,19 @@ class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
     var e = Array.fill(numOps)(CPIntVar(0, totalDuration))
     var m = CPIntVar(0 to totalDuration)
 
+    var extra = Array.fill(mutexes.size)(CPBoolVar())
     forceEndTimes.foreach { case (t1,t2) => add(e(indexMap(t1)) == s(indexMap(t2))) }
     precedences.foreach { case (t1,t2) => add(e(indexMap(t1)) <= s(indexMap(t2))) }
-    mutexes.foreach { case (t1,t2) =>
+    mutexes.zip(extra).foreach { case ((t1,t2),ext) =>
       val leq1 = e(indexMap(t1)) <== s(indexMap(t2))
       val leq2 = e(indexMap(t2)) <== s(indexMap(t1))
       add(leq1 || leq2)
+
+      // extra
+      add(!ext ==> leq1)
+      add(leq1 ==> !ext)
+      add(ext ==> leq2)
+      add(leq2 ==> ext)
     }
 
     ops.foreach { op =>
@@ -52,16 +59,12 @@ class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
     }
     add(maximum(e, m))
 
-    //if(targetTime > 0)
-    //  minimize((m-targetTime)*(m-targetTime))
-    //else
     minimize(m)
 
-    //add(m==targetTime)
-    search(binaryFirstFail(s++Array(m)))
+    search(binaryFirstFail(extra++s++Array(m)))
 
     var sols = Map[Int, Int]()
-    var ss = List[(Int,List[(ID,Int,Int)])]()
+    var ss = Map[Int,List[(ID,Int,Int)]]()
     onSolution {
       sols += m.value -> (sols.get(m.value).getOrElse(0) + 1)
       println("Makespan: " + m.value)
@@ -72,10 +75,10 @@ class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
       }
       sols.foreach { case (k,v) => println(k + ": " + v + " solutions") }
       val ns = ops.map { op => (op.id, s(indexMap(op.id)).value,e(indexMap(op.id)).value) }
-      ss :+= (m.value,ns)
+      ss += m.value->ns
     }
 
-    val stats = start(timeLimit = 300) // (nSols =1, timeLimit = 60)
+    val stats = start(timeLimit = 10) // (nSols =1, timeLimit = 60)
     println("===== oscar stats =====\n" + stats)
     val sops = ss.map { case (makespan, xs) =>
       val start = xs.map(x=>(x._1,x._2)).toMap
@@ -98,7 +101,7 @@ class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
       val sop = makeTheSop(ops.map(_.id), rels, EmptySOP)
       (makespan/timeFactor, sop.head)
     }
-    (stats.completed, stats.time, sops)
+    (stats.completed, stats.time, sops.toList)
   }
 }
 
@@ -263,12 +266,15 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         }
       }
 
+      mutexes = mutexes.distinct
+
       import CollectorModelImplicits._
       val uids = collector.parseToIDables()
       val hids = uids ++ addHierarchies(uids, "hierarchy")
 
-      val ro = new RobotOptimization(operations, precedences, mutexes, forceEndTimes, 0)
+      val ro = new RobotOptimization(operations, precedences, mutexes, forceEndTimes)
       val roFuture = Future { ro.test }
+
       // now, extend model and run synthesis
       for {
         Response(ids,_,_,_) <- askAService(Request("ExtendIDablesBasedOnAttributes",
