@@ -62,7 +62,7 @@ var Ng2DashboardService = (function () {
             for (var i = 0; i < _this.storage.dashboards.length; i++) {
                 var dashboard = _this.storage.dashboards[i];
                 //var index = _.findIndex(dashboard.widgets, {id: id});
-                var index = _this.storage.dashboards
+                var index = dashboard.widgets
                     .map(function (x) { return x.id; }).indexOf(id);
                 if (index > -1) {
                     widget = dashboard.widgets[index];
@@ -81,7 +81,7 @@ var Ng2DashboardService = (function () {
         this.closeWidget = function (id) {
             for (var i = 0; i < _this.storage.dashboards.length; i++) {
                 var dashboard = _this.storage.dashboards[i];
-                var index = _this.storage.dashboards
+                var index = dashboard.widgets
                     .map(function (x) { return x.id; }).indexOf(id);
                 if (index > -1) {
                     dashboard.widgets.splice(index, 1);

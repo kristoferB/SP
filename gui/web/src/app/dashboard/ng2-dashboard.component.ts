@@ -6,6 +6,7 @@ import { DclViewComponent } from './dcl-view.component';
 import { Ng2DashboardService } from './ng2-dashboard.service';
 import { widgetKinds } from '../widget-kinds';
 import { ThemeService } from "../core/theme.service";
+import { Ng2SpWidgetComponent } from '../ng2-sp-widget/ng2-sp-widget.component';
 
 import { DOCUMENT } from '@angular/platform-browser';
 
@@ -14,7 +15,7 @@ import { DOCUMENT } from '@angular/platform-browser';
   selector: 'ng2-dashboard',
   templateUrl: 'app/dashboard/ng2-dashboard.component.html',
   styleUrls: [],
-  directives: [NgGrid, NgGridItem, DclViewComponent, upgAdapter.upgradeNg1Component('spWidget')],
+  directives: [NgGrid, NgGridItem, DclViewComponent, Ng2SpWidgetComponent],
   providers: []
 })
 
