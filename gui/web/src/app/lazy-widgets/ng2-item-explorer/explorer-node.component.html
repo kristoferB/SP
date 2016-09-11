@@ -1,0 +1,17 @@
+<ul>
+  <li *ngFor="let node of children">
+    <div [ngSwitch]="node.type">
+      <p *ngSwitchWhen="'JSONObject'">
+	{{node.name}}: { <explorer-node [children]="node.children"></explorer-node> }
+      </p>
+      
+      <p *ngSwitchWhen="'JSONArray'">
+	{{node.name}}: [ <explorer-node [children]="node.children"></explorer-node> ]
+      </p>
+
+      <p *ngSwitchDefault>
+	{{node.name}}: {{ node.value.toString() }}
+      </p>
+    </div>    
+</ul>
+

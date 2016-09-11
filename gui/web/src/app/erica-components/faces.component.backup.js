@@ -14,10 +14,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var core_1 = require('@angular/core');
 var d3 = require('d3');
 var socket_io_1 = require('./socket-io');
-var event_bus_service_1 = require('../core/event-bus.service');
 var Faces = (function () {
-    function Faces(eventBus) {
-        this.eventBus = eventBus;
+    function Faces() {
     }
     Faces.scaleSVG = function (svg, width, height, endpoints) {
         svg.attr("viewBox", endpoints[0] + " " + endpoints[1] + " " + endpoints[2] + " " + endpoints[3]);
@@ -26,7 +24,6 @@ var Faces = (function () {
         svg.attr("width", width + "%");
     };
     Faces.prototype.ngOnInit = function () {
-        this.eventBus.testToSubscribe();
         var data = {
             'ttd': {
                 'value': 129,
@@ -161,6 +158,7 @@ var Faces = (function () {
                     .style("stroke-width", 1)
                     .style("stroke", "rgb(95, 95, 95)")
                     .style("fill", "#f9b9b9");
+                ;
                 var arc = d3.svg.arc()
                     .innerRadius(faceR * 0.5)
                     .outerRadius(faceR * 0.6)
@@ -231,9 +229,9 @@ var Faces = (function () {
             styles: ["\n        .fejsss {\n            position:absolute;\n        }\n        #bertil {\n            top: 37%;\n            left: -10.5%;\n        }\n        #lotta {\n            top: 37%;\n            left: 65%;\n        }\n        #bertilpil {\n            top: 70%;\n            left: 2.5%;\n        } \n        #lottapil {\n            top: 70%;\n            left: 53%;\n        } \n        "],
             providers: [socket_io_1.SocketIO]
         }), 
-        __metadata('design:paramtypes', [event_bus_service_1.EventBusService])
+        __metadata('design:paramtypes', [])
     ], Faces);
     return Faces;
 }());
 exports.Faces = Faces;
-//# sourceMappingURL=faces.component.js.map
+//# sourceMappingURL=faces.component.backup.js.map

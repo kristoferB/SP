@@ -6,6 +6,8 @@ import { AwesomeNG2Component } from '../lazy-widgets/ng2Inside/awesome-ng2-compo
 import { Faces } from '../erica-components/faces.component';
 import {Ng2DashboardService} from "../dashboard/ng2-dashboard.service";
 import {ThemeService} from "../core/theme.service";
+import {EventBusService} from "../core/event-bus.service";
+
 import {Http} from "@angular/http";
 
 declare var angular: any;
@@ -22,6 +24,7 @@ export function upgConvertStuff(upgAdapter: UpgradeAdapter): void {
       .directive('facesComponent',
                  upgAdapter.downgradeNg2Component(Faces));
 
+    upgAdapter.upgradeNg1Provider('restService');
     upgAdapter.upgradeNg1Provider('config');
     upgAdapter.upgradeNg1Provider('logger');
     upgAdapter.upgradeNg1Provider('$document');
@@ -37,4 +40,5 @@ export function upgConvertStuff(upgAdapter: UpgradeAdapter): void {
     upgAdapter.upgradeNg1Provider('themeService');
     upgAdapter.addProvider(Ng2DashboardService);
     upgAdapter.addProvider(ThemeService);
+    upgAdapter.addProvider(EventBusService);
 }

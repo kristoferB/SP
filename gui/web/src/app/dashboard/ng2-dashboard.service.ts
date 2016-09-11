@@ -6,7 +6,6 @@ import { Subject, Observable } from "rxjs/Rx";
 
 @Injectable()
 export class Ng2DashboardService {
-
     addDashboard: (name: string) => void;
     getDashboard: (id: number, callback: (dashboard: any) => void) => any; // TODO typa
     removeDashboard: (id: number) => void;

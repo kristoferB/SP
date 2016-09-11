@@ -1,3 +1,11 @@
 <button (click)="refresh()">refresh</button>
-<h1>{{ model }}</h1>
+<ul>
+  <li *ngFor="let model of modelNames">
+    <item (click)="selectModel(model.name)">
+      {{ model.name }}
+    </item>
+  </li>
+</ul>
+
+<explorer-node [children]="service.root.children"></explorer-node>
 

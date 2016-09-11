@@ -8,27 +8,36 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 var core_1 = require('@angular/core');
+var explorer_service_1 = require('./explorer.service');
+var explorer_node_component_1 = require('./explorer-node.component');
 var Ng2ItemExplorerComponent = (function () {
-    function Ng2ItemExplorerComponent(modelService) {
+    function Ng2ItemExplorerComponent(ng2ItemExplorerService) {
         var _this = this;
-        this.model = "wadup";
-        console.log(modelService);
+        this.subscriptions = {};
+        this.service = ng2ItemExplorerService;
+        this.selectModel = ng2ItemExplorerService.selectModel;
         this.refresh = function () {
-            console.log("clikced ");
-            _this.model = modelService.models[0];
+            ng2ItemExplorerService.refresh();
         };
+        this.subscriptions["modelNames"] = ng2ItemExplorerService.modelNames.subscribe(function (data) {
+            _this.modelNames = data;
+        });
+        this.subscriptions["currentModel"] = ng2ItemExplorerService.currentModel.subscribe(function (data) {
+            console.log(_this.currentModel);
+            _this.currentModel = data;
+        });
     }
+    Ng2ItemExplorerComponent.prototype.ngOnInit = function () {
+    };
     Ng2ItemExplorerComponent = __decorate([
         core_1.Component({
             selector: 'explorer',
-            templateUrl: 'app/lazy-widgets/ng2-item-explorer/explorer.component.html'
-        }),
-        __param(0, core_1.Inject('modelService')), 
-        __metadata('design:paramtypes', [Object])
+            templateUrl: 'app/lazy-widgets/ng2-item-explorer/explorer.component.html',
+            providers: [explorer_service_1.Ng2ItemExplorerService],
+            directives: [explorer_node_component_1.ItemExplorerNodeComponent]
+        }), 
+        __metadata('design:paramtypes', [explorer_service_1.Ng2ItemExplorerService])
     ], Ng2ItemExplorerComponent);
     return Ng2ItemExplorerComponent;
 }());
