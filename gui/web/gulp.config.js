@@ -47,6 +47,11 @@ module.exports = function() {
             '!' + clientApp + 'main*',
             '!' + clientApp + 'widget-kind*',
             '!' + clientApp + 'layout/**',
+            '!' + clientApp + 'core/theme.service.*',
+            '!' + clientApp + 'lazy-widgets/empty/**',
+            '!' + clientApp + 'lazy-widgets/ng2Inside/awesome*',
+            '!' + clientApp + 'ng2-item-editor/**',
+            '!' + clientApp + 'ng2-sp-widget/**',
             //'!' + clientApp + 'lazy-widgets/**',
             '!' + specs,
             '!' + e2eSpecs
