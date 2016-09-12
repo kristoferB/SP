@@ -17,6 +17,12 @@ var JsonEditorComponent = (function () {
         this.editor = new JSONEditor(this.editorElement.nativeElement);
         this.editor.set({ "foo": "bar" });
     };
+    JsonEditorComponent.prototype.getJson = function () {
+        return this.editor.get();
+    };
+    JsonEditorComponent.prototype.setMode = function (mode) {
+        this.editor.setMode(mode);
+    };
     JsonEditorComponent.prototype.fooFunction = function () {
         console.log("bananer");
     };

@@ -16,10 +16,16 @@ export class JsonEditorComponent {
     public aString: string = 'this is aString';
 
     ngAfterViewInit() {
-
         this.editor = new JSONEditor(this.editorElement.nativeElement);
         this.editor.set({"foo": "bar"});
+    }
 
+    getJson() {
+        return this.editor.get();
+    }
+
+    setMode(mode: string) {
+        this.editor.setMode(mode);
     }
 
     fooFunction() {

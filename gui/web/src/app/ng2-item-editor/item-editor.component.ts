@@ -1,4 +1,4 @@
-import { Component, Input, Inject } from '@angular/core';
+import { Component, Input, Inject, ViewChild } from '@angular/core';
 
 import { DROPDOWN_DIRECTIVES } from 'ng2-bootstrap';
 import * as _ from 'lodash';
@@ -14,24 +14,25 @@ import { JsonEditorComponent } from '../json-editor/json-editor.component';
 export class ItemEditorComponent {
 
     @Input() widget;
+    @ViewChild(JsonEditorComponent) jec: JsonEditorComponent;
 
     // allting nonsens-satt for now
     numberOfErrors: number = 0;
     modes: string[] = ['tree', 'code'];
 
-    setMode(mode: string) {
-        this.options.mode = mode;
-        //if (mode === 'code') { TODO translate whatever this does to ng2
-        //    $timeout(function() {
-        //        this.editor.editor.setOptions({maxLines: Infinity});
-        //        this.editor.editor.on('change', function() {
-        //            $timeout(function() {
-        //                this.numberOfErrors = this.editor.editor.getSession().getAnnotations().length;
-        //            }, 300);
-        //        });
-        //    });
-        //}
-    }
+    //setMode(mode: string) {
+    //    this.options.mode = mode;
+    //    //if (mode === 'code') { TODO translate whatever this does to ng2
+    //    //    $timeout(function() {
+    //    //        this.editor.editor.setOptions({maxLines: Infinity});
+    //    //        this.editor.editor.on('change', function() {
+    //    //            $timeout(function() {
+    //    //                this.numberOfErrors = this.editor.editor.getSession().getAnnotations().length;
+    //    //            }, 300);
+    //    //        });
+    //    //    });
+    //    //}
+    //}
 
 
     inSync: boolean = true;
@@ -53,9 +54,10 @@ export class ItemEditorComponent {
 
     options: any;
     save: () => void;
+    setMode: (mode: string) => void;
 
     constructor(
-        //@Inject('itemService') itemService,
+        @Inject('itemService') itemService
         //@Inject('spServicesService') spServicesService,
         //@Inject('transformService') transformService
     ) {
@@ -63,7 +65,8 @@ export class ItemEditorComponent {
 
 
         this.save = () => {
-            console.log('TODO. This function communicates weirdly to access data saved by item-explorer, so its commented away for now');
+            itemService.saveItem(this.jec.getJson());
+            //itemService.saveItem('{"isa": "Operation","name": "24u","conditions": [],"attributes": {},"id": "e53"}')
             //if (this.inSync) {
             //    var keys = Object.keys(this.widget.storage.data);
             //    for (var i = 0; i < keys.length; i++) {
@@ -88,6 +91,12 @@ export class ItemEditorComponent {
             //    this.widget.storage.data = event;
             //}
         }
+
+        this.setMode = (mode: string) => {
+            this.options.mode = mode;
+            this.jec.setMode(mode);
+        }
+
 
 
     }

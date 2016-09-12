@@ -26,6 +26,7 @@ function upgConvertStuff(upgAdapter) {
     upgAdapter.upgradeNg1Provider('$sessionStorage');
     upgAdapter.upgradeNg1Provider('$ocLazyLoad');
     upgAdapter.upgradeNg1Provider('themeService');
+    upgAdapter.upgradeNg1Provider('itemService');
     upgAdapter.addProvider(ng2_dashboard_service_1.Ng2DashboardService);
     upgAdapter.addProvider(theme_service_1.ThemeService);
     upgAdapter.addProvider(event_bus_service_1.EventBusService);
