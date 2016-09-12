@@ -8,18 +8,6 @@ import sp.domain.{SPAttributes, ID}
 
 
 
-sealed trait ModelEvent extends SPEvent
-case class ModelAdded(id: ID, attributes: SPAttributes) extends ModelEvent
-case class ModelDeleted(id: ID,  attributes: SPAttributes) extends ModelEvent
-case class ModelUpdated(id: ID,  attributes: SPAttributes) extends ModelEvent
-
-
-// Service Events
-case class ServiceEvent(sender: ID, attributes: SPAttributes) extends SPEvent
-
-case class SubscribeToSSE(channel: ActorRef)
-case class UnSubscribeToSSE(channel: ActorRef)
-
 
 //case class ServerSentDataEvent(data: String, event: Option[String], id: Option[String])
 //object serverSentEndEvent
