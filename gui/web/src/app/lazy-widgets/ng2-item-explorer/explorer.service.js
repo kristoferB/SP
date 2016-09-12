@@ -13,8 +13,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require('@angular/core');
 var Subject_1 = require('rxjs/Subject');
+var event_bus_service_1 = require("../../core/event-bus.service");
 var Ng2ItemExplorerService = (function () {
-    function Ng2ItemExplorerService(restService, itemService, modelService) {
+    function Ng2ItemExplorerService(restService, itemService, modelService, evBus) {
         var _this = this;
         this.currentModelSubject = new Subject_1.Subject();
         this.currentModel = this.currentModelSubject.asObservable();
@@ -43,6 +44,8 @@ var Ng2ItemExplorerService = (function () {
         this.structures = this.getRoots(this.model);
         console.log("strucutres: ");
         console.log(this.structures);
+        var idList = this.structures.map(function (x) { return x.id; });
+        evBus.tweetToTopic("minTopic", idList);
     }
     Ng2ItemExplorerService.prototype.ngOnInit = function () {
         //this.refresh();	
@@ -52,7 +55,7 @@ var Ng2ItemExplorerService = (function () {
         __param(0, core_1.Inject('restService')),
         __param(1, core_1.Inject('itemService')),
         __param(2, core_1.Inject('modelService')), 
-        __metadata('design:paramtypes', [Object, Object, Object])
+        __metadata('design:paramtypes', [Object, Object, Object, event_bus_service_1.EventBusService])
     ], Ng2ItemExplorerService);
     return Ng2ItemExplorerService;
 }());

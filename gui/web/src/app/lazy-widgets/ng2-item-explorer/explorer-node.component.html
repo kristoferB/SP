@@ -1,6 +1,6 @@
 <div>
-  <p> {{ name }} </p>
-  <div class="marginthing" style="margin-left: 35px">
+  <button class="btn btn-default btn-xs" (click) = "sendSelected()"> {{ name }} </button>
+  <div style="margin-left: 35px">
     <tr *ngFor="let child of node.children">
       <explorer-node [node]="child"></explorer-node>
     </tr>

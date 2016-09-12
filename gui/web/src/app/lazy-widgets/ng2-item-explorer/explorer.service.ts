@@ -1,6 +1,7 @@
 import { Injectable, Inject } from '@angular/core';
 import { Subject } from 'rxjs/Subject'; 
 import { HierarchyNode, HierarchyRoot, Item } from '../../spTypes';
+import {EventBusService} from "../../core/event-bus.service";
 
 @Injectable()
 export class Ng2ItemExplorerService {
@@ -21,31 +22,38 @@ export class Ng2ItemExplorerService {
     constructor(
 	@Inject('restService') restService,
 	@Inject('itemService') itemService,
-	@Inject('modelService') modelService
+	@Inject('modelService') modelService,
+	evBus: EventBusService
     ){	
-	this.refresh = () => {
-	    restService.getModels().then( (data) => {
-		this.modelNamesSubject.next(data);
-	    });
-	}
-	
-	this.getRoots = (model: Array<HierarchyRoot>) => {
-	    console.log('filtering model: ');
-	    console.log(model);
-	    let roots = new Array<HierarchyRoot>();
-	    for(let element of model){
-		if(element['isa'] == 'HierarchyRoot'){
-		    roots.push(element);
-		}
-	    }
-	    return roots;
-	}
+		this.refresh = () => {
+			restService.getModels().then( (data) => {
+			this.modelNamesSubject.next(data);
+			});
+		};
 
-	this.activeModel = modelService.activeModel;
-	this.model = itemService.items;
-	this.structures = this.getRoots(this.model);
-	console.log("strucutres: ");
-	console.log(this.structures);
+		this.getRoots = (model: Array<HierarchyRoot>) => {
+			console.log('filtering model: ');
+			console.log(model);
+			let roots = new Array<HierarchyRoot>();
+			for(let element of model){
+			if(element['isa'] == 'HierarchyRoot'){
+				roots.push(element);
+			}
+			}
+			return roots;
+		};
+
+		this.activeModel = modelService.activeModel;
+		this.model = itemService.items;
+		this.structures = this.getRoots(this.model);
+		console.log("strucutres: ");
+		console.log(this.structures);
+
+		let idList = this.structures.map(x => x.id)
+
+		evBus.tweetToTopic<any>("minTopic", idList);
+
+
     }
 
     ngOnInit(){
