@@ -52,6 +52,9 @@ module.exports = function() {
             '!' + clientApp + 'lazy-widgets/ng2Inside/awesome*',
             '!' + clientApp + 'ng2-item-editor/**',
             '!' + clientApp + 'ng2-sp-widget/**',
+            '!' + clientApp + 'core/event-bus*',
+            '!' + clientApp + 'json-editor/**',
+            '!' + clientApp + 'lazy-widgets/ng2-item-explorer/**',
             //'!' + clientApp + 'lazy-widgets/**',
             '!' + specs,
             '!' + e2eSpecs
