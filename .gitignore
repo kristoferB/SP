@@ -1,3 +1,5 @@
+*.js.map
+
 target/
 bin/
 project/boot/

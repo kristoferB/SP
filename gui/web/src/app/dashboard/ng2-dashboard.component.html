@@ -1,9 +1,9 @@
 <section id="dashboard-view" class="mainbar">
     <div [ngGrid]="ng2DashboardService.ngGridOptions" >
         <div *ngFor="let widget of widgets">
-            <sp-widget [widget]="widget" [dashboard]="dashboard" [showCloseBtn]="true" [ngGridItem]="widget.gridOptions">
+            <ng2-sp-widget [widget]="widget" [dashboard]="dashboard" [showCloseBtn]="true" [ngGridItem]="widget.gridOptions">
                 <dcl-view [type]="widgetKinds[widget.index].component" ></dcl-view>
-            </sp-widget>
+            </ng2-sp-widget>
         </div>
     </div>
 
