@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@angular/core';
 import { Subject } from 'rxjs/Subject'; 
-import { JSONObject } from './explorer-node.component'; 
+import { JsonNode } from './JsonNode';
 
 @Injectable()
 export class Ng2ItemExplorerService {
@@ -18,11 +18,12 @@ export class Ng2ItemExplorerService {
 	    "woop": "floop"
 	},
 	I_AM_AN_ARRAY: [
-	    {"oh":"shit"},
-	    {"what":"up"}
+	    {"an":"element"},
+	    {"another":"element"}
 	]
     };
-    
+
+    testNode: JsonNode;
     getNode: (keys: Array<string>) => Object;
     selectModel: (name: string) => void;
 
@@ -33,14 +34,12 @@ export class Ng2ItemExplorerService {
     modelNames = this.modelNamesSubject.asObservable();
     
     refresh: () => void;
-
-    private loadJson: (json: Object) => void;
-    root: JSONObject = new JSONObject("root", {});
-
     
     constructor(
 	@Inject('restService') restService
     ){
+	this.testNode = new JsonNode(this.testData);
+	console.log(this.testNode);
 	this.getNode = (keys: Array<string>) => {
 	    // this is where it should fetch nodes from restservice to make it lazy
 	    var data = this.testData;
@@ -59,12 +58,6 @@ export class Ng2ItemExplorerService {
 	    restService.getModels().then( (data) => {
 		this.modelNamesSubject.next(data);
 	    });
-	    this.loadJson(this.testData);
-	}
-
-	this.loadJson = (json: Object) => {
-	    this.root = new JSONObject("root_node", json);
-	    console.log(this.root);
 	}
     }
 
@@ -73,4 +66,3 @@ export class Ng2ItemExplorerService {
     }
 
 }
-

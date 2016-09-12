@@ -2,6 +2,7 @@ import { Component, Inject } from '@angular/core';
 import { Ng2ItemExplorerService } from './explorer.service';
 import { Subscription } from 'rxjs/Subscription';
 import { ItemExplorerNodeComponent } from './explorer-node.component'; 
+import { JsonNode } from './JsonNode';
 
 @Component({
     selector: 'explorer',
@@ -12,12 +13,11 @@ import { ItemExplorerNodeComponent } from './explorer-node.component';
 export class Ng2ItemExplorerComponent {
     refresh: () => void;
     private subscriptions: { [key:string]:Subscription; } = {};
-    modelNames: Array<string>;
+    modelNames: Array<string> = [];
     selectModel: (name: string) => void;
-    currentModel: Object;
+    currentModel: Object = {};
     service: Ng2ItemExplorerService;
 
-    
     constructor(
 	ng2ItemExplorerService: Ng2ItemExplorerService
     ) {
@@ -36,9 +36,8 @@ export class Ng2ItemExplorerComponent {
 	);
 	this.subscriptions["currentModel"] = ng2ItemExplorerService.currentModel.subscribe(
 	    data => {
-		console.log(this.currentModel);
 		this.currentModel = data;
-		
+		console.log(this.currentModel);
 	    }
 	);
     }

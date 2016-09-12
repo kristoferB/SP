@@ -15,6 +15,8 @@ var Ng2ItemExplorerComponent = (function () {
     function Ng2ItemExplorerComponent(ng2ItemExplorerService) {
         var _this = this;
         this.subscriptions = {};
+        this.modelNames = [];
+        this.currentModel = {};
         this.service = ng2ItemExplorerService;
         this.selectModel = ng2ItemExplorerService.selectModel;
         this.refresh = function () {
@@ -24,8 +26,8 @@ var Ng2ItemExplorerComponent = (function () {
             _this.modelNames = data;
         });
         this.subscriptions["currentModel"] = ng2ItemExplorerService.currentModel.subscribe(function (data) {
-            console.log(_this.currentModel);
             _this.currentModel = data;
+            console.log(_this.currentModel);
         });
     }
     Ng2ItemExplorerComponent.prototype.ngOnInit = function () {

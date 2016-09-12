@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require('@angular/core');
 var Subject_1 = require('rxjs/Subject');
-var explorer_node_component_1 = require('./explorer-node.component');
+var JsonNode_1 = require('./JsonNode');
 var Ng2ItemExplorerService = (function () {
     function Ng2ItemExplorerService(restService) {
         var _this = this;
@@ -39,7 +39,8 @@ var Ng2ItemExplorerService = (function () {
         this.currentModel = this.currentModelSubject.asObservable();
         this.modelNamesSubject = new Subject_1.Subject();
         this.modelNames = this.modelNamesSubject.asObservable();
-        this.root = new explorer_node_component_1.JSONObject("root", {});
+        this.testNode = new JsonNode_1.JsonNode(this.testData);
+        console.log(this.testNode);
         this.getNode = function (keys) {
             // this is where it should fetch nodes from restservice to make it lazy
             var data = _this.testData;
@@ -57,11 +58,6 @@ var Ng2ItemExplorerService = (function () {
             restService.getModels().then(function (data) {
                 _this.modelNamesSubject.next(data);
             });
-            _this.loadJson(_this.testData);
-        };
-        this.loadJson = function (json) {
-            _this.root = new explorer_node_component_1.JSONObject("root_node", json);
-            console.log(_this.root);
         };
     }
     Ng2ItemExplorerService.prototype.ngOnInit = function () {
