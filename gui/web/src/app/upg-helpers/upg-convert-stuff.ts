@@ -25,6 +25,7 @@ export function upgConvertStuff(upgAdapter: UpgradeAdapter): void {
                  upgAdapter.downgradeNg2Component(Faces));
 
     upgAdapter.upgradeNg1Provider('restService');
+    upgAdapter.upgradeNg1Provider('itemService');
     upgAdapter.upgradeNg1Provider('config');
     upgAdapter.upgradeNg1Provider('logger');
     upgAdapter.upgradeNg1Provider('$document');

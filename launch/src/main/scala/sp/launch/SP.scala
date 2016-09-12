@@ -87,6 +87,7 @@ object SP extends App {
     CreateOpsFromManualModelService.specification,
     CreateOpsFromManualModelService.transformation)
 
+
   serviceHandler ! RegisterService("SynthesizeModelBasedOnAttributes",
     system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler), "SynthesizeModelBasedOnAttributes"),
     SynthesizeModelBasedOnAttributesService.specification)
@@ -202,6 +203,22 @@ object SP extends App {
     PSLModel.specification,
     PSLModel.transformation
   )
+
+
+val id = ID.newID
+modelHandler ! CreateModel(id, "Volvo")
+
+// Temp model maker
+serviceHandler ! Request("PSLModel", SPAttributes(
+  "setup"-> SPAttributes("model"-> "Volvo Weld Conveyer"),
+  "core" -> SPAttributes(
+    "model"-> id,
+    "responseToModel"-> true
+  )
+
+))
+
+
 
   import sp.psl.runnerService._
   val rs = system.actorOf(RunnerService.props(eventHandler, serviceHandler, "OperationControl"), "RunnerService")

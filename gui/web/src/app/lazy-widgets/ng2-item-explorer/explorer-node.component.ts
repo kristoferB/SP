@@ -1,7 +1,7 @@
 import { Component, Inject, Input } from '@angular/core';
 import { Ng2ItemExplorerService } from './explorer.service';
 import { Subscription } from 'rxjs/Subscription';
-import { JsonNode } from './JsonNode';
+import { HierarchyNode } from '../../spTypes';
 
 @Component({
     selector: 'explorer-node',
@@ -10,9 +10,26 @@ import { JsonNode } from './JsonNode';
 })
 
 export class ItemExplorerNodeComponent {
-    @Input() node: JsonNode;
-    constructor(){}
+    @Input() node: HierarchyNode;
+
+    name: string = "";
+    expanded: boolean = false;
+
+    getName: (id: string) => string;
+    
+    constructor(
+	@Inject('itemService') itemService
+    ){
+	this.getName = (id: string) => {
+	    //TODO null check
+	    return itemService.getItem(id).name
+	}
+    }
+    ngOnInit(){
+	this.name = this.getName(this.node.item);
+    }
 }
+
 
 
 
