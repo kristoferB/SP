@@ -5,7 +5,7 @@ import { upgAdapter } from '../upg-helpers/upg-adapter';
 import { Ng2DashboardService } from '../dashboard/ng2-dashboard.service';
 import { WidgetKind } from '../widget-kind';
 import { widgetKinds } from '../widget-kinds';
-import {ThemeService} from "../core/theme.service";
+import { ThemeService } from "../core/theme.service";
 
 @Component({
     selector: 'sp-top-nav',
@@ -73,7 +73,7 @@ export class SpTopNavComponent {
         this.togglePanelLock = settingsService.togglePanelLock;
 
         this.showNavbar = true;
-        this.toggleNavbar = function() {
+        this.toggleNavbar = function () {
             this.showNavbar = !this.showNavbar;
             themeService.toggleNavbar();
         };
@@ -83,26 +83,26 @@ export class SpTopNavComponent {
 
         this.isState = $state.is;
 
-        this.createModel = function() {
+        this.createModel = function () {
             var modalInstance = $uibModal.open({
                 templateUrl: '/app/models/createmodel.html',
                 controller: 'CreateModelController',
                 controllerAs: 'vm'
             });
 
-            modalInstance.result.then(function(chosenName) {
+            modalInstance.result.then(function (chosenName) {
                 modelService.createModel(chosenName);
             });
         };
 
-        this.createDashboard = function() {
+        this.createDashboard = function () {
             var modalInstance = $uibModal.open({
                 templateUrl: '/app/dashboard/createdashboard.html',
                 controller: 'CreateDashboardController',
                 controllerAs: 'vm'
             });
 
-            modalInstance.result.then(function(chosenName) {
+            modalInstance.result.then(function (chosenName) {
                 ng2DashboardService.addDashboard(chosenName);
             });
         };
@@ -117,7 +117,7 @@ export class SpTopNavComponent {
         //});
         this.widgetKinds = widgetKinds;
 
-        this.addWidget = function(widgetKind: any) {
+        this.addWidget = function (widgetKind: any) {
             ng2DashboardService.addWidget(
                 ng2DashboardService.activeDashboard, widgetKind
             );

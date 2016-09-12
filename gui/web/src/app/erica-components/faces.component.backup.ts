@@ -5,7 +5,6 @@
 import {Component, OnInit} from '@angular/core';
 import * as d3 from 'd3';
 import {SocketIO} from './socket-io';
-import {EventBusService} from '../core/event-bus.service';
 
 @Component({
     selector: 'faces',
@@ -45,12 +44,6 @@ import {EventBusService} from '../core/event-bus.service';
 })
 
 export class Faces implements OnInit {
-    private eventBus:EventBusService;
-    constructor(
-        eventBus:EventBusService
-    ){
-        this.eventBus = eventBus;
-    }
 
     private static scaleSVG(svg,width,height,endpoints){
         svg.attr("viewBox", endpoints[0] +" " +endpoints[1] +" " +endpoints[2] +" " +endpoints[3]);
@@ -64,8 +57,7 @@ export class Faces implements OnInit {
     static chart;
 
     ngOnInit() {
-        this.eventBus.testToSubscribe();
-           var data = {
+        var data = {
             'ttd': {
                 'value': 129,
                 'trend': 1, // -1, 0 o 1..?
@@ -83,7 +75,6 @@ export class Faces implements OnInit {
         SocketIO.subscribe('smile_face_blue', function(data) {
             Faces.draw(data);
         });
-
     }
 
     static draw(data) {
@@ -139,8 +130,7 @@ export class Faces implements OnInit {
         }
         return picPath;
     }
-    static drawCircle(circleX, circleY, circleR, datattx, typeText:string) { // datattx är data['ttd'] eller data['ttk'
-
+    static drawCircle(circleX, circleY, circleR, datattx, typeText:string) { // datattx är data['ttd'] eller data['ttk']
         var chart = this.chart;
 
         chart.append("circle")
@@ -216,7 +206,7 @@ export class Faces implements OnInit {
                     .attr("angle", 360)
                     .style("stroke-width",1)
                     .style("stroke","rgb(95, 95, 95)")
-                    .style("fill", "#f9b9b9");
+                    .style("fill", "#f9b9b9");;
 
                 var arc = d3.svg.arc()
                     .innerRadius(faceR * 0.5)

@@ -32,7 +32,7 @@ export class ThemeService {
 
     constructor(
         private ng2DashboardService: Ng2DashboardService, //,
-        @Inject('$http') http,   // eventually use the ng2 http here
+        //@Inject('$http') http,   // eventually use the ng2 http here
         @Inject(DOCUMENT) private document
     ) {
         this.showHeaders = true;
@@ -71,7 +71,6 @@ export class ThemeService {
             ng2DashboardService.setPanelLock(false);
             this.showWidgetOptions = false;
         };
-
 
         this.toggleNavbar = () => {
             this.showNavbar = !this.showNavbar;
