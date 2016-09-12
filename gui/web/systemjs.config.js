@@ -14,7 +14,9 @@
     'moment':                     'node_modules/moment/moment.js',
     'ng2-bootstrap':              'node_modules/ng2-bootstrap',
     'socket.io-client':           'node_modules/socket.io-client/socket.io.js',
-    'angular2-grid':              'node_modules/angular2-grid/dist'
+    'angular2-grid':              'node_modules/angular2-grid/dist',
+    'lodash':                     'node_modules/lodash/',
+    'jsoneditor':                 'node_modules/jsoneditor/dist/'
   };
   // packages tells the System loader how to load when no filename and/or no extension
   var packages = {
@@ -22,7 +24,9 @@
     'angular2-grid': { main: 'main.js', defaultExtension: 'js' },
     'app':                        { main: 'main.js',  defaultExtension: 'js' },
     'rxjs':                       { defaultExtension: 'js' },
-    'angular2-in-memory-web-api': { main: 'index.js', defaultExtension: 'js' }//,
+    'angular2-in-memory-web-api': { main: 'index.js', defaultExtension: 'js' },
+    'lodash':                     { main: 'lodash.js', defaultExtension: 'js' },
+    'jsoneditor':                 { main: 'jsoneditor.js', defaultExtension: 'js'}
     //'d3': { main: 'index.js', defaultExtension: 'js' }
   };
   var ngPackageNames = [

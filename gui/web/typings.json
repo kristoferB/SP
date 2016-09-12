@@ -1,7 +1,10 @@
 {
   "globalDependencies": {
+    "ace": "registry:dt/ace#0.0.0+20160630235124",
     "core-js": "registry:dt/core-js#0.0.0+20160602141332",
     "jasmine": "registry:dt/jasmine#2.2.0+20160621224255",
+    "jsoneditor": "registry:dt/jsoneditor#5.5.7+20160829025535",
+    "lodash": "registry:dt/lodash#4.14.0+20160830145422",
     "node": "registry:dt/node#6.0.0+20160621231320",
     "socket.io-client": "registry:dt/socket.io-client#1.4.4+20160317120654"
   },
