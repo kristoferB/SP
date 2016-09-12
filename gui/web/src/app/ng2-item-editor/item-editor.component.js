@@ -14,8 +14,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 var core_1 = require('@angular/core');
 var ng2_bootstrap_1 = require('ng2-bootstrap');
 var json_editor_component_1 = require('../json-editor/json-editor.component');
+var event_bus_service_1 = require('../core/event-bus.service');
 var ItemEditorComponent = (function () {
-    function ItemEditorComponent(itemService) {
+    function ItemEditorComponent(itemService, 
+        //@Inject('spServicesService') spServicesService,
+        //@Inject('transformService') transformService
+        eventBusService) {
         var _this = this;
         // allting nonsens-satt for now
         this.numberOfErrors = 0;
@@ -34,6 +38,19 @@ var ItemEditorComponent = (function () {
         //    //}
         //}
         this.inSync = true;
+        this.callback = function (data) {
+            //this.jec.setJson(data);
+            _this.jec.setJson(data.splice(3, 6).map(function (id) { return _this.itemService.getItem(id); }));
+            console.log(data);
+        };
+        this.itemService = itemService;
+        this.eventBusService = eventBusService;
+        eventBusService.subscribeToTopic("minTopic", function () {
+            console.log("I confirm");
+        }, this.callback);
+        setTimeout(function () {
+            eventBusService.tweetToTopic("minTopic", _this.itemService.items.map(function (x) { return x.id; }));
+        }, 2000);
         this.options = { mode: 'tree' };
         this.save = function () {
             itemService.saveItem(_this.jec.getJson());
@@ -67,6 +84,9 @@ var ItemEditorComponent = (function () {
             _this.jec.setMode(mode);
         };
     }
+    ItemEditorComponent.prototype.ngOnDestroy = function () {
+        this.eventBusService.unsubscribeToTopic("minTopic", this.callback);
+    };
     __decorate([
         core_1.Input(), 
         __metadata('design:type', Object)
@@ -82,7 +102,7 @@ var ItemEditorComponent = (function () {
             directives: [ng2_bootstrap_1.DROPDOWN_DIRECTIVES, json_editor_component_1.JsonEditorComponent]
         }),
         __param(0, core_1.Inject('itemService')), 
-        __metadata('design:paramtypes', [Object])
+        __metadata('design:paramtypes', [Object, event_bus_service_1.EventBusService])
     ], ItemEditorComponent);
     return ItemEditorComponent;
 }());

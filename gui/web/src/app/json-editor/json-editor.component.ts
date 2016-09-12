@@ -24,6 +24,10 @@ export class JsonEditorComponent {
         return this.editor.get();
     }
 
+    setJson(json: any) {
+        this.editor.set(json)
+    }
+
     setMode(mode: string) {
         this.editor.setMode(mode);
     }

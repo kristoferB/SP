@@ -20,6 +20,9 @@ var JsonEditorComponent = (function () {
     JsonEditorComponent.prototype.getJson = function () {
         return this.editor.get();
     };
+    JsonEditorComponent.prototype.setJson = function (json) {
+        this.editor.set(json);
+    };
     JsonEditorComponent.prototype.setMode = function (mode) {
         this.editor.setMode(mode);
     };

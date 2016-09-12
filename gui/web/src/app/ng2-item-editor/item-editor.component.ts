@@ -1,9 +1,10 @@
-import { Component, Input, Inject, ViewChild } from '@angular/core';
+import { Component, Input, Inject, ViewChild, OnDestroy } from '@angular/core';
 
 import { DROPDOWN_DIRECTIVES } from 'ng2-bootstrap';
 import * as _ from 'lodash';
 
 import { JsonEditorComponent } from '../json-editor/json-editor.component';
+import { EventBusService } from '../core/event-bus.service';
 
 @Component({
   selector: 'item-editor',
@@ -11,7 +12,7 @@ import { JsonEditorComponent } from '../json-editor/json-editor.component';
   directives: [DROPDOWN_DIRECTIVES, JsonEditorComponent]
 })
 
-export class ItemEditorComponent {
+export class ItemEditorComponent implements OnDestroy {
 
     @Input() widget;
     @ViewChild(JsonEditorComponent) jec: JsonEditorComponent;
@@ -56,13 +57,27 @@ export class ItemEditorComponent {
     save: () => void;
     setMode: (mode: string) => void;
 
+    itemService: any;
+    eventBusService: EventBusService;
+
     constructor(
-        @Inject('itemService') itemService
+        @Inject('itemService') itemService,
         //@Inject('spServicesService') spServicesService,
         //@Inject('transformService') transformService
+        eventBusService: EventBusService
     ) {
-        this.options = { mode: 'tree' };
+        this.itemService = itemService;
+        this.eventBusService = eventBusService;
+        eventBusService.subscribeToTopic<any>("minTopic", () => {
+            console.log("I confirm");
+        }, this.callback);
+        
+        setTimeout(() => {
+            eventBusService.tweetToTopic<any>("minTopic",
+                                 this.itemService.items.map((x) => x.id))
+        }, 2000);
 
+        this.options = { mode: 'tree' };
 
         this.save = () => {
             itemService.saveItem(this.jec.getJson());
@@ -99,6 +114,18 @@ export class ItemEditorComponent {
 
 
 
+    }
+
+    callback = (data: any) => {
+        //this.jec.setJson(data);
+        this.jec.setJson(
+            data.splice(3,6).map(id => this.itemService.getItem(id))
+        )
+        console.log(data);
+    }
+
+    ngOnDestroy() {
+        this.eventBusService.unsubscribeToTopic("minTopic", this.callback);
     }
 
     //change() {
