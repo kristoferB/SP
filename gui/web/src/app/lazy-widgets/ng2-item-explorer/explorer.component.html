@@ -1,0 +1,12 @@
+<button (click)="refresh()">refresh</button>
+<ul>
+  <li *ngFor="let model of modelNames">
+    <item (click)="selectModel(model.name)">
+      {{ model.name }}
+    </item>
+  </li>
+</ul>
+
+<explorer-node [node]="service.testNode"></explorer-node>
+  
+

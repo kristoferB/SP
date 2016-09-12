@@ -13,11 +13,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require('@angular/core');
 var angular2_grid_1 = require('angular2-grid');
-var upg_adapter_1 = require('../upg-helpers/upg-adapter');
 var dcl_view_component_1 = require('./dcl-view.component');
 var ng2_dashboard_service_1 = require('./ng2-dashboard.service');
 var widget_kinds_1 = require('../widget-kinds');
 var theme_service_1 = require("../core/theme.service");
+var ng2_sp_widget_component_1 = require('../ng2-sp-widget/ng2-sp-widget.component');
 var Ng2DashboardComponent = (function () {
     function Ng2DashboardComponent(logger, $state, ng2DashboardService, themeService) {
         var _this = this;
@@ -43,7 +43,7 @@ var Ng2DashboardComponent = (function () {
             selector: 'ng2-dashboard',
             templateUrl: 'app/dashboard/ng2-dashboard.component.html',
             styleUrls: [],
-            directives: [angular2_grid_1.NgGrid, angular2_grid_1.NgGridItem, dcl_view_component_1.DclViewComponent, upg_adapter_1.upgAdapter.upgradeNg1Component('spWidget')],
+            directives: [angular2_grid_1.NgGrid, angular2_grid_1.NgGridItem, dcl_view_component_1.DclViewComponent, ng2_sp_widget_component_1.Ng2SpWidgetComponent],
             providers: []
         }),
         __param(0, core_1.Inject('logger')),

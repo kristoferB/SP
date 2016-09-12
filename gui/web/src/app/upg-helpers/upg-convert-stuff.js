@@ -12,6 +12,7 @@ function upgConvertStuff(upgAdapter) {
         .directive('ng2Dashboard', upgAdapter.downgradeNg2Component(ng2_dashboard_component_1.Ng2DashboardComponent))
         .directive('awesomeNg2Component', upgAdapter.downgradeNg2Component(awesome_ng2_component_component_1.AwesomeNG2Component))
         .directive('facesComponent', upgAdapter.downgradeNg2Component(faces_component_1.Faces));
+    upgAdapter.upgradeNg1Provider('restService');
     upgAdapter.upgradeNg1Provider('config');
     upgAdapter.upgradeNg1Provider('logger');
     upgAdapter.upgradeNg1Provider('$document');

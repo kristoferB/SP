@@ -6,7 +6,6 @@ import { Subject, Observable } from "rxjs/Rx";
 
 @Injectable()
 export class Ng2DashboardService {
-
     addDashboard: (name: string) => void;
     getDashboard: (id: number, callback: (dashboard: any) => void) => any; // TODO typa
     removeDashboard: (id: number) => void;
@@ -93,7 +92,7 @@ export class Ng2DashboardService {
             for(var i = 0; i < this.storage.dashboards.length; i++) {
                 var dashboard = this.storage.dashboards[i];
                 //var index = _.findIndex(dashboard.widgets, {id: id});
-                var index = this.storage.dashboards
+                var index = dashboard.widgets
                             .map( (x) => x.id ).indexOf(id);
                 if (index > -1) {
                     widget = dashboard.widgets[index];
@@ -115,7 +114,7 @@ export class Ng2DashboardService {
         this.closeWidget = (id) => {
             for(var i = 0; i < this.storage.dashboards.length; i++) {
                 var dashboard = this.storage.dashboards[i];
-                var index = this.storage.dashboards
+                var index = dashboard.widgets
                             .map( (x) => x.id ).indexOf(id);
                 if (index > -1) {
                     dashboard.widgets.splice(index, 1);
