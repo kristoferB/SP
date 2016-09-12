@@ -101,6 +101,6 @@
     <div class="panel-content" json-editor="editorLoaded" ng-model="widget.storage.data" options="options"
           ng-change="change()" ng-model-options="{debounce:400}"></div>
     -->
-    <json-editor style="height:100%;" #jsoneditor></json-editor>
+    <json-editor [name]="editorName" style="height:100%;" #jsoneditor></json-editor>
 
 </div>

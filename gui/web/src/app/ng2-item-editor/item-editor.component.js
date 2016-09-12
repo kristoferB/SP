@@ -13,6 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require('@angular/core');
 var ng2_bootstrap_1 = require('ng2-bootstrap');
+var _ = require('lodash');
 var json_editor_component_1 = require('../json-editor/json-editor.component');
 var event_bus_service_1 = require('../core/event-bus.service');
 var ItemEditorComponent = (function () {
@@ -24,6 +25,7 @@ var ItemEditorComponent = (function () {
         // allting nonsens-satt for now
         this.numberOfErrors = 0;
         this.modes = ['tree', 'code'];
+        this.editorName = 'Selected items';
         //setMode(mode: string) {
         //    this.options.mode = mode;
         //    //if (mode === 'code') { TODO translate whatever this does to ng2
@@ -39,9 +41,12 @@ var ItemEditorComponent = (function () {
         //}
         this.inSync = true;
         this.callback = function (data) {
-            //this.jec.setJson(data);
-            _this.jec.setJson(data.splice(3, 6).map(function (id) { return _this.itemService.getItem(id); }));
-            console.log(data);
+            var json = {};
+            for (var i = 0; i < data.length; i++) {
+                var item = _this.itemService.getItem(data[i]);
+                json[item.name] = item;
+            }
+            _this.jec.setJson(json);
         };
         this.itemService = itemService;
         this.eventBusService = eventBusService;
@@ -53,31 +58,21 @@ var ItemEditorComponent = (function () {
         }, 2000);
         this.options = { mode: 'tree' };
         this.save = function () {
-            itemService.saveItem(_this.jec.getJson());
-            //itemService.saveItem('{"isa": "Operation","name": "24u","conditions": [],"attributes": {},"id": "e53"}')
-            //if (this.inSync) {
-            //    var keys = Object.keys(this.widget.storage.data);
-            //    for (var i = 0; i < keys.length; i++) {
-            //        var key = keys[i];
-            //        if (this.widget.storage.data.hasOwnProperty(key)) {
-            //            // TODO denna variabel sparas av item-explorer
-            //            // TODO hur lösa?
-            //            var editorItem = this.widget.storage.data[key];
-            //            var centralItem = itemService.getItem(editorItem.id);
-            //            if (!_.isEqual(editorItem, centralItem)) {
-            //                //angular.extend(centralItem, editorItem);
-            //                itemService.saveItem(editorItem);
-            //            }
-            //        }
-            //    }
-            //    this.widget.storage.atLeastOneItemChanged = false;
-            //} else {
-            //    console.log("call service")
-            //    spServicesService.callService(spServicesService.getService(transformService), {data: this.widget.storage.data}, response)
-            //}
-            //function response(event){
-            //    this.widget.storage.data = event;
-            //}
+            //itemService.saveItem(this.jec.getJson());
+            //var keys = Object.keys(this.widget.storage.data);
+            var json = _this.jec.getJson();
+            var keys = Object.keys(json);
+            //var visibleJson = this.jec.getJson();
+            for (var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                if (json.hasOwnProperty(key)) {
+                    var editorItem = json[key];
+                    var centralItem = _this.itemService.getItem(editorItem.id);
+                    if (!_.isEqual(editorItem, centralItem)) {
+                        _this.itemService.saveItem(editorItem);
+                    }
+                }
+            }
         };
         this.setMode = function (mode) {
             _this.options.mode = mode;

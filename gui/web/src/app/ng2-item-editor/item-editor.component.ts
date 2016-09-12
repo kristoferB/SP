@@ -20,6 +20,7 @@ export class ItemEditorComponent implements OnDestroy {
     // allting nonsens-satt for now
     numberOfErrors: number = 0;
     modes: string[] = ['tree', 'code'];
+    editorName: string = 'Selected items';
 
     //setMode(mode: string) {
     //    this.options.mode = mode;
@@ -80,31 +81,22 @@ export class ItemEditorComponent implements OnDestroy {
         this.options = { mode: 'tree' };
 
         this.save = () => {
-            itemService.saveItem(this.jec.getJson());
-            //itemService.saveItem('{"isa": "Operation","name": "24u","conditions": [],"attributes": {},"id": "e53"}')
-            //if (this.inSync) {
-            //    var keys = Object.keys(this.widget.storage.data);
-            //    for (var i = 0; i < keys.length; i++) {
-            //        var key = keys[i];
-            //        if (this.widget.storage.data.hasOwnProperty(key)) {
-            //            // TODO denna variabel sparas av item-explorer
-            //            // TODO hur lösa?
-            //            var editorItem = this.widget.storage.data[key];
-            //            var centralItem = itemService.getItem(editorItem.id);
-            //            if (!_.isEqual(editorItem, centralItem)) {
-            //                //angular.extend(centralItem, editorItem);
-            //                itemService.saveItem(editorItem);
-            //            }
-            //        }
-            //    }
-            //    this.widget.storage.atLeastOneItemChanged = false;
-            //} else {
-            //    console.log("call service")
-            //    spServicesService.callService(spServicesService.getService(transformService), {data: this.widget.storage.data}, response)
-            //}
-            //function response(event){
-            //    this.widget.storage.data = event;
-            //}
+            //itemService.saveItem(this.jec.getJson());
+
+            //var keys = Object.keys(this.widget.storage.data);
+            var json = this.jec.getJson();
+            var keys = Object.keys(json);
+            //var visibleJson = this.jec.getJson();
+            for (var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                if (json.hasOwnProperty(key)) {
+                    var editorItem = json[key];
+                    var centralItem = this.itemService.getItem(editorItem.id);
+                    if (!_.isEqual(editorItem, centralItem)) {
+                        this.itemService.saveItem(editorItem);
+                    }
+                }
+            }
         }
 
         this.setMode = (mode: string) => {
@@ -117,11 +109,12 @@ export class ItemEditorComponent implements OnDestroy {
     }
 
     callback = (data: any) => {
-        //this.jec.setJson(data);
-        this.jec.setJson(
-            data.splice(3,6).map(id => this.itemService.getItem(id))
-        )
-        console.log(data);
+        var json: any = {};
+        for (var i: number = 0; i < data.length; i++) {
+            var item: any = this.itemService.getItem(data[i]);
+            json[item.name] = item;
+        }
+        this.jec.setJson(json);
     }
 
     ngOnDestroy() {

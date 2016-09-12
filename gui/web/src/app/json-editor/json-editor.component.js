@@ -11,11 +11,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var core_1 = require('@angular/core');
 var JsonEditorComponent = (function () {
     function JsonEditorComponent() {
-        this.aString = 'this is aString';
     }
     JsonEditorComponent.prototype.ngAfterViewInit = function () {
         this.editor = new JSONEditor(this.editorElement.nativeElement);
-        this.editor.set({ "foo": "bar" });
+        this.editor.setName(this.name);
     };
     JsonEditorComponent.prototype.getJson = function () {
         return this.editor.get();
@@ -26,9 +25,16 @@ var JsonEditorComponent = (function () {
     JsonEditorComponent.prototype.setMode = function (mode) {
         this.editor.setMode(mode);
     };
+    JsonEditorComponent.prototype.setName = function (name) {
+        this.editor.setName(name);
+    };
     JsonEditorComponent.prototype.fooFunction = function () {
         console.log("bananer");
     };
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', Object)
+    ], JsonEditorComponent.prototype, "name", void 0);
     __decorate([
         core_1.ViewChild('editorElement'), 
         __metadata('design:type', Object)
@@ -36,7 +42,7 @@ var JsonEditorComponent = (function () {
     JsonEditorComponent = __decorate([
         core_1.Component({
             selector: 'json-editor',
-            template: '{{ aString }}<div #editorElement style="height:100%;"></div>'
+            template: '<div #editorElement style="height:100%;"></div>'
         }), 
         __metadata('design:paramtypes', [])
     ], JsonEditorComponent);

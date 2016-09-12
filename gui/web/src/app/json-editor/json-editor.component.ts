@@ -1,4 +1,4 @@
-import { Component, Renderer, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, Renderer, ElementRef, ViewChild, AfterViewInit, Input } from '@angular/core';
 
 // TODO sort out correct way of importing, i.e. as in commented line
 //import { JSONEditor } from 'jsoneditor';
@@ -6,18 +6,18 @@ declare var JSONEditor: any;
 
 @Component({
     selector: 'json-editor',
-    template: '{{ aString }}<div #editorElement style="height:100%;"></div>'
+    template: '<div #editorElement style="height:100%;"></div>'
 })
 export class JsonEditorComponent {
 
+    @Input() name;
     @ViewChild('editorElement') editorElement;
 
     editor: any;
-    public aString: string = 'this is aString';
 
     ngAfterViewInit() {
         this.editor = new JSONEditor(this.editorElement.nativeElement);
-        this.editor.set({"foo": "bar"});
+        this.editor.setName(this.name);
     }
 
     getJson() {
@@ -30,6 +30,10 @@ export class JsonEditorComponent {
 
     setMode(mode: string) {
         this.editor.setMode(mode);
+    }
+
+    setName(name: string) {
+        this.editor.setName(name);
     }
 
     fooFunction() {
