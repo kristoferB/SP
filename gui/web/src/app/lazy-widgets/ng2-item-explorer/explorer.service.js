@@ -13,60 +13,46 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require('@angular/core');
 var Subject_1 = require('rxjs/Subject');
-var JsonNode_1 = require('./JsonNode');
 var Ng2ItemExplorerService = (function () {
-    function Ng2ItemExplorerService(restService) {
+    function Ng2ItemExplorerService(restService, itemService, modelService) {
         var _this = this;
-        this.testData = {
-            first: "iamfirst",
-            second: {
-                "second_": "is",
-                "an": "object"
-            },
-            third: 2,
-            fourth: {
-                nested: {
-                    "hi": "hihihi"
-                },
-                "woop": "floop"
-            },
-            I_AM_AN_ARRAY: [
-                { "an": "element" },
-                { "another": "element" }
-            ]
-        };
         this.currentModelSubject = new Subject_1.Subject();
         this.currentModel = this.currentModelSubject.asObservable();
         this.modelNamesSubject = new Subject_1.Subject();
         this.modelNames = this.modelNamesSubject.asObservable();
-        this.testNode = new JsonNode_1.JsonNode(this.testData);
-        console.log(this.testNode);
-        this.getNode = function (keys) {
-            // this is where it should fetch nodes from restservice to make it lazy
-            var data = _this.testData;
-            for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
-                var key = keys_1[_i];
-                data = data[key];
-            }
-            return data;
-        };
-        this.selectModel = function (name) {
-            console.log("Selected model: " + name);
-            _this.currentModelSubject.next(_this.getNode([])); // top level node
-        };
+        this.activeModel = "";
         this.refresh = function () {
             restService.getModels().then(function (data) {
                 _this.modelNamesSubject.next(data);
             });
         };
+        this.getRoots = function (model) {
+            console.log('filtering model: ');
+            console.log(model);
+            var roots = new Array();
+            for (var _i = 0, model_1 = model; _i < model_1.length; _i++) {
+                var element = model_1[_i];
+                if (element['isa'] == 'HierarchyRoot') {
+                    roots.push(element);
+                }
+            }
+            return roots;
+        };
+        this.activeModel = modelService.activeModel;
+        this.model = itemService.items;
+        this.structures = this.getRoots(this.model);
+        console.log("strucutres: ");
+        console.log(this.structures);
     }
     Ng2ItemExplorerService.prototype.ngOnInit = function () {
-        this.refresh();
+        //this.refresh();	
     };
     Ng2ItemExplorerService = __decorate([
         core_1.Injectable(),
-        __param(0, core_1.Inject('restService')), 
-        __metadata('design:paramtypes', [Object])
+        __param(0, core_1.Inject('restService')),
+        __param(1, core_1.Inject('itemService')),
+        __param(2, core_1.Inject('modelService')), 
+        __metadata('design:paramtypes', [Object, Object, Object])
     ], Ng2ItemExplorerService);
     return Ng2ItemExplorerService;
 }());

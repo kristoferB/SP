@@ -1,21 +1,10 @@
-<div *ngIf="node != null">
-  <div [ngSwitch]="node.type">
-    
-    <p *ngSwitchWhen="'array'">
-      <li *ngFor="let child of node.value">
-	<explorer-node [node]="child"></explorer-node>
-      </li>
-    </p>
-    
-    <p *ngSwitchWhen="'object'">
-      <li *ngFor="let child of node.value">
-	{{child[0]}}: <explorer-node [node]="child[1]"></explorer-node>
-      </li>
-    </p>
-
-    <p *ngSwitchDefault>
-      {{ node.value.toString() }}
-    </p>
-    
+<div>
+  <p> {{ name }} </p>
+  <div class="marginthing" style="margin-left: 35px">
+    <tr *ngFor="let child of node.children">
+      <explorer-node [node]="child"></explorer-node>
+    </tr>
   </div>
 </div>    
+
+

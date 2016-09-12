@@ -2,7 +2,6 @@ import { Component, Inject } from '@angular/core';
 import { Ng2ItemExplorerService } from './explorer.service';
 import { Subscription } from 'rxjs/Subscription';
 import { ItemExplorerNodeComponent } from './explorer-node.component'; 
-import { JsonNode } from './JsonNode';
 
 @Component({
     selector: 'explorer',

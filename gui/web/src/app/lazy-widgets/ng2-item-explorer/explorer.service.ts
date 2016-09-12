@@ -1,30 +1,9 @@
 import { Injectable, Inject } from '@angular/core';
 import { Subject } from 'rxjs/Subject'; 
-import { JsonNode } from './JsonNode';
+import { HierarchyNode, HierarchyRoot, Item } from '../../spTypes';
 
 @Injectable()
 export class Ng2ItemExplorerService {
-    testData = {
-	first: "iamfirst",
-	second: {
-	    "second_":"is",
-	    "an":"object"
-	},
-	third: 2,
-	fourth: {
-	    nested: {
-		"hi":"hihihi"
-	    },
-	    "woop": "floop"
-	},
-	I_AM_AN_ARRAY: [
-	    {"an":"element"},
-	    {"another":"element"}
-	]
-    };
-
-    testNode: JsonNode;
-    getNode: (keys: Array<string>) => Object;
     selectModel: (name: string) => void;
 
     private currentModelSubject = new Subject<Object>();
@@ -34,35 +13,43 @@ export class Ng2ItemExplorerService {
     modelNames = this.modelNamesSubject.asObservable();
     
     refresh: () => void;
+    activeModel: string = "";
+    model:  Array<Object>;
+    getRoots: (model: Array<Object>) => Array<HierarchyRoot>; 
+    structures: Array<HierarchyRoot>;
     
     constructor(
-	@Inject('restService') restService
-    ){
-	this.testNode = new JsonNode(this.testData);
-	console.log(this.testNode);
-	this.getNode = (keys: Array<string>) => {
-	    // this is where it should fetch nodes from restservice to make it lazy
-	    var data = this.testData;
-	    for(var key of keys) {
-		data = data[key];
-	    }
-	    return data;
-	}
-
-	this.selectModel = (name: string) => {
-	    console.log("Selected model: " + name);
-	    this.currentModelSubject.next(this.getNode([])); // top level node
-	}
-	
+	@Inject('restService') restService,
+	@Inject('itemService') itemService,
+	@Inject('modelService') modelService
+    ){	
 	this.refresh = () => {
 	    restService.getModels().then( (data) => {
 		this.modelNamesSubject.next(data);
 	    });
 	}
+	
+	this.getRoots = (model: Array<HierarchyRoot>) => {
+	    console.log('filtering model: ');
+	    console.log(model);
+	    let roots = new Array<HierarchyRoot>();
+	    for(let element of model){
+		if(element['isa'] == 'HierarchyRoot'){
+		    roots.push(element);
+		}
+	    }
+	    return roots;
+	}
+
+	this.activeModel = modelService.activeModel;
+	this.model = itemService.items;
+	this.structures = this.getRoots(this.model);
+	console.log("strucutres: ");
+	console.log(this.structures);
     }
 
     ngOnInit(){
-	this.refresh();
+	//this.refresh();	
     }
 
 }
