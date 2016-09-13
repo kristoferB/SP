@@ -13,8 +13,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var core_1 = require('@angular/core');
 var Subject_1 = require('rxjs/Subject');
+var event_bus_service_1 = require("../../core/event-bus.service");
 var Ng2ItemExplorerService = (function () {
-    function Ng2ItemExplorerService(restService, itemService, modelService) {
+    function Ng2ItemExplorerService(restService, itemService, modelService, evBus) {
         var _this = this;
         this.currentModelSubject = new Subject_1.Subject();
         this.currentModel = this.currentModelSubject.asObservable();
@@ -22,9 +23,13 @@ var Ng2ItemExplorerService = (function () {
         this.modelNames = this.modelNamesSubject.asObservable();
         this.activeModel = "";
         this.refresh = function () {
-            restService.getModels().then(function (data) {
-                _this.modelNamesSubject.next(data);
-            });
+            _this.activeModel = modelService.activeModel;
+            _this.model = itemService.items;
+            _this.structures = _this.getRoots(_this.model);
+            console.log("strucutres: ");
+            console.log(_this.structures);
+            var idList = _this.structures.map(function (x) { return x.id; });
+            evBus.tweetToTopic("minTopic", idList);
         };
         this.getRoots = function (model) {
             console.log('filtering model: ');
@@ -38,21 +43,13 @@ var Ng2ItemExplorerService = (function () {
             }
             return roots;
         };
-        this.activeModel = modelService.activeModel;
-        this.model = itemService.items;
-        this.structures = this.getRoots(this.model);
-        console.log("strucutres: ");
-        console.log(this.structures);
     }
-    Ng2ItemExplorerService.prototype.ngOnInit = function () {
-        //this.refresh();	
-    };
     Ng2ItemExplorerService = __decorate([
         core_1.Injectable(),
         __param(0, core_1.Inject('restService')),
         __param(1, core_1.Inject('itemService')),
         __param(2, core_1.Inject('modelService')), 
-        __metadata('design:paramtypes', [Object, Object, Object])
+        __metadata('design:paramtypes', [Object, Object, Object, event_bus_service_1.EventBusService])
     ], Ng2ItemExplorerService);
     return Ng2ItemExplorerService;
 }());

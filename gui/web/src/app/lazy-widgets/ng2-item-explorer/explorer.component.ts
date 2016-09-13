@@ -42,7 +42,8 @@ export class Ng2ItemExplorerComponent {
     }
     
     ngOnInit(){
-	
+	//this.service.refresh();
+	setTimeout(this.service.refresh, 1000); //TODO i'm sorry
     }
 }
 

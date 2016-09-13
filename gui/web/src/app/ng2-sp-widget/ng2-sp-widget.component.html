@@ -1,20 +1,22 @@
 <div class="panel panel-default">
 
-	<div *ngIf="themeService.showHeaders" class="panel-heading">
-	    <span class="panel-title">{{title || "No title"}}</span>
-	    <span class="fa fa-times pull-right widget-close-btn" *ngIf="showCloseBtn"
-	          (click)="requestClose(widget.id)">
-	    </span>
-	</div>
+  <div *ngIf="themeService.showHeaders" class="panel-heading">
+    <span class="panel-title">{{title || "No title"}}</span>
+    <span class="fa fa-times pull-right widget-close-btn" *ngIf="showCloseBtn"
+	  (click)="requestClose(widget.id)">
+    </span>
+  </div>
 
-        <!--<div *ngIf="!themeService.showWidgetOptions" class="panel-body">-->
-	<div class="panel-body">
-            <ng-content></ng-content>
-        </div>
+  <!--<div *ngIf="!themeService.showWidgetOptions" class="panel-body">-->
+  <div class="panel-body">
+    <ng-content></ng-content>
+  </div>
 
-	<div *ngIf="themeService.showWidgetOptions" class="panel-settings">
+  <div *ngIf="themeService.showWidgetOptions && false"> <!-- TODO -->
+    <div  class="panel-settings"></div>
+  </div>
 
-<!--
+    <!--
         <button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Widget settings"
                 (click)=""><i class="fa fa-edit"></i>
         </button>
@@ -23,7 +25,7 @@
                 (click)=""><i class="fa fa-copy"></i>
         </button>
 
-		<button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Isolate widget"
+	<button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Isolate widget"
                 (click)=""><i class="fa fa-eye"></i>
         </button>
 
@@ -34,6 +36,6 @@
         <button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="More"
                 (click)=""><i class="fa fa-bars"></i>
         </button>
-	</div>
--->
+  </div>
+  -->
 </div>

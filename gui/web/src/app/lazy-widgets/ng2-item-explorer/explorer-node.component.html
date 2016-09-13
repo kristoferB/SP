@@ -1,9 +1,27 @@
-<div>
-  <p> {{ name }} </p>
-  <div class="marginthing" style="margin-left: 35px">
-    <tr *ngFor="let child of node.children">
-      <explorer-node [node]="child"></explorer-node>
+<div class="explorer-node">
+  <div *ngIf="expanded">
+    <i class="fa fa-caret-down" (click)="toggleExpanded()"></i>
+
+    <div class="name" (click)="toggleSelected()">
+      <p class="name-selected" *ngIf="selected">{{ name }}</p>
+      <p class="name-unselected" *ngIf="!selected">{{ name }}</p>
+    </div>   
+
+    <tr class="listobject" *ngFor="let child of node.children">
+      <div class="indentation">
+	<tr *ngFor="let child of node.children">
+	  <explorer-node [node]="child"></explorer-node>
+	</tr>
+      </div>
     </tr>
+  </div>
+
+  <div *ngIf="!expanded">
+    <i *ngIf="!childless" class="fa fa-caret-right" (click)="toggleExpanded()"></i>
+    <div class="name" (click)="toggleSelected()">
+      <p class="name-selected" *ngIf="selected">{{ name }}</p>
+      <p class="name-unselected" *ngIf="!selected">{{ name }}</p>
+    </div>   
   </div>
 </div>    
 

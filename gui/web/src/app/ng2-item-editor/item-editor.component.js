@@ -17,54 +17,40 @@ var _ = require('lodash');
 var json_editor_component_1 = require('../json-editor/json-editor.component');
 var event_bus_service_1 = require('../core/event-bus.service');
 var ItemEditorComponent = (function () {
-    function ItemEditorComponent(itemService, 
-        //@Inject('spServicesService') spServicesService,
-        //@Inject('transformService') transformService
-        eventBusService) {
+    function ItemEditorComponent(itemService, eventBusService) {
         var _this = this;
         // allting nonsens-satt for now
         this.numberOfErrors = 0;
         this.modes = ['tree', 'code'];
         this.editorName = 'Selected items';
-        //setMode(mode: string) {
-        //    this.options.mode = mode;
-        //    //if (mode === 'code') { TODO translate whatever this does to ng2
-        //    //    $timeout(function() {
-        //    //        this.editor.editor.setOptions({maxLines: Infinity});
-        //    //        this.editor.editor.on('change', function() {
-        //    //            $timeout(function() {
-        //    //                this.numberOfErrors = this.editor.editor.getSession().getAnnotations().length;
-        //    //            }, 300);
-        //    //        });
-        //    //    });
-        //    //}
-        //}
-        this.inSync = true;
-        this.callback = function (data) {
+        this.eventCallback = function (data) {
             var json = {};
-            for (var i = 0; i < data.length; i++) {
-                var item = _this.itemService.getItem(data[i]);
-                json[item.name] = item;
+            for (var _i = 0, data_1 = data; _i < data_1.length; _i++) {
+                var j = data_1[_i];
+                console.log(j);
+                var item = _this.itemService.getItem(j);
+                var keyName = item.name;
+                var count = 0;
+                while (!_.isUndefined(_.find(Object.keys(json), function (k) { return k == keyName; }))) {
+                    keyName = item.name + ' (' + (++count) + ')';
+                }
+                json[keyName] = item;
             }
             _this.jec.setJson(json);
         };
         this.itemService = itemService;
         this.eventBusService = eventBusService;
         eventBusService.subscribeToTopic("minTopic", function () {
-            console.log("I confirm");
-        }, this.callback);
+        }, this.eventCallback);
         setTimeout(function () {
             eventBusService.tweetToTopic("minTopic", _this.itemService.items.map(function (x) { return x.id; }));
         }, 2000);
         this.options = { mode: 'tree' };
         this.save = function () {
-            //itemService.saveItem(this.jec.getJson());
-            //var keys = Object.keys(this.widget.storage.data);
             var json = _this.jec.getJson();
             var keys = Object.keys(json);
-            //var visibleJson = this.jec.getJson();
-            for (var i = 0; i < keys.length; i++) {
-                var key = keys[i];
+            for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
+                var key = keys_1[_i];
                 if (json.hasOwnProperty(key)) {
                     var editorItem = json[key];
                     var centralItem = _this.itemService.getItem(editorItem.id);
@@ -80,7 +66,7 @@ var ItemEditorComponent = (function () {
         };
     }
     ItemEditorComponent.prototype.ngOnDestroy = function () {
-        this.eventBusService.unsubscribeToTopic("minTopic", this.callback);
+        this.eventBusService.unsubscribeToTopic("minTopic", this.eventCallback);
     };
     __decorate([
         core_1.Input(), 

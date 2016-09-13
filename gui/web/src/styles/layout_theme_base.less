@@ -192,17 +192,21 @@ a:hover, a:focus, a:active {
     background-color: inherit;
 
     h4 {
-      //  color: @dialog_header_confirm_h_color;
+	//  color: @dialog_header_confirm_h_color;
         font-weight: 300;
         font-size: 24px;
     }
 
     span {
-     //   color: @dialog_header_confirm_span_color;
+	//   color: @dialog_header_confirm_span_color;
     }
 }
 
 /* Gridster Widgets */
+
+
+
+
 
 .grid {
     height: 100%;
@@ -331,33 +335,33 @@ a:hover, a:focus, a:active {
     }
 }
 
-/* Widgets not in gridster */
-.panel-heading {
-    padding-top:@gridster_header_padding;
-    padding-bottom:@gridster_header_padding;
-    border-top-left-radius:  @gridster_panel_border_radius;
-    border-top-right-radius:  @gridster_panel_border_radius;
-    //background-color: @gridster_panel_heading_background;
-    text-align: -moz-center;
+// /* Widgets not in gridster */
+// .panel-heading {
+//     padding-top:@gridster_header_padding;
+//     padding-bottom:@gridster_header_padding;
+//     border-top-left-radius:  @gridster_panel_border_radius;
+//     border-top-right-radius:  @gridster_panel_border_radius;
+//     //background-color: @gridster_panel_heading_background;
+//     text-align: -moz-center;
 
-    flex: 0 0 auto;
+//     flex: 0 0 auto;
 
-    &:hover .widget-close-btn {
-        transition-delay: 50ms;
-        opacity: 1;
-        visibility: visible;
+//     &:hover .widget-close-btn {
+//         transition-delay: 50ms;
+//         opacity: 1;
+//         visibility: visible;
 
-    }
+//     }
 
-    .widget-close-btn {
-        transition: opacity 100ms ease 0ms, visibility 0ms ease 200ms;
-        cursor: pointer;
-        line-height: 20px;
-        opacity: 0;
-        visibility: hidden;
+//     .widget-close-btn {
+//         transition: opacity 100ms ease 0ms, visibility 0ms ease 200ms;
+//         cursor: pointer;
+//         line-height: 20px;
+//         opacity: 0;
+//         visibility: hidden;
 
-    }
-}
+//     }
+// }
 
 .panel-body {
 
@@ -417,6 +421,51 @@ a:hover, a:focus, a:active {
                 outline: none;
             }
         }
+    }
+}
+
+
+.explorer {
+    margin-left: 10px;
+    margin-top: 5px;
+    margin-bottom:0px;
+    
+    .name {
+	font-family: monospace;
+	display: inline;
+    }
+    .name.name-structure {
+	font-weight: bold;
+	color: black;
+    }
+    
+    .indentation {
+	margin-left: 25px;
+    }
+
+    
+    .explorer-node {
+	
+	margin-bottom:0px;
+
+	.indentation {
+	    margin-left: 35px;
+	}
+	
+	.name .name-selected {
+	    font-family: monospace;
+	    display: inline;
+	    color: blue;
+	}
+	.name .name-unselected {
+	    font-family: monospace;
+	    display: inline;
+	    color: black;
+	}
+	
+	.list-object {
+	    
+	}
     }
 }
 
@@ -1165,5 +1214,11 @@ select {
         line-height: 1.2em !important;
     }
 }
+
+
+
+
+
+
 
 /*#endregion */

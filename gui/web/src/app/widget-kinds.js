@@ -6,7 +6,7 @@ var json_editor_component_1 = require('./json-editor/json-editor.component');
 var explorer_component_1 = require('./lazy-widgets/ng2-item-explorer/explorer.component');
 var upg_ng1_widget_containers_1 = require('./upg-helpers/upg-ng1-widget-containers');
 exports.widgetKinds = [
-    { 'component': explorer_component_1.Ng2ItemExplorerComponent, 'title': 'ng2-item-explorer', 'sizex': 20, 'sizey': 20, 'id': null, 'gridOptions': null },
+    { 'component': explorer_component_1.Ng2ItemExplorerComponent, 'title': 'ng2-item-explorer', 'sizex': 5, 'sizey': 7, 'id': null, 'gridOptions': null },
     { 'component': faces_component_1.Faces, 'title': 'ERICA Faces test', 'sizex': 4, 'sizey': 4, 'id': null, 'gridOptions': null },
     { 'component': awesome_ng2_component_component_1.AwesomeNG2Component, 'title': 'ng2Inside', 'sizex': 4, 'sizey': 4, 'id': null, 'gridOptions': null },
     { 'component': upg_ng1_widget_containers_1.ItemExplorerComponent, 'title': 'item-explorer', 'sizex': 4, 'sizey': 4, 'id': null, 'gridOptions': null },

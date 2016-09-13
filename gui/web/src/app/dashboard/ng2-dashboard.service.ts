@@ -82,6 +82,9 @@ export class Ng2DashboardService {
             //}
             dashboard.widgets.push(widget);
             widget.gridOptions = Object.create(ngGridItemOptionDefaults);
+            widget.gridOptions.sizex = widget.sizex;
+            widget.gridOptions.sizey = widget.sizey;
+            
 
             logger.log('Dashboard Controller: Added a ' + widget.title + ' widget with index '
                 + widget.id + ' to dashboard ' + dashboard.name + '.');
@@ -127,6 +130,7 @@ export class Ng2DashboardService {
             'resizable': true,
             'draggable': true,
             'margins': [10],
+            'cascade': 'left',
             'auto_resize': false,
             'maintain_ratio': false,
     	    'col_width':window.innerWidth/12,

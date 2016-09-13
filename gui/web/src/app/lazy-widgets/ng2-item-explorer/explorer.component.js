@@ -31,6 +31,8 @@ var Ng2ItemExplorerComponent = (function () {
         });
     }
     Ng2ItemExplorerComponent.prototype.ngOnInit = function () {
+        //this.service.refresh();
+        setTimeout(this.service.refresh, 1000); //TODO i'm sorry
     };
     Ng2ItemExplorerComponent = __decorate([
         core_1.Component({

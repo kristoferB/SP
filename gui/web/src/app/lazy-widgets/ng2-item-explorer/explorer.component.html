@@ -1,4 +1,6 @@
-<table *ngFor="let structure of service.structures">
-  <div>{{structure.name}}</div>
-  <explorer-node *ngFor="let startNode of structure.children" [node]="startNode"></explorer-node>
+<table class="explorer" *ngFor="let structure of service.structures">
+  <div class="name name-structure">{{structure.name}}</div>
+  <div class="indentation">
+    <explorer-node *ngFor="let startNode of structure.children" [node]="startNode"></explorer-node>
+  </div>
 </table>
