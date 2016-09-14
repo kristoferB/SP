@@ -29,18 +29,21 @@ export class ItemEditorComponent implements OnDestroy {
     itemService: any;
     eventBusService: EventBusService;
 
+    selectedIds: string[] = new Array<string>();
+
     constructor(
         @Inject('itemService') itemService,
         eventBusService: EventBusService
     ) {
         this.itemService = itemService;
         this.eventBusService = eventBusService;
-        eventBusService.subscribeToTopic<any>("minTopic", () => {
-        }, this.eventCallback);
+        eventBusService.subscribeToTopic<string[]>("itemSelected", () => {
+        }, this.itemSelected);
+	eventBusService.subscribeToTopic<string[]>("itemUnselected", () => {
+        }, this.itemUnselected);
 
         setTimeout(() => {
-            eventBusService.tweetToTopic<any>("minTopic",
-                this.itemService.items.map((x) => x.id))
+        //    eventBusService.tweetToTopic<string[]>("itemSelected", this.itemService.items.map((x) => x.id))
         }, 2000);
 
         this.options = { mode: 'tree' };
@@ -65,9 +68,25 @@ export class ItemEditorComponent implements OnDestroy {
         }
     }
 
-    eventCallback = (data: any) => {
-        var json: any = {};
-        for (var j of data) {
+    itemSelected = (ids: string[]) => {
+	this.selectedIds = this.selectedIds.concat(
+	    ids.filter(e => this.selectedIds.indexOf(e) < 0)
+	);
+	this.updateJson();
+    }
+    
+    itemUnselected = (unselectedIds: string[]) => {
+	console.log('unselecting: '+unselectedIds);
+	this.selectedIds = this.selectedIds.filter(
+	    e =>  unselectedIds.indexOf(e) == -1
+
+	);
+	this.updateJson();
+    }
+
+    updateJson = () => {
+	var json: Object = {};
+        for (var j of this.selectedIds) {
             console.log(j);
             let item = this.itemService.getItem(j);
             var keyName = item.name; var count = 0;
@@ -80,6 +99,7 @@ export class ItemEditorComponent implements OnDestroy {
     }
 
     ngOnDestroy() {
-        this.eventBusService.unsubscribeToTopic("minTopic", this.eventCallback);
+        this.eventBusService.unsubscribeToTopic("itemSelected", this.itemSelected);
+        this.eventBusService.unsubscribeToTopic("itemUnselected", this.itemUnselected);
     }
 }
