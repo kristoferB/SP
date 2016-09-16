@@ -12,23 +12,30 @@ export class Ng2SpWidgetComponent {
 
     @Input() widget: any;
     @Input() dashboard: any;
-    @Input() showCloseBtn: boolean;
+    @Input() showCloseBtn: boolean; 
 
     settingsService: any;
     ng2DashboardService: any;
     themeService: any;
-
+    
     requestClose: (widgetId: number) => void;
-
+    title: string = "No title";
+    
     constructor(
         @Inject('settingsService') settingsService,
         ng2DashboardService: Ng2DashboardService,
         themeService: ThemeService
     ) {
+
         this.settingsService = settingsService;
         this.themeService = themeService;
         this.requestClose = (widgetId) => {
             ng2DashboardService.closeWidget(widgetId);
         };
+	
+    }
+    ngOnInit(){
+    	this.title = this.widget['title'];
+	console.log(this.widget);
     }
 }

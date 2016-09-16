@@ -2,6 +2,7 @@ import { Injectable, Inject } from "@angular/core";
 import { Ng2DashboardService } from "../dashboard/ng2-dashboard.service";
 import { Subject, Observable } from "rxjs/Rx";
 import { DOCUMENT } from "@angular/platform-browser";
+import { EventBusService } from './event-bus.service'
 
 @Injectable()
 export class ThemeService {
@@ -86,7 +87,6 @@ export class ThemeService {
 
         this.setLayoutTheme = (theme: string) => {
             this.document.getElementById('layout_theme').setAttribute('href', '../.tmp/layout/' + theme + '.css');
-
         };
 
         this.configureGridster = () => {

@@ -167,14 +167,12 @@ a:hover, a:focus, a:active {
     //ground-color: @gridster_panel_background;
     border-radius: @gridster_panel_border_radius;
     height: 100%;
-
+    text-align:center;
 
     .panel-title {
-        font-size: @gridster_header_font_size;
+	font-size: 100%;
         margin: 0px;
         padding: 0px;
-        position: absolute;
-        right: 50%;
     }
 }
 
@@ -202,11 +200,7 @@ a:hover, a:focus, a:active {
     }
 }
 
-/* Gridster Widgets */
-
-
-
-
+/* Widgets */
 
 .grid {
     height: 100%;
@@ -225,6 +219,8 @@ a:hover, a:focus, a:active {
         border-width: 2px;
 
         .panel-heading {
+
+	    height: 24px;
             & when(@showHeaders = false){
                 visibility: collapse;
             }
@@ -256,10 +252,15 @@ a:hover, a:focus, a:active {
         }
 
         .panel-settings {
-            align-self: center;
-            width: -moz-fit-content;
-            margin-top: 30%;
-            //background-color: @gridster_panel_background;
+	    align-self: center;
+            .button-group {
+		margin-top: 10px;
+	    }
+	    .button-group button {
+		.fa {
+		    
+		}
+	    }
         }
 
         .panel-body {
@@ -363,66 +364,66 @@ a:hover, a:focus, a:active {
 //     }
 // }
 
-.panel-body {
+// .panel-body {
 
-    //border: @gridster_panel_content_border_width solid @gridster_panel_border;
-    overflow-y: auto;
-    overflow-x: auto;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    //background-color: @gridster_panel_background;
-    border-bottom-left-radius: @gridster_panel_border_radius;
-    border-bottom-right-radius: @gridster_panel_border_radius;
+//     //border: @gridster_panel_content_border_width solid @gridster_panel_border;
+//     overflow-y: auto;
+//     overflow-x: auto;
+//     flex: 1;
+//     display: flex;
+//     flex-direction: column;
+//     //background-color: @gridster_panel_background;
+//     border-bottom-left-radius: @gridster_panel_border_radius;
+//     border-bottom-right-radius: @gridster_panel_border_radius;
 
-    & when(@showHeaders = false){
-        border-top-left-radius: @gridster_panel_border_radius;
-        border-top-right-radius: @gridster_panel_border_radius;
-    }
+//     & when(@showHeaders = false){
+//         border-top-left-radius: @gridster_panel_border_radius;
+//         border-top-right-radius: @gridster_panel_border_radius;
+//     }
 
-    [ng-controller] {
+//     [ng-controller] {
 
-        flex: 1;
-        display: flex;
-        flex-direction: column;
+//         flex: 1;
+//         display: flex;
+//         flex-direction: column;
 
-        border-top-left-radius: @gridster_panel_border_radius;
-        border-top-right-radius: @gridster_panel_border_radius;
+//         border-top-left-radius: @gridster_panel_border_radius;
+//         border-top-right-radius: @gridster_panel_border_radius;
 
-        .panel-toolbar {
-            padding-top: @gridster_panel_toolbar_padding;
-            padding-bottom: @gridster_panel_toolbar_padding;
-            padding-left: @gridster_panel_toolbar_padding;
-            padding-right: @gridster_panel_toolbar_padding;
+//         .panel-toolbar {
+//             padding-top: @gridster_panel_toolbar_padding;
+//             padding-bottom: @gridster_panel_toolbar_padding;
+//             padding-left: @gridster_panel_toolbar_padding;
+//             padding-right: @gridster_panel_toolbar_padding;
 
-            flex: 0 0 auto;
+//             flex: 0 0 auto;
 
-            button:not(.input-group-btn button) {
-                //width: 60px;
-                margin-right: 10px;
-            }
+//             button:not(.input-group-btn button) {
+//                 //width: 60px;
+//                 margin-right: 10px;
+//             }
 
-            .btn-group:not([uib-dropdown]) {
-                margin-right: 10px;
-            }
+//             .btn-group:not([uib-dropdown]) {
+//                 margin-right: 10px;
+//             }
 
-            .btn-group button {
-                margin-right: 0;
-                margin-left: 0;
-            }
-        }
+//             .btn-group button {
+//                 margin-right: 0;
+//                 margin-left: 0;
+//             }
+//         }
 
-        .panel-content {
-            flex: 1;
-            position: relative;
-            //background-color: @gridster_content_background;
+//         .panel-content {
+//             flex: 1;
+//             position: relative;
+//             //background-color: @gridster_content_background;
 
-            &:focus {
-                outline: none;
-            }
-        }
-    }
-}
+//             &:focus {
+//                 outline: none;
+//             }
+//         }
+//     }
+// }
 
 
 .explorer {

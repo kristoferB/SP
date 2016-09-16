@@ -2,40 +2,40 @@
 
   <div *ngIf="themeService.showHeaders" class="panel-heading">
     <span class="panel-title">{{title || "No title"}}</span>
+
+    <!-- moved to the editor view
     <span class="fa fa-times pull-right widget-close-btn" *ngIf="showCloseBtn"
 	  (click)="requestClose(widget.id)">
     </span>
+    -->
   </div>
 
-  <!--<div *ngIf="!themeService.showWidgetOptions" class="panel-body">-->
-  <div class="panel-body">
+  <div *ngIf="!themeService.showWidgetOptions" class="panel-body">
     <ng-content></ng-content>
   </div>
 
-  <div *ngIf="themeService.showWidgetOptions && false"> <!-- TODO -->
-    <div  class="panel-settings"></div>
+  <div *ngIf="themeService.showWidgetOptions" class="panel-settings">
+    <div class="button-group">
+      <button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Widget settings"
+              (click)="requestClose(widget.id)"><i class="fa fa-edit"></i>
+      </button>
+
+      <button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Duplicate widget"
+              (click)="requestClose(widget.id)"><i class="fa fa-copy"></i>
+      </button>
+
+      <button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Isolate widget"
+              (click)="requestClose(widget.id)"><i class="fa fa-eye"></i>
+      </button>
+
+      <button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Remove widget"
+              (click)="requestClose(widget.id)"><i class="fa fa-trash-o"></i>
+      </button>
+
+      <button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="More"
+              (click)="requestClose(widget.id)"r><i class="fa fa-bars"></i>
+      </button>
+    </div>
   </div>
 
-    <!--
-        <button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Widget settings"
-                (click)=""><i class="fa fa-edit"></i>
-        </button>
-
-        <button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Duplicate widget"
-                (click)=""><i class="fa fa-copy"></i>
-        </button>
-
-	<button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Isolate widget"
-                (click)=""><i class="fa fa-eye"></i>
-        </button>
-
-        <button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="Remove widget"
-                (click)=""><i class="fa fa-trash-o"></i>
-        </button>
-
-        <button type="button" class="btn btn-sm btn-default btn-notext" uib-tooltip="More"
-                (click)=""><i class="fa fa-bars"></i>
-        </button>
-  </div>
-  -->
 </div>

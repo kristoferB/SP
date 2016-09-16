@@ -76,6 +76,7 @@ export class Ng2DashboardService {
             var widget = Object.create(widgetKind);
             widget.index = index;
             widget.id = this.storage.widgetID++;
+	    widget.title = widgetKind.title;
             //needed??
             //if (additionalData !== undefined) {
             //    widget.storage = additionalData;
