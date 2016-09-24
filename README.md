@@ -1,4 +1,14 @@
-#Sequence Planner
+#Sequence Planner - with Angular2, tests and other great stuff!
+
+##Frontend
+###Dependecies
+Node Package Manager (npm)
+
+###Setup
+in /gui_new/ execute: npm install
+
+###Run
+in /gui_new/ execute: npm start
 
 ##Backend
 ###Setup
@@ -9,5 +19,3 @@ Open a command window and set location to the project root folder (SP/). Then la
 ```
 sbt launch/run
 ```
-##Frontend
-See the SP/gui/web README.md for details on how to setup and run the gui.
