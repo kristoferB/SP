@@ -1,13 +1,14 @@
-#Sequence Planner - with Angular2, tests and other great stuff!
+#Sequence Planner
+With Angular2, tests and other great stuff!
 
 ##Frontend
-###Dependecies
+####Dependecies
 Node Package Manager (npm)
 
-###Setup
+####Setup
 in /gui_new/ execute: npm install
 
-###Run
+####Run
 in /gui_new/ execute: npm start
 
 ##Backend
