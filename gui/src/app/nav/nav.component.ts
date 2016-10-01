@@ -8,10 +8,6 @@ import { Menu, MenuButton } from './menu';
 })
 export class NavComponent {
 
-  // The job of this constructor is assigning service-
-  // functions to MenuButtons, no logic is allowed in here
-  constructor() { }
-
   buttons: MenuButton[] = [
     {
       'action': () => { console.log('action!'); },
@@ -27,4 +23,8 @@ export class NavComponent {
   menu1: Menu = { 'text': 'Kristofer', 'symbol': '2', 'buttons': this.buttons };
   menu2: Menu = { 'text': 'settings', 'symbol': 'inge', 'buttons': this.buttons };
   menus: Menu[] = [this.menu1, this.menu2];
+
+  // The job of this constructor is assigning service-
+  // functions to MenuButtons, no logic is allowed in here
+  constructor() { }
 }
