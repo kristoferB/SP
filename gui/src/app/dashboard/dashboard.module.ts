@@ -1,7 +1,7 @@
 import { NgModule }      from '@angular/core';
 import { NgGridModule } from 'angular2-grid';
 
-import { WidgetFrameComponent } from '../widget-frame/widget-frame.component';
+import { WidgetComponent } from '../widget/widget.component';
 import { DashboardComponent } from './dashboard.component';
 
 @NgModule({
@@ -9,7 +9,7 @@ import { DashboardComponent } from './dashboard.component';
         NgGridModule
     ],
     declarations: [
-        WidgetFrameComponent,
+        WidgetComponent,
         DashboardComponent
     ],
     bootstrap: [ DashboardComponent ]
