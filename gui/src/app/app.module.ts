@@ -3,6 +3,8 @@ import { BrowserModule } from '@angular/platform-browser';
 import { HttpModule } from '@angular/http';
 import { FormsModule } from '@angular/forms';
 
+import { DropdownModule } from 'ng2-bootstrap/ng2-bootstrap';
+
 import { AppComponent } from './app.component';
 import { AboutComponent } from './about/about.component';
 import { NavComponent } from './nav/nav.component';
@@ -18,7 +20,8 @@ import { removeNgStyles, createNewHosts } from '@angularclass/hmr';
     BrowserModule,
     HttpModule,
     FormsModule,
-    routing
+    routing,
+    DropdownModule
   ],
   declarations: [
     AppComponent,
