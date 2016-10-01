@@ -4,7 +4,7 @@ import { ApiService } from './shared'; // some shared stuff..
 import '../style/app.scss';
 
 @Component({
-  selector: 'my-app',
+  selector: 'sp-app',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })

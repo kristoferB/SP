@@ -8,7 +8,7 @@ import { DashboardFrameComponent } from './dashboard-frame.component';
 
 /*
 describe('Home Component', () => {
-    const html = '<my-home></my-home>';
+    const html = '<sp-home></sp-home>';
 
     beforeEach(() => {
         TestBed.configureTestingModule({declarations: [DashboardFrameComponent, TestComponent]});
@@ -24,5 +24,5 @@ describe('Home Component', () => {
 });
 */
 
-@Component({selector: 'my-test', template: ''})
+@Component({selector: 'sp-test', template: ''})
 class TestComponent { }
