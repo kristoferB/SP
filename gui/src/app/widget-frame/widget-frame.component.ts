@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-    selector: 'my-widget-frame',
+    selector: 'sp-widget-frame',
     templateUrl: './widget-frame.component.html',
     styleUrls: ['./widget-frame.component.scss']
 })
