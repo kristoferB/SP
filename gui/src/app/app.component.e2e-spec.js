@@ -5,23 +5,19 @@ describe('App', function () {
   });
 
   it('should have a title', function () {
-    expect(browser.getTitle()).toEqual("Angular 2 App | ng2-webpack");
+    expect(browser.getTitle()).toEqual("Sequence Planner GUI");
   });
 
-  it('should have <header>', function () {
-    expect(element(by.css('sp-app header')).isPresent()).toEqual(true);
+  it('should have <sp-nav>', function () {
+    expect(element(by.css('sp-app sp-nav')).isPresent()).toEqual(true);
   });
 
-  it('should have <main>', function () {
-    expect(element(by.css('sp-app main')).isPresent()).toEqual(true);
+  it('should have <router-outlet>', function () {
+    expect(element(by.css('sp-app router-outlet')).isPresent()).toEqual(true);
   });
 
-  it('should have a main title', function () {
-    expect(element(by.css('main h1')).getText()).toEqual('Hello from Angular 2!');
-  });
-
-  it('should have <footer>', function () {
-    expect(element(by.css('sp-app footer')).getText()).toEqual("Webpack Angular 2 Starter");
-  });
+  //it('should have <footer>', function () {
+  //  expect(element(by.css('sp-app footer')).getText()).toEqual("Webpack Angular 2 Starter");
+  //});
 
 });
