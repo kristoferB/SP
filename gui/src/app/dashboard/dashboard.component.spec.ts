@@ -4,14 +4,14 @@ import { Component } from '@angular/core';
 
 import { TestBed } from '@angular/core/testing';
 
-import { DashboardFrameComponent } from './dashboard-frame.component';
+import { DashboardComponent } from './dashboard.component';
 
 /*
 describe('Home Component', () => {
     const html = '<sp-home></sp-home>';
 
     beforeEach(() => {
-        TestBed.configureTestingModule({declarations: [DashboardFrameComponent, TestComponent]});
+        TestBed.configureTestingModule({declarations: [DashboardComponent, TestComponent]});
         TestBed.overrideComponent(TestComponent, { set: { template: html }});
     });
 

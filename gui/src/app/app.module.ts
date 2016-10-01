@@ -8,7 +8,7 @@ import { DropdownModule } from 'ng2-bootstrap/ng2-bootstrap';
 import { AppComponent } from './app.component';
 import { AboutComponent } from './about/about.component';
 import { NavComponent } from './nav/nav.component';
-import { DashboardFrameModule } from './dashboard-frame/dashboard-frame.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 import { ApiService } from './shared';
 import { routing } from './app.routing';
@@ -21,7 +21,7 @@ import { removeNgStyles, createNewHosts } from '@angularclass/hmr';
         HttpModule,
         FormsModule,
         routing,
-        DashboardFrameModule,
+        DashboardModule,
         DropdownModule
     ],
     declarations: [
