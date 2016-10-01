@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-    selector: 'my-dashboard-frame',
+    selector: 'sp-dashboard-frame',
     templateUrl: './dashboard-frame.component.html',
      // styleUrls: ['./home.component.scss']
 })
