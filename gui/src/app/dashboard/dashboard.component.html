@@ -1,34 +1,30 @@
-<section id="dashboard-view" class="mainbar">
-  <p>DASHBOARDFRAME</p>
-
-
-  <div class="grid" [ngGrid]="{'max_cols': 6,  'auto_resize': true}">
-    <div class="grid-item" [ngGridItem]="{ 'sizex': 2,  'sizey': 3}">
-      <sp-widget></sp-widget>
-    </div>
+<div class="grid" [ngGrid]="ngGridOptions">
+  <div *ngFor="let openWidget of openWidgets" class="grid-item" [ngGridItem]="openWidget.ngGridItemOptions">
+    <sp-widget>
+      <h1>{{openWidget.text}}</h1>
+    </sp-widget>
   </div>
+</div>
 
 
-  
-  <!-- Old code, load widget and menu here
-       <div [ngGrid]="ng2DashboardService.ngGridOptions" >
-         <div *ngFor="let widget of widgets">
-           <ng2-sp-widget [widget]="widget" [dashboard]="dashboard" [showCloseBtn]="true" [ngGridItem]="widget.gridOptions">
-             <dcl-view [type]="widgetKinds[widget.index].component" style="height:100%;"></dcl-view>
-           </ng2-sp-widget>
-         </div>
-	 -->
+<!-- Old code, load widget and menu here
+     <div [ngGrid]="ng2DashboardService.ngGridOptions" >
+       <div *ngFor="let widget of widgets">
+         <ng2-sp-widget [widget]="widget" [dashboard]="dashboard" [showCloseBtn]="true" [ngGridItem]="widget.gridOptions">
+           <dcl-view [type]="widgetKinds[widget.index].component" style="height:100%;"></dcl-view>
+         </ng2-sp-widget>
+       </div>
+ -->
 
-  <!-- ngGridOptions typically had the following properties, which now needs to get into a proper class.
-       this.ngGridOptions = {
-       'resizable': true,
-       'draggable': true,
-       'margins': [10],
-       'cascade': 'left',
-       'auto_resize': false,
-       'maintain_ratio': false,
-       'col_width':window.innerWidth/12,
-       'row_height':(window.innerHeight-50) / 8
-       };
-    -->
-</section>
+<!-- ngGridOptions typically had the following properties, which now needs to get into a proper class.
+     this.ngGridOptions = {
+     'resizable': true,
+     'draggable': true,
+     'margins': [10],
+     'cascade': 'left',
+     'auto_resize': false,
+     'maintain_ratio': false,
+     'col_width':window.innerWidth/12,
+     'row_height':(window.innerHeight-50) / 8
+     };
+  -->
