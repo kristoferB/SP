@@ -290,6 +290,7 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
           ids_merged, ID.newID), sh)
 
         numstates = synthAttr.getAs[Int]("nbrOfStatesInSupervisor").getOrElse("-1")
+        bddName = synthAttr.getAs[String]("moduleName").getOrElse("")
 
         ids_merged2 = ids_merged.filter(x=> !ids2.exists(y=>y.id==x.id)) ++ ids2
 
@@ -298,7 +299,7 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
           (makespan,SOPSpec(s"path_${makespan}", List(sop)))
         }.sortBy(_._1)
       } yield {
-        val resAttr = SPAttributes("numStates"-> numstates, "cpCompleted" -> cpCompl, "cpTime" -> cpTime, "cpSops" -> sops)
+        val resAttr = SPAttributes("numStates"-> numstates, "cpCompleted" -> cpCompl, "cpTime" -> cpTime, "cpSops" -> sops, "bddName" -> bddName)
         replyTo ! Response(ids_merged2 ++ sops.map(_._2), resAttr, rnr.req.service, rnr.req.reqID)
         terminate(progress)
       }

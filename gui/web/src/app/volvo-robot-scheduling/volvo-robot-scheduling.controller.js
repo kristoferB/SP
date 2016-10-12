@@ -21,6 +21,8 @@
 
         vm.selectedSchedules = [];
         vm.removeSchedule = removeSchedule;
+        vm.removeVar = removeVar;
+        vm.verify = verify;
         vm.state = 'selecting';
         vm.calculate = calculate;
         vm.numStates = 0;
@@ -29,12 +31,21 @@
         vm.cpTime = 0.0;
         vm.sops = [];
         vm.openSOP = openSOP;
+        vm.bddName = '';
+        vm.selectedVars = [];
+        vm.selectedValues = {};
+        vm.stateExists = 'uninitialized';
         var waitID = '';
 
         function updateSelected(nowSelected, previouslySelected) {
             var n = _.difference(nowSelected, previouslySelected);
-            vm.selectedSchedules = vm.selectedSchedules.concat(n);
-            console.log(vm.selectedSchedules);
+            if(vm.state == 'selecting') { // first we select schedules
+                n = _.filter(n, function(x) { return !_.isUndefined(x.isa) && x.isa == 'Operation'; });
+                vm.selectedSchedules = _.union(vm.selectedSchedules,n);
+            } else if(vm.state == 'done') { // then we select variables
+                n = _.filter(n, function(x) { return !_.isUndefined(x.isa) && x.isa == 'Thing'; });
+                vm.selectedVars = _.union(vm.selectedVars,n);
+            }
         }
         
         function actOnSelectionChanges() {
@@ -49,6 +60,32 @@
         function removeSchedule(s) {
             vm.selectedSchedules = _.difference(vm.selectedSchedules,[s]);
         }
+        function removeVar(v) {
+            vm.selectedVars = _.difference(vm.selectedVars,[v]);
+            vm.selectedValues = _.omitBy(vm.selectedValues,function(val,key) { return key == v.name; });
+            verify();
+        }
+
+        function verify() {
+            console.log('about to verify using bdd ' + vm.bddName);
+            console.log(vm.selectedValues);
+            var mess = {
+                'core': {
+                    'model': modelService.activeModel.id,
+                    'responseToModel': false
+                },
+                'command': {
+                    'bdd': vm.bddName,
+                    'partialState': _.mapValues(vm.selectedValues, function(str) { return str * 1; }) // convert "1" to 1
+                }
+            };
+            spServicesService.callService('BDDVerifier',{'data':mess},function(x){},function(x){}).then(function(repl){
+                if(!_.isUndefined(repl.attributes.result)) {
+                    if(repl.attributes.result) vm.stateExists = 'can';
+                    else vm.stateExists = 'can not';
+                } else vm.stateExists = '(an error has occured)';
+            });
+        }
 
         activate();
 
@@ -57,6 +94,7 @@
                 console.log(ev.attributes);
                 vm.numStates = ev.attributes['numStates'];
                 vm.sops = ev.attributes['cpSops'];
+                vm.bddName = ev.attributes['bddName'];
                 if(vm.sops.length == 0) {
                     vm.state = 'no sols';
                 } else {

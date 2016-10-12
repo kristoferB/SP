@@ -90,7 +90,8 @@ object SP extends App {
     CreateOpsFromManualModelService.transformation))
 
   mediator ! Publish("serviceHandler", RegisterService("SynthesizeModelBasedOnAttributes",
-    system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler), "SynthesizeModelBasedOnAttributes"),
+    system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler, serviceHandler),
+      "SynthesizeModelBasedOnAttributes"),
     SynthesizeModelBasedOnAttributesService.specification))
 
   mediator ! Publish("serviceHandler", RegisterService("ExtendIDablesBasedOnAttributes",
@@ -149,6 +150,11 @@ object SP extends App {
   mediator ! Publish("serviceHandler", RegisterService("VolvoRobotSchedule",
     system.actorOf(VolvoRobotSchedule.props(serviceHandler), "VolvoRobotSchedule"),
     VolvoRobotSchedule.specification, VolvoRobotSchedule.transformation))
+
+  import sp.virtcom.BDDVerifier
+  mediator ! Publish("serviceHandler", RegisterService("BDDVerifier",
+    system.actorOf(BDDVerifier.props(modelHandler), "BDDVerifier"),
+    BDDVerifier.specification, BDDVerifier.transformation))
 
 //
 //  import sp.areus.modalaService._
