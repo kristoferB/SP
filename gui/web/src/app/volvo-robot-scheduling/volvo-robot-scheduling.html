@@ -53,6 +53,38 @@
                     </tr>
                 </tbody>
             </table>
+
+            <br><br>
+            <table>
+                <thead>
+                    <tr><td><h5>
+                                <div ng-if="vm.selectedVars.length == 0">
+                                    Select variables for verification
+                                </div>
+                                <div ng-if="vm.selectedVars.length > 0 && vm.stateExists == 'uninitialized'">
+                                    Can this situation happen?
+                                </div>
+                                <div ng-if="vm.selectedVars.length > 0 && vm.stateExists != 'uninitialized'">
+                                    This {{vm.stateExists}} happen.
+                                </div>
+                    </h5></td></tr>
+                </thead>
+                <tbody ng-repeat="v in vm.selectedVars | orderBy:'name'">
+                    <tr>
+                        <td style="padding: 5px">
+                            <button type="button" class="btn btn-sm btn-primary" ng-click="vm.removeVar(v)">
+                                <i class="fa fa-close"></i> {{v.name}}
+                            </button>
+                            <label for="repeatSelect"> value: </label>
+                            <select name="repeatSelect" id="repeatSelect" ng-model="vm.selectedValues[v.name]" ng-change="vm.verify()">
+                                <option ng-repeat="val in v.attributes.stateVariable.domain"
+                                        value="{{v.attributes.stateVariable.domain.indexOf(val)}}">{{val}}</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
         </div>
         
     </div>
