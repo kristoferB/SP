@@ -15,8 +15,8 @@
     <!-- build:css styles/lib.css -->
     <!-- bower:css -->
     <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.css" />
-    <link rel="stylesheet" href="../bower_components/angular-dialog-service/dist/dialogs.min.css" />
-    <link rel="stylesheet" href="../bower_components/angular-gridster/dist/angular-gridster.min.css" />
+    <link rel="stylesheet" href="../bower_components/angular-dialog-service/dist/dialogs.css" />
+    <link rel="stylesheet" href="../bower_components/angular-gridster/dist/angular-gridster.css" />
     <link rel="stylesheet" href="../bower_components/nvd3/build/nv.d3.css" />
     <link rel="stylesheet" href="../bower_components/angular-ui-tree/dist/angular-ui-tree.css" />
     <link rel="stylesheet" href="../bower_components/angular-xeditable/dist/css/xeditable.css" />
@@ -50,11 +50,9 @@
     <script src="../bower_components/angular-sanitize/angular-sanitize.js"></script>
     <script src="../bower_components/angular-bootstrap-confirm/dist/angular-bootstrap-confirm.js"></script>
     <script src="../bower_components/angular-translate/angular-translate.js"></script>
-    <script src="../bower_components/angular-dialog-service/dist/dialogs.min.js"></script>
     <script src="../bower_components/angular-dialog-service/dist/dialogs.js"></script>
-    <script src="../bower_components/angular-dialog-service/dist/dialogs-default-translations.min.js"></script>
     <script src="../bower_components/angular-dialog-service/dist/dialogs-default-translations.js"></script>
-    <script src="../bower_components/angular-filter/dist/angular-filter.min.js"></script>
+    <script src="../bower_components/angular-filter/dist/angular-filter.js"></script>
     <script src="../bower_components/javascript-detect-element-resize/detect-element-resize.js"></script>
     <script src="../bower_components/angular-gridster/src/angular-gridster.js"></script>
     <script src="../bower_components/d3/d3.js"></script>
@@ -65,6 +63,7 @@
     <script src="../bower_components/angular-ui-tree/dist/angular-ui-tree.js"></script>
     <script src="../bower_components/angular-uuid4/angular-uuid4.js"></script>
     <script src="../bower_components/angular-xeditable/dist/js/xeditable.js"></script>
+    <script src="../bower_components/angular-touch/angular-touch.js"></script>
     <script src="../bower_components/jsoneditor/dist/jsoneditor.min.js"></script>
     <script src="../bower_components/lodash/lodash.js"></script>
     <script src="../bower_components/moment/moment.js"></script>
@@ -85,8 +84,6 @@
     <!-- inject:js -->
 
     <script src="/src/app/app.module.js"></script>
-
-    <script src="/src/app/Tobbe2/Tobbe2.module.js"></script>
 
     <script src="/src/app/active-order/active-order.module.js"></script>
 
@@ -132,19 +129,19 @@
 
     <script src="/src/app/sop-maker/sop-maker.module.js"></script>
 
+    <script src="/src/app/sop-view/sop-view.module.js"></script>
+
     <script src="/src/app/spServices/spServices.module.js"></script>
 
     <script src="/src/app/tables/tables.module.js"></script>
+
+    <script src="/src/app/Tobbe2/Tobbe2.module.js"></script>
 
     <script src="/src/app/trajectories/trajectories.module.js"></script>
 
     <script src="/src/app/volvo-robot-scheduling/volvo-robot-scheduling.module.js"></script>
 
     <script src="/src/app/widgets/widgets.module.js"></script>
-
-    <script src="/src/app/Tobbe2/Tobbe2.controller.js"></script>
-
-    <script src="/src/app/Tobbe2/datablock.controller.js"></script>
 
     <script src="/src/app/active-order/active-order.controller.js"></script>
 
@@ -254,6 +251,12 @@
 
     <script src="/src/app/sop-maker/sop-maker.controller.js"></script>
 
+    <script src="/src/app/sop-view/soop-calc.js"></script>
+
+    <script src="/src/app/sop-view/soop-draw.js"></script>
+
+    <script src="/src/app/sop-view/sop-view.component.js"></script>
+
     <script src="/src/app/spServices/spServices.controller.js"></script>
 
     <script src="/src/app/spServices/spServices.directive.js"></script>
@@ -265,6 +268,10 @@
     <script src="/src/app/tables/sp-table-info.directive.js"></script>
 
     <script src="/src/app/tables/sp-table.directive.js"></script>
+
+    <script src="/src/app/Tobbe2/datablock.controller.js"></script>
+
+    <script src="/src/app/Tobbe2/Tobbe2.controller.js"></script>
 
     <script src="/src/app/trajectories/trajectories.controller.js"></script>
 

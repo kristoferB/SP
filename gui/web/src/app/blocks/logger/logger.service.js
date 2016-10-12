@@ -29,7 +29,7 @@
         }
 
         function info(message, data, title) {
-            toastr.info(message, title);
+            //toastr.info(message, title);
             $log.info('Info: ' + message, data);
         }
 

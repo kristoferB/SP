@@ -302,6 +302,7 @@
 
 
         function createItem(itemKind) {
+            /*@ngInject*/
             var modalInstance = $uibModal.open({
                 templateUrl: '/app/item-explorer/create-item.html',
                 controller: 'CreateItemController',

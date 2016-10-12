@@ -24,7 +24,7 @@
                         id="create-item-dropdown" uib-dropdown-toggle uib-tooltip="Create item">
                         <i class="fa fa-plus"></i><i class="caret" style="margin-left: 5px;"></i>
                 </button>
-                <ul class="uib-dropdown-menu" role="menu" aria-labelledby="create-item-dropdown">
+                <ul uib-dropdown-menu role="menu" aria-labelledby="create-item-dropdown">
                     <li ng-repeat="itemKind in ::vm.itemKinds">
                         <a ng-click="vm.createItem(itemKind)">
                             {{::itemKind.label}}

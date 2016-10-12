@@ -7,7 +7,7 @@
                         ng-class="{'disabled': vm.numberOfErrors > 0}" uib-dropdown-toggle uib-tooltip="Mode">
                     {{vm.options.mode | ucfirst}} <span class="caret"></span>
                 </button>
-                <ul class="uib-dropdown-menu" role="menu" aria-labelledby="mode-dropdown">
+                <ul uib-dropdown-menu role="menu" aria-labelledby="mode-dropdown">
                     <li ng-repeat="mode in ::vm.modes">
                         <a ng-click="vm.setMode(mode)">
                             {{::mode | ucfirst}}

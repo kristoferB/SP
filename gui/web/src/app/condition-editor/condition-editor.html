@@ -7,7 +7,7 @@
                         ng-class="{'disabled': vm.numberOfErrors > 0}" uib-dropdown-toggle uib-tooltip="Mode">
                     {{vm.options.mode | ucfirst}} <span class="caret"></span>
                 </button>
-                <ul class="uib-dropdown-menu" role="menu" aria-labelledby="mode-dropdown">
+                <ul uib-dropdown-menu role="menu" aria-labelledby="mode-dropdown">
                     <li ng-repeat="mode in ::vm.modes">
                         <a ng-click="vm.setMode(mode)">
                             {{::mode | ucfirst}}
@@ -37,7 +37,7 @@
                         id="create-item-dropdown" uib-dropdown-toggle uib-tooltip="New condition">
                     <i class="fa fa-plus"></i><i class="caret" style="margin-left: 5px;"></i>
                 </button>
-                <ul class="uib-dropdown-menu" role="menu" aria-labelledby="create-item-dropdown">
+                <ul uib-dropdown-menu role="menu" aria-labelledby="create-item-dropdown">
                     <li ng-repeat="condType in ::vm.conditionTypes">
                         <a ng-click="vm.newCondition(op,condType)">
                             {{::condType.label}}

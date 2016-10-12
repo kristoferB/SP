@@ -42,7 +42,7 @@
             measures = {
                 'margin' : 15,
                 'opH' : 50,
-                'opW' : 60,
+                'opW' : 70,
                 'para' : 7,
                 'arrow' : 5,
                 'textScale': 6,
@@ -117,6 +117,18 @@
             return j;
         }
 
+        function drawOperationAttributes(struct, array, string, ystart, paper, measures) {
+            struct.clientSideAdditions[string] = [];
+            for(var j = 0; j < array.length; j++) {
+                var condition = paper.text(struct.clientSideAdditions.width / 2, ystart + measures.condLineHeight*j, array[j]);
+                struct.clientSideAdditions[string].push(condition);
+                struct.clientSideAdditions.drawnSet.push(condition);
+                struct.clientSideAdditions.setToDrag.push(condition);
+                condition.toFront();
+            }
+            return j;
+        }
+
         function drawSop(struct, measures, paper, firstLoop, doRedraw, dirScope, sequence) {
             var animTime = measures.animTime;
 
@@ -161,6 +173,18 @@
                     struct.clientSideAdditions.drawnText = paper.text(struct.clientSideAdditions.width / 2, (struct.clientSideAdditions.preGuards.length + struct.clientSideAdditions.preActions.length + 1) * measures.condLineHeight + (measures.nameLineHeight-measures.condLineHeight) / 2 , op.name).attr({'font-weight': 'bold'});
                     struct.clientSideAdditions.drawnRect = paper.rect(0, 0, struct.clientSideAdditions.width, struct.clientSideAdditions.height, 5).attr({fill:'#FFFFFF', 'stroke-width':1, text: struct.clientSideAdditions.drawnText});
 
+
+
+                    struct.clientSideAdditions.drawnAttr = paper.rect(
+                      struct.clientSideAdditions.width,
+                      struct.clientSideAdditions.height,
+                      5,
+                      5,
+                      1).attr({fill:'#121212', 'stroke-width':1});
+
+
+
+
                     if(dirScope.vm.widget.storage.editable) {
                         angular.element(struct.clientSideAdditions.drawnRect.node).contextmenu(opContextMenu);
                         angular.element(struct.clientSideAdditions.drawnText.node).contextmenu(opContextMenu);
@@ -170,8 +194,8 @@
                     //var arrowAnim = Raphael.animation({opacity:1}, 0);
                     //struct.clientSideAdditions.drawnArrow.animate(arrowAnim.delay(animTime));
 
-                    struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnRect, struct.clientSideAdditions.drawnText, struct.clientSideAdditions.drawnArrow);
-                    struct.clientSideAdditions.setToDrag.push(struct.clientSideAdditions.drawnRect, struct.clientSideAdditions.drawnText);
+                    struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnRect, struct.clientSideAdditions.drawnText, struct.clientSideAdditions.drawnArrow, struct.clientSideAdditions.drawnAttr);
+                    struct.clientSideAdditions.setToDrag.push(struct.clientSideAdditions.drawnRect, struct.clientSideAdditions.drawnText, struct.clientSideAdditions.drawnAttr);
 
                     struct.clientSideAdditions.setToDrag.toFront();
 
@@ -187,8 +211,10 @@
                     drawConditions(struct, struct.clientSideAdditions.postGuards, 'drawnPostGuards', postGuardYPos, paper, measures);
                     drawConditions(struct, struct.clientSideAdditions.postActions, 'drawnPostActions', postActionYPos, paper, measures);
 
-                    struct.clientSideAdditions.drawnPreLine = paper.path('M0,' + preLineYPos + ' l' + struct.clientSideAdditions.width + ',0');
-                    struct.clientSideAdditions.drawnPostLine = paper.path('M0,' + postLineYPos + ' l' + struct.clientSideAdditions.width + ',0');
+
+                    var temp = struct.clientSideAdditions.width-6;
+                    struct.clientSideAdditions.drawnPreLine = paper.path('M3,' + preLineYPos + ' l' + temp + ',0');
+                    struct.clientSideAdditions.drawnPostLine = paper.path('M3,' + postLineYPos + ' l' + temp + ',0');
                     struct.clientSideAdditions.drawnSet.push(struct.clientSideAdditions.drawnPreLine, struct.clientSideAdditions.drawnPostLine);
                     struct.clientSideAdditions.setToDrag.push(struct.clientSideAdditions.drawnPreLine, struct.clientSideAdditions.drawnPostLine);
 

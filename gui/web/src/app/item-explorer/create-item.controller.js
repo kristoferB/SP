@@ -5,9 +5,9 @@
         .module('app.itemExplorer')
         .controller('CreateItemController', CreateItemController);
 
-    CreateItemController.$inject = ['$modalInstance', 'itemKind'];
+    CreateItemController.$inject = ['$uibModalInstance', 'itemKind'];
     /* @ngInject */
-    function CreateItemController($modalInstance, itemKind) {
+    function CreateItemController($uibModalInstance, itemKind) {
         var vm = this;
         vm.name = '';
         vm.save = save;
@@ -15,11 +15,11 @@
         vm.itemKind = itemKind;
 
         function save() {
-            $modalInstance.close(vm.name);
+            $uibModalInstance.close(vm.name);
         }
 
         function cancel() {
-            $modalInstance.dismiss('cancel');
+            $uibModalInstance.dismiss('cancel');
         }
 
     }
