@@ -98,6 +98,7 @@ class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
           } yield Set(op1.id,op2.id)).toSet
 
       val rels = pairs.map { x => (x -> rel(x.toList(0),x.toList(1))) }.toMap
+      ops.foreach { x=>println("SopOPName: " + x.name + " ID " + x.id) }
       val sop = makeTheSop(ops.map(_.id), rels, EmptySOP)
       (makespan/timeFactor, sop.head)
     }
@@ -162,6 +163,15 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         str.substring(0,pos)
       }
 
+
+      val robotOpIdMap = schedules.map(s=>s->hierarchyRoot.children.map(findParent(s.id,_)).flatMap(x=>x).head.item).toMap
+      val robotOpMap = robotOpIdMap.flatMap{case (k,v)=>
+        val x = ids.find(_.id==v)
+        x match {
+          case None => None
+          case Some(idable) => Some(k->idable)
+        }}.toMap
+
       def splitIntoOpsAndZones(zoneMap: Map[Operation, Set[String]],
         opList: List[Operation], activeZones: Set[String], cmds : List[String],
         availableOps: List[Operation], robotSchedule: String): (Map[Operation, Set[String]],List[Operation]) = {
@@ -181,7 +191,8 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
             availableOps.find(o=>o.name == withoutSemiColon) match {
               case Some(o) =>
                 // operation o needs the active zones
-                val newOp = o.copy(name = robotSchedule+"_"+o.name, attributes = o.attributes merge SPAttributes("robotSchedule"->robotSchedule))
+                val newOp = o.copy(name = robotSchedule+"_"+o.name, attributes = o.attributes merge
+                  SPAttributes("robotSchedule"->robotSchedule,"original" -> o.id))
                 splitIntoOpsAndZones(zoneMap + (newOp -> activeZones), opList :+ newOp, activeZones, xs, availableOps, robotSchedule)
               case None =>
                 println("skipping command " + withoutSemiColon + " - no matching operation")
@@ -205,7 +216,7 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         val pops = opsAtLevel(p)
         println("schedule " + op.name + " contains ops " + pops.map(_.name).mkString(","))
         val robcmds = op.attributes.getAs[List[String]]("robotcommands").getOrElse(List())
-        val rs = s"RS${i+1}"
+        val rs = robotOpMap(op).name
         collector.v(robotScheduleVariable(rs), idleValue = Some(idle), attributes = h)
         splitIntoOpsAndZones(Map(), List(), Set(), robcmds, pops, rs)
       }
@@ -265,11 +276,27 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
           collector.x(zone, Set(forbiddenStr), attributes=h)
         }
       }
-
       mutexes = mutexes.distinct
 
       import CollectorModelImplicits._
       val uids = collector.parseToIDables()
+
+      // fix up oscar problem ids
+      operations = uids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
+
+      def getNewID(oldID: ID) = {
+        (for {
+          newop <- operations
+          origid <- newop.attributes.getAs[ID]("original")
+          if origid == oldID
+        } yield {
+          newop.id
+        }).head
+      }
+      mutexes = mutexes.map{case (x,y) => (getNewID(x), getNewID(y)) }
+      precedences = precedences.map{case (x,y) => (getNewID(x), getNewID(y)) }
+      forceEndTimes = forceEndTimes.map{case (x,y) => (getNewID(x), getNewID(y)) }
+
       val hids = uids ++ addHierarchies(uids, "hierarchy")
 
       val ro = new RobotOptimization(operations, precedences, mutexes, forceEndTimes)
