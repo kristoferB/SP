@@ -301,7 +301,7 @@ case object SOPLogic {
 
 
   def makeConds(c1: Map[ID, Proposition], c2: Map[ID, Proposition]): Map[ID, List[Condition]] = {
-    c1 map{ case (id, prop) =>
+    val inC1AndBoth = c1 map{ case (id, prop) =>
       val cond1 = PropositionCondition(prop, List(), SPAttributes(
         "kind" -> "precondition",
         "group" -> "sop"
@@ -314,6 +314,13 @@ case object SOPLogic {
           )))
         } else List(cond1)
       }
+    }
+    val onlyInC2 = c2.keySet.diff(c1.keySet)
+    onlyInC2.foldLeft(inC1AndBoth){case (acc, id) =>
+      acc + (id -> List(PropositionCondition(c2(id), List(), SPAttributes(
+            "kind" -> "precondition",
+            "group" -> "other"
+      ))))
     }
   }
 
