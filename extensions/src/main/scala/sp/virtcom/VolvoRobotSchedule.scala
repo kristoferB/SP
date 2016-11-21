@@ -98,9 +98,14 @@ class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
           } yield Set(op1.id,op2.id)).toSet
 
       val rels = pairs.map { x => (x -> rel(x.toList(0),x.toList(1))) }.toMap
-      ops.foreach { x=>println("SopOPName: " + x.name + " ID " + x.id) }
-      val sop = makeTheSop(ops.map(_.id), rels, EmptySOP)
-      (makespan/timeFactor, sop.head)
+
+      val opsPerRob = ops.groupBy(_.attributes.getAs[String]("robotSchedule")).collect {
+        case (Some(s), op) => s -> op
+      }.map { case (k,v) => println("schedule " + k + " contains " + v.map(x=>x.name+" "+x.id).mkString(", "))
+          v.map(_.id) }.toList
+      val sop = opsPerRob.map(l=>makeTheSop(l, rels, EmptySOP)).flatten
+
+      (makespan/timeFactor, sop)
     }
     (stats.completed, stats.time, sops.toList)
   }
@@ -323,7 +328,7 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
 
         (cpCompl,cpTime,cpSols) <- roFuture
         sops = cpSols.map { case (makespan,sop) =>
-          (makespan,SOPSpec(s"path_${makespan}", List(sop)))
+          (makespan,SOPSpec(s"path_${makespan}", sop))
         }.sortBy(_._1)
       } yield {
         val resAttr = SPAttributes("numStates"-> numstates, "cpCompleted" -> cpCompl, "cpTime" -> cpTime, "cpSops" -> sops, "bddName" -> bddName)

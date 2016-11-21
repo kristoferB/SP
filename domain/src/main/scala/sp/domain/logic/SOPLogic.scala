@@ -225,15 +225,16 @@ case object SOPLogic {
       o2 <- ops if (o1 != o2 && !sopRels.contains(Set(o1, o2)))
       rel <- relations.get(Set(o1, o2))
     } yield Set(o1, o2) -> rel).toMap
-    val cond = makeProps(missing, relations)
+    val cond = makeProps(missing, relations, ops)
 
-    val otherOps = relations.keys flatMap(_ map(id => id)) filter(id => !ops.contains(id)) toSet
+    val otherOps = relations.keys.flatMap(_ map(id => id)).filter(id => !ops.contains(id)).toSet
+
     val missingOthers = (for {
       o1 <- ops
       o2 <- otherOps
       rel <- relations.get(Set(o1, o2))
     } yield Set(o1, o2) -> rel).toMap
-    val otherCond = makeProps(missingOthers, relations)
+    val otherCond = makeProps(missingOthers, relations, ops)
 
     val conds = makeConds(cond, otherCond)
 
@@ -242,7 +243,7 @@ case object SOPLogic {
     sops map(updateSOP(_, conds))
   }
 
-  def makeProps(missing: Map[Set[ID], SOP], relations: Map[Set[ID], SOP]): Map[ID, Proposition] = {
+  def makeProps(missing: Map[Set[ID], SOP], relations: Map[Set[ID], SOP], opsInSop: List[ID]): Map[ID, Proposition] = {
     val res = missing.toList flatMap {
       case (_, s: Parallel) => List()
       case (_, s: Other) => List()
@@ -278,27 +279,58 @@ case object SOPLogic {
       val removeIds = for {
         id1 <- seqs
         id2 <- seqs
-        rels <- relations.get(Set(id1, id2)) if rels == Sequence(id1, id2)
+        rels <- relations.get(Set(id1, id2)) if id1!=id2 && rels == Sequence(id1, id2)
       } yield {
-        //println(s"remove $id1")
+//        println(s"remove $id1")
         id1
       }
 
+      val filteredProps = and.props.filterNot{
+        case EQ(SVIDEval(id), _) => removeIds.contains(id)
+        case _ => false
+      }
 
-        val filteredProps = and.props.filterNot{
-          case EQ(SVIDEval(id), _) => removeIds.contains(id)
-          case _ => false
-        }
-        id -> AND(filteredProps)
+      id -> AND(filteredProps)
     }
 
-    //println(s"temp: $temp" )
-    //println(s"Filtered: $filteredMap" )
+    // DANGEROUS HACK to get rid of ugly conditions
+    // ONLY works if sop is straight sequence
+    // REMOVE THIS CODE!!
+    val waitMap = filteredMap.map { case (id, and) =>
+      val seqs = and.props.flatMap{
+        case EQ(SVIDEval(id), ValueHolder(JString("f"))) => Some(id)
+        case _ => None
+      }
+      id -> seqs
+    }
+    val removeidMap = (for {
+      op1 <- opsInSop
+      op2 <- opsInSop if op1 != op2
+      rels <- relations.get(Set(op1, op2)) if rels == Sequence(op1, op2)
+      op1waits <- waitMap.get(op1)
+      op2waits <- waitMap.get(op2)
+    } yield {
+      val same = op2waits.intersect(op1waits)
+      op2 -> same
+    }).toMap
 
-    filteredMap
+    val filteredMap2 = filteredMap.map{case (id, and) if removeidMap.contains(id) =>
+      val removeIds = removeidMap(id)
+      val filteredProps = and.props.filterNot{
+        case EQ(SVIDEval(id), _) => removeIds.contains(id)
+        case _ => false
+      }
+      id -> AND(filteredProps)
+      case (id,and) => id -> and
+    }
+
+
+    // println(s"temp: $temp" )
+    // println(s"Filtered: $filteredMap" )
+
+    filteredMap2
 
   }
-
 
   def makeConds(c1: Map[ID, Proposition], c2: Map[ID, Proposition]): Map[ID, List[Condition]] = {
     val inC1AndBoth = c1 map{ case (id, prop) =>
