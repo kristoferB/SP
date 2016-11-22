@@ -31,6 +31,7 @@
         vm.cpTime = 0.0;
         vm.sops = [];
         vm.openSOP = openSOP;
+        vm.openGantt = openGantt;
         vm.bddName = '';
         vm.selectedVars = [];
         vm.selectedValues = {};
@@ -138,10 +139,17 @@
         function openSOP(sopid) {
             var widgetKind = _.find(dashboardService.widgetKinds, {title: 'SOP Maker'});
             if (widgetKind === undefined) {
-                logger.error('Item Explorer: Open with SOP Maker failed. ' +
-                             'Could not find widgetKind "SOPMaker".');
+                logger.error('Open with SOP Maker failed, could not find widgetKind.');
             }
             dashboardService.addWidget(vm.dashboard, widgetKind, {sopSpecID: sopid});
+        }
+
+        function openGantt(gantt) {
+            var widgetKind = _.find(dashboardService.widgetKinds, {title: 'Gantt Viewer'});
+            if (widgetKind === undefined) {
+                logger.error('Open with Gantt Viewer failed, could not find widgetKind.');
+            }
+            dashboardService.addWidget(vm.dashboard, widgetKind, {gantt: gantt});
         }
     }
 })();
