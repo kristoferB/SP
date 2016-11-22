@@ -40,7 +40,7 @@
             <br>Search complete? <b>{{vm.cpCompleted}}</b>
             <table width="90%">
                 <thead>
-                    <tr><td>Time</td><td>SOP</td></tr>
+                    <tr><td>Time</td><td>SOP</td><td>Gantt</td></tr>
                 </thead>
                 <tbody ng-repeat="s in vm.sops">
                     <tr>
@@ -48,7 +48,10 @@
                             <b>{{s._1}}s</b>
                         </td>
                         <td>
-                            <a ng-click="vm.openSOP(s._2.id)" style="cursor:pointer;" uib-tooltip="open SOP"><b>{{s._2.id}}</b></a>
+                            <a ng-click="vm.openSOP(s._2.id)" style="cursor:pointer;" uib-tooltip="open SOP"><b>Open SOP</b></a>
+                        </td>
+                        <td>
+                            <a ng-click="vm.openGantt(s._3)" style="cursor:pointer;" uib-tooltip="open gantt"><b>Open gantt</b></a>
                         </td>
                     </tr>
                 </tbody>

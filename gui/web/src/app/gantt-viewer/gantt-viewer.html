@@ -1,0 +1,8 @@
+<div ng-controller="ganttViewerController as vm" class="simple-widget">
+    <div class="panel-content" style="padding: 10px;">
+
+        <div gantt data="vm.gantt" headers="['minute']" headers-formats="{ minute: 'mm:ss', second: 'ss' }" view-scale="'10 second'" column-width="50">
+            <gantt-tooltips enabled="true" date-format="'mm:ss'" delay="100"></gantt-tooltips>
+        </div>
+    </div>
+</div>

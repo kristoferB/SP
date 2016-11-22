@@ -105,7 +105,7 @@ class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
           v.map(_.id) }.toList
       val sop = opsPerRob.map(l=>makeTheSop(l, rels, EmptySOP)).flatten
 
-      (makespan/timeFactor, sop)
+      (makespan/timeFactor, sop, xs.map(x=>(x._1,x._2/timeFactor,x._3/timeFactor)))
     }
     (stats.completed, stats.time, sops.toList)
   }
@@ -327,8 +327,8 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         ids_merged2 = ids_merged.filter(x=> !ids2.exists(y=>y.id==x.id)) ++ ids2
 
         (cpCompl,cpTime,cpSols) <- roFuture
-        sops = cpSols.map { case (makespan,sop) =>
-          (makespan,SOPSpec(s"path_${makespan}", sop))
+        sops = cpSols.map { case (makespan,sop,gantt) =>
+          (makespan,SOPSpec(s"path_${makespan}", sop), gantt)
         }.sortBy(_._1)
       } yield {
         val resAttr = SPAttributes("numStates"-> numstates, "cpCompleted" -> cpCompl, "cpTime" -> cpTime, "cpSops" -> sops, "bddName" -> bddName)
