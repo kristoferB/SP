@@ -29,7 +29,8 @@
         }
 
         function info(message, data, title) {
-            toastr.info(message, title);
+            // removed by MD temporarily, too much clutter produced.
+            // toastr.info(message, title);
             $log.info('Info: ' + message, data);
         }
 

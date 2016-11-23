@@ -234,8 +234,8 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
       var mutexes: List[(ID,ID)] = List()
       var forceEndTimes: List[(ID,ID)] = List()
 
-      // create ops
-      zoneMapsAndOps.foreach { x =>
+      // create ops and op
+      val seqs = zoneMapsAndOps.map { x =>
         val ops = x._2
         operations ++= ops
         if(ops.size > 1) {
@@ -255,6 +255,7 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
           collector.op(o.name, Seq(o.attributes merge trans merge h))
           done
         }}
+        ops.map(_.id)
       }
 
       // create forbidden zones
@@ -264,21 +265,18 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         val forbiddenPairs = (for {
           o1 <- opsInZone
           o2 <- opsInZone if o1 != o2
-          rs1 <- o1.attributes.getAs[String]("robotSchedule")
-          rs2 <- o2.attributes.getAs[String]("robotSchedule") if rs1 != rs2
         } yield {
-          Set((rs1,o1),(rs2,o2))
+          Set(o1,o2)
         }).toSet
 
         if(forbiddenPairs.nonEmpty) {
-          val forbiddenStr = forbiddenPairs.map{ s =>
-            val rs1 = robotScheduleVariable(s.toList(0)._1)
-            val o1 = s.toList(0)._2
-            val rs2 = robotScheduleVariable(s.toList(1)._1)
-            val o2 = s.toList(1)._2
+          val forbiddenOps = forbiddenPairs.map{ s =>
+            val o1 = s.toList(0)
+            val o2 = s.toList(1)
             mutexes:+=(o1.id,o2.id)
-            s"(${rs1} == ${o1.name} && ${rs2} == ${o2.name})" }.mkString(" || ")
-          collector.x(zone, Set(forbiddenStr), attributes=h)
+            Set(o1.name,o2.name)
+          }.flatten
+          collector.x(zone, operations=forbiddenOps, attributes=h)
         }
       }
       mutexes = mutexes.distinct
@@ -302,7 +300,9 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
       precedences = precedences.map{case (x,y) => (getNewID(x), getNewID(y)) }
       forceEndTimes = forceEndTimes.map{case (x,y) => (getNewID(x), getNewID(y)) }
 
-      val hids = uids ++ addHierarchies(uids, "hierarchy")
+      val ss = seqs.map(l=>Sequence(l.map(id=>Hierarchy(getNewID(id))):_*))
+      val sopspec = SOPSpec(schedules.map(_.name).toSet.mkString("_"), ss,h)
+      val hids = (List(sopspec) ++ uids) ++ addHierarchies((List(sopspec) ++ uids), "hierarchy")
 
       val ro = new RobotOptimization(operations, precedences, mutexes, forceEndTimes)
       val roFuture = Future { ro.test }
