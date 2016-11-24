@@ -86,7 +86,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 			}
 		}
 		//place middle
-		if( !(nEmptyRight == 0 && nEmptyMiddle < 2) ) {
+		if( !(nEmptyRight == 0 && nEmptyMiddle < 2) || h == 0 ) {
 			for (i <- 0 to 3 ) {
 				if (middle(i) == 0) {
 					var state = newState();
@@ -138,7 +138,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 			}
 		}
 		//place middle
-		if( !(nEmptyLeft == 0 && nEmptyMiddle < 2) ) {
+		if( !(nEmptyLeft == 0 && nEmptyMiddle < 2) || h == 0 ) {
 			for (i <- 0 to 3 ) {
 				if (middle(i) == 0) {
 					var state = newState();

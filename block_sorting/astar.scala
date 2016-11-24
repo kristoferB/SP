@@ -1,7 +1,6 @@
 package astar
 import state.State
 import scala.collection.mutable.ArrayBuffer
-import scala.io.StdIn.{readLine}
 object Astar {
 	def main(args: Array[String]) {
 		var leftPlates1: Array[Byte] = Array(1,1,1,1,2,3,4,0,0,0,0,0,0,0,0,0)
