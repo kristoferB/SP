@@ -10,7 +10,7 @@ import scala.collection.mutable.MutableList
 
 object BSservice extends SPService {
 
-val specification = SPAttributes(
+  val specification = SPAttributes(
     "service" -> SPAttributes(
       "group" -> "hide" // to organize in gui. maybe use "hide" to hide service in gui
     ),
@@ -24,32 +24,64 @@ val specification = SPAttributes(
     TransformValue("fixturePositions", _.getAs[Int]("fixturePositions"))
     )
 
-
   val transformation = transformToList(transformTuple.productIterator.toList)
   def props(serviceHandler: ActorRef) = Props(classOf[BSservice], serviceHandler)
 
 }
-class BSservice(sh: ActorRef) extends Actor with ServiceSupport {
+class BSservice(sh: ActorRef) extends Actor with ServiceSupport{
   var fixturePosition = 2
 
   def receive = {
     case r@Request(service, attr, ids, reqID) => {
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
-        println("hej")
-  
-       
+/**
+      val suggestedPos = transform(BSservice.transformTuple._3)
+      if (suggestedPos > 0) fixturePosition = suggestedPos
+      else if (fixturePosition == 1) fixturePosition = 2
+      else fixturePosition = 1
 
-     
+      val rawTower = transform(BSservice.transformTuple._2)
+      val tower = makeTower(rawTower)
 
 
-      replyTo ! Response(List(),SPAttributes("somekey" -> "somevalue"), rnr.req.service, rnr.req.reqID)
+      tower.foreach{t =>
+        val paraSOP = towerToSOP(t, fixturePosition, ids)
+        val sopSpec = SOPSpec("tower", List(paraSOP._1))
+        val sopSpecLoad = SOPSpec("load", List(paraSOP._2))
+        val updIds = sopSpec :: sopSpecLoad :: paraSOP._3 ++ ids
+
+        val stations = Map("tower" -> sopSpec.id, "load" -> sopSpecLoad.id)
+
+        println("The tower: ")
+        paraSOP._4.map(println)
+
+
+        if (paraSOP._3.nonEmpty) {
+          sh ! Request("OrderHandler", SPAttributes(
+            "order" -> SPAttributes(
+              "id" -> ID.newID,
+              "name" -> towerName(t),
+              "stations" -> stations
+            )
+          ), updIds)
+        }
+      }
+
+      if (tower.isEmpty){
+        println("tower could not be parsed: "+ rawTower)
+      }
+		*/
+
+      replyTo ! Response(List(), SPAttributes("tower" -> "hej"), rnr.req.service, rnr.req.reqID)
     }
     case error: SPError => println(s"Operator Service got an error: $error")
   }
 }
 
 
+
+/**
 trait TowerBuilder extends TowerOperationTypes {
 
   def towerToSOP(t: List[Brick],fixturePosition: Int, ids: List[IDAble]) = {
@@ -200,4 +232,6 @@ trait TowerOperationTypes {
     Operation(s"O_$ability${resource}", List(), attributes = SPAttributes("ability" -> AbilityStructure(ab.id, List())))
   }
 
-}
+
+}*/
+
