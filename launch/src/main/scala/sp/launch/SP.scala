@@ -256,6 +256,14 @@ object SP extends App {
     OperatorInstructions.specification,
     OperatorInstructions.transformation
   )  )
+  
+  /**import sp.blockSorting
+  mediator ! Publish("serviceHandler", RegisterService(
+    "BSservice",
+    system.actorOf(BSservice.props(serviceHandler), "BSservice"),
+    BSservice.specification,
+    BSservice.transformation
+  ))*/
 
   // launch REST API
   sp.server.LaunchGUI.launch
