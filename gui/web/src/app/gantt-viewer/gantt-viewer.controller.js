@@ -17,30 +17,41 @@
         vm.dashboard = $scope.$parent.$parent.$parent.vm.dashboard;
 
         vm.gantt = [];
+        vm.sortByEndTime = true;
+        vm.load = load;
 
-        function load() {
+        function load(sortByEndTime) {
             if(!_.isUndefined(vm.widget.storage.gantt)) {
+                vm.gantt = [];
                 var gantt = vm.widget.storage.gantt;
                 
                 // check if model is still valid
                 if(_.some(gantt, function(row) { return null === itemService.getItem(row._1); })) {
                     vm.widget.storage.gantt = [];
-                    vm.gantt = [];
                     return;
                 }
                 
                 var now = moment().startOf('year');
                 // sort on end times
-                gantt = _.sortBy(gantt, function(row) { return row._3; });
+                if(sortByEndTime)
+                    gantt = _.sortBy(gantt, function(row) { return row._3; });
+                else
+                    gantt = _.sortBy(gantt, function(row) { return itemService.getItem(row._1).name; });
                 _.each(gantt, function(row) {
                     var opName = itemService.getItem(row._1).name;
                     var from = moment(now); from.add(row._2, 'seconds').format();
                     var to = moment(now); to.add(row._3, 'seconds').format();
-                    var t = { name: opName, from: from, to: to };
-                    console.log(from);
+                    var t = { name: opName, from: from, to: to, color: '#DC143C', content: ''};
                     vm.gantt.push({name: opName, tasks: [t]});
                 });
             }
+        }
+
+        vm.registerApi = registerApi;
+        function registerApi(api) {
+            api.core.on.ready($scope, function () {
+                api.side.setWidth(200);
+            });
         }
         
         function activate() {
@@ -48,11 +59,11 @@
                 dashboardService.closeWidget(vm.widget.id);
             });
             if(itemService.itemsFetched) {
-                load();
+                load(vm.sortByEndTime);
             } else {
                 var listener = $scope.$on('itemsFetch', function () {
                     listener();
-                    load();
+                    load(vm.sortByEndTime);
                 });
             }
         }
