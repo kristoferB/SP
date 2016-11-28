@@ -1,6 +1,7 @@
 package astar.state
+import astar.move.Move
 import scala.collection.mutable.ArrayBuffer
-class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var middle: Array[Byte], var leftRobot: Byte, var rightRobot: Byte, var n: Int, var desiredState: State, var moves: String) {
+class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var middle: Array[Byte], var leftRobot: Byte, var rightRobot: Byte, var n: Int, var desiredState: State, var moves: ArrayBuffer[Move]) {
 	if ( leftPlates.length != 16 && rightPlates.length != 16 && middle.length != 4 ) {
 		throw new IllegalArgumentException
 	}
@@ -40,7 +41,52 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 		return es
 	}
 	
-	private def newState() : State = new State(leftPlates.clone, rightPlates.clone, middle.clone, leftRobot, rightRobot, n+1, desiredState, moves)
+	private def newState() : State = new State(leftPlates.clone, rightPlates.clone, middle.clone, leftRobot, rightRobot, n+1, desiredState, moves.clone)
+	
+	def doMove(var move: Move) : State = { //update with colors
+		var state = newState();
+		if (move.usingLeftRobot && move.usingMiddle && move.isPicking) {
+			if (leftRobot != 0 || middle(move.position) == 0) return null
+				state.leftRobot = state.middle(move.position)
+				state.middle(move.position) = 0
+		}
+		else if (move.usingLeftRobot && !move.usingMiddle && move.isPicking) {
+			if (leftRobot != 0 || leftPlates(move.position) == 0) return null
+				state.leftRobot = state.leftPlates(move.position)
+				state.leftPlates(move.position) = 0
+		}
+		else if (move.usingLeftRobot && move.usingMiddle && !move.isPicking) {
+			if (leftRobot == 0 || middle(move.position) != 0) return null
+				state.middle(move.position) = state.leftRobot
+				state.leftRobot = 0
+		}
+		else if (move.usingLeftRobot && !move.usingMiddle && !move.isPicking) {
+			if (leftRobot == 0 || leftPlates(move.position) != 0) return null
+				state.leftPlates(move.position) = state.leftRobot
+				state.leftRobot = 0
+		}
+		else if (!move.usingLeftRobot && move.usingMiddle && move.isPicking) {
+			if (rightRobot != 0 || middle(move.position) == 0) return null
+				state.rightRobot = state.middle(move.position)
+				state.middle(move.position) = 0
+		}
+		else if (!move.usingLeftRobot && !move.usingMiddle && move.isPicking) {
+			if (rightRobot != 0 || rightPlates(move.position) == 0) return null
+				state.rightRobot = state.rightPlates(move.position)
+				state.rightPlates(move.position) = 0
+		}
+		else if (!move.usingLeftRobot && move.usingMiddle && !move.isPicking) {
+			if (leftRobot == 0 || middle(move.position) != 0) return null
+				state.middle(move.position) = state.rightRobot
+				state.rightRobot = 0
+		}
+		else if (!move.usingLeftRobot && !move.usingMiddle && !move.isPicking) {
+			if (leftRobot == 0 || leftPlates(move.position) != 0) return null
+				state.rightPlates(move.position) = state.rightRobot
+				state.rightRobot = 0
+		}
+		return state
+	}
 	def nextStates() : ArrayBuffer[State] = {
 		var states = ArrayBuffer[State]()
 		val nEmptyLeft = emptySpacesLeft
@@ -55,7 +101,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 				var state = newState();
 				state.leftRobot = state.leftPlates(i)
 				state.leftPlates(i) = 0
-				state.moves += "L" + (i+1).toString + "->LR, "
+				state.moves += new Move(true, false, true, (i+1), leftPlates(i))
 				state.Update()
 				states += state
 			}
@@ -66,7 +112,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 				var state = newState();
 				state.leftRobot = state.middle(i)
 				state.middle(i) = 0
-				state.moves += "M" + (i+1).toString + "->LR, "
+				state.moves += new Move(true, true, true,(i+1), middle(i))
 				state.Update()
 				states += state
 			}
@@ -80,7 +126,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 				var state = newState();
 				state.leftPlates(i) = state.leftRobot
 				state.leftRobot = 0
-				state.moves += "LR->L" + (i+1).toString + ", "
+				state.moves += new Move(true, false, false,(i+1), leftRobot)
 				state.Update()
 				states += state
 			}
@@ -92,7 +138,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 					var state = newState();
 					state.middle(i) = state.leftRobot
 					state.leftRobot = 0
-					state.moves += "LR->M" + (i+1).toString + ", "
+					state.moves += new Move(true, true, false,(i+1), leftRobot)
 					state.Update()
 					states += state
 				}
@@ -108,7 +154,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 				var state = newState();
 				state.rightRobot = state.rightPlates(i)
 				state.rightPlates(i) = 0
-				state.moves += "R" + (i+1).toString + "->RR, "
+				state.moves += new Move(false, false, true,(i+1), rightPlates(i))
 				state.Update()
 				states += state
 			}
@@ -119,7 +165,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 				var state = newState();
 				state.rightRobot = state.middle(i)
 				state.middle(i) = 0
-				state.moves += "M" + (i+1).toString + "->RR, "
+				state.moves += new Move(false, true, true,(i+1), middle(i))
 				state.Update()
 				states += state
 			}
@@ -132,7 +178,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 				var state = newState();
 				state.rightPlates(i) = state.rightRobot
 				state.rightRobot = 0
-				state.moves += "RR->R" + (i+1).toString + ", "
+				state.moves += new Move(false, false, false, (i+1), rightRobot)
 				state.Update()
 				states += state
 			}
@@ -144,18 +190,14 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 					var state = newState();
 					state.middle(i) = state.rightRobot
 					state.rightRobot = 0
-					state.moves += "RR->M" + (i+1).toString + ", "
+					state.moves += new Move(false, true, false, (i+1), rightRobot)
 					state.Update()
 					states += state
 				}
 			}
 		}
 		
-	}
-	// both, left mid
-	// both, right mid
-	// both, none mid
-		
+	}		
 	return states
 	}
 }

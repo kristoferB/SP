@@ -1,6 +1,8 @@
 package astar
 import state.State
+import move.Move
 import scala.collection.mutable.ArrayBuffer
+import Array._
 object Astar {
 	def main(args: Array[String]) {
 		var leftPlates1: Array[Byte] = Array(1,1,1,1,2,3,4,0,0,0,0,0,0,0,0,0)
@@ -15,8 +17,8 @@ object Astar {
 		var leftRobot2: Byte = 0
 		var rightRobot2: Byte = 0
 	
-		var desiredState = new State(leftPlates2, rightPlates2, middle2, leftRobot2, rightRobot2, 0, null, "")
-		var start = new State(leftPlates1, rightPlates1, middle1, leftRobot1, rightRobot1, 0, desiredState, "")
+		var desiredState = new State(leftPlates2, rightPlates2, middle2, leftRobot2, rightRobot2, 0, null, null)
+		var start = new State(leftPlates1, rightPlates1, middle1, leftRobot1, rightRobot1, 0, desiredState, ArrayBuffer[Move]())
 		var finnish = start
 		
 		if(start.h != 0) {
@@ -74,6 +76,35 @@ object Astar {
 		}
 		
 		//State.printState(finnish)
-		println(finnish.moves)
+		var moves = finnish.moves
+		var s = ""
+		for (i <- 0 to moves.length-1) s += moves(i).toString + ", "
+		println(s)
+		
+		var parallellMoves = ofDim[Move](moves.length,2)
+		var states = Array[State](moves.length)
+		
+		parallellMoves(0)(0) = moves(0)
+		states(0) = start.doMove(moves(0))
+		var index1 = 1
+		var index2 = 0
+		
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
