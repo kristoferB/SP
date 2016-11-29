@@ -2,12 +2,12 @@ package astar
 import scala.collection.mutable.ArrayBuffer
 import Array._
 object Astar {
-	def solver(startState: State) : Array[Move] = {
+	def solver(startState: BlockState) : Array[Move] = {
 		var finish = startState
 		
 		if(startState.h != 0) {
-			var states = ArrayBuffer[State]()
-			var oldStates = ArrayBuffer[State]()
+			var states = ArrayBuffer[BlockState]()
+			var oldStates = ArrayBuffer[BlockState]()
 			states += startState
 			var foundSolution = false
 			var currentIndex = 0;
@@ -28,8 +28,8 @@ object Astar {
 				if(!foundSolution) {
 					for (newState <- nextStates) {
 						var equalsOtherState = false
-						for(otherState <- states) equalsOtherState |= State.stateEquals(newState,otherState)
-						for(otherState <- oldStates) equalsOtherState |= State.stateEquals(newState,otherState)
+						for(otherState <- states) equalsOtherState |= BlockState.stateEquals(newState,otherState)
+						for(otherState <- oldStates) equalsOtherState |= BlockState.stateEquals(newState,otherState)
 						if(!equalsOtherState) states += newState
 					}
 					
@@ -69,8 +69,8 @@ object Astar {
 		
 	}
 	
-	private def parallel(state: State, moves: Array[Move]) : Array[Move] = {
-		var stateArray = ArrayBuffer[State]()
+	private def parallel(state: BlockState, moves: Array[Move]) : Array[Move] = {
+		var stateArray = ArrayBuffer[BlockState]()
 		
 		for(i <- 0 to moves.length-1) {
 			var newState = state.doMove(moves(i))

@@ -1,19 +1,19 @@
 package astar
 import scala.collection.mutable.ArrayBuffer
-class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var middle: Array[Byte], var leftRobot: Byte, var rightRobot: Byte, var n: Int, var desiredState: State, var moves: ArrayBuffer[Move]) {
+class BlockState( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var middle: Array[Byte], var leftRobot: Byte, var rightRobot: Byte, var n: Int, var desiredState: BlockState, var moves: ArrayBuffer[Move]) {
 	if ( leftPlates.length != 16 && rightPlates.length != 16 && middle.length != 4 ) {
 		throw new IllegalArgumentException
 	}
 	var h = -1
 	var f = -1
 	if(desiredState != null) {
-		h = State.h(this, desiredState)
+		h = BlockState.h(this, desiredState)
 		f = n + h
 	}
 	
 	private def Update() {
 	if(desiredState != null) {
-		h = State.h(this, desiredState)
+		h = BlockState.h(this, desiredState)
 	}
 	f = n + h
 	}
@@ -40,9 +40,9 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 		return es
 	}
 	
-	private def newState() : State = new State(leftPlates.clone, rightPlates.clone, middle.clone, leftRobot, rightRobot, n+1, desiredState, moves.clone)
+	private def newState() : BlockState = new BlockState(leftPlates.clone, rightPlates.clone, middle.clone, leftRobot, rightRobot, n+1, desiredState, moves.clone)
 	
-	def doMove(move: Move) : State = {
+	def doMove(move: Move) : BlockState = {
 		var state = newState();
 		if (move.usingLeftRobot && move.usingMiddle && move.isPicking) {
 			if (leftRobot != 0 || middle(move.position) != move.color) return null
@@ -87,8 +87,8 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 		state.moves += move
 		return state
 	}
-	def nextStates() : ArrayBuffer[State] = {
-		var states = ArrayBuffer[State]()
+	def nextStates() : ArrayBuffer[BlockState] = {
+		var states = ArrayBuffer[BlockState]()
 		val nEmptyLeft = emptySpacesLeft
 		val nEmptyRight = emptySpacesRight
 		val nEmptyMiddle = emptySpacesMiddle
@@ -201,7 +201,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 		return states
 	}
 }
-object State {
+object BlockState {
 	private def compare(b1: Byte, b2: Byte) : Int = {
 		if (b1==b2 || b2==0) {
 			return 0 }
@@ -209,7 +209,7 @@ object State {
 			return 1 }
 	}
 
-	private def sameZoneCost(s1: State, s2: State) : Int = {
+	private def sameZoneCost(s1: BlockState, s2: BlockState) : Int = {
 		var difference: Int = 0
 		var i: Int = 0
 		for (i <- 0 to 15 ) {
@@ -224,7 +224,7 @@ object State {
 		return 2*difference
 	}
 	
-	private def h(s1: State, s2: State) : Int = {
+	private def h(s1: BlockState, s2: BlockState) : Int = {
 		var difference: Int = 0
 		for(k <- 1 to 4 ) {
 			var	nl1 = 0; var nr1 = 0; var nm1 = 0; var rl1 = 0; var rr1 = 0;
@@ -293,7 +293,7 @@ object State {
 		return difference + sameZoneCost(s1,s2)
 	}
 	
-	def stateEquals(s1: State, s2: State) : Boolean = {
+	def stateEquals(s1: BlockState, s2: BlockState) : Boolean = {
 		var equals = true
 		var i: Int = 0
 		for (i <- 0 to 15 ) {
@@ -308,7 +308,7 @@ object State {
 		return equals
 	}
 	
-	def quickSort(states: ArrayBuffer[State]) {
+	def quickSort(states: ArrayBuffer[BlockState]) {
 	
 		def swap(i: Int, j: Int) {
 			val temp = states(i)
@@ -335,7 +335,7 @@ object State {
 		sort(0, states.length - 1)
 	}
 	
-	def printState(s: State) {
+	def printState(s: BlockState) {
 		var i: Int = 0
 		var line: String = ""
 		for (i <- 0 to 15 ) {

@@ -20,7 +20,7 @@
         'app.conditionEditor',
         'app.operationControl',
         'app.kubInputGUI',
-	'app.kubInputGUII4',
+	'app.BSI4GUI' ,
         'app.operatorInstGUI',
         'app.robotCycleAnalysis',
         'app.activeOrder',

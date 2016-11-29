@@ -6,10 +6,10 @@ import sp.domain.Logic._
 import sp.domain._
 import sp.system._
 import sp.system.messages._
-
-
 import scala.collection.mutable.MutableList
-import astar.state.State
+import astar._
+import scala.collection.mutable.ArrayBuffer
+
 object BSservice extends SPService {
 
   val specification = SPAttributes(
@@ -17,12 +17,16 @@ object BSservice extends SPService {
       "group" -> "hide" // to organize in gui. maybe use "hide" to hide service in gui
     ),
     "getNext" -> KeyDefinition("Boolean", List(), None),
-    "buildOrder" -> KeyDefinition("List[List[String]]", List(), None),
+    "Left" -> KeyDefinition("List[List[String]]", List(), None),
+    "Right" -> KeyDefinition("List[List[String]]", List(), None),
+    "Middle" -> KeyDefinition("List[List[Stting]]", List(), None),
     "fixturePositions" -> KeyDefinition("Int", List(1,2), Some(0))
   )
   val transformTuple = (
     TransformValue("getNext", _.getAs[Boolean]("getNext")),
-    TransformValue("buildOrder", _.getAs[List[List[String]]]("buildOrder")),
+    TransformValue("Left", _.getAs[List[List[String]]]("Left")),
+    TransformValue("Right", _.getAs[List[List[String]]]("Right")),
+    TransformValue("Middle", _.getAs[List[List[String]]]("Middle")),
     TransformValue("fixturePositions", _.getAs[Int]("fixturePositions"))
     )
 
@@ -38,18 +42,23 @@ class BSservice(sh: ActorRef) extends Actor with ServiceSupport with TowerBuilde
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
       
-      val desiredStateRaw = transform(BSservice.transformTuple._2)
+      val leftRaw = transform(BSservice.transformTuple._2)
+      val rightRaw = transform(BSservice.transformTuple._3)
+      val middleRaw = transform(BSservice.transformTuple._4)
+      
+      println(leftRaw)
+      println(rightRaw)
+      println(middleRaw)
   
-      val (leftPlate, rightPlate, middlePlate) = GuiToOpt(desiredStateRaw)
+      val desiredRaw = GuiToOpt(leftRaw,rightRaw,middleRaw)
       
-      val startState = new State(leftPlate,rightPlate,middlePlate,0,0,0,null,"")
-      val desiredState = new State(leftPlate,rightPlate,middlePlate,0,0,0,startState,"")
+      val desiredState = new BlockState(desiredRaw._1,desiredRaw._2,desiredRaw._3,0,0,0,null,null)
+      val startState = new BlockState(desiredRaw._1,desiredRaw._2,desiredRaw._3,0,0,0,desiredState,ArrayBuffer[Move]())
       
-      //val moves = Astar(desiredState)
-      val moves = List[Move](new Move(true,true,true,1),new Move(false,false,false,1))
+      val moves = Astar.solver(startState)
       val paraSOP = movesToSOP(moves, ids)
       val sopSpec = SOPSpec("Sequence", List(paraSOP._1))
-      val upIds = sopSpec :: paraSOP._2 ++ ids
+      val upIds = sopSpec :: paraSOP._2 ++ ids   
       
       sh! Request("OrderHandler", SPAttributes(
         "order" -> SPAttributes(
@@ -58,7 +67,9 @@ class BSservice(sh: ActorRef) extends Actor with ServiceSupport with TowerBuilde
           "stations" -> "R4_R5"
         )
       ) ,upIds   )
-
+      
+   
+      
       replyTo ! Response(List(), SPAttributes("sequence" -> sopSpec), rnr.req.service, rnr.req.reqID)
     }
 
@@ -70,52 +81,58 @@ class BSservice(sh: ActorRef) extends Actor with ServiceSupport with TowerBuilde
 
 trait TowerBuilder extends TowerOperationTypes {
 
-  def GuiToOpt(desiredStateRaw: List[List[String]]) = {
+  def GuiToOpt(left: List[List[String]], right: List[List[String]], middle: List[List[String]]) = {
     val leftPlate = new Array[Byte](16)
     var rightPlate = new Array[Byte](16)
     val middlePlate = new Array[Byte](4)
     var j = 0
-    desiredStateRaw(1).foreach{i =>
-      leftPlate(j) = i.toByte 
-      j += 1
+    left.foreach{i =>
+      i.foreach{k =>
+        leftPlate(j) = k.toByte 
+        j += 1
+      }
     }
     j = 0
-    desiredStateRaw(2).foreach{i =>
-      rightPlate(j) = i.toByte 
-      j += 1
+    right.foreach{i =>
+      i.foreach{k =>
+        rightPlate(j) = k.toByte 
+        j += 1
+      }
     }
     j = 0
-    desiredStateRaw(3).foreach{i =>
-      middlePlate(j) = i.toByte 
-      j += 1
+    middle.foreach{i =>
+      i.foreach{k =>
+        middlePlate(j) = k.toByte 
+        j += 1
+      }
     }
     
     (leftPlate, rightPlate, middlePlate)
   }
 
-  def movesToSOP(moves: List[Move],   ids: List[IDAble]) = {
+  def movesToSOP(moves: Array[Move],  ids: List[IDAble]) = {
     val nameMap = ids.map(x => x.name -> x).toMap   
     val operations = movesToOperations(moves,nameMap)
     val sequence = Sequence(operations.map(o => Hierarchy(o.id)):_*)
     
-    (sequence, operations)
+    (sequence, operations.toList)
   }
   
-  def movesToOperations(moves: List[Move], nameMap: Map[String,IDAble]) = {
+  def movesToOperations(moves: Array[Move], nameMap: Map[String,IDAble]) = {
     val operations = for { m <- moves
     } yield {
       var name = "placeBlock"
       var position = 110
       var robot = "R5"
-      if(m.ispicking == true){
+      if(m.isPicking == true){
         name = "pickBlock"
       }
-      if(m.shared == true){
+      if(m.usingMiddle == true){
         position += m.position
-        if(m.robot == true){
+        if(m.usingLeftRobot == true){
           robot = "R4"
         }
-     } else if(m.robot == true){
+     } else if(m.usingLeftRobot == true){
         robot = "R4"
         if(m.position <= 8){
           position = 120 + m.position
@@ -136,12 +153,7 @@ trait TowerBuilder extends TowerOperationTypes {
   }
   
  // def operationsName(moves: List[Move]) moves.map(_.pos).mkString("_")
-
-  case class Move(robot: Boolean, ispicking: Boolean, shared: Boolean, position: Int)
-  
 }
-
-
 
 trait TowerOperationTypes {
   def makeOperationWithParameter(resource: String, ability: String, parameter: String, value: SPValue, nameMap: Map[String, IDAble]) = {

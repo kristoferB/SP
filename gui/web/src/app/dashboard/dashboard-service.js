@@ -25,6 +25,7 @@
                 dashboardID: 2
             }),
             widgetKinds: [
+		{sizeX: 4, sizeY: 4, title: 'BlockSorting', template: 'app/BSI4GUI/BSI4GUI.html'},
                 {sizeX: 4, sizeY: 4, title: 'Item Explorer', template: 'app/item-explorer/item-explorer.html'},
                 {sizeX: 4, sizeY: 4, title: 'Item Editor', template: 'app/item-editor/item-editor.html'},
                 {sizeX: 6, sizeY: 4, title: 'Condition Editor', template: 'app/condition-editor/condition-editor.html'},
