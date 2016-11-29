@@ -260,7 +260,7 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
 
       // create forbidden zones
       val zones = zoneMap.map { case (o,zones) => zones }.flatten.toSet
-      zones.foreach { zone =>
+      val zoneSeqs = zones.map { zone =>
         val opsInZone = zoneMap.filter { case (o,zones) => zones.contains(zone) }.map(_._1)
         val forbiddenPairs = (for {
           o1 <- opsInZone
@@ -269,16 +269,19 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
           Set(o1,o2)
         }).toSet
 
-        if(forbiddenPairs.nonEmpty) {
+
+        val l = (if(forbiddenPairs.nonEmpty) {
           val forbiddenOps = forbiddenPairs.map{ s =>
             val o1 = s.toList(0)
             val o2 = s.toList(1)
             mutexes:+=(o1.id,o2.id)
-            Set(o1.name,o2.name)
-          }.flatten
-          collector.x(zone, operations=forbiddenOps, attributes=h)
-        }
-      }
+            Set(o1.id,o2.id)
+          }.toList.flatten.distinct
+          // collector.x(zone, operations=forbiddenOps, attributes=h)
+          forbiddenOps
+        } else List())
+        zone -> l
+      }.toMap
       mutexes = mutexes.distinct
 
       import CollectorModelImplicits._
@@ -302,7 +305,14 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
 
       val ss = seqs.map(l=>Sequence(l.map(id=>Hierarchy(getNewID(id))):_*))
       val sopspec = SOPSpec(schedules.map(_.name).toSet.mkString("_"), ss,h)
-      val hids = (List(sopspec) ++ uids) ++ addHierarchies((List(sopspec) ++ uids), "hierarchy")
+      val zonespecs = zoneSeqs.map{case (z,l) =>
+        val fs = seqs.filter(ll=>(ll.filter(l.contains(_)).nonEmpty))
+        val yy = fs.map(ll=>Sequence(ll.filter(l.contains(_)).map(id=>Hierarchy(getNewID(id))):_*))
+        SOPSpec(z, List(Arbitrary(yy:_*)), h)
+      }
+      println(zonespecs)
+      val nids = List(sopspec) ++ zonespecs ++ uids
+      val hids = nids ++ addHierarchies(nids, "hierarchy")
 
       val ro = new RobotOptimization(operations, precedences, mutexes, forceEndTimes)
       val roFuture = Future { ro.test }
