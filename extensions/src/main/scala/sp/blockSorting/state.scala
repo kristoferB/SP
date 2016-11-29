@@ -42,48 +42,49 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 	
 	private def newState() : State = new State(leftPlates.clone, rightPlates.clone, middle.clone, leftRobot, rightRobot, n+1, desiredState, moves.clone)
 	
-	def doMove(move: Move) : State = { //update with colors
+	def doMove(move: Move) : State = {
 		var state = newState();
 		if (move.usingLeftRobot && move.usingMiddle && move.isPicking) {
-			if (leftRobot != 0 || middle(move.position) == 0) return null
+			if (leftRobot != 0 || middle(move.position) != move.color) return null
 				state.leftRobot = state.middle(move.position)
 				state.middle(move.position) = 0
 		}
 		else if (move.usingLeftRobot && !move.usingMiddle && move.isPicking) {
-			if (leftRobot != 0 || leftPlates(move.position) == 0) return null
+			if (leftRobot != 0 || leftPlates(move.position) != move.color) return null
 				state.leftRobot = state.leftPlates(move.position)
 				state.leftPlates(move.position) = 0
 		}
 		else if (move.usingLeftRobot && move.usingMiddle && !move.isPicking) {
-			if (leftRobot == 0 || middle(move.position) != 0) return null
+			if (leftRobot != move.color || middle(move.position) != 0) return null
 				state.middle(move.position) = state.leftRobot
 				state.leftRobot = 0
 		}
 		else if (move.usingLeftRobot && !move.usingMiddle && !move.isPicking) {
-			if (leftRobot == 0 || leftPlates(move.position) != 0) return null
+			if (leftRobot != move.color || leftPlates(move.position) != 0) return null
 				state.leftPlates(move.position) = state.leftRobot
 				state.leftRobot = 0
 		}
 		else if (!move.usingLeftRobot && move.usingMiddle && move.isPicking) {
-			if (rightRobot != 0 || middle(move.position) == 0) return null
+			if (rightRobot != 0 || middle(move.position) != move.color) return null
 				state.rightRobot = state.middle(move.position)
 				state.middle(move.position) = 0
 		}
 		else if (!move.usingLeftRobot && !move.usingMiddle && move.isPicking) {
-			if (rightRobot != 0 || rightPlates(move.position) == 0) return null
+			if (rightRobot != 0 || rightPlates(move.position) != move.color) return null
 				state.rightRobot = state.rightPlates(move.position)
 				state.rightPlates(move.position) = 0
 		}
 		else if (!move.usingLeftRobot && move.usingMiddle && !move.isPicking) {
-			if (leftRobot == 0 || middle(move.position) != 0) return null
+			if (leftRobot != move.color || middle(move.position) != 0) return null
 				state.middle(move.position) = state.rightRobot
 				state.rightRobot = 0
 		}
 		else if (!move.usingLeftRobot && !move.usingMiddle && !move.isPicking) {
-			if (leftRobot == 0 || leftPlates(move.position) != 0) return null
+			if (leftRobot != move.color || leftPlates(move.position) != 0) return null
 				state.rightPlates(move.position) = state.rightRobot
 				state.rightRobot = 0
 		}
+		state.moves += move
 		return state
 	}
 	def nextStates() : ArrayBuffer[State] = {
@@ -100,7 +101,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 					var state = newState();
 					state.leftRobot = state.leftPlates(i)
 					state.leftPlates(i) = 0
-					state.moves += new Move(true, false, true, (i+1), leftPlates(i))
+					state.moves += new Move(true, false, true, i, leftPlates(i))
 					state.Update()
 					states += state
 				}
@@ -111,7 +112,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 					var state = newState();
 					state.leftRobot = state.middle(i)
 					state.middle(i) = 0
-					state.moves += new Move(true, true, true,(i+1), middle(i))
+					state.moves += new Move(true, true, true, i, middle(i))
 					state.Update()
 					states += state
 				}
@@ -125,7 +126,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 					var state = newState();
 					state.leftPlates(i) = state.leftRobot
 					state.leftRobot = 0
-					state.moves += new Move(true, false, false,(i+1), leftRobot)
+					state.moves += new Move(true, false, false, i, leftRobot)
 					state.Update()
 					states += state
 				}
@@ -137,7 +138,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 						var state = newState();
 						state.middle(i) = state.leftRobot
 						state.leftRobot = 0
-						state.moves += new Move(true, true, false,(i+1), leftRobot)
+						state.moves += new Move(true, true, false, i, leftRobot)
 						state.Update()
 						states += state
 					}
@@ -153,7 +154,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 					var state = newState();
 					state.rightRobot = state.rightPlates(i)
 					state.rightPlates(i) = 0
-					state.moves += new Move(false, false, true,(i+1), rightPlates(i))
+					state.moves += new Move(false, false, true, i, rightPlates(i))
 					state.Update()
 					states += state
 				}
@@ -164,7 +165,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 					var state = newState();
 					state.rightRobot = state.middle(i)
 					state.middle(i) = 0
-					state.moves += new Move(false, true, true,(i+1), middle(i))
+					state.moves += new Move(false, true, true, i, middle(i))
 					state.Update()
 					states += state
 				}
@@ -177,7 +178,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 					var state = newState();
 					state.rightPlates(i) = state.rightRobot
 					state.rightRobot = 0
-					state.moves += new Move(false, false, false, (i+1), rightRobot)
+					state.moves += new Move(false, false, false, i, rightRobot)
 					state.Update()
 					states += state
 				}
@@ -189,7 +190,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 						var state = newState();
 						state.middle(i) = state.rightRobot
 						state.rightRobot = 0
-						state.moves += new Move(false, true, false, (i+1), rightRobot)
+						state.moves += new Move(false, true, false, i, rightRobot)
 						state.Update()
 						states += state
 					}

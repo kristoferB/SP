@@ -56,8 +56,8 @@ object Astar {
 			}
 		}
 		
-		var moves = finish.moves
-		return moves.toArray
+		var moves = parallel(startState, finish.moves.toArray)
+		return finish.moves.toArray
 		
 		/*var parallellMoves = ofDim[Move](moves.length,2)
 		var states = Array[State](moves.length)
@@ -67,6 +67,19 @@ object Astar {
 		var index1 = 1
 		var index2 = 0*/
 		
+	}
+	
+	private def parallel(state: State, moves: Array[Move]) : Array[Move] = {
+		var stateArray = ArrayBuffer[State]()
+		
+		for(i <- 0 to moves.length-1) {
+			var newState = state.doMove(moves(i))
+			if (newState != null) {
+				stateArray += newState
+			}
+		}
+		
+		return moves
 	}
 }
 
