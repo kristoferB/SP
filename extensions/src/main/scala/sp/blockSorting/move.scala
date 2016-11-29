@@ -1,4 +1,4 @@
-package astar.move
+package astar
 class Move ( var usingLeftRobot: Boolean, var usingMiddle: Boolean, var isPicking: Boolean, var position: Int, var color: Byte ) {
 
 	override def toString() : String = {

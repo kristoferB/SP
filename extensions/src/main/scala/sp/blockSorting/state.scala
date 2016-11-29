@@ -1,5 +1,4 @@
-package astar.state
-import astar.move.Move
+package astar
 import scala.collection.mutable.ArrayBuffer
 class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var middle: Array[Byte], var leftRobot: Byte, var rightRobot: Byte, var n: Int, var desiredState: State, var moves: ArrayBuffer[Move]) {
 	if ( leftPlates.length != 16 && rightPlates.length != 16 && middle.length != 4 ) {
@@ -43,7 +42,7 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 	
 	private def newState() : State = new State(leftPlates.clone, rightPlates.clone, middle.clone, leftRobot, rightRobot, n+1, desiredState, moves.clone)
 	
-	def doMove(var move: Move) : State = { //update with colors
+	def doMove(move: Move) : State = { //update with colors
 		var state = newState();
 		if (move.usingLeftRobot && move.usingMiddle && move.isPicking) {
 			if (leftRobot != 0 || middle(move.position) == 0) return null
@@ -93,112 +92,112 @@ class State( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var midd
 		val nEmptyRight = emptySpacesRight
 		val nEmptyMiddle = emptySpacesMiddle
 		
-	// left robot
-	if (leftRobot == 0 && rightRobot == 0) {
-		//pick left side
-		for (i <- 0 to 15 ) {
-			if(leftPlates(i) > 0) {
-				var state = newState();
-				state.leftRobot = state.leftPlates(i)
-				state.leftPlates(i) = 0
-				state.moves += new Move(true, false, true, (i+1), leftPlates(i))
-				state.Update()
-				states += state
-			}
-		}
-		//pick middle
-		for (i <- 0 to 3 ) {
-			if(middle(i) > 0) {
-				var state = newState();
-				state.leftRobot = state.middle(i)
-				state.middle(i) = 0
-				state.moves += new Move(true, true, true,(i+1), middle(i))
-				state.Update()
-				states += state
-			}
-		}
-		
-	}
-	else if (rightRobot == 0) {
-		//place left side
-		for (i <- 0 to 15 ) {
-			if( leftPlates(i) == 0) {
-				var state = newState();
-				state.leftPlates(i) = state.leftRobot
-				state.leftRobot = 0
-				state.moves += new Move(true, false, false,(i+1), leftRobot)
-				state.Update()
-				states += state
-			}
-		}
-		//place middle
-		if( !(nEmptyRight == 0 && nEmptyMiddle < 2) || h == 0 ) {
-			for (i <- 0 to 3 ) {
-				if (middle(i) == 0) {
+		// left robot
+		if (leftRobot == 0 && rightRobot == 0) {
+			//pick left side
+			for (i <- 0 to 15 ) {
+				if(leftPlates(i) > 0) {
 					var state = newState();
-					state.middle(i) = state.leftRobot
+					state.leftRobot = state.leftPlates(i)
+					state.leftPlates(i) = 0
+					state.moves += new Move(true, false, true, (i+1), leftPlates(i))
+					state.Update()
+					states += state
+				}
+			}
+			//pick middle
+			for (i <- 0 to 3 ) {
+				if(middle(i) > 0) {
+					var state = newState();
+					state.leftRobot = state.middle(i)
+					state.middle(i) = 0
+					state.moves += new Move(true, true, true,(i+1), middle(i))
+					state.Update()
+					states += state
+				}
+			}
+			
+		}
+		else if (rightRobot == 0) {
+			//place left side
+			for (i <- 0 to 15 ) {
+				if( leftPlates(i) == 0) {
+					var state = newState();
+					state.leftPlates(i) = state.leftRobot
 					state.leftRobot = 0
-					state.moves += new Move(true, true, false,(i+1), leftRobot)
+					state.moves += new Move(true, false, false,(i+1), leftRobot)
 					state.Update()
 					states += state
 				}
 			}
-		}
-		
-	}
-	// right robot
-	if (rightRobot == 0 && leftRobot == 0) {
-		//pick right side
-		for (i <- 0 to 15 ) {
-			if (rightPlates(i) > 0) {
-				var state = newState();
-				state.rightRobot = state.rightPlates(i)
-				state.rightPlates(i) = 0
-				state.moves += new Move(false, false, true,(i+1), rightPlates(i))
-				state.Update()
-				states += state
+			//place middle
+			if( !(nEmptyRight == 0 && nEmptyMiddle < 2) || h == 0 ) {
+				for (i <- 0 to 3 ) {
+					if (middle(i) == 0) {
+						var state = newState();
+						state.middle(i) = state.leftRobot
+						state.leftRobot = 0
+						state.moves += new Move(true, true, false,(i+1), leftRobot)
+						state.Update()
+						states += state
+					}
+				}
 			}
+			
 		}
-		//pick middle
-		for (i <- 0 to 3 ) {
-			if (middle(i) > 0) {
-				var state = newState();
-				state.rightRobot = state.middle(i)
-				state.middle(i) = 0
-				state.moves += new Move(false, true, true,(i+1), middle(i))
-				state.Update()
-				states += state
-			}
-		}
-	}
-	else if (leftRobot == 0) {
-		// place right side
-		for (i <- 0 to 15 ) {
-			if (rightPlates(i) == 0) {
-				var state = newState();
-				state.rightPlates(i) = state.rightRobot
-				state.rightRobot = 0
-				state.moves += new Move(false, false, false, (i+1), rightRobot)
-				state.Update()
-				states += state
-			}
-		}
-		//place middle
-		if( !(nEmptyLeft == 0 && nEmptyMiddle < 2) || h == 0 ) {
-			for (i <- 0 to 3 ) {
-				if (middle(i) == 0) {
+		// right robot
+		if (rightRobot == 0 && leftRobot == 0) {
+			//pick right side
+			for (i <- 0 to 15 ) {
+				if (rightPlates(i) > 0) {
 					var state = newState();
-					state.middle(i) = state.rightRobot
-					state.rightRobot = 0
-					state.moves += new Move(false, true, false, (i+1), rightRobot)
+					state.rightRobot = state.rightPlates(i)
+					state.rightPlates(i) = 0
+					state.moves += new Move(false, false, true,(i+1), rightPlates(i))
+					state.Update()
+					states += state
+				}
+			}
+			//pick middle
+			for (i <- 0 to 3 ) {
+				if (middle(i) > 0) {
+					var state = newState();
+					state.rightRobot = state.middle(i)
+					state.middle(i) = 0
+					state.moves += new Move(false, true, true,(i+1), middle(i))
 					state.Update()
 					states += state
 				}
 			}
 		}
-		
-	}		
-	return states
+		else if (leftRobot == 0) {
+			// place right side
+			for (i <- 0 to 15 ) {
+				if (rightPlates(i) == 0) {
+					var state = newState();
+					state.rightPlates(i) = state.rightRobot
+					state.rightRobot = 0
+					state.moves += new Move(false, false, false, (i+1), rightRobot)
+					state.Update()
+					states += state
+				}
+			}
+			//place middle
+			if( !(nEmptyLeft == 0 && nEmptyMiddle < 2) || h == 0 ) {
+				for (i <- 0 to 3 ) {
+					if (middle(i) == 0) {
+						var state = newState();
+						state.middle(i) = state.rightRobot
+						state.rightRobot = 0
+						state.moves += new Move(false, true, false, (i+1), rightRobot)
+						state.Update()
+						states += state
+					}
+				}
+			}
+			
+		}		
+		return states
 	}
 }
 object State {
