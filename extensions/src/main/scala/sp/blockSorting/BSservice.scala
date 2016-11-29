@@ -1,13 +1,15 @@
 package sp.blockSorting
 
+import sp.psl._
 import akka.actor._
 import sp.domain.Logic._
 import sp.domain._
 import sp.system._
 import sp.system.messages._
 
-import scala.collection.mutable.MutableList
 
+import scala.collection.mutable.MutableList
+import astar.state.State
 object BSservice extends SPService {
 
   val specification = SPAttributes(
@@ -28,196 +30,118 @@ object BSservice extends SPService {
   def props(serviceHandler: ActorRef) = Props(classOf[BSservice], serviceHandler)
 
 }
-class BSservice(sh: ActorRef) extends Actor with ServiceSupport{
+class BSservice(sh: ActorRef) extends Actor with ServiceSupport with TowerBuilder{
   var fixturePosition = 2
 
   def receive = {
     case r@Request(service, attr, ids, reqID) => {
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
-/**
-      val suggestedPos = transform(BSservice.transformTuple._3)
-      if (suggestedPos > 0) fixturePosition = suggestedPos
-      else if (fixturePosition == 1) fixturePosition = 2
-      else fixturePosition = 1
+      
+      val desiredStateRaw = transform(BSservice.transformTuple._2)
+  
+      val (leftPlate, rightPlate, middlePlate) = GuiToOpt(desiredStateRaw)
+      
+      val startState = new State(leftPlate,rightPlate,middlePlate,0,0,0,null,"")
+      val desiredState = new State(leftPlate,rightPlate,middlePlate,0,0,0,startState,"")
+      
+      //val moves = Astar(desiredState)
+      val moves = List[Move](new Move(true,true,true,1),new Move(false,false,false,1))
+      val paraSOP = movesToSOP(moves, ids)
+      val sopSpec = SOPSpec("Sequence", List(paraSOP._1))
+      val upIds = sopSpec :: paraSOP._2 ++ ids
+      
+      sh! Request("OrderHandler", SPAttributes(
+        "order" -> SPAttributes(
+          "id" -> ID.newID,
+          "name" -> "hej",
+          "stations" -> "R4_R5"
+        )
+      ) ,upIds   )
 
-      val rawTower = transform(BSservice.transformTuple._2)
-      val tower = makeTower(rawTower)
-
-
-      tower.foreach{t =>
-        val paraSOP = towerToSOP(t, fixturePosition, ids)
-        val sopSpec = SOPSpec("tower", List(paraSOP._1))
-        val sopSpecLoad = SOPSpec("load", List(paraSOP._2))
-        val updIds = sopSpec :: sopSpecLoad :: paraSOP._3 ++ ids
-
-        val stations = Map("tower" -> sopSpec.id, "load" -> sopSpecLoad.id)
-
-        println("The tower: ")
-        paraSOP._4.map(println)
-
-
-        if (paraSOP._3.nonEmpty) {
-          sh ! Request("OrderHandler", SPAttributes(
-            "order" -> SPAttributes(
-              "id" -> ID.newID,
-              "name" -> towerName(t),
-              "stations" -> stations
-            )
-          ), updIds)
-        }
-      }
-
-      if (tower.isEmpty){
-        println("tower could not be parsed: "+ rawTower)
-      }
-		*/
-
-      replyTo ! Response(List(), SPAttributes("tower" -> "hej"), rnr.req.service, rnr.req.reqID)
+      replyTo ! Response(List(), SPAttributes("sequence" -> sopSpec), rnr.req.service, rnr.req.reqID)
     }
-    case error: SPError => println(s"Operator Service got an error: $error")
+
+    case error: SPError => println("Operator Service got an error: $error")
   }
 }
 
 
 
-/**
 trait TowerBuilder extends TowerOperationTypes {
 
-  def towerToSOP(t: List[Brick],fixturePosition: Int, ids: List[IDAble]) = {
-    val (f1, f2) = divideTowerOnRobots(t, fixturePosition)
-    val nameMap = ids.map(x => x.name -> x).toMap
-
-    val f1Ops = getBrickOperations(f1, nameMap)
-    val f2Ops = getBrickOperations(f2, nameMap)
-    val loadOps = getLoadOps(f1, f2, nameMap)
-    val unLoadOps = getUnloadOps(f1, f2, nameMap)
-
-    val allOps = f1Ops ++ f2Ops ++ loadOps ++ unLoadOps._1 ++ unLoadOps._2 ++ unLoadOps._3
-
-    val seqF1 = Sequence((f1Ops ++ unLoadOps._1).map(o => Hierarchy(o.id)):_*)
-    val seqF2 = Sequence(f2Ops.map(o => Hierarchy(o.id)):_*)
-    val seqLoad = Sequence(loadOps.map(o => Hierarchy(o.id)):_*)
-    val seqUnloadTower = (unLoadOps._3++ unLoadOps._2).map(o=>Hierarchy(o.id))
-
-    val buildSOP: SOP = if (seqF1.isEmpty) seqF2 else if (seqF2.isEmpty) seqF1 else Parallel(seqF1, seqF2)
-
-    val brickSeq: List[SOP] = buildSOP :: seqUnloadTower
-
-    (Sequence(brickSeq:_*), seqLoad, allOps, f1 ++ f2)
-  }
-
-  def makeTower(xs: List[List[String]]) = {
-    val t = for {
-      r <- xs.map(_.reverse.zipWithIndex).zipWithIndex
-      c <- r._1
-      color <- matchColor(c._1)
-    } yield {Brick(r._2+1, c._2+1, color)}
-    verifyTower(t)
-  }
-
-  def verifyTower(t: List[Brick]) = {
-    val cols = t.groupBy(_.col)
-    val ok = cols.foldLeft(Map[Int, Boolean]()){(a, b) =>
-      val sorted = b._2.sortWith(_.row > _.row)
-      val res = sorted.isEmpty || sorted.head.row == sorted.size
-      a + (b._1 -> res)
+  def GuiToOpt(desiredStateRaw: List[List[String]]) = {
+    val leftPlate = new Array[Byte](16)
+    var rightPlate = new Array[Byte](16)
+    val middlePlate = new Array[Byte](4)
+    var j = 0
+    desiredStateRaw(1).foreach{i =>
+      leftPlate(j) = i.toByte 
+      j += 1
     }
-    ok.foreach(b => if (!b._2) println(s"Column ${b._1} is not ok: ${cols(b._1)}"))
-    if (ok.values.fold(true)(_ && _)) Some(t) else None
+    j = 0
+    desiredStateRaw(2).foreach{i =>
+      rightPlate(j) = i.toByte 
+      j += 1
+    }
+    j = 0
+    desiredStateRaw(3).foreach{i =>
+      middlePlate(j) = i.toByte 
+      j += 1
+    }
+    
+    (leftPlate, rightPlate, middlePlate)
   }
 
-  def sortBricks(xs: List[Brick], takeLeft: Boolean = true) = {
-    xs.sortWith((b1, b2) => b1.row < b2.row ||
-      (b1.row == b2.row && ((takeLeft && b1.col > b2.col) || (!takeLeft && b1.col < b2.col))))
+  def movesToSOP(moves: List[Move],   ids: List[IDAble]) = {
+    val nameMap = ids.map(x => x.name -> x).toMap   
+    val operations = movesToOperations(moves,nameMap)
+    val sequence = Sequence(operations.map(o => Hierarchy(o.id)):_*)
+    
+    (sequence, operations)
   }
-
-  def updateFixturePosition(xs: List[Brick], fixture: Int) = xs.zipWithIndex.map(z => z._1.copy(fixturePos = z._2+1, fixture = fixture))
-
-  def divideTowerOnRobots(t: List[Brick], fixturePosition: Int) = {
-    val (r1Bricks, r2Bricks) = t.partition(_.col >=3)
-
-    val R1Fix = updateFixturePosition(sortBricks(r1Bricks, takeLeft = false), fixturePosition)
-    val R2Fix = updateFixturePosition(sortBricks(r2Bricks), fixturePosition+2)
-
-    (R1Fix, R2Fix)
-  }
-
-  def getBrickOperations(bricks: List[Brick], nameMap: Map[String, IDAble]) = {
-    val res = for {
-      b <- bricks
+  
+  def movesToOperations(moves: List[Move], nameMap: Map[String,IDAble]) = {
+    val operations = for { m <- moves
     } yield {
-      val piPos = b.fixture*10 + b.fixturePos
-      val plPos = b.row*10 + b.col
-      val robot = b.col match {
-        case c if c >= 3 => "R4"
-        case _ => "R5"
+      var name = "placeBlock"
+      var position = 110
+      var robot = "R5"
+      if(m.ispicking == true){
+        name = "pickBlock"
       }
-      val pick = makeOperationWithParameter(robot, "pickBlock", "pos", piPos, nameMap)
-      val place = makeOperationWithParameter(robot, "placeBlock", "pos", plPos, nameMap)
-
-      List(pick, place)
+      if(m.shared == true){
+        position += m.position
+        if(m.robot == true){
+          robot = "R4"
+        }
+     } else if(m.robot == true){
+        robot = "R4"
+        if(m.position <= 8){
+          position = 120 + m.position
+        } else {        
+          position = 130 + m.position
+        }
+      } else {  
+        if(m.position <= 8){
+          position = 100 + m.position
+        } else {
+          position = 110 + m.position
+        }
+      }
+      val operation = makeOperationWithParameter(robot,name,"pos",position,nameMap)
+      List(operation)
     }
-    res.flatten
+    operations.flatten
   }
+  
+ // def operationsName(moves: List[Move]) moves.map(_.pos).mkString("_")
 
-  def getLoadOps(f1: List[Brick], f2: List[Brick], nameMap: Map[String, IDAble]) = {
-    val feedFix = Some(makeOperationWithParameter("Flexlink", "fixtureToOperator", "no", {if (f1.nonEmpty) 1 else 0} +  {if (f2.nonEmpty) 1 else 0}, nameMap))
-
-    def fixToRMake(bO: Option[Brick]) = {
-      bO.map(b => makeOperationWithParameter("Flexlink", "fixtureToRobot", "pos", b.fixture, nameMap))
-    }
-    val f1ToR = fixToRMake(f1.headOption)
-    val f2ToR = fixToRMake(f2.headOption)
-
-    def instrToOpMake(f: List[Brick]) = if (f.nonEmpty) Some(makeOperationWithParameter("Operator", "loadFixture", "brickPositions", SPValue(f) , nameMap)) else None
-    val fBuild = (instrToOpMake(f1), instrToOpMake(f2))
-
-    val res = List(feedFix, fBuild._1, f1ToR, fBuild._2, f2ToR).flatten
-    res
-  }
-
-  def getUnloadOps(f1: List[Brick], f2: List[Brick], nameMap: Map[String, IDAble]) = {
-    def fixOutMake(bO: Option[Brick]) = {
-      bO.map(b => makeOperationWithParameter("R2", "pickAtPos", "pos", b.fixture, nameMap))
-    }
-    val f1Out = fixOutMake(f1.headOption)
-    val f2Out = fixOutMake(f2.headOption)
-
-    val placeElevatorF1 = if (f1.nonEmpty) Some(makeOperation("R2", "homeTableToElevatorStn3", nameMap)) else None
-    val placeElevatorF2 = if (f2.nonEmpty) Some(makeOperation("R2", "homeTableToElevatorStn3", nameMap)) else None
-
-    val pickBaseOut = Some(makeOperationWithParameter("R2", "pickAtPos", "pos", 5, nameMap))
-    val placetable = Some(makeOperation("R2", "deliverTower", nameMap))
-
-
-    val outSeqF1 = List(f1Out, placeElevatorF1).flatten
-    val outSeqF2 = List(f2Out, placeElevatorF2).flatten
-    val outSeqTower = List(pickBaseOut, placetable).flatten
-
-    (outSeqF1, outSeqF2, outSeqTower)
-  }
-
-  def towerName(xs: List[Brick]) = xs.map(_.color).mkString("_")
-
-  def matchColor(color: String): Option[String] = {
-    color.toLowerCase match {
-      case "yellow" => Some("Yellow")
-      case "red"    => Some("Red")
-      case "green"  => Some("Green")
-      case "blue"   => Some("Blue")
-      case "1"      => Some("Yellow")
-      case "2"      => Some("Green")
-      case "3"      => Some("Red")
-      case "4"      => Some("Blue")
-      case _        => None
-    }
-  }
+  case class Move(robot: Boolean, ispicking: Boolean, shared: Boolean, position: Int)
+  
 }
 
 
-case class Brick(row: Int, col: Int, color: String, fixture: Int = -1, fixturePos: Int = -1)
-case class Behavior(op: String, ability: ID, parameter: ID, pick: Option[List[Int]], place: Option[List[Int]])
 
 trait TowerOperationTypes {
   def makeOperationWithParameter(resource: String, ability: String, parameter: String, value: SPValue, nameMap: Map[String, IDAble]) = {
@@ -233,5 +157,5 @@ trait TowerOperationTypes {
   }
 
 
-}*/
+}
 
