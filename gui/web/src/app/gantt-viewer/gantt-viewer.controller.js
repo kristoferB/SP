@@ -21,13 +21,15 @@
         vm.load = load;
 
         function load(sortByEndTime) {
-            if(!_.isUndefined(vm.widget.storage.gantt)) {
+            if(!_.isUndefined(vm.widget.storage) && !_.isUndefined(vm.widget.storage.gantt)) {
                 vm.gantt = [];
                 var gantt = vm.widget.storage.gantt;
                 
                 // check if model is still valid
-                if(_.some(gantt, function(row) { return null === itemService.getItem(row._1); })) {
+                if(_.isEmpty(gantt) || _.some(gantt, function(row) { return null === itemService.getItem(row._1); })) {
                     vm.widget.storage.gantt = [];
+                    // close window if not
+                    dashboardService.closeWidget(vm.widget.id);
                     return;
                 }
                 
