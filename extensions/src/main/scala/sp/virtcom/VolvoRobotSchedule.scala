@@ -78,7 +78,7 @@ class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
       ss += m.value->ns
     }
 
-    val stats = start(timeLimit = 10) // (nSols =1, timeLimit = 60)
+    val stats = start(timeLimit = 120) // (nSols =1, timeLimit = 60)
     println("===== oscar stats =====\n" + stats)
     val sops = ss.map { case (makespan, xs) =>
       val start = xs.map(x=>(x._1,x._2)).toMap
@@ -163,11 +163,16 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         ops.filter(o=>node.children.exists(c=>c.item == o.id))
       }
 
-      def dropSemiColon(str: String): String = {
-        val pos = str.indexOf(";")
-        str.substring(0,pos)
-      }
+      def cleanName(str: String): String = {
+        val s = if(!str.startsWith("''  -  '")) str else {
+          val ns = str.substring(8,str.length)
+          val p = ns.indexOf("'")
+          if(p == -1) ns else ns.substring(0,p)
+        }
 
+        val pos = s.indexOf(";")
+        if(pos < 0) s else s.substring(0,pos)
+      }
 
       val robotOpIdMap = schedules.map(s=>s->hierarchyRoot.children.map(findParent(s.id,_)).flatMap(x=>x).head.item).toMap
       val robotOpMap = robotOpIdMap.flatMap{case (k,v)=>
@@ -184,23 +189,23 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
           case Nil => (zoneMap, opList)
           case x::xs if x.startsWith("WaitSignal AllocateZone") =>
             val zoneIndex = x.indexOf("Zone")
-            val zoneStr = dropSemiColon(x.substring(zoneIndex))
+            val zoneStr = cleanName(x.substring(zoneIndex))
             splitIntoOpsAndZones(zoneMap, opList, activeZones + zoneStr, xs, availableOps, robotSchedule)
           case x::xs if x.startsWith("WaitSignal ReleaseZone") =>
             val zoneIndex = x.indexOf("Zone")
-            val zoneStr = dropSemiColon(x.substring(zoneIndex))
+            val zoneStr = cleanName(x.substring(zoneIndex))
             splitIntoOpsAndZones(zoneMap, opList, activeZones - zoneStr, xs, availableOps, robotSchedule)
           case x::xs if x.startsWith("!") => splitIntoOpsAndZones(zoneMap, opList, activeZones, xs, availableOps, robotSchedule)
           case x::xs =>
-            val withoutSemiColon = dropSemiColon(x)
-            availableOps.find(o=>o.name == withoutSemiColon) match {
+            val cleanOpName = cleanName(x)
+            availableOps.find(o=>o.name == cleanOpName) match {
               case Some(o) =>
                 // operation o needs the active zones
                 val newOp = o.copy(name = robotSchedule+"_"+o.name, attributes = o.attributes merge
                   SPAttributes("robotSchedule"->robotSchedule,"original" -> o.id))
                 splitIntoOpsAndZones(zoneMap + (newOp -> activeZones), opList :+ newOp, activeZones, xs, availableOps, robotSchedule)
               case None =>
-                println("skipping command " + withoutSemiColon + " - no matching operation")
+                println("skipping command " + cleanOpName + " - no matching operation")
                 splitIntoOpsAndZones(zoneMap, opList, activeZones, xs, availableOps, robotSchedule)
             }
         }
