@@ -47,7 +47,8 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
 
       println(s"new order: $newOrder")
       ev ! Progress(SPAttributes("status"->"new", "order"->newOrder), "OrderHandler", id)
-
+      
+      resetOrders
       addNewOrder(order)
 
 

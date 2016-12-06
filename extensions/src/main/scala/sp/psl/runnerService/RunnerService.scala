@@ -29,20 +29,20 @@ object RunnerService extends SPService {
       "group"-> "runner",
       "description" -> "A service to run SOP's in SP"
     ),
-      "SOP" -> KeyDefinition("Option[ID]", List(), Some("")),
-      "station" -> KeyDefinition("String", List(), Some("noStation")
-    )
+    "SOP" -> KeyDefinition("Option[ID]", List(), Some("")),
+    "station" -> KeyDefinition("String", List(), Some("noStation")),
+    "command" -> KeyDefinition("String", List(), Some(""))
   )
 
   val transformTuple  = (TransformValue("SOP", _.getAs[ID]("SOP")), TransformValue("station", _.getAs[String]("station")))
 
   val transformation = transformToList(transformTuple.productIterator.toList)
-  def props(eventHandler: ActorRef, serviceHandler: ActorRef, operationController: String) =
-    ServiceLauncher.props(Props(classOf[RunnerService], eventHandler, serviceHandler, operationController))
+  def props(eventHandler: ActorRef, serviceHandler: ActorRef, operationController: String, BSservice: String) =
+    ServiceLauncher.props(Props(classOf[RunnerService], eventHandler, serviceHandler, operationController, BSservice))
 }
 
 // Inkluderar eventHandler och namnet på servicen operationController. Skickas med i SP.scala
-class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationController: String) extends Actor with ServiceSupport with SOPPrinterLogic{
+class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationController: String, BSservice: String) extends Actor with ServiceSupport with SOPPrinterLogic{
   import context.dispatcher
 
   var parents: Map[SOP, SOP] = Map()
@@ -66,51 +66,57 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   def receive = {
     case r @ Request(service, attr, ids, reqID) => {
       val replyTo = sender()
+
       rnr = RequestNReply(r, replyTo)
       reply = Some(rnr)
+      
+      if(attr.getAs[String]("command") == "stop" ){
+        println("RS_stop")
+        activeSteps = List()
+      } else {
+        // Lyssna på events från alla
+        eventHandler ! SubscribeToSSE(self)
 
-      // Lyssna på events från alla
-      eventHandler ! SubscribeToSSE(self)
+        // include this if you want to send progress messages. Send attributes to it during calculations
+        //progress = context.actorOf(progressHandler)
 
-      // include this if you want to send progress messages. Send attributes to it during calculations
-     // progress = context.actorOf(progressHandler)
+        val sopID = transform(RunnerService.transformTuple._1)
+        soppen = sopID
+        station = transform(RunnerService.transformTuple._2)
 
-      val sopID = transform(RunnerService.transformTuple._1)
-      soppen = sopID
-      station = transform(RunnerService.transformTuple._2)
+        //list of tuples into maps
+        idMap = ids.map(item => item.id -> item).toMap
+        val sop = Try{idMap(sopID).asInstanceOf[SOPSpec].sop}.map(xs => Parallel(xs:_*))
 
-      //list of tuples into maps
-      idMap = ids.map(item => item.id -> item).toMap
-      val sop = Try{idMap(sopID).asInstanceOf[SOPSpec].sop}.map(xs => Parallel(xs:_*))
-
-      // maps all operation ids to an AbilityStructure
-      val ops = ids.collect{case o:Operation => o}
+        // maps all operation ids to an AbilityStructure
+        val ops = ids.collect{case o:Operation => o}
         operationAbilityMap = ops.flatMap{ o =>
           o.attributes.getAs[AbilityStructure]("ability").map(o.id -> _)
         }.toMap
 
-      // saves all parameters into a map
-      val things = ids.collect{case t: Thing if t.name.endsWith(".pos")  => t}
-      parameterMap = things.map(t => t.name -> t.id).toMap
+        // saves all parameters into a map
+        val things = ids.collect{case t: Thing if t.name.endsWith(".pos")  => t}
+        parameterMap = things.map(t => t.name -> t.id).toMap
 
-      // maps all names of abilities to the ability id
-      val abilities = ops.collect{case o: Operation if o.attributes.getAs[String]("operationType").getOrElse("not") == "ability" => o}
+        // maps all names of abilities to the ability id
+        val abilities = ops.collect{case o: Operation if o.attributes.getAs[String]("operationType").getOrElse("not") == "ability" => o}
         //println("abilities = " + abilities)
-      abilityMap = abilities.map(o => o.id -> o).toMap
+          abilityMap = abilities.map(o => o.id -> o).toMap
 
-      serviceHandler ! Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"status")))
+        serviceHandler ! Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"status")))
 
-      // Makes the parentmap
-      sop.foreach(createSOPMap)
-      sopen = sop.toOption
+        // Makes the parentmap
+        sop.foreach(createSOPMap)
+        sopen = sop.toOption
         println(s"we got a sop:")
 //      println("----------")
-      println(sop)
+        println(sop)
 //      println("----------")
-      sop.foreach(_.printMe(idMap))
-      println("----------")
+        sop.foreach(_.printMe(idMap))
+        println("----------")
 
-      progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
+        progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
+      }
     }
 
     // We get states from Operation control
@@ -120,14 +126,20 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
         println("RunnerService: High level force reset! Exiting.")
         self ! PoisonPill
       } else {
-        //println(s"we got a state change")
+        
+        println(s"we got a state change")
+        //serviceHandler ! Request("BSservice", SPAttributes("fixturePositions" -> 1))
 
+     // serviceHandler ! Request(BSservice, SPAttributes("command" -> "hej"))
+     // serviceHandler ! Request(operationController,SPAttributes("command" -> SPAttributes("commandType" -> "stop")))  
+      eventHandler ! ServiceEvent(ID.newID, SPAttributes("command" -> "hej"))
+      
         val newState = attr.getAs[State]("state")
         newState.foreach{s =>
           state = State(state.state ++ s.state.filter{case (id, v)=>
             state.get(id) != newState.get(id)
           })}
-
+        
         //lägger till alla ready states i en readyList och tar bort gamla som inte är ready längre
         val readyStates = state.state.filter{case (id, value) =>
           value == SPValue("ready")
@@ -136,6 +148,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
         //println(s"readyList: $readyList")
 
         // if there is nothing started yet
+        
         if(activeSteps.isEmpty) {
           sopen.foreach(executeSOP)
           //println("activeStep empty -> start executing SOP")
@@ -279,7 +292,9 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
   // Anropas när ett steg blir klart
   def stepCompleted(complSOP: SOP): Boolean = {
-    //println(s"step $complSOP is completed. Parent is ${parents.get(complSOP)}")
+   
+    println("stepCompleted")
+    println(s"step $complSOP is completed. Parent is ${parents.get(complSOP)}")
     parents.get(complSOP) match {
       case Some(p: Parallel) => {
         if (parallelRuns.get(p).isEmpty)

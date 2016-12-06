@@ -213,7 +213,7 @@ object SP extends App {
   ))
 
   import sp.psl.runnerService._
-  val rs = system.actorOf(RunnerService.props(eventHandler, serviceHandler, "OperationControl"), "RunnerService")
+  val rs = system.actorOf(RunnerService.props(eventHandler, serviceHandler, "OperationControl", "BSservice"), "RunnerService")
   mediator ! Publish("serviceHandler", RegisterService(
     "RunnerService",
     rs,
@@ -260,7 +260,7 @@ object SP extends App {
   import sp.blockSorting._
   mediator ! Publish("serviceHandler", RegisterService(
     "BSservice",
-    system.actorOf(BSservice.props(serviceHandler), "BSservice"),
+    system.actorOf(BSservice.props(serviceHandler, eventHandler, "OperationControl","RunnerService"), "BSservice"),
     BSservice.specification,
     BSservice.transformation
   ))
