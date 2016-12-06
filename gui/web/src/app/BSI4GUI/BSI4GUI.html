@@ -78,17 +78,18 @@ position: absolute; top: 70px; left: 343px;
 width:40px;height:40px; border-radius: 5px; border: 1px solid #00AA66;
 font-family: Helvetica; font-weight: bold; font-color:#5cd65c; font-size: 22px;
 }
+
 .ColorControl1{
-background-color:#ffff66; position: absolute; top: 0px; left: 40px;
+background-color:#0066ff; position: absolute; top: 40px; left: 80px;  /*Blue*/
 }
 .ColorControl2{
-background-color:#5cd65c; position: absolute; top: 40px; left: 0px;
+background-color:#5cd65c; position: absolute; top: 0px; left: 40px;  /*Green*/
 }
 .ColorControl3{
-background-color:#ff3333; position: absolute; top: 80px; left: 40px;
+background-color:#ff3333; position: absolute; top: 80px; left: 40px; /*Red*/
 }
 .ColorControl4{
-background-color:#0066ff; position: absolute; top: 40px; left: 80px;
+background-color:#ffff66; position: absolute; top: 40px; left: 0px; /*Yellow*/
 }
 
 #activeColor {
@@ -103,40 +104,58 @@ background-color:#0066ff; position: absolute; top: 40px; left: 80px;
 }
 
 
-.CommandButtonsPos{position: absolute; top: 300px; left: 210px;
-}
-.CommandButton1, .CommandButton2, .CommandButton3, .CommandButton4, .CommandButton5, .CommandButton6{ width:125px;height:60px; border: 1px solid #00AA66;
-}
-.CommandButton1, .CommandButton2, .CommandButton3, .CommandButton4, .CommandButton6{ background-color:rgb(255,255,255);
-}
-.CommandButton1{position: absolute; top: 65px; left: 260px;
+.CommandButtonsPos, .tooltipOnOff{position: absolute; top: 300px; left: 210px;}
+.CommandButton1, .CommandButton2, .CommandButton3, .CommandButton4, .CommandButton5, .CommandButton6{ width:125px;height:60px; border: 1px solid #00AA66;}
+.CommandButton1, .CommandButton2, .CommandButton3, .CommandButton4, .CommandButton6, .CommandButton7{ background-color:rgb(255,255,255);}
+.CommandButton1{height:60px; position: absolute; top: 70px; left: 260px;}
+.CommandButton2{position: absolute; top: 0px; left: 260px;}
+.CommandButton3{position: absolute; top: 70px; left: 0px;}
+.CommandButton4{position: absolute; top: 70px; left: 130px;}
+.CommandButton5{background-color:#5cd65c; position: absolute; top: 0px; left: 0px;}
+.CommandButton6{position: absolute; top: 0px; left: 130px;}
+.CommandButton7{width:125px;height:30px; border: 1px solid #ff3333; position: absolute; top: 100px; left: 260px; visibility: hidden}
+
+[data-info]:hover:after{
+    visibility: visible;
+    content: attr(data-info);
+    padding: 0px 0px;
+    color: #C0C0C0;
+    position: absolute;
+    left: 0;
+    top: 95%;
+    z-index: 20;
+    white-space: nowrap;
+    box-shadow: 0px 0px 1px #222;
+    background-color:#ffffff;
+
 }
 
-.CommandButton2{position: absolute; top: 0px; left: 260px;
-}
-.CommandButton3{position: absolute; top: 65px; left: 0px;
-}
-.CommandButton4{position: absolute; top: 65px; left: 130px;
-}
-.CommandButton5{background-color:#5cd65c; position: absolute; top: 0px; left: 0px;
-}
-.CommandButton6{position: absolute; top: 0px; left: 130px;
-}
+.tooltipCheckBox{position: absolute; top: 0px; left: 400px; white-space: nowrap;}
 
-.TextInstruction{position: absolute; top: 10px; left: 270px; text-align: center;
+.TextInfo{position: absolute; top: 10px; left: 270px; text-align: center;
 }
-
 .ProggressUpdate{position: absolute; top: 275px; left: 360px; text-align: center;}
+
 </style>
+
+<script>
+    function  tooltipOnOff(checkboxElem) {
+    if (checkboxElem.checked) {
+    } else {
+    }
+    }
+</script>
+
+
     <div class="panel-content">
-     <p vm.setActiveColor(1) ></p>
+     <p vm.setActiveColour(1) ></p>
 
 
 <!-------- Left Plate upper half--------------------------------------------------------------------------------------------------->
-	
-       <div class="LeftUpper"> 
-		<div class="Padding"> 
-		
+
+       <div class="LeftUpper">
+		<div class="Padding">
+
 			<button type="button" class="Block1"
 		                ng-click="vm.saveNumber('button141','Left',3,0)" id="button141" value = button141;>
 		        </button>
@@ -150,11 +169,11 @@ background-color:#0066ff; position: absolute; top: 40px; left: 80px;
 		        <button type="button" class="Block4"
 		                ng-click="vm.saveNumber('button144','Left',3,3)" id="button144" value = "button144";>
 		        </button>
-		        <br>    
+		        <br>
 		        <button type="button" class="Block5"
 		                ng-click="vm.saveNumber('button131','Left',2,0)" id="button131" value = "button131";>
 		        </button>
-		        <button type="button" class="Block6" 
+		        <button type="button" class="Block6"
 		                ng-click="vm.saveNumber('button132','Left',2,1)" id="button132" value = "button132";>
 		        </button>
 		        <button type="button" class="Block7"
@@ -163,7 +182,7 @@ background-color:#0066ff; position: absolute; top: 40px; left: 80px;
 		        <button type="button" class="Block8"
 		                ng-click="vm.saveNumber('button134','Left',2,3)" id="button134" value = "button134";>
 		        </button>
-		</div> 
+		</div>
 	</div>
 <!----------------------------------------------------------------------------------------------------------------------------->
 <br>
@@ -171,13 +190,13 @@ background-color:#0066ff; position: absolute; top: 40px; left: 80px;
 
 <!-------- Left Plate lower half--------------------------------------------------------------------------------------------------->
 
-      <div class="LeftLower">  
+      <div class="LeftLower">
 		<div class="Padding">
-	
+
 		        <button type="button" class="Block1"
 		                ng-click="vm.saveNumber('button121','Left',1,0)" id="button121" value = "button121";>
 		        </button>
-		        <button type="button" class="Block2" 
+		        <button type="button" class="Block2"
 		                ng-click="vm.saveNumber('button122','Left',1,1)" id="button122" value = "button122";>
 		        </button>
 		        <button type="button" class="Block3"
@@ -193,7 +212,7 @@ background-color:#0066ff; position: absolute; top: 40px; left: 80px;
                                 ng-click="vm.saveNumber('button111','Left',0,0)" id="button111" value = "button111";>
                        </button>
                        <button type="button" class="Block6"
-                                ng-click="vm.saveNumber('button112','Left',0,1)" id="button112" value = "button112";> 
+                                ng-click="vm.saveNumber('button112','Left',0,1)" id="button112" value = "button112";>
                        </button>
                        <button type="button" class="Block7"
                                 ng-click="vm.saveNumber('button113','Left',0,2)" id="button113" value = "button113";>
@@ -207,10 +226,10 @@ background-color:#0066ff; position: absolute; top: 40px; left: 80px;
 <br>
 
 
-<!-------- Middle Plate--------------------------------------------------------------------------------------------------->	
-      	 <div class="Middle">  
-		<div class="Padding" style="top: 3.5px;">  
-	
+<!-------- Middle Plate--------------------------------------------------------------------------------------------------->
+      	 <div class="Middle">
+		<div class="Padding" style="top: 3.5px;">
+
 		    <button type="button" class="Block1"
                             ng-click="vm.saveNumber('button311','Middle',0,0)" id="button311" value = "button311";>
                     </button>
@@ -223,7 +242,7 @@ background-color:#0066ff; position: absolute; top: 40px; left: 80px;
                     <button type="button" class="Block4"
                             ng-click="vm.saveNumber('button314','Middle',0,3)" id="button314" value = "button314";>
                     </button>
-		</div> 
+		</div>
 	</div>
 <!----------------------------------------------------------------------------------------------------------------------------->
 
@@ -231,10 +250,10 @@ background-color:#0066ff; position: absolute; top: 40px; left: 80px;
 
 
 <!-------- Right Plate upper half--------------------------------------------------------------------------------------------------->
-                   
-        <div class="RightUpper">   
-		<div class="Padding"> 
-		
+
+        <div class="RightUpper">
+		<div class="Padding">
+
 			<button type="button" class="Block1"
 		                ng-click="vm.saveNumber('button241','Right',3,0)" id="button241" value = button241;>
 		        </button>
@@ -247,7 +266,7 @@ background-color:#0066ff; position: absolute; top: 40px; left: 80px;
 		        <button type="button" class="Block4"
 		                ng-click="vm.saveNumber('button244','Right',3,3)" id="button244" value = "button244";>
 		        </button>
-		        <br>      
+		        <br>
 		        <button type="button" class="Block5"
 		                ng-click="vm.saveNumber('button231','Right',2,0)" id="button231" value = "button231";>
 		        </button>
@@ -266,11 +285,11 @@ background-color:#0066ff; position: absolute; top: 40px; left: 80px;
 		<br>
 
 <!-------- Plate 2 lower half--------------------------------------------------------------------------------------------------->
-	
-	
-        <div class="RightLower">  
-		<div class="Padding">           
-	    
+
+
+        <div class="RightLower">
+		<div class="Padding">
+
 		        <button type="button" class="Block1"
 		                ng-click="vm.saveNumber('button221','Right',1,0)" id="button221" value = "button221";>
 		        </button>
@@ -280,7 +299,7 @@ background-color:#0066ff; position: absolute; top: 40px; left: 80px;
 		        <button type="button" class="Block3"
 		                ng-click="vm.saveNumber('button223','Right',1,2)" id="button223" value = "button223";>
 		        </button>
-		        <button type="button" class="Block4" 
+		        <button type="button" class="Block4"
 		                ng-click="vm.saveNumber('button224','Right',1,3)" id="button224" value = "button224";>
 		        </button>
 
@@ -291,7 +310,7 @@ background-color:#0066ff; position: absolute; top: 40px; left: 80px;
                         <button type="button" class="Block6"
                                 ng-click="vm.saveNumber('button212','Right',0,1)" id="button212" value = "button212";>
                         </button>
-                        <button type="button" class="Block7" 
+                        <button type="button" class="Block7"
                                 ng-click="vm.saveNumber('button213','Right',0,2)" id="button213" value = "button213";>
                         </button>
                         <button type="button" class="Block8"
@@ -299,65 +318,70 @@ background-color:#0066ff; position: absolute; top: 40px; left: 80px;
                         </button>
 		</div>
 	</div>
-<!----------------------------------------------------------------------------------------------------------------------------->               
+<!----------------------------------------------------------------------------------------------------------------------------->
 
 		<!----Command Buttons------------->
 	<div class="CommandButtonsPos"; id="CommandButtons" >
-                <br>
-                <button type="button" class="CommandButton1"
-                        ng-click="vm.Queue()" id="buttonQueue" value = "1";>
-                    <h1 class="text-center" id="buttonQueueText";>Place last in Queue</h1>
+                <button type="button" class="CommandButton1" data-info="Set the order position in the build queue"
+                        ng-click="vm.queue()" id="buttonQueue" value = "1";>
+                    <h1 class="text-center" id="buttonQueueText";>Place last in queue</h1>
                 </button>
-                <button type="button" class="CommandButton2"
-                        ng-click="vm.reset()" id="buttonReset" xml:id="CommandButtons" value = "buttonReset";>
+                <button type="button" class="CommandButton2" data-info="Reset the robots, the build queue and initial positions"
+                        ng-click="vm.reset()" id="buttonReset" value = "buttonReset";>
                     <h1 class="text-center"; id="ResetButtonText";>Reset all</h1>
                 </button>
-                <br>
-                <button type="button" class="CommandButton3"
-                        ng-click="vm.setMode('StopResume')" id="buttonStopResume" xml:id="CommandButtons" value = "StopResume";>
+                <button type="button" class="CommandButton3"  data-info="Stop or resume the production"
+                        ng-click="vm.stopResume()" id="buttonStopResume" value = "StopResume";>
                     <h1 class="text-center"; id="StopResumeButtonText";>Stop</h1>
                 </button>
-                <button type="button" class="CommandButton4"
-                        ng-click="vm.setMode('CurrentOrder')" id="buttonCurrentOrder" xml:id="CommandButtons" value = "buttonCurrentOrder";>
-                    <h1 class="text-center">Current Order</h1>
+                <button type="button" class="CommandButton4" data-info="Cycle through the build queue"
+                        ng-click="vm.currentOrder()" id="CurrentOrder" value = "buttonCurrentOrder";>
+                    <h1 class="text-center"; id="OrderNrButtonText";>Current Order</h1>
                 </button>
-		<br>
-		<button type="button" class="CommandButton5"
-                        ng-click="vm.setMode('Status')" id="Status" xml:id="CommandButtons" value = "Status";>
-                    <h1 class="text-center"; id="StatusButtonText";>Confirm</h1>
+                <button type="button" class="CommandButton5" data-info="Confirm the initial positions of the blocks"
+                                ng-click="vm.status()" id="Status"  value = "Status";>
+                            <h1 class="text-center"; id="StatusButtonText";>Confirm</h1>
+                        </button>
+                <button type="button" class="CommandButton6" data-info="Create and place a new order"
+                                ng-click="vm.newOrder()" id="NewOrder"  value = "NewOrder";>
+                            <h1 class="text-center"; id="OrderButtonText";>New Order</h1>
+                        </button>
+                <button type="button" class="CommandButton7" data-info="Press to change order position in queue"
+                        ng-click="vm.actuateQueue()" id="buttonQueueActuate" value = "1";>
+                    <h1 class="text-center" id="buttonQueueActuateText";>Actuate</h1>
                 </button>
-		<button type="button" class="CommandButton6"
-                        ng-click="vm.setMode('NewOrder')" id="NewOrder" xml:id="CommandButtons" value = "NewOrder";>
-                    <h1 class="text-center"; id="OrderButtonText";>New Order</h1>
-                </button>
+                <form action="" class="tooltipCheckBox">
+                    <input type="checkbox" id="tooltip" name="tooltip" onchange="tooltipOnOff(this)">Tooltip on<br>
+                </form>
 	</div>
+
 
 
 
 	<!----Color Palette------------->
 	    <div class="ColorControlPos" >
                 <input type="button" class="ColorControl1"
-                        ng-click="vm.setActiveColor(1)" id="1" value = "0";>
+                        ng-click="vm.setActiveColour(1)" id="1" value = "0";>
                 </button>
                 <input type="button" class="ColorControl2"
-                        ng-click="vm.setActiveColor(2)" id="2" value = "0";>
-                </button>
-                <input type="button" class="ColorControl4"
-                        ng-click="vm.setActiveColor(4)" id="4" value = "0";>
-			
+                        ng-click="vm.setActiveColour(2)" id="2" value = "0";>
                 </button>
                 <input type="button" class="ColorControl3"
-                        ng-click="vm.setActiveColor(3)" id="3" value ="0">
+                        ng-click="vm.setActiveColour(3)" id="3" value ="0">
+                </button>
+                <input type="button" class="ColorControl4"
+                       ng-click="vm.setActiveColour(4)" id="4" value = "0";>
+
                 </button>
 		<p id="activeColor"></p>
             </div>
-	
-	<div class="TextInstruction">
-		<h7 id="TextInstruction"; text-align: center>Initialize positions of the blocks and confirm</h7>	
+
+	<div class="TextInfo">
+		<h7 id="TextInfo"; text-align: center>Initialize positions of the blocks and confirm</h7>
 	</div>
-	
+
 	<div class="ProggressUpdate">
-		<h7 id="ProggressUpdate"; text-align: center>No orders under construction</h7>	
+		<h7 id="ProggressUpdate"; text-align: center>No orders under construction</h7>
 	</div>
 
     </div>
