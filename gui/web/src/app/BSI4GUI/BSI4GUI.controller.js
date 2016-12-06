@@ -135,6 +135,7 @@
         function updateStatusButtonAndText(){
             document.getElementById('NewOrder').style.backgroundColor = "#ffffff";
             document.getElementById('CurrentOrder').style.backgroundColor = "#ffffff";
+            document.getElementById("buttonQueueActuate").style.visibility="hidden";
             document.getElementById('Status').style.backgroundColor= "#5cd65c";
             document.getElementById('NewOrder').value = 'NewOrder';
             document.getElementById('OrderButtonText').innerHTML = 'New Order';
