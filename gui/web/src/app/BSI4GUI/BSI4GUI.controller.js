@@ -127,6 +127,7 @@
             if (vm.Initialized ==0){
                 vm.Initialized = 1;
                 vm.lock=1;
+                sendInitial();
                 document.getElementById('StatusButtonText').innerHTML='Status';
                 document.getElementById('Status').dataset.info='Show the current block configuration';
             }
@@ -229,10 +230,26 @@
 
 		// Sends a new order to the BSservice
 		function sendOrder() {
-			var mess = {"data": {getNext: false,
+			var mess = {"data": {"command": "order",
 				"Left": vm.ButtonColour.NewOrder.Left,
 				"Middle": vm.ButtonColour.NewOrder.Middle,
 				"Right": vm.ButtonColour.NewOrder.Right}};
+
+			spServicesService.callService(spServicesService.getService("BSservice"),
+					mess,
+					function (resp) {
+				if (_.has(resp, 'attributes.result')) {
+					console.log("Hej" + vm.result);
+				}
+			}
+			)
+		}
+		
+				function sendInitial() {
+			var mess = {"data": {"command": "setup",
+				"Left": vm.ButtonColour.Status.Left,
+				"Middle": vm.ButtonColour.Status.Middle,
+				"Right": vm.ButtonColour.Status.Right}};
 
 			spServicesService.callService(spServicesService.getService("BSservice"),
 					mess,
