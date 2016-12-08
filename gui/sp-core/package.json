@@ -1,0 +1,22 @@
+{
+  "name": "sp-frontend-core",
+  "version": "0.1.0",
+  "description": "Frontend for Sequence Planner",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kristoferB/SP/gui/sp-core.git"
+
+  },
+  "scripts": {
+    "start": "webpack --watch & webpack-dev-server --port 3000",
+    "build": "webpack --progress --colors"
+  },
+  "devDependencies": {
+    "webpack": "^1.13.3",
+    "webpack-dev-server": "^1.16.2"
+  },
+  "dependencies": {
+    "react": "^0.13.3",
+    "webpack-dev-server": "^1.16.2"
+  }
+}
