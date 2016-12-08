@@ -128,11 +128,9 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       } else {
         
         println(s"we got a state change")
-        //serviceHandler ! Request("BSservice", SPAttributes("fixturePositions" -> 1))
 
-     // serviceHandler ! Request(BSservice, SPAttributes("command" -> "hej"))
-     // serviceHandler ! Request(operationController,SPAttributes("command" -> SPAttributes("commandType" -> "stop")))  
-      eventHandler ! ServiceEvent(ID.newID, SPAttributes("command" -> "hej"))
+    //eventHandler ! Response(List(),SPAttributes("command" -> "hej"),"toBS",rnr.req.reqID)
+  
       
         val newState = attr.getAs[State]("state")
         newState.foreach{s =>
@@ -285,6 +283,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
     val abID = abStructToFake.id
     val attr = SPAttributes("command"->SPAttributes("commandType"->"start", "execute"->abID,
       "parameters" -> State(paraMap)))
+      println(paraMap )
 
     serviceHandler ! Request(operationController, attr)
   }
@@ -292,7 +291,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
   // Anropas när ett steg blir klart
   def stepCompleted(complSOP: SOP): Boolean = {
-   
+    eventHandler ! Response(List(),SPAttributes("command" -> "hej"),"toBS",rnr.req.reqID)
     println("stepCompleted")
     println(s"step $complSOP is completed. Parent is ${parents.get(complSOP)}")
     parents.get(complSOP) match {
