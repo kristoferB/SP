@@ -76,8 +76,8 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
         
         val (startLeftm,startRightm,startMiddlem,startRobotLm,startRobotRm) = updateStates(moves,mC,startLeft,startRight,startMiddle,startRobotL,startRobotR)
         
-        eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle),"BS",reqID)
-        eventHandler ! Response(List(),SPAttributes("moves" -> moves.slice(mC,moves.size)),"BS",reqID)
+       // eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle),"BS",reqID)
+        //eventHandler ! Response(List(),SPAttributes("moves" -> moves.slice(mC,moves.size)),"BS",reqID)
         moves.foreach{mm => println(mm)}
         moves.slice(mC,moves.size).foreach{mm => println(mm)}
         
@@ -121,7 +121,7 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
         val (left, right, middle) = GuiToOpt(leftRaw, rightRaw, middleRaw)
      
         
-        serviceHandler ! Request(operationController,SPAttributes("command"->SPAttributes("commandType"->"stop")))
+        //serviceHandler ! Request(operationController,SPAttributes("command"->SPAttributes("commandType"->"stop")))
         //serviceHandler ! Request("RunnerService", SPAttributes("command"->"stop"))
        
         val desiredState = new BlockState(left, right, middle,0,0,0,null,null)
@@ -254,33 +254,11 @@ trait TowerBuilder extends TowerOperationTypes {
   def movesToOperations(moves: List[Move], nameMap: Map[String,IDAble]) = {
     println(moves(0).toString)
     
-    val operations = for { m <- moves.slice(moves.size-1,moves.size)
+    val operations = for { m <- moves
     } yield {
       var name = "placeBlock"
       var position = 0
       var robot = "R5"
-     /** if(m.isPicking == true){
-        name = "pickBlock"
-      }
-      if(m.usingMiddle == true){
-        position += m.position + 1
-        if(m.usingLeftRobot == true){
-          robot = "R4"
-        }
-     } else if(m.usingLeftRobot == true){
-        robot = "R4"
-        if(m.position <= 7){
-          position += -99 + m.position
-        } else {        
-          position += -97 + m.position
-        }
-      } else {  
-        if(m.position <= 7){
-          position += 121 + m.position
-        } else {
-          position += 123 + m.position
-        }
-      }
       if(m.isPicking == true){
         name = "pickBlock"
         if(m.usingMiddle == true){
@@ -322,9 +300,9 @@ trait TowerBuilder extends TowerOperationTypes {
             position += 133 + m.position
           }
         }
-      }*/
-      //val operation = makeOperationWithParameter(robot,name,"pos",position,nameMap)
-        val operation = makeOperationWithParameter("R5","pickBlock","pos",33,nameMap)  
+      }
+      val operation = makeOperationWithParameter(robot,name,"pos",position,nameMap)
+       // val operation = makeOperationWithParameter("R5","placeBlock","pos",32,nameMap)  
     List(operation)
     }
       

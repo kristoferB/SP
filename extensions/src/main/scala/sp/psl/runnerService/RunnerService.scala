@@ -127,7 +127,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
         self ! PoisonPill
       } else {
         
-        println(s"we got a state change")
+        //println(s"we got a state change")
 
     //eventHandler ! Response(List(),SPAttributes("command" -> "hej"),"toBS",rnr.req.reqID)
   
@@ -168,6 +168,8 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
           activeCompleted.foreach(x=>stopID(x.operation))
           // remove the completed ids
           activeSteps = activeSteps.filterNot(x=>opsThatHasCompletedAbilities.contains(x.operation))
+          
+          println(s"avtive steps: $activeSteps")
 
           val res = activeCompleted.map(stepCompleted)
           // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
@@ -291,7 +293,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
   // Anropas när ett steg blir klart
   def stepCompleted(complSOP: SOP): Boolean = {
-    eventHandler ! Response(List(),SPAttributes("command" -> "hej"),"toBS",rnr.req.reqID)
+   // eventHandler ! Response(List(),SPAttributes("command" -> "hej"),"toBS",rnr.req.reqID)
     println("stepCompleted")
     println(s"step $complSOP is completed. Parent is ${parents.get(complSOP)}")
     parents.get(complSOP) match {
