@@ -25,11 +25,11 @@
 
         vm.serviceID = '';
         vm.serviceName = 'OperationControl';
-        vm.busIP = '172.16.205.51';
+        vm.busIP = '172.16.205.50';
         vm.publishTopic = 'commands';
         vm.subscribeTopic = 'response';
-        vm.connectionDetailsID = '9ed1789d-1b61-4f30-a0ed-231527505431';
-        vm.resourcesID = '3cd368e9-4b4f-49db-a60c-aa63c072242a';
+        vm.connectionDetailsID = 'ca2dfff3-725b-497b-b9d2-5e7a6089c3f4';
+        vm.resourcesID = '0f4959e3-56c3-4880-b430-f530b4651cba';
 
         vm.reset = reset;
 

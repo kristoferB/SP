@@ -94,9 +94,11 @@
             eventService.addListener('Response', onEvent);
         }
 
-        function onEvent() {
-            //console.log("It has to be done");
-            //reset();
+        function onEvent(a) {
+            console.log(a);
+            if(a.service == "BS"){
+            	alert("BS")
+            }//reset();
         }
 
 		function setActiveColour(int) {
@@ -381,7 +383,19 @@
         }
 
         // Pauses or resumes the robots current operation
-		function stopResume(){
+		function stopResume(){var mess = {"data": {"command": "hej",
+			"Left": vm.ButtonColour.Status.Left,
+			"Middle": vm.ButtonColour.Status.Middle,
+			"Right": vm.ButtonColour.Status.Right}};
+
+		spServicesService.callService(spServicesService.getService("BSservice"),
+				mess,
+				function (resp) {
+			if (_.has(resp, 'attributes.result')) {
+				console.log("Hej" + vm.result);
+			}
+		}
+		)
             if(vm.Initialized == 1) {
                 if (document.getElementById('StopResumeButtonText').innerHTML == 'Stop') {
                     document.getElementById('StopResumeButtonText').innerHTML = 'Resume';

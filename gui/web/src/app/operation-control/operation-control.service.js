@@ -119,7 +119,7 @@
       return f
     }
     function messageOK(mess){
-      var msg = restService.errorToString(event);
+      var msg = restService.errorToString(mess);
       if (msg !== ""){
         logger.error(msg);
         return false;

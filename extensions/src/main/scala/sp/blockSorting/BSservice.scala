@@ -131,6 +131,7 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
         val startState = new BlockState(startLeft, startRight, startMiddle,startRobotL,startRobotR,0,desiredState,ArrayBuffer[Move]())
         val movestemp = Astar.solver(startState)
         moves = movestemp.toList
+  
         
         println(moves.size)
   
@@ -246,17 +247,19 @@ trait TowerBuilder extends TowerOperationTypes {
     val sequence = Sequence(operations.map(o => Hierarchy(o.id)):_*)
     
     (sequence, operations)
+    
   }
+
   
   def movesToOperations(moves: List[Move], nameMap: Map[String,IDAble]) = {
     println(moves(0).toString)
     
-    val operations = for { m <- moves
+    val operations = for { m <- moves.slice(moves.size-1,moves.size)
     } yield {
-     /** var name = "placeBlock"
-      var position = 110
+      var name = "placeBlock"
+      var position = 0
       var robot = "R5"
-      if(m.isPicking == true){
+     /** if(m.isPicking == true){
         name = "pickBlock"
       }
       if(m.usingMiddle == true){
@@ -277,11 +280,54 @@ trait TowerBuilder extends TowerOperationTypes {
         } else {
           position += 123 + m.position
         }
+      }
+      if(m.isPicking == true){
+        name = "pickBlock"
+        if(m.usingMiddle == true){
+          position += -89 + m.position
+          if(m.usingLeftRobot == true){
+            robot = "R4"
+          }
+        }else if(m.usingLeftRobot == true){
+          robot = "R4"
+          if(m.position <= 7){
+            position += 11 + m.position
+          }else {        
+            position += 13 + m.position
+          }
+        }else {  
+          if(m.position <= 7){
+            position += 31 + m.position
+          }else {
+            position += 33 + m.position
+          }
+        }
+      }else{
+        if(m.usingMiddle == true){
+          position += m.position + 11
+          if(m.usingLeftRobot == true){
+            robot = "R4"
+          }
+        }else if(m.usingLeftRobot == true){
+          robot = "R4"
+          if(m.position <= 7){
+            position += 111 + m.position
+          }else {        
+            position += 113 + m.position
+          }
+        } else {  
+          if(m.position <= 7){
+            position += 131 + m.position
+          }else {
+            position += 133 + m.position
+          }
+        }
       }*/
-      //val operation = makeOperationWithParameter(robot,name,"pos",15,nameMap)
-      val operation = makeOperationWithParameter("R4","pickBlock","pos",15,nameMap)
-      List(operation)
+      //val operation = makeOperationWithParameter(robot,name,"pos",position,nameMap)
+        val operation = makeOperationWithParameter("R5","pickBlock","pos",33,nameMap)  
+    List(operation)
     }
+      
     operations.flatten
   }
   

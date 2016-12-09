@@ -21,7 +21,7 @@ object OperationControl extends SPService {
       "group"-> "control" // to organize in gui. maybe use "hide" to hide service in gui
     ),
     "setup" -> SPAttributes(
-      "busIP" -> KeyDefinition("String", List(), Some("0.0.0.0")),
+      "busIP" -> KeyDefinition("String", List(), Some("172.16.205.50")),
       "publishTopic" -> KeyDefinition("String", List(), Some("commands")),
       "subscribeTopic" -> KeyDefinition("String", List(), Some("response"))
     ),
@@ -182,7 +182,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       idMap = rnr.req.ids.map(x => x.id -> x).toMap
       //state = setupState(rnr.req.ids)
       println(s"connecting: $s")
-      ReActiveMQExtension(context.system).manager ! GetConnection(s"nio://${s.busIP}:61616")
+      ReActiveMQExtension(context.system).manager ! GetAuthenticatedConnection(s"nio://${s.busIP}:61616","lisa","lisa")
   }
 
   def setupState(ids: List[IDAble]) = {

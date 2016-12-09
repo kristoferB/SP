@@ -143,24 +143,24 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
           value == SPValue("ready")
         }
         readyList = readyStates.keys.toList
-        //println(s"readyList: $readyList")
+        println(s"readyList: $readyList")
 
         // if there is nothing started yet
         
         if(activeSteps.isEmpty) {
           sopen.foreach(executeSOP)
-          //println("activeStep empty -> start executing SOP")
+          println("activeStep empty -> start executing SOP")
           progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
         } else {
           val completedIDs = state.state.filter{case (i,v) => v == SPValue("completed")}.keys.toList
-          //println("completed ids = " + completedIDs)
+          println("completed ids = " + completedIDs)
 
           val opsThatHasCompletedAbilities = (operationAbilityMap.filter{case (o, struct) =>
             val abilityId = struct.id
             completedIDs.contains(abilityId)
           }).keySet
 
-          //println(s"ops that has been compl: $opsThatHasCompletedAbilities")
+          println(s"ops that has been compl: $opsThatHasCompletedAbilities")
 
           val activeCompleted = activeSteps.filter(x=>opsThatHasCompletedAbilities.contains(x.operation))
 
