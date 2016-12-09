@@ -42,57 +42,11 @@ class BlockState( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var
 	
 	private def newState() : BlockState = new BlockState(leftPlates.clone, rightPlates.clone, middle.clone, leftRobot, rightRobot, n+1, desiredState, moves.clone)
 	
-	def doMove(move: Move) : BlockState = {
-		var state = newState();
-		if (move.usingLeftRobot && move.usingMiddle && move.isPicking) {
-			if (leftRobot != 0 || middle(move.position) != move.color) return null
-				state.leftRobot = state.middle(move.position)
-				state.middle(move.position) = 0
-		}
-		else if (move.usingLeftRobot && !move.usingMiddle && move.isPicking) {
-			if (leftRobot != 0 || leftPlates(move.position) != move.color) return null
-				state.leftRobot = state.leftPlates(move.position)
-				state.leftPlates(move.position) = 0
-		}
-		else if (move.usingLeftRobot && move.usingMiddle && !move.isPicking) {
-			if (leftRobot != move.color || middle(move.position) != 0) return null
-				state.middle(move.position) = state.leftRobot
-				state.leftRobot = 0
-		}
-		else if (move.usingLeftRobot && !move.usingMiddle && !move.isPicking) {
-			if (leftRobot != move.color || leftPlates(move.position) != 0) return null
-				state.leftPlates(move.position) = state.leftRobot
-				state.leftRobot = 0
-		}
-		else if (!move.usingLeftRobot && move.usingMiddle && move.isPicking) {
-			if (rightRobot != 0 || middle(move.position) != move.color) return null
-				state.rightRobot = state.middle(move.position)
-				state.middle(move.position) = 0
-		}
-		else if (!move.usingLeftRobot && !move.usingMiddle && move.isPicking) {
-			if (rightRobot != 0 || rightPlates(move.position) != move.color) return null
-				state.rightRobot = state.rightPlates(move.position)
-				state.rightPlates(move.position) = 0
-		}
-		else if (!move.usingLeftRobot && move.usingMiddle && !move.isPicking) {
-			if (leftRobot != move.color || middle(move.position) != 0) return null
-				state.middle(move.position) = state.rightRobot
-				state.rightRobot = 0
-		}
-		else if (!move.usingLeftRobot && !move.usingMiddle && !move.isPicking) {
-			if (leftRobot != move.color || leftPlates(move.position) != 0) return null
-				state.rightPlates(move.position) = state.rightRobot
-				state.rightRobot = 0
-		}
-		state.moves += move
-		return state
-	}
-	def nextStates() : ArrayBuffer[BlockState] = {
-		var states = ArrayBuffer[BlockState]()
+	
+	private def newStatesLeft(states: ArrayBuffer[BlockState]) {
 		val nEmptyLeft = emptySpacesLeft
 		val nEmptyRight = emptySpacesRight
 		val nEmptyMiddle = emptySpacesMiddle
-		
 		// left robot
 		if (leftRobot == 0 && rightRobot == 0) {
 			//pick left side
@@ -146,6 +100,11 @@ class BlockState( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var
 			}
 			
 		}
+	}
+	private def newStatesRight(states: ArrayBuffer[BlockState]) {
+		val nEmptyLeft = emptySpacesLeft
+		val nEmptyRight = emptySpacesRight
+		val nEmptyMiddle = emptySpacesMiddle
 		// right robot
 		if (rightRobot == 0 && leftRobot == 0) {
 			//pick right side
@@ -198,6 +157,22 @@ class BlockState( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var
 			}
 			
 		}		
+	}
+	
+	
+	def nextStates() : ArrayBuffer[BlockState] = {
+		var states = ArrayBuffer[BlockState]()
+		var leftFirst = true 
+		if (moves.length != 0) leftFirst = moves(moves.length-1).usingLeftRobot
+		if (leftFirst) {
+			newStatesLeft(states)
+			newStatesRight(states)
+		}
+		else {
+			newStatesRight(states)
+			newStatesLeft(states)
+		}
+		
 		return states
 	}
 }
@@ -308,51 +283,24 @@ object BlockState {
 		return equals
 	}
 	
-	def quickSort(states: ArrayBuffer[BlockState]) {
-	
-		def swap(i: Int, j: Int) {
-			val temp = states(i)
-			states(i) = states(j)
-			states(j) = temp
-		}
-		def sort(l: Int, r: Int) {
-			val pivot = states((l+r)/2)
-			var i = l
-			var j = r
-			while (i <= j) {
-				while(states(i).f < pivot.f) i += 1
-				while(states(j).f > pivot.f) j -= 1
-				if (i <= j) {
-					swap(i, j)
-					i += 1
-					j -= 1
-				}
-			}
-			if (l < j) sort(l, j)
-			if (j < r) sort(i, r)
-		}
-	
-		sort(0, states.length - 1)
-	}
-	
 	def printState(s: BlockState) {
 		var i: Int = 0
 		var line: String = ""
 		for (i <- 0 to 15 ) {
 		line += s.leftPlates(i).toString }
 		println(line)
-		println(s.leftRobot)
+		//println(s.leftRobot)
 		line = ""
 		for (i <- 0 to 3 ) {
 		line += s.middle(i).toString }
 		println(line)
-		println(s.rightRobot)
+		//println(s.rightRobot)
 		line = ""
 		for (i <- 0 to 15 ) {
 		line += s.rightPlates(i).toString }
 		println(line)
-		println("")
-		println("n=" + s.n.toString + " h=" + s.h.toString + " f=" + s.f.toString)
+		//println("")
+		//println("n=" + s.n.toString + " h=" + s.h.toString + " f=" + s.f.toString)
 		println("")
 		
 	}

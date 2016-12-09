@@ -42,7 +42,8 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
   var startMiddle = Array.fill[Byte](16)(0)
   var startRobotL : Byte = 0
   var startRobotR : Byte = 0
-  var moves : List[Move] = List()
+  var movesL : List[Move] = List()
+  var movesR : List[Move] = List()
   var mC : Int = 0
 
   eventHandler ! SubscribeToSSE(self)
@@ -76,8 +77,8 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
         
         val (startLeftm,startRightm,startMiddlem,startRobotLm,startRobotRm) = updateStates(moves,mC,startLeft,startRight,startMiddle,startRobotL,startRobotR)
         
-       // eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle),"BS",reqID)
-        //eventHandler ! Response(List(),SPAttributes("moves" -> moves.slice(mC,moves.size)),"BS",reqID)
+        eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle),"BS",reqID)
+        eventHandler ! Response(List(),SPAttributes("moves" -> moves.slice(mC,moves.size)),"BS",reqID)
         moves.foreach{mm => println(mm)}
         moves.slice(mC,moves.size).foreach{mm => println(mm)}
         
@@ -121,7 +122,7 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
         val (left, right, middle) = GuiToOpt(leftRaw, rightRaw, middleRaw)
      
         
-        //serviceHandler ! Request(operationController,SPAttributes("command"->SPAttributes("commandType"->"stop")))
+        serviceHandler ! Request(operationController,SPAttributes("command"->SPAttributes("commandType"->"stop")))
         //serviceHandler ! Request("RunnerService", SPAttributes("command"->"stop"))
        
         val desiredState = new BlockState(left, right, middle,0,0,0,null,null)
@@ -130,7 +131,8 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
         
         val startState = new BlockState(startLeft, startRight, startMiddle,startRobotL,startRobotR,0,desiredState,ArrayBuffer[Move]())
         val movestemp = Astar.solver(startState)
-        moves = movestemp.toList
+        movesL = movestemp(1).toList
+        movesR = movestemp(2).toList
   
         
         println(moves.size)
@@ -166,49 +168,50 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
 
 trait TowerBuilder extends TowerOperationTypes {
 
-  def updateStates(moves: List[Move], mC: Int, startLeft: Array[Byte], startRight : Array[Byte], startMiddle : Array[Byte], startRobotL: Byte, startRobotR : Byte) = {
+  def updateStates(movesL: List[Move],movesR : List[Move], mC: Int, startLeft: Array[Byte], startRight : Array[Byte], startMiddle : Array[Byte], startRobotL: Byte, startRobotR : Byte) = {
     var sL = startLeft
     var sR = startRight
     var sM = startMiddle
     var srL = startRobotL
     var srR = startRobotR
-    
-    if(moves(mC).isPicking == true){
+    if(movesL != null){ 
+      if(moves(mC).isPicking == true){
         if(moves(mC).usingMiddle == true){
-          if(moves(mC).usingLeftRobot == true){
-            srL = moves(mC).color
-          }else{
-            srR =  moves(mC).color
-          }
+          srL = moves(mC).color
           sM(moves(mC).position) = 0
         }else { 
-          if(moves(mC).usingLeftRobot == true){
-            srL = moves(mC).color
-            sL(moves(mC).position) = 0
-          }else{
-            srR = moves(mC).color
-            sR(moves(mC).position) = 0
-          }
+          srL = moves(mC).color
+          sL(moves(mC).position) = 0
         }
       }else {
        if(moves(mC).usingMiddle == true){
-          if(moves(mC).usingLeftRobot == true){
-            sM(moves(mC).position) = startRobotL
-            srL = 0
-          }else{
-            sM(moves(mC).position) = startRobotR
-            srR = 0
-          }
+          sM(moves(mC).position) = startRobotL
+          srL = 0
         } else { 
-          if(moves(mC).usingLeftRobot == true){
-            srL = 0
-            sL(moves(mC).position) = moves(mC).color
-          }else{
-            srR =  0
-            sR(moves(mC).position) = moves(mC).color
-          }
+          srL = 0
+          sL(moves(mC).position) = moves(mC).color
         }  
       }
+    }
+    if(movesR != null){ 
+      if(moves(mC).isPicking == true){
+        if(moves(mC).usingMiddle == true){
+          srR =  moves(mC).color
+          sM(moves(mC).position) = 0
+        }else { 
+          srR = moves(mC).color
+          sR(moves(mC).position) = 0
+        }
+      }else {
+       if(moves(mC).usingMiddle == true){
+          sM(moves(mC).position) = startRobotR
+          srR = 0
+        } else { 
+          srR =  0
+          sR(moves(mC).position) = moves(mC).color
+        }  
+      }
+    }
     (sL, sR, sM, srL, srR)
   }
   
@@ -248,13 +251,29 @@ trait TowerBuilder extends TowerOperationTypes {
     
     (sequence, operations)
     
+    val nameMap = ids.map(x => x.name -> x).toMap
+
+    val oL = movesToOperations(movesL, nameMap)
+    val oR = movesToOperations(movesR, nameMap)
+
+    val allOps = oL ++ oR
+
+    val seqL = Sequence((oL.map(o => Hierarchy(o.id)):_*)
+    val seqR = Sequence(oR.map(o => Hierarchy(o.id)):_*)
+
+    val buildSOP: SOP = if (seqL.isEmpty) seqR else if (seqR.isEmpty) seqL else Parallel(seqL, seqR)
+
+    val brickSeq: List[SOP] = buildSOP :: seqUnloadTower
+
+    (Sequence(brickSeq:_*), seqLoad, allOps, f1 ++ f2)
   }
 
   
   def movesToOperations(moves: List[Move], nameMap: Map[String,IDAble]) = {
     println(moves(0).toString)
-    
-    val operations = for { m <- moves
+    val Rmoves : List()
+    moves.foreach{a => Rmoves ++= a}
+    val operations = for { m <- Rmoves
     } yield {
       var name = "placeBlock"
       var position = 0
@@ -301,8 +320,7 @@ trait TowerBuilder extends TowerOperationTypes {
           }
         }
       }
-      val operation = makeOperationWithParameter(robot,name,"pos",position,nameMap)
-       // val operation = makeOperationWithParameter("R5","placeBlock","pos",32,nameMap)  
+      val operation = makeOperationWithParameter(robot,name,"pos",position,nameMap) 
     List(operation)
     }
       
@@ -327,4 +345,3 @@ trait TowerOperationTypes {
 
 
 }
-
