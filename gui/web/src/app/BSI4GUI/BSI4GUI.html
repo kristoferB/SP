@@ -10,30 +10,24 @@
     top: 0px;
     left: 0px;
 }
-
-
 .LeftUpper {
 position: absolute;top:0px; left:0px;
 }
 .LeftLower {
 position: absolute;top:135px; left:0px;
 }
-
 .Middle {
 position: absolute;top:202px; left:270px; height: 67px
 }
-
 .RightUpper {
 position: absolute;top:0px; left:540px;
 }
 .RightLower {
 position: absolute;top:135px; left:540px;
 }
-
 .Padding {
 position: absolute; top:5px; left:5px;
 }
-
 .Block1, .Block2, .Block3, .Block4, .Block5, .Block6, .Block7, .Block8 {
 	width:60px;
 	height:60px;
@@ -41,7 +35,6 @@ position: absolute; top:5px; left:5px;
 	border-radius: 5px;
 	border: 1px solid #00AA66;
 }
-
 .Block1 {
 	position: absolute; top: 0px; left: 0px;
 }
@@ -66,11 +59,6 @@ position: absolute; top:5px; left:5px;
 .Block8 {
 	position: absolute; top: 65px; left: 195px;
 }
-
-
-
-
-
 .ColorControlPos{
 position: absolute; top: 70px; left: 343px;
 }
@@ -78,7 +66,6 @@ position: absolute; top: 70px; left: 343px;
 width:40px;height:40px; border-radius: 5px; border: 1px solid #00AA66;
 font-family: Helvetica; font-weight: bold; font-color:#5cd65c; font-size: 22px;
 }
-
 .ColorControl1{
 background-color:#0066ff; position: absolute; top: 40px; left: 80px;  /*Blue*/
 }
@@ -91,7 +78,6 @@ background-color:#ff3333; position: absolute; top: 80px; left: 40px; /*Red*/
 .ColorControl4{
 background-color:#ffff66; position: absolute; top: 40px; left: 0px; /*Yellow*/
 }
-
 #activeColor {
     border-radius: 20px;
     background: {{vm.buttonBG}};
@@ -102,8 +88,6 @@ background-color:#ffff66; position: absolute; top: 40px; left: 0px; /*Yellow*/
     top: 45px;
     left: 45px;
 }
-
-
 .CommandButtonsPos, .tooltipOnOff{position: absolute; top: 300px; left: 210px;}
 .CommandButton1, .CommandButton2, .CommandButton3, .CommandButton4, .CommandButton5, .CommandButton6{ width:125px;height:60px; border: 1px solid #00AA66;}
 .CommandButton1, .CommandButton2, .CommandButton3, .CommandButton4, .CommandButton6, .CommandButton7{ background-color:rgb(255,255,255);}
@@ -114,7 +98,6 @@ background-color:#ffff66; position: absolute; top: 40px; left: 0px; /*Yellow*/
 .CommandButton5{background-color:#5cd65c; position: absolute; top: 0px; left: 0px;}
 .CommandButton6{position: absolute; top: 0px; left: 130px;}
 .CommandButton7{width:125px;height:30px; border: 1px solid #ff3333; position: absolute; top: 100px; left: 260px; visibility: hidden}
-
 [data-info]:hover:after{
     visibility: visible;
     content: attr(data-info);
@@ -127,14 +110,76 @@ background-color:#ffff66; position: absolute; top: 40px; left: 0px; /*Yellow*/
     white-space: nowrap;
     box-shadow: 0px 0px 1px #222;
     background-color:#ffffff;
-
+}
+[data-blockNr]:hover:after{
+	 visibility: visible;
+    content: attr(data-blockNr);
+    padding: 0px 0px;
+    color: #C0C0C0;
+    position: relative;
+    //left:43%;
+    //top: 36%;
+    z-index: 20;
+    white-space: nowrap;
+    text-align: center;
 }
 
 .tooltipCheckBox{position: absolute; top: 0px; left: 400px; white-space: nowrap;}
-
 .TextInfo{position: absolute; top: 10px; left: 270px; text-align: center;
 }
 .ProggressUpdate{position: absolute; top: 275px; left: 360px; text-align: center;}
+
+
+.Sop{position: absolute; top: 0px; left: 840px;}
+
+.SoplistLeft, .SoplistRight{
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    height: 500px; 
+	 overflow: auto;
+}
+
+
+.SoplistLeft  li , .SoplistRight li{
+    cursor: pointer;
+   
+    padding: 12px 8px 12px 12px;
+    background: #eee;
+    font-size: 18px;
+    transition: 0.2s;
+	 width:250px;
+	position: relative;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.SopLeftpos {
+position: absolute;
+}
+.SopRightpos {
+position: absolute;
+    left: 260px;
+}
+
+.SoplistLeft  li:nth-child(odd)  , .SoplistRight li:nth-child(odd){
+    background: #f9f9f9;
+}
+
+
+.SoplistLeft  li:hover , .SoplistRight li:hover{
+    background: #ddd;
+    
+}
+
+
+.SoplistLeft  li.checked , .SoplistRight li.checked{
+    background: #888;
+    color: #fff;
+    text-decoration: line-through;
+}
 
 </style>
 
@@ -144,6 +189,43 @@ background-color:#ffff66; position: absolute; top: 40px; left: 0px; /*Yellow*/
     } else {
     }
     }
+ /*  
+  $('.SoplistLeft li').hover(function(){
+  alert('hej');
+  //$('.actions', this).css('visibility', 'visible')
+  })*/
+   /*
+$('#SoplistLeft li').on('mouseover', function() {
+  alert('hej');//$(this).parents('.menu').addClass('hovered');
+}).on('mouseout', function() {
+  alert('hejdå');//$(this).parents('.menu').removeClass('hovered');
+}); 
+*/
+
+
+$('#SoplistLeft').on('mouseover', '> li', function(e) {
+//var li$ = $(this);
+var keys = Object.keys(e.target);	
+		var btn=e.target.id;
+		var property = document.getElementById(btn);
+		property.style.border = "3px solid #295123";
+}).on('mouseout', '> li', function (e) {
+var btn=e.target.id;
+var property = document.getElementById(btn);
+property.style.border = "1px solid #00AA66";
+});
+
+$('#SoplistRight').on('mouseover', '> li', function(e) {
+//var li$ = $(this);
+var keys = Object.keys(e.target);	
+		var btn=e.target.id;
+		var property = document.getElementById(btn);
+		property.style.border = "3px solid #295123";
+}).on('mouseout', '> li', function (e) {
+var btn=e.target.id;
+var property = document.getElementById(btn);
+property.style.border = "1px solid #00AA66";
+});
 </script>
 
 
@@ -152,174 +234,149 @@ background-color:#ffff66; position: absolute; top: 40px; left: 0px; /*Yellow*/
 
 
 <!-------- Left Plate upper half--------------------------------------------------------------------------------------------------->
-
        <div class="LeftUpper">
 		<div class="Padding">
-
-			<button type="button" class="Block1"
+			<button type="button" class="Block1" data-blockNr="12"
 		                ng-click="vm.saveNumber('button141','Left',3,0)" id="button141" value = button141;>
 		        </button>
-		        <button type="button" class="Block2"
+		        <button type="button" class="Block2" data-blockNr="13"
 		                ng-click="vm.saveNumber('button142','Left',3,1)" id="button142" value = "button142";>
 		        </button>
-
-		        <button type="button" class="Block3"
+		        <button type="button" class="Block3" data-blockNr="14"
 		                ng-click="vm.saveNumber('button143','Left',3,2)" id="button143" value = "button143";>
 		        </button>
-		        <button type="button" class="Block4"
+		        <button type="button" class="Block4" data-blockNr="15"
 		                ng-click="vm.saveNumber('button144','Left',3,3)" id="button144" value = "button144";>
 		        </button>
 		        <br>
-		        <button type="button" class="Block5"
+		        <button type="button" class="Block5" data-blockNr="8"
 		                ng-click="vm.saveNumber('button131','Left',2,0)" id="button131" value = "button131";>
 		        </button>
-		        <button type="button" class="Block6"
+		        <button type="button" class="Block6" data-blockNr="9"
 		                ng-click="vm.saveNumber('button132','Left',2,1)" id="button132" value = "button132";>
 		        </button>
-		        <button type="button" class="Block7"
+		        <button type="button" class="Block7"	data-blockNr="10"
 		                ng-click="vm.saveNumber('button133','Left',2,2)" id="button133" value = "button133";>
 		        </button>
-		        <button type="button" class="Block8"
+		        <button type="button" class="Block8" data-blockNr="11"
 		                ng-click="vm.saveNumber('button134','Left',2,3)" id="button134" value = "button134";>
 		        </button>
 		</div>
 	</div>
 <!----------------------------------------------------------------------------------------------------------------------------->
 <br>
-
-
 <!-------- Left Plate lower half--------------------------------------------------------------------------------------------------->
-
       <div class="LeftLower">
 		<div class="Padding">
-
-		        <button type="button" class="Block1"
+		        <button type="button" class="Block1" data-blockNr="4"
 		                ng-click="vm.saveNumber('button121','Left',1,0)" id="button121" value = "button121";>
 		        </button>
-		        <button type="button" class="Block2"
+		        <button type="button" class="Block2"	data-blockNr="5"
 		                ng-click="vm.saveNumber('button122','Left',1,1)" id="button122" value = "button122";>
 		        </button>
-		        <button type="button" class="Block3"
+		        <button type="button" class="Block3"	data-blockNr="6"
 		                ng-click="vm.saveNumber('button123','Left',1,2)" id="button123" value = "button123";>
 		        </button>
-		        <button type="button" class="Block4"
+		        <button type="button" class="Block4"	data-blockNr="7"
 		                ng-click="vm.saveNumber('button124','Left',1,3)" id="button124" value = "button124";>
 		        </button>
-
-
 		        <br>
-                       <button type="button" class="Block5"
+                       <button type="button" class="Block5" data-blockNr="0"
                                 ng-click="vm.saveNumber('button111','Left',0,0)" id="button111" value = "button111";>
                        </button>
-                       <button type="button" class="Block6"
+                       <button type="button" class="Block6" data-blockNr="1"
                                 ng-click="vm.saveNumber('button112','Left',0,1)" id="button112" value = "button112";>
                        </button>
-                       <button type="button" class="Block7"
+                       <button type="button" class="Block7" data-blockNr="2"
                                 ng-click="vm.saveNumber('button113','Left',0,2)" id="button113" value = "button113";>
                        </button>
-                       <button type="button" class="Block8"
+                       <button type="button" class="Block8" data-blockNr="3"
                                 ng-click="vm.saveNumber('button114','Left',0,3)" id="button114" value = "button114";>
                        </button>
 		</div>
 	</div>
 <!----------------------------------------------------------------------------------------------------------------------------->
 <br>
-
-
 <!-------- Middle Plate--------------------------------------------------------------------------------------------------->
       	 <div class="Middle">
 		<div class="Padding" style="top: 3.5px;">
-
-		    <button type="button" class="Block1"
+		    <button type="button" class="Block1" data-blockNr="0"
                             ng-click="vm.saveNumber('button311','Middle',0,0)" id="button311" value = "button311";>
                     </button>
-                    <button type="button" class="Block2"
+                    <button type="button" class="Block2" data-blockNr="1"
                             ng-click="vm.saveNumber('button312','Middle',0,1)" id="button312" value = "button312";>
                     </button>
-                    <button type="button" class="Block3"
+                    <button type="button" class="Block3" data-blockNr="2"
                             ng-click="vm.saveNumber('button313','Middle',0,2)" id="button313" value = "button313";>
                     </button>
-                    <button type="button" class="Block4"
+                    <button type="button" class="Block4" data-blockNr="3"
                             ng-click="vm.saveNumber('button314','Middle',0,3)" id="button314" value = "button314";>
                     </button>
 		</div>
 	</div>
 <!----------------------------------------------------------------------------------------------------------------------------->
-
 <br>
-
-
 <!-------- Right Plate upper half--------------------------------------------------------------------------------------------------->
-
         <div class="RightUpper">
 		<div class="Padding">
-
-			<button type="button" class="Block1"
+			<button type="button" class="Block1" data-blockNr="12"
 		                ng-click="vm.saveNumber('button241','Right',3,0)" id="button241" value = button241;>
 		        </button>
-		        <button type="button" class="Block2"
+		        <button type="button" class="Block2" data-blockNr="13"
 		                ng-click="vm.saveNumber('button242','Right',3,1)" id="button242" value = "button242";>
 		        </button>
-		        <button type="button" class="Block3"
+		        <button type="button" class="Block3" data-blockNr="14"
 		                ng-click="vm.saveNumber('button243','Right',3,2)" id="button243" value = "button243";>
 		        </button>
-		        <button type="button" class="Block4"
+		        <button type="button" class="Block4" data-blockNr="15"
 		                ng-click="vm.saveNumber('button244','Right',3,3)" id="button244" value = "button244";>
 		        </button>
-		        <br>
-		        <button type="button" class="Block5"
+		        <button type="button" class="Block5" data-blockNr="8"
 		                ng-click="vm.saveNumber('button231','Right',2,0)" id="button231" value = "button231";>
 		        </button>
-		        <button type="button" class="Block6"
+		        <button type="button" class="Block6" data-blockNr="9"
 		                ng-click="vm.saveNumber('button232','Right',2,1)" id="button232" value = "button232";>
 		        </button>
-		        <button type="button" class="Block7"
+		        <button type="button" class="Block7" data-blockNr="10"
 		                ng-click="vm.saveNumber('button233','Right',2,2)" id="button233" value = "button233";>
 		        </button>
-		        <button type="button" class="Block8"
+		        <button type="button" class="Block8" data-blockNr="11"
 		                ng-click="vm.saveNumber('button234','Right',2,3)" id="button234" value = "button234";>
 		        </button>
 		</div>
 	</div>
 <!----------------------------------------------------------------------------------------------------------------------------->
 		<br>
-
 <!-------- Plate 2 lower half--------------------------------------------------------------------------------------------------->
-
-
         <div class="RightLower">
 		<div class="Padding">
-
-		        <button type="button" class="Block1"
+		        <button type="button" class="Block1" data-blockNr="4"
 		                ng-click="vm.saveNumber('button221','Right',1,0)" id="button221" value = "button221";>
 		        </button>
-		        <button type="button" class="Block2"
+		        <button type="button" class="Block2"	data-blockNr="5"
 		                ng-click="vm.saveNumber('button222','Right',1,1)" id="button222" value = "button222";>
 		        </button>
-		        <button type="button" class="Block3"
+		        <button type="button" class="Block3" data-blockNr="6"
 		                ng-click="vm.saveNumber('button223','Right',1,2)" id="button223" value = "button223";>
 		        </button>
-		        <button type="button" class="Block4"
+		        <button type="button" class="Block4" data-blockNr="7"
 		                ng-click="vm.saveNumber('button224','Right',1,3)" id="button224" value = "button224";>
 		        </button>
-
-		        <br>
-                        <button type="button" class="Block5"
+                        <button type="button" class="Block5" data-blockNr="0"
                                 ng-click="vm.saveNumber('button211','Right',0,0)" id="button211" value = "button211";>
                         </button>
-                        <button type="button" class="Block6"
+                        <button type="button" class="Block6" data-blockNr="1"
                                 ng-click="vm.saveNumber('button212','Right',0,1)" id="button212" value = "button212";>
                         </button>
-                        <button type="button" class="Block7"
+                        <button type="button" class="Block7" data-blockNr="2"
                                 ng-click="vm.saveNumber('button213','Right',0,2)" id="button213" value = "button213";>
                         </button>
-                        <button type="button" class="Block8"
+                        <button type="button" class="Block8" data-blockNr="3"
                                 ng-click="vm.saveNumber('button214','Right',0,3)" id="button214" value = "button214";>
                         </button>
 		</div>
 	</div>
 <!----------------------------------------------------------------------------------------------------------------------------->
-
 		<!----Command Buttons------------->
 	<div class="CommandButtonsPos"; id="CommandButtons" >
                 <button type="button" class="CommandButton1" data-info="Set the order position in the build queue"
@@ -354,10 +411,6 @@ background-color:#ffff66; position: absolute; top: 40px; left: 0px; /*Yellow*/
                     <input type="checkbox" id="tooltip" name="tooltip" onchange="tooltipOnOff(this)">Tooltip on<br>
                 </form>
 	</div>
-
-
-
-
 	<!----Color Palette------------->
 	    <div class="ColorControlPos" >
                 <input type="button" class="ColorControl1"
@@ -371,20 +424,30 @@ background-color:#ffff66; position: absolute; top: 40px; left: 0px; /*Yellow*/
                 </button>
                 <input type="button" class="ColorControl4"
                        ng-click="vm.setActiveColour(4)" id="4" value = "0";>
-
                 </button>
 		<p id="activeColor"></p>
             </div>
-
 	<div class="TextInfo">
 		<h7 id="TextInfo"; text-align: center>Initialize positions of the blocks and confirm</h7>
 	</div>
-
 	<div class="ProggressUpdate">
 		<h7 id="ProggressUpdate"; text-align: center>No orders under construction</h7>
 	</div>
-
+	<!---<div class="Sop">
+		<h7 id="Sop"; text-align: center>Sop</h7>
+	</div> -->
+	
+<div class="Sop" id="Sop" style=" display:none">
+<div class="SopLeftpos">
+<h2>Left_Robot</h2>
+	<ul  class ="SoplistLeft" id="SoplistLeft">
+	</ul>
+</div>
+<div class="SopRightpos" >
+<h2>Right_Robot</h2>
+<ul  class ="SoplistRight" id="SoplistRight">
+</ul>
+</div>
+</div>
     </div>
 </div>
-
-
