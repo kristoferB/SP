@@ -1,4 +1,5 @@
 <div ng-controller="BSI4GUIController as vm" class="simple-widget">
+
 <style>
 .LeftUpper, .LeftLower, .Middle, .RightUpper, .RightLower{
     border-radius: 5px;
@@ -34,6 +35,7 @@ position: absolute; top:5px; left:5px;
 	background-color:rgb(255,255,255);
 	border-radius: 5px;
 	border: 1px solid #00AA66;
+	box-shadow:inset 0px 0px 0px 0px;
 }
 .Block1 {
 	position: absolute; top: 0px; left: 0px;
@@ -112,13 +114,13 @@ background-color:#ffff66; position: absolute; top: 40px; left: 0px; /*Yellow*/
     background-color:#ffffff;
 }
 [data-blockNr]:hover:after{
+    font-family: Helvetica; font-weight: bold; font-size: 20px; 
+    color: transparent;
+    text-shadow: 0px 2px 0px rgba(100,100,100,0.5);
 	 visibility: visible;
     content: attr(data-blockNr);
     padding: 0px 0px;
-    color: #C0C0C0;
     position: relative;
-    //left:43%;
-    //top: 36%;
     z-index: 20;
     white-space: nowrap;
     text-align: center;
@@ -137,7 +139,9 @@ background-color:#ffff66; position: absolute; top: 40px; left: 0px; /*Yellow*/
     padding: 0;
     list-style-type: none;
     height: 500px; 
-	 overflow: auto;
+	 //overflow: auto;
+	 overflow:hidden; 
+	 overflow-y:scroll;
 }
 
 
@@ -185,10 +189,25 @@ position: absolute;
 
 <script>
     function  tooltipOnOff(checkboxElem) {
+    tooltiptxt = document.getElementById ('tooltipText');
     if (checkboxElem.checked) {
-    } else {
+    tooltiptxt.innerHTML = 'Tooltip on';
+    injectStyles('[data-blockNr]:hover:after { visibility: visible; }');
+    injectStyles('[data-info]:hover:after { visibility: visible; }');
+    }
+     else {
+      tooltiptxt.innerHTML = 'Tooltip off';
+     injectStyles('[data-blockNr]:hover:after { visibility: hidden; }');
+     injectStyles('[data-info]:hover:after { visibility: hidden; }');
     }
     }
+    
+   function injectStyles(rule) {
+  var div = $("<div />", {
+    html: '&shy;<style>' + rule + '</style>'
+  }).appendTo("body");    
+}
+
  /*  
   $('.SoplistLeft li').hover(function(){
   alert('hej');
@@ -205,14 +224,18 @@ $('#SoplistLeft li').on('mouseover', function() {
 
 $('#SoplistLeft').on('mouseover', '> li', function(e) {
 //var li$ = $(this);
-var keys = Object.keys(e.target);	
 		var btn=e.target.id;
+		//var btn1=e.target.getAttribute('id');;
 		var property = document.getElementById(btn);
-		property.style.border = "3px solid #295123";
+		//var property1 = document.getElementById(btn);
+		//alert(property1);
+		property.style.border = "2px solid #00AA66";
+		property.style['box-shadow']="inset 0px 0px 2px 0px";
 }).on('mouseout', '> li', function (e) {
 var btn=e.target.id;
 var property = document.getElementById(btn);
 property.style.border = "1px solid #00AA66";
+property.style['box-shadow']="inset 0px 0px 0px 0px";
 });
 
 $('#SoplistRight').on('mouseover', '> li', function(e) {
@@ -220,14 +243,15 @@ $('#SoplistRight').on('mouseover', '> li', function(e) {
 var keys = Object.keys(e.target);	
 		var btn=e.target.id;
 		var property = document.getElementById(btn);
-		property.style.border = "3px solid #295123";
+		property.style.border = "2px solid #00AA66";
+		property.style['box-shadow']="inset 0px 0px 2px 0px";
 }).on('mouseout', '> li', function (e) {
 var btn=e.target.id;
 var property = document.getElementById(btn);
 property.style.border = "1px solid #00AA66";
+property.style['box-shadow']="inset 0px 0px 0px 0px";
 });
 </script>
-
 
     <div class="panel-content">
      <p vm.setActiveColour(1) ></p>
@@ -408,7 +432,8 @@ property.style.border = "1px solid #00AA66";
                     <h1 class="text-center" id="buttonQueueActuateText";>Actuate</h1>
                 </button>
                 <form action="" class="tooltipCheckBox">
-                    <input type="checkbox" id="tooltip" name="tooltip" onchange="tooltipOnOff(this)">Tooltip on<br>
+                    <input type="checkbox" id="tooltip" name="tooltip"  checked onchange="tooltipOnOff(this)"> 
+                    <h7 class="text-center"; id="tooltipText";>Tooltip on</h7><br>
                 </form>
 	</div>
 	<!----Color Palette------------->
@@ -439,15 +464,14 @@ property.style.border = "1px solid #00AA66";
 	
 <div class="Sop" id="Sop" style=" display:none">
 <div class="SopLeftpos">
-<h2>Left_Robot</h2>
+<h2>Left_robot</h2>
 	<ul  class ="SoplistLeft" id="SoplistLeft">
 	</ul>
 </div>
 <div class="SopRightpos" >
-<h2>Right_Robot</h2>
+<h2>Right_robot</h2>
 <ul  class ="SoplistRight" id="SoplistRight">
 </ul>
 </div>
 </div>
     </div>
-</div>

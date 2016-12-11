@@ -110,6 +110,7 @@
                     vm.ButtonColour.Status.Right[i][j]= a.attributes.right[i*4+j];
                 }
             }	
+            if(vm.Mode=='Status')
         			updateCubes('Status')
         	//-------------------------------------------------------------------------------------------------------------------------		
         			
@@ -162,14 +163,11 @@
   						
   						var buttonNr=computePositionRowColFromSpEvent(a.attributes.moves[0].usingMiddle,a.attributes.moves[0].usingLeftRobot,a.attributes.moves[0].position);
 						OperationList.setAttribute("id", buttonNr);  						
-  						//OperationList.setAttribute("value", buttonNr);
+  						//OperationList.setAttribute("data-bntNr", buttonNr);
   						if(a.attributes.moves[0].usingLeftRobot)
     						document.getElementById("SoplistLeft").appendChild(OperationList);
 						else						
 							document.getElementById("SoplistRight").appendChild(OperationList);
-						//document.getElementById('Sop').innerHTML+= "<br>" +op;
-					//alert(a.attributes.moves[0].position)
-					//alert(a.attributes.moves[0].usingLeftRobot)
         		}
             //console.log("It has to be done");
             //reset();
@@ -258,11 +256,16 @@ function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
                     vm.lock=0;
                 }
                 else if(document.getElementById(vm.Mode).value=='PlaceOrder'){
+                                          
+                    if (testIsValidBlockConfiguration()){   
                         updateOrderPlacedButtonAndText();
                         updateCubes(vm.Mode);
                         sendOrder();
                         copyButtonColourValues('CurrentOrder','NewOrder');
                         vm.lock = 1;
+                     }
+                     else {alert("At least one block must be placed in a new location and you have to specify all of the blocks locations.")}
+                   
                 }
             }
         }
@@ -557,6 +560,15 @@ function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
                 changeQueueOrder = 0;
             else
                 changeQueueOrder = 1;
+        }
+        
+         function testIsValidBlockConfiguration(){
+            var newOrderIsSameAsStatus= _.isEqual(vm.ButtonColour.Status.Right, vm.ButtonColour.NewOrder.Right) &&
+                _.isEqual(vm.ButtonColour.Status.Left, vm.ButtonColour.NewOrder.Left) &&
+                _.isEqual(vm.ButtonColour.Status.Middle, vm.ButtonColour.NewOrder.Middle);
+            var allBlocksHaveBeenPlaced=_.isEqual(vm.colourControlValue.NewOrder,[0,0,0,0,0]);
+            return !newOrderIsSameAsStatus && allBlocksHaveBeenPlaced;
+
         }
 
 	}
