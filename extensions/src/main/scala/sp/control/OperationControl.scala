@@ -331,7 +331,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
         "command"->"write",
         "dbs"-> dbs
       )
-    println(s"sending: $mess")
+    //println(s"sending: $mess")
       sendMessage(mess)
   }  
 

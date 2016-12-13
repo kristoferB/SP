@@ -9,7 +9,8 @@ import sp.system.messages._
 import scala.collection.mutable.MutableList
 import astar._
 import scala.collection.mutable.ArrayBuffer
-
+import scala.collection.mutable.ListBuffer
+import scala.math._
 
 object BSservice extends SPService {
 
@@ -45,6 +46,7 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
   var movesL : List[Move] = List()
   var movesR : List[Move] = List()
   var mC : Int = 0
+  var varannan : Int = 1
 
   eventHandler ! SubscribeToSSE(self)
   
@@ -61,47 +63,7 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
       
       println(transform(BSservice.transformTuple._4))
       if(transform(BSservice.transformTuple._4) == "hej"){//------------------------------------------update------------------------------------
-        println("JAAAAAAAAAAAAAAAAAAAA")
-        println("######### " + mC)
-       /** print("left: ")
-        startLeft.foreach{k => print(k + " ")}
-        print("| right: ")
-        startRight.foreach{k => print(k + " ")}
-        print("| middle: ")
-        startMiddle.foreach{k => print(k + "  ") }
-        print("| RobotL: ")
-        print(startRobotL)
-        print("| RobotR: ")
-        print(startRobotR)
-        println(moves(mC))*/
-        
-        val (startLeftm,startRightm,startMiddlem,startRobotLm,startRobotRm) = updateStates(moves,mC,startLeft,startRight,startMiddle,startRobotL,startRobotR)
-        
-        eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle),"BS",reqID)
-        eventHandler ! Response(List(),SPAttributes("moves" -> moves.slice(mC,moves.size)),"BS",reqID)
-        moves.foreach{mm => println(mm)}
-        moves.slice(mC,moves.size).foreach{mm => println(mm)}
-        
-        startLeft = startLeftm
-        startRight = startRightm
-        startMiddle = startMiddlem
-        startRobotL = startRobotLm
-        startRobotR = startRobotRm
-        
-        /**println("----------------------")
-        print("left: ")
-        startLeft.foreach{k => print(k + " ")}
-        print("| right: ")
-        startRight.foreach{k => print(k + " ")}
-        print("| middle: ")
-        startMiddle.foreach{k => print(k + " ") }
-        print("| RobotL: ")
-        print(startRobotL)
-        print("| RobotR: ")
-        print(startRobotR) */
        
-        mC += 1
-        
       }else if(transform(BSservice.transformTuple._4) == "setup"){ //---------------------------------setup-----------------------------------
         
        //eventHandler ! Response(List(),SPAttributes("text" -> "hej"),"BS",reqID)
@@ -131,14 +93,17 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
         
         val startState = new BlockState(startLeft, startRight, startMiddle,startRobotL,startRobotR,0,desiredState,ArrayBuffer[Move]())
         val movestemp = Astar.solver(startState)
-        movesL = movestemp(1).toList
-        movesR = movestemp(2).toList
+        println(movestemp.size)
+        movesL = movestemp(0).toList
+        movesR = movestemp(1).toList
   
-        
-        println(moves.size)
+        eventHandler ! Response(List(),SPAttributes("movesL" -> movesL, "movesR" -> movesR),"BS",reqID)
+
+        println(movesL.size)
+        println(movesR.size )
   
-        val paraSOP = movesToSOP(moves, ids)
-        val sopSpec = SOPSpec("Sequence", List(paraSOP._1))
+        val paraSOP = movesToSOP(movesL, movesR, ids)
+        val sopSpec = SOPSpec("tower", List(paraSOP._1))
         val upIds = sopSpec :: paraSOP._2 ++ ids
         val stations = Map("tower" -> sopSpec.id)
         
@@ -147,7 +112,7 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
         serviceHandler ! Request("OrderHandler", SPAttributes(
         "order" -> SPAttributes(
         "id" -> ID.newID,
-        "name" -> "hej",
+        "name" -> "New_sequence",
         "stations" -> stations
           )
           ) ,upIds) 
@@ -159,7 +124,35 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
     
     
     case Response(ids, attr, "toBS", id) =>{
-      println("JAJJEMEN")
+      println("JAAAAAAAAAAAAAAAAAAAA")
+      println("######### " + mC)
+      varannan = varannan*(-1)
+      if(varannan == 1){
+        val (startLeftm,startRightm,startMiddlem,startRobotLm,startRobotRm) = updateStates(movesL, movesR ,mC,startLeft,startRight,startMiddle,startRobotL,startRobotR)
+        
+        eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle, "movesL" -> movesL(mC), "movesR" -> movesR(mC)),"BS",id)
+        //moves.foreach{mm => println(mm)}
+        //moves.slice(mC,moves.size).foreach{mm => println(mm)}
+        
+        startLeft = startLeftm
+        startRight = startRightm
+        startMiddle = startMiddlem
+        startRobotL = startRobotLm  
+        startRobotR = startRobotRm
+        
+        /**println("----------------------")
+        print("left: ")
+        startLeft.foreach{k => print(k + " ")}
+        print("| right: ")
+        startRight.foreach{k => print(k + " ")}
+        print("| middle: ")
+        startMiddle.foreach{k => print(k + " ") }
+        print("| RobotL: ")
+        print(startRobotL)
+        print("| RobotR: ")
+        print(startRobotR)*/
+        mC += 1
+      }
     }
   }
 }
@@ -174,41 +167,42 @@ trait TowerBuilder extends TowerOperationTypes {
     var sM = startMiddle
     var srL = startRobotL
     var srR = startRobotR
-    if(movesL != null){ 
-      if(moves(mC).isPicking == true){
-        if(moves(mC).usingMiddle == true){
-          srL = moves(mC).color
-          sM(moves(mC).position) = 0
+
+    if(movesL(mC) != null){ 
+      if(movesL(mC).isPicking == true){
+        if(movesL(mC).usingMiddle == true){
+          srL = movesL(mC).color
+          sM(movesL(mC).position) = 0
         }else { 
-          srL = moves(mC).color
-          sL(moves(mC).position) = 0
+          srL = movesL(mC).color
+          sL(movesL(mC).position) = 0
         }
       }else {
-       if(moves(mC).usingMiddle == true){
-          sM(moves(mC).position) = startRobotL
+       if(movesL(mC).usingMiddle == true){
+          sM(movesL(mC).position) = startRobotL
           srL = 0
         } else { 
           srL = 0
-          sL(moves(mC).position) = moves(mC).color
+          sL(movesL(mC).position) = movesL(mC).color
         }  
       }
     }
-    if(movesR != null){ 
-      if(moves(mC).isPicking == true){
-        if(moves(mC).usingMiddle == true){
-          srR =  moves(mC).color
-          sM(moves(mC).position) = 0
+    if(movesR(mC) != null){ 
+      if(movesR(mC).isPicking == true){
+        if(movesR(mC).usingMiddle == true){
+          srR =  movesR(mC).color
+          sM(movesR(mC).position) = 0
         }else { 
-          srR = moves(mC).color
-          sR(moves(mC).position) = 0
+          srR = movesR(mC).color
+          sR(movesR(mC).position) = 0
         }
       }else {
-       if(moves(mC).usingMiddle == true){
-          sM(moves(mC).position) = startRobotR
+       if(movesR(mC).usingMiddle == true){
+          sM(movesR(mC).position) = startRobotR
           srR = 0
         } else { 
           srR =  0
-          sR(moves(mC).position) = moves(mC).color
+          sR(movesR(mC).position) = movesR(mC).color
         }  
       }
     }
@@ -243,87 +237,97 @@ trait TowerBuilder extends TowerOperationTypes {
     
     (leftPlate, rightPlate, middlePlate)
   }
+  
+  def movesToSOP(movesL: List[Move], movesR: List[Move], ids: List[IDAble]) = {
 
-  def movesToSOP(moves: List[Move],  ids: List[IDAble]) = {
-    val nameMap = ids.map(x => x.name -> x).toMap   
-    val operations = movesToOperations(moves,nameMap)
-    val sequence = Sequence(operations.map(o => Hierarchy(o.id)):_*)
-    
-    (sequence, operations)
-    
     val nameMap = ids.map(x => x.name -> x).toMap
 
-    val oL = movesToOperations(movesL, nameMap)
-    val oR = movesToOperations(movesR, nameMap)
-
+    val oL = movesToOperations(movesL, nameMap, true)
+    val oR = movesToOperations(movesR, nameMap, false)
     val allOps = oL ++ oR
+    println(oL.size)
+    var brickSeq = new ListBuffer[SOP]
+    for(i <- 0 to oL.size-1){
+      println(i)
+      val seqL = Sequence(List(oL(i)).map(o => Hierarchy(o.id)):_*)
+      val seqR = Sequence(List(oR(i)).map(o => Hierarchy(o.id)):_*)
+      brickSeq += Parallel(seqL,seqR)
+    }
+    //val seqL = Sequence(oL.map(o => Hierarchy(o.id)):_*)
+    //val seqR = Sequence(oR.map(o => Hierarchy(o.id)):_*)
+    //val buildSOP: SOP = if (seqL.isEmpty) seqR else if (seqR.isEmpty) seqL else Parallel(seqL, seqR)
+    //var buildSOP: List[SOP]
+    //val brickSeq: List[SOP] = List(buildSOP)  
 
-    val seqL = Sequence((oL.map(o => Hierarchy(o.id)):_*)
-    val seqR = Sequence(oR.map(o => Hierarchy(o.id)):_*)
-
-    val buildSOP: SOP = if (seqL.isEmpty) seqR else if (seqR.isEmpty) seqL else Parallel(seqL, seqR)
-
-    val brickSeq: List[SOP] = buildSOP :: seqUnloadTower
-
-    (Sequence(brickSeq:_*), seqLoad, allOps, f1 ++ f2)
+    (Sequence(brickSeq:_*),allOps)
   }
 
   
-  def movesToOperations(moves: List[Move], nameMap: Map[String,IDAble]) = {
-    println(moves(0).toString)
-    val Rmoves : List()
-    moves.foreach{a => Rmoves ++= a}
-    val operations = for { m <- Rmoves
+  def movesToOperations(moves: List[Move], nameMap: Map[String,IDAble], isR4: Boolean) = {
+    //println(moves(0).toString)
+    var Rmoves = new ListBuffer[Move]()
+    moves.foreach{a => 
+      if(a != null)
+        {Rmoves += a}
+      else{Rmoves += new Move(false,false,false,999,0)}
+    }
+    val operations = for { m <- Rmoves.toList 
     } yield {
+      var operation = makeOperation("R5", "toHome", nameMap)
       var name = "placeBlock"
       var position = 0
       var robot = "R5"
-      if(m.isPicking == true){
-        name = "pickBlock"
-        if(m.usingMiddle == true){
-          position += -89 + m.position
-          if(m.usingLeftRobot == true){
-            robot = "R4"
-          }
-        }else if(m.usingLeftRobot == true){
-          robot = "R4"
-          if(m.position <= 7){
-            position += 11 + m.position
-          }else {        
-            position += 13 + m.position
-          }
-        }else {  
-          if(m.position <= 7){
-            position += 31 + m.position
-          }else {
-            position += 33 + m.position
-          }
+      if(m.position == 999){
+        if(isR4 == true){
+          operation = makeOperation("R4","toHome",nameMap)
         }
       }else{
-        if(m.usingMiddle == true){
-          position += m.position + 11
-          if(m.usingLeftRobot == true){
+        if(m.isPicking == true){
+          name = "pickBlock"
+          if(m.usingMiddle == true){
+            position += -89 + m.position
+            if(m.usingLeftRobot == true){
+              robot = "R4"
+            }
+          }else if(m.usingLeftRobot == true){
             robot = "R4"
+            if(m.position <= 7){
+              position += 11 + m.position
+            }else {        
+              position += 13 + m.position
+            }
+          }else {  
+            if(m.position <= 7){
+              position += 31 + m.position
+            }else { 
+              position += 33 + m.position
+            }
           }
-        }else if(m.usingLeftRobot == true){
-          robot = "R4"
-          if(m.position <= 7){
-            position += 111 + m.position
-          }else {        
-            position += 113 + m.position
-          }
-        } else {  
-          if(m.position <= 7){
-            position += 131 + m.position
-          }else {
-            position += 133 + m.position
+        }else{
+          if(m.usingMiddle == true){
+            position += m.position + 11
+            if(m.usingLeftRobot == true){
+              robot = "R4"
+            }
+          }else if(m.usingLeftRobot == true){
+            robot = "R4"
+            if(m.position <= 7){
+              position += 111 + m.position
+            }else {        
+              position += 113 + m.position
+            }
+          } else {  
+            if(m.position <= 7){
+              position += 131 + m.position
+            }else {
+              position += 133 + m.position
+            }
           }
         }
-      }
-      val operation = makeOperationWithParameter(robot,name,"pos",position,nameMap) 
-    List(operation)
-    }
-      
+        operation = makeOperationWithParameter(robot,name,"pos",position,nameMap)
+      }  
+    List(operation) 
+    } 
     operations.flatten
   }
   

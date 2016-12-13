@@ -59,21 +59,23 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   var station: String = ""
   var progress: ActorRef = self
   var soppen: ID = ID.newID
+  var isDone: Boolean = false
 
   implicit var rnr: RequestNReply = null
   implicit val timeout = Timeout(2 seconds)
 
   def receive = {
     case r @ Request(service, attr, ids, reqID) => {
-      val replyTo = sender()
+      val replyTo = sender() 
 
       rnr = RequestNReply(r, replyTo)
       reply = Some(rnr)
-      
-      if(attr.getAs[String]("command") == "stop" ){
-        println("RS_stop")
-        activeSteps = List()
-      } else {
+    
+
+      //if(attr.getAs[String]("command") == "stop" ){
+       // println("RS_stop")
+        //activeSteps = List()
+      //} else {
         // Lyssna på events från alla
         eventHandler ! SubscribeToSSE(self)
 
@@ -114,14 +116,18 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 //      println("----------")
         sop.foreach(_.printMe(idMap))
         println("----------")
+        isDone = false
 
         progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
-      }
+      //}
     }
 
     // We get states from Operation control
     case r @ Response(ids, attr, service, _) if service == operationController => {
       // high level force reset...
+
+      println("ZZZZZZZZZZZZ Svar") 
+      
       if(attr.getAs[Boolean]("reset").getOrElse(false)) {
         println("RunnerService: High level force reset! Exiting.")
         self ! PoisonPill
@@ -147,7 +153,8 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
         // if there is nothing started yet
         
-        if(activeSteps.isEmpty) {
+        if(activeSteps.isEmpty && isDone == false) {
+          println("ZZZZZZZZZZZZ active steps" + activeSteps) 
           sopen.foreach(executeSOP)
           println("activeStep empty -> start executing SOP")
           progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
@@ -169,7 +176,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
           // remove the completed ids
           activeSteps = activeSteps.filterNot(x=>opsThatHasCompletedAbilities.contains(x.operation))
           
-          println(s"avtive steps: $activeSteps")
+          println(s"active steps: $activeSteps")
 
           val res = activeCompleted.map(stepCompleted)
           // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
@@ -181,6 +188,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
             println(s"-- resp: $resp --")
             //println(s"-- $reply --")
             println(s"-----------------------------")
+            isDone = true
 
             // reply.foreach(rnr => rnr.reply ! resp)
             eventHandler ! resp
@@ -205,15 +213,23 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   def executeSOP(sop: SOP): Unit = {
     //if (sop.isInstanceOf[Hierarchy]) println(s"executing sop $sop")
     sop match {
-      case x: Parallel => x.sop.foreach(executeSOP)
-      case x: Sequence if x.sop.nonEmpty => executeSOP(x.sop.head)
+      case x: Parallel => {
+        println("#### Parallell")
+    x.sop.foreach(executeSOP) 
+  }
+      case x: Sequence if x.sop.nonEmpty => {
+       println("#### Sequence")
+       executeSOP(x.sop.head) 
+     }
       case x: Hierarchy => {
+         println("#### Hierarchy")
         val abs = operationAbilityMap(x.operation)
         val a = abilityMap(abs.id)
-        if (checkPreCond(a)) {
+        if (checkPreCond(a)) { println("#### Inne")
+        println("#################################################################################################################################################################################################################################################################################################################################################################################")
           startID(x.operation)
           activeSteps = activeSteps :+ x
-          //println(s"Started ability id ${a.id} with operation id ${x.operation}, activeSteps: $activeSteps")
+          println(s"Started ability id ${a.id} with operation id ${x.operation}, activeSteps: $activeSteps")
         } else {
           println("precondition failed")
         }
@@ -259,6 +275,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
     val attr = SPAttributes("command"->SPAttributes("commandType"->"stop", "execute"->abID,
       "parameters" -> State(paraMap)))
 
+    eventHandler ! Response(List(),SPAttributes("command" -> "hej"),"toBS",rnr.req.reqID)
     serviceHandler ! Request(operationController, attr)
   }
 
