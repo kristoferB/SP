@@ -45,113 +45,122 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
   var startRobotR : Byte = 0
   var movesL : List[Move] = List()
   var movesR : List[Move] = List()
+  var moves : List[Move] = List()
   var mC : Int = 0
   var varannan : Int = 1
+  var doNext : Boolean = false
 
   eventHandler ! SubscribeToSSE(self)
   
-  
   def receive = {
     case r@Request(service, attr, ids, reqID) => {
-      println("main")
-   
+
       
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
-      
- 
-      
       println(transform(BSservice.transformTuple._4))
-      if(transform(BSservice.transformTuple._4) == "hej"){//------------------------------------------update------------------------------------
-       
-      }else if(transform(BSservice.transformTuple._4) == "setup"){ //---------------------------------setup-----------------------------------
-        
-       //eventHandler ! Response(List(),SPAttributes("text" -> "hej"),"BS",reqID)
-        
-        leftRaw = transform(BSservice.transformTuple._1)
-        rightRaw = transform(BSservice.transformTuple._2)
-        middleRaw = transform(BSservice.transformTuple._3)
       
-        val (left, right, middle) = GuiToOpt(leftRaw, rightRaw, middleRaw)
+      leftRaw = transform(BSservice.transformTuple._1)
+      rightRaw = transform(BSservice.transformTuple._2)
+      middleRaw = transform(BSservice.transformTuple._3)
+      
+      val (left, right, middle) = GuiToOpt(leftRaw, rightRaw, middleRaw)
+
+      if(transform(BSservice.transformTuple._4) == "manuell step"){
+        val (startLeftm,startRightm,startMiddlem,startRobotLm,startRobotRm) = updateStates(movesL, movesR ,mC,startLeft,startRight,startMiddle,startRobotL,startRobotR)
+        println("inne")
+          startLeft = startLeftm
+          startRight = startRightm    
+          startMiddle = startMiddlem
+          startRobotL = startRobotLm  
+          startRobotR = startRobotRm
+
+          mC += 1
+          eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle, "robotL" -> startRobotL, "robotR" -> startRobotR,"moves" -> moves),"BSupdate",reqID)
+      }else if(transform(BSservice.transformTuple._4) == "setup"){ //---------------------------------setup-----------------------------------
         startLeft = left
         startRight = right
         startMiddle = middle
       }else if(transform(BSservice.transformTuple._4) == "order"){ //---------------------------------order-----------------------------------
-        leftRaw = transform(BSservice.transformTuple._1)
-        rightRaw = transform(BSservice.transformTuple._2)
-        middleRaw = transform(BSservice.transformTuple._3)
-      
-        val (left, right, middle) = GuiToOpt(leftRaw, rightRaw, middleRaw)
-     
-        
-        serviceHandler ! Request(operationController,SPAttributes("command"->SPAttributes("commandType"->"stop")))
-        //serviceHandler ! Request("RunnerService", SPAttributes("command"->"stop"))
-       
-        val desiredState = new BlockState(left, right, middle,0,0,0,null,null)
-        
-        println("start: " + startLeft(0) + " desired:" + left(0))
-        
-        val startState = new BlockState(startLeft, startRight, startMiddle,startRobotL,startRobotR,0,desiredState,ArrayBuffer[Move]())
-        val movestemp = Astar.solver(startState)
-        println(movestemp.size)
-        movesL = movestemp(0).toList
-        movesR = movestemp(1).toList
-  
-        eventHandler ! Response(List(),SPAttributes("movesL" -> movesL, "movesR" -> movesR),"BS",reqID)
+        //if(mC < movesL.size){
+          if(1 == 2){   
+          println("<<<<<<<<<<")
+          val (startLeftm,startRightm,startMiddlem,startRobotLm,startRobotRm) = updateStates(movesL, movesR ,mC,startLeft,startRight,startMiddle,startRobotL,startRobotR)
+          mC = 0
+          startLeft = startLeftm
+          startRight = startRightm    
+          startMiddle = startMiddlem
+          startRobotL = startRobotLm  
+          startRobotR = startRobotRm
+   
+          val desiredState = new BlockState(left, right, middle,0,0,0,null,null)
+          val startState = new BlockState(startLeft, startRight, startMiddle,startRobotL,startRobotR,0,desiredState,ArrayBuffer[Move]())
+           
+          val movestemp = Astar.solver(startState)
+          val movestempL = makeEmptyMoves(movestemp(0).toList,true)
+          val movestempR = makeEmptyMoves(movestemp(1).toList,false)
+          movesL = movestempL
+          movesR = movestempR
+          val moves = movesL ::: movesR
+          
+          serviceHandler ! Request(operationController,SPAttributes("command"->SPAttributes("commandType"->"reset")))
+          doNext = true
+        }else {
+          mC = 0
+          val desiredState = new BlockState(left, right, middle,0,0,0,null,null)
+          val startState = new BlockState(startLeft, startRight, startMiddle,startRobotL,startRobotR,0,desiredState,ArrayBuffer[Move]())
+           
+          val movestemp = Astar.solver(startState)
+          val movestempL = makeEmptyMoves(movestemp(0).toList,true)
+          val movestempR = makeEmptyMoves(movestemp(1).toList,false)
+          movesL = movestempL
+          movesR = movestempR
+          val moves = movesL ::: movesR
+         
+          eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle, "robotL" -> startRobotL, "robotR" -> startRobotR,"moves" -> moves),"BSInit",reqID)
 
-        println(movesL.size)
-        println(movesR.size )
-  
-        val paraSOP = movesToSOP(movesL, movesR, ids)
-        val sopSpec = SOPSpec("tower", List(paraSOP._1))
-        val upIds = sopSpec :: paraSOP._2 ++ ids
-        val stations = Map("tower" -> sopSpec.id)
+          val paraSOP = movesToSOP(movesL, movesR, ids)
+          val sopSpec = SOPSpec("tower", List(paraSOP._1))
+          val upIds = sopSpec :: paraSOP._2 ++ ids
+          val stations = Map("tower" -> sopSpec.id)
         
-        mC = 0
-        
-        serviceHandler ! Request("OrderHandler", SPAttributes(
-        "order" -> SPAttributes(
-        "id" -> ID.newID,
-        "name" -> "New_sequence",
-        "stations" -> stations
-          )
-          ) ,upIds) 
+          serviceHandler ! Request("OrderHandler", SPAttributes("order" -> SPAttributes("id" -> ID.newID,"name" -> "New_sequence","stations" -> stations)) ,upIds) 
+        }
+      
       }  
       replyTo ! Response(List(), SPAttributes("tower" -> "hej"), rnr.req.service, rnr.req.reqID)  
     }
     
     //case error: SPError => { println("BSservice got an error: $error")}
-    
+      
     
     case Response(ids, attr, "toBS", id) =>{
-      println("JAAAAAAAAAAAAAAAAAAAA")
-      println("######### " + mC)
       varannan = varannan*(-1)
       if(varannan == 1){
-        val (startLeftm,startRightm,startMiddlem,startRobotLm,startRobotRm) = updateStates(movesL, movesR ,mC,startLeft,startRight,startMiddle,startRobotL,startRobotR)
+        if(doNext == true){
+          val paraSOP = movesToSOP(movesL, movesR, ids)
+          val sopSpec = SOPSpec("tower", List(paraSOP._1))
+          val upIds = sopSpec :: paraSOP._2 ++ ids
+          val stations = Map("tower" -> sopSpec.id)
         
-        eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle, "movesL" -> movesL(mC), "movesR" -> movesR(mC)),"BS",id)
-        //moves.foreach{mm => println(mm)}
-        //moves.slice(mC,moves.size).foreach{mm => println(mm)}
+          serviceHandler ! Request("OrderHandler", SPAttributes("order" -> SPAttributes("id" -> ID.newID,"name" -> "New_sequence","stations" -> stations)) ,upIds) 
+          doNext = false
+          eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle, "robotL" -> startRobotL, "robotR" -> startRobotR,"moves" -> moves),"BSInit",id)
+        } else{
+          val (startLeftm,startRightm,startMiddlem,startRobotLm,startRobotRm) = updateStates(movesL, movesR ,mC,startLeft,startRight,startMiddle,startRobotL,startRobotR)
+
+
+          startLeft = startLeftm
+          startRight = startRightm    
+          startMiddle = startMiddlem
+          startRobotL = startRobotLm  
+          startRobotR = startRobotRm
+
+          mC += 1
+          eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle, "robotL" -> startRobotL, "robotR" -> startRobotR,"moves" -> moves),"BSupdate",id)
         
-        startLeft = startLeftm
-        startRight = startRightm
-        startMiddle = startMiddlem
-        startRobotL = startRobotLm  
-        startRobotR = startRobotRm
+        }
         
-        /**println("----------------------")
-        print("left: ")
-        startLeft.foreach{k => print(k + " ")}
-        print("| right: ")
-        startRight.foreach{k => print(k + " ")}
-        print("| middle: ")
-        startMiddle.foreach{k => print(k + " ") }
-        print("| RobotL: ")
-        print(startRobotL)
-        print("| RobotR: ")
-        print(startRobotR)*/
-        mC += 1
       }
     }
   }
@@ -161,6 +170,18 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
 
 trait TowerBuilder extends TowerOperationTypes {
 
+  def makeEmptyMoves(movesNull: List[Move], usingLeftRobot: Boolean) = {
+    val moves = new ListBuffer[Move]()
+    for(i <- 0 to movesNull.size - 1  ){
+      if(movesNull(i) != null){ moves += movesNull(i) }
+      else{
+        println("i")
+        moves += new Move(usingLeftRobot,false,false,999,0)
+      }
+    }
+    moves.toList
+  }
+  
   def updateStates(movesL: List[Move],movesR : List[Move], mC: Int, startLeft: Array[Byte], startRight : Array[Byte], startMiddle : Array[Byte], startRobotL: Byte, startRobotR : Byte) = {
     var sL = startLeft
     var sR = startRight
@@ -168,7 +189,7 @@ trait TowerBuilder extends TowerOperationTypes {
     var srL = startRobotL
     var srR = startRobotR
 
-    if(movesL(mC) != null){ 
+    if(movesL(mC).position != 999){ 
       if(movesL(mC).isPicking == true){
         if(movesL(mC).usingMiddle == true){
           srL = movesL(mC).color
@@ -187,7 +208,7 @@ trait TowerBuilder extends TowerOperationTypes {
         }  
       }
     }
-    if(movesR(mC) != null){ 
+    if(movesR(mC).position != 999){ 
       if(movesR(mC).isPicking == true){
         if(movesR(mC).usingMiddle == true){
           srR =  movesR(mC).color
@@ -195,7 +216,7 @@ trait TowerBuilder extends TowerOperationTypes {
         }else { 
           srR = movesR(mC).color
           sR(movesR(mC).position) = 0
-        }
+        } 
       }else {
        if(movesR(mC).usingMiddle == true){
           sM(movesR(mC).position) = startRobotR
@@ -242,13 +263,11 @@ trait TowerBuilder extends TowerOperationTypes {
 
     val nameMap = ids.map(x => x.name -> x).toMap
 
-    val oL = movesToOperations(movesL, nameMap, true)
-    val oR = movesToOperations(movesR, nameMap, false)
+    val oL = movesToOperations(movesL, nameMap)
+    val oR = movesToOperations(movesR, nameMap)
     val allOps = oL ++ oR
-    println(oL.size)
     var brickSeq = new ListBuffer[SOP]
     for(i <- 0 to oL.size-1){
-      println(i)
       val seqL = Sequence(List(oL(i)).map(o => Hierarchy(o.id)):_*)
       val seqR = Sequence(List(oR(i)).map(o => Hierarchy(o.id)):_*)
       brickSeq += Parallel(seqL,seqR)
@@ -263,22 +282,15 @@ trait TowerBuilder extends TowerOperationTypes {
   }
 
   
-  def movesToOperations(moves: List[Move], nameMap: Map[String,IDAble], isR4: Boolean) = {
-    //println(moves(0).toString)
-    var Rmoves = new ListBuffer[Move]()
-    moves.foreach{a => 
-      if(a != null)
-        {Rmoves += a}
-      else{Rmoves += new Move(false,false,false,999,0)}
-    }
-    val operations = for { m <- Rmoves.toList 
+  def movesToOperations(moves: List[Move], nameMap: Map[String,IDAble]) = {
+    val operations = for { m <- moves
     } yield {
       var operation = makeOperation("R5", "toHome", nameMap)
       var name = "placeBlock"
       var position = 0
       var robot = "R5"
       if(m.position == 999){
-        if(isR4 == true){
+        if(m.usingLeftRobot == true){
           operation = makeOperation("R4","toHome",nameMap)
         }
       }else{

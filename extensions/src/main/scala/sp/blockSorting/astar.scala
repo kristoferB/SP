@@ -93,7 +93,7 @@ object Astar {
 				i += 2
 			}
 			else if (leftMoves.length - rightMoves.length == 2) {
-				if (!moves(i).usingLeftRobot && !(leftMoves(leftMoves.length-2).usingMiddle && moves(i).usingMiddle) && !(leftMoves(leftMoves.length-1).usingMiddle && moves(i+1).usingMiddle) && !(leftMoves(leftMoves.length-1).usingMiddle && moves(i).usingMiddle && leftMoves(leftMoves.length-1).position == leftMoves(leftMoves.length-1).position) ) {
+				if (!moves(i).usingLeftRobot && !(leftMoves(leftMoves.length-2).usingMiddle && moves(i).usingMiddle) && !(leftMoves(leftMoves.length-1).usingMiddle && moves(i+1).usingMiddle) && !(leftMoves(leftMoves.length-1).usingMiddle && moves(i).usingMiddle && leftMoves(leftMoves.length-1).position == moves(i).position) ) {
 					rightMoves += moves(i)
 					rightMoves += moves(i+1)
 					i += 2
@@ -102,7 +102,7 @@ object Astar {
 				}
 			}
 			else if (rightMoves.length - leftMoves.length == 2) {
-				if (moves(i).usingLeftRobot && !(rightMoves(rightMoves.length-2).usingMiddle && moves(i).usingMiddle) && !(rightMoves(rightMoves.length-1).usingMiddle && moves(i+1).usingMiddle)) {
+				if (moves(i).usingLeftRobot && !(rightMoves(rightMoves.length-2).usingMiddle && moves(i).usingMiddle) && !(rightMoves(rightMoves.length-1).usingMiddle && moves(i+1).usingMiddle) && !(rightMoves(rightMoves.length-1).usingMiddle && moves(i).usingMiddle && rightMoves(rightMoves.length-1).position == moves(i).position) ) {
 					leftMoves += moves(i)
 					leftMoves += moves(i+1)
 					i += 2

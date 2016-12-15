@@ -12,10 +12,10 @@
 	/* @ngInject */
 	function BSI4GUIController($scope, dashboardService, eventService,spServicesService) {
 
-        // Initiates variables and function declarations.
+        // Initiates variables and functionj declarations.
             var vm = this;
             vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
-
+				vm.OperationNr=0;
             vm.result = [];
             vm.lock = 1;
             vm.buttonBG = "#ffffff"
@@ -23,6 +23,8 @@
             vm.queuePlacement = 'Last';
             vm.Mode = 'Status';
             vm.Initialized = 0;
+        		var robotLColour=0;
+        		var robotRColour=0;
             var orderNr=0;
             var changeQueueOrder=0;
             var queuePlacement=0; // 0 =Last, 1=First, 2 = Next, 3 = Prev
@@ -32,6 +34,7 @@
             vm.reset = reset;
             vm.sendOrder = sendOrder;
             vm.updateCubes = updateCubes;
+            
 
             vm.queue = queue;
             vm.actuateQueue=actuateQueue;
@@ -95,12 +98,197 @@
         }
 
         function onEvent(a) {
-            console.log(a);
-            if(a.service == "BS"){
-            	alert("BS")
-            }//reset();
+        	
+        		if (a.service =="BSupdate"){
+        		// when a status update is recived from the robots, i.e. they made a move, the status array of blocks will be updated	
+        			 for (var i = 0; i < 4; i++) {
+                vm.ButtonColour.Status.Middle[0][i]= a.attributes.middle[i];
+             
+                for (var j = 0; j < 4; j++) {
+                    vm.ButtonColour.Status.Left[i][j]= a.attributes.left[i*4+j];
+                    vm.ButtonColour.Status.Right[i][j]= a.attributes.right[i*4+j];
+                }
+            }	
+            
+        			robotLColour=a.attributes.robotL;
+        			robotRColour=a.attributes.robotR;          
+            
+            if(vm.Mode=='Status'){
+        			updateCubes('Status');
+  					updateRobotBlockColour();
+			   }	
+			 	updateOrderList ();
+        		}
+        	//-------------------------------------------------------------------------------------------------------------------------	
+       	
+        			if (a.service =="BSInit"){
+        			
+        			for (var i=0; i< a.attributes.moves.length; i++){
+        			
+        			
+        			
+        			var colorText = document.createElement('span');
+					//var keys = Object.keys(a.attributes);
+					//alert(keys);
+					//usingLeftRobot,usingMiddle,isPicking,position,color
+					var opPt1 ="";	
+					var opPt2 ="";	
+					var opPt3 ="";	
+					
+          if(a.attributes.moves[i].position != 999){
+					if (a.attributes.moves[i].isPicking) 
+					   opPt1 += "Pick ";
+					else 
+					   opPt1 += "Place ";
+					    
+					switch(a.attributes.moves[i].color) {
+					case 1:
+					opPt2 += "blue ";
+					colorText.setAttribute('style', 'color: blue; font-weight: bold'); 
+					 break;
+					case 2:
+					opPt2 += "green ";
+					colorText.setAttribute('style', 'color: green; font-weight: bold'); 
+					break;
+					case 3:
+					opPt2 += "red ";
+					colorText.setAttribute('style', 'color: red; font-weight: bold'); 
+					break;
+					case 4:
+					opPt2 += "yellow ";
+					colorText.setAttribute('style', 'color: #ffc300; font-weight: bold'); 
+					}	   
+					opPt3+= ",pos: "
+					opPt3+= String((a.attributes.moves[i].position))
+					opPt3+= " "
+					if (a.attributes.moves[i].usingMiddle) 
+						opPt3 += ", middle ";
+					else if (a.attributes.moves[i].usingLeftRobot){
+						opPt3 += ",left ";
+					}
+					else 
+						opPt3+= ", right "
+						
+          }else{
+            opPt1 = "________________________________ ";
+          }
+					/*	
+					var el_span = document.createElement('span');
+   				el_span.setAttribute('style', 'color: red'); 
+   				
+   				var textNode = document.createTextNode(iteration);
+    				cellLeft.appendChild(el_span);
+    				el_span.appendChild(textNode);						
+						*/
+						
+					   var Operation = document.createElement("li");
+					   
+  						var operationTextPt1 = document.createTextNode(opPt1);	
+  						var operationTextPt2 = document.createTextNode(opPt2);
+  						var operationTextPt3 = document.createTextNode(opPt3);
+  						
+  						colorText.appendChild(operationTextPt2);
+  						
+  						Operation.appendChild(operationTextPt1);
+  						Operation.appendChild(colorText);
+  						Operation.appendChild(operationTextPt3);
+  						
+              if(a.attributes.moves[i].position != 999){
+  						var buttonNr=computePositionRowColFromSpEvent(a.attributes.moves[i].usingMiddle,a.attributes.moves[i].usingLeftRobot,a.attributes.moves[i].position);
+						Operation.setAttribute("id", buttonNr);  						
+  						Operation.setAttribute("value", a.attributes.moves[i].color);
+            }
+  						if(a.attributes.moves[i].usingLeftRobot)
+    						document.getElementById("SoplistLeft").appendChild(Operation);
+						else						
+							document.getElementById("SoplistRight").appendChild(Operation);
+							
+							
+        		}
+        		
+            //console.log("It has to be done");
+            //reset();
         }
+}
 
+
+function updateOrderList () {
+	if(vm.Mode=='Status'){
+	 $('#SoplistLeft').contents()[vm.OperationNr].style.border = '3px solid #00AA66';
+			   $('#SoplistRight').contents()[vm.OperationNr].style.border = '3px solid #00AA66';
+			 
+			   }	
+			 	if (vm.OperationNr>0){
+			 		 $('#SoplistLeft').contents()[vm.OperationNr-1].style.border = '0px solid #00AA66';
+			   	 $('#SoplistRight').contents()[vm.OperationNr-1].style.border = '0px solid #00AA66';
+			 	}		
+			 	
+        		vm.OperationNr++;	
+}
+function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
+	           var buttonNr ="button";
+					if (usingMiddle)
+						buttonNr +="3";
+					else if (usingLeftRobot)
+						buttonNr += "1";
+					else 
+						buttonNr+="2";
+					
+				   if (Position<4)
+				      buttonNr += "1" +String(Position+1);
+				   else if (Position<8)
+				   	buttonNr += "2" +String(Position-3);
+				   else if (Position<12)
+				      buttonNr += "3"+String(Position-7);
+				   else if (Position<16)
+				      buttonNr += "4"+String(Position-11); 
+				      
+				   return buttonNr;          	
+}
+
+ function updateRobotBlockColour() {
+  					var leftRobotElement = document.getElementById('leftRobotBlockId');  
+  					var rightRobotElement = document.getElementById('rightRobotBlockId');   
+  					colourRobotBlock(robotLColour,leftRobotElement)  ;
+  					colourRobotBlock(robotRColour,rightRobotElement)  ;       
+            }
+   function resetRobotBlockColour() {
+         		robotLColour=0;
+        			robotRColour=0;
+  					var leftRobotElement = document.getElementById('leftRobotBlockId');  
+  					var rightRobotElement = document.getElementById('rightRobotBlockId');   
+  					colourRobotBlock(robotLColour,leftRobotElement)  ;
+  					colourRobotBlock(robotRColour,rightRobotElement)  ;       
+            }         
+    function changeRobotBlockColourToWhite() {
+         		var robotLColourTemp=0;
+        			var robotRColourTemp=0;
+  					var leftRobotElement = document.getElementById('leftRobotBlockId');  
+  					var rightRobotElement = document.getElementById('rightRobotBlockId'); 
+  					colourRobotBlock(robotLColourTemp,leftRobotElement)  ;
+  					colourRobotBlock(robotRColourTemp,rightRobotElement)  ;       
+            }     
+  function colourRobotBlock(robotColourTemp,property) {   
+   			 
+		switch (robotColourTemp) {
+                case 1://BLUE = 1
+                    property.style.backgroundColor = "#0066ff";
+                    break;
+                case 2://GREEN = 2
+                    property.style.backgroundColor = "#5cd65c";
+                    break;
+                case 3://RED = 3
+                    property.style.backgroundColor = "#ff3333";
+                    break;
+                case 4://YELLOW = 4
+                    property.style.backgroundColor = "#ffff66";
+                    break;
+                default: //white by default
+                    property.style.backgroundColor = "#FFFFFF";
+            }        				
+        	}
+        	
+        	
 		function setActiveColour(int) {
 			if(vm.Initialized ==0 && vm.Mode=='Status' || vm.Mode=='NewOrder' && vm.Initialized ==1){
 				vm.activeColour = int;
@@ -133,38 +321,54 @@
                 document.getElementById('StatusButtonText').innerHTML='Status';
                 document.getElementById('Status').dataset.info='Show the current block configuration';
             }
+            else 
+            	updateRobotBlockColour();
             updateCubes('Status');
+            	
+            
+            
         }
         function updateStatusButtonAndText(){
-            document.getElementById('NewOrder').style.backgroundColor = "#ffffff";
-            document.getElementById('CurrentOrder').style.backgroundColor = "#ffffff";
-            document.getElementById("buttonQueueActuate").style.visibility="hidden";
-            document.getElementById('Status').style.backgroundColor= "#5cd65c";
-            document.getElementById('NewOrder').value = 'NewOrder';
-            document.getElementById('OrderButtonText').innerHTML = 'New Order';
-            document.getElementById('ResetButtonText').innerHTML='Reset all';
-            document.getElementById('buttonReset').dataset.info='Reset the robots, the build queue and initial positions';
-            document.getElementById('OrderNrButtonText').innerHTML='Current Order';
-            orderNr=0;
-            document.getElementById('TextInfo').innerHTML='Current status of the blocks';
+        	if( ! (($("ul#SoplistLeft").has("li").length === 0) && ($("ul#SoplistRight").has("li").length === 0)))
+        	   document.getElementById('Sop').style.display='Block';
+        	   
+          document.getElementById('NewOrder').style.backgroundColor = "#ffffff";
+          document.getElementById('CurrentOrder').style.backgroundColor = "#ffffff";
+          document.getElementById("buttonQueueActuate").style.visibility="hidden";
+          document.getElementById('Status').style.backgroundColor= "#5cd65c";
+          document.getElementById('NewOrder').value = 'NewOrder';
+          document.getElementById('OrderButtonText').innerHTML = 'New Order';
+          document.getElementById('ResetButtonText').innerHTML='Reset all';
+          document.getElementById('buttonReset').dataset.info='Reset the robots, the build queue and initial positions';
+          document.getElementById('OrderNrButtonText').innerHTML='Current Order';
+          orderNr=0;
+          document.getElementById('TextInfo').innerHTML='Current status of the blocks';
         }
 
         function newOrder(){
          if (vm.Initialized == 1){
+         	changeRobotBlockColourToWhite();
                 vm.Mode = 'NewOrder';
                 if (document.getElementById(vm.Mode).value==vm.Mode){
                     updateOrderButtonAndText();
-                    vm.ButtonColour[vm.Mode]=$.extend(true,vm.ButtonColour['Status']);
+                    copyButtonColourValues('NewOrder','Status');
                     updateCubes(vm.Mode);
                     ResetControlColorValue(vm.Mode);
                     updateControlColour(vm.Mode);
                     vm.lock=0;
                 }
                 else if(document.getElementById(vm.Mode).value=='PlaceOrder'){
+                                          
+                    if (testIsValidBlockConfiguration()){   
                         updateOrderPlacedButtonAndText();
                         updateCubes(vm.Mode);
                         sendOrder();
+                        copyButtonColourValues('CurrentOrder','NewOrder');
                         vm.lock = 1;
+                        updateOrderList ();
+                     }
+                     else {alert("At least one block must be placed in a new location and you have to specify all of the blocks locations.")}
+                   
                 }
             }
         }
@@ -175,6 +379,7 @@
             document.getElementById('ResetButtonText').innerHTML='Clear blocks';
             document.getElementById('buttonReset').dataset.info='Clear the plates of blocks';
             document.getElementById('OrderNrButtonText').innerHTML='Current Order';
+            document.getElementById('Sop').style.display='none';
             orderNr=0;
             changeQueueOrder = 0;
             document.getElementById("buttonQueueActuate").style.visibility="hidden";
@@ -183,6 +388,10 @@
             document.getElementById('TextInfo').innerHTML='Reconfigure the blocks and place order';
         }
         function updateOrderPlacedButtonAndText(){
+        	$('#SoplistLeft').empty();
+		   $('#SoplistRight').empty();
+		   vm.OperationNr=0;
+        	document.getElementById('Sop').style.display='Block';
             document.getElementById('NewOrder').style.backgroundColor= "#ffffff";
             document.getElementById('NewOrder').value='NewOrder';
             document.getElementById('OrderButtonText').innerHTML='New Order';
@@ -192,12 +401,14 @@
         function currentOrder(){
             if (vm.Initialized == 1){
                 vm.Mode = 'CurrentOrder';
-                orderNr++;
+                //orderNr++;
                 updateCurrentOrderButtonAndText(vm.Mode);
                 updateCubes(vm.Mode);
+					 changeRobotBlockColourToWhite();
             }
         }
         function updateCurrentOrderButtonAndText(){
+        	   document.getElementById('Sop').style.display='Block';
             document.getElementById("buttonQueueActuate").style.visibility="visible";
             document.getElementById('Status').style.backgroundColor= "#ffffff";
             document.getElementById('NewOrder').style.backgroundColor= "#ffffff";
@@ -359,8 +570,12 @@
                 document.getElementById('TextInfo').innerHTML='Initialize positions of the blocks and confirm';
                 ResetControlColorValue(vm.Mode);
                 document.getElementById('ProggressUpdate').innerHTML='No orders under construction';
-
+                document.getElementById('Sop').style.display='none';
+					 $('#SoplistLeft').empty();
+					 $('#SoplistRight').empty();
+					 vm.OperationNr=0;
                 resetAllBlocks();
+                resetRobotBlockColour();
             }
             else if(vm.Mode=='NewOrder' && vm.lock==0){ // Only resets the colours of the NewOrder
                 vm.colourControlValue[vm.Mode][1]=vm.colourControlValue['Status'][1];
@@ -381,21 +596,36 @@
                 }
             }
         }
-
-        // Pauses or resumes the robots current operation
-		function stopResume(){var mess = {"data": {"command": "hej",
-			"Left": vm.ButtonColour.Status.Left,
-			"Middle": vm.ButtonColour.Status.Middle,
-			"Right": vm.ButtonColour.Status.Right}};
-
-		spServicesService.callService(spServicesService.getService("BSservice"),
-				mess,
-				function (resp) {
-			if (_.has(resp, 'attributes.result')) {
-				console.log("Hej" + vm.result);
-			}
+		
+		function copyButtonColourValues (Mode1, Mode2){
+			for (var i = 0; i < 4; i++) {
+					vm.ButtonColour[Mode1].Middle[0][i]=vm.ButtonColour[Mode2].Middle[0][i];
+                for (var j = 0; j < 4; j++) {
+                	vm.ButtonColour[Mode1].Left[i][j]=vm.ButtonColour[Mode2].Left[i][j];
+                	vm.ButtonColour[Mode1].Right[i][j]=vm.ButtonColour[Mode2].Right[i][j];
+                }
+            }
 		}
-		)
+        // Pauses or resumes the robots current operation
+		function stopResume(){
+
+			var mess = {"data": {"command": "manuell step",
+				"Left": vm.ButtonColour.NewOrder.Left,
+				"Middle": vm.ButtonColour.NewOrder.Middle,
+				"Right": vm.ButtonColour.NewOrder.Right}};
+
+			spServicesService.callService(spServicesService.getService("BSservice"),
+					mess,
+					function (resp) {
+				if (_.has(resp, 'attributes.result')) {
+					console.log("Hej" + vm.result);
+				}
+			}
+			)
+			
+			
+			
+			
             if(vm.Initialized == 1) {
                 if (document.getElementById('StopResumeButtonText').innerHTML == 'Stop') {
                     document.getElementById('StopResumeButtonText').innerHTML = 'Resume';
@@ -437,6 +667,15 @@
                 changeQueueOrder = 0;
             else
                 changeQueueOrder = 1;
+        }
+        
+         function testIsValidBlockConfiguration(){
+            var newOrderIsSameAsStatus= _.isEqual(vm.ButtonColour.Status.Right, vm.ButtonColour.NewOrder.Right) &&
+                _.isEqual(vm.ButtonColour.Status.Left, vm.ButtonColour.NewOrder.Left) &&
+                _.isEqual(vm.ButtonColour.Status.Middle, vm.ButtonColour.NewOrder.Middle);
+            var allBlocksHaveBeenPlaced=_.isEqual(vm.colourControlValue.NewOrder,[0,0,0,0,0]);
+            return !newOrderIsSameAsStatus && allBlocksHaveBeenPlaced;
+
         }
 
 	}

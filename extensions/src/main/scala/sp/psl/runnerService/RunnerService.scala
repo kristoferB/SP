@@ -126,7 +126,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
     case r @ Response(ids, attr, service, _) if service == operationController => {
       // high level force reset...
 
-      println("ZZZZZZZZZZZZ Svar") 
+      //println("ZZZZZZZZZZZZ Svar") 
       
       if(attr.getAs[Boolean]("reset").getOrElse(false)) {
         println("RunnerService: High level force reset! Exiting.")
@@ -149,25 +149,25 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
           value == SPValue("ready")
         }
         readyList = readyStates.keys.toList
-        println(s"readyList: $readyList")
+        //println(s"readyList: $readyList")
 
         // if there is nothing started yet
         
         if(activeSteps.isEmpty && isDone == false) {
-          println("ZZZZZZZZZZZZ active steps" + activeSteps) 
+          //println("ZZZZZZZZZZZZ active steps" + activeSteps) 
           sopen.foreach(executeSOP)
           println("activeStep empty -> start executing SOP")
           progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
         } else {
           val completedIDs = state.state.filter{case (i,v) => v == SPValue("completed")}.keys.toList
-          println("completed ids = " + completedIDs)
+          //println("completed ids = " + completedIDs)
 
           val opsThatHasCompletedAbilities = (operationAbilityMap.filter{case (o, struct) =>
             val abilityId = struct.id
             completedIDs.contains(abilityId)
           }).keySet
 
-          println(s"ops that has been compl: $opsThatHasCompletedAbilities")
+          //println(s"ops that has been compl: $opsThatHasCompletedAbilities")
 
           val activeCompleted = activeSteps.filter(x=>opsThatHasCompletedAbilities.contains(x.operation))
 
@@ -226,7 +226,6 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
         val abs = operationAbilityMap(x.operation)
         val a = abilityMap(abs.id)
         if (checkPreCond(a)) { println("#### Inne")
-        println("#################################################################################################################################################################################################################################################################################################################################################################################")
           startID(x.operation)
           activeSteps = activeSteps :+ x
           println(s"Started ability id ${a.id} with operation id ${x.operation}, activeSteps: $activeSteps")
@@ -312,7 +311,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
   def stepCompleted(complSOP: SOP): Boolean = {
    // eventHandler ! Response(List(),SPAttributes("command" -> "hej"),"toBS",rnr.req.reqID)
     println("stepCompleted")
-    println(s"step $complSOP is completed. Parent is ${parents.get(complSOP)}")
+    //println(s"step $complSOP is completed. Parent is ${parents.get(complSOP)}")
     parents.get(complSOP) match {
       case Some(p: Parallel) => {
         if (parallelRuns.get(p).isEmpty)
