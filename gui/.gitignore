@@ -24,6 +24,8 @@ dist/*
 js/*
 node_modules/*
 build/*
+sp-core/build/
+sp-core/node_modules/
 
 
 # output from tests
