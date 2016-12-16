@@ -14,14 +14,14 @@ persistLauncher := true
 //val scalaCssVersion = "0.5.1"
 
 libraryDependencies ++= Seq(
+  "org.webjars" %% "webjars-play" % "2.4.0",
   // the scalajs wrapper
   "com.github.japgolly.scalajs-react" %%% "core" % "0.11.3",
   "com.github.japgolly.scalajs-react" %%% "extra" % "0.11.3",
   "com.github.japgolly.scalacss" %%% "core" % "0.5.1",
   "com.github.japgolly.scalacss" %%% "ext-react" % "0.5.1",
-
-  // http library
   "fr.hmil" %%% "roshttp" % "2.0.0-RC1"
+  //"org.webjars.npm" % "react-grid-layout" % "0.13.9"
 )
 
 jsDependencies ++= Seq(
@@ -43,13 +43,13 @@ jsDependencies ++= Seq(
     commonJSName "ReactDOMServer"
 )
 
-
 // copy javascript files to js folder that are generated using fastOptJS/fullOptJS
-crossTarget in (Compile, fullOptJS) := file("build")
-crossTarget in (Compile, fastOptJS) := file("build")
-crossTarget in (Compile, packageScalaJSLauncher) := file("build")
-
-artifactPath in (Compile, fastOptJS) := ((crossTarget in (Compile, fastOptJS)).value /
-  ((moduleName in fastOptJS).value + "-opt.js"))
-
+val targetDirectory = file("build")
+crossTarget  in (Compile, fullOptJS)                     := targetDirectory
+crossTarget  in (Compile, fastOptJS)                     := targetDirectory
+crossTarget  in (Compile, packageJSDependencies)         := targetDirectory
+crossTarget  in (Compile, packageScalaJSLauncher)        := targetDirectory
+crossTarget  in (Compile, packageMinifiedJSDependencies) := targetDirectory
+artifactPath in (Compile, fastOptJS)                     :=
+((crossTarget in (Compile, fastOptJS)).value / ((moduleName in fastOptJS).value + "-opt.js"))
 
