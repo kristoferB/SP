@@ -1,4 +1,4 @@
-package astar
+package sp.blockSorting.astar
 import scala.collection.mutable.ArrayBuffer
 import Array._
 

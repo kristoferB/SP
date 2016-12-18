@@ -1,4 +1,4 @@
-package astar
+package sp.blockSorting.astar
 import scala.collection.mutable.ArrayBuffer
 class BlockState( var leftPlates: Array[Byte], var rightPlates: Array[Byte], var middle: Array[Byte], var leftRobot: Byte, var rightRobot: Byte, var n: Int, var desiredState: BlockState, var moves: ArrayBuffer[Move]) {
 	if ( leftPlates.length != 16 && rightPlates.length != 16 && middle.length != 4 ) {

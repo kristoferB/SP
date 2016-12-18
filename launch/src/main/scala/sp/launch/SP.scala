@@ -260,10 +260,27 @@ object SP extends App {
   import sp.blockSorting._
   mediator ! Publish("serviceHandler", RegisterService(
     "BSservice",
-    system.actorOf(BSservice.props(serviceHandler, eventHandler, "OperationControl","RunnerService"), "BSservice"),
+    system.actorOf(BSservice.props(serviceHandler, eventHandler, "OperationControl","BSrunner"), "BSservice"),
     BSservice.specification,
     BSservice.transformation
   ))
+
+  mediator ! Publish("serviceHandler", RegisterService(
+    "BSorderHandler",
+    system.actorOf(OrderHandler.props(serviceHandler, eventHandler), "BSorderHandler"),
+    BSorderHandler.specification,
+    BSorderHandler.transformation
+  ))
+
+  val bsr = system.actorOf(BSrunner.props(eventHandler, serviceHandler, "OperationControl", "BSservice"), "BSrunner")
+  mediator ! Publish("serviceHandler", RegisterService(
+    "BSrunner",
+    rs,
+    BSrunner.specification,
+    BSrunner.transformation
+  ))
+
+
 
   // launch REST API
   sp.server.LaunchGUI.launch

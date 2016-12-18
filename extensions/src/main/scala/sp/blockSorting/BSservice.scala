@@ -7,7 +7,7 @@ import sp.domain._
 import sp.system._
 import sp.system.messages._
 import scala.collection.mutable.MutableList
-import astar._
+import sp.blockSorting.astar._
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ListBuffer
 import scala.math._
@@ -31,10 +31,10 @@ object BSservice extends SPService {
     )
 
   val transformation = transformToList(transformTuple.productIterator.toList)
-  def props(serviceHandler: ActorRef, eventHandler: ActorRef, operationController: String, RunnerService: String) = Props(classOf[BSservice], serviceHandler, eventHandler, operationController, RunnerService)
+  def props(serviceHandler: ActorRef, eventHandler: ActorRef, operationController: String, BSrunner: String) = Props(classOf[BSservice], serviceHandler, eventHandler, operationController, BSrunner)
 
 }
-class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationController: String, RunnerService: String) extends Actor with ServiceSupport with TowerBuilder{
+class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationController: String, BSrunner: String) extends Actor with ServiceSupport with TowerBuilder{
   var leftRaw : List[List[String]] = List()
   var rightRaw : List[List[String]] = List()
   var middleRaw : List[List[String]] = List()
@@ -124,7 +124,7 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
           val upIds = sopSpec :: paraSOP._2 ++ ids
           val stations = Map("tower" -> sopSpec.id)
         
-          serviceHandler ! Request("OrderHandler", SPAttributes("order" -> SPAttributes("id" -> ID.newID,"name" -> "New_sequence","stations" -> stations)) ,upIds) 
+          serviceHandler ! Request("BSorderHandler", SPAttributes("order" -> SPAttributes("id" -> ID.newID,"name" -> "New_sequence","stations" -> stations)) ,upIds) 
         }
       
       }  
@@ -143,7 +143,7 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
           val upIds = sopSpec :: paraSOP._2 ++ ids
           val stations = Map("tower" -> sopSpec.id)
         
-          serviceHandler ! Request("OrderHandler", SPAttributes("order" -> SPAttributes("id" -> ID.newID,"name" -> "New_sequence","stations" -> stations)) ,upIds) 
+          serviceHandler ! Request("BSorderHandler", SPAttributes("order" -> SPAttributes("id" -> ID.newID,"name" -> "New_sequence","stations" -> stations)) ,upIds) 
           doNext = false
           eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle, "robotL" -> startRobotL, "robotR" -> startRobotR,"moves" -> moves),"BSInit",id)
         } else{
@@ -175,7 +175,6 @@ trait TowerBuilder extends TowerOperationTypes {
     for(i <- 0 to movesNull.size - 1  ){
       if(movesNull(i) != null){ moves += movesNull(i) }
       else{
-        println("i")
         moves += new Move(usingLeftRobot,false,false,999,0)
       }
     }

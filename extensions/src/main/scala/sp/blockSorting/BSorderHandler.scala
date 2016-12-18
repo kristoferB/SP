@@ -1,4 +1,4 @@
-package sp.psl
+package sp.blockSorting
 
 import akka.actor._
 import sp.system._
@@ -10,7 +10,7 @@ import sp.domain.Logic._
   * Created by kristofer on 2016-05-08.
   */
 
-object OrderHandler extends SPService {
+object BSorderHandler extends SPService {
   val specification = SPAttributes(
     "service" -> SPAttributes(
       "group" -> "hide" // to organize in gui. maybe use "hide" to hide service in gui
@@ -26,14 +26,14 @@ object OrderHandler extends SPService {
     )
 
   val transformation: List[TransformValue[_]] = List(transformTuple)
-  def props(serviceHandler: ActorRef, eventHandler: ActorRef) = Props(classOf[OrderHandler], serviceHandler, eventHandler)
+  def props(serviceHandler: ActorRef, eventHandler: ActorRef) = Props(classOf[BSorderHandler], serviceHandler, eventHandler)
 }
 
 // An order for a set of stations, where a station is a name and an ID for a SOP
 case class OrderDefinition(id: ID, name: String, stations: Map[String, ID])
 case class SPOrder(id: ID, name: String, stations: Map[String, ID], idMap: Map[ID, IDAble])
 
-class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport with OrderHandlerLogic {
+class BSorderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport with OrderHandlerLogic {
   var completedSops: Set[ID] = Set()
   ev ! SubscribeToSSE(self)
 
@@ -42,11 +42,11 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
 
-      val newOrder = transform(OrderHandler.transformTuple)
+      val newOrder = transform(BSorderHandler.transformTuple)
       val order = SPOrder(newOrder.id, newOrder.name, newOrder.stations, ids.map(x => x.id -> x).toMap)
 
       println(s"new order: $newOrder")
-      ev ! Progress(SPAttributes("status"->"new", "order"->newOrder), "OrderHandler", id)
+      ev ! Progress(SPAttributes("status"->"new", "order"->newOrder), "BSorderHandler", id)
       
       //resetOrders
       addNewOrder(order)
@@ -71,7 +71,7 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
         println(s"Order handler completing sop...")
         val complStationOrder = station.flatMap(orderInStationCompleted)
         complStationOrder.map(order =>
-          ev ! Progress(SPAttributes("status"->"completed", "station"->station, "order"->OrderDefinition(order.id, order.name, order.stations)), "OrderHandler", ID.newID)
+          ev ! Progress(SPAttributes("status"->"completed", "station"->station, "order"->OrderDefinition(order.id, order.name, order.stations)), "BSorderHandler", ID.newID)
         )
       }
     case r @ Response(ids, attr, service, _) if service == "OperationControl" => {
@@ -80,7 +80,7 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
         println("OrderHandler: High level force reset! Resetting.")
         completedSops = Set()
         resetOrders
-        ev ! Progress(SPAttributes("status"->"reset"), "OrderHandler", ID.newID)
+        ev ! Progress(SPAttributes("status"->"reset"), "BSorderHandler", ID.newID)
       }
     }
     case r @ Response(ids, attr, service, id) => // println(s"order handler got a response, but no match: $r")
@@ -89,7 +89,7 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
   def startStationOrder(order: ActiveOrder) = {
     val req = Request("BSrunner", SPAttributes("SOP"->order.sop.id,"station"->order.station), order.order.idMap.values.toList)
     sh ! req
-    ev ! Progress(SPAttributes("status"->"stationOrder", "station"->order.station, "sop"->order.sop, "order"->OrderDefinition(order.order.id, order.order.name, order.order.stations)), "OrderHandler", ID.newID)
+    ev ! Progress(SPAttributes("status"->"stationOrder", "station"->order.station, "sop"->order.sop, "order"->OrderDefinition(order.order.id, order.order.name, order.order.stations)), "BSorderHandler", ID.newID)
   }
 }
 
