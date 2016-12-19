@@ -623,9 +623,6 @@ function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
 			}
 			)
 			
-			
-			
-			
             if(vm.Initialized == 1) {
                 if (document.getElementById('StopResumeButtonText').innerHTML == 'Stop') {
                     document.getElementById('StopResumeButtonText').innerHTML = 'Resume';

@@ -35,17 +35,9 @@ object BSservice extends SPService {
 
 }
 class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationController: String, BSrunner: String) extends Actor with ServiceSupport with TowerBuilder{
- /** var leftRaw : List[List[String]] = List()
-  var rightRaw : List[List[String]] = List()
-  var middleRaw : List[List[String]] = List()*/
   var layoutRaw: List[List[List[String]]] = List()
   var layoutCurrent = Array.fill[Byte](5,16)(0)
   var layoutStart = Array.fill[Byte](5,16)(0)
-  /*var startLeft = Array.fill[Byte](16)(0)
-  var startRight = Array.fill[Byte](16)(0)
-  var startMiddle = Array.fill[Byte](16)(0)*/
-  /*var startRobotL : Byte = 0*
-  var startRobotR : Byte = 0*/
   var movesL : List[Move] = List()
   var movesR : List[Move] = List()
   var moves : List[Move] = List()
@@ -68,48 +60,29 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
 
       if(transform(BSservice.transformTuple._4) == "manuell step"){
         layoutStart = updateStates(movesL, movesR ,mC,layoutStart)
-        println(layoutStart(3)(0))
-        println(layoutStart(4)(0))
-          mC += 1
-          eventHandler ! Response(List(),SPAttributes("left" -> layoutStart(0), "right" -> layoutStart(1), "middle" -> layoutStart(2), "robotL" -> layoutStart(3)(0), "robotR" -> layoutStart(4)(0),"moves" -> moves),"BSupdate",reqID)
+        mC += 1
+        eventHandler ! Response(List(),SPAttributes("left" -> layoutStart(0), "right" -> layoutStart(1), "middle" -> layoutStart(2), "robotL" -> layoutStart(3)(0), "robotR" -> layoutStart(4)(0),"moves" -> moves),"BSupdate",reqID)
       }else if(transform(BSservice.transformTuple._4) == "setup"){ //---------------------------------setup-----------------------------------
         layoutStart = layoutCurrent
       }else if(transform(BSservice.transformTuple._4) == "order"){ //---------------------------------order-----------------------------------
-          if(mC < movesL.size){
-          val layoutTemp = updateStates(movesL, movesR ,mC, layoutStart)
-          mC = 0
-          layoutStart = layoutTemp
-   
-          val desiredState = new BlockState(layoutCurrent(0), layoutCurrent(1), layoutCurrent(2),0,0,0,null,null)
-          val startState = new BlockState(layoutStart(0), layoutStart(1), layoutStart(2), layoutStart(3)(0), layoutStart(4)(0),0,desiredState,ArrayBuffer[Move]())
-           
-          val movestemp = Astar.solver(startState)
-          movesL = makeEmptyMoves(movestemp(0).toList,true)
-          movesR = makeEmptyMoves(movestemp(1).toList,false)
-  
-          val moves = movesL ::: movesR
-          
-          serviceHandler ! Request(operationController,SPAttributes("command"->SPAttributes("commandType"->"reset")))
-          doNext = true
-        }else { 
-          mC = 0
-          val desiredState = new BlockState(layoutCurrent(0), layoutCurrent(1), layoutCurrent(2),0,0,0,null,null)
-          val startState = new BlockState(layoutStart(0), layoutStart(1), layoutStart(2), layoutStart(3)(0), layoutStart(4)(0),0,desiredState,ArrayBuffer[Move]())
-           
-          val movestemp = Astar.solver(startState)
-          movesL = makeEmptyMoves(movestemp(0).toList,true)
-          movesR = makeEmptyMoves(movestemp(1).toList,false)
-          moves = movesL ::: movesR
-         
-          eventHandler ! Response(List(),SPAttributes("left" -> layoutStart(0), "right" -> layoutStart(1), "middle" -> layoutStart(2), "robotL" -> layoutStart(3), "robotR" -> layoutStart(4),"moves" -> moves),"BSInit",reqID)
-
-          val paraSOP = movesToSOP(movesL, movesR, ids)
-          val sopSpec = SOPSpec("tower", List(paraSOP._1))
-          val upIds = sopSpec :: paraSOP._2 ++ ids
-          val stations = Map("tower" -> sopSpec.id)
+        mC = 0
         
-          serviceHandler ! Request("BSorderHandler", SPAttributes("order" -> SPAttributes("id" -> ID.newID,"name" -> "New_sequence","stations" -> stations)) ,upIds) 
-        }
+        val desiredState = new BlockState(layoutCurrent(0), layoutCurrent(1), layoutCurrent(2),0,0,0,null,null)
+        val startState = new BlockState(layoutStart(0), layoutStart(1), layoutStart(2), layoutStart(3)(0), layoutStart(4)(0),0,desiredState,ArrayBuffer[Move]())
+           
+        val movestemp = Astar.solver(startState)
+        movesL = makeEmptyMoves(movestemp(0).toList,true)
+        movesR = makeEmptyMoves(movestemp(1).toList,false)
+        moves = movesL ::: movesR
+         
+        eventHandler ! Response(List(),SPAttributes("left" -> layoutStart(0), "right" -> layoutStart(1), "middle" -> layoutStart(2), "robotL" -> layoutStart(3), "robotR" -> layoutStart(4),"moves" -> moves),"BSInit",reqID)
+
+        val paraSOP = movesToSOP(movesL, movesR, ids)
+        val sopSpec = SOPSpec("tower", List(paraSOP._1))
+        val upIds = sopSpec :: paraSOP._2 ++ ids
+        val stations = Map("tower" -> sopSpec.id)
+        
+        serviceHandler ! Request("BSorderHandler", SPAttributes("order" -> SPAttributes("id" -> ID.newID,"name" -> "New_sequence","stations" -> stations)) ,upIds) 
       
       }  
       replyTo ! Response(List(), SPAttributes("tower" -> "hej"), rnr.req.service, rnr.req.reqID)  
@@ -121,23 +94,9 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
     case Response(ids, attr, "toBS", id) =>{
       vC = vC*(-1)
       if(vC == 1){
-        if(doNext == true){
-          val paraSOP = movesToSOP(movesL, movesR, ids)
-          val sopSpec = SOPSpec("tower", List(paraSOP._1))
-          val upIds = sopSpec :: paraSOP._2 ++ ids
-          val stations = Map("tower" -> sopSpec.id)
-        
-          serviceHandler ! Request("BSorderHandler", SPAttributes("order" -> SPAttributes("id" -> ID.newID,"name" -> "New_sequence","stations" -> stations)) ,upIds) 
-          doNext = false
-          eventHandler ! Response(List(),SPAttributes("left" -> layoutStart(0), "right" -> layoutStart(1), "middle" -> layoutStart(2), "robotL" -> layoutStart(3)(0), "robotR" -> layoutStart(4)(0),"moves" -> moves),"BSInit",id)
-        } else{
-          layoutStart = updateStates(movesL, movesR ,mC, layoutStart)
-
-          mC += 1
-          eventHandler ! Response(List(),SPAttributes("left" -> layoutStart(0), "right" -> layoutStart(1), "middle" -> layoutStart(2), "robotL" -> layoutStart(3)(0), "robotR" -> layoutStart(4)(0),"moves" -> moves),"BSupdate",id)
-        
-        }
-        
+        layoutStart = updateStates(movesL, movesR ,mC, layoutStart)
+        mC += 1
+        eventHandler ! Response(List(),SPAttributes("left" -> layoutStart(0), "right" -> layoutStart(1), "middle" -> layoutStart(2), "robotL" -> layoutStart(3)(0), "robotR" -> layoutStart(4)(0),"moves" -> moves),"BSupdate",id)
       }
     }
   }
