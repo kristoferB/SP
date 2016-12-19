@@ -35,19 +35,22 @@ object BSservice extends SPService {
 
 }
 class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationController: String, BSrunner: String) extends Actor with ServiceSupport with TowerBuilder{
-  var leftRaw : List[List[String]] = List()
+ /** var leftRaw : List[List[String]] = List()
   var rightRaw : List[List[String]] = List()
-  var middleRaw : List[List[String]] = List()
-  var startLeft = Array.fill[Byte](16)(0)
+  var middleRaw : List[List[String]] = List()*/
+  var layoutRaw: List[List[List[String]]] = List()
+  var layoutCurrent = Array.fill[Byte](5,16)(0)
+  var layoutStart = Array.fill[Byte](5,16)(0)
+  /*var startLeft = Array.fill[Byte](16)(0)
   var startRight = Array.fill[Byte](16)(0)
-  var startMiddle = Array.fill[Byte](16)(0)
-  var startRobotL : Byte = 0
-  var startRobotR : Byte = 0
+  var startMiddle = Array.fill[Byte](16)(0)*/
+  /*var startRobotL : Byte = 0*
+  var startRobotR : Byte = 0*/
   var movesL : List[Move] = List()
   var movesR : List[Move] = List()
   var moves : List[Move] = List()
   var mC : Int = 0
-  var varannan : Int = 1
+  var vC : Int = 1
   var doNext : Boolean = false
 
   eventHandler ! SubscribeToSSE(self)
@@ -55,69 +58,50 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
   def receive = {
     case r@Request(service, attr, ids, reqID) => {
 
-      
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
       println(transform(BSservice.transformTuple._4))
       
-      leftRaw = transform(BSservice.transformTuple._1)
-      rightRaw = transform(BSservice.transformTuple._2)
-      middleRaw = transform(BSservice.transformTuple._3)
+      layoutRaw = List(transform(BSservice.transformTuple._1), transform(BSservice.transformTuple._2),transform(BSservice.transformTuple._3))
       
-      val (left, right, middle) = GuiToOpt(leftRaw, rightRaw, middleRaw)
+      val layoutCurrent = GuiToOpt(layoutRaw)
 
       if(transform(BSservice.transformTuple._4) == "manuell step"){
-        val (startLeftm,startRightm,startMiddlem,startRobotLm,startRobotRm) = updateStates(movesL, movesR ,mC,startLeft,startRight,startMiddle,startRobotL,startRobotR)
-        println("inne")
-          startLeft = startLeftm
-          startRight = startRightm    
-          startMiddle = startMiddlem
-          startRobotL = startRobotLm  
-          startRobotR = startRobotRm
-
+        layoutStart = updateStates(movesL, movesR ,mC,layoutStart)
+        println(layoutStart(3)(0))
+        println(layoutStart(4)(0))
           mC += 1
-          eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle, "robotL" -> startRobotL, "robotR" -> startRobotR,"moves" -> moves),"BSupdate",reqID)
+          eventHandler ! Response(List(),SPAttributes("left" -> layoutStart(0), "right" -> layoutStart(1), "middle" -> layoutStart(2), "robotL" -> layoutStart(3)(0), "robotR" -> layoutStart(4)(0),"moves" -> moves),"BSupdate",reqID)
       }else if(transform(BSservice.transformTuple._4) == "setup"){ //---------------------------------setup-----------------------------------
-        startLeft = left
-        startRight = right
-        startMiddle = middle
+        layoutStart = layoutCurrent
       }else if(transform(BSservice.transformTuple._4) == "order"){ //---------------------------------order-----------------------------------
-        //if(mC < movesL.size){
-          if(1 == 2){   
-          println("<<<<<<<<<<")
-          val (startLeftm,startRightm,startMiddlem,startRobotLm,startRobotRm) = updateStates(movesL, movesR ,mC,startLeft,startRight,startMiddle,startRobotL,startRobotR)
+          if(mC < movesL.size){
+          val layoutTemp = updateStates(movesL, movesR ,mC, layoutStart)
           mC = 0
-          startLeft = startLeftm
-          startRight = startRightm    
-          startMiddle = startMiddlem
-          startRobotL = startRobotLm  
-          startRobotR = startRobotRm
+          layoutStart = layoutTemp
    
-          val desiredState = new BlockState(left, right, middle,0,0,0,null,null)
-          val startState = new BlockState(startLeft, startRight, startMiddle,startRobotL,startRobotR,0,desiredState,ArrayBuffer[Move]())
+          val desiredState = new BlockState(layoutCurrent(0), layoutCurrent(1), layoutCurrent(2),0,0,0,null,null)
+          val startState = new BlockState(layoutStart(0), layoutStart(1), layoutStart(2), layoutStart(3)(0), layoutStart(4)(0),0,desiredState,ArrayBuffer[Move]())
            
           val movestemp = Astar.solver(startState)
-          val movestempL = makeEmptyMoves(movestemp(0).toList,true)
-          val movestempR = makeEmptyMoves(movestemp(1).toList,false)
-          movesL = movestempL
-          movesR = movestempR
+          movesL = makeEmptyMoves(movestemp(0).toList,true)
+          movesR = makeEmptyMoves(movestemp(1).toList,false)
+  
           val moves = movesL ::: movesR
           
           serviceHandler ! Request(operationController,SPAttributes("command"->SPAttributes("commandType"->"reset")))
           doNext = true
-        }else {
+        }else { 
           mC = 0
-          val desiredState = new BlockState(left, right, middle,0,0,0,null,null)
-          val startState = new BlockState(startLeft, startRight, startMiddle,startRobotL,startRobotR,0,desiredState,ArrayBuffer[Move]())
+          val desiredState = new BlockState(layoutCurrent(0), layoutCurrent(1), layoutCurrent(2),0,0,0,null,null)
+          val startState = new BlockState(layoutStart(0), layoutStart(1), layoutStart(2), layoutStart(3)(0), layoutStart(4)(0),0,desiredState,ArrayBuffer[Move]())
            
           val movestemp = Astar.solver(startState)
-          val movestempL = makeEmptyMoves(movestemp(0).toList,true)
-          val movestempR = makeEmptyMoves(movestemp(1).toList,false)
-          movesL = movestempL
-          movesR = movestempR
-          val moves = movesL ::: movesR
+          movesL = makeEmptyMoves(movestemp(0).toList,true)
+          movesR = makeEmptyMoves(movestemp(1).toList,false)
+          moves = movesL ::: movesR
          
-          eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle, "robotL" -> startRobotL, "robotR" -> startRobotR,"moves" -> moves),"BSInit",reqID)
+          eventHandler ! Response(List(),SPAttributes("left" -> layoutStart(0), "right" -> layoutStart(1), "middle" -> layoutStart(2), "robotL" -> layoutStart(3), "robotR" -> layoutStart(4),"moves" -> moves),"BSInit",reqID)
 
           val paraSOP = movesToSOP(movesL, movesR, ids)
           val sopSpec = SOPSpec("tower", List(paraSOP._1))
@@ -135,8 +119,8 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
       
     
     case Response(ids, attr, "toBS", id) =>{
-      varannan = varannan*(-1)
-      if(varannan == 1){
+      vC = vC*(-1)
+      if(vC == 1){
         if(doNext == true){
           val paraSOP = movesToSOP(movesL, movesR, ids)
           val sopSpec = SOPSpec("tower", List(paraSOP._1))
@@ -145,19 +129,12 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
         
           serviceHandler ! Request("BSorderHandler", SPAttributes("order" -> SPAttributes("id" -> ID.newID,"name" -> "New_sequence","stations" -> stations)) ,upIds) 
           doNext = false
-          eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle, "robotL" -> startRobotL, "robotR" -> startRobotR,"moves" -> moves),"BSInit",id)
+          eventHandler ! Response(List(),SPAttributes("left" -> layoutStart(0), "right" -> layoutStart(1), "middle" -> layoutStart(2), "robotL" -> layoutStart(3)(0), "robotR" -> layoutStart(4)(0),"moves" -> moves),"BSInit",id)
         } else{
-          val (startLeftm,startRightm,startMiddlem,startRobotLm,startRobotRm) = updateStates(movesL, movesR ,mC,startLeft,startRight,startMiddle,startRobotL,startRobotR)
-
-
-          startLeft = startLeftm
-          startRight = startRightm    
-          startMiddle = startMiddlem
-          startRobotL = startRobotLm  
-          startRobotR = startRobotRm
+          layoutStart = updateStates(movesL, movesR ,mC, layoutStart)
 
           mC += 1
-          eventHandler ! Response(List(),SPAttributes("left" -> startLeft, "right" -> startRight, "middle" -> startMiddle, "robotL" -> startRobotL, "robotR" -> startRobotR,"moves" -> moves),"BSupdate",id)
+          eventHandler ! Response(List(),SPAttributes("left" -> layoutStart(0), "right" -> layoutStart(1), "middle" -> layoutStart(2), "robotL" -> layoutStart(3)(0), "robotR" -> layoutStart(4)(0),"moves" -> moves),"BSupdate",id)
         
         }
         
@@ -181,81 +158,51 @@ trait TowerBuilder extends TowerOperationTypes {
     moves.toList
   }
   
-  def updateStates(movesL: List[Move],movesR : List[Move], mC: Int, startLeft: Array[Byte], startRight : Array[Byte], startMiddle : Array[Byte], startRobotL: Byte, startRobotR : Byte) = {
-    var sL = startLeft
-    var sR = startRight
-    var sM = startMiddle
-    var srL = startRobotL
-    var srR = startRobotR
-
+  def updateStates(movesL: List[Move], movesR : List[Move], mC: Int, layoutStart: Array[Array[Byte]]) = {
+    var layoutTemp = layoutStart
     if(movesL(mC).position != 999){ 
       if(movesL(mC).isPicking == true){
+        layoutTemp(3)(0) = movesL(mC).color
         if(movesL(mC).usingMiddle == true){
-          srL = movesL(mC).color
-          sM(movesL(mC).position) = 0
+          layoutTemp(2)(movesL(mC).position) = 0
         }else { 
-          srL = movesL(mC).color
-          sL(movesL(mC).position) = 0
+          layoutTemp(0)(movesL(mC).position) = 0
         }
       }else {
+        layoutTemp(3)(0) = 0
        if(movesL(mC).usingMiddle == true){
-          sM(movesL(mC).position) = startRobotL
-          srL = 0
+          layoutTemp(2)(movesL(mC).position) = movesL(mC).color
         } else { 
-          srL = 0
-          sL(movesL(mC).position) = movesL(mC).color
+          layoutTemp(0)(movesL(mC).position) = movesL(mC).color
         }  
       }
     }
     if(movesR(mC).position != 999){ 
       if(movesR(mC).isPicking == true){
+        layoutTemp(4)(0) = movesR(mC).color
         if(movesR(mC).usingMiddle == true){
-          srR =  movesR(mC).color
-          sM(movesR(mC).position) = 0
+          layoutTemp(2)(movesR(mC).position) = 0
         }else { 
-          srR = movesR(mC).color
-          sR(movesR(mC).position) = 0
+          layoutTemp(1)(movesR(mC).position) = 0
         } 
       }else {
-       if(movesR(mC).usingMiddle == true){
-          sM(movesR(mC).position) = startRobotR
-          srR = 0
+        layoutTemp(4)(0) =  0
+        if(movesR(mC).usingMiddle == true){
+          layoutTemp(2)(movesR(mC).position) = movesR(mC).color
         } else { 
-          srR =  0
-          sR(movesR(mC).position) = movesR(mC).color
+          layoutTemp(1)(movesR(mC).position) = movesR(mC).color
         }  
       }
     }
-    (sL, sR, sM, srL, srR)
+    layoutTemp
   }
   
-  def GuiToOpt(left: List[List[String]], right: List[List[String]], middle: List[List[String]]) = {
-    val leftPlate = new Array[Byte](16)
-    var rightPlate = new Array[Byte](16)
-    val middlePlate = new Array[Byte](4)
-    var j = 0
-    left.foreach{i =>
-      i.foreach{k =>
-        leftPlate(j) = k.toByte
-        j += 1
-      }
-    }
-    j = 0
-    right.foreach{i =>
-      i.foreach{k =>
-        rightPlate(j) = k.toByte 
-        j += 1
-      }
-    }
-    j = 0
-    middle.foreach{i =>
-      i.foreach{k =>
-        middlePlate(j) = k.toByte 
-        j += 1
-      }
-    }
-    
-    (leftPlate, rightPlate, middlePlate)
+  def GuiToOpt(layout: List[List[List[String]]]) = {
+    val leftPlate = layout(0)(0).map(x => x.toByte) ::: layout(0)(1).map(x => x.toByte) ::: layout(0)(2).map(x => x.toByte) ::: layout(0)(3).map(x => x.toByte)
+    val rightPlate = layout(1)(0).map(x => x.toByte) ::: layout(1)(1).map(x => x.toByte) ::: layout(1)(2).map(x => x.toByte) ::: layout(1)(3).map(x => x.toByte)
+    val middlePlate = layout(2)(0).map(x => x.toByte)
+
+    List(leftPlate.toArray ,rightPlate.toArray ,middlePlate.toArray,List(0.toByte).toArray,List(0.toByte).toArray).toArray
   }
   
   def movesToSOP(movesL: List[Move], movesR: List[Move], ids: List[IDAble]) = {
@@ -271,12 +218,6 @@ trait TowerBuilder extends TowerOperationTypes {
       val seqR = Sequence(List(oR(i)).map(o => Hierarchy(o.id)):_*)
       brickSeq += Parallel(seqL,seqR)
     }
-    //val seqL = Sequence(oL.map(o => Hierarchy(o.id)):_*)
-    //val seqR = Sequence(oR.map(o => Hierarchy(o.id)):_*)
-    //val buildSOP: SOP = if (seqL.isEmpty) seqR else if (seqR.isEmpty) seqL else Parallel(seqL, seqR)
-    //var buildSOP: List[SOP]
-    //val brickSeq: List[SOP] = List(buildSOP)  
-
     (Sequence(brickSeq:_*),allOps)
   }
 
