@@ -23,7 +23,9 @@
         'app.operatorInstGUI',
         'app.robotCycleAnalysis',
         'app.activeOrder',
-        'app.Tobbe2'
+        'app.Tobbe2',
+        'app.volvoRobotScheduling',
+        'app.ganttViewer'
     ]);
 
 })();

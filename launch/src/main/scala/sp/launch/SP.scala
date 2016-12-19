@@ -10,7 +10,6 @@ import scala.io.Source
  * Created by Kristofer on 2014-06-27.
  */
 object SP extends App {
-
   import sp.system.SPActorSystem._
 
   import akka.cluster.pubsub.DistributedPubSub
@@ -27,6 +26,7 @@ object SP extends App {
 
 
   // Register services here
+
   import sp.services.PropositionParserService
   mediator ! Publish("serviceHandler", RegisterService("PropositionParser",
     system.actorOf(PropositionParserService.props, "PropositionParser")))
@@ -90,7 +90,8 @@ object SP extends App {
     CreateOpsFromManualModelService.transformation))
 
   mediator ! Publish("serviceHandler", RegisterService("SynthesizeModelBasedOnAttributes",
-    system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler), "SynthesizeModelBasedOnAttributes"),
+    system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler, serviceHandler),
+      "SynthesizeModelBasedOnAttributes"),
     SynthesizeModelBasedOnAttributesService.specification))
 
   mediator ! Publish("serviceHandler", RegisterService("ExtendIDablesBasedOnAttributes",
@@ -150,6 +151,11 @@ object SP extends App {
     system.actorOf(VolvoRobotSchedule.props(serviceHandler), "VolvoRobotSchedule"),
     VolvoRobotSchedule.specification, VolvoRobotSchedule.transformation))
 
+  import sp.virtcom.BDDVerifier
+  mediator ! Publish("serviceHandler", RegisterService("BDDVerifier",
+    system.actorOf(BDDVerifier.props(modelHandler), "BDDVerifier"),
+    BDDVerifier.specification, BDDVerifier.transformation))
+
 //
 //  import sp.areus.modalaService._
 //  val modalaamqProducer = system.actorOf(Props[ModalaAMQProducer], "ModalaAMQProducer")
@@ -187,6 +193,7 @@ object SP extends App {
 //    ExampleService.specification,
 //    ExampleService.transformation
 //  )
+
 //
 //  import sp.calculator._
 //  mediator ! Publish("serviceHandler", RegisterService)(
@@ -255,4 +262,5 @@ object SP extends App {
   scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
     case x => system.terminate()
   }
+
 }

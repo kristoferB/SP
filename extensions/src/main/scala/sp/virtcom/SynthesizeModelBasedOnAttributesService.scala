@@ -17,13 +17,15 @@ import akka.pattern.ask
  * The synthesized supervisor is returned as an extra preGuard for a subset of the operations.
  * Creates a Condition for each operation based on its attributes
  */
-class SynthesizeModelBasedOnAttributesService(modelHandler: ActorRef) extends Actor {
+class SynthesizeModelBasedOnAttributesService(modelHandler: ActorRef, serviceHandler: ActorRef) extends Actor {
   def receive = {
     case r@Request(service, attr, ids, reqID) =>
       println(s"service: $service got reqID: $reqID")
-      context.actorOf(Props(classOf[SynthesizeModelBasedOnAttributesRunner], modelHandler)).tell(r, sender())
+      context.actorOf(Props(classOf[SynthesizeModelBasedOnAttributesRunner], modelHandler, serviceHandler)).tell(r, sender())
   }
 }
+
+case class RegisterBDD(name: String, bdd: Map[String, Int] => Option[Boolean], service: String) extends ServiceCommand
 
 object SynthesizeModelBasedOnAttributesService {
 
@@ -34,10 +36,11 @@ object SynthesizeModelBasedOnAttributesService {
     )
   )
 
-  def props(modelHandler: ActorRef) = Props(classOf[SynthesizeModelBasedOnAttributesService], modelHandler)
+  def props(modelHandler: ActorRef, serviceHandler: ActorRef) = Props(classOf[SynthesizeModelBasedOnAttributesService],
+    modelHandler, serviceHandler)
 }
 
-private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef) extends Actor with sp.system.ServiceSupport {
+private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef, serviceHandler: ActorRef) extends Actor with sp.system.ServiceSupport {
   implicit val timeout = Timeout(1 seconds)
 
   import context.dispatcher
@@ -100,7 +103,10 @@ private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef) ext
         progress ! SPAttributes("progress" -> "saved to wmod file in ./testFiles/gitIgnore/")
 
         lazy val opsWithSynthesizedGuard = optSupervisorGuards.getOrElse(Map()).keys
-        lazy val spAttributes = synthesizedGuards merge nbrOfStates merge SPAttributes("info" -> s"Model synthesized. ${opsWithSynthesizedGuard.size} operations are extended with a guard: ${opsWithSynthesizedGuard.mkString(", ")}")
+        lazy val spAttributes = synthesizedGuards merge nbrOfStates merge SPAttributes("info" -> s"Model synthesized. ${opsWithSynthesizedGuard.size} operations are extended with a guard: ${opsWithSynthesizedGuard.mkString(", ")}") merge SPAttributes("moduleName" -> moduleName)
+
+        // hack: add bdd to bdd-keeper
+        serviceHandler ! RegisterBDD(moduleName,(x => ptmwModule.containsState(x)), "BDDVerifier")
 
         replyTo ! Response(updatedOps, spAttributes, service, reqID)
         progress ! PoisonPill

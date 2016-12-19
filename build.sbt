@@ -23,7 +23,7 @@ lazy val support = Seq(
   "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test"
 )
 
-lazy val commonSettings = Seq(
+lazy val commonSettings = packSettings ++ Seq(
   scalaVersion := "2.11.8",
   resolvers ++= Seq(
     "Sonatype OSS Snapshots" at "https://oss.sonatype.org/Releases",
@@ -36,15 +36,15 @@ lazy val commonSettings = Seq(
     "-target:jvm-1.8",
     "-language:implicitConversions",
     "-language:postfixOps"
-  )
+  ),
+  packMain:= Map("SP"->"sp.launch.SP"),
+  packResourceDir += (baseDirectory.value/ "../gui/web" -> "bin/gui/web")
+
 )
 
 
-
-
-
 lazy val root = project.in( file(".") )
-   .aggregate(core, domain, gui, extensions, launch)
+  .aggregate(core, domain, gui, extensions, launch)
 
 lazy val domain = project.dependsOn(macros).
   settings(commonSettings: _*).
@@ -64,6 +64,7 @@ lazy val core = project.dependsOn(domain).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= akka ++ json)
 
+
 lazy val gui = project.dependsOn(domain, core).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= akka ++ json)
@@ -72,6 +73,7 @@ lazy val extensions = project.dependsOn(domain, core).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= akka ++ json)
 
+
 lazy val launch = project.dependsOn(domain, core, gui, extensions).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= akka ++ json)
@@ -79,6 +81,3 @@ lazy val launch = project.dependsOn(domain, core, gui, extensions).
 lazy val services = project.dependsOn(domain).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= akka ++ json ++ support)
-
-
-

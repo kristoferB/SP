@@ -47,11 +47,10 @@ trait MakeASop {
   def cleanSop(sop: SOP): SOP = {
     sop match {
       case EmptySOP => EmptySOP
-      case x: Parallel if x.sop.size == 1 =>
-        x.sop.head match {
-          case y: Parallel => cleanSop(x.modify(y.sop))
-          case _ => sop.modify(sop.sop.map(cleanSop))
-        }
+      case x:Parallel if x.sop.size == 1 && x.sop.head.isInstanceOf[Sequence] =>
+        cleanSop(Sequence(x.sop.head.sop:_*))
+      case x:Sequence if x.sop.size == 1 && x.sop.head.isInstanceOf[Sequence] =>
+        cleanSop(x.sop.head)
       case _ => sop.modify(sop.sop.map(cleanSop))
     }
   }
