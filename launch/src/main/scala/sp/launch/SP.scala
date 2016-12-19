@@ -213,7 +213,7 @@ object SP extends App {
   ))
 
   import sp.psl.runnerService._
-  val rs = system.actorOf(RunnerService.props(eventHandler, serviceHandler, "OperationControl", "BSservice"), "RunnerService")
+  val rs = system.actorOf(RunnerService.props(eventHandler, serviceHandler, "OperationControl"), "RunnerService")
   mediator ! Publish("serviceHandler", RegisterService(
     "RunnerService",
     rs,

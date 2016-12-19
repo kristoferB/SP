@@ -47,16 +47,15 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
 
       println(s"new order: $newOrder")
       ev ! Progress(SPAttributes("status"->"new", "order"->newOrder), "OrderHandler", id)
-      
-      //resetOrders
+
       addNewOrder(order)
 
 
       replyTo ! Response(List(), SPAttributes("status"-> "order received", "silent"->true), r.service, r.reqID)
 
-    case Progress(attr, "BSrunner", id) => println(s"order handler got a progress: $attr")
+    case Progress(attr, "RunnerService", id) => println(s"order handler got a progress: $attr")
 
-    case Response(ids, attr, "BSrunner", id) =>
+    case Response(ids, attr, "RunnerService", id) =>
       println("====================================")
       println("=== ORDER HANDLER ==================")
       println("====================================")
@@ -87,7 +86,7 @@ class OrderHandler(sh: ActorRef, ev: ActorRef) extends Actor with ServiceSupport
   }
 
   def startStationOrder(order: ActiveOrder) = {
-    val req = Request("BSrunner", SPAttributes("SOP"->order.sop.id,"station"->order.station), order.order.idMap.values.toList)
+    val req = Request("RunnerService", SPAttributes("SOP"->order.sop.id,"station"->order.station), order.order.idMap.values.toList)
     sh ! req
     ev ! Progress(SPAttributes("status"->"stationOrder", "station"->order.station, "sop"->order.sop, "order"->OrderDefinition(order.order.id, order.order.name, order.order.stations)), "OrderHandler", ID.newID)
   }

@@ -21,7 +21,7 @@ object OperationControl extends SPService {
       "group"-> "control" // to organize in gui. maybe use "hide" to hide service in gui
     ),
     "setup" -> SPAttributes(
-      "busIP" -> KeyDefinition("String", List(), Some("172.16.205.50")),
+      "busIP" -> KeyDefinition("String", List(), Some("0.0.0.0")),
       "publishTopic" -> KeyDefinition("String", List(), Some("commands")),
       "subscribeTopic" -> KeyDefinition("String", List(), Some("response"))
     ),
@@ -30,7 +30,7 @@ object OperationControl extends SPService {
       "connectionDetails" -> KeyDefinition("Option[ID]", List(), None)
     ),
     "command" -> SPAttributes(
-      "commandType"->KeyDefinition("String", List("connect", "disconnect", "status", "subscribe", "unsubscribe", "start", "stop", "raw", "reset","getStates"), Some("connect")),
+      "commandType"->KeyDefinition("String", List("connect", "disconnect", "status", "subscribe", "unsubscribe", "start", "stop", "raw", "reset"), Some("connect")),
       "execute" -> KeyDefinition("Option[ID]", List(), None),
       "parameters" -> KeyDefinition("Option[State]", List(), None),
       "raw" -> KeyDefinition("String", List(), Some("")) // db byte bit value
@@ -112,7 +112,6 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
           commands.getAs[ID]("execute").foreach { id =>
             sendStop(commands, id)
           }
-          println("***OC_stop")
         case "status" =>
           eventHandler ! Response(List(), SPAttributes("state"->state, "resourceTree"-> resourceTree, "silent"->true), serviceName.get, serviceID)
         case "reset" =>
@@ -182,7 +181,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
       idMap = rnr.req.ids.map(x => x.id -> x).toMap
       //state = setupState(rnr.req.ids)
       println(s"connecting: $s")
-      ReActiveMQExtension(context.system).manager ! GetAuthenticatedConnection(s"nio://${s.busIP}:61616","lisa","lisa")
+      ReActiveMQExtension(context.system).manager ! GetConnection(s"nio://${s.busIP}:61616")
   }
 
   def setupState(ids: List[IDAble]) = {
@@ -331,7 +330,7 @@ class OperationControl(eventHandler: ActorRef) extends Actor with ServiceSupport
         "command"->"write",
         "dbs"-> dbs
       )
-    //  println(s"sending: $mess")
+    println(s"sending: $mess")
       sendMessage(mess)
   }  
 
