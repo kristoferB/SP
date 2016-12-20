@@ -31,6 +31,7 @@ position: absolute;top:135px; left:540px;
 position: absolute; top:5px; left:5px;
 }
 .Block1, .Block2, .Block3, .Block4, .Block5, .Block6, .Block7, .Block8, .leftRobotBlock, .rightRobotBlock {
+
 	width:60px;
 	height:60px;
 	background-color:rgb(255,255,255);
@@ -64,6 +65,7 @@ position: absolute; top:5px; left:5px;
 }
 
 
+
 .robotBlocks {
 position: absolute;top:330px; left:130px;
 }
@@ -83,6 +85,7 @@ ms-transform: rotate(-9deg); /* IE 9 */
     -webkit-transform: rotate(-9deg); /* Chrome, Safari, Opera */
     transform: rotate(-9deg);
 	}
+
 
 
 .ColorControlPos{
@@ -156,13 +159,16 @@ background-color:#ffff66; position: absolute; top: 40px; left: 0px; /*Yellow*/
 .ProggressUpdate{position: absolute; top: 275px; left: 360px; text-align: center;}
 
 
+
 .Sop{position: absolute; top: 0px; left: 840px; height: 500px; width:530px;	overflow-x:hidden; 
 	 overflow-y:scroll;}
+
 
 .SoplistLeft, .SoplistRight{
     margin: 0;
     padding: 0;
     list-style-type: none;
+
 	 overflow-x:hidden; 
 	 overflow-y:scroll;
 }
@@ -277,6 +283,7 @@ $('#SoplistRight').on('mouseover', '> li', function(e) {
 		        <button type="button" class="Block4" data-blockNr="15"
 		                ng-click="vm.saveNumber('button144','Left',3,3)" id="button144" value = "button144";>
 		        </button>
+
 		        <button type="button" class="Block5" data-blockNr="8"
 		                ng-click="vm.saveNumber('button131','Left',2,0)" id="button131" value = "button131";>
 		        </button>
@@ -292,6 +299,8 @@ $('#SoplistRight').on('mouseover', '> li', function(e) {
 		</div>
 	</div>
 <!----------------------------------------------------------------------------------------------------------------------------->
+
+
 <!-------- Left Plate lower half--------------------------------------------------------------------------------------------------->
       <div class="LeftLower">
 		<div class="Padding">
@@ -327,7 +336,9 @@ $('#SoplistRight').on('mouseover', '> li', function(e) {
 <!-------- Middle Plate--------------------------------------------------------------------------------------------------->
       	 <div class="Middle">
 		<div class="Padding" style="top: 3.5px;">
+
 		    			  <button type="button" class="Block1" data-blockNr="0"
+
                             ng-click="vm.saveNumber('button311','Middle',0,0)" id="button311" value = "button311";>
                     </button>
                     <button type="button" class="Block2" data-blockNr="1"
@@ -479,12 +490,19 @@ $('#SoplistRight').on('mouseover', '> li', function(e) {
 		<h7 id="ProggressUpdate"; text-align: center>No orders under construction</h7>
 	</div>
 
+
+
+	<!---<div class="Sop">
+		<h7 id="Sop"; text-align: center>Sop</h7>
+	</div> -->
+
 <div class="Sop" id="Sop" style=" display:none">
 <div class="SopLeftpos">
 <h2>Left_robot</h2>
 	<ul  class ="SoplistLeft" id="SoplistLeft">
 	</ul>
 </div>
+
 <div class="SopRightpos">
 <h2>Right_robot</h2>
 <ul  class ="SoplistRight" id="SoplistRight">

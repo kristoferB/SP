@@ -12,7 +12,7 @@
 	/* @ngInject */
 	function BSI4GUIController($scope, dashboardService, eventService,spServicesService) {
 
-        // Initiates variables and function declarations.
+        // Initiates variables and functionj declarations.
             var vm = this;
             vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
 				vm.OperationNr=0;
@@ -101,11 +101,13 @@
         function onEvent(a) {
         	
         		if (a.service =="BSupdate"){
+
         		// when a status update is recived from the robots, i.e. they made a move, the status array of blocks will be updated	
         			 for (var i = 0; i < 4; i++) {
                 vm.ButtonColour.Status.Middle[0][i]= a.attributes.middle[i];
              
                 for (var j = 0; j < 4; j++) {
+
                     vm.ButtonColour.Status.Left[i][j]= a.attributes.left[i*4+j];
                     vm.ButtonColour.Status.Right[i][j]= a.attributes.right[i*4+j];
                 }
@@ -211,6 +213,7 @@ function updateOrderList () {
 			 	
         		vm.OperationNr++;	
 }
+
 function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
 	           var buttonNr ="button";
 					if (usingMiddle)
@@ -274,7 +277,7 @@ function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
             }        				
         	}
         	
-        	
+
 		function setActiveColour(int) {
 			if(vm.Initialized ==0 && vm.Mode=='Status' || vm.Mode=='NewOrder' && vm.Initialized ==1){
 				vm.activeColour = int;
@@ -349,7 +352,9 @@ function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
                         sendOrder();
                         copyButtonColourValues('CurrentOrder','NewOrder');
                         vm.lock = 1;
+
                         updateOrderList ();
+
                      }
                      else {alert("At least one block must be placed in a new location and you have to specify all of the blocks locations.")}
                    
@@ -374,7 +379,9 @@ function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
         function updateOrderPlacedButtonAndText(){
         	$('#SoplistLeft').empty();
 		   $('#SoplistRight').empty();
+
 		   vm.OperationNr=0;
+
         	document.getElementById('Sop').style.display='Block';
             document.getElementById('NewOrder').style.backgroundColor= "#ffffff";
             document.getElementById('NewOrder').value='NewOrder';
@@ -555,7 +562,9 @@ function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
                 document.getElementById('Sop').style.display='none';
 					 $('#SoplistLeft').empty();
 					 $('#SoplistRight').empty();
+
 					 vm.OperationNr=0;
+
                 resetAllBlocks();
                 resetRobotBlockColour();
             }
@@ -588,11 +597,13 @@ function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
                 }
             }
 		}
+
 		
         // Pauses or resumes the robots current operation
 		function stopResume(){
 
 			var mess = {"data": {"command": "manuell step",
+
 				"Left": vm.ButtonColour.NewOrder.Left,
 				"Middle": vm.ButtonColour.NewOrder.Middle,
 				"Right": vm.ButtonColour.NewOrder.Right}};
@@ -606,6 +617,7 @@ function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
 			}
 			)
 			
+
             if(vm.Initialized == 1) {
                 if (document.getElementById('StopResumeButtonText').innerHTML == 'Stop') {
                     document.getElementById('StopResumeButtonText').innerHTML = 'Resume';
