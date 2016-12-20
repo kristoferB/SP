@@ -160,7 +160,6 @@ background-color:#ffff66; position: absolute; top: 40px; left: 0px; /*Yellow*/
 	 overflow-y:scroll;}
 
 .SoplistLeft, .SoplistRight{
-//font-weight: bold;
     margin: 0;
     padding: 0;
     list-style-type: none;
@@ -169,14 +168,13 @@ background-color:#ffff66; position: absolute; top: 40px; left: 0px; /*Yellow*/
 }
 .SoplistLeft  li , .SoplistRight li{
     cursor: pointer;
-    //border-style: hidden;
-        border: 0px solid #00AA66;
+    border: 0px solid #00AA66;
     padding: 12px 8px 12px 12px;
     background: #eee;
     font-size: 18px;
     transition: 0.2s;
 	 width:250px;	 
-	position: relative;
+  	 position: relative;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -231,48 +229,32 @@ position: absolute;
   }).appendTo("body");    
 }
 
- /*  
-  $('.SoplistLeft li').hover(function(){
-  alert('hej');
-  //$('.actions', this).css('visibility', 'visible')
-  })*/
-   /*
-$('#SoplistLeft li').on('mouseover', function() {
-  alert('hej');//$(this).parents('.menu').addClass('hovered');
-}).on('mouseout', function() {
-  alert('hejdå');//$(this).parents('.menu').removeClass('hovered');
-}); 
-*/
-
-
 $('#SoplistLeft').on('mouseover', '> li', function(e) {
-//var li$ = $(this);
+
 		var btn=e.target.id;
-		//var btn1=e.target.getAttribute('id');;
 		var property = document.getElementById(btn);
-		//var property1 = document.getElementById(btn);
-		//alert(property1);
+
 		property.style.border = "5px solid #00AA66";
 		property.style['box-shadow']="inset 0px 0px 2px 0px";
+		
 }).on('mouseout', '> li', function (e) {
-var btn=e.target.id;
-var property = document.getElementById(btn);
-property.style.border = "1px solid #00AA66";
-property.style['box-shadow']="inset 0px 0px 0px 0px";
+		var btn=e.target.id;
+		var property = document.getElementById(btn);
+		property.style.border = "1px solid #00AA66";
+		property.style['box-shadow']="inset 0px 0px 0px 0px";
 });
 
 $('#SoplistRight').on('mouseover', '> li', function(e) {
-//var li$ = $(this);
-var keys = Object.keys(e.target);	
+		var keys = Object.keys(e.target);	
 		var btn=e.target.id;
 		var property = document.getElementById(btn);
 		property.style.border = "5px solid #00AA66";
 		property.style['box-shadow']="inset 0px 0px 2px 0px";
 }).on('mouseout', '> li', function (e) {
-var btn=e.target.id;
-var property = document.getElementById(btn);
-property.style.border = "1px solid #00AA66";
-property.style['box-shadow']="inset 0px 0px 0px 0px";
+		var btn=e.target.id;
+		var property = document.getElementById(btn);
+		property.style.border = "1px solid #00AA66";
+		property.style['box-shadow']="inset 0px 0px 0px 0px";
 });
 </script>
 
@@ -496,10 +478,6 @@ property.style['box-shadow']="inset 0px 0px 0px 0px";
 	<div class="ProggressUpdate">
 		<h7 id="ProggressUpdate"; text-align: center>No orders under construction</h7>
 	</div>
-	<!---<div class="Sop">
-		<h7 id="Sop"; text-align: center>Sop</h7>
-	</div> -->
-	
 
 <div class="Sop" id="Sop" style=" display:none">
 <div class="SopLeftpos">

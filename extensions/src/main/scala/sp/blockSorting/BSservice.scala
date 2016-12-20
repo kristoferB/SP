@@ -52,19 +52,20 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
 
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
-      println(transform(BSservice.transformTuple._4))
       
       layoutRaw = List(transform(BSservice.transformTuple._1), transform(BSservice.transformTuple._2),transform(BSservice.transformTuple._3))
       
       val layoutCurrent = GuiToOpt(layoutRaw)
 
       if(transform(BSservice.transformTuple._4) == "manuell step"){
-        layoutStart = updateStates(movesL, movesR ,mC,layoutStart)
-        mC += 1
-        eventHandler ! Response(List(),SPAttributes("left" -> layoutStart(0), "right" -> layoutStart(1), "middle" -> layoutStart(2), "robotL" -> layoutStart(3)(0), "robotR" -> layoutStart(4)(0),"moves" -> moves),"BSupdate",reqID)
-      }else if(transform(BSservice.transformTuple._4) == "setup"){ //---------------------------------setup-----------------------------------
+        if(mC <= movesL.size - 1){
+          layoutStart = updateStates(movesL, movesR ,mC,layoutStart)
+          mC += 1
+          eventHandler ! Response(List(),SPAttributes("left" -> layoutStart(0), "right" -> layoutStart(1), "middle" -> layoutStart(2), "robotL" -> layoutStart(3)(0), "robotR" -> layoutStart(4)(0),"moves" -> moves),"BSupdate",reqID)
+        }    
+      }else if(transform(BSservice.transformTuple._4) == "setup"){
         layoutStart = layoutCurrent
-      }else if(transform(BSservice.transformTuple._4) == "order"){ //---------------------------------order-----------------------------------
+      }else if(transform(BSservice.transformTuple._4) == "order"){
         mC = 0
         
         val desiredState = new BlockState(layoutCurrent(0), layoutCurrent(1), layoutCurrent(2),0,0,0,null,null)
@@ -242,7 +243,6 @@ trait TowerBuilder extends TowerOperationTypes {
     operations.flatten
   }
   
- // def operationsName(moves: List[Move]) moves.map(_.pos).mkString("_")
 }
 
 trait TowerOperationTypes {

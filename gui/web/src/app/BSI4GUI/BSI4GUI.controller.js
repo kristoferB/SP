@@ -12,7 +12,7 @@
 	/* @ngInject */
 	function BSI4GUIController($scope, dashboardService, eventService,spServicesService) {
 
-        // Initiates variables and functionj declarations.
+        // Initiates variables and function declarations.
             var vm = this;
             vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
 				vm.OperationNr=0;
@@ -28,20 +28,21 @@
             var orderNr=0;
             var changeQueueOrder=0;
             var queuePlacement=0; // 0 =Last, 1=First, 2 = Next, 3 = Prev
-            //functions that can be called from the html file
+            
+         //functions that can be called from the html file
             vm.setActiveColour = setActiveColour;
             vm.saveNumber = saveNumber;
             vm.reset = reset;
             vm.sendOrder = sendOrder;
             vm.updateCubes = updateCubes;
             
-
             vm.queue = queue;
             vm.actuateQueue=actuateQueue;
             vm.status=status;
             vm.newOrder=newOrder;
             vm.currentOrder=currentOrder;
             vm.stopResume=stopResume;
+            
 		//Contains the colours of the cubes
 		vm.ButtonColour = {
                 // The status of the current position of coloured blocks
@@ -128,9 +129,7 @@
         			
         			
         			var colorText = document.createElement('span');
-					//var keys = Object.keys(a.attributes);
-					//alert(keys);
-					//usingLeftRobot,usingMiddle,isPicking,position,color
+					
 					var opPt1 ="";	
 					var opPt2 ="";	
 					var opPt3 ="";	
@@ -172,14 +171,6 @@
           }else{
             opPt1 = "________________________________ ";
           }
-					/*	
-					var el_span = document.createElement('span');
-   				el_span.setAttribute('style', 'color: red'); 
-   				
-   				var textNode = document.createTextNode(iteration);
-    				cellLeft.appendChild(el_span);
-    				el_span.appendChild(textNode);						
-						*/
 						
 					   var Operation = document.createElement("li");
 					   
@@ -201,13 +192,8 @@
   						if(a.attributes.moves[i].usingLeftRobot)
     						document.getElementById("SoplistLeft").appendChild(Operation);
 						else						
-							document.getElementById("SoplistRight").appendChild(Operation);
-							
-							
+							document.getElementById("SoplistRight").appendChild(Operation);				
         		}
-        		
-            //console.log("It has to be done");
-            //reset();
         }
 }
 
@@ -323,11 +309,9 @@ function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
             }
             else 
             	updateRobotBlockColour();
-            updateCubes('Status');
-            	
-            
-            
+            updateCubes('Status');      
         }
+        
         function updateStatusButtonAndText(){
         	if( ! (($("ul#SoplistLeft").has("li").length === 0) && ($("ul#SoplistRight").has("li").length === 0)))
         	   document.getElementById('Sop').style.display='Block';
@@ -546,10 +530,9 @@ function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
 
 		function saveNumber(btn,location,row, column) {
 			setColor(btn,vm.Mode,location, row, column, 0, 0);
-			//tryTheTower(0);
 		}
 
-		 // Updates the colour of the button, without changing it!
+		 // Updates the colour of the blocks, without changing it!
 		function updateCubes(Mode) {
 			for (var i = 0; i < 4; i++) {
 				setColor('button' + eval(i + 311),Mode,'Middle', 0, i, 1, 0);
@@ -561,7 +544,6 @@ function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
 		}
 
 		function reset() {
-
             if(vm.Mode=='Status'){ // Resets everything
                 vm.lock=0;
                 vm.Initialized = 0;
@@ -606,6 +588,7 @@ function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
                 }
             }
 		}
+		
         // Pauses or resumes the robots current operation
 		function stopResume(){
 
