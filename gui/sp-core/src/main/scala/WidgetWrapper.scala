@@ -2,8 +2,6 @@ package sp.core
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
 
 class WidgetWrapper(Widget: ReactComponentU[Unit,Unit,Unit,org.scalajs.dom.raw.Element]) {
   // yes, this is the type we are using here

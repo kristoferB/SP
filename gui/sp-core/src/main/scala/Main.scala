@@ -23,7 +23,8 @@ object Main extends JSApp {
         val widgetWrapper = new WidgetWrapper(widget)
 
         // inject the component into DOM
-        ReactDOM.render(widgetWrapper.getComponent(), dom.document.body)
+        //ReactDOM.render(widgetWrapper.getComponent(), dom.document.body)
+        ReactDOM.render(Grid.component(), dom.document.body)
       }
     )
   }

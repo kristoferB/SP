@@ -30,7 +30,7 @@ class ComponentLoaderService {
   def fetchFactory(url: String, widgetName: String): Future[ComponentFactory] = {
     val request = HttpRequest(url)
     val result = Promise[ComponentFactory]()
-
+    
     request.send().onComplete({
       case res:Success[SimpleHttpResponse] => {
 

@@ -9,19 +9,17 @@ scalaVersion := "2.11.8"
 // create launcher file. Searches for something that extends JSApp
 persistLauncher := true
 
-//TODO
-//val scalaJSReactVersion = "0.11.3"
-//val scalaCssVersion = "0.5.1"
+val scalaJSReactVersion = "0.11.3"
+val scalaCssVersion = "0.5.1"
 
 libraryDependencies ++= Seq(
-  "org.webjars" %% "webjars-play" % "2.4.0",
-  // the scalajs wrapper
-  "com.github.japgolly.scalajs-react" %%% "core" % "0.11.3",
-  "com.github.japgolly.scalajs-react" %%% "extra" % "0.11.3",
-  "com.github.japgolly.scalacss" %%% "core" % "0.5.1",
-  "com.github.japgolly.scalacss" %%% "ext-react" % "0.5.1",
+  "org.webjars" %% "webjars-play" % "2.5.0",
+  "com.github.japgolly.scalajs-react" %%% "core" % scalaJSReactVersion,
+  "com.github.japgolly.scalajs-react" %%% "extra" % scalaJSReactVersion,
+  "com.github.japgolly.scalacss" %%% "core" % scalaCssVersion,
+  "com.github.japgolly.scalacss" %%% "ext-react" % scalaCssVersion,
+
   "fr.hmil" %%% "roshttp" % "2.0.0-RC1"
-  //"org.webjars.npm" % "react-grid-layout" % "0.13.9"
 )
 
 jsDependencies ++= Seq(
@@ -40,7 +38,12 @@ jsDependencies ++= Seq(
     /         "react-dom-server.js"
     minified  "react-dom-server.min.js"
     dependsOn "react-dom.js"
-    commonJSName "ReactDOMServer"
+    commonJSName "ReactDOMServer",
+
+  "org.webjars.bower" % "react-grid-layout" % "0.13.5"
+    /        "react-grid-layout.min.js"
+    minified "react-grid-layout.min.js"
+    commonJSName "ReactGridLayout"
 )
 
 // copy javascript files to js folder that are generated using fastOptJS/fullOptJS
