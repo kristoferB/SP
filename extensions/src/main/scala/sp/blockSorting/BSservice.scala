@@ -57,7 +57,7 @@ class BSservice(serviceHandler: ActorRef, eventHandler: ActorRef, operationContr
       
       val layoutCurrent = GuiToOpt(layoutRaw)
       
-      if(transform(BSservice.transformTuple._4) == "setup"){
+        if(transform(BSservice.transformTuple._4) == "setup"){
       layoutStart = layoutCurrent
       }else if(transform(BSservice.transformTuple._4) == "order"){
         mC = 0
