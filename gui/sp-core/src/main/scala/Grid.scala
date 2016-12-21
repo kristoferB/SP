@@ -8,47 +8,46 @@ import scala.scalajs.js.Dynamic._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import japgolly.scalajs.react.vdom.ReactAttr
 
+
 object Grid {
   val component = ReactComponentB[Unit]("Grid")
-    .renderBackend[Backend]
-    .build
-  
-  class Backend($: BackendScope[Unit, Unit]) {
-    val klayout: js.UndefOr[js.Array[js.Object with js.Dynamic]] =
-      Some(js.Array(
-        js.Dynamic.literal(i = "a", x = 1, y = 2, w = 3, h = 1),
-        js.Dynamic.literal(i = "b", x = 2, y = 4, w = 1, h = 2)
-      )).orUndefined
-    
-    def render() =
-      <.div("hello from MyGrid",
-        ^.backgroundColor := "#ff000f",
-        ReactGridLayoutWrapper(
-          width = 1920,
-          layout = klayout,
-          cols = 10,
-          onLayoutChange = (layout:js.Object) => println(layout.toString())
-        ).apply(
-          <.div("a",
-            ^.key := "a",
-            ^.backgroundColor := "#00ffff"
-          ),
-          <.div("b",
-            ^.key := "b",
-            ^.backgroundColor := "#00ffff"
-          ),
-          <.div(
-            "c",
-            ^.key := "c",
-            ^.backgroundColor := "#00ffff",
-            ReactAttr.Generic("data-grid") := LayoutItem(
-              i ="c", x = 3, y = 4, w = 5, h = 1
-            ).toJS
-          )
+    .render(_ =>
+    <.div("hello from MyGrid",
+      ^.className:="layout",
+      ^.backgroundColor := "#777777",
+      ReactGridLayoutFacade(
+        width = 1920,
+        onLayoutChange = (layout:js.Object) => println(layout.toString())
+      ).apply(
+        <.div(
+          "c",
+          ^.key := "a",
+          ^.backgroundColor := "#ff4500",
+          ReactAttr.Generic("data-grid") := LayoutItem(
+            i ="c", x = 3, y = 4, w = 5, h = 1
+          ).toJS
+        ),
+        <.div(
+          "b",
+          ^.key := "b",
+          ^.backgroundColor := "#ff4500",
+          ReactAttr.Generic("data-grid") := LayoutItem(
+            i ="c", x = 3, y = 6, w = 1, h = 2
+          ).toJS
+        ),
+        <.div(
+          "C: undraggable",
+          ^.key := "c",
+          ^.style := "transition: all 200ms ease",
+          ^.backgroundColor := "#ff4500",
+          ReactAttr.Generic("data-grid") := LayoutItem(
+            i ="c", x = 0, y = 0, w = 1, h = 1, isDraggable = false
+          ).toJS
         )
       )
-  }
-
+    )
+  )
+    .build
   case class LayoutItem(
     i: String,
     x: Int,
@@ -87,21 +86,20 @@ object Grid {
   @JSName("ReactGridLayout")
   object ReactGridLayout extends js.Object {}
 
-  case class ReactGridLayoutWrapper(
+  case class ReactGridLayoutFacade(
     width: Int,
-    autoSize: js.UndefOr[Boolean] = js.undefined,
-    cols: js.UndefOr[Int] = js.undefined,
-    draggableCancel: js.UndefOr[String] = js.undefined,
-    draggableHandle: js.UndefOr[String] = js.undefined,
-    verticalCompact: js.UndefOr[Boolean] = js.undefined,
+    autoSize: js.UndefOr[Boolean] = true,
+    cols: js.UndefOr[Int] = 12,
+    draggableCancel: js.UndefOr[String] = "",
+    draggableHandle: js.UndefOr[String] = "",
+    verticalCompact: js.UndefOr[Boolean] = true,
     layout: js.UndefOr[js.Array[js.Object with js.Dynamic]] = js.undefined,
-    marginX: js.UndefOr[Int] = js.undefined,
-    marginY: js.UndefOr[Int] = js.undefined,
-    containerPaddingX: js.UndefOr[Int] = js.undefined,
-    containerPaddingY: js.UndefOr[Int] = js.undefined,
-    isDraggable: js.UndefOr[Boolean] = js.undefined,
-    isResizable: js.UndefOr[Boolean] = js.undefined,
-    useCSSTransforms: js.UndefOr[Boolean] = js.undefined,
+    margin: js.UndefOr[js.Array[Int]] = js.Array(10, 10),
+    containerPadding: js.UndefOr[js.Array[Int]] = js.Array(10,10),
+    rowHeight: js.UndefOr[Int] = 150,
+    isDraggable: js.UndefOr[Boolean] = true,
+    isResizable: js.UndefOr[Boolean] = true,
+    useCSSTransforms: js.UndefOr[Boolean] = true,
     onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit
   ) {
     def toJS: js.Object = {global
@@ -113,10 +111,9 @@ object Grid {
       draggableHandle.foreach(v => p.updateDynamic("draggableHandle")(v))
       verticalCompact.foreach(v => p.updateDynamic("verticalCompact")(v))
       layout.foreach(v => p.updateDynamic("layout")(v))
-      marginX.foreach(v => p.updateDynamic("marginX")(v))
-      marginY.foreach(v => p.updateDynamic("marginY")(v))
-      containerPaddingX.foreach(v => p.updateDynamic("containerPaddingX")(v))
-      containerPaddingY.foreach(v => p.updateDynamic("containerPaddingY")(v))
+      margin.foreach(v => p.updateDynamic("margin")(v))
+      containerPadding.foreach(v => p.updateDynamic("containerPadding")(v))
+      rowHeight.foreach(v => p.updateDynamic("rowHeight")(v))
       isDraggable.foreach(v => p.updateDynamic("isDraggable")(v))
       isResizable.foreach(v => p.updateDynamic("isResizable")(v))
       useCSSTransforms.foreach(v => p.updateDynamic("useCSSTransforms")(v))
@@ -155,7 +152,7 @@ object Grid {
  // TODO: everything below this point. not sure how
  // or maybe not. we might not even need it. 
 
-type ItemCallback = (layout: Layout, oldItem: LayoutItem, newItem: LayoutItem,
+ type ItemCallback = (layout: Layout, oldItem: LayoutItem, newItem: LayoutItem,
  placeholder: LayoutItem, e: MouseEvent, element: HTMLElement) => void;
 
  onDragStart: ItemCallback,
@@ -164,6 +161,6 @@ type ItemCallback = (layout: Layout, oldItem: LayoutItem, newItem: LayoutItem,
  onResizeStart: ItemCallback,
  onResize: ItemCallback,
  onResizeStop: ItemCallback
-*/
+ */
 
 
