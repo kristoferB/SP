@@ -600,25 +600,9 @@ function computePositionRowColFromSpEvent(usingMiddle,usingLeftRobot,Position) {
 
 		
         // Pauses or resumes the robots current operation
-		function stopResume(){
+		function stopResume(){		
 
-			var mess = {"data": {"command": "manuell step",
-
-				"Left": vm.ButtonColour.NewOrder.Left,
-				"Middle": vm.ButtonColour.NewOrder.Middle,
-				"Right": vm.ButtonColour.NewOrder.Right}};
-
-			spServicesService.callService(spServicesService.getService("BSservice"),
-					mess,
-					function (resp) {
-				if (_.has(resp, 'attributes.result')) {
-					console.log("Hej" + vm.result);
-				}
-			}
-			)
-			
-
-            if(vm.Initialized == 1) {
+          if(vm.Initialized == 1) {
                 if (document.getElementById('StopResumeButtonText').innerHTML == 'Stop') {
                     document.getElementById('StopResumeButtonText').innerHTML = 'Resume';
                     document.getElementById('ProggressUpdate').innerHTML = 'All orders have been put on hold';

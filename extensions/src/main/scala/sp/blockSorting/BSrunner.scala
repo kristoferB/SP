@@ -71,11 +71,6 @@ class BSrunner(eventHandler: ActorRef, serviceHandler: ActorRef, operationContro
       rnr = RequestNReply(r, replyTo)
       reply = Some(rnr)
     
-
-      //if(attr.getAs[String]("command") == "stop" ){
-       // println("RS_stop")
-        //activeSteps = List()
-      //} else {
         // Lyssna på events från alla
         eventHandler ! SubscribeToSSE(self)
 
@@ -126,18 +121,13 @@ class BSrunner(eventHandler: ActorRef, serviceHandler: ActorRef, operationContro
     case r @ Response(ids, attr, service, _) if service == operationController => {
       // high level force reset...
 
-      //println("ZZZZZZZZZZZZ Svar") 
-      
       if(attr.getAs[Boolean]("reset").getOrElse(false)) {
         println("RunnerService: High level force reset! Exiting.")
         self ! PoisonPill
       } else {
         
         //println(s"we got a state change")
-
-    //eventHandler ! Response(List(),SPAttributes("command" -> "hej"),"toBS",rnr.req.reqID)
-  
-      
+ 
         val newState = attr.getAs[State]("state")
         newState.foreach{s =>
           state = State(state.state ++ s.state.filter{case (id, v)=>
@@ -154,7 +144,6 @@ class BSrunner(eventHandler: ActorRef, serviceHandler: ActorRef, operationContro
         // if there is nothing started yet
         
         if(activeSteps.isEmpty && isDone == false) {
-          //println("ZZZZZZZZZZZZ active steps" + activeSteps) 
           sopen.foreach(executeSOP)
           println("activeStep empty -> start executing SOP")
           progress ! SPAttributes("station"->station,"activeOps"->activeSteps)
@@ -214,18 +203,15 @@ class BSrunner(eventHandler: ActorRef, serviceHandler: ActorRef, operationContro
     //if (sop.isInstanceOf[Hierarchy]) println(s"executing sop $sop")
     sop match {
       case x: Parallel => {
-        println("#### Parallell")
     x.sop.foreach(executeSOP) 
   }
       case x: Sequence if x.sop.nonEmpty => {
-       println("#### Sequence")
        executeSOP(x.sop.head) 
      }
       case x: Hierarchy => {
-         println("#### Hierarchy")
         val abs = operationAbilityMap(x.operation)
         val a = abilityMap(abs.id)
-        if (checkPreCond(a)) { println("#### Inne")
+        if (checkPreCond(a)) {
           startID(x.operation)
           activeSteps = activeSteps :+ x
           println(s"Started ability id ${a.id} with operation id ${x.operation}, activeSteps: $activeSteps")
