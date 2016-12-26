@@ -19,7 +19,7 @@ object Layout {
           <.ul(
             ^.className := "nav_navbar-nav",
             MenuButton("Grid", Grid.component()),
-            MenuButton("Comp B", SomeOtherComp()))),
+            MenuButton("Widget Injection", injection.WidgetInjectionTest()))),
         s.component
       )
 
@@ -38,10 +38,6 @@ object Layout {
   private val component = ReactComponentB[Unit]("Example")
     .initialState(State(Grid.component()))
     .renderBackend[Backend]
-    .build
-
-  val SomeOtherComp = ReactComponentB[Unit]("SomeOtherComp")
-    .render_P(_ => <.h2("Hello from SomeOtherComp"))
     .build
 
   def apply(): ReactElement = component()
