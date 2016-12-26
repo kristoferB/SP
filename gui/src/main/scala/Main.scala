@@ -29,6 +29,6 @@ object Main extends JSApp {
       }
     )
     */
-    ReactDOM.render(Grid.component(), document.getElementById("spgui-root"))
+    ReactDOM.render(Layout(), document.getElementById("spgui-root"))
   }
 }
