@@ -1,8 +1,8 @@
-package sp.core
+package spgui
 
 import scala.scalajs.js.JSApp
 import japgolly.scalajs.react._
-import org.scalajs.dom
+import org.scalajs.dom.document
 import scala.scalajs.js.annotation.JSExport
 import monix.execution.Scheduler.Implicits.global
 
@@ -24,11 +24,11 @@ object Main extends JSApp {
         val widgetWrapper = new WidgetWrapper(widget)
 
         // inject the component into DOM
-        //ReactDOM.render(widgetWrapper.getComponent(), dom.document.body)
-        ReactDOM.render(Grid.component(), dom.document.body)
+        //ReactDOM.render(widgetWrapper.getComponent(), document.body)
+        ReactDOM.render(Grid.component(), document.body)
       }
     )
     */
-    ReactDOM.render(Grid.component(), dom.document.body)
+    ReactDOM.render(Grid.component(), document.getElementById("spgui-root"))
   }
 }

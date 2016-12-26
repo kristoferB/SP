@@ -1,6 +1,6 @@
 enablePlugins(ScalaJSPlugin)
 
-name := "sp-scalajs-frontend"
+name := "spgui"
 
 version := "0.0.1"
 
