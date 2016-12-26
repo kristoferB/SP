@@ -12,6 +12,7 @@ object Main extends JSApp {
     // this should maybe actually be a singleton
     val componentLoaderService = new ComponentLoaderService()
 
+    /*
     // trying out the loader, for now using a hard link 
     componentLoaderService.fetchFactory(
       "http://localhost:3000/build/sp-example-widget.js", "TestWidget")
@@ -27,5 +28,7 @@ object Main extends JSApp {
         ReactDOM.render(Grid.component(), dom.document.body)
       }
     )
+    */
+    ReactDOM.render(Grid.component(), dom.document.body)
   }
 }
