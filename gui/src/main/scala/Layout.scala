@@ -19,6 +19,7 @@ object Layout {
           <.ul(
             ^.className := "nav_navbar-nav",
             MenuButton("Grid", Grid.component()),
+            MenuButton("Dashboard", dashboard.Dashboard()),
             MenuButton("Widget Injection", injection.WidgetInjectionTest()))),
         s.component
       )
