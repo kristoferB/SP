@@ -8,6 +8,8 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 object Layout {
 
+  val widgetsConnection = AppCircuit.connect(_.openWidgets)
+
   case class State(component: ReactElement)
 
   class Backend($: BackendScope[Unit, State]) {
@@ -19,8 +21,14 @@ object Layout {
           <.ul(
             ^.className := "nav_navbar-nav",
             MenuButton("Grid", Grid.component()),
-            MenuButton("Dashboard", dashboard.Dashboard()),
-            MenuButton("Widget Injection", injection.WidgetInjectionTest()))),
+            MenuButton("Dashboard", widgetsConnection(dashboard.Dashboard(_))),
+            MenuButton("Widget Injection", injection.WidgetInjectionTest()),
+            <.button(
+              "Add SomeWidget",
+              ^.onClick --> Callback(AppCircuit.dispatch(AddWidget))
+            )
+          )
+        ),
         s.component
       )
 
