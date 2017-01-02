@@ -42,39 +42,6 @@ object Grid {
 }
 
 object ReactLayoutItem {
-  case class Props(
-    i: String,
-    x: Int,
-    y: Int,
-    w: Int,
-    h: Int,
-    minW: js.UndefOr[Int] = 0,
-    maxW: js.UndefOr[Int] = Integer.MAX_VALUE,
-    minH: js.UndefOr[Int] = 0,
-    maxH: js.UndefOr[Int] = Integer.MAX_VALUE,
-    static: js.UndefOr[Boolean] = false,
-    isDraggable: js.UndefOr[Boolean] = true,
-    isResizable: js.UndefOr[Boolean] = true
-  )
-  case class ReactLayoutItemFacade(props: Props) {
-    def toJS: js.Object = {
-      val p = js.Dynamic.literal()
-      p.updateDynamic("i")(props.i)
-      p.updateDynamic("x")(props.x)
-      p.updateDynamic("y")(props.y)
-      p.updateDynamic("w")(props.w)
-      p.updateDynamic("h")(props.h)
-      props.minW.foreach(v => p.updateDynamic("minW")(v))
-      props.maxW.foreach(v => p.updateDynamic("maxW")(v))
-      props.minH.foreach(v => p.updateDynamic("minH")(v))
-      props.maxH.foreach(v => p.updateDynamic("maxH")(v))
-      props.static.foreach(v => p.updateDynamic("static")(v))
-      props.isDraggable.foreach(v => p.updateDynamic("isDraggable")(v))
-      props.isResizable.foreach(v => p.updateDynamic("isResizable")(v))
-      p
-    }
-  }
-
   def apply(key: String,
     i: String,
     x: Int,
@@ -89,26 +56,30 @@ object ReactLayoutItem {
     isDraggable: js.UndefOr[Boolean] = true,
     isResizable: js.UndefOr[Boolean] = true,
     child: ReactNode
-  ) =
+  ) = {
+    def jsObject: js.Object = {
+      val p = js.Dynamic.literal()
+      p.updateDynamic("i")(i)
+      p.updateDynamic("x")(x)
+      p.updateDynamic("y")(y)
+      p.updateDynamic("w")(w)
+      p.updateDynamic("h")(h)
+      minW.foreach(v => p.updateDynamic("minW")(v))
+      maxW.foreach(v => p.updateDynamic("maxW")(v))
+      minH.foreach(v => p.updateDynamic("minH")(v))
+      maxH.foreach(v => p.updateDynamic("maxH")(v))
+      static.foreach(v => p.updateDynamic("static")(v))
+      isDraggable.foreach(v => p.updateDynamic("isDraggable")(v))
+      isResizable.foreach(v => p.updateDynamic("isResizable")(v))
+      p
+    }
     <.div(
       ^.key := key,
       ^.className:=CSS.widget.htmlClass,
-      ReactAttr.Generic("data-grid") := ReactLayoutItemFacade(
-        Props(
-          i = i,
-          x = x,
-          y = y,
-          w = w,
-          h = h,
-          minW = minW,
-          maxW = maxW,
-          minH = minH,
-          maxH = maxH,
-          isDraggable = isDraggable,
-          isResizable = isResizable
-        )).toJS,
+      ReactAttr.Generic("data-grid") := jsObject,
       child
     )
+  }
 }
 
 @js.native
