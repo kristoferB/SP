@@ -6,6 +6,7 @@ window.ReactDOM = ReactDOM;
 
 var ReactGridLayout = require('react-grid-layout');
 window.ReactGridLayout = ReactGridLayout;
+require('react-grid-layout/css/styles.css');
 
 var JSONEditor = require('jsoneditor');
 window.JSONEditor = JSONEditor;
