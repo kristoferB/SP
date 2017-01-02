@@ -5,7 +5,8 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import diode.react.ModelProxy
 
-//import spgui.Grid.ReactGridLayoutFacade
+import spgui.ReactGridLayout
+import spgui.ReactGridLayoutItem
 
 object Dashboard {
   case class Props(proxy: ModelProxy[List[ReactElement]])
@@ -13,15 +14,22 @@ object Dashboard {
   class Backend($: BackendScope[Props, Unit]) {
     def render(p: Props) =
       <.div(
-        "dashboard (gridstuff commented out)"
-        /*
-        ReactGridLayoutFacade(width=1920,
-                              onLayoutChange = _ => println("hej")
-        ).apply(
-          for((w,i) <- p.proxy().zipWithIndex) yield <.div(^.key := i, w)
+        ReactGridLayout(
+          width=1920,
+          onLayoutChange = _ => println("hej"),
+          for((w,index) <- p.proxy().zipWithIndex)
+          yield ReactGridLayoutItem(
+            key = index.toString,
+            i = "idkdk",
+            x = 0,
+            y = 0,
+            w = 5,
+            h = 4,
+            isDraggable = true,
+            child = w
+          )
         )
-         */
-    )
+      )
   }
 
   private val component = ReactComponentB[Props]("Dashboard")

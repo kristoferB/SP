@@ -33,15 +33,15 @@ object Grid {
       ReactGridLayout(
         width = 1920,
         onLayoutChange = (layout:js.Object) => println(layout.toString()),
-        ReactLayoutItem(key = "c", i = "c", x = 3, y = 4, w = 5, h = 1, isDraggable = true, child = <.h3("c")),
-        ReactLayoutItem(key = "d", i = "c", x = 0, y = 0, w = 1, h = 1, isDraggable = false, child = <.h3("C: undraggable"))
+        ReactGridLayoutItem(key = "c", i = "c", x = 3, y = 4, w = 5, h = 1, isDraggable = true, child = <.h3("c")),
+        ReactGridLayoutItem(key = "d", i = "c", x = 0, y = 0, w = 1, h = 1, isDraggable = false, child = <.h3("C: undraggable"))
       )
     )
   )
     .build
 }
 
-object ReactLayoutItem {
+object ReactGridLayoutItem {
   def apply(key: String,
     i: String,
     x: Int,
