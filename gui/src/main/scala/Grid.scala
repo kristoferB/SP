@@ -33,35 +33,16 @@ object Grid {
       ReactGridLayout(
         width = 1920,
         onLayoutChange = (layout:js.Object) => println(layout.toString()),
-        <.div(
-          "c",
-          ^.key := "a",
-          ^.className:=CSS.widget.htmlClass,
-          ReactAttr.Generic("data-grid") := LayoutItem(
-            i ="c", x = 3, y = 4, w = 5, h = 1
-          ).toJS
-        ),
-        <.div(
-          "b",
-          ^.key := "b",
-          ^.className:=CSS.widget.htmlClass,
-          ReactAttr.Generic("data-grid") := LayoutItem(
-            i ="c", x = 3, y = 6, w = 1, h = 2
-          ).toJS
-        ),
-        <.div(
-          "C: undraggable",
-          ^.key := "c",
-          ^.className:=CSS.widget.htmlClass,
-          ReactAttr.Generic("data-grid") := LayoutItem(
-            i ="c", x = 0, y = 0, w = 1, h = 1, isDraggable = false
-          ).toJS
-        )
+        ReactLayoutItem(key = "c", i = "c", x = 3, y = 4, w = 5, h = 1, isDraggable = true, "c"),
+        ReactLayoutItem(key = "d", i = "c", x = 0, y = 0, w = 1, h = 1, isDraggable = false, "C: undraggable")
       )
     )
   )
     .build
-  case class LayoutItem(
+}
+
+object ReactLayoutItem {
+  case class Props(
     i: String,
     x: Int,
     y: Int,
@@ -74,32 +55,38 @@ object Grid {
     static: js.UndefOr[Boolean] = false,
     isDraggable: js.UndefOr[Boolean] = true,
     isResizable: js.UndefOr[Boolean] = true
-  ) {
-
+  )
+  case class ReactLayoutItemFacade(props: Props) {
     def toJS: js.Object = {
       val p = js.Dynamic.literal()
-      p.updateDynamic("i")(i)
-      p.updateDynamic("x")(x)
-      p.updateDynamic("y")(y)
-      p.updateDynamic("w")(w)
-      p.updateDynamic("h")(h)
-      minW.foreach(v => p.updateDynamic("minW")(v))
-      maxW.foreach(v => p.updateDynamic("maxW")(v))
-      minH.foreach(v => p.updateDynamic("minH")(v))
-      maxH.foreach(v => p.updateDynamic("maxH")(v))
-      static.foreach(v => p.updateDynamic("static")(v))
-      isDraggable.foreach(v => p.updateDynamic("isDraggable")(v))
-      isResizable.foreach(v => p.updateDynamic("isResizable")(v))
-
+      p.updateDynamic("i")(props.i)
+      p.updateDynamic("x")(props.x)
+      p.updateDynamic("y")(props.y)
+      p.updateDynamic("w")(props.w)
+      p.updateDynamic("h")(props.h)
+      props.minW.foreach(v => p.updateDynamic("minW")(v))
+      props.maxW.foreach(v => p.updateDynamic("maxW")(v))
+      props.minH.foreach(v => p.updateDynamic("minH")(v))
+      props.maxH.foreach(v => p.updateDynamic("maxH")(v))
+      props.static.foreach(v => p.updateDynamic("static")(v))
+      props.isDraggable.foreach(v => p.updateDynamic("isDraggable")(v))
+      props.isResizable.foreach(v => p.updateDynamic("isResizable")(v))
       p
     }
   }
 
-
+  def apply(key: String, i: String, x: Int, y: Int, w: Int, h: Int, isDraggable: Boolean, children: ReactNode*) =
+    <.div(
+      ^.key := key,
+      ^.className:=CSS.widget.htmlClass,
+      ReactAttr.Generic("data-grid") := ReactLayoutItemFacade(Props(
+        i = i, x = x, y = y, w = w, h = h, isDraggable = isDraggable)).toJS,
+      children
+    )
 }
 
 @js.native
-  @JSName("ReactGridLayout")
+@JSName("ReactGridLayout")
 object ReactGridLayoutJS extends js.Object {}
 
 object ReactGridLayout {
