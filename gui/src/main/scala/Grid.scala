@@ -30,7 +30,7 @@ object Grid {
     .render(_ =>
     <.div(
       ^.className:=CSS.dashboard.htmlClass,
-      ReactGridLayoutComp(
+      ReactGridLayout(
         width = 1920,
         onLayoutChange = (layout:js.Object) => println(layout.toString()),
         <.div(
@@ -95,9 +95,14 @@ object Grid {
     }
   }
 
-  @js.native
+
+}
+
+@js.native
   @JSName("ReactGridLayout")
-  object ReactGridLayout extends js.Object {}
+object ReactGridLayoutJS extends js.Object {}
+
+object ReactGridLayout {
 
   case class Props(
     width: Int,
@@ -136,24 +141,16 @@ object Grid {
 
       p
     }
-
   }
 
-
-
-  object ReactGridLayoutComp {
-
-    def apply(width: Int, onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit, children : ReactNode*) = {
-      // access real js component
-      val f = React.asInstanceOf[js.Dynamic].createFactory(ReactGridLayout)
-      val facade = ReactGridLayoutFacade(Props(width = width, onLayoutChange = onLayoutChange))
-      f(facade.toJS, children.toJsArray).asInstanceOf[ReactComponentU_]
-    }
-
+  def apply(width: Int, onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit, children: ReactNode*) = {
+    // access real js component
+    val f = React.asInstanceOf[js.Dynamic].createFactory(ReactGridLayoutJS)
+    val facade = ReactGridLayoutFacade(Props(width = width, onLayoutChange = onLayoutChange))
+    f(facade.toJS, children.toJsArray).asInstanceOf[ReactComponentU_]
   }
+
 }
-
-
 
 /*
  this is the full list of grid props
@@ -186,5 +183,3 @@ object Grid {
  onResize: ItemCallback,
  onResizeStop: ItemCallback
  */
-
-

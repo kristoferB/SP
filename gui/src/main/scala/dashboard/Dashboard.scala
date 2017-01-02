@@ -5,7 +5,7 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import diode.react.ModelProxy
 
-import spgui.Grid.ReactGridLayoutFacade
+//import spgui.Grid.ReactGridLayoutFacade
 
 object Dashboard {
   case class Props(proxy: ModelProxy[List[ReactElement]])
