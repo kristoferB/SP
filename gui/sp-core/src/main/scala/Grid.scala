@@ -6,15 +6,34 @@ import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.annotation.JSName
 import scala.scalajs.js.Dynamic._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import japgolly.scalajs.react.vdom.ReactAttr
 
+import scalacss.Defaults._
+import scalacss.ScalatagsCss._
+import scalatags.Text._
+//import scalatags.Text.all._
+//import scalatags.stylesheet._
+
+object CSS extends StyleSheet.Inline {
+  import dsl._
+  val widget = style(
+    backgroundColor.orange,
+    transition := "all 0.4s linear"
+  )
+  val reactDraggableDragging = style(
+    backgroundColor.royalblue
+  )
+  val dashboard = style(
+    backgroundColor.red
+  )
+}
 
 object Grid {
+  CSS.addToDocument()
+
   val component = ReactComponentB[Unit]("Grid")
     .render(_ =>
-    <.div("hello from MyGrid",
-      ^.className:="layout",
-      ^.backgroundColor := "#777777",
+    <.div(
+      ^.className:=CSS.dashboard.htmlClass,
       ReactGridLayoutFacade(
         width = 1920,
         onLayoutChange = (layout:js.Object) => println(layout.toString())
@@ -22,7 +41,7 @@ object Grid {
         <.div(
           "c",
           ^.key := "a",
-          ^.backgroundColor := "#ff4500",
+          ^.className:=CSS.widget.htmlClass,
           ReactAttr.Generic("data-grid") := LayoutItem(
             i ="c", x = 3, y = 4, w = 5, h = 1
           ).toJS
@@ -30,7 +49,7 @@ object Grid {
         <.div(
           "b",
           ^.key := "b",
-          ^.backgroundColor := "#ff4500",
+          ^.className:=CSS.widget.htmlClass,
           ReactAttr.Generic("data-grid") := LayoutItem(
             i ="c", x = 3, y = 6, w = 1, h = 2
           ).toJS
@@ -38,8 +57,7 @@ object Grid {
         <.div(
           "C: undraggable",
           ^.key := "c",
-          ^.style := "transition: all 200ms ease",
-          ^.backgroundColor := "#ff4500",
+          ^.className:=CSS.widget.htmlClass,
           ReactAttr.Generic("data-grid") := LayoutItem(
             i ="c", x = 0, y = 0, w = 1, h = 1, isDraggable = false
           ).toJS

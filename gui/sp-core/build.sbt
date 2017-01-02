@@ -18,6 +18,8 @@ libraryDependencies ++= Seq(
   "com.github.japgolly.scalajs-react" %%% "extra" % scalaJSReactVersion,
   "com.github.japgolly.scalacss" %%% "core" % scalaCssVersion,
   "com.github.japgolly.scalacss" %%% "ext-react" % scalaCssVersion,
+  "com.github.japgolly.scalacss" %%% "ext-scalatags" % scalaCssVersion,
+
 
   "fr.hmil" %%% "roshttp" % "2.0.0-RC1"
 )
