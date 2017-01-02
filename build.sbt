@@ -44,7 +44,7 @@ lazy val commonSettings = packSettings ++ Seq(
 
 
 lazy val root = project.in( file(".") )
-  .aggregate(core, domain, gui, extensions, launch)
+  .aggregate(core, domain, webserver, extensions, launch)
 
 lazy val domain = project.dependsOn(macros).
   settings(commonSettings: _*).
@@ -65,7 +65,7 @@ lazy val core = project.dependsOn(domain).
   settings(libraryDependencies ++= akka ++ json)
 
 
-lazy val gui = project.dependsOn(domain, core).
+lazy val webserver = project.dependsOn(domain, core).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= akka ++ json)
 
@@ -74,7 +74,7 @@ lazy val extensions = project.dependsOn(domain, core).
   settings(libraryDependencies ++= akka ++ json)
 
 
-lazy val launch = project.dependsOn(domain, core, gui, extensions).
+lazy val launch = project.dependsOn(domain, core, webserver, extensions).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= akka ++ json)
 
