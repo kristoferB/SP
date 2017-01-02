@@ -1,4 +1,4 @@
-package sp.core
+package spgui
 
 import japgolly.scalajs.react._
 import scala.scalajs.js
@@ -8,10 +8,6 @@ import scala.scalajs.js.Dynamic._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scalacss.Defaults._
-import scalacss.ScalatagsCss._
-import scalatags.Text._
-//import scalatags.Text.all._
-//import scalatags.stylesheet._
 
 object CSS extends StyleSheet.Inline {
   import dsl._

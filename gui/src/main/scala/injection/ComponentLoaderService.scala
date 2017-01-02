@@ -1,4 +1,4 @@
-package sp.core
+package spgui.injection
 
 import japgolly.scalajs.react._
 import scala.scalajs.js.annotation.JSExport
