@@ -1,8 +1,5 @@
 libraryDependencies ++= Seq(
-  "io.spray" %% "spray-can" % "1.3.3",
-  "io.spray" %% "spray-routing" % "1.3.3",
-  "io.spray" %% "spray-testkit" % "1.3.3",
-  "io.spray" %%  "spray-json" % "1.3.2"
+  "com.typesafe.akka" %% "akka-http-core" % "10.0.1",
+  "com.typesafe.akka" %% "akka-http" % "10.0.1",
+  "com.typesafe.akka" %% "akka-http-testkit" % "10.0.1"
 )
-
-resolvers += "spray repo" at "http://repo.spray.io"
