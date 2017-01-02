@@ -33,8 +33,8 @@ object Grid {
       ReactGridLayout(
         width = 1920,
         onLayoutChange = (layout:js.Object) => println(layout.toString()),
-        ReactLayoutItem(key = "c", i = "c", x = 3, y = 4, w = 5, h = 1, isDraggable = true, "c"),
-        ReactLayoutItem(key = "d", i = "c", x = 0, y = 0, w = 1, h = 1, isDraggable = false, "C: undraggable")
+        ReactLayoutItem(key = "c", i = "c", x = 3, y = 4, w = 5, h = 1, isDraggable = true, child = <.h3("c")),
+        ReactLayoutItem(key = "d", i = "c", x = 0, y = 0, w = 1, h = 1, isDraggable = false, child = <.h3("C: undraggable"))
       )
     )
   )
@@ -75,13 +75,39 @@ object ReactLayoutItem {
     }
   }
 
-  def apply(key: String, i: String, x: Int, y: Int, w: Int, h: Int, isDraggable: Boolean, children: ReactNode*) =
+  def apply(key: String,
+    i: String,
+    x: Int,
+    y: Int,
+    w: Int,
+    h: Int,
+    minW: js.UndefOr[Int] = 0,
+    maxW: js.UndefOr[Int] = Integer.MAX_VALUE,
+    minH: js.UndefOr[Int] = 0,
+    maxH: js.UndefOr[Int] = Integer.MAX_VALUE,
+    static: js.UndefOr[Boolean] = false,
+    isDraggable: js.UndefOr[Boolean] = true,
+    isResizable: js.UndefOr[Boolean] = true,
+    child: ReactNode
+  ) =
     <.div(
       ^.key := key,
       ^.className:=CSS.widget.htmlClass,
-      ReactAttr.Generic("data-grid") := ReactLayoutItemFacade(Props(
-        i = i, x = x, y = y, w = w, h = h, isDraggable = isDraggable)).toJS,
-      children
+      ReactAttr.Generic("data-grid") := ReactLayoutItemFacade(
+        Props(
+          i = i,
+          x = x,
+          y = y,
+          w = w,
+          h = h,
+          minW = minW,
+          maxW = maxW,
+          minH = minH,
+          maxH = maxH,
+          isDraggable = isDraggable,
+          isResizable = isResizable
+        )).toJS,
+      child
     )
 }
 
