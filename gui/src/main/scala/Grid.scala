@@ -30,10 +30,9 @@ object Grid {
     .render(_ =>
     <.div(
       ^.className:=CSS.dashboard.htmlClass,
-      ReactGridLayoutFacade(
+      ReactGridLayoutComp(
         width = 1920,
-        onLayoutChange = (layout:js.Object) => println(layout.toString())
-      ).apply(
+        onLayoutChange = (layout:js.Object) => println(layout.toString()),
         <.div(
           "c",
           ^.key := "a",
@@ -100,7 +99,7 @@ object Grid {
   @JSName("ReactGridLayout")
   object ReactGridLayout extends js.Object {}
 
-  case class ReactGridLayoutFacade(
+  case class Props(
     width: Int,
     autoSize: js.UndefOr[Boolean] = true,
     cols: js.UndefOr[Int] = 12,
@@ -115,34 +114,45 @@ object Grid {
     isResizable: js.UndefOr[Boolean] = true,
     useCSSTransforms: js.UndefOr[Boolean] = true,
     onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit
-  ) {
+  )
+
+  case class ReactGridLayoutFacade(props: Props) {
     def toJS: js.Object = {global
       val p = js.Dynamic.literal()
-      p.updateDynamic("width")(width)
-      autoSize.foreach(v => p.updateDynamic("autoSize")(v))
-      cols.foreach(v => p.updateDynamic("cols")(v))
-      draggableCancel.foreach(v => p.updateDynamic("draggableCancel")(v))
-      draggableHandle.foreach(v => p.updateDynamic("draggableHandle")(v))
-      verticalCompact.foreach(v => p.updateDynamic("verticalCompact")(v))
-      layout.foreach(v => p.updateDynamic("layout")(v))
-      margin.foreach(v => p.updateDynamic("margin")(v))
-      containerPadding.foreach(v => p.updateDynamic("containerPadding")(v))
-      rowHeight.foreach(v => p.updateDynamic("rowHeight")(v))
-      isDraggable.foreach(v => p.updateDynamic("isDraggable")(v))
-      isResizable.foreach(v => p.updateDynamic("isResizable")(v))
-      useCSSTransforms.foreach(v => p.updateDynamic("useCSSTransforms")(v))
-      p.updateDynamic("onLayoutChange")(onLayoutChange)
+      p.updateDynamic("width")(props.width)
+      props.autoSize.foreach(v => p.updateDynamic("autoSize")(v))
+      props.cols.foreach(v => p.updateDynamic("cols")(v))
+      props.draggableCancel.foreach(v => p.updateDynamic("draggableCancel")(v))
+      props.draggableHandle.foreach(v => p.updateDynamic("draggableHandle")(v))
+      props.verticalCompact.foreach(v => p.updateDynamic("verticalCompact")(v))
+      props.layout.foreach(v => p.updateDynamic("layout")(v))
+      props.margin.foreach(v => p.updateDynamic("margin")(v))
+      props.containerPadding.foreach(v => p.updateDynamic("containerPadding")(v))
+      props.rowHeight.foreach(v => p.updateDynamic("rowHeight")(v))
+      props.isDraggable.foreach(v => p.updateDynamic("isDraggable")(v))
+      props.isResizable.foreach(v => p.updateDynamic("isResizable")(v))
+      props.useCSSTransforms.foreach(v => p.updateDynamic("useCSSTransforms")(v))
+      p.updateDynamic("onLayoutChange")(props.onLayoutChange)
 
       p
     }
 
-    def apply(children : ReactNode*) = {
+  }
+
+
+
+  object ReactGridLayoutComp {
+
+    def apply(width: Int, onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit, children : ReactNode*) = {
       // access real js component
       val f = React.asInstanceOf[js.Dynamic].createFactory(ReactGridLayout)
-      f(toJS, children.toJsArray).asInstanceOf[ReactComponentU_]
+      val facade = ReactGridLayoutFacade(Props(width = width, onLayoutChange = onLayoutChange))
+      f(facade.toJS, children.toJsArray).asInstanceOf[ReactComponentU_]
     }
+
   }
 }
+
 
 
 /*

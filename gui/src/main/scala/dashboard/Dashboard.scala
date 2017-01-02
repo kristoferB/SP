@@ -13,11 +13,14 @@ object Dashboard {
   class Backend($: BackendScope[Props, Unit]) {
     def render(p: Props) =
       <.div(
+        "dashboard (gridstuff commented out)"
+        /*
         ReactGridLayoutFacade(width=1920,
                               onLayoutChange = _ => println("hej")
         ).apply(
           for((w,i) <- p.proxy().zipWithIndex) yield <.div(^.key := i, w)
         )
+         */
     )
   }
 
