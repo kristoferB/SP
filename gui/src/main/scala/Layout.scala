@@ -6,6 +6,8 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 import spgui.menu.SPMenu
 import spgui.circuit.SPGUICircuit
 
+import spgui.dashboard.Grid
+
 object Layout {
 
   val contentConnection = SPGUICircuit.connect(_.content)

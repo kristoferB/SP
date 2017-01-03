@@ -3,10 +3,11 @@ package spgui.menu
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
-import spgui.Grid
 import spgui.circuit.{SPGUICircuit, AddWidget, SetContent}
-import spgui.injection
 import spgui.dashboard
+
+import spgui.dashboard.Grid
+import spgui.widgets.injection.WidgetInjectionTest
 
 object SPMenu {
 
@@ -31,12 +32,8 @@ object SPMenu {
           ^.className := "nav_navbar-nav",
           MenuButton("Grid", Grid.component()),
           MenuButton("Dashboard", widgetsConnection(dashboard.Dashboard(_))),
-          MenuButton("Widget Injection", injection.WidgetInjectionTest()),
-          <.button(
-            "Add SomeWidget",
-            ^.onClick --> Callback(SPGUICircuit.dispatch(AddWidget))
-          ),
-          SPDropdown()
+          MenuButton("Widget Injection", WidgetInjectionTest()),
+          WidgetMenu()
         )
       )
     )
