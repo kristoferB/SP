@@ -12,13 +12,19 @@ object DashboardItem {
     <.div(
       ^.className := DashboardCSS.widgetPanel.htmlClass,
       ^.className := "panel panel-default",
-      <.button(
-        "close me",
-        ^.onClick --> Callback(SPGUICircuit.dispatch(CloseWidget(props.index)))
+      <.div(
+        ^.className := DashboardCSS.widgetPanelHeader.htmlClass,
+        <.button(
+          "close me",
+          ^.onClick --> Callback(SPGUICircuit.dispatch(CloseWidget(props.index)))
+        )
       ),
       <.div(
-        ^.className := "panel-body",
-        <.div(<.h3("static widget content"), props.element)
+        ^.className := DashboardCSS.widgetPanelBody.htmlClass,
+        <.div(
+          ^.className := "panel-body",
+          ^.className := DashboardCSS.widgetPanelContent.htmlClass,
+          <.h3("static widget content"), props.element)
       )
     )
   )
