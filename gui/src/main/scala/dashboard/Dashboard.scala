@@ -23,10 +23,11 @@ object Dashboard {
             i = "idkdk",
             x = 0,
             y = 0,
-            w = 5,
-            h = 4,
+            w = 1,
+            h = 1,
             isDraggable = true,
-            child = w
+            isResizable = true,
+            child = DashboardItem(w, index)
           )
         )
       )

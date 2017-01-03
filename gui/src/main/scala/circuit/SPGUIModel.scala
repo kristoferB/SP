@@ -8,4 +8,5 @@ case class RootModel(content: ReactElement, openWidgets: List[ReactElement])
 
 // actions
 case object AddWidget extends Action
+case class CloseWidget(index: Int) extends Action
 case class SetContent(content: ReactElement) extends Action
