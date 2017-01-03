@@ -15,10 +15,12 @@ object SPDropdown {
   private val component = ReactComponentB[Props]("SPDropdown")
     .render_P(props =>
     <.div(
+      ^.className := SPMenuCSS.dropDown.htmlClass,
       ^.className := "dropdown",
       <.div(
         ^.id := "something",
         ^.tpe := "button",
+        ^.className := SPMenuCSS.dropDownButton.htmlClass,
         ^.className := "btn navbar-btn",
         ReactAttr.Generic("data-toggle") := "dropdown",
         aria.haspopup := "true",

@@ -6,15 +6,22 @@ object DashboardCSS extends StyleSheet.Inline {
   import dsl._
 
   val dashboardBackground = style("dashboard-background")(
-    backgroundColor := "#AAAAAA",
-    height := "100%",
-    flexGrow:="1"
   )
 
   val widgetPanel = style("widget-panel")(
-    backgroundColor:= "#CCCCCC",
-    height := "100%",
-    borderRadius := "0"
+    backgroundColor(rgb(192,192,192)),
+    height(100.%%),
+    marginBottom(0.px),
+    overflow.hidden,
+
+    borderRadius(0.px),
+    borderWidth(1.px),
+    borderColor(rgb(0,0,0))
+  )
+
+  val reactGridPlaceholder = style("react-grid-placeholder")(
+    backgroundColor(rgb(255,102,0)),
+    opacity(0.5)
   )
 
   this.addToDocument()

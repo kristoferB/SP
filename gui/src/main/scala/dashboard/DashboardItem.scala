@@ -11,17 +11,17 @@ object DashboardItem {
     .render_P(props =>
     <.div(
       ^.className := DashboardCSS.widgetPanel.htmlClass,
-        ^.className := "panel panel-default",
-        <.button(
-          "close me",
-          ^.onClick --> Callback(SPGUICircuit.dispatch(CloseWidget(props.index)))
-        ),
-        <.div(
-          ^.className := "panel-body",
-          <.div(<.h3("static widget content"), props.element)
-        )
+      ^.className := "panel panel-default",
+      <.button(
+        "close me",
+        ^.onClick --> Callback(SPGUICircuit.dispatch(CloseWidget(props.index)))
+      ),
+      <.div(
+        ^.className := "panel-body",
+        <.div(<.h3("static widget content"), props.element)
       )
     )
+  )
     .build
   def apply(element: ReactElement, index: Int) = component(Props(element, index))
 }

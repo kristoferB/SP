@@ -12,11 +12,12 @@ object Layout {
 
   private val component = ReactComponentB[Unit]("Layout")
     .render(_ =>
-      <.div(
-        SPMenu(),
-        widgetsConnection(Dashboard(_))
-      )
+    <.div(
+      ^.className := GlobalCSS.layout.htmlClass,
+      SPMenu(),
+      widgetsConnection(Dashboard(_))
     )
+  )
     .build
 
   def apply() = component()
