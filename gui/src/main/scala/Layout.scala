@@ -4,10 +4,11 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
 import spgui.menu.SPMenu
+import spgui.circuit.SPGUICircuit
 
 object Layout {
 
-  val contentConnection = AppCircuit.connect(_.content)
+  val contentConnection = SPGUICircuit.connect(_.content)
 
   case class State(component: ReactElement)
 

@@ -3,7 +3,8 @@ package spgui.menu
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
-import spgui.{Grid, AppCircuit, AddWidget, SetContent}
+import spgui.Grid
+import spgui.circuit.{SPGUICircuit, AddWidget, SetContent}
 import spgui.injection
 import spgui.dashboard
 
@@ -15,12 +16,12 @@ object SPMenu {
     case class MenuBtnProps(text: String, element: ReactElement)
     val component = ReactComponentB[MenuBtnProps]("MenuButton")
       .render_P(p => <.li(p.text,
-                          ^.onClick --> Callback(AppCircuit.dispatch(SetContent(p.element))),
+                          ^.onClick --> Callback(SPGUICircuit.dispatch(SetContent(p.element))),
                           ^.className := "btn navbar-btn"))
       .build
   }
 
-  val widgetsConnection = AppCircuit.connect(_.openWidgets)
+  val widgetsConnection = SPGUICircuit.connect(_.openWidgets)
 
   private val component = ReactComponentB[Unit]("SPMenu")
     .render(_ =>
@@ -33,7 +34,7 @@ object SPMenu {
           MenuButton("Widget Injection", injection.WidgetInjectionTest()),
           <.button(
             "Add SomeWidget",
-            ^.onClick --> Callback(AppCircuit.dispatch(AddWidget))
+            ^.onClick --> Callback(SPGUICircuit.dispatch(AddWidget))
           ),
           SPDropdown()
         )
