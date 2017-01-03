@@ -1,4 +1,4 @@
-package spgui
+package spgui.dashboard
 
 import japgolly.scalajs.react._
 import scala.scalajs.js
