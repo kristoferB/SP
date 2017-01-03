@@ -9,7 +9,8 @@ object DashboardItem {
   case class Props(element: ReactElement, index: Int)
   private val component = ReactComponentB[Props]("Widget")
     .render_P(props =>
-      <.div(
+    <.div(
+      ^.className := DashboardCSS.widgetPanel.htmlClass,
         ^.className := "panel panel-default",
         <.button(
           "close me",

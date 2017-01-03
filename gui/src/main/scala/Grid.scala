@@ -32,6 +32,7 @@ object Grid {
       ^.className:=CSS.dashboard.htmlClass,
       ReactGridLayout(
         width = 1920,
+        cols = 8,
         onLayoutChange = (layout:js.Object) => println(layout.toString()),
         ReactGridLayoutItem(key = "c", i = "c", x = 3, y = 4, w = 5, h = 1, isDraggable = true, child = <.h3("c")),
         ReactGridLayoutItem(key = "d", i = "c", x = 0, y = 0, w = 1, h = 1, isDraggable = false, child = <.h3("C: undraggable"))
@@ -127,10 +128,13 @@ object ReactGridLayout {
     }
   }
 
-  def apply(width: Int, onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit, children: ReactNode*) = {
+  def apply(
+    width: Int,
+    cols: Int,
+    onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit, children: ReactNode*) = {
     // access real js component
     val f = React.asInstanceOf[js.Dynamic].createFactory(ReactGridLayoutJS)
-    val facade = ReactGridLayoutFacade(Props(width = width, onLayoutChange = onLayoutChange))
+    val facade = ReactGridLayoutFacade(Props(width = width, cols = cols, onLayoutChange = onLayoutChange))
     f(facade.toJS, children.toJsArray).asInstanceOf[ReactComponentU_]
   }
 
