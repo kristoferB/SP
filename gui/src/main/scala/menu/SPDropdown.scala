@@ -5,9 +5,10 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 import japgolly.scalajs.react.vdom.all.aria
 
 object SPDropdown {
-  case class Props(buttonsProps: List[(String, Callback)])
+  case class Props(title: String, buttonsProps: List[(String, Callback)])
 
   val sampleProps = Props(
+    "sample SPDropdown",
     ("hej1", Callback.log("hej1")) :: ("hej2", Callback.log("hej2")) :: Nil
   )
 
@@ -22,7 +23,7 @@ object SPDropdown {
         ReactAttr.Generic("data-toggle") := "dropdown",
         aria.haspopup := "true",
         aria.expanded := "false",
-        "Dropdown example"),
+        props.title),
       <.ul(
         ^.className := "dropdown-menu",
         aria.labelledby := "something",
@@ -33,8 +34,8 @@ object SPDropdown {
   )
     .build
 
-  def apply(buttonsProps: List[(String, Callback)]) =
-    component(Props(buttonsProps))
+  def apply(title: String, buttonsProps: List[(String, Callback)]) =
+    component(Props(title, buttonsProps))
 
   val example = component(sampleProps)
 }

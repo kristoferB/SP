@@ -14,6 +14,7 @@ object WidgetMenu {
 
   private val menu =
     SPDropdown(
+      "New Widget",
       ("The Grid Test", addW(Grid.component())) ::
       ("Widget Injection", addW(widgets.injection.WidgetInjectionTest())) ::
       ("SomePlaceHolder", addW(<.h2("SomePlaceHolder"))) ::
