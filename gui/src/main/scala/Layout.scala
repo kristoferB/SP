@@ -9,6 +9,7 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 object Layout {
 
   val widgetsConnection = AppCircuit.connect(_.openWidgets)
+  val contentConnection = AppCircuit.connect(_.content)
 
   case class State(component: ReactElement)
 
@@ -26,10 +27,11 @@ object Layout {
             <.button(
               "Add SomeWidget",
               ^.onClick --> Callback(AppCircuit.dispatch(AddWidget))
-            )
+            ),
+            SPDropdown()
           )
         ),
-        s.component
+        contentConnection(SPContentPane(_))
       )
 
     object MenuButton {
@@ -38,7 +40,7 @@ object Layout {
       case class MenuBtnProps(text: String, element: ReactElement)
       val component = ReactComponentB[MenuBtnProps]("MenuButton")
         .render_P(p => <.li(p.text,
-                            ^.onClick --> changeState(p.element),
+                            ^.onClick --> Callback(AppCircuit.dispatch(SetContent(p.element))),
                             ^.className := "btn navbar-btn"))
         .build
     }
