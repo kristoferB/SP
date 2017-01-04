@@ -1,10 +1,14 @@
+var webpack = require('webpack');
+
+var PROD = (process.env.NODE_ENV === 'production');
+
 module.exports = {
     entry: [
         './vendor.js'
     ],
     output: {
         path: 'output/',
-        filename: 'bundle.js'
+        filename: PROD ? 'bundle.min.js' : 'bundle.js'
     },
     module: {
         loaders: [
@@ -30,5 +34,19 @@ module.exports = {
               loader: 'url?limit=100000'
             }
         ]
-    }
+    },
+    plugins: PROD ? [
+      new webpack.optimize.UglifyJsPlugin({
+        minimize: true,
+        mangle: true,
+        compressor: { warnings: false }
+      }),
+      new webpack.DefinePlugin({
+        'process.env': {
+          // setting this again here, cause react needs it this way to
+          // generate a real build-version of itself
+          'NODE_ENV': JSON.stringify('production')
+        }
+    }),
+    ] : []
 };
