@@ -33,6 +33,7 @@ object Grid {
       ReactGridLayout(
         width = 1920,
         cols = 8,
+        draggableHandle = "",
         onLayoutChange = (layout:js.Object) => println(layout.toString()),
         ReactGridLayoutItem(key = "c", i = "c", x = 3, y = 4, w = 5, h = 1, isDraggable = true, child = <.h3("c")),
         ReactGridLayoutItem(key = "d", i = "c", x = 0, y = 0, w = 1, h = 1, isDraggable = false, child = <.h3("C: undraggable"))
@@ -131,43 +132,16 @@ object ReactGridLayout {
   def apply(
     width: Int,
     cols: Int,
+    draggableHandle: String,
     onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit, children: ReactNode*) = {
     // access real js component
     val f = React.asInstanceOf[js.Dynamic].createFactory(ReactGridLayoutJS)
-    val facade = ReactGridLayoutFacade(Props(width = width, cols = cols, onLayoutChange = onLayoutChange))
+    val facade = ReactGridLayoutFacade(Props(
+      width = width,
+      cols = cols,
+      draggableHandle = draggableHandle,
+      onLayoutChange = onLayoutChange
+    ))
     f(facade.toJS, children.toJsArray).asInstanceOf[ReactComponentU_]
   }
-
 }
-
-/*
- this is the full list of grid props
-
- width: number,
- autoSize: ?boolean = true,
- cols: ?number = 12,
- draggableCancel: ?string = '',
- draggableHandle: ?string = '',
- verticalCompact: ?boolean = true,
- layout: ?array = null, // If not provided, use data-grid props on children
- margin: ?[number, number] = [10, 10],
- containerPadding: ?[number, number] = margin,
- rowHeight: ?number = 150,
- isDraggable: ?boolean = true,
- isResizable: ?boolean = true,
- useCSSTransforms: ?boolean = true,
- onLayoutChange: (layout: Layout) => void,
- 
- // TODO: everything below this point. not sure how
- // or maybe not. we might not even need it. 
-
- type ItemCallback = (layout: Layout, oldItem: LayoutItem, newItem: LayoutItem,
- placeholder: LayoutItem, e: MouseEvent, element: HTMLElement) => void;
-
- onDragStart: ItemCallback,
- onDrag: ItemCallback,
- onDragStop: ItemCallback,
- onResizeStart: ItemCallback,
- onResize: ItemCallback,
- onResizeStop: ItemCallback
- */

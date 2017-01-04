@@ -16,9 +16,10 @@ object WidgetMenu {
     SPDropdown(
       "New Widget",
       ("The Grid Test", addW(Grid.component())) ::
-      ("Widget Injection", addW(widgets.injection.WidgetInjectionTest())) ::
-      ("SomePlaceHolder", addW(<.h2("SomePlaceHolder"))) ::
-      Nil
+        ("Widget Injection", addW(widgets.injection.WidgetInjectionTest())) ::
+        ("SomePlaceHolder", addW(<.h2("SomePlaceHolder"))) ::
+        ("DragDropTest", addW(widgets.examples.dragndrop.DragAndDrop())) ::
+        Nil
     )
 
   def apply() = menu

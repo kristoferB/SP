@@ -18,6 +18,7 @@ object Dashboard {
         ReactGridLayout(
           width = 1920,
           cols = 8,
+          draggableHandle = "." + DashboardCSS.widgetPanelHeader.htmlClass,
           onLayoutChange = _ => println("hej"),
           for((w,index) <- p.proxy().zipWithIndex)
           yield ReactGridLayoutItem(
