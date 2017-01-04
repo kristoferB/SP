@@ -2,6 +2,9 @@ package sp.models
 
 import akka.actor._
 
+import scala.io.Source
+import scala.util.{Failure, Success}
+
 
 
 
@@ -10,11 +13,35 @@ object Launch extends App {
   implicit val system = ActorSystem("SP")
 
   // Add root actors used in node here
-  system.actorOf(ModelMaker.props(ModelActor.props), "modelHandler")
+  //system.actorOf(ModelMaker.props(ModelActor.props), "modelHandler")
 
   // Used only at one place in cluster for testing
-  system.actorOf(ClusterMonitor.props)
+  //system.actorOf(ClusterMonitor.props)
 
+  // only for testing. Remove
+    system.actorOf(Props(classOf[TestingWidget]), "testingWidget")
+}
+
+// testing actor
+class TestingWidget extends Actor with ActorLogging {
+  import akka.cluster.pubsub._
+  import DistributedPubSubMediator._
+  val mediator = DistributedPubSub(context.system).mediator
+  mediator ! Subscribe("widgets", self)
+  mediator ! Put(self)
+
+  println("I'm running")
+
+  def receive = {
+    case x: String =>
+      println("Testing widget got: "+x)
+      scala.util.Try(new java.io.File(s"./gui/sp-example-widget/$x")) match {
+        case Success(file) => sender() ! file
+        case Failure(e) => sender() ! s"failed reading file: ${e.getMessage}"
+      }
+    case x => println("Testing widget got not as string: "+x)
+
+  }
 
 }
 

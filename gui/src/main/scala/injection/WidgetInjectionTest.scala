@@ -26,7 +26,7 @@ object WidgetInjectionTest {
 
       // trying out the loader, for now using a hard link
       componentLoaderService.fetchFactory(
-        "http://localhost:8000/sp-example-widget.js", "TestWidget")
+        "http://localhost:8080/api/widget/sp-example-widget.js", "TestWidget")
         .map(CompFactory => {
               val widget = CompFactory(WrapObj(Unit))
               //val widgetWrapper = new WidgetWrapper(widget)
@@ -38,7 +38,7 @@ object WidgetInjectionTest {
 
   private val placeholderText: String = "This is a placeholder component. " +
     "To replace it with sp-simple-widget, a component unknown to this app so far, " +
-    "serve it with http-server -p 8000 --cors sp-example-widget/ " +
+    "serve it with http-server -p 8080 --cors sp-example-widget/ " +
     "(having installed it with npm install http-server -g), then press fetch."
   private val PlaceholderComp = ReactComponentB[Unit]("PlaceholderComp")
     .render(_ => <.h4(placeholderText))

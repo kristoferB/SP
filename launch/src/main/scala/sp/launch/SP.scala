@@ -258,9 +258,13 @@ object SP extends App {
   )  )
 
   // launch REST API
-  sp.server.LaunchGUI.launch
+  implicit val executionContext = system.dispatcher
+  val f = sp.server.LaunchGUI.launch
   scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
-    case x => system.terminate()
+    case x => {
+      f.flatMap(_.unbind()) // trigger unbinding from the port
+        .onComplete(_ => system.terminate())
+    }
   }
 
 }
