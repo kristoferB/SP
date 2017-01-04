@@ -5,7 +5,7 @@ import diode.react.ReactConnector
 import japgolly.scalajs.react.ReactElement
 
 object SPGUICircuit extends Circuit[RootModel] with ReactConnector[RootModel] {
-  def initialModel = RootModel(List(PlaceholderComp()))
+  def initialModel = InitialState()
   val actionHandler = composeHandlers(
     new DashboardHandler(zoomRW(_.openWidgets)((m,v) => m.copy(openWidgets = v)))
   )
