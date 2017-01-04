@@ -8,6 +8,7 @@ object InitialState {
       ("Grid Test", spgui.dashboard.Grid.component()),
       ("Widget Injection", widgets.injection.WidgetInjectionTest()),
       ("Item Editor", widgets.itemeditor.ItemEditor()),
+      ("DragDrop Example", widgets.examples.dragndrop.DragAndDrop()),
       ("PlcHldrC", PlaceholderComp())
     ),
     openWidgets = List(PlaceholderComp())
