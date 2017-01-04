@@ -24,7 +24,8 @@ object DashboardItem {
         <.div(
           ^.className := "panel-body",
           ^.className := DashboardCSS.widgetPanelContent.htmlClass,
-          <.h3("static widget content"), props.element)
+           props.element
+        )
       )
     )
   )

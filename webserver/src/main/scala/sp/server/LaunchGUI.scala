@@ -49,7 +49,7 @@ object LaunchGUI  {//extends MySslConfiguration {
     val srcFolder: String = if(sp.system.SPActorSystem.settings.devMode)
       sp.system.SPActorSystem.settings.devFolder else sp.system.SPActorSystem.settings.buildFolder
 
-    import upickle.default._
+    //import upickle.default._
 
     def api =
       pathPrefix("test"){

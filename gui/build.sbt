@@ -18,7 +18,8 @@ libraryDependencies ++= Seq(
   "com.github.japgolly.scalacss" %%% "ext-react" % scalaCssVersion,
   "me.chrons" %%% "diode" % diodeVersion,
   "me.chrons" %%% "diode-react" % diodeVersion,
-  "fr.hmil" %%% "roshttp" % "2.0.0-RC1"
+  "fr.hmil" %%% "roshttp" % "2.0.0",
+  "com.lihaoyi" %%% "upickle" % "0.4.3"
 )
 
 /* This is how to include js files. Put it in src/main/resources.

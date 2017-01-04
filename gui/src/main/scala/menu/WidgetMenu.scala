@@ -17,6 +17,7 @@ object WidgetMenu {
       "New Widget",
       ("The Grid Test", addW(Grid.component())) ::
       ("Widget Injection", addW(widgets.injection.WidgetInjectionTest())) ::
+      ("CommTest", addW(widgets.WidgetCommTest())) ::
       ("SomePlaceHolder", addW(<.h2("SomePlaceHolder"))) ::
       Nil
     )

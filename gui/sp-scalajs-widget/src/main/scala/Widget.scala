@@ -7,18 +7,6 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 @JSExport
 class TestWidget {
 
-  // entry point for the widget. 'Widget' is the root component of the widget
-  // ComponentLoader will grab this specific widget using:
-  // sp.widgets.TestWidget().getComponent
-
-  // in the general case:
-  // package.WidgetName().getComponent 
-
-  // note that all the logic is somehow on the backend, despite this class
-  // not existing on the backend at compile time. Seems to work just fine, somehow
-
-  // TODO: make this component more interesting
-  // also TODO: styling
   @JSExport
   def getComponent = RootComponent
 
