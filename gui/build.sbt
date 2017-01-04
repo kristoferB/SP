@@ -10,6 +10,7 @@ val scalaJSReactVersion = "0.11.3"
 val scalaCssVersion = "0.5.1"
 val diodeVersion = "1.1.0"
 
+
 libraryDependencies ++= Seq(
   "com.github.japgolly.scalajs-react" %%% "core" % scalaJSReactVersion,
   "com.github.japgolly.scalajs-react" %%% "extra" % scalaJSReactVersion,
