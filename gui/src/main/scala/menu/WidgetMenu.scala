@@ -1,26 +1,26 @@
 package spgui.menu
 
-import japgolly.scalajs.react.{Callback, ReactElement}
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react._
 
+import diode.react.ModelProxy
 import spgui.circuit.{SPGUICircuit, AddWidget}
 
-import spgui.widgets
-import spgui.dashboard.Grid
-
 object WidgetMenu {
-  private def addW(element: ReactElement): Callback =
-    Callback(SPGUICircuit.dispatch(AddWidget(element)))
+  case class Props(proxy: ModelProxy[List[(String, ReactElement)]])
 
-  private val menu =
-    SPDropdown(
-      "New Widget",
-      ("The Grid Test", addW(Grid.component())) ::
-      ("Widget Injection", addW(widgets.injection.WidgetInjectionTest())) ::
-      ("CommTest", addW(widgets.WidgetCommTest())) ::
-      ("SomePlaceHolder", addW(<.h2("SomePlaceHolder"))) ::
-      Nil
-    )
+  class Backend($: BackendScope[Props, Unit]) {
+    def addW(element: ReactElement): Callback =
+      Callback(SPGUICircuit.dispatch(AddWidget(element)))
+    def render(props: Props) =
+      SPDropdown(
+        "New Widget",
+        for((text, element) <- props.proxy()) yield (text, addW(element))
+      )
+    }
 
-  def apply() = menu
+  private val component = ReactComponentB[Props]("WidgetMenu")
+    .renderBackend[Backend]
+    .build
+
+  def apply(proxy: ModelProxy[List[(String, ReactElement)]]) = component(Props(proxy))
 }
