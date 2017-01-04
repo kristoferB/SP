@@ -1,4 +1,4 @@
-package spgui
+package spgui.dashboard
 
 import japgolly.scalajs.react._
 import scala.scalajs.js
@@ -32,6 +32,7 @@ object Grid {
       ^.className:=CSS.dashboard.htmlClass,
       ReactGridLayout(
         width = 1920,
+        cols = 8,
         onLayoutChange = (layout:js.Object) => println(layout.toString()),
         ReactGridLayoutItem(key = "c", i = "c", x = 3, y = 4, w = 5, h = 1, isDraggable = true, child = <.h3("c")),
         ReactGridLayoutItem(key = "d", i = "c", x = 0, y = 0, w = 1, h = 1, isDraggable = false, child = <.h3("C: undraggable"))
@@ -96,8 +97,8 @@ object ReactGridLayout {
     draggableHandle: js.UndefOr[String] = "",
     verticalCompact: js.UndefOr[Boolean] = true,
     layout: js.UndefOr[js.Array[js.Object with js.Dynamic]] = js.undefined,
-    margin: js.UndefOr[js.Array[Int]] = js.Array(10, 10),
-    containerPadding: js.UndefOr[js.Array[Int]] = js.Array(10,10),
+    margin: js.UndefOr[js.Array[Int]] = js.Array(3,3),
+    containerPadding: js.UndefOr[js.Array[Int]] = js.Array(3,3),
     rowHeight: js.UndefOr[Int] = 150,
     isDraggable: js.UndefOr[Boolean] = true,
     isResizable: js.UndefOr[Boolean] = true,
@@ -127,10 +128,13 @@ object ReactGridLayout {
     }
   }
 
-  def apply(width: Int, onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit, children: ReactNode*) = {
+  def apply(
+    width: Int,
+    cols: Int,
+    onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit, children: ReactNode*) = {
     // access real js component
     val f = React.asInstanceOf[js.Dynamic].createFactory(ReactGridLayoutJS)
-    val facade = ReactGridLayoutFacade(Props(width = width, onLayoutChange = onLayoutChange))
+    val facade = ReactGridLayoutFacade(Props(width = width, cols = cols, onLayoutChange = onLayoutChange))
     f(facade.toJS, children.toJsArray).asInstanceOf[ReactComponentU_]
   }
 

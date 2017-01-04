@@ -1,4 +1,4 @@
-package spgui.injection
+package spgui.widgets.injection
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
