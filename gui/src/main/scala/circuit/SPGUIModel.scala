@@ -4,7 +4,7 @@ import diode._
 import japgolly.scalajs.react.ReactElement
 
 // state
-case class RootModel(openWidgets: List[ReactElement])
+case class RootModel(availableWidgets: List[(String, ReactElement)], openWidgets: List[ReactElement])
 
 // actions
 case class AddWidget(element: ReactElement) extends Action
