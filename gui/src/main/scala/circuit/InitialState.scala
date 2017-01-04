@@ -7,6 +7,7 @@ object InitialState {
     availableWidgets = List(
       ("Grid Test", spgui.dashboard.Grid.component()),
       ("Widget Injection", widgets.injection.WidgetInjectionTest()),
+      ("Item Editor", widgets.itemeditor.ItemEditor()),
       ("PlcHldrC", PlaceholderComp())
     ),
     openWidgets = List(PlaceholderComp())
