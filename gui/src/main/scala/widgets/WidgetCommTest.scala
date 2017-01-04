@@ -8,7 +8,7 @@ import scala.concurrent.Promise
 import fr.hmil.roshttp.HttpRequest
 import monix.execution.Scheduler.Implicits.global
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 import fr.hmil.roshttp.response.SimpleHttpResponse
 
 import scala.reflect.ClassTag
@@ -26,6 +26,12 @@ object APITEST {
   lazy val apiJson: List[String] = sp.macros.MacroMagic.info[API, SUB]
 
 }
+
+
+case class Hej(p1: String)
+case class Hej2(p1: Int)
+
+case class Operation(name: String, conditions: List[String], attributes: upickle.Js.Obj)
 
 
 object WidgetCommTest {
@@ -65,13 +71,39 @@ object WidgetCommTest {
       val mess = FixedType.write(APITEST.Test1("ja", "JA"))
       val fPost = request.post(PlainTextBody(mess))
 
+      val request2 = HttpRequest("http://localhost:8080/operation")
+      val fGet2 = request2.get()
+
       for {
         res <- fGet
         p <- fPost
+        get2 <- fGet2
       } yield {
         val test1 = FixedType.read[APITEST.API](res.body)
+        val test2 = FixedType.read[Hej](res.body)
+        val test3 = Try{FixedType.read[Hej2](res.body)}
+
+        val test4 = scalajs.js.JSON.parse(res.body)
+
+        val kalle = Try{upickle.default.readJs[Hej](upickle.json.readJs(test4))}
+
+        val op = FixedType.read[Operation](get2.body)
+
+        val t5 = Try{upickle.default.readJs[Hej](op.attributes.obj("test"))}
+
+        val opD = scalajs.js.JSON.parse(get2.body)
+
+
         Callback.log("tjo") >>
           Callback.alert(test1.toString) >>
+          Callback.alert(test2.toString) >>
+          Callback.alert(test3.toString) >>
+          Callback.alert(op.toString) >>
+          Callback.alert(t5.toString) >>
+          Callback.alert(kalle.toString) >>
+          Callback.alert(opD.name.toString) >>
+          Callback.alert(s"dynamic: ${test4.p1}") >>
+          Callback.alert(s"dynamic try: ${Try{test4.p5}}") >>
           Callback.alert(p.body)
       }
 

@@ -16,6 +16,8 @@ import scala.reflect.ClassTag
 
 
 
+
+
 object APITEST {
   sealed trait API
   case class Test1(p1: String, p2: String) extends API
@@ -58,10 +60,19 @@ object LaunchGUI  {//extends MySslConfiguration {
             val res = FixedType.read[APITEST.API](t)
             complete("JA, det funderar: "+ t)
           }
-        }
+        } ~
         get {
           val t = APITEST.Test1("hej", "då")
           complete(HttpResponse(entity = HttpEntity(ContentType(MediaTypes.`application/json`), FixedType.write(t))))
+        }
+      } ~
+      pathPrefix("operation"){
+        get {
+          import sp.domain._
+          import sp.domain.Logic._
+          val t = Operation("hej", List(), SPAttributes("test"->APITEST.Test1("hej", "kalle")))
+          val json = SPValue(t).toJson
+          complete(HttpResponse(entity = HttpEntity(ContentType(MediaTypes.`application/json`), json)))
         }
       } ~
       pathPrefix("api") {

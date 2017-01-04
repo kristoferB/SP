@@ -82,4 +82,4 @@ lazy val services = project.dependsOn(domain).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= akka ++ json ++ support)
 
-lazy val gui = project
+lazy val gui = project.dependsOn(macros)

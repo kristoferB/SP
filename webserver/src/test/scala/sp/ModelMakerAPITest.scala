@@ -42,6 +42,7 @@ object FixedType extends upickle.AttributeTagged {
 
 }
 
+case class Hej(p1: String)
 
 /**
   * Testing API handling
@@ -69,6 +70,22 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
 
       println(APITEST.apiJson)
 
+
+    }
+    "testing more" in {
+      val t = APITEST.Test1("hej", "då")
+      val json = FixedType.write(t)
+
+      val test = FixedType.read[Hej](json)
+      println(test)
+
+    }
+    "testing dynamics" in {
+      val t = APITEST.Test1("hej", "då")
+      val json = FixedType.write(t)
+
+      val test = Dynami
+      println(test)
 
     }
   }
