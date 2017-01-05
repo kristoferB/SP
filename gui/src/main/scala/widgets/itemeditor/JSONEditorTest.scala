@@ -3,6 +3,7 @@ package spgui.widgets.itemeditor
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import scalajs.js
+import scalajs.js.Dynamic.{literal => l}
 import org.scalajs.dom.raw.Element
 import org.scalajs.dom.document
 
@@ -14,28 +15,33 @@ object JSONEditorTest {
     .render(_ => jsoneditordiv)
     .componentDidMount(_ => Callback(addTheJSONEditor(jsoneditordivUglyCustomId)))
     .build
-  private val jsoneditordiv = <.div(^.id := jsoneditordivUglyCustomId)
+  private val jsoneditordiv = <.div(
+    ^.id := jsoneditordivUglyCustomId
+  )
 
   // TODO type this stuff in some neat scalatastic manner
-  val json = js.Dynamic.literal(
-    "schema" -> js.Dynamic.literal(
+  val json = l(
       "type" -> "object",
-      "properties" -> js.Dynamic.literal(
-        "name" -> js.Dynamic.literal(
+      "properties" -> l(
+        "name" -> l(
           "type" -> "string"
-        )
       )
     )
   )
 
+  val options = l(
+    "mode" -> "code",
+    "modes" -> js.Array("code", "tree")
+  )
+
   private def addTheJSONEditor(elementId: String): Unit = {
-    val editor = new JSONEditor(document.getElementById(elementId), json)
-    editor.set(js.Dynamic.literal("name" -> "John Smith"))
+    val editor = new JSONEditor(document.getElementById(elementId), options)
+    editor.set(l("name" -> "John Smith"))
   }
 }
 
 // TODO facade more stuff than just set
 @js.native
-class JSONEditor(element: Element, json: js.Object) extends js.Object {
+class JSONEditor(element: Element, json: js.UndefOr[js.Object] = js.undefined) extends js.Object {
   def set(json: js.Object): Unit = js.native
 }

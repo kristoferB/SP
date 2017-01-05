@@ -5,9 +5,6 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import diode.react.ModelProxy
 
-//import spgui.ReactGridLayout
-//import spgui.ReactGridLayoutItem
-
 object Dashboard {
   case class Props(proxy: ModelProxy[List[ReactElement]])
 
@@ -18,6 +15,7 @@ object Dashboard {
         ReactGridLayout(
           width = 1920,
           cols = 8,
+          draggableHandle = "." + DashboardCSS.widgetPanelHeader.htmlClass,
           onLayoutChange = _ => println("hej"),
           for((w,index) <- p.proxy().zipWithIndex)
           yield ReactGridLayoutItem(
