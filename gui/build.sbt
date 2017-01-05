@@ -19,6 +19,7 @@ libraryDependencies ++= Seq(
   "me.chrons" %%% "diode" % diodeVersion,
   "me.chrons" %%% "diode-react" % diodeVersion,
   "fr.hmil" %%% "roshttp" % "2.0.0",
+  "io.monix" %%% "monix" % "2.1.2",
   "com.lihaoyi" %%% "upickle" % "0.4.3"
 )
 
