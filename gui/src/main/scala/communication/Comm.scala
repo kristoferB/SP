@@ -5,7 +5,7 @@ package communication
   */
 class Comm {
 
-  def sendRequest(mess: )
+  //def sendRequest(mess: )
 
 
 }
