@@ -1,6 +1,7 @@
 package sp.launch
 
 
+import sp.robotServices.launcher.LaunchRobotRuntimeService
 import sp.system._
 import sp.system.messages._
 import scala.concurrent.Await
@@ -195,6 +196,14 @@ object SP extends App {
     system.actorOf(RobotCycleAnalysis.props(eventHandler), "RobotCycleAnalysis"),
     RobotCycleAnalysis.specification,
     RobotCycleAnalysis.transformation
+  ))
+
+  import sp.robotServices._
+  mediator ! Publish("serviceHandler", RegisterService(
+    "LaunchRobotServices",
+    system.actorOf(LaunchRobotRuntimeService.props, "LaunchRobotServices"),
+    LaunchRobotRuntimeService.specification,
+    LaunchRobotRuntimeService.transformation
   ))
 
 //  import sp.exampleService._

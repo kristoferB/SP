@@ -13,6 +13,6 @@ libraryDependencies ++= Seq(
   "org.eclipse.milo" % "sdk-client" % "0.1.0",
   "org.scala-lang.modules" % "scala-java8-compat_2.11" % "0.3.0"
 
- 
+  "com.github.gphat" %% "wabisabi" % "2.1.9"
 )
 //  "log4j" % "log4j" % "1.2.17" Removed by Patrik 150625, because of unwanted print outs when running Supremica.
