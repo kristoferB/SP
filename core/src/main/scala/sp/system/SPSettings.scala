@@ -38,4 +38,11 @@ class SPSettings(system: ExtendedActorSystem) extends Extension {
   val rcaEmitFakeEvents = system.settings.config getBoolean "sp.robotCycleAnalysis.emitFakeEvents"
 
 
+  val elasticSearchIP = system.settings.config getString "sp.robotServices.elasticSearchIP"
+  val elasticSearchPort = system.settings.config getInt "sp.robotServices.elasticSearchPort"
+  val routinesToIgnore = system.settings.config getStringList  "sp.robotServices.services.routineChange.routinesToIgnore"
+  val homePosSignals = system.settings.config getStringList "sp.robotServices.services.cycleChange.homePosSignals"
+
+
+
 }
