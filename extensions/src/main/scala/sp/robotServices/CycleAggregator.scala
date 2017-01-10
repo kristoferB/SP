@@ -210,7 +210,7 @@ class CycleAggregator extends ServiceBase {
     val cycleActivities = cycle.activities.flatMap {
       activity =>
         activity._2.map(activityList => activityList._2.map(act => WorkCellActivity(cycle.workCellId,
-          cycle.id, cycle.from, cycle.to,ReadableDurationOrdering(cycle.to - cycle.from) ,activity._1, act.id, act.from, act.to, act.name, act.`type`)))
+          cycle.id, cycle.from, cycle.to,activity._1, act.id, act.from, act.to, act.name, act.`type`)))
     }
 
     sendToES(write(cycleActivities), cycle.id, index_robotActivities)

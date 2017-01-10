@@ -72,7 +72,6 @@ object Domain {
                               cycleId: String,
                               cycleStart: DateTime,
                               cycleEnd: DateTime,
-                              cycleTime: ReadableDuration,
                               resource: String,
                               activityId: String,
                               activityStart: DateTime,
