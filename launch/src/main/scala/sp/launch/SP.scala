@@ -178,6 +178,14 @@ object SP extends App {
     OperationControl.transformation
   ))
 
+  import  sp.opcMilo._
+    mediator ! Publish("serviceHandler", RegisterService(
+    "OpcCommunication",
+    system.actorOf(OpcCommunication.props(eventHandler), "OpcCommunication"),
+    OpcCommunication.specification,
+    OpcCommunication.transformation
+  ))
+
   import sp.robotCycleAnalysis._
   mediator ! Publish("serviceHandler", RegisterService(
     "RobotCycleAnalysis",
