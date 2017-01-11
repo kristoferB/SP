@@ -27,7 +27,8 @@ lazy val commonSettings = packSettings ++ Seq(
   scalaVersion := "2.11.8",
   resolvers ++= Seq(
     "Sonatype OSS Snapshots" at "https://oss.sonatype.org/Releases",
-    "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/"),
+    "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/",
+    "sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"),
   scalacOptions  := Seq(
     "-encoding", "utf8",
     "-feature",
