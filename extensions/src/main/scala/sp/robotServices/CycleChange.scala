@@ -105,7 +105,8 @@ class CycleChange extends ServiceBase {
     import org.json4s.JsonDSL._
     getWorkCellsFlag = !getWorkCellsFlag
     val json = ("event" -> "newWorkCellEncountered") ~ ("service" -> "cycleChange")
-    sendToBus(write(json))
+    log.info("CYCLE CHANGE REQUESTING WORK CELL LIST: " + json)
+    sendToBusWithTopic(settings.activeMQRequestTopic, write(json))
   }
 
   def uuid: String = java.util.UUID.randomUUID.toString

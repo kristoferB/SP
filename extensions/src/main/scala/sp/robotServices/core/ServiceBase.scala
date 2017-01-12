@@ -44,6 +44,10 @@ trait ServiceBase extends Actor {
 
   }
 
+  def sendToBusWithTopic(topic: String, json: String) = {
+    theBus.foreach{bus => bus ! SendMessage(Topic(topic), AMQMessage(json))}
+  }
+
   def sendToBus(json: String) = {
     theBus.foreach{bus => bus ! SendMessage(Topic(s"${settings.activeMQTopic}"), AMQMessage(json))}
   }

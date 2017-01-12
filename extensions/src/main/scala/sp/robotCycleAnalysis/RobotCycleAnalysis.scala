@@ -40,7 +40,8 @@ object RobotCycleAnalysis extends SPService {
     "busSettings" -> SPAttributes(
       "host"  -> KeyDefinition("String", List(), Some(settings.activeMQ)),
       "port"  -> KeyDefinition("Int", List(), Some(settings.activeMQPort)),
-      "topic" -> KeyDefinition("String", List(), Some(settings.activeMQTopic))
+      "topic" -> KeyDefinition("String", List(), Some(settings.activeMQTopic)),
+      "requestTopic" -> KeyDefinition("String", List(), Some(settings.activeMQRequestTopic))
     ),
     "workCellId" -> KeyDefinition("String", List(), Some("not set")),
     "timeSpan" -> SPAttributes(
@@ -70,7 +71,7 @@ object RobotCycleAnalysis extends SPService {
 }
 
 case class RobotCyclesRequest(cycleIds: Option[List[String]])
-case class BusSettings(host: String, port: Int, topic: String)
+case class BusSettings(host: String, port: Int, topic: String, requestTopic: String)
 case class Robot(name: String)
 case class TimeSpan(from: String, to: String)
 trait CycleEvent { def start: Boolean; def time: DateTime; }
@@ -86,10 +87,11 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
   val spServiceID = ID.newID
   val spServiceName = self.path.name
   var busSettings: Option[BusSettings] = Some(BusSettings(settings.activeMQ, settings.activeMQPort,
-    settings.activeMQTopic))
+    settings.activeMQTopic, settings.activeMQRequestTopic))
   var bus: Option[ActorRef] = None
   var isInterrupted = false
   var liveWorkCells: List[String] = List.empty
+  var allWorkCells: Set[String] = Set.empty
 
   def receive = {
     case RegisterService(s, _, _,_) => println(s"Service $s is registered")
@@ -194,9 +196,9 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
 
   def searchCycles(cycleId: String, timeSpan: TimeSpan, workCellId: String) = {
     val mess = SPAttributes(
-        "cycleId" -> cycleId,
-        "timeSpan" -> timeSpan,
-        "workCellId" -> workCellId
+      "cycleId" -> cycleId,
+      "timeSpan" -> timeSpan,
+      "workCellId" -> workCellId
     )
     notifyIfError(sendToBus(mess), "Failed to search for cycles.")
 
@@ -210,10 +212,15 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
       "event" -> "workCellListOpened",
       "service" -> "spRuntime"
     )
-    notifyIfError(sendToBus(mess), "Failed to publish workCellListOpened event.")
+    println("ROBOTCYCLE REQUESTING WORK CELL LIST: " + mess.toJson)
+    notifyIfError(sendToRequestBus(mess), "Failed to publish workCellListOpened event.")
 
     if (settings.rcaEmitFakeEvents)
       sendToBus(fakes.workCells)
+
+    // hack to send "offline list" immediately
+    val attr = SPAttributes("workCells" -> allWorkCells.toList)
+    sendResponseViaSSE(attr)
   }
 
   def connectionEstablished(request: ConnectionRequest, busConnection: ActorRef) = {
@@ -245,8 +252,11 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
     if (isCycleSearchResult)
       println("Got an cycle search result")
 
-    if (isWorkCells)
-      println("Got a work cell list.")
+    if (isWorkCells) {
+      val attr = SPAttributes.fromJson(json).getOrElse(SPAttributes())
+      allWorkCells = allWorkCells.union(attr.getAs[Set[String]]("workCells").getOrElse(Set()))
+      println("Updating work cell list.")
+    }
 
     if (isCycleSearchResult || isCycleEvent || isActivityEvent || isWorkCells) {
       val spAttributes = SPAttributes.fromJson(json).get
@@ -271,6 +281,17 @@ class RobotCycleAnalysis(eventHandler: ActorRef) extends Actor with ServiceSuppo
 
   def getBusSettings: Either[SPErrorString, BusSettings] =
     setErrorIfNone(busSettings, "Bus settings not complete.")
+
+  def sendToRequestBus(mess: SPAttributes) = {
+    val result = for {
+      b <- getBus.right
+      s <- getBusSettings.right
+    } yield {
+      //println(s"sending: ${mess.toJson}")
+      b ! SendMessage(Topic(s.requestTopic), AMQMessage(write(mess))) // mess.toJson
+    }
+    addErrorDescription(result, "Failed to send message to bus.")
+  }
 
   def sendToBus(mess: SPAttributes) = {
     val result = for {

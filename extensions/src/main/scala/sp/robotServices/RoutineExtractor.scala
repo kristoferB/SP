@@ -60,7 +60,7 @@ class RoutineExtractor extends ServiceBase {
             ActivityEvent(priorId, !isStart, priorRoutine, event.robotId, event.programPointerPosition.time,
               "routines", event.workCellId)
           val json = write(routineStopEvent)
-          log.info("Previous routine: " + json)
+          // log.info("Previous routine: " + json)
           sendToBus(json)
         }
         if (!isWaitingRoutine(currentRoutine)) {
@@ -68,7 +68,7 @@ class RoutineExtractor extends ServiceBase {
             ActivityEvent(currentId, isStart, currentRoutine, event.robotId, event.programPointerPosition.time,
               "routines", event.workCellId)
           val json = write(routineStartEvent)
-          log.info("Current routine: " + json)
+          // log.info("Current routine: " + json)
           sendToBus(json)
         }
       }
