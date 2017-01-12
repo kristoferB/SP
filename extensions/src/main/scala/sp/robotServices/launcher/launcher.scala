@@ -67,6 +67,8 @@ object LaunchRobotRuntimeService extends SPService {
 
   println("Launch robots......")
   var actors = List.empty[ActorRef]
+  actors = startServices()
+
   def receive = {
     case r@Request(service, attr, ids, reqID) =>
 

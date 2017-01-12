@@ -143,7 +143,7 @@ class InstructionFiller extends ServiceBase{
   def requestModules(robotId: RobotId) = {
     import org.json4s.JsonDSL._
     val json = ("event" -> "newRobotEncountered") ~ ("robotId" -> robotId) ~ ("service" -> "instructionFiller")
-    sendToBus(write(json))
+    sendToBusWithTopic(settings.activeMQRequestTopic, write(json))
   }
 }
 
