@@ -11,9 +11,9 @@ object SPGUICircuit extends Circuit[RootModel] with ReactConnector[RootModel] {
   )
 }
 
-class DashboardHandler[M](modelRW: ModelRW[M, List[ReactElement]]) extends ActionHandler(modelRW) {
+class DashboardHandler[M](modelRW: ModelRW[M, List[String]]) extends ActionHandler(modelRW) {
   def handle = {
-    case AddWidget(element) => updated(value :+ element)
+    case AddWidget(widgetType) => updated(value :+ widgetType)
     case CloseWidget(index) => updated(value.zipWithIndex.filter(_._2 != index).map(_._1))
   }
 }

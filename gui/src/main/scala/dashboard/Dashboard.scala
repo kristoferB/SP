@@ -5,8 +5,10 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import diode.react.ModelProxy
 
+import spgui.WidgetList
+
 object Dashboard {
-  case class Props(proxy: ModelProxy[List[ReactElement]])
+  case class Props(proxy: ModelProxy[List[String]])
 
   class Backend($: BackendScope[Props, Unit]) {
     def render(p: Props) =
@@ -17,7 +19,7 @@ object Dashboard {
           cols = 8,
           draggableHandle = "." + DashboardCSS.widgetPanelHeader.htmlClass,
           onLayoutChange = _ => println("hej"),
-          for((w,index) <- p.proxy().zipWithIndex)
+          for((widgetType,index) <- p.proxy().zipWithIndex)
           yield ReactGridLayoutItem(
             key = index.toString,
             i = "idkdk",
@@ -27,7 +29,7 @@ object Dashboard {
             h = 1,
             isDraggable = true,
             isResizable = true,
-            child = DashboardItem(w, index)
+            child = DashboardItem(WidgetList()(widgetType), index)
           )
         )
       )
@@ -37,6 +39,6 @@ object Dashboard {
     .renderBackend[Backend]
     .build
 
-  def apply(proxy: ModelProxy[List[ReactElement]]) = component(Props(proxy))
+  def apply(proxy: ModelProxy[List[String]]) = component(Props(proxy))
 }
 
