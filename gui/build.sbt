@@ -17,6 +17,7 @@ libraryDependencies ++= Seq(
   "com.github.japgolly.scalacss" %%% "ext-react" % scalaCssVersion,
   "me.chrons" %%% "diode" % diodeVersion,
   "me.chrons" %%% "diode-react" % diodeVersion,
+  "com.lihaoyi" %%% "upickle" % "0.4.3",
   "fr.hmil" %%% "roshttp" % "2.0.0-RC1"
 )
 
