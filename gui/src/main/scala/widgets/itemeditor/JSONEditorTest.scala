@@ -6,28 +6,32 @@ import scalajs.js
 import scalajs.js.Dynamic.{literal => l}
 import org.scalajs.dom.raw.Element
 import org.scalajs.dom.document
+import java.util.concurrent.atomic.AtomicInteger
 
 object JSONEditorTest {
-  // TODO not that important but ideally we should get rid of the raw html ref
-  private val jsoneditordivUglyCustomId = "jsoneditordivUglyCustomId"
-  def apply() = component()
-  private val component = ReactComponentB[Unit]("JSONEditorTest")
-    .render(_ => jsoneditordiv)
-    .componentDidMount(_ => Callback(addTheJSONEditor(jsoneditordivUglyCustomId)))
-    .build
-  private val jsoneditordiv = <.div(
-    ^.id := jsoneditordivUglyCustomId
-  )
+  val incrementer = new AtomicInteger (0);
+
+  def apply() = component("JSONEditorId-" + incrementer.incrementAndGet().toString)
+
+  def component(id: String) = ReactComponentB[Unit]("JSONEditorTest")
+      .render_P(_ => <.div(
+        ^.id := id
+      )
+    )
+    .componentDidMount(_ => Callback(addTheJSONEditor(id)))
+    .build.apply()
+
 
   // TODO type this stuff in some neat scalatastic manner
   val json = l(
-      "type" -> "object",
-      "properties" -> l(
-        "name" -> l(
-          "type" -> "string"
+    "type" -> "object",
+    "properties" -> l(
+      "name" -> l(
+        "type" -> "string"
       )
     )
   )
+
 
   val options = l(
     "mode" -> "code",
