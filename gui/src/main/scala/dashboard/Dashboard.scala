@@ -41,4 +41,3 @@ object Dashboard {
 
   def apply(proxy: ModelProxy[List[String]]) = component(Props(proxy))
 }
-

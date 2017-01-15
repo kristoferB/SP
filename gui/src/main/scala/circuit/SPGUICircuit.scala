@@ -7,23 +7,13 @@ import upickle.default._
 import org.scalajs.dom.ext.SessionStorage
 import scala.util.{Success, Try}
 
-object SPGUICircuit extends Circuit[RootModel] with ReactConnector[RootModel] {
+object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] {
   def initialModel = BrowserStorage.load.getOrElse(InitialState())
   val actionHandler = composeHandlers(
     new DashboardHandler(zoomRW(_.openWidgets)((m,v) => m.copy(openWidgets = v)))
   )
   // store state upon any model change
   subscribe(zoomRW(myM => myM)((m,v) => v))(m => BrowserStorage.store(m.value))
-}
-
-object BrowserStorage {
-  val namespace = "SPGUIState"
-  def store(spGUIState: RootModel) = SessionStorage(namespace) = write(spGUIState)
-  def load: Option[RootModel] =
-    Try(SessionStorage(namespace) map read[RootModel]) match {
-      case Success(Some(state)) => Some(state)
-      case _ => None
-    }
 }
 
 class DashboardHandler[M](modelRW: ModelRW[M, List[String]]) extends ActionHandler(modelRW) {
@@ -33,3 +23,12 @@ class DashboardHandler[M](modelRW: ModelRW[M, List[String]]) extends ActionHandl
   }
 }
 
+object BrowserStorage {
+  val namespace = "SPGUIState"
+  def store(spGUIState: SPGUIModel) = SessionStorage(namespace) = write(spGUIState)
+  def load: Option[SPGUIModel] =
+    Try(SessionStorage(namespace) map read[SPGUIModel]) match {
+      case Success(Some(state)) => Some(state)
+      case _ => None
+    }
+}
