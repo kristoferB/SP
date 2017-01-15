@@ -16,9 +16,9 @@ object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] 
   subscribe(zoomRW(myM => myM)((m,v) => v))(m => BrowserStorage.store(m.value))
 }
 
-class DashboardHandler[M](modelRW: ModelRW[M, List[String]]) extends ActionHandler(modelRW) {
+class DashboardHandler[M](modelRW: ModelRW[M, List[OpenWidget]]) extends ActionHandler(modelRW) {
   def handle = {
-    case AddWidget(widgetType) => updated(value :+ widgetType)
+    case AddWidget(widgetType) => updated(value :+ OpenWidget(widgetType))
     case CloseWidget(index) => updated(value.zipWithIndex.filter(_._2 != index).map(_._1))
   }
 }
