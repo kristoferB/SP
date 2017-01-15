@@ -20,6 +20,8 @@ class DashboardHandler[M](modelRW: ModelRW[M, List[OpenWidget]]) extends ActionH
   def handle = {
     case AddWidget(widgetType) => updated(value :+ OpenWidget(widgetType))
     case CloseWidget(index) => updated(value.zipWithIndex.filter(_._2 != index).map(_._1))
+    case SetWidgetData(index, stringifiedWidgetData) =>
+      updated(value.zipWithIndex.map(t => if(t._2 == index) t._1.copy(stringifiedWidgetData = stringifiedWidgetData) else t._1))
   }
 }
 
