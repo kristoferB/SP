@@ -11,7 +11,8 @@ object WidgetList {
       ("Grid Test", spgui.dashboard.Grid.component()),
       ("Widget Injection", widgets.injection.WidgetInjectionTest()),
       ("Item Editor", widgets.itemeditor.ItemEditor()),
-      ("DragDrop Example", widgets.examples.dragndrop.DragAndDrop()),
+      ("DragDrop Example", widgets.examples.DragAndDrop()),
+      ("Widget with json", widgets.examples.WidgetWithJSON(0)),
       ("PlcHldrC", PlaceholderComp())
     )
 }

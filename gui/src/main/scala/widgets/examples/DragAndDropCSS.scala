@@ -1,4 +1,4 @@
-package spgui.widgets.examples.dragndrop
+package spgui.widgets.examples
 
 import scalacss.Defaults._
 
