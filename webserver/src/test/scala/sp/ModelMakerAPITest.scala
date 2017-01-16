@@ -79,13 +79,8 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
       val test = FixedType.read[Hej](json)
       println(test)
 
-    }
-    "testing dynamics" in {
-      val t = APITEST.Test1("hej", "då")
-      val json = FixedType.write(t)
-
-      val test = Dynami
-      println(test)
+      val text = """{"p1":"pp", "p2":"pp2"}"""
+      println(FixedType.read[APITEST.Test1](text))
 
     }
   }
