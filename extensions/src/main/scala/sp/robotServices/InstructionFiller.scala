@@ -72,7 +72,7 @@ class InstructionFiller extends ServiceBase{
 
           //To write to ES
           val json = write(filledEvent)
-          log.info("From instruction filler: " + json)
+          //log.info("From instruction filler: " + json)
           sendToBus(json)
 
 

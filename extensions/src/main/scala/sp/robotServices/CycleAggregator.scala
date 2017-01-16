@@ -53,6 +53,8 @@ class CycleAggregator extends ServiceBase {
       ReActiveMQExtension(context.system).manager ! GetConnection(s"nio://${settings.activeMQ}:${settings.activeMQPort}")
       elasticClient = Some(new Client(s"http://$elasticIP:$elasticPort"))
       elasticClient.foreach(client => indexes.foreach(index => client.createIndex(index)))
+      println("Connected to ES")
+      println(elasticClient.get.toString)
   }
 
   def handleAmqMessage(json: JValue): Unit = {
@@ -226,6 +228,7 @@ class CycleAggregator extends ServiceBase {
   }
 
   def sendToES(json: String, cycleId: String, index: String): Unit = {
+    println("Writing to ES" + cycleId + " " + index )
     elasticClient.foreach{client => client.index(
       index = index_robotCycle, `type` = "cycles", id = Some(cycleId),
       data = json, refresh = true

@@ -1,7 +1,7 @@
 package sp.launch
 
 
-import sp.robotServices.launcher.LaunchRobotRuntimeService
+import sp.robotServices.launcher.{LaunchRobotRuntimeService, LogPlayer}
 import sp.system._
 import sp.system.messages._
 
@@ -193,6 +193,12 @@ object SP extends App {
     system.actorOf(LaunchRobotRuntimeService.props, "LaunchRobotServices"),
     LaunchRobotRuntimeService.specification,
     LaunchRobotRuntimeService.transformation
+  ))
+  mediator ! Publish("serviceHandler", RegisterService(
+    "LogPlayer",
+    system.actorOf(LogPlayer.props, "LogPlayer"),
+    LogPlayer.specification,
+    LogPlayer.transformation
   ))
 
 //  import sp.exampleService._

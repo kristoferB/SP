@@ -110,6 +110,11 @@ object LaunchRobotRuntimeService extends SPService {
 
 
   }
+
+    override def postStop(): Unit = {
+      stopServices(actors)
+      super.postStop()
+    }
   def startServices() = {
     val actors  = new ListBuffer[ActorRef]
     val fillWithInstructionActor = context.actorOf(InstructionFiller.props, "InstructionFiller")
