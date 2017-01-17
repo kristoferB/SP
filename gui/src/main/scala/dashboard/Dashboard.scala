@@ -7,6 +7,7 @@ import diode.react.ModelProxy
 import spgui.circuit.OpenWidget
 
 import spgui.WidgetList
+import spgui.circuit.{SPGUICircuit, LayoutUpdated}
 
 object Dashboard {
   case class Props(proxy: ModelProxy[List[OpenWidget]])
@@ -19,7 +20,7 @@ object Dashboard {
           width = 1920,
           cols = 8,
           draggableHandle = "." + DashboardCSS.widgetPanelHeader.htmlClass,
-          onLayoutChange = _ => println("hej"),
+          onLayoutChange = _ => SPGUICircuit.dispatch(LayoutUpdated(0)),
           for((openWidget,index) <- p.proxy().zipWithIndex)
           yield ReactGridLayoutItem(
             key = index.toString,
