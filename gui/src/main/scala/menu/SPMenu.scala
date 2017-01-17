@@ -6,8 +6,6 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 import spgui.circuit.SPGUICircuit
 
 object SPMenu {
-  val availableWidgetsConnection = SPGUICircuit.connect(_.availableWidgets)
-
   private val component = ReactComponentB[Unit]("SPMenu")
     .render(_ =>
     <.nav(
@@ -16,7 +14,7 @@ object SPMenu {
       <.ul(
         ^.className := SPMenuCSS.buttonList.htmlClass,
         ^.className := "nav_navbar-nav",
-        availableWidgetsConnection(WidgetMenu(_))
+        WidgetMenu()
       )
     )
   )

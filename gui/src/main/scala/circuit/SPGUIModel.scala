@@ -1,11 +1,22 @@
 package spgui.circuit
 
 import diode._
-import japgolly.scalajs.react.ReactElement
 
 // state
-case class RootModel(availableWidgets: List[(String, ReactElement)], openWidgets: List[ReactElement])
+case class SPGUIModel(openWidgets: List[OpenWidget])
+case class OpenWidget(widgetType: String, stringifiedWidgetData: String = "")
 
 // actions
-case class AddWidget(element: ReactElement) extends Action
+case class AddWidget(widgetType: String) extends Action
 case class CloseWidget(index: Int) extends Action
+case class SetWidgetData(index: Int, stringifiedWidgetData: String) extends Action
+
+// used when failing to retrieve a state from browser storage
+object InitialState {
+  val initialState = SPGUIModel(
+    openWidgets = List(
+      OpenWidget("PlcHldrC")
+    )
+  )
+  def apply() = initialState
+}

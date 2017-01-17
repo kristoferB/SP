@@ -2,25 +2,23 @@ package spgui.menu
 
 import japgolly.scalajs.react._
 
-import diode.react.ModelProxy
 import spgui.circuit.{SPGUICircuit, AddWidget}
+import spgui.WidgetList
 
 object WidgetMenu {
-  case class Props(proxy: ModelProxy[List[(String, ReactElement)]])
-
-  class Backend($: BackendScope[Props, Unit]) {
-    def addW(element: ReactElement): Callback =
-      Callback(SPGUICircuit.dispatch(AddWidget(element)))
-    def render(props: Props) =
+  class Backend($: BackendScope[Unit, Unit]) {
+    def addW(widgetType: String): Callback =
+      Callback(SPGUICircuit.dispatch(AddWidget(widgetType)))
+    def render =
       SPDropdown(
         "New Widget",
-        for((text, element) <- props.proxy()) yield (text, addW(element))
+        for(widgetType <- WidgetList().keys.toList) yield (widgetType, addW(widgetType))
       )
     }
 
-  private val component = ReactComponentB[Props]("WidgetMenu")
+  private val component = ReactComponentB[Unit]("WidgetMenu")
     .renderBackend[Backend]
     .build
 
-  def apply(proxy: ModelProxy[List[(String, ReactElement)]]) = component(Props(proxy))
+  def apply() = component()
 }

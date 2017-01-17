@@ -143,10 +143,12 @@ case class DummyMessage(header: DummyHeader, body: DummyBody)
 class DummyActor extends Actor {
   val mess = upickle.default.write(DummyMessage(DummyHeader(java.util.UUID.randomUUID()), DummyBody("hej", "då")))
   println("DUMMY STARTS")
+  var repl: ActorRef = self
   def receive = {
+    case Subscribe(_, _, r) => repl = r
     case x =>
       println(s"Dummy got: " +x)
-      sender() ! mess
+      repl ! mess
   }
 }
 
