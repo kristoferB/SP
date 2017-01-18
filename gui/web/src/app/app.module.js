@@ -25,7 +25,8 @@
         'app.activeOrder',
         'app.Tobbe2',
         'app.volvoRobotScheduling',
-        'app.ganttViewer'
+        'app.ganttViewer',
+        'app.opcuaClient'
     ]);
 
 })();
