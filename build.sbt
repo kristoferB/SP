@@ -15,7 +15,8 @@ lazy val akka = Seq(
 lazy val json = Seq(
   "com.github.nscala-time" %% "nscala-time" % "2.12.0",
   "org.json4s" %% "json4s-native" % "3.4.0",
-  "org.json4s" %% "json4s-ext" % "3.4.0"
+  "org.json4s" %% "json4s-ext" % "3.4.0",
+  "com.lihaoyi" %% "upickle" % "0.4.3"
 )
 
 lazy val support = Seq(

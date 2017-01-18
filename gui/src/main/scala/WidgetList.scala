@@ -3,7 +3,6 @@ package spgui
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
-import spgui.widgets
 
 object WidgetList {
   def apply() =
@@ -13,7 +12,8 @@ object WidgetList {
       ("Item Editor", widgets.itemeditor.ItemEditor()),
       ("DragDrop Example", widgets.examples.DragAndDrop()),
       ("Widget with json", widgets.examples.WidgetWithJSON(0)),
-      ("PlcHldrC", PlaceholderComp())
+      ("PlcHldrC", PlaceholderComp()),
+      ("CommTest", widgets.WidgetCommTest())
     )
 }
 

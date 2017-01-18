@@ -26,19 +26,7 @@ import scala.util._
 
 
 
-object APITEST {
-  sealed trait API
-  case class Test1(p1: String, p2: String) extends API
-  case class Test2(p1: Int, p2: Int) extends API
-  case class Test3(p1: Double, p2: Tom) extends API
 
-  sealed trait SUB
-  case class Tom(str: String) extends SUB
-
-  lazy val apiClasses: List[Class[_]] =   sp.macros.MacroMagic.values[API]
-  lazy val apiJson: List[String] = sp.macros.MacroMagic.info[API, SUB]
-
-}
 
 
 
@@ -82,32 +70,10 @@ object LaunchGUI  {//extends MySslConfiguration {
     //import upickle.default._
 
     def api =
-      pathPrefix("test"){
-        post{
-          entity(as[String]){t =>
-            val res = APIParser.read[APITEST.API](t)
-            complete("JA, det funderar: "+ t)
-          }
-        } ~
-        get {
-          val t = APITEST.Test1("hej", "då")
-          complete(HttpResponse(entity = HttpEntity(ContentType(MediaTypes.`application/json`), APIParser.write(t))))
-        }
-      } ~
-      pathPrefix("operation"){
-        get {
-          import sp.domain._
-          import sp.domain.Logic._
-          val t = Operation("hej", List(), SPAttributes("test"->APITEST.Test1("hej", "kalle")))
-          val json = SPValue(t).toJson
-          complete(HttpResponse(entity = HttpEntity(ContentType(MediaTypes.`application/json`), json)))
-        }
-      } ~
         pathPrefix("socket"){
           get{
               val h = new WebsocketHandler(mediator, "answers")
                handleWebSocketMessages(h.webSocketHandler)
-
           }
       } ~
       pathPrefix("api") {
@@ -179,7 +145,7 @@ import akka.http.scaladsl.model.ws.{ Message, TextMessage }
 
 case class UPickleMessage(header: upickle.Js.Value, body: upickle.Js.Value)
 
-class WebsocketHandler(mediator: ActorRef, initialTopic: String = "services") {
+class WebsocketHandler(mediator: ActorRef, initialTopic: String = "answers") {
   var topics: Set[String] = Set()
   var messFilter: UPickleMessage => Boolean = (x: UPickleMessage) => true
   var myRef: Option[ActorRef] = None
@@ -220,8 +186,8 @@ class WebsocketHandler(mediator: ActorRef, initialTopic: String = "services") {
 
 
   val transformMessages: Flow[Message, Try[APIWebSocket.API], NotUsed] = Flow[Message]
-    .collect{ case TextMessage.Strict(text) => text}
-    .map{str => Try{APIParser.read[APIWebSocket.API](str)}}
+    .collect{ case TextMessage.Strict(text) => println(s"Websocket got: $text"); text}
+    .map{str => Try{sp.messages.APIParser.read[APIWebSocket.API](str)}}
 
   val matchWebSocketMessages: Flow[Try[APIWebSocket.API], MessageAndAck, NotUsed] = Flow[Try[APIWebSocket.API]]
       .collect{case x: Success[APIWebSocket.API] => x.value}
@@ -234,7 +200,7 @@ class WebsocketHandler(mediator: ActorRef, initialTopic: String = "services") {
           MessageAndAck(myRef.map(Unsubscribe(topic, _)), APIWebSocket.SPACK(s"Unsubscribing from topic $topic"))
         case APIWebSocket.PublishMessage(mess, topic) =>
           topics = topics - topic
-          MessageAndAck(Some(Publish(topic, APIParser.write(mess))), APIWebSocket.SPACK(s"Message sent to topic $topic"))
+          MessageAndAck(Some(Publish(topic, sp.messages.APIParser.write(mess))), APIWebSocket.SPACK(s"Message sent to topic $topic"))
       }
 
   val prepareToSend: Flow[MessageAndAck, Any, NotUsed] = Flow[MessageAndAck]
@@ -257,7 +223,7 @@ class WebsocketHandler(mediator: ActorRef, initialTopic: String = "services") {
     .map(mess => APIWebSocket.PublishMessage(mess, "FROMBUS"))
 
   val convertAPIToString = Flow[APIWebSocket.API]
-    .map(x => APIParser.write(x))
+    .map(x => sp.messages.APIParser.write(x))
 
   val printFlow = Flow[Any].filter(x => {println(s"WE GOT FROM THE BUS: $x"); true})
 
@@ -265,21 +231,3 @@ class WebsocketHandler(mediator: ActorRef, initialTopic: String = "services") {
 }
 
 
-
-
-// move to shaerd folder between jvm and js
-import upickle._
-object APIParser extends upickle.AttributeTagged {
-  override val tagName = "isa"
-
-  override def annotate[V: ClassTag](rw: Reader[V], n: String) = Reader[V]{
-    case Js.Obj(x@_*) if x.contains((tagName, Js.Str(n.split('.').takeRight(2).mkString(".")))) =>
-      rw.read(Js.Obj(x.filter(_._1 != tagName):_*))
-  }
-
-  override def annotate[V: ClassTag](rw: Writer[V], n: String) = Writer[V]{ case x: V =>
-    val filter = n.split('.').takeRight(2).mkString(".")
-    Js.Obj((tagName, Js.Str(filter)) +: rw.write(x).asInstanceOf[Js.Obj].value:_*)
-  }
-
-}

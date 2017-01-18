@@ -148,6 +148,8 @@ class DummyActor extends Actor {
     case Subscribe(_, _, r) => repl = r
     case x =>
       println(s"Dummy got: " +x)
+      import context.dispatcher
+      context.system.scheduler.scheduleOnce(500 milliseconds, self, mess)
       repl ! mess
   }
 }

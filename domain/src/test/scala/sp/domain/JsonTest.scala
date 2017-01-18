@@ -1,9 +1,9 @@
 package sp.domain
 
-import org.scalatest._
 import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization._
+import org.scalatest._
 
 /**
  * Created by kristofer on 15-05-27.

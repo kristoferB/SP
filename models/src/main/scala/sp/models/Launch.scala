@@ -1,6 +1,7 @@
 package sp.models
 
 import akka.actor._
+import sp.domain._
 
 import scala.io.Source
 import scala.util.{Failure, Success}
@@ -22,26 +23,55 @@ object Launch extends App {
     system.actorOf(Props(classOf[TestingWidget]), "testingWidget")
 }
 
+import sp.domain.Logic._
+
 // testing actor
 class TestingWidget extends Actor with ActorLogging {
   import akka.cluster.pubsub._
   import DistributedPubSubMediator._
   val mediator = DistributedPubSub(context.system).mediator
-  mediator ! Subscribe("widgets", self)
+  mediator ! Subscribe("services", self)
   mediator ! Put(self)
 
+  var mess: Option[SPAttributes] = None
   println("I'm running")
+  var c = 0
 
   def receive = {
+    case "tick" =>
+      println("Testing widget got tick: "+mess)
+      mess = updMess(mess)
+      mess.map(x => mediator ! Publish("answers", x.toJson))
+      tick
     case x: String =>
       println("Testing widget got: "+x)
-      scala.util.Try(new java.io.File(s"./gui/sp-example-widget/$x")) match {
-        case Success(file) => sender() ! file
-        case Failure(e) => sender() ! s"failed reading file: ${e.getMessage}"
-      }
+      println("Testing widget got: "+mess)
+
+      mess = updMess(SPAttributes.fromJson(x))
+      tick
+
+//      scala.util.Try(new java.io.File(s"./gui/sp-example-widget/$x")) match {
+//        case Success(file) => sender() ! file
+//        case Failure(e) => sender() ! s"failed reading file: ${e.getMessage}"
+//      }
     case x => println("Testing widget got not as string: "+x)
 
   }
+
+  def updMess(newMess: Option[SPAttributes]) = {
+    newMess.map(x => {
+      val header = x.getAs[SPAttributes]("header").map(_ + ("c"->c))
+      val body = x.getAs[SPAttributes]("body")
+      c = c+1
+      SPAttributes("header"->header, "body"->body)
+    })
+  }
+
+  import context.dispatcher
+  import scala.concurrent.duration._
+  import akka.util.Timeout
+  import scala.util._
+  def tick = context.system.scheduler.scheduleOnce(5 seconds, self, "tick")
 
 }
 

@@ -83,6 +83,19 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
       println(FixedType.read[APITEST.Test1](text))
 
     }
+
+//    "testing even more on SP Messages" in {
+//      import sp.domain.Logic._
+//      val t1 = sp.messages.UPickleAPI.Test1("hej", "då")
+//      val t2 = sp.messages.UPickleAPI.Test4("hej", SPAttributes("hej"->SPAttributes("kalle"->1)))
+//      val json = sp.messages.APIParser.write(t2)
+//      println(json)
+//
+//
+//      val r = sp.messages.APIParser.read[sp.messages.UPickleAPI.API](json)
+//      println(r)
+//    }
+
   }
 
 

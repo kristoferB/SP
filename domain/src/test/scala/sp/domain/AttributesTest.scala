@@ -1,8 +1,8 @@
 package sp.domain
 
+import org.json4s._
 import org.scalatest._
 import sp.domain.Logic._
-import org.json4s._
 
 
 /**
