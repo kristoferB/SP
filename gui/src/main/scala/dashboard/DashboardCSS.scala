@@ -27,11 +27,12 @@ object DashboardCSS extends StyleSheet.Inline {
   )
 
   val widgetPanelBody = style("sp-panel-body")(
-    overflow.auto
+    overflow.auto,
+    height(100.%%)
   )
 
   val widgetPanelContent = style("sp-widget-panel-content")(
-
+    height(100.%%)
   )
 
   val reactGridPlaceholder = style("react-grid-placeholder")(

@@ -7,11 +7,11 @@ object ItemEditor {
 
   private val component = ReactComponentB[Unit]("ItemEditor")
     .render(_ =>
-      <.div(
-        <.h3("hello from ItemEditor"),
-        JSONEditorTest()
-      )
+    <.div(
+      ^.className := ItemEditorCSS.editor.htmlClass,
+      JSONEditorTest()
     )
+  )
     .build
 
   def apply(): ReactElement = component()
