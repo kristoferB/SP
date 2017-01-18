@@ -11,6 +11,16 @@ object GlobalCSS extends StyleSheet.Inline {
     )
   )
 
+  val button = style(
+    unsafeRoot("button")(
+      border.none,
+      padding(10.px),
+      borderWidth(1.px),
+      borderColor.gray,
+      borderStyle.solid
+    )
+  )
+
   val layout = style("sp-layout")(
 
   )

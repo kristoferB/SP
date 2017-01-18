@@ -14,11 +14,20 @@ object SPMenu {
       <.ul(
         ^.className := SPMenuCSS.buttonList.htmlClass,
         ^.className := "nav_navbar-nav",
+        ^.className := SPMenuCSS.navbarCell.htmlClass,
         WidgetMenu()
-      )
+      ),
+      spLogo
     )
   )
     .build
+
+  private val spLogo = (
+      <.ul(
+        ^.className := SPMenuCSS.spLogo.htmlClass,
+        ^.className := SPMenuCSS.navbarCell.htmlClass
+      )
+    )
 
   def apply() = component()
 }
