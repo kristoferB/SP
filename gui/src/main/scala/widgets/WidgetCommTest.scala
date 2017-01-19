@@ -42,6 +42,14 @@ object WidgetCommTest {
   case class State(str: String)
 
   private class Backend($: BackendScope[Unit, State]) {
+    import communication._
+
+    val messObs = Comm.getMessageObserver { mess =>
+      val c = Try{upickle.default.readJs[Cme](mess.header)}
+      c.map(kalle => changeState(kalle.c.toString).runNow())
+    }
+
+
     def changeState(str: String): Callback = $.setState(State(str))
 
     def render(s: State) =
@@ -57,6 +65,12 @@ object WidgetCommTest {
           ^.onClick --> Callback.future(send), "SEND"
         )
       )
+
+    def onUnmount() = {
+      println("Unmounting")
+      messObs.kill()
+      Callback.empty
+    }
 
     def updateMe(e: ReactEventI): Callback = {
       changeState(e.target.value)
@@ -88,22 +102,17 @@ object WidgetCommTest {
       }
 
 
-      import communication._
+
       val header = Hej("hej")
       val body = Hej("hej")
 
       //Comm.initWS
 
-      implicit val ctx: Ctx.Owner = Ctx.Owner.safe()
-      val o = Comm.publishMessage("services", UPickleMessage(APIParser.writeJs(header), APIParser.writeJs(body)))
-      val p = Promise[Callback]
-      val res = o.map(x => x.trigger({
-        println("HEJ hopp")
-        println("trigger: "+ x.now)
-        val c = Try{upickle.default.readJs[Cme](x.now.header)}
-        c.map(kalle => changeState(kalle.c.toString).runNow())
-        p.success(Callback.log("Callback: "+x.now.toString))
-      }))
+
+      Comm.publishMessage("services", UPickleMessage(APIParser.writeJs(header), APIParser.writeJs(body)))
+
+      val p = Promise[Callback]()
+      //Comm.getWebSocketNotifications(str => p.success(Callback.alert(str)))
       p.future
 
 
@@ -190,8 +199,9 @@ object WidgetCommTest {
 
 
   private val component = ReactComponentB[Unit]("WidgetInjectionTest")
-      .initialState(State("HEJ"))
+    .initialState(State("HEJ"))
     .renderBackend[Backend]
+      .componentWillUnmount(_.backend.onUnmount())
     .build
 
   def apply(): ReactElement = component()

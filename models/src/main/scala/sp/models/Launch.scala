@@ -47,8 +47,8 @@ class TestingWidget extends Actor with ActorLogging {
       println("Testing widget got: "+x)
       println("Testing widget got: "+mess)
 
+      if (mess.isEmpty) tick
       mess = updMess(SPAttributes.fromJson(x))
-      tick
 
 //      scala.util.Try(new java.io.File(s"./gui/sp-example-widget/$x")) match {
 //        case Success(file) => sender() ! file
@@ -71,7 +71,7 @@ class TestingWidget extends Actor with ActorLogging {
   import scala.concurrent.duration._
   import akka.util.Timeout
   import scala.util._
-  def tick = context.system.scheduler.scheduleOnce(5 seconds, self, "tick")
+  def tick = context.system.scheduler.scheduleOnce(500 milliseconds, self, "tick")
 
 }
 

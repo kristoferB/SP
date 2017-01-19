@@ -35,8 +35,17 @@ object APIWebSocket {
   * Created by kristofer on 2017-01-04.
   */
 object Comm {
+  import rx._
+  implicit val ctx: Ctx.Owner = Ctx.Owner.safe()
 
-  var ws: Option[WebSocketHandler] = None
+  // Since this is an object, to init the communication, we have to trigger it in a method
+  private var ws: Option[WebSocketHandler] = None
+
+  def initCommunication(reInit: Boolean = false): Unit = {
+    if (ws.isEmpty  || reInit) {
+      ws = newWebsocket
+    }
+  }
 
   /**
     * Publish a message on a topic via websocket
@@ -45,14 +54,26 @@ object Comm {
     * @return An option with a reactive variable to be used as observer. call trigger on it for side effects
     */
   def publishMessage(topic: String,  mess: UPickleMessage) = {
-    if (ws.isEmpty) {
-      ws = Some(WebSocketHandler(getWebsocketUri))
-
-    }
+    initCommunication()
     ws.map(_.publishMessage(topic, mess))
   }
 
-
+  def getMessageObserver(callBack: (UPickleMessage) => Unit ): rx.Obs = {
+    initCommunication()
+    ws.get.receivedMessage.foreach(callBack)
+  }
+  def getWebSocketNotifications(callBack: (String) => Unit ): rx.Obs = {
+    initCommunication()
+    ws.get.notification.foreach(callBack)
+  }
+  def getWebSocketErrors(callBack: (String) => Unit ): rx.Obs = {
+    initCommunication()
+    ws.get.errors.foreach(callBack)
+  }
+  def getWebSocketStatus = {
+    initCommunication()
+    ws.get.wsOpen
+  }
 
 
 
@@ -89,10 +110,12 @@ object Comm {
   }
 
 
+  private def newWebsocket = {
+    Some(WebSocketHandler(getWebsocketUri))
+  }
 
   def getWebsocketUri: String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-
     s"$wsProtocol://${dom.document.location.host}/socket"
   }
 
@@ -109,13 +132,12 @@ case class WebSocketHandler(uri: String) {
     * @return An reactive variable to be used as obserer. call trigger on it for side effect
     */
   def publishMessage(topic: String,  mess: UPickleMessage) = {
-    if (isWebsocketOpen) {
+    if (wsOpen.now) {
       val toSend = APIWebSocket.PublishMessage(mess, topic)
       ws.send(APIParser.write(toSend))
-    } else notification() = "The websocket is still Not Open"
+    } else notification() = "The websocket is not Open"
     receivedMessage
   }
-  def isWebsocketOpen = wsIsOpen
 
 
 
@@ -123,14 +145,21 @@ case class WebSocketHandler(uri: String) {
   val receivedMessage: Var[UPickleMessage] = Var(UPickleMessage(upickle.Js.Null, upickle.Js.Null))
   val notification = Var("")
   val errors = Var("")
+  val wsOpen = Var(false)
 
   private val ws: WebSocket = new WebSocket(uri)
-  private var wsIsOpen = false
+
   ws.onopen = { (e: dom.Event) =>
-    wsIsOpen = true
+    wsOpen() = true
   }
   ws.onmessage = (e: dom.MessageEvent) => {
     mess() = e.data.toString
+  }
+  ws.onclose = { (e: dom.Event) =>
+    wsOpen() = false
+  }
+  ws.onerror = { (e: dom.ErrorEvent) =>
+    errors() = e.message
   }
 
   def conv(str: String) = {
@@ -151,14 +180,21 @@ case class WebSocketHandler(uri: String) {
       }
   }
 
+  errors.triggerLater {
+    println(s"An error: ${errors.now}")
+  }
+  wsOpen.triggerLater {
+    println(s"Websocket is: ${wsOpen.now}")
+  }
+//   //some printlns for testing
 //  mess.trigger(println("GOT A MESSAGE ON WEBSOCKET: " + mess.now))
 //  api.trigger(println("Converted Message: " + api.toTry))
-  notification.trigger {
-    println(s"A NOTIFICATION: ${notification.now}")
-  }
-  receivedMessage.trigger {
-    println(s"A Message: ${receivedMessage.now}")
-  }
+//  notification.trigger {
+//    println(s"A NOTIFICATION: ${notification.now}")
+//  }
+//  receivedMessage.trigger {
+//    println(s"A Message: ${receivedMessage.now}")
+//  }
 }
 
 import upickle._
