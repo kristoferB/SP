@@ -3,6 +3,9 @@ package sp.launch
 
 import sp.system._
 import sp.system.messages._
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import java.util.concurrent.TimeUnit
 
 import scala.io.Source
 
@@ -268,7 +271,12 @@ object SP extends App {
   // launch REST API
   sp.server.LaunchGUI.launch
   scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
-    case x => system.terminate()
+    case x =>
+      system.terminate()
+      // wait for actors to die
+      Await.ready(system.whenTerminated, Duration(1, TimeUnit.MINUTES))
+      // cleanup milo crap
+      MiloOPCUAClient.destroy()
   }
 
 }

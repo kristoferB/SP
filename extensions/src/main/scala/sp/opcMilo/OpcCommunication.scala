@@ -38,7 +38,7 @@ import akka.actor._
 case class StateUpdate(activeState: Map[String, SPValue])
 
 object MiloOPCUAClient {
-  // call this at the end 
+  // call this at the end
   def destroy() = {
     Stack.releaseSharedResources();
   }
@@ -54,7 +54,10 @@ class MiloOPCUAClient {
   var currentTime: DateTime = new DateTime()
 
   def disconnect() = {
-    client.disconnect().get();
+    if(client != null) {
+      client.disconnect().get();
+      client = null
+    }
   }
 
   def isConnected = client != null
@@ -121,7 +124,11 @@ class MiloOPCUAClient {
 
   def subscribeToNodes(identifiers: List[String], reciever: ActorRef, samplingInterval: Double = 100.0): Unit = {
     val subscription = client.getSubscriptionManager.createSubscription(samplingInterval).get()
-    val requests = identifiers.map { i =>
+
+    val filtered = identifiers.filter(availableNodes.contains(_))
+    identifiers.filterNot(availableNodes.contains(_)).foreach { s => println("OPCUA - key does not exist! skipping: " + s) }
+
+    val requests = filtered.map { i =>
       val n = availableNodes(i).getNodeId().get()
       def readValueId = new ReadValueId(n, AttributeId.Value.uid(), null, QualifiedName.NULL_VALUE)
       def parameters = new MonitoringParameters(uint(clientHandles.getAndIncrement()), samplingInterval, null, uint(10), true)
@@ -155,6 +162,7 @@ class MiloOPCUAClient {
     c match {
       case q if q == classOf[Int] => JInt(v.asInstanceOf[Int])
       case q if q == classOf[UByte] => JInt(v.asInstanceOf[UByte].intValue())
+      case q if q == classOf[java.lang.Short] => JInt(v.asInstanceOf[java.lang.Short].intValue())
       case q if q == classOf[String] => JString(v.asInstanceOf[String])
       case q if q == classOf[java.lang.Boolean] => JBool(v.asInstanceOf[Boolean])
       case _ => println(s"need to add type: ${c}"); JString("fail")
@@ -168,6 +176,7 @@ class MiloOPCUAClient {
     c match {
       case q if q == classOf[Int] => new DataValue(new Variant(spVal.extract[Int]))
       case q if q == classOf[UByte] => new DataValue(new Variant(ubyte(spVal.extract[Int])))
+      case q if q == classOf[java.lang.Short] => new DataValue(new Variant(spVal.extract[Short]))
       case q if q == classOf[String] => new DataValue(new Variant(spVal.extract[String]))
       case q if q == classOf[java.lang.Boolean] => new DataValue(new Variant(spVal.extract[Boolean]))
       case _ => println(s"need to add type: ${c}"); new DataValue(new Variant(false))
@@ -198,4 +207,3 @@ class MiloOPCUAClient {
     }.toMap
   }
 }
-
