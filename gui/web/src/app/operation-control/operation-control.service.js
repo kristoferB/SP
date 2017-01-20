@@ -96,7 +96,7 @@
     function execute(id, params) {
       var mess = service.latestMess;
       mess.command = {
-        'commandType': 'execute',
+        'commandType': 'start',
         'execute': id,
         'parameters': params
       };

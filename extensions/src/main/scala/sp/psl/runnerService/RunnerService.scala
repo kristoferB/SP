@@ -85,9 +85,6 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
       // maps all operation ids to an AbilityStructure
       val ops = ids.collect{case o:Operation => o}
-        operationAbilityMap = ops.flatMap{ o =>
-          o.attributes.getAs[AbilityStructure]("ability").map(o.id -> _)
-        }.toMap
 
       // saves all parameters into a map
       val things = ids.collect{case t: Thing if t.name.endsWith(".pos")  => t}
@@ -95,7 +92,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
       // maps all names of abilities to the ability id
       val abilities = ops.collect{case o: Operation if o.attributes.getAs[String]("operationType").getOrElse("not") == "ability" => o}
-        //println("abilities = " + abilities)
+      //println("abilities = " + abilities)
       abilityMap = abilities.map(o => o.id -> o).toMap
 
       serviceHandler ! Request(operationController, SPAttributes("command"->SPAttributes("commandType"->"status")))
@@ -103,10 +100,10 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       // Makes the parentmap
       sop.foreach(createSOPMap)
       sopen = sop.toOption
-        println(s"we got a sop:")
-//      println("----------")
+      println(s"we got a sop:")
+      //      println("----------")
       println(sop)
-//      println("----------")
+      //      println("----------")
       sop.foreach(_.printMe(idMap))
       println("----------")
 
@@ -144,19 +141,14 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
           val completedIDs = state.state.filter{case (i,v) => v == SPValue("completed")}.keys.toList
           //println("completed ids = " + completedIDs)
 
-          val opsThatHasCompletedAbilities = (operationAbilityMap.filter{case (o, struct) =>
-            val abilityId = struct.id
-            completedIDs.contains(abilityId)
-          }).keySet
-
           //println(s"ops that has been compl: $opsThatHasCompletedAbilities")
 
-          val activeCompleted = activeSteps.filter(x=>opsThatHasCompletedAbilities.contains(x.operation))
+          val activeCompleted = activeSteps.filter(x=>completedIDs.contains(x.operation))
 
           // execute completed to flop run bit
           activeCompleted.foreach(x=>stopID(x.operation))
           // remove the completed ids
-          activeSteps = activeSteps.filterNot(x=>opsThatHasCompletedAbilities.contains(x.operation))
+          activeSteps = activeSteps.filterNot(x=>completedIDs.contains(x.operation))
 
           val res = activeCompleted.map(stepCompleted)
           // Kolla om hela SOPen är färdigt. Inte säker på att detta fungerar
@@ -195,8 +187,7 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
       case x: Parallel => x.sop.foreach(executeSOP)
       case x: Sequence if x.sop.nonEmpty => executeSOP(x.sop.head)
       case x: Hierarchy => {
-        val abs = operationAbilityMap(x.operation)
-        val a = abilityMap(abs.id)
+        val a = abilityMap(x.operation)
         if (checkPreCond(a)) {
           startID(x.operation)
           activeSteps = activeSteps :+ x
@@ -223,10 +214,10 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
   def stopID(id: ID) = {
     var paraMap: Map[ID, SPValue] = Map()
-    val abStructToFake = operationAbilityMap(id)
-    paraMap = abStructToFake.parameters.map(p => p.id -> p.value).toMap
+//    val abStructToFake = operationAbilityMap(id)
+//    paraMap = abStructToFake.parameters.map(p => p.id -> p.value).toMap
 
-    val abP = abilityMap(abStructToFake.id)
+    val abP = abilityMap(id)
     val opP = idMap(id)
 
     println(s"---------------")
@@ -242,8 +233,8 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
     println(s"---------------")
 
 
-    val abID = abStructToFake.id
-    val attr = SPAttributes("command"->SPAttributes("commandType"->"stop", "execute"->abID,
+//    val abID = abStructToFake.id
+    val attr = SPAttributes("command"->SPAttributes("commandType"->"stop", "execute"->id,
       "parameters" -> State(paraMap)))
 
     serviceHandler ! Request(operationController, attr)
@@ -251,10 +242,10 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
 
   def startID(id: ID) = {
     var paraMap: Map[ID, SPValue] = Map()
-    val abStructToFake = operationAbilityMap(id)
-    paraMap = abStructToFake.parameters.map(p => p.id -> p.value).toMap
+//    val abStructToFake = operationAbilityMap(id)
+//    paraMap = abStructToFake.parameters.map(p => p.id -> p.value).toMap
 
-    val abP = abilityMap(abStructToFake.id)
+    val abP = abilityMap(id)
     val opP = idMap(id)
 
     println(s"---------------")
@@ -269,8 +260,8 @@ class RunnerService(eventHandler: ActorRef, serviceHandler: ActorRef, operationC
     println(s"---------------")
 
 
-    val abID = abStructToFake.id
-    val attr = SPAttributes("command"->SPAttributes("commandType"->"start", "execute"->abID,
+  //  val abID = abStructToFake.id
+    val attr = SPAttributes("command"->SPAttributes("commandType"->"start", "execute"->id,
       "parameters" -> State(paraMap)))
 
     serviceHandler ! Request(operationController, attr)
@@ -351,6 +342,3 @@ trait SOPPrinterLogic {
   }
 
 }
-
-
-

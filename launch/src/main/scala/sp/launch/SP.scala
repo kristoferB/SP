@@ -220,6 +220,13 @@ object SP extends App {
     PSLModel.transformation
   ))
 
+  mediator ! Publish("serviceHandler", RegisterService(
+    "LabKitModel",
+    system.actorOf(LabKitModel.props, "LabKitModel"),
+    LabKitModel.specification,
+    LabKitModel.transformation
+  ))
+
   import sp.psl.runnerService._
   val rs = system.actorOf(RunnerService.props(eventHandler, serviceHandler, "OperationControl"), "RunnerService")
   mediator ! Publish("serviceHandler", RegisterService(
