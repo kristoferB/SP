@@ -13,7 +13,8 @@ object WidgetList {
       ("DragDrop Example", widgets.examples.DragAndDrop()),
       ("Widget with json", widgets.examples.WidgetWithJSON(0)),
       ("PlcHldrC", PlaceholderComp()),
-      ("CommTest", widgets.WidgetCommTest())
+      ("CommTest", widgets.WidgetCommTest()),
+      ("ChartTest", widgets.charts.ChartTest())
     )
 }
 
