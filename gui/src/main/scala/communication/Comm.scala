@@ -13,6 +13,7 @@ import monix.execution.Scheduler.Implicits.global
 import scala.util.{Failure, Success, Try}
 import fr.hmil.roshttp.response.SimpleHttpResponse
 import org.scalajs._
+import org.scalajs.dom.ext.Ajax
 import org.scalajs.dom.raw.WebSocket
 
 import scala.reflect.ClassTag
@@ -38,8 +39,9 @@ object Comm {
   import rx._
   implicit val ctx: Ctx.Owner = Ctx.Owner.safe()
 
-  // Since this is an object, to init the communication, we have to trigger it in a method
+  // Since Comm is an object, to init the communication, we have to trigger it in a method
   private var ws: Option[WebSocketHandler] = None
+
 
   def initCommunication(reInit: Boolean = false): Unit = {
     if (ws.isEmpty  || reInit) {
@@ -56,6 +58,16 @@ object Comm {
   def publishMessage(topic: String,  mess: UPickleMessage) = {
     initCommunication()
     ws.map(_.publishMessage(topic, mess))
+  }
+
+  def subscribe(topic: String) = {
+    initCommunication()
+    ws.foreach(_.subscribe(topic))
+  }
+
+  def unsubscribe(topic: String) = {
+    initCommunication()
+    ws.foreach(_.unsubscribe(topic))
   }
 
   def getMessageObserver(callBack: (UPickleMessage) => Unit ): rx.Obs = {
@@ -77,33 +89,19 @@ object Comm {
 
 
 
+  def ask(
+        mess: UPickleMessage,
+        topic: String = "request"
+        ): Future[UPickleMessage] = {
 
+    val url = org.scalajs.dom.window.location.href + "/api/"+topic
+    val p = Promise[UPickleMessage]
 
-  def sendRequest(
-        mess: upickle.Js.Value,
-        header: upickle.Js.Obj = upickle.Js.Obj("empty"-> upickle.Js.Str("header"))
-        ): Future[String] = {
-
-    val url = org.scalajs.dom.window.location.href
-    val request = HttpRequest(url).withPath("/request")
-    val p = Promise[String]
-
-    // upd header
-
-    import fr.hmil.roshttp.body.Implicits._
-    val json = fr.hmil.roshttp.body.JSONBody.JSONObject(
-      "header"->upickle.default.write(header),
-      "body" -> upickle.default.write(mess)
-    )
-
-    request.post(json).onComplete {
-      case x: Success[SimpleHttpResponse] =>
-        //check for errors here later
-        p.complete(Try{x.value.body})
-      case x: Failure[SimpleHttpResponse] =>
-        p.failure(x.exception)
-
+    Ajax.post(url, APIParser.write(mess)).onSuccess{ case xhr =>
+      val res = Try{APIParser.read[UPickleMessage](xhr.responseText)}
+        p.complete(res)
     }
+
 
     p.future
 
@@ -132,11 +130,24 @@ case class WebSocketHandler(uri: String) {
     * @return An reactive variable to be used as obserer. call trigger on it for side effect
     */
   def publishMessage(topic: String,  mess: UPickleMessage) = {
-    if (wsOpen.now) {
-      val toSend = APIWebSocket.PublishMessage(mess, topic)
-      ws.send(APIParser.write(toSend))
-    } else notification() = "The websocket is not Open"
+    val toSend = APIWebSocket.PublishMessage(mess, topic)
+    sendMessage(APIParser.write(toSend))
     receivedMessage
+  }
+
+  def subscribe(topic: String) = {
+    val toSend = APIWebSocket.Subscribe(topic)
+    sendMessage(APIParser.write(toSend))
+  }
+  def unsubscribe(topic: String) = {
+    val toSend = APIWebSocket.Unsubscribe(topic)
+    sendMessage(APIParser.write(toSend))
+  }
+
+  def sendMessage(mess: String) = {
+    if (wsOpen.now) {
+      ws.send(mess)
+    } else notification() = "The websocket is not Open"
   }
 
 
@@ -147,20 +158,27 @@ case class WebSocketHandler(uri: String) {
   val errors = Var("")
   val wsOpen = Var(false)
 
-  private val ws: WebSocket = new WebSocket(uri)
+  private var ws: WebSocket = makeWS()
 
-  ws.onopen = { (e: dom.Event) =>
-    wsOpen() = true
+  def makeWS(): WebSocket = {
+    val newWs = new WebSocket(uri)
+
+    newWs.onopen = { (e: dom.Event) =>
+      wsOpen() = true
+    }
+    newWs.onmessage = (e: dom.MessageEvent) => {
+      mess() = e.data.toString
+    }
+    newWs.onclose = { (e: dom.Event) =>
+      wsOpen() = false
+      ws = makeWS() // reconnecting websocket if idle. Maybe better to send keep alive messages?
+    }
+    newWs.onerror = { (e: dom.ErrorEvent) =>
+      errors() = e.message
+    }
+    newWs
   }
-  ws.onmessage = (e: dom.MessageEvent) => {
-    mess() = e.data.toString
-  }
-  ws.onclose = { (e: dom.Event) =>
-    wsOpen() = false
-  }
-  ws.onerror = { (e: dom.ErrorEvent) =>
-    errors() = e.message
-  }
+
 
   def conv(str: String) = {
     Try{APIParser.read[APIWebSocket.API](str)} match {

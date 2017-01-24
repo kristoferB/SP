@@ -14,11 +14,12 @@ import sp.system.PubActor
 
 import scala.reflect.ClassTag
 import akka.stream.scaladsl._
-import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.server.{Directives, MethodRejection, SchemeRejection}
 import akka.stream.scaladsl.Flow
 import akka.cluster.pubsub._
 import DistributedPubSubMediator._
 import akka.http.scaladsl.model.ws.TextMessage.Strict
+import sp.messages.APIParser
 
 import scala.util._
 
@@ -79,8 +80,17 @@ object LaunchGUI  {//extends MySslConfiguration {
       pathPrefix("api") {
         get {
           pathEndOrSingleSlash {
-            complete("yes")
+            complete("THE SP API")
           } ~
+            path("ask" / Segments) { cmd =>
+              if (cmd.isEmpty)
+                reject(SchemeRejection("cmd"))
+
+              val topic = cmd.head
+
+              complete("ask")
+
+            } ~
             path("widget" / Remaining) { file =>
               implicit val timeout: Timeout = 2.seconds
               println("ho ho widget: " + file)
@@ -228,6 +238,36 @@ class WebsocketHandler(mediator: ActorRef, initialTopic: String = "answers") {
   val printFlow = Flow[Any].filter(x => {println(s"WE GOT FROM THE BUS: $x"); true})
 
 
+}
+
+
+case class SendToMe(reply: ActorRef)
+class MessActor extends Actor {
+  var reply: Option[ActorRef] = None
+  var listeners: Map[String, ActorRef] = Map()
+  override def receive = {
+    case SendToMe(reply) => this.reply = Some(reply)
+    case APIWebSocket.Subscribe(topic) =>
+      if (reply.isEmpty)
+        println("THIS SHOULD NOT HAPPEN IN THE WEBSOCKET API. MESSACTOR NEEDS A SENDMEMESSAGE BEFORE SUBSCRIBING")
+      else if (!listeners.contains(topic))
+          listeners = listeners + (topic -> context.actorOf(Props(classOf[Listener], topic, reply.get)))
+
+    case APIWebSocket.Unsubscribe(topic) =>
+      if (listeners.contains(topic))
+        listeners(topic) ! PoisonPill
+        listeners = listeners - topic
+  }
+}
+
+class Listener(topic: String, reply: ActorRef) extends Actor  {
+  import akka.cluster.pubsub.DistributedPubSubMediator._
+  val mediator = DistributedPubSub(context.system).mediator
+
+  def receive = {
+    case str: String =>
+    case x => println(s"NU FICK LISTNER: $topic annat: $x")
+  }
 }
 
 
