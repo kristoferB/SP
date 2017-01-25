@@ -71,9 +71,9 @@ object LaunchGUI  {//extends MySslConfiguration {
     //import upickle.default._
 
     def api =
-        pathPrefix("socket"){
+        path("socket" / Segment){ topic =>
           get{
-              val h = new WebsocketHandler(mediator, "answers")
+              val h = new WebsocketHandler(mediator, topic)
                handleWebSocketMessages(h.webSocketHandler)
           }
       } ~
@@ -82,15 +82,8 @@ object LaunchGUI  {//extends MySslConfiguration {
           pathEndOrSingleSlash {
             complete("THE SP API")
           } ~
-            path("ask" / Segments) { cmd =>
-              if (cmd.isEmpty)
-                reject(SchemeRejection("cmd"))
-
-              val topic = cmd.head
-
-              complete("ask")
-
-            } ~
+            postMessage("ask", true) ~
+            postMessage("publish", false) ~
             path("widget" / Remaining) { file =>
               implicit val timeout: Timeout = 2.seconds
               println("ho ho widget: " + file)
@@ -111,6 +104,42 @@ object LaunchGUI  {//extends MySslConfiguration {
             }
         }
       }
+
+
+    def postMessage(url: String, ask: Boolean) = {
+      path(url / Segments) { cmd =>
+        if (cmd.isEmpty)
+          reject(SchemeRejection("no topic"))
+
+        val topic = cmd.head
+        val service = cmd.tail.headOption.getOrElse("")
+
+        post { entity(as[String]){data =>
+          val mess = fixMess(data, topic, service)
+          if (ask){
+            val answer = (mediator ? Publish(topic, mess)).mapTo[String]
+            complete(answer)
+          } else {
+            mediator ! Publish(topic, mess)
+            complete(APIParser.write(APIWebSocket.SPACK("Message sent")))
+          }
+        }}
+      }
+    }
+
+
+    def fixMess(mess: String, topic: String, service: String) = {
+      val uP = Try{APIParser.read[UPickleMessage](mess)}
+
+      val toSend = uP.map{ m =>
+        val updH = if (service.nonEmpty) {
+          val h = Try{m.header.obj.seq + ("service" -> upickle.Js.Str(service))}.map(x => upickle.Js.Obj(x.toSeq))
+          h.getOrElse(m.header)
+        } else m.header
+        APIParser.write(m.copy(header = updH))
+      }
+      toSend.getOrElse(mess)
+    }
 
     val route =
       api ~
@@ -155,8 +184,7 @@ import akka.http.scaladsl.model.ws.{ Message, TextMessage }
 
 case class UPickleMessage(header: upickle.Js.Value, body: upickle.Js.Value)
 
-class WebsocketHandler(mediator: ActorRef, initialTopic: String = "answers") {
-  var topics: Set[String] = Set()
+class WebsocketHandler(mediator: ActorRef, topic: String = "answers") {
   var messFilter: UPickleMessage => Boolean = (x: UPickleMessage) => true
   var myRef: Option[ActorRef] = None
 
@@ -188,8 +216,9 @@ class WebsocketHandler(mediator: ActorRef, initialTopic: String = "answers") {
   val receiveFromBus: Source[Any, Unit] = Source.actorRef[Any](5, OverflowStrategy.fail)
     .mapMaterializedValue { ref =>
       myRef = Some(ref)
-      mediator ! Subscribe(initialTopic, ref)
+      mediator ! Subscribe(topic, ref)
     }
+
 
   val sendToBus: Sink[Any, NotUsed] = Sink.actorRef[Any](mediator, "Killing me")
   val sendToWebSocket: Flow[String, Strict, NotUsed] =  Flow[String].map(str => TextMessage(str))
@@ -202,15 +231,14 @@ class WebsocketHandler(mediator: ActorRef, initialTopic: String = "answers") {
   val matchWebSocketMessages: Flow[Try[APIWebSocket.API], MessageAndAck, NotUsed] = Flow[Try[APIWebSocket.API]]
       .collect{case x: Success[APIWebSocket.API] => x.value}
       .collect{
-        case APIWebSocket.Subscribe(topic) if ! topics.contains(topic) =>
-          topics = topics + topic
-          MessageAndAck(myRef.map(Subscribe(topic, _)), APIWebSocket.SPACK(s"Subscribing to topic $topic"))
-        case APIWebSocket.Unsubscribe(topic) if topics.contains(topic) =>
-          topics = topics - topic
-          MessageAndAck(myRef.map(Unsubscribe(topic, _)), APIWebSocket.SPACK(s"Unsubscribing from topic $topic"))
-        case APIWebSocket.PublishMessage(mess, topic) =>
-          topics = topics - topic
-          MessageAndAck(Some(Publish(topic, sp.messages.APIParser.write(mess))), APIWebSocket.SPACK(s"Message sent to topic $topic"))
+//        case APIWebSocket.Subscribe(topic) if ! topics.contains(topic) =>
+//          topics = topics + topic
+//          MessageAndAck(myRef.map(Subscribe(topic, _)), APIWebSocket.SPACK(s"Subscribing to topic $topic"))
+//        case APIWebSocket.Unsubscribe(topic) if topics.contains(topic) =>
+//          topics = topics - topic
+//          MessageAndAck(myRef.map(Unsubscribe(topic, _)), APIWebSocket.SPACK(s"Unsubscribing from topic $topic"))
+        case APIWebSocket.PublishMessage(mess, t) =>
+          MessageAndAck(Some(Publish(t, sp.messages.APIParser.write(mess))), APIWebSocket.SPACK(s"Message sent to topic $t"))
       }
 
   val prepareToSend: Flow[MessageAndAck, Any, NotUsed] = Flow[MessageAndAck]
@@ -240,34 +268,5 @@ class WebsocketHandler(mediator: ActorRef, initialTopic: String = "answers") {
 
 }
 
-
-case class SendToMe(reply: ActorRef)
-class MessActor extends Actor {
-  var reply: Option[ActorRef] = None
-  var listeners: Map[String, ActorRef] = Map()
-  override def receive = {
-    case SendToMe(reply) => this.reply = Some(reply)
-    case APIWebSocket.Subscribe(topic) =>
-      if (reply.isEmpty)
-        println("THIS SHOULD NOT HAPPEN IN THE WEBSOCKET API. MESSACTOR NEEDS A SENDMEMESSAGE BEFORE SUBSCRIBING")
-      else if (!listeners.contains(topic))
-          listeners = listeners + (topic -> context.actorOf(Props(classOf[Listener], topic, reply.get)))
-
-    case APIWebSocket.Unsubscribe(topic) =>
-      if (listeners.contains(topic))
-        listeners(topic) ! PoisonPill
-        listeners = listeners - topic
-  }
-}
-
-class Listener(topic: String, reply: ActorRef) extends Actor  {
-  import akka.cluster.pubsub.DistributedPubSubMediator._
-  val mediator = DistributedPubSub(context.system).mediator
-
-  def receive = {
-    case str: String =>
-    case x => println(s"NU FICK LISTNER: $topic annat: $x")
-  }
-}
 
 
