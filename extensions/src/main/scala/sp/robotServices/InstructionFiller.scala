@@ -38,6 +38,7 @@ class InstructionFiller extends ServiceBase{
   // Functions
   def handleAmqMessage(json: JValue) = {
     if (json.has("readValue")) {
+      println("Got readvalue")
       val event: ModulesReadEvent = json.extract[ModulesReadEvent]
       event.readValue.foreach(task => {
         task.modules.foreach(module => moduleMap += (module.name -> module))
@@ -65,15 +66,29 @@ class InstructionFiller extends ServiceBase{
         if (robotMap(event.robotId)(eventPPPos.task).contains(eventPPPos.position.module)) {
           val module: Module = robotMap(event.robotId)(eventPPPos.task)(eventPPPos.position.module)
           val range: Range = eventPPPos.position.range
-          val instruction: Instruction = module.file(range.begin.row - 1).
-            slice(range.begin.column - 1, range.end.column + 1)
+
+          val instruction: Option[Instruction] = range.begin.row == range.end.row match{
+            case true => Option(module.file(range.begin.row - 1).
+              slice(range.begin.column - 1, range.end.column + 1))
+            case false => module.file.slice(range.begin.row - 1, range.end.row - 1).headOption
+          }
+          /*
+          if(range.begin.row == range.end.row){
+              val instruction: Instruction = module.file(range.begin.row - 1).
+                slice(range.begin.column - 1, range.end.column + 1)
+          }
+          else{
+            val instruction: Instruction = module.file.slice(range.begin.row - 1, range.end.row - 1).head
+          }*/
+
+
           val filledEvent: PointerWithInstruction =
-            PointerWithInstruction(event.robotId, event.workCellId, event.address, instruction, eventPPPos)
+            PointerWithInstruction(event.robotId, event.workCellId, event.address, instruction.getOrElse("None"), eventPPPos)
 
           //To write to ES
           val json = write(filledEvent)
-          //log.info("From instruction filler: " + json)
-          sendToBus(json)
+          //println("From instruction filler: " + json)
+          //sendToBus(json)
 
 
           fillWithIsWaiting(filledEvent)
@@ -105,8 +120,8 @@ class InstructionFiller extends ServiceBase{
       isWaiting = true
     val filledEvent = PointerWithIsWaiting(event.robotId, event.workCellId, event.address, instruction, isWaiting,
       event.programPointerPosition)
-   // val json: String = write(filledEvent)
-    //log.info("From isWaiting: " + json)
+    val json: String = write(filledEvent)
+    //println("From isWaiting: " + json)
     //sendToBus(json)
 
     checkIfWaitChange(filledEvent)
@@ -133,7 +148,7 @@ class InstructionFiller extends ServiceBase{
       }
       val activityEvent = ActivityEvent(activityId.toString, event.isWaiting, waitInstruction, event.robotId,
         event.programPointerPosition.time, "wait", event.workCellId)
-      log.info("From waitChange: " + activityEvent)
+      println("From waitChange: " + activityEvent)
       sendToBus(write(activityEvent))
     }
 

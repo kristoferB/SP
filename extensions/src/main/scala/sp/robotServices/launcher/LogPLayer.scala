@@ -22,17 +22,18 @@ import scala.io.Source
 /**
   * Created by ashfaqf on 1/15/17.
   */
-case class LogPlayerSetup(filePath: String, command: String)
+case class LogPlayerSetup(filePath: String, command: String, freq: Int)
 
 object LogPlayer extends SPService {
   implicit val formats = DefaultFormats
   val specification = SPAttributes(
     "service" -> SPAttributes(
-      "description" -> "Replays logs from a given log file"
+      "description" -> "Replays logs from a given log file at a given frequency in millis"
     ),
     "setup" -> SPAttributes(
-      "filePath" -> KeyDefinition("String",List(),Some("logs")),
-      "command" -> KeyDefinition("String", List("LoadFile", "ListEvents", "playEvent","setupBus" ), Some("setupBus"))
+      "filePath" -> KeyDefinition("String",List(),Some("/home/ashfaqf/Projects/Lisa files/logs/log-13_12_35")),
+      "command" -> KeyDefinition("String", List("LoadFile", "PlayLog","ListEvents", "playEvent","setupBus", "sendRobotModules"), Some("setupBus")),
+      "freq" -> KeyDefinition("Int",List(),Some(10))
       // "AMQBusIP" -> KeyDefinition("String", List(), Some(settings.activeMQ)),
       // "AMQBusUsername" -> KeyDefinition("String",List(),Some("admin")),
       // "AMQBusPass" -> KeyDefinition("String",List(),Some("admin")),
@@ -67,6 +68,7 @@ class LogPlayer extends Actor with ServiceSupport{
   var fileLoaded= false
   var wcellmap: Map[String,WorkCell] =Map.empty
   var robotIdToModues: Map[String,ModulesReadEvent] = Map.empty
+  var playLog :Boolean = true
   def receive = {
 
     case r@Request(service, attr, ids, reqID) =>
@@ -96,11 +98,20 @@ class LogPlayer extends Actor with ServiceSupport{
             }
           }
 
+        case "sendRobotModules" =>
+          rcdProgs.foreach{x =>
+            sendToBusWithTopic(settings.activeMQTopic,x.toJson)
+          Thread.sleep(setup.freq)}
 
         case "playEvent" =>
-          sendToBusWithTopic(settings.activeMQTopic,evts.head.toJson)
-          evts = evts.tail
+          playEvent()
 
+        case "PlayLog" =>
+          while(!evts.isEmpty && playLog) {
+            playEvent()
+            Thread.sleep(setup.freq)
+          }
+          println("Done playing log")
 
         case "ListEvents" =>
           if (fileLoaded) {
@@ -135,12 +146,13 @@ class LogPlayer extends Actor with ServiceSupport{
       implicit val formats = Serialization.formats(NoTypeHints)
       if(json.has("event")) {
         println("got event" + (json \ "event"))
-        println((json \ "event").extract[String] == "workCellListOpened" )
+        //println((json \ "event").extract[String] == "workCellListOpened" )
         if((json \ "event").extract[String] == "newRobotEncountered") {
+         // println("Sending robotModule")
           sendToBusWithTopic(settings.activeMQTopic, write(robotIdToModues((json \ "robotId").extract[String])))
         }
         if ((json \ "event").extract[String] == "newWorkCellEncountered"  || (json \ "event").extract[String] == "workCellListOpened" ) {
-          println("Sending wcell" + write("workCells" -> wcellmap.values.toList))
+         // println("Sending wcell")
           sendToBusWithTopic(settings.activeMQTopic, write("workCells" -> wcellmap.values.toList))
         }
       }
@@ -172,5 +184,11 @@ class LogPlayer extends Actor with ServiceSupport{
 
       parsedFile
     }
+  }
+
+  def playEvent(): Unit ={
+    sendToBusWithTopic(settings.activeMQTopic,evts.head.toJson)
+    evts = evts.tail
+
   }
 }
