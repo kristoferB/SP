@@ -239,6 +239,14 @@ object SP extends App {
 //    AutoTest.transformation
 //  )
 
+  import sp.labkit._
+  mediator ! Publish("serviceHandler", RegisterService(
+    "GanttBackend",
+    system.actorOf(GanttBackend.props(eventHandler), "GanttBackend"),
+    GanttBackend.specification,
+    GanttBackend.transformation
+  ))
+
 
   mediator ! Publish("serviceHandler", RegisterService(
     "VariableOperationMapper",

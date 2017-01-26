@@ -20,6 +20,14 @@
         vm.sortByEndTime = true;
         vm.load = load;
 
+        vm.add = function() {
+            var ot = vm.gantt[0].tasks[vm.gantt[0].tasks.length-1];
+            var from = moment(ot.from); from.add(15, 'seconds').format();
+            var to = moment(ot.to); to.add(15, 'seconds').format();
+            var t = { name: ot.name, from: from, to: to, color: '#4080ff', content: ''};
+            vm.gantt[0].tasks.push(t);
+        };
+
         function load(sortByEndTime) {
             if(!_.isUndefined(vm.widget.storage) && !_.isUndefined(vm.widget.storage.gantt)) {
                 vm.gantt = [];
