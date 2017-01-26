@@ -7,6 +7,8 @@ import japgolly.scalajs.react.vdom.all.aria
 object SPDropdown {
   case class Props(title: String, buttonsProps: List[(String, Callback)])
 
+
+
   val sampleProps = Props(
     "sample SPDropdown",
     ("hej1", Callback.log("hej1")) :: ("hej2", Callback.log("hej2")) :: Nil
