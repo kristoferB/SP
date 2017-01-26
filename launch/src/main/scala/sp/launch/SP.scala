@@ -184,7 +184,7 @@ object SP extends App {
   import  sp.opcMilo._
   mediator ! Publish("serviceHandler", RegisterService(
     "OpcUARuntime",
-    system.actorOf(OpcUARuntime.props(eventHandler), "OpcUARuntime"),
+    system.actorOf(OpcUARuntime.props, "OpcUARuntime"),
     OpcUARuntime.specification,
     OpcUARuntime.transformation
   ))
@@ -240,6 +240,14 @@ object SP extends App {
 //  )
 
   import sp.labkit._
+
+  mediator ! Publish("serviceHandler", RegisterService(
+    "OPC",
+    system.actorOf(OPC.props(serviceHandler), "OPC"),
+    OPC.specification,
+    OPC.transformation
+  ))
+
   mediator ! Publish("serviceHandler", RegisterService(
     "GanttBackend",
     system.actorOf(GanttBackend.props(eventHandler), "GanttBackend"),

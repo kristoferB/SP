@@ -101,6 +101,10 @@ class MiloOPCUAClient {
     }
   }
 
+  def getCurrentTime: org.joda.time.DateTime = {
+    new org.joda.time.DateTime(currentTime.getJavaDate())
+  }
+
   def setupServerTimeSubsciption(): Unit = {
     val subscription = client.getSubscriptionManager.createSubscription(100).get()
     val node  = client.getAddressSpace().createVariableNode(Identifiers.Server_ServerStatus_CurrentTime);

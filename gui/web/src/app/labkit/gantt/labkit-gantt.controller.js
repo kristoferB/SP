@@ -50,12 +50,12 @@
                 var name = event.attributes.resource;
                 if(event.attributes.executing) {
                     // start task
-                    var t = { name: name, from: moment(), to: moment(), color: colorMap['executing'], executing: true };
+                    var t = { name: name, from: moment(), to: moment(), color: colorMap['executing'] };
                     activeTasks.push(t);
                     var rix = _.findIndex(vm.gantt, function(r) { return r.name == name; });
                     if(rix == -1) {
                         // new resource, add it
-                        vm.gantt.push({name: name, tasks: t});
+                        vm.gantt.push({name: name, tasks: [ t ] });
                     } else {
                         // update existing resource
                         vm.gantt[rix].tasks.push(t);
@@ -70,6 +70,9 @@
                         activeTasks = _.filter(activeTasks, function(r) { return r.name != name; });
                     }
                 }
+
+                // sort on name
+                vm.gantt = _.sortBy(vm.gantt, function(row) { return row.name; });
             }
         }
 

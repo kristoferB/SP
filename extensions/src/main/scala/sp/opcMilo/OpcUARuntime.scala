@@ -12,6 +12,10 @@ import akka.pattern.ask
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.util.Properties
+import org.joda.time.DateTime
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
+import sp.system.SPActorSystem.system
 
 object OpcUARuntime extends SPService {
   val specification = SPAttributes(
@@ -23,16 +27,16 @@ object OpcUARuntime extends SPService {
   val transformTuple = ()
   val transformation = List()
 
-  def props(eventHandler: ActorRef) = Props(classOf[OpcUARuntime], eventHandler)
+  def props = Props(classOf[OpcUARuntime])
 }
 
 // simple example opc ua client useage
-class OpcUARuntime(eh: ActorRef) extends Actor with ServiceSupport {
+class OpcUARuntime extends Actor with ServiceSupport {
   implicit val timeout = Timeout(100 seconds)
   import context.dispatcher
+  val mediator = DistributedPubSub(system).mediator
+  val topic = "OPCState"
 
-  val serviceID = ID.newID
-  val serviceName = "OpcUARuntime"
   var client = new MiloOPCUAClient()
   var state = State(Map())
   var idToIdentifier: Map[ID, String] = Map()
@@ -53,32 +57,32 @@ class OpcUARuntime(eh: ActorRef) extends Actor with ServiceSupport {
       cmd match {
         case "connect" =>
           if(client.isConnected)
-            replyTo ! Response(List(), connectionAttr, rnr.req.service, rnr.req.reqID)
+            replyTo ! Response(List(), connectionAttr merge silent, rnr.req.service, rnr.req.reqID)
           else {
             val address = attr.getAs[String]("url").getOrElse("opc.tcp://localhost:12686")
             if(!client.connect(address)) {
               replyTo ! SPError("Could not connect to server")
             } else {
-              replyTo ! Response(List(),connectionAttr, rnr.req.service, rnr.req.reqID)
+              replyTo ! Response(List(),connectionAttr merge silent, rnr.req.service, rnr.req.reqID)
             }
           }
-        case "disconnect" =>
-          if(client.isConnected) client.disconnect()
+        case "disconnect" if client.isConnected =>
+          client.disconnect()
           replyTo ! Response(List(),connectionAttr merge silent, rnr.req.service, rnr.req.reqID)
-        case "getNodes" =>
+        case "getNodes" if client.isConnected =>
           val nodes = client.getAvailableNodes.map { case (i,dt) => (i,dt.toString) }.toMap
           replyTo ! Response(List(), SPAttributes("nodes"->nodes) merge silent, rnr.req.service, rnr.req.reqID)
-        case "subscribe" =>
+        case "subscribe" if client.isConnected =>
           val nodes = attr.getAs[List[String]]("nodes").getOrElse(List())
           client.subscribeToNodes(nodes, self)
-        case "write" =>
+        case "write" if client.isConnected =>
           val node = attr.getAs[String]("node").getOrElse("")
           val value = attr.getAs[SPValue]("value").getOrElse(SPValue(false))
           client.write(node, value)
       }
     }
     case StateUpdate(activeState) =>
-      eh ! Response(List(), SPAttributes("state"->activeState) merge silent, serviceName, serviceID)
+      mediator ! Publish(topic, SPAttributes("state"->activeState, "timeStamp" -> client.getCurrentTime.toString))
     case _ => sender ! SPError("Ill formed request");
   }
 
