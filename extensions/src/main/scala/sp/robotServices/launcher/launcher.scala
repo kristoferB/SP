@@ -129,9 +129,13 @@ object LaunchRobotRuntimeService extends SPService {
     cycleEventActor ! "connect"
     actors.append(cycleEventActor)
 
-    val cycleAggregatorActor = context.actorOf(CycleAggregator.props,"cycleAggregator")
-    cycleAggregatorActor ! "connect"
-    actors.append(cycleAggregatorActor)
+    //val cycleAggregatorActor = context.actorOf(CycleAggregator.props,"cycleAggregator")
+    //cycleAggregatorActor ! "connect"
+    //actors.append(cycleAggregatorActor)
+
+    val saveToEs = context.actorOf(SaveToES.props,"saveToEs")
+    saveToEs ! "connect"
+    actors.append(saveToEs)
 
     actors.toList
 
