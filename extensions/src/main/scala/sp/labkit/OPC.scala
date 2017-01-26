@@ -67,26 +67,21 @@ class OPC(sh: ActorRef) extends Actor with ServiceSupport {
     case attr: SPAttributes =>
       val time = attr.getAs[String]("timeStamp").getOrElse("")
       val state = attr.getAs[Map[String, SPValue]]("state").getOrElse(Map())
-      println("got state: " + state + " at time " + time)
       state.map{ case (s,v) =>
         val resource = nodeToResource(s)
         val bool = v == JBool(true)
-        println("res: " + resource + " bool: " + bool)
         if(bool && !resourceState(resource)) {
           // op started
           resourceState = resourceState + (resource -> true)
           mediator ! Publish("rawOperations", OperationStarted(resource, time))
-          println("published executing state")
         }
         if(!bool && resourceState(resource)) {
           // op started
           resourceState = resourceState + (resource -> false)
           mediator ! Publish("rawOperations", OperationFinished(resource, time))
-          println("published ended state")
         }
       }
     case _ =>
-      // sender ! SPError("Ill formed request");
   }
 
   def terminate(progress: ActorRef): Unit = {

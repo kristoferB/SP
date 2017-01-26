@@ -21,40 +21,41 @@ import sp.system.SPActorSystem.system
 
 import org.joda.time.DateTime
 
-object GanttBackend extends SPService {
+object WidgetsBackend extends SPService {
   val specification = SPAttributes(
     "service" -> SPAttributes(
       "group" -> "External",
-      "description" -> "Gantt Backend"
+      "description" -> "Labkit Widgets Backend"
     ))
 
   val transformTuple = ()
   val transformation = List()
 
-  def props(eventHandler: ActorRef) = Props(classOf[GanttBackend], eventHandler)
+  def props(eventHandler: ActorRef) = Props(classOf[WidgetsBackend], eventHandler)
 }
 
-// simple example opc ua client useage
-class GanttBackend(eh: ActorRef) extends Actor with ServiceSupport {
+class WidgetsBackend(eh: ActorRef) extends Actor with ServiceSupport {
   implicit val timeout = Timeout(100 seconds)
   import context.dispatcher
 
   val mediator = DistributedPubSub(system).mediator
 
   val serviceID = ID.newID
-  val serviceName = "GanttBackend"
+  val serviceName = "WidgetsBackend"
 
   val silent = SPAttributes("silent" -> true)
 
   mediator ! Subscribe("rawOperations", self)
+  mediator ! Subscribe("summedOperations", self)
 
   def receive = {
 
     case OperationStarted(name: String, time: String) =>
-      eh ! Response(List(), SPAttributes("resource"->name, "executing" -> true) merge silent, serviceName, serviceID)
-
+      eh ! Response(List(), SPAttributes("resource"->name, "executing" -> true, "startTime" -> time) merge silent, serviceName, serviceID)
     case OperationFinished(name: String, time: String) =>
       eh ! Response(List(), SPAttributes("resource"->name, "executing" -> false, "stopTime" -> time) merge silent, serviceName, serviceID)
+    case SummedOperations(state: Map[String,Int]) =>
+      eh ! Response(List(), SPAttributes("summedOperations"->state) merge silent, serviceName, serviceID)
 
     case _ =>
       // sender ! SPError("Ill formed request");

@@ -42,8 +42,8 @@
                 {sizeX: 4, sizeY: 4, title: 'Volvo Robot Scheduling Tool', template: 'app/volvo-robot-scheduling/volvo-robot-scheduling.html'},
                 {sizeX: 6, sizeY: 8, title: 'Gantt Viewer', template: 'app/gantt-viewer/gantt-viewer.html'},
                 {sizeX: 6, sizeY: 8, title: 'OPC UA Client', template: 'app/opcua-client/opcua-client.html'},
-                {sizeX: 6, sizeY: 8, title: 'Labkit Gantt', template: 'app/labkit/gantt/labkit-gantt.html'}
-                
+                {sizeX: 8, sizeY: 4, title: 'Labkit Gantt', template: 'app/labkit/gantt/labkit-gantt.html'},
+                {sizeX: 4, sizeY: 4, title: 'Labkit Pie', template: 'app/labkit/pie/labkit-pie.html'}
             ]
         };
 

@@ -249,10 +249,17 @@ object SP extends App {
   ))
 
   mediator ! Publish("serviceHandler", RegisterService(
-    "GanttBackend",
-    system.actorOf(GanttBackend.props(eventHandler), "GanttBackend"),
-    GanttBackend.specification,
-    GanttBackend.transformation
+    "OperationSummer",
+    system.actorOf(OperationSummer.props, "OperationSummer"),
+    OperationSummer.specification,
+    OperationSummer.transformation
+  ))
+
+  mediator ! Publish("serviceHandler", RegisterService(
+    "WidgetsBackend",
+    system.actorOf(WidgetsBackend.props(eventHandler), "WidgetsBackend"),
+    WidgetsBackend.specification,
+    WidgetsBackend.transformation
   ))
 
 

@@ -27,7 +27,8 @@
         'app.volvoRobotScheduling',
         'app.ganttViewer',
         'app.opcuaClient',
-        'app.labkitGantt'        
+        'app.labkitGantt',
+        'app.labkitPie'
     ]);
 
 })();

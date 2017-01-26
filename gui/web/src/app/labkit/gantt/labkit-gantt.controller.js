@@ -42,8 +42,7 @@
                          'finished': '#4080ff' };
 
         function onEvent(event){
-            // only care about OPC service, assume simulation service always finishes in time
-            if(!(_.isUndefined(event.service)) && event.service != "GanttBackend") return;
+            if(!(_.isUndefined(event.service)) && event.service != "WidgetsBackend") return;
             if(!(_.isUndefined(event.isa)) && event.isa != "Response") return;
 
             if(_.has(event, 'attributes.resource') && _.has(event, 'attributes.executing')) {
