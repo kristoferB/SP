@@ -15,63 +15,46 @@ import scala.util.Properties
 import org.joda.time.DateTime
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
-import sp.system.SPActorSystem.system
 
-object OpcUARuntime extends SPService {
-  val specification = SPAttributes(
-    "service" -> SPAttributes(
-      "group" -> "External",
-      "description" -> "OPCUA runtime"
-    ))
-
-  val transformTuple = ()
-  val transformation = List()
-
+object OpcUARuntime {
   def props = Props(classOf[OpcUARuntime])
 }
 
 // simple example opc ua client useage
-class OpcUARuntime extends Actor with ServiceSupport {
+class OpcUARuntime extends Actor {
   implicit val timeout = Timeout(100 seconds)
   import context.dispatcher
-  val mediator = DistributedPubSub(system).mediator
+  val mediator = DistributedPubSub(context.system).mediator
   val topic = "OPCState"
 
   var client = new MiloOPCUAClient()
   var state = State(Map())
   var idToIdentifier: Map[ID, String] = Map()
 
-  val silent = SPAttributes("silent" -> true)
   def connectionAttr = SPAttributes("connected" -> client.isConnected)
 
   def receive = {
-    case r@Request(service, attr, ids, reqID) => {
+    case attr: SPAttributes => {
       val replyTo = sender()
-      implicit val rnr = RequestNReply(r, replyTo)
-      val progress = context.actorOf(progressHandler)
-
-      progress ! SPAttributes("progress" -> "starting opcrunner")
-
       val cmd = attr.getAs[String]("cmd").getOrElse("")
-
       cmd match {
         case "connect" =>
           if(client.isConnected)
-            replyTo ! Response(List(), connectionAttr merge silent, rnr.req.service, rnr.req.reqID)
+            replyTo ! connectionAttr
           else {
             val address = attr.getAs[String]("url").getOrElse("opc.tcp://localhost:12686")
             if(!client.connect(address)) {
-              replyTo ! SPError("Could not connect to server")
+              replyTo ! SPAttributes("error"->"Could not connect to server")
             } else {
-              replyTo ! Response(List(),connectionAttr merge silent, rnr.req.service, rnr.req.reqID)
+              replyTo ! connectionAttr
             }
           }
         case "disconnect" if client.isConnected =>
           client.disconnect()
-          replyTo ! Response(List(),connectionAttr merge silent, rnr.req.service, rnr.req.reqID)
+          replyTo ! connectionAttr
         case "getNodes" if client.isConnected =>
           val nodes = client.getAvailableNodes.map { case (i,dt) => (i,dt.toString) }.toMap
-          replyTo ! Response(List(), SPAttributes("nodes"->nodes) merge silent, rnr.req.service, rnr.req.reqID)
+          replyTo ! SPAttributes("nodes"->nodes)
         case "subscribe" if client.isConnected =>
           val nodes = attr.getAs[List[String]]("nodes").getOrElse(List())
           client.subscribeToNodes(nodes, self)

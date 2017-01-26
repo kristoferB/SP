@@ -151,7 +151,6 @@ class MiloOPCUAClient {
         val spval = fromDataValue(dataValue)
         println("OPCUA - " + nodeid + " got " + spval)
         activeState += (nodeid -> spval)
-        println(activeState)
         reciever ! StateUpdate(activeState)
       }
     }

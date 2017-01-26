@@ -17,7 +17,6 @@ import scala.concurrent.duration._
 import scala.util.Properties
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
-import sp.system.SPActorSystem.system
 
 import org.joda.time.DateTime
 
@@ -31,35 +30,36 @@ object OPC extends SPService {
   val transformTuple = ()
   val transformation = List()
 
-  def props(sh: ActorRef) = Props(classOf[OPC], sh)
+  def props(opc: ActorRef) = Props(classOf[OPC], opc)
 }
 
 case class OperationStarted(name: String, time: String)
 case class OperationFinished(name: String, time: String)
 
 // simple example opc ua client useage
-class OPC(sh: ActorRef) extends Actor with ServiceSupport {
+class OPC(opc: ActorRef) extends Actor with ServiceSupport {
   implicit val timeout = Timeout(100 seconds)
   import context.dispatcher
-  val mediator = DistributedPubSub(system).mediator
+  val mediator = DistributedPubSub(context.system).mediator
 
   val serviceID = ID.newID
   val serviceName = "OPC"
 
-  val ops = Map("Resource 1" -> "126,=V1AR171+UC2171-XP3:A8",
-    "Resource 2" -> "126,=V1AR171+UC2171-XP3:B8",
-    "Resource 3" -> "126,=V1AR31+UC231-XP3:A11",
-    "Resource 4" -> "126,=V1AR31+UC231-XP3:A12")
+  val cp = "|var|CODESYS Control for Raspberry Pi SL.Application.Process_IOs."
 
-  val nodeToResource = ops.map{ case (r,n) => (n -> r)}.toMap
-  var resourceState = ops.map(_._1 -> false).toMap
+  val nodes = List("feeder_exec", "newCylinder_var", "pnp1_mode", "pnp1from_var", "pnp1to_var", "p1_mode", "p1Transport_var", "p1Process_var", "convFree_var",
+    "convMove_var", "convAtOut_var", "pnp2_mode", "pnp2to3_var", "pnp2to4_var", "p3_mode", "p3Process_var", "p4_mode", "p4Process_var")
+  val nodeIDsToNode = nodes.map{n=>((cp+n)->n)}.toMap
 
-  // check reply that we actually connect...
-  sh ! Request("OpcUARuntime", SPAttributes("cmd" -> "connect", "url" -> "opc.tcp://localhost:12686"), List(), ID.newID)
+  val ops = nodes.filter(_.contains("mode"))
+  var resourceState = ops.map(_ -> false).toMap
+
+  // TODO: check reply that we actually connect...
+  opc ! SPAttributes("cmd" -> "connect", "url" -> "opc.tcp://192.168.0.50:4840")
 
   Thread.sleep(5000)
 
-  sh ! Request("OpcUARuntime", SPAttributes("cmd" -> "subscribe", "nodes" -> ops.map(_._2)), List(), ID.newID)
+  opc ! SPAttributes("cmd" -> "subscribe", "nodes" -> nodeIDsToNode.map(_._1))
 
   mediator ! Subscribe("OPCState", self)
 
@@ -67,18 +67,20 @@ class OPC(sh: ActorRef) extends Actor with ServiceSupport {
     case attr: SPAttributes =>
       val time = attr.getAs[String]("timeStamp").getOrElse("")
       val state = attr.getAs[Map[String, SPValue]]("state").getOrElse(Map())
-      state.map{ case (s,v) =>
-        val resource = nodeToResource(s)
-        val bool = v == JBool(true)
-        if(bool && !resourceState(resource)) {
+      val shortMap = state.map(p=>nodeIDsToNode(p._1)->p._2).toMap
+      println(shortMap)
+      mediator ! Publish("raw", SPAttributes("state"->shortMap))
+      shortMap.filter{case (k,v) => ops.contains(k)}. map { case (name,v) =>
+        val bool = v == JInt(2)
+        if(bool && !resourceState(name)) {
           // op started
-          resourceState = resourceState + (resource -> true)
-          mediator ! Publish("rawOperations", OperationStarted(resource, time))
+          resourceState = resourceState + (name -> true)
+          mediator ! Publish("rawOperations", OperationStarted(name, time))
         }
-        if(!bool && resourceState(resource)) {
+        if(!bool && resourceState(name)) {
           // op started
-          resourceState = resourceState + (resource -> false)
-          mediator ! Publish("rawOperations", OperationFinished(resource, time))
+          resourceState = resourceState + (name -> false)
+          mediator ! Publish("rawOperations", OperationFinished(name, time))
         }
       }
     case _ =>

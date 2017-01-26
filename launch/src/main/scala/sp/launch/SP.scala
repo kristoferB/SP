@@ -181,13 +181,13 @@ object SP extends App {
     OperationControl.transformation
   ))
 
-  import  sp.opcMilo._
-  mediator ! Publish("serviceHandler", RegisterService(
-    "OpcUARuntime",
-    system.actorOf(OpcUARuntime.props, "OpcUARuntime"),
-    OpcUARuntime.specification,
-    OpcUARuntime.transformation
-  ))
+  // import  sp.opcMilo._
+  // mediator ! Publish("serviceHandler", RegisterService(
+  //   "OpcUARuntime",
+  //   system.actorOf(OpcUARuntime.props, "OpcUARuntime"),
+  //   OpcUARuntime.specification,
+  //   OpcUARuntime.transformation
+  // ))
 
   import sp.robotCycleAnalysis._
   mediator ! Publish("serviceHandler", RegisterService(
@@ -241,12 +241,12 @@ object SP extends App {
 
   import sp.labkit._
 
-  mediator ! Publish("serviceHandler", RegisterService(
-    "OPC",
-    system.actorOf(OPC.props(serviceHandler), "OPC"),
-    OPC.specification,
-    OPC.transformation
-  ))
+  // mediator ! Publish("serviceHandler", RegisterService(
+  //   "OPC",
+  //   system.actorOf(OPC.props(serviceHandler), "OPC"),
+  //   OPC.specification,
+  //   OPC.transformation
+  // ))
 
   mediator ! Publish("serviceHandler", RegisterService(
     "OperationSummer",
@@ -299,7 +299,7 @@ object SP extends App {
       // wait for actors to die
       Await.ready(system.whenTerminated, Duration(1, TimeUnit.MINUTES))
       // cleanup milo crap
-      MiloOPCUAClient.destroy()
+      // MiloOPCUAClient.destroy()
   }
 
 }

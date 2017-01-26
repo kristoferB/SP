@@ -30,8 +30,8 @@
         }
 
         function updateChart() {
-            vm.showFromDate = moment(); vm.showFromDate.set({second: 0}); vm.showFromDate.subtract(2, 'minutes');
-            vm.showToDate = moment(); vm.showToDate.set({second: 0}); vm.showToDate.add(1, 'minutes');
+            vm.showFromDate = moment(); vm.showFromDate.set({second: 0}); vm.showFromDate.subtract(45, 'seconds');
+            vm.showToDate = moment(); vm.showToDate.set({second: 0}); vm.showToDate.add(60, 'seconds');
             vm.currentDate = moment();
             _.forEach(activeTasks, function(t) {
                 t.to = moment();

@@ -51,7 +51,7 @@ lazy val domain = project.dependsOn(macros).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= json ++ support)
 
-lazy val models = project.dependsOn(domain).
+lazy val models = project.dependsOn(domain, extensions).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= akka ++ json ++ support)
 
