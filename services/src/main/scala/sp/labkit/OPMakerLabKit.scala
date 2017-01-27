@@ -53,8 +53,9 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
         val updOps = makeMeOps(mess.state, new DateTime(mess.time), currentOps).map(updPositionsAndOps)
         println("NEW OPS")
         updOps.foreach(println(_))
+        updOps.foreach(mediator ! Publish("ops", _))
 
-        currentOps = currentOps ++ updOps.map(x => x.start.name -> x)
+        currentOps = (currentOps ++ updOps.map(x => x.start.name -> x)).filter{case (k,v) => v.end.isEmpty }
         println("ALL OPS")
         currentOps.foreach(println(_))
 
@@ -194,7 +195,7 @@ trait OPMakerLogic extends NamesAndValues{
     //println("OP "+name + ": "+hasStarted)
     val currOP = currentOps.get(name).orElse{
       if (hasStarted){
-        Some(APIOPMaker.OP(APIOPMaker.OPEvent(name, time, name+opCounter, feeder, None), None))
+        Some(APIOPMaker.OP(APIOPMaker.OPEvent(name, time, name+opCounter, resource, None), None))
       } else None
     }
     currOP.map{op =>
