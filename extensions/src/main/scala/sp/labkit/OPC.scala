@@ -55,7 +55,7 @@ class OPC(opc: ActorRef) extends Actor with ServiceSupport {
   var resourceState = ops.map(_ -> false).toMap
 
   // TODO: check reply that we actually connect...
-  opc ! SPAttributes("cmd" -> "connect", "url" -> "opc.tcp://192.168.0.50:4840")
+  opc ! SPAttributes("cmd" -> "connect", "url" -> "opc.tcp://192.168.0.10:4840")
 
   Thread.sleep(5000)
 

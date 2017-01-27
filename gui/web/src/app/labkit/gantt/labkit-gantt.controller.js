@@ -16,7 +16,7 @@
         vm.widget = $scope.$parent.$parent.$parent.vm.widget;
         vm.dashboard = $scope.$parent.$parent.$parent.vm.dashboard;
 
-        vm.gantt = [{name: 'Resource 1', tasks: [  ]}];
+        vm.gantt = [{name: 'waiting...', tasks: [  ]}];
         vm.showFromDate = moment();
         vm.showToDate = moment();
         vm.currentDate = moment();
@@ -26,7 +26,7 @@
         vm.reset = reset;
 
         function reset() {
-            vm.gantt = [{name: 'Resource 1', tasks: [  ]}];
+            vm.gantt = [{name: 'waiting...', tasks: [  ]}];
         }
 
         function updateChart() {
@@ -46,18 +46,22 @@
             if(!(_.isUndefined(event.isa)) && event.isa != "Response") return;
 
             if(_.has(event, 'attributes.resource') && _.has(event, 'attributes.executing')) {
-                var name = event.attributes.resource;
+                var res = event.attributes.resource;
+                var name = event.attributes.operation;
+                var type = event.attributes.operationType;
                 if(event.attributes.executing) {
                     // start task
                     var t = { name: name, from: moment(), to: moment(), color: colorMap['executing'] };
                     activeTasks.push(t);
-                    var rix = _.findIndex(vm.gantt, function(r) { return r.name == name; });
+                    var rix = _.findIndex(vm.gantt, function(r) { return r.name == res; });
                     if(rix == -1) {
                         // new resource, add it
-                        vm.gantt.push({name: name, tasks: [ t ] });
+                        vm.gantt.push({name: res, tasks: [ t ] });
                     } else {
                         // update existing resource
                         vm.gantt[rix].tasks.push(t);
+                        // remove 'waiting' entry
+                        vm.gantt = _.filter(vm.gantt, function(r) { return r.name != 'waiting...'; });
                     }
                 } else {
                     // stop task
