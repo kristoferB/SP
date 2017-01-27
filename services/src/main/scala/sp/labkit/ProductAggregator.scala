@@ -40,6 +40,8 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
   var currentPositions: Map[String, String] = Map()
   var currentProdPosition: Map[String, String] = Map()
   var currentProds: Map[String, Prod] = Map()
+  var completedProds: Map[String, Prod] = Map()
+
 
 
 
@@ -54,18 +56,40 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
           currentProds += name -> prod
         } else {
           val prod = currentProds(name)
-          val firstOP = prod.start
+          val started = prod.startTime
+          val current = started to lastTime(op) toDurationMillis
+          val actW = calcWaitAndActive(prod.ops, current)
+          val updP = prod.copy(ops = prod.ops :+ op, currentDuration = current, waited = actW._1, processed = actW._2)
+          currentProds += name -> updP
+          if (op.end.nonEmpty && (op.start.name == p3move || op.start.name == p4move)){
+            // Prod done
+            val completed = updP.copy(endTime = Some(lastTime(op)))
+            completedProds += name -> updP
+            currentProds -= name
+          }
         }
 
       }
 
-    case APIOPMaker.Positions(positions) =>
+    case APIOPMaker.Positions(positions, time) =>
 
 
 
   }
 
 
+
+  def lastTime(op: APIOPMaker.OP) = {
+    op.end.getOrElse(op.start).time
+  }
+
+  def calcWaitAndActive(list: List[APIOPMaker.OP], currentDuration: Long) = {
+    val active = list.foldLeft(0L){(a, b) =>
+      a + b.attributes.getAs[Long]("duration").getOrElse(0L)
+    }
+    val waiting = currentDuration - active
+    (waiting, active)
+  }
 
 
 

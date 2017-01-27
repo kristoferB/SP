@@ -18,7 +18,7 @@ object APIOPMaker {
   sealed trait API
   case class OPEvent(name: String, time: DateTime, id: String, resource: String, product: Option[String]) extends API
   case class OP(start: OPEvent, end: Option[OPEvent], attributes: SPAttributes = SPAttributes()) extends API
-  case class Positions(positions: Map[String,String]) extends API
+  case class Positions(positions: Map[String,String], time: DateTime) extends API
 }
 
 case class RawMess(state: Map[String, SPValue], time: String)
@@ -57,7 +57,7 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
         updOps.foreach(mediator ! Publish("ops", _))
 
         if(updOps.nonEmpty) {
-          mediator ! Publish("pos", APIOPMaker.Positions(positions))
+          mediator ! Publish("pos", APIOPMaker.Positions(positions, postime))
         }
 
         currentOps = (currentOps ++ updOps.map(x => x.start.name -> x)).filter{case (k,v) => v.end.isEmpty }
@@ -228,6 +228,7 @@ trait OPMakerLogic extends NamesAndValues{
 trait TrackProducts extends NamesAndValues {
   var prodID = 0
 
+  var postime = org.joda.time.DateTime.now
   var positions: Map[String, String] = Map(
     inLoader -> "",
     inP1     -> "",
@@ -257,6 +258,8 @@ trait TrackProducts extends NamesAndValues {
   def updPositionsAndOps(op: APIOPMaker.OP) = {
     val res = opMovements.get(op.start.name).map { move =>
       val from = positions(move.from)
+
+      postime = lastTime(op)
 
       if (move.from.isEmpty) {
         // Source op for cylinders
@@ -292,6 +295,7 @@ trait TrackProducts extends NamesAndValues {
 
       } else op
     }
+
     res.getOrElse(op)
   }
 
@@ -305,7 +309,9 @@ trait TrackProducts extends NamesAndValues {
   def updProdStart(op: APIOPMaker.OP, prod: String) = op.copy(start = op.start.copy(product = Some(prod)))
   def updProdEnd(op: APIOPMaker.OP, prod: String) = op.copy(end = op.end.map(_.copy(product = Some(prod))))
 
-
+  def lastTime(op: APIOPMaker.OP) = {
+    op.end.getOrElse(op.start).time
+  }
 
 
 
