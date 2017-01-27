@@ -20,7 +20,7 @@ object APIOPMaker {
   case class OP(start: OPEvent, end: Option[OPEvent], attributes: SPAttributes = SPAttributes()) extends API
 }
 
-case class RawMess(state: Map[String, SPValue], time: DateTime)
+case class RawMess(state: Map[String, SPValue], time: String)
 
 class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic with TrackProducts {
   override def persistenceId = "rawPLC"
@@ -46,11 +46,11 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
       if (rawMess.isEmpty) println("Nope, no Raw mess parsing")
 
       val updState = rawMess.map { mess =>
-        persistAsync(x){mess => } // for playing back later
+        // persistAsync(x){mess => } // for playing back later
 
 
 
-        val updOps = makeMeOps(mess.state, mess.time, currentOps).map(updPositionsAndOps)
+        val updOps = makeMeOps(mess.state, new DateTime(mess.time), currentOps).map(updPositionsAndOps)
         println("NEW OPS")
         updOps.foreach(println(_))
 
@@ -286,7 +286,7 @@ trait TrackProducts extends NamesAndValues {
 
       } else op
     }
-    res.get
+    res.getOrElse(op)
   }
 
   def updPos(moveFrom: String, moveTo: String) = {

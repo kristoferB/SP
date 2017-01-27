@@ -69,7 +69,7 @@ class OPC(opc: ActorRef) extends Actor with ServiceSupport {
       val state = attr.getAs[Map[String, SPValue]]("state").getOrElse(Map())
       val shortMap = state.map(p=>nodeIDsToNode(p._1)->p._2).toMap
       println(shortMap)
-      mediator ! Publish("raw", SPAttributes("state"->shortMap))
+      mediator ! Publish("raw", SPAttributes("state"->shortMap, "time" -> time).toJson)
       shortMap.filter{case (k,v) => ops.contains(k)}. map { case (name,v) =>
         val bool = v == JInt(2)
         if(bool && !resourceState(name)) {
