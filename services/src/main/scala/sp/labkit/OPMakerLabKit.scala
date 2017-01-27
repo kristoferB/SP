@@ -87,7 +87,7 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
 }
 
 object OPMakerLabKit {
-  def props() = Props(classOf[OPMakerLabKit])
+  def props() = Props(classOf[ProductAggregator])
 }
 
 
