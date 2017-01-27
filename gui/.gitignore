@@ -1,0 +1,7 @@
+target/
+bin/
+project/boot/
+project/target
+project/project
+
+npmdependencies/

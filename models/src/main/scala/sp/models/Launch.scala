@@ -2,7 +2,7 @@ package sp.models
 
 import akka.actor._
 import sp.opcMilo._
-import sp.labkit.OPC
+import sp.labkit.labkit.OPC
 
 object Launch extends App {
   implicit val system = ActorSystem("SP")
