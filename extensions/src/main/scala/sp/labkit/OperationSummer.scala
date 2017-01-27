@@ -48,9 +48,9 @@ class OperationSummer extends Actor with ServiceSupport {
   mediator ! Subscribe("rawOperations", self)
 
   def receive = {
-    case OperationFinished(name: String, time: String) =>
-      state = state + (name -> (state.get(name).getOrElse(0) + 1))
-      mediator ! Publish("summedOperations", SummedOperations(state))
+    // case OperationFinished(name: String, time: String) =>
+    //   state = state + (name -> (state.get(name).getOrElse(0) + 1))
+    //   mediator ! Publish("summedOperations", SummedOperations(state))
      case _ =>
    }
 

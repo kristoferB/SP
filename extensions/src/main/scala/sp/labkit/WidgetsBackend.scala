@@ -47,12 +47,13 @@ class WidgetsBackend(eh: ActorRef) extends Actor with ServiceSupport {
 
   mediator ! Subscribe("rawOperations", self)
   mediator ! Subscribe("summedOperations", self)
+  mediator ! Subscribe("frontend", self)
 
   def receive = {
 
-    case OperationStarted(name: String, time: String) =>
+    case OperationStarted(name: String, resource: String, product: String, operationType: String, time: String) =>
       eh ! Response(List(), SPAttributes("resource"->name, "executing" -> true, "startTime" -> time) merge silent, serviceName, serviceID)
-    case OperationFinished(name: String, time: String) =>
+    case OperationFinished(name: String, resource: String, product: String, operationType: String, time: String) =>
       eh ! Response(List(), SPAttributes("resource"->name, "executing" -> false, "stopTime" -> time) merge silent, serviceName, serviceID)
     case SummedOperations(state: Map[String,Int]) =>
       eh ! Response(List(), SPAttributes("summedOperations"->state) merge silent, serviceName, serviceID)

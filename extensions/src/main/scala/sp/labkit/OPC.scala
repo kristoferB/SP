@@ -33,8 +33,8 @@ object OPC extends SPService {
   def props(opc: ActorRef) = Props(classOf[OPC], opc)
 }
 
-case class OperationStarted(name: String, time: String)
-case class OperationFinished(name: String, time: String)
+case class OperationStarted(name: String, resource: String, product: String, operationType: String, time: String)
+case class OperationFinished(name: String, resource: String, product: String, operationType: String, time: String)
 
 // simple example opc ua client useage
 class OPC(opc: ActorRef) extends Actor with ServiceSupport {
@@ -70,19 +70,19 @@ class OPC(opc: ActorRef) extends Actor with ServiceSupport {
       val shortMap = state.map(p=>nodeIDsToNode(p._1)->p._2).toMap
       println(shortMap)
       mediator ! Publish("raw", SPAttributes("state"->shortMap, "time" -> time).toJson)
-      shortMap.filter{case (k,v) => ops.contains(k)}. map { case (name,v) =>
-        val bool = v == JInt(2)
-        if(bool && !resourceState(name)) {
-          // op started
-          resourceState = resourceState + (name -> true)
-          mediator ! Publish("rawOperations", OperationStarted(name, time))
-        }
-        if(!bool && resourceState(name)) {
-          // op started
-          resourceState = resourceState + (name -> false)
-          mediator ! Publish("rawOperations", OperationFinished(name, time))
-        }
-      }
+      // shortMap.filter{case (k,v) => ops.contains(k)}. map { case (name,v) =>
+      //   val bool = v == JInt(2)
+      //   if(bool && !resourceState(name)) {
+      //     // op started
+      //     resourceState = resourceState + (name -> true)
+      //     mediator ! Publish("rawOperations", OperationStarted(name, time))
+      //   }
+      //   if(!bool && resourceState(name)) {
+      //     // op started
+      //     resourceState = resourceState + (name -> false)
+      //     mediator ! Publish("rawOperations", OperationFinished(name, time))
+      //   }
+      // }
     case _ =>
   }
 

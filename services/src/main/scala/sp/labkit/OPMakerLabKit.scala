@@ -18,6 +18,7 @@ object APIOPMaker {
   sealed trait API
   case class OPEvent(name: String, time: DateTime, id: String, resource: String, product: Option[String]) extends API
   case class OP(start: OPEvent, end: Option[OPEvent], attributes: SPAttributes = SPAttributes()) extends API
+  case class Positions(positions: Map[String,String]) extends API
 }
 
 case class RawMess(state: Map[String, SPValue], time: String)
@@ -54,6 +55,10 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
         println("NEW OPS")
         updOps.foreach(println(_))
         updOps.foreach(mediator ! Publish("ops", _))
+
+        if(updOps.nonEmpty) {
+          mediator ! Publish("pos", APIOPMaker.Positions(positions))
+        }
 
         currentOps = (currentOps ++ updOps.map(x => x.start.name -> x)).filter{case (k,v) => v.end.isEmpty }
         println("ALL OPS")

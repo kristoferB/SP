@@ -79,6 +79,6 @@ lazy val launch = project.dependsOn(domain, core, gui, extensions).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= akka ++ json)
 
-lazy val services = project.dependsOn(domain).
+lazy val services = project.dependsOn(domain, extensions).
   settings(commonSettings: _*).
   settings(libraryDependencies ++= akka ++ json ++ support)

@@ -12,10 +12,9 @@ object Launch extends App {
 
   // Add root actors used in node here
   system.actorOf(OPMakerLabKit.props, "opMakerLabKit")
+  system.actorOf(ResourceAggregator.props, "ResourceAggregator")
+
 
 
 
 }
-
-
-
