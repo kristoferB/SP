@@ -54,28 +54,27 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
       logic.p3_mode           -> 1      ,
       logic.p3Process_var     -> false  ,
       logic.p4_mode           -> 1      ,
-      logic.p4Process_var     -> false,
-      "time" -> SPValue(org.joda.time.DateTime.now)
+      logic.p4Process_var     -> false
   )
 
   "The OPMaker service" must {
     "make no new ops" in {
-      val t = logic.makeMeOps(aState, Map())
+      val t = logic.makeMeOps(aState, time,  Map())
       t shouldEqual List[APIOPMaker.OP]()
     }
     "make a start op" in {
-      val t = logic.makeMeOps(aState + (logic.p3_mode->2), Map())
+      val t = logic.makeMeOps(aState + (logic.p3_mode->2), time,  Map())
       println("RESULT")
       println(t)
       assert(t.nonEmpty)
     }
     "make an end op" in {
       val updS: Map[String, SPValue] = aState + (logic.p3_mode->2)
-      val t = logic.makeMeOps(updS, Map())
-      val tt = logic.makeMeOps(updS + (logic.p3_mode->3), Map(t.head.start.name->t.head))
+      val t = logic.makeMeOps(updS, time,  Map())
+      val tt = logic.makeMeOps(updS + (logic.p3_mode->3), time,  Map(t.head.start.name->t.head))
 
-      val l = logic.makeMeOps(updS, Map())
-      val ll = logic.makeMeOps(updS + (logic.p3_mode->3), Map(l.head.start.name->l.head))
+      val l = logic.makeMeOps(updS, time,  Map())
+      val ll = logic.makeMeOps(updS + (logic.p3_mode->3), time,  Map(l.head.start.name->l.head))
 
 
       println("RESULT")

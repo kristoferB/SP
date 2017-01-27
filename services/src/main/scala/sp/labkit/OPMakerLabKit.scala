@@ -20,6 +20,7 @@ object APIOPMaker {
   case class OP(start: OPEvent, end: Option[OPEvent], attributes: SPAttributes = SPAttributes()) extends API
 }
 
+case class RawMess(state: Map[String, SPValue], time: DateTime)
 
 class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic with TrackProducts {
   override def persistenceId = "rawPLC"
@@ -31,7 +32,7 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
   mediator ! Subscribe("raw", self)
   mediator ! Put(self)
 
-  private var state: Map[String, SPValue] = Map()
+  //private var state: Map[String, SPValue] = Map()
   private var currentOps: Map[String, APIOPMaker.OP] = Map()
 
 
@@ -39,14 +40,17 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
     case mess @ _ if {println(s"OPMaker got: $mess from $sender"); false} => Unit
 
     case x: String =>
-      val rawMess = SPAttributes.fromJson(x).flatMap(_.getAs[Map[String, SPValue]]("state"))
+      val attr = SPValue.fromJson(x)
+      val rawMess = attr.flatMap(_.to[RawMess])
+
+      if (rawMess.isEmpty) println("Nope, no Raw mess parsing")
 
       val updState = rawMess.map { mess =>
         persistAsync(x){mess => } // for playing back later
 
 
 
-        val updOps = makeMeOps(mess, currentOps).map(updPositionsAndOps)
+        val updOps = makeMeOps(mess.state, mess.time, currentOps).map(updPositionsAndOps)
         println("NEW OPS")
         updOps.foreach(println(_))
 
@@ -66,7 +70,7 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
 
   def receiveRecover = {
     case x: String =>
-
+      println("recover states")
     case RecoveryCompleted =>
 
 
@@ -140,11 +144,10 @@ trait NamesAndValues {
 trait OPMakerLogic extends NamesAndValues{
   private var opCounter = 0
 
-  def makeMeOps(state: Map[String, SPValue], currentOps: Map[String, APIOPMaker.OP]) = {
-    val time = state.get("time").flatMap(_.to[DateTime]).getOrElse(org.joda.time.DateTime.now)
+  def makeMeOps(state: Map[String, SPValue], time: DateTime, currentOps: Map[String, APIOPMaker.OP]) = {
     opCounter = opCounter + 1
     val ops = List(
-      getOrMakeANew(feedCylinder,feeder, time, currentOps, checkValue(state, List(feeder_exec -> true))),
+      getOrMakeANew(feedCylinder,feeder, time, currentOps, checkValue(state, List(feeder_exec -> true, newCylinder_var -> true))),
 
       getOrMakeANew(fromFeedToP1,pnp1,time, currentOps, checkValue(state, List(pnp1_mode -> 2, pnp1from_var -> 3, pnp1to_var -> 1))),
       getOrMakeANew(fromFeedToC,pnp1, time, currentOps, checkValue(state, List(pnp1_mode -> 2, pnp1from_var -> 3, pnp1to_var -> 5))),
@@ -188,7 +191,7 @@ trait OPMakerLogic extends NamesAndValues{
                    ) = {
 
 
-    println("OP "+name + ": "+hasStarted)
+    //println("OP "+name + ": "+hasStarted)
     val currOP = currentOps.get(name).orElse{
       if (hasStarted){
         Some(APIOPMaker.OP(APIOPMaker.OPEvent(name, time, name+opCounter, feeder, None), None))
