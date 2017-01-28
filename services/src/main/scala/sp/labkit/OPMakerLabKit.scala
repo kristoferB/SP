@@ -18,7 +18,7 @@ object APIOPMaker {
   sealed trait API
   case class OPEvent(name: String, time: DateTime, id: String, resource: String, product: Option[String]) extends API
   case class OP(start: OPEvent, end: Option[OPEvent], attributes: SPAttributes = SPAttributes()) extends API
-  case class Positions(positions: Map[String,String]) extends API
+  case class Positions(positions: Map[String,String], time: DateTime) extends API
 }
 
 case class RawMess(state: Map[String, SPValue], time: String)
@@ -41,33 +41,38 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
     case mess @ _ if {println(s"OPMaker got: $mess from $sender"); false} => Unit
 
     case x: String =>
-      val attr = SPValue.fromJson(x)
-      val rawMess = attr.flatMap(_.to[RawMess])
-
-      if (rawMess.isEmpty) println("Nope, no Raw mess parsing")
-
-      val updState = rawMess.map { mess =>
-        // persistAsync(x){mess => } // for playing back later
-
-
-
-        val updOps = makeMeOps(mess.state, new DateTime(mess.time), currentOps).map(updPositionsAndOps)
-        println("NEW OPS")
-        updOps.foreach(println(_))
-        updOps.foreach(mediator ! Publish("ops", _))
-
-        if(updOps.nonEmpty) {
-          mediator ! Publish("pos", APIOPMaker.Positions(positions))
-        }
-
-        currentOps = (currentOps ++ updOps.map(x => x.start.name -> x)).filter{case (k,v) => v.end.isEmpty }
-        println("ALL OPS")
-        currentOps.foreach(println(_))
-
-      }
+      persist(x)(fixTheOps)
 
 
   }
+
+  def fixTheOps(mess: String) = {
+    val attr = SPValue.fromJson(mess)
+    val rawMess = attr.flatMap(_.to[RawMess])
+
+    if (rawMess.isEmpty) println("Nope, no Raw mess parsing")
+
+    val updState = rawMess.map { mess =>
+
+
+
+      val updOps = makeMeOps(mess.state, new DateTime(mess.time), currentOps).map(updPositionsAndOps)
+      println("NEW OPS")
+      updOps.foreach(println(_))
+      updOps.foreach(mediator ! Publish("ops", _))
+
+      if(updOps.nonEmpty) {
+        mediator ! Publish("pos", APIOPMaker.Positions(positions, postime))
+      }
+
+      currentOps = (currentOps ++ updOps.map(x => x.start.name -> x)).filter{case (k,v) => v.end.isEmpty }
+      println("ALL OPS")
+      currentOps.foreach(println(_))
+
+    }
+  }
+
+
 
 
 
@@ -77,7 +82,10 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
   def receiveRecover = {
     case x: String =>
       println("recover states")
+      fixTheOps(x)
     case RecoveryCompleted =>
+      println("recover done")
+    case x => println("hej: "+x)
 
 
   }
@@ -87,7 +95,7 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
 }
 
 object OPMakerLabKit {
-  def props() = Props(classOf[ProductAggregator])
+  def props() = Props(classOf[OPMakerLabKit])
 }
 
 
@@ -228,6 +236,7 @@ trait OPMakerLogic extends NamesAndValues{
 trait TrackProducts extends NamesAndValues {
   var prodID = 0
 
+  var postime = org.joda.time.DateTime.now
   var positions: Map[String, String] = Map(
     inLoader -> "",
     inP1     -> "",
@@ -242,70 +251,82 @@ trait TrackProducts extends NamesAndValues {
 
   case class OPMove(from: String, to: String, via:String = "")
 
+
   val opMovements = Map(
     feedCylinder  -> OPMove("", inLoader),
     fromFeedToP1  -> OPMove(inLoader, inP1, inPnp1),
     fromFeedToC   -> OPMove(inLoader, inConvIn, inPnp1),
     fromP1ToC     -> OPMove(inP1, inConvIn, inPnp1),
+    p1move        -> OPMove(inP1, inP1),
+    p1Process     -> OPMove(inP1, inP1),
     transport     -> OPMove(inConvIn, inConvOut),
     to3           -> OPMove(inConvOut, inP3, inPnp2),
     to4           -> OPMove(inConvOut, inP4, inPnp2),
     p3move        -> OPMove(inP3, ""),
-    p4move        -> OPMove(inP4, "")
+    p3Process        -> OPMove(inP3, inP3),
+    p4move        -> OPMove(inP4, ""),
+    p4Process        -> OPMove(inP4, inP4)
   )
 
   def updPositionsAndOps(op: APIOPMaker.OP) = {
-    val res = opMovements.get(op.start.name).map { move =>
-      val from = positions(move.from)
 
-      if (move.from.isEmpty) {
-        // Source op for cylinders
-        if (op.start.product.isEmpty) {
-          prodID = prodID + 1
-          val cylId = "cyl" + prodID
-          updProdStart(op, cylId)
-        } else {
-          val cylId = op.start.product.get
-          if (op.end.nonEmpty) {
-            positions = positions + (move.to -> cylId)
-            updProdEnd(op, cylId)
-          } else op
-        }
+    val move = opMovements(op.start.name)
+    val from = positions(move.from)
+
+    postime = lastTime(op)
+
+    if (move.from.isEmpty) {
+      // Source op for cylinders
+      if (op.start.product.isEmpty) {
+        prodID = prodID + 1
+        val cylId = "cyl" + prodID
+        updProdStart(op, cylId)
+      } else {
+        val cylId = op.start.product.get
+        if (op.end.nonEmpty) {
+          positions = positions + (move.to -> cylId)
+          updProdEnd(op, cylId)
+        } else op
+      }
 
 
-      } else if (move.to.isEmpty) {
-        // sink op
-        if (op.end.isEmpty ){
-          updProdStart(op, from)
-        } else {
-          updPos(move.from, move.to)
-          updProdEnd(op, from)
-        }
-
-      } else if (op.end.isEmpty ) {
-        if (move.via.nonEmpty) updPos(move.from, move.via)
+    } else if (move.to.isEmpty) {
+      // sink op
+      if (op.end.isEmpty) {
         updProdStart(op, from)
-      } else if (op.end.nonEmpty) {
-        if (move.via.nonEmpty) updPos(move.via, move.to)
-        else updPos(move.from, move.to)
-        updProdEnd(op, positions(move.to))
+      } else {
+        updPos(move.from, move.to)
+        updProdEnd(op, from)
+      }
 
-      } else op
-    }
-    res.getOrElse(op)
+    } else if (op.end.isEmpty && op.start.product.isEmpty) {
+      if (move.via.nonEmpty) updPos(move.from, move.via)
+      updProdStart(op, from)
+    } else if (op.end.nonEmpty && op.end.get.product.isEmpty) {
+      if (move.via.nonEmpty) updPos(move.via, move.to)
+      else updPos(move.from, move.to)
+      updProdEnd(op, positions(move.to))
+
+    } else op
+
+
   }
 
   def updPos(moveFrom: String, moveTo: String) = {
     val from = positions(moveFrom)
-    val to = positions(moveTo) // Should be empty!
-    if (to.nonEmpty) println("WE HAVE OVERWRITTEN A POSITION")
-    positions = positions + (moveTo -> from) + (moveFrom -> "") + ("" -> "")
+    val to = positions(moveTo)
+
+    println("A move before: "+ s"$moveFrom: $from - $moveTo: $to")
+    positions = positions + (moveFrom -> "") + (moveTo -> from) + ("" -> "")
+    println("A move after: "+ s"$moveFrom: ${positions(moveFrom)} - $moveTo: ${positions(moveTo)}")
   }
 
   def updProdStart(op: APIOPMaker.OP, prod: String) = op.copy(start = op.start.copy(product = Some(prod)))
   def updProdEnd(op: APIOPMaker.OP, prod: String) = op.copy(end = op.end.map(_.copy(product = Some(prod))))
 
-
+  def lastTime(op: APIOPMaker.OP) = {
+    op.end.getOrElse(op.start).time
+  }
 
 
 
