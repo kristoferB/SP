@@ -29,6 +29,7 @@ project/project
 # journal
 journal/
 snapshots/
+servicesJournal/
 
 # output from tests
 testFiles/gitIgnore/

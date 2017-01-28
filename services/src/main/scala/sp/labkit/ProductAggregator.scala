@@ -69,11 +69,20 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
           }
         }
 
+        println("AGGREGATOR ops:")
+        println(currentProds)
+
+
+        println("AGGREGATOR:")
+
       }
 
     case APIOPMaker.Positions(positions, time) =>
+      println("AGGREGATOR pos:")
+      println(positions)
 
 
+      println("AGGREGATOR:")
 
   }
 
