@@ -59,8 +59,9 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
     val updState = rawMess.map { mess =>
 
 
+      val time = Try{new DateTime(mess.time)}.getOrElse(org.joda.time.DateTime.now)
 
-      val updOps = makeMeOps(mess.state, new DateTime(mess.time), currentOps).map(updPositionsAndOps)
+      val updOps = makeMeOps(mess.state, time, currentOps).map(updPositionsAndOps)
       println("NEW OPS")
       updOps.foreach(println(_))
       updOps.foreach(mediator ! Publish("ops", _))
@@ -85,8 +86,8 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
 
   def receiveRecover = {
     case x: String =>
-      println("recover states")
-      //fixTheOps(x)
+      //println("recover states")
+      fixTheOps(x)
     case RecoveryCompleted =>
       println("recover done")
     case x => println("hej: "+x)
@@ -167,14 +168,14 @@ trait OPMakerLogic extends NamesAndValues{
     val ops = List(
       getOrMakeANew(feedCylinder,feeder, time, currentOps, checkValue(state, List(feeder_exec -> true, newCylinder_var -> true))),
 
-      getOrMakeANew(fromFeedToP1,pnp1,time, currentOps, checkValue(state, List(pnp1_mode -> 2, pnp1from_var -> 3, pnp1to_var -> 1))),
-      getOrMakeANew(fromFeedToC,pnp1, time, currentOps, checkValue(state, List(pnp1_mode -> 2, pnp1from_var -> 3, pnp1to_var -> 5))),
-      getOrMakeANew(fromP1ToC,pnp1, time, currentOps, checkValue(state, List(pnp1_mode -> 2, pnp1from_var -> 1, pnp1to_var -> 5))),
+      getOrMakeANew(fromFeedToP1,pnp1,time, currentOps, checkValue(state, List(pnp1_mode -> 2, pnp1from_var -> 3, pnp1to_var -> 5))),
+      getOrMakeANew(fromFeedToC,pnp1, time, currentOps, checkValue(state, List(pnp1_mode -> 2, pnp1from_var -> 3, pnp1to_var -> 1))),
+      getOrMakeANew(fromP1ToC,pnp1, time, currentOps, checkValue(state, List(pnp1_mode -> 2, pnp1from_var -> 5, pnp1to_var -> 1))),
 
       getOrMakeANew(transport,conv, time, currentOps, checkValue(state, List(convMove_var -> true))),
 
-      getOrMakeANew(to3,pnp2, time, currentOps, checkValue(state, List(pnp2_mode -> 2, pnp2to3_var -> true))),
-      getOrMakeANew(to4,pnp2, time, currentOps, checkValue(state, List(pnp2_mode -> 2, pnp2to4_var -> true))),
+      getOrMakeANew(to3,pnp2, time, currentOps, checkValue(state, List(pnp2_mode -> 2, pnp2to3_var -> true, pnp2to4_var -> false))),
+      getOrMakeANew(to4,pnp2, time, currentOps, checkValue(state, List(pnp2_mode -> 2, pnp2to4_var -> true, pnp2to3_var -> false))),
 
       getOrMakeANew(p1move,p1, time, currentOps, checkValue(state, List(p1Transport_var -> true))),
       getOrMakeANew(p1Process,p1, time, currentOps, checkValue(state, List(p1Process_var -> true))),
@@ -253,19 +254,19 @@ trait TrackProducts extends NamesAndValues {
     "" -> ""
   )
 
-  case class OPMove(from: String, to: String, via:String = "")
+  case class OPMove(from: String, to: String)
 
 
   val opMovements = Map(
     feedCylinder  -> OPMove("", inLoader),
-    fromFeedToP1  -> OPMove(inLoader, inP1, inPnp1),
-    fromFeedToC   -> OPMove(inLoader, inConvIn, inPnp1),
-    fromP1ToC     -> OPMove(inP1, inConvIn, inPnp1),
+    fromFeedToP1  -> OPMove(inLoader, inP1),
+    fromFeedToC   -> OPMove(inLoader, inConvIn),
+    fromP1ToC     -> OPMove(inP1, inConvIn),
     p1move        -> OPMove(inP1, inP1),
     p1Process     -> OPMove(inP1, inP1),
     transport     -> OPMove(inConvIn, inConvOut),
-    to3           -> OPMove(inConvOut, inP3, inPnp2),
-    to4           -> OPMove(inConvOut, inP4, inPnp2),
+    to3           -> OPMove(inConvOut, inP3),
+    to4           -> OPMove(inConvOut, inP4),
     p3move        -> OPMove(inP3, ""),
     p3Process        -> OPMove(inP3, inP3),
     p4move        -> OPMove(inP4, ""),
@@ -276,10 +277,13 @@ trait TrackProducts extends NamesAndValues {
 
     val move = opMovements(op.start.name)
     val from = positions(move.from)
+    val to = positions(move.to)
 
     postime = lastTime(op)
 
-    if (move.from.isEmpty) {
+
+
+    val res = if (move.from.isEmpty) {
       // Source op for cylinders
       if (op.start.product.isEmpty) {
         prodID = prodID + 1
@@ -299,30 +303,34 @@ trait TrackProducts extends NamesAndValues {
       if (op.end.isEmpty) {
         updProdStart(op, from)
       } else {
-        updPos(move.from, move.to)
+        updPos("", move.from, move.to)
         updProdEnd(op, from)
       }
 
-    } else if (op.end.isEmpty && op.start.product.isEmpty) {
-      if (move.via.nonEmpty) updPos(move.from, move.via)
-      updProdStart(op, from)
-    } else if (op.end.nonEmpty && op.end.get.product.isEmpty) {
-      if (move.via.nonEmpty) updPos(move.via, move.to)
-      else updPos(move.from, move.to)
-      updProdEnd(op, positions(move.to))
+    } else if (op.end.isEmpty && op.start.product.isEmpty && from.nonEmpty) {
+      val prodID = from
+      positions = positions + (move.to -> prodID)
+      updProdStart(op, prodID)
+
+    } else if (op.end.nonEmpty && op.start.product.nonEmpty) {
+      val prodID = op.start.product.get
+      if (move.from != move.to) positions = positions + (move.from -> "")
+      updProdEnd(op, prodID)
 
     } else op
 
+    println(s"UPDPOS: ${op.start.name} - move:${move} - ($from, $to) - pos: (${positions(move.from)}, ${positions(move.to)})")
+    println(s"UPDPOS_OP: $res")
+
+    res
 
   }
 
-  def updPos(moveFrom: String, moveTo: String) = {
+  def updPos(id: String, moveFrom: String, moveTo: String) = {
     val from = positions(moveFrom)
     val to = positions(moveTo)
 
-    println("A move before: "+ s"$moveFrom: $from - $moveTo: $to")
-    positions = positions + (moveFrom -> "") + (moveTo -> from) + ("" -> "")
-    println("A move after: "+ s"$moveFrom: ${positions(moveFrom)} - $moveTo: ${positions(moveTo)}")
+    positions = positions + (moveFrom -> "") + (moveTo -> id) + ("" -> "")
   }
 
   def updProdStart(op: APIOPMaker.OP, prod: String) = op.copy(start = op.start.copy(product = Some(prod)))
