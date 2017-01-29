@@ -19,6 +19,10 @@ object APIOPMaker {
   case class OPEvent(name: String, time: DateTime, id: String, resource: String, product: Option[String]) extends API
   case class OP(start: OPEvent, end: Option[OPEvent], attributes: SPAttributes = SPAttributes()) extends API
   case class Positions(positions: Map[String,String], time: DateTime) extends API
+
+
+
+
 }
 
 case class RawMess(state: Map[String, SPValue], time: String)
@@ -82,7 +86,7 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
   def receiveRecover = {
     case x: String =>
       println("recover states")
-      fixTheOps(x)
+      //fixTheOps(x)
     case RecoveryCompleted =>
       println("recover done")
     case x => println("hej: "+x)
@@ -354,6 +358,8 @@ object APIParser extends upickle.AttributeTagged {
     case x: Js.Obj if n == "org.json4s.JsonAST.JObject" =>
       val res = x.value.map(kv => kv._1 -> fromUpickle(kv._2))
       SPAttributes(res:_*).asInstanceOf[V]
+    case x: Js.Str if n == "org.joda.time.DateTime" =>
+      new DateTime(x.value).asInstanceOf[V]
     case Js.Obj(x@_*) if x.contains((tagName, Js.Str(n.split('.').takeRight(2).mkString(".")))) =>
       rw.read(Js.Obj(x.filter(_._1 != tagName):_*))
   }
@@ -361,6 +367,8 @@ object APIParser extends upickle.AttributeTagged {
   override def annotate[V: ClassTag](rw: Writer[V], n: String) = Writer[V]{
     case x: SPValue =>
       toUpickle(x)
+    case x: org.joda.time.DateTime =>
+      upickle.Js.Str(x.toString())
     case x: V =>
       val filter = n.split('.').takeRight(2).mkString(".")
       Js.Obj((tagName, Js.Str(filter)) +: rw.write(x).asInstanceOf[Js.Obj].value:_*)

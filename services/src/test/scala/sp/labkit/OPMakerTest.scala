@@ -6,7 +6,6 @@ import com.typesafe.config._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import sp.domain.Logic._
 import sp.domain._
-import sp.labkit.OPMakerLogic
 
 import scala.concurrent.duration._
 
