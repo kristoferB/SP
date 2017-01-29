@@ -86,8 +86,8 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
 
   def receiveRecover = {
     case x: String =>
-      //println("recover states")
-      fixTheOps(x)
+      println("recover states")
+      //fixTheOps(x)
     case RecoveryCompleted =>
       println("recover done")
     case x => println("hej: "+x)

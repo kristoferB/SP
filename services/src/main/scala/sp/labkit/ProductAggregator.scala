@@ -72,7 +72,7 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
         }
 
         println("AGGREGATOR ops:")
-        println(currentProds)
+        //println(currentProds)
 
 
         println()
