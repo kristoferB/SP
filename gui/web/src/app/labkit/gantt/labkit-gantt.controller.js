@@ -41,8 +41,19 @@
             });
         }
 
-        var colorMap = { 'executing': '#aa3030',
-                         'finished': '#4080ff' };
+        function color(taskname, status) {
+            var colorMapMisc = { 'executing': '#aa3030',
+                                 'finished': '#4080ff' };
+            var colorMapProcess = { 'executing': '#ffaa10',
+                                    'finished': '#99ccff' };
+
+            if(taskname.indexOf('Process') !== -1) {
+                return colorMapProcess[status];
+            } else {
+                return colorMapMisc[status];
+            }
+        }
+
 
         function onEvent(event){
             if(!(_.isUndefined(event.service)) && event.service != "WidgetsBackend") return;
@@ -54,7 +65,7 @@
                 var type = event.attributes.operationType;
                 if(event.attributes.executing) {
                     // start task
-                    var t = { name: name, from: moment(), to: moment(), color: colorMap['executing'] };
+                    var t = { name: name, from: moment(), to: moment(), color: color(name, 'executing') };
                     activeTasks.push(t);
                     var rix = _.findIndex(vm.gantt, function(r) { return r.name == res; });
                     if(rix == -1) {
@@ -71,7 +82,7 @@
                     var tix = _.findIndex(activeTasks, function(r) { return r.name == name; });
                     if(tix != -1) {
                         activeTasks[tix].executing = false;
-                        activeTasks[tix].color = colorMap['finished'];
+                        activeTasks[tix].color = color(activeTasks[tix].name, 'finished');
                         activeTasks[tix].to = moment(event.stopTime); // force stop time from backend
                         activeTasks = _.filter(activeTasks, function(r) { return r.name != name; });
                     }
