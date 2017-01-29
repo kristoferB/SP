@@ -12,21 +12,24 @@
     function labkitGanttController($scope, dashboardService, logger, modelService, itemService,
                                    spServicesService, restService, eventService,$interval,moment) {
         var vm = this;
+        var idleStr = 'waiting for data...';
 
         vm.widget = $scope.$parent.$parent.$parent.vm.widget;
         vm.dashboard = $scope.$parent.$parent.$parent.vm.dashboard;
 
-        vm.gantt = [{name: 'waiting...', tasks: [  ]}];
+
+        vm.gantt = [{name: idleStr, tasks: [  ]}];
         vm.showFromDate = moment();
         vm.showToDate = moment();
         vm.currentDate = moment();
+
 
         var activeTasks = [];
 
         vm.reset = reset;
 
         function reset() {
-            vm.gantt = [{name: 'waiting...', tasks: [  ]}];
+            vm.gantt = [{name: idleStr, tasks: [  ]}];
         }
 
         function updateChart() {
@@ -57,11 +60,11 @@
                     if(rix == -1) {
                         // new resource, add it
                         vm.gantt.push({name: res, tasks: [ t ] });
+                        // remove 'waiting' entry
+                        vm.gantt = _.filter(vm.gantt, function(r) { return r.name != idleStr; });
                     } else {
                         // update existing resource
                         vm.gantt[rix].tasks.push(t);
-                        // remove 'waiting' entry
-                        vm.gantt = _.filter(vm.gantt, function(r) { return r.name != 'waiting...'; });
                     }
                 } else {
                     // stop task

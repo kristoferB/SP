@@ -60,7 +60,6 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
 
 
       val time = Try{new DateTime(mess.time)}.getOrElse(org.joda.time.DateTime.now)
-
       val updOps = makeMeOps(mess.state, time, currentOps).map(updPositionsAndOps)
       println("NEW OPS")
       updOps.foreach(println(_))
@@ -83,11 +82,23 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
 
 
 
-
+  val baseTimeNow = org.joda.time.DateTime.now
+  var baseTimeThen: Long = -1
+  var lastms: Long = 0
   def receiveRecover = {
     case x: String =>
-      println("recover states")
-      //fixTheOps(x)
+      val attr = SPValue.fromJson(x)
+      val rawMess = attr.flatMap(_.to[RawMess])
+      if(rawMess.nonEmpty) {
+        val ms = new DateTime(rawMess.get.time).getMillis()
+        if(baseTimeThen == -1) baseTimeThen = ms // init replay time
+        val msOfExecution = ms - baseTimeThen
+        val sleep = msOfExecution - lastms
+        Thread.sleep(sleep)
+        lastms = msOfExecution
+        val rawFixedTime = RawMess(rawMess.get.state, baseTimeNow.plusMillis(msOfExecution.intValue()).toString)
+        fixTheOps(SPValue(rawFixedTime).toJson.toString)
+       }
     case RecoveryCompleted =>
       println("recover done")
     case x => println("hej: "+x)
