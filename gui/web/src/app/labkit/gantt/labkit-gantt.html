@@ -9,6 +9,34 @@
             <gantt-tree enabled="true"></gantt-tree>
             <gantt-tooltips enabled="true" date-format="'HH:mm:ss'" delay="100"></gantt-tooltips>
         </div>
+
+        <br><br><br>
+
+        <!-- replace with ng-for... -->
+        <div style="float: left; width: 435px;">
+            <center>
+                <h2>{{vm.pieNames[0]}}</h2>
+                <nvd3 options="vm.pieOptions" data="vm.pieData[0]">
+            </center>
+            </nvd3>
+        </div>
+        <div style="float: left; width: 435px;">
+            <center>
+                <h2>{{vm.pieNames[1]}}</h2>
+                <nvd3 options="vm.pieOptions" data="vm.pieData[1]">
+            </center>
+            </nvd3>
+        </div>
+        <div style="float: left; width: 435px;">
+            <center>
+                <h2>{{vm.pieNames[2]}}</h2>
+                <nvd3 options="vm.pieOptions" data="vm.pieData[2]">
+            </center>
+            </nvd3>
+        </div>
+
+        <br style="clear: left;" />
+
     </div>
 
 </div>

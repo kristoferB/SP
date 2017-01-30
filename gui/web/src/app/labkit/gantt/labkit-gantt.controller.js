@@ -24,6 +24,35 @@
         vm.currentDate = moment();
 
 
+        vm.pieOptions = {
+            chart: {
+                type: 'pieChart',
+                height: 300,
+                width: 430,
+                x: function(d){return d.key;},
+                y: function(d){return d.y;},
+                showLabels: true,
+                duration: 500,
+                labelThreshold: 0.01,
+                labelSunbeamLayout: true,
+                legend: {
+                    margin: {
+                        top: 5,
+                        right: 35,
+                        bottom: 5,
+                        left: 0
+                    }
+                }
+            }
+        };
+
+        vm.pieNames = [ "p1","p3","p4" ];
+
+        vm.pieData = [ [ { key: "Resource 1", y: 3 }, {key: "Resource 2", y: 4 }],
+                       [ { key: "Resource 1", y: 5 }, {key: "Resource 2", y: 1 }],
+                       [ { key: "Resource 1", y: 2 }, {key: "Resource 2", y: 3 }] ];
+
+
         var activeTasks = [];
 
         vm.reset = reset;
@@ -59,6 +88,21 @@
             if(!(_.isUndefined(event.service)) && event.service != "WidgetsBackend") return;
             if(!(_.isUndefined(event.isa)) && event.isa != "Response") return;
 
+            // pie
+            if(_.has(event, 'attributes.pieData')) {
+                console.log(event.attributes.pieData);
+                var y = _.map(event.attributes.pieData, function (v,k) {
+                    // hack for updating
+                    var idx = vm.pieNames.indexOf(k);
+                    if(idx != -1) {
+                        vm.pieData[idx] = _.map(v, function (v,k) {
+                            return { key: k, y: v};
+                        });
+                    }
+                });
+            }
+
+            // gantt
             if(_.has(event, 'attributes.resource') && _.has(event, 'attributes.executing')) {
                 var res = event.attributes.resource;
                 var name = event.attributes.operation;
