@@ -32,7 +32,7 @@
                 x: function(d){return d.key;},
                 y: function(d){return d.y;},
                 showLabels: true,
-                duration: 500,
+                duration: 0,
                 labelThreshold: 0.01,
                 labelSunbeamLayout: true,
                 legend: {
@@ -48,10 +48,7 @@
 
         vm.pieNames = [ "p1","p3","p4" ];
 
-        vm.pieData = [ [ { key: "Resource 1", y: 3 }, {key: "Resource 2", y: 4 }],
-                       [ { key: "Resource 1", y: 5 }, {key: "Resource 2", y: 1 }],
-                       [ { key: "Resource 1", y: 2 }, {key: "Resource 2", y: 3 }] ];
-
+        vm.pieData = [ [], [], [] ];
 
         var activeTasks = [];
 

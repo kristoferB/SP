@@ -42,7 +42,7 @@ class ResourceAggregator extends Actor {
       val now = org.joda.time.DateTime.now.getMillis().intValue() - baseTime
       val processTime = processes(resource).get("Process").getOrElse(0)
       val moveTime = processes(resource).get("move").getOrElse(0)
-      val idleTime = now - processTime - moveTime
+      val idleTime = now - moveTime
       val nm = processes(resource) + ("Idle" -> idleTime)
       val nt = nm + ("move" -> (moveTime - processTime))
       processes ++= Map(resource -> nm)
