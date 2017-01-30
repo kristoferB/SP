@@ -44,6 +44,7 @@ class ResourceAggregator extends Actor {
       val moveTime = processes(resource).get("move").getOrElse(0)
       val idleTime = now - processTime - moveTime
       val nm = processes(resource) + ("Idle" -> idleTime)
+      val nt = nm + ("move" -> (moveTime - processTime))
       processes ++= Map(resource -> nm)
       mediator ! Publish("frontend", ResourcePies(processes))
     }
@@ -85,14 +86,11 @@ class ResourceAggregator extends Actor {
           if(name.contains("move")) {
             val duration = (end.get.time.getMillis() - start.time.getMillis()).intValue()
             val processTime = processes(resource).get("Process").getOrElse(0)
-            val nt = processes(resource).get("move").getOrElse(0) + duration - processTime // subtract process from move
+            val nt = processes(resource).get("move").getOrElse(0) + duration // subtract process from move
             val nm = processes(resource) + ("move" -> nt)
             processes ++= Map(resource -> nm)
           }
         }
-
-        mediator ! Publish("frontend", ResourcePies(processes))
-
       }
 
      case _ =>

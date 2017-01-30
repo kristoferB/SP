@@ -96,7 +96,7 @@
                     var idx = vm.pieNames.indexOf(k);
                     if(idx != -1) {
                         vm.pieData[idx] = _.map(v, function (v,k) {
-                            return { key: k, y: v};
+                            return { key: k, y: v / 1000.0};
                         });
                     }
                 });
