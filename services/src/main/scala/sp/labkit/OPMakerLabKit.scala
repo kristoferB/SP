@@ -89,7 +89,7 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
     case x: String =>
       val attr = SPValue.fromJson(x)
       val rawMess = attr.flatMap(_.to[RawMess])
-      if(rawMess.nonEmpty) {
+      if(rawMess.nonEmpty && rawMess.get.state.nonEmpty && rawMess.get.time.nonEmpty) {
         val ms = new DateTime(rawMess.get.time).getMillis()
         if(baseTimeThen == -1) baseTimeThen = ms // init replay time
         val msOfExecution = ms - baseTimeThen
@@ -98,12 +98,10 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
         lastms = msOfExecution
         val rawFixedTime = RawMess(rawMess.get.state, baseTimeNow.plusMillis(msOfExecution.intValue()).toString)
         fixTheOps(SPValue(rawFixedTime).toJson.toString)
-       }
+      }
     case RecoveryCompleted =>
       println("recover done")
     case x => println("hej: "+x)
-
-
   }
 
 
