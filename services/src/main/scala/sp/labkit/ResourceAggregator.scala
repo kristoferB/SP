@@ -37,17 +37,15 @@ class ResourceAggregator extends Actor {
   mediator ! Subscribe("ops", self)
 
   def updateIdle = {
-    // update idle time and send again
-    processResources.foreach { resource =>
-      val now = org.joda.time.DateTime.now.getMillis().intValue() - baseTime
+    val now = org.joda.time.DateTime.now.getMillis().intValue() - baseTime
+    val toSend = processResources.map { resource =>
       val processTime = processes(resource).get("Process").getOrElse(0)
-      val moveTime = processes(resource).get("move").getOrElse(0)
-      val idleTime = now - moveTime
-      val nm = processes(resource) + ("Idle" -> idleTime)
-      val nt = nm + ("move" -> (moveTime - processTime))
-      processes ++= Map(resource -> nm)
-      mediator ! Publish("frontend", ResourcePies(processes))
+      val moveTime = Math.max(processes(resource).get("move").getOrElse(0) - processTime,0)
+      val idleTime = Math.max(now - moveTime - processTime, 0)
+      val m = Map("move" -> moveTime, "Process" -> processTime, "Idle" -> idleTime)
+      (resource -> m)
     }
+    mediator ! Publish("frontend", ResourcePies(toSend.toMap))
   }
 
   def receive = {
@@ -85,8 +83,7 @@ class ResourceAggregator extends Actor {
           }
           if(name.contains("move")) {
             val duration = (end.get.time.getMillis() - start.time.getMillis()).intValue()
-            val processTime = processes(resource).get("Process").getOrElse(0)
-            val nt = processes(resource).get("move").getOrElse(0) + duration // subtract process from move
+            val nt = processes(resource).get("move").getOrElse(0) + duration
             val nm = processes(resource) + ("move" -> nt)
             processes ++= Map(resource -> nm)
           }
