@@ -2,15 +2,15 @@
     'use strict';
 
     angular
-      .module('app.labkitGantt')
-      .controller('labkitGanttController', labkitGanttController);
+      .module('app.labkitResources')
+      .controller('labkitResourcesController', labkitResourcesController);
 
-    labkitGanttController.$inject = ['$scope', 'dashboardService','logger', 'modelService',
-                                     'itemService', 'spServicesService', 'restService',
-                                     'eventService','$interval','moment'];
+    labkitResourcesController.$inject = ['$scope', 'dashboardService','logger', 'modelService',
+                                         'itemService', 'spServicesService', 'restService',
+                                         'eventService','$interval','moment'];
     /* @ngInject */
-    function labkitGanttController($scope, dashboardService, logger, modelService, itemService,
-                                   spServicesService, restService, eventService,$interval,moment) {
+    function labkitResourcesController($scope, dashboardService, logger, modelService, itemService,
+                                       spServicesService, restService, eventService,$interval,moment) {
         var vm = this;
         var idleStr = 'waiting for data...';
 
@@ -47,7 +47,6 @@
         };
 
         vm.pieNames = [ "p1","p3","p4" ];
-
         vm.pieData = [ [], [], [] ];
 
         var activeTasks = [];

@@ -1,4 +1,4 @@
-<div ng-controller="labkitGanttController as vm" class="simple-widget">
+<div ng-controller="labkitResourcesController as vm" class="simple-widget">
     <div class="panel-content" style="padding: 10px;">
         <button type="button" class="btn btn-sm" ng-click="vm.reset()">
             <i class="fa fa-bolt"></i>
@@ -12,29 +12,13 @@
 
         <br><br><br>
 
-        <!-- replace with ng-for... -->
-        <div style="float: left; width: 435px;">
+        <div ng-repeat="n in vm.pieNames track by $index" style="float: left; width: 435px;">
             <center>
-                <h2>{{vm.pieNames[0]}}</h2>
-                <nvd3 options="vm.pieOptions" data="vm.pieData[0]">
+                <h2>{{n}}</h2>
+                <nvd3 options="vm.pieOptions" data="vm.pieData[$index]">
             </center>
             </nvd3>
         </div>
-        <div style="float: left; width: 435px;">
-            <center>
-                <h2>{{vm.pieNames[1]}}</h2>
-                <nvd3 options="vm.pieOptions" data="vm.pieData[1]">
-            </center>
-            </nvd3>
-        </div>
-        <div style="float: left; width: 435px;">
-            <center>
-                <h2>{{vm.pieNames[2]}}</h2>
-                <nvd3 options="vm.pieOptions" data="vm.pieData[2]">
-            </center>
-            </nvd3>
-        </div>
-
         <br style="clear: left;" />
 
     </div>

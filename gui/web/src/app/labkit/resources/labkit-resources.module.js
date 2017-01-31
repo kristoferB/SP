@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    angular.module('app.labkitPie', [
+    angular.module('app.labkitResources', [
         'app.core',
         'app.widgets'
       ]);
