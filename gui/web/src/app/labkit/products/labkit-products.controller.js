@@ -46,7 +46,7 @@
             }
         };
 
-        vm.pieNames = [ "p1","p3","p4" ];
+        vm.pieNames = [ "","","" ];
         vm.pieData = [ [], [], [] ];
 
         var activeTasks = [];
@@ -87,21 +87,25 @@
             // pie
             if(_.has(event, 'attributes.pieData') && _.has(event, 'attributes.product')) {
                 console.log(event.attributes.pieData);
-                var y = _.map(event.attributes.pieData, function (v,k) {
-                    // hack for updating
-                    var idx = vm.pieNames.indexOf(k);
-                    if(idx != -1) {
-                        vm.pieData[idx] = _.map(v, function (v,k) {
-                            return { key: k, y: v / 1000.0};
-                        });
-                    }
-                });
+                var pie = event.attributes.pieData;
+                if (_.isUndefined(pie[1])){
+                  pie[1] = {"name": "", "pie": []}
+                }
+                if (_.isUndefined(pie[2])){
+                  pie[2] = {"name": "", "pie": []}
+                }
+              vm.pieNames = [ pie[0].name,pie[1].name, pie[2].name ];
+              vm.pieData = [ pie[0].pie,pie[1].pie, pie[2].pie ];
             }
 
             // gantt
             if(_.has(event, 'attributes.resource') && _.has(event, 'attributes.executing')
               && _.has(event, 'attributes.product') && event.attributes.product !== '') {
-                var prod = event.attributes.product;
+
+              console.log("gantt");
+              console.log(event.attributes);
+
+              var prod = event.attributes.product;
                 var name = event.attributes.operation;
                 var type = event.attributes.operationType;
                 if(event.attributes.executing) {

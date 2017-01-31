@@ -66,7 +66,11 @@ class WidgetsBackend(eh: ActorRef) extends Actor with ServiceSupport {
       eh ! Response(List(), SPAttributes("pieData"->data) merge silent, serviceName, serviceID)
     case ProductPies(data) =>
       println("Tjo: "+data)
-      eh ! Response(List(), SPAttributes("pieData"->data, "product"->true) merge silent, serviceName, serviceID)
+      val pData = data.map{case (name, poses) =>
+        val pie = poses.map{kv => SPAttributes("key"->kv._1, "y"-> kv._2)}
+        SPAttributes("name"->name, "pie" -> pie)
+      }.toList
+      eh ! Response(List(), SPAttributes("pieData"->pData, "product"->true) merge silent, serviceName, serviceID)
     case SummedOperations(state: Map[String,Int]) =>
       eh ! Response(List(), SPAttributes("summedOperations"->state) merge silent, serviceName, serviceID)
 
