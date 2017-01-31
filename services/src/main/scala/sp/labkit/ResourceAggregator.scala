@@ -58,6 +58,7 @@ class ResourceAggregator extends Actor {
       val name = start.id
       val resource = start.resource
       val started = end.isEmpty
+      val product = start.product.getOrElse("")
 
       // start tracking times on first event
       if(baseTime == -1) {
@@ -67,11 +68,11 @@ class ResourceAggregator extends Actor {
 
       if(started) {
         // update gantt view
-        mediator ! Publish("frontend", OperationStarted(name, resource, "", t, start.time.toString))
+        mediator ! Publish("frontend", OperationStarted(name, resource, product, t, start.time.toString))
       }
       else {
         // update gantt view
-        mediator ! Publish("frontend", OperationFinished(name, resource, "", t, end.get.time.toString))
+        mediator ! Publish("frontend", OperationFinished(name, resource, product, t, end.get.time.toString))
 
         // update pie charts
         if(processResources.contains(resource)) {

@@ -99,18 +99,19 @@
             }
 
             // gantt
-            if(_.has(event, 'attributes.resource') && _.has(event, 'attributes.executing')) {
-                var res = event.attributes.resource;
+            if(_.has(event, 'attributes.resource') && _.has(event, 'attributes.executing')
+              && _.has(event, 'attributes.product') && event.attributes.product !== '') {
+                var prod = event.attributes.product;
                 var name = event.attributes.operation;
                 var type = event.attributes.operationType;
                 if(event.attributes.executing) {
                     // start task
                     var t = { name: name, from: moment(), to: moment(), color: color(name, 'executing') };
                     activeTasks.push(t);
-                    var rix = _.findIndex(vm.gantt, function(r) { return r.name == res; });
+                    var rix = _.findIndex(vm.gantt, function(r) { return r.name == prod; });
                     if(rix == -1) {
                         // new resource, add it
-                        vm.gantt.push({name: res, tasks: [ t ] });
+                        vm.gantt.push({name: prod, tasks: [ t ] });
                         // remove 'waiting' entry
                         vm.gantt = _.filter(vm.gantt, function(r) { return r.name != idleStr; });
                     } else {

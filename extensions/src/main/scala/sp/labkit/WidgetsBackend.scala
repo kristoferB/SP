@@ -57,10 +57,10 @@ class WidgetsBackend(eh: ActorRef) extends Actor with ServiceSupport {
 
     case OperationStarted(name: String, resource: String, product: String, operationType: String, time: String) =>
       eh ! Response(List(), SPAttributes("operation"->name, "resource" -> resource, "type" -> operationType,
-        "executing" -> true, "startTime" -> time) merge silent, serviceName, serviceID)
+        "product" -> product, "executing" -> true, "startTime" -> time) merge silent, serviceName, serviceID)
     case OperationFinished(name: String, resource: String, product: String, operationType: String, time: String) =>
       eh ! Response(List(), SPAttributes("operation"->name, "resource" -> resource, "type" -> operationType,
-        "executing" -> false, "stopTime" -> time) merge silent, serviceName, serviceID)
+        "product" -> product, "executing" -> false, "stopTime" -> time) merge silent, serviceName, serviceID)
     case ResourcePies(data) =>
       eh ! Response(List(), SPAttributes("pieData"->data) merge silent, serviceName, serviceID)
     case SummedOperations(state: Map[String,Int]) =>
