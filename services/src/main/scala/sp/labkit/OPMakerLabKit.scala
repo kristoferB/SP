@@ -70,8 +70,8 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
       }
 
       currentOps = (currentOps ++ updOps.map(x => x.start.name -> x)).filter{case (k,v) => v.end.isEmpty }
-      println("ALL OPS")
-      currentOps.foreach(println(_))
+      //println("ALL OPS")
+      //currentOps.foreach(println(_))
 
     }
   }
@@ -87,6 +87,7 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
   var lastms: Long = 0
   def receiveRecover = {
     case x: String =>
+//      fixTheOps(x)
       val attr = SPValue.fromJson(x)
       val rawMess = attr.flatMap(_.to[RawMess])
       if(rawMess.nonEmpty && rawMess.get.state.nonEmpty && rawMess.get.time.nonEmpty) {
@@ -328,8 +329,8 @@ trait TrackProducts extends NamesAndValues {
 
     } else op
 
-    println(s"UPDPOS: ${op.start.name} - move:${move} - ($from, $to) - pos: (${positions(move.from)}, ${positions(move.to)})")
-    println(s"UPDPOS_OP: $res")
+//    println(s"UPDPOS: ${op.start.name} - move:${move} - ($from, $to) - pos: (${positions(move.from)}, ${positions(move.to)})")
+//    println(s"UPDPOS_OP: $res")
 
     res
 

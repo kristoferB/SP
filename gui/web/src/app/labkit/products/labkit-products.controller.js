@@ -85,7 +85,7 @@
             if(!(_.isUndefined(event.isa)) && event.isa != "Response") return;
 
             // pie
-            if(_.has(event, 'attributes.pieData')) {
+            if(_.has(event, 'attributes.pieData') && _.has(event, 'attributes.product')) {
                 console.log(event.attributes.pieData);
                 var y = _.map(event.attributes.pieData, function (v,k) {
                     // hack for updating

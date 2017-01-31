@@ -20,7 +20,7 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
   import context.dispatcher
 
   import akka.cluster.pubsub._
-  import DistributedPubSubMediator.{ Put, Subscribe }
+  import DistributedPubSubMediator.{ Put, Subscribe, Publish }
   val mediator = DistributedPubSub(context.system).mediator
   mediator ! Subscribe("ops", self)
   mediator ! Subscribe("pos", self)
@@ -39,43 +39,39 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
                   )
 
   var currentPositions: Map[String, String] = Map()
-  var currentProdPosition: Map[String, String] = Map()
   var currentProds: Map[String, Prod] = Map()
   var completedProds: Map[String, Prod] = Map()
 
+  var liveProd: String = ""
+  var newestProd = ""
 
 
 
+  import com.github.nscala_time.time.Imports._
 
   def receive= {
     case op: APIOPMaker.OP if op.end.nonEmpty =>
-      op.start.product.map { name =>
-        if (!currentProds.contains(name)){
-          // new product
-          val pos = currentProdPosition.getOrElse(name, inLoader)
-          val prod = Prod(name, List(op), List(Pos(pos, op.start.time, None)), op.start.time)
-          currentProds += name -> prod
+      op.start.product.foreach { name =>
+        val updP = if (currentProds.contains(name)) {
+          addOPToProd(currentProds(name), op)
+        } else if (completedProds.contains(name)) {
+          addOPToProd(completedProds(name), op)
         } else {
-          val prod = currentProds(name)
-          val started = prod.startTime
-          val current = started to lastTime(op) toDurationMillis
-          val actW = calcWaitAndActive(prod.ops, current)
-          val updP = prod.copy(ops = prod.ops :+ op, currentDuration = current, waited = actW._1, processed = actW._2)
-          currentProds += name -> updP
-          // removes when prod is removed from positions
-//          if (op.end.nonEmpty && (op.start.name == p3move || op.start.name == p4move)){
-//            // Prod done
-//            val completed = updP.copy(endTime = Some(lastTime(op)))
-//            completedProds += name -> updP
-//            currentProds -= name
-//          }
+          newestProd = name
+          Prod(name, List(op), List(), op.start.time)  // new product
         }
 
-        println("AGGREGATOR ops:")
+        if (!completedProds.contains(name))
+          currentProds += name -> updP
+        else
+          completedProds += name -> updP
+
+        //println("AGGREGATOR ops:")
         //println(currentProds)
 
 
-        println()
+        //println()
+        sendProds
 
       }
 
@@ -86,25 +82,110 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
       val upd = positions.filter{case (pos, prod) =>
         ! (currentPositions.contains(pos) && currentPositions(pos) == prod)
       }
+      val removed = currentProds.collect{
+        case kv if !positions.values.toSet.contains(kv._1) && !completedProds.contains(kv._1) => kv
+      }
+      currentPositions = positions
 
+      val updProdPositions = upd.map{case (pos, prod) => prod -> Pos(pos, time, None)}.filter(_._1.nonEmpty)
 
-      println()
+      val updProds = currentProds.flatMap{case (name, prod) =>
+        val updP = updProdPositions.get(name).map{ pos =>
+          val uP = updPosInProd(prod, time)
+          uP.copy(positions = pos :: uP.positions)
+        }
+        updP.map(name -> _)
+      }
+
+      currentProds ++= updProds
+
+      val removedProds = currentProds.collect{
+        case (name, prod) if removed.contains(name) => name-> {
+          updPosInProd(prod, time).copy(endTime = Some(time))
+        }
+      }
+      currentProds = currentProds.filter(kv => !removedProds.contains(kv._1))
+
+      completedProds ++= removedProds
+
+//      currentProds.foreach(x => println(s"posLine_prod: $x"))
+//      completedProds.foreach(x => println(s"posLine_compl: $x"))
+//
+//      println()
+
+      sendProds
 
   }
 
 
+  def sendProds = {
+
+    if (!currentProds.contains(liveProd) && currentProds.contains(newestProd))
+      liveProd = newestProd
+
+
+    val livepie = currentProds.get(liveProd).map(makeMeAPie).getOrElse(("No live", List()))
+    val compl = newestCompleted.map(makeMeAPie)
+    val pie = (livepie +: compl).toMap
+
+    mediator ! Publish("frontend", ProductPies(pie))
+
+
+  }
+
+  def makeMeAPie(prod: Prod) = {
+    prod.name -> prod.positions.flatMap(p => p.duration.map(d => p.name -> d.toInt))
+  }
+
+  def newestCompleted = {
+    completedProds.values.toList
+      .filter(_.endTime.nonEmpty)
+      .sortWith(_.endTime.get > _.endTime.get)
+      .take(2)
+  }
 
   def lastTime(op: APIOPMaker.OP) = {
     op.end.getOrElse(op.start).time
   }
 
-  def calcWaitAndActive(list: List[APIOPMaker.OP], currentDuration: Long) = {
-    val active = list.foldLeft(0L){(a, b) =>
-      a + b.attributes.getAs[Long]("duration").getOrElse(0L)
-    }
-    val waiting = currentDuration - active
-    (waiting, active)
+
+  def addOPToProd(prod: Prod, op: APIOPMaker.OP) = {
+    reCalculateProd(prod.copy(ops = prod.ops :+ op), lastTime(op))
   }
+
+  def updPosInProd(prod: Prod, time: DateTime) = {
+    val oldP = prod.positions.headOption.map(p => p.copy(duration = Some((p.time to time).toDurationMillis))).toList
+    val list: List[Pos] = if (oldP.nonEmpty) oldP ++ prod.positions.tail else oldP
+    prod.copy(positions = list)
+  }
+
+  def reCalculateProd(prod: Prod, time: DateTime) = {
+    val times = sortAndMakeInterval(prod)
+    val current = (prod.startTime to time).toDurationMillis
+      prod.copy(currentDuration = current, waited = current - times._1, processed = times._1)
+  }
+
+  def sortAndMakeInterval(prod: Prod) = {
+    val intervals = prod.ops.filter(_.end.nonEmpty).map(x => x.start.time to x.end.get.time).sortWith(_.start < _.start)
+    val kalle: Option[org.joda.time.Interval] = None
+    intervals.foldLeft(0L, kalle){(a, b) =>
+      val act = a._1
+      val prev = a._2
+      val updInter = for {
+        p <- prev if p.overlaps(b)
+      } yield {
+        (b.millis - p.overlap(b).millis, p.start to {if (p.end > b.end) p.end else b.end})
+      }
+
+      val interval = updInter.getOrElse((b.millis, b))
+      val actUpd = interval._1 + act
+
+      (actUpd, Some(interval._2))
+    }
+
+  }
+
+
 
 
 

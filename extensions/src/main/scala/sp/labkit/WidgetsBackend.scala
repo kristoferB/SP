@@ -37,7 +37,7 @@ object WidgetsBackend extends SPService {
 case class OperationStarted(name: String, resource: String, product: String, operationType: String, time: String)
 case class OperationFinished(name: String, resource: String, product: String, operationType: String, time: String)
 case class ResourcePies(data: Map[String, Map[String, Int]])
-case class ProductPies(data: Map[String, Map[String, Int]], leadtime: Int, activeTime: Int, waitingTime: Int)
+case class ProductPies(data: Map[String, List[(String, Int)]])
 
 class WidgetsBackend(eh: ActorRef) extends Actor with ServiceSupport {
   implicit val timeout = Timeout(100 seconds)
@@ -64,9 +64,9 @@ class WidgetsBackend(eh: ActorRef) extends Actor with ServiceSupport {
         "product" -> product, "executing" -> false, "stopTime" -> time) merge silent, serviceName, serviceID)
     case ResourcePies(data) =>
       eh ! Response(List(), SPAttributes("pieData"->data) merge silent, serviceName, serviceID)
-    case ProductPies(data, leadtime, activeTime, waitingTime) =>
-      eh ! Response(List(), SPAttributes("pieData"->data, "leadtime"->leadtime, "activeTime"-> activeTime,
-        "waitingTime"->waitingTime) merge silent, serviceName, serviceID)
+    case ProductPies(data) =>
+      println("Tjo: "+data)
+      eh ! Response(List(), SPAttributes("pieData"->data, "product"->true) merge silent, serviceName, serviceID)
     case SummedOperations(state: Map[String,Int]) =>
       eh ! Response(List(), SPAttributes("summedOperations"->state) merge silent, serviceName, serviceID)
 
