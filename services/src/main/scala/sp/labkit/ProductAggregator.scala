@@ -71,7 +71,7 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
 
 
         //println()
-        sendProds
+        sendProds(lastTime(op))
 
       }
 
@@ -113,18 +113,19 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
 //
 //      println()
 
-      sendProds
+      sendProds(time)
 
   }
 
 
-  def sendProds = {
+  def sendProds(time: DateTime) = {
 
     if (!currentProds.contains(liveProd) && currentProds.contains(newestProd))
       liveProd = newestProd
 
-
-    val livepie = currentProds.get(liveProd).map(makeMeAPie).getOrElse(("No live", List()))
+    val livepie = currentProds.get(liveProd).map(p =>
+      makeMeAPie(updPosInProd(p, time))
+    ).getOrElse(("No live", List()))
     val compl = newestCompleted.map(makeMeAPie)
     val pie = (livepie +: compl).toMap
 
@@ -152,6 +153,7 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
   def addOPToProd(prod: Prod, op: APIOPMaker.OP) = {
     reCalculateProd(prod.copy(ops = prod.ops :+ op), lastTime(op))
   }
+
 
   def updPosInProd(prod: Prod, time: DateTime) = {
     val oldP = prod.positions.headOption.map(p => p.copy(duration = Some((p.time to time).toDurationMillis))).toList
