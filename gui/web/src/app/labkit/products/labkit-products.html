@@ -19,6 +19,25 @@
             </center>
             </nvd3>
         </div>
+
+        <div class="col-md-3">
+        <table class="table table-striped">
+            <thead><tr><th >Name</th><th >Lead time</th><th >active time</th><th >waiting time</th><th >no of Ops</th><th >no of Pos</th></tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="p in vm.prods" ng-class-odd="'odd-row'" ng-class-even="'even-row'">
+            <td>{{p.name}}</td>
+            <td>{{p.leadtime}}</td>
+            <td>{{p.processingTime}}</td>
+            <td>{{p.waitingTime}}</td>
+            <td>{{p.noOfOperations}}</td>
+            <td>{{p.noOfPositions}}</td>
+            </tr>
+
+            </tbody>
+        </table>
+        </div>
+
         <br style="clear: left;" />
 
     </div>

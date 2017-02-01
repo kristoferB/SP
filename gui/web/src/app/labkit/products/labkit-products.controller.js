@@ -22,6 +22,7 @@
         vm.showFromDate = moment();
         vm.showToDate = moment();
         vm.currentDate = moment();
+        vm.prods = [];
 
 
         vm.pieOptions = {
@@ -84,9 +85,19 @@
             if(!(_.isUndefined(event.service)) && event.service != "WidgetsBackend") return;
             if(!(_.isUndefined(event.isa)) && event.isa != "Response") return;
 
+            // list
+          if(_.has(event, 'attributes.productStats') ) {
+            // case class ProdStat(name: String, leadtime: Int, processingTime: Int, waitingTime: Int, noOfOperations: Int, noOfPositions: Int)
+            console.log(event.attributes.productStats);
+            // probably do a line by line copy!
+            vm.prods = event.attributes.productStats;
+          }
+
+
+
             // pie
             if(_.has(event, 'attributes.pieData') && _.has(event, 'attributes.product')) {
-                console.log(event.attributes.pieData);
+                //console.log(event.attributes.pieData);
                 var pie = event.attributes.pieData;
                 if (_.isUndefined(pie[1])){
                   pie[1] = {"name": "", "pie": []}
@@ -102,8 +113,8 @@
             if(_.has(event, 'attributes.resource') && _.has(event, 'attributes.executing')
               && _.has(event, 'attributes.product') && event.attributes.product !== '') {
 
-              console.log("gantt");
-              console.log(event.attributes);
+              //console.log("gantt");
+              //console.log(event.attributes);
 
               var prod = event.attributes.product;
                 var name = event.attributes.operation;
@@ -132,6 +143,10 @@
                         activeTasks = _.filter(activeTasks, function(r) { return r.name != name; });
                     }
                 }
+
+                // if (vm.gantt.length > 10){
+                //   vm.gantt.shift();
+                // }
 
                 // sort on name
                 vm.gantt = _.sortBy(vm.gantt, function(row) { return row.name; });

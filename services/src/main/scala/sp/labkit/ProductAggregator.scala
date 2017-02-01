@@ -43,13 +43,19 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
   var completedProds: Map[String, Prod] = Map()
 
   var liveProd: String = ""
+  var latestTimeStamp: DateTime = org.joda.time.DateTime.now
   var newestProd = ""
+
+  val ticker = context.system.scheduler.schedule(300 milliseconds, 300 milliseconds, self, "tick")
 
 
 
   import com.github.nscala_time.time.Imports._
 
   def receive= {
+    case "tick" =>
+      sendProds(latestTimeStamp)
+      latestTimeStamp = latestTimeStamp.plus(300)
     case op: APIOPMaker.OP if op.end.nonEmpty =>
       op.start.product.foreach { name =>
         val updP = if (currentProds.contains(name)) {
@@ -66,13 +72,7 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
         else
           completedProds += name -> updP
 
-        //println("AGGREGATOR ops:")
-        //println(currentProds)
-
-
-        //println()
-        sendProds(lastTime(op))
-
+        latestTimeStamp = lastTime(op)
       }
 
     case APIOPMaker.Positions(positions, time) =>
@@ -113,29 +113,31 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
 //
 //      println()
 
-      sendProds(time)
+      latestTimeStamp = time
 
   }
 
 
   def sendProds(time: DateTime) = {
 
-    if (!currentProds.contains(liveProd) && currentProds.contains(newestProd))
+    if ((liveProd.isEmpty || !currentProds.contains(liveProd)) && currentProds.contains(newestProd))
       liveProd = newestProd
 
     val livepie = currentProds.get(liveProd).map(p =>
       makeMeAPie(updPosInProd(p, time))
     ).getOrElse(("No live", List()))
     val compl = newestCompleted.map(makeMeAPie)
-    val pie = (livepie +: compl).toMap
+    val pie = (livepie +: compl)
 
-    mediator ! Publish("frontend", ProductPies(pie))
+    if (pie.nonEmpty) mediator ! Publish("frontend", ProductPies(pie))
 
+    val pStats = createProdStats
+    if (pStats.nonEmpty)  mediator ! Publish("frontend", ProductStats(pStats))
 
   }
 
   def makeMeAPie(prod: Prod) = {
-    prod.name -> prod.positions.flatMap(p => p.duration.map(d => p.name -> d.toInt))
+    prod.name -> prod.positions.flatMap(p => p.duration.map(d => p.name -> (d*1000/(prod.currentDuration+1)).toInt))
   }
 
   def newestCompleted = {
@@ -147,6 +149,13 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
 
   def lastTime(op: APIOPMaker.OP) = {
     op.end.getOrElse(op.start).time
+  }
+
+  def createProdStats = {
+    val t = completedProds.toList.sortWith((a, b) => a._2.endTime.getOrElse(a._2.startTime) > b._2.endTime.getOrElse(b._2.startTime) ).map{case (name, prod) =>
+      ProdStat(name, prod.currentDuration/1000 toInt, prod.processed/1000 toInt, prod.waited/1000 toInt, prod.ops.size, prod.positions.size)
+    }
+    t.take(10)
   }
 
 

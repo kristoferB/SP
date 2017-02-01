@@ -37,7 +37,9 @@ object WidgetsBackend extends SPService {
 case class OperationStarted(name: String, resource: String, product: String, operationType: String, time: String)
 case class OperationFinished(name: String, resource: String, product: String, operationType: String, time: String)
 case class ResourcePies(data: Map[String, Map[String, Int]])
-case class ProductPies(data: Map[String, List[(String, Int)]])
+case class ProductPies(data: List[(String, List[(String, Int)])])
+case class ProdStat(name: String, leadtime: Int, processingTime: Int, waitingTime: Int, noOfOperations: Int, noOfPositions: Int)
+case class ProductStats(data: List[ProdStat])
 
 class WidgetsBackend(eh: ActorRef) extends Actor with ServiceSupport {
   implicit val timeout = Timeout(100 seconds)
@@ -65,12 +67,14 @@ class WidgetsBackend(eh: ActorRef) extends Actor with ServiceSupport {
     case ResourcePies(data) =>
       eh ! Response(List(), SPAttributes("pieData"->data) merge silent, serviceName, serviceID)
     case ProductPies(data) =>
-      println("Tjo: "+data)
       val pData = data.map{case (name, poses) =>
         val pie = poses.map{kv => SPAttributes("key"->kv._1, "y"-> kv._2)}
         SPAttributes("name"->name, "pie" -> pie)
       }.toList
       eh ! Response(List(), SPAttributes("pieData"->pData, "product"->true) merge silent, serviceName, serviceID)
+    case ProductStats(data) =>
+      eh ! Response(List(), SPAttributes("productStats"->data) merge silent, serviceName, serviceID)
+
     case SummedOperations(state: Map[String,Int]) =>
       eh ! Response(List(), SPAttributes("summedOperations"->state) merge silent, serviceName, serviceID)
 
