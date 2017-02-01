@@ -2,7 +2,7 @@ package sp.opcMilo
 
 // SP
 import sp.domain._
-import org.json4s.JsonAST.{JValue,JBool,JInt,JString}
+import org.json4s.JsonAST.{JValue,JBool,JInt,JDouble,JString}
 import org.json4s.DefaultFormats
 
 // Milo
@@ -32,7 +32,6 @@ import java.util.function.BiConsumer
 import java.util.concurrent.atomic.AtomicLong
 
 // Scala
-import scala.util.{Try, Success, Failure}
 import akka.actor._
 
 case class StateUpdate(activeState: Map[String, SPValue])
@@ -51,7 +50,7 @@ class MiloOPCUAClient {
   var clientHandles: AtomicLong = new AtomicLong(1L);
   var availableNodes: Map[String, UaVariableNode] = Map()
   var activeState: Map[String, SPValue] = Map()
-  var currentTime: DateTime = new DateTime()
+  var currentTime: org.joda.time.DateTime = org.joda.time.DateTime.now
 
   def disconnect() = {
     if(client != null) {
@@ -63,7 +62,7 @@ class MiloOPCUAClient {
   def isConnected = client != null
 
   def connect(url: String = "opc.tcp://localhost:12686"): Boolean = {
-    val r: Try[Unit] = {
+    try {
       val configBuilder: OpcUaClientConfigBuilder = new OpcUaClientConfigBuilder();
       val endpoints = UaTcpStackClient.getEndpoints(url).get().toList
       val endpoint: EndpointDescription = endpoints.filter(e => e.getEndpointUrl().equals(url)) match {
@@ -76,11 +75,14 @@ class MiloOPCUAClient {
       client = new OpcUaClient(configBuilder.build()).connect().get()
       // periodically ask for the server time just to keep session alive
       setupServerTimeSubsciption()
-      Try(populateNodes(client, Identifiers.RootFolder))
+      populateNodes(client, Identifiers.RootFolder)
+      true
     }
-    r match {
-      case Success(()) => true
-      case Failure(e) => client = null; false
+    catch {
+      case e: Exception =>
+        println("OPCUA - " + e.getMessage())
+        client = null;
+        false
     }
   }
 
@@ -101,9 +103,7 @@ class MiloOPCUAClient {
     }
   }
 
-  def getCurrentTime: org.joda.time.DateTime = {
-    new org.joda.time.DateTime(currentTime.getJavaDate())
-  }
+  def getCurrentTime: org.joda.time.DateTime = currentTime
 
   def setupServerTimeSubsciption(): Unit = {
     val subscription = client.getSubscriptionManager.createSubscription(100).get()
@@ -120,7 +120,8 @@ class MiloOPCUAClient {
     }
     def onSubscription = new BiConsumer[UaMonitoredItem, DataValue] {
       def accept(item:UaMonitoredItem, dataValue: DataValue): Unit = {
-        currentTime = dataValue.getValue().getValue().asInstanceOf[DateTime]
+        val epoch = dataValue.getValue().getValue().asInstanceOf[DateTime].getJavaTime()
+        currentTime = new org.joda.time.DateTime(epoch)
       }
     }
     subscription.createMonitoredItems(TimestampsToReturn.Both, requests.asJava, onItemCreated)
@@ -157,31 +158,33 @@ class MiloOPCUAClient {
     subscription.createMonitoredItems(TimestampsToReturn.Both, requests.asJava, onItemCreated)
   }
 
-  // TODO: for now we really only support Byte and Bool, add more type as necessary
   def fromDataValue(dv: DataValue): SPValue = {
     val v = dv.getValue().getValue()
     val typeid = dv.getValue().getDataType().get()
     val c = BuiltinDataType.getBackingClass(typeid)
     c match {
-      case q if q == classOf[Int] => JInt(v.asInstanceOf[Int])
+      case q if q == classOf[java.lang.Integer] => JInt(v.asInstanceOf[Int])
       case q if q == classOf[UByte] => JInt(v.asInstanceOf[UByte].intValue())
       case q if q == classOf[java.lang.Short] => JInt(v.asInstanceOf[java.lang.Short].intValue())
+      case q if q == classOf[java.lang.Long] => JInt(v.asInstanceOf[java.lang.Long].intValue())
       case q if q == classOf[String] => JString(v.asInstanceOf[String])
       case q if q == classOf[java.lang.Boolean] => JBool(v.asInstanceOf[Boolean])
+      case q if q == classOf[java.lang.Double] => JDouble(v.asInstanceOf[java.lang.Double].doubleValue())
       case _ => println(s"need to add type: ${c}"); JString("fail")
     }
   }
 
-  // TODO: for now we really only support Byte and Bool, add more type as necessary
   def toDataValue(spVal: SPValue, targetType: NodeId): DataValue = {
     implicit val formats = DefaultFormats
     val c = BuiltinDataType.getBackingClass(targetType)
     c match {
-      case q if q == classOf[Int] => new DataValue(new Variant(spVal.extract[Int]))
+      case q if q == classOf[java.lang.Integer] => new DataValue(new Variant(spVal.extract[Int]))
       case q if q == classOf[UByte] => new DataValue(new Variant(ubyte(spVal.extract[Int])))
       case q if q == classOf[java.lang.Short] => new DataValue(new Variant(spVal.extract[Short]))
+      case q if q == classOf[java.lang.Long] => new DataValue(new Variant(spVal.extract[Long]))
       case q if q == classOf[String] => new DataValue(new Variant(spVal.extract[String]))
       case q if q == classOf[java.lang.Boolean] => new DataValue(new Variant(spVal.extract[Boolean]))
+      case q if q == classOf[java.lang.Double] => new DataValue(new Variant(spVal.extract[Double]))
       case _ => println(s"need to add type: ${c}"); new DataValue(new Variant(false))
     }
   }
