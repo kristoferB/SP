@@ -63,21 +63,21 @@ class OPC(opc: ActorRef) extends Actor with ServiceSupport {
       // check connection
       val connectionstatus = attr.getAs[Boolean]("connected").getOrElse(false)
       if(!connected && connectionstatus) {
-        println("connected, subscribing")
         connected = true
         opc ! SPAttributes("cmd" -> "subscribe", "nodes" -> nodeIDsToNode.map(_._1))
       }
       if(!connected && !connectionstatus) {
         // try again in five seconds
-        println("could not connect, waiting")
         context.system.scheduler.scheduleOnce(Duration(5, TimeUnit.SECONDS), self, "connect")
       }
 
       val time = attr.getAs[String]("timeStamp").getOrElse("")
       val state = attr.getAs[Map[String, SPValue]]("state").getOrElse(Map())
       val shortMap = state.map(p=>nodeIDsToNode(p._1)->p._2).toMap
-      println(shortMap)
-      mediator ! Publish("raw", SPAttributes("state"->shortMap, "time" -> time).toJson)
+      if(time.nonEmpty && shortMap.nonEmpty) {
+        println(shortMap)
+        mediator ! Publish("raw", SPAttributes("state"->shortMap, "time" -> time).toJson)
+      }
     case _ =>
   }
 
