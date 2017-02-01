@@ -32,7 +32,6 @@ import java.util.function.BiConsumer
 import java.util.concurrent.atomic.AtomicLong
 
 // Scala
-import scala.util.{Try, Success, Failure}
 import akka.actor._
 
 case class StateUpdate(activeState: Map[String, SPValue])
@@ -51,7 +50,7 @@ class MiloOPCUAClient {
   var clientHandles: AtomicLong = new AtomicLong(1L);
   var availableNodes: Map[String, UaVariableNode] = Map()
   var activeState: Map[String, SPValue] = Map()
-  var currentTime: DateTime = new DateTime()
+  var currentTime: org.joda.time.DateTime = org.joda.time.DateTime.now
 
   def disconnect() = {
     if(client != null) {
@@ -63,7 +62,7 @@ class MiloOPCUAClient {
   def isConnected = client != null
 
   def connect(url: String = "opc.tcp://localhost:12686"): Boolean = {
-    val r: Try[Unit] = {
+    try {
       val configBuilder: OpcUaClientConfigBuilder = new OpcUaClientConfigBuilder();
       val endpoints = UaTcpStackClient.getEndpoints(url).get().toList
       val endpoint: EndpointDescription = endpoints.filter(e => e.getEndpointUrl().equals(url)) match {
@@ -76,11 +75,14 @@ class MiloOPCUAClient {
       client = new OpcUaClient(configBuilder.build()).connect().get()
       // periodically ask for the server time just to keep session alive
       setupServerTimeSubsciption()
-      Try(populateNodes(client, Identifiers.RootFolder))
+      populateNodes(client, Identifiers.RootFolder)
+      true
     }
-    r match {
-      case Success(()) => true
-      case Failure(e) => client = null; false
+    catch {
+      case e: Exception =>
+        println("OPCUA - " + e.getMessage())
+        client = null;
+        false
     }
   }
 
@@ -101,6 +103,8 @@ class MiloOPCUAClient {
     }
   }
 
+  def getCurrentTime: org.joda.time.DateTime = currentTime
+
   def setupServerTimeSubsciption(): Unit = {
     val subscription = client.getSubscriptionManager.createSubscription(100).get()
     val node  = client.getAddressSpace().createVariableNode(Identifiers.Server_ServerStatus_CurrentTime);
@@ -116,7 +120,8 @@ class MiloOPCUAClient {
     }
     def onSubscription = new BiConsumer[UaMonitoredItem, DataValue] {
       def accept(item:UaMonitoredItem, dataValue: DataValue): Unit = {
-        currentTime = dataValue.getValue().getValue().asInstanceOf[DateTime]
+        val epoch = dataValue.getValue().getValue().asInstanceOf[DateTime].getJavaTime()
+        currentTime = new org.joda.time.DateTime(epoch)
       }
     }
     subscription.createMonitoredItems(TimestampsToReturn.Both, requests.asJava, onItemCreated)
