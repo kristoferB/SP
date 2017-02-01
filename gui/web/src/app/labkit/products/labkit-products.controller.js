@@ -144,12 +144,12 @@
                     }
                 }
 
-                // if (vm.gantt.length > 10){
-                //   vm.gantt.shift();
-                // }
+                if (vm.gantt.length > 6){
+                  vm.gantt.shift();
+                }
 
                 // sort on name
-                vm.gantt = _.sortBy(vm.gantt, function(row) { return row.name; });
+                //vm.gantt = _.sortBy(vm.gantt, function(row) { return row.name; });
             }
         }
 
