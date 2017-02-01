@@ -17,12 +17,12 @@ object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] 
   subscribe(zoomRW(myM => myM)((m,v) => v))(m => BrowserStorage.store(m.value))
 }
 
-class DashboardHandler[M](modelRW: ModelRW[M, List[OpenWidget]]) extends ActionHandler(modelRW) {
+class DashboardHandler[M](modelRW: ModelRW[M, OpenWidgets]) extends ActionHandler(modelRW) {
   def handle = {
-    case AddWidget(widgetType) => updated(value :+ OpenWidget(widgetType))
-    case CloseWidget(index) => updated(value.zipWithIndex.filter(_._2 != index).map(_._1))
-    case SetWidgetData(index, stringifiedWidgetData) =>
-      updated(value.zipWithIndex.map(t => if(t._2 == index) t._1.copy(stringifiedWidgetData = stringifiedWidgetData) else t._1))
+    case AddWidget(widgetType) => updated(OpenWidgets(value.count + 1, value.list :+ OpenWidget(value.count + 1, widgetType)))
+    case CloseWidget(id) => updated(OpenWidgets(value.count, value.list.filter(_.id != id)))
+    case SetWidgetData(id, stringifiedWidgetData) =>
+      updated(OpenWidgets(value.count, value.list.map(ow => if(ow.id == id) ow.copy(stringifiedWidgetData = stringifiedWidgetData) else ow)))
   }
 }
 

@@ -12,11 +12,13 @@ import scalajs.js.Dynamic.{literal => l}
 // TODO: make a trait or class Widget that is inherited by all widgets that
 // sorts out the json-stringifying and keeps track of widgetIndex etc
 
+// the data saving will only work if openwidget.id is 2 currently, TODO...
+
 object WidgetWithJSON {
 
   class Backend($: BackendScope[Int, Unit]) {
     def onTextChange(e: ReactEventI): Callback =
-      Callback(SPGUICircuit.dispatch(SetWidgetData(0, JSON.stringify(l("WidgetWithJSONData" -> e.target.value)))))
+      Callback(SPGUICircuit.dispatch(SetWidgetData(2, JSON.stringify(l("WidgetWithJSONData" -> e.target.value)))))
 
     def render =
       <.div(
