@@ -100,7 +100,7 @@ object ReactGridLayout {
     layout: js.UndefOr[js.Array[js.Object with js.Dynamic]] = js.undefined,
     margin: js.UndefOr[js.Array[Int]] = js.Array(3,3),
     containerPadding: js.UndefOr[js.Array[Int]] = js.Array(3,3),
-    rowHeight: js.UndefOr[Int] = 150,
+    rowHeight: js.UndefOr[Int] = 160,
     isDraggable: js.UndefOr[Boolean] = true,
     isResizable: js.UndefOr[Boolean] = true,
     useCSSTransforms: js.UndefOr[Boolean] = true,

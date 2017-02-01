@@ -21,9 +21,9 @@ object Dashboard {
           cols = 8,
           draggableHandle = "." + DashboardCSS.widgetPanelHeader.htmlClass,
           onLayoutChange = _ => SPGUICircuit.dispatch(LayoutUpdated(0)),
-          for((openWidget,index) <- p.proxy().zipWithIndex)
+          for(openWidget <- p.proxy())
           yield ReactGridLayoutItem(
-            key = index.toString,
+            key = openWidget.id.toString,
             i = "idkdk",
             x = 0,
             y = 0,
@@ -31,7 +31,7 @@ object Dashboard {
             h = 1,
             isDraggable = true,
             isResizable = true,
-            child = DashboardItem(WidgetList()(openWidget.widgetType), index)
+            child = DashboardItem(WidgetList()(openWidget.widgetType), openWidget.id)
           )
         )
       )
