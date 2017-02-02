@@ -28,9 +28,9 @@ object Dashboard {
               element => console.log(element)
             )
           }),
-          for((openWidget,index) <- p.proxy().zipWithIndex)
+          for(openWidget <- p.proxy())
           yield ReactGridLayoutItem(
-            key = index.toString,
+            key = openWidget.id.toString,
             i = "idkdk",
             x = openWidget.layout.x,
             y = openWidget.layout.y,
@@ -38,7 +38,7 @@ object Dashboard {
             h = openWidget.layout.h,
             isDraggable = true,
             isResizable = true,
-            child = DashboardItem(WidgetList()(openWidget.widgetType), index)
+            child = DashboardItem(WidgetList()(openWidget.widgetType), openWidget.id)
           )
         )
       )
