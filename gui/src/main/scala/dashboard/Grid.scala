@@ -147,6 +147,7 @@ object ReactGridLayout {
 }
 
 trait LayoutDataElement extends js.Object {
+  val i: String = js.native
   val x: Int = js.native
   val y: Int = js.native
   val w: Int = js.native

@@ -12,9 +12,8 @@ case class WidgetLayout(x: Int, y: Int, w: Int, h: Int)
 case class AddWidget(widgetType: String) extends Action
 case class CloseWidget(id: Int) extends Action
 case class SetWidgetData(index: Int, stringifiedWidgetData: String) extends Action
-case class UpdateLayout(newLayout: String) extends Action
 
-case class LayoutUpdated(layout: Int) extends Action
+case class LayoutUpdated(id: Int, newLayout: WidgetLayout) extends Action
 
 // used when failing to retrieve a state from browser storage
 object InitialState {

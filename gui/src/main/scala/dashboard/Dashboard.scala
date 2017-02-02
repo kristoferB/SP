@@ -7,7 +7,7 @@ import diode.react.ModelProxy
 import spgui.circuit.OpenWidget
 
 import spgui.WidgetList
-import spgui.circuit.{SPGUICircuit, UpdateLayout}
+import spgui.circuit.{SPGUICircuit, LayoutUpdated, WidgetLayout}
 import org.scalajs.dom.console
 
 import scala.scalajs.js
@@ -25,7 +25,13 @@ object Dashboard {
           draggableHandle = "." + DashboardCSS.widgetPanelHeader.htmlClass,
           onLayoutChange = (layout => {
             layout.asInstanceOf[LayoutData].foreach(
-              element => console.log(element)
+              g => {
+                console.log(g.x, g.y, g.h, g.w)
+                p.proxy().foreach(widget => if(widget.id == g.i.toInt) {
+                  val newLayout = WidgetLayout(g.x, g.y, g.w, g.h)
+                  SPGUICircuit.dispatch(LayoutUpdated(widget.id, newLayout))
+                })
+              }
             )
           }),
           for(openWidget <- p.proxy())
