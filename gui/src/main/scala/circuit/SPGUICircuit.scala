@@ -17,12 +17,19 @@ object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] 
   subscribe(zoomRW(myM => myM)((m,v) => v))(m => BrowserStorage.store(m.value))
 }
 
+
+
 class DashboardHandler[M](modelRW: ModelRW[M, List[OpenWidget]]) extends ActionHandler(modelRW) {
+  val r = scala.util.Random
   def handle = {
-    case AddWidget(widgetType) => updated(value :+ OpenWidget(widgetType))
+    case AddWidget(widgetType) => updated(value :+ OpenWidget(WidgetLayout(r.nextInt(10),r.nextInt(20),1,1), widgetType))
     case CloseWidget(index) => updated(value.zipWithIndex.filter(_._2 != index).map(_._1))
     case SetWidgetData(index, stringifiedWidgetData) =>
       updated(value.zipWithIndex.map(t => if(t._2 == index) t._1.copy(stringifiedWidgetData = stringifiedWidgetData) else t._1))
+    case UpdateLayout(newLayout) => {
+      console.log(newLayout)
+      updated(value)
+    }
   }
 }
 

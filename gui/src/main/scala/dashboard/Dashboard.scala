@@ -7,7 +7,10 @@ import diode.react.ModelProxy
 import spgui.circuit.OpenWidget
 
 import spgui.WidgetList
-import spgui.circuit.{SPGUICircuit, LayoutUpdated}
+import spgui.circuit.{SPGUICircuit, UpdateLayout}
+import org.scalajs.dom.console
+
+import scala.scalajs.js
 
 object Dashboard {
   case class Props(proxy: ModelProxy[List[OpenWidget]])
@@ -20,15 +23,19 @@ object Dashboard {
           width = 1920,
           cols = 8,
           draggableHandle = "." + DashboardCSS.widgetPanelHeader.htmlClass,
-          onLayoutChange = _ => SPGUICircuit.dispatch(LayoutUpdated(0)),
+          onLayoutChange = (layout => {
+            layout.asInstanceOf[LayoutData].foreach(
+              element => console.log(element)
+            )
+          }),
           for((openWidget,index) <- p.proxy().zipWithIndex)
           yield ReactGridLayoutItem(
             key = index.toString,
             i = "idkdk",
-            x = 0,
-            y = 0,
-            w = 1,
-            h = 1,
+            x = openWidget.layout.x,
+            y = openWidget.layout.y,
+            w = openWidget.layout.w,
+            h = openWidget.layout.h,
             isDraggable = true,
             isResizable = true,
             child = DashboardItem(WidgetList()(openWidget.widgetType), index)
