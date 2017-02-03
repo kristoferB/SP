@@ -145,3 +145,19 @@ object ReactGridLayout {
     f(facade.toJS, children.toJsArray).asInstanceOf[ReactComponentU_]
   }
 }
+
+trait LayoutDataElement extends js.Object {
+  val i: String = js.native
+  val x: Int = js.native
+  val y: Int = js.native
+  val w: Int = js.native
+  val h: Int = js.native
+  val isDraggable: String = js.native
+  val isResizable: String = js.native
+  val maxW: Int = js.native
+  val minW: Int = js.native
+  val maxH: Int = js.native
+  val minH: Int = js.native
+  val static: Boolean = js.native  
+}
+trait LayoutData extends js.Array[LayoutDataElement]
