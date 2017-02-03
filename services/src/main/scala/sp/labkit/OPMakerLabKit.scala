@@ -95,7 +95,7 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
         if(baseTimeThen == -1) baseTimeThen = ms // init replay time
         val msOfExecution = ms - baseTimeThen
         val sleep = msOfExecution - lastms
-        Thread.sleep(sleep/2)
+        Thread.sleep(sleep)
         lastms = msOfExecution
         val rawFixedTime = RawMess(rawMess.get.state, baseTimeNow.plusMillis(msOfExecution.intValue()).toString)
         fixTheOps(SPValue(rawFixedTime).toJson.toString)

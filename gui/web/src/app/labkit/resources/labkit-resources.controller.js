@@ -86,7 +86,7 @@
 
             // pie
             if(_.has(event, 'attributes.pieData')) {
-                console.log(event.attributes.pieData);
+                //console.log(event.attributes.pieData);
                 var y = _.map(event.attributes.pieData, function (v,k) {
                     // hack for updating
                     var idx = vm.pieNames.indexOf(k);

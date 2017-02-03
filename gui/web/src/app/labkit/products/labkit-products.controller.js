@@ -17,7 +17,7 @@
         vm.widget = $scope.$parent.$parent.$parent.vm.widget;
         vm.dashboard = $scope.$parent.$parent.$parent.vm.dashboard;
 
-
+       
         vm.gantt = [{name: idleStr, tasks: [  ]}];
         vm.showFromDate = moment();
         vm.showToDate = moment();
@@ -88,7 +88,7 @@
             // list
           if(_.has(event, 'attributes.productStats') ) {
             // case class ProdStat(name: String, leadtime: Int, processingTime: Int, waitingTime: Int, noOfOperations: Int, noOfPositions: Int)
-            console.log(event.attributes.productStats);
+            //console.log(event.attributes.productStats);
             // probably do a line by line copy!
             vm.prods = event.attributes.productStats;
           }
@@ -99,6 +99,9 @@
             if(_.has(event, 'attributes.pieData') && _.has(event, 'attributes.product')) {
                 //console.log(event.attributes.pieData);
                 var pie = event.attributes.pieData;
+                if (_.isUndefined(pie[0])){
+                  pie[0] = {"name": "", "pie": []}
+                }
                 if (_.isUndefined(pie[1])){
                   pie[1] = {"name": "", "pie": []}
                 }
@@ -107,6 +110,7 @@
                 }
               vm.pieNames = [ pie[0].name,pie[1].name, pie[2].name ];
               vm.pieData = [ pie[0].pie,pie[1].pie, pie[2].pie ];
+
             }
 
             // gantt
@@ -147,6 +151,7 @@
                 if (vm.gantt.length > 6){
                   vm.gantt.shift();
                 }
+
 
                 // sort on name
                 //vm.gantt = _.sortBy(vm.gantt, function(row) { return row.name; });
