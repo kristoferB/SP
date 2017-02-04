@@ -44,7 +44,7 @@ object Dashboard {
             h = openWidget.layout.h,
             isDraggable = true,
             isResizable = true,
-            child = DashboardItem(WidgetList()(openWidget.widgetType), openWidget.id)
+            child = DashboardItem(WidgetList()(openWidget.widgetType)(openWidget.id), openWidget.id)
           )
         )
       )

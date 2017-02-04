@@ -3,7 +3,13 @@ package spgui.widgets.itemeditor
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
-object ItemEditor {
+import spgui.SPWidget
+
+object ItemEditor extends SPWidget {
+  def renderWidget = ItemEditorInnerComponent()
+}
+
+object ItemEditorInnerComponent {
 
   private val component = ReactComponentB[Unit]("ItemEditor")
     .render(_ =>

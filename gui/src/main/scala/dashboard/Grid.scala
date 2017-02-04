@@ -9,6 +9,8 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scalacss.Defaults._
 
+import spgui.SPWidget
+
 object CSS extends StyleSheet.Inline {
   import dsl._
   val widget = style(
@@ -21,6 +23,10 @@ object CSS extends StyleSheet.Inline {
   val dashboard = style(
     backgroundColor.red
   )
+}
+
+object GridTest extends SPWidget {
+  def renderWidget = Grid.component()
 }
 
 object Grid {

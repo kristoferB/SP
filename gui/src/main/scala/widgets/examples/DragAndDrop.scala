@@ -6,7 +6,13 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalajs.dom.console
 
-object DragAndDrop {
+import spgui.SPWidget
+
+object DragAndDrop extends SPWidget {
+  def renderWidget = DragAndDropInnerComponent()
+}
+
+object DragAndDropInnerComponent {
   private case class Props(
     name: String,
     mailbox: String
@@ -52,7 +58,6 @@ object DragAndDrop {
           ^.className := DragAndDropCSS.dragZone.htmlClass,
           ^.draggable := true,
           ^.onDragStart ==> handleDrag(s),
-      
           "drag me!"
         ),
         <.div(
