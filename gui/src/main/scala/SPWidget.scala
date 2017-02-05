@@ -6,7 +6,7 @@ import scalajs.js.JSON
 import scalajs.js.Dynamic
 
 import spgui.circuit.SPGUICircuit
-import spgui.circuit.SetWidgetData
+import spgui.circuit.{SetWidgetData, AddWidget}
 
 // TODO method to add new widget
 // TODO methods to publish and subscribe to bus
@@ -23,7 +23,10 @@ abstract class SPWidget {
   def saveData(json: Dynamic): Callback =
     Callback(SPGUICircuit.dispatch(SetWidgetData(id, JSON.stringify(json))))
 
-  private val component = ReactComponentB[Unit]("WidgetWithJSON")
+  def openWidget(widgetType: String, json: Dynamic = Dynamic.literal()): Callback =
+    Callback(SPGUICircuit.dispatch(AddWidget(widgetType)))
+
+  private val component = ReactComponentB[Unit]("SPWidget")
     .renderBackend[Backend]
     .build
 

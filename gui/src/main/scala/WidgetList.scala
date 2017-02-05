@@ -14,6 +14,8 @@ object WidgetList {
       ("Item Editor", widgets.itemeditor.ItemEditor),
       ("DragDrop Example", widgets.examples.DragAndDrop),
       ("Widget with json", widgets.examples.WidgetWithJSON),
+      ("Ping", widgets.examples.Ping),
+      ("Pong", widgets.examples.Pong),
       ("PlcHldrC", PlaceholderComp)
     )
 }
