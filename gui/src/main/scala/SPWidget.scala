@@ -20,7 +20,7 @@ case class SPWidgetBase(id: Int, json: Dynamic) {
     Callback(SPGUICircuit.dispatch(AddWidget(widgetType)))
 }
 
-object SPWidgetComp {
+object SPWidget {
   case class Props(spwb: SPWidgetBase, renderWidget: SPWidgetBase => ReactElement)
   private val component = ReactComponentB[Props]("SpWidgetComp")
     .render_P(p => p.renderWidget(p.spwb))
@@ -31,5 +31,5 @@ object SPWidgetComp {
 }
 
 object SPWidgetBaseTest {
-  def apply() = SPWidgetComp(spwb => <.h3("This is a sample with id " + spwb.id))
+  def apply() = SPWidget(spwb => <.h3("This is a sample with id " + spwb.id))
 }

@@ -13,8 +13,6 @@ import spgui.WidgetList
 import spgui.circuit.{SPGUICircuit, LayoutUpdated, WidgetLayout}
 import org.scalajs.dom.console
 
-import scala.scalajs.js
-
 object Dashboard {
   case class Props(proxy: ModelProxy[List[OpenWidget]])
 

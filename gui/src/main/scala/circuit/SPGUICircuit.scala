@@ -6,7 +6,6 @@ import diode.react.ReactConnector
 import upickle.default._
 import org.scalajs.dom.ext.SessionStorage
 import scala.util.{Success, Try}
-import org.scalajs.dom.console
 
 object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] {
   def initialModel = BrowserStorage.load.getOrElse(InitialState())

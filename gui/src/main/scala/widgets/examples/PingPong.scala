@@ -2,10 +2,10 @@ package spgui.widgets.examples
 
 import japgolly.scalajs.react.vdom.prefix_<^._
 
-import spgui.SPWidgetComp
+import spgui.SPWidget
 
 object Ping {
-  def apply() = SPWidgetComp(spwb =>
+  def apply() = SPWidget(spwb =>
     <.div(
       <.h3("Hello from Ping"),
       <.button(
@@ -17,5 +17,5 @@ object Ping {
 }
 
 object Pong {
-  def apply() = SPWidgetComp(spwb => <.h3("Hello from Pong"))
+  def apply() = SPWidget(spwb => <.h3("Hello from Pong"))
 }

@@ -5,10 +5,10 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scalajs.js.Dynamic.{literal => l}
 
-import spgui.SPWidgetComp
+import spgui.SPWidget
 
 object WidgetWithJSON {
-  def apply() = SPWidgetComp{spwb =>
+  def apply() = SPWidget{spwb =>
     def onTextChange(e: ReactEventI): Callback =
       spwb.saveData(l("ChangedWidgetWithJSONData" -> e.target.value))
     <.div(

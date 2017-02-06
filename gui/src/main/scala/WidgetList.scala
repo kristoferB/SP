@@ -4,7 +4,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
 import spgui.widgets
-import spgui.SPWidgetComp
+import spgui.SPWidget
 
 object WidgetList {
   def apply() =
@@ -26,5 +26,5 @@ object PlaceholderComp {
     .render(_ => <.h2("placeholder"))
     .build
 
-  def apply() = SPWidgetComp(spwb => component())
+  def apply() = SPWidget(spwb => component())
 }
