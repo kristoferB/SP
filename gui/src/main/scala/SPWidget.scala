@@ -5,19 +5,27 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scalajs.js.JSON
 import scalajs.js.Dynamic
+import scalajs.js.Dynamic.{literal => l}
 
 import spgui.circuit.SPGUICircuit
-import spgui.circuit.{SetWidgetData, AddWidget}
+import spgui.circuit.{SetWidgetData, AddWidget, CloseWidget}
 
 // TODO methods to publish and subscribe to bus
-// TODO method to close itself?
+// TODO convenience function for getting the json? returning an Option perhaps?
+// see the messy stuff in SPWidgetBaseTest
 // etc
 case class SPWidgetBase(id: Int, json: Dynamic) {
   def saveData(json: Dynamic): Callback =
     Callback(SPGUICircuit.dispatch(SetWidgetData(id, JSON.stringify(json))))
 
   def openWidget(widgetType: String, json: Dynamic = Dynamic.literal()): Callback =
-    Callback(SPGUICircuit.dispatch(AddWidget(widgetType)))
+    Callback(SPGUICircuit.dispatch(AddWidget(
+                                     widgetType = widgetType,
+                                     stringifiedWidgetData = JSON.stringify(json)
+                                   )))
+
+  def closeSelf(): Callback =
+    Callback(SPGUICircuit.dispatch(CloseWidget(id)))
 }
 
 object SPWidget {
@@ -31,5 +39,25 @@ object SPWidget {
 }
 
 object SPWidgetBaseTest {
-  def apply() = SPWidget(spwb => <.h3("This is a sample with id " + spwb.id))
+  def apply() = SPWidget{spwb =>
+    def saveOnChange(e: ReactEventI): Callback =
+      spwb.saveData(l("spwbtData" -> e.target.value))
+
+    def copyMe(): Callback =
+      spwb.openWidget(
+        "SPWBTest", l("spwbtData" -> spwb.json.selectDynamic("spwbtData").toString)
+      )
+
+    <.div(
+      <.h3("This is a sample with id " + spwb.id),
+      <.label("My Data"),
+      <.input(
+        ^.tpe := "text",
+        ^.defaultValue := spwb.json.selectDynamic("spwbtData").toString,
+        ^.onChange ==> saveOnChange
+      ),
+      <.button("Copy me", ^.onClick --> copyMe()),
+      <.button("Kill me", ^.onClick --> spwb.closeSelf())
+    )
+  }
 }
