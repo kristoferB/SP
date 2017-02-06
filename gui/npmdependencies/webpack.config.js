@@ -7,46 +7,39 @@ module.exports = {
         './vendor.js'
     ],
     output: {
+        publicPath: './gui/npmdependencies/output', 
         path: 'output/',
         filename: PROD ? 'bundle.min.js' : 'bundle.js'
     },
     module: {
         loaders: [
-            { test: /\.css$/,
-              loader: 'style!css?sourceMap'
+            {
+                test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+                loader: 'url-loader?limit=100000'
             }, {
-              test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-              loader: 'url?limit=10000&mimetype=application/font-woff'
+                test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+                loader: 'url-loader?limit=100000'
             }, {
-              test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-              loader: 'url?limit=10000&mimetype=application/font-woff'
+                test: /\.css(\?v=\d+\.\d+\.\d+)?$/,       
+                loader: "style-loader!css-loader"
             }, {
-              test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-              loader: 'url?limit=10000&mimetype=application/octet-stream'
-            }, {
-              test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-              loader: 'file'
-            }, {
-              test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-              loader: 'url?limit=10000&mimetype=image/svg+xml'
-            }, {
-              test: /\.png(\?v=\d+\.\d+\.\d+)?$/,
-              loader: 'url?limit=100000'
-            }
+                test: /\.png(\?v=\d+\.\d+\.\d+)?$/,
+                loader: 'url-loader?limit=100000'
+            } 
         ]
     },
     plugins: PROD ? [
-      new webpack.optimize.UglifyJsPlugin({
-        minimize: true,
-        mangle: true,
-        compressor: { warnings: false }
-      }),
-      new webpack.DefinePlugin({
-        'process.env': {
-          // setting this again here, cause react needs it this way to
-          // generate a real build-version of itself
-          'NODE_ENV': JSON.stringify('production')
-        }
-    }),
-    ] : []
-};
+        new webpack.optimize.UglifyJsPlugin({
+            minimize: true,
+            mangle: true,
+            compressor: { warnings: false }
+            }),
+            new webpack.DefinePlugin({
+                'process.env': {
+                    // setting this again here, cause react needs it this way to
+                    // generate a real build-version of itself
+                    'NODE_ENV': JSON.stringify('production')
+                }
+            }),
+        ] : []
+    };

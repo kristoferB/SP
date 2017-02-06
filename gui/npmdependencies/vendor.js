@@ -18,3 +18,5 @@ window.jQuery = jQuery;
 var bootstrap = require('bootstrap');
 window.bootstrap = bootstrap;
 require('bootstrap/dist/css/bootstrap.css');
+
+require('font-awesome/css/font-awesome.css');
