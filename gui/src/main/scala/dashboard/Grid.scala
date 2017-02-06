@@ -9,7 +9,7 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scalacss.Defaults._
 
-import spgui.SPWidget
+import spgui.SPWidgetComp
 
 object CSS extends StyleSheet.Inline {
   import dsl._
@@ -25,8 +25,8 @@ object CSS extends StyleSheet.Inline {
   )
 }
 
-object GridTest extends SPWidget {
-  def renderWidget = Grid.component()
+object GridTest {
+  def apply() = SPWidgetComp(spwb => Grid.component())
 }
 
 object Grid {

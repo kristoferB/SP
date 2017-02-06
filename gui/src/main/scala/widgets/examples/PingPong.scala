@@ -2,19 +2,20 @@ package spgui.widgets.examples
 
 import japgolly.scalajs.react.vdom.prefix_<^._
 
-import spgui.SPWidget
+import spgui.SPWidgetComp
 
-object Ping extends SPWidget {
-  def renderWidget =
+object Ping {
+  def apply() = SPWidgetComp(spwb =>
     <.div(
       <.h3("Hello from Ping"),
       <.button(
         "Open Pong widget",
-        ^.onClick --> openWidget("Pong")
+        ^.onClick --> spwb.openWidget("Pong")
       )
     )
+  )
 }
 
-object Pong extends SPWidget {
-  def renderWidget = <.h3("Hello from Pong")
+object Pong {
+  def apply() = SPWidgetComp(spwb => <.h3("Hello from Pong"))
 }

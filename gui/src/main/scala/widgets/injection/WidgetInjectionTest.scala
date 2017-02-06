@@ -6,14 +6,10 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import spgui.SPWidget
+import spgui.SPWidgetComp
 
-object WidgetInjectionTest extends SPWidget {
-  def renderWidget = WidgetInjectionTestInnerComponent()
-}
+object WidgetInjectionTest {
 
-object WidgetInjectionTestInnerComponent {
- 
   case class State(component: ReactElement)
 
   class Backend($: BackendScope[Unit, State]) {
@@ -56,5 +52,5 @@ object WidgetInjectionTestInnerComponent {
     .renderBackend[Backend]
     .build
 
-  def apply() = component()
+  def apply() = SPWidgetComp(spwb => component())
 }

@@ -6,13 +6,9 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalajs.dom.console
 
-import spgui.SPWidget
+import spgui.SPWidgetComp
 
-object DragAndDrop extends SPWidget {
-  def renderWidget = DragAndDropInnerComponent()
-}
-
-object DragAndDropInnerComponent {
+object DragAndDrop {
   private case class Props(
     name: String,
     mailbox: String
@@ -79,7 +75,7 @@ object DragAndDropInnerComponent {
     .renderBackend[MyBackend]
     .build
 
-  def apply(): ReactElement = component()
+  def apply() = SPWidgetComp(swpb => component())
 }
 
 

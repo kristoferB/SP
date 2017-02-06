@@ -5,10 +5,12 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scalajs.js.Dynamic.{literal => l}
 
-import spgui.SPWidget
+import spgui.SPWidgetComp
 
-object WidgetWithJSON extends SPWidget {
-  def renderWidget =
+object WidgetWithJSON {
+  def apply() = SPWidgetComp{spwb =>
+    def onTextChange(e: ReactEventI): Callback =
+      spwb.saveData(l("ChangedWidgetWithJSONData" -> e.target.value))
     <.div(
       <.h3("hello from WidgetWithJSON"),
       <.input(
@@ -18,6 +20,5 @@ object WidgetWithJSON extends SPWidget {
       ),
       "this text is stored in sessionStorage on every change, have a look in the console"
     )
-
-  def onTextChange(e: ReactEventI) = saveData(l("slightlyChangedWidgetWithJSONData" -> e.target.value))
+  }
 }
