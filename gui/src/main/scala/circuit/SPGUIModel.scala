@@ -9,7 +9,7 @@ case class OpenWidget(id: Int, layout: WidgetLayout, widgetType: String, stringi
 case class WidgetLayout(x: Int, y: Int, w: Int, h: Int)
 
 // actions
-case class AddWidget(widgetType: String) extends Action
+case class AddWidget(widgetType: String, stringifiedWidgetData: String = "") extends Action
 case class CloseWidget(id: Int) extends Action
 case class SetWidgetData(index: Int, stringifiedWidgetData: String) extends Action
 

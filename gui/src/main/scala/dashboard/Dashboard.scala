@@ -4,13 +4,14 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
 import diode.react.ModelProxy
-import spgui.circuit.OpenWidget
+import scalajs.js.Dynamic
+import scalajs.js.JSON
 
+import spgui.SPWidgetBase
+import spgui.circuit.OpenWidget
 import spgui.WidgetList
 import spgui.circuit.{SPGUICircuit, LayoutUpdated, WidgetLayout}
 import org.scalajs.dom.console
-
-import scala.scalajs.js
 
 object Dashboard {
   case class Props(proxy: ModelProxy[List[OpenWidget]])
@@ -44,7 +45,17 @@ object Dashboard {
             h = openWidget.layout.h,
             isDraggable = true,
             isResizable = true,
-            child = DashboardItem(WidgetList()(openWidget.widgetType), openWidget.id)
+            child = DashboardItem(
+              WidgetList()(openWidget.widgetType)(
+                SPWidgetBase(
+                  openWidget.id,
+                  if(openWidget.stringifiedWidgetData == "")
+                    Dynamic.literal() else
+                      JSON.parse(openWidget.stringifiedWidgetData)
+                )
+              ),
+              openWidget.id
+            )
           )
         )
       )

@@ -2,12 +2,13 @@ package spgui.dashboard
 
 import japgolly.scalajs.react._
 import scala.scalajs.js
-import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.annotation.JSName
 import scala.scalajs.js.Dynamic._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scalacss.Defaults._
+
+import spgui.SPWidget
 
 object CSS extends StyleSheet.Inline {
   import dsl._
@@ -21,6 +22,10 @@ object CSS extends StyleSheet.Inline {
   val dashboard = style(
     backgroundColor.red
   )
+}
+
+object GridTest {
+  def apply() = SPWidget(spwb => Grid.component())
 }
 
 object Grid {
@@ -158,6 +163,6 @@ trait LayoutDataElement extends js.Object {
   val minW: Int = js.native
   val maxH: Int = js.native
   val minH: Int = js.native
-  val static: Boolean = js.native  
+  val static: Boolean = js.native
 }
 trait LayoutData extends js.Array[LayoutDataElement]

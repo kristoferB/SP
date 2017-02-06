@@ -6,7 +6,6 @@ import diode.react.ReactConnector
 import upickle.default._
 import org.scalajs.dom.ext.SessionStorage
 import scala.util.{Success, Try}
-import org.scalajs.dom.console
 
 object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] {
   def initialModel = BrowserStorage.load.getOrElse(InitialState())
@@ -19,8 +18,8 @@ object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] 
 
 class DashboardHandler[M](modelRW: ModelRW[M, OpenWidgets]) extends ActionHandler(modelRW) {
   def handle = {
-    case AddWidget(widgetType) =>
-      updated(OpenWidgets(value.count + 1, value.list :+ OpenWidget(value.count + 1, WidgetLayout(0,0,1,1), widgetType)))
+    case AddWidget(widgetType, stringifiedData) =>
+      updated(OpenWidgets(value.count + 1, value.list :+ OpenWidget(value.count + 1, WidgetLayout(0,0,1,1), widgetType, stringifiedData)))
     case CloseWidget(id) =>
       updated(OpenWidgets(value.count, value.list.filter(_.id != id)))
     case SetWidgetData(id, stringifiedWidgetData) =>
