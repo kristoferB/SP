@@ -3,6 +3,9 @@ package spgui.widgets.examples
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
+import scalajs.js.Dynamic.{literal => l}
+import scala.util.Try
+
 import spgui.SPWidget
 
 object Ping {
@@ -11,11 +14,11 @@ object Ping {
       <.h3("Hello from Ping"),
       <.button(
         "Open Pong widget",
-        ^.onClick --> spwb.openWidget("Pong")
+        ^.onClick --> Callback(spwb.openWidget("Pong"))
       ),
       <.button(
         "Send message to Pongs",
-        ^.onClick --> spwb.publish("hej där")
+        ^.onClick --> Callback(spwb.publish("hej där"))
       )
     )
   )
@@ -23,8 +26,14 @@ object Ping {
 
 object Pong {
   def apply() = SPWidget{spwb =>
-    spwb.subscribe(s =>
-      Callback.log("widget of id " + spwb.id + " got a msg saying " + s))
-    <.h3("Hello from Pong")
+    spwb.subscribe{s =>
+      val msgsReceived = Try(spwb.getJson("msgs").get.toInt + 1).getOrElse(0)
+      spwb.saveData(l("msgs" -> msgsReceived.toString))
+      println("widget of id " + spwb.id + " got a msg saying " + s)
+    }
+    <.div(
+      <.h3("Hello from Pong"),
+      <.h4(Try(spwb.getJson("msgs").get.toInt).getOrElse(0) + " messages received")
+    )
   }
 }

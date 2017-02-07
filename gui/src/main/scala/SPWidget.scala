@@ -6,6 +6,7 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 import scalajs.js.JSON
 import scalajs.js.Dynamic
 import scalajs.js.Dynamic.{literal => l}
+import scala.util.Try
 
 import spgui.circuit.SPGUICircuit
 import spgui.circuit.{SetWidgetData, AddWidget, CloseWidget}
@@ -16,20 +17,20 @@ import spgui.SPGUIBus
 // see the messy stuff in SPWidgetBaseTest
 // etc
 case class SPWidgetBase(id: Int, json: Dynamic) {
-  def saveData(json: Dynamic): Callback =
-    Callback(SPGUICircuit.dispatch(SetWidgetData(id, JSON.stringify(json))))
+  def saveData(json: Dynamic) = SPGUICircuit.dispatch(SetWidgetData(id, JSON.stringify(json)))
 
-  def openWidget(widgetType: String, json: Dynamic = Dynamic.literal()): Callback =
-    Callback(SPGUICircuit.dispatch(AddWidget(
+  def openWidget(widgetType: String, json: Dynamic = Dynamic.literal()) =
+    SPGUICircuit.dispatch(AddWidget(
                                      widgetType = widgetType,
                                      stringifiedWidgetData = JSON.stringify(json)
-                                   )))
+                                   ))
 
-  def closeSelf(): Callback =
-    Callback(SPGUICircuit.dispatch(CloseWidget(id)))
+  def closeSelf() = SPGUICircuit.dispatch(CloseWidget(id))
 
-  def subscribe = SPGUIBus.subscribe _
-  def publish = SPGUIBus.publish _
+  def getJson(key: String): Option[String] = Try(json.selectDynamic(key).toString).toOption
+
+  def subscribe: (String => Unit) => Unit = SPGUIBus.subscribe _
+  def publish: String => Unit = SPGUIBus.publish _
 }
 
 object SPWidget {
@@ -45,23 +46,23 @@ object SPWidget {
 object SPWidgetBaseTest {
   def apply() = SPWidget{spwb =>
     def saveOnChange(e: ReactEventI): Callback =
-      spwb.saveData(l("spwbtData" -> e.target.value))
+      Callback(spwb.saveData(l("spwbtData" -> e.target.value)))
 
     def copyMe(): Callback =
-      spwb.openWidget(
-        "SPWBTest", l("spwbtData" -> spwb.json.selectDynamic("spwbtData").toString)
-      )
+      Callback(spwb.openWidget(
+        "SPWBTest", l("spwbtData" -> spwb.getJson("spwbtData").get)
+      ))
 
     <.div(
       <.h3("This is a sample with id " + spwb.id),
       <.label("My Data"),
       <.input(
         ^.tpe := "text",
-        ^.defaultValue := spwb.json.selectDynamic("spwbtData").toString,
+        ^.defaultValue := spwb.getJson("spwbtData").get,
         ^.onChange ==> saveOnChange
       ),
       <.button("Copy me", ^.onClick --> copyMe()),
-      <.button("Kill me", ^.onClick --> spwb.closeSelf())
+      <.button("Kill me", ^.onClick --> Callback(spwb.closeSelf()))
     )
   }
 }
