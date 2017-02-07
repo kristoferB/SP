@@ -9,6 +9,7 @@ import scalajs.js.Dynamic.{literal => l}
 
 import spgui.circuit.SPGUICircuit
 import spgui.circuit.{SetWidgetData, AddWidget, CloseWidget}
+import spgui.SPGUIBus
 
 // TODO methods to publish and subscribe to bus
 // TODO convenience function for getting the json? returning an Option perhaps?
@@ -26,6 +27,9 @@ case class SPWidgetBase(id: Int, json: Dynamic) {
 
   def closeSelf(): Callback =
     Callback(SPGUICircuit.dispatch(CloseWidget(id)))
+
+  def subscribe = SPGUIBus.subscribe _
+  def publish = SPGUIBus.publish _
 }
 
 object SPWidget {
