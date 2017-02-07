@@ -44,7 +44,7 @@ lazy val commonSettings = packSettings ++ Seq(
 
 
 lazy val root = project.in( file(".") )
-  .aggregate(spdomain, spcore, spservices, macros, gui)
+  //.aggregate(spdomain, spcore, spservices, macros, gui)
 
 lazy val spdomain = project
   .settings(commonSettings: _*)
@@ -58,13 +58,24 @@ lazy val spservices = project
   .settings(commonSettings: _*)
 
 lazy val macros = project
-  .settings(commonSettings: _*).
-  settings(libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _)).
-  settings(libraryDependencies ++= json)
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _))
+  .settings(libraryDependencies ++= json)
 
 lazy val gui = project
 
 lazy val sp1 = project
+
+
+lazy val labkit = (project in file("spservices/labkit"))
+  .dependsOn(spdomain, macros)
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= akka)
+
+lazy val modelsTest = (project in file("spservices/modelsTest"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
 
 // lazy val models = project.dependsOn(domain, extensions).
 //   settings(commonSettings: _*).

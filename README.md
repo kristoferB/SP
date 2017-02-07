@@ -1,4 +1,8 @@
 #Sequence Planner
+With Angular2, tests and other great stuff!
+
+##Frontend
+check gui/README.md for instructions 
 
 ##Backend
 ###Setup
@@ -9,5 +13,3 @@ Open a command window and set location to the project root folder (SP/). Then la
 ```
 sbt launch/run
 ```
-##Frontend
-See the SP/gui/web README.md for details on how to setup and run the gui.
