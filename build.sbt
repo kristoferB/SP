@@ -53,10 +53,6 @@ lazy val spcore = project
   .dependsOn(spdomain, macros)
   .settings(commonSettings: _*)
 
-lazy val spservices = project
-  .dependsOn(spdomain)
-  .settings(commonSettings: _*)
-
 lazy val macros = project
   .settings(commonSettings: _*)
   .settings(libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _))

@@ -139,9 +139,12 @@ trait JsonLogics {
 
   implicit class JoinJsonFormats(x: JsonFormats) {
     def join(y: JsonFormats): JsonFormats = {
+      val tH = x.typeHints.hints ++ y.typeHints.hints distinct
+      val cS = x.customSerializers ++ y.customSerializers distinct
+
       new JsonFormats {
-        override val typeHints = ShortTypeHints(x.typeHints.hints ++ y.typeHints.hints)
-        override val customSerializers: List[Serializer[_]] = x.customSerializers ++ y.customSerializers
+        override val typeHints = ShortTypeHints(tH)
+        override val customSerializers: List[Serializer[_]] = cS
 
       }
     }

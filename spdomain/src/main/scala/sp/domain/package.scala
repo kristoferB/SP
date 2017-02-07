@@ -32,6 +32,11 @@ package object domain {
         case e: Exception => None
       }
     }
+
+    import upickle.Js
+    import sp.domain.Logic._
+
+
   }
 
   object SPValue {
@@ -48,6 +53,11 @@ package object domain {
         case e: Exception => None
       }
     }
+
+
   }
 
+
 }
+
+
