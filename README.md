@@ -2,14 +2,7 @@
 With Angular2, tests and other great stuff!
 
 ##Frontend
-####Dependecies
-Node Package Manager (npm)
-
-####Setup
-in /gui_new/ execute: npm install
-
-####Run
-in /gui_new/ execute: npm start
+check gui/README.md for instructions 
 
 ##Backend
 ###Setup

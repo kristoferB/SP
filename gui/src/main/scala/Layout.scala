@@ -15,7 +15,6 @@ object Layout {
     <.div(
       ^.className := GlobalCSS.layout.htmlClass,
       SPMenu(),
-      SPButton("testar en knapp"),
       widgetsConnection(Dashboard(_))
     )
   )
