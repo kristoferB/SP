@@ -50,7 +50,7 @@ lazy val spdomain = project
   .settings(commonSettings: _*)
 
 lazy val spcore = project
-  .dependsOn(spdomain)
+  .dependsOn(spdomain, macros)
   .settings(commonSettings: _*)
 
 lazy val spservices = project
@@ -73,6 +73,11 @@ lazy val labkit = (project in file("spservices/labkit"))
   .settings(libraryDependencies ++= akka)
 
 lazy val modelsTest = (project in file("spservices/modelsTest"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
+
+lazy val opcua = (project in file("spservices/opcua"))
   .dependsOn(spdomain, macros)
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)

@@ -16,7 +16,10 @@ libraryDependencies ++= Seq(
   "org.json4s" %% "json4s-native" % "3.4.0",
   "org.json4s" %% "json4s-ext" % "3.4.0",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
-  "com.lihaoyi" %% "upickle" % "0.4.3"
+  "com.lihaoyi" %% "upickle" % "0.4.3",
+  "com.typesafe.akka" %% "akka-http-core" % "10.0.1",
+  "com.typesafe.akka" %% "akka-http" % "10.0.1",
+  "com.typesafe.akka" %% "akka-http-testkit" % "10.0.1"
 )
 
 packAutoSettings
