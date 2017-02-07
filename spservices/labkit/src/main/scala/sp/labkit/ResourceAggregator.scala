@@ -23,6 +23,8 @@ object ResourceAggregator {
   def props() = Props(classOf[ResourceAggregator])
 }
 
+
+
 class ResourceAggregator extends Actor {
   implicit val timeout = Timeout(100 seconds)
   import context.dispatcher
@@ -45,7 +47,7 @@ class ResourceAggregator extends Actor {
       val m = Map("move" -> moveTime, "Process" -> processTime, "Idle" -> idleTime)
       (resource -> m)
     }
-    mediator ! Publish("frontend", ResourcePies(toSend.toMap))
+    mediator ! Publish("frontend", APIParser.write(APILabKitWidget.ResourcePies(toSend.toMap)))
   }
 
   def receive = {
@@ -68,11 +70,11 @@ class ResourceAggregator extends Actor {
 
       if(started) {
         // update gantt view
-        mediator ! Publish("frontend", OperationStarted(name, resource, product, t, start.time.toString))
+        mediator ! Publish("frontend", APIParser.write(APILabKitWidget.OperationStarted(name, resource, product, t, start.time.toString)))
       }
       else {
         // update gantt view
-        mediator ! Publish("frontend", OperationFinished(name, resource, product, t, end.get.time.toString))
+        mediator ! Publish("frontend", APIParser.write(APILabKitWidget.OperationFinished(name, resource, product, t, end.get.time.toString)))
 
         // update pie charts
         if(processResources.contains(resource)) {

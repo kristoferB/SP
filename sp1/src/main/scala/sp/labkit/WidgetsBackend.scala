@@ -34,12 +34,15 @@ object WidgetsBackend extends SPService {
   def props(eventHandler: ActorRef) = Props(classOf[WidgetsBackend], eventHandler)
 }
 
-case class OperationStarted(name: String, resource: String, product: String, operationType: String, time: String)
-case class OperationFinished(name: String, resource: String, product: String, operationType: String, time: String)
-case class ResourcePies(data: Map[String, Map[String, Int]])
-case class ProductPies(data: List[(String, List[(String, Int)])])
-case class ProdStat(name: String, leadtime: Int, processingTime: Int, waitingTime: Int, noOfOperations: Int, noOfPositions: Int)
-case class ProductStats(data: List[ProdStat])
+sealed trait APILabKitWidget
+object APILabKitWidget {
+  case class OperationStarted(name: String, resource: String, product: String, operationType: String, time: String) extends APILabKitWidget
+  case class OperationFinished(name: String, resource: String, product: String, operationType: String, time: String) extends APILabKitWidget
+  case class ResourcePies(data: Map[String, Map[String, Int]]) extends APILabKitWidget
+  case class ProductPies(data: List[(String, List[(String, Int)])]) extends APILabKitWidget
+  case class ProdStat(name: String, leadtime: Int, processingTime: Int, waitingTime: Int, noOfOperations: Int, noOfPositions: Int) extends APILabKitWidget
+  case class ProductStats(data: List[ProdStat]) extends APILabKitWidget
+}
 
 class WidgetsBackend(eh: ActorRef) extends Actor with ServiceSupport {
   implicit val timeout = Timeout(100 seconds)
@@ -58,25 +61,27 @@ class WidgetsBackend(eh: ActorRef) extends Actor with ServiceSupport {
 
   def receive = {
 
-    case OperationStarted(name: String, resource: String, product: String, operationType: String, time: String) =>
+    case x: String => println("NEED TO PARSE JSON IN WIDGETSBACKEND!!!!!!!!!")
+    // FIX THIS: NEED TO PARSE JSON
+    case APILabKitWidget.OperationStarted(name: String, resource: String, product: String, operationType: String, time: String) =>
       eh ! Response(List(), SPAttributes("operation"->name, "resource" -> resource, "type" -> operationType,
         "product" -> product, "executing" -> true, "startTime" -> time) merge silent, serviceName, serviceID)
-    case OperationFinished(name: String, resource: String, product: String, operationType: String, time: String) =>
+    case APILabKitWidget.OperationFinished(name: String, resource: String, product: String, operationType: String, time: String) =>
       eh ! Response(List(), SPAttributes("operation"->name, "resource" -> resource, "type" -> operationType,
         "product" -> product, "executing" -> false, "stopTime" -> time) merge silent, serviceName, serviceID)
-    case ResourcePies(data) =>
+    case APILabKitWidget.ResourcePies(data) =>
       eh ! Response(List(), SPAttributes("pieData"->data) merge silent, serviceName, serviceID)
-    case ProductPies(data) =>
+    case APILabKitWidget.ProductPies(data) =>
       val pData = data.map{case (name, poses) =>
         val pie = poses.map{kv => SPAttributes("key"->kv._1, "y"-> kv._2)}
         SPAttributes("name"->name, "pie" -> pie)
       }.toList
       eh ! Response(List(), SPAttributes("pieData"->pData, "product"->true) merge silent, serviceName, serviceID)
-    case ProductStats(data) =>
+    case APILabKitWidget.ProductStats(data) =>
       eh ! Response(List(), SPAttributes("productStats"->data) merge silent, serviceName, serviceID)
 
-    case SummedOperations(state: Map[String,Int]) =>
-      eh ! Response(List(), SPAttributes("summedOperations"->state) merge silent, serviceName, serviceID)
+    // case SummedOperations(state: Map[String,Int]) =>
+    //   eh ! Response(List(), SPAttributes("summedOperations"->state) merge silent, serviceName, serviceID)
 
     case _ =>
       // sender ! SPError("Ill formed request");

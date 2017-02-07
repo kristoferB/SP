@@ -15,6 +15,17 @@ import com.github.nscala_time.time.Imports._
 
 
 
+sealed trait APILabKitWidget
+object APILabKitWidget {
+  case class OperationStarted(name: String, resource: String, product: String, operationType: String, time: String) extends APILabKitWidget
+  case class OperationFinished(name: String, resource: String, product: String, operationType: String, time: String) extends APILabKitWidget
+  case class ResourcePies(data: Map[String, Map[String, Int]]) extends APILabKitWidget
+  case class ProductPies(data: List[(String, List[(String, Int)])]) extends APILabKitWidget
+  case class ProdStat(name: String, leadtime: Int, processingTime: Int, waitingTime: Int, noOfOperations: Int, noOfPositions: Int) extends APILabKitWidget
+  case class ProductStats(data: List[ProdStat]) extends APILabKitWidget
+}
+
+
 
 class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
   import context.dispatcher
@@ -129,10 +140,10 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
     val compl = newestCompleted.map(makeMeAPie)
     val pie = (livepie +: compl)
 
-    if (pie.nonEmpty) mediator ! Publish("frontend", ProductPies(pie))
+    if (pie.nonEmpty) mediator ! Publish("frontend", APIParser.write(APILabKitWidget.ProductPies(pie)))
 
     val pStats = createProdStats
-    if (pStats.nonEmpty)  mediator ! Publish("frontend", ProductStats(pStats))
+    if (pStats.nonEmpty)  mediator ! Publish("frontend", APIParser.write(APILabKitWidget.ProductStats(pStats)))
 
   }
 
@@ -153,7 +164,7 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
 
   def createProdStats = {
     val t = completedProds.toList.sortWith((a, b) => a._2.endTime.getOrElse(a._2.startTime) > b._2.endTime.getOrElse(b._2.startTime) ).map{case (name, prod) =>
-      ProdStat(name, prod.currentDuration/1000 toInt, prod.processed/1000 toInt, prod.waited/1000 toInt, prod.ops.size, prod.positions.size)
+      APILabKitWidget.ProdStat(name, prod.currentDuration/1000 toInt, prod.processed/1000 toInt, prod.waited/1000 toInt, prod.ops.size, prod.positions.size)
     }
     t.take(10)
   }
