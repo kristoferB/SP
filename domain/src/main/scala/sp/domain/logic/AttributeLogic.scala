@@ -70,6 +70,8 @@ trait AttributeLogics {
       SPAttributes(filtered ++ xs.obj)
     }
 
+    def merge(xs: SPAttributes) = x.+(xs)
+
     def dig[T](keys: String*)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]): Option[T] = {
       def req(list: List[String], obj: JObject): Option[T] = list match {
         case Nil => None

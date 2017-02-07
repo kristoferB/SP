@@ -6,7 +6,6 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.{ActorMaterializer, Materializer, SourceShape}
-import akka.pattern.ask
 
 import scala.concurrent.duration._
 import akka.util.Timeout
@@ -30,19 +29,18 @@ import scala.util._
 
 
 
+case class UPickleMessage(header: upickle.Js.Value, body: upickle.Js.Value)
 
+sealed trait APIWebSocket
 object APIWebSocket {
-  sealed trait API
-  case class Subscribe(topic: String) extends API
-  case class Unsubscribe(topic: String) extends API
 
   //case class filter(reqID: String) extends API // add more filters here in the future
 
-  case class PublishMessage(mess: UPickleMessage, topic: String = "services") extends API
+  case class PublishMessage(mess: UPickleMessage, topic: String = "services") extends APIWebSocket
 
   // Move to general API in SP Domain
-  case class SPACK(message: String) extends API
-  case class SPERROR(message: String, attr: Option[upickle.Js.Value] = None) extends API
+  case class SPACK(message: String) extends APIWebSocket
+  case class SPError(message: String, attr: Option[upickle.Js.Value] = None) extends APIWebSocket
 
 }
 
@@ -52,10 +50,14 @@ object APIWebSocket {
  * Created by Kristofer on 2014-06-19.
  */
 object LaunchGUI  {//extends MySslConfiguration {
+  implicit val timeout = Timeout(5 seconds)
+  import scala.concurrent.Future
+  import akka.pattern.ask
+  implicit val system = sp.system.SPActorSystem.system
+  implicit val materializer = ActorMaterializer()
+  val mediator = DistributedPubSub(system).mediator
 
   def launch = {
-    implicit val system = sp.system.SPActorSystem.system
-    implicit val materializer = ActorMaterializer()
 
     val widgets = system.actorOf(PubActor.props("widgets"))
 
@@ -66,7 +68,6 @@ object LaunchGUI  {//extends MySslConfiguration {
       sp.system.SPActorSystem.settings.devFolder else sp.system.SPActorSystem.settings.buildFolder
 
 
-    val mediator = DistributedPubSub(system).mediator
 
     //import upickle.default._
 
@@ -81,65 +82,13 @@ object LaunchGUI  {//extends MySslConfiguration {
         get {
           pathEndOrSingleSlash {
             complete("THE SP API")
-          } ~
-            postMessage("ask", true) ~
-            postMessage("publish", false) ~
-            path("widget" / Remaining) { file =>
-              implicit val timeout: Timeout = 2.seconds
-              println("ho ho widget: " + file)
-
-              //getFromFile(s"./gui/sp-example-widget/$file")
-
-              val res = (widgets ? file).mapTo[java.io.File]
-              //complete(res)
-
-
-              import akka.http.scaladsl.model.HttpEntity
-              import akka.http.scaladsl.model.MediaTypes.`application/javascript`
-              onSuccess(res) { r =>
-                getFromFile(r)
-              }
-
-
-            }
-        }
-      }
-
-
-    def postMessage(url: String, ask: Boolean) = {
-      path(url / Segments) { cmd =>
-        if (cmd.isEmpty)
-          reject(SchemeRejection("no topic"))
-
-        val topic = cmd.head
-        val service = cmd.tail.headOption.getOrElse("")
-
-        post { entity(as[String]){data =>
-          val mess = fixMess(data, topic, service)
-          if (ask){
-            val answer = (mediator ? Publish(topic, mess)).mapTo[String]
-            complete(answer)
-          } else {
-            mediator ! Publish(topic, mess)
-            complete(APIParser.write(APIWebSocket.SPACK("Message sent")))
           }
-        }}
+        } ~
+          postMessage("ask", true) ~
+          postMessage("publish", false)
       }
-    }
 
 
-    def fixMess(mess: String, topic: String, service: String) = {
-      val uP = Try{APIParser.read[UPickleMessage](mess)}
-
-      val toSend = uP.map{ m =>
-        val updH = if (service.nonEmpty) {
-          val h = Try{m.header.obj.seq + ("service" -> upickle.Js.Str(service))}.map(x => upickle.Js.Obj(x.toSeq))
-          h.getOrElse(m.header)
-        } else m.header
-        APIParser.write(m.copy(header = updH))
-      }
-      toSend.getOrElse(mess)
-    }
 
     val route =
       api ~
@@ -165,6 +114,48 @@ object LaunchGUI  {//extends MySslConfiguration {
 
 
   }
+
+
+
+  def postMessage(url: String, shouldAsk: Boolean) = {
+    path(url / Segments) { cmd =>
+      if (cmd.isEmpty)
+        reject(SchemeRejection("no topic"))
+
+      println("tjo ho in post message: "+ url +" - "+cmd)
+
+      val topic = cmd.head
+      val service = cmd.tail.headOption.getOrElse("")
+
+      post { entity(as[String]){data =>
+        val mess = fixMess(data, topic, service)
+        if (shouldAsk){
+          val answer = mediator.ask(Publish(topic, mess)).mapTo[String]
+          completeOrRecoverWith(answer){extr =>
+            complete(APIParser.write(APIWebSocket.SPError("No service answered the request")))
+          }
+        } else {
+          mediator ! Publish(topic, mess)
+          complete(APIParser.write(APIWebSocket.SPACK("Message sent")))
+        }
+      }}
+    }
+  }
+
+
+  def fixMess(mess: String, topic: String, service: String) = {
+    val uP = Try{APIParser.read[UPickleMessage](mess)}
+
+    val toSend = uP.map{ m =>
+      val updH = if (service.nonEmpty) {
+        val h = Try{m.header.obj.toList :+ ("service" -> upickle.Js.Str(service))}.map(x => upickle.Js.Obj(x:_*))
+        h.getOrElse(m.header)
+      } else m.header
+      APIParser.write(m.copy(header = updH))
+    }
+    toSend.getOrElse(mess)
+  }
+
 }
 
 
@@ -182,13 +173,12 @@ import akka.http.scaladsl.model.ws.{ Message, TextMessage }
 // https://markatta.com/codemonkey/blog/2016/04/18/chat-with-akka-http-websockets/
 // https://github.com/jrudolph/akka-http-scala-js-websocket-chat
 
-case class UPickleMessage(header: upickle.Js.Value, body: upickle.Js.Value)
 
 class WebsocketHandler(mediator: ActorRef, topic: String = "answers") {
   var messFilter: UPickleMessage => Boolean = (x: UPickleMessage) => true
   var myRef: Option[ActorRef] = None
 
-  case class MessageAndAck(messToBus: Option[Any], reply: APIWebSocket.API)
+  case class MessageAndAck(messToBus: Option[Any], reply: APIWebSocket)
 
   lazy val webSocketHandler: Flow[Message, Message, NotUsed]  = Flow.fromGraph(GraphDSL.create() { implicit b: GraphDSL.Builder[NotUsed] =>
     import GraphDSL.Implicits._
@@ -196,9 +186,9 @@ class WebsocketHandler(mediator: ActorRef, topic: String = "answers") {
     val in = b.add(transformMessages)
     val out = b.add(sendToWebSocket)
 
-    val parseResultBC = b.add(Broadcast[Try[APIWebSocket.API]](2))
+    val parseResultBC = b.add(Broadcast[Try[APIWebSocket]](2))
     val messageBC = b.add(Broadcast[MessageAndAck](2))
-    val merge = b.add(Merge[APIWebSocket.API](3))
+    val merge = b.add(Merge[APIWebSocket](3))
 
     val sendReceive = Flow.fromSinkAndSource(sendToBus, receiveFromBus)
 
@@ -224,19 +214,13 @@ class WebsocketHandler(mediator: ActorRef, topic: String = "answers") {
   val sendToWebSocket: Flow[String, Strict, NotUsed] =  Flow[String].map(str => TextMessage(str))
 
 
-  val transformMessages: Flow[Message, Try[APIWebSocket.API], NotUsed] = Flow[Message]
+  val transformMessages: Flow[Message, Try[APIWebSocket], NotUsed] = Flow[Message]
     .collect{ case TextMessage.Strict(text) => println(s"Websocket got: $text"); text}
-    .map{str => Try{sp.messages.APIParser.read[APIWebSocket.API](str)}}
+    .map{str => Try{sp.messages.APIParser.read[APIWebSocket](str)}}
 
-  val matchWebSocketMessages: Flow[Try[APIWebSocket.API], MessageAndAck, NotUsed] = Flow[Try[APIWebSocket.API]]
-      .collect{case x: Success[APIWebSocket.API] => x.value}
+  val matchWebSocketMessages: Flow[Try[APIWebSocket], MessageAndAck, NotUsed] = Flow[Try[APIWebSocket]]
+      .collect{case x: Success[APIWebSocket] => x.value}
       .collect{
-//        case APIWebSocket.Subscribe(topic) if ! topics.contains(topic) =>
-//          topics = topics + topic
-//          MessageAndAck(myRef.map(Subscribe(topic, _)), APIWebSocket.SPACK(s"Subscribing to topic $topic"))
-//        case APIWebSocket.Unsubscribe(topic) if topics.contains(topic) =>
-//          topics = topics - topic
-//          MessageAndAck(myRef.map(Unsubscribe(topic, _)), APIWebSocket.SPACK(s"Unsubscribing from topic $topic"))
         case APIWebSocket.PublishMessage(mess, t) =>
           MessageAndAck(Some(Publish(t, sp.messages.APIParser.write(mess))), APIWebSocket.SPACK(s"Message sent to topic $t"))
       }
@@ -244,23 +228,23 @@ class WebsocketHandler(mediator: ActorRef, topic: String = "answers") {
   val prepareToSend: Flow[MessageAndAck, Any, NotUsed] = Flow[MessageAndAck]
     .collect{case x: MessageAndAck if x.messToBus.isDefined => x.messToBus.get}
 
-  val prepareToSendACK: Flow[MessageAndAck, APIWebSocket.API, NotUsed] = Flow[MessageAndAck]
+  val prepareToSendACK: Flow[MessageAndAck, APIWebSocket, NotUsed] = Flow[MessageAndAck]
     .collect{
       case x: MessageAndAck if x.messToBus.isDefined => x.reply
-      case x: MessageAndAck if x.messToBus.isEmpty => APIWebSocket.SPERROR("Something wrong with the akka stream")
+      case x: MessageAndAck if x.messToBus.isEmpty => APIWebSocket.SPError("Something wrong with the akka stream")
     }
 
-  val parsingError: Flow[Try[APIWebSocket.API], APIWebSocket.SPERROR, NotUsed] = Flow[Try[APIWebSocket.API]]
-    .collect{case x: Failure[APIWebSocket.API] => APIWebSocket.SPERROR(x.exception.getMessage)}
+  val parsingError: Flow[Try[APIWebSocket], APIWebSocket.SPError, NotUsed] = Flow[Try[APIWebSocket]]
+    .collect{case x: Failure[APIWebSocket] => APIWebSocket.SPError(x.exception.getMessage)}
 
-  val parseMessagesFromBus: Flow[Any, APIWebSocket.API, NotUsed] = Flow[Any]
+  val parseMessagesFromBus: Flow[Any, APIWebSocket, NotUsed] = Flow[Any]
     .collect{case str: String => str}
     .map(str => Try{upickle.default.read[UPickleMessage](str)})
     .collect{case x: Success[UPickleMessage] => x.value}
     .filter(messFilter)
     .map(mess => APIWebSocket.PublishMessage(mess, "FROMBUS"))
 
-  val convertAPIToString = Flow[APIWebSocket.API]
+  val convertAPIToString = Flow[APIWebSocket]
     .map(x => sp.messages.APIParser.write(x))
 
   val printFlow = Flow[Any].filter(x => {println(s"WE GOT FROM THE BUS: $x"); true})

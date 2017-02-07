@@ -7,13 +7,6 @@ import japgolly.scalajs.react.vdom.all.aria
 object SPDropdown {
   case class Props(title: String, buttonsProps: List[(String, Callback)])
 
-
-
-  val sampleProps = Props(
-    "sample SPDropdown",
-    ("hej1", Callback.log("hej1")) :: ("hej2", Callback.log("hej2")) :: Nil
-  )
-
   private val component = ReactComponentB[Props]("SPDropdown")
     .render_P(props =>
     <.div(
@@ -40,6 +33,4 @@ object SPDropdown {
 
   def apply(title: String, buttonsProps: List[(String, Callback)]) =
     component(Props(title, buttonsProps))
-
-  val example = component(sampleProps)
 }

@@ -2,14 +2,17 @@ package spgui.widgets.injection
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
+import spgui.SPWidget
+
 object WidgetInjectionTest {
-  //type Comp = ReactComponentU[Unit, Unit, Unit, Element]
+
   case class State(component: ReactElement)
 
-  private class Backend($: BackendScope[Unit, State]) {
+  class Backend($: BackendScope[Unit, State]) {
     def changeState(element: ReactElement): Callback = $.setState(State(element))
     def render(s: State) =
       <.div(
@@ -49,5 +52,5 @@ object WidgetInjectionTest {
     .renderBackend[Backend]
     .build
 
-  def apply(): ReactElement = component()
+  def apply() = SPWidget(spwb => component())
 }
