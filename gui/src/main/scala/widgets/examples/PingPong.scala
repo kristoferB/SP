@@ -5,6 +5,7 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scalajs.js.Dynamic.{literal => l}
 import scala.util.Try
+import upickle.default.{read, write}
 
 import spgui.SPWidget
 
@@ -25,17 +26,16 @@ object Ping {
 }
 
 object Pong {
+  case class PongData(theInt: Int)
   def apply() = SPWidget{spwb =>
     spwb.subscribe{s =>
-      //val msgsReceived = Try(spwb.getJson("msgs").get.toInt + 1).getOrElse(0)
-      val msgsReceived: Int = Try(spwb.readCaseClassData.theInt).getOrElse(0) + 1
-      //spwb.saveData(l("msgs" -> msgsReceived.toString))
-      spwb.saveCaseClassData(msgsReceived)
+      val msgsReceived: Int = Try(read[PongData](spwb.data).theInt).getOrElse(0) + 1
+      spwb.saveData(write(PongData(msgsReceived)))
       println("widget of id " + spwb.id + " got a msg saying " + s)
     }
     <.div(
-      <.h3("Hello from Pong")//,
-      //<.h4(Try(spwb.getJson("msgs").get.toInt).getOrElse(0) + " messages received")
+      <.h3("Hello from Pong"),
+      <.h4(Try(read[PongData](spwb.data).theInt).getOrElse(0) + " messages received")
     )
   }
 }

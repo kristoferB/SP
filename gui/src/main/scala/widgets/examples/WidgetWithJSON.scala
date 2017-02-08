@@ -10,7 +10,7 @@ import spgui.SPWidget
 object WidgetWithJSON {
   def apply() = SPWidget{spwb =>
     def onTextChange(e: ReactEventI): Callback =
-      Callback(spwb.saveData(l("ChangedWidgetWithJSONData" -> e.target.value)))
+      Callback(spwb.saveData(e.target.value))
     <.div(
       <.h3("hello from WidgetWithJSON"),
       <.input(
