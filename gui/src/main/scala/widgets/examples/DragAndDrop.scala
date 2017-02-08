@@ -2,9 +2,8 @@ package spgui.widgets.examples
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-import org.scalajs.dom.console
+
+import spgui.SPWidget
 
 object DragAndDrop {
   private case class Props(
@@ -52,7 +51,6 @@ object DragAndDrop {
           ^.className := DragAndDropCSS.dragZone.htmlClass,
           ^.draggable := true,
           ^.onDragStart ==> handleDrag(s),
-      
           "drag me!"
         ),
         <.div(
@@ -74,7 +72,7 @@ object DragAndDrop {
     .renderBackend[MyBackend]
     .build
 
-  def apply(): ReactElement = component()
+  def apply() = SPWidget(swpb => component())
 }
 
 

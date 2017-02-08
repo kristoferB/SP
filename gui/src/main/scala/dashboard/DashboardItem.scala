@@ -6,7 +6,7 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 import spgui.circuit.{SPGUICircuit, CloseWidget}
 
 object DashboardItem {
-  case class Props(element: ReactElement, index: Int)
+  case class Props(element: ReactElement, id: Int)
   private val component = ReactComponentB[Props]("Widget")
     .render_P(props =>
     <.div(
@@ -16,7 +16,7 @@ object DashboardItem {
         ^.className := DashboardCSS.widgetPanelHeader.htmlClass,
         <.button(
           "close me",
-          ^.onClick --> Callback(SPGUICircuit.dispatch(CloseWidget(props.index)))
+          ^.onClick --> Callback(SPGUICircuit.dispatch(CloseWidget(props.id)))
         )
       ),
       <.div(
@@ -29,5 +29,5 @@ object DashboardItem {
     )
   )
     .build
-  def apply(element: ReactElement, index: Int) = component(Props(element, index))
+  def apply(element: ReactElement, id: Int) = component(Props(element, id))
 }

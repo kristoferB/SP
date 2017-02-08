@@ -12,11 +12,13 @@ import monix.execution.Scheduler.Implicits.global
 
 import scala.util.{Failure, Success, Try}
 import fr.hmil.roshttp.response.SimpleHttpResponse
+import spgui.SPWidget
+import spgui.widgets.APITesting.AnAnswer
 
 import scala.reflect.ClassTag
 
-object APITEST {
   sealed trait API
+object APITEST {
   case class Test1(p1: String, p2: String) extends API
   case class Test2(p1: Int, p2: Int) extends API
   case class Test3(p1: Double, p2: Tom) extends API
@@ -31,8 +33,26 @@ case class Hej(p1: String)
 case class Hej2(p1: Int)
 case class Cme(c: Int)
 
+sealed trait APITesting
+object APITesting {
+  val service = "testingWidget"
 
-case class Operation(name: String, conditions: List[String], attributes: upickle.Js.Obj)
+  case class ServiceCall(param1: String) extends APITesting
+  case class RequestCall(param1: String) extends APITesting
+
+  case class AnAnswer(from: String) extends APITesting
+  case class Hi(from: String) extends APITesting
+
+  // This is sometimes needed due to a scala compilation bug
+  import communication.APIParser._
+  implicit val readWriter: ReadWriter[APITesting] =
+    macroRW[ServiceCall] merge macroRW[RequestCall] merge
+  macroRW[AnAnswer] merge macroRW[Hi]
+}
+
+
+
+
 
 import rx._
 
@@ -44,10 +64,34 @@ object WidgetCommTest {
   private class Backend($: BackendScope[Unit, State]) {
     import communication._
 
-    val messObs = Comm.getMessageObserver { mess =>
-      val c = Try{upickle.default.readJs[Cme](mess.header)}
-      c.map(kalle => changeState(kalle.c.toString).runNow())
-    }
+    val messObs = BackendCommunication.getMessageObserver(
+      mess => {
+        println("WE GOT IT")
+        println(mess)
+        val testing = Try {APIParser.readJs[APITesting](mess.body)}.map{
+            case APITesting.AnAnswer(p) => changeState(p).runNow()
+            case APITesting.Hi(p) => changeState(p).runNow()
+            case x =>
+            println("Va?")
+            println(x)
+          }
+
+        val sp = Try {APIParser.readJs[APISP](mess.body)}.map{
+            case APISP.SPACK(p) => println("SPACK")
+            case APISP.SPOK(p) => println("SPOK")
+            case APISP.SPDone(p) => println("SPDone")
+            case APISP.SPError(m, attr) => println("SPError:"+m)
+            case x =>
+              println("Va APISP?")
+              println(x)
+          }
+
+
+
+      }
+
+
+    )
 
 
     def changeState(str: String): Callback = $.setState(State(str))
@@ -89,33 +133,35 @@ object WidgetCommTest {
     def HoHo = {
       import fr.hmil.roshttp.body._
 
-      val url = org.scalajs.dom.window.location.href
+      val h = SPHeader("widgetCommTest", APITesting.service, "widgetCommTest", java.util.UUID.randomUUID())
+      val b = APITesting.ServiceCall("Hej från mig")
+      println("hej")
 
-      // Testing som RX stuff
-      import org.scalajs._
-      import dom._
-
-      def getWebsocketUri: String = {
-        val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-
-        s"$wsProtocol://${dom.document.location.host}/socket"
-      }
+      val mess = UPickleMessage(APIParser.writeJs(h), APIParser.writeJs(b))
 
 
-
-      val header = Hej("hej")
-      val body = Hej("hej")
 
       //Comm.initWS
 
 
-      Comm.publishMessage("services", UPickleMessage(APIParser.writeJs(header), APIParser.writeJs(body)))
+      BackendCommunication.publishMessage("services", mess)
+
+
+
+      val b2 = APITesting.RequestCall("hoj från mig")
+      val mess2 = UPickleMessage(APIParser.writeJs(h), APIParser.writeJs(b2))
+
+      val f = BackendCommunication.ask(mess2, "requests")
+      f.map { v =>
+        println("Vi fick via reguest:")
+        println(v)
+      }
+
+      f.onFailure{case x => println(x)}
 
       val p = Promise[Callback]()
       //Comm.getWebSocketNotifications(str => p.success(Callback.alert(str)))
       p.future
-
-
 
 
       //val b = a.foreach(x => changeState(x))
@@ -204,7 +250,7 @@ object WidgetCommTest {
       .componentWillUnmount(_.backend.onUnmount())
     .build
 
-  def apply(): ReactElement = component()
+  def apply() = SPWidget(spwb => component())
 }
 
 

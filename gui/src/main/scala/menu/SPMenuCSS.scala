@@ -5,12 +5,14 @@ import scalacss.Defaults._
 object SPMenuCSS extends StyleSheet.Inline {
   import dsl._
 
+  val topNavHeight = 50.px //use in GlobalCSS.scala
   val topNav = style("sp-top-nav")(
     marginBottom(0.px), // ovverride bootstrap default
     backgroundColor.rgb(255, 102, 0),
     border.none,
     display.table,
-    width(100.%%)
+    width(100.%%),
+    height(topNavHeight) //the value should be entered here directly and then grabbed by the entry in GlobalCSS
   )
 
   val buttonList = style("sp-button-list")(

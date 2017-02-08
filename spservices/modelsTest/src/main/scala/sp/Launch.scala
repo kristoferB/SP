@@ -3,9 +3,7 @@ package sp
 import akka.actor._
 import sp.domain._
 import sp.messages._
-import sp.models.APITesting.ServiceCall
 
-import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
 
@@ -65,7 +63,7 @@ class TestingWidget extends Actor with ActorLogging {
   def isItToMe(m: SPMessage) = {
     println("spmess: " + m)
     println(s"is to me: ${m.header.getAs[String]("to")} - ${Some(APITesting.service)}")
-     m.header.getAs[String]("to") == Some(APITesting.service)
+     m.header.getAs[String]("to").contains(APITesting.service)
   }
 
   def getMessage(x: String) = {
@@ -83,7 +81,7 @@ class TestingWidget extends Actor with ActorLogging {
     APIParser.write(mess)
   }
 
-  def makeTheMessage(header: SPAttributes, body: APISP.API) = {
+  def makeTheMessage(header: SPAttributes, body: APISP) = {
     val b = APIParser.writeJs(body)
     val mess = SPMessage(header, b)
     APIParser.write(mess)
@@ -194,5 +192,5 @@ class ClusterMonitor extends Actor with ActorLogging {
 }
 
 object ClusterMonitor {
-  def props = Props(classOf[ModelMaker])
+  def props = Props(classOf[TestingWidget])
 }

@@ -11,7 +11,7 @@ import scala.io.StdIn
   * Created by kristofer on 2017-01-02.
   */
 object ServeSPUI extends App{
-  implicit val sys = ActorSystem("SPCore")
+  implicit val sys = ActorSystem("SP")
   implicit val ec = sys.dispatcher
   val webServer = new LaunchGUI(sys)
   val f = webServer.launch

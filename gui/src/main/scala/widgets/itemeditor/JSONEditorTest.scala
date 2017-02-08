@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import spgui.circuit.{SPGUICircuit}
 
 object JSONEditorTest {
-  
+
   val incrementer = new AtomicInteger (0);
   def apply() = component("JSONEditorId-" + incrementer.incrementAndGet().toString)
 
