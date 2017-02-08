@@ -8,7 +8,8 @@ lazy val akka = Seq(
   "com.typesafe.akka" %% "akka-cluster-tools" % "2.4.8",
   "com.typesafe.akka" %% "akka-testkit" % "2.4.8",
   "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test",
-  "org.slf4j" % "slf4j-simple" % "1.7.7"
+  "org.slf4j" % "slf4j-simple" % "1.7.7",
+  "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.1"
 )
 
 lazy val json = Seq(

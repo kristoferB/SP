@@ -1,12 +1,9 @@
-
-package sp.labkit
+package sp.opcua
 
 import akka.actor._
 import sp.domain.logic.{ActionParser, PropositionParser}
 import org.json4s.JsonAST.{JValue,JBool,JInt,JString}
 import org.json4s.DefaultFormats
-import sp.system._
-import sp.system.messages._
 import sp.domain._
 import sp.domain.Logic._
 import scala.concurrent.Future
@@ -20,21 +17,14 @@ import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
 import java.util.concurrent.TimeUnit
 import org.joda.time.DateTime
 
-object OPC extends SPService {
-  val specification = SPAttributes(
-    "service" -> SPAttributes(
-      "group" -> "External",
-      "description" -> "Gantt Backend"
-    ))
 
-  val transformTuple = ()
-  val transformation = List()
-
-  def props(opc: ActorRef) = Props(classOf[OPC], opc)
+object OPC {
+  def props(OpcUARuntime: ActorRef) = Props(classOf[OPC], OpcUARuntime)
 }
 
+
 // simple example opc ua client useage
-class OPC(opc: ActorRef) extends Actor with ServiceSupport {
+class OPC(OpcUARuntime: ActorRef) extends Actor {
   implicit val timeout = Timeout(100 seconds)
   import context.dispatcher
   val mediator = DistributedPubSub(context.system).mediator
@@ -57,14 +47,14 @@ class OPC(opc: ActorRef) extends Actor with ServiceSupport {
 
   def receive = {
     case "connect" =>
-      opc ! SPAttributes("cmd" -> "connect", "url" -> url)
+      OpcUARuntime ! SPAttributes("cmd" -> "connect", "url" -> url)
 
     case attr: SPAttributes =>
       // check connection
       val connectionstatus = attr.getAs[Boolean]("connected").getOrElse(false)
       if(!connected && connectionstatus) {
         connected = true
-        opc ! SPAttributes("cmd" -> "subscribe", "nodes" -> nodeIDsToNode.map(_._1))
+        OpcUARuntime ! SPAttributes("cmd" -> "subscribe", "nodes" -> nodeIDsToNode.map(_._1))
       }
       if(!connected && !connectionstatus) {
         // try again in five seconds

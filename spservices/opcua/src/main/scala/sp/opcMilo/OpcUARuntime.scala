@@ -26,9 +26,8 @@ class OpcUARuntime extends Actor {
   val mediator = DistributedPubSub(context.system).mediator
   val topic = "OPCState"
 
-  var client = new MiloOPCUAClient()
+  val client = new MiloOPCUAClient()
   var state = State(Map())
-  var idToIdentifier: Map[ID, String] = Map()
 
   def connectionAttr = SPAttributes("connected" -> client.isConnected)
 
@@ -61,6 +60,7 @@ class OpcUARuntime extends Actor {
           val node = attr.getAs[String]("node").getOrElse("")
           val value = attr.getAs[SPValue]("value").getOrElse(SPValue(false))
           client.write(node, value)
+        case _ =>
       }
     }
     case StateUpdate(activeState) =>
