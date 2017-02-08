@@ -140,6 +140,8 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
     val compl = newestCompleted.map(makeMeAPie)
     val pie = (livepie +: compl)
 
+
+    // TODO: SEND WITH HEADER IN THE FUTURE
     if (pie.nonEmpty) mediator ! Publish("frontend", APIParser.write(APILabKitWidget.ProductPies(pie)))
 
     val pStats = createProdStats

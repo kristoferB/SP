@@ -68,6 +68,7 @@ class ResourceAggregator extends Actor {
         self ! "UpdateIdle"
       }
 
+      // TODO: SEND WITH HEADER IN THE FUTURE
       if(started) {
         // update gantt view
         mediator ! Publish("frontend", APIParser.write(APILabKitWidget.OperationStarted(name, resource, product, t, start.time.toString)))

@@ -74,36 +74,36 @@ class WidgetsBackend(eh: ActorRef) extends Actor with ServiceSupport {
 
   def getAPIMessage(x: String) = {
     for {
-      m <- Try{APIParser.read[SPMessage](x)}.toOption if isItToMe(m)
-      pOK <- Try{APIParser.readJs[APILabKitWidget](m.body)}.toOption
+      pOK <- Try{APIParser.read[APILabKitWidget](x)}.toOption
     } yield {
-      (m.header, pOK)
+      pOK
     }
   }
 
   def receive = {
 
-    case x: String if matchMessage(x)=> 
-      println("WIDGETBACKEND GOT " +x)
+    // TODO SEND MESSAGE WITH HEADER IN THE FUTURE
+    case x: String if matchMessage(x)=>
+      getAPIMessage(x).get match {
+        // FIX THIS: NEED TO PARSE JSON
+        case APILabKitWidget.OperationStarted(name: String, resource: String, product: String, operationType: String, time: String) =>
+          eh ! Response(List(), SPAttributes("operation"->name, "resource" -> resource, "type" -> operationType,
+            "product" -> product, "executing" -> true, "startTime" -> time) merge silent, serviceName, serviceID)
+        case APILabKitWidget.OperationFinished(name: String, resource: String, product: String, operationType: String, time: String) =>
+          eh ! Response(List(), SPAttributes("operation"->name, "resource" -> resource, "type" -> operationType,
+            "product" -> product, "executing" -> false, "stopTime" -> time) merge silent, serviceName, serviceID)
+        case APILabKitWidget.ResourcePies(data) =>
+          eh ! Response(List(), SPAttributes("pieData"->data) merge silent, serviceName, serviceID)
+        case APILabKitWidget.ProductPies(data) =>
+          val pData = data.map{case (name, poses) =>
+            val pie = poses.map{kv => SPAttributes("key"->kv._1, "y"-> kv._2)}
+            SPAttributes("name"->name, "pie" -> pie)
+          }.toList
+          eh ! Response(List(), SPAttributes("pieData"->pData, "product"->true) merge silent, serviceName, serviceID)
+        case APILabKitWidget.ProductStats(data) =>
+          eh ! Response(List(), SPAttributes("productStats"->data) merge silent, serviceName, serviceID)
+      }
 
-
-    // FIX THIS: NEED TO PARSE JSON
-    case APILabKitWidget.OperationStarted(name: String, resource: String, product: String, operationType: String, time: String) =>
-      eh ! Response(List(), SPAttributes("operation"->name, "resource" -> resource, "type" -> operationType,
-        "product" -> product, "executing" -> true, "startTime" -> time) merge silent, serviceName, serviceID)
-    case APILabKitWidget.OperationFinished(name: String, resource: String, product: String, operationType: String, time: String) =>
-      eh ! Response(List(), SPAttributes("operation"->name, "resource" -> resource, "type" -> operationType,
-        "product" -> product, "executing" -> false, "stopTime" -> time) merge silent, serviceName, serviceID)
-    case APILabKitWidget.ResourcePies(data) =>
-      eh ! Response(List(), SPAttributes("pieData"->data) merge silent, serviceName, serviceID)
-    case APILabKitWidget.ProductPies(data) =>
-      val pData = data.map{case (name, poses) =>
-        val pie = poses.map{kv => SPAttributes("key"->kv._1, "y"-> kv._2)}
-        SPAttributes("name"->name, "pie" -> pie)
-      }.toList
-      eh ! Response(List(), SPAttributes("pieData"->pData, "product"->true) merge silent, serviceName, serviceID)
-    case APILabKitWidget.ProductStats(data) =>
-      eh ! Response(List(), SPAttributes("productStats"->data) merge silent, serviceName, serviceID)
 
     // case SummedOperations(state: Map[String,Int]) =>
     //   eh ! Response(List(), SPAttributes("summedOperations"->state) merge silent, serviceName, serviceID)

@@ -39,7 +39,7 @@ class OPC(OpcUARuntime: ActorRef) extends Actor {
   var resourceState = ops.map(_ -> false).toMap
 
   var connected = false
-  val url = "opc.tcp://192.168.0.10:4840"
+  val url = "opc.tcp://192.168.0.50:4840"
 
   mediator ! Subscribe("OPCState", self)
 
