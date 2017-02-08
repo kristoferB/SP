@@ -48,11 +48,11 @@ object APIWebSocket {
  * Used by the SP launcher file
  * Created by Kristofer on 2014-06-19.
  */
-object LaunchGUI  {//extends MySslConfiguration {
+class LaunchGUI(system: ActorSystem)  {
   implicit val timeout = Timeout(5 seconds)
   import scala.concurrent.Future
   import akka.pattern.ask
-  implicit val system = ActorSystem("SP")
+  implicit val actorSystem = system
   implicit val materializer = ActorMaterializer()
   val mediator = DistributedPubSub(system).mediator
 

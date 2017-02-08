@@ -11,25 +11,15 @@ import scala.io.StdIn
   * Created by kristofer on 2017-01-02.
   */
 object ServeSPUI extends App{
+  implicit val sys = ActorSystem("SPCore")
+  implicit val ec = sys.dispatcher
+  val webServer = new LaunchGUI(sys)
+  val f = webServer.launch
 
-  implicit val system = ActorSystem("my-system")
-  implicit val materializer = ActorMaterializer()
-  implicit val executionContext = system.dispatcher
+  println("Starting SP Core node")
+  StdIn.readLine()
 
-  val route =
-    path("hello") {
-      get {
-        complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Say hello to akka-http</h1>"))
-      }
-    }
-
-
-  val bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
-
-  println(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
-  StdIn.readLine() // let it run until user presses return
-  bindingFuture
-    .flatMap(_.unbind()) // trigger unbinding from the port
-    .onComplete(_ => system.terminate()) // and shutdown when done
+  f.flatMap(_.unbind()) // trigger unbinding from the port
+    .onComplete(_ => sys.terminate()) // and shutdown when done
 
 }
