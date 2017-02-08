@@ -18,6 +18,8 @@ import scala.util.Properties
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
 import sp.system.SPActorSystem.system
+import scala.util._
+import sp.messages._
 
 import org.joda.time.DateTime
 
@@ -42,6 +44,8 @@ object APILabKitWidget {
   case class ProductPies(data: List[(String, List[(String, Int)])]) extends APILabKitWidget
   case class ProdStat(name: String, leadtime: Int, processingTime: Int, waitingTime: Int, noOfOperations: Int, noOfPositions: Int) extends APILabKitWidget
   case class ProductStats(data: List[ProdStat]) extends APILabKitWidget
+
+  val service = "widgetsBackend"
 }
 
 class WidgetsBackend(eh: ActorRef) extends Actor with ServiceSupport {
@@ -59,9 +63,30 @@ class WidgetsBackend(eh: ActorRef) extends Actor with ServiceSupport {
   mediator ! Subscribe("summedOperations", self)
   mediator ! Subscribe("frontend", self)
 
+
+  def matchMessage(x: String) = {
+    getAPIMessage(x).nonEmpty
+  }
+
+  def isItToMe(m: SPMessage) = {
+     m.header.getAs[String]("to") == Some(APILabKitWidget.service)
+  }
+
+  def getAPIMessage(x: String) = {
+    for {
+      m <- Try{APIParser.read[SPMessage](x)}.toOption if isItToMe(m)
+      pOK <- Try{APIParser.readJs[APILabKitWidget](m.body)}.toOption
+    } yield {
+      (m.header, pOK)
+    }
+  }
+
   def receive = {
 
-    case x: String => println("NEED TO PARSE JSON IN WIDGETSBACKEND!!!!!!!!!")
+    case x: String if matchMessage(x)=> 
+      println("WIDGETBACKEND GOT " +x)
+
+
     // FIX THIS: NEED TO PARSE JSON
     case APILabKitWidget.OperationStarted(name: String, resource: String, product: String, operationType: String, time: String) =>
       eh ! Response(List(), SPAttributes("operation"->name, "resource" -> resource, "type" -> operationType,
