@@ -2,8 +2,6 @@ package sp.opcMilo
 
 import akka.actor._
 import sp.domain.logic.{ActionParser, PropositionParser}
-import sp.system._
-import sp.system.messages._
 import sp.domain._
 import sp.domain.Logic._
 import scala.concurrent.Future
@@ -15,6 +13,7 @@ import scala.util.Properties
 import org.joda.time.DateTime
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
+import sp.messages._
 
 object OpcUARuntime {
   def props = Props(classOf[OpcUARuntime])
@@ -66,7 +65,7 @@ class OpcUARuntime extends Actor {
     }
     case StateUpdate(activeState) =>
       mediator ! Publish(topic, SPAttributes("state"->activeState, "timeStamp" -> client.getCurrentTime.toString))
-    case _ => sender ! SPError("Ill formed request");
+    case _ => sender ! APISP.SPError("Ill formed request");
   }
 
   def terminate(progress: ActorRef): Unit = {
