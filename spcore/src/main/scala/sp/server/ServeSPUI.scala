@@ -10,7 +10,7 @@ import scala.io.StdIn
 /**
   * Created by kristofer on 2017-01-02.
   */
-class ServeSPUI extends App{
+object ServeSPUI extends App{
 
   implicit val system = ActorSystem("my-system")
   implicit val materializer = ActorMaterializer()
