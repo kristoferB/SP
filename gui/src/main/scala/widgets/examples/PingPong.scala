@@ -27,13 +27,15 @@ object Ping {
 object Pong {
   def apply() = SPWidget{spwb =>
     spwb.subscribe{s =>
-      val msgsReceived = Try(spwb.getJson("msgs").get.toInt + 1).getOrElse(0)
-      spwb.saveData(l("msgs" -> msgsReceived.toString))
+      //val msgsReceived = Try(spwb.getJson("msgs").get.toInt + 1).getOrElse(0)
+      val msgsReceived: Int = Try(spwb.readCaseClassData.theInt).getOrElse(0) + 1
+      //spwb.saveData(l("msgs" -> msgsReceived.toString))
+      spwb.saveCaseClassData(msgsReceived)
       println("widget of id " + spwb.id + " got a msg saying " + s)
     }
     <.div(
-      <.h3("Hello from Pong"),
-      <.h4(Try(spwb.getJson("msgs").get.toInt).getOrElse(0) + " messages received")
+      <.h3("Hello from Pong")//,
+      //<.h4(Try(spwb.getJson("msgs").get.toInt).getOrElse(0) + " messages received")
     )
   }
 }

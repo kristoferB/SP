@@ -7,6 +7,7 @@ import scalajs.js.JSON
 import scalajs.js.Dynamic
 import scalajs.js.Dynamic.{literal => l}
 import scala.util.Try
+import upickle.default._
 
 import spgui.circuit.SPGUICircuit
 import spgui.circuit.{SetWidgetData, AddWidget, CloseWidget}
@@ -16,8 +17,18 @@ import spgui.SPGUIBus
 // TODO convenience function for getting the json? returning an Option perhaps?
 // see the messy stuff in SPWidgetBaseTest
 // etc
-case class SPWidgetBase(id: Int, json: Dynamic) {
+case class SPWidgetBase(id: Int, data: String) {
   def saveData(json: Dynamic) = SPGUICircuit.dispatch(SetWidgetData(id, JSON.stringify(json)))
+
+  case class TestCaseClass(theInt: Int)
+  def saveCaseClassData(someInt: Int) = {
+    val caseClassInstance = TestCaseClass(theInt = someInt)
+    val stringifiedCaseClass: String = write(caseClassInstance)
+    // TODO that 9000 just ugly testing thing.
+    SPGUICircuit.dispatch(SetWidgetData(id, stringifiedCaseClass))
+  }
+
+  def readCaseClassData: TestCaseClass = read[TestCaseClass](data)
 
   def openWidget(widgetType: String, json: Dynamic = Dynamic.literal()) =
     SPGUICircuit.dispatch(AddWidget(
@@ -27,7 +38,7 @@ case class SPWidgetBase(id: Int, json: Dynamic) {
 
   def closeSelf() = SPGUICircuit.dispatch(CloseWidget(id))
 
-  def getJson(key: String): Option[String] = Try(json.selectDynamic(key).toString).toOption
+  //def getJson(key: String): Option[String] = Try(json.selectDynamic(key).toString).toOption
 
   def subscribe: (String => Unit) => Unit = SPGUIBus.subscribe _
   def publish: String => Unit = SPGUIBus.publish _
@@ -43,6 +54,7 @@ object SPWidget {
     (spwb: SPWidgetBase) => component(Props(spwb, renderWidget))
 }
 
+
 object SPWidgetBaseTest {
   def apply() = SPWidget{spwb =>
     def saveOnChange(e: ReactEventI): Callback =
@@ -50,7 +62,8 @@ object SPWidgetBaseTest {
 
     def copyMe(): Callback =
       Callback(spwb.openWidget(
-        "SPWBTest", l("spwbtData" -> spwb.getJson("spwbtData").get)
+        //"SPWBTest", l("spwbtData" -> spwb.getJson("spwbtData").get)
+        "SPWBTest", l("spwbtData" -> "hej")
       ))
 
     <.div(
@@ -58,7 +71,8 @@ object SPWidgetBaseTest {
       <.label("My Data"),
       <.input(
         ^.tpe := "text",
-        ^.defaultValue := spwb.getJson("spwbtData").get,
+        //^.defaultValue := spwb.getJson("spwbtData").get,
+        ^.defaultValue := "hej",
         ^.onChange ==> saveOnChange
       ),
       <.button("Copy me", ^.onClick --> copyMe()),
