@@ -50,7 +50,7 @@ object SPWidgetBaseTest {
 
     def copyMe(): Callback =
       Callback(spwb.openWidget(
-        "SPWBTest", "hej"
+        "SPWBTest", Try(spwb.data.toString).getOrElse("hej")
       ))
 
     <.div(
