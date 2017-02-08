@@ -21,6 +21,13 @@ object Launch extends App {
 
   // only for testing. Remove
     system.actorOf(Props(classOf[TestingWidget]), "testingWidget")
+
+  scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
+    case x =>
+      system.terminate()
+  }
+
+
 }
 
 import sp.domain.Logic._
