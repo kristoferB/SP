@@ -1,6 +1,7 @@
 package sp.robotServices
 
 import akka.actor.Props
+import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 import com.codemettle.reactivemq.ReActiveMQExtension
 import com.codemettle.reactivemq.ReActiveMQMessages.GetConnection
 import com.github.nscala_time.time.Imports.DateTime
@@ -22,7 +23,13 @@ class SaveToES extends ServiceBase{
   type ActivityType = String
   type ActivityEvents = List[ActivityEvent]
   type Activities = List[Activity]
-  
+
+    import context.dispatcher
+
+  import akka.cluster.pubsub._
+  val mediator = DistributedPubSub(context.system).mediator
+
+
   var elasticClient: Option[Client] = None
   final val index_activity = "robot-activity"
   final val index_activityEvents = "robot-activity-events"
@@ -31,7 +38,8 @@ class SaveToES extends ServiceBase{
   val indexes = List(index_activity,index_activityEvents,index_cycleEvents)
 
   var robotActivityMap : Map[RobotId,ActivityEvent] = Map.empty
-  //var workCellActivityMap : Map[WorkCellActivity] = Map.empty
+  var robotIdToCurrentPos : Map[RobotId,Boolean] = Map.empty
+  var robotIdToCurrentRobotCycle : Map[RobotId,Int] = Map.empty
 
   override def handleOtherMessages = {
     case "connect" =>
@@ -47,10 +55,23 @@ class SaveToES extends ServiceBase{
   override def handleAmqMessage(json: JValue): Unit = {
     if (json.has("activityId")) {
       val event: ActivityEvent = json.extract[ActivityEvent]
-      sendToES(write(event),uuid,index_activity)
+      if (event.isStart && event.name.contains("main") && robotIdToCurrentPos.getOrElse(event.robotId,false)){
+        robotIdToCurrentRobotCycle += (event.robotId -> (robotIdToCurrentRobotCycle.getOrElse(event.robotId,-1) + 1) )
+      }
+      val robCylId = robotIdToCurrentRobotCycle.contains(event.robotId) match {
+        case true => robotIdToCurrentRobotCycle(event.robotId)
+        case false => robotIdToCurrentRobotCycle += (event.robotId -> 0)
+          robotIdToCurrentRobotCycle(event.robotId)
+
+      }
+      val activityToSend =write(ActivityEventWithRobotCycle(event.activityId,robotIdToCurrentRobotCycle(event.robotId),event.isStart,event.name,event.robotId,event.time,event.`type`,event.workCellId))
+      sendToES(activityToSend,uuid,index_activity)
+      mediator ! Publish("robotServices", activityToSend)
+ 
     }
-    if (json.has("newSignalState") && homePosSignals.contains((json \ "address" \ "signal").extract[String]) && (json \ "newSignalState" \ "value").extract[Float] > 0){
+    if (json.has("newSignalState") && homePosSignals.contains((json \ "address" \ "signal").extract[String])){
       val event = json.extract[IncomingCycleEvent]
+      robotIdToCurrentPos += (event.robotId -> (event.newSignalState.value > 0))
       sendToES(write(event),uuid,index_cycleEvents)
     }
 
@@ -68,7 +89,7 @@ class SaveToES extends ServiceBase{
   }
   def uuid: String = java.util.UUID.randomUUID.toString
   def sendToES(json: String, cycleId: String, index: String): Unit = {
-    println("Writing to ES" + cycleId + " " + index )
+    //println("Writing to ES" + cycleId + " " + index )
     elasticClient.foreach{client => client.index(
       index = index, `type` = "cycles", id = Some(cycleId),
       data = json, refresh = true

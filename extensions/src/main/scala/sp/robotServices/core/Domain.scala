@@ -42,6 +42,17 @@ object Domain {
                            `type`: String,
                            workCellId: String)
 
+  case class ActivityEventWithRobotCycle(activityId: String,
+                           cycleId:Int,
+                           isStart: Boolean,
+                           name: String,
+                           robotId: String,
+                           time: DateTime,
+                           `type`: String,
+                           workCellId: String)
+
+
+
   case class IncomingCycleEvent(address: SignalAddress,
                                 newSignalState: NewSignalState,
                                 robotId: String,

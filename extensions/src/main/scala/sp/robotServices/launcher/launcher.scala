@@ -5,11 +5,8 @@ package sp.robotServices.launcher
 
 
 import akka.actor.{ActorSystem, Props}
-import akka.event.{Logging, LoggingAdapter}
 import sp.robotServices._
-import sp.robotServices.core._
 import sp.system.{SPService, ServiceSupport}
-import sp.system.SPActorSystem._
 import sp.system.messages.{KeyDefinition, TransformValue}
 import akka.actor._
 import sp.system.messages._
@@ -117,6 +114,9 @@ object LaunchRobotRuntimeService extends SPService {
     }
   def startServices() = {
     val actors  = new ListBuffer[ActorRef]
+
+    val operationAggregator = context.actorOf(OperationAggregator.props, "operationAggregator")
+
     val fillWithInstructionActor = context.actorOf(InstructionFiller.props, "InstructionFiller")
     actors.append(fillWithInstructionActor)
     fillWithInstructionActor ! "connect"

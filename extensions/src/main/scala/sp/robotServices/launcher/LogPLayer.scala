@@ -2,6 +2,7 @@ package sp.robotServices.launcher
 
 import sp.system._
 import akka.actor._
+import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 import com.codemettle.reactivemq.ReActiveMQExtension
 import com.codemettle.reactivemq.ReActiveMQMessages._
 import com.codemettle.reactivemq.model.{AMQMessage, Topic}
@@ -31,8 +32,8 @@ object LogPlayer extends SPService {
       "description" -> "Replays logs from a given log file at a given frequency in millis"
     ),
     "setup" -> SPAttributes(
-      "filePath" -> KeyDefinition("String",List(),Some("/home/ashfaqf/Projects/Lisa files/logs/log-13_12_35")),
-      "command" -> KeyDefinition("String", List("LoadFile", "PlayLog","ListEvents", "playEvent","setupBus", "sendRobotModules"), Some("setupBus")),
+      "filePath" -> KeyDefinition("String",List(),Some("/home/ashfaqf/Projects/Lisa files/from_volvo/logs/log-13_12_35")),
+      "command" -> KeyDefinition("String", List("LoadFile", "PlayLog","ListEvents", "playEvent","setupBus", "sendRobotModules", "printOps"), Some("setupBus")),
       "freq" -> KeyDefinition("Int",List(),Some(10))
       // "AMQBusIP" -> KeyDefinition("String", List(), Some(settings.activeMQ)),
       // "AMQBusUsername" -> KeyDefinition("String",List(),Some("admin")),
@@ -76,6 +77,7 @@ class LogPlayer extends Actor with ServiceSupport{
       implicit val rnr = RequestNReply(r, replyTo)
       val setup = transform(LogPlayer.transformTuple)
 
+    
       setup.command match {
         case "setupBus" =>
 
@@ -102,6 +104,10 @@ class LogPlayer extends Actor with ServiceSupport{
           rcdProgs.foreach{x =>
             sendToBusWithTopic(settings.activeMQTopic,x.toJson)
           Thread.sleep(setup.freq)}
+
+        case "printOps" =>   import akka.cluster.pubsub._
+          val mediator = DistributedPubSub(context.system).mediator
+          mediator ! Publish("robotServices", "printOps")
 
         case "playEvent" =>
           playEvent()
@@ -142,7 +148,7 @@ class LogPlayer extends Actor with ServiceSupport{
     }
     case mess@AMQMessage(body, prop, headers) => {
       val json: JValue = parse(body.toString)
-      println("got"+ json)
+      //println("got"+ json)
       implicit val formats = Serialization.formats(NoTypeHints)
       if(json.has("event")) {
         println("got event" + (json \ "event"))
@@ -169,6 +175,7 @@ class LogPlayer extends Actor with ServiceSupport{
   def robotModules(json:List[JValue]){
     val modules = json.map(_.extract[ModulesReadEvent])
     modules.foreach(x => robotIdToModues += (x.robotId -> x))
+    
   }
   def loadFile(path: String): JValue ={
     println(s"loading ${path}")

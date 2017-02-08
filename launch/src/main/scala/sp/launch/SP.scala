@@ -198,7 +198,7 @@ object SP extends App {
     RobotCycleAnalysis.transformation
   ))
 
-  import sp.robotServices._
+  import sp.robotServices.launcher._
   mediator ! Publish("serviceHandler", RegisterService(
     "LaunchRobotServices",
     system.actorOf(LaunchRobotRuntimeService.props, "LaunchRobotServices"),
@@ -211,6 +211,13 @@ object SP extends App {
     LogPlayer.specification,
     LogPlayer.transformation
   ))
+  /*
+  mediator ! Publish("serviceHandler", RegisterService(
+    "creatingOperations",
+    system.actorOf(createOperationsFromActivities.props(modelHandler), "createOpsFromProcess"),
+    createOperationsFromActivities.specification,
+    createOperationsFromActivities.transformation
+  ))*/
 
 //  import sp.exampleService._
 //  mediator ! Publish("serviceHandler", RegisterService)(
