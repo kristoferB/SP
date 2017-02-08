@@ -31,7 +31,7 @@ SPCore include the web-server, support services as well as some core services to
 The open a new command window and set location to the project root folder (SP/). Then launch various services with
 ```
 sbt labkit/run
-sbt ModelTest/run
+sbt modelTests/run
 ...
 ```
 The service are locate in spservices
