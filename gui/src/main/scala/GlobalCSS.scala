@@ -7,6 +7,7 @@ import scalacss.Defaults._
 object GlobalCSS extends StyleSheet.Inline {
   import dsl._
 
+
   val gridSpacing = "80px"
   val gridSpacingSmall = "20px"
   val gridColor = "#777777"
@@ -15,8 +16,8 @@ object GlobalCSS extends StyleSheet.Inline {
 
   val background = style(
     unsafeRoot("body")(
-      backgroundColor.rgb(192,192,192),
-      backgroundImage :=
+      backgroundColor.white
+      /*backgroundImage :=
         s"linear-gradient(to right,  $gridColor 2px, transparent 0px)," +
         s"linear-gradient(to bottom, $gridColor 2px, transparent 0px),"  +
         s"linear-gradient(to right,  $gridColorSmall 2px, transparent 0px)," +
@@ -26,6 +27,7 @@ object GlobalCSS extends StyleSheet.Inline {
         s"$gridSpacingSmall $gridSpacing,"+
         s"$gridSpacingSmall  $gridSpacing",
       backgroundPosition:=s"0px $gridOffsetY"
+      */
     )
   )
 

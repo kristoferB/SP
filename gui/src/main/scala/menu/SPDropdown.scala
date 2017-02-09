@@ -15,8 +15,7 @@ object SPDropdown {
       <.div(
         ^.id := "something",
         ^.tpe := "button",
-        ^.className := SPMenuCSS.dropDownButton.htmlClass,
-        ^.className := "btn navbar-btn",
+        ^.className := "btn btn-default navbar-btn",
         ReactAttr.Generic("data-toggle") := "dropdown",
         aria.haspopup := "true",
         aria.expanded := "false",

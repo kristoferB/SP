@@ -19,7 +19,6 @@ object Dashboard {
   class Backend($: BackendScope[Props, Unit]) {
     def render(p: Props) =
       <.div(
-        ^.className := DashboardCSS.dashboardBackground.htmlClass,
         ReactGridLayout(
           width = 1920,
           cols = 8,
