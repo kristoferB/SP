@@ -16,8 +16,10 @@ object DashboardItem {
         ^.className := DashboardCSS.widgetPanelHeader.htmlClass,
         <.button(
           ^.className := "btn btn-default",
+          <.i(^.className := "icon-remove" ),
           "close me",
           ^.onClick --> Callback(SPGUICircuit.dispatch(CloseWidget(props.id)))
+
         )
       ),
       <.div(

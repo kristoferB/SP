@@ -6,7 +6,7 @@ import scalacss.Defaults._
 
 object GlobalCSS extends StyleSheet.Inline {
   import dsl._
-
+  val defaultShadow = "0 2px 2px rgba(0, 0, 0, 0.05), 0 1px 0 rgba(0, 0, 0, 0.05)"
 
   val gridSpacing = "80px"
   val gridSpacingSmall = "20px"
@@ -28,6 +28,12 @@ object GlobalCSS extends StyleSheet.Inline {
         s"$gridSpacingSmall  $gridSpacing",
       backgroundPosition:=s"0px $gridOffsetY"
       */
+    )
+  )
+  val h2 = style(
+    unsafeRoot("h2")(
+      fontSize(30.px),
+      lineHeight(40.px)
     )
   )
 

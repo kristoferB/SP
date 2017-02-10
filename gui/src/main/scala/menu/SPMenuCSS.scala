@@ -10,12 +10,12 @@ object SPMenuCSS extends StyleSheet.Inline {
   val navbar_header_background = "#de691c" //#df691a; //#f05050;   // this is the SP logo orange
   val navbar_brand_title_color = backgroundColor.white   // SP logo foreground white
 
-  val defaultShadow = "0 2px 2px rgba(0, 0, 0, 0.05), 0 1px 0 rgba(0, 0, 0, 0.05)"
+
 
   val topNavHeight = 50.px //use in GlobalCSS.scala
   val topNav = style("sp-top-nav")(
-    boxShadow := defaultShadow,
     marginBottom(0.px), // ovverride bootstrap default
+    boxShadow := spgui.GlobalCSS.defaultShadow,
     backgroundColor := navbarBgColor,
     color := navbarFgColor,
     border.none,

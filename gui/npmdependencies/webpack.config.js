@@ -7,7 +7,7 @@ module.exports = {
         './vendor.js'
     ],
     output: {
-        publicPath: './gui/npmdependencies/output', 
+        publicPath: './gui/npmdependencies/output/',
         path: 'output/',
         filename: PROD ? 'bundle.min.js' : 'bundle.js'
     },
@@ -17,15 +17,15 @@ module.exports = {
                 test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
                 loader: 'url-loader?limit=100000'
             }, {
-                test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+                test: /\.(ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
                 loader: 'url-loader?limit=100000'
             }, {
-                test: /\.css(\?v=\d+\.\d+\.\d+)?$/,       
+                test: /\.css(\?v=\d+\.\d+\.\d+)?$/,
                 loader: "style-loader!css-loader"
             }, {
                 test: /\.png(\?v=\d+\.\d+\.\d+)?$/,
                 loader: 'url-loader?limit=100000'
-            } 
+            }
         ]
     },
     plugins: PROD ? [

@@ -6,9 +6,11 @@ object DashboardCSS extends StyleSheet.Inline {
   import dsl._
 
   val widgetBgColor = "#f5f5f5"
+  val widgetContentBg = "white"
+  val widgetHeadingBg = widgetBgColor
 
   val widgetPanel = style("sp-widget-panel")(
-    backgroundColor(rgb(192,192,192)),
+    backgroundColor := widgetBgColor,
     height(100.%%),
     marginBottom(0.px),
     overflow.hidden,
@@ -17,13 +19,13 @@ object DashboardCSS extends StyleSheet.Inline {
 
     borderRadius(0.px),
     borderWidth(1.px),
-    borderColor(rgb(0,0,0))
+    boxShadow := spgui.GlobalCSS.defaultShadow
   )
 
   val widgetPanelHeader = style("sp-widget-header")(
     padding(2.px),
     display.block,
-    backgroundColor.rgb(224,224,224)
+    backgroundColor := widgetHeadingBg
   )
 
   val widgetPanelBody = style("sp-panel-body")(
