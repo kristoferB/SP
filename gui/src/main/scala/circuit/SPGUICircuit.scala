@@ -4,7 +4,7 @@ import diode._
 import diode.react.ReactConnector
 
 import upickle.default._
-import org.scalajs.dom.ext.SessionStorage
+import org.scalajs.dom.ext.LocalStorage
 import scala.util.{Success, Try}
 
 object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] {
@@ -33,9 +33,9 @@ class DashboardHandler[M](modelRW: ModelRW[M, OpenWidgets]) extends ActionHandle
 
 object BrowserStorage {
   val namespace = "SPGUIState"
-  def store(spGUIState: SPGUIModel) = SessionStorage(namespace) = write(spGUIState)
+  def store(spGUIState: SPGUIModel) = LocalStorage(namespace) = write(spGUIState)
   def load: Option[SPGUIModel] =
-    Try(SessionStorage(namespace) map read[SPGUIModel]) match {
+    Try(LocalStorage(namespace) map read[SPGUIModel]) match {
       case Success(Some(state)) => Some(state)
       case _ => None
     }

@@ -18,6 +18,7 @@ object WidgetList {
       ("Pong", widgets.examples.Pong()),
       ("PlcHldrC", PlaceholderComp()),
       ("SPWBTest", SPWidgetBaseTest()),
+      ("Widget with data", widgets.examples.WidgetWithData()),
       ("CommTest", widgets.WidgetCommTest())
     )
 }
