@@ -5,12 +5,10 @@ import scalacss.Defaults._
 object SPMenuCSS extends StyleSheet.Inline {
   import dsl._
 
-  val navbarBgColor = "#fff"
+  val navbarBgColor = "#999999"
   val navbarFgColor = "#58666e"
-  val navbar_header_background = "#de691c" //#df691a; //#f05050;   // this is the SP logo orange
+  val navbar_header_background = "#999999" //#df691a;;   // this is the SP logo orange
   val navbar_brand_title_color = backgroundColor.white   // SP logo foreground white
-
-
 
   val topNavHeight = 50.px //use in GlobalCSS.scala
   val topNav = style("sp-top-nav")(
@@ -44,7 +42,15 @@ object SPMenuCSS extends StyleSheet.Inline {
   )
 
   // should probably be generalized. adding this so i can align it
-  val dropDown = style("sp-dropwdown")(
+  val dropDownButton = style("sp-dropwdown")(
+    display.flex
+  )
+
+  val buttonIconSpacing = style("sp-titled-dropdown")(
+    paddingRight(10.px)
+  )
+
+  val untitledButton = style("sp-untitled-dropdown")(
 
   )
 

@@ -13,11 +13,11 @@ object WidgetMenu {
       Callback(SPGUICircuit.dispatch(AddWidget(widgetType)))
     def render =
       SPDropdown(
+        for(widgetType <- WidgetList().keys.toList) yield (widgetType, addW(widgetType)),
         Icon.windowMaximize,
-        //"New Widget", // This still works
-        for(widgetType <- WidgetList().keys.toList) yield (widgetType, addW(widgetType))
+        "New widget"
       )
-    }
+  }
 
   private val component = ReactComponentB[Unit]("WidgetMenu")
     .renderBackend[Backend]

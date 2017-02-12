@@ -10,7 +10,6 @@ object SPDropdown {
   private val component = ReactComponentB[Props]("SPDropdown")
     .render_P(props =>
     <.div(
-      ^.className := SPMenuCSS.dropDown.htmlClass,
       ^.className := "dropdown",
       <.div(
         ^.id := "something",
@@ -30,6 +29,22 @@ object SPDropdown {
   )
     .build
 
-  def apply(icon: ReactNode, buttonsProps: List[(String, Callback)]) =
+  def apply(buttonsProps: List[(String, Callback)],icon: ReactNode, title:String) =
+    component(Props(
+      <.div(
+        ^.className := SPMenuCSS.dropDownButton.htmlClass,
+        <.div(
+          ^.className:= SPMenuCSS.buttonIconSpacing.htmlClass,
+          icon
+        ),
+        title
+      ),
+      buttonsProps
+    ))
+
+  def apply(buttonsProps: List[(String, Callback)],title:String) =
+    component(Props(title, buttonsProps))
+
+  def apply(buttonsProps: List[(String, Callback)],icon: ReactNode) =
     component(Props(icon, buttonsProps))
 }

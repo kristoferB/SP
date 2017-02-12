@@ -605,5 +605,7 @@ object Icon {
   def youtubeSquare = apply("youtube-square")
 
   def windowMaximize = apply("window-maximize")
+  def windowClose = apply("window-close")
+  def windowCloseO = apply("window-close-o")
 }
 
