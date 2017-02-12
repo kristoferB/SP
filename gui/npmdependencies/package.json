@@ -5,7 +5,7 @@
   },
   "dependencies": {
     "bootstrap": "~3.3.7",
-    "font-awesome": "^4.7.0",
+    "font-awesome": "~4.7.0",
     "jquery": "~3.1.1",
     "jsoneditor": "~4.2.1",
     "react": "~15.3.2",

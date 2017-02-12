@@ -22,6 +22,4 @@ require('bootstrap/fonts/glyphicons-halflings-regular.ttf');
 require('bootstrap/fonts/glyphicons-halflings-regular.eot');
 require('bootstrap/fonts/glyphicons-halflings-regular.svg');
 
-var fontAwesome = require('font-awesome');
-window.fontAwesome = fontAwesome;
 require('font-awesome/css/font-awesome.css');
