@@ -11,7 +11,6 @@ import spgui.SPWidgetBase
 import spgui.circuit.OpenWidget
 import spgui.WidgetList
 import spgui.circuit.{SPGUICircuit, LayoutUpdated, WidgetLayout}
-import org.scalajs.dom.console
 
 object Dashboard {
   case class Props(proxy: ModelProxy[List[OpenWidget]])
@@ -26,7 +25,6 @@ object Dashboard {
           onLayoutChange = (layout => {
             layout.asInstanceOf[LayoutData].foreach(
               g => {
-                console.log(g.x, g.y, g.h, g.w)
                 p.proxy().foreach(widget => if(widget.id == g.i.toInt) {
                   val newLayout = WidgetLayout(g.x, g.y, g.w, g.h)
                   SPGUICircuit.dispatch(LayoutUpdated(widget.id, newLayout))
