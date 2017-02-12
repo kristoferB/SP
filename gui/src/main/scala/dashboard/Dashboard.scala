@@ -46,9 +46,6 @@ object Dashboard {
               WidgetList()(openWidget.widgetType)(
                 SPWidgetBase(
                   openWidget.id,
-                  //if(openWidget.stringifiedWidgetData == "")
-                    //Dynamic.literal() else
-                      //JSON.parse(openWidget.stringifiedWidgetData)
                   openWidget.stringifiedWidgetData
                 )
               ),
