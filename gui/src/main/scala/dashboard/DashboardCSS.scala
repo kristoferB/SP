@@ -4,10 +4,10 @@ import scalacss.Defaults._
 
 object DashboardCSS extends StyleSheet.Inline {
   import dsl._
-
-  val widgetBgColor = "#f5f5f5"
-  val widgetContentBg = "white"
-  val widgetHeadingBg = widgetBgColor
+ 
+  val widgetBgColor = "#ededed"
+  val widgetHeadingBg = "#999999"
+  val widgetHeadingIconColor = "#ffffff"
 
   val widgetPanel = style("sp-widget-panel")(
     backgroundColor := widgetBgColor,
@@ -25,7 +25,8 @@ object DashboardCSS extends StyleSheet.Inline {
   val widgetPanelHeader = style("sp-widget-header")(
     padding(2.px),
     display.block,
-    backgroundColor := widgetHeadingBg
+    backgroundColor := widgetHeadingBg,
+    color := widgetHeadingIconColor
   )
 
   val widgetPanelBody = style("sp-panel-body")(
@@ -42,6 +43,12 @@ object DashboardCSS extends StyleSheet.Inline {
   val reactGridPlaceholder = style("react-grid-placeholder")(
     backgroundColor(rgb(255,102,0)),
     opacity(0.5)
+  )
+
+  val closeButton = style("close-button")(
+    float.right,
+    fontSize(30.px),
+    paddingRight(7.px)
   )
 
   this.addToDocument()
