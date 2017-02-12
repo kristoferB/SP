@@ -16,7 +16,7 @@ To get automatic compilation on file change, run `~fastOptJS`.
 
 ## Making a widget ##
 The simplest possible widget is created with `SPWidget(spwb => <.h1("Hello, World!"))`. So to get started making a widget, create a file in `widgets/` containing the following.
-```
+```scala
 package spgui.widgets
 
 import spgui.SPWidget
@@ -28,7 +28,7 @@ object MyWidget {
 (Defining `apply` is just the scala way of making your object callable with `MyWidget()`.) To make your new widget available in the SP-menu, open `WidgetList.scala` and add it like so: `("My new widget", spgui.MyWidget())`, next to the other widgets.
 
 The argument to the function given as argument to `SPWidget`, above named `spwb`, provides the API to interact with SP. For example it contains access to a string of data stored in the browser storage, via the field `data: String` and the method `saveData(data: String)`. This is conveniently used together with a case class, `upickle` and `Try`, as in the example below (found in the code in `widgets/examples/`).
-```
+```scala
 object WidgetWithData {
   // calling MyData() (with no arguments) will give MyData(someInt = -17)
   case class MyData(someInt: Int = -17)
