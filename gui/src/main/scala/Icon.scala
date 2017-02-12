@@ -603,5 +603,7 @@ object Icon {
   def youtube = apply("youtube")
   def youtubePlay = apply("youtube-play")
   def youtubeSquare = apply("youtube-square")
+
+  def windowMaximize = apply("window-maximize")
 }
 
