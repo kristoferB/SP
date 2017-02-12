@@ -15,10 +15,15 @@ import spgui.SPGUIBus
 // TODO methods to publish and subscribe to bus
 // TODO get the pickling in here, turned out to be tricky, upickle doesn like generic types...
 // TODO unsubscribe, to be called when SPWidget is closed
+// TODO move widget "frame-functionality" into here
+// TODO kill subscriptions directly on widget close
 // etc
 case class SPWidgetBase(id: Int, data: String) {
 
-  def saveData(data: String) = SPGUICircuit.dispatch(SetWidgetData(id, data))
+  def saveData(data: String): Unit = {
+    SPGUIBus.unsubscribeWidget(id)
+    SPGUICircuit.dispatch(SetWidgetData(id, data))
+  }
 
   def openWidget(widgetType: String, data: String = "") =
     SPGUICircuit.dispatch(AddWidget(
@@ -28,8 +33,8 @@ case class SPWidgetBase(id: Int, data: String) {
 
   def closeSelf() = SPGUICircuit.dispatch(CloseWidget(id))
 
-  def subscribe: (String => Unit) => Unit = SPGUIBus.subscribe _
-  def publish: String => Unit = SPGUIBus.publish _
+  def subscribe(topic: String, cb: String => Unit) = SPGUIBus.subscribe(id, topic, cb)
+  def publish(topic: String, msg: String) = SPGUIBus.publish(topic, msg)
 }
 
 object SPWidget {
