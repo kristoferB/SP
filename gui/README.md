@@ -52,6 +52,8 @@ object WidgetWithData {
 ```
 Note that no explicit re-rendering is necessary after calling `saveData`. This is handled automatically.
 
+The case class can contain anything data-ish, i.e. strings, doubles, ints, lists of them as well as nested data-ish case classes.
+
 README-TODO: add more about what's inside spwb here.
 
 The html-like scala-objects prefixed by `<` and `^` are provided by the scalajs-react library. The function given as argument to `SPWidget` need to return either an `<`-object or a scalajs-react component. Learn about scalajs-react [here] (https://github.com/japgolly/scalajs-react/blob/master/doc/USAGE.md).
