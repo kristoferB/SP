@@ -26,6 +26,7 @@ node_modules/*
 build/*
 sp-core/build/
 sp-core/node_modules/
+web/
 
 
 # output from tests

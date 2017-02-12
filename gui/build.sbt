@@ -10,6 +10,7 @@ val scalaJSReactVersion = "0.11.3"
 val scalaCssVersion = "0.5.1"
 val diodeVersion = "1.1.0"
 
+
 libraryDependencies ++= Seq(
   "com.github.japgolly.scalajs-react" %%% "core" % scalaJSReactVersion,
   "com.github.japgolly.scalajs-react" %%% "extra" % scalaJSReactVersion,
@@ -17,8 +18,10 @@ libraryDependencies ++= Seq(
   "com.github.japgolly.scalacss" %%% "ext-react" % scalaCssVersion,
   "me.chrons" %%% "diode" % diodeVersion,
   "me.chrons" %%% "diode-react" % diodeVersion,
+  "fr.hmil" %%% "roshttp" % "2.0.0",
+  "io.monix" %%% "monix" % "2.1.2",
   "com.lihaoyi" %%% "upickle" % "0.4.3",
-  "fr.hmil" %%% "roshttp" % "2.0.0-RC1"
+  "com.lihaoyi" %%% "scalarx" % "0.3.2"
 )
 
 /* This is how to include js files. Put it in src/main/resources.

@@ -1,0 +1,19 @@
+<div ng-controller="opcuaClientController as vm">
+    <div class="panel-content" style="padding: 10px;">
+        <div ng-if="!vm.connected">
+            <input type="text" ng-model="vm.url"><br>
+            <button class="btn btn-default" ng-click="vm.connect()">Connect!</button>
+        </div>
+        <div ng-if="vm.connected">
+            <button class="btn btn-default" ng-click="vm.getNodes()">Get nodes!</button>
+            <button class="btn btn-default" ng-click="vm.subscribe()">Subscribe to nodes!</button>
+            <h4>Nodes</h4>
+            <div layout="row" layout-wrap flex>
+                <div flex="50" ng-repeat="item in vm.nodes | orderBy: 'name'">
+                    <input type="checkbox" ng-checked="vm.isSubscriptionToggled(item.name)" ng-click="vm.toggleSubscription(item.name)"/>
+                    <b>{{item.name}}</b> - {{item.datatype}} - <input type="text" ng-model="item.value"> - <button class="btn btn-default" ng-click="vm.write(item)">write</button>
+                </div>
+            </div>            
+        </div>        
+    </div>
+</div>
