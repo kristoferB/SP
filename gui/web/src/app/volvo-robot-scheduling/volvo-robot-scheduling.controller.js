@@ -25,6 +25,8 @@
         vm.verify = verify;
         vm.state = 'selecting';
         vm.calculate = calculate;
+        vm.dispOriginalSop= dispOriginalSop;
+        vm.solveWithCP=solveWithCP;
         vm.numStates = 0;
         vm.minTime = 0.0;
         vm.cpCompleted = false;
@@ -48,7 +50,7 @@
                 vm.selectedVars = _.union(vm.selectedVars,n);
             }
         }
-        
+
         function actOnSelectionChanges() {
             $scope.$watchCollection(
                 function() {
@@ -105,7 +107,7 @@
                     vm.state = 'done';
                 }
             }
-        }        
+        }
         function activate() {
             $scope.$on('closeRequest', function() {
                 dashboardService.closeWidget(vm.widget.id);
@@ -135,6 +137,15 @@
                 waitID = repl.reqID;
             });
         }
+
+        function dispOriginalSop(sopid){
+        alert(sopid);
+         openSOP(sopid);
+        }
+
+        function solveWithCP(){
+        }
+
 
         function openSOP(sopid) {
             var widgetKind = _.find(dashboardService.widgetKinds, {title: 'SOP Maker'});

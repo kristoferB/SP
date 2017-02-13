@@ -303,6 +303,8 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
           newop.id
         }).head
       }
+
+
       mutexes = mutexes.map{case (x,y) => (getNewID(x), getNewID(y)) }
       precedences = precedences.map{case (x,y) => (getNewID(x), getNewID(y)) }
       forceEndTimes = forceEndTimes.map{case (x,y) => (getNewID(x), getNewID(y)) }

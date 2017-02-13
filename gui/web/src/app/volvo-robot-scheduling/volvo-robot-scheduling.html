@@ -15,7 +15,7 @@
                 <tr>
                     <td style="padding: 5px">
                         <button type="button" class="btn btn-sm btn-primary" ng-click="vm.removeSchedule(s)">
-                            <i class="fa fa-close"></i> {{s.name}} 
+                            <i class="fa fa-close"></i> {{s.name}}
                         </button>
                     </td>
                 </tr>
@@ -23,8 +23,14 @@
         </table>
 
         <br><br>
+        <button class="btn" ng-click="vm.dispOriginalSop()">
+            <i class="fa fa-bolt"></i> Display original model
+        </button>
         <button class="btn" ng-click="vm.calculate()">
             <i class="fa fa-bolt"></i> Calculate with <b>Supremica</b>
+        </button>
+        <button class="btn" ng-click="vm.solveWithCP()">
+            <i class="fa fa-bolt"></i> Solve with CP
         </button>
         <div ng-if="vm.state == 'calculating'">
             Running calculations...<i class="fa fa-cog fa-spin fa-lg fa-fw"></i>
@@ -89,6 +95,6 @@
             </table>
 
         </div>
-        
+
     </div>
 </div>
