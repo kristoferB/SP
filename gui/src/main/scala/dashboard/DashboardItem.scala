@@ -17,6 +17,7 @@ object DashboardItem {
         ^.className := DashboardCSS.widgetPanelHeader.htmlClass,
         <.div(
           ^.className := DashboardCSS.closeButton.htmlClass,
+                    ^.className := "btn",
           Icon.windowCloseO,
           ^.onClick --> Callback(SPGUICircuit.dispatch(CloseWidget(props.id))
           )

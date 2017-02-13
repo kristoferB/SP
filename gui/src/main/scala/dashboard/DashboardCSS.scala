@@ -4,7 +4,7 @@ import scalacss.Defaults._
 
 object DashboardCSS extends StyleSheet.Inline {
   import dsl._
- 
+
   val widgetBgColor = "#ededed"
   val widgetHeadingBg = "#999999"
   val widgetHeadingIconColor = "#ffffff"
@@ -48,7 +48,7 @@ object DashboardCSS extends StyleSheet.Inline {
   val closeButton = style("close-button")(
     float.right,
     fontSize(30.px),
-    paddingRight(7.px)
+    padding(0.px, 7.px, 0.px, 0.px)
   )
 
   this.addToDocument()
