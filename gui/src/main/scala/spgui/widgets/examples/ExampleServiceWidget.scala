@@ -47,15 +47,15 @@ object ExampleServiceWidget {
           case API_ExampleService.TickerEvent(m, id) =>
             if (id == pieID){
               val p = Pie(id, m)
-              $.modState(s => State(Some(p), s.otherPies)).runNow()
+              $.modState(s => s.copy(pie = Some(p))).runNow()
             } else
               $.modState{s =>
                 val updIds = if (s.otherPies.contains(id)) s.otherPies else id :: s.otherPies
-                State(s.pie, updIds)}.runNow()
+                s.copy(otherPies = updIds)}.runNow()
           case API_ExampleService.TheTickers(ids) =>
             $.modState{s =>
               val p = if (!ids.contains(pieID)) None else s.pie
-              State(p, ids)}.runNow()
+              s.copy(pie = p)}.runNow()
           case x =>
             println(s"THIS WAS NOT EXPECTED IN EXAMPLEWIDGET: $x")
           }
@@ -104,13 +104,13 @@ object ExampleServiceWidget {
   }
 
 
-  private val component = ReactComponentB[Unit]("ExampleServiceWidget")
+  private def component(spwb: SPWidgetBase) = ReactComponentB[Unit]("ExampleServiceWidget")
     .initialState(State(None, List()))
     .renderBackend[Backend]
       .componentWillUnmount(_.backend.onUnmount())
     .build
 
-  def apply() = spgui.SPWidget(spwb => component())
+  def apply() = spgui.SPWidget(spwb => component(spwb)())
 }
 
 
