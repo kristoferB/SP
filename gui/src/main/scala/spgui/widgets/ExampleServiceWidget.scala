@@ -3,8 +3,6 @@ package spgui.widgets
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
-import scala.concurrent.{Future, Promise}
-import scala.concurrent.Promise
 import scala.util.{Failure, Success, Try}
 import spgui.SPWidget
 import java.util.UUID
@@ -20,140 +18,93 @@ object API_ExampleService {
   case class StopTheTicker(id: java.util.UUID) extends API_ExampleService
   case class SetTheTicker(id: java.util.UUID, map: Map[String, Int]) extends API_ExampleService
   case object GetTheTickers extends API_ExampleService
+  case class ResetAllTickers() extends API_ExampleService
   case class TickerEvent(map: Map[String, Int], id: java.util.UUID) extends API_ExampleService
   case class TheTickers(ids: List[java.util.UUID]) extends API_ExampleService
 
   val service = "exampleService"
+
+  import communication.APIParser._
+  implicit val readWriter: ReadWriter[API_ExampleService] =
+    macroRW[StartTheTicker] merge macroRW[StopTheTicker] merge macroRW[SetTheTicker] merge
+      macroRW[TickerEvent] merge macroRW[TheTickers] merge macroRW[ResetAllTickers]
 }
 
 
 
 
-
-import rx._
-
 object ExampleServiceWidget {
 
   case class Pie(id: UUID, map: Map[String, Int])
-  case class State(pies: Map[UUID, Pie])
+  case class State(pie: Option[Pie], otherPies: List[UUID])
 
-  val pieID = UUID.randomUUID()
 
   private class Backend($: BackendScope[Unit, State]) {
     import communication._
+    val pieID = UUID.randomUUID()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
         val testing = Try {APIParser.readJs[API_ExampleService](mess.body)}.map{
           case API_ExampleService.TickerEvent(m, id) =>
             if (id == pieID){
-              val newState = $.
-            }
-            changeState(p).runNow()
-            case API_ExampleService.Hi(p) => changeState(p).runNow()
-            case x =>
-            println("Va?")
-            println(x)
+              val p = Pie(id, m)
+              $.modState(s => State(Some(p), s.otherPies)).runNow()
+            } else
+              $.modState{s =>
+                val updIds = if (s.otherPies.contains(id)) s.otherPies else id :: s.otherPies
+                State(s.pie, updIds)}.runNow()
+          case API_ExampleService.TheTickers(ids) =>
+            $.modState{s =>
+              val p = if (!ids.contains(pieID)) None else s.pie
+              State(p, ids)}.runNow()
           }
-
-        val sp = Try {APIParser.readJs[APISP](mess.body)}.map{
-            case APISP.SPACK(p) => println("SPACK")
-            case APISP.SPOK(p) => println("SPOK")
-            case APISP.SPDone(p) => println("SPDone")
-            case APISP.SPError(m, attr) => println("SPError:"+m)
-            case x =>
-              println("Va APISP?")
-              println(x)
-          }
-
-
-
-      }
-
-
+      },
+      "answers"   // the topic you want to listen to. Soon we will also add some kind of backend filter,  but for now you get all answers
     )
 
-
-    def changeState(str: String): Callback = $.setState(State(str))
-
-    def render(s: State) =
+    def render(s: State) = {
       <.div(
-        <.input(
-          ^.value := s.str,
-          ^.onChange ==> updateMe
-        ),
-        <.div(s.str),
+        <.h1(s"The Pie ID:"),
+        s.pie.toList.map { p => <.div(p.id.toString) },
+        s.pie.toList.flatMap { p => p.map.map { case (key, v) => <.div(key + "--" + v.toString) }},
         <.br(),
+        <.h1("Other pies"),
+        s.otherPies.map { id => <.div(id.toString) },
+        <.br(),
+
         <.button(
           ^.className := "btn btn-default",
-          ^.onClick --> Callback.future(send), "SEND"
+          ^.onClick --> send(API_ExampleService.StartTheTicker(pieID)), "new Pie"
+        ),
+
+        <.button(
+          ^.className := "btn btn-default",
+          ^.onClick --> send(API_ExampleService.ResetAllTickers()), "Reset all Pies"
         )
       )
-
+    }
     def onUnmount() = {
       println("Unmounting")
       messObs.kill()
+      send(API_ExampleService.StopTheTicker(pieID))
       Callback.empty
     }
 
-    def updateMe(e: ReactEventI): Callback = {
-      changeState(e.target.value)
+
+    def send(mess: API_ExampleService): Callback = {
+      val h = SPHeader("ExampleServiceWidget", API_ExampleService.service, "ExampleServiceWidget", java.util.UUID.randomUUID())
+      val json = UPickleMessage(APIParser.writeJs(h), APIParser.writeJs(mess))
+      BackendCommunication.publishMessage("services", json)
+      Callback.empty
     }
 
-    def send(): Future[Callback] = {
-      HoHo
-    }
-
-//    //implicit val ctx: Ctx.Owner = Ctx.Owner.safe()
-//    val a = Var("Init")
-//    val b = a.trigger(changeState(a.now).runNow())
-//    val c = a.foreach(x => println(x))
-
-
-    def HoHo = {
-      import fr.hmil.roshttp.body._
-
-      val h = SPHeader("widgetCommTest", APITesting.service, "widgetCommTest", java.util.UUID.randomUUID())
-      val b = APITesting.ServiceCall("Hej från mig")
-      println("hej")
-
-      val mess = UPickleMessage(APIParser.writeJs(h), APIParser.writeJs(b))
-
-
-
-      //Comm.initWS
-
-
-      BackendCommunication.publishMessage("services", mess)
-
-
-
-      val b2 = APITesting.RequestCall("hoj från mig")
-      val mess2 = UPickleMessage(APIParser.writeJs(h), APIParser.writeJs(b2))
-
-      val f = BackendCommunication.ask(mess2, "requests")
-      f.map { v =>
-        println("Vi fick via reguest:")
-        println(v)
-      }
-
-      f.onFailure{case x => println(x)}
-
-      val p = Promise[Callback]()
-      //Comm.getWebSocketNotifications(str => p.success(Callback.alert(str)))
-      p.future
-
-
-
-
-
-    }
 
   }
 
 
   private val component = ReactComponentB[Unit]("ExampleServiceWidget")
-    .initialState(State("HEJ"))
+    .initialState(State(None, List()))
     .renderBackend[Backend]
       .componentWillUnmount(_.backend.onUnmount())
     .build

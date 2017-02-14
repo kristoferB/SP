@@ -12,8 +12,11 @@ object Launch extends App {
   val opcruntime = system.actorOf(OpcUARuntime.props, "OpcUARuntime")
   system.actorOf(OPC.props(opcruntime), "OPC")
 
+  val cluster = akka.cluster.Cluster(system)
+  
   scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
     case x =>
+      cluster.leave(cluster.selfAddress)
       system.terminate()
       // wait for actors to die
       Await.ready(system.whenTerminated, Duration(10, SECONDS))

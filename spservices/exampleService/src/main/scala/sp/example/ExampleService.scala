@@ -36,6 +36,7 @@ object API_ExampleService {
     */
   case class SetTheTicker(id: java.util.UUID, map: Map[String, Int]) extends API_ExampleService
   case object GetTheTickers extends API_ExampleService
+  case class ResetAllTickers() extends API_ExampleService
 
   // included here for simplicity
   case object StartThePLC extends API_ExampleService
@@ -92,7 +93,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
 
           // forward the API to another method if it is my API
           // It returns the json AST (upickle) that will be used in SPMessage
-          val res = getMyMessage(mess).map(commands)
+          val res = getMyMessage(mess).map(commands).getOrElse(List())
 
           // If the message is a status request. This method extract it and creates a response
           val statusResp = answerToStatusRequest(mess)
@@ -176,20 +177,27 @@ trait ExampleServiceLogic {
   // Initially, it is empty
   var thePies: Map[java.util.UUID, Map[String, Int]] = Map()
 
+  // Matching and doing the stuff based on the message
+  // This method returns multiple messages that will be sent out on the bus
+  // Services should start and end with an SPACK and SPDONE if there is a
+  // a clear start and end of the message stream (so listeners can unregister)
   def commands(body: API_ExampleService) = {
     body match {
       case API_ExampleService.StartTheTicker(id) =>
         thePies += id -> Map("first"->10, "second"-> 30, "third" -> 60)
-        APIParser.writeJs(APISP.SPACK())
+        List(APIParser.writeJs(APISP.SPACK()), APIParser.writeJs(getTheTickers))
       case API_ExampleService.StopTheTicker(id) =>
         thePies -= id
-        APIParser.writeJs(APISP.SPDone())
+        List(APIParser.writeJs(APISP.SPDone()), APIParser.writeJs(getTheTickers))
       case API_ExampleService.SetTheTicker(id, map) =>
         thePies += id -> map
-        APIParser.writeJs(APISP.SPACK())
+        List(APIParser.writeJs(APISP.SPACK()), APIParser.writeJs(getTheTickers))
       case API_ExampleService.GetTheTickers =>
-        APIParser.writeJs(API_ExampleService.TheTickers(thePies.keys.toList))
-      case x => APIParser.writeJs(APISP.SPError(s"ExampleService can not understand: $x"))
+        List(APIParser.writeJs(getTheTickers))
+      case API_ExampleService.ResetAllTickers() =>
+        thePies = Map()
+        List(APIParser.writeJs(getTheTickers))
+      case x => List(APIParser.writeJs(APISP.SPError(s"ExampleService can not understand: $x")))
     }
 
 
@@ -201,6 +209,8 @@ trait ExampleServiceLogic {
       API_ExampleService.TickerEvent(p, id)
     }.toList
   }
+
+  def getTheTickers = API_ExampleService.TheTickers(thePies.keys.toList)
 
 
   // Just some logic to make the pies change

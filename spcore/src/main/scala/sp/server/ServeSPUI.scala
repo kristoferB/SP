@@ -19,7 +19,12 @@ object ServeSPUI extends App{
   println("Starting SP Core node")
   StdIn.readLine()
 
+  val cluster = akka.cluster.Cluster(sys)
+
   f.flatMap(_.unbind()) // trigger unbinding from the port
-    .onComplete(_ => sys.terminate()) // and shutdown when done
+    .onComplete{_ =>
+      cluster.leave(cluster.selfAddress)
+      sys.terminate()
+     } // and shutdown when done
 
 }

@@ -19,7 +19,8 @@ object WidgetList {
       ("PlcHldrC", PlaceholderComp()),
       ("SPWBTest", SPWidgetBaseTest()),
       ("Widget with data", widgets.examples.WidgetWithData()),
-      ("CommTest", widgets.WidgetCommTest())
+      ("CommTest", widgets.WidgetCommTest()),
+      ("ExampleServiceWidget", spgui.widgets.ExampleServiceWidget())
     )
 }
 
