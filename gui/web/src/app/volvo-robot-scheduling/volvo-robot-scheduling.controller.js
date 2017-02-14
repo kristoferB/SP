@@ -125,6 +125,7 @@
             vm.state = 'calculating';
             var selected = _.map(vm.selectedSchedules, function(x) {return x.id;});
             var mess = {
+                'command' : 'calculate',
                 'core': {
                     'model': modelService.activeModel.id,
                     'responseToModel': true
@@ -144,6 +145,24 @@
         }
 
         function solveWithCP(){
+         if(vm.selectedSchedules.length == 0) {
+                        console.log('Must select a least one schedule');
+                        return;
+                    }
+                    vm.state = 'calculating CP';
+         var selected = _.map(vm.selectedSchedules, function(x) {return x.id;});
+                     var mess = {
+                         'core': {
+                             'model': modelService.activeModel.id,
+                             'responseToModel': true
+                         },
+                         'setup': {
+                             'selectedSchedules':selected
+                         }
+                     };
+                     spServicesService.callService('VolvoRobotSchedule',{'data':mess},function(x){},function(x){}).then(function(repl){
+                         waitID = repl.reqID;
+                     });
         }
 
 

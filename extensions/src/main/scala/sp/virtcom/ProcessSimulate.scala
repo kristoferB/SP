@@ -91,7 +91,7 @@ class ProcessSimulate(modelHandler: ActorRef, eventHandler: ActorRef) extends Ac
       replyTo ! Response(List(), connectedAttribute merge SPAttributes("silent"->true), service, serviceID)
     }
     case ConnectionEstablished(request, c) => {
-      println("connected:"+request)
+      //println("connected:"+request)
       setup.foreach{ s=>
         c ! ConsumeFromTopic(s.topic)
         bus = Some(c)
@@ -99,7 +99,7 @@ class ProcessSimulate(modelHandler: ActorRef, eventHandler: ActorRef) extends Ac
       }
     }
     case ConnectionFailed(request, reason) => {
-      println("failed:"+reason)
+      //println("failed:"+reason)
     }
 
     case _ => sender ! SPError("Ill formed request");
@@ -109,7 +109,7 @@ class ProcessSimulate(modelHandler: ActorRef, eventHandler: ActorRef) extends Ac
     if(bus.isEmpty) {
       setup = Some(s)
       serviceName = Some(rnr.req.service)
-      println(s"ProcessSimulate: connecting to bus: $setup")
+      //println(s"ProcessSimulate: connecting to bus: $setup")
       ReActiveMQExtension(context.system).manager ! GetConnection(s"nio://${s.ip}:61616")
     }
   }
@@ -124,7 +124,7 @@ class ProcessSimulate(modelHandler: ActorRef, eventHandler: ActorRef) extends Ac
   }
 
   def disconnect = {
-    println("ProcessSimulate: disconnecting from the bus.")
+    //println("ProcessSimulate: disconnecting from the bus.")
     bus.foreach(_ ! CloseConnection)
     setup = None
     bus = None
@@ -231,13 +231,13 @@ class ProcessSimulate(modelHandler: ActorRef, eventHandler: ActorRef) extends Ac
           val updatedAttr3 = (updatedAttr2 transformField { case ("ending_signal", _) => ("ending_signal", SPValue(esValue)) }).to[SPAttributes].getOrElse(updatedAttr2)
           val updatedAttr4 = (updatedAttr3 transformField { case ("duration", _) => ("duration", SPValue(durValue)) }).to[SPAttributes].getOrElse(updatedAttr3)
           if(spOp.attributes.toString != updatedAttr4.toString) {
-            println(spOp.name)
-            println(updatedAttr4)
+            //println(spOp.name)
+            //println(updatedAttr4)
           }
           spOp.copy(attributes = updatedAttr4)
         }
       }
-      println(s"Updated attributes for ${updatedSPOps.size} operations. ${updatedSPOps.map(_.name).mkString(", ")}")
+      //println(s"Updated attributes for ${updatedSPOps.size} operations. ${updatedSPOps.map(_.name).mkString(", ")}")
       updatedSPOps.toList
     })
   }
@@ -270,7 +270,7 @@ class ProcessSimulate(modelHandler: ActorRef, eventHandler: ActorRef) extends Ac
     // finds error by exception, since then the future fails
     f.map { case AMQMessage(body, props, headers) =>
       val psres = SPAttributes.fromJson(body.toString).get
-      // println(psres.pretty)
+      // //println(psres.pretty)
       val responseType = psres.getAs[String]("response_type")
 
       responseType match {
