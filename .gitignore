@@ -16,6 +16,9 @@ project/project
 *.log
 .ensime*
 .ensime_cache/
+*.zip
+*~
+\#*\#
 
 # Intellij
 .idea/
@@ -29,6 +32,8 @@ project/project
 # journal
 journal/
 snapshots/
+servicesJournal/
 
 # output from tests
 testFiles/gitIgnore/
+

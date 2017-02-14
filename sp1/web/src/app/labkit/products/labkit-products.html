@@ -1,0 +1,45 @@
+<div ng-controller="labkitProductsController as vm" class="simple-widget">
+    <div class="panel-content" style="padding: 10px;">
+        <button type="button" class="btn btn-sm" ng-click="vm.reset()">
+            <i class="fa fa-bolt"></i>
+        </button>
+
+        <div gantt api="vm.registerApi" data="vm.gantt" headers="['minute']" headers-formats="{ minute: 'HH:mm' }" view-scale="'4 second'" column-width="45"
+             from-date="vm.showFromDate" to-date="vm.showToDate" current-date="'line'" current-date-value="vm.currentDate">
+            <gantt-tree enabled="true"></gantt-tree>
+            <gantt-tooltips enabled="true" date-format="'HH:mm:ss'" delay="100"></gantt-tooltips>
+        </div>
+
+        <br><br><br>
+
+        <div ng-repeat="n in vm.pieNames track by $index" style="float: left; width: 435px;">
+            <center>
+                <h2>{{n}}</h2>
+                <nvd3 options="vm.pieOptions" data="vm.pieData[$index]">
+            </center>
+            </nvd3>
+        </div>
+
+        <div class="col-md-3">
+        <table class="table table-striped">
+            <thead><tr><th >Name</th><th >Lead time</th><th >active time</th><th >waiting time</th><th >no of Ops</th><th >no of Pos</th></tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="p in vm.prods" ng-class-odd="'odd-row'" ng-class-even="'even-row'">
+            <td>{{p.name}}</td>
+            <td>{{p.leadtime}}</td>
+            <td>{{p.processingTime}}</td>
+            <td>{{p.waitingTime}}</td>
+            <td>{{p.noOfOperations}}</td>
+            <td>{{p.noOfPositions}}</td>
+            </tr>
+
+            </tbody>
+        </table>
+        </div>
+
+        <br style="clear: left;" />
+
+    </div>
+
+</div>

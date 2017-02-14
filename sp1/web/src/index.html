@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html ng-app="app" ng-controller="ShellController as vm">
+<head>
+    <style>
+        /* This helps the ng-show/ng-hide animations start at the right place. */
+        /* Since Angular has this but needs to load, this gives us the class early. */
+        .ng-hide { display: none!important; }
+    </style>
+    <title ng-bind="title">Sequence Planner</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <base href="/">
+
+    <!-- build:css styles/lib.css -->
+    <!-- bower:css -->
+    <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="../bower_components/angular-dialog-service/dist/dialogs.min.css" />
+    <link rel="stylesheet" href="../bower_components/angular-gridster/dist/angular-gridster.min.css" />
+    <link rel="stylesheet" href="../bower_components/nvd3/build/nv.d3.css" />
+    <link rel="stylesheet" href="../bower_components/angular-ui-tree/dist/angular-ui-tree.css" />
+    <link rel="stylesheet" href="../bower_components/angular-xeditable/dist/css/xeditable.css" />
+    <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.css" />
+    <link rel="stylesheet" href="../bower_components/font-source-sans-pro/source-sans-pro.css" />
+    <link rel="stylesheet" href="../bower_components/jsoneditor/dist/jsoneditor.min.css" />
+    <link rel="stylesheet" href="../bower_components/jstree/dist/themes/default/style.css" />
+    <link rel="stylesheet" href="../bower_components/toastr/toastr.css" />
+    <link rel="stylesheet" href="../bower_components/angular-gantt/assets/angular-gantt.css" />
+    <link rel="stylesheet" href="../bower_components/angular-gantt/assets/angular-gantt-plugins.css" />
+    <!-- endbower -->
+    <!-- endbuild -->
+
+    <link rel="stylesheet" ng-href="/.tmp/{{vm.settingsService.storage.theme || 'default'}}_theme.css" />
+
+    <!-- build:css styles/app.css -->
+    <!-- inject:css -->
+
+    <!-- endinject -->
+    <!-- endbuild -->
+</head>
+<body>
+    <div ng-include="'app/layout/shell.html'"></div>
+
+    <!-- build:js js/lib.js -->
+    <!-- bower:js -->
+    <script src="../bower_components/jquery/dist/jquery.js"></script>
+    <script src="../bower_components/angular/angular.js"></script>
+    <script src="../bower_components/angular-animate/angular-animate.js"></script>
+    <script src="../bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+    <script src="../bower_components/angular-sanitize/angular-sanitize.js"></script>
+    <script src="../bower_components/angular-bootstrap-confirm/dist/angular-bootstrap-confirm.js"></script>
+    <script src="../bower_components/angular-translate/angular-translate.js"></script>
+    <script src="../bower_components/angular-dialog-service/dist/dialogs.min.js"></script>
+    <script src="../bower_components/angular-dialog-service/dist/dialogs.js"></script>
+    <script src="../bower_components/angular-dialog-service/dist/dialogs-default-translations.min.js"></script>
+    <script src="../bower_components/angular-dialog-service/dist/dialogs-default-translations.js"></script>
+    <script src="../bower_components/angular-filter/dist/angular-filter.min.js"></script>
+    <script src="../bower_components/javascript-detect-element-resize/detect-element-resize.js"></script>
+    <script src="../bower_components/angular-gridster/src/angular-gridster.js"></script>
+    <script src="../bower_components/d3/d3.js"></script>
+    <script src="../bower_components/nvd3/build/nv.d3.js"></script>
+    <script src="../bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
+    <script src="../bower_components/angular-smart-table/dist/smart-table.js"></script>
+    <script src="../bower_components/angular-ui-router/release/angular-ui-router.js"></script>
+    <script src="../bower_components/angular-ui-tree/dist/angular-ui-tree.js"></script>
+    <script src="../bower_components/angular-uuid4/angular-uuid4.js"></script>
+    <script src="../bower_components/angular-xeditable/dist/js/xeditable.js"></script>
+    <script src="../bower_components/jsoneditor/dist/jsoneditor.min.js"></script>
+    <script src="../bower_components/lodash/lodash.js"></script>
+    <script src="../bower_components/moment/moment.js"></script>
+    <script src="../bower_components/jstree/dist/jstree.js"></script>
+    <script src="../bower_components/ng-js-tree/dist/ngJsTree.js"></script>
+    <script src="../bower_components/ngstorage/ngStorage.js"></script>
+    <script src="../bower_components/raphael/raphael.js"></script>
+    <script src="../bower_components/toastr/toastr.js"></script>
+    <script src="../bower_components/bootstrap-contextmenu/bootstrap-contextmenu.js"></script>
+    <script src="../bower_components/angular-moment/angular-moment.js"></script>
+    <script src="../bower_components/angular-gantt/assets/angular-gantt.js"></script>
+    <script src="../bower_components/angular-gantt/assets/angular-gantt-plugins.js"></script>
+    <script src="../bower_components/to-color-filter/dist/to-color-filter.min.js"></script>
+    <!-- endbower -->
+    <!-- endbuild -->
+
+    <!-- build:js js/app.js -->
+    <!-- inject:js -->
+
+    <script src="/src/app/app.module.js"></script>
+
+    <script src="/src/app/active-order/active-order.module.js"></script>
+
+    <script src="/src/app/blocks/exception/exception.module.js"></script>
+
+    <script src="/src/app/blocks/logger/logger.module.js"></script>
+
+    <script src="/src/app/blocks/router/router.module.js"></script>
+
+    <script src="/src/app/calculator/calculator.module.js"></script>
+
+    <script src="/src/app/condition-editor/condition-editor.module.js"></script>
+
+    <script src="/src/app/core/core.module.js"></script>
+
+    <script src="/src/app/dashboard/dashboard.module.js"></script>
+
+    <script src="/src/app/example-widget/example-widget.module.js"></script>
+
+    <script src="/src/app/gantt-viewer/gantt-viewer.module.js"></script>
+
+    <script src="/src/app/item-editor/item-editor.module.js"></script>
+
+    <script src="/src/app/item-explorer/item-explorer.module.js"></script>
+
+    <script src="/src/app/kubInputGUI/kubInputGUI.module.js"></script>
+
+    <script src="/src/app/labkit/products/labkit-products.module.js"></script>
+
+    <script src="/src/app/labkit/resources/labkit-resources.module.js"></script>
+
+    <script src="/src/app/layout/layout.module.js"></script>
+
+    <script src="/src/app/model-settings/model-settings.module.js"></script>
+
+    <script src="/src/app/models/models.module.js"></script>
+
+    <script src="/src/app/opc-runner/opc-runner.module.js"></script>
+
+    <script src="/src/app/opcua-client/opcua-client.module.js"></script>
+
+    <script src="/src/app/operation-control/operation-control.module.js"></script>
+
+    <script src="/src/app/operatorInstGUI/operatorInstGUI.module.js"></script>
+
+    <script src="/src/app/process-simulate/process-simulate.module.js"></script>
+
+    <script src="/src/app/robot-cycle-analysis/robot-cycle-analysis.module.js"></script>
+
+    <script src="/src/app/settings/settings.module.js"></script>
+
+    <script src="/src/app/sop-maker/sop-maker.module.js"></script>
+
+    <script src="/src/app/spServices/spServices.module.js"></script>
+
+    <script src="/src/app/tables/tables.module.js"></script>
+
+    <script src="/src/app/Tobbe2/Tobbe2.module.js"></script>
+
+    <script src="/src/app/trajectories/trajectories.module.js"></script>
+
+    <script src="/src/app/volvo-robot-scheduling/volvo-robot-scheduling.module.js"></script>
+
+    <script src="/src/app/widgets/widgets.module.js"></script>
+
+    <script src="/src/app/active-order/active-order.controller.js"></script>
+
+    <script src="/src/app/blocks/exception/exception-handler.provider.js"></script>
+
+    <script src="/src/app/blocks/exception/exception.service.js"></script>
+
+    <script src="/src/app/blocks/logger/logger.service.js"></script>
+
+    <script src="/src/app/blocks/router/router-helper.provider.js"></script>
+
+    <script src="/src/app/calculator/calculator.controller.js"></script>
+
+    <script src="/src/app/condition-editor/condition-editor.controller.js"></script>
+
+    <script src="/src/app/core/auto-focus.directive.js"></script>
+
+    <script src="/src/app/core/config.js"></script>
+
+    <script src="/src/app/core/constants.js"></script>
+
+    <script src="/src/app/core/core.route.js"></script>
+
+    <script src="/src/app/core/event-service.js"></script>
+
+    <script src="/src/app/core/include-replace.directive.js"></script>
+
+    <script src="/src/app/core/inline-editing-service.js"></script>
+
+    <script src="/src/app/core/item-service.js"></script>
+
+    <script src="/src/app/core/rest-service.js"></script>
+
+    <script src="/src/app/dashboard/dashboard-service.js"></script>
+
+    <script src="/src/app/dashboard/dashboard.controller.js"></script>
+
+    <script src="/src/app/dashboard/dashboard.route.js"></script>
+
+    <script src="/src/app/example-widget/example-widget.controller.js"></script>
+
+    <script src="/src/app/gantt-viewer/gantt-viewer.controller.js"></script>
+
+    <script src="/src/app/item-editor/item-editor-directive.js"></script>
+
+    <script src="/src/app/item-editor/item-editor.controller.js"></script>
+
+    <script src="/src/app/item-explorer/create-item.controller.js"></script>
+
+    <script src="/src/app/item-explorer/item-explorer.controller.js"></script>
+
+    <script src="/src/app/kubInputGUI/kubInputGUI.controller.js"></script>
+
+    <script src="/src/app/labkit/products/labkit-products.controller.js"></script>
+
+    <script src="/src/app/labkit/resources/labkit-resources.controller.js"></script>
+
+    <script src="/src/app/layout/shell.controller.js"></script>
+
+    <script src="/src/app/layout/sp-top-nav.directive.js"></script>
+
+    <script src="/src/app/model-settings/model-settings.controller.js"></script>
+
+    <script src="/src/app/model-settings/model-settings.route.js"></script>
+
+    <script src="/src/app/models/createmodel.controller.js"></script>
+
+    <script src="/src/app/models/model-service.js"></script>
+
+    <script src="/src/app/models/models.controller.js"></script>
+
+    <script src="/src/app/models/models.route.js"></script>
+
+    <script src="/src/app/opc-runner/opc-runner.controller.js"></script>
+
+    <script src="/src/app/opc-runner/opc-runner.service.js"></script>
+
+    <script src="/src/app/opcua-client/opcua-client.controller.js"></script>
+
+    <script src="/src/app/opcua-client/opcua-client.service.js"></script>
+
+    <script src="/src/app/operation-control/operation-control.controller.js"></script>
+
+    <script src="/src/app/operation-control/operation-control.service.js"></script>
+
+    <script src="/src/app/operatorInstGUI/operatorInstGUI.js"></script>
+
+    <script src="/src/app/operatorInstGUI/operatorInstGUI.service.js"></script>
+
+    <script src="/src/app/process-simulate/process-simulate.controller.js"></script>
+
+    <script src="/src/app/process-simulate/process-simulate.service.js"></script>
+
+    <script src="/src/app/robot-cycle-analysis/robot-cycle-analysis.controller.js"></script>
+
+    <script src="/src/app/robot-cycle-analysis/robot-cycle-analysis.service.js"></script>
+
+    <script src="/src/app/robot-cycle-analysis/search-cycle.controller.js"></script>
+
+    <script src="/src/app/robot-cycle-analysis/select-work-cell.controller.js"></script>
+
+    <script src="/src/app/robot-cycle-analysis/set-live-chart-width.controller.js"></script>
+
+    <script src="/src/app/robot-cycle-analysis/setup-bus.controller.js"></script>
+
+    <script src="/src/app/settings/settings-service.js"></script>
+
+    <script src="/src/app/settings/settings.controller.js"></script>
+
+    <script src="/src/app/settings/settings.route.js"></script>
+
+    <script src="/src/app/sop-maker/save-as.controller.js"></script>
+
+    <script src="/src/app/sop-maker/sop-calcer.js"></script>
+
+    <script src="/src/app/sop-maker/sop-drawer.js"></script>
+
+    <script src="/src/app/sop-maker/sop-maker.controller.js"></script>
+
+    <script src="/src/app/spServices/spServices.controller.js"></script>
+
+    <script src="/src/app/spServices/spServices.directive.js"></script>
+
+    <script src="/src/app/spServices/spServices.service.js"></script>
+
+    <script src="/src/app/tables/sp-page-select.directive.js"></script>
+
+    <script src="/src/app/tables/sp-table-info.directive.js"></script>
+
+    <script src="/src/app/tables/sp-table.directive.js"></script>
+
+    <script src="/src/app/Tobbe2/datablock.controller.js"></script>
+
+    <script src="/src/app/Tobbe2/Tobbe2.controller.js"></script>
+
+    <script src="/src/app/trajectories/trajectories.controller.js"></script>
+
+    <script src="/src/app/trajectories/trajectories.directive.js"></script>
+
+    <script src="/src/app/volvo-robot-scheduling/volvo-robot-scheduling.controller.js"></script>
+
+    <script src="/src/app/widgets/sp-widget.directive.js"></script>
+
+    <!-- endinject -->
+
+    <!-- inject:templates:js -->
+    <!-- endinject -->
+    <!-- endbuild -->
+</body>
+</html>
