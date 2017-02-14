@@ -84,6 +84,10 @@ lazy val exampleService = (project in file("spservices/exampleService"))
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
+lazy val spseed = (project in file("spservices/spseed"))
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= akka)
+
 
 // lazy val models = project.dependsOn(domain, extensions).
 //   settings(commonSettings: _*).

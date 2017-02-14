@@ -20,10 +20,10 @@ object ServeSPUI extends App{
   StdIn.readLine()
 
   val cluster = akka.cluster.Cluster(sys)
+  cluster.leave(cluster.selfAddress)
 
   f.flatMap(_.unbind()) // trigger unbinding from the port
     .onComplete{_ =>
-      cluster.leave(cluster.selfAddress)
       sys.terminate()
      } // and shutdown when done
 
