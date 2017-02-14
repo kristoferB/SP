@@ -1,3 +1,4 @@
+// Import stuff and setup the RobotScheduleSetup class
 package sp.virtcom
 
 import akka.actor._
@@ -140,43 +141,24 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
 
   def receive = {
     case r@Request(service, attr, ids, reqID) => {
+
+      // Init request and reply and progress update
       val replyTo = sender()
       implicit val rnr = RequestNReply(r, replyTo)
       val progress = context.actorOf(progressHandler)
       progress ! SPAttributes("progress" -> "starting volvo robot schedule")
 
+      // Get the setup and command information from message
+
       val setup = transform(VolvoRobotSchedule.transformTuple._1)
       val command = transform(VolvoRobotSchedule.transformTuple._2)
-      val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
+
 
       val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
       val schedules = ops.filter(op => setup.selectedSchedules.contains(op.id))
       // todo: find the correct hierarchy root
       val hierarchyRoot = ids.filter(_.isInstanceOf[HierarchyRoot]).map(_.asInstanceOf[HierarchyRoot]).head
 
-      def findParent(id: ID, node: HierarchyNode): Option[HierarchyNode] = {
-        if(node.children.exists(_.item == id)) Some(node)
-        else {
-          val res = node.children.map(findParent(id,_)).flatMap(x=>x)
-          if(res.isEmpty) None
-          else Some(res.head)
-        }
-      }
-
-      def opsAtLevel(node: HierarchyNode): List[Operation] = {
-        ops.filter(o=>node.children.exists(c=>c.item == o.id))
-      }
-
-      def cleanName(str: String): String = {
-        val s = if(!str.startsWith("''  -  '")) str else {
-          val ns = str.substring(8,str.length)
-          val p = ns.indexOf("'")
-          if(p == -1) ns else ns.substring(0,p)
-        }
-
-        val pos = s.indexOf(";")
-        if(pos < 0) s else s.substring(0,pos)
-      }
 
       val robotOpIdMap = schedules.map(s=>s->hierarchyRoot.children.map(findParent(s.id,_)).flatMap(x=>x).head.item).toMap
       val robotOpMap = robotOpIdMap.flatMap{case (k,v)=>
@@ -186,34 +168,8 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
           case Some(idable) => Some(k->idable)
         }}.toMap
 
-      def splitIntoOpsAndZones(zoneMap: Map[Operation, Set[String]],
-        opList: List[Operation], activeZones: Set[String], cmds : List[String],
-        availableOps: List[Operation], robotSchedule: String): (Map[Operation, Set[String]],List[Operation]) = {
-        cmds match {
-          case Nil => (zoneMap, opList)
-          case x::xs if x.startsWith("WaitSignal AllocateZone") =>
-            val zoneIndex = x.indexOf("Zone")
-            val zoneStr = cleanName(x.substring(zoneIndex))
-            splitIntoOpsAndZones(zoneMap, opList, activeZones + zoneStr, xs, availableOps, robotSchedule)
-          case x::xs if x.startsWith("WaitSignal ReleaseZone") =>
-            val zoneIndex = x.indexOf("Zone")
-            val zoneStr = cleanName(x.substring(zoneIndex))
-            splitIntoOpsAndZones(zoneMap, opList, activeZones - zoneStr, xs, availableOps, robotSchedule)
-          case x::xs if x.startsWith("!") => splitIntoOpsAndZones(zoneMap, opList, activeZones, xs, availableOps, robotSchedule)
-          case x::xs =>
-            val cleanOpName = cleanName(x)
-            availableOps.find(o=>o.name == cleanOpName) match {
-              case Some(o) =>
-                // operation o needs the active zones
-                val newOp = o.copy(name = robotSchedule+"_"+o.name, attributes = o.attributes merge
-                  SPAttributes("robotSchedule"->robotSchedule,"original" -> o.id))
-                splitIntoOpsAndZones(zoneMap + (newOp -> activeZones), opList :+ newOp, activeZones, xs, availableOps, robotSchedule)
-              case None =>
-                println("skipping command " + cleanOpName + " - no matching operation")
-                splitIntoOpsAndZones(zoneMap, opList, activeZones, xs, availableOps, robotSchedule)
-            }
-        }
-      }
+
+
 
       // create variables, ops and zones
       // use some sweet hidden mutability, scala style
@@ -221,13 +177,13 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
       case class VolvoRobotScheduleCollector(val modelName: String = "VolvoRobotSchedule") extends CollectorModel
       val collector = VolvoRobotScheduleCollector()
 
-      def robotScheduleVariable(rs: String) = "v"+rs+"_pos"
+
       val idle = "idle"
 
       val zoneMapsAndOps = schedules.zipWithIndex.map { case (op,i) =>
         // find the right level among the hierarchy nodes
         val p = hierarchyRoot.children.map(findParent(op.id,_)).flatMap(x=>x).head
-        val pops = opsAtLevel(p)
+        val pops = opsAtLevel(p,ops)
         println("schedule " + op.name + " contains ops " + pops.map(_.name).mkString(","))
         val robcmds = op.attributes.getAs[List[String]]("robotcommands").getOrElse(List())
         val rs = robotOpMap(op).name
@@ -298,20 +254,10 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
       // fix up oscar problem ids
       operations = uids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
 
-      def getNewID(oldID: ID) = {
-        (for {
-          newop <- operations
-          origid <- newop.attributes.getAs[ID]("original")
-          if origid == oldID
-        } yield {
-          newop.id
-        }).head
-      }
 
-
-      mutexes = mutexes.map{case (x,y) => (getNewID(x), getNewID(y)) }
-      precedences = precedences.map{case (x,y) => (getNewID(x), getNewID(y)) }
-      forceEndTimes = forceEndTimes.map{case (x,y) => (getNewID(x), getNewID(y)) }
+      mutexes = mutexes.map{case (x,y) => (getNewID(x, operations), getNewID(y, operations)) }
+      precedences = precedences.map{case (x,y) => (getNewID(x, operations), getNewID(y, operations)) }
+      forceEndTimes = forceEndTimes.map{case (x,y) => (getNewID(x, operations), getNewID(y, operations)) }
 
       val hids = uids ++ addHierarchies(uids, "hierarchy")
 
@@ -347,6 +293,77 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         terminate(progress)
       }
     }
+
+
+      //--------FUNCTIONS: ----------------------------------------------------------------------------------
+
+      def opsAtLevel(node: HierarchyNode, ops: List[Operation]): List[Operation] = {
+          ops.filter(o=>node.children.exists(c=>c.item == o.id))
+      }
+
+      def cleanName(str: String): String = {
+        val s = if(!str.startsWith("''  -  '")) str else {
+          val ns = str.substring(8,str.length)
+          val p = ns.indexOf("'")
+          if(p == -1) ns else ns.substring(0,p)
+        }
+
+        val pos = s.indexOf(";")
+        if(pos < 0) s else s.substring(0,pos)
+      }
+
+      def findParent(id: ID, node: HierarchyNode): Option[HierarchyNode] = {
+        if(node.children.exists(_.item == id)) Some(node)
+        else {
+          val res = node.children.map(findParent(id,_)).flatMap(x=>x)
+          if(res.isEmpty) None
+          else Some(res.head)
+        }
+      }
+
+
+      def splitIntoOpsAndZones(zoneMap: Map[Operation, Set[String]],
+                               opList: List[Operation], activeZones: Set[String], cmds : List[String],
+                               availableOps: List[Operation], robotSchedule: String): (Map[Operation, Set[String]],List[Operation]) = {
+        cmds match {
+          case Nil => (zoneMap, opList)
+          case x::xs if x.startsWith("WaitSignal AllocateZone") =>
+            val zoneIndex = x.indexOf("Zone")
+            val zoneStr = cleanName(x.substring(zoneIndex))
+            splitIntoOpsAndZones(zoneMap, opList, activeZones + zoneStr, xs, availableOps, robotSchedule)
+          case x::xs if x.startsWith("WaitSignal ReleaseZone") =>
+            val zoneIndex = x.indexOf("Zone")
+            val zoneStr = cleanName(x.substring(zoneIndex))
+            splitIntoOpsAndZones(zoneMap, opList, activeZones - zoneStr, xs, availableOps, robotSchedule)
+          case x::xs if x.startsWith("!") => splitIntoOpsAndZones(zoneMap, opList, activeZones, xs, availableOps, robotSchedule)
+          case x::xs =>
+            val cleanOpName = cleanName(x)
+            availableOps.find(o=>o.name == cleanOpName) match {
+              case Some(o) =>
+                // operation o needs the active zones
+                val newOp = o.copy(name = robotSchedule+"_"+o.name, attributes = o.attributes merge
+                  SPAttributes("robotSchedule"->robotSchedule,"original" -> o.id))
+                splitIntoOpsAndZones(zoneMap + (newOp -> activeZones), opList :+ newOp, activeZones, xs, availableOps, robotSchedule)
+              case None =>
+                println("skipping command " + cleanOpName + " - no matching operation")
+                splitIntoOpsAndZones(zoneMap, opList, activeZones, xs, availableOps, robotSchedule)
+            }
+        }
+      }
+
+      def robotScheduleVariable(rs: String) = "v"+rs+"_pos"
+
+      def getNewID(oldID: ID, operations: List[Operation]) = {
+        (for {
+          newop <- operations
+          origid <- newop.attributes.getAs[ID]("original")
+          if origid == oldID
+        } yield {
+          newop.id
+        }).head
+      }
+
+
     case _ => sender ! SPError("Ill formed request");
   }
 
