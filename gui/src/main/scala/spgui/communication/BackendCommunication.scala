@@ -1,4 +1,4 @@
-package communication
+package spgui.communication
 
 import java.util.UUID
 
@@ -65,21 +65,36 @@ object BackendCommunication {
   }
 
   def getMessageObserver(callBack: (UPickleMessage) => Unit, topic: String = "answers"): rx.Obs = {
-    subscribe(topic)
-    sockets(topic).receivedMessage.foreach(callBack)
+    getMessageVar(topic).foreach(callBack)
   }
-  def getWebSocketNotifications(callBack: (String) => Unit, topic: String = "answers" ): rx.Obs = {
-    subscribe(topic)
-    sockets(topic).notification.foreach(callBack)
+  def getWebSocketNotificationsCB(callBack: (String) => Unit, topic: String = "answers" ): rx.Obs = {
+    getWebSocketNotifications(topic).foreach(callBack)
   }
-  def getWebSocketErrors(callBack: (String) => Unit, topic: String = "answers" ): rx.Obs = {
-    subscribe(topic)
-    sockets(topic).errors.foreach(callBack)
+  def getWebSocketErrorsCB(callBack: (String) => Unit, topic: String = "answers" ): rx.Obs = {
+    getWebSocketErrors(topic).foreach(callBack)
   }
-  def getWebSocketStatus(topic: String = "answers") = {
+  def getWebSocketStatusCB(topic: String = "answers") = {
+    getWebSocketStatus(topic)
+  }
+
+  def getMessageVar(topic: String = "answers"): rx.Var[UPickleMessage] = {
+    subscribe(topic)
+    sockets(topic).receivedMessage
+  }
+  def getWebSocketNotifications(topic: String = "answers" ): rx.Var[String] = {
+    subscribe(topic)
+    sockets(topic).notification
+  }
+  def getWebSocketErrors(topic: String = "answers" ): rx.Var[String] = {
+    subscribe(topic)
+    sockets(topic).errors
+  }
+  def getWebSocketStatus(topic: String = "answers"): rx.Var[Boolean] = {
     subscribe(topic)
     sockets(topic).wsOpen
   }
+
+
 
 
 

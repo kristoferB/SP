@@ -1,7 +1,7 @@
 package spgui.widgets
 
 
-import communication.APIWebSocket
+import spgui.communication._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
@@ -41,7 +41,7 @@ object APITesting {
   case class Hi(from: String) extends APITesting
 
   // This is sometimes needed due to a scala compilation bug
-  import communication.APIParser._
+  import APIParser._
   implicit val readWriter: ReadWriter[APITesting] =
     macroRW[ServiceCall] merge macroRW[RequestCall] merge
   macroRW[AnAnswer] merge macroRW[Hi]
@@ -59,7 +59,6 @@ object WidgetCommTest {
   case class State(str: String)
 
   private class Backend($: BackendScope[Unit, State]) {
-    import communication._
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {

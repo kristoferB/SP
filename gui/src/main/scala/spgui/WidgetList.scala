@@ -2,6 +2,7 @@ package spgui
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
+import spgui.widgets.examples.ExampleServiceWidget
 
 
 object WidgetList {
@@ -18,7 +19,7 @@ object WidgetList {
       ("SPWBTest", SPWidgetBaseTest()),
       ("Widget with data", widgets.examples.WidgetWithData()),
       ("CommTest", widgets.WidgetCommTest()),
-      ("ExampleServiceWidget", spgui.widgets.ExampleServiceWidget())
+      ("ExampleServiceWidget", ExampleServiceWidget())
     )
 }
 

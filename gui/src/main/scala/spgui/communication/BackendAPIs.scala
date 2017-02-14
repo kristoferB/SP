@@ -1,4 +1,4 @@
-package communication
+package spgui.communication
 
 import java.util.UUID
 import upickle._

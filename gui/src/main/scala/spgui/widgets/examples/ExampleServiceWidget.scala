@@ -1,13 +1,12 @@
-package spgui.widgets
+package spgui.widgets.examples
+
+import java.util.UUID
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
+import spgui.communication._
 
-import scala.util.{Failure, Success, Try}
-import spgui.SPWidget
-import java.util.UUID
-
-import scala.reflect.ClassTag
+import scala.util.Try
 
 
 
@@ -24,7 +23,7 @@ object API_ExampleService {
 
   val service = "exampleService"
 
-  import communication.APIParser._
+  import APIParser._
   implicit val readWriter: ReadWriter[API_ExampleService] =
     macroRW[StartTheTicker] merge macroRW[StopTheTicker] merge macroRW[SetTheTicker] merge
       macroRW[TickerEvent] merge macroRW[TheTickers] merge macroRW[ResetAllTickers]
@@ -40,7 +39,6 @@ object ExampleServiceWidget {
 
 
   private class Backend($: BackendScope[Unit, State]) {
-    import communication._
     val pieID = UUID.randomUUID()
 
     val messObs = BackendCommunication.getMessageObserver(
@@ -112,7 +110,7 @@ object ExampleServiceWidget {
       .componentWillUnmount(_.backend.onUnmount())
     .build
 
-  def apply() = SPWidget(spwb => component())
+  def apply() = spgui.SPWidget(spwb => component())
 }
 
 
