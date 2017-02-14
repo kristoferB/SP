@@ -3,8 +3,6 @@ package spgui
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
-import spgui.widgets
-import spgui.SPWidget
 
 object WidgetList {
   def apply() =

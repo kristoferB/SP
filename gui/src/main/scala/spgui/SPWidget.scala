@@ -10,7 +10,6 @@ import scala.util.Try
 
 import spgui.circuit.SPGUICircuit
 import spgui.circuit.{SetWidgetData, AddWidget, CloseWidget}
-import spgui.SPGUIBus
 
 // TODO methods to publish and subscribe to bus
 // TODO get the pickling in here, turned out to be tricky, upickle doesn like generic types...
