@@ -39,7 +39,7 @@ object Grid {
         width = 1920,
         cols = 8,
         draggableHandle = "",
-        onLayoutChange = (layout:js.Object) => println(layout.toString()),
+        onLayoutChange = (layout:js.Object) => None,
         ReactGridLayoutItem(key = "c", i = "c", x = 3, y = 4, w = 5, h = 1, isDraggable = true, child = <.h3("c")),
         ReactGridLayoutItem(key = "d", i = "c", x = 0, y = 0, w = 1, h = 1, isDraggable = false, child = <.h3("C: undraggable"))
       )
