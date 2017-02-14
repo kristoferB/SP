@@ -104,13 +104,13 @@ object ExampleServiceWidget {
   }
 
 
-  private def component(spwb: SPWidgetBase) = ReactComponentB[Unit]("ExampleServiceWidget")
+  private val component = ReactComponentB[Unit]("ExampleServiceWidget")
     .initialState(State(None, List()))
     .renderBackend[Backend]
       .componentWillUnmount(_.backend.onUnmount())
     .build
 
-  def apply() = spgui.SPWidget(spwb => component(spwb)())
+  def apply() = spgui.SPWidget(spwb => component())
 }
 
 
