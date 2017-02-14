@@ -12,42 +12,24 @@ import scala.reflect.ClassTag
   * @param header Information about the message as key-value pairs
   * @param body The message encoded as json in uPickle
   */
-case class SPMessage(header: SPAttributes, body: upickle.Js.Value)
-
-
-/**
-  * A possible header to be used in SPMessage. All keys are optional and more will be included
-  * @param reqID An id for the request used when replying to the sender
-  * @param from The name of the sender
-  * @param to The name of the service to receive
-  */
-//case class SPHeader(reqID: Option[ID], from: Option[String], to: Option[String])
-
-trait SPMessages
-case class SPError(message: String, attributes: Option [SPAttributes] = None) extends SPMessages
-case class SPACK(attributes: Option [SPAttributes]= None) extends SPMessages
-case class SPOK(attributes: Option [SPAttributes]= None) extends SPMessages
-case class SPDone(attributes: Option [SPAttributes]= None) extends SPMessages
-
-case class StatusRequest(attributes: Option [SPAttributes]= None) extends SPMessages
-case class StatusResponse(attributes: Option [SPAttributes]= None) extends SPMessages
-case object StatusResponse{
-  def apply(x: SPAttributes): StatusResponse = StatusResponse(Some(x))
+case class SPMessage(header: SPAttributes, body: upickle.Js.Value) {
+  def toJson = APIParser.write(this)
 }
+object SPMessage {
+  def fromJson(x: String) = scala.util.Try{APIParser.read[SPMessage](x)}
+}
+
+
 
 sealed trait APISP
 object APISP {
-  
-  case class SPError(message: String, attributes: Option [SPAttributes] = None) extends APISP
-  case class SPACK(attributes: Option [SPAttributes]= None) extends APISP
-  case class SPOK(attributes: Option [SPAttributes]= None) extends APISP
-  case class SPDone(attributes: Option [SPAttributes]= None) extends APISP
+  case class SPError(message: String, attributes: SPAttributes = SPAttributes()) extends APISP
+  case class SPACK(attributes: SPAttributes = SPAttributes()) extends APISP
+  case class SPOK(attributes: SPAttributes = SPAttributes()) extends APISP
+  case class SPDone(attributes: SPAttributes = SPAttributes()) extends APISP
 
-  case class StatusRequest(attributes: Option [SPAttributes]= None) extends APISP
-  case class StatusResponse(attributes: Option [SPAttributes]= None) extends APISP
-  case object StatusResponse{
-    def apply(x: SPAttributes): StatusResponse = StatusResponse(Some(x))
-  }
+  case class StatusRequest(attributes: SPAttributes = SPAttributes()) extends APISP
+  case class StatusResponse(attributes: SPAttributes = SPAttributes()) extends APISP
 }
 
 

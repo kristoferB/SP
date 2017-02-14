@@ -53,12 +53,7 @@ trait JsonLogics {
       classOf[ASSIGN],
       classOf[ValueHolder],
       classOf[SVIDEval],
-      classOf[PropositionCondition],
-      classOf[SPError],
-      classOf[SPACK],
-      classOf[SPOK],
-      classOf[StatusRequest],
-      classOf[StatusResponse]
+      classOf[PropositionCondition]
     ))
   }
 

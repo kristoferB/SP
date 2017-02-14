@@ -4,7 +4,7 @@ import java.util.UUID
 import upickle._
 
 case class UPickleMessage(header: upickle.Js.Value, body: upickle.Js.Value)
-case class SPHeader(from: String, to: String, replyTo: String, reqID: UUID = UUID.randomUUID(), replyFrom: String = "", replyID: Option[UUID] = None)
+case class SPHeader(from: String, to: String, replyTo: String, reqID: UUID = UUID.randomUUID(), replyFrom: String = "", replyID: Option[UUID] = None, answerDirect: Boolean = false)
 
 
 sealed trait APIWebSocket

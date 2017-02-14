@@ -79,6 +79,12 @@ lazy val opcua = (project in file("spservices/opcua"))
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
+lazy val exampleService = (project in file("spservices/exampleService"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
+
+
 // lazy val models = project.dependsOn(domain, extensions).
 //   settings(commonSettings: _*).
 //   settings(libraryDependencies ++= akka ++ json ++ support)
