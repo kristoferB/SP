@@ -58,7 +58,10 @@ object ExampleServiceWidget {
             $.modState{s =>
               val p = if (!ids.contains(pieID)) None else s.pie
               State(p, ids)}.runNow()
+          case x =>
+            println(s"THIS WAS NOT EXPECTED IN EXAMPLEWIDGET: $x")
           }
+
       },
       "answers"   // the topic you want to listen to. Soon we will also add some kind of backend filter,  but for now you get all answers
     )

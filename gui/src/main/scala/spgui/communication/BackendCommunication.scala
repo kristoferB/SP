@@ -5,16 +5,12 @@ import java.util.UUID
 
 import scala.concurrent.Future
 import scala.concurrent.Promise
-import fr.hmil.roshttp.HttpRequest
-import fr.hmil.roshttp.body.{JSONBody, PlainTextBody}
-import monix.execution.Scheduler.Implicits.global
 
 import scala.util.{Failure, Success, Try}
-import fr.hmil.roshttp.response.SimpleHttpResponse
 import org.scalajs._
 import org.scalajs.dom.ext.Ajax
 import org.scalajs.dom.raw.WebSocket
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.ClassTag
 
 

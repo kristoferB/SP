@@ -7,14 +7,11 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scala.concurrent.Future
 import scala.concurrent.Promise
-import fr.hmil.roshttp.HttpRequest
-import monix.execution.Scheduler.Implicits.global
 
 import scala.util.{Failure, Success, Try}
-import fr.hmil.roshttp.response.SimpleHttpResponse
 import spgui.SPWidget
 import spgui.widgets.APITesting.AnAnswer
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.ClassTag
 
   sealed trait API
@@ -131,7 +128,6 @@ object WidgetCommTest {
 
 
     def HoHo = {
-      import fr.hmil.roshttp.body._
 
       val h = SPHeader("widgetCommTest", APITesting.service, "widgetCommTest", java.util.UUID.randomUUID())
       val b = APITesting.ServiceCall("Hej från mig")
@@ -253,19 +249,3 @@ object WidgetCommTest {
   def apply() = SPWidget(spwb => component())
 }
 
-
-import upickle._
-object FixedType extends upickle.AttributeTagged {
-  override val tagName = "isa"
-
-  override def annotate[V: ClassTag](rw: Reader[V], n: String) = Reader[V]{
-    case Js.Obj(x@_*) if x.contains((tagName, Js.Str(n.split('.').takeRight(2).mkString(".")))) =>
-      rw.read(Js.Obj(x.filter(_._1 != tagName):_*))
-  }
-
-  override def annotate[V: ClassTag](rw: Writer[V], n: String) = Writer[V]{ case x: V =>
-    val filter = n.split('.').takeRight(2).mkString(".")
-    Js.Obj((tagName, Js.Str(filter)) +: rw.write(x).asInstanceOf[Js.Obj].value:_*)
-  }
-
-}
