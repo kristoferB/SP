@@ -114,6 +114,7 @@ class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
 
 object VolvoRobotSchedule extends SPService {
   val specification = SPAttributes(
+    "command" -> KeyDefinition("String", List(), None),
     "service" -> SPAttributes(
       "group" -> "External",
       "description" -> "Create a model based on a number of robot schedules with shared zones."
@@ -124,12 +125,14 @@ object VolvoRobotSchedule extends SPService {
   )
 
   val transformTuple = (
-    TransformValue("setup", _.getAs[RobotScheduleSetup]("setup"))
+    TransformValue("setup", _.getAs[RobotScheduleSetup]("setup")),
+    TransformValue("command", _.getAs[String]("command"))
   )
   val transformation = transformToList(transformTuple.productIterator.toList)
 
   def props(sh: ActorRef) = ServiceLauncher.props(Props(classOf[VolvoRobotSchedule], sh))
 }
+
 
 class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with AddHierarchies {
   implicit val timeout = Timeout(100 seconds)
@@ -142,7 +145,8 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
       val progress = context.actorOf(progressHandler)
       progress ! SPAttributes("progress" -> "starting volvo robot schedule")
 
-      val setup = transform(VolvoRobotSchedule.transformTuple)
+      val setup = transform(VolvoRobotSchedule.transformTuple._1)
+      val command = transform(VolvoRobotSchedule.transformTuple._2)
       val core = r.attributes.getAs[ServiceHandlerAttributes]("core").get
 
       val ops = ids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])
