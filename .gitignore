@@ -17,6 +17,8 @@ project/project
 .ensime*
 .ensime_cache/
 *.zip
+*~
+\#*\#
 
 # Intellij
 .idea/
