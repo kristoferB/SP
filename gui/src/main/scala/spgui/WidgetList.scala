@@ -7,7 +7,7 @@ import spgui.widgets.examples.ExampleServiceWidget
 
 object WidgetList {
   def apply() =
-    Map[String, SPWidgetBase => ReactElement](
+    List[(String, SPWidgetBase => ReactElement)](
       ("Grid Test", spgui.dashboard.GridTest()),
       ("Widget Injection", widgets.injection.WidgetInjectionTest()),
       ("Item Editor", widgets.itemeditor.ItemEditor()),

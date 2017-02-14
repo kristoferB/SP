@@ -13,7 +13,7 @@ object WidgetMenu {
       Callback(SPGUICircuit.dispatch(AddWidget(widgetType)))
     def render =
       SPDropdown(
-        for(widgetType <- WidgetList().keys.toList) yield (widgetType, addW(widgetType)),
+        for(widgetType <- WidgetList().map(_._1)) yield (widgetType, addW(widgetType)),
         Icon.windowMaximize,
         "New widget"
       )

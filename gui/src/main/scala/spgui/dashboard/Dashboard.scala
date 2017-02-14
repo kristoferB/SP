@@ -43,7 +43,7 @@ object Dashboard {
             isDraggable = true,
             isResizable = true,
             child = DashboardItem(
-              WidgetList()(openWidget.widgetType)(
+              WidgetList().toMap.apply(openWidget.widgetType)(
                 SPWidgetBase(
                   openWidget.id,
                   openWidget.stringifiedWidgetData
