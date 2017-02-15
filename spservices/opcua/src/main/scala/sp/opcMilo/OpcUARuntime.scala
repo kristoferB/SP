@@ -141,9 +141,4 @@ class OpcUARuntime extends Actor {
       )
     }.toOption
   }
-
-  def terminate(progress: ActorRef): Unit = {
-    self ! PoisonPill
-    progress ! PoisonPill
-  }
 }

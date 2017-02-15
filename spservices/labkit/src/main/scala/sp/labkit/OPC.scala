@@ -64,6 +64,8 @@ class OPC extends Actor {
   mediator ! Subscribe("spevents", self)
   mediator ! Subscribe("temp", self)
 
+      mediator ! Publish("temp", "hej hopp")
+      mediator ! Publish("services", "kalel stropp")
 
   self ! "connect"
 
@@ -107,7 +109,8 @@ class OPC extends Actor {
           }
         case Failure(err) =>
       }
-    case _ =>
+    case _ =>       mediator ! Publish("temp", "hej hopp")
+      mediator ! Publish("services", "kalel stropp")
   }
 
   def getMyMessage(spMess : SPMessage) = {
