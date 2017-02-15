@@ -19,7 +19,8 @@ libraryDependencies ++= Seq(
   "com.lihaoyi" %% "upickle" % "0.4.3",
   "com.typesafe.akka" %% "akka-http-core" % "10.0.3",
   "com.typesafe.akka" %% "akka-http" % "10.0.3",
-  "com.typesafe.akka" %% "akka-http-testkit" % "10.0.3"
+  "com.typesafe.akka" %% "akka-http-testkit" % "10.0.3",
+  "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.1"
 )
 
 packAutoSettings

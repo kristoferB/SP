@@ -35,6 +35,7 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
   import DistributedPubSubMediator.{ Put, Subscribe }
   val mediator = DistributedPubSub(context.system).mediator
   mediator ! Subscribe("raw", self)
+  mediator ! Subscribe("temp", self)
   mediator ! Put(self)
 
   //private var state: Map[String, SPValue] = Map()
@@ -88,18 +89,18 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
   def receiveRecover = {
     case x: String =>
 //      fixTheOps(x)
-      val attr = SPValue.fromJson(x)
-      val rawMess = attr.flatMap(_.to[RawMess])
-      if(rawMess.nonEmpty && rawMess.get.state.nonEmpty && rawMess.get.time.nonEmpty) {
-        val ms = new DateTime(rawMess.get.time).getMillis()
-        if(baseTimeThen == -1) baseTimeThen = ms // init replay time
-        val msOfExecution = ms - baseTimeThen
-        val sleep = msOfExecution - lastms
-        Thread.sleep(sleep)
-        lastms = msOfExecution
-        val rawFixedTime = RawMess(rawMess.get.state, baseTimeNow.plusMillis(msOfExecution.intValue()).toString)
-        fixTheOps(SPValue(rawFixedTime).toJson.toString)
-      }
+      // val attr = SPValue.fromJson(x)
+      // val rawMess = attr.flatMap(_.to[RawMess])
+      // if(rawMess.nonEmpty && rawMess.get.state.nonEmpty && rawMess.get.time.nonEmpty) {
+      //   val ms = new DateTime(rawMess.get.time).getMillis()
+      //   if(baseTimeThen == -1) baseTimeThen = ms // init replay time
+      //   val msOfExecution = ms - baseTimeThen
+      //   val sleep = msOfExecution - lastms
+      //   Thread.sleep(sleep)
+      //   lastms = msOfExecution
+      //   val rawFixedTime = RawMess(rawMess.get.state, baseTimeNow.plusMillis(msOfExecution.intValue()).toString)
+      //   fixTheOps(SPValue(rawFixedTime).toJson.toString)
+      // }
     case RecoveryCompleted =>
       println("recover done")
     case x => println("hej: "+x)

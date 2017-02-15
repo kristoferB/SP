@@ -111,21 +111,21 @@ class WebsocketAPITest(_system: ActorSystem) extends TestKit(_system) with Impli
 
       val test = new WebsocketHandler(da, "answers")
 
-      val message = TextMessage(APIParser.write(APIWebSocket.Subscribe("requests")))
-      val in3 = TextMessage(APIParser.write(APIWebSocket.PublishMessage(mess, "services")))
-      val s = Source(List(message, in3))
+      // val message = TextMessage(APIParser.write(APIWebSocket.Subscribe("requests")))
+      // val in3 = TextMessage(APIParser.write(APIWebSocket.PublishMessage(mess, "services")))
+      // val s = Source(List(message, in3))
 
-      test.webSocketHandler.runWith(s, Sink.actorRef(probe.ref, "done"))
+      // test.webSocketHandler.runWith(s, Sink.actorRef(probe.ref, "done"))
 
 
-      probe.fishForMessage(3 second){
-        case "done" => true
-        case x =>
-          println("")
-          println(x)
-          println("")
-          false
-      }
+      // probe.fishForMessage(3 second){
+      //   case "done" => true
+      //   case x =>
+      //     println("")
+      //     println(x)
+      //     println("")
+      //     false
+      // }
     }
 
 
@@ -153,7 +153,3 @@ class DummyActor extends Actor {
       repl ! mess
   }
 }
-
-
-
-

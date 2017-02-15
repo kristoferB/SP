@@ -74,7 +74,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
   // The metod that receve messages. Add service logic in a trait so you can test it. Here the focus in on parsing
   // and on the messages on the bus
   def receive = {
-    case mess @ _ if {log.debug(s"ExampleService MESSAGE: $mess from $sender"); false} => Unit
+    case mess @ _ if {println(s"ExampleService MESSAGE: $mess from $sender"); false} => Unit
 
     case "tick" =>
       val upd = tick  // Updated the pies on a tick
@@ -85,6 +85,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
         ).addTimeStamp
         val mess = SPMessage(header, APIParser.writeJs(e)).toJson
         mediator ! Publish("answers", mess)  // sends out the updated pies
+        mediator ! Publish("temp", "hej tick")  // sends out the updated pies
       }
     case x: String =>
       // SPMessage uses the APIParser to parse the json string
