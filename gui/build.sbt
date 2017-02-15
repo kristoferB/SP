@@ -19,7 +19,10 @@ libraryDependencies ++= Seq(
   "me.chrons" %%% "diode" % diodeVersion,
   "me.chrons" %%% "diode-react" % diodeVersion,
   "com.lihaoyi" %%% "upickle" % "0.4.3",
-  "com.lihaoyi" %%% "scalarx" % "0.3.2"
+  "com.lihaoyi" %%% "scalarx" % "0.3.2",
+//  "com.zoepepper" %%% "scalajs-jsjoda" % "1.0.4",   // probably good to use this when we need time
+//  "com.zoepepper" %%% "scalajs-jsjoda-as-java-time" % "1.0.4",
+  "org.scalatest" %%% "scalatest" % "3.0.0" % "test"
 )
 
 /* This is how to include js files. Put it in src/main/resources.
