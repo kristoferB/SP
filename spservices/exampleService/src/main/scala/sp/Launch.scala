@@ -15,6 +15,7 @@ object Launch extends App {
   implicit val system = ActorSystem("SP")
 
   // Start all you actors here.
+  system.actorOf(sp.labkit.OPC.props, "OPC")
   system.actorOf(ExampleService.props, API_ExampleService.service)
 
   val cluster = akka.cluster.Cluster(system)
