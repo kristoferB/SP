@@ -44,7 +44,6 @@ class OpcUARuntime extends Actor {
   val mediator = DistributedPubSub(context.system).mediator
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
-  mediator ! Subscribe("temp", self)
 
 
   val client = new MiloOPCUAClient()

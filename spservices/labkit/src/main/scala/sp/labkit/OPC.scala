@@ -62,10 +62,6 @@ class OPC extends Actor {
   mediator ! Subscribe("answers", self)
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
-  mediator ! Subscribe("temp", self)
-
-      mediator ! Publish("temp", "hej hopp")
-      mediator ! Publish("services", "kalel stropp")
 
   self ! "connect"
 
@@ -77,10 +73,7 @@ class OPC extends Actor {
       val header = SPAttributes("to" -> API_OpcUARuntime.service, "replyID" -> ID.newID)
       val body = APIParser.writeJs(API_OpcUARuntime.Connect(url))
       val message = APIParser.write(SPMessage(header, body))
-      mediator ! Publish("temp", message)
-      mediator ! Publish("temp", "hej hopp")
-      mediator ! Publish("services", "kalel stropp")
-
+      mediator ! Publish("services", message)
 
 
     case x: String =>
@@ -88,7 +81,6 @@ class OPC extends Actor {
       SPMessage.fromJson(x) match {
         case Success(mess) =>
           println(s"labkit: got ${mess.toString}")
-          mediator ! Publish("services", "kalel stropp")
           getOPCUARuntimeMessage(mess).map{
             case API_OpcUARuntime.ConnectionStatus(connectionStatus) =>
               if(!connected && connectionStatus) {
@@ -109,8 +101,7 @@ class OPC extends Actor {
           }
         case Failure(err) =>
       }
-    case _ =>       mediator ! Publish("temp", "hej hopp")
-      mediator ! Publish("services", "kalel stropp")
+    case _ =>
   }
 
   def getMyMessage(spMess : SPMessage) = {
@@ -131,9 +122,4 @@ class OPC extends Actor {
       None
   }
 
-
-  def terminate(progress: ActorRef): Unit = {
-    self ! PoisonPill
-    progress ! PoisonPill
-  }
 }

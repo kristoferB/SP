@@ -8,9 +8,11 @@ import scala.concurrent.Await
 object Launch extends App {
   implicit val system = ActorSystem("SP")
 
-  // Add root actors used in node here
-  val opcruntime = system.actorOf(OpcUARuntime.props, "OpcUARuntime")
   val cluster = akka.cluster.Cluster(system)
+  cluster.registerOnMemberUp{
+    // Add root actors used in node here
+    system.actorOf(OpcUARuntime.props, "OpcUARuntime")
+  }
 
   scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
     case x =>
