@@ -4,6 +4,8 @@ name := "spgui"
 
 version := "0.0.1"
 
+scalaOrganization in ThisBuild := "org.typelevel"
+
 scalaVersion := "2.11.8"
 
 val scalaJSReactVersion = "0.11.3"
