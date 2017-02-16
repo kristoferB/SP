@@ -50,7 +50,7 @@ class OpcUARuntime extends Actor {
   var state = State(Map())
 
   def receive = {
-    case mess @ _ if {println(s"OPCUA MESSAGE: $mess from $sender"); false} => Unit
+    // case mess @ _ if {println(s"OPCUA MESSAGE: $mess from $sender"); false} => Unit
 
     case x: String =>
       // SPMessage uses the APIParser to parse the json string
@@ -119,6 +119,9 @@ class OpcUARuntime extends Actor {
   def getMyMessage(spMess : SPMessage) = {
     val to = spMess.header.getAs[String]("to").getOrElse("") // extracts the header.to, if it is to me
     val body = Try{APIParser.readJs[API_OpcUARuntime](spMess.body)}
+    if(!body.isSuccess) {
+      println("parsing failure: "+body.toString)
+    }
     if (body.isSuccess && to == API_OpcUARuntime.service)
       Some(body.get)
     else
@@ -139,5 +142,9 @@ class OpcUARuntime extends Actor {
         APISP.StatusResponse(statusResponse)
       )
     }.toOption
+  }
+
+  override def postStop() = {
+    if(client.isConnected) client.disconnect()
   }
 }

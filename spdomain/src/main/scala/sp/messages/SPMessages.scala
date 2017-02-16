@@ -46,6 +46,8 @@ object APIParser extends upickle.AttributeTagged {
       SPAttributes(res:_*).asInstanceOf[V]
     case Js.Obj(x@_*) if x.contains((tagName, Js.Str(n.split('.').takeRight(2).mkString(".")))) =>
       rw.read(Js.Obj(x.filter(_._1 != tagName):_*))
+    case x: Js.Value if n.contains("org.json4s.JsonAST") =>
+      fromUpickle(x).asInstanceOf[V]
   }
 
   override def annotate[V: ClassTag](rw: Writer[V], n: String) = Writer[V]{
