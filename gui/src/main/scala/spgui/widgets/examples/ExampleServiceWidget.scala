@@ -10,29 +10,31 @@ import scala.util.Try
 
 
 
-// Copy paste the APIs you want to communicate with here
-sealed trait API_ExampleService
-object API_ExampleService {
-  case class StartTheTicker(id: java.util.UUID) extends API_ExampleService
-  case class StopTheTicker(id: java.util.UUID) extends API_ExampleService
-  case class SetTheTicker(id: java.util.UUID, map: Map[String, Int]) extends API_ExampleService
-  case object GetTheTickers extends API_ExampleService
-  case class ResetAllTickers() extends API_ExampleService
-  case class TickerEvent(map: Map[String, Int], id: java.util.UUID) extends API_ExampleService
-  case class TheTickers(ids: List[java.util.UUID]) extends API_ExampleService
-
-  val service = "exampleService"
-
-  import APIParser._
-  implicit val readWriter: ReadWriter[API_ExampleService] =
-    macroRW[StartTheTicker] merge macroRW[StopTheTicker] merge macroRW[SetTheTicker] merge
-      macroRW[TickerEvent] merge macroRW[TheTickers] merge macroRW[ResetAllTickers]
-}
-
+// Import this to make SPAttributes work including json handling
+import sp.domain._
 
 
 
 object ExampleServiceWidget {
+
+  // Copy paste the APIs you want to communicate with here
+  sealed trait API_ExampleService
+  object API_ExampleService {
+    case class StartTheTicker(id: java.util.UUID) extends API_ExampleService
+    case class StopTheTicker(id: java.util.UUID) extends API_ExampleService
+    case class SetTheTicker(id: java.util.UUID, map: Map[String, Int]) extends API_ExampleService
+    case object GetTheTickers extends API_ExampleService
+    case class ResetAllTickers() extends API_ExampleService
+    case class TickerEvent(map: Map[String, Int], id: java.util.UUID) extends API_ExampleService
+    case class TheTickers(ids: List[java.util.UUID]) extends API_ExampleService
+
+    val service = "exampleService"
+  }
+
+  implicit val readWriter: ReadWriter[API_ExampleService] =
+    macroRW[API_ExampleService.StartTheTicker] merge macroRW[API_ExampleService.StopTheTicker] merge
+      macroRW[API_ExampleService.SetTheTicker] merge macroRW[API_ExampleService.TickerEvent] merge
+      macroRW[API_ExampleService.TheTickers] merge macroRW[API_ExampleService.ResetAllTickers]
 
   case class Pie(id: UUID, map: Map[String, Int])
   case class State(pie: Option[Pie], otherPies: List[UUID])
@@ -43,7 +45,7 @@ object ExampleServiceWidget {
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        val testing = Try {APIParser.readJs[API_ExampleService](mess.body)}.map{
+        val testing = fromSPValue[API_ExampleService](mess.body).map{
           case API_ExampleService.TickerEvent(m, id) =>
             if (id == pieID){
               val p = Pie(id, m)
@@ -95,7 +97,7 @@ object ExampleServiceWidget {
 
     def send(mess: API_ExampleService): Callback = {
       val h = SPHeader("ExampleServiceWidget", API_ExampleService.service, "ExampleServiceWidget", java.util.UUID.randomUUID())
-      val json = UPickleMessage(APIParser.writeJs(h), APIParser.writeJs(mess))
+      val json = SPMessage(*(h), *(mess)) // *(...) is a shorthand for toSpValue(...)
       BackendCommunication.publishMessage("services", json)
       Callback.empty
     }

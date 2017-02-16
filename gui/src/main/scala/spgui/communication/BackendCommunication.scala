@@ -13,9 +13,7 @@ import org.scalajs.dom.raw.WebSocket
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.ClassTag
 
-
-
-
+import sp.domain._
 
 
 
@@ -45,7 +43,7 @@ object BackendCommunication {
     * @param mess The message to send
     * @return An option with a reactive variable to be used as observer. call trigger on it for side effects
     */
-  def publishMessage(topic: String,  mess: UPickleMessage) = {
+  def publishMessage(topic: String,  mess: SPMessage) = {
     initCommunication()
     ws.publishMessage(topic, mess)
   }
@@ -64,7 +62,7 @@ object BackendCommunication {
     }
   }
 
-  def getMessageObserver(callBack: (UPickleMessage) => Unit, topic: String = "answers"): rx.Obs = {
+  def getMessageObserver(callBack: (SPMessage) => Unit, topic: String = "answers"): rx.Obs = {
     getMessageVar(topic).foreach(callBack)
   }
   def getWebSocketNotificationsCB(callBack: (String) => Unit, topic: String = "answers" ): rx.Obs = {
@@ -77,7 +75,7 @@ object BackendCommunication {
     getWebSocketStatus(topic)
   }
 
-  def getMessageVar(topic: String = "answers"): rx.Var[UPickleMessage] = {
+  def getMessageVar(topic: String = "answers"): rx.Var[SPMessage] = {
     subscribe(topic)
     sockets(topic).receivedMessage
   }
@@ -98,21 +96,21 @@ object BackendCommunication {
 
 
 
-  def ask( mess: UPickleMessage, topic: String = "requests"): Future[UPickleMessage] = {
+  def ask( mess: SPMessage, topic: String = "requests"): Future[SPMessage] = {
     val url = org.scalajs.dom.window.location.href + "api/ask/"+topic
-    post(APIParser.write(mess), url)
+    post(toJson(mess), url)
   }
 
-  def publish(mess: UPickleMessage, topic: String = "services"): Future[String] = {
+  def publish(mess: SPMessage, topic: String = "services"): Future[String] = {
     val url = org.scalajs.dom.window.location.href + "api/publish/"+topic
-    post(APIParser.write(mess), url).map(x => "posted")
+    post(toJson(mess), url).map(x => "posted")
   }
 
   private def post(x: String, url: String) = {
-    val p = Promise[UPickleMessage]
+    val p = Promise[SPMessage]
     Ajax.post(url, x).onSuccess{ case xhr =>
-      val socketAPI =  Try{APIParser.read[APIWebSocket](xhr.responseText)}
-      val message =  Try{APIParser.read[UPickleMessage](xhr.responseText)}
+      val socketAPI =  fromJson[APIWebSocket](xhr.responseText)
+      val message =  fromJson[SPMessage](xhr.responseText)
       p.complete(message)
       socketAPI.map{case x => println("post got: " + x)}
       socketAPI.recover{case x => println("post got (parse error): " + x.getMessage)}
@@ -146,9 +144,9 @@ case class WebSocketHandler(uri: String) {
   import scala.concurrent.duration._
   implicit val ctx: Ctx.Owner = Ctx.Owner.safe()
 
-  def publishMessage(topic: String,  mess: UPickleMessage) = {
+  def publishMessage(topic: String,  mess: SPMessage) = {
     val toSend = APIWebSocket.PublishMessage(mess, topic)
-    sendMessage(APIParser.write(toSend))
+    sendMessage(toJson(toSend))
     receivedMessage
   }
 
@@ -165,7 +163,7 @@ case class WebSocketHandler(uri: String) {
 
 
   val mess = Var("")
-  val receivedMessage: Var[UPickleMessage] = Var(UPickleMessage(upickle.Js.Null, upickle.Js.Null))
+  val receivedMessage: Var[SPMessage] = Var(SPMessage(SPAttributes(), SPAttributes()))
   val notification = Var("")
   val errors = Var("")
   val wsOpen = Var(false)
@@ -199,7 +197,7 @@ case class WebSocketHandler(uri: String) {
 
 
   def conv(str: String) = {
-    Try{APIParser.read[APIWebSocket](str)} match {
+    fromJson[APIWebSocket](str) match {
       case x: Success[APIWebSocket] => x.value
       case x: Failure[_] => APIWebSocket.SPError(x.exception.getMessage)
     }

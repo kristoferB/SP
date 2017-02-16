@@ -7,7 +7,7 @@ You will also need an installation of node (`nodejs.org`)
 To install dependencies, cd to `SP/gui/npmdependencies` and run `npm install`.
 
 To compile your code, cd to `SP/gui` and run `sbt fastOptJS`.
-To see it, open `index.html` in a browser.
+To see it, start the spcore (in SP root folder, run sbt spcore/run), and goto localhost:8080
 
 To compile the optimized version run `fullOptJS` (slow process, not recommended in development)
 To see it, open `index-prod.html` in a browser.
