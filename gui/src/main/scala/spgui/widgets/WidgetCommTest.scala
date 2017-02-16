@@ -10,61 +10,71 @@ import scala.concurrent.Promise
 
 import scala.util.{Failure, Success, Try}
 import spgui.SPWidget
-import spgui.widgets.APITesting.AnAnswer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.ClassTag
 
-  sealed trait API
-object APITEST {
-  case class Test1(p1: String, p2: String) extends API
-  case class Test2(p1: Int, p2: Int) extends API
-  case class Test3(p1: Double, p2: Tom) extends API
 
-  sealed trait SUB
-  case class Tom(str: String) extends SUB
-
-}
-
-
-case class Hej(p1: String)
-case class Hej2(p1: Int)
-case class Cme(c: Int)
-
-sealed trait APITesting
-object APITesting {
-  val service = "testingWidget"
-
-  case class ServiceCall(param1: String) extends APITesting
-  case class RequestCall(param1: String) extends APITesting
-
-  case class AnAnswer(from: String) extends APITesting
-  case class Hi(from: String) extends APITesting
-
-  // This is sometimes needed due to a scala compilation bug
-  import APIParser._
-  implicit val readWriter: ReadWriter[APITesting] =
-    macroRW[ServiceCall] merge macroRW[RequestCall] merge
-  macroRW[AnAnswer] merge macroRW[Hi]
-}
 
 
 
 
 
 import rx._
+import sp.domain._
+
 
 object WidgetCommTest {
+
+  sealed trait API
+  object APITEST {
+    case class Test1(p1: String, p2: String) extends API
+    case class Test2(p1: Int, p2: Int) extends API
+    case class Test3(p1: Double, p2: Tom) extends API
+
+    sealed trait SUB
+    case class Tom(str: String) extends SUB
+
+  }
+
+
+  case class Hej(p1: String)
+  case class Hej2(p1: Int)
+  case class Cme(c: Int)
+
+  sealed trait APITesting
+  object APITesting {
+    val service = "testingWidget"
+
+    case class ServiceCall(param1: String) extends APITesting
+    case class RequestCall(param1: String) extends APITesting
+
+    case class AnAnswer(from: String) extends APITesting
+    case class Hi(from: String) extends APITesting
+
+    // This is sometimes needed due to a scala compilation bug
+    import sp.domain._
+
+
+  }
+
+  implicit val readWriter: ReadWriter[APITesting] =
+    macroRW[APITesting.ServiceCall] merge macroRW[APITesting.RequestCall] merge
+      macroRW[APITesting.AnAnswer] merge macroRW[APITesting.Hi]
+
+
 
   //type Comp = ReactComponentU[Unit, Unit, Unit, Element]
   case class State(str: String)
 
   private class Backend($: BackendScope[Unit, State]) {
 
+
+
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
         println("WE GOT IT")
         println(mess)
-        val testing = Try {APIParser.readJs[APITesting](mess.body)}.map{
+        val testing = fromSPValue[APITesting](mess.body).map{
             case APITesting.AnAnswer(p) => changeState(p).runNow()
             case APITesting.Hi(p) => changeState(p).runNow()
             case x =>
@@ -72,7 +82,7 @@ object WidgetCommTest {
             println(x)
           }
 
-        val sp = Try {APIParser.readJs[APISP](mess.body)}.map{
+        val sp = fromSPValue[APISP](mess.body).map{
             case APISP.SPACK(p) => println("SPACK")
             case APISP.SPOK(p) => println("SPOK")
             case APISP.SPDone(p) => println("SPDone")
@@ -132,7 +142,7 @@ object WidgetCommTest {
       val b = APITesting.ServiceCall("Hej från mig")
       println("hej")
 
-      val mess = UPickleMessage(APIParser.writeJs(h), APIParser.writeJs(b))
+      val mess = SPMessage(*(h), *(b))
 
 
 
@@ -144,7 +154,7 @@ object WidgetCommTest {
 
 
       val b2 = APITesting.RequestCall("hoj från mig")
-      val mess2 = UPickleMessage(APIParser.writeJs(h), APIParser.writeJs(b2))
+      val mess2 = SPMessage(*(h), *(b2))
 
       val f = BackendCommunication.ask(mess2, "requests")
       f.map { v =>
