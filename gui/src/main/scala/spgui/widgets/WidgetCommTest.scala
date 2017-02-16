@@ -7,18 +7,10 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scala.concurrent.Future
 import scala.concurrent.Promise
-
 import scala.util.{Failure, Success, Try}
-import spgui.SPWidget
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.ClassTag
-
-
-
-
-
-
-
 import rx._
 import sp.domain._
 
@@ -41,6 +33,7 @@ object WidgetCommTest {
   case class Hej2(p1: Int)
   case class Cme(c: Int)
 
+
   sealed trait APITesting
   object APITesting {
     val service = "testingWidget"
@@ -54,9 +47,9 @@ object WidgetCommTest {
     // This is sometimes needed due to a scala compilation bug
     import sp.domain._
 
-
   }
 
+// Sometimes this helper line is needed for the json parsing
   implicit val readWriter: ReadWriter[APITesting] =
     macroRW[APITesting.ServiceCall] merge macroRW[APITesting.RequestCall] merge
       macroRW[APITesting.AnAnswer] merge macroRW[APITesting.Hi]
@@ -255,6 +248,6 @@ object WidgetCommTest {
       .componentWillUnmount(_.backend.onUnmount())
     .build
 
-  def apply() = SPWidget(spwb => component())
+  def apply() = spgui.SPWidget(spwb => component())
 }
 
