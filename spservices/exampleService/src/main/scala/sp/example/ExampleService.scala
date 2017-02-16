@@ -1,12 +1,10 @@
 package sp.example
 
 import akka.actor._
-import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 
 import scala.util.{Failure, Random, Success, Try}
 import sp.domain._
 import sp.domain.Logic._
-import sp.example.API_ExampleService.{GetTheTickers, SetTheTicker, StartTheTicker, StopTheTicker}
 import sp.messages._
 
 
@@ -14,8 +12,8 @@ import sp.messages._
 // The messages that this service can send and receive is
 // is defined using this API structure
 
-sealed trait API_ExampleService
-object API_ExampleService {
+package API_ExampleService {
+  sealed trait API_ExampleService
   // Messages you can send to me
   /**
     * Adds a new pie to the memory with an id
@@ -35,7 +33,7 @@ object API_ExampleService {
     * @param map A map representing a pie
     */
   case class SetTheTicker(id: java.util.UUID, map: Map[String, Int]) extends API_ExampleService
-  case object GetTheTickers extends API_ExampleService
+  case class GetTheTickers() extends API_ExampleService
   case class ResetAllTickers() extends API_ExampleService
 
   // included here for simplicity
@@ -46,8 +44,13 @@ object API_ExampleService {
   case class TickerEvent(map: Map[String, Int], id: java.util.UUID) extends API_ExampleService
   case class TheTickers(ids: List[java.util.UUID]) extends API_ExampleService
 
-  val service = "exampleService"
+  object attributes {
+    val service = "exampleService"
+    val version = 1.0
+    val api = "to be fixed by macros"
+  }
 }
+import sp.example.{API_ExampleService => api}
 
 
 /**
@@ -80,7 +83,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
       val upd = tick  // Updated the pies on a tick
       upd.foreach{e =>
         val header = SPAttributes(
-          "from" -> API_ExampleService.service,
+          "from" -> api.attributes.service,
           "reqID" -> e.id
         ).addTimeStamp
         val mess = SPMessage(header, APIParser.writeJs(e)).toJson
@@ -101,7 +104,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
           // fixing the header, by adding a replyFrom key
           // The normal case is not to change the header, but to return the key-values as is
           // this may change in the futre
-          val newH = mess.header + SPAttributes("replyFrom" -> API_ExampleService.service, "replyID" -> ID.newID)
+          val newH = mess.header + SPAttributes("replyFrom" -> api.attributes.service, "replyID" -> ID.newID)
 
           // If it was a message to me with my api, i will reply here
           res.foreach{ body =>
@@ -130,8 +133,8 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
   // by cheking the header.to field and if the body is of my type.
   def getMyMessage(spMess : SPMessage) = {
     val to = spMess.header.getAs[String]("to").getOrElse("") // extracts the header.to, if it is to me
-    val body = Try{APIParser.readJs[API_ExampleService](spMess.body)}
-    if (body.isSuccess && to == API_ExampleService.service)
+    val body = Try{APIParser.readJs[api.API_ExampleService](spMess.body)}
+    if (body.isSuccess && to == api.attributes.service)
       Some(body.get)
     else
       None
@@ -147,7 +150,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
   }
 
   val statusResponse = SPAttributes(
-    "service" -> API_ExampleService.service,
+    "service" -> api.attributes.service,
     "api" -> "to be added with macros later",
     "groups" -> List("examples"),
     "allowRequests" -> true
@@ -155,7 +158,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
 
   // Sends a status response when the actor is started so service handlers finds it
   override def preStart() = {
-    mediator ! Publish("spevents", APIParser.write(SPMessage(SPAttributes("from"->API_ExampleService.service), APIParser.writeJs(statusResponse))))
+    mediator ! Publish("spevents", APIParser.write(SPMessage(SPAttributes("from"->api.attributes.service), APIParser.writeJs(statusResponse))))
   }
 
 }
@@ -181,20 +184,18 @@ trait ExampleServiceLogic {
   // This method returns multiple messages that will be sent out on the bus
   // Services should start and end with an SPACK and SPDONE if there is a
   // a clear start and end of the message stream (so listeners can unregister)
-  def commands(body: API_ExampleService) = {
+  def commands(body: api.API_ExampleService) = {
     body match {
-      case API_ExampleService.StartTheTicker(id) =>
+      case api.StartTheTicker(id) =>
         thePies += id -> Map("first"->10, "second"-> 30, "third" -> 60)
         List(APIParser.writeJs(APISP.SPACK()), APIParser.writeJs(getTheTickers))
-      case API_ExampleService.StopTheTicker(id) =>
+      case api.StopTheTicker(id) =>
         thePies -= id
         List(APIParser.writeJs(APISP.SPDone()), APIParser.writeJs(getTheTickers))
-      case API_ExampleService.SetTheTicker(id, map) =>
+      case api.SetTheTicker(id, map) =>
         thePies += id -> map
         List(APIParser.writeJs(APISP.SPACK()), APIParser.writeJs(getTheTickers))
-      case API_ExampleService.GetTheTickers =>
-        List(APIParser.writeJs(getTheTickers))
-      case API_ExampleService.ResetAllTickers() =>
+      case api.ResetAllTickers() =>
         thePies = Map()
         List(APIParser.writeJs(getTheTickers))
       case x => List(APIParser.writeJs(APISP.SPError(s"ExampleService can not understand: $x")))
@@ -206,11 +207,11 @@ trait ExampleServiceLogic {
   def tick = {
     thePies = thePies.map(kv => kv._1 -> updPie(kv._2))
     thePies.map{case (id, p) =>
-      API_ExampleService.TickerEvent(p, id)
+      api.TickerEvent(p, id)
     }.toList
   }
 
-  def getTheTickers = API_ExampleService.TheTickers(thePies.keys.toList)
+  def getTheTickers = api.TheTickers(thePies.keys.toList)
 
 
   // Just some logic to make the pies change

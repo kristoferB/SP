@@ -202,7 +202,7 @@ class WebsocketHandler(mediator: ActorRef, topic: String = "answers") {
   })
 
 
-  val receiveFromBus: Source[Any, Unit] = Source.actorRef[Any](5, OverflowStrategy.fail)
+  val receiveFromBus: Source[Any, Unit] = Source.actorRef[Any](1000, OverflowStrategy.fail)
     .mapMaterializedValue { ref =>
       myRef = Some(ref)
       mediator ! Subscribe(topic, ref)

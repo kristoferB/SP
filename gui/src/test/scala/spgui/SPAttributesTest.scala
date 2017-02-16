@@ -10,6 +10,21 @@ import scala.util.Success
 
 case class TestingCC(p: String, i: Int = 0)
 
+package API_ExampleService {
+
+  // Copy paste the APIs you want to communicate with here
+  sealed trait API_ExampleService
+  case object dummy extends API_ExampleService
+  case class StartTheTicker(id: java.util.UUID) extends API_ExampleService
+  case class StopTheTicker(id: java.util.UUID) extends API_ExampleService
+  case class SetTheTicker(id: java.util.UUID, map: Map[String, Int]) extends API_ExampleService
+  case class ResetAllTickers() extends API_ExampleService
+  case class TickerEvent(map: Map[String, Int], id: java.util.UUID) extends API_ExampleService
+  case class TheTickers(ids: List[java.util.UUID]) extends API_ExampleService
+
+}
+import spgui.{API_ExampleService => api}
+
 /**
   * Created by kristofer on 2017-02-15.
   */
@@ -85,10 +100,11 @@ class SPAttributesTest extends FreeSpec {
 
     }
     "Testing API case classes" in {
-      val a = APISP.SPACK(**(Map("hej"->"hej")))
+      val a = api.StartTheTicker(java.util.UUID.randomUUID())
       val json = write(a)
+      println("case classes")
       println(json)
-      val res = fromJson[APISP.SPACK](json)
+      val res = fromJson[api.API_ExampleService](json)
       println(res)
       assert(Success(a) == res)
     }
