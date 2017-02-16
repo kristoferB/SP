@@ -44,7 +44,7 @@ lazy val commonSettings = Seq(
     "-language:postfixOps"
   ),
   fork := true,
-  javaOptions += "-Dconfig.file=../cluster.conf",
+  javaOptions += s"-Dconfig.file=${root.base.getCanonicalPath}/cluster.conf",
   connectInput in run := true
 )
 
