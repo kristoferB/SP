@@ -2,18 +2,18 @@ package spgui.communication
 
 import java.util.UUID
 
-
 import scala.concurrent.Future
 import scala.concurrent.Promise
-
 import scala.util.{Failure, Success, Try}
 import org.scalajs._
 import org.scalajs.dom.ext.Ajax
 import org.scalajs.dom.raw.WebSocket
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.ClassTag
-
 import sp.domain._
+import sp.messages._
+import Pickles._
 
 
 

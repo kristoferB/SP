@@ -8,11 +8,24 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.util.{Failure, Success, Try}
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.ClassTag
 import rx._
 import sp.domain._
+import sp.messages._
+import Pickles._
+
+
+package APITesting {
+  sealed trait APITesting
+
+  case class ServiceCall(param1: String) extends APITesting
+  case class RequestCall(param1: String) extends APITesting
+
+  case class AnAnswer(from: String) extends APITesting
+  case class Hi(from: String) extends APITesting
+}
+import spgui.widgets.{APITesting => api}
 
 
 object WidgetCommTest {
@@ -34,25 +47,12 @@ object WidgetCommTest {
   case class Cme(c: Int)
 
 
-  sealed trait APITesting
-  object APITesting {
-    val service = "testingWidget"
 
-    case class ServiceCall(param1: String) extends APITesting
-    case class RequestCall(param1: String) extends APITesting
-
-    case class AnAnswer(from: String) extends APITesting
-    case class Hi(from: String) extends APITesting
-
-    // This is sometimes needed due to a scala compilation bug
-    import sp.domain._
-
-  }
 
 // Sometimes this helper line is needed for the json parsing
-  implicit val readWriter: ReadWriter[APITesting] =
-    macroRW[APITesting.ServiceCall] merge macroRW[APITesting.RequestCall] merge
-      macroRW[APITesting.AnAnswer] merge macroRW[APITesting.Hi]
+//  implicit val readWriter: ReadWriter[APITesting] =
+//    macroRW[APITesting.ServiceCall] merge macroRW[APITesting.RequestCall] merge
+//      macroRW[APITesting.AnAnswer] merge macroRW[APITesting.Hi]
 
 
 
@@ -67,7 +67,7 @@ object WidgetCommTest {
       mess => {
         println("WE GOT IT")
         println(mess)
-        val testing = fromSPValue[APITesting](mess.body).map{
+        val testing = fromSPValue[api.APITesting](mess.body).map{
             case APITesting.AnAnswer(p) => changeState(p).runNow()
             case APITesting.Hi(p) => changeState(p).runNow()
             case x =>
@@ -131,7 +131,7 @@ object WidgetCommTest {
 
     def HoHo = {
 
-      val h = SPHeader("widgetCommTest", APITesting.service, "widgetCommTest", java.util.UUID.randomUUID())
+      val h = SPHeader("widgetCommTest", "", "widgetCommTest", java.util.UUID.randomUUID())
       val b = APITesting.ServiceCall("Hej från mig")
       println("hej")
 

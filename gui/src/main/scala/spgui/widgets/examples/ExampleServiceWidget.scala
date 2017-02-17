@@ -4,6 +4,8 @@ package spgui.widgets.examples {
 
   import japgolly.scalajs.react._
   import japgolly.scalajs.react.vdom.prefix_<^._
+
+
   import spgui.communication._
 
   import scala.util.Try
@@ -11,7 +13,8 @@ package spgui.widgets.examples {
 
   // Import this to make SPAttributes work including json handling
   import sp.domain._
-
+  import sp.messages._
+  import Pickles._
 
 
   package API_ExampleService {
@@ -57,7 +60,8 @@ package spgui.widgets.examples {
 
       val messObs = BackendCommunication.getMessageObserver(
         mess => {
-          fromSPValue[api.API_ExampleService](mess.body).map {
+          println(s"The widget example got: $mess" +s"parsing: ${mess.getBodyAs[api.API_ExampleService]}")
+          mess.getBodyAs[api.API_ExampleService].map {
             case api.TickerEvent(m, id) =>
               if (id == pieID) {
                 val p = Pie(id, m)

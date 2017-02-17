@@ -3,6 +3,8 @@ package spgui.communication
 import java.util.UUID
 
 import sp.domain._
+import sp.messages._
+import Pickles._
 
 
 sealed trait APIWebSocket
