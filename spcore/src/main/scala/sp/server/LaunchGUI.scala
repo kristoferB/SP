@@ -17,10 +17,10 @@ import akka.stream.scaladsl.Flow
 import akka.cluster.pubsub._
 import DistributedPubSubMediator._
 import akka.http.scaladsl.model.ws.TextMessage.Strict
-import sp.messages.APIParser
 
 import scala.util._
 
+import sp.messages.Pickles._
 
 
 
@@ -131,11 +131,11 @@ class LaunchGUI(system: ActorSystem)  {
         if (shouldAsk){
           val answer = mediator.ask(Publish(topic, mess)).mapTo[String]
           completeOrRecoverWith(answer){extr =>
-            complete(APIParser.write(APIWebSocket.SPError("No service answered the request")))
+            complete(toJson(APIWebSocket.SPError("No service answered the request")))
           }
         } else {
           mediator ! Publish(topic, mess)
-          complete(APIParser.write(APIWebSocket.SPACK("Message sent")))
+          complete(toJson(APIWebSocket.SPACK("Message sent")))
         }
       }}
     }
@@ -143,14 +143,14 @@ class LaunchGUI(system: ActorSystem)  {
 
 
   def fixMess(mess: String, topic: String, service: String) = {
-    val uP = Try{APIParser.read[UPickleMessage](mess)}
+    val uP = Try{read[UPickleMessage](mess)}
 
     val toSend = uP.map{ m =>
       val updH = if (service.nonEmpty) {
         val h = Try{m.header.obj.toList :+ ("service" -> upickle.Js.Str(service))}.map(x => upickle.Js.Obj(x:_*))
         h.getOrElse(m.header)
       } else m.header
-      APIParser.write(m.copy(header = updH))
+      toJson(m.copy(header = updH))
     }
     toSend.getOrElse(mess)
   }
@@ -215,13 +215,13 @@ class WebsocketHandler(mediator: ActorRef, topic: String = "answers") {
 
   val transformMessages: Flow[Message, Try[APIWebSocket], NotUsed] = Flow[Message]
     .collect{ case TextMessage.Strict(text) => println(s"Websocket got: $text"); text}
-    .map{str => Try{sp.messages.APIParser.read[APIWebSocket](str)}}
+    .map{str => Try{read[APIWebSocket](str)}}
 
   val matchWebSocketMessages: Flow[Try[APIWebSocket], MessageAndAck, NotUsed] = Flow[Try[APIWebSocket]]
       .collect{case x: Success[APIWebSocket] => x.value}
       .collect{
         case APIWebSocket.PublishMessage(mess, t) =>
-          MessageAndAck(Some(Publish(t, sp.messages.APIParser.write(mess))), APIWebSocket.SPACK(s"Message sent to topic $t"))
+          MessageAndAck(Some(Publish(t, toJson(mess))), APIWebSocket.SPACK(s"Message sent to topic $t"))
       }
 
   val prepareToSend: Flow[MessageAndAck, Any, NotUsed] = Flow[MessageAndAck]
@@ -244,7 +244,7 @@ class WebsocketHandler(mediator: ActorRef, topic: String = "answers") {
     .map(mess => APIWebSocket.PublishMessage(mess, "FROMBUS"))
 
   val convertAPIToString = Flow[APIWebSocket]
-    .map(x => sp.messages.APIParser.write(x))
+    .map(x => toJson(x))
 
   val printFlow = Flow[Any].filter(x => {println(s"WE GOT FROM THE BUS: $x"); true})
 

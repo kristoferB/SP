@@ -1,11 +1,48 @@
-package sp.messages
+package sp
 
-import org.json4s.ShortTypeHints
 import org.scalatest._
+import sp.messages.APISP
+import sp.messages.Pickles._
 import sp.domain._
-import sp.messages._
+import sp.domain.Logic._
 
 
+
+class ModelMakerAPITest extends FreeSpec with Matchers {
+  "Picklers" - {
+    "make SPMessage" in {
+      val h = SPHeader("from", "to")
+      val b = APISP.SPACK(SPAttributes("Hej"->4))
+      val x = SPMessage.make(h, b)
+
+      assert(x.isSuccess)
+
+    }
+
+    "SPMessage to json" in {
+      val h = SPHeader("from", "to")
+      val b = APISP.SPACK(SPAttributes("Hej"->4))
+      val x = SPMessage.make(h, b).map(_.toJson)
+
+      println(x)
+      assert(x.isSuccess && x.get.nonEmpty)
+
+    }
+
+    "SPMessage from json" in {
+      val h = SPHeader("from", "to")
+      val b = APISP.SPACK(SPAttributes("Hej"->4))
+      val x = SPMessage.make(h, b).map(_.toJson).getOrElse("")
+
+      val res = SPMessage.fromJson(x)
+
+      println(res)
+      assert(res.isSuccess)
+
+    }
+  }
+
+}
 
 
 //object APITEST extends SPCommunicationAPI {
