@@ -37,16 +37,26 @@ object BackendCommunication {
     }
   }
 
+  def ask( mess: SPMessage, topic: String = "requests"): Future[SPMessage] = {
+    val url = org.scalajs.dom.window.location.href + "api/ask/"+topic
+    post(toJson(mess), url)
+  }
+
+  def publish(mess: SPMessage, topic: String = "services"): Future[String] = {
+    val url = org.scalajs.dom.window.location.href + "api/publish/"+topic
+    post(toJson(mess), url).map(x => "posted")
+  }
+
   /**
-    * Publish a message on a topic via websocket
+    * Publish a message on a topic via websocket. Not sure it works very good. Use publish
     * @param topic The topic to publish on
     * @param mess The message to send
     * @return An option with a reactive variable to be used as observer. call trigger on it for side effects
     */
-  def publishMessage(topic: String,  mess: SPMessage) = {
-    initCommunication()
-    ws.publishMessage(topic, mess)
-  }
+//  def publishMessage(topic: String,  mess: SPMessage) = {
+//    initCommunication()
+//    ws.publishMessage(topic, mess)
+//  }
 
   def subscribe(topic: String) = {
     initCommunication()
@@ -96,15 +106,7 @@ object BackendCommunication {
 
 
 
-  def ask( mess: SPMessage, topic: String = "requests"): Future[SPMessage] = {
-    val url = org.scalajs.dom.window.location.href + "api/ask/"+topic
-    post(toJson(mess), url)
-  }
 
-  def publish(mess: SPMessage, topic: String = "services"): Future[String] = {
-    val url = org.scalajs.dom.window.location.href + "api/publish/"+topic
-    post(toJson(mess), url).map(x => "posted")
-  }
 
   private def post(x: String, url: String) = {
     val p = Promise[SPMessage]
@@ -183,6 +185,7 @@ case class WebSocketHandler(uri: String) {
       wsOpen() = true
     }
     newWs.onmessage = (e: dom.MessageEvent) => {
+      //println("websocket got a message: "+ e.data.toString)
       mess() = e.data.toString
     }
     newWs.onclose = { (e: dom.Event) =>

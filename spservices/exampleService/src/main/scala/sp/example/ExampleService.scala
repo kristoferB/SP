@@ -103,9 +103,6 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
       val bodySP = for {m <- message; b <- m.getBodyAs[APISP.StatusRequest]} yield b
 
 
-
-
-
       // act on the messages from the API. Always add the logic in a trait to enable testing
       bodyAPI.map{ body =>
         val toSend = commands(body) // doing the logic
@@ -113,6 +110,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
 
         // We must do a pattern match here to enable the json conversion (SPMessage.make. Or the command can return pickled bodies
         toSend.map{
+          case mess @ _ if {println(s"ExampleService sends: $mess"); false} => Unit
           case x: api.API_ExampleService =>
             SPMessage.make(h, x.asInstanceOf[api.API_ExampleService]).map(b =>
               mediator ! Publish("answers", b)

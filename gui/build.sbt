@@ -22,9 +22,7 @@ libraryDependencies ++= Seq(
   "me.chrons" %%% "diode-react" % diodeVersion,
   "com.lihaoyi" %%% "upickle" % "0.4.3",
   "com.lihaoyi" %%% "scalarx" % "0.3.2",
-  "com.softwaremill.quicklens" %%% "quicklens" % "1.4.8",
-//  "com.zoepepper" %%% "scalajs-jsjoda" % "1.0.4",   // probably good to use this when we need time
-//  "com.zoepepper" %%% "scalajs-jsjoda-as-java-time" % "1.0.4",
+  "org.singlespaced" %%% "scalajs-d3" % "0.3.3",
   "org.scalatest" %%% "scalatest" % "3.0.0" % "test"
 )
 

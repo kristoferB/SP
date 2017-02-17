@@ -142,7 +142,7 @@ object WidgetCommTest {
       //Comm.initWS
 
 
-      BackendCommunication.publishMessage("services", mess)
+      BackendCommunication.publish(mess, "services")
 
 
 

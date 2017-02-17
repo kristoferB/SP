@@ -60,7 +60,7 @@ package spgui.widgets.examples {
 
       val messObs = BackendCommunication.getMessageObserver(
         mess => {
-          println(s"The widget example got: $mess" +s"parsing: ${mess.getBodyAs[api.API_ExampleService]}")
+          //println(s"The widget example got: $mess" +s"parsing: ${mess.getBodyAs[api.API_ExampleService]}")
           mess.getBodyAs[api.API_ExampleService].map {
             case api.TickerEvent(m, id) =>
               if (id == pieID) {
@@ -116,8 +116,8 @@ package spgui.widgets.examples {
 
       def send(mess: api.API_ExampleService): Callback = {
         val h = SPHeader("ExampleServiceWidget", api.attributes.service, "ExampleServiceWidget", java.util.UUID.randomUUID())
-        val json = SPMessage(*(h), *(mess)) // *(...) is a shorthand for toSpValue(...)
-        BackendCommunication.publishMessage("services", json)
+        val json = SPMessage.make(h, mess) // *(...) is a shorthand for toSpValue(...)
+        json.map( x => BackendCommunication.publish(x, "services"))
         Callback.empty
       }
 
