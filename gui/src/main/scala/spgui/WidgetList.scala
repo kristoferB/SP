@@ -19,7 +19,8 @@ object WidgetList {
       ("SPWBTest", SPWidgetBaseTest()),
       ("Widget with data", widgets.examples.WidgetWithData()),
       ("CommTest", widgets.WidgetCommTest()),
-      ("D3Test", widgets.examples.D3Example()),
+      ("D3Example", widgets.examples.D3Example()),
+      ("D3ExampleServiceWidget", widgets.examples.D3ExampleServiceWidget()),
       ("ExampleServiceWidget", ExampleServiceWidget())
     )
 }
