@@ -7,16 +7,14 @@ import sp.messages._
 import Pickles._
 
 
-sealed trait APIWebSocket
-object APIWebSocket {
+package APIWebSocket {
+  sealed trait APIWebSocket
   case class PublishMessage(mess: SPMessage, topic: String = "services") extends APIWebSocket
-
-  // fixa så att vi använder APISP i backendComm
-  case class SPACK(message: String) extends APIWebSocket
-  case class SPError(message: String, attr: Option[upickle.Js.Value] = None) extends APIWebSocket
-
-  implicit val readWriter: ReadWriter[APIWebSocket] =
-    macroRW[SPError] merge macroRW[SPACK] merge macroRW[PublishMessage]
+  case class FilterHeader(keyValues: Map[String, Set[Pickle]]) extends APIWebSocket
+  case class FilterBody(keyValues: Map[String, Set[Pickle]]) extends APIWebSocket
+  // removing filters with keys in the set keys. If it is empty, all keys are removed
+  case class ClearFilters(keys: Set[String] = Set()) extends APIWebSocket
 }
+
 
 

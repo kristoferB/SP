@@ -74,7 +74,7 @@ package spgui.widgets.examples {
             case api.TheTickers(ids) =>
               $.modState { s =>
                 val p = if (!ids.contains(pieID)) None else s.pie
-                s.copy(pie = p)
+                State(pie = p, otherPies = ids)
               }.runNow()
             case x =>
               println(s"THIS WAS NOT EXPECTED IN EXAMPLEWIDGET: $x")

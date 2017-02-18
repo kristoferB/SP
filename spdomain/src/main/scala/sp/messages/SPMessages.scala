@@ -60,8 +60,12 @@ object Pickles extends SPParser {
 
   implicit class valueLogic(value: Pickle) {
     def getAs[T: Reader](key: String = "") = {
+      getAsTry[T](key).toOption
+    }
+
+    def getAsTry[T: Reader](key: String = "") = {
       val x: Pickle = Try{value.obj(key)}.getOrElse(value)
-      Try{readJs[T](x)}.toOption
+      Try{readJs[T](x)}
     }
 
     def /(key: String) = Try{value.obj(key)}.toOption

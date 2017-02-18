@@ -40,6 +40,18 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
       assert(res.isSuccess)
 
     }
+
+    "testing some mote" in {
+      val h = ("from", "to")
+      val b = APISP.SPACK(SPAttributes("Hej"->4))
+      val x = SPMessage.make(h, b).map(_.toJson).getOrElse("")
+
+      val res = SPMessage.fromJson(x)
+
+      println(res)
+      assert(res.isSuccess)
+
+    }
   }
 
 }

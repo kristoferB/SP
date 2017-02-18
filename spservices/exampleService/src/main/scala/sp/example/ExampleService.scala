@@ -109,16 +109,22 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
         val h = header.get.copy(replyFrom = api.attributes.service, replyID = Some(ID.newID)) // upd header put keep most info
 
         // We must do a pattern match here to enable the json conversion (SPMessage.make. Or the command can return pickled bodies
+
+
         toSend.map{
           case mess @ _ if {println(s"ExampleService sends: $mess"); false} => Unit
           case x: api.API_ExampleService =>
-            SPMessage.make(h, x.asInstanceOf[api.API_ExampleService]).map(b =>
-              mediator ! Publish("answers", b)
-            )
+            println("MATCH EXAMPLESERVICE")
+            val m = SPMessage.make(h, x.asInstanceOf[api.API_ExampleService])
+            println(m)
+            SPMessage.make(h, x.asInstanceOf[api.API_ExampleService]).map { b =>
+              mediator ! Publish("answers", b.toJson)
+            }
           case x: APISP =>
-            SPMessage.make(h, x.asInstanceOf[APISP]).map(b =>
-              mediator ! Publish("answers", b)
-            )
+            println("MATCH APISP")
+            SPMessage.make(h, x.asInstanceOf[APISP]).map { b =>
+              mediator ! Publish("answers", b.toJson)
+            }
 
         }
       }
