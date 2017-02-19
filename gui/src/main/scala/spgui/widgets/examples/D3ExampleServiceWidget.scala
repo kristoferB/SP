@@ -18,6 +18,7 @@ import util.Try
 sealed trait API_D3ExampleService
 object API_D3ExampleService {
   case class Start() extends API_D3ExampleService
+  case class Stop() extends API_D3ExampleService
   case class D3Data(barHeights: List[Int]) extends API_D3ExampleService
 
   val service = "d3ExampleService"
@@ -47,9 +48,17 @@ object D3ExampleServiceWidget {
       Callback.empty
     }
 
-    def render(list: List[Int]) =
+    def stop: Callback = {
+      val h = SPHeader("D3ExampleServiceWidget", API_D3ExampleService.service, "D3ExampleServiceWidget")
+      val json = SPMessage.make(h, API_D3ExampleService.Stop())
+      json foreach (BackendCommunication.publishMessage("services", _))
+      Callback.empty
+    }
+
+   def render(list: List[Int]) =
       <.div(
-        <.button("send", ^.onClick --> start),
+        <.button("Start", ^.onClick --> start),
+        <.button("Stop", ^.onClick --> stop),
         d3DivComponent(list)
       )
   }
@@ -57,6 +66,7 @@ object D3ExampleServiceWidget {
   private val component = ReactComponentB[Unit]("D3DataReceiver")
     .initialState(List.fill(8)(nextInt(50)))
     .renderBackend[RBackend]
+    .componentWillUnmount(_.backend.stop)
     .build
 
   private val d3DivComponent = ReactComponentB[List[Int]]("d3DivComponent")
