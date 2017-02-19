@@ -6,6 +6,7 @@ import japgolly.scalajs.react.ReactDOM
 
 import spgui.SPWidget
 import spgui.communication._
+import sp.messages.Pickles._
 
 import upickle._
 import org.singlespaced.d3js.d3
@@ -19,9 +20,7 @@ object API_D3ExampleService {
   case class Start() extends API_D3ExampleService
   case class D3Data(barHeights: List[Int]) extends API_D3ExampleService
 
-  import APIParser._
-  implicit val readWriter: ReadWriter[API_D3ExampleService] =
-    macroRW[Start] merge macroRW[D3Data]
+  val service = "d3ExampleService"
 }
 
 object D3ExampleServiceWidget {
@@ -32,7 +31,7 @@ object D3ExampleServiceWidget {
   private class RBackend($: BackendScope[Unit, List[Int]]) {
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        Try(APIParser.readJs[API_D3ExampleService](mess.body)) map {
+        mess.getBodyAs[API_D3ExampleService] map {
           case API_D3ExampleService.D3Data(l) =>
             $.modState(_ => l).runNow()
           case x =>
@@ -41,12 +40,10 @@ object D3ExampleServiceWidget {
       }, "d3ExampleAnswers"
     )
 
-    val msg = UPickleMessage(Js.Str("some header"), Js.Str("thisISTheBodyTrorInteDenSyns"))
-
     def start: Callback = {
-      val h = SPHeader("D3ExampleServiceWidget", API_ExampleService.service, "ExampleServiceWidget")
-      val json = UPickleMessage(APIParser.writeJs(h), APIParser.writeJs(API_D3ExampleService.Start()))
-      BackendCommunication.publishMessage("services", json)
+      val h = SPHeader("D3ExampleServiceWidget", API_D3ExampleService.service, "D3ExampleServiceWidget")
+      val json = SPMessage.make(h, API_D3ExampleService.Start())
+      json foreach (BackendCommunication.publishMessage("services", _))
       Callback.empty
     }
 

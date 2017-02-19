@@ -3,6 +3,7 @@ package sp.d3exampleservice
 import sp.domain._
 import sp.domain.Logic._
 import sp.messages._
+import sp.messages.Pickles._
 
 import akka.actor._
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
@@ -32,15 +33,15 @@ class D3ExampleService extends Actor with ActorLogging {
   def receive = {
     case "tick" =>
       val barHeights = List.fill(7)(nextInt(50))
-      val spm = SPMessage(
+      val spm = SPMessage.make(
         SPAttributes("from" -> D3ExampleService.service).addTimeStamp,
-        APIParser.writeJs(API_D3ExampleService.D3Data(barHeights))
-      )
-      mediator ! Publish("d3ExampleAnswers", APIParser.write(spm))
+        API_D3ExampleService.D3Data(barHeights)
+      ).map(_.toJson)
+      spm foreach (mediator ! Publish("d3ExampleAnswers", _))
     case x: String =>
       SPMessage.fromJson(x) match {
         case Success(spm: SPMessage) =>
-          if(Try(APIParser.readJs[API_D3ExampleService.Start](spm.body)).isSuccess)
+          if(Try(spm.getBodyAs[API_D3ExampleService.Start]).isSuccess)
             context.system.scheduler.schedule(0.5 seconds, 0.5 seconds, self, "tick")
         case x => println(s"D3Exampleservice didn't recognize $x")
 
