@@ -4,6 +4,8 @@ name := "spgui"
 
 version := "0.0.1"
 
+scalaOrganization in ThisBuild := "org.typelevel"
+
 scalaVersion := "2.11.8"
 
 val scalaJSReactVersion = "0.11.3"
@@ -20,7 +22,8 @@ libraryDependencies ++= Seq(
   "me.chrons" %%% "diode-react" % diodeVersion,
   "com.lihaoyi" %%% "upickle" % "0.4.3",
   "com.lihaoyi" %%% "scalarx" % "0.3.2",
-  "org.singlespaced" %%% "scalajs-d3" % "0.3.3"
+  "org.singlespaced" %%% "scalajs-d3" % "0.3.3",
+  "org.scalatest" %%% "scalatest" % "3.0.0" % "test"
 )
 
 /* This is how to include js files. Put it in src/main/resources.

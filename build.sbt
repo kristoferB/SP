@@ -1,4 +1,5 @@
 name := "SequencePlanner"
+scalaOrganization in ThisBuild := "org.typelevel"
 scalaVersion := "2.11.8"
 version := "2.0_M1"
 
@@ -9,7 +10,8 @@ lazy val akka = Seq(
   "com.typesafe.akka" %% "akka-testkit" % "2.4.16",
   "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test",
   "org.slf4j" % "slf4j-simple" % "1.7.7",
-  "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.1"
+  "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.1",
+  "com.lihaoyi" %% "upickle" % "0.4.3"
 )
 
 lazy val json = Seq(
@@ -23,7 +25,10 @@ lazy val support = Seq(
   "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test"
 )
 
-lazy val commonSettings = packSettings ++ Seq(
+lazy val scalaReflect = Def.setting { "org.scala-lang" % "scala-reflect" % scalaVersion.value }
+
+lazy val commonSettings = Seq(
+  scalaOrganization in ThisBuild := "org.typelevel",
   scalaVersion := "2.11.8",
   resolvers ++= Seq(
     "Sonatype OSS Snapshots" at "https://oss.sonatype.org/Releases",
@@ -38,14 +43,14 @@ lazy val commonSettings = packSettings ++ Seq(
     "-language:implicitConversions",
     "-language:postfixOps"
   ),
-  packMain:= Map("SP"->"sp.launch.SP"),
-  packResourceDir += (baseDirectory.value/ "../gui/web" -> "bin/gui/web")
-
+  fork := true,
+  javaOptions += s"-Dconfig.file=${root.base.getCanonicalPath}/cluster.conf",
+  connectInput in run := true
 )
 
 
 lazy val root = project.in( file(".") )
-  .aggregate(spdomain, spcore, macros, gui)
+  //.aggregate(spdomain, spcore, macros, gui)
 
 lazy val spdomain = project
   .settings(commonSettings: _*)
@@ -53,10 +58,12 @@ lazy val spdomain = project
 lazy val spcore = project
   .dependsOn(spdomain, macros)
   .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= akka)
+
 
 lazy val macros = project
   .settings(commonSettings: _*)
-  .settings(libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _))
+  .settings(libraryDependencies += scalaReflect.value)
   .settings(libraryDependencies ++= json)
 
 lazy val gui = project

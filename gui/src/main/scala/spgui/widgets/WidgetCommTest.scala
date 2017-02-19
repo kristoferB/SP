@@ -7,64 +7,67 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scala.concurrent.Future
 import scala.concurrent.Promise
-
 import scala.util.{Failure, Success, Try}
-import spgui.SPWidget
-import spgui.widgets.APITesting.AnAnswer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.ClassTag
-
-  sealed trait API
-object APITEST {
-  case class Test1(p1: String, p2: String) extends API
-  case class Test2(p1: Int, p2: Int) extends API
-  case class Test3(p1: Double, p2: Tom) extends API
-
-  sealed trait SUB
-  case class Tom(str: String) extends SUB
-
-}
+import rx._
+import sp.domain._
+import sp.messages._
+import Pickles._
 
 
-case class Hej(p1: String)
-case class Hej2(p1: Int)
-case class Cme(c: Int)
-
-sealed trait APITesting
-object APITesting {
-  val service = "testingWidget"
+package APITesting {
+  sealed trait APITesting
 
   case class ServiceCall(param1: String) extends APITesting
   case class RequestCall(param1: String) extends APITesting
 
   case class AnAnswer(from: String) extends APITesting
   case class Hi(from: String) extends APITesting
-
-  // This is sometimes needed due to a scala compilation bug
-  import APIParser._
-  implicit val readWriter: ReadWriter[APITesting] =
-    macroRW[ServiceCall] merge macroRW[RequestCall] merge
-  macroRW[AnAnswer] merge macroRW[Hi]
 }
+import spgui.widgets.{APITesting => api}
 
-
-
-
-
-import rx._
 
 object WidgetCommTest {
+
+  sealed trait API
+  object APITEST {
+    case class Test1(p1: String, p2: String) extends API
+    case class Test2(p1: Int, p2: Int) extends API
+    case class Test3(p1: Double, p2: Tom) extends API
+
+    sealed trait SUB
+    case class Tom(str: String) extends SUB
+
+  }
+
+
+  case class Hej(p1: String)
+  case class Hej2(p1: Int)
+  case class Cme(c: Int)
+
+
+
+
+// Sometimes this helper line is needed for the json parsing
+//  implicit val readWriter: ReadWriter[APITesting] =
+//    macroRW[APITesting.ServiceCall] merge macroRW[APITesting.RequestCall] merge
+//      macroRW[APITesting.AnAnswer] merge macroRW[APITesting.Hi]
+
+
 
   //type Comp = ReactComponentU[Unit, Unit, Unit, Element]
   case class State(str: String)
 
   private class Backend($: BackendScope[Unit, State]) {
 
+
+
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
         println("WE GOT IT")
         println(mess)
-        val testing = Try {APIParser.readJs[APITesting](mess.body)}.map{
+        val testing = fromSPValue[api.APITesting](mess.body).map{
             case APITesting.AnAnswer(p) => changeState(p).runNow()
             case APITesting.Hi(p) => changeState(p).runNow()
             case x =>
@@ -72,7 +75,7 @@ object WidgetCommTest {
             println(x)
           }
 
-        val sp = Try {APIParser.readJs[APISP](mess.body)}.map{
+        val sp = fromSPValue[APISP](mess.body).map{
             case APISP.SPACK(p) => println("SPACK")
             case APISP.SPOK(p) => println("SPOK")
             case APISP.SPDone(p) => println("SPDone")
@@ -128,23 +131,23 @@ object WidgetCommTest {
 
     def HoHo = {
 
-      val h = SPHeader("widgetCommTest", APITesting.service, "widgetCommTest", java.util.UUID.randomUUID())
+      val h = SPHeader("widgetCommTest", "", "widgetCommTest", java.util.UUID.randomUUID())
       val b = APITesting.ServiceCall("Hej från mig")
       println("hej")
 
-      val mess = UPickleMessage(APIParser.writeJs(h), APIParser.writeJs(b))
+      val mess = SPMessage(*(h), *(b))
 
 
 
       //Comm.initWS
 
 
-      BackendCommunication.publishMessage("services", mess)
+      BackendCommunication.publish(mess, "services")
 
 
 
       val b2 = APITesting.RequestCall("hoj från mig")
-      val mess2 = UPickleMessage(APIParser.writeJs(h), APIParser.writeJs(b2))
+      val mess2 = SPMessage(*(h), *(b2))
 
       val f = BackendCommunication.ask(mess2, "requests")
       f.map { v =>
@@ -245,6 +248,6 @@ object WidgetCommTest {
       .componentWillUnmount(_.backend.onUnmount())
     .build
 
-  def apply() = SPWidget(spwb => component())
+  def apply() = spgui.SPWidget(spwb => component())
 }
 

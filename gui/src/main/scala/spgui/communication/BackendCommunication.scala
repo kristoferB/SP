@@ -2,22 +2,21 @@ package spgui.communication
 
 import java.util.UUID
 
-
 import scala.concurrent.Future
 import scala.concurrent.Promise
-
 import scala.util.{Failure, Success, Try}
 import org.scalajs._
 import org.scalajs.dom.ext.Ajax
 import org.scalajs.dom.raw.WebSocket
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.reflect.ClassTag
+import sp.domain._
+import sp.messages._
+import Pickles._
 
 
-
-
-
-
+import spgui.communication.{APIWebSocket => socketAPI}
 
 
 /**
@@ -31,6 +30,8 @@ object BackendCommunication {
   // Each topic has its own websocket listener. Any one of them can be used for sending to any topic
   private var sockets: Map[String, WebSocketHandler] = Map()
 
+  val id: UUID = UUID.randomUUID()
+
   def initCommunication(reInit: Boolean = false): Unit = {
     if (sockets.isEmpty  || reInit) {
       val answers = newWebsocket("answers")
@@ -39,13 +40,23 @@ object BackendCommunication {
     }
   }
 
+  def ask( mess: SPMessage, topic: String = "requests"): Future[SPMessage] = {
+    val url = org.scalajs.dom.window.location.href + "api/ask/"+topic
+    post(toJson(mess), url)
+  }
+
+  def publish(mess: SPMessage, topic: String = "services"): Future[String] = {
+    val url = org.scalajs.dom.window.location.href + "api/publish/"+topic
+    post(toJson(mess), url).map(x => "posted")
+  }
+
   /**
-    * Publish a message on a topic via websocket
+    * Publish a message on a topic via websocket. Not sure it works very good. Use publish
     * @param topic The topic to publish on
     * @param mess The message to send
     * @return An option with a reactive variable to be used as observer. call trigger on it for side effects
     */
-  def publishMessage(topic: String,  mess: UPickleMessage) = {
+  def publishMessage(topic: String,  mess: SPMessage) = {
     initCommunication()
     ws.publishMessage(topic, mess)
   }
@@ -64,10 +75,10 @@ object BackendCommunication {
     }
   }
 
-  def getMessageObserver(callBack: (UPickleMessage) => Unit, topic: String = "answers"): rx.Obs = {
+  def getMessageObserver(callBack: (SPMessage) => Unit, topic: String = "answers"): rx.Obs = {
     getMessageVar(topic).foreach(callBack)
   }
-  def getWebSocketNotificationsCB(callBack: (String) => Unit, topic: String = "answers" ): rx.Obs = {
+  def getWebSocketNotificationsCB(callBack: (SPMessage) => Unit, topic: String = "answers" ): rx.Obs = {
     getWebSocketNotifications(topic).foreach(callBack)
   }
   def getWebSocketErrorsCB(callBack: (String) => Unit, topic: String = "answers" ): rx.Obs = {
@@ -77,11 +88,11 @@ object BackendCommunication {
     getWebSocketStatus(topic)
   }
 
-  def getMessageVar(topic: String = "answers"): rx.Var[UPickleMessage] = {
+  def getMessageVar(topic: String = "answers"): rx.Var[SPMessage] = {
     subscribe(topic)
     sockets(topic).receivedMessage
   }
-  def getWebSocketNotifications(topic: String = "answers" ): rx.Var[String] = {
+  def getWebSocketNotifications(topic: String = "answers" ): rx.Var[SPMessage] = {
     subscribe(topic)
     sockets(topic).notification
   }
@@ -98,24 +109,16 @@ object BackendCommunication {
 
 
 
-  def ask( mess: UPickleMessage, topic: String = "requests"): Future[UPickleMessage] = {
-    val url = org.scalajs.dom.window.location.href + "api/ask/"+topic
-    post(APIParser.write(mess), url)
-  }
 
-  def publish(mess: UPickleMessage, topic: String = "services"): Future[String] = {
-    val url = org.scalajs.dom.window.location.href + "api/publish/"+topic
-    post(APIParser.write(mess), url).map(x => "posted")
-  }
 
   private def post(x: String, url: String) = {
-    val p = Promise[UPickleMessage]
+    val p = Promise[SPMessage]
     Ajax.post(url, x).onSuccess{ case xhr =>
-      val socketAPI =  Try{APIParser.read[APIWebSocket](xhr.responseText)}
-      val message =  Try{APIParser.read[UPickleMessage](xhr.responseText)}
+      val api =  fromJson[socketAPI.APIWebSocket](xhr.responseText)
+      val message =  fromJson[SPMessage](xhr.responseText)
       p.complete(message)
-      socketAPI.map{case x => println("post got: " + x)}
-      socketAPI.recover{case x => println("post got (parse error): " + x.getMessage)}
+      api.map{case x => println("post got: " + x)}
+      api.recover{case x => println("post got (parse error): " + x.getMessage)}
     }
     p.future
   }
@@ -132,7 +135,7 @@ object BackendCommunication {
 
   def getWebsocketUri(topic: String): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}/socket/$topic"
+    s"$wsProtocol://${dom.document.location.host}/socket/$topic/$id"
 
   }
 
@@ -146,9 +149,9 @@ case class WebSocketHandler(uri: String) {
   import scala.concurrent.duration._
   implicit val ctx: Ctx.Owner = Ctx.Owner.safe()
 
-  def publishMessage(topic: String,  mess: UPickleMessage) = {
-    val toSend = APIWebSocket.PublishMessage(mess, topic)
-    sendMessage(APIParser.write(toSend))
+  def publishMessage(topic: String,  mess: SPMessage) = {
+    val toSend = socketAPI.PublishMessage(mess, topic)
+    sendMessage(toJson(toSend))
     receivedMessage
   }
 
@@ -159,14 +162,14 @@ case class WebSocketHandler(uri: String) {
   def sendMessage(mess: String) = {
     if (wsOpen.now) {
       ws.send(mess)
-    } else notification() = "The websocket is not Open"
+    } else errors() = "The websocket is not Open"
   }
 
 
 
   val mess = Var("")
-  val receivedMessage: Var[UPickleMessage] = Var(UPickleMessage(upickle.Js.Null, upickle.Js.Null))
-  val notification = Var("")
+  val receivedMessage: Var[SPMessage] = Var(SPMessage(SPAttributes(), SPAttributes()))
+  val notification: Var[SPMessage] = Var(SPMessage(SPAttributes(), SPAttributes()))
   val errors = Var("")
   val wsOpen = Var(false)
   val retry = Var(false)
@@ -185,7 +188,8 @@ case class WebSocketHandler(uri: String) {
       wsOpen() = true
     }
     newWs.onmessage = (e: dom.MessageEvent) => {
-      mess() = e.data.toString
+      if (e.data.toString != "keep-alive")
+        mess() = e.data.toString
     }
     newWs.onclose = { (e: dom.Event) =>
       wsOpen() = false
@@ -197,23 +201,34 @@ case class WebSocketHandler(uri: String) {
     newWs
   }
 
-
-  def conv(str: String) = {
-    Try{APIParser.read[APIWebSocket](str)} match {
-      case x: Success[APIWebSocket] => x.value
-      case x: Failure[_] => APIWebSocket.SPError(x.exception.getMessage)
+  // need to have separete functions for json magic due to macro problems
+  def fJ(str: String) = SPMessage.fromJson(str)
+  val convWebsocketStringToSPMessage = Rx{
+    val str = mess()
+    //println("websocket got a message: "+ str)
+    fJ(str)
     }
-  }
-  val api = Rx{conv(mess())} // need to have seperate conv due to macro problems
 
 
-  val filter = Rx {
-      api() match {
-        case m: APIWebSocket.PublishMessage => receivedMessage() = m.mess
-        case m: APIWebSocket.SPACK => notification() = "spack"
-        case m: APIWebSocket.SPError => errors() = m.message // handle error better
-        case x => errors() = "Shouldn't get this on websocket: " + x.toString
-      }
+
+
+  def getAsSPE(p: Pickle) = p.getAs[APISP.SPError]()
+  def getAsSPAPI(p: Pickle) = p.getAs[APISP]()
+
+  val separateGeneralMessages = Rx {
+    val a = convWebsocketStringToSPMessage()
+    a.map{
+      case x @ SPMessage(h, b) if getAsSPE(b).nonEmpty =>
+        errors() = getAsSPE(b).get.message
+      case x @ SPMessage(h, b) if getAsSPAPI(b).nonEmpty =>
+        notification() = x
+        receivedMessage() = x
+      case x => receivedMessage() = x
+    }
+    a.failed.foreach(t =>
+      errors() = "Didn't get an SPMessage: " + t.getMessage
+    )
+
   }
 
   errors.triggerLater {
@@ -224,13 +239,13 @@ case class WebSocketHandler(uri: String) {
   }
 //   //some printlns for testing
 //  mess.trigger(println("GOT A MESSAGE ON WEBSOCKET: " + mess.now))
-//  api.trigger(println("Converted Message: " + api.toTry))
-//  notification.trigger {
-//    println(s"A NOTIFICATION: ${notification.now}")
-//  }
-//  receivedMessage.trigger {
-//    println(s"A Message: ${receivedMessage.now}")
-//  }
+//  socketAPI.trigger(println("Converted Message: " + socketAPI.toTry))
+  notification.trigger {
+    println(s"A NOTIFICATION: ${notification.now}")
+  }
+  errors.trigger {
+    println(s"An error: ${receivedMessage.now}")
+  }
 }
 
 

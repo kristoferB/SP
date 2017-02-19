@@ -13,11 +13,14 @@ import scala.util.{Failure, Success, Try}
 object Launch extends App {
 
   implicit val system = ActorSystem("SP")
-
-  // Start all you actors here.
-  system.actorOf(ExampleService.props, API_ExampleService.service)
-
   val cluster = akka.cluster.Cluster(system)
+
+  cluster.registerOnMemberUp {
+    println("ExampleService node has joined the cluster")
+    // Start all you actors here.
+    system.actorOf(ExampleService.props, API_ExampleService.attributes.service)
+  }
+
   scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
     case x =>
       cluster.leave(cluster.selfAddress)
