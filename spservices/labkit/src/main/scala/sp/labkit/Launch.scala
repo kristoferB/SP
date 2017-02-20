@@ -9,10 +9,12 @@ object Launch extends App {
 
   cluster.registerOnMemberUp {
     // Add root actors used in node here
+    system.actorOf(OPC.props, "OPC")
     system.actorOf(OPMakerLabKit.props, "opMakerLabKit")
     system.actorOf(ProductAggregator.props, "ProductAggregator")
     system.actorOf(ResourceAggregator.props, "ResourceAggregator")
   }
+
   scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
     case x =>
       cluster.leave(cluster.selfAddress)

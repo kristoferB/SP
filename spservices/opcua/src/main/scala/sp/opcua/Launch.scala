@@ -9,10 +9,9 @@ object Launch extends App {
   implicit val system = ActorSystem("SP")
   val cluster = akka.cluster.Cluster(system)
 
-  // Add root actors used in node here
   cluster.registerOnMemberUp {
+    // Add root actors used in node here
     val opcruntime = system.actorOf(OpcUARuntime.props, "OpcUARuntime")
-    system.actorOf(OPC.props(opcruntime), "OPC")
   }
 
   scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
