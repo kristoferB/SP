@@ -104,10 +104,15 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
 
 
       // act on the messages from the API. Always add the logic in a trait to enable testing
-      bodyAPI.map{ body =>
+      // we need to keep the old header, that is why we need to also extract the oldMess here and
+      // use if the the oldMess.make(...) below
+      for {
+        body <- bodyAPI
+        h <- header
+        oldMess <- message
+      } yield {
         val toSend = commands(body) // doing the logic
-        val h = header.get.copy(replyFrom = api.attributes.service, replyID = Some(ID.newID)) // upd header put keep most info
-
+        val spHeader = h.copy(replyFrom = api.attributes.service, replyID = Some(ID.newID)) // upd header put keep most info
         // We must do a pattern match here to enable the json conversion (SPMessage.make. Or the command can return pickled bodies
 
 
@@ -115,14 +120,14 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
           case mess @ _ if {println(s"ExampleService sends: $mess"); false} => Unit
           case x: api.API_ExampleService =>
             println("MATCH EXAMPLESERVICE")
-            val m = SPMessage.make(h, x.asInstanceOf[api.API_ExampleService])
+            val m = oldMess.make(h, x.asInstanceOf[api.API_ExampleService])
             println(m)
-            SPMessage.make(h, x.asInstanceOf[api.API_ExampleService]).map { b =>
+            oldMess.make(h, x.asInstanceOf[api.API_ExampleService]).map { b =>
               mediator ! Publish("answers", b.toJson)
             }
           case x: APISP =>
             println("MATCH APISP")
-            SPMessage.make(h, x.asInstanceOf[APISP]).map { b =>
+            oldMess.make(h, x.asInstanceOf[APISP]).map { b =>
               mediator ! Publish("answers", b.toJson)
             }
 
@@ -130,8 +135,13 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
       }
 
       // reply to a statusresponse
-      val responsesToStatusRequest = bodySP.map{ body =>
-        mediator ! Publish("spevents", SPMessage.make(SPHeader(api.attributes.service, "serviceHandler"), statusResponse))
+      for {
+        body <- bodySP
+        oldMess <- message
+      } yield {
+        val mess = oldMess.make(SPHeader(api.attributes.service, "serviceHandler"), APISP.StatusResponse(statusResponse))
+        mess.map(m => mediator ! Publish("spevents", m.toJson))
+
       }
 
 
@@ -150,7 +160,8 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
 
   // Sends a status response when the actor is started so service handlers finds it
   override def preStart() = {
-    mediator ! Publish("spevents", SPMessage.make(SPHeader(api.attributes.service, "serviceHandler"), statusResponse))
+    val mess = SPMessage.make(SPHeader(api.attributes.service, "serviceHandler"), statusResponse)
+    mess.map(m => mediator ! Publish("spevents", m.toJson))
   }
 
   // A "ticker" that sends a "tick" string to self every 2 second

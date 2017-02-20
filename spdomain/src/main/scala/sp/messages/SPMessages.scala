@@ -45,13 +45,28 @@ object Pickles extends SPParser {
       val updH = header.union(p)
       SPMessage(updH, body)
     }
+
+    /**
+      * Creates an updated SPMessage that keeps the header keyvals that is not defined in h
+      * @param h The upd key vals in the header
+      * @param b The new body
+      * @return an updated SPMessage
+      */
+    def make[T: Writer, V: Writer](h: T, b: V) = {
+      Try {
+        val newh = toPickle[T](h)
+        val newb = toPickle[V](b)
+        val updH = header.union(newh)
+        SPMessage(updH, newb)
+      }
+    }
   }
 
   object SPMessage {
     def make[T: Writer, V: Writer](header: T, body: V) = {
       Try{
-        val h = toPickle(header)
-        val b = toPickle(body)
+        val h = toPickle[T](header)
+        val b = toPickle[V](body)
         SPMessage(h, b)
       }
     }
