@@ -1,27 +1,29 @@
 package sp.labkit
 
 import akka.actor._
-import sp.domain.logic.{ActionParser, PropositionParser}
-import org.json4s.JsonAST.{JValue,JBool,JInt,JString}
-import org.json4s.DefaultFormats
 import sp.domain._
 import sp.domain.Logic._
+
 import scala.concurrent.Future
 import akka.util._
 import akka.pattern.ask
+
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.util.Properties
 import akka.cluster.pubsub.DistributedPubSub
-import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
+import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Put, Subscribe}
 import java.util.concurrent.TimeUnit
+
 import org.joda.time.DateTime
 import sp.messages._
+import Pickles._
+
 import scala.util.{Failure, Success, Try}
 
 // to be able to use opcua runtime api
-sealed trait API_OpcUARuntime
-object API_OpcUARuntime {
+package API_OpcUARuntime {
+  sealed trait API_OpcUARuntime
   // requests
   case class Connect(url: String) extends API_OpcUARuntime
   case class Disconnect() extends API_OpcUARuntime
@@ -34,8 +36,11 @@ object API_OpcUARuntime {
   case class AvailableNodes(nodes: Map[String, String]) extends API_OpcUARuntime
   case class StateUpdate(state: Map[String, SPValue], timeStamp: String) extends API_OpcUARuntime
 
-  val service = "OpcUARuntime"
+  object attributes {
+    val service = "OpcUARuntime"
+  }
 }
+import sp.labkit.{API_OpcUARuntime => api}
 
 object OPC {
   def props = Props(classOf[OPC])
@@ -70,56 +75,66 @@ class OPC extends Actor {
 
     case "connect" =>
       println("labkit: connecting to opc")
-      val header = SPAttributes("to" -> API_OpcUARuntime.service, "replyID" -> ID.newID)
-      val body = APIParser.writeJs(API_OpcUARuntime.Connect(url))
-      val message = APIParser.write(SPMessage(header, body))
-      mediator ! Publish("services", message)
+      val header = SPHeader(from = api.attributes.service,  to = api.attributes.service, replyID = Some(ID.newID.value))
+      val body = api.Connect(url)
+      val message = SPMessage.make(header, body).map(_.toJson)
+      message.map(m => mediator ! Publish("services", m))
 
 
     case x: String =>
-      // SPMessage uses the APIParser to parse the json string
-      SPMessage.fromJson(x) match {
-        case Success(mess) =>
-          println(s"labkit: got ${mess.toString}")
-          getOPCUARuntimeMessage(mess).map{
-            case API_OpcUARuntime.ConnectionStatus(connectionStatus) =>
-              if(!connected && connectionStatus) {
-                connected = true
-                val header = SPAttributes("to" -> API_OpcUARuntime.service, "replyID" -> ID.newID)
-                val body = APIParser.writeJs(API_OpcUARuntime.Subscribe(nodeIDsToNode.map(_._1).toList))
-                val message = APIParser.write(SPMessage(header, body))
-                mediator ! Publish("services", message)
-              }
-              if(!connectionStatus) {
-                // try again in five seconds
-                context.system.scheduler.scheduleOnce(Duration(5, TimeUnit.SECONDS), self, "connect")
-              }
-            case API_OpcUARuntime.StateUpdate(state: Map[String, SPValue], timeStamp: String) =>
-              val shortMap = state.map(p=>nodeIDsToNode(p._1)->p._2).toMap
-              mediator ! Publish("raw", SPAttributes("state"->shortMap, "time" -> timeStamp).toJson)
-            case _ =>
-          }
-        case Failure(err) =>
+      val message = SPMessage.fromJson(x)
+      val header = for {m <- message; h <- m.getHeaderAs[SPHeader]} yield h
+      val bodyAPI = for {
+        m <- message
+        h <- header if h.to == api.attributes.service
+        b <- m.getBodyAs[api.API_OpcUARuntime]
+      } yield b
+
+      val bodySP = for {m <- message; b <- m.getBodyAs[APISP.StatusRequest]} yield b
+
+      for {
+        body <- bodyAPI
+        h <- header
+        oldMess <- message
+      } yield {
+        body match {
+          case api.ConnectionStatus(connectionStatus) if !connected && connectionStatus =>
+              connected = true
+              val header = SPHeader(from = api.attributes.service,  to = api.attributes.service, replyID = Some(ID.newID.value))
+              val body = api.Subscribe(nodeIDsToNode.map(_._1).toList)
+              val message = SPMessage.makeJson(header, body).map(m =>
+                mediator ! Publish("services", m)
+              )
+
+          case api.ConnectionStatus(connectionStatus) if !connected && connectionStatus =>
+              context.system.scheduler.scheduleOnce(Duration(5, TimeUnit.SECONDS), self, "connect")
+
+          case api.StateUpdate(state: Map[String, SPValue], timeStamp: String) =>
+            val shortMap = state.map(p=>nodeIDsToNode(p._1)->p._2).toMap
+            mediator ! Publish("raw", SPAttributes("state"->shortMap, "time" -> timeStamp).toJson)
+          case _ =>
+        }
       }
-    case _ =>
+
+      for {
+        body <- bodySP
+        oldMess <- message
+      } yield {
+        val mess = oldMess.makeJson(SPHeader(api.attributes.service, "serviceHandler"), APISP.StatusResponse(statusResponse))
+        mess.map(m => mediator ! Publish("spevents", m))
+
+      }
+
+
   }
 
-  def getMyMessage(spMess : SPMessage) = {
-    val to = spMess.header.getAs[String]("to").getOrElse("") // extracts the header.to, if it is to me
-    val body = Try{APIParser.readJs[API_OpcUARuntime](spMess.body)}
-    if (body.isSuccess && to == API_OpcUARuntime.service)
-      Some(body.get)
-    else
-      None
-  }
-
-  def getOPCUARuntimeMessage(spMess : SPMessage) = {
-    val to = spMess.header.getAs[String]("from").getOrElse("") // answer from opcua runtime?
-    val body = Try{APIParser.readJs[API_OpcUARuntime](spMess.body)}
-    if (body.isSuccess && to == API_OpcUARuntime.service)
-      Some(body.get)
-    else
-      None
-  }
+  val statusResponse = SPAttributes(
+    "service" -> api.attributes.service,
+    "api" -> "to be added with macros later",
+    "groups" -> List("opc"),
+    "attributes" -> api.attributes
+  )
 
 }
+
+

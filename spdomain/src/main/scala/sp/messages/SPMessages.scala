@@ -27,7 +27,7 @@ object Pickles extends SPParser {
 
 
   case class SPHeader(from: String,
-                       to: String,
+                       to: String = "",
                        replyTo: String = "",
                        reqID: UUID = UUID.randomUUID(),
                        replyFrom: String = "",
@@ -60,6 +60,9 @@ object Pickles extends SPParser {
         SPMessage(updH, newb)
       }
     }
+    def makeJson[T: Writer, V: Writer](header: T, body: V) = {
+      this.make[T, V](header, body).map(_.toJson)
+    }
   }
 
   object SPMessage {
@@ -69,6 +72,9 @@ object Pickles extends SPParser {
         val b = toPickle[V](body)
         SPMessage(h, b)
       }
+    }
+    def makeJson[T: Writer, V: Writer](header: T, body: V) = {
+      make[T, V](header, body).map(_.toJson)
     }
 
     def fromJson(json: String) = Try{

@@ -69,6 +69,7 @@ lazy val macros = project
 lazy val gui = project
 
 lazy val sp1 = project
+  .settings(commonSettings: _*)
 
 
 lazy val labkit = (project in file("spservices/labkit"))

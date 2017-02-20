@@ -11,16 +11,22 @@ object Launch extends App {
 
   cluster.registerOnMemberUp {
     // Add root actors used in node here
+    println("OPC UA node has been added to the cluster")
+
     val opcruntime = system.actorOf(OpcUARuntime.props, "OpcUARuntime")
   }
-
-  scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
-    case x =>
-      cluster.leave(cluster.selfAddress)
-      system.terminate()
-      // wait for actors to die
-      Await.ready(system.whenTerminated, Duration(10, SECONDS))
-      // cleanup milo crap
-      MiloOPCUAClient.destroy()
+  cluster.registerOnMemberRemoved{
+    println("OPC UA node has been removed from the cluster")
   }
+
+
+  scala.io.StdIn.readLine("Press ENTER to exit cluster.\n")
+  cluster.leave(cluster.selfAddress)
+
+  scala.io.StdIn.readLine("Press ENTER to exit application.\n")
+  Await.ready(system.whenTerminated, Duration(10, SECONDS))
+  // cleanup milo crap
+  MiloOPCUAClient.destroy()
+  system.terminate()
+
 }
