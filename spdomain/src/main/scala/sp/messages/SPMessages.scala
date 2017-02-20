@@ -39,6 +39,12 @@ object Pickles extends SPParser {
     def getBodyAs[T: Reader] = fromPickle[T](body)
 
     def toJson = write(this)
+
+    def extendHeader[T: Writer](w: T) = {
+      val p = toPickle[T](w)
+      val updH = header.union(p)
+      SPMessage(updH, body)
+    }
   }
 
   object SPMessage {
@@ -58,7 +64,7 @@ object Pickles extends SPParser {
 
 
 
-  implicit class valueLogic(value: Pickle) {
+  implicit class pickleLogic(value: Pickle) {
     def getAs[T: Reader](key: String = "") = {
       getAsTry[T](key).toOption
     }
@@ -72,10 +78,17 @@ object Pickles extends SPParser {
 
     def toJson = upickle.json.write(value)
 
+    def union(p: Pickle) = {
+      Try{
+        val map = value.obj ++ p.obj
+        upickle.Js.Obj(map.toSeq:_*)
+      }.getOrElse(value)
+    }
+
   }
 
 
-  implicit class valueLogicOption(value: Option[Pickle]) {
+  implicit class pickleLogicOption(value: Option[Pickle]) {
     def getAs[T: Reader](key: String = "") = {
       val x = Try{value.get.obj.get(key)}.getOrElse(value)
       x.flatMap(v => Try{readJs[T](v)}.toOption)
