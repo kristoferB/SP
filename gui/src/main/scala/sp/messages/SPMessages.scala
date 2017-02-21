@@ -22,9 +22,6 @@ object APISP {
 
 object Pickles extends SPParser {
 
-
-  type Pickle = upickle.Js.Value
-
   case class SPHeader(from: String,
                       to: String,
                       replyTo: String = "",
@@ -33,20 +30,35 @@ object Pickles extends SPParser {
                       replyID: Option[UUID] = None)
 
 
-  case class SPMessage(header: Pickle, body: Pickle) {
+  case class SPMessage(header: SPValue, body: SPValue) {
     def getHeaderAs[T: Reader] = fromSPValue[T](header)
     def getBodyAs[T: Reader] = fromSPValue[T](body)
 
     def toJson = write(this)
+
+    /**
+      * Creates an updated SPMessage that keeps the header keyvals that is not defined in h
+      * @param h The upd key vals in the header
+      * @param b The new body
+      * @return an updated SPMessage
+      */
+    def make[T: Writer, V: Writer](h: T, b: V) = {
+        val newh = toSPValue[T](h)
+        val newb = toSPValue[V](b)
+        val updH = header.union(newh)
+        SPMessage(updH, newb)
+
+    }
+    def makeJson[T: Writer, V: Writer](header: T, body: V) = {
+      this.make[T, V](header, body).toJson
+    }
   }
 
   object SPMessage {
     def make[T: Writer, V: Writer](header: T, body: V) = {
-      Try{
         val h = toSPValue(header)
         val b = toSPValue(body)
         SPMessage(h, b)
-      }
     }
 
     def fromJson(json: String) = Try{

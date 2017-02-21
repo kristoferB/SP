@@ -6,7 +6,7 @@ import spgui.widgets.examples.ExampleServiceWidget
 
 
 object WidgetList {
-  def apply() =
+  val list =
     List[(String, SPWidgetBase => ReactElement)](
       ("Grid Test", spgui.dashboard.GridTest()),
       ("Widget Injection", widgets.injection.WidgetInjectionTest()),
@@ -22,6 +22,8 @@ object WidgetList {
       ("D3Test", widgets.examples.D3Example()),
       ("ExampleServiceWidget", ExampleServiceWidget())
     )
+
+  val map = list.toMap
 }
 
 object PlaceholderComp {

@@ -14,6 +14,7 @@ package object domain {
   type SPAttributes = upickle.Js.Obj
   type SPValue = upickle.Js.Value
 
+
   object SPValue {
     def apply[T: Writer](expr: T): SPValue = Pickles.toSPValue(expr)
   }
