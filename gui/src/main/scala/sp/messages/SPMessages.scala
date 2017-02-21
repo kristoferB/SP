@@ -38,6 +38,24 @@ object Pickles extends SPParser {
     def getBodyAs[T: Reader] = fromSPValue[T](body)
 
     def toJson = write(this)
+
+    /**
+      * Creates an updated SPMessage that keeps the header keyvals that is not defined in h
+      * @param h The upd key vals in the header
+      * @param b The new body
+      * @return an updated SPMessage
+      */
+    def make[T: Writer, V: Writer](h: T, b: V) = {
+      Try {
+        val newh = toSPValue[T](h)
+        val newb = toSPValue[V](b)
+        val updH = header.union(newh)
+        SPMessage(updH, newb)
+      }
+    }
+    def makeJson[T: Writer, V: Writer](header: T, body: V) = {
+      this.make[T, V](header, body).map(_.toJson)
+    }
   }
 
   object SPMessage {

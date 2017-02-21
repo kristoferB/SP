@@ -21,12 +21,17 @@ object D3Example {
     .render{dcb =>
       <.div(
         <.button("mod state", ^.onClick --> dcb.modState(_.map(_ => nextInt(50)))),
-        d3DivComponent(dcb.state)
+        D3BarsComponent(dcb.state)
       )
     }
     .build
 
-  private val d3DivComponent = ReactComponentB[List[Int]]("d3DivComponent")
+}
+
+object D3BarsComponent {
+  def apply(data: List[Int]) = component(data)
+
+  private val component = ReactComponentB[List[Int]]("d3DivComponent")
     .render(_ => <.div())
     .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentProps)))
     .build
@@ -46,6 +51,8 @@ object D3Example {
     val rectColorFun = (d: Int, i: Int) => c.brighter(i * 0.2).toString
 
     // clear all before rendering new data
+    // plain-js d3-examples online don't have this line, adding it is a way
+    // to let react take care of the rerendering, rather than d3 itself
     d3.select(element).selectAll("*").remove()
     val svg = d3.select(element).append("svg").attr("width", "100%").attr("height", "220")
     val sel = svg.selectAll("rect").data(list.toJsArray)

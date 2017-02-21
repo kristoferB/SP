@@ -27,7 +27,7 @@ object Pickles extends SPParser {
 
 
   case class SPHeader(from: String,
-                       to: String,
+                       to: String = "",
                        replyTo: String = "",
                        reqID: UUID = UUID.randomUUID(),
                        replyFrom: String = "",
@@ -39,15 +39,42 @@ object Pickles extends SPParser {
     def getBodyAs[T: Reader] = fromPickle[T](body)
 
     def toJson = write(this)
+
+    def extendHeader[T: Writer](w: T) = {
+      val p = toPickle[T](w)
+      val updH = header.union(p)
+      SPMessage(updH, body)
+    }
+
+    /**
+      * Creates an updated SPMessage that keeps the header keyvals that is not defined in h
+      * @param h The upd key vals in the header
+      * @param b The new body
+      * @return an updated SPMessage
+      */
+    def make[T: Writer, V: Writer](h: T, b: V) = {
+      Try {
+        val newh = toPickle[T](h)
+        val newb = toPickle[V](b)
+        val updH = header.union(newh)
+        SPMessage(updH, newb)
+      }
+    }
+    def makeJson[T: Writer, V: Writer](header: T, body: V) = {
+      this.make[T, V](header, body).map(_.toJson)
+    }
   }
 
   object SPMessage {
     def make[T: Writer, V: Writer](header: T, body: V) = {
       Try{
-        val h = toPickle(header)
-        val b = toPickle(body)
+        val h = toPickle[T](header)
+        val b = toPickle[V](body)
         SPMessage(h, b)
       }
+    }
+    def makeJson[T: Writer, V: Writer](header: T, body: V) = {
+      make[T, V](header, body).map(_.toJson)
     }
 
     def fromJson(json: String) = Try{
@@ -58,7 +85,7 @@ object Pickles extends SPParser {
 
 
 
-  implicit class valueLogic(value: Pickle) {
+  implicit class pickleLogic(value: Pickle) {
     def getAs[T: Reader](key: String = "") = {
       getAsTry[T](key).toOption
     }
@@ -72,10 +99,17 @@ object Pickles extends SPParser {
 
     def toJson = upickle.json.write(value)
 
+    def union(p: Pickle) = {
+      Try{
+        val map = value.obj ++ p.obj
+        upickle.Js.Obj(map.toSeq:_*)
+      }.getOrElse(value)
+    }
+
   }
 
 
-  implicit class valueLogicOption(value: Option[Pickle]) {
+  implicit class pickleLogicOption(value: Option[Pickle]) {
     def getAs[T: Reader](key: String = "") = {
       val x = Try{value.get.obj.get(key)}.getOrElse(value)
       x.flatMap(v => Try{readJs[T](v)}.toOption)

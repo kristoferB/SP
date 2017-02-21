@@ -9,13 +9,14 @@ object SPDropdown {
 
   private val component = ReactComponentB[Props]("SPDropdown")
     .render_P(props =>
-    <.div(
+    <.li(
       ^.className := "dropdown",
       <.div(
         ^.id := "something",
         ^.tpe := "button",
-        ^.className := "btn btn-default navbar-btn",
         ReactAttr.Generic("data-toggle") := "dropdown",
+        ^.className := SPMenuCSS.dropDownButton.htmlClass,
+        ^.className := "btn btn-default navbar-btn",
         aria.haspopup := "true",
         aria.expanded := "false",
         props.icon),
@@ -29,10 +30,10 @@ object SPDropdown {
   )
     .build
 
-  def apply(buttonsProps: List[(String, Callback)],icon: ReactNode, title:String) =
+  def apply(buttonsProps: List[(String, Callback)],icon: ReactNode, title: String) =
     component(Props(
       <.div(
-        ^.className := SPMenuCSS.dropDownButton.htmlClass,
+        ^.className := SPMenuCSS.dropDownButtonInner.htmlClass,
         <.div(
           ^.className:= SPMenuCSS.buttonIconSpacing.htmlClass,
           icon
