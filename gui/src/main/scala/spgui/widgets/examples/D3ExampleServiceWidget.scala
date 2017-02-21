@@ -1,0 +1,71 @@
+package spgui.widgets.examples
+
+import japgolly.scalajs.react._
+import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.ReactDOM
+
+import spgui.SPWidget
+import spgui.communication._
+import sp.messages.Pickles._
+
+import upickle._
+import org.singlespaced.d3js.d3
+import org.singlespaced.d3js.Ops._
+import org.scalajs.dom.raw
+import util.Random.nextInt
+import util.Try
+
+sealed trait API_D3ExampleService
+object API_D3ExampleService {
+  case class Start() extends API_D3ExampleService
+  case class Stop() extends API_D3ExampleService
+  case class D3Data(barHeights: List[Int]) extends API_D3ExampleService
+
+  val service = "d3ExampleService"
+}
+
+object D3ExampleServiceWidget {
+  def apply() = SPWidget{spwb =>
+    component()
+  }
+
+  private class RBackend($: BackendScope[Unit, List[Int]]) {
+    val messObs = BackendCommunication.getMessageObserver(
+      mess => {
+        mess.getBodyAs[API_D3ExampleService] map {
+          case API_D3ExampleService.D3Data(l) =>
+            $.modState(_ => l).runNow()
+          case x =>
+            println(s"THIS WAS NOT EXPECTED IN D3ExampleServiceWidget: $x")
+        }
+      }, "d3ExampleAnswers"
+    )
+
+    def start: Callback = {
+      val h = SPHeader("D3ExampleServiceWidget", API_D3ExampleService.service, "D3ExampleServiceWidget")
+      val json = SPMessage.make(h, API_D3ExampleService.Start())
+      json foreach (BackendCommunication.publishMessage("services", _))
+      Callback.empty
+    }
+
+    def stop: Callback = {
+      val h = SPHeader("D3ExampleServiceWidget", API_D3ExampleService.service, "D3ExampleServiceWidget")
+      val json = SPMessage.make(h, API_D3ExampleService.Stop())
+      json foreach (BackendCommunication.publishMessage("services", _))
+      Callback.empty
+    }
+
+   def render(list: List[Int]) =
+      <.div(
+        <.button("Start", ^.onClick --> start),
+        <.button("Stop", ^.onClick --> stop),
+        D3BarsComponent(list)
+      )
+  }
+
+  private val component = ReactComponentB[Unit]("D3DataReceiver")
+    .initialState(List.fill(8)(nextInt(50)))
+    .renderBackend[RBackend]
+    .componentWillUnmount(_.backend.stop)
+    .build
+}
