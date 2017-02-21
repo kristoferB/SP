@@ -12,22 +12,28 @@ import scala.util.{Failure, Success, Try}
 object Launch extends App {
 
   implicit val system = ActorSystem("SP")
+  val cluster = akka.cluster.Cluster(system)
 
-  // Add root actors used in node here
-  //system.actorOf(ModelMaker.props(ModelActor.props), "modelHandler")
 
-  // Used only at one place in cluster for testing
-  //system.actorOf(ClusterMonitor.props)
+  cluster.registerOnMemberUp {
 
-  // only for testing. Remove
+    // Start all you actors here.
+    println("modelstest node has joined the cluster")
     system.actorOf(Props(classOf[TestingWidget]), "testingWidget")
 
-  val cluster = akka.cluster.Cluster(system)
-  scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
-    case x =>
-      cluster.leave(cluster.selfAddress)
-      system.terminate()
   }
+  cluster.registerOnMemberRemoved{
+    println("Modelstest node has been removed from the cluster")
+  }
+
+
+  scala.io.StdIn.readLine("Press ENTER to exit cluster.\n")
+  cluster.leave(cluster.selfAddress)
+
+  scala.io.StdIn.readLine("Press ENTER to exit application.\n")
+  system.terminate()
+
+
 
 
 }

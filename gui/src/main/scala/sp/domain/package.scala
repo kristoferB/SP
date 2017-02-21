@@ -33,19 +33,30 @@ package object domain {
 
 
 
-  implicit class valueLogic(value: SPValue) {
+  implicit class spvalueLogic(value: SPValue) {
     def getAs[T: Reader](key: String = "") = {
       val x: SPValue = Try{value.obj(key)}.getOrElse(value)
       Try{readJs[T](x)}.toOption
+    }
+    def getAsTry[T: Reader](key: String = "") = {
+      val x: SPValue = Try{value.obj(key)}.getOrElse(value)
+      Try{readJs[T](x)}
     }
 
     def /(key: String) = Try{value.obj(key)}.toOption
 
     def toJson = upickle.json.write(value)
 
+    def union(p: SPValue) = {
+      Try{
+        val map = value.obj ++ p.obj
+        upickle.Js.Obj(map.toSeq:_*)
+      }.getOrElse(value)
+    }
+
   }
 
-  implicit class valueLogicOption(value: Option[SPValue]) {
+  implicit class spvalueLogicOption(value: Option[SPValue]) {
     def getAs[T: Reader](key: String = "") = {
       val x = Try{value.get.obj.get(key)}.getOrElse(value)
       x.flatMap(v => Try{readJs[T](v)}.toOption)

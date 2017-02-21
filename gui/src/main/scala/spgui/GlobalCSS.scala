@@ -12,7 +12,7 @@ object GlobalCSS extends StyleSheet.Inline {
   val gridSpacingSmall = "20px"
   val gridColor = "#777777"
   val gridColorSmall = "#999999"
-  val gridOffsetY = SPMenuCSS.topNavHeight.value
+  val gridOffsetY = SPMenuCSS.topNavHeight
 
   val background = style(
     unsafeRoot("body")(

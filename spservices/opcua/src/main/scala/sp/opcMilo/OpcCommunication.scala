@@ -23,6 +23,7 @@ import org.eclipse.milo.opcua.stack.core.types.enumerated._
 import org.eclipse.milo.opcua.stack.core.types.structured._
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned._
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem
+import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription
 import org.eclipse.milo.opcua.sdk.client.nodes.UaVariableNode
 import org.eclipse.milo.opcua.stack.core.Stack
 
@@ -33,6 +34,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 // Scala
 import akka.actor._
+import scala.concurrent.Future
 
 case class StateUpdate(activeState: Map[String, SPValue])
 
@@ -51,9 +53,17 @@ class MiloOPCUAClient {
   var availableNodes: Map[String, UaVariableNode] = Map()
   var activeState: Map[String, SPValue] = Map()
   var currentTime: org.joda.time.DateTime = org.joda.time.DateTime.now
+  var subscriptions: Set[UaSubscription] = Set()
 
   def disconnect() = {
     if(client != null) {
+      // un-monitor
+      subscriptions.foreach(s => {
+        val monitored = s.getMonitoredItems()
+        s.deleteMonitoredItems(monitored).get()
+      })
+      subscriptions = Set()
+      availableNodes = Map()
       client.disconnect().get();
       client = null
     }
@@ -75,7 +85,7 @@ class MiloOPCUAClient {
       client = new OpcUaClient(configBuilder.build()).connect().get()
       // periodically ask for the server time just to keep session alive
       setupServerTimeSubsciption()
-      populateNodes(client, Identifiers.RootFolder)
+      populateNodes(Identifiers.RootFolder)
       true
     }
     catch {
@@ -88,7 +98,7 @@ class MiloOPCUAClient {
 
   // for now we only support Variable nodes with String identifiers
   // and identifiers need to be unique
-  def populateNodes(client: UaClient, browseRoot: NodeId): Unit = {
+  def populateNodes(browseRoot: NodeId): Unit = {
     def nodes: List[Node] = client.getAddressSpace().browse(browseRoot).get().asScala.toList
     nodes.map{x =>
       val nodeid = x.getNodeId.get()
@@ -99,7 +109,7 @@ class MiloOPCUAClient {
         else
           println(s"OPCUA - Node ${identifier} already exists, skipping!")
       }
-      populateNodes(client, nodeid)
+      populateNodes(nodeid)
     }
   }
 
@@ -125,6 +135,7 @@ class MiloOPCUAClient {
       }
     }
     subscription.createMonitoredItems(TimestampsToReturn.Both, requests.asJava, onItemCreated)
+    subscriptions += subscription
   }
 
   def subscribeToNodes(identifiers: List[String], reciever: ActorRef, samplingInterval: Double = 100.0): Unit = {
@@ -150,12 +161,13 @@ class MiloOPCUAClient {
       def accept(item:UaMonitoredItem, dataValue: DataValue): Unit = {
         val nodeid = item.getReadValueId.getNodeId.getIdentifier().toString
         val spval = fromDataValue(dataValue)
-        println("OPCUA - " + nodeid + " got " + spval)
+        // println("OPCUA - " + nodeid + " got " + spval)
         activeState += (nodeid -> spval)
         reciever ! StateUpdate(activeState)
       }
     }
     subscription.createMonitoredItems(TimestampsToReturn.Both, requests.asJava, onItemCreated)
+    subscriptions += subscription
   }
 
   def fromDataValue(dv: DataValue): SPValue = {
@@ -181,7 +193,12 @@ class MiloOPCUAClient {
       case q if q == classOf[java.lang.Integer] => new DataValue(new Variant(spVal.extract[Int]))
       case q if q == classOf[UByte] => new DataValue(new Variant(ubyte(spVal.extract[Int])))
       case q if q == classOf[java.lang.Short] => new DataValue(new Variant(spVal.extract[Short]))
-      case q if q == classOf[java.lang.Long] => new DataValue(new Variant(spVal.extract[Long]))
+      case q if q == classOf[java.lang.Long] =>
+        val l = spVal match {
+          case JString(s) => s.toLong // upickle longs are strings
+          case _ => spVal.extract[Long]
+        }
+        new DataValue(new Variant(l))
       case q if q == classOf[String] => new DataValue(new Variant(spVal.extract[String]))
       case q if q == classOf[java.lang.Boolean] => new DataValue(new Variant(spVal.extract[Boolean]))
       case q if q == classOf[java.lang.Double] => new DataValue(new Variant(spVal.extract[Double]))

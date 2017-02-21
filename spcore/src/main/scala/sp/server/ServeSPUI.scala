@@ -15,12 +15,26 @@ object ServeSPUI extends App{
   implicit val ec = sys.dispatcher
   val webServer = new LaunchGUI(sys)
   val f = webServer.launch
+  val cluster = akka.cluster.Cluster(sys)
+
+  cluster.registerOnMemberUp {
+
+    // Start all you actors here.
+    println("SP core node has joined the cluster")
+
+  }
+  cluster.registerOnMemberRemoved{
+    println("SP core node has been removed from the cluster")
+  }
 
   println("Starting SP Core node")
-  StdIn.readLine()
 
-  val cluster = akka.cluster.Cluster(sys)
+  scala.io.StdIn.readLine("Press ENTER to exit cluster.\n")
+
   cluster.leave(cluster.selfAddress)
+
+
+  scala.io.StdIn.readLine("Press ENTER to exit application.\n")
 
   f.flatMap(_.unbind()) // trigger unbinding from the port
     .onComplete{_ =>

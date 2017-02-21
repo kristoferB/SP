@@ -2,7 +2,7 @@ package spgui
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import spgui.widgets.examples.ExampleServiceWidget
+import spgui.widgets.examples._
 
 
 object WidgetList {
@@ -20,7 +20,8 @@ object WidgetList {
       ("Widget with data", widgets.examples.WidgetWithData()),
       ("CommTest", widgets.WidgetCommTest()),
       ("D3Test", widgets.examples.D3Example()),
-      ("ExampleServiceWidget", ExampleServiceWidget())
+      ("ExampleServiceWidget", ExampleServiceWidget()),
+      ("OpcUAWidget", OpcUAWidget())
     )
 
   val map = list.toMap

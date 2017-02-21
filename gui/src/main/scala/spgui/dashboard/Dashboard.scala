@@ -50,7 +50,8 @@ object Dashboard {
               WidgetList.map(openWidget.widgetType)(
                 SPWidgetBase(
                   openWidget.id,
-                  openWidget.data
+                  openWidget.data,
+                  frontEndState
                 )
               ),
               openWidget.widgetType,

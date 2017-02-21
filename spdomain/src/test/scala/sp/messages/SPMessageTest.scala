@@ -7,6 +7,11 @@ import sp.domain._
 import sp.domain.Logic._
 
 
+case class L1(a: String)
+case class L2(b: L1)
+case class L3(c: L2)
+case class L4(d: L3)
+
 
 class ModelMakerAPITest extends FreeSpec with Matchers {
   "Picklers" - {
@@ -20,7 +25,7 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
     }
 
     "SPMessage to json" in {
-      val h = SPHeader("from", "to")
+      val h = SPHeader("tomte", "kalle")
       val b = APISP.SPACK(SPAttributes("Hej"->4))
       val x = SPMessage.make(h, b).map(_.toJson)
 
@@ -40,9 +45,40 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
       assert(res.isSuccess)
 
     }
+
+    "testing some header union" in {
+      val h = SPHeader("tomte", "kalle")
+      val b = APISP.SPACK(SPAttributes("Hej"->4))
+      val x = SPMessage.make(h, b).get
+
+      val headerEx = SPHeader(from = "upd", to = "yes")
+
+      val updM = x.extendHeader(headerEx)
+
+      println(updM)
+
+    }
+
+    "extract info" in {
+      val x = L4(L3(L2(L1("JA"))))
+      val p = toPickle(x)
+
+      val p2 = toPickle(10)
+
+      val a = p / "d" / "c" / "b" / "a"
+      val b = p / "d" / "k" / "b" / "a"
+      val c = p2 / "a"
+
+      assert(a.contains(toPickle("JA")))
+      assert(b.isEmpty)
+      assert(c.isEmpty)
+
+
+    }
   }
 
 }
+
 
 
 //object APITEST extends SPCommunicationAPI {
