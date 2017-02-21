@@ -8,6 +8,15 @@ scalaOrganization in ThisBuild := "org.typelevel"
 
 scalaVersion := "2.11.8"
 
+scalacOptions  := Seq(
+  "-encoding", "utf8",
+  "-feature",
+  "-unchecked",
+  "-deprecation",
+  "-language:implicitConversions",
+  "-language:postfixOps"
+)
+
 val scalaJSReactVersion = "0.11.3"
 val scalaCssVersion = "0.5.1"
 val diodeVersion = "1.1.0"
