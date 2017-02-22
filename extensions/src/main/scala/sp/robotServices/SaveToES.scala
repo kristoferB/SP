@@ -1,10 +1,7 @@
 package sp.robotServices
 
 import akka.actor.Props
-<<<<<<< HEAD
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
-=======
->>>>>>> 82abf3defa060904185e2241eefeb650db2d17ec
 import com.codemettle.reactivemq.ReActiveMQExtension
 import com.codemettle.reactivemq.ReActiveMQMessages.GetConnection
 import com.github.nscala_time.time.Imports.DateTime

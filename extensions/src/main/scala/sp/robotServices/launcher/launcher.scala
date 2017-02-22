@@ -120,6 +120,7 @@ object LaunchRobotRuntimeService extends SPService {
 
     val operationAggregator = context.actorOf(OperationAggregator.props, "operationAggregator")
 
+    val fillWithInstructionActor = context.actorOf(InstructionFiller.props,"instructionFiller")
     actors.append(fillWithInstructionActor)
     fillWithInstructionActor ! "connect"
 
