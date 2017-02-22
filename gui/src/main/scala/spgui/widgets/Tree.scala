@@ -27,31 +27,33 @@ case class ListItem(name: String, content: Either[String, List[ListItem]] = Left
 
 object TreeDummyList {
   case class Props(listItems: List[ListItem])
-  case class State(content: Either[String, List[ListItem]])
+  case class State(selectedItemIndex: Int = -1)
 
   class RBackend($: BackendScope[Props, State]) {
-    def setContent(newContent: Either[String, List[ListItem]]) =
-      $.setState(State(newContent))
+
+    def setSelectedIndex(i: Int) =
+      $.modState(s => s.copy(selectedItemIndex = if(s.selectedItemIndex == i) -1 else i))
 
     def render(p: Props, s: State) =
       <.div(
         <.ul(
           Style.ul,
-          p.listItems.map(item =>
+          p.listItems.zipWithIndex.map(t =>
             <.li(
-              Style.li,
-              item.name,
-              Icon.chevronRight,
-              ^.onClick --> setContent(item.content)
+              Style.li(t._2 == s.selectedItemIndex),
+              t._1.name,
+              <.div(Style.icon, Icon.chevronRight),
+              ^.onClick --> setSelectedIndex(t._2)
             )
           )
         ),
-        s.content.fold(str => str, items => TreeDummyList(items))
+        if(s.selectedItemIndex == -1) "" else
+          p.listItems(s.selectedItemIndex).content.fold(str => str, items => TreeDummyList(items))
       )
   }
 
   val component = ReactComponentB[Props]("TreeDummyList")
-    .initialState(State(Left("")))
+    .initialState(State())
     .renderBackend[RBackend]
     .build
 
@@ -60,19 +62,25 @@ object TreeDummyList {
   object Style extends StyleSheet.Inline {
     import dsl._
 
-    val ul = style(float.left)
+    val ul = style(
+      float.left,
+      paddingLeft(0 px)
+    )
 
-    val li = style(
+    val li = styleF.bool(selected => styleS(
       position.relative,
       display.block,
+      width(160 px),
       padding(v = 10.px, h = 15.px),
       border :=! "1px solid #ecf0f1",
       cursor.pointer,
       fontWeight._500,
-      //backgroundColor :=! "#146699",
-      backgroundColor.white,
-      &.hover(color :=! "#555555", backgroundColor :=! "#ecf0f1")
-    )
+      mixinIfElse(selected)(color :=! "#555555", backgroundColor :=! "#A5C2EE")(
+        backgroundColor.white,
+        &.hover(color :=! "#555555", backgroundColor :=! "#A5C2EE"))
+    ))
+
+    val icon = style(float.right)
 
     this.addToDocument()
   }
