@@ -3,20 +3,22 @@ package spgui.widgets.examples
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import japgolly.scalajs.react.ReactDOM
-import spgui.{SPWidget, SPWidgetBase}
+
+import spgui.SPWidget
+
 import org.singlespaced.d3js.d3
 import org.singlespaced.d3js.Ops._
 import org.scalajs.dom.raw
-
 import util.Random.nextInt
 
 object D3Example {
+  def apply() = SPWidget{spwb =>
+    component()
+  }
 
-  case class State(spwb: SPWidgetBase, localdata: List[Int] = List.fill(8)(nextInt(50)))
-
-  private val component = ReactComponentB[State]("D3Example")
-    .render_P{dcb =>
-      dcb.
+  private val component = ReactComponentB[Unit]("D3Example")
+    .initialState(List.fill(8)(nextInt(50)))
+    .render{dcb =>
       <.div(
         <.button("mod state", ^.onClick --> dcb.modState(_.map(_ => nextInt(50)))),
         D3BarsComponent(dcb.state)
@@ -63,6 +65,4 @@ object D3BarsComponent {
       .attr("height", rectHeightFun)
       .style("fill", rectColorFun)
   }
-
-  def apply() = (spwb: SPWidgetBase) => component(spwb)
 }

@@ -14,7 +14,7 @@ import rx._
 import sp.domain._
 import sp.messages._
 import Pickles._
-import spgui.SPWidgetBase
+import spgui.{SPWidget, SPWidgetBase}
 
 
 package APITesting {
@@ -249,6 +249,6 @@ object WidgetCommTest {
       .componentWillUnmount(_.backend.onUnmount())
     .build
 
-  def apply() = (spwb: SPWidgetBase) => component[Unit]()
+  def apply() = SPWidget(spwb => component())
 }
 

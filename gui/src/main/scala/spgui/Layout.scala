@@ -20,5 +20,5 @@ object Layout {
   )
     .build
 
-  def apply() = component[Unit]()
+  def apply() = component()
 }

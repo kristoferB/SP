@@ -8,7 +8,7 @@ import sp.domain.SPValue
 case class SPGUIModel(openWidgets: OpenWidgets = OpenWidgets(), state: FrontEndState = FrontEndState())
 
 case class OpenWidgets(xs: Map[UUID, OpenWidget] = Map())
-case class OpenWidget(id: UUID, layout: WidgetLayout, widgetType: String, data: SPValue = SPValue())
+case class OpenWidget(id: UUID, layout: WidgetLayout, widgetType: String, data: SPValue = SPValue.empty)
 case class WidgetLayout(x: Int, y: Int, w: Int, h: Int)
 
 case class FrontEndState(currentModel: Option[UUID] = None,
@@ -18,7 +18,7 @@ case class FrontEndState(currentModel: Option[UUID] = None,
                         )
 
 // actions
-case class AddWidget(widgetType: String, width: Int = 2, height: Int = 2, initialData: SPValue = SPValue, id: UUID = UUID.randomUUID()) extends Action
+case class AddWidget(widgetType: String, width: Int = 2, height: Int = 2, initialData: SPValue = SPValue.empty, id: UUID = UUID.randomUUID()) extends Action
 case class CloseWidget(id: UUID) extends Action
 case class SetWidgetData(id: UUID, data: SPValue) extends Action
 case class UpdateLayout(id: UUID, newLayout: WidgetLayout) extends Action

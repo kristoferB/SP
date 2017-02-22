@@ -19,7 +19,7 @@ case class SPWidgetBase(id: UUID, data: SPValue, frontEndState: FrontEndState) {
     SPGUICircuit.dispatch(UpdateFrontEndState(state))
   }
 
-  def openNewWidget(widgetType: String, initialData: SPValue = SPValue()) =
+  def openNewWidget(widgetType: String, initialData: SPValue = SPValue.empty) =
     SPGUICircuit.dispatch(AddWidget(widgetType = widgetType, initialData = initialData))
 
   def closeSelf() = SPGUICircuit.dispatch(CloseWidget(id))

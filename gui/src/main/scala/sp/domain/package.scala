@@ -11,12 +11,14 @@ package object domain {
   import sp.messages.Pickles._
 
 
+  type Pickle = upickle.Js.Value
   type SPAttributes = upickle.Js.Obj
-  type SPValue = upickle.Js.Value
+  type SPValue = Pickle
 
 
   object SPValue {
     def apply[T: Writer](expr: T): SPValue = Pickles.toSPValue(expr)
+    def empty: SPValue = upickle.Js.Obj()
   }
 
   object SPAttributes {
