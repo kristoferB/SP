@@ -5,7 +5,7 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 import scalacss.ScalaCssReact._
 
 import spgui.SPWidget
-import spgui.Icon
+import spgui.components.Icon
 
 // TODO: replace with SP API
 // this is just a dummy to have something to work with
