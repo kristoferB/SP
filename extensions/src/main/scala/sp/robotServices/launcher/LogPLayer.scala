@@ -77,7 +77,6 @@ class LogPlayer extends Actor with ServiceSupport{
       implicit val rnr = RequestNReply(r, replyTo)
       val setup = transform(LogPlayer.transformTuple)
 
-    
       setup.command match {
         case "setupBus" =>
 
@@ -153,7 +152,6 @@ class LogPlayer extends Actor with ServiceSupport{
     }
     case mess@AMQMessage(body, prop, headers) => {
       val json: JValue = parse(body.toString)
-      //println("got"+ json)
       implicit val formats = Serialization.formats(NoTypeHints)
       if(json.has("event")) {
         println("got event" + (json \ "event"))
@@ -180,7 +178,6 @@ class LogPlayer extends Actor with ServiceSupport{
   def robotModules(json:List[JValue]){
     val modules = json.map(_.extract[ModulesReadEvent])
     modules.foreach(x => robotIdToModues += (x.robotId -> x))
-    
   }
   def loadFile(path: String): JValue ={
     println(s"loading ${path}")

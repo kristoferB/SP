@@ -1,7 +1,10 @@
 package sp.robotServices
 
 import akka.actor.Props
+<<<<<<< HEAD
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
+=======
+>>>>>>> 82abf3defa060904185e2241eefeb650db2d17ec
 import com.codemettle.reactivemq.ReActiveMQExtension
 import com.codemettle.reactivemq.ReActiveMQMessages.GetConnection
 import com.github.nscala_time.time.Imports.DateTime
@@ -89,7 +92,6 @@ class SaveToES extends ServiceBase{
   }
   def uuid: String = java.util.UUID.randomUUID.toString
   def sendToES(json: String, cycleId: String, index: String): Unit = {
-    //println("Writing to ES" + cycleId + " " + index )
     elasticClient.foreach{client => client.index(
       index = index, `type` = "cycles", id = Some(cycleId),
       data = json, refresh = true
