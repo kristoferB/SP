@@ -98,7 +98,7 @@ object ReactGridLayout {
   case class Props(
     width: Int,
     autoSize: js.UndefOr[Boolean] = true,
-    cols: js.UndefOr[js.Object] = js.Dynamic.literal("lg" -> 12),
+    cols: js.UndefOr[js.Object] = js.Dynamic.literal("lg" -> 12, "md" -> 8, "sm" -> 6, "xs" -> 4, "xxs" -> 2),
     draggableCancel: js.UndefOr[String] = "",
     draggableHandle: js.UndefOr[String] = "",
     verticalCompact: js.UndefOr[Boolean] = true,
@@ -143,7 +143,6 @@ object ReactGridLayout {
     val f = React.asInstanceOf[js.Dynamic].createFactory(ReactGridLayoutJS)
     val facade = ReactGridLayoutFacade(Props(
       width = width,
-      cols = js.Dynamic.literal("lg" -> cols),
       draggableHandle = draggableHandle,
       onLayoutChange = onLayoutChange
     ))
