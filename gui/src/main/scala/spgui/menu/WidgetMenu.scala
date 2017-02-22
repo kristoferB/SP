@@ -4,7 +4,7 @@ import japgolly.scalajs.react._
 
 import spgui.circuit.{SPGUICircuit, AddWidget}
 import spgui.WidgetList
-import spgui.Icon
+import spgui.components.Icon
 import japgolly.scalajs.react.vdom.prefix_<^._
 
 object WidgetMenu {
