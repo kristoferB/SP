@@ -6,11 +6,14 @@ import scalacss.ScalaCssReact._
 
 import spgui.SPWidget
 import spgui.components.Icon
+import spgui.components.DragAndDrop.{ DataOnDrag, OnDataDrop }
 
 // TODO: replace with SP API
 // this is just a dummy to have something to work with
 sealed abstract class Item {
   val name: String
+  // will be an UUID
+  val id = util.Random.nextInt(2e9.toInt).toString
 }
 case class Mapp(name: String, content: List[Item]) extends Item
 case class Spotify(name: String, content: String) extends Item
@@ -60,6 +63,9 @@ object TreeView {
     def setSelectedIndex(i: Int) =
       $.modState(s => s.copy(selectedItemIndex = if(s.selectedItemIndex == i) -1 else i))
 
+    def onDrop(senderId: String, receiverId: String) =
+      Callback.log(s"item of id $senderId dropped on item of id $receiverId")
+
     def render(p: Props, s: State) =
       <.div(
         <.ul(
@@ -68,6 +74,8 @@ object TreeView {
             <.li(
               Style.li(t._2 == s.selectedItemIndex),
               TVButton(t._1),
+              DataOnDrag(t._1.id),
+              OnDataDrop(eventData => onDrop(eventData, t._1.id)),
               ^.onClick --> setSelectedIndex(t._2)
             )
           )
