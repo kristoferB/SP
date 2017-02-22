@@ -1,8 +1,7 @@
-package spgui.widgets
+package spgui.widgets.itemexplorer
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import scalacss.Defaults._
 import scalacss.ScalaCssReact._
 
 import spgui.SPWidget
@@ -30,7 +29,7 @@ object TVButton {
 
 object ItemContent {
   def apply(item: Item): ReactNode = item match {
-    case Mapp(_, content) => TreeDummyList(content)
+    case Mapp(_, content) => TreeView(content)
     case Spotify(_, content) => content
     case Youtube(_, content) => content
   }
@@ -49,12 +48,10 @@ object Tree {
       Spotify("Äpplen", "paj")
     )
 
-  def apply() = SPWidget(spwb => TreeDummyList(listItems))
+  def apply() = SPWidget(spwb => TreeView(listItems))
 }
 
-case class ListItem(name: String, content: Either[String, List[ListItem]] = Left("std content"))
-
-object TreeDummyList {
+object TreeView {
   case class Props(items: List[Item])
   case class State(selectedItemIndex: Int = -1)
 
@@ -85,36 +82,4 @@ object TreeDummyList {
     .build
 
   def apply(items: List[Item]): ReactElement = component(Props(items))
-
-}
-
-object Style extends StyleSheet.Inline {
-  import dsl._
-
-  val ul = style(
-    float.left,
-    paddingLeft(0 px)
-  )
-
-  val li = styleF.bool(selected => styleS(
-                         position.relative,
-                         display.block,
-                         width(160 px),
-                         padding(v = 10.px, h = 15.px),
-                         border :=! "1px solid #ecf0f1",
-                         cursor.pointer,
-                         fontWeight._500,
-                         mixinIfElse(selected)(color :=! "#555555", backgroundColor :=! "#A5C2EE")(
-                           backgroundColor.white,
-                           &.hover(color :=! "#555555", backgroundColor :=! "#A5C2EE"))
-                       ))
-
-  val icon = style(
-    float.left,
-    paddingRight(10 px)
-  )
-
-  val chevron = style(float.right)
-
-  this.addToDocument()
 }

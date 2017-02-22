@@ -23,7 +23,7 @@ object WidgetList {
       ("D3ExampleServiceWidget", widgets.examples.D3ExampleServiceWidget()),
       ("ExampleServiceWidget", ExampleServiceWidget()),
       ("OpcUAWidget", OpcUAWidget()),
-      ("Tree", widgets.Tree())
+      ("Tree", widgets.itemexplorer.Tree())
     )
 }
 
