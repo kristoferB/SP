@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(
   "com.google.guava" % "guava" % "20.0",
   "com.google.code.findbugs" % "jsr305" % "3.0.1",
   "org.eclipse.milo" % "sdk-client" % "0.1.0",
-  "org.scala-lang.modules" % "scala-java8-compat_2.11" % "0.3.0"
+  "org.scala-lang.modules" % "scala-java8-compat_2.11" % "0.3.0",
 
   "com.github.gphat" %% "wabisabi" % "2.1.9"
 )

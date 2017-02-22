@@ -9,12 +9,13 @@ import org.joda.time.{DateTime, Duration}
 import org.json4s.DefaultFormats
 import sp.domain._
 import sp.robotServices.core.Domain._
+import sp.labkit._
 
 
 
 
 case class Resources(robots: Set[String])
-case class OpInstance(RobotCylNo: Int, start: Option[DateTime], stop: Option[DateTime], duration: Option[Duration], opId: String, opType: String)
+case class OpInstance(RobotCylNo: String, start: Option[DateTime], stop: Option[DateTime], duration: Option[Duration], opId: String, opType: String)
 //opInstances: Map[activityId, opInstance]
 case class Op(name:String, opInstances: Map[String,OpInstance], robotId: String)
 
@@ -50,7 +51,13 @@ class OperationAggregator extends PersistentActor with ActorLogging{
     opMap +=  updOp(event)
     resources = Resources(updResources(event.robotId,resources.robots))
     opMap = calcDurations
-   // sendToFrontEnd(event)
+    //sendToFrontEnd(event)
+  }
+  def sendToFrontEnd(event: ActivityEventWithRobotCycle): Unit ={
+    if(event.isStart)
+      mediator ! Publish("frontend", OperationStarted(event.name,event.robotId,"", event.`type`,event.time.toString))
+    else
+      mediator ! Publish("frontend", OperationFinished(event.name,event.robotId,"", event.`type`,event.time.toString))
   }
 
 

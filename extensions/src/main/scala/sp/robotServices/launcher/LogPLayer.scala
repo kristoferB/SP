@@ -33,7 +33,7 @@ object LogPlayer extends SPService {
     ),
     "setup" -> SPAttributes(
       "filePath" -> KeyDefinition("String",List(),Some("/home/ashfaqf/Projects/Lisa files/from_volvo/logs/log-13_12_35")),
-      "command" -> KeyDefinition("String", List("LoadFile", "PlayLog","ListEvents", "playEvent","setupBus", "sendRobotModules", "printOps"), Some("setupBus")),
+      "command" -> KeyDefinition("String", List("LoadFile", "PlayLog","ListEvents", "playEvent","setupBus", "sendRobotModules", "printOps", "printRels"), Some("setupBus")),
       "freq" -> KeyDefinition("Int",List(),Some(10))
       // "AMQBusIP" -> KeyDefinition("String", List(), Some(settings.activeMQ)),
       // "AMQBusUsername" -> KeyDefinition("String",List(),Some("admin")),
@@ -108,6 +108,11 @@ class LogPlayer extends Actor with ServiceSupport{
         case "printOps" =>   import akka.cluster.pubsub._
           val mediator = DistributedPubSub(context.system).mediator
           mediator ! Publish("robotServices", "printOps")
+
+        case "printRels" =>   import akka.cluster.pubsub._
+          val mediator = DistributedPubSub(context.system).mediator
+          mediator ! Publish("robotServices", "printRels")
+
 
         case "playEvent" =>
           playEvent()

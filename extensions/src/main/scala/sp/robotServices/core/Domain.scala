@@ -43,7 +43,7 @@ object Domain {
                            workCellId: String)
 
   case class ActivityEventWithRobotCycle(activityId: String,
-                           cycleId:Int,
+                           cycleId:String,
                            isStart: Boolean,
                            name: String,
                            robotId: String,

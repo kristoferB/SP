@@ -211,13 +211,6 @@ object SP extends App {
     LogPlayer.specification,
     LogPlayer.transformation
   ))
-  /*
-  mediator ! Publish("serviceHandler", RegisterService(
-    "creatingOperations",
-    system.actorOf(createOperationsFromActivities.props(modelHandler), "createOpsFromProcess"),
-    createOperationsFromActivities.specification,
-    createOperationsFromActivities.transformation
-  ))*/
 
 //  import sp.exampleService._
 //  mediator ! Publish("serviceHandler", RegisterService)(

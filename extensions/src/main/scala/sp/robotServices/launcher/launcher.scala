@@ -115,6 +115,9 @@ object LaunchRobotRuntimeService extends SPService {
   def startServices() = {
     val actors  = new ListBuffer[ActorRef]
 
+
+    val relationFinder= context.actorOf(RelationFinder.props, "RelationFinder")
+
     val operationAggregator = context.actorOf(OperationAggregator.props, "operationAggregator")
 
     val fillWithInstructionActor = context.actorOf(InstructionFiller.props, "InstructionFiller")

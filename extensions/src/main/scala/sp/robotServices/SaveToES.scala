@@ -39,7 +39,7 @@ class SaveToES extends ServiceBase{
 
   var robotActivityMap : Map[RobotId,ActivityEvent] = Map.empty
   var robotIdToCurrentPos : Map[RobotId,Boolean] = Map.empty
-  var robotIdToCurrentRobotCycle : Map[RobotId,Int] = Map.empty
+  var robotIdToCurrentRobotCycle : Map[RobotId,String] = Map.empty
 
   override def handleOtherMessages = {
     case "connect" =>
@@ -55,16 +55,16 @@ class SaveToES extends ServiceBase{
   override def handleAmqMessage(json: JValue): Unit = {
     if (json.has("activityId")) {
       val event: ActivityEvent = json.extract[ActivityEvent]
-      if (event.isStart && event.name.contains("main") && robotIdToCurrentPos.getOrElse(event.robotId,false)){
-        robotIdToCurrentRobotCycle += (event.robotId -> (robotIdToCurrentRobotCycle.getOrElse(event.robotId,-1) + 1) )
+    if (event.isStart && event.name.contains("main") && robotIdToCurrentPos.getOrElse(event.robotId,false)){
+        robotIdToCurrentRobotCycle += (event.robotId -> uuid) // (robotIdToCurrentRobotCycle.getOrElse(event.robotId,-1) + 1) )
       }
-      val robCylId = robotIdToCurrentRobotCycle.contains(event.robotId) match {
+      def robCylId = robotIdToCurrentRobotCycle.contains(event.robotId) match {
         case true => robotIdToCurrentRobotCycle(event.robotId)
-        case false => robotIdToCurrentRobotCycle += (event.robotId -> 0)
+        case false => robotIdToCurrentRobotCycle += (event.robotId -> uuid)
           robotIdToCurrentRobotCycle(event.robotId)
 
       }
-      val activityToSend =write(ActivityEventWithRobotCycle(event.activityId,robotIdToCurrentRobotCycle(event.robotId),event.isStart,event.name,event.robotId,event.time,event.`type`,event.workCellId))
+      val activityToSend =write(ActivityEventWithRobotCycle(event.activityId, robCylId/*robotIdToCurrentRobotCycle(event.robotId)*/,event.isStart,event.name,event.robotId,event.time,event.`type`,event.workCellId))
       sendToES(activityToSend,uuid,index_activity)
       mediator ! Publish("robotServices", activityToSend)
  
