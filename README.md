@@ -1,4 +1,7 @@
-#Sequence Planner 2
+#Sequence Planner - labkitKandidat
+The labkitKandidat branch of Sequence Planner is the separate branch for the "Intelligent automation - Distributed control for industry 4.0, SSYX02-17-14".
+Initially it won't differ meaningfully for the master branch but the goal is for it to implement control and supervision of the physical labkit'
+
 Sequence Planner (SP) is a micro service architecture for modeling and analyzing automation system. 
 Initially, the focus was on supporting engineers in developing control
 code for programmable logical controllers (PLCs). During the first years, 
