@@ -33,31 +33,57 @@ object TVButton {
 
 object ItemContent {
   def apply(item: Item, allItems: List[Item]): ReactNode = item match {
-    case Mapp(_, _, childrenIds) => TreeView(allItems, childrenIds)
+    case Mapp(_, _, childrenIds) => TVColumn(allItems, childrenIds)
     case Spotify(_, _, content) => content
     case Youtube(_, _, content) => content
   }
 }
 
-object Tree {
-  // expects rootdir as first element (needs to contain everything)
+case class TreeState(items: List[Item], rootLevelItemIds: List[Int])
+
+object ListItems {
+// expects rootdir as first element (needs to contain everything)
   val listItems = List(
-    Mapp("RootDir", 1, List(4, 5, 6)),
     Youtube("Smör", 2, "mjölk"),
     Youtube("Ägg", 3, "kalcium"),
     Spotify("Kladd", 4, "Kladd"),
     Mapp("kaka", 5, List(2, 3)),
     Spotify("Äpplen", 6, "paj")
   )
-
-  def apply() = SPWidget(spwb => TreeView(listItems, listItems(0).asInstanceOf[Mapp].childrenIds))
+  val rootLevelItemIds = List(4, 5, 6)
+  def apply() = TreeState(listItems, rootLevelItemIds)
 }
 
-object TreeView {
+object Tree {
+  def emptyMap() = Mapp("EmptyMap", util.Random.nextInt(1000000) + 10000, List())
+  def newYT() = Youtube("NewYT", util.Random.nextInt(1000000) + 10000, "content of NewYT")
+
+  class TreeBackend($: BackendScope[Unit, TreeState]) {
+    def addItem(item: Item) = $.modState{s =>
+      s.copy(items = s.items :+ item, rootLevelItemIds = s.rootLevelItemIds :+ item.id)
+    }
+
+    def render(s: TreeState) =
+      <.div(
+        <.button("add EmptyMap", ^.onClick --> addItem(emptyMap())),
+        <.button("add Youtube", ^.onClick --> addItem(newYT())),
+        TVColumn(s.items, s.rootLevelItemIds)
+      )
+  }
+
+  private val component = ReactComponentB[Unit]("Tree")
+    .initialState(ListItems())
+    .renderBackend[TreeBackend]
+    .build
+
+  def apply() = SPWidget(spwb => component())
+}
+
+object TVColumn {
   case class Props(items: List[Item], itemIds: List[Int])
   case class State(selectedItemId: Int = -1)
 
-  class RBackend($: BackendScope[Props, State]) {
+  class TVColumnBackend($: BackendScope[Props, State]) {
 
     def setSelectedId(id: Int) =
       $.modState(s => s.copy(selectedItemId = if(s.selectedItemId == id) -1 else id))
@@ -87,8 +113,9 @@ object TreeView {
 
   val component = ReactComponentB[Props]("TreeDummyList")
     .initialState(State())
-    .renderBackend[RBackend]
+    .renderBackend[TVColumnBackend]
     .build
 
   def apply(items: List[Item], itemIds: List[Int]): ReactElement = component(Props(items, itemIds))
 }
+
