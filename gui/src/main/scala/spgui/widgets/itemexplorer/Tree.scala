@@ -13,55 +13,54 @@ import spgui.components.DragAndDrop.{ DataOnDrag, OnDataDrop }
 sealed abstract class Item {
   val name: String
   // will be an UUID
-  val id = util.Random.nextInt(2e9.toInt).toString
+  // val id = util.Random.nextInt(2e9.toInt).toString
+  val id: Int
 }
-case class Mapp(name: String, content: List[Item]) extends Item
-case class Spotify(name: String, content: String) extends Item
-case class Youtube(name: String, content: String) extends Item
+case class Mapp(name: String, id: Int, childrenIds: List[Int]) extends Item
+case class Spotify(name: String, id: Int, content: String) extends Item
+case class Youtube(name: String, id: Int, content: String) extends Item
 
 object TVButton {
   private def button(name: String, icon: ReactNode) =
     <.div(<.div(Style.icon, icon), name, <.div(Style.chevron, Icon.chevronRight))
 
   def apply(item: Item) = item match {
-    case Mapp(name, _) => button(name, Icon.folder)
-    case Spotify(name, _) => button(name, Icon.spotify)
-    case Youtube(name, _) => button(name, Icon.youtube)
+    case Mapp(name, _, _) => button(name, Icon.folder)
+    case Spotify(name, _, _) => button(name, Icon.spotify)
+    case Youtube(name, _, _) => button(name, Icon.youtube)
   }
 }
 
 object ItemContent {
-  def apply(item: Item): ReactNode = item match {
-    case Mapp(_, content) => TreeView(content)
-    case Spotify(_, content) => content
-    case Youtube(_, content) => content
+  def apply(item: Item, allItems: List[Item]): ReactNode = item match {
+    case Mapp(_, _, childrenIds) => TreeView(allItems, childrenIds)
+    case Spotify(_, _, content) => content
+    case Youtube(_, _, content) => content
   }
 }
 
 object Tree {
-  val kaka = List(
-    Youtube("Smör", "mjölk"),
-    Youtube("Ägg", "kalcium")
+  // expects rootdir as first element (needs to contain everything)
+  val listItems = List(
+    Mapp("RootDir", 1, List(4, 5, 6)),
+    Youtube("Smör", 2, "mjölk"),
+    Youtube("Ägg", 3, "kalcium"),
+    Spotify("Kladd", 4, "Kladd"),
+    Mapp("kaka", 5, List(2, 3)),
+    Spotify("Äpplen", 6, "paj")
   )
 
-  val listItems =
-    List(
-      Spotify("Kladd", "Kladd"),
-      Mapp("kaka", kaka),
-      Spotify("Äpplen", "paj")
-    )
-
-  def apply() = SPWidget(spwb => TreeView(listItems))
+  def apply() = SPWidget(spwb => TreeView(listItems, listItems(0).asInstanceOf[Mapp].childrenIds))
 }
 
 object TreeView {
-  case class Props(items: List[Item])
-  case class State(selectedItemIndex: Int = -1)
+  case class Props(items: List[Item], itemIds: List[Int])
+  case class State(selectedItemId: Int = -1)
 
   class RBackend($: BackendScope[Props, State]) {
 
-    def setSelectedIndex(i: Int) =
-      $.modState(s => s.copy(selectedItemIndex = if(s.selectedItemIndex == i) -1 else i))
+    def setSelectedId(id: Int) =
+      $.modState(s => s.copy(selectedItemId = if(s.selectedItemId == id) -1 else id))
 
     def onDrop(senderId: String, receiverId: String) =
       Callback.log(s"item of id $senderId dropped on item of id $receiverId")
@@ -70,17 +69,19 @@ object TreeView {
       <.div(
         <.ul(
           Style.ul,
-          p.items.zipWithIndex.map(t =>
+          p.itemIds.map{id =>
+            val item = p.items.find(_.id == id).get
             <.li(
-              Style.li(t._2 == s.selectedItemIndex),
-              TVButton(t._1),
-              DataOnDrag(t._1.id),
-              OnDataDrop(eventData => onDrop(eventData, t._1.id)),
-              ^.onClick --> setSelectedIndex(t._2)
+              Style.li(item.id == s.selectedItemId),
+              TVButton(item),
+              DataOnDrag(item.id.toString),
+              OnDataDrop(eventData => onDrop(eventData, item.id.toString)),
+              ^.onClick --> setSelectedId(item.id)
             )
-          )
+          }
         ),
-        if(s.selectedItemIndex == -1) "" else ItemContent(p.items(s.selectedItemIndex))
+        if(s.selectedItemId == -1) ""
+        else ItemContent(p.items.find(_.id == s.selectedItemId).get, p.items)
       )
   }
 
@@ -89,5 +90,5 @@ object TreeView {
     .renderBackend[RBackend]
     .build
 
-  def apply(items: List[Item]): ReactElement = component(Props(items))
+  def apply(items: List[Item], itemIds: List[Int]): ReactElement = component(Props(items, itemIds))
 }
