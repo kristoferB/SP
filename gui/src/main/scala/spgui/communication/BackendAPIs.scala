@@ -16,4 +16,5 @@ package APIWebSocket {
   case class ClearFilters(keys: Set[String] = Set()) extends APIWebSocket
 }
 
+*/
 
