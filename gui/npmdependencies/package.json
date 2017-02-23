@@ -1,7 +1,7 @@
 {
   "scripts": {
     "postinstall": "webpack",
-    "build": "env.NODE_ENV=production"
+    "build": "NODE_ENV=production webpack"
   },
   "dependencies": {
     "bootstrap": "~3.3.7",
