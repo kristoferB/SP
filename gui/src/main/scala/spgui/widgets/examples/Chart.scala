@@ -1,3 +1,5 @@
+
+
 package spgui.widgets.examples
 
 import japgolly.scalajs.react.vdom.prefix_<^._
@@ -17,12 +19,12 @@ trait ChartDataset extends js.Object {
 }
 
 object ChartDataset {
-  def apply(data: Seq[Double],
-            label: String, backgroundColor: String = "#8080FF", borderColor: String = "#404080"): ChartDataset = {
+  def apply(data: Seq[Int],
+            label: String, backgroundColor: Seq[String], borderColor: String = "#404080"): ChartDataset = {
     js.Dynamic.literal(
       label = label,
       data = data.toJSArray,
-      backgroundColor = backgroundColor,
+      backgroundColor = backgroundColor.toJSArray,
       borderColor = borderColor
     ).asInstanceOf[ChartDataset]
   }
@@ -73,10 +75,7 @@ object ChartConfiguration {
   }
 }
 
-// define a class to access the Chart.js component
-@js.native
-@JSName("Chart")
-class JSChart(ctx: js.Dynamic, config: ChartConfiguration) extends js.Object
+
 
 object Chart {
 
@@ -103,9 +102,17 @@ object Chart {
       scope.props.style match {
         case LineChart => new JSChart(ctx, ChartConfiguration("line", scope.props.data))
         case BarChart => new JSChart(ctx, ChartConfiguration("bar", scope.props.data))
+        case PieChart => new JSChart(ctx, ChartConfiguration("pie", scope.props.data))
         case _ => throw new IllegalArgumentException
       }
     }).build
 
   def apply(props: ChartProps) = Chart(props)
 }
+
+// define a class to access the Chart.js component
+@js.native
+@JSName("Chart")
+class JSChart(ctx: js.Dynamic, config: ChartConfiguration) extends js.Object
+
+

@@ -1,21 +1,19 @@
+
+
 package spgui.widgets.examples {
 
   import java.util.UUID
 
   import japgolly.scalajs.react._
   import japgolly.scalajs.react.vdom.prefix_<^._
-
-  import scala.util.{ Random, Try }
-
   import spgui.communication._
 
-  import scala.util.Try
+  import scala.util.Random
 
 
   // Import this to make SPAttributes work including json handling
-  import sp.domain._
+  import sp.messages.Pickles._
   import sp.messages._
-  import Pickles._
 
 
   package API_ExampleService {
@@ -84,9 +82,6 @@ package spgui.widgets.examples {
         },
         "answers" // the topic you want to listen to. Soon we will also add some kind of backend filter,  but for now you get all answers
       )
-
-
-
       val cp = Chart.ChartProps(
         "Test chart",
         Chart.PieChart,
@@ -128,7 +123,6 @@ package spgui.widgets.examples {
           Chart(cp)
         )
       }
-    }
 
       def onUnmount() = {
         println("Unmounting")
