@@ -26,7 +26,7 @@ import sp.domain._
 import sp.domain.Logic._
 import sp.messages._
 import Pickles._
-
+/*
 package APIWebSocket {
   sealed trait APIWebSocket
   case class PublishMessage(mess: SPMessage, topic: String = "services") extends APIWebSocket
@@ -37,7 +37,7 @@ package APIWebSocket {
 
 }
 import sp.server.{APIWebSocket => api}
-
+*/
 
 /**
  * Used by the SP launcher file
