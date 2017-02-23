@@ -9,11 +9,11 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 object WidgetMenu {
   class Backend($: BackendScope[Unit, Unit]) {
-    def addW(name: String, w: Int, h: Int): Callback =
-      Callback(SPGUICircuit.dispatch(AddWidget(name, w, h)))
+    def addW(widgetType: String): Callback =
+      Callback(SPGUICircuit.dispatch(AddWidget(widgetType)))
     def render =
       SPDropdown(
-        for(widget <- WidgetList.list) yield (widget._1, addW(widget._1, widget._3, widget._4)),
+        for(widgetType <- WidgetList.list.map(_._1)) yield (widgetType, addW(widgetType)),
         Icon.windowMaximize,
         "New widget"
       )
