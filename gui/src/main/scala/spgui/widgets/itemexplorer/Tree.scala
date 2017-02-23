@@ -31,18 +31,38 @@ object TVButton {
   }
 }
 
-object ItemContent {
-  def apply(item: Item, allItems: List[Item]): ReactNode = item match {
-    case Mapp(_, _, childrenIds) => TVColumn(allItems, childrenIds)
-    case Spotify(_, _, content) => content
-    case Youtube(_, _, content) => content
+// TODO shouldn't be using lists probably
+// TODO should probably make it an ordinary mutable class, .copy doesn't seem so useful anyway
+case class TreeState(items: List[Item], rootLevelItemIds: List[Int], parentIdMapOpt: Option[Map[Int, Int]] = None) {
+  // parentIdMap(i) points to to parent of item of id i, undefined if item is on root level
+  private val parentIdMap: Map[Int, Int] = parentIdMapOpt.getOrElse(
+    items.flatMap{
+      case Mapp(_, id, childrenIds) => childrenIds.map((_, id))
+      case _ => Nil
+    }.toMap
+  )
+
+  def copyWithMovedItem(movedItemId: Int, newParentId: Int) = {
+    val newItems = items.map{
+      case Mapp(name, `newParentId`, childrenIds) => Mapp(name, newParentId, movedItemId :: childrenIds)
+      case Mapp(name, id, childrenIds) => Mapp(name, id, childrenIds.filter(_ != movedItemId))
+      case item: Item => item
+    }
+
+    val newRootLevelItemIds =
+      if(parentIdMap.contains(movedItemId)) rootLevelItemIds.filter(_ != movedItemId)
+      else rootLevelItemIds
+
+    val newParentIdMap = parentIdMap.filterKeys(_ != movedItemId) ++ Map(movedItemId -> newParentId)
+
+    TreeState(newItems, newRootLevelItemIds, Some(newParentIdMap))
   }
 }
-
-case class TreeState(items: List[Item], rootLevelItemIds: List[Int])
+object TreeState {
+  def apply(items: List[Item], rootLevelItemIds: List[Int]) = new TreeState(items, rootLevelItemIds)
+}
 
 object ListItems {
-// expects rootdir as first element (needs to contain everything)
   val listItems = List(
     Youtube("Smör", 2, "mjölk"),
     Youtube("Ägg", 3, "kalcium"),
@@ -63,11 +83,15 @@ object Tree {
       s.copy(items = s.items :+ item, rootLevelItemIds = s.rootLevelItemIds :+ item.id)
     }
 
+    def onDrop(senderId: String, receiverId: String) =
+      Callback.log(s"item of id $senderId dropped on item of id $receiverId") >>
+        $.modState(_.copyWithMovedItem(senderId.toInt, receiverId.toInt))
+
     def render(s: TreeState) =
       <.div(
         <.button("add EmptyMap", ^.onClick --> addItem(emptyMap())),
         <.button("add Youtube", ^.onClick --> addItem(newYT())),
-        TVColumn(s.items, s.rootLevelItemIds)
+        TVColumn(s.items, s.rootLevelItemIds, onDrop)
       )
   }
 
@@ -80,16 +104,13 @@ object Tree {
 }
 
 object TVColumn {
-  case class Props(items: List[Item], itemIds: List[Int])
+  case class Props(items: List[Item], itemIds: List[Int], onDrop: (String, String) => Callback)
   case class State(selectedItemId: Int = -1)
 
   class TVColumnBackend($: BackendScope[Props, State]) {
 
     def setSelectedId(id: Int) =
       $.modState(s => s.copy(selectedItemId = if(s.selectedItemId == id) -1 else id))
-
-    def onDrop(senderId: String, receiverId: String) =
-      Callback.log(s"item of id $senderId dropped on item of id $receiverId")
 
     def render(p: Props, s: State) =
       <.div(
@@ -101,13 +122,17 @@ object TVColumn {
               Style.li(item.id == s.selectedItemId),
               TVButton(item),
               DataOnDrag(item.id.toString),
-              OnDataDrop(eventData => onDrop(eventData, item.id.toString)),
+              OnDataDrop(eventData => p.onDrop(eventData, item.id.toString)),
               ^.onClick --> setSelectedId(item.id)
             )
           }
         ),
         if(s.selectedItemId == -1) ""
-        else ItemContent(p.items.find(_.id == s.selectedItemId).get, p.items)
+        else p.items.find(_.id == s.selectedItemId).get match {
+          case Mapp(_, _, childrenIds) => TVColumn(p.items, childrenIds, p.onDrop)
+          case Spotify(_, _, content) => content
+          case Youtube(_, _, content) => content
+        }
       )
   }
 
@@ -116,6 +141,7 @@ object TVColumn {
     .renderBackend[TVColumnBackend]
     .build
 
-  def apply(items: List[Item], itemIds: List[Int]): ReactElement = component(Props(items, itemIds))
+  def apply(items: List[Item], itemIds: List[Int], onDrop: (String, String) => Callback): ReactElement =
+    component(Props(items, itemIds, onDrop))
 }
 
