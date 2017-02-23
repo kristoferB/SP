@@ -15,7 +15,7 @@ object DashboardItem {
         ^.className := "panel panel-default",
         <.div(
           ^.className := DashboardCSS.widgetPanelHeader.htmlClass,
-          <.h4(props.widgetType),
+//          <.div(props.widgetType),
           <.div(
             ^.className := DashboardCSS.closeButton.htmlClass,
                       ^.className := "btn",
