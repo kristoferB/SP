@@ -7,6 +7,7 @@ import scalacss.ScalaCssReact._
 import spgui.SPWidget
 import spgui.components.Icon
 import spgui.components.DragAndDrop.{ DataOnDrag, OnDataDrop }
+import spgui.menu.SPDropdown
 
 // TODO: replace with SP API
 // this is just a dummy to have something to work with
@@ -77,6 +78,7 @@ object ListItems {
 
 object Tree {
   def emptyMap() = Mapp("EmptyMap", util.Random.nextInt(1000000) + 10000, List())
+  def newSpotify() = Spotify("NewYT", util.Random.nextInt(1000000) + 10000, "content of NewSpotify")
   def newYT() = Youtube("NewYT", util.Random.nextInt(1000000) + 10000, "content of NewYT")
 
   class TreeBackend($: BackendScope[Unit, TreeState]) {
@@ -88,8 +90,13 @@ object Tree {
 
     def render(s: TreeState) =
       <.div(
-        <.button("add EmptyMap", ^.onClick --> addItem(emptyMap())),
-        <.button("add Youtube", ^.onClick --> addItem(newYT())),
+        SPDropdown(
+          ("Directory", addItem(emptyMap())) ::
+          ("Spotify", addItem(newSpotify())) ::
+          ("Youtube", addItem(newYT())) :: Nil,
+          Icon.chevronDown,
+          "Add Item"
+        ),
         TVColumn(s.items, s.rootLevelItemIds, onDrop)
       )
   }
