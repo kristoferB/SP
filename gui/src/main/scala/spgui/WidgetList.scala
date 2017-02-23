@@ -7,23 +7,23 @@ import spgui.widgets.examples._
 
 object WidgetList {
   val list =
-    List[(String, SPWidgetBase => ReactElement)](
-      ("Grid Test", spgui.dashboard.GridTest()),
-      ("Widget Injection", widgets.injection.WidgetInjectionTest()),
-      ("Item Editor", widgets.itemeditor.ItemEditor()),
-      ("DragDrop Example", widgets.examples.DragAndDrop()),
-      ("Widget with json", widgets.examples.WidgetWithJSON()),
-      ("PlcHldrC", PlaceholderComp()),
-      ("SPWBTest", SPWidgetBaseTest()),
-      ("Widget with data", widgets.examples.WidgetWithData()),
-      ("CommTest", widgets.WidgetCommTest()),
-      ("D3Example", widgets.examples.D3Example()),
-      ("D3ExampleServiceWidget", widgets.examples.D3ExampleServiceWidget()),
-      ("ExampleServiceWidget", ExampleServiceWidget()),
-      ("OpcUAWidget", OpcUAWidget())
+    List[(String, SPWidgetBase => ReactElement, Int, Int)](
+      ("Grid Test", spgui.dashboard.GridTest(), 5, 5),
+      ("Widget Injection", widgets.injection.WidgetInjectionTest(), 2, 2),
+      ("Item Editor", widgets.itemeditor.ItemEditor(), 2, 2),
+      ("DragDrop Example", widgets.examples.DragAndDrop(), 2, 2),
+      ("Widget with json", widgets.examples.WidgetWithJSON(), 2, 2),
+      ("PlcHldrC", PlaceholderComp(), 2, 2),
+      ("SPWBTest", SPWidgetBaseTest(), 2, 2),
+      ("Widget with data", widgets.examples.WidgetWithData(), 2, 2),
+      ("CommTest", widgets.WidgetCommTest(), 2, 2),
+      ("D3Example", widgets.examples.D3Example(), 2, 2),
+      ("D3ExampleServiceWidget", widgets.examples.D3ExampleServiceWidget(), 2, 2),
+      ("ExampleServiceWidget", ExampleServiceWidget(), 2, 2),
+      ("OpcUAWidget", OpcUAWidget(), 5, 2)
     )
 
-  val map = list.toMap
+  val map = list.map(t => t._1 -> (t._2, t._3, t._4)).toMap
 }
 
 object PlaceholderComp {
