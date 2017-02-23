@@ -5,6 +5,7 @@ package spgui.widgets.examples {
   import japgolly.scalajs.react._
   import japgolly.scalajs.react.vdom.prefix_<^._
 
+  import scala.util.{ Random, Try }
 
   import spgui.communication._
 
@@ -84,6 +85,27 @@ package spgui.widgets.examples {
         "answers" // the topic you want to listen to. Soon we will also add some kind of backend filter,  but for now you get all answers
       )
 
+
+
+      val cp = Chart.ChartProps(
+        "Test chart",
+        Chart.PieChart,
+        ChartData(
+          Random.alphanumeric.map(_.toUpper.toString).distinct.take(10),
+          Seq(ChartDataset(Iterator.continually(Random.nextInt(30)).take(10).toSeq, "Data1",
+            Iterator.continually(backgroundColour()).take(10).toSeq))
+        )
+      )
+      def backgroundColour() : String = {
+        val colour = new StringBuilder
+        colour += '#'
+        val letters = Seq('0','1','2','3','4','5','6','7','8','9',
+          'A','B','C','D','E','F')
+        for (x <- 1 to 6) {
+          colour += letters(Random.nextInt(16))
+        }
+        return colour.toString()
+      }
       def render(s: State) = {
         <.div(
           <.h1(s"The Pie ID:"),
@@ -102,9 +124,11 @@ package spgui.widgets.examples {
           <.button(
             ^.className := "btn btn-default",
             ^.onClick --> send(api.ResetAllTickers()), "Reset all Pies"
-          )
+          ),
+          Chart(cp)
         )
       }
+    }
 
       def onUnmount() = {
         println("Unmounting")
