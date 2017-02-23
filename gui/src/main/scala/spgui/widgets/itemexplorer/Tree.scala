@@ -13,7 +13,6 @@ import spgui.components.DragAndDrop.{ DataOnDrag, OnDataDrop }
 sealed abstract class Item {
   val name: String
   // will be an UUID
-  // val id = util.Random.nextInt(2e9.toInt).toString
   val id: Int
 }
 case class Mapp(name: String, id: Int, childrenIds: List[Int]) extends Item
@@ -31,35 +30,37 @@ object TVButton {
   }
 }
 
-// TODO shouldn't be using lists probably
-// TODO should probably make it an ordinary mutable class, .copy doesn't seem so useful anyway
-case class TreeState(items: List[Item], rootLevelItemIds: List[Int], parentIdMapOpt: Option[Map[Int, Int]] = None) {
+class TreeState(private var _items: List[Item], private var _rootLevelItemIds: List[Int]) {
   // parentIdMap(i) points to to parent of item of id i, undefined if item is on root level
-  private val parentIdMap: Map[Int, Int] = parentIdMapOpt.getOrElse(
-    items.flatMap{
+  private var parentIdMap: Map[Int, Int] = _items.flatMap{
       case Mapp(_, id, childrenIds) => childrenIds.map((_, id))
       case _ => Nil
     }.toMap
-  )
 
-  def copyWithMovedItem(movedItemId: Int, newParentId: Int) = {
-    val newItems = items.map{
+  // apparently the only scala way of stopping the client from modifiying a var
+  def items = _items
+  def rootLevelItemIds = _rootLevelItemIds
+
+  // return self, to make $.modstate calls look cleaner
+  def addItem(item: Item) = {
+    _items = item :: _items
+    _rootLevelItemIds = item.id :: _rootLevelItemIds
+    this
+  }
+
+  def moveItem(movedItemId: Int, newParentId: Int) = {
+    _items = _items.map{
       case Mapp(name, `newParentId`, childrenIds) => Mapp(name, newParentId, movedItemId :: childrenIds)
       case Mapp(name, id, childrenIds) => Mapp(name, id, childrenIds.filter(_ != movedItemId))
       case item: Item => item
     }
 
-    val newRootLevelItemIds =
-      if(parentIdMap.contains(movedItemId)) rootLevelItemIds.filter(_ != movedItemId)
-      else rootLevelItemIds
+    if(!parentIdMap.contains(movedItemId)) _rootLevelItemIds = _rootLevelItemIds.filter(_ != movedItemId)
 
-    val newParentIdMap = parentIdMap.filterKeys(_ != movedItemId) ++ Map(movedItemId -> newParentId)
+    parentIdMap = parentIdMap.filterKeys(_ != movedItemId) ++ Map(movedItemId -> newParentId)
 
-    TreeState(newItems, newRootLevelItemIds, Some(newParentIdMap))
+    this
   }
-}
-object TreeState {
-  def apply(items: List[Item], rootLevelItemIds: List[Int]) = new TreeState(items, rootLevelItemIds)
 }
 
 object ListItems {
@@ -71,7 +72,7 @@ object ListItems {
     Spotify("Äpplen", 6, "paj")
   )
   val rootLevelItemIds = List(4, 5, 6)
-  def apply() = TreeState(listItems, rootLevelItemIds)
+  def apply() = new TreeState(listItems, rootLevelItemIds)
 }
 
 object Tree {
@@ -79,13 +80,11 @@ object Tree {
   def newYT() = Youtube("NewYT", util.Random.nextInt(1000000) + 10000, "content of NewYT")
 
   class TreeBackend($: BackendScope[Unit, TreeState]) {
-    def addItem(item: Item) = $.modState{s =>
-      s.copy(items = s.items :+ item, rootLevelItemIds = s.rootLevelItemIds :+ item.id)
-    }
+    def addItem(item: Item) = $.modState(_.addItem(item))
 
     def onDrop(senderId: String, receiverId: String) =
       Callback.log(s"item of id $senderId dropped on item of id $receiverId") >>
-        $.modState(_.copyWithMovedItem(senderId.toInt, receiverId.toInt))
+        $.modState(_.moveItem(senderId.toInt, receiverId.toInt))
 
     def render(s: TreeState) =
       <.div(
@@ -144,4 +143,3 @@ object TVColumn {
   def apply(items: List[Item], itemIds: List[Int], onDrop: (String, String) => Callback): ReactElement =
     component(Props(items, itemIds, onDrop))
 }
-
