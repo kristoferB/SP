@@ -20,6 +20,7 @@ case class FrontEndState(currentModel: Option[UUID] = None,
 // actions
 case class AddWidget(widgetType: String, width: Int = 2, height: Int = 2, initialData: SPValue = SPValue.empty, id: UUID = UUID.randomUUID()) extends Action
 case class CloseWidget(id: UUID) extends Action
+case object CloseAllWidgets extends Action
 case class SetWidgetData(id: UUID, data: SPValue) extends Action
 case class UpdateLayout(id: UUID, newLayout: WidgetLayout) extends Action
 case class UpdateFrontEndState(state: FrontEndState) extends Action

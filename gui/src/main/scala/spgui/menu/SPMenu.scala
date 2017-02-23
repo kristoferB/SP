@@ -3,6 +3,7 @@ package spgui.menu
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import org.scalajs.dom._
+import spgui.circuit.{CloseAllWidgets, SPGUICircuit}
 
 
 
@@ -34,6 +35,10 @@ object SPMenu {
           ^.className := SPMenuCSS.navbarCell.htmlClass,
           WidgetMenu()
         )
+      ),
+      <.button(
+        ^.className := "btn btn-default",
+        ^.onClick --> Callback(SPGUICircuit.dispatch(CloseAllWidgets)), "Remove all"
       )
     )
   )
