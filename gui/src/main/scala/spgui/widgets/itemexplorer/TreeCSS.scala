@@ -6,9 +6,27 @@ import scalacss.ScalaCssReact._
 object Style extends StyleSheet.Inline {
   import dsl._
 
+  val outerDiv = style(
+    //backgroundColor.white,
+    //display.inlineBlock,
+    //minWidth(400 px),
+    //minHeight(400 px)
+  )
+
+  val treeDiv = style(
+    display.flex,
+    flexDirection.row,
+    float.left
+  )
+
+  val tvColumn = style(
+    display.flex,
+    flexDirection.row,
+    padding(0 px)
+  )
+
   val ul = style(
-    float.left,
-    paddingLeft(0 px)
+    padding(0 px)
   )
 
   val li = styleF.bool(selected => styleS(
@@ -16,7 +34,7 @@ object Style extends StyleSheet.Inline {
                          display.block,
                          width(160 px),
                          padding(v = 10.px, h = 15.px),
-                         border :=! "1px solid #ecf0f1",
+                         border :=! "1px solid #999999",
                          cursor.pointer,
                          fontWeight._500,
                          mixinIfElse(selected)(color :=! "#555555", backgroundColor :=! "#A5C2EE")(

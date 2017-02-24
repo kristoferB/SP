@@ -96,6 +96,7 @@ object Tree {
 
     def render(s: TreeState) =
       <.div(
+        Style.outerDiv,
         SPDropdown(
           ("Directory", addItem(emptyMap())) ::
           ("Spotify", addItem(newSpotify())) ::
@@ -103,7 +104,10 @@ object Tree {
           Icon.chevronDown,
           "Add Item"
         ),
-        TVColumn(s.items, s.rootLevelItemIds, onDrop)
+        <.div(
+          Style.treeDiv,
+          TVColumn(s.items, s.rootLevelItemIds, onDrop)
+        )
       )
   }
 
@@ -131,6 +135,7 @@ object TVColumn {
 
     def render(p: Props, s: State) =
       <.div(
+        Style.tvColumn,
         <.ul(
           Style.ul,
           p.itemIds.map{id =>
