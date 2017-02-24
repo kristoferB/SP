@@ -18,6 +18,7 @@ import org.eclipse.milo.opcua.stack.core.Stack
 import org.eclipse.milo.opcua.stack.core.AttributeId
 import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy
 import org.eclipse.milo.opcua.stack.core.types.builtin._
+import org.eclipse.milo.opcua.stack.core.types.builtin._
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned._
 import org.eclipse.milo.opcua.stack.core.types.enumerated._
 import org.eclipse.milo.opcua.stack.core.types.structured._
@@ -36,7 +37,7 @@ import java.util.concurrent.atomic.AtomicLong
 import akka.actor._
 import scala.concurrent.Future
 
-case class StateUpdate(activeState: Map[String, SPValue])
+case class StateUpdate(url: String, activeState: Map[String, SPValue])
 
 object MiloOPCUAClient {
   // call this at the end
@@ -54,6 +55,7 @@ class MiloOPCUAClient {
   var activeState: Map[String, SPValue] = Map()
   var currentTime: org.joda.time.DateTime = org.joda.time.DateTime.now
   var subscriptions: Set[UaSubscription] = Set()
+  var url = ""
 
   def disconnect() = {
     if(client != null) {
@@ -66,6 +68,7 @@ class MiloOPCUAClient {
       availableNodes = Map()
       client.disconnect().get();
       client = null
+      url = ""
     }
   }
 
@@ -83,6 +86,7 @@ class MiloOPCUAClient {
       configBuilder.setApplicationName(LocalizedText.english("SP OPC UA client"));
       configBuilder.build();
       client = new OpcUaClient(configBuilder.build()).connect().get()
+      this.url = url
       // periodically ask for the server time just to keep session alive
       setupServerTimeSubsciption()
       populateNodes(Identifiers.RootFolder)
@@ -163,7 +167,7 @@ class MiloOPCUAClient {
         val spval = fromDataValue(dataValue)
         // println("OPCUA - " + nodeid + " got " + spval)
         activeState += (nodeid -> spval)
-        reciever ! StateUpdate(activeState)
+        reciever ! StateUpdate(url, activeState)
       }
     }
     subscription.createMonitoredItems(TimestampsToReturn.Both, requests.asJava, onItemCreated)
@@ -171,16 +175,29 @@ class MiloOPCUAClient {
   }
 
   def fromDataValue(dv: DataValue): SPValue = {
+    import scala.util.Try
     val v = dv.getValue().getValue()
     val typeid = dv.getValue().getDataType().get()
     val c = BuiltinDataType.getBackingClass(typeid)
     c match {
       case q if q == classOf[java.lang.Integer] => JInt(v.asInstanceOf[Int])
+      case q if q == classOf[UInteger] => JInt(v.asInstanceOf[UInteger].intValue())
       case q if q == classOf[UByte] => JInt(v.asInstanceOf[UByte].intValue())
       case q if q == classOf[java.lang.Short] => JInt(v.asInstanceOf[java.lang.Short].intValue())
-      case q if q == classOf[UShort] => JInt(v.asInstanceOf[UShort].intValue())
+      case q if q == classOf[UShort] =>
+        // need a hack here :(
+        val iv = Try[Int]{ v.toString.toInt }.toOption.getOrElse(0)
+        JInt(iv)
       case q if q == classOf[java.lang.Long] => JInt(v.asInstanceOf[java.lang.Long].intValue())
       case q if q == classOf[String] => JString(v.asInstanceOf[String])
+      case q if v.isInstanceOf[Array[ByteString]] => {
+        println("hej hopp")
+        val arr = v.asInstanceOf[Array[ByteString]]
+        if(arr.length > 0)
+          JString(arr(0).toString)
+        else
+          JString("arr len 0")
+      }
       case q if q == classOf[ByteString] => JString(v.asInstanceOf[ByteString].toString)
       case q if q == classOf[java.lang.Boolean] => JBool(v.asInstanceOf[Boolean])
       case q if q == classOf[java.lang.Double] => JDouble(v.asInstanceOf[java.lang.Double].doubleValue())
@@ -193,6 +210,7 @@ class MiloOPCUAClient {
     val c = BuiltinDataType.getBackingClass(targetType)
     c match {
       case q if q == classOf[java.lang.Integer] => new DataValue(new Variant(spVal.extract[Int]))
+      case q if q == classOf[UInteger] => new DataValue(new Variant(uint(spVal.extract[Int])))
       case q if q == classOf[UByte] => new DataValue(new Variant(ubyte(spVal.extract[Int])))
       case q if q == classOf[UShort] => new DataValue(new Variant(ushort(spVal.extract[Int])))
       case q if q == classOf[java.lang.Short] => new DataValue(new Variant(spVal.extract[Short]))

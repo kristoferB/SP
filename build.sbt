@@ -77,6 +77,11 @@ lazy val labkit = (project in file("spservices/labkit"))
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= akka)
 
+lazy val festo = (project in file("spservices/festo"))
+  .dependsOn(spdomain, macros)
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= akka)
+
 lazy val modelsTest = (project in file("spservices/modelsTest"))
   .dependsOn(spdomain, macros)
 .settings(commonSettings: _*)

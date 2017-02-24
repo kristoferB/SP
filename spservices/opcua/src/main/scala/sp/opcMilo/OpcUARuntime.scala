@@ -20,19 +20,18 @@ import scala.util.{Failure, Success, Try}
 
 package API_OpcUARuntime {
   sealed trait API_OpcUARuntime
-  sealed trait API_OpcUARuntimeSubTrait
 
   // requests
   case class Connect(url: String) extends API_OpcUARuntime
-  case class Disconnect() extends API_OpcUARuntime
-  case class GetNodes() extends API_OpcUARuntime
-  case class Subscribe(nodeIDs: List[String]) extends API_OpcUARuntime
-  case class Write(node: String, value: SPValue) extends API_OpcUARuntime
+  case class Disconnect(url: String) extends API_OpcUARuntime
+  case class GetNodes(url: String) extends API_OpcUARuntime
+  case class Subscribe(url: String, nodeIDs: List[String]) extends API_OpcUARuntime
+  case class Write(url: String, node: String, value: SPValue) extends API_OpcUARuntime
 
   // answers
-  case class ConnectionStatus(connected: Boolean) extends API_OpcUARuntime
-  case class AvailableNodes(nodes: Map[String, String]) extends API_OpcUARuntime
-  case class StateUpdate(state: Map[String, SPValue], timeStamp: String) extends API_OpcUARuntime
+  case class ConnectionStatus(url: String, connected: Boolean) extends API_OpcUARuntime
+  case class AvailableNodes(url: String, nodes: Map[String, String]) extends API_OpcUARuntime
+  case class StateUpdate(url: String, state: Map[String, SPValue], timeStamp: String) extends API_OpcUARuntime
 
   object attributes {
     val service = "OpcUARuntime"
@@ -52,8 +51,8 @@ class OpcUARuntime extends Actor {
   mediator ! Subscribe("spevents", self)
 
 
-  val client = new MiloOPCUAClient()
-  var state = State(Map())
+  var clients: Map[String, MiloOPCUAClient] = Map()
+  var states: Map[String, State] = Map() // State(Map())
 
   def receive = {
     // case mess @ _ if {println(s"OPCUA MESSAGE: $mess from $sender"); false} => Unit
@@ -76,20 +75,47 @@ class OpcUARuntime extends Actor {
             def mktup(l1: List[APISP], l2: List[api.API_OpcUARuntime]) = (l1,l2)
             val (spapis,apis) = b match {
               case api.Connect(url) =>
-                client.connect(url)
-                mktup(List(APISP.SPACK()), List(api.ConnectionStatus(client.isConnected)))
-              case api.Disconnect() =>
-                if(client.isConnected) client.disconnect
-                mktup(List(APISP.SPACK()), List(api.ConnectionStatus(client.isConnected)))
-              case api.GetNodes() =>
-                val nodes = client.getAvailableNodes.map { case (i,dt) => (i,dt.toString) }.toMap
-                mktup(List(APISP.SPACK()), List(api.ConnectionStatus(client.isConnected), api.AvailableNodes(nodes)))
-              case api.Subscribe(nodes) =>
-                if(client.isConnected) client.subscribeToNodes(nodes, self)
-                mktup(List(APISP.SPACK()), List(api.ConnectionStatus(client.isConnected)))
-              case api.Write(node, value) =>
-                if(client.isConnected) client.write(node, value)
-                mktup(List(APISP.SPACK()), List(api.ConnectionStatus(client.isConnected)))
+                if(!clients.contains(url)) {
+                  // new client
+                  val c = new MiloOPCUAClient()
+                  c.connect(url)
+                  clients += (url -> c)
+                }
+                mktup(List(APISP.SPACK()), List(api.ConnectionStatus(url, clients(url).isConnected)))
+              case api.Disconnect(url) =>
+                if(clients.contains(url) && clients(url).isConnected) {
+                  val c = clients(url)
+                  c.disconnect
+                  clients = clients - url
+                  mktup(List(APISP.SPACK()), List(api.ConnectionStatus(url, c.isConnected)))
+                } else {
+                  mktup(List(APISP.SPACK()), List(api.ConnectionStatus(url, false)))
+                }
+              case api.GetNodes(url) =>
+                if(clients.contains(url) && clients(url).isConnected) {
+                  val c = clients(url)
+                  val nodes = c.getAvailableNodes.map { case (i,dt) => (i,dt.toString) }.toMap
+                  mktup(List(APISP.SPACK()), List(api.ConnectionStatus(url, c.isConnected),
+                    api.AvailableNodes(url, nodes)))
+                } else {
+                  mktup(List(APISP.SPError(s"Not connected")), List())
+                }
+              case api.Subscribe(url,nodes) =>
+                if(clients.contains(url) && clients(url).isConnected) {
+                  val c = clients(url)
+                  if(c.isConnected) c.subscribeToNodes(nodes, self)
+                  mktup(List(APISP.SPACK()), List(api.ConnectionStatus(url,c.isConnected)))
+                } else {
+                  mktup(List(APISP.SPError(s"Not connected")), List())
+                }
+              case api.Write(url, node, value) =>
+                if(clients.contains(url) && clients(url).isConnected) {
+                  val c = clients(url)
+                  c.write(node, value)
+                  mktup(List(APISP.SPACK()), List(api.ConnectionStatus(url,c.isConnected)))
+                } else {
+                  mktup(List(APISP.SPError(s"Not connected")), List())
+                }
               case x => mktup(List(APISP.SPError(s"Ill formed request: $x")), List())
             }
 
@@ -99,10 +125,11 @@ class OpcUARuntime extends Actor {
           }
         case Failure(err) => {}
       }
-    case StateUpdate(activeState) =>
-      val header = SPHeader(from = api.attributes.service, to = "all")
-      val body = api.StateUpdate(activeState, client.getCurrentTime.toString)
+    case StateUpdate(url, activeState) =>
+      val header = SPHeader(from = api.attributes.service)
+      val body = api.StateUpdate(url, activeState, if(clients.contains(url)) clients(url).getCurrentTime.toString else "")
       SPMessage.make(header, body).map { m => mediator ! Publish("answers", m.toJson) }
+      println("got state change and sent it")
     case _ => sender ! APISP.SPError("Ill formed request")
   }
 
@@ -114,6 +141,8 @@ class OpcUARuntime extends Actor {
   )
 
   override def postStop() = {
-    if(client.isConnected) client.disconnect()
+    clients.map { case (url,client) =>
+      if(client.isConnected) client.disconnect()
+    }
   }
 }
