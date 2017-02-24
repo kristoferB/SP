@@ -11,7 +11,7 @@ object ItemEditor {
     .render_P(p =>
     <.div(
       ^.className := ItemEditorCSS.editor.htmlClass,
-      JSONEditorTest(p.data, p.id)
+      JSONEditorTest(p.getWidgetData, p.id)
     )
   )
     .build

@@ -13,7 +13,7 @@ import spgui.circuit._
 import spgui.WidgetList
 
 object Dashboard {
-  case class Props(proxy: ModelProxy[(Map[UUID, OpenWidget], FrontEndState)])
+  case class Props(proxy: ModelProxy[(Map[UUID, OpenWidget], GlobalState)])
 
   class Backend($: BackendScope[Props, Unit]) {
     def render(p: Props) = {
@@ -36,7 +36,6 @@ object Dashboard {
             WidgetList.map(openWidget.widgetType)._1(
               SPWidgetBase(
                 openWidget.id,
-                openWidget.data,
                 frontEndState
               )
             ),
@@ -74,6 +73,6 @@ object Dashboard {
     .renderBackend[Backend]
     .build
 
-  def apply(proxy: ModelProxy[(Map[UUID, OpenWidget], FrontEndState)]) =
+  def apply(proxy: ModelProxy[(Map[UUID, OpenWidget], GlobalState)]) =
     component(Props(proxy))
 }

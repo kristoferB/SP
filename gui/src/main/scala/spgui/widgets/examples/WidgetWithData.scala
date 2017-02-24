@@ -15,13 +15,13 @@ object WidgetWithData {
   def apply() = SPWidget{spwb =>
     // upickle's read tries to turn the string in browser storage into a MyData-instance
     // if there is nothing there or casting fails, creates the standard instance instead
-    val myData = spwb.data.getAs[MyData]().getOrElse(MyData())
+    val myData = spwb.getWidgetData.getAs[MyData]().getOrElse(MyData())
     val theInt = myData.someInt
     // upickle's write turns a new version of myData into a string that is saved in storage
 
     def increment = Callback {
       val updD = myData.copy(theInt + 1)
-      spwb.saveWidgetData(toSPValue(updD))
+      spwb.updateWidgetData(toSPValue(updD))
     }
 
     <.div(

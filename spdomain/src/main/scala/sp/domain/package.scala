@@ -53,6 +53,7 @@ package object domain {
         case e: Exception => None
       }
     }
+    def empty: SPValue = JObject()
 
 
   }

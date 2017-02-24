@@ -9,9 +9,9 @@ import sp.messages.Pickles._
 
 object WidgetWithJSON {
   def apply() = SPWidget{spwb =>
-    def onTextChange(e: ReactEventI): Callback = Callback(spwb.saveWidgetData(toSPValue(e.target.value)))
+    def onTextChange(e: ReactEventI): Callback = Callback(spwb.updateWidgetData(toSPValue(e.target.value)))
 
-    val text = if (spwb.data == SPValue.empty) "some text" else spwb.data.getAs[String]().getOrElse("")
+    val text = if (spwb.getWidgetData == SPValue.empty) "some text" else spwb.getWidgetData.getAs[String]().getOrElse("")
 
     <.div(
       <.h3("hello from WidgetWithJSON"),

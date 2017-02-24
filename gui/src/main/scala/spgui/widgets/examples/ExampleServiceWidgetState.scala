@@ -36,8 +36,7 @@ import scala.util.Try
                 val p = Pie(id, m)
                 s.copy(pie = Some(p))
               } else {
-                val updIds = if (s.otherPies.contains(id)) s.otherPies else id :: s.otherPies
-               s.copy(otherPies = updIds)
+                s
               }
             case api.TheTickers(ids) =>
                 val p = if (!ids.contains(pieID)) None else s.pie
@@ -47,8 +46,10 @@ import scala.util.Try
           }
 
           updState.map{x =>
-            saveData(x)
-            $.setState(x).runNow()
+            if (s != x){
+              saveData(x)
+              $.setState(x).runNow()
+            }
           }
 
         }
@@ -85,13 +86,17 @@ import scala.util.Try
       }
 
       def saveData(s: State) = {
-        $.props.runNow.saveWidgetData(SPValue(s))
+        $.props.runNow.updateWidgetData(SPValue(s))
       }
       def createANewPie(s: State) = {
         val p = Pie(UUID.randomUUID(), Map())
         s.pie.map(x => send(api.StopTheTicker(x.id)))
         send(api.StartTheTicker(p.id))
-        $.modState(prev => prev.copy(pie = Some(p)))
+        $.modState{prev =>
+          val res = prev.copy(pie = Some(p))
+          saveData(res)
+          res
+        }
       }
 
 
@@ -106,7 +111,7 @@ import scala.util.Try
     }
 
     def initState(spwb: SPWidgetBase): State = {
-      spwb.data.getAs[State]().getOrElse(State(None, List()))
+      spwb.getWidgetData.getAs[State]().getOrElse(State(None, List()))
     }
 
     private val component = ReactComponentB[SPWidgetBase]("ExampleServiceWidget")

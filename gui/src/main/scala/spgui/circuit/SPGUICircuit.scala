@@ -12,7 +12,7 @@ object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] 
   def initialModel = BrowserStorage.load.getOrElse(InitialState())
   val actionHandler = composeHandlers(
     new DashboardHandler(zoomRW(_.openWidgets)((m,v) => m.copy(openWidgets = v))),
-    new FrontEndStateHandler(zoomRW(_.state)((m,v) => m.copy(state = v)))
+    new GlobalStateHandler(zoomRW(_.globalState)((m, v) => m.copy(globalState = v)))
   )
   // store state upon any model change
   subscribe(zoomRW(myM => myM)((m,v) => v))(m => BrowserStorage.store(m.value))
@@ -20,19 +20,13 @@ object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] 
 
 class DashboardHandler[M](modelRW: ModelRW[M, OpenWidgets]) extends ActionHandler(modelRW) {
   override def handle = {
-    case AddWidget(widgetType, width, height, data, id) =>
+    case AddWidget(widgetType, width, height, id) =>
       val rightmost = value.xs.values.foldLeft(0)((a, b) => math.max(a, b.layout.w + b.layout.x))
-      val newWidget = OpenWidget(id, WidgetLayout(rightmost, 0, width, height), widgetType, data)
+      val newWidget = OpenWidget(id, WidgetLayout(rightmost, 0, width, height), widgetType)
       updated(OpenWidgets(value.xs + (id -> newWidget)))
     case CloseWidget(id) =>
       updated(OpenWidgets(value.xs - id))
     case CloseAllWidgets => updated(OpenWidgets(Map()))
-    case SetWidgetData(id, d) =>
-      val updW = value.xs.get(id)
-        .map(_.copy(data = d))
-        .map(x => value.xs + (x.id -> x))
-        .getOrElse(value.xs)
-      updated(OpenWidgets(updW))
     case UpdateLayout(id, newLayout) => {
       val updW = value.xs.get(id)
         .map(_.copy(layout = newLayout))
@@ -43,10 +37,18 @@ class DashboardHandler[M](modelRW: ModelRW[M, OpenWidgets]) extends ActionHandle
   }
 }
 
-class FrontEndStateHandler[M](modelRW: ModelRW[M, FrontEndState]) extends ActionHandler(modelRW) {
+class GlobalStateHandler[M](modelRW: ModelRW[M, GlobalState]) extends ActionHandler(modelRW) {
   override def handle = {
-    case UpdateFrontEndState(state) =>
+    case UpdateGlobalState(state) =>
       updated(state)
+  }
+}
+
+class WidgetDataHandler[M](modelRW: ModelRW[M, WidgetData]) extends ActionHandler(modelRW) {
+  override def handle = {
+    case UpdateWidgetData(id, d) =>
+      val updW = value.xs + (id -> d)
+      updated(WidgetData(updW))
   }
 }
 

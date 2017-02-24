@@ -9,18 +9,27 @@ import sp.domain._
 import java.util.UUID
 
 
-case class SPWidgetBase(id: UUID, data: SPValue, frontEndState: FrontEndState) {
+case class SPWidgetBase(id: UUID, frontEndState: GlobalState) {
 
-  def saveWidgetData(data: SPValue): Unit = {
-    SPGUICircuit.dispatch(SetWidgetData(id, data))
+  def updateWidgetData(data: SPValue): Unit = {
+    SPGUICircuit.dispatch(UpdateWidgetData(id, data))
   }
 
-  def saveFrontEndData(state: FrontEndState): Unit = {
-    SPGUICircuit.dispatch(UpdateFrontEndState(state))
+  def getWidgetData = {
+    SPGUICircuit.zoom(_.widgetData.xs.get(id)).value.getOrElse(SPValue.empty)
   }
 
-  def openNewWidget(widgetType: String, initialData: SPValue = SPValue.empty) =
-    SPGUICircuit.dispatch(AddWidget(widgetType = widgetType, initialData = initialData))
+  def updateGlobalState(state: GlobalState): Unit = {
+    SPGUICircuit.dispatch(UpdateGlobalState(state))
+  }
+
+  def openNewWidget(widgetType: String, initialData: SPValue = SPValue.empty) = {
+    val w = AddWidget(widgetType = widgetType)
+    val d = UpdateWidgetData(w.id, initialData)
+
+    SPGUICircuit.dispatch(d)
+    SPGUICircuit.dispatch(w)
+  }
 
   def closeSelf() = SPGUICircuit.dispatch(CloseWidget(id))
 
@@ -41,10 +50,10 @@ object SPWidgetBaseTest {
   import sp.messages.Pickles._
   def apply() = SPWidget{spwb =>
     def saveOnChange(e: ReactEventI): Callback =
-      Callback(spwb.saveWidgetData(*(e.target.value)))
+      Callback(spwb.updateWidgetData(*(e.target.value)))
 
     def copyMe(): Callback = {
-      val d = spwb.data
+      val d = spwb.getWidgetData
       Callback(spwb.openNewWidget(
         "SPWBTest", d)
       )
@@ -56,7 +65,7 @@ object SPWidgetBaseTest {
       <.label("My Data"),
       <.input(
         ^.tpe := "text",
-        ^.defaultValue := spwb.data.toJson,
+        ^.defaultValue := spwb.getWidgetData.toJson,
         ^.onChange ==> saveOnChange
       ),
       <.button("Copy me", ^.onClick --> copyMe()),
