@@ -21,8 +21,8 @@ object APISP {
 
 object Pickles extends SPParser {
 
-  case class SPHeader(from: String,
-                      to: String,
+  case class SPHeader(from: String = "",
+                      to: String = "",
                       replyTo: String = "",
                       reqID: UUID = UUID.randomUUID(),
                       replyFrom: String = "",

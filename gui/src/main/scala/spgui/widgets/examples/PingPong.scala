@@ -2,14 +2,14 @@ package spgui.widgets.examples
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
+import sp.messages._
+import Pickles._
 
 import scala.util.Try
-import upickle.default.{read, write}
-
 import spgui.SPWidget
+import spgui.communication.WidgetPubSub
 
 
-// creating a new bus soon
 //object Ping {
 //  def apply() = SPWidget(spwb =>
 //    <.div(
@@ -20,20 +20,32 @@ import spgui.SPWidget
 //      ),
 //      <.button(
 //        "Send message to Pongs",
-//        ^.onClick --> Callback(spwb.publish("PingPongTopic", "hej där"))
+//        ^.onClick --> Callback(WidgetPubSub.pub(SPMessage.make(SPHeader("ping", "pong"), "Hej på dig")))
 //      )
 //    )
 //  )
 //}
 //
 //object Pong {
+//  import rx._
+//  implicit val ctx: Ctx.Owner = Ctx.Owner.safe()
+//
 //  case class PongData(theInt: Int)
 //  def apply() = SPWidget{spwb =>
-//    spwb.subscribe("PingPongTopic", s => {
-//      val msgsReceived: Int = Try(read[PongData](spwb.data).theInt).getOrElse(0) + 1
-//      spwb.saveData(write(PongData(msgsReceived)))
-//      println("widget of id " + spwb.id + " got a msg saying " + s)
-//    })
+//    val x = WidgetPubSub.subVar()
+//    val res = Var[String]("")
+//    Rx {
+//      val mess = x()
+//      for {
+//        h <- mess.getHeaderAs[SPHeader] if h.to == "pong"
+//        b <- mess.getBodyAs[String]
+//      } yield {
+//        res() = b
+//      }
+//    }
+//
+//    res.
+//
 //    <.div(
 //      <.h3("Hello from Pong"),
 //      <.h4(Try(read[PongData](spwb.data).theInt).getOrElse(0) + " messages received")
