@@ -235,6 +235,7 @@ trait OPMakerLogic extends NamesAndValues{
     }
   }
 
+
   def checkValue(state: Map[String, SPValue], values: List[(String, SPValue)]) = {
     values.foldLeft(true){(a, b) =>
 //      println("Checking state ******")
@@ -244,6 +245,58 @@ trait OPMakerLogic extends NamesAndValues{
       a && state.contains(b._1) && state(b._1) == b._2
     }
   }
+
+
+
+
+  def makeTransportOps() = {
+
+  }
+
+
+
+
+  def getOrMakeANewStartStop(name: String,
+                    resource: String,
+                    time: DateTime,
+                    currentOps: Map[String, APIOPMaker.OP],
+                    start: Boolean,
+                    stop: Boolean
+                   ) = {
+
+
+    //println("OP "+name + ": "+hasStarted)
+    val currOP = currentOps.get(name).orElse{
+      if (start){
+        Some(APIOPMaker.OP(APIOPMaker.OPEvent(name, time, name+opCounter, resource, None), None))
+      } else None
+    }
+    currOP.map{op =>
+      if (stop) { // it has completed now
+      val duration = op.start.time to time toDurationMillis
+        val end = APIOPMaker.OPEvent(op.start.name, time, op.start.id, op.start.resource, op.start.product)
+        op.copy(end = Some(end), attributes =  op.attributes + ("duration"->duration))
+      } else op
+    }
+  }
+
+
+
+  var prevState: Map[String, SPValue] = Map()
+  def triggerFlank(state: Map[String, SPValue], variables: List[String]): Boolean = {
+    val res = variables.forall( key => Try{state(key) != prevState(key)}.getOrElse(true))
+    prevState = state
+    res
+  }
+
+  def anyKeyHasValue(state: Map[String, SPValue], keys: List[String], value: SPValue): Boolean = {
+    keys.exists(k => state.get(k).contains(value))
+  }
+
+  def valueIsInSet(state: Map[String, SPValue], key: String, values: Set[SPValue]): Boolean = {
+    state.get(key).exists(values.contains)
+  }
+
 }
 
 

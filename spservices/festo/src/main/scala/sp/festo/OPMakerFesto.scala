@@ -63,7 +63,7 @@ class OPMakerFesto extends PersistentActor with ActorLogging with OPMakerLogic w
 
       state = state ++ mess.state
       val time = Try{new DateTime(mess.time)}.getOrElse(org.joda.time.DateTime.now)
-      val updOps = makeMeOps(state, time, currentOps) // .map(updPositionsAndOps)
+      val updOps = makeMeOps(state, time, currentOps).map(updPositionsAndOps)
       println("NEW OPS")
       updOps.foreach(println(_))
       updOps.foreach(mediator ! Publish("ops", _))
@@ -143,8 +143,8 @@ trait OPMakerLogic extends NamesAndValues{
   def makeMeOps(state: Map[String, SPValue], time: DateTime, currentOps: Map[String, APIOPMaker.OP]) = {
     opCounter = opCounter + 1
     val ops = List(
-      getOrMakeANew(b6atStopRelease,b6, time, currentOps, checkValue(state, List(b6xBG21 -> true))),
-      getOrMakeANew(b14atStopRelease,b14, time, currentOps, checkValue(state, List(b14xBG21 -> true)))
+      getOrMakeANew(b6atStopRelease,b6, time, currentOps, checkValue(state, List(b6xBG21 -> true)), state.get(b6spSt1RFID)),
+      getOrMakeANew(b14atStopRelease,b14, time, currentOps, checkValue(state, List(b14xBG21 -> true)), state.get(b6spSt1RFID))
     )
 
     val temp = ops.collect{
@@ -166,7 +166,8 @@ trait OPMakerLogic extends NamesAndValues{
                     resource: String,
                     time: DateTime,
                     currentOps: Map[String, APIOPMaker.OP],
-                    hasStarted: Boolean
+                    hasStarted: Boolean,
+                    id: Option[SPValue]
                    ) = {
 
 
@@ -179,8 +180,9 @@ trait OPMakerLogic extends NamesAndValues{
     currOP.map{op =>
       if (!hasStarted) { // it has completed now
       val duration = op.start.time to time toDurationMillis
-        val end = APIOPMaker.OPEvent(op.start.name, time, op.start.id, op.start.resource, op.start.product)
-        op.copy(end = Some(end), attributes =  op.attributes + ("duration"->duration))
+        val start = op.start.copy(product = id.map(_.toJson))
+        val end = APIOPMaker.OPEvent(start.name, time, start.id, start.resource, start.product)
+        op.copy(start = start, end = Some(end), attributes =  op.attributes + ("duration"->duration))
       } else op
     }
   }
@@ -194,6 +196,79 @@ trait OPMakerLogic extends NamesAndValues{
       a && state.contains(b._1) && state(b._1) == b._2
     }
   }
+
+
+
+
+
+
+  def makeTransportOps(name: String,
+                       resource: String,
+                       time: DateTime,
+                       currentOps: Map[String, APIOPMaker.OP],
+                       state: Map[String, SPValue],
+                       startTrigger: Boolean,
+                       idTagKey: String,
+                       endKeys: String
+                      ) = {
+    val currOP = currentOps.get(name).orElse{
+      if (startTrigger){
+        val id = state.get(idTagKey)
+        Some(APIOPMaker.OP(APIOPMaker.OPEvent(name, time, name+opCounter, resource, id.map(_.toJson)), None))
+      } else None
+    }
+    currOP.map { op =>
+      val id = op.start.product.flatMap(SPValue.fromJson(_))
+
+    }
+  }
+
+
+
+
+  def getOrMakeANewStartStop(name: String,
+                             resource: String,
+                             time: DateTime,
+                             currentOps: Map[String, APIOPMaker.OP],
+                             start: Boolean,
+                             stop: Boolean
+                            ) = {
+
+
+    //println("OP "+name + ": "+hasStarted)
+    val currOP = currentOps.get(name).orElse{
+      if (start){
+        Some(APIOPMaker.OP(APIOPMaker.OPEvent(name, time, name+opCounter, resource, None), None))
+      } else None
+    }
+    currOP.map{op =>
+      if (stop) { // it has completed now
+      val duration = op.start.time to time toDurationMillis
+        val end = APIOPMaker.OPEvent(op.start.name, time, op.start.id, op.start.resource, op.start.product)
+        op.copy(end = Some(end), attributes =  op.attributes + ("duration"->duration))
+      } else op
+    }
+  }
+
+
+
+  var prevState: Map[String, SPValue] = Map()
+  def triggerFlank(state: Map[String, SPValue], variables: List[String]): Boolean = {
+    val res = variables.forall( key => Try{state(key) != prevState(key)}.getOrElse(true))
+    prevState = state
+    res
+  }
+
+  def anyKeyHasValue(state: Map[String, SPValue], keys: List[String], value: SPValue): Boolean = {
+    keys.exists(k => state.get(k).contains(value))
+  }
+
+  def valueIsInSet(state: Map[String, SPValue], key: String, values: Set[SPValue]): Boolean = {
+    state.get(key).exists(values.contains)
+  }
+
+
+
 }
 
 
