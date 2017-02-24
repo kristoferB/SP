@@ -49,16 +49,22 @@ class TreeState(private var _items: List[Item], private var _rootLevelItemIds: L
     this
   }
 
-  def moveItem(movedItemId: Int, newParentId: Int) = {
+  // move item to parent of target if target is not a directory
+  def moveItem(movedItemId: Int, newParentId: Int) = _items.find(_.id == newParentId).get match {
+    case mapp: Mapp => moveItemToDir(movedItemId, newParentId)
+    case item: Item => moveItemToDir(movedItemId, parentIdMap(newParentId))
+  }
+
+  private def moveItemToDir(movedItemId: Int, newDirId: Int) = {
     _items = _items.map{
-      case Mapp(name, `newParentId`, childrenIds) => Mapp(name, newParentId, movedItemId :: childrenIds)
+      case Mapp(name, `newDirId`, childrenIds) => Mapp(name, newDirId, movedItemId :: childrenIds)
       case Mapp(name, id, childrenIds) => Mapp(name, id, childrenIds.filter(_ != movedItemId))
       case item: Item => item
     }
 
     if(!parentIdMap.contains(movedItemId)) _rootLevelItemIds = _rootLevelItemIds.filter(_ != movedItemId)
 
-    parentIdMap = parentIdMap.filterKeys(_ != movedItemId) ++ Map(movedItemId -> newParentId)
+    parentIdMap = parentIdMap.filterKeys(_ != movedItemId) ++ Map(movedItemId -> newDirId)
 
     this
   }
@@ -116,7 +122,12 @@ object TVColumn {
   class TVColumnBackend($: BackendScope[Props, State]) {
 
     def setSelectedId(id: Int) =
-      $.modState(s => s.copy(selectedItemId = if(s.selectedItemId == id) -1 else id))
+      $.state >>= (s => if(s.selectedItemId == id) selectNone else $.modState(s => s.copy(selectedItemId = id)))
+
+    def selectNone() = $.modState(s => s.copy(selectedItemId = -1))
+
+    def deselectDragged(id: Int) =
+      $.state >>= (s => if(id == s.selectedItemId) selectNone else Callback.empty)
 
     def render(p: Props, s: State) =
       <.div(
@@ -127,9 +138,9 @@ object TVColumn {
             <.li(
               Style.li(item.id == s.selectedItemId),
               TVButton(item),
-              DataOnDrag(item.id.toString),
-              OnDataDrop(eventData => p.onDrop(eventData, item.id.toString)),
-              ^.onClick --> setSelectedId(item.id)
+              DataOnDrag(item.id.toString, deselectDragged(item.id)),
+              OnDataDrop(eventData => p.onDrop(eventData, item.id.toString) >> setSelectedId(item.id)),
+              ^.onClick --> (setSelectedId(item.id) >> Callback.log("selected sumthing"))
             )
           }
         ),

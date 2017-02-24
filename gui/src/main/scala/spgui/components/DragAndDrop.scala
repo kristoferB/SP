@@ -18,8 +18,8 @@ object DragAndDrop {
   }
 
   object DataOnDrag {
-    def apply(data: String) =
-      OnDragMod(ev => Callback(ev.dataTransfer.setData("text/plain", data)))
+    def apply(data: String, cb: Callback = Callback.empty) =
+      OnDragMod(ev => cb >> Callback(ev.dataTransfer.setData("text/plain", data)))
   }
 
   object OnDataDrop {
