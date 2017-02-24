@@ -30,7 +30,7 @@ class ResourceAggregator extends Actor {
   import context.dispatcher
   val mediator = DistributedPubSub(context.system).mediator
 
-  val processResources = List("p1","p3","p4")
+  val processResources = List("b6","b14")
 
   var processes: Map[String, Map[String, Int]] = processResources.map((_,Map():Map[String,Int])).toMap
 
@@ -42,9 +42,8 @@ class ResourceAggregator extends Actor {
     val now = org.joda.time.DateTime.now.getMillis().intValue() - baseTime
     val toSend = processResources.map { resource =>
       val processTime = processes(resource).get("Process").getOrElse(0)
-      val moveTime = Math.max(processes(resource).get("move").getOrElse(0) - processTime,0)
-      val idleTime = Math.max(now - moveTime - processTime, 0)
-      val m = Map("move" -> moveTime, "Process" -> processTime, "Idle" -> idleTime)
+      val idleTime = Math.max(now - processTime, 0)
+      val m = Map("Process" -> processTime, "Idle" -> idleTime)
       (resource -> m)
     }
     mediator ! Publish("frontend", APIParser.write(APILabKitWidget.ResourcePies(toSend.toMap)))
@@ -79,16 +78,10 @@ class ResourceAggregator extends Actor {
 
         // update pie charts
         if(processResources.contains(resource)) {
-          if(name.contains("Process")) {
+          if(name.contains("StopRelease")) {
             val duration = (end.get.time.getMillis() - start.time.getMillis()).intValue()
             val nt = processes(resource).get("Process").getOrElse(0) + duration
             val nm = processes(resource) + ("Process" -> nt)
-            processes ++= Map(resource -> nm)
-          }
-          if(name.contains("move")) {
-            val duration = (end.get.time.getMillis() - start.time.getMillis()).intValue()
-            val nt = processes(resource).get("move").getOrElse(0) + duration
-            val nm = processes(resource) + ("move" -> nt)
             processes ++= Map(resource -> nm)
           }
         }

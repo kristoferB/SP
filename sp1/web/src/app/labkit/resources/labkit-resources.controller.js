@@ -46,8 +46,8 @@
             }
         };
 
-        vm.pieNames = [ "p1","p3","p4" ];
-        vm.pieData = [ [], [], [] ];
+        vm.pieNames = [ "b6","b14"];
+        vm.pieData = [ [], [] ];
 
         var activeTasks = [];
 
