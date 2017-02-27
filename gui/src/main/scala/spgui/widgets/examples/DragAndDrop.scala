@@ -4,6 +4,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
 import spgui.SPWidget
+import spgui.components.DragAndDrop.{ OnDragMod, OnDropMod }
 
 object DragAndDrop {
   private case class Props(
@@ -27,11 +28,6 @@ object DragAndDrop {
       )
     }
 
-    def preventDefaultHandling(e: ReactEventI): Callback = {
-      // this needs to be called by onDragOver for onDrop to work as expected
-      Callback(e.preventDefault())
-    }
-
     def handleNameChange(s: Props)(e: ReactEventI) =
       $.setState(s.copy(
         name = e.target.value
@@ -49,14 +45,12 @@ object DragAndDrop {
         ),
         <.div(
           ^.className := DragAndDropCSS.dragZone.htmlClass,
-          ^.draggable := true,
-          ^.onDragStart ==> handleDrag(s),
+          OnDragMod(handleDrag(s)),
           "drag me!"
         ),
         <.div(
           ^.className := DragAndDropCSS.dropZone.htmlClass,
-          ^.onDragOver ==> preventDefaultHandling,
-          ^.onDrop ==> handleDrop(s),
+          OnDropMod(handleDrop(s)),
           "drag to me!"
         )
       )
@@ -74,8 +68,3 @@ object DragAndDrop {
 
   def apply() = SPWidget(swpb => component())
 }
-
-
-
-
-

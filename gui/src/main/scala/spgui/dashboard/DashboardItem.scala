@@ -3,8 +3,8 @@ package spgui.dashboard
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
-import spgui.circuit.{SPGUICircuit, CloseWidget}
-import spgui.Icon
+import spgui.circuit.{ SPGUICircuit, CloseWidget }
+import spgui.components.Icon
 
 object DashboardItem {
   case class Props(element: ReactElement, widgetType: String, id: java.util.UUID)

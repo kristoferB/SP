@@ -1,4 +1,4 @@
-package spgui
+package spgui.components
 
 import japgolly.scalajs.react.ReactNode
 import japgolly.scalajs.react.vdom.prefix_<^._
