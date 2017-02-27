@@ -21,7 +21,7 @@ object WidgetList {
       ("D3ExampleServiceWidget", widgets.examples.D3ExampleServiceWidget(), 2, 2),
       ("ExampleServiceWidget", ExampleServiceWidget(), 2, 2),
       ("ExampleServiceWidgetState", ExampleServiceWidgetState(), 2, 3),
-      ("OpcUAWidget", OpcUAWidget(), 5, 2)
+      ("OpcUAWidget", OpcUAWidget(), 5, 2),
       ("Tree", widgets.itemexplorer.Tree(), 2, 4)
     )
 

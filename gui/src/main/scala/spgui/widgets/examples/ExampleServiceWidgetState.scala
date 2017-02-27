@@ -7,7 +7,7 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 import spgui.SPWidgetBase
 import spgui.communication._
 
-import scala.util.Try
+import scala.util.{Random, Try}
 
   // Import this to make SPAttributes work including json handling
   import sp.domain._
@@ -20,14 +20,13 @@ import scala.util.Try
 
   object ExampleServiceWidgetState {
     case class Pie(id: UUID, map: Map[String, Int])
-    case class State(pie: Option[Pie], otherPies: List[UUID])
+    case class State(pie: Option[Pie], otherPies: List[UUID], brodcast: Int = 0)
 
     private class Backend($: BackendScope[SPWidgetBase, State]) {
 
       val messObs = BackendCommunication.getMessageObserver(
         mess => {
           //println(s"The widget example got: $mess" +s"parsing: ${mess.getBodyAs[api.API_ExampleService]}")
-
           val s = $.state.runNow()
           val pieID = s.pie.map(_.id).getOrElse(UUID.randomUUID())
           val updState = mess.getBodyAs[api.API_ExampleService].map {
@@ -55,9 +54,19 @@ import scala.util.Try
         }
       )
 
+      val widgetComm = WidgetPubSub.sub(mess => {
+        val p = $.props.runNow().id.toString
+        for {
+          h <- mess.getHeaderAs[SPHeader] if h.to == "ExampleServiceWidgetState" && h.from != p
+          b <- mess.getBodyAs[Int]
+        } yield {
+          $.modState(s => s.copy(brodcast = b)).runNow()
+        }
+      })
 
 
-      def render(s: State) = {
+
+      def render(p: SPWidgetBase, s: State) = {
         <.div(
           <.h1(s"The Pie ID:"),
           s.pie.toList.map { p => <.div(p.id.toString) },
@@ -75,7 +84,13 @@ import scala.util.Try
           <.button(
             ^.className := "btn btn-default",
             ^.onClick --> send(api.ResetAllTickers()), "Reset all Pies"
-          )
+          ),
+          <.br(),
+          <.button(
+            ^.className := "btn btn-default",
+            ^.onClick --> pubToFriendWidgets(p.id, s.brodcast), "Brodcast"
+          ),
+        "brodcast: " + s.brodcast
         )
       }
 
@@ -105,6 +120,14 @@ import scala.util.Try
         val json = SPMessage.make(h, mess) // *(...) is a shorthand for toSpValue(...)
         BackendCommunication.publish(json, "services")
         Callback.empty
+      }
+
+      def pubToFriendWidgets(myID: UUID, current: Int) = {
+        val h = SPHeader(from = myID.toString, to = "ExampleServiceWidgetState")
+        val b = current + scala.util.Random.nextInt(5)
+        WidgetPubSub.pub(SPMessage.make(h, b))
+        Callback.empty
+
       }
 
 
