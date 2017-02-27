@@ -16,4 +16,14 @@ object DragAndDrop {
     def apply(handleDrop: ReactDragEvent => Callback): TagMod =
       Seq(^.onDragOver ==> preventDefaultHandling, ^.onDrop ==> handleDrop)
   }
+
+  object DataOnDrag {
+    def apply(data: String, cb: Callback = Callback.empty) =
+      OnDragMod(ev => cb >> Callback(ev.dataTransfer.setData("text/plain", data)))
+  }
+
+  object OnDataDrop {
+    def apply(handleData: String => Callback) =
+      OnDropMod(ev => handleData(ev.dataTransfer.getData("text/plain")))
+  }
 }

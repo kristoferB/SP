@@ -178,8 +178,10 @@ class MiloOPCUAClient {
       case q if q == classOf[java.lang.Integer] => JInt(v.asInstanceOf[Int])
       case q if q == classOf[UByte] => JInt(v.asInstanceOf[UByte].intValue())
       case q if q == classOf[java.lang.Short] => JInt(v.asInstanceOf[java.lang.Short].intValue())
+      case q if q == classOf[UShort] => JInt(v.asInstanceOf[UShort].intValue())
       case q if q == classOf[java.lang.Long] => JInt(v.asInstanceOf[java.lang.Long].intValue())
       case q if q == classOf[String] => JString(v.asInstanceOf[String])
+      case q if q == classOf[ByteString] => JString(v.asInstanceOf[ByteString].toString)
       case q if q == classOf[java.lang.Boolean] => JBool(v.asInstanceOf[Boolean])
       case q if q == classOf[java.lang.Double] => JDouble(v.asInstanceOf[java.lang.Double].doubleValue())
       case _ => println(s"need to add type: ${c}"); JString("fail")
@@ -192,6 +194,7 @@ class MiloOPCUAClient {
     c match {
       case q if q == classOf[java.lang.Integer] => new DataValue(new Variant(spVal.extract[Int]))
       case q if q == classOf[UByte] => new DataValue(new Variant(ubyte(spVal.extract[Int])))
+      case q if q == classOf[UShort] => new DataValue(new Variant(ushort(spVal.extract[Int])))
       case q if q == classOf[java.lang.Short] => new DataValue(new Variant(spVal.extract[Short]))
       case q if q == classOf[java.lang.Long] =>
         val l = spVal match {
@@ -200,6 +203,7 @@ class MiloOPCUAClient {
         }
         new DataValue(new Variant(l))
       case q if q == classOf[String] => new DataValue(new Variant(spVal.extract[String]))
+      case q if q == classOf[ByteString] => new DataValue(new Variant(ByteString.of(spVal.extract[String].getBytes())))
       case q if q == classOf[java.lang.Boolean] => new DataValue(new Variant(spVal.extract[Boolean]))
       case q if q == classOf[java.lang.Double] => new DataValue(new Variant(spVal.extract[Double]))
       case _ => println(s"need to add type: ${c}"); new DataValue(new Variant(false))
