@@ -14,6 +14,7 @@ import rx._
 import sp.domain._
 import sp.messages._
 import Pickles._
+import spgui.{SPWidget, SPWidgetBase}
 
 
 package APITesting {
@@ -135,7 +136,7 @@ object WidgetCommTest {
       val b = APITesting.ServiceCall("Hej från mig")
       println("hej")
 
-      val mess = SPMessage(*(h), *(b))
+      val mess = SPMessage.make(h, b)
 
 
 
@@ -147,7 +148,7 @@ object WidgetCommTest {
 
 
       val b2 = APITesting.RequestCall("hoj från mig")
-      val mess2 = SPMessage(*(h), *(b2))
+      val mess2 = SPMessage.make(h, b2)
 
       val f = BackendCommunication.ask(mess2, "requests")
       f.map { v =>
@@ -248,6 +249,6 @@ object WidgetCommTest {
       .componentWillUnmount(_.backend.onUnmount())
     .build
 
-  def apply() = spgui.SPWidget(spwb => component())
+  def apply() = SPWidget(spwb => component())
 }
 

@@ -49,7 +49,7 @@ object SPMenuCSS extends StyleSheet.Inline {
   )
 
   val spLogoDiv = style("sp-logo-outer")(
-    backgroundColor := spOrange,
+    backgroundColor :=! spOrange,
     height.inherit,
     display.flex,
     alignItems.center
@@ -80,8 +80,8 @@ object SPMenuCSS extends StyleSheet.Inline {
   val container = style("sp-navbar-container")(
     paddingLeft(0.px),
     boxShadow := spgui.GlobalCSS.defaultShadow,
-    backgroundColor := navbarBgColor,
-    color := navbarFgColor,
+    backgroundColor :=! navbarBgColor,
+    color :=! navbarFgColor,
     border.none,
     display.flex,
     alignItems.center,

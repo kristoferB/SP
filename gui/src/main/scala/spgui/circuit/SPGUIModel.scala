@@ -1,27 +1,36 @@
 package spgui.circuit
 
 import diode._
+import java.util.UUID
+import sp.domain.SPValue
 
 // state
-case class SPGUIModel(openWidgets: OpenWidgets, layout: Int)
-case class OpenWidgets(count: Int, list: List[OpenWidget])
-case class OpenWidget(id: Int, layout: WidgetLayout, widgetType: String, stringifiedWidgetData: String = "")
+case class SPGUIModel(
+                       openWidgets: OpenWidgets = OpenWidgets(),
+                       globalState: GlobalState = GlobalState(),
+                       widgetData: WidgetData = WidgetData(Map()))
+
+case class OpenWidgets(xs: Map[UUID, OpenWidget] = Map())
+case class OpenWidget(id: UUID, layout: WidgetLayout, widgetType: String)
 case class WidgetLayout(x: Int, y: Int, w: Int, h: Int)
 
-// actions
-case class AddWidget(widgetType: String, stringifiedWidgetData: String = "") extends Action
-case class CloseWidget(id: Int) extends Action
-case class SetWidgetData(index: Int, stringifiedWidgetData: String) extends Action
+case class GlobalState(currentModel: Option[UUID] = None,
+                       selectedItems: List[UUID] = List(),
+                       userID: Option[UUID] = None,
+                       clientID: UUID = UUID.randomUUID()
+                        )
 
-case class LayoutUpdated(id: Int, newLayout: WidgetLayout) extends Action
+case class WidgetData(xs: Map[UUID, SPValue])
+
+// actions
+case class AddWidget(widgetType: String, width: Int = 2, height: Int = 2, id: UUID = UUID.randomUUID()) extends Action
+case class CloseWidget(id: UUID) extends Action
+case object CloseAllWidgets extends Action
+case class UpdateWidgetData(id: UUID, data: SPValue) extends Action
+case class UpdateLayout(id: UUID, newLayout: WidgetLayout) extends Action
+case class UpdateGlobalState(state: GlobalState) extends Action
 
 // used when failing to retrieve a state from browser storage
 object InitialState {
-  val initialState = SPGUIModel(
-    openWidgets = OpenWidgets(1, List(
-      OpenWidget(1, WidgetLayout(0,0,1,1), "PlcHldrC")
-    )),
-    layout = 0
-  )
-  def apply() = initialState
+  def apply() = SPGUIModel()
 }

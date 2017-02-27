@@ -1,31 +1,36 @@
 package spgui.widgets.itemeditor
 
+import java.util.UUID
+
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
+
 import scalajs.js
 import scalajs.js.Dynamic.{literal => l}
 import org.scalajs.dom.raw.Element
 import org.scalajs.dom.document
 import java.util.concurrent.atomic.AtomicInteger
-import spgui.circuit.{SPGUICircuit}
+
+import sp.domain.SPValue
+import spgui.circuit.SPGUICircuit
 
 object JSONEditorTest {
 
   val incrementer = new AtomicInteger (0);
-  def apply() = component("JSONEditorId-" + incrementer.incrementAndGet().toString)
+  def apply(data: SPValue, id: UUID) = component(data: SPValue, id: UUID)
 
-  def component(id: String) = {
+  def component(data: SPValue, id: UUID) = {
     ReactComponentB[Unit]("JSONEditorTest")
       .render_P(_ => <.div(
         ^.className := ItemEditorCSS.editor.htmlClass,
-        ^.id := id
+        ^.id := id.toString
       )
     )
       .componentDidMount(_ => Callback({
-        val editor = addTheJSONEditor(id)
+        val editor = addTheJSONEditor(data, id)
         // set up the editor to explicitly resize when the layout is updated.
         // this fixes a bug introduced by placing jsoneditor inside an animated container
-        SPGUICircuit.subscribe(SPGUICircuit.zoom(_.layout))(e => {
+        SPGUICircuit.subscribe(SPGUICircuit.zoom(_.openWidgets.xs(id).layout))(e => {
           editor.resize()
         })
       }))
@@ -46,8 +51,8 @@ object JSONEditorTest {
     "mode" -> "code",
     "modes" -> js.Array("code", "tree")
   )
-  private def addTheJSONEditor(elementId: String): JSONEditor = {
-    val editor = new JSONEditor(document.getElementById(elementId), options)
+  private def addTheJSONEditor(data: SPValue, id: UUID): JSONEditor = {
+    val editor = new JSONEditor(document.getElementById(id.toString), options)
     editor.set(l("name" -> "John Smith"))
     editor
   }

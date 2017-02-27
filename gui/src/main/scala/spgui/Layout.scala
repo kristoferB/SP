@@ -8,9 +8,9 @@ import spgui.menu.SPMenu
 import spgui.dashboard.Dashboard
 
 object Layout {
-  val widgetsConnection = SPGUICircuit.connect(_.openWidgets.list)
+  val widgetsConnection = SPGUICircuit.connect(x => (x.openWidgets.xs, x.globalState))
 
-  private val component = ReactComponentB[Unit]("Layout")
+  val component = ReactComponentB[Unit]("Layout")
     .render(_ =>
     <.div(
       ^.className := GlobalCSS.layout.htmlClass,
