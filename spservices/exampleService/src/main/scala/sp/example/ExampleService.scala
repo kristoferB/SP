@@ -150,7 +150,8 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
     "service" -> api.attributes.service,
     "api" -> "to be added with macros later",
     "groups" -> List("examples"),
-    "attributes" -> api.attributes
+    "attributes" -> api.attributes,
+    "instanceID" -> ID.newID
   )
 
   // Sends a status response when the actor is started so service handlers finds it
