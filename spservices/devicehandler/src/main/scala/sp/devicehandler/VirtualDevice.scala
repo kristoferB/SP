@@ -110,30 +110,42 @@ class VirtualDevice(name: String, id: UUID) extends PersistentActor with ActorLo
 }
 
 
-trait VirtualDeviceLogic {
+trait VirtualDeviceLogic extends VDMappers{
   val name: String
   val id: UUID
 
-  type StateMap = Map[String, SPValue]
+  case class Resource(r: api.Resource, read: List[StateMapper], write: List[StateMapper])
   case class StateMapper(f: (Map[String, StateMap], Map[String, StateMap]) =>  Map[String, StateMap])
-  val defMapper = StateMapper { (in, out) =>
-    val current = out(name)
-    val upd = in.foldLeft(current){(a, b) =>
-      val prefixState = b._2.map(kv => s"${b._1}.${kv._1}"->kv._2)
-
-    }
-
-  }
-  val defResource = api.Resource(name, id, List(), SPAttributes, false)
 
 
   var drivers: Map[String, api.Driver] = Map()
   var driverState: Map[String, StateMap] = Map()
-  var resources: Map[String, api.Resource] = Map(defResource.name -> defResource)
+  var resources: Map[String, Resource] = Map()
   var resourceState: Map[String, StateMap] = Map()
 
   var driverToResMapper: List[StateMapper] = List()
   var resToDriverMapper: List[StateMapper] = List()
+
+
+  private val defaultWriter = StateMapper{ case (res, drivers) =>
+    val x = writeAllPrefix(res(name))
+    writeTo(x, drivers)
+  }
+
+  private val defaultReader = StateMapper{ case (drivers, res) =>
+    val x = readAllPrefix(drivers, name)
+    writeTo(x, res)
+  }
+
+
+
+  private val defResource = Resource(
+    api.Resource(name, id, List(), SPAttributes, false),
+    List(defaultReader), List(defaultWriter))
+
+  resources += name -> defResource
+
+
 
 
 
@@ -146,9 +158,14 @@ trait VirtualDeviceLogic {
   }
 
   def driverEvent(e: api.DriverStateChange) = {
+    val current = driverState.get(e.name).map{sm =>
+      val upd = sm ++ e.state
+      driverState +   e.name -> upd
+    }.map{ds =>
+
+    }
 
   }
-
 
 
 }
@@ -163,11 +180,40 @@ trait VDDriverComm {
 
 trait VDMappers {
   type StateMap = Map[String, SPValue]
-  def flatMapState(thingState: Map[String, State], prefix: Boolean) = {
-    thingState.foldLeft(Map[String, SPValue]()){(a, b) =>
-      val pref = if (prefix) b._1+"." else ""
-      val prefixState = b._2.map(kv => s"${pref}${kv._1}"->kv._2)
-      a ++ prefixState
+
+  def writeTo(upd: Map[String, StateMap], current: Map[String, StateMap]): Map[String, StateMap] = {
+    current.map{kv =>
+      val updM = upd.getOrElse(kv._1, Map())
+      kv._1 -> (kv._2 ++ updM)
+    }
+  }
+
+  def readAllPrefix(thingState: Map[String, StateMap], resource: String): Map[String, StateMap]  = {
+    Map(resource -> flatMapState(thingState))
+  }
+
+  def writeAllPrefix(thingState: StateMap) = {
+    extractPrefixState(thingState)
+  }
+
+  def copyValue(thingState: Map[String, StateMap], from: (String, String), to: (String, String)) = {
+    val v = for {m <- thingState.get(from._1); value <- m.get(from._2)} yield value
+    val updKV = v.map(x => Map(to._2 -> x)).getOrElse(Map())
+    to._1 -> updKV
+  }
+
+  private def flatMapState(thingState: Map[String, StateMap]) = {
+    thingState.foldLeft(Map[String, SPValue]()) { (a, b) =>
+      a ++ prefixState(b._2, b._1)
+    }
+  }
+
+  private def prefixState(state: StateMap, prefix: String) = state.map(kv => s"$prefix.${kv._1}" -> kv._2)
+
+  private def extractPrefixState(state: StateMap) = {
+    state.groupBy{kv =>
+      kv._1.split(".").headOption
+    }.collect{case (Some(str), x) => str -> x}
   }
 
 }
