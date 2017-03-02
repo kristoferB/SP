@@ -78,7 +78,7 @@ object VirtualDevice {
 
 
 
-class VirtualDevice(name: String, id: UUID) extends PersistentActor with ActorLogging {
+class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with ActorLogging with VirtualDeviceLogic {
   override def persistenceId = id.toString
 
   import context.dispatcher
@@ -90,6 +90,24 @@ class VirtualDevice(name: String, id: UUID) extends PersistentActor with ActorLo
 
   override def receiveCommand = {
     case x: String =>
+      val mess = SPMessage.fromJson(x)
+
+      for {
+        m <- mess
+        b <- m.getBodyAs[api.Requests]
+      } yield {
+        b match {
+          case api.SetUpDeviceDriver(d) =>
+            println("new driver " + d)
+            newDriver(d)
+            mediator ! x
+          case e @ api.DriverStateChange(name, id, state, _) =>
+            println("got a statechange:" + state)
+            driverEvent(e)
+            println(driverState)
+            println(resourceState)
+        }
+      }
 
 
   }
@@ -141,7 +159,7 @@ trait VirtualDeviceLogic extends VDMappers{
 
 
   private val defResource = Resource(
-    api.Resource(name, id, List(), SPAttributes, false),
+    api.Resource(name, id, List(), SPAttributes(), false),
     List(defaultReader), List(defaultWriter))
 
   resources += name -> defResource
@@ -164,12 +182,11 @@ trait VirtualDeviceLogic extends VDMappers{
       val upd = sm ++ e.state
       driverState +   e.name -> upd
     }
-    current.foreach{ds =>
+
       resources.map{r =>
         r._2.read.foreach {mapper =>
-          resourceState = mapper.f(ds, resourceState)
+          resourceState = mapper.f(driverState, resourceState)
         }
-      }
     }
 
   }
