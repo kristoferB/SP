@@ -54,8 +54,8 @@ class OPC extends Actor {
 
   val cp = "|var|CODESYS Control for Raspberry Pi SL.Application.Process_IOs."
 
-  val nodes = List("feedRun", "feedFinish", "feedState", "feedError", "robor1Run", "robot1Target", "robot1State", "robot1ResetRun",
-  "robot1ResetState", "robor2Run", "robot2Target", "robot2State", "robot2ResetRun", "robot2ResetState", "c1p1Run", "c1p1Dir",
+  val nodes = List("feedRun", "feedFinish", "feedState", "feedError", "robot1Run", "robot1Target", "robot1State", "robot1ResetRun",
+  "robot1ResetState", "robot2Run", "robot2Target", "robot2State", "robot2ResetRun", "robot2ResetState", "c1p1Run", "c1p1Dir",
   "c1p1State", "c1p1Sensor", "c1p2Run", "c1p2Dir", "c1p2State", "c1p2Sensor", "c1TimeRun", "c1TimeTime", "c1TimeState", "c2p1Run",
   "c2p1Dir", "c2p1State", "c2p1Sensor", "c3p1Run", "c3p1Dir", "c3p1State", "c3p1Sensor", "c3p2Run", "c3p2Dir", "c3p2State", "c3p2Sensor",
   "c3p3Run", "c3p3Dir", "c3p3State", "c3p3Sensor", "c3TimeRun", "c3TimeTime", "c3TimeState", "c4p1Run", "c4p1Dir", "c4p1State", "c4p1Sensor",
