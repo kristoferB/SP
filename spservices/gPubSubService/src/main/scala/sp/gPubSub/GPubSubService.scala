@@ -1,4 +1,4 @@
-package sp.example
+package sp.gPubSub
 
 import akka.actor._
 
@@ -12,6 +12,10 @@ import java.io.File
 import java.io.IOException
 import java.util
 
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
@@ -24,6 +28,7 @@ import com.typesafe.scalalogging.LazyLogging
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
+import scala.collection.immutable.ListMap
 
 trait PubSubEndpoints {
   self =>
@@ -49,6 +54,7 @@ class GPubSub(applicationName: String, implicit val projectName: String) extends
       x.foreach { m =>
         val mDecoded = new String(m.getMessage.decodeData())
         listOfMessages += mDecoded
+        println(mDecoded)
         sub.ackMessage(Seq(m.getAckId))
       }
     }
@@ -67,33 +73,8 @@ class GPubSub(applicationName: String, implicit val projectName: String) extends
     }
     val requestFactory = Transport.createRequestFactory(creds)
     val initializer = requestFactory.getInitializer()
-    //logger.info("Initialized connection") // Only writes to the terminal
     new Pubsub.Builder(Transport, JsonFactory, initializer).setApplicationName(applicationName).build()
   }
-
-  /**
-   * List topics. Note that this will paginate *all*
-   * @return list of Topic instances.
-   */
-  def listTopics(): List[Topic] = {
-    val listMethod = pubsubClient.projects().topics().list(s"projects/$projectName")
-    var nextPageToken : Option[String] = None
-    val topics = collection.mutable.MutableList.empty[Topic]
-
-    do {
-      if (nextPageToken.isDefined) {
-        listMethod.setPageToken(nextPageToken.get)
-      }
-      logger.debug("Paginating topics")
-      val response = listMethod.execute()
-      logger.debug(response.toString)
-      topics ++= response.getTopics
-      nextPageToken = Option(response.getNextPageToken())
-    } while (nextPageToken.isDefined)
-
-    topics.toList
-  }
-
 
   def getSubscription(topicName: String, subName: String): TopicSubscription = {
     new TopicSubscription(pubsubClient.projects().subscriptions().get(getFQSubscriptionName(subName)).execute())
@@ -103,11 +84,10 @@ class GPubSub(applicationName: String, implicit val projectName: String) extends
   trait RichSubscription extends PubSubEndpoints {
     val underlying: Subscription
     val SubscriptionName: String = underlying.getName
-    //check sub exists
 
     implicit val ps: Pubsub
 
-    def pullMessages(batchSize: Int = 10, block: Boolean = false): Option[util.List[ReceivedMessage]] = {
+    def pullMessages(batchSize: Int = 5, block: Boolean = false): Option[util.List[ReceivedMessage]] = {
       val pullRequest = new PullRequest()
         .setReturnImmediately(!block)
         .setMaxMessages(batchSize)
@@ -132,37 +112,37 @@ class GPubSub(applicationName: String, implicit val projectName: String) extends
 // The messages that this service can send and receive is
 // is defined using this API structure
 
-package API_ExampleService {
-  sealed trait API_ExampleService
+package API_GPubSubService {
+  sealed trait API_GPubSubService
   // Messages you can send to me
   /**
     * Adds a new pie to the memory with an id
     * @param id an UUID identifying the pie
     */
-  case class StartTheTicker(id: java.util.UUID) extends API_ExampleService
+  case class StartTheTicker(id: java.util.UUID) extends API_GPubSubService
 
   /**
     * removes the pie with the id
     * @param id an UUID identifying the pie
     */
-  case class StopTheTicker(id: java.util.UUID) extends API_ExampleService
+  case class StopTheTicker(id: java.util.UUID) extends API_GPubSubService
 
   /**
     * Changes the pie to the given map
     * @param id  an UUID identifying the pie
     * @param map A map representing a pie
     */
-  case class SetTheTicker(id: java.util.UUID, map: Map[String, Int]) extends API_ExampleService
-  case class GetTheTickers() extends API_ExampleService
-  case class ResetAllTickers() extends API_ExampleService
+  case class SetTheTicker(id: java.util.UUID, map: Map[String, Int]) extends API_GPubSubService
+  case class GetTheTickers() extends API_GPubSubService
+  case class ResetAllTickers() extends API_GPubSubService
 
   // included here for simplicity
-  case object StartThePLC extends API_ExampleService
+  case object StartThePLC extends API_GPubSubService
 
 
   // Messages that I will send as answer
-  case class TickerEvent(map: Map[String, Int], id: java.util.UUID) extends API_ExampleService
-  case class TheTickers(ids: List[java.util.UUID]) extends API_ExampleService
+  case class TickerEvent(map: Map[String, Int], id: java.util.UUID) extends API_GPubSubService
+  case class TheTickers(ids: List[java.util.UUID]) extends API_GPubSubService
 
   object attributes {
     val service = "exampleService"
@@ -170,14 +150,14 @@ package API_ExampleService {
     val api = "to be fixed by macros"
   }
 }
-import sp.example.{API_ExampleService => api}
+import sp.gPubSub.{API_GPubSubService => api}
 
 
 /**
   *  This is the actor (the service) that listens for messages on the bus
   *  It keeps track of a set of Pie diagrams that is updated every second
   */
-class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
+class GPubSubService extends Actor with ActorLogging with ExampleServiceLogic {
 
   // connecting to the pubsub bus using the mediator actor
   import akka.cluster.pubsub._
@@ -190,7 +170,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
   // The metod that receve messages. Add service logic in a trait so you can test it. Here the focus in on parsing
   // and on the messages on the bus
   def receive = {
-    case mess @ _ if {log.debug(s"ExampleService MESSAGE: $mess from $sender"); false} => Unit
+    case mess @ _ if {log.debug(s"GPubSubService MESSAGE: $mess from $sender"); false} => Unit
 
     case "tick" =>
       val upd = tick  // Updated the pies on a tick
@@ -215,7 +195,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
       val bodyAPI = for {
         m <- message
         h <- header if h.to == api.attributes.service  // only extract body if it is to me
-        b <- m.getBodyAs[api.API_ExampleService]
+        b <- m.getBodyAs[api.API_GPubSubService]
       } yield b
 
       // Extract the body if it is a StatusRequest
@@ -235,9 +215,9 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
 
 
         toSend.map{
-          case mess @ _ if {println(s"ExampleService sends: $mess"); false} => Unit
-          case x: api.API_ExampleService =>
-            oldMess.makeJson(h, x.asInstanceOf[api.API_ExampleService]).map { b =>
+          case mess @ _ if {println(s"GPubSubService sends: $mess"); false} => Unit
+          case x: api.API_GPubSubService =>
+            oldMess.makeJson(h, x.asInstanceOf[api.API_GPubSubService]).map { b =>
               mediator ! Publish("answers", b)
             }
           case x: APISP =>
@@ -280,12 +260,12 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
   // A "ticker" that sends a "tick" string to self every 2 second
   import scala.concurrent.duration._
   import context.dispatcher
-  val ticker = context.system.scheduler.schedule(2 seconds, 2 seconds, self, "tick")
+  val ticker = context.system.scheduler.schedule(0 seconds, 0.1 seconds, self, "tick")
 
 }
 
-object ExampleService {
-  def props = Props(classOf[ExampleService])
+object GPubSubService {
+  def props = Props(classOf[GPubSubService])
 }
 
 
@@ -305,21 +285,14 @@ trait ExampleServiceLogic {
   // This method returns multiple messages that will be sent out on the bus
   // Services should start and end with an SPACK and SPDONE if there is a
   // a clear start and end of the message stream (so listeners can unregister)
-  def commands(body: api.API_ExampleService) = {
+  def commands(body: api.API_GPubSubService) = {
     body match {
       case api.StartTheTicker(id) =>
-        val inst: GPubSub = new GPubSub("Intelligentaakuten","intelligentaakuten-158811")
-        val receivedMessagesList = inst.main()
-        println(receivedMessagesList)
-        var aMap: Map[String,Int] = Map()
-        var counter = 0
-        aMap += ("Received the following messages: " -> counter)
-        receivedMessagesList.foreach { mess =>
-          counter += 1
-          aMap += (mess -> counter)
-        }
-        thePies += id -> aMap
-        List(APISP.SPACK(), getTheTickers)
+      var aMap: Map[String,Int] = Map()
+      aMap += (" " -> 0)
+      println("Listening...")
+      thePies += id -> aMap
+      List(APISP.SPACK(), getTheTickers)
       case api.StopTheTicker(id) =>
         thePies -= id
         List(APISP.SPDone(), getTheTickers)
@@ -329,14 +302,34 @@ trait ExampleServiceLogic {
       case api.ResetAllTickers() =>
         thePies = Map()
         List(getTheTickers)
-      case x => List(APISP.SPError(s"ExampleService can not understand: $x"))
+      case x => List(APISP.SPError(s"GPubSubService can not understand: $x"))
     }
 
 
   }
 
   def tick = {
-    thePies = thePies.map(kv => kv._1 -> updPie(kv._2))
+    // Get new messages
+    thePies = thePies.map{ kv =>
+      var aMap = kv._2
+      if (aMap.keys.size != 0) {
+        val inst: GPubSub = new GPubSub("Intelligentaakuten","intelligentaakuten-158811")
+        val receivedMessagesList = inst.main()
+        val mapSize = aMap.size
+        var sortedMap = ListMap(aMap.toSeq.sortBy(_._1):_*)
+        val key = sortedMap.keys.toList(mapSize-1)
+        var counter: Int = sortedMap(key)
+        receivedMessagesList.foreach { mess =>
+          counter += 1
+          if (aMap.contains(mess)) {
+            aMap += (mess + counter -> counter)
+          } else {
+            aMap += (mess -> counter)
+          }
+        }
+      }
+      kv._1 -> aMap
+    }
     thePies.map{case (id, p) =>
       api.TickerEvent(p, id)
     }.toList
@@ -344,20 +337,12 @@ trait ExampleServiceLogic {
 
   def getTheTickers = api.TheTickers(thePies.keys.toList)
 
+}
 
-  // Just some logic to make the pies change
-  val r = Random
-  def updPie(pie: Map[String, Int]) = {
-    val no = r.nextInt(20)
-    val part = r.nextInt(pie.size)
-    val key = pie.keys.toList(part)
-    val newPie = pie + (key -> (pie(key) + no))
-    norm(newPie)
-  }
 
-  def norm(pie: Map[String, Int]) = {
-    val sum = pie.foldLeft(1){(a, b) => a + b._2}
-    pie.map{case (key, v) => key -> ((v.toDouble / sum)*100).toInt}
-  }
+
+
+// Trying to handle incoming HTTP POST requests
+class TestService extends HttpServlet {
 
 }

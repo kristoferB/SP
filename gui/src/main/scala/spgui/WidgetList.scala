@@ -21,6 +21,7 @@ object WidgetList {
       ("CommTest", widgets.WidgetCommTest()),
       ("D3Test", widgets.examples.D3Example()),
       ("ExampleServiceWidget", ExampleServiceWidget()),
+      ("GPubSubServiceWidget", GPubSubServiceWidget()),
       ("OpcUAWidget", OpcUAWidget())
     )
 }

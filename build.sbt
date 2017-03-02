@@ -3,6 +3,13 @@ scalaOrganization in ThisBuild := "org.typelevel"
 scalaVersion := "2.11.8"
 version := "2.0_M1"
 
+libraryDependencies += "com.google.cloud" % "google-cloud-pubsub" % "0.9.2-alpha"
+libraryDependencies += "com.google.apis" % "google-api-services-pubsub" % "v1-rev350-1.22.0"
+libraryDependencies += "com.google.api-client" % "google-api-client" % "1.22.0"
+libraryDependencies += "com.google.api.client" % "google-api-client-http" % "1.2.3-alpha"
+libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
+libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.23"
+
 lazy val akka = Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.4.16",
   "com.typesafe.akka" %% "akka-cluster" % "2.4.16",
@@ -88,6 +95,11 @@ lazy val opcua = (project in file("spservices/opcua"))
 .settings(libraryDependencies ++= akka)
 
 lazy val exampleService = (project in file("spservices/exampleService"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
+
+lazy val gPubSubService = (project in file("spservices/gPubSubService"))
   .dependsOn(spdomain, macros)
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
