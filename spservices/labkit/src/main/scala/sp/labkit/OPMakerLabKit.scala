@@ -82,24 +82,72 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
   val baseTimeNow = org.joda.time.DateTime.now
   var baseTimeThen: Long = -1
   var lastms: Long = 0
+  var testRec: List[String] = List()
   def receiveRecover = {
     case x: String =>
+      testRec = x :: testRec
 //      fixTheOps(x)
-      val attr = SPValue.fromJson(x)
-      val rawMess = attr.flatMap(_.to[RawMess])
-      if(rawMess.nonEmpty && rawMess.get.state.nonEmpty && rawMess.get.time.nonEmpty) {
-        val ms = new DateTime(rawMess.get.time).getMillis()
-        if(baseTimeThen == -1) baseTimeThen = ms // init replay time
-        val msOfExecution = ms - baseTimeThen
-        val sleep = msOfExecution - lastms
-        Thread.sleep(sleep)
-        lastms = msOfExecution
-        val rawFixedTime = RawMess(rawMess.get.state, baseTimeNow.plusMillis(msOfExecution.intValue()).toString)
-        fixTheOps(SPValue(rawFixedTime).toJson.toString)
-      }
+//      val attr = SPValue.fromJson(x)
+//      val rawMess = attr.flatMap(_.to[RawMess])
+//      if(rawMess.nonEmpty && rawMess.get.state.nonEmpty && rawMess.get.time.nonEmpty) {
+//        val ms = new DateTime(rawMess.get.time).getMillis()
+//        if(baseTimeThen == -1) baseTimeThen = ms // init replay time
+//        val msOfExecution = ms - baseTimeThen
+//        val sleep = msOfExecution - lastms
+//        Thread.sleep(sleep)
+//        lastms = msOfExecution
+//        val rawFixedTime = RawMess(rawMess.get.state, baseTimeNow.plusMillis(msOfExecution.intValue()).toString)
+//        fixTheOps(SPValue(rawFixedTime).toJson.toString)
+    // }
+
     case RecoveryCompleted =>
+      println("*********************************")
+      println("*********************************")
+      println("*********************************")
+     import Pickles._
+      testRec = testRec.reverse
+      val s: Map[String, SPValue] = extrState(testRec.head)
+      println("hhh")
+
+
+      case class TimeStampedValue(value: SPValue, time: SPValue)
+      val t = s("time")
+      var aggr:  Map[String, List[TimeStampedValue]] = s.map(kv => kv._1 -> List(TimeStampedValue(kv._2, t)))
+     
+      
+      // println(SPAttributes(s.toList).toJson)
+      testRec.foldLeft(s){(a, b) => {
+        val next = extrState(b)
+        val f = next.filter{
+          case (key, v) =>
+               a.contains(key) && a(key) != v || key == "time"
+        }
+
+          //println(SPAttributes(f.toList).toJson)
+        val upd = f.map(kv => kv._1 -> (aggr(kv._1) :+ TimeStampedValue(kv._2, f("time"))))
+        aggr = aggr ++ upd
+
+        a ++ f
+      }
+
+
+
+      }
+      aggr.map(println)
+
+      println("*********************************")
+      println("*********************************")
+      println("*********************************")
+
+
       println("recover done")
     case x => println("hej: "+x)
+  }
+
+  def extrState(x: String) = {
+    val attr = SPAttributes.fromJson(x)
+    val t = SPValue(attr.flatMap(_.getAs[String]("time")))
+    SPAttributes.fromJson(x).flatMap(_.getAs[Map[String, SPValue]]("state").map(_ + ("time" -> t))).getOrElse(Map())
   }
 
 

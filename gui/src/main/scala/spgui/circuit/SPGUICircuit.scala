@@ -2,45 +2,58 @@ package spgui.circuit
 
 import diode._
 import diode.react.ReactConnector
-
-import upickle.default._
 import org.scalajs.dom.ext.LocalStorage
+
 import scala.util.{Success, Try}
 import scala.math._
+import java.util.UUID
 
 object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] {
   def initialModel = BrowserStorage.load.getOrElse(InitialState())
   val actionHandler = composeHandlers(
-    new DashboardHandler(zoomRW(_.openWidgets)((m,v) => m.copy(openWidgets = v)))
+    new DashboardHandler(zoomRW(_.openWidgets)((m,v) => m.copy(openWidgets = v))),
+    new GlobalStateHandler(zoomRW(_.globalState)((m, v) => m.copy(globalState = v)))
   )
   // store state upon any model change
   subscribe(zoomRW(myM => myM)((m,v) => v))(m => BrowserStorage.store(m.value))
 }
 
 class DashboardHandler[M](modelRW: ModelRW[M, OpenWidgets]) extends ActionHandler(modelRW) {
-  def handle = {
-    case AddWidget(widgetType, stringifiedData) =>
-      var rightmost = 0
-      value.list.foreach(w => rightmost = math.max(rightmost, w.layout.w + w.layout.x))
-      updated(OpenWidgets(
-        value.count + 1, value.list :+ OpenWidget(
-          value.count + 1,
-          WidgetLayout(rightmost,0,2,2),
-          widgetType,
-          stringifiedData
-        )
-      ))
+  override def handle = {
+    case AddWidget(widgetType, width, height, id) =>
+      val rightmost = value.xs.values.foldLeft(0)((a, b) => math.max(a, b.layout.w + b.layout.x))
+      val newWidget = OpenWidget(id, WidgetLayout(rightmost, 0, width, height), widgetType)
+      updated(OpenWidgets(value.xs + (id -> newWidget)))
     case CloseWidget(id) =>
-      updated(OpenWidgets(value.count, value.list.filter(_.id != id)))
-    case SetWidgetData(id, stringifiedWidgetData) =>
-      updated(OpenWidgets(value.count, value.list.map(ow => if(ow.id == id) ow.copy(stringifiedWidgetData = stringifiedWidgetData) else ow)))
-    case LayoutUpdated(id, newLayout) => {
-      updated(OpenWidgets(value.count, value.list.map(ow => if(ow.id == id) ow.copy(layout = newLayout) else ow)))
+      updated(OpenWidgets(value.xs - id))
+    case CloseAllWidgets => updated(OpenWidgets(Map()))
+    case UpdateLayout(id, newLayout) => {
+      val updW = value.xs.get(id)
+        .map(_.copy(layout = newLayout))
+        .map(x => value.xs + (x.id -> x))
+        .getOrElse(value.xs)
+      updated(OpenWidgets(updW))
     }
   }
 }
 
+class GlobalStateHandler[M](modelRW: ModelRW[M, GlobalState]) extends ActionHandler(modelRW) {
+  override def handle = {
+    case UpdateGlobalState(state) =>
+      updated(state)
+  }
+}
 
+class WidgetDataHandler[M](modelRW: ModelRW[M, WidgetData]) extends ActionHandler(modelRW) {
+  override def handle = {
+    case UpdateWidgetData(id, d) =>
+      val updW = value.xs + (id -> d)
+      updated(WidgetData(updW))
+  }
+}
+
+
+import sp.messages.Pickles._
 object BrowserStorage {
   val namespace = "SPGUIState"
   def store(spGUIState: SPGUIModel) = LocalStorage(namespace) = write(spGUIState)

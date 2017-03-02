@@ -11,11 +11,14 @@ package object domain {
   import sp.messages.Pickles._
 
 
+  type Pickle = upickle.Js.Value
   type SPAttributes = upickle.Js.Obj
-  type SPValue = upickle.Js.Value
+  type SPValue = Pickle
+
 
   object SPValue {
     def apply[T: Writer](expr: T): SPValue = Pickles.toSPValue(expr)
+    def empty: SPValue = upickle.Js.Obj()
   }
 
   object SPAttributes {
@@ -38,7 +41,7 @@ package object domain {
       Try{readJs[T](x)}.toOption
     }
     def getAsTry[T: Reader](key: String = "") = {
-      val x: Pickle = Try{value.obj(key)}.getOrElse(value)
+      val x: SPValue = Try{value.obj(key)}.getOrElse(value)
       Try{readJs[T](x)}
     }
 
@@ -46,7 +49,7 @@ package object domain {
 
     def toJson = upickle.json.write(value)
 
-    def union(p: Pickle) = {
+    def union(p: SPValue) = {
       Try{
         val map = value.obj ++ p.obj
         upickle.Js.Obj(map.toSeq:_*)

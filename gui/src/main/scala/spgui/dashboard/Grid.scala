@@ -37,7 +37,6 @@ object Grid {
       ^.className:=CSS.dashboard.htmlClass,
       ReactGridLayout(
         width = 1920,
-        cols = 8,
         draggableHandle = "",
         onLayoutChange = (layout:js.Object) => None,
         ReactGridLayoutItem(key = "c", i = "c", x = 3, y = 4, w = 5, h = 1, isDraggable = true, child = <.h3("c")),
@@ -136,7 +135,6 @@ object ReactGridLayout {
 
   def apply(
     width: Int,
-    cols: Int,
     draggableHandle: String,
     onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit, children: ReactNode*) = {
     // access real js component

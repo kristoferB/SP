@@ -240,7 +240,7 @@ case class WebSocketHandler(uri: String) {
 //   //some printlns for testing
 //  mess.trigger(println("GOT A MESSAGE ON WEBSOCKET: " + mess.now))
 //  socketAPI.trigger(println("Converted Message: " + socketAPI.toTry))
-  notification.trigger {
+  notification.triggerLater {
     println(s"A NOTIFICATION: ${notification.now}")
   }
   errors.trigger {
