@@ -47,6 +47,7 @@ package APIVirtualDevice {
   // requests from driver
   case class DriverStateChange(name: String, id: UUID, state: Map[String, SPValue], diff: Boolean = false)  extends Requests
 
+  case class DriverCommand(name: String, id: UUID, state: Map[String, SPValue]) extends Requests
 
   // answers
   sealed trait Replies

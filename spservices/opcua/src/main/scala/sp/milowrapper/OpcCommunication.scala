@@ -1,4 +1,4 @@
-package sp.opcMilo
+package sp.milowrapper
 
 // SP
 import sp.domain._
