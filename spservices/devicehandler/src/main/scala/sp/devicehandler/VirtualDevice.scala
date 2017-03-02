@@ -101,11 +101,19 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
             println("new driver " + d)
             newDriver(d)
             mediator ! Publish("driverCommands", x)
+          case api.SetUpResource(r) =>
+            println("new resource " + r)
+            newResource(r)
+
           case e @ api.DriverStateChange(name, id, state, _) =>
-            println("got a statechange:" + state)
+            println("got a statechange:" + e)
             driverEvent(e)
             println(driverState)
             println(resourceState)
+
+          case r : api.ResourceCommand =>
+            println("resource command: " + r)
+            resourceEvent(r)
         }
       }
 
@@ -152,6 +160,7 @@ trait VirtualDeviceLogic extends VDMappers{
   }
 
   private val defaultReader = StateMapper{ case (drivers, res) =>
+    println("default reader")
     val x = readAllPrefix(drivers, name)
     writeTo(x, res)
   }
@@ -163,6 +172,7 @@ trait VirtualDeviceLogic extends VDMappers{
     List(defaultReader), List(defaultWriter))
 
   resources += name -> defResource
+  resourceState += name -> Map()
 
 
 
@@ -174,22 +184,32 @@ trait VirtualDeviceLogic extends VDMappers{
   }
 
   def newResource(resource: api.Resource) = {
-
+    resources += resource.name -> Resource(resource, List(defaultReader), List(defaultWriter))
+    println("NEW RESOURCE: " + resources)
+    resourceState += resource.name -> Map()
   }
 
   def driverEvent(e: api.DriverStateChange) = {
     val current = driverState.get(e.name)
     current.foreach{sm =>
       val upd = sm ++ e.state
-      driverState +   e.name -> upd
+      driverState += e.name -> upd
     }
 
-      resources.map{r =>
-        r._2.read.foreach {mapper =>
-          resourceState = mapper.f(driverState, resourceState)
-        }
+    resources.map{r =>
+      r._2.read.foreach {mapper =>
+        resourceState = mapper.f(driverState, resourceState)
+      }
     }
 
+  }
+
+  def resourceEvent(e: api.ResourceCommand) = {
+    val r = resources(e.resource)
+    val s = r.write.map {mapper =>
+      mapper.f(Map(name -> e.stateRequest), Map())
+    }
+    println("RESOURCE EVENT: " + s)
   }
 
 
@@ -207,10 +227,9 @@ trait VDMappers {
   type StateMap = Map[String, SPValue]
 
   def writeTo(upd: Map[String, StateMap], current: Map[String, StateMap]): Map[String, StateMap] = {
-    current.map{kv =>
-      val updM = upd.getOrElse(kv._1, Map())
-      kv._1 -> (kv._2 ++ updM)
-    }
+    println("write to" + upd + "    " +current)
+
+    current ++ upd.map(kv => kv._1 -> (current.getOrElse(kv._1, kv._2)))
   }
 
   def readAllPrefix(thingState: Map[String, StateMap], resource: String): Map[String, StateMap]  = {
@@ -228,6 +247,7 @@ trait VDMappers {
   }
 
   private def flatMapState(thingState: Map[String, StateMap]) = {
+    println("flatmapstate: " + thingState.toString)
     thingState.foldLeft(Map[String, SPValue]()) { (a, b) =>
       a ++ prefixState(b._2, b._1)
     }
@@ -237,7 +257,7 @@ trait VDMappers {
 
   private def extractPrefixState(state: StateMap) = {
     state.groupBy{kv =>
-      kv._1.split(".").headOption
+      kv._1.split("\\.").toList.headOption // split takes regex, returns java array
     }.collect{case (Some(str), x) => str -> x}
   }
 
