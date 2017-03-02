@@ -7,7 +7,7 @@ import scalacss.ScalaCssReact._
 import spgui.SPWidget
 import spgui.components.Icon
 import spgui.components.DragAndDrop.{ DataOnDrag, OnDataDrop }
-import spgui.menu.SPDropdown
+import spgui.components.Dropdown
 
 // TODO: replace with SP API
 // this is just a dummy to have something to work with
@@ -97,12 +97,15 @@ object Tree {
     def render(s: TreeState) =
       <.div(
         Style.outerDiv,
-        SPDropdown(
-          ("Directory", addItem(emptyMap())) ::
-          ("Spotify", addItem(newSpotify())) ::
-          ("Youtube", addItem(newYT())) :: Nil,
-          Icon.chevronDown,
-          "Add Item"
+        Dropdown(
+          <.div(
+            "Add Item",
+            Icon.chevronDown,
+            ^.className := "btn btn-default"
+          ),
+          <.div("Directory", ^.onClick --> addItem(emptyMap())),
+          <.div("Spotify", ^.onClick --> addItem(newSpotify())),
+          <.div("Youtube", ^.onClick --> addItem(newYT()))
         ),
         <.div(
           Style.treeDiv,
