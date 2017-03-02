@@ -159,11 +159,17 @@ trait VirtualDeviceLogic extends VDMappers{
   }
 
   def driverEvent(e: api.DriverStateChange) = {
-    val current = driverState.get(e.name).map{sm =>
+    val current = driverState.get(e.name)
+    current.foreach{sm =>
       val upd = sm ++ e.state
       driverState +   e.name -> upd
-    }.map{ds =>
-
+    }
+    current.foreach{ds =>
+      resources.map{r =>
+        r._2.read.foreach {mapper =>
+          resourceState = mapper.f(ds, resourceState)
+        }
+      }
     }
 
   }
