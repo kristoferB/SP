@@ -1,7 +1,35 @@
 package sp.devicehandler
 
 import akka.actor._
-import sp.labkit.{OPC, OPMakerLabKit, ProductAggregator, ResourceAggregator}
+
+object HackTest {
+  import sp.domain._
+  import sp.domain.Logic._
+  import java.util.UUID
+  import akka.cluster.pubsub.DistributedPubSub
+  import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
+  import sp.messages._
+  import sp.messages.Pickles._
+  import scala.util.{Failure, Success, Try}
+
+  def hackTest(system: ActorSystem) : Unit = {
+    val mediator = DistributedPubSub(system).mediator
+    val setup = SPAttributes("url" -> "opc.tcp://localhost:12686",
+      "identifiers" -> List("R82-88-17-41-080R01_B940WeldSeg2_end", "R82-88-17-41-080R01_B940WeldSeg2_start"))
+    val driver = APIVirtualDevice.Driver("opclocal", UUID.randomUUID(), "OPCUA", setup)
+    val driverStateMap = List(
+      APIVirtualDevice.OneToOneMapper("R82-88-17-41-080R01_B940WeldSeg2_start", "start"),
+      APIVirtualDevice.OneToOneMapper("R82-88-17-41-080R01_B940WeldSeg2_end", "end")
+    )
+    val resource = APIVirtualDevice.Resource("R82-88", UUID.randomUUID(), driverStateMap, SPAttributes())
+
+    val header = SPHeader(from = "hej")
+    val bodyDriver = APIVirtualDevice.SetUpDeviceDriver(driver)
+    val bodyResource = APIVirtualDevice.SetUpResource(resource)
+    SPMessage.make(header, bodyDriver).map { m => mediator ! Publish("services", m.toJson) }
+    SPMessage.make(header, bodyResource).map { m => mediator ! Publish("services", m.toJson) }
+  }
+}
 
 
 object Launch extends App {
@@ -10,12 +38,14 @@ object Launch extends App {
 
   cluster.registerOnMemberUp {
     // Add root actors used in node here
-    println("labkit node has joined the cluster")
-    system.actorOf(DeviceHandler.props, "deviceHandler")
+    println("deviceHandler node has joined the cluster")
+    system.actorOf(VirtualDevice.props("vd", java.util.UUID.randomUUID()), "vd")
+
+    HackTest.hackTest(system)
   }
 
   cluster.registerOnMemberRemoved{
-    println("labkit node has been removed from the cluster")
+    println("deviceHandler node has been removed from the cluster")
   }
 
 

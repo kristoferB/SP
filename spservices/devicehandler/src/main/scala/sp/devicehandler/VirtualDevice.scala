@@ -86,7 +86,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
 
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
-
+  mediator ! Subscribe("driverEvents", self)
 
   override def receiveCommand = {
     case x: String =>
@@ -100,7 +100,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
           case api.SetUpDeviceDriver(d) =>
             println("new driver " + d)
             newDriver(d)
-            mediator ! x
+            mediator ! Publish("driverCommands", x)
           case e @ api.DriverStateChange(name, id, state, _) =>
             println("got a statechange:" + state)
             driverEvent(e)

@@ -65,16 +65,16 @@ object DriverHandler {
   def props = Props(classOf[DriverHandler])
 }
 
-// simple example opc ua client useage
 class DriverHandler extends Actor {
   import context.dispatcher
   val mediator = DistributedPubSub(context.system).mediator
-  mediator ! Subscribe("driverCommands", self)
+  mediator ! akka.cluster.pubsub.DistributedPubSubMediator.Subscribe("driverCommands", self)
 
   val opcUADriver = "OPCUA"
 
   def receive = {
     case x: String =>
+      println(x)
       SPMessage.fromJson(x) match {
         case Success(mess) =>
           for {
@@ -83,7 +83,7 @@ class DriverHandler extends Actor {
           } yield {
             b match {
               case vdapi.SetUpDeviceDriver(d) if d.driverType == opcUADriver =>
-                context.system.actorOf(OpcUARuntime.props(d.name, d.id, d.setup), d.name)
+                context.system.actorOf(OpcUARuntime.props(d.name, d.id, d.setup), d.id.toString())
               case _ =>
             }
           }

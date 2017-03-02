@@ -11,9 +11,9 @@ object Launch extends App {
 
   cluster.registerOnMemberUp {
     // Add root actors used in node here
-    println("OPC UA node has been added to the cluster")
+    println("OPC UA node has joined the cluster.")
 
-    val driverHandler = system.actorOf(DriverHandler.props, "OPCUA Driver Handler")
+    system.actorOf(DriverHandler.props, "OPCUA")
   }
   cluster.registerOnMemberRemoved{
     println("OPC UA node has been removed from the cluster")
