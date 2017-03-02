@@ -170,6 +170,7 @@ trait VirtualDeviceLogic extends VDMappers{
 
   def newDriver(d: api.Driver) = {
     drivers += d.name -> d
+    driverState += d.name -> Map[String, SPValue]()
   }
 
   def newResource(resource: api.Resource) = {
