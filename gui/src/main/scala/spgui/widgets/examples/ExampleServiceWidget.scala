@@ -86,22 +86,23 @@ package spgui.widgets.examples {
 
       def render(s: State) = {
         <.div(
-          <.h1(s"The Pie ID:"),
-          s.pie.toList.map { p => <.div(p.id.toString) },
-          s.pie.toList.flatMap { p => p.map.map { case (key, v) => <.div(key + "--" + v.toString) } },
+          <.h1(s"Receive messages from GC PubSub"),
+          //s.pie.toList.map { p => <.div(p.id.toString) },
+          s.pie.toList.flatMap { p => p.map.map { case (key, v) => <.div(key) } },
+          //s.pie.toList.flatMap { p => p.map.map { case (key, v) => <.div(key + "--" + v.toString) } },
           <.br(),
-          <.h1("Other pies"),
-          s.otherPies.map { id => <.div(id.toString) },
+          <.h1(""),
+          //s.otherPies.map { id => <.div(id.toString) },
           <.br(),
 
           <.button(
             ^.className := "btn btn-default",
-            ^.onClick --> send(api.StartTheTicker(pieID)), "new Pie"
+            ^.onClick --> send(api.StartTheTicker(pieID)), "Listen for messages"
           ),
 
           <.button(
             ^.className := "btn btn-default",
-            ^.onClick --> send(api.ResetAllTickers()), "Reset all Pies"
+            ^.onClick --> send(api.ResetAllTickers()), "Reset"
           )
         )
       }
@@ -135,5 +136,3 @@ package spgui.widgets.examples {
   }
 
 }
-
-
