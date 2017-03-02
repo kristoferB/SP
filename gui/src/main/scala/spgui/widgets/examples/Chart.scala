@@ -90,12 +90,14 @@ object Chart {
 
   case class ChartProps(name: String, style: ChartStyle, data: ChartData, width: Int = 500, height: Int = 300)
 
+  def apply(props: ChartProps) = Chart(props)
+
   val Chart = ReactComponentB[ChartProps]("Chart")
     .render_P(p =>
       <.canvas("width".reactAttr := p.width, "height".reactAttr := p.height)
     )
     .domType[HTMLCanvasElement]
-    .componentDidMount(scope => Callback {
+    /*.componentDidMount(scope => Callback {
       // access context of the canvas
       val ctx = scope.getDOMNode().getContext("2d")
       // create the actual chart using the 3rd party component
@@ -105,9 +107,18 @@ object Chart {
         case PieChart => new JSChart(ctx, ChartConfiguration("pie", scope.props.data))
         case _ => throw new IllegalArgumentException
       }
-    }).build
-
-  def apply(props: ChartProps) = Chart(props)
+    })*/.componentDidUpdate(scope => Callback {
+    // access context of the canvas
+    val ctx = scope.$.getDOMNode().getContext("2d")
+    // create the actual chart using the 3rd party component
+    scope.$.props.style match {
+      case LineChart => new JSChart(ctx, ChartConfiguration("line", scope.$.props.data))
+      case BarChart => new JSChart(ctx, ChartConfiguration("bar", scope.$.props.data))
+      case PieChart => new JSChart(ctx, ChartConfiguration("pie", scope.$.props.data))
+      case _ => throw new IllegalArgumentException
+    }
+  })
+    .build
 }
 
 // define a class to access the Chart.js component

@@ -20,9 +20,6 @@ object APIOPMaker {
   case class OP(start: OPEvent, end: Option[OPEvent], attributes: SPAttributes = SPAttributes()) extends API
   case class Positions(positions: Map[String,String], time: DateTime) extends API
 
-
-
-
 }
 
 case class RawMess(state: Map[String, SPValue], time: String)
@@ -125,19 +122,19 @@ trait NamesAndValues {
   val p4            = "p4"
 
   // operations
-  val feedCylinder  = "feedCylinder"
-  val fromFeedToP1              = "fromFeedToP1"
-  val fromFeedToC             = "fromFeedToC"
-  val fromP1ToC             = "fromP1ToC"
-  val p1move              = "p1move"
-  val p1Process             = "p1Process"
-  val transport             = "transport"
-  val to3             = "to3"
-  val to4             = "to4"
-  val p3move              = "p3move"
-  val p3Process             = "p3Process"
-  val p4move              = "p4move"
-  val p4Process             = "p4Process"
+  val feedCylinder     = "feedCylinder"
+  val fromFeedToP1     = "fromFeedToP1"
+  val fromFeedToC      = "fromFeedToC"
+  val fromP1ToC        = "fromP1ToC"
+  val p1move           = "p1move"
+  val p1Process        = "p1Process"
+  val transport        = "transport"
+  val to3              = "to3"
+  val to4              = "to4"
+  val p3move           = "p3move"
+  val p3Process        = "p3Process"
+  val p4move           = "p4move"
+  val p4Process        = "p4Process"
 
   // Positions
   val inLoader         = "inLoader"
@@ -349,20 +346,9 @@ trait TrackProducts extends NamesAndValues {
   def lastTime(op: APIOPMaker.OP) = {
     op.end.getOrElse(op.start).time
   }
-
-
-
 }
 
-
-
-
-
-
-
-
 // Will be in the domain later
-
 
 import upickle._
 import scala.reflect.ClassTag
@@ -410,7 +396,4 @@ object APIParser extends upickle.AttributeTagged {
     val json = upickle.json.write(value)
     SPValue.fromJson(json).getOrElse(SPValue("ERROR_UPICKLE"))
   }
-
-
-
 }
