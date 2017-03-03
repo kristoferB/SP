@@ -20,26 +20,10 @@ object WidgetList {
       ("D3Example", widgets.examples.D3Example(), 2, 2),
       ("D3ExampleServiceWidget", widgets.examples.D3ExampleServiceWidget(), 2, 2),
       ("ExampleServiceWidget", ExampleServiceWidget(), 2, 2),
+      ("GPubSubServiceWidget", GPubSubServiceWidget(), 4,3),
       ("ExampleServiceWidgetState", ExampleServiceWidgetState(), 2, 3),
       ("OpcUAWidget", OpcUAWidget(), 5, 2),
       ("Tree", widgets.itemexplorer.Tree(), 2, 4)
-  def apply() =
-    List[(String, SPWidgetBase => ReactElement)](
-      ("Grid Test", spgui.dashboard.GridTest()),
-      ("Widget Injection", widgets.injection.WidgetInjectionTest()),
-      ("Item Editor", widgets.itemeditor.ItemEditor()),
-      ("DragDrop Example", widgets.examples.DragAndDrop()),
-      ("Widget with json", widgets.examples.WidgetWithJSON()),
-      ("Ping", widgets.examples.Ping()),
-      ("Pong", widgets.examples.Pong()),
-      ("PlcHldrC", PlaceholderComp()),
-      ("SPWBTest", SPWidgetBaseTest()),
-      ("Widget with data", widgets.examples.WidgetWithData()),
-      ("CommTest", widgets.WidgetCommTest()),
-      ("D3Test", widgets.examples.D3Example()),
-      ("ExampleServiceWidget", ExampleServiceWidget()),
-      ("GPubSubServiceWidget", GPubSubServiceWidget()),
-      ("OpcUAWidget", OpcUAWidget())
     )
 
   val map = list.map(t => t._1 -> (t._2, t._3, t._4)).toMap

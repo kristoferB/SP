@@ -114,6 +114,8 @@ package spgui.widgets.examples {
             ^.className := "btn btn-default",
             ^.onClick --> send(api.ResetAllTickers()), "Reset"
           ),
+	<.div("Left stack: Number of messages received"),
+	<.div("Right stack: Ticks since started listening"),
           <.div(
             d3DivComponent(List(messageCounter, tickCounter))
           )
@@ -131,7 +133,7 @@ package spgui.widgets.examples {
       def send(mess: api.API_GPubSubService): Callback = {
         val h = SPHeader("GPubSubServiceWidget", api.attributes.service, "GPubSubServiceWidget", java.util.UUID.randomUUID())
         val json = SPMessage.make(h, mess) // *(...) is a shorthand for toSpValue(...)
-        json.map( x => BackendCommunication.publish(x, "services"))
+        BackendCommunication.publish(json, "services")
         Callback.empty
       }
 
