@@ -62,9 +62,9 @@ case object AlwaysFalse extends Proposition
 trait StateEvaluator
 
 object StateEvaluator {
-  implicit def idToSE(id: ID) = SVIDEval(id)
-  implicit def strToSE(value: String) = ValueHolder(org.json4s.JString(value))
-  implicit def intToSE(value: Int) = ValueHolder(org.json4s.JInt(value))
+  implicit def idToSE(id: ID): SVIDEval = SVIDEval(id)
+  implicit def strToSE(value: String): ValueHolder = ValueHolder(org.json4s.JString(value))
+  implicit def intToSE(value: Int): ValueHolder = ValueHolder(org.json4s.JInt(value))
 }
 
 case class SVIDEval(id: ID) extends StateEvaluator

@@ -21,16 +21,16 @@ object HackTest {
     val end = Thing("end")
     val variables = List(start,end)
     val driverStateMap = List(
-      APIVirtualDevice.OneToOneMapper(start.id.value, driver.id, "R82-88-17-41-080R01_B940WeldSeg2_start"),
-      APIVirtualDevice.OneToOneMapper(end.id.value, driver.id, "R82-88-17-41-080R01_B940WeldSeg2_end")
+      APIVirtualDevice.OneToOneMapper(start.id, driver.id, "R82-88-17-41-080R01_B940WeldSeg2_start"),
+      APIVirtualDevice.OneToOneMapper(end.id, driver.id, "R82-88-17-41-080R01_B940WeldSeg2_end")
     )
     val resource = APIVirtualDevice.Resource("R82-88", UUID.randomUUID(), driverStateMap, SPAttributes())
 
     val header = SPHeader(from = "hej")
     val bodyDriver = APIVirtualDevice.SetUpDeviceDriver(driver)
     val bodyResource = APIVirtualDevice.SetUpResource(resource)
-    val bodyCommand = APIVirtualDevice.ResourceCommand(resource.id, Map(start.id.value -> SPValue(math.random < 0.5)))
-    val bodyCommand2 = APIVirtualDevice.ResourceCommand(resource.id, Map(end.id.value -> SPValue(math.random < 0.5)))
+    val bodyCommand = APIVirtualDevice.ResourceCommand(resource.id, Map(start.id -> SPValue(math.random < 0.5)))
+    val bodyCommand2 = APIVirtualDevice.ResourceCommand(resource.id, Map(end.id -> SPValue(math.random < 0.5)))
     SPMessage.make(header, bodyDriver).map { m => mediator ! Publish("services", m.toJson) }
     SPMessage.make(header, bodyResource).map { m => mediator ! Publish("services", m.toJson) }
     Thread.sleep(5000)
