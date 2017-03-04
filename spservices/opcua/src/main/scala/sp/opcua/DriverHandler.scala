@@ -26,17 +26,13 @@ package APIVirtualDevice {
 
   // Add new transformers here as needed.
   sealed trait DriverStateMapper
-  case class OneToOneMapper(driver: String, key: String) extends DriverStateMapper
-  case class OneToOneNestedMapper(driver: String, key: List[String]) extends DriverStateMapper
-  case class OneToOneNewKeyMapper(driver: String, key: String, newKey: String) extends DriverStateMapper
-
+  case class OneToOneMapper(thing: UUID, driverID: UUID, driverIdentifier: String) extends DriverStateMapper
 
   // requests command (gets a SPACK and when applied, SPDone (and indirectly a StateEvent))
-  case class ResourceCommand(resource: String, stateRequest: Map[String, SPValue], timeout: Int = 0) extends Requests
+  case class ResourceCommand(resource: UUID, stateRequest: Map[UUID, SPValue], timeout: Int = 0) extends Requests
 
   // requests from driver
   case class DriverStateChange(name: String, id: UUID, state: Map[String, SPValue], diff: Boolean = false)  extends Requests
-
   case class DriverCommand(name: String, id: UUID, state: Map[String, SPValue]) extends Requests
 
   // answers
@@ -73,6 +69,11 @@ class DriverHandler extends Actor {
   val opcUADriver = "OPCUA"
 
   def receive = {
+    case "stop" =>
+      context.children.foreach { child =>
+        child ! "disconnect"
+      }
+
     case x: String =>
       println(x)
       SPMessage.fromJson(x) match {
@@ -83,7 +84,7 @@ class DriverHandler extends Actor {
           } yield {
             b match {
               case vdapi.SetUpDeviceDriver(d) if d.driverType == opcUADriver =>
-                context.system.actorOf(OpcUARuntime.props(d.name, d.id, d.setup), d.id.toString())
+                context.actorOf(OpcUARuntime.props(d.name, d.id, d.setup), d.id.toString())
               case _ =>
             }
           }

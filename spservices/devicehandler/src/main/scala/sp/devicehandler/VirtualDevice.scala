@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 
 import org.joda.time.DateTime
 import sp.messages._
-import Pickles._
+import sp.messages.Pickles._
 
 import scala.util.{Failure, Success, Try}
 
@@ -36,17 +36,13 @@ package APIVirtualDevice {
 
   // Add new transformers here as needed.
   sealed trait DriverStateMapper
-  case class OneToOneMapper(driver: String, key: String) extends DriverStateMapper
-  case class OneToOneNestedMapper(driver: String, key: List[String]) extends DriverStateMapper
-  case class OneToOneNewKeyMapper(driver: String, key: String, newKey: String) extends DriverStateMapper
-
+  case class OneToOneMapper(thing: UUID, driverID: UUID, driverIdentifier: String) extends DriverStateMapper
 
   // requests command (gets a SPACK and when applied, SPDone (and indirectly a StateEvent))
-  case class ResourceCommand(resource: String, stateRequest: Map[String, SPValue], timeout: Int = 0) extends Requests
+  case class ResourceCommand(resource: UUID, stateRequest: Map[UUID, SPValue], timeout: Int = 0) extends Requests
 
   // requests from driver
   case class DriverStateChange(name: String, id: UUID, state: Map[String, SPValue], diff: Boolean = false)  extends Requests
-
   case class DriverCommand(name: String, id: UUID, state: Map[String, SPValue]) extends Requests
 
   // answers
@@ -101,6 +97,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
             println("new driver " + d)
             newDriver(d)
             mediator ! Publish("driverCommands", x)
+
           case api.SetUpResource(r) =>
             println("new resource " + r)
             newResource(r)
@@ -108,12 +105,15 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
           case e @ api.DriverStateChange(name, id, state, _) =>
             println("got a statechange:" + e)
             driverEvent(e)
-            println(driverState)
-            println(resourceState)
+            println("new driver state: " + driverState)
+            println("new resource state: " + resourceState)
 
           case r : api.ResourceCommand =>
             println("resource command: " + r)
-            resourceEvent(r)
+            val msgs = resourceCommand(r)
+            msgs.foreach { m => mediator ! Publish("driverCommands", m.toJson) }
+
+          case x => println("todo: " + x)
         }
       }
 
@@ -137,128 +137,90 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
 }
 
 
-trait VirtualDeviceLogic extends VDMappers{
+trait VirtualDeviceLogic {
   val name: String
   val id: UUID
 
-  case class Resource(r: api.Resource, read: List[StateMapper], write: List[StateMapper])
-  case class StateMapper(f: (Map[String, StateMap], Map[String, StateMap]) =>  Map[String, StateMap])
+  case class StateReader(f: (Map[UUID, DriverState], Map[UUID, ResourceState]) =>  Map[UUID, ResourceState])
+  case class StateWriter(f: (Map[UUID, ResourceState], Map[UUID, DriverState]) =>  Map[UUID, DriverState])
 
+  case class Resource(r: api.Resource, read: List[StateReader], write: List[StateWriter])
 
-  var drivers: Map[String, api.Driver] = Map()
-  var driverState: Map[String, StateMap] = Map()
-  var resources: Map[String, Resource] = Map()
-  var resourceState: Map[String, StateMap] = Map()
+  type ResourceState = Map[UUID, SPValue]
+  type DriverState = Map[String, SPValue]
 
-  var driverToResMapper: List[StateMapper] = List()
-  var resToDriverMapper: List[StateMapper] = List()
-
-
-  private val defaultWriter = StateMapper{ case (res, drivers) =>
-    val x = writeAllPrefix(res(name))
-    writeTo(x, drivers)
-  }
-
-  private val defaultReader = StateMapper{ case (drivers, res) =>
-    println("default reader")
-    val x = readAllPrefix(drivers, name)
-    writeTo(x, res)
-  }
-
-
-
-  private val defResource = Resource(
-    api.Resource(name, id, List(), SPAttributes(), false),
-    List(defaultReader), List(defaultWriter))
-
-  resources += name -> defResource
-  resourceState += name -> Map()
-
-
-
-
+  var drivers: Map[UUID, api.Driver] = Map()
+  var driverState: Map[UUID, DriverState] = Map()
+  var resources: Map[UUID, Resource] = Map()
+  var resourceState: Map[UUID, ResourceState] = Map()
 
   def newDriver(d: api.Driver) = {
-    drivers += d.name -> d
-    driverState += d.name -> Map[String, SPValue]()
+    drivers += d.id -> d
+    driverState += d.id -> Map[String, SPValue]()
   }
 
   def newResource(resource: api.Resource) = {
-    resources += resource.name -> Resource(resource, List(defaultReader), List(defaultWriter))
-    println("NEW RESOURCE: " + resources)
-    resourceState += resource.name -> Map()
+    val rw = resource.stateMap.map {
+      case api.OneToOneMapper(t, id, name) =>
+        val reader = StateReader{ case (drivers, resources) =>
+          val nr = for {
+            driver <- drivers.get(id)
+            value <- driver.get(name)
+            rs <- resources.get(resource.id)
+          } yield {
+            resources + (resource.id -> (rs + (t -> value)))
+          }
+          nr.getOrElse(resources)
+        }
+        val writer = StateWriter{ case (resources, drivers) =>
+          val nd = for {
+            rs <- resources.get(resource.id)
+            value <- rs.get(t)
+            driver <- drivers.get(id)
+          } yield {
+            drivers + (id -> (driver + (name -> value)))
+          }
+          nd.getOrElse(drivers)
+        }
+        Some((reader,writer))
+      case _ => None // potentially add other mapping types
+    }.flatten
+
+    resources += resource.id -> Resource(resource, rw.map(_._1), rw.map(_._2))
+    resourceState += resource.id -> Map()
   }
 
   def driverEvent(e: api.DriverStateChange) = {
-    val current = driverState.get(e.name)
-    current.foreach{sm =>
-      val upd = sm ++ e.state
-      driverState += e.name -> upd
+    val current = driverState.get(e.id)
+    current.foreach{ state =>
+      val upd = state ++ e.state
+      driverState += e.id -> upd
     }
+    resourceState = resources.foldLeft(resourceState){ case (rs, r) =>
+      r._2.read.foldLeft(rs){ case (rs, reader) => reader.f(driverState, rs)}}
+  }
 
-    resources.map{r =>
-      r._2.read.foreach {mapper =>
-        resourceState = mapper.f(driverState, resourceState)
+  def resourceCommand(c: api.ResourceCommand) = {
+    val diffs = (for {
+      r <- resources.get(c.resource)
+    } yield {
+      val s = r.write.foldLeft(driverState) { case (ds,writer) =>
+        writer.f(Map(c.resource -> c.stateRequest), ds)
       }
-    }
-
-  }
-
-  def resourceEvent(e: api.ResourceCommand) = {
-    val r = resources(e.resource)
-    val s = r.write.map {mapper =>
-      mapper.f(Map(name -> e.stateRequest), Map())
-    }
-    println("RESOURCE EVENT: " + s)
-  }
-
-
-}
-
-trait VDDriverComm {
-  val context: ActorContext
-  import context.dispatcher
-  val mediator: ActorRef
-
-
-}
-
-trait VDMappers {
-  type StateMap = Map[String, SPValue]
-
-  def writeTo(upd: Map[String, StateMap], current: Map[String, StateMap]): Map[String, StateMap] = {
-    println("write to" + upd + "    " +current)
-
-    current ++ upd.map(kv => kv._1 -> (current.getOrElse(kv._1, kv._2)))
-  }
-
-  def readAllPrefix(thingState: Map[String, StateMap], resource: String): Map[String, StateMap]  = {
-    Map(resource -> flatMapState(thingState))
-  }
-
-  def writeAllPrefix(thingState: StateMap) = {
-    extractPrefixState(thingState)
-  }
-
-  def copyValue(thingState: Map[String, StateMap], from: (String, String), to: (String, String)) = {
-    val v = for {m <- thingState.get(from._1); value <- m.get(from._2)} yield value
-    val updKV = v.map(x => Map(to._2 -> x)).getOrElse(Map())
-    to._1 -> updKV
-  }
-
-  private def flatMapState(thingState: Map[String, StateMap]) = {
-    println("flatmapstate: " + thingState.toString)
-    thingState.foldLeft(Map[String, SPValue]()) { (a, b) =>
-      a ++ prefixState(b._2, b._1)
+      s.map { case (k,v) =>
+        val m = driverState.getOrElse(k, v)
+        val d = v.toSet diff m.toSet
+        (k, d.toMap)
+      }
+    }).getOrElse(Map())
+    for {
+      (did,stateDiff) <- diffs if stateDiff.nonEmpty
+      d <- drivers.get(did)
+      header = SPHeader(from = name)
+      body = api.DriverCommand(d.name, did, stateDiff)
+      msg <- SPMessage.make(header, body).toOption
+    } yield {
+      msg
     }
   }
-
-  private def prefixState(state: StateMap, prefix: String) = state.map(kv => s"$prefix.${kv._1}" -> kv._2)
-
-  private def extractPrefixState(state: StateMap) = {
-    state.groupBy{kv =>
-      kv._1.split("\\.").toList.headOption // split takes regex, returns java array
-    }.collect{case (Some(str), x) => str -> x}
-  }
-
 }

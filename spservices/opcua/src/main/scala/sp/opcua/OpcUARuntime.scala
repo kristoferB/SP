@@ -50,6 +50,11 @@ class OpcUARuntime(name: String, id: UUID, setup: SPAttributes) extends Actor {
         println("opcua subscribed to " + identifiers.length + " identifiers")
       }
 
+    case "disconnect" =>
+      println("OPCUA - disconnecting")
+      if(client.isConnected) client.disconnect()
+      println("OPCUA - disconnected")
+
     case x: String =>
       // SPMessage uses the APIParser to parse the json string
       SPMessage.fromJson(x) match {
@@ -60,7 +65,7 @@ class OpcUARuntime(name: String, id: UUID, setup: SPAttributes) extends Actor {
           } yield {
             b match {
               case vdapi.DriverCommand(name, id, state) if client.isConnected =>
-                state.map{case(node,value) => client.write(node, value)}
+                state.foreach{case(node,value) => client.write(node, value)}
               case _ =>
             }
           }
@@ -74,7 +79,4 @@ class OpcUARuntime(name: String, id: UUID, setup: SPAttributes) extends Actor {
     case _ => sender ! APISP.SPError("Ill formed request")
   }
 
-  override def postStop() = {
-    if(client.isConnected) client.disconnect()
-  }
 }
