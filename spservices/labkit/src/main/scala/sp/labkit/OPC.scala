@@ -75,7 +75,7 @@ class OPC extends Actor {
 
     case "connect" =>
       println("labkit: connecting to opc")
-      val header = SPHeader(from = api.attributes.service,  to = api.attributes.service, replyID = Some(ID.newID.value))
+      val header = SPHeader(from = api.attributes.service,  to = api.attributes.service, replyID = Some(ID.newID))
       val body = api.Connect(url)
       val message = SPMessage.make(header, body).map(_.toJson)
       message.map(m => mediator ! Publish("services", m))
@@ -100,7 +100,7 @@ class OPC extends Actor {
         body match {
           case api.ConnectionStatus(connectionStatus) if !connected && connectionStatus =>
               connected = true
-              val header = SPHeader(from = api.attributes.service,  to = api.attributes.service, replyID = Some(ID.newID.value))
+              val header = SPHeader(from = api.attributes.service,  to = api.attributes.service, replyID = Some(ID.newID))
               val body = api.Subscribe(nodeIDsToNode.map(_._1).toList)
               val message = SPMessage.makeJson(header, body).map(m =>
                 mediator ! Publish("services", m)

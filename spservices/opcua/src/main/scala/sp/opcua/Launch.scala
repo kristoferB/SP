@@ -1,7 +1,6 @@
 package sp.opcua
 
 import akka.actor._
-import sp.opcMilo._
 import scala.concurrent.duration._
 import scala.concurrent.Await
 
