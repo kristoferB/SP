@@ -36,8 +36,8 @@ object HackTest {
     val driver = APIVirtualDevice.Driver("opclocal", driverID, "OPCUA", setup)
     val bodyDriver = APIVirtualDevice.SetUpDeviceDriver(driver)
     val bodyResource = APIVirtualDevice.SetUpResource(resource)
-    SPMessage.make(SPHeader(from = "hej"), bodyDriver).map { m => mediator ! Publish("services", m.toJson) }
-    SPMessage.make(SPHeader(from = "hej"), bodyResource).map { m => mediator ! Publish("services", m.toJson) }
+    SPMessage.make[SPHeader, APIVirtualDevice.SetUpDeviceDriver](SPHeader(from = "hej"), bodyDriver).map { m => mediator ! Publish("services", m.toJson) }
+    SPMessage.make[SPHeader, APIVirtualDevice.SetUpResource](SPHeader(from = "hej"), bodyResource).map { m => mediator ! Publish("services", m.toJson) }
 
     Thread.sleep(5000)
     println("----------------------------------------")
@@ -47,7 +47,7 @@ object HackTest {
         Map(start.id -> SPValue(math.random < 0.5), end.id -> SPValue(math.random < 0.5),
         start2.id -> SPValue(math.random < 0.5), end2.id -> SPValue(math.random < 0.5),
         start3.id -> SPValue(math.random < 0.5), end3.id -> SPValue(math.random < 0.5)), timeout)
-      SPMessage.make(SPHeader(from = "hej"), bodyCommand).map { m => mediator ! Publish("services", m.toJson) }
+      SPMessage.make[SPHeader, APIVirtualDevice.ResourceCommand](SPHeader(from = "hej"), bodyCommand).map { m => mediator ! Publish("services", m.toJson) }
       Thread.sleep(1000)
     }
   }
