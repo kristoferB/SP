@@ -90,6 +90,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
 
       for {
         m <- mess
+        h <- m.getHeaderAs[SPHeader]
         b <- m.getBodyAs[api.Requests]
       } yield {
         b match {
@@ -107,11 +108,32 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
             driverEvent(e)
             println("new driver state: " + driverState)
             println("new resource state: " + resourceState)
+            val finishedRequests = checkRequestsFinished() // mutates state
+            finishedRequests.foreach { header =>
+              println("sending request done for request: " + header.reqID)
+              SPMessage.make(header, APISP.SPDone()).foreach {  m => mediator ! Publish("answers", m.toJson) }
+            }
+
 
           case r : api.ResourceCommand =>
-            println("resource command: " + r)
-            val msgs = resourceCommand(r)
-            msgs.foreach { m => mediator ! Publish("driverCommands", m.toJson) }
+            println("resource command: " + r + " with request id: " + h.reqID)
+            val ackHeader = h.copy(replyFrom = api.attributes.service, replyID = Some(UUID.randomUUID()))
+            SPMessage.make(ackHeader, APISP.SPACK()).foreach {  m => mediator ! Publish("answers", m.toJson) }
+
+            val diffs = getDriverDiffs(r)
+
+            val doneHeader = h.copy(replyFrom = api.attributes.service, replyID = Some(UUID.randomUUID()))
+            if(diffs.isEmpty || diffs.forall { case (k,v) => v.isEmpty }) {
+              println("No variables to update... Sending done immediately for requst: " + h.reqID)
+              SPMessage.make(doneHeader, APISP.SPDone()).foreach {  m => mediator ! Publish("answers", m.toJson) }
+            } else {
+              // add diffs into "wait queue"
+              updateDriverRequests(doneHeader, diffs) // mutates state
+
+              // send commands to the drivers
+              val msgs = getDriverCommands(diffs)
+              msgs.foreach { m => mediator ! Publish("driverCommands", m.toJson) }
+            }
 
           case x => println("todo: " + x)
         }
@@ -151,6 +173,8 @@ trait VirtualDeviceLogic {
 
   var drivers: Map[UUID, api.Driver] = Map()
   var driverState: Map[UUID, DriverState] = Map()
+  var driverRequests: Map[SPHeader, Map[UUID, DriverState]] = Map()
+
   var resources: Map[UUID, Resource] = Map()
   var resourceState: Map[UUID, ResourceState] = Map()
 
@@ -200,8 +224,8 @@ trait VirtualDeviceLogic {
       r._2.read.foldLeft(rs){ case (rs, reader) => reader.f(driverState, rs)}}
   }
 
-  def resourceCommand(c: api.ResourceCommand) = {
-    val diffs = (for {
+  def getDriverDiffs(c: api.ResourceCommand) = {
+    val diffs = for {
       r <- resources.get(c.resource)
     } yield {
       val s = r.write.foldLeft(driverState) { case (ds,writer) =>
@@ -212,7 +236,11 @@ trait VirtualDeviceLogic {
         val d = v.toSet diff m.toSet
         (k, d.toMap)
       }
-    }).getOrElse(Map())
+    }
+    diffs.getOrElse(Map())
+  }
+
+  def getDriverCommands(diffs: Map[UUID, DriverState]) = {
     for {
       (did,stateDiff) <- diffs if stateDiff.nonEmpty
       d <- drivers.get(did)
@@ -222,5 +250,29 @@ trait VirtualDeviceLogic {
     } yield {
       msg
     }
+  }
+
+  def updateDriverRequests(header: SPHeader, diffs: Map[UUID, DriverState]) = {
+    if(driverRequests.contains(header)) {
+      // check that header does not already exist - dont do that!
+      None.get
+    }
+    driverRequests += (header -> diffs)
+  }
+
+  def checkRequestsFinished(): List[SPHeader] = {
+    val updReqs = driverRequests.map { case (h, diffs) =>
+      val updDiffs = diffs.map { case (drvID, state) =>
+        val drvState = driverState.getOrElse(drvID, Map())
+        val diff = state.toSet diff drvState.toSet
+        (drvID, diff.toMap)
+      }
+      (h, updDiffs.filter { case (drvID, state) => state.nonEmpty })
+    }
+    val completedReqs = updReqs.filter { case (h, diffs) => diffs.isEmpty }.map(_._1)
+    val notCompleted = updReqs.filterNot { case (h, diffs) => diffs.isEmpty }
+
+    driverRequests = notCompleted
+    completedReqs.toList
   }
 }

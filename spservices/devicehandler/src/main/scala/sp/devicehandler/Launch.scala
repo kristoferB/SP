@@ -26,17 +26,16 @@ object HackTest {
     )
     val resource = APIVirtualDevice.Resource("R82-88", UUID.randomUUID(), driverStateMap, SPAttributes())
 
-    val header = SPHeader(from = "hej")
     val bodyDriver = APIVirtualDevice.SetUpDeviceDriver(driver)
     val bodyResource = APIVirtualDevice.SetUpResource(resource)
     val bodyCommand = APIVirtualDevice.ResourceCommand(resource.id, Map(start.id -> SPValue(math.random < 0.5)))
     val bodyCommand2 = APIVirtualDevice.ResourceCommand(resource.id, Map(end.id -> SPValue(math.random < 0.5)))
-    SPMessage.make(header, bodyDriver).map { m => mediator ! Publish("services", m.toJson) }
-    SPMessage.make(header, bodyResource).map { m => mediator ! Publish("services", m.toJson) }
+    SPMessage.make(SPHeader(from = "hej"), bodyDriver).map { m => mediator ! Publish("services", m.toJson) }
+    SPMessage.make(SPHeader(from = "hej"), bodyResource).map { m => mediator ! Publish("services", m.toJson) }
     Thread.sleep(5000)
-    SPMessage.make(header, bodyCommand).map { m => mediator ! Publish("services", m.toJson) }
-    Thread.sleep(500)
-    SPMessage.make(header, bodyCommand2).map { m => mediator ! Publish("services", m.toJson) }
+    SPMessage.make(SPHeader(from = "hej"), bodyCommand).map { m => mediator ! Publish("services", m.toJson) }
+    Thread.sleep(5000)
+    SPMessage.make(SPHeader(from = "hej"), bodyCommand2).map { m => mediator ! Publish("services", m.toJson) }
   }
 }
 
