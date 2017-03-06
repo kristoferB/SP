@@ -5,9 +5,9 @@ trait DirectoryItem {
   // TODO: will be a string/UUID
   val id: Int
 }
-case class Directory(name: String, id: Int, childrenIds: List[Int]) extends DirectoryItem
+case class Directory(name: String, id: Int, childrenIds: Seq[Int]) extends DirectoryItem
 
-class RootDirectory(private var _items: List[DirectoryItem], private var _rootLevelItemIds: List[Int]) {
+class RootDirectory(private var _items: Seq[DirectoryItem], private var _rootLevelItemIds: Seq[Int]) {
   // parentIdMap(i) points to to parent of item of id i, undefined if item is on root level
   private var parentIdMap: Map[Int, Int] = _items.flatMap{
       case Directory(_, id, childrenIds) => childrenIds.map((_, id))
@@ -20,8 +20,8 @@ class RootDirectory(private var _items: List[DirectoryItem], private var _rootLe
 
   // return self, to make $.modstate calls look cleaner
   def addItem(item: DirectoryItem) = {
-    _items = item :: _items
-    _rootLevelItemIds = item.id :: _rootLevelItemIds
+    _items = item +: _items
+    _rootLevelItemIds = item.id +: _rootLevelItemIds
     this
   }
 
@@ -33,7 +33,7 @@ class RootDirectory(private var _items: List[DirectoryItem], private var _rootLe
 
   private def moveItemToDir(movedItemId: Int, newDirId: Int) = {
     _items = _items.map{
-      case Directory(name, `newDirId`, childrenIds) => Directory(name, newDirId, movedItemId :: childrenIds)
+      case Directory(name, `newDirId`, childrenIds) => Directory(name, newDirId, movedItemId +: childrenIds)
       case Directory(name, id, childrenIds) => Directory(name, id, childrenIds.filter(_ != movedItemId))
       case item: DirectoryItem => item
     }
