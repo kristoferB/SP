@@ -61,7 +61,7 @@ package APIVirtualDevice {
   case class Driver(name: String, id: UUID, driverType: String, setup: SPAttributes)
 
 
-  object attributes {
+  object  attributes {
     val service = "virtualDevice"
   }
 }

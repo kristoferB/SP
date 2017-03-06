@@ -86,8 +86,8 @@ object AbilityState {
   val notEnabled = "notEnabled"
   val enabled = "enabled"
   val starting = "starting"
-  val executing = "started"
-  val finished = "completed"
+  val executing = "executing"
+  val finished = "finished"
   val forcedReset = "forcedReset"
   val resetCompleted = "resetCompleted"
 
@@ -107,9 +107,6 @@ trait AbilityActorLogic {
 
 
   def extractVariables(p: PropositionCondition) = {
-    var updGVars = Map[ID, Set[SPValue]]()
-    var updAVars = Map[ID, Set[SPValue]]()
-
     def fromGuard(p: Proposition): List[ID] = {
       p match {
         case AND(xs) => xs.flatMap(fromGuard)
@@ -126,13 +123,13 @@ trait AbilityActorLogic {
     }
 
 
-    def fromAction(a: Action): List[ID] = {
-      a.id ::  List(a.value).collect{
+    def fromAction(a: List[Action]): List[ID] = {
+      a.map(_.id) ++  a.map(_.value).collect{
         case ASSIGN(id) => id
       }
     }
 
-
+    fromGuard(p.guard) ++ fromAction(p.action)
 
   }
 
