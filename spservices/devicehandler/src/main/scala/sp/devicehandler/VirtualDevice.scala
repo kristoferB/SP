@@ -114,7 +114,6 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
               SPMessage.make(header, APISP.SPDone()).foreach {  m => mediator ! Publish("answers", m.toJson) }
             }
 
-
           case r : api.ResourceCommand =>
             println("resource command: " + r + " with request id: " + h.reqID)
             val ackHeader = h.copy(replyFrom = api.attributes.service, replyID = Some(UUID.randomUUID()))
@@ -130,6 +129,12 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
               // add diffs into "wait queue"
               updateDriverRequests(doneHeader, diffs) // mutates state
 
+              // start timeout counter
+              if(r.timeout > 0) {
+                val dct = DriverCommandTimout(doneHeader, r.timeout)
+                context.system.scheduler.scheduleOnce(Duration(r.timeout, TimeUnit.MILLISECONDS), self, dct)
+              }
+
               // send commands to the drivers
               val msgs = getDriverCommands(diffs)
               msgs.foreach { m => mediator ! Publish("driverCommands", m.toJson) }
@@ -139,7 +144,16 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
         }
       }
 
-
+    case DriverCommandTimout(request, timeout) =>
+      val req = driverRequests.get(request)
+      if(req.nonEmpty) {
+        println("Driver command timed out after " + timeout + "ms")
+        req.get.foreach { case (driver, variables) =>
+          println("  on driver " + drivers.get(driver).map(_.name).getOrElse("unknown driver"))
+          println("    failed to write to variables: " + variables.map(_._1).mkString(", "))
+        }
+        // handle in some way...
+      }
   }
 
   def receiveRecover = {
@@ -162,6 +176,8 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
 trait VirtualDeviceLogic {
   val name: String
   val id: UUID
+
+  case class DriverCommandTimout(request: SPHeader, timeout: Int)
 
   case class StateReader(f: (Map[UUID, DriverState], Map[UUID, ResourceState]) =>  Map[UUID, ResourceState])
   case class StateWriter(f: (Map[UUID, ResourceState], Map[UUID, DriverState]) =>  Map[UUID, DriverState])
@@ -255,6 +271,7 @@ trait VirtualDeviceLogic {
   def updateDriverRequests(header: SPHeader, diffs: Map[UUID, DriverState]) = {
     if(driverRequests.contains(header)) {
       // check that header does not already exist - dont do that!
+      println("Request already made!")
       None.get
     }
     driverRequests += (header -> diffs)
