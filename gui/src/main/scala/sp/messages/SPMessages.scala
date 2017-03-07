@@ -3,7 +3,6 @@ package sp.messages
 import java.util.UUID
 import sp.domain._
 import scala.util.{Try, Success, Failure}
-import upickle._
 
 sealed trait APISP
 object APISP {
@@ -22,18 +21,15 @@ object APISP {
 
 object Pickles extends SPParser {
 
-
-  type Pickle = upickle.Js.Value
-
-  case class SPHeader(from: String,
-                      to: String,
+  case class SPHeader(from: String = "",
+                      to: String = "",
                       replyTo: String = "",
                       reqID: UUID = UUID.randomUUID(),
                       replyFrom: String = "",
                       replyID: Option[UUID] = None)
 
 
-  case class SPMessage(header: Pickle, body: Pickle) {
+  case class SPMessage(header: SPValue, body: SPValue) {
     def getHeaderAs[T: Reader] = fromSPValue[T](header)
     def getBodyAs[T: Reader] = fromSPValue[T](body)
 
@@ -46,25 +42,22 @@ object Pickles extends SPParser {
       * @return an updated SPMessage
       */
     def make[T: Writer, V: Writer](h: T, b: V) = {
-      Try {
         val newh = toSPValue[T](h)
         val newb = toSPValue[V](b)
         val updH = header.union(newh)
         SPMessage(updH, newb)
-      }
+
     }
     def makeJson[T: Writer, V: Writer](header: T, body: V) = {
-      this.make[T, V](header, body).map(_.toJson)
+      this.make[T, V](header, body).toJson
     }
   }
 
   object SPMessage {
     def make[T: Writer, V: Writer](header: T, body: V) = {
-      Try{
         val h = toSPValue(header)
         val b = toSPValue(body)
         SPMessage(h, b)
-      }
     }
 
     def fromJson(json: String) = Try{
@@ -77,13 +70,13 @@ object Pickles extends SPParser {
 
 
 
-  def toJson[T: Writer](expr: T, indent: Int = 0): String = json.write(writeJs(expr), indent)
+  def toJson[T: Writer](expr: T, indent: Int = 0): String = upickle.json.write(writeJs(expr), indent)
   def toSPValue[T: Writer](expr: T): SPValue = implicitly[Writer[T]].write(expr)
   def toSPAttributes[T: Writer](expr: T): SPAttributes = toSPValue[T](expr).asInstanceOf[SPAttributes]
   def *[T: Writer](expr: T): SPValue = toSPValue[T](expr)
   def **[T: Writer](expr: T): SPAttributes = toSPAttributes[T](expr)
 
-  def fromJson[T: Reader](expr: String): Try[T] = Try{readJs[T](json.read(expr))}
+  def fromJson[T: Reader](expr: String): Try[T] = Try{readJs[T](upickle.json.read(expr))}
   def fromSPValue[T: Reader](expr: SPValue): Try[T] = Try{implicitly[Reader[T]].read(expr)}
   def fromJsonToSPValue(expr: String): Try[SPValue] = Try{upickle.json.read(expr)}
   def fromJsonToSPAttributes(expr: String): Try[SPAttributes] = Try{upickle.json.read(expr).asInstanceOf[SPAttributes]}

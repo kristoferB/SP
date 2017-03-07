@@ -6,6 +6,7 @@ package spgui.widgets.examples {
 
   import japgolly.scalajs.react._
   import japgolly.scalajs.react.vdom.prefix_<^._
+  import spgui.SPWidget
   import spgui.communication._
 
   import scala.util.Random
@@ -82,25 +83,7 @@ package spgui.widgets.examples {
         },
         "answers" // the topic you want to listen to. Soon we will also add some kind of backend filter,  but for now you get all answers
       )
-      val cp = Chart.ChartProps(
-        "Test chart",
-        Chart.PieChart,
-        ChartData(
-          Random.alphanumeric.map(_.toUpper.toString).distinct.take(10),
-          Seq(ChartDataset(Iterator.continually(Random.nextInt(30)).take(10).toSeq, "Data1",
-            Iterator.continually(backgroundColour()).take(10).toSeq))
-        )
-      )
-      def backgroundColour() : String = {
-        val colour = new StringBuilder
-        colour += '#'
-        val letters = Seq('0','1','2','3','4','5','6','7','8','9',
-          'A','B','C','D','E','F')
-        for (x <- 1 to 6) {
-          colour += letters(Random.nextInt(16))
-        }
-        return colour.toString()
-      }
+
       def render(s: State) = {
         <.div(
           <.h1(s"The Pie ID:"),
@@ -113,13 +96,13 @@ package spgui.widgets.examples {
 
           <.button(
             ^.className := "btn btn-default",
-            ^.onClick --> send(api.StartTheTicker(pieID)), "New pie"
+
+            ^.onClick --> send(api.StartTheTicker(pieID)), "New Pie"
           ),
           <.button(
             ^.className := "btn btn-default",
             ^.onClick --> send(api.ResetAllTickers()), "Reset all Pies"
-          ),
-          Chart(cp)
+          )
         )
       }
 
@@ -134,13 +117,12 @@ package spgui.widgets.examples {
       def send(mess: api.API_ExampleService): Callback = {
         val h = SPHeader("ExampleServiceWidget", api.attributes.service, "ExampleServiceWidget", java.util.UUID.randomUUID())
         val json = SPMessage.make(h, mess) // *(...) is a shorthand for toSpValue(...)
-        json.map( x => BackendCommunication.publish(x, "services"))
+        BackendCommunication.publish(json, "services")
         Callback.empty
       }
 
 
     }
-
 
     private val component = ReactComponentB[Unit]("ExampleServiceWidget")
       .initialState(State(None, List()))
@@ -151,6 +133,56 @@ package spgui.widgets.examples {
     def apply() = spgui.SPWidget(spwb => component())
   }
 
+
+ /* object ChartExample {
+
+    private val component = ReactComponentB[Unit]("ChartExample")
+      .initialState(getDataval())
+      .render(dcb =>
+        <.div(
+          <.button("mod state", ^.onClick --> dcb.modState(_ => getDataval())),
+          PieChartComponent(dcb.state)
+        )
+      )
+      .build
+
+    def getDataval() : Chart.ChartProps = {
+      val cp =
+        Chart.ChartProps (
+          "Test chart",
+          Chart.PieChart,
+          ChartData (
+            Random.alphanumeric.map (_.toUpper.toString).distinct.take (10),
+            Seq (ChartDataset (Iterator.continually (Random.nextInt (30) ).take (10).toSeq, "Data1",
+              Iterator.continually (backgroundColour () ).take (10).toSeq) )
+          )
+        )
+      return cp
+    }
+
+    def backgroundColour() : String = {
+      val colour = new StringBuilder
+      colour += '#'
+      val letters = Seq('0','1','2','3','4','5','6','7','8','9',
+        'A','B','C','D','E','F')
+      for (x <- 1 to 6) {
+        colour += letters(Random.nextInt(16))
+      }
+      return colour.toString()
+    }
+    def apply() = component()
+  }
+
+  object PieChartComponent{
+    def apply(data: Chart.ChartProps) = component(data)
+
+    private val component = ReactComponentB[Chart.ChartProps]("ChartDivComponent")
+      .render(_ => <.div())
+        .componentDidUpdate(dcb => Callback(newChart(dcb.currentProps))
+      .build
+
+      def newChart
+  }*/
 }
 
 
