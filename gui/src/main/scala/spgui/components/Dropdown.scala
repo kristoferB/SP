@@ -9,23 +9,25 @@ object Dropdown {
 
   private val component = ReactComponentB[Props]("Dropdown")
     .render_P(p =>
-      <.div(
-        ^.className := "dropdown",
-        <.div(
-          ^.id := "something",
-          ^.tpe := "button",
-          ReactAttr.Generic("data-toggle") := "dropdown",
-          aria.haspopup := "true",
-          aria.expanded := "false",
-          p.toggleButton
-        ),
-        <.ul(
-          ^.className := "dropdown-menu",
-          aria.labelledby := "something",
-          p.contents.map(c => <.li(<.a(c)))
-        )
+    <.li(
+      ^.className := ComponentCSS.clickable.htmlClass,
+      ^.className := "dropdown",
+      <.a(
+        ^.className := ComponentCSS.text.htmlClass,
+        ^.id := "something",
+        ^.tpe := "button", 
+        ReactAttr.Generic("data-toggle") := "dropdown",
+        aria.haspopup := "true",
+        aria.expanded := "false",
+        p.toggleButton
+      ),
+      <.ul(
+        ^.className := "dropdown-menu",
+        aria.labelledby := "something",
+        p.contents.map(c => <.li(<.a(c)))
       )
     )
+  )
     .build
 
   def apply(toggleButton: ReactNode, contents: ReactNode*) =

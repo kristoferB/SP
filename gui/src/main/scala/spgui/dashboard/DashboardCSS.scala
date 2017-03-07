@@ -18,7 +18,7 @@ object DashboardCSS extends StyleSheet.Inline {
     flexDirection.column,
 
     borderRadius(0.px),
-    borderWidth(1.px),
+    borderWidth(0.px),
     boxShadow := spgui.GlobalCSS.defaultShadow
   )
 
