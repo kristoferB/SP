@@ -14,20 +14,15 @@ case class SOPSpecDirItem(name: String, id: String, content: String) extends Dir
 
 object SPItemsToRootDirectory {
   def apply(spItems: Seq[IDAble]) = {
-    // TODO: delegate the parentlessIds fiddling to RootDirectory
-    var parentlessIds = spItems.map(_.id.toString)
     val dirItems = spItems.map{
       case HierarchyRoot(name, children, attributes, id) =>
-        Directory(name, id.toString, children.map{child =>
-                    parentlessIds = parentlessIds.filter(_ != child.item.toString)
-                    child.item.toString
-                  })
+        Directory(name, id.toString, children.map(_.item.toString))
       case Operation(name, conditions, attributes, id) =>
         OperationDirItem(name, id.toString, "OpDirItemContent")
       case SOPSpec(name, sop, attributes, id) =>
         SOPSpecDirItem(name, id.toString, "SOPSpecDirItemContent")
     }
-    new RootDirectory(dirItems, parentlessIds)
+    new RootDirectory(dirItems)
   }
 }
 

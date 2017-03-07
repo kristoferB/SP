@@ -21,7 +21,6 @@ object TreeView {
     def addItem(item: DirectoryItem) = $.modState(_.addItem(item))
 
     def onDrop(senderId: String, receiverId: String) =
-      Callback.log(s"item of id $senderId dropped on item of id $receiverId") >>
         $.modState(_.moveItem(senderId, receiverId))
 
     def render(p: TreeViewProps, s: RootDirectory) =

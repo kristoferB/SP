@@ -7,8 +7,15 @@ trait DirectoryItem {
 }
 case class Directory(name: String, id: String, childrenIds: Seq[String]) extends DirectoryItem
 
-class RootDirectory(private var _items: Seq[DirectoryItem], private var _rootLevelItemIds: Seq[String]) {
-  // parentIdMap(i) points to to parent of item of id i, undefined if item is on root level
+class RootDirectory(private var _items: Seq[DirectoryItem]) {
+  private val nestedItemIds = _items.flatMap{
+    case Directory(_, id, childrenIds) => childrenIds
+    case item: DirectoryItem => Nil
+  }.toSet
+
+  private var _rootLevelItemIds = _items.map(_.id).filterNot(nestedItemIds)
+
+  // parentIdMap(str) points to parent of item of id str, undefined if item is on root level
   private var parentIdMap: Map[String, String] = _items.flatMap{
       case Directory(_, id, childrenIds) => childrenIds.map((_, id))
       case _ => Nil
@@ -26,9 +33,16 @@ class RootDirectory(private var _items: Seq[DirectoryItem], private var _rootLev
   }
 
   // move item to parent of target if target is not a directory
-  def moveItem(movedItemId: String, newParentId: String) = _items.find(_.id == newParentId).get match {
-    case mapp: Directory => moveItemToDir(movedItemId, newParentId)
-    case item: DirectoryItem => moveItemToDir(movedItemId, parentIdMap(newParentId))
+  def moveItem(movedItemId: String, newParentId: String) = {
+    _items.find(_.id == newParentId).get match {
+      case mapp: Directory =>
+        moveItemToDir(movedItemId, newParentId)
+      case item: DirectoryItem if(parentIdMap.isDefinedAt(newParentId)) =>
+        moveItemToDir(movedItemId, parentIdMap(newParentId))
+      case item: DirectoryItem =>
+        moveItemToRoot(movedItemId)
+    }
+    this
   }
 
   private def moveItemToDir(movedItemId: String, newDirId: String) = {
@@ -41,7 +55,14 @@ class RootDirectory(private var _items: Seq[DirectoryItem], private var _rootLev
     if(!parentIdMap.contains(movedItemId)) _rootLevelItemIds = _rootLevelItemIds.filter(_ != movedItemId)
 
     parentIdMap = parentIdMap.filterKeys(_ != movedItemId) ++ Map(movedItemId -> newDirId)
+  }
 
-    this
+  private def moveItemToRoot(movedItemId: String) = {
+    _items = _items.map{
+      case Directory(name, id, childrenIds) => Directory(name, id, childrenIds.filter(_ != movedItemId))
+      case item: DirectoryItem => item
+    }
+    _rootLevelItemIds = movedItemId +: _rootLevelItemIds
+    parentIdMap = parentIdMap.filterKeys(_ != movedItemId)
   }
 }
