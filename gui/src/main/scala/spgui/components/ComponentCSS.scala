@@ -7,6 +7,8 @@ object ComponentCSS extends StyleSheet.Inline {
   val textColor = "#000000"
 
   val clickable = style(
+    cursor.pointer,
+    userSelect:= "none",
     backgroundColor.transparent,
     &.hover(
       backgroundColor := "#999999"//"#ededed"

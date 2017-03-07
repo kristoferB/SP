@@ -26,7 +26,7 @@ class DashboardHandler[M](modelRW: ModelRW[M, OpenWidgets]) extends ActionHandle
       updated(OpenWidgets(value.xs + (id -> newWidget)))
     case CloseWidget(id) =>
       updated(OpenWidgets(value.xs - id))
-    case CloseAllWidgets => updated(OpenWidgets(Map()))
+    case CloseAllWidgets => updated(OpenWidgets())
     case UpdateLayout(id, newLayout) => {
       val updW = value.xs.get(id)
         .map(_.copy(layout = newLayout))

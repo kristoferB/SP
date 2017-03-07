@@ -51,5 +51,12 @@ object DashboardCSS extends StyleSheet.Inline {
     padding(0.px, 7.px, 0.px, 0.px)
   )
 
+  val overridPlaceholder = style(
+    unsafeRoot(".react-grid-item.react-grid-placeholder ")(
+      backgroundColor := "#df691a",
+      opacity(0.3)
+    )
+  )
+
   this.addToDocument()
 }
