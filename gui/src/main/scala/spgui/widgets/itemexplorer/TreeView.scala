@@ -13,7 +13,8 @@ object TreeView {
     rootDirectory: RootDirectory,
     itemCreators: Seq[(String, () => DirectoryItem)],
     getItemIcon: DirectoryItem => ReactNode,
-    renderContent: DirectoryItem => ReactNode
+    renderContent: DirectoryItem => ReactNode,
+    onSaveButtonClick: RootDirectory => Callback
   )
 
   class TreeViewBackend($: BackendScope[TreeViewProps, RootDirectory]) {
@@ -26,13 +27,21 @@ object TreeView {
     def render(p: TreeViewProps, s: RootDirectory) =
       <.div(
         Style.outerDiv,
-        Dropdown(
-          <.div(
-            "Add Item",
-            Icon.chevronDown,
-            ^.className := "btn btn-default"
+        <.div(
+          Style.optionBar,
+          Dropdown(
+            <.div(
+              "Add Item",
+              Icon.chevronDown,
+              ^.className := "btn btn-default"
+            ),
+            p.itemCreators.map(ic => <.div(ic._1, ^.onClick --> addItem(ic._2()))): _*
           ),
-          p.itemCreators.map(ic => <.div(ic._1, ^.onClick --> addItem(ic._2()))): _*
+          <.div(
+            ^.className := "btn btn-default",
+            Icon.floppyO,
+            ^.onClick --> p.onSaveButtonClick(s)
+          )
         ),
         <.div(
           Style.treeDiv,
@@ -50,9 +59,10 @@ object TreeView {
     rootDirectory: RootDirectory,
     itemCreators: Seq[(String, () => DirectoryItem)],
     getItemIcon: DirectoryItem => ReactNode,
-    renderContent: DirectoryItem => ReactNode
+    renderContent: DirectoryItem => ReactNode,
+    onSaveButtonClick: RootDirectory => Callback
   ): ReactElement =
-    component(TreeViewProps(rootDirectory, itemCreators, getItemIcon, renderContent))
+    component(TreeViewProps(rootDirectory, itemCreators, getItemIcon, renderContent, onSaveButtonClick))
 
 }
 

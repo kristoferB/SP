@@ -13,6 +13,11 @@ object Style extends StyleSheet.Inline {
     //minHeight(400 px)
   )
 
+  val optionBar = style(
+    display.flex,
+    flexDirection.row
+  )
+
   val treeDiv = style(
     display.flex,
     flexDirection.row,

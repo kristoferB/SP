@@ -46,6 +46,12 @@ object RenderItemContent {
   }
 }
 
+object OnSaveButtonClick {
+  val printText = Callback.log("You clicked the save button, it does nothing for now, this callback has access to the directoryItems, however, see below:")
+  val printItems = (rootDir: RootDirectory) => Callback.log(rootDir.items.toString)
+  def apply(rootDirectory: RootDirectory) = printText >> printItems(rootDirectory)
+}
+
 object ItemExplorer {
 
   def emptyDir() = Directory("New Directory", UUID.randomUUID().toString, List())
@@ -55,6 +61,7 @@ object ItemExplorer {
                            ("Directory", () => emptyDir()) ::
                              Nil,
                            item => GetItemIcon(item),
-                           item => RenderItemContent(item)
+                           item => RenderItemContent(item),
+                           rootDir => OnSaveButtonClick(rootDir)
                          ))
 }
