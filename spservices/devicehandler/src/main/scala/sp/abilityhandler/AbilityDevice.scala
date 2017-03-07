@@ -3,6 +3,7 @@ package sp.abilityhandler
 import java.util.UUID
 
 import sp.domain._
+import sp.domain.Logic._
 import sp.messages._
 import Pickles._
 import akka.actor._
@@ -16,7 +17,7 @@ package APIAbilityHandler {
   case class ForceResetAbility(id: ID) extends Request
   case class ForceResetAllAbilities() extends Request
 
-  // to be used when handskake is on
+  // to be used when handshake is on
   case class ExecuteCmd(cmd: ID) extends Request
 
   case class GetAbilities() extends Request
@@ -36,7 +37,7 @@ package APIAbilityHandler {
                      preCondition: PropositionCondition = PropositionCondition(AlwaysFalse, List()),
                      started: PropositionCondition = PropositionCondition(AlwaysFalse, List()),
                      postCondition: PropositionCondition = PropositionCondition(AlwaysTrue, List()),
-                     resetAction: Option[Action] = None,
+                     resetCondition: PropositionCondition = PropositionCondition(AlwaysTrue, List()),
                      parameters: List[ID] = List(),
                      result: List[ID] = List(),
                      attributes: SPAttributes = SPAttributes())
@@ -72,8 +73,18 @@ trait AbilityHandlerLogic {
 
 }
 
-// Create one actor per ability to keep track of the state and
-// simplify for example timeouts
+// Internal api between abilities and handler
+case class StartAbility(reqID: ID, params: Map[ID, SPValue], attributes: SPAttributes)
+case object ResetAbility
+case object GetIds
+case class NewState(s: Map[ID, SPValue])
+case object UnAvailable
+
+case class CanNotStart(error: String)
+case class AbilityStateChange(state: String, cnt: Long, reqID: Option[ID])
+case class StateUpdReq(s: Map[ID, SPValue])
+
+
 class AbilityActor(ability: api.Ability) extends Actor {
   override def receive = {
     case x =>
@@ -89,48 +100,90 @@ object AbilityState {
   val executing = "executing"
   val finished = "finished"
   val forcedReset = "forcedReset"
-  val resetCompleted = "resetCompleted"
-
-  case class State(state: String, count: Long, currentCalled: SPAttributes)
 }
 
 trait AbilityActorLogic {
   val ability: api.Ability
-  var state: AbilityState.State
+  lazy val ids = idsFromAbility(ability)
 
-  def getAllVariables = {
+  import AbilityState._
 
+  var state: String = unavailable
+  var count = 0
+  var currentCaller = SPAttributes()
+
+
+
+
+
+  def makeUnavailable() = state = unavailable
+  def makeAvailable() = state = notEnabled
+
+  def start(s: Map[ID, SPValue]) = {
+    val theState = State(s)
+    val tH = evalState(s, starting)
+    if (state == starting){
+      tH._2
+    } else None
   }
 
-  def makeUnavailable() = state = state.copy(state = AbilityState.unavailable)
 
+  def evalState(s: Map[ID, SPValue], force: String = "") = {
+    val theState = State(s)
+    val aS = if (force.isEmpty) state else force
+    val abilityState = updateState(aS, theState)
 
+    val newAState = if (state != abilityState._1) Some(abilityState._1) else None
+    val newRState = if (theState != abilityState._2) Some(abilityState._2.state) else None
+
+    newAState.foreach(x => state = x)
+    (newAState, newRState)
+  }
+
+  def updateState(s: String, theState: State): (String, State) = s match {
+    case x if ability.started.eval(theState) && x != executing => (executing, ability.started.next(theState))
+    case "starting" if ability.preCondition.eval(theState) && state != starting => (starting, ability.preCondition.next(theState))
+    case "executing" if ability.postCondition.eval(theState) => (finished, ability.postCondition.next(theState))
+    case "finished" if ability.resetCondition.eval(theState) => (checkEnabled(theState), ability.resetCondition.next(theState))
+    case "forcedReset" => (checkEnabled(theState), ability.resetCondition.next(theState))
+    case "unavailable" => (checkEnabled(theState), theState)
+    case x if ability.preCondition.eval(theState) && x != starting => (enabled, theState)
+    case x => (state, theState)
+  }
+
+  def checkEnabled(tS: State) = if (ability.preCondition.eval(tS)) enabled else notEnabled
+
+  def idsFromAbility(a: api.Ability) = {
+    List(a.preCondition,
+      a.postCondition,
+      a.started, a.resetCondition).flatMap(extractVariables) ++
+      a.parameters ++ a.result
+  }
 
   def extractVariables(p: PropositionCondition) = {
-    def fromGuard(p: Proposition): List[ID] = {
-      p match {
-        case AND(xs) => xs.flatMap(fromGuard)
-        case OR(xs) => xs.flatMap(fromGuard)
-        case NOT(x) => fromGuard(x)
-        case pe: PropositionEvaluator =>
-          val xs = List(pe.left, pe.right)
-          xs.collect{
-            case SVIDEval(id) => id
-
-          }
-        case x => List()
-      }
-    }
-
-
-    def fromAction(a: List[Action]): List[ID] = {
-      a.map(_.id) ++  a.map(_.value).collect{
-        case ASSIGN(id) => id
-      }
-    }
-
     fromGuard(p.guard) ++ fromAction(p.action)
+  }
 
+  def fromGuard(p: Proposition): List[ID] = {
+    p match {
+      case AND(xs) => xs.flatMap(fromGuard)
+      case OR(xs) => xs.flatMap(fromGuard)
+      case NOT(x) => fromGuard(x)
+      case pe: PropositionEvaluator =>
+        val xs = List(pe.left, pe.right)
+        xs.collect{
+          case SVIDEval(id) => id
+
+        }
+      case x => List()
+    }
+  }
+
+
+  def fromAction(a: List[Action]): List[ID] = {
+    a.map(_.id) ++  a.map(_.value).collect{
+      case ASSIGN(id) => id
+    }
   }
 
 }
