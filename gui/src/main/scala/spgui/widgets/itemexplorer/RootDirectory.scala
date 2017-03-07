@@ -3,13 +3,13 @@ package spgui.widgets.itemexplorer
 trait DirectoryItem {
   val name: String
   // TODO: will be a string/UUID
-  val id: Int
+  val id: String
 }
-case class Directory(name: String, id: Int, childrenIds: Seq[Int]) extends DirectoryItem
+case class Directory(name: String, id: String, childrenIds: Seq[String]) extends DirectoryItem
 
-class RootDirectory(private var _items: Seq[DirectoryItem], private var _rootLevelItemIds: Seq[Int]) {
+class RootDirectory(private var _items: Seq[DirectoryItem], private var _rootLevelItemIds: Seq[String]) {
   // parentIdMap(i) points to to parent of item of id i, undefined if item is on root level
-  private var parentIdMap: Map[Int, Int] = _items.flatMap{
+  private var parentIdMap: Map[String, String] = _items.flatMap{
       case Directory(_, id, childrenIds) => childrenIds.map((_, id))
       case _ => Nil
     }.toMap
@@ -26,12 +26,12 @@ class RootDirectory(private var _items: Seq[DirectoryItem], private var _rootLev
   }
 
   // move item to parent of target if target is not a directory
-  def moveItem(movedItemId: Int, newParentId: Int) = _items.find(_.id == newParentId).get match {
+  def moveItem(movedItemId: String, newParentId: String) = _items.find(_.id == newParentId).get match {
     case mapp: Directory => moveItemToDir(movedItemId, newParentId)
     case item: DirectoryItem => moveItemToDir(movedItemId, parentIdMap(newParentId))
   }
 
-  private def moveItemToDir(movedItemId: Int, newDirId: Int) = {
+  private def moveItemToDir(movedItemId: String, newDirId: String) = {
     _items = _items.map{
       case Directory(name, `newDirId`, childrenIds) => Directory(name, newDirId, movedItemId +: childrenIds)
       case Directory(name, id, childrenIds) => Directory(name, id, childrenIds.filter(_ != movedItemId))

@@ -21,7 +21,7 @@ object TreeView {
 
     def onDrop(senderId: String, receiverId: String) =
       Callback.log(s"item of id $senderId dropped on item of id $receiverId") >>
-        $.modState(_.moveItem(senderId.toInt, receiverId.toInt))
+        $.modState(_.moveItem(senderId, receiverId))
 
     def render(p: TreeViewProps, s: RootDirectory) =
       <.div(
@@ -59,21 +59,21 @@ object TreeView {
 object TVColumn {
   case class TVColumnProps(
     items: Seq[DirectoryItem],
-    itemIds: Seq[Int],
+    itemIds: Seq[String],
     getItemIcon: DirectoryItem => ReactNode,
     renderContent: DirectoryItem => ReactNode,
     onDrop: (String, String) => Callback
   )
-  case class TVColumnState(selectedItemId: Int = -1)
+  case class TVColumnState(selectedItemId: String = "-1")
 
   class TVColumnBackend($: BackendScope[TVColumnProps, TVColumnState]) {
 
-    def setSelectedId(id: Int) =
+    def setSelectedId(id: String) =
       $.state >>= (s => if(s.selectedItemId == id) selectNone else $.modState(s => s.copy(selectedItemId = id)))
 
-    def selectNone() = $.modState(s => s.copy(selectedItemId = -1))
+    def selectNone() = $.modState(s => s.copy(selectedItemId = "-1"))
 
-    def deselectDragged(id: Int) =
+    def deselectDragged(id: String) =
       $.state >>= (s => if(id == s.selectedItemId) selectNone else Callback.empty)
 
     def render(p: TVColumnProps, s: TVColumnState) =
@@ -94,7 +94,7 @@ object TVColumn {
             )
           }
         ),
-        if(s.selectedItemId == -1) ""
+        if(s.selectedItemId == "-1") ""
         else p.items.find(_.id == s.selectedItemId).get match {
           case Directory(_, _, childrenIds) =>
             TVColumn(p.items, childrenIds, p.getItemIcon, p.renderContent, p.onDrop)
@@ -110,7 +110,7 @@ object TVColumn {
 
   def apply(
     items: Seq[DirectoryItem],
-    itemIds: Seq[Int],
+    itemIds: Seq[String],
     getItemIcon: DirectoryItem => ReactNode,
     renderContent: DirectoryItem => ReactNode,
     onDrop: (String, String) => Callback

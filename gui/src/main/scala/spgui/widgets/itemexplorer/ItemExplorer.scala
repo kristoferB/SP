@@ -9,8 +9,8 @@ import spgui.components.Icon
 
 
 // TODO: replace with SP API
-case class Spotify(name: String, id: Int, content: String) extends DirectoryItem
-case class Youtube(name: String, id: Int, content: String) extends DirectoryItem
+case class Spotify(name: String, id: String, content: String) extends DirectoryItem
+case class Youtube(name: String, id: String, content: String) extends DirectoryItem
 
 object IconFunc {
   def apply(item: DirectoryItem): ReactNode = item match {
@@ -29,21 +29,21 @@ object RenderContent {
 
 object ListItems {
   val listItems = List(
-    Youtube("Smör", 2, "mjölk"),
-    Youtube("Ägg", 3, "kalcium"),
-    Spotify("Kladd", 4, "Kladd"),
-    Directory("kaka", 5, List(2, 3)),
-    Spotify("Äpplen", 6, "paj")
+    Youtube("Smör", "2", "mjölk"),
+    Youtube("Ägg", "3", "kalcium"),
+    Spotify("Kladd", "4", "Kladd"),
+    Directory("kaka", "5", List("2", "3")),
+    Spotify("Äpplen", "6", "paj")
   )
-  val rootLevelItemIds = List(4, 5, 6)
+  val rootLevelItemIds = List("4", "5", "6")
   def apply() = new RootDirectory(listItems, rootLevelItemIds)
 }
 
 object ItemExplorer {
 
-  def emptyMap() = Directory("EmptyMap", util.Random.nextInt(1000000) + 10000, List())
-  def newSpotify() = Spotify("NewYT", util.Random.nextInt(1000000) + 10000, "content of NewSpotify")
-  def newYT() = Youtube("NewYT", util.Random.nextInt(1000000) + 10000, "content of NewYT")
+  def emptyMap() = Directory("EmptyMap", (util.Random.nextInt(1000000) + 10000).toString, List())
+  def newSpotify() = Spotify("NewYT", (util.Random.nextInt(1000000) + 10000).toString, "content of NewSpotify")
+  def newYT() = Youtube("NewYT", (util.Random.nextInt(1000000) + 10000).toString, "content of NewYT")
 
   def apply() = SPWidget(spwb => TreeView(
                            ListItems(),
