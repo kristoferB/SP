@@ -7,51 +7,54 @@ import scalacss.ScalaCssReact._
 import spgui.SPWidget
 import spgui.components.Icon
 
+import java.util.UUID
 
-// TODO: replace with SP API
-case class Spotify(name: String, id: String, content: String) extends DirectoryItem
-case class Youtube(name: String, id: String, content: String) extends DirectoryItem
+case class OperationDirItem(name: String, id: String, content: String) extends DirectoryItem
+case class SOPSpecDirItem(name: String, id: String, content: String) extends DirectoryItem
 
-object IconFunc {
-  def apply(item: DirectoryItem): ReactNode = item match {
-    case Directory(_, _, _) => Icon.folder
-    case Spotify(_, _, _) => Icon.spotify
-    case Youtube(_, _, _) => Icon.youtube
+object SPItemsToRootDirectory {
+  def apply(spItems: Seq[IDAble]) = {
+    // TODO: delegate the parentlessIds fiddling to RootDirectory
+    var parentlessIds = spItems.map(_.id.toString)
+    val dirItems = spItems.map{
+      case HierarchyRoot(name, children, attributes, id) =>
+        Directory(name, id.toString, children.map{child =>
+                    parentlessIds = parentlessIds.filter(_ != child.item.toString)
+                    child.item.toString
+                  })
+      case Operation(name, conditions, attributes, id) =>
+        OperationDirItem(name, id.toString, "OpDirItemContent")
+      case SOPSpec(name, sop, attributes, id) =>
+        SOPSpecDirItem(name, id.toString, "SOPSpecDirItemContent")
+    }
+    new RootDirectory(dirItems, parentlessIds)
   }
 }
 
-object RenderContent {
+object GetItemIcon {
   def apply(item: DirectoryItem): ReactNode = item match {
-    case s: Spotify => s.content
-    case yt: Youtube => yt.content
+    case d: Directory => Icon.folder
+    case op: OperationDirItem => Icon.arrowCircleRight
+    case ss: SOPSpecDirItem => Icon.sitemap
   }
 }
 
-object ListItems {
-  val listItems = List(
-    Youtube("Smör", "2", "mjölk"),
-    Youtube("Ägg", "3", "kalcium"),
-    Spotify("Kladd", "4", "Kladd"),
-    Directory("kaka", "5", List("2", "3")),
-    Spotify("Äpplen", "6", "paj")
-  )
-  val rootLevelItemIds = List("4", "5", "6")
-  def apply() = new RootDirectory(listItems, rootLevelItemIds)
+object RenderItemContent {
+  def apply(item: DirectoryItem): ReactNode = item match {
+    case op: OperationDirItem => op.content
+    case ss: SOPSpecDirItem => ss.content
+  }
 }
 
 object ItemExplorer {
 
-  def emptyMap() = Directory("EmptyMap", (util.Random.nextInt(1000000) + 10000).toString, List())
-  def newSpotify() = Spotify("NewYT", (util.Random.nextInt(1000000) + 10000).toString, "content of NewSpotify")
-  def newYT() = Youtube("NewYT", (util.Random.nextInt(1000000) + 10000).toString, "content of NewYT")
+  def emptyDir() = Directory("New Directory", UUID.randomUUID().toString, List())
 
   def apply() = SPWidget(spwb => TreeView(
-                           ListItems(),
-                           ("Directory", () => emptyMap()) ::
-                             ("Spotify", () => newSpotify()) ::
-                             ("Youtube", () => newYT()) ::
+                           SPItemsToRootDirectory(SampleSPItems()),
+                           ("Directory", () => emptyDir()) ::
                              Nil,
-                           item => IconFunc(item),
-                           item => RenderContent(item)
+                           item => GetItemIcon(item),
+                           item => RenderItemContent(item)
                          ))
 }
