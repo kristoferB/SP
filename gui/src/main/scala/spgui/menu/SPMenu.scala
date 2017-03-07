@@ -31,7 +31,6 @@ object SPMenu {
           ^.className := "collapse navbar-collapse",
           ^.className := SPMenuCSS.buttonList.htmlClass,
           ^.className := "nav navbar-nav",
-          ^.className := SPMenuCSS.navbarCell.htmlClass,
           WidgetMenu(),
           CloseAllButton()
         )
@@ -46,8 +45,7 @@ object SPMenu {
     <.div(
       ^.className := SPMenuCSS.splogoContainer.htmlClass,
       <.div(
-        ^.className := SPMenuCSS.spLogo.htmlClass,
-        ^.className := SPMenuCSS.navbarCell.htmlClass
+        ^.className := SPMenuCSS.spLogo.htmlClass
       )
     ))
   def apply() = component()

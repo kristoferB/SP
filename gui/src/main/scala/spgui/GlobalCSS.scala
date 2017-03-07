@@ -51,5 +51,13 @@ object GlobalCSS extends StyleSheet.Inline {
 
   )
 
+  
+  val navbar = style(
+    unsafeRoot(".navbar-nav > .open > a")(
+      backgroundColor.transparent.important
+    )
+  )
+
+
   this.addToDocument()
 }
