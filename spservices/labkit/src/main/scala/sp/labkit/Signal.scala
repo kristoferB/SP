@@ -9,8 +9,7 @@ package sp.labkit
   * @param inSignal true if SP writes to this signal, false if SP reads from this signal
   */
 class Signal (var name: String,
-              var inSignal: Boolean,
-              var data: T
+              var inSignal: Boolean
              ) {
 
 }
