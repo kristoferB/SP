@@ -113,9 +113,8 @@ package spgui.widgets.examples {
 
           <.button(
             ^.className := "btn btn-default",
-            ^.onClick --> send(api.StartTheTicker(pieID)), "new Pie"
+            ^.onClick --> send(api.StartTheTicker(pieID)), "New pie"
           ),
-
           <.button(
             ^.className := "btn btn-default",
             ^.onClick --> send(api.ResetAllTickers()), "Reset all Pies"
