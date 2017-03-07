@@ -10,6 +10,7 @@ object SPMenuCSS extends StyleSheet.Inline {
   val spOrange = "#df691a"
   val navbar_header_background = "#999999"
   val navbar_brand_title_color = backgroundColor.white 
+  val textColor = "#000000"
 
   val topNavHeight = 50 //use in GlobalCSS.scala
 
@@ -27,7 +28,7 @@ object SPMenuCSS extends StyleSheet.Inline {
   val buttonPadding = 10
   val buttonList = style("sp-button-list")(
    // marginBottom(0.px),
-   // paddingLeft(0.px),
+   paddingLeft(0.px)
    // width.inherit,
    // verticalAlign.middle
   )
@@ -57,7 +58,7 @@ object SPMenuCSS extends StyleSheet.Inline {
   val splogoContainer = style("sp-splogo-container") (
     margin(0.px),
     padding(0.px),
-    height(topNavHeight.px ),
+    height(topNavHeight.px),
     alignItems.center,
     display.flex
   )
@@ -74,14 +75,21 @@ object SPMenuCSS extends StyleSheet.Inline {
   )
 
   val buttonIconSpacing = style("sp-titled-dropdown")(
-    paddingRight(10.px)
+   // paddingRight(10.px)
+  )
+
+  val navbarButton = style("sp-navbar-button")(
+  )
+
+  val properTextColor = style("temphack-textcolor-dontpush")(
+    color.black
   )
 
   val container = style("sp-navbar-container")(
     paddingLeft(0.px),
-    boxShadow := spgui.GlobalCSS.defaultShadow,
-    backgroundColor :=! navbarBgColor,
-    color :=! navbarFgColor,
+    //boxShadow := spgui.GlobalCSS.defaultShadow,
+    backgroundColor := navbarBgColor,
+    color := textColor,
     border.none,
     display.flex,
     alignItems.center,

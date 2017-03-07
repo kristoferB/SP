@@ -21,16 +21,8 @@ object WidgetMenu {
     def render(s: State) =
       Dropdown(
         <.div(
-          <.div(
-            SPMenuCSS.dropDownButtonInner,
-            <.div(
-              Icon.windowMaximize,
-              SPMenuCSS.buttonIconSpacing
-            ),
-            "New widget"
-          ),
-          SPMenuCSS.dropDownButton,
-          ^.className := "btn btn-default navbar-btn"
+          Icon.chevronDown,
+          "New widget"
         ),
         <.div(
           ^.className := "input-group",
@@ -41,10 +33,10 @@ object WidgetMenu {
             ^.onChange ==> onFilterTextChange
           )
         ) ::
-        WidgetList.list.collect{
-          case w if (w._1.toLowerCase.contains(s.filterText.toLowerCase)) =>
-            <.div(w._1, ^.onClick --> addW(w._1, w._3, w._4))
-        }: _*
+          WidgetList.list.collect{
+            case w if (w._1.toLowerCase.contains(s.filterText.toLowerCase)) =>
+              <.div(w._1, ^.onClick --> addW(w._1, w._3, w._4))
+          }: _*
       )
   }
 
