@@ -53,7 +53,6 @@ object HackTest {
   }
 }
 
-
 object Launch extends App {
   implicit val system = ActorSystem("SP")
   val cluster = akka.cluster.Cluster(system)
@@ -63,7 +62,10 @@ object Launch extends App {
     println("deviceHandler node has joined the cluster")
     system.actorOf(VirtualDevice.props("vd", java.util.UUID.randomUUID()), "vd")
 
-    HackTest.hackTest(system)
+    system.actorOf(Trucks.props)
+
+    // HackTest.hackTest(system)
+    // HackTest.hackAbilities(system)
   }
 
   cluster.registerOnMemberRemoved{
