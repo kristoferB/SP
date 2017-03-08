@@ -28,11 +28,6 @@ object JSONEditorTest {
     )
       .componentDidMount(_ => Callback({
         val editor = addTheJSONEditor(data, id)
-        // set up the editor to explicitly resize when the layout is updated.
-        // this fixes a bug introduced by placing jsoneditor inside an animated container
-        SPGUICircuit.subscribe(SPGUICircuit.zoom(_.openWidgets.xs(id).layout))(e => {
-          editor.resize()
-        })
       }))
       .build.apply()
   }

@@ -18,7 +18,7 @@ object DashboardCSS extends StyleSheet.Inline {
     flexDirection.column,
 
     borderRadius(0.px),
-    borderWidth(1.px),
+    borderWidth(0.px),
     boxShadow := spgui.GlobalCSS.defaultShadow
   )
 
@@ -49,6 +49,13 @@ object DashboardCSS extends StyleSheet.Inline {
     float.right,
     fontSize(15.px),
     padding(0.px, 7.px, 0.px, 0.px)
+  )
+
+  val overridPlaceholder = style(
+    unsafeRoot(".react-grid-item.react-grid-placeholder ")(
+      backgroundColor := "#df691a",
+      opacity(0.3)
+    )
   )
 
   this.addToDocument()

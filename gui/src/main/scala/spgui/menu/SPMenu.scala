@@ -3,9 +3,8 @@ package spgui.menu
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import org.scalajs.dom._
-import spgui.circuit.{CloseAllWidgets, SPGUICircuit}
 
-
+import spgui.components.CloseAllButton
 
 object SPMenu {
   private val component = ReactComponentB[Unit]("SPMenu")
@@ -22,9 +21,9 @@ object SPMenu {
       ),
       <.div(
         <.div(
-        ^.className := "navbar-toggle collapsed",
-        "Navbar has collapsed, i am a placeholder as width < 768px"
-      ),
+          ^.className := "navbar-toggle collapsed",
+          "Navbar has collapsed, i am a placeholder as width < 768px"
+        ),
         ^.className := "container-fluid",
         ^.className := SPMenuCSS.container.htmlClass,
         <.ul(
@@ -32,17 +31,13 @@ object SPMenu {
           ^.className := "collapse navbar-collapse",
           ^.className := SPMenuCSS.buttonList.htmlClass,
           ^.className := "nav navbar-nav",
-          ^.className := SPMenuCSS.navbarCell.htmlClass,
-          WidgetMenu()
+          WidgetMenu(),
+          CloseAllButton()
         )
-      ),
-      <.button(
-        ^.className := "btn btn-default",
-        ^.onClick --> Callback(SPGUICircuit.dispatch(CloseAllWidgets)), "Remove all"
       )
     )
   )
-    .build
+      .build
 
 
 
@@ -50,8 +45,7 @@ object SPMenu {
     <.div(
       ^.className := SPMenuCSS.splogoContainer.htmlClass,
       <.div(
-        ^.className := SPMenuCSS.spLogo.htmlClass,
-        ^.className := SPMenuCSS.navbarCell.htmlClass
+        ^.className := SPMenuCSS.spLogo.htmlClass
       )
     ))
   def apply() = component()
