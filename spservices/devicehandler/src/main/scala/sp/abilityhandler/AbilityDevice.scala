@@ -74,13 +74,13 @@ trait AbilityHandlerLogic {
 }
 
 // Internal api between abilities and handler
-case class StartAbility(state: Map[ID, SPValue], reqID: ID, params: Map[ID, SPValue], attributes: SPAttributes)
+case class StartAbility(state: Map[ID, SPValue], reqID: ID, params: Map[ID, SPValue], attributes: SPAttributes = SPAttributes())
 case class ResetAbility(state: Map[ID, SPValue])
 case object GetIds
 case class NewState(s: Map[ID, SPValue])
 case object UnAvailable
 
-case class AbilityIds(ability: ID, ids: List[ID])
+case class AbilityIds(ability: ID, ids: Set[ID])
 case class CanNotStart(reqID: ID, ability: ID, error: String)
 case class AbilityStateChange(ability: ID, state: String, cnt: Long, reqID: Option[ID])
 case class StateUpdReq(ability: ID, state: Map[ID, SPValue])
@@ -214,7 +214,7 @@ trait AbilityActorLogic {
   def checkEnabled(tS: State) = if (ability.preCondition.eval(tS)) enabled else notEnabled
 
   def idsFromAbility(a: api.Ability) = {
-    List(a.preCondition,
+    Set(a.preCondition,
       a.postCondition,
       a.started, a.resetCondition).flatMap(extractVariables) ++
       a.parameters ++ a.result
