@@ -28,35 +28,62 @@ class AbilityActorLogicTest extends FreeSpec with Matchers{
       res.toSet shouldEqual Set(v1.id, v2.id, v3.id, v4.id)
     }
 
+    val v1 = Thing("v1")
+    val pre = PropositionCondition(EQ(v1.id, 1), List(Action(v1.id, ValueHolder(2))))
+    val post = PropositionCondition(EQ(v1.id, 3), List(Action(v1.id, ValueHolder(4))))
+    val started = PropositionCondition(EQ(v1.id, 2), List())
+    val reset = PropositionCondition(AlwaysTrue, List(Action(v1.id, ValueHolder(1))))
+    val a = api.Ability("test", ID.newID, pre, started, post, reset)
+
+    import AbilityState._
     "updstate" in {
-      val v1 = Thing("v1")
-      val pre = PropositionCondition(EQ(v1.id, 1), List(Action(v1.id, ValueHolder(2))))
-      val post = PropositionCondition(EQ(v1.id, 3), List(Action(v1.id, ValueHolder(4))))
-      val started = PropositionCondition(EQ(v1.id, 2), List())
-      val reset = PropositionCondition(AlwaysTrue, List(Action(v1.id, ValueHolder(1))))
-      val a = api.Ability("test", ID.newID, pre, started, post, reset)
       val logic = new AbilityActorLogic {
         override val ability = a
       }
+      logic.state shouldEqual unavailable
+      logic.evalState(Map(v1.id -> 0))._1 shouldEqual Some(notEnabled)
+      logic.evalState(Map(v1.id -> 2))._1 shouldEqual Some(executing)
+      logic.evalState(Map(v1.id -> 3))._1 shouldEqual Some(finished)
+      // Auto restart
+      logic.evalState(Map(v1.id -> 3))._1 shouldEqual Some(notEnabled)
+      logic.evalState(Map(v1.id -> 2))._1 shouldEqual Some(executing)
 
-      import AbilityState._
+    }
 
-
+    "startNReset" in {
+      val logic = new AbilityActorLogic {
+        override val ability = a
+      }
       logic.state shouldEqual unavailable
 
       val init: Map[ID, SPValue] = Map(v1.id -> 0)
       logic.evalState(init)._1 shouldEqual Some(notEnabled)
-
       logic.start(init) shouldEqual  None
-
       logic.start(Map(v1.id -> 1)) shouldEqual Some(Map(v1.id -> SPValue(2)))
       logic.state shouldEqual starting
-
       logic.evalState(Map(v1.id -> 2))._1 shouldEqual Some(executing)
+      logic.reset(Map(v1.id -> 2)) shouldEqual Some(Map(v1.id -> SPValue(1)))
+      logic.evalState(Map(v1.id -> 3))
+      logic.state shouldEqual notEnabled
 
+    }
+
+
+    "sendCmc" in {
+      val logic = new AbilityActorLogic {
+        override val ability = a
+      }
+
+      logic.start(Map(v1.id -> 0)) shouldEqual None
+      logic.start(Map(v1.id -> 1)) shouldEqual Some(Map(v1.id -> SPValue(2)))
+
+      logic.state = starting
+
+      logic.start(Map(v1.id -> 1)) shouldEqual None
 
 
     }
+
 
   }
 }

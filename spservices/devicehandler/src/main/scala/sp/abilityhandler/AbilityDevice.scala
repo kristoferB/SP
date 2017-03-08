@@ -74,22 +74,75 @@ trait AbilityHandlerLogic {
 }
 
 // Internal api between abilities and handler
-case class StartAbility(reqID: ID, params: Map[ID, SPValue], attributes: SPAttributes)
-case object ResetAbility
+case class StartAbility(state: Map[ID, SPValue], reqID: ID, params: Map[ID, SPValue], attributes: SPAttributes)
+case class ResetAbility(state: Map[ID, SPValue])
 case object GetIds
 case class NewState(s: Map[ID, SPValue])
 case object UnAvailable
 
-case class CanNotStart(error: String)
-case class AbilityStateChange(state: String, cnt: Long, reqID: Option[ID])
-case class StateUpdReq(s: Map[ID, SPValue])
+case class AbilityIds(ability: ID, ids: List[ID])
+case class CanNotStart(reqID: ID, ability: ID, error: String)
+case class AbilityStateChange(ability: ID, state: String, cnt: Long, reqID: Option[ID])
+case class StateUpdReq(ability: ID, state: Map[ID, SPValue])
 
 
-class AbilityActor(ability: api.Ability) extends Actor {
-  override def receive = {
-    case x =>
-  }
+object AbilityActor {
+  def props(ability: api.Ability) =
+    Props(classOf[AbilityActor], ability)
 }
+
+class AbilityActor(val ability: api.Ability) extends Actor with AbilityActorLogic{
+  var reqID: Option[ID] = None
+
+  override def receive = {
+    case GetIds => sender() ! AbilityIds(ability.id, ids)
+    case UnAvailable =>
+      makeUnavailable()
+      sendAbilityState(sender())
+
+    case StartAbility(s, id, p, attr) =>
+      val res = start(s)
+      res.foreach { updS =>
+        reqID = Some(id)
+        if (p.nonEmpty) sender() ! StateUpdReq(ability.id, p)
+        sender() ! StateUpdReq(ability.id, updS)
+        sendAbilityState(sender())
+        "fix timeout here if needed"
+      }
+      if (res.isEmpty)
+        sender() ! CanNotStart(id, ability.id, createNotStartingErrorMessage())
+
+    case ResetAbility(s) =>
+      val res = reset(s)
+      res.foreach { updS =>
+        sender() ! StateUpdReq(ability.id, updS)
+      }
+      sendAbilityState(sender())
+
+    case NewState(s) =>
+      val res = evalState(s)
+      res._1.foreach { updS =>
+        sendAbilityState(sender())
+      }
+      res._2.foreach{ updS =>
+        sender() ! StateUpdReq(ability.id, updS)
+      }
+  }
+
+  def sendAbilityState(to: ActorRef) =
+    to ! AbilityStateChange(ability.id, state, count, reqID)
+
+
+
+}
+
+
+
+
+
+
+
+
 
 // The various states that an ability can be in
 object AbilityState {
@@ -120,11 +173,15 @@ trait AbilityActorLogic {
   def makeAvailable() = state = notEnabled
 
   def start(s: Map[ID, SPValue]) = {
-    val theState = State(s)
     val tH = evalState(s, starting)
     if (state == starting){
       tH._2
     } else None
+  }
+
+  def reset(s: Map[ID, SPValue]) = {
+    val tH = evalState(s, forcedReset)
+    tH._2
   }
 
 
@@ -141,13 +198,16 @@ trait AbilityActorLogic {
   }
 
   def updateState(s: String, theState: State): (String, State) = s match {
-    case x if ability.started.eval(theState) && x != executing => (executing, ability.started.next(theState))
     case "starting" if ability.preCondition.eval(theState) && state != starting => (starting, ability.preCondition.next(theState))
-    case "executing" if ability.postCondition.eval(theState) => (finished, ability.postCondition.next(theState))
-    case "finished" if ability.resetCondition.eval(theState) => (checkEnabled(theState), ability.resetCondition.next(theState))
+    case "forcedReset" if state != forcedReset=> (forcedReset, ability.resetCondition.next(theState))
     case "forcedReset" => (checkEnabled(theState), ability.resetCondition.next(theState))
+    case "executing" if ability.postCondition.eval(theState) => (finished, ability.postCondition.next(theState))
+    case x if ability.started.eval(theState) && x != executing =>
+      count += 1
+      (executing, ability.started.next(theState))
+    case "finished" if ability.resetCondition.eval(theState) => (checkEnabled(theState), ability.resetCondition.next(theState))
     case "unavailable" => (checkEnabled(theState), theState)
-    case x if ability.preCondition.eval(theState) && x != starting => (enabled, theState)
+    case x if ability.preCondition.eval(theState) && state != starting => (enabled, theState)
     case x => (state, theState)
   }
 
@@ -184,6 +244,10 @@ trait AbilityActorLogic {
     a.map(_.id) ++  a.map(_.value).collect{
       case ASSIGN(id) => id
     }
+  }
+
+  def createNotStartingErrorMessage() = {
+    s"state: $state"
   }
 
 }
