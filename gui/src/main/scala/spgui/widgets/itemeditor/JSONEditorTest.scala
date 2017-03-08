@@ -1,61 +1,66 @@
 package spgui.widgets.itemeditor
 
-import java.util.UUID
-
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
-
-import scalajs.js
-import scalajs.js.Dynamic.{literal => l}
-import org.scalajs.dom.raw.Element
-import org.scalajs.dom.document
-import java.util.concurrent.atomic.AtomicInteger
+import scalacss.ScalaCssReact._
 
 import sp.domain.SPValue
-import spgui.circuit.SPGUICircuit
+
+import scalajs.js
+import scalajs.js.Dynamic.{ literal => l }
+import org.scalajs.dom.raw
 
 object JSONEditorTest {
+  def component = ReactComponentB[SPValue]("JSONEditorTest")
+    .render(_ => <.div(ItemEditorCSS.editor))
+    .componentDidMount(dcb => Callback(addTheJSONEditor(dcb.props, dcb.getDOMNode)))
+    .build
 
-  val incrementer = new AtomicInteger (0);
-  def apply(data: SPValue, id: UUID) = component(data: SPValue, id: UUID)
+  def apply(data: SPValue) = component(data: SPValue)
 
-  def component(data: SPValue, id: UUID) = {
-    ReactComponentB[Unit]("JSONEditorTest")
-      .render_P(_ => <.div(
-        ^.className := ItemEditorCSS.editor.htmlClass,
-        ^.id := id.toString
-      )
-    )
-      .componentDidMount(_ => Callback({
-        val editor = addTheJSONEditor(data, id)
-      }))
-      .build.apply()
-  }
-
-  // TODO type this stuff in some neat scalatastic manner
-  val json = l(
+  val schema = l(
+    "title" -> "Example Schema",
     "type" -> "object",
     "properties" -> l(
-      "name" -> l(
+      "firstName" -> l(
         "type" -> "string"
+      ),
+      "lastName" -> l(
+        "type" -> "string"
+      ),
+      "gender" -> l(
+        "enum" -> js.Array("male", "female")
+      ),
+      "age" -> l(
+        "description" -> "Age in years",
+        "type" -> "integer",
+        "minimum" -> 0
       )
-    )
+    ),
+    "required" -> js.Array("firstName", "lastName")
   )
 
   val options = l(
-    "mode" -> "code",
-    "modes" -> js.Array("code", "tree")
+    "mode" -> "tree",
+    "modes" -> js.Array("code", "tree"),
+    "schema" -> schema
   )
-  private def addTheJSONEditor(data: SPValue, id: UUID): JSONEditor = {
-    val editor = new JSONEditor(document.getElementById(id.toString), options)
-    editor.set(l("name" -> "John Smith"))
-    editor
+
+  val json = l(
+    "firstName" -> "John",
+    "lastName" -> "Doe",
+    "gender" -> null,
+    "age" -> 28
+  )
+
+  private def addTheJSONEditor(data: SPValue, element: raw.Element): Unit = {
+    val editor = new JSONEditor(element, options, json)
   }
 }
 
 // TODO facade more stuff than just set
 @js.native
-class JSONEditor(element: Element, json: js.UndefOr[js.Object] = js.undefined) extends js.Object {
+class JSONEditor(element: raw.Element, options: js.UndefOr[js.Object] = js.undefined, json: js.UndefOr[js.Object] = js.undefined) extends js.Object {
   def set(json: js.Object): Unit = js.native
   def resize(): Unit = js.native
 }
