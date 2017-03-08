@@ -39,7 +39,7 @@ object Proposition {
   implicit def strToProp(str: String)(implicit idables: List[IDAble] = List()): Proposition = parseStr(str, idables).get
 }
 
-trait PropositionEvaluator extends Proposition {
+sealed trait PropositionEvaluator extends Proposition {
   val left: StateEvaluator
   val right: StateEvaluator
 }
@@ -59,7 +59,7 @@ case object AlwaysTrue extends Proposition
 
 case object AlwaysFalse extends Proposition
 
-trait StateEvaluator
+sealed trait StateEvaluator
 
 object StateEvaluator {
   implicit def idToSE(id: ID): SVIDEval = SVIDEval(id)

@@ -119,11 +119,11 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
         toSend.map{
           case mess @ _ if {println(s"ExampleService sends: $mess"); false} => Unit
           case x: api.API_ExampleService =>
-            oldMess.makeJson(h, x.asInstanceOf[api.API_ExampleService]).map { b =>
+            oldMess.makeJson(spHeader, x.asInstanceOf[api.API_ExampleService]).map { b =>
               mediator ! Publish("answers", b)
             }
           case x: APISP =>
-            oldMess.makeJson(h, x.asInstanceOf[APISP]).map { b =>
+            oldMess.makeJson(spHeader, x.asInstanceOf[APISP]).map { b =>
               mediator ! Publish("answers", b)
             }
 

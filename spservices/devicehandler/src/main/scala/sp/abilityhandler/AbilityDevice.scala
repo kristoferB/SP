@@ -27,10 +27,9 @@ package APIAbilityHandler {
   sealed trait Response
 
   case class CmdID(cmd: ID) extends Response
-  case class AbilityStarted(id: ID)
-  case class AbilityCompleted(id: ID, result: Map[ID, SPValue])
-  case class AbilityState(state: Map[ID, SPValue])
-
+  case class AbilityStarted(id: ID) extends Response
+  case class AbilityCompleted(id: ID, result: Map[ID, SPValue]) extends Response
+  case class AbilityState(state: Map[ID, SPValue]) extends Response
 
   case class Ability(name: String,
                      id: ID,
@@ -55,11 +54,54 @@ object AbilityHandler {
 
 
 // This actor will keep track of the abilities and parse all messages from the VD
-class AbilityHandler(name: String, id: UUID, vd: UUID) extends PersistentActor with ActorLogging {
+class AbilityHandler(name: String, id: UUID, vd: UUID) extends PersistentActor with ActorLogging with AbilityLogic {
   override def persistenceId = id.toString
+  case class AbilityStorage(ability: api.Ability, actor: ActorRef, ids: Set[ID] = Set(), current: Option[AbilityStateChange] = None)
+
+  var abilities: Map[ID, AbilityStorage] = Map()
+  var state: Map[ID, SPValue] = Map()
+
+  import akka.cluster.pubsub.DistributedPubSub
+  import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Put, Subscribe}
+  import context.dispatcher
+  val mediator = DistributedPubSub(context.system).mediator
+
+  mediator ! Subscribe("services", self)
+  mediator ! Subscribe("spevents", self)
+  mediator ! Subscribe("events", self)
+
+
+
+  // Talk to VD and get all resources and IDs
+  // implement heartbeat to check if vd is active (also to handle if vd is started after this actor)
 
   override def receiveCommand = {
-    case x =>
+    case x: String =>
+      val mess = SPMessage.fromJson(x)
+
+      val res = for {
+        m <- mess
+        h <- m.getHeaderAs[SPHeader] if h.to == id.toString
+        b <- m.getBodyAs[api.Request]
+      } yield {
+
+        // Message was to me so i send an SPACK
+        mediator ! Publish("answers", m.make(h.copy(replyFrom = id.toString, replyID = Some(ID.newID)), APISP.SPACK()))
+
+        b match {
+          case api.StartAbility(id, params, attr) =>
+          case api.ForceResetAbility(id) =>
+          case x: api.ForceResetAllAbilities =>
+          case api.ExecuteCmd(cmd) =>
+          case x: api.GetAbilities =>
+          case api.SetUpAbility(ab, hand) =>
+            val ids = idsFromAbility(ab)
+            val act = context.actorOf(AbilityActor.props(ab))
+            abilities += ab.id -> AbilityStorage(ab, act, ids)
+            act ! NewState(filterState(ids, state))
+            mediator ! Publish("answers", m.make(h.copy(replyFrom = id.toString, replyID = Some(ID.newID)), APISP.SPDone()))
+        }
+      }
   }
 
   override def receiveRecover = {
@@ -67,11 +109,19 @@ class AbilityHandler(name: String, id: UUID, vd: UUID) extends PersistentActor w
     case x =>
   }
 
-}
-
-trait AbilityHandlerLogic {
+  def filterState(ids: Set[ID], state: Map[ID, SPValue]) = state.filter(kv => ids.contains(kv._1))
 
 }
+
+
+
+
+
+
+
+
+
+
 
 // Internal api between abilities and handler
 case class StartAbility(state: Map[ID, SPValue], reqID: ID, params: Map[ID, SPValue], attributes: SPAttributes = SPAttributes())
@@ -155,7 +205,7 @@ object AbilityState {
   val forcedReset = "forcedReset"
 }
 
-trait AbilityActorLogic {
+trait AbilityActorLogic extends AbilityLogic{
   val ability: api.Ability
   lazy val ids = idsFromAbility(ability)
 
@@ -164,9 +214,6 @@ trait AbilityActorLogic {
   var state: String = unavailable
   var count = 0
   var currentCaller = SPAttributes()
-
-
-
 
 
   def makeUnavailable() = state = unavailable
@@ -213,6 +260,15 @@ trait AbilityActorLogic {
 
   def checkEnabled(tS: State) = if (ability.preCondition.eval(tS)) enabled else notEnabled
 
+
+
+  def createNotStartingErrorMessage() = {
+    s"state: $state"
+  }
+
+}
+
+trait AbilityLogic {
   def idsFromAbility(a: api.Ability) = {
     Set(a.preCondition,
       a.postCondition,
@@ -245,10 +301,5 @@ trait AbilityActorLogic {
       case ASSIGN(id) => id
     }
   }
-
-  def createNotStartingErrorMessage() = {
-    s"state: $state"
-  }
-
 }
 

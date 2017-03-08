@@ -84,25 +84,45 @@ class AbilityActorTest(_system: ActorSystem) extends TestKit(_system) with Impli
         case x @ StateUpdReq(aid, s) if aid == id && s == Map(v1.id -> SPValue(2)) => true
       }
     }
+    "do not start" in {
+      var mh: ActorRef = system.actorOf(AbilityActor.props(ability))
+      val probe = TestProbe()
+      val req = ID.newID
+      mh.tell(StartAbility(Map(v1.id -> 0), req, Map()), probe.ref)
+
+      probe.fishForMessage(1 second){
+        case x @ CanNotStart(id, a, e) => true
+      }
+    }
+
+    "startNComplete" in {
+      var mh: ActorRef = system.actorOf(AbilityActor.props(ability))
+      val probe = TestProbe()
+      val req = ID.newID
+      mh.tell(StartAbility(Map(v1.id -> 1), req, Map()), probe.ref)
+      mh.tell(NewState(Map(v1.id -> 2)), probe.ref)
+      mh.tell(NewState(Map(v1.id -> 3)), probe.ref)
+      mh.tell(NewState(Map(v1.id -> 4)), probe.ref)
+
+
+      probe.fishForMessage(1 second){
+        case x @ AbilityStateChange(aid, s, cnt, reqID) if
+          aid == id && s == starting && cnt == 0 && reqID.contains(req) => false
+        case x @ AbilityStateChange(aid, s, cnt, reqID) if
+          aid == id && s == executing && cnt == 1 && reqID.contains(req) => false
+        case x @ AbilityStateChange(aid, s, cnt, reqID) if
+          aid == id && s == finished && cnt == 1 && reqID.contains(req) => false
+        case x @ AbilityStateChange(aid, s, cnt, reqID) if
+          aid == id && s == notEnabled && cnt == 1 && reqID.contains(req) => true
+        case x @ StateUpdReq(aid, s) if aid == id && s == Map(v1.id -> SPValue(2)) => false
+        case x @ StateUpdReq(aid, s) if aid == id && s == Map(v1.id -> SPValue(4)) => false
+        case x @ StateUpdReq(aid, s) if aid == id && s == Map(v1.id -> SPValue(1)) => false
+
+      }
+    }
   }
 
-//  "Model maker api should" - {
-//    "Create a model"  in {
-//      val probe = TestProbe()
-//      mediator ! Subscribe("modelevents", probe.ref)
-//      mediator ! Publish("modelmessages", ModelMakerAPI.write(CreateModel("kalle", None, None)))
-//
-//      probe.fishForMessage(3 second){
-//        case s: SubscribeAck => false
-//        case x: String =>
-//          println("fish got: "+x)
-//          api.read(x).isSuccess && api.read(x).get.isInstanceOf[ModelCreated]
-//      }
-//    }
-//
-//
-//
-//  }
+
 
 
 

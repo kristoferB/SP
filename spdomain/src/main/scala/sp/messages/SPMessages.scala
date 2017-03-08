@@ -34,6 +34,8 @@ object Pickles extends SPParser {
                        replyID: Option[UUID] = None)
 
 
+
+  // TODO: Remove Try when creating a SPMessage from classes. The compiler will take that!
   case class SPMessage(header: Pickle, body: Pickle) {
     def getHeaderAs[T: Reader] = fromPickle[T](header)
     def getBodyAs[T: Reader] = fromPickle[T](body)
