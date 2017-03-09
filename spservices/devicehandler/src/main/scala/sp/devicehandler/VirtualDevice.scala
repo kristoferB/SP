@@ -34,8 +34,8 @@ package APIVirtualDevice {
   case class SetUpDeviceDriver(driver: Driver) extends Requests
   case class SetUpResource(resource: Resource) extends Requests
 
-
-  case class OneToOneMapper(thing: UUID, driverID: UUID, driverIdentifier: String)
+  sealed trait DriverStateMapper
+  case class OneToOneMapper(thing: UUID, driverID: UUID, driverIdentifier: String) extends  DriverStateMapper
 
   // requests command (gets a SPACK and when applied, SPDone (and indirectly a StateEvent))
   case class ResourceCommand(resource: UUID, stateRequest: Map[UUID, SPValue], timeout: Int = 0) extends Requests
@@ -46,7 +46,7 @@ package APIVirtualDevice {
 
   // answers
   sealed trait Replies
-  case class StateEvent(resource: String, id: UUID, state: Map[String, SPValue], diff: Boolean = false) extends Replies
+  case class StateEvent(resource: String, id: UUID, state: Map[UUID, SPValue], diff: Boolean = false) extends Replies
 
   case class Resources(xs: List[Resource]) extends Replies
   case class Drivers(xs: List[Driver]) extends Replies
@@ -54,10 +54,8 @@ package APIVirtualDevice {
   case class RemovedResource(x: Resource) extends Replies
   case class NewDriver(x: Driver) extends Replies
   case class RemovedDriver(x: Driver) extends Replies
-
-  // TODO: For some reason uPickle can not handle a sealed trait in the stateMap (diverging implicit ...)
-  // TODO: We probably need to switch to SPAttributes if we need other types
-  case class Resource(name: String, id: UUID, stateMap: List[OneToOneMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
+  
+  case class Resource(name: String, id: UUID, stateMap: List[DriverStateMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
   case class Driver(name: String, id: UUID, driverType: String, setup: SPAttributes)
 
 
@@ -108,6 +106,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
             driverEvent(e)
             println("new driver state: " + driverState)
             println("new resource state: " + resourceState)
+
             val finishedRequests = checkRequestsFinished() // mutates state
             finishedRequests.foreach { header =>
               println("sending request done for request: " + header.reqID)

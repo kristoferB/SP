@@ -52,6 +52,8 @@ class AbilityHandlerTest(_system: ActorSystem) extends TestKit(_system) with Imp
 
 
   import sp.abilityhandler.{APIAbilityHandler => api}
+  import sp.devicehandler.{APIVirtualDevice => vdAPI}
+
   import sp.abilityhandler.AbilityState._
 
 
@@ -59,33 +61,31 @@ class AbilityHandlerTest(_system: ActorSystem) extends TestKit(_system) with Imp
   "Ability Handler " - {
     val handlerID = ID.newID
     val vdID = ID.newID
+    val rID = ID.newID
     val h = SPHeader(from = "test", to = "kalle", toID = Some(handlerID), replyTo = "test")
 
     "create" in {
       var mh: ActorRef = system.actorOf(AbilityHandler.props("kalle", handlerID, vdID))
       val probeAnswers = TestProbe()
-      val probeEvents = TestProbe()
-      val probeServices = TestProbe()
+
       mediator ! Subscribe("answers", probeAnswers.ref)
-      mediator ! Subscribe("events", probeEvents.ref)
-      mediator ! Subscribe("services", probeServices.ref)
+      mediator ! Subscribe("events", probeAnswers.ref)
+      mediator ! Subscribe("services", probeAnswers.ref)
+      mediator ! Subscribe("spevents", probeAnswers.ref)
 
       val rID = ID.newID
+      val stateUpd = SPMessage.makeJson(h.copy(fromID = Some(id)), vdAPI.StateEvent("r", rID, Map(v1.id -> 1)))
       val mess = SPMessage.makeJson(h.copy(reqID = rID), api.SetUpAbility(ability))
-      mh.tell(mess, probeAnswers.ref)
-
-
-
-
+      mediator ! Publish("services", stateUpd)
+      mediator ! Publish("services", mess)
 
       probeAnswers.fishForMessage(1 second){
-        case x => println("answers: " +x); false
-      }
-      probeEvents.fishForMessage(1 second){
-        case x => println("answers: " +x); false
-      }
-      probeServices.fishForMessage(1 second){
-        case x => println("answers: " +x); false
+        case x =>
+          println("-------: ")
+          println(x)
+          println("-------: ")
+
+          false
       }
     }
 

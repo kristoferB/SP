@@ -204,13 +204,16 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   }
 
   def matchVDMessages(mess: Try[SPMessage]) = {
-//    for {
-//      m <- mess
-//      h <- m.getHeaderAs[SPHeader]
-//      b <- m.getBodyAs[vdAPI.Replies]
-//    } yield {
-//
-//    }
+    for {
+      m <- mess
+      h <- m.getHeaderAs[SPHeader] if h.fromID.contains(vd)
+      b <- m.getBodyAs[vdAPI.Replies]
+    } yield {
+      b match {
+        case vdAPI.StateEvent(r, rID, s, d) =>
+          state = state ++ s
+      }
+    }
 
   }
 
