@@ -15,7 +15,7 @@ import scala.util.Try
 package APIAbilityHandler {
   sealed trait Request
 
-  case class StartAbility(id: ID, params: Map[ID, SPValue], attributes: SPAttributes) extends Request
+  case class StartAbility(id: ID, params: Map[ID, SPValue] = Map(), attributes: SPAttributes = SPAttributes()) extends Request
   case class ForceResetAbility(id: ID) extends Request
   case class ForceResetAllAbilities() extends Request
 
@@ -106,6 +106,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
             mediator ! Publish("answers", SPMessage.makeJson(h, api.AbilityStarted(abID)))
           case "finished" =>
             mediator ! Publish("answers", SPMessage.makeJson(h, api.AbilityCompleted(abID, Map())))
+          case _ => Unit
 
         }
 

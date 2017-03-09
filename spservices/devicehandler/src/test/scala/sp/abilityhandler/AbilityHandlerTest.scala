@@ -80,6 +80,15 @@ class AbilityHandlerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       Thread.sleep(100)
       mediator ! Publish("services", mess)
 
+      val start = SPMessage.makeJson(h, api.StartAbility(ability.id))
+      mediator ! Publish("services", start)
+
+      mediator ! Publish("events", SPMessage.makeJson(h.copy(fromID = Some(vdID)), vdAPI.StateEvent("r", rID, Map(v1.id -> 2))))
+      mediator ! Publish("events", SPMessage.makeJson(h.copy(fromID = Some(vdID)), vdAPI.StateEvent("r", rID, Map(v1.id -> 3))))
+      mediator ! Publish("events", SPMessage.makeJson(h.copy(fromID = Some(vdID)), vdAPI.StateEvent("r", rID, Map(v1.id -> 4))))
+      mediator ! Publish("events", SPMessage.makeJson(h.copy(fromID = Some(vdID)), vdAPI.StateEvent("r", rID, Map(v1.id -> 1))))
+
+
       probeAnswers.fishForMessage(1 second){
         case x =>
           println("-------: ")
