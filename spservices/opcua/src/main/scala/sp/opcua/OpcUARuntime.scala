@@ -75,7 +75,7 @@ class OpcUARuntime(name: String, id: UUID, setup: SPAttributes) extends Actor {
       val header = SPHeader(from = name)
       val stateWithTime = activeState + ("timestamp" -> SPValue(client.getCurrentTime.toString))
       val body = vdapi.DriverStateChange(name, id, stateWithTime, false)
-      SPMessage.make(header, body).map { m => mediator ! Publish("driverEvents", m.toJson) }
+      mediator ! Publish("driverEvents", SPMessage.makeJson(header, body))
     case _ => sender ! APISP.SPError("Ill formed request")
   }
 

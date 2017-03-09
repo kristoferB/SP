@@ -42,10 +42,10 @@ class D3ExampleService extends Actor with ActorLogging {
     case API_D3ExampleService.Stop() => serviceOn = false
   }
 
-  def dataMsg() = SPMessage.make(
+  def dataMsg() = SPMessage.makeJson(
     SPAttributes("from" -> D3ExampleService.service).addTimeStamp,
     API_D3ExampleService.D3Data(List.fill(7)(nextInt(50)))
-  ).get.toJson
+  )
 
   def receive = {
     case "tick" => if(serviceOn) mediator ! Publish("d3ExampleAnswers", dataMsg())

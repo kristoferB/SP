@@ -60,7 +60,7 @@ class ServiceHandler extends Actor with ServiceHandlerLogic {
     case Tick =>
       val h = SPHeader("ServiceHandler")
       val b = APISP.StatusRequest(SPAttributes().addTimeStamp)
-      val m = SPMessage.makeJson(h, b).get  // should never fail since the macro should find problems during compile
+      val m = SPMessage.makeJson(h, b)
       mediator ! Publish("services", m)
   }
 

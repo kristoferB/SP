@@ -21,12 +21,20 @@ object APISP {
 
 object Pickles extends SPParser {
 
-  case class SPHeader(from: String = "",
-                      to: String = "",
-                      replyTo: String = "",
-                      reqID: UUID = UUID.randomUUID(),
-                      replyFrom: String = "",
-                      replyID: Option[UUID] = None)
+  case class SPHeader(from: String, // the name of the sender
+                      fromID: Option[UUID] = None, // the id of the sender if applicable
+                      to: String = "", // the name of the receiver, empty if to anyone
+                      toID: Option[UUID] = None, // the id of the receiver if applicable
+                      replyTo: String = "", // the name of who to reply to
+                      replyToID: Option[UUID] = None, // the id of the whoto reply to if applicable
+                      reqID: UUID = UUID.randomUUID(), // the id to use for replies
+                      replyFrom: String = "", // the name of the replier
+                      replyFromID: Option[UUID]= None, // the id of the replier if applicable
+                      messageID: UUID = UUID.randomUUID(), // a unique id for each message
+                      fromTags: List[String] = List(), // a list of tags to define things about the sender. For example where the sender is located
+                      toTags: List[String] = List(), // a list of tags to define things about possible receivers
+                      history: List[UUID] = List() // to be used in some scenarios, to trace the route of a message by stroing message ids
+                     )
 
 
   case class SPMessage(header: SPValue, body: SPValue) {
@@ -58,6 +66,10 @@ object Pickles extends SPParser {
         val h = toSPValue(header)
         val b = toSPValue(body)
         SPMessage(h, b)
+    }
+
+    def makeJson[T: Writer, V: Writer](header: T, body: V) = {
+      make[T, V](header, body).toJson
     }
 
     def fromJson(json: String) = Try{

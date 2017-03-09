@@ -111,20 +111,20 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
             val finishedRequests = checkRequestsFinished() // mutates state
             finishedRequests.foreach { header =>
               println("sending request done for request: " + header.reqID)
-              SPMessage.make(header, APISP.SPDone()).foreach {  m => mediator ! Publish("answers", m.toJson) }
+              mediator ! Publish("answers", SPMessage.makeJson(header, APISP.SPDone()))
             }
 
           case r : api.ResourceCommand =>
             println("resource command: " + r + " with request id: " + h.reqID)
-            val ackHeader = h.copy(replyFrom = api.attributes.service, replyID = Some(UUID.randomUUID()))
-            SPMessage.make(ackHeader, APISP.SPACK()).foreach {  m => mediator ! Publish("answers", m.toJson) }
+            val ackHeader = h.copy(replyFrom = api.attributes.service, messageID = UUID.randomUUID())
+            mediator ! Publish("answers", SPMessage.makeJson(ackHeader, APISP.SPACK()))
 
             val diffs = getDriverDiffs(r)
 
-            val doneHeader = h.copy(replyFrom = api.attributes.service, replyID = Some(UUID.randomUUID()))
+            val doneHeader = h.copy(replyFrom = api.attributes.service, messageID = UUID.randomUUID())
             if(diffs.isEmpty || diffs.forall { case (k,v) => v.isEmpty }) {
               println("No variables to update... Sending done immediately for requst: " + h.reqID)
-              SPMessage.make(doneHeader, APISP.SPDone()).foreach {  m => mediator ! Publish("answers", m.toJson) }
+              mediator ! Publish("answers", SPMessage.makeJson(doneHeader, APISP.SPDone()))
             } else {
               // add diffs into "wait queue"
               updateDriverRequests(doneHeader, diffs) // mutates state
@@ -137,7 +137,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
 
               // send commands to the drivers
               val msgs = getDriverCommands(diffs)
-              msgs.foreach { m => mediator ! Publish("driverCommands", m.toJson) }
+              msgs.map(m => mediator ! Publish("driverCommands", m))
             }
 
           case x => println("todo: " + x)
@@ -262,9 +262,8 @@ trait VirtualDeviceLogic {
       d <- drivers.get(did)
       header = SPHeader(from = name)
       body = api.DriverCommand(d.name, did, stateDiff)
-      msg <- SPMessage.make(header, body).toOption
     } yield {
-      msg
+      SPMessage.makeJson(header, body)
     }
   }
 

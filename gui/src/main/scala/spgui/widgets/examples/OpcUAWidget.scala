@@ -151,7 +151,7 @@ object OpcUAWidget {
     }
 
     def send(mess: api.API_OpcUARuntime): Callback = {
-      val h = SPHeader("OpcUAWidget", api.attributes.service, "OpcUAWidget", java.util.UUID.randomUUID())
+      val h = SPHeader(from = "OpcUAWidget", to = api.attributes.service, replyTo = "OpcUAWidget", reqID = java.util.UUID.randomUUID())
       val json = SPMessage(*(h), *(mess)) // *(...) is a shorthand for toSpValue(...)
       // BackendCommunication.publishMessage("services", json)
       BackendCommunication.publish(json, "services")

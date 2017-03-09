@@ -116,7 +116,8 @@ import scala.util.{Random, Try}
 
 
       def send(mess: api.API_ExampleService): Callback = {
-        val h = SPHeader("ExampleServiceWidget", api.attributes.service, "ExampleServiceWidget", java.util.UUID.randomUUID())
+        val h = SPHeader(from = "ExampleServiceWidget", to = api.attributes.service, replyTo = "ExampleServiceWidget")
+
         val json = SPMessage.make(h, mess) // *(...) is a shorthand for toSpValue(...)
         BackendCommunication.publish(json, "services")
         Callback.empty

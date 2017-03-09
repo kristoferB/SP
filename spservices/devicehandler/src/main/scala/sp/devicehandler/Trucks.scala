@@ -64,15 +64,15 @@ class Trucks(ahid: ID) extends Actor with Helpers {
   val driver = vdapi.Driver("opclocal", driverID, "OPCUA", setup)
   val bodyDriver = vdapi.SetUpDeviceDriver(driver)
   val bodyResource = vdapi.SetUpResource(resource)
-  SPMessage.make[SPHeader, vdapi.SetUpDeviceDriver](SPHeader(from = "hej"), bodyDriver).map { m => mediator ! Publish("services", m.toJson) }
-  SPMessage.make[SPHeader, vdapi.SetUpResource](SPHeader(from = "hej"), bodyResource).map { m => mediator ! Publish("services", m.toJson) }
+  mediator ! Publish("services", SPMessage.makeJson[SPHeader, vdapi.SetUpDeviceDriver](SPHeader(from = "hej"), bodyDriver))
+  mediator ! Publish("services", SPMessage.makeJson[SPHeader, vdapi.SetUpResource](SPHeader(from = "hej"), bodyResource))
 
   abilities.foreach { ab =>
     val body = abapi.SetUpAbility(ab)
     val msg = SPMessage.make[SPHeader, abapi.SetUpAbility](SPHeader(to = ahid.toString, from = "hej"), body)
     msg.map { m => mediator ! Publish("services", m.toJson) }
   }
-
+  
   def receive = {
     case x => println(x)
   }
