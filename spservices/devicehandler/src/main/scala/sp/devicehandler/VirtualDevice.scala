@@ -34,9 +34,8 @@ package APIVirtualDevice {
   case class SetUpDeviceDriver(driver: Driver) extends Requests
   case class SetUpResource(resource: Resource) extends Requests
 
-  // Add new transformers here as needed.
-  sealed trait DriverStateMapper
-  case class OneToOneMapper(thing: UUID, driverID: UUID, driverIdentifier: String) extends DriverStateMapper
+
+  case class OneToOneMapper(thing: UUID, driverID: UUID, driverIdentifier: String)
 
   // requests command (gets a SPACK and when applied, SPDone (and indirectly a StateEvent))
   case class ResourceCommand(resource: UUID, stateRequest: Map[UUID, SPValue], timeout: Int = 0) extends Requests
@@ -56,8 +55,9 @@ package APIVirtualDevice {
   case class NewDriver(x: Driver) extends Replies
   case class RemovedDriver(x: Driver) extends Replies
 
-
-  case class Resource(name: String, id: UUID, stateMap: List[DriverStateMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
+  // TODO: For some reason uPickle can not handle a sealed trait in the stateMap (diverging implicit ...)
+  // TODO: We probably need to switch to SPAttributes if we need other types
+  case class Resource(name: String, id: UUID, stateMap: List[OneToOneMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
   case class Driver(name: String, id: UUID, driverType: String, setup: SPAttributes)
 
 
