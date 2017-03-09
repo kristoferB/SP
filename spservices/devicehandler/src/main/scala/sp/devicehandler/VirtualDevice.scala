@@ -24,10 +24,6 @@ import sp.messages.Pickles._
 
 import scala.util.{Failure, Success, Try}
 
-
-
-
-// to be able to use opcua runtime api
 package APIVirtualDevice {
   sealed trait Requests
   // requests setup
@@ -35,14 +31,15 @@ package APIVirtualDevice {
   case class SetUpResource(resource: Resource) extends Requests
 
   sealed trait DriverStateMapper
-  case class OneToOneMapper(thing: UUID, driverID: UUID, driverIdentifier: String) extends  DriverStateMapper
+  case class OneToOneMapper(thing: UUID, driverID: UUID, driverIdentifier: String) extends DriverStateMapper
 
   // requests command (gets a SPACK and when applied, SPDone (and indirectly a StateEvent))
   case class ResourceCommand(resource: UUID, stateRequest: Map[UUID, SPValue], timeout: Int = 0) extends Requests
 
   // requests from driver
-  case class DriverStateChange(name: String, id: UUID, state: Map[String, SPValue], diff: Boolean = false)  extends Requests
+  case class DriverStateChange(name: String, id: UUID, state: Map[String, SPValue], diff: Boolean = false) extends Requests
   case class DriverCommand(name: String, id: UUID, state: Map[String, SPValue]) extends Requests
+  case class DriverCommandDone(requestID: UUID, result: Boolean) extends Requests
 
   // answers
   sealed trait Replies
@@ -54,7 +51,7 @@ package APIVirtualDevice {
   case class RemovedResource(x: Resource) extends Replies
   case class NewDriver(x: Driver) extends Replies
   case class RemovedDriver(x: Driver) extends Replies
-  
+
   case class Resource(name: String, id: UUID, stateMap: List[DriverStateMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
   case class Driver(name: String, id: UUID, driverType: String, setup: SPAttributes)
 
@@ -103,9 +100,21 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
 
           case e @ api.DriverStateChange(name, id, state, _) =>
             println("got a statechange:" + e)
+            val oldrs = resourceState
             driverEvent(e)
             println("new driver state: " + driverState)
             println("new resource state: " + resourceState)
+
+            resourceState.filter { case (nid, ns) =>
+              oldrs.get(nid) match {
+                case Some(os) => (ns.toSet diff os.toSet).nonEmpty
+                case None => true
+              }
+            }.foreach { case (rid, state) if resources.contains(rid) =>
+              val header = SPHeader(from = name, fromID = Some(id))
+              val body = api.StateEvent(resources(rid).r.name, rid, state)
+              mediator ! Publish("spevents", SPMessage.makeJson(header, body))
+            }
 
             val finishedRequests = checkRequestsFinished() // mutates state
             finishedRequests.foreach { header =>
@@ -113,46 +122,65 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
               mediator ! Publish("answers", SPMessage.makeJson(header, APISP.SPDone()))
             }
 
+
+          case api.DriverCommandDone(reqid, success) =>
+            val request = activeDriverRequests.filter { case (rid,reqs) => reqs.contains(reqid) }
+            activeDriverRequests = request.headOption match {
+              case Some((rid,reqs)) =>
+                if(!success) {
+                  val errorHeader = SPHeader(reqID = reqid, from = api.attributes.service)
+                  mediator ! Publish("answers", SPMessage.makeJson(errorHeader, APISP.SPError("driver command failed")))
+                  activeDriverRequests - rid
+                } else {
+                  val nr = reqs.filter(_!=reqid)
+                  if(nr.isEmpty) {
+                    val doneHeader = SPHeader(reqID = reqid, from = api.attributes.service)
+                    mediator ! Publish("answers", SPMessage.makeJson(doneHeader, APISP.SPDone()))
+                    activeDriverRequests - rid
+                  } else {
+                    activeDriverRequests + (rid -> nr)
+                  }
+                }
+              case None => activeDriverRequests
+            }
+
           case r : api.ResourceCommand =>
             println("resource command: " + r + " with request id: " + h.reqID)
-            val ackHeader = h.copy(replyFrom = api.attributes.service, messageID = UUID.randomUUID())
+            val ackHeader = h.copy(replyFrom = api.attributes.service)
             mediator ! Publish("answers", SPMessage.makeJson(ackHeader, APISP.SPACK()))
 
             val diffs = getDriverDiffs(r)
 
-            val doneHeader = h.copy(replyFrom = api.attributes.service, messageID = UUID.randomUUID())
+            val doneHeader = h.copy(replyFrom = api.attributes.service)
             if(diffs.isEmpty || diffs.forall { case (k,v) => v.isEmpty }) {
               println("No variables to update... Sending done immediately for requst: " + h.reqID)
               mediator ! Publish("answers", SPMessage.makeJson(doneHeader, APISP.SPDone()))
             } else {
-              // add diffs into "wait queue"
-              updateDriverRequests(doneHeader, diffs) // mutates state
-
+              val commands = getDriverCommands(diffs)
+              val requests = commands.map { command =>
+                // send commands to the drivers
+                val header = SPHeader(from = name)
+                mediator ! Publish("driverCommands", SPMessage.makeJson(header, command))
+                header.reqID
+              }
+              activeDriverRequests += (h.reqID -> requests.toList)
               // start timeout counter
               if(r.timeout > 0) {
-                val dct = DriverCommandTimout(doneHeader, r.timeout)
+                val dct = DriverCommandTimeout(h.reqID, r.timeout)
                 context.system.scheduler.scheduleOnce(Duration(r.timeout, TimeUnit.MILLISECONDS), self, dct)
               }
-
-              // send commands to the drivers
-              val msgs = getDriverCommands(diffs)
-              msgs.map(m => mediator ! Publish("driverCommands", m))
             }
 
           case x => println("todo: " + x)
         }
       }
 
-    case DriverCommandTimout(request, timeout) =>
-      val req = driverRequests.get(request)
-      if(req.nonEmpty) {
-        println("Driver command timed out after " + timeout + "ms")
-        req.get.foreach { case (driver, variables) =>
-          println("  on driver " + drivers.get(driver).map(_.name).getOrElse("unknown driver"))
-          println("    failed to write to variables: " + variables.map(_._1).mkString(", "))
-        }
-        // handle in some way...
+    case DriverCommandTimeout(request, timeout) =>
+      activeDriverRequests.get(request).map { reqs =>
+        println("Driver command(s) timed out after " + timeout + "ms")
+        println(" failed driver requests: " + reqs.mkString(", "))
       }
+      activeDriverRequests = activeDriverRequests - request
   }
 
   def receiveRecover = {
@@ -176,7 +204,7 @@ trait VirtualDeviceLogic {
   val name: String
   val id: UUID
 
-  case class DriverCommandTimout(request: SPHeader, timeout: Int)
+  case class DriverCommandTimeout(requestID: UUID, timeout: Int)
 
   case class StateReader(f: (Map[UUID, DriverState], Map[UUID, ResourceState]) =>  Map[UUID, ResourceState])
   case class StateWriter(f: (Map[UUID, ResourceState], Map[UUID, DriverState]) =>  Map[UUID, DriverState])
@@ -189,6 +217,7 @@ trait VirtualDeviceLogic {
   var drivers: Map[UUID, api.Driver] = Map()
   var driverState: Map[UUID, DriverState] = Map()
   var driverRequests: Map[SPHeader, Map[UUID, DriverState]] = Map()
+  var activeDriverRequests: Map[UUID, List[UUID]] = Map()
 
   var resources: Map[UUID, Resource] = Map()
   var resourceState: Map[UUID, ResourceState] = Map()
@@ -259,10 +288,8 @@ trait VirtualDeviceLogic {
     for {
       (did,stateDiff) <- diffs if stateDiff.nonEmpty
       d <- drivers.get(did)
-      header = SPHeader(from = name)
-      body = api.DriverCommand(d.name, did, stateDiff)
     } yield {
-      SPMessage.makeJson(header, body)
+      api.DriverCommand(d.name, did, stateDiff)
     }
   }
 
