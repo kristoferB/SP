@@ -69,8 +69,8 @@ class Trucks(ahid: ID) extends Actor with Helpers {
 
   abilities.foreach { ab =>
     val body = abapi.SetUpAbility(ab)
-    val msg = SPMessage.make[SPHeader, abapi.SetUpAbility](SPHeader(to = ahid.toString, from = "hej"), body)
-    msg.map { m => mediator ! Publish("services", m.toJson) }
+    val msg = SPMessage.makeJson[SPHeader, abapi.SetUpAbility](SPHeader(to = ahid.toString, from = "hej"), body)
+    mediator ! Publish("services", msg)
   }
   
   def receive = {
