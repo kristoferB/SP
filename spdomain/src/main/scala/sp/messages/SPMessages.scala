@@ -8,9 +8,9 @@ import java.util.UUID
 sealed trait APISP
 object APISP {
   case class SPError(message: String, attributes: SPAttributes = SPAttributes()) extends APISP
-  case class SPACK(attributes: SPAttributes = SPAttributes()) extends APISP
-  case class SPOK(attributes: SPAttributes = SPAttributes()) extends APISP
-  case class SPDone(attributes: SPAttributes = SPAttributes()) extends APISP
+  case class SPACK() extends APISP
+  case class SPOK() extends APISP
+  case class SPDone() extends APISP
 
   case class StatusRequest(attributes: SPAttributes = SPAttributes()) extends APISP
   case class StatusResponse(attributes: SPAttributes = SPAttributes()) extends APISP

@@ -73,10 +73,12 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
   mediator ! Subscribe("events", self)
+  mediator ! Subscribe("answers", self)
 
 
-  // Talk to VD and get all resources and IDs
-  // implement heartbeat to check if vd is active (also to handle if vd is started after this actor)
+
+  val getResources = SPMessage.makeJson(SPHeader(from = name, fromID = Some(handlerID), toID = Some(vd), replyTo = name, replyToID = Some(handlerID)), vdAPI.GetResources())
+  mediator ! Publish("services", getResources)
 
   override def receiveCommand = {
 
@@ -106,6 +108,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
             mediator ! Publish("answers", SPMessage.makeJson(h, api.AbilityStarted(abID)))
           case "finished" =>
             mediator ! Publish("answers", SPMessage.makeJson(h, api.AbilityCompleted(abID, Map())))
+            mediator ! Publish("answers", SPMessage.makeJson(h, APISP.SPDone()))
           case _ => Unit
 
         }
@@ -208,7 +211,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   def matchVDMessages(mess: Try[SPMessage]) = {
     for {
       m <- mess
-      h <- m.getHeaderAs[SPHeader] if h.fromID.contains(vd)
+      h <- m.getHeaderAs[SPHeader] if h.fromID.contains(vd) || h.replyToID.contains(handlerID)
       b <- m.getBodyAs[vdAPI.Replies]
     } yield {
       println("We got something from the VD " + b)
@@ -219,6 +222,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
           f.foreach{kv => kv._2.actor ! NewState(filterState(kv._2.ids, state))}
         case vdAPI.Resources(xs) =>
           resources = xs
+        case x =>
       }
     }
 
