@@ -15,7 +15,7 @@ import scala.util.Try
 package APIAbilityHandler {
   sealed trait Request
 
-  case class StartAbility(id: ID, params: Map[ID, SPValue], attributes: SPAttributes) extends Request
+  case class StartAbility(id: ID, params: Map[ID, SPValue] = Map(), attributes: SPAttributes = SPAttributes()) extends Request
   case class ForceResetAbility(id: ID) extends Request
   case class ForceResetAllAbilities() extends Request
 
@@ -63,6 +63,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   case class AbilityStorage(ability: api.Ability, actor: ActorRef, ids: Set[ID] = Set(), current: Option[AbilityStateChange] = None)
 
   var abilities: Map[ID, AbilityStorage] = Map()
+  var resources: List[vdAPI.Resource] = List()
   var state: Map[ID, SPValue] = Map()
 
   import context.dispatcher
@@ -72,10 +73,12 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
   mediator ! Subscribe("events", self)
+  mediator ! Subscribe("answers", self)
 
 
-  // Talk to VD and get all resources and IDs
-  // implement heartbeat to check if vd is active (also to handle if vd is started after this actor)
+
+  val getResources = SPMessage.makeJson(SPHeader(from = name, fromID = Some(handlerID), toID = Some(vd), replyTo = name, replyToID = Some(handlerID)), vdAPI.GetResources())
+  mediator ! Publish("services", getResources)
 
   override def receiveCommand = {
 
@@ -105,6 +108,8 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
             mediator ! Publish("answers", SPMessage.makeJson(h, api.AbilityStarted(abID)))
           case "finished" =>
             mediator ! Publish("answers", SPMessage.makeJson(h, api.AbilityCompleted(abID, Map())))
+            mediator ! Publish("answers", SPMessage.makeJson(h, APISP.SPDone()))
+          case _ => Unit
 
         }
 
@@ -206,12 +211,18 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   def matchVDMessages(mess: Try[SPMessage]) = {
     for {
       m <- mess
-      h <- m.getHeaderAs[SPHeader] if h.fromID.contains(vd)
+      h <- m.getHeaderAs[SPHeader] if h.fromID.contains(vd) || h.replyToID.contains(handlerID)
       b <- m.getBodyAs[vdAPI.Replies]
     } yield {
+      println("We got something from the VD " + b)
       b match {
         case vdAPI.StateEvent(r, rID, s, d) =>
           state = state ++ s
+          val f = abilities.filter(kv => kv._2.ids.intersect(s.keySet).nonEmpty)
+          f.foreach{kv => kv._2.actor ! NewState(filterState(kv._2.ids, state))}
+        case vdAPI.Resources(xs) =>
+          resources = xs
+        case x =>
       }
     }
 

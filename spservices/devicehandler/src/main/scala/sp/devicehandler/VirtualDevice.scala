@@ -29,6 +29,7 @@ package APIVirtualDevice {
   // requests setup
   case class SetUpDeviceDriver(driver: Driver) extends Requests
   case class SetUpResource(resource: Resource) extends Requests
+  case class GetResources() extends Requests
 
   sealed trait DriverStateMapper
   case class OneToOneMapper(thing: UUID, driverID: UUID, driverIdentifier: String) extends DriverStateMapper
@@ -170,6 +171,10 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
                 context.system.scheduler.scheduleOnce(Duration(r.timeout, TimeUnit.MILLISECONDS), self, dct)
               }
             }
+          case x: api.GetResources =>
+            val updh = h.copy(replyFrom = name, replyFromID = Some(id))
+            val b = api.Resources(resources.values.toList.map(_.r))
+            mediator ! Publish("answers", m.makeJson(updh, b))
 
           case x => println("todo: " + x)
         }
