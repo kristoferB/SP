@@ -114,15 +114,9 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
             }.foreach { case (rid, state) if resources.contains(rid) =>
               val header = SPHeader(from = name, fromID = Some(id))
               val body = api.StateEvent(resources(rid).r.name, rid, state)
+              println("sending resource state event: " + body)
               mediator ! Publish("spevents", SPMessage.makeJson(header, body))
             }
-
-            val finishedRequests = checkRequestsFinished() // mutates state
-            finishedRequests.foreach { header =>
-              println("sending request done for request: " + header.reqID)
-              mediator ! Publish("answers", SPMessage.makeJson(header, APISP.SPDone()))
-            }
-
 
           case api.DriverCommandDone(reqid, success) =>
             val request = activeDriverRequests.filter { case (rid,reqs) => reqs.contains(reqid) }
@@ -221,7 +215,6 @@ trait VirtualDeviceLogic {
 
   var drivers: Map[UUID, api.Driver] = Map()
   var driverState: Map[UUID, DriverState] = Map()
-  var driverRequests: Map[SPHeader, Map[UUID, DriverState]] = Map()
   var activeDriverRequests: Map[UUID, List[UUID]] = Map()
 
   var resources: Map[UUID, Resource] = Map()
@@ -296,30 +289,5 @@ trait VirtualDeviceLogic {
     } yield {
       api.DriverCommand(d.name, did, stateDiff)
     }
-  }
-
-  def updateDriverRequests(header: SPHeader, diffs: Map[UUID, DriverState]) = {
-    if(driverRequests.contains(header)) {
-      // check that header does not already exist - dont do that!
-      println("Request already made!")
-      None.get
-    }
-    driverRequests += (header -> diffs)
-  }
-
-  def checkRequestsFinished(): List[SPHeader] = {
-    val updReqs = driverRequests.map { case (h, diffs) =>
-      val updDiffs = diffs.map { case (drvID, state) =>
-        val drvState = driverState.getOrElse(drvID, Map())
-        val diff = state.toSet diff drvState.toSet
-        (drvID, diff.toMap)
-      }
-      (h, updDiffs.filter { case (drvID, state) => state.nonEmpty })
-    }
-    val completedReqs = updReqs.filter { case (h, diffs) => diffs.isEmpty }.map(_._1)
-    val notCompleted = updReqs.filterNot { case (h, diffs) => diffs.isEmpty }
-
-    driverRequests = notCompleted
-    completedReqs.toList
   }
 }

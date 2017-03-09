@@ -64,13 +64,11 @@ class OpcUARuntime(name: String, id: UUID, setup: SPAttributes) extends Actor {
             b <- mess.getBodyAs[vdapi.DriverCommand] if b.id == id
           } yield {
             b match {
-              case vdapi.DriverCommand(name, id, state, reqid) if client.isConnected =>
-                state.foreach{case(node,value) =>
-                  val success = client.write(node, value)
-                  val header = SPHeader(from = name)
-                  val body = vdapi.DriverCommandDone(reqid, success)
-                  mediator ! Publish("driverEvents", SPMessage.makeJson(header, body))
-                }
+              case vdapi.DriverCommand(name, id, state) if client.isConnected =>
+                val success = state.forall{case(node,value) => client.write(node, value)}
+                val header = SPHeader(from = name)
+                val body = vdapi.DriverCommandDone(h.reqID, success)
+                mediator ! Publish("driverEvents", SPMessage.makeJson(header, body))
               case _ =>
             }
           }

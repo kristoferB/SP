@@ -24,50 +24,64 @@ class Trucks(ahid: ID) extends Actor with Helpers {
   import context.dispatcher
   val mediator = DistributedPubSub(context.system).mediator
 
-  // load fixture 1
+  // operator
   val startAddProduct = v("startAddProduct", "OBF_IN_Frontlid_FM 82457762_init_start")
-  val productSensor = v("productSensor", "126,=V1UQ51+BG1_to_7")
 
+  // load fixture 1
+  val productSensor = v("productSensor", "126,=V1UQ51+BG1_to_7")
   val closeClamps = v("closeClamps", "126,=V1UQ51+KH1-QN2S")
   val openClamps = v("openClamps", "126,=V1UQ51+KH1-QN2R")
   val clampsClosed = v("clampsClosed", "126,=V1UQ51+UQ2.1-BGS")
   val clampsOpened = v("clampsOpened", "126,=V1UQ51+UQ2.1-BGR")
 
-  val loadFixture1 = List(startAddProduct, productSensor, closeClamps, openClamps, clampsClosed, clampsOpened)
+  val operatorVars = List(startAddProduct)
+  val loadFixture1Vars = List(productSensor, closeClamps, openClamps, clampsClosed, clampsOpened)
+
+  val allVars = operatorVars ++ loadFixture1Vars
 
   val aStartAddProduct = ab("startAddProduct", UUID.randomUUID(),
-    prop(loadFixture1, "!startAddProduct && !productSensor", List("startAddProduct := true")),
-    prop(loadFixture1, "startAddProduct && !productSensor"),
-    prop(loadFixture1, "productSensor", List("startAddProduct := true")))
+    prop(allVars, "!startAddProduct && !productSensor", List("startAddProduct := true")),
+    prop(allVars, "startAddProduct && !productSensor"),
+    prop(allVars, "productSensor", List("startAddProduct := true")))
+
+  val operatorAbilities = List(aStartAddProduct)
 
   val aCloseClamps = ab("closeClamps", UUID.randomUUID(),
-    prop(loadFixture1, "clampsOpened", List("closeClamps := true")),
-    prop(loadFixture1, "!clampsClosed && !clampsOpened"),
-    prop(loadFixture1, "clampsClosed", List("closeClamps := false")))
+    prop(allVars, "clampsOpened", List("closeClamps := true")),
+    prop(allVars, "!clampsClosed && !clampsOpened"),
+    prop(allVars, "clampsClosed", List("closeClamps := false")))
 
   val aOpenClamps = ab("openClamps", UUID.randomUUID(),
-    prop(loadFixture1, "clampsClosed", List("openClamps := true")),
-    prop(loadFixture1, "!clampsClosed && !clampsOpened"),
-    prop(loadFixture1, "clampsOpened", List("openClamps := false")))
+    prop(allVars, "clampsClosed", List("openClamps := true")),
+    prop(allVars, "!clampsClosed && !clampsOpened"),
+    prop(allVars, "clampsOpened", List("openClamps := false")))
 
-  val vars = loadFixture1 ++ List()
-  val abilities = List(aStartAddProduct, aCloseClamps, aOpenClamps)
-  println(abilities)
+  val loadFixture1Abilities = List(aCloseClamps, aOpenClamps)
 
+  val allAbilities = operatorAbilities ++ loadFixture1Abilities
+  println(allAbilities)
+
+  // setup driver
   val driverID = UUID.randomUUID()
-  val driverStateMap: List[vdapi.OneToOneMapper] = vars.flatMap { v =>
+  def sm(vars: List[Thing]): List[vdapi.OneToOneMapper] = vars.flatMap { v =>
     v.attributes.getAs[String]("drivername").map(dn => vdapi.OneToOneMapper(v.id, driverID, dn))
   }
-  val resource = vdapi.Resource("R82-88", UUID.randomUUID(), driverStateMap.map(_.thing), driverStateMap, SPAttributes())
-  val setup = SPAttributes("url" -> "opc.tcp://localhost:12686",
-    "identifiers" -> driverStateMap.map(_.driverIdentifier))
+  val setup = SPAttributes("url" -> "opc.tcp://localhost:12686", "identifiers" -> sm(allVars).map(_.driverIdentifier))
   val driver = vdapi.Driver("opclocal", driverID, "OPCUA", setup)
-  val bodyDriver = vdapi.SetUpDeviceDriver(driver)
-  val bodyResource = vdapi.SetUpResource(resource)
-  mediator ! Publish("services", SPMessage.makeJson[SPHeader, vdapi.SetUpDeviceDriver](SPHeader(from = "hej"), bodyDriver))
-  mediator ! Publish("services", SPMessage.makeJson[SPHeader, vdapi.SetUpResource](SPHeader(from = "hej"), bodyResource))
+  mediator ! Publish("services", SPMessage.makeJson[SPHeader, vdapi.SetUpDeviceDriver](SPHeader(from = "hej"), vdapi.SetUpDeviceDriver(driver)))
 
-  abilities.foreach { ab =>
+  // setup resources
+  val operator = vdapi.Resource("operator", UUID.randomUUID(), operatorVars.map(_.id), sm(operatorVars), SPAttributes())
+  val loadFixture1 = vdapi.Resource("loadFixture1", UUID.randomUUID(), loadFixture1Vars.map(_.id), sm(loadFixture1Vars), SPAttributes())
+  val resources = List(operator, loadFixture1)
+
+  resources.foreach { res =>
+    val body = vdapi.SetUpResource(res)
+    mediator ! Publish("services", SPMessage.makeJson[SPHeader, vdapi.SetUpResource](SPHeader(from = "hej"), body))
+  }
+
+  // setup abilities
+  allAbilities.foreach { ab =>
     val body = abapi.SetUpAbility(ab)
     val msg = SPMessage.makeJson[SPHeader, abapi.SetUpAbility](SPHeader(to = ahid.toString, from = "hej"), body)
     mediator ! Publish("services", msg)
