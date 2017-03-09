@@ -30,7 +30,7 @@ object HackTest {
       APIVirtualDevice.OneToOneMapper(start3.id, driverID, "R82-88-17-41-080R01_B941WeldSeg1_start"),
       APIVirtualDevice.OneToOneMapper(end3.id, driverID, "R82-88-17-41-080R01_B941WeldSeg1_end")
     )
-    val resource = APIVirtualDevice.Resource("R82-88", UUID.randomUUID(), driverStateMap, SPAttributes())
+    val resource = APIVirtualDevice.Resource("R82-88", UUID.randomUUID(), driverStateMap.map(_.thing), driverStateMap, SPAttributes())
     val setup = SPAttributes("url" -> "opc.tcp://localhost:12686",
       "identifiers" -> driverStateMap.map(_.driverIdentifier))
     val driver = APIVirtualDevice.Driver("opclocal", driverID, "OPCUA", setup)

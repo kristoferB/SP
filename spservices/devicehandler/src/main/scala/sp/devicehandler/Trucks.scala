@@ -58,7 +58,7 @@ class Trucks(ahid: ID) extends Actor with Helpers {
   val driverStateMap: List[vdapi.OneToOneMapper] = vars.flatMap { v =>
     v.attributes.getAs[String]("drivername").map(dn => vdapi.OneToOneMapper(v.id, driverID, dn))
   }
-  val resource = vdapi.Resource("R82-88", UUID.randomUUID(), driverStateMap, SPAttributes())
+  val resource = vdapi.Resource("R82-88", UUID.randomUUID(), driverStateMap.map(_.thing), driverStateMap, SPAttributes())
   val setup = SPAttributes("url" -> "opc.tcp://localhost:12686",
     "identifiers" -> driverStateMap.map(_.driverIdentifier))
   val driver = vdapi.Driver("opclocal", driverID, "OPCUA", setup)
@@ -72,7 +72,7 @@ class Trucks(ahid: ID) extends Actor with Helpers {
     val msg = SPMessage.makeJson[SPHeader, abapi.SetUpAbility](SPHeader(to = ahid.toString, from = "hej"), body)
     mediator ! Publish("services", msg)
   }
-  
+
   def receive = {
     case x => println(x)
   }

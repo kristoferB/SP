@@ -53,7 +53,7 @@ package APIVirtualDevice {
   case class NewDriver(x: Driver) extends Replies
   case class RemovedDriver(x: Driver) extends Replies
 
-  case class Resource(name: String, id: UUID, stateMap: List[DriverStateMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
+  case class Resource(name: String, id: UUID, things: List[UUID], stateMap: List[DriverStateMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
   case class Driver(name: String, id: UUID, driverType: String, setup: SPAttributes)
 
 

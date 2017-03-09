@@ -23,6 +23,7 @@ package APIVirtualDevice {
   // requests setup
   case class SetUpDeviceDriver(driver: Driver) extends Requests
   case class SetUpResource(resource: Resource) extends Requests
+  case class GetResources() extends Requests
 
   sealed trait DriverStateMapper
   case class OneToOneMapper(thing: UUID, driverID: UUID, driverIdentifier: String) extends DriverStateMapper
@@ -46,7 +47,7 @@ package APIVirtualDevice {
   case class NewDriver(x: Driver) extends Replies
   case class RemovedDriver(x: Driver) extends Replies
 
-  case class Resource(name: String, id: UUID, stateMap: List[DriverStateMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
+  case class Resource(name: String, id: UUID, things: List[UUID], stateMap: List[DriverStateMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
   case class Driver(name: String, id: UUID, driverType: String, setup: SPAttributes)
 
 
