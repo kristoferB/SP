@@ -9,6 +9,8 @@ import Pickles._
 import akka.actor._
 import akka.persistence._
 
+import scala.util.Try
+
 
 package APIAbilityHandler {
   sealed trait Request
@@ -29,7 +31,8 @@ package APIAbilityHandler {
   case class CmdID(cmd: ID) extends Response
   case class AbilityStarted(id: ID) extends Response
   case class AbilityCompleted(id: ID, result: Map[ID, SPValue]) extends Response
-  case class AbilityState(state: Map[ID, SPValue]) extends Response
+  case class AbilityState(id: ID, state: Map[ID, SPValue]) extends Response
+  case class Abilities(xs: List[Ability]) extends Response
 
   case class Ability(name: String,
                      id: ID,
@@ -44,6 +47,7 @@ package APIAbilityHandler {
 
 }
 import sp.abilityhandler.{APIAbilityHandler => api}
+import sp.devicehandler.{APIVirtualDevice => vdAPI}
 
 
 object AbilityHandler {
@@ -54,59 +58,178 @@ object AbilityHandler {
 
 
 // This actor will keep track of the abilities and parse all messages from the VD
-class AbilityHandler(name: String, id: UUID, vd: UUID) extends PersistentActor with ActorLogging with AbilityLogic {
-  override def persistenceId = id.toString
+class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends PersistentActor with ActorLogging with AbilityLogic {
+  override def persistenceId = handlerID.toString
   case class AbilityStorage(ability: api.Ability, actor: ActorRef, ids: Set[ID] = Set(), current: Option[AbilityStateChange] = None)
 
   var abilities: Map[ID, AbilityStorage] = Map()
   var state: Map[ID, SPValue] = Map()
 
-  import akka.cluster.pubsub.DistributedPubSub
-  import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Put, Subscribe}
   import context.dispatcher
-  val mediator = DistributedPubSub(context.system).mediator
+  import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Put, Subscribe}
+  val mediator = akka.cluster.pubsub.DistributedPubSub(context.system).mediator
 
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
   mediator ! Subscribe("events", self)
 
 
-
   // Talk to VD and get all resources and IDs
   // implement heartbeat to check if vd is active (also to handle if vd is started after this actor)
 
   override def receiveCommand = {
-    case x: String =>
-      val mess = SPMessage.fromJson(x)
 
-      val res = for {
-        m <- mess
-        h <- m.getHeaderAs[SPHeader] if h.to == id.toString
-        b <- m.getBodyAs[api.Request]
-      } yield {
+    case x: String => handleRequests(x)
 
-        // Message was to me so i send an SPACK
-        mediator ! Publish("answers", m.make(h.copy(replyFrom = id.toString, replyID = Some(ID.newID)), APISP.SPACK()))
+      // move this to a partial function
+    case CanNotStart(req, abID, error) =>
+      val h = SPHeader(from = name, replyFromID = Some(handlerID), reqID = req, messageID = ID.newID)
+      mediator ! Publish("answers", SPMessage.makeJson(h, APISP.SPError(s"ability $abID couldn't start. $error")))
+      mediator ! Publish("answers", SPMessage.makeJson(h, APISP.SPDone))
 
-        b match {
-          case api.StartAbility(id, params, attr) =>
-          case api.ForceResetAbility(id) =>
-          case x: api.ForceResetAllAbilities =>
-          case api.ExecuteCmd(cmd) =>
-          case x: api.GetAbilities =>
-          case api.SetUpAbility(ab, hand) =>
-            val ids = idsFromAbility(ab)
-            val act = context.actorOf(AbilityActor.props(ab))
-            abilities += ab.id -> AbilityStorage(ab, act, ids)
-            act ! NewState(filterState(ids, state))
-            mediator ! Publish("answers", m.make(h.copy(replyFrom = id.toString, replyID = Some(ID.newID)), APISP.SPDone()))
-        }
+    case x @ AbilityStateChange(abID, s, cnt, req) =>
+      val h = SPHeader(from = name, reqID = req.getOrElse(ID.newID), messageID = ID.newID)
+      abilities.get(abID).foreach{ as =>
+        abilities += abID -> as.copy(current = Some(x))
       }
+      val abilityState = SPAttributes(
+        "state" -> s,
+        "counter" -> cnt
+      )
+      val b = api.AbilityState(abID, Map(abID -> abilityState))
+      mediator ! Publish("events", SPMessage.makeJson(h, b))
+
+      req.foreach{ req =>
+        val res = s match {
+          case "executing" =>
+            mediator ! Publish("answers", SPMessage.makeJson(h, api.AbilityStarted(abID)))
+          case "finished" =>
+            mediator ! Publish("answers", SPMessage.makeJson(h, api.AbilityCompleted(abID, Map())))
+
+        }
+
+      }
+
+    case StateUpdReq(abID, s) =>
+      // match ids with resources and send to the vd
+      // but for now, will just send the state
+
+      val h = SPHeader(from = name, to = vd.toString, reqID = ID.newID)
+      val b = vdAPI.ResourceCommand(vd, s)
+      mediator ! Publish("services", SPMessage.makeJson(h, b))
+
+
+    case StateIsMissingIDs(abID, ids) =>
+      val h = SPHeader(from = name, fromID = Some(handlerID))
+
+      mediator ! Publish("spevents", SPMessage.makeJson(h, APISP.SPError("Ability has ids that is not found in the state. Either the VD is unavailible or something is wrong",
+        SPAttributes("ability" -> abilities.get(abID).map(_.ability.name).getOrElse("missing name"),
+        "id" -> abID, "missingThings" -> ids)
+      )))
+
   }
 
   override def receiveRecover = {
     case RecoveryCompleted =>
     case x =>
+  }
+
+
+  def handleRequests(x: String): Unit = {
+    val mess = SPMessage.fromJson(x)
+
+    matchRequests(mess)
+    matchVDMessages(mess)
+    matchServiceRequests(mess)
+
+
+  }
+
+
+  def matchRequests(mess: Try[SPMessage]) = {
+    for {
+      m <- mess
+      h <- m.getHeaderAs[SPHeader] if h.to == name && h.toID.forall(_ == handlerID)
+      b <- m.getBodyAs[api.Request]
+    } yield {
+
+      val updH = h.copy(replyFrom = name, replyFromID = Some(handlerID), messageID = ID.newID)
+
+      // Message was to me so i send an SPACK
+      mediator ! Publish("answers", m.makeJson(updH, APISP.SPACK()))
+
+      b match {
+        case api.StartAbility(id, params, attr) =>
+          abilities.get(id) match {
+            case Some(a) =>
+              a.actor ! StartAbility(state, h.reqID, params, attr)
+            case None =>
+              mediator ! Publish("answers", m.makeJson(updH, APISP.SPError(s"ability $id does not exists in this handler")))
+              mediator ! Publish("answers", m.makeJson(updH, APISP.SPDone))
+
+          }
+
+        case api.ForceResetAbility(id) =>
+          abilities.get(id) match {
+            case Some(a) =>
+              a.actor ! ResetAbility(state)
+            case None =>
+              mediator ! Publish("answers", m.makeJson(updH, APISP.SPError(s"ability $id does not exists in this handler")))
+          }
+          mediator ! Publish("answers", m.makeJson(updH, APISP.SPDone))
+
+        case x: api.ForceResetAllAbilities =>
+          val r = ResetAbility(state)
+          abilities.map(kv => kv._2.actor ! r)
+          mediator ! Publish("answers", m.makeJson(updH, APISP.SPDone))
+
+        case api.ExecuteCmd(cmd) =>
+        // to be implemented
+
+        case x: api.GetAbilities =>
+          val xs = abilities.map(_._2.ability).toList
+
+          mediator ! Publish("answers", m.makeJson(updH, api.Abilities(xs)))
+          mediator ! Publish("answers", m.makeJson(updH, APISP.SPDone))
+
+
+        case api.SetUpAbility(ab, hand) =>
+          val ids = idsFromAbility(ab)
+          val act = context.actorOf(AbilityActor.props(ab))
+          abilities += ab.id -> AbilityStorage(ab, act, ids)
+          act ! NewState(filterState(ids, state))
+          mediator ! Publish("answers", m.makeJson(h.copy(replyFrom = name, replyFromID = Some(handlerID), messageID = ID.newID), APISP.SPDone()))
+      }
+    }
+  }
+
+  def matchVDMessages(mess: Try[SPMessage]) = {
+//    for {
+//      m <- mess
+//      h <- m.getHeaderAs[SPHeader]
+//      b <- m.getBodyAs[vdAPI.Replies]
+//    } yield {
+//
+//    }
+
+  }
+
+  def matchServiceRequests(mess: Try[SPMessage]) = {
+    for {
+      m <- mess
+      h <- m.getHeaderAs[SPHeader]
+      b <- m.getBodyAs[APISP.StatusRequest]
+    } yield {
+      val spHeader = h.copy(replyFrom = name, replyFromID = Some(handlerID), messageID = ID.newID)
+      val info = SPAttributes(
+        "service" -> name,
+        "instanceID" -> handlerID,
+        "group" -> "runtime",
+        "attributes" -> SPAttributes("vd" -> vd)
+
+      )
+      mediator ! Publish("answers", m.makeJson(spHeader, APISP.StatusResponse(info)))
+    }
   }
 
   def filterState(ids: Set[ID], state: Map[ID, SPValue]) = state.filter(kv => ids.contains(kv._1))
@@ -133,6 +256,7 @@ case object UnAvailable
 case class AbilityIds(ability: ID, ids: Set[ID])
 case class CanNotStart(reqID: ID, ability: ID, error: String)
 case class AbilityStateChange(ability: ID, state: String, cnt: Long, reqID: Option[ID])
+case class StateIsMissingIDs(ability: ID, xs: Set[ID])
 case class StateUpdReq(ability: ID, state: Map[ID, SPValue])
 
 
@@ -170,6 +294,11 @@ class AbilityActor(val ability: api.Ability) extends Actor with AbilityActorLogi
       sendAbilityState(sender())
 
     case NewState(s) =>
+      val missingIDs = ids.filter(x => !s.keySet.contains(x))
+      if (missingIDs.nonEmpty){
+        sender() ! StateIsMissingIDs(ability.id, missingIDs)
+      }
+
       val res = evalState(s)
       res._1.foreach { updS =>
         sendAbilityState(sender())

@@ -49,6 +49,14 @@ class AbilityActorLogicTest extends FreeSpec with Matchers{
       logic.evalState(Map(v1.id -> 2))._1 shouldEqual Some(executing)
 
     }
+    "updstate when missing state ids" in {
+      val logic = new AbilityActorLogic {
+        override val ability = a
+      }
+      logic.state shouldEqual unavailable
+      println(logic.evalState(Map()))
+
+    }
 
     "startNReset" in {
       val logic = new AbilityActorLogic {
