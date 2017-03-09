@@ -63,6 +63,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   case class AbilityStorage(ability: api.Ability, actor: ActorRef, ids: Set[ID] = Set(), current: Option[AbilityStateChange] = None)
 
   var abilities: Map[ID, AbilityStorage] = Map()
+  var resources: List[vdAPI.Resource] = List()
   var state: Map[ID, SPValue] = Map()
 
   import context.dispatcher
@@ -209,9 +210,14 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
       h <- m.getHeaderAs[SPHeader] if h.fromID.contains(vd)
       b <- m.getBodyAs[vdAPI.Replies]
     } yield {
+      println("We got something from the VD " + b)
       b match {
         case vdAPI.StateEvent(r, rID, s, d) =>
           state = state ++ s
+          val f = abilities.filter(kv => kv._2.ids.intersect(s.keySet).nonEmpty)
+          f.foreach{kv => kv._2.actor ! NewState(filterState(kv._2.ids, state))}
+        case vdAPI.Resources(xs) =>
+          resources = xs
       }
     }
 
