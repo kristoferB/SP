@@ -16,32 +16,10 @@ import sp.devicehandler.{APIVirtualDevice => vdapi}
 import sp.abilityhandler.{APIAbilityHandler => abapi}
 
 object Trucks {
-  def props = Props(classOf[Trucks])
+  def props(ahid: ID) = Props(classOf[Trucks], ahid)
 }
 
-trait Helpers {
-  def v(name: String, drivername: String) = Thing(name, SPAttributes("drivername" -> drivername))
-  def prop(vars: List[IDAble], cond: String,actions: List[String] = List()) = {
-    def c(condition: String): Option[Proposition] = {
-      PropositionParser(vars).parseStr(condition) match {
-        case Right(p) => Some(p)
-        case Left(err) => println(s"Parsing failed on condition: $condition: $err"); None
-      }
-    }
-
-    def a(actions: List[String]): List[Action] = {
-      actions.flatMap { action =>
-        ActionParser(vars).parseStr(action) match {
-          case Right(a) => Some(a)
-          case Left(err) => println(s"Parsing failed on action: $action: $err"); None
-        }
-      }
-    }
-    PropositionCondition(c(cond).get, a(actions))
-  }
-}
-
-class Trucks extends Actor with Helpers {
+class Trucks(ahid: ID) extends Actor with Helpers {
   import sp.abilityhandler.APIAbilityHandler.{Ability => ab}
   import context.dispatcher
   val mediator = DistributedPubSub(context.system).mediator
@@ -87,10 +65,38 @@ class Trucks extends Actor with Helpers {
   val bodyDriver = vdapi.SetUpDeviceDriver(driver)
   val bodyResource = vdapi.SetUpResource(resource)
   SPMessage.make[SPHeader, vdapi.SetUpDeviceDriver](SPHeader(from = "hej"), bodyDriver).map { m => mediator ! Publish("services", m.toJson) }
-  SPMessage.make[SPHeader, vdapi.SetUpResource](SPHeader(from = "hej"), bodyResource).map { m => mediator ! Publish("services", m.toJson)  }
+  SPMessage.make[SPHeader, vdapi.SetUpResource](SPHeader(from = "hej"), bodyResource).map { m => mediator ! Publish("services", m.toJson) }
+
+  abilities.foreach { ab =>
+    val body = abapi.SetUpAbility(ab)
+    val msg = SPMessage.make[SPHeader, abapi.SetUpAbility](SPHeader(to = ahid.toString, from = "hej"), body)
+    msg.map { m => mediator ! Publish("services", m.toJson) }
+  }
 
   def receive = {
     case x => println(x)
   }
 
+}
+
+trait Helpers {
+  def v(name: String, drivername: String) = Thing(name, SPAttributes("drivername" -> drivername))
+  def prop(vars: List[IDAble], cond: String,actions: List[String] = List()) = {
+    def c(condition: String): Option[Proposition] = {
+      PropositionParser(vars).parseStr(condition) match {
+        case Right(p) => Some(p)
+        case Left(err) => println(s"Parsing failed on condition: $condition: $err"); None
+      }
+    }
+
+    def a(actions: List[String]): List[Action] = {
+      actions.flatMap { action =>
+        ActionParser(vars).parseStr(action) match {
+          case Right(a) => Some(a)
+          case Left(err) => println(s"Parsing failed on action: $action: $err"); None
+        }
+      }
+    }
+    PropositionCondition(c(cond).get, a(actions))
+  }
 }

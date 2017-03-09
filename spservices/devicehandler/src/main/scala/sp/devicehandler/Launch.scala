@@ -60,9 +60,12 @@ object Launch extends App {
   cluster.registerOnMemberUp {
     // Add root actors used in node here
     println("deviceHandler node has joined the cluster")
-    system.actorOf(VirtualDevice.props("vd", java.util.UUID.randomUUID()), "vd")
-
-    system.actorOf(Trucks.props)
+    val vdid = java.util.UUID.randomUUID()
+    system.actorOf(VirtualDevice.props("vd", vdid), "vd")
+    import sp.abilityhandler.AbilityHandler
+    val ahid = java.util.UUID.randomUUID()
+    system.actorOf(AbilityHandler.props("ah", ahid, vdid), "ah")
+    system.actorOf(Trucks.props(ahid))
 
     // HackTest.hackTest(system)
     // HackTest.hackAbilities(system)
