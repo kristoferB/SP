@@ -19,7 +19,7 @@ scalacOptions  := Seq(
 
 val scalaJSReactVersion = "1.0.0-RC1"
 val scalaCssVersion = "0.5.3-RC1"
-val diodeVersion = "1.1.0"
+val diodeVersion = "1.1.1"
 
 
 libraryDependencies ++= Seq(
@@ -27,8 +27,8 @@ libraryDependencies ++= Seq(
   "com.github.japgolly.scalajs-react" %%% "extra" % scalaJSReactVersion,
   "com.github.japgolly.scalacss" %%% "core" % scalaCssVersion,
   "com.github.japgolly.scalacss" %%% "ext-react" % scalaCssVersion,
-  "me.chrons" %%% "diode" % diodeVersion,
-  "me.chrons" %%% "diode-react" % diodeVersion,
+  "io.suzaku" %%% "diode" % diodeVersion,
+  "io.suzaku" %%% "diode-react" % diodeVersion,
   "com.lihaoyi" %%% "upickle" % "0.4.3",
   "com.lihaoyi" %%% "scalarx" % "0.3.2",
   "org.singlespaced" %%% "scalajs-d3" % "0.3.3",
