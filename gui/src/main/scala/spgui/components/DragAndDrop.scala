@@ -6,7 +6,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 object DragAndDrop {
   object OnDragMod {
     def apply(handleDrag: ReactDragEventFromInput => Callback): TagMod =
-      Seq(^.draggable := true, ^.onDragStart ==> handleDrag)
+      Seq(^.draggable := true, ^.onDragStart ==> handleDrag).toTagMod
   }
 
   object OnDropMod {
@@ -14,7 +14,7 @@ object DragAndDrop {
     def preventDefaultHandling(e: ReactEventFromInput) = Callback(e.preventDefault())
 
     def apply(handleDrop: ReactDragEvent => Callback): TagMod =
-      Seq(^.onDragOver ==> preventDefaultHandling, ^.onDrop ==> handleDrop)
+      Seq(^.onDragOver ==> preventDefaultHandling, ^.onDrop ==> handleDrop).toTagMod
   }
 
   object DataOnDrag {

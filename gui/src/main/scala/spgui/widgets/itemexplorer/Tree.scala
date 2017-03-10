@@ -150,7 +150,7 @@ object TVColumn {
               OnDataDrop(eventData => p.onDrop(eventData, item.id.toString) >> setSelectedId(item.id)),
               ^.onClick --> (setSelectedId(item.id) >> Callback.log("selected sumthing"))
             )
-          }
+          }.toTagMod
         ),
         if(s.selectedItemId == -1) ""
         else p.items.find(_.id == s.selectedItemId).get match {

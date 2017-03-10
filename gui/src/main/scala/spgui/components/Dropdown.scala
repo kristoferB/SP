@@ -15,16 +15,16 @@ object Dropdown {
       <.a(
         ^.className := ComponentCSS.text.htmlClass,
         ^.id := "something",
-        ^.tpe := "button", 
-        VdomAttr.Generic("data-toggle") := "dropdown",
-        aria.haspopup := "true",
+        ^.tpe := "button",
+        VdomAttr("data-toggle") := "dropdown",
+        aria.hasPopup := "true",
         aria.expanded := "false",
         p.toggleButton
       ),
       <.ul(
         ^.className := "dropdown-menu",
-        aria.labelledby := "something",
-        p.contents.map(c => <.li(<.a(c)))
+        aria.labelledBy := "something",
+        p.contents.map(c => <.li(<.a(c))).toTagMod
       )
     )
   )

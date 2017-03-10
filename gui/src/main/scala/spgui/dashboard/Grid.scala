@@ -82,7 +82,7 @@ object ReactGridLayoutItem {
     <.div(
       ^.key := key,
       ^.className:=CSS.widget.htmlClass,
-      VdomAttr.Generic("data-grid") := jsObject,
+      VdomAttr("data-grid") := jsObject,
       child
     )
   }

@@ -24,19 +24,19 @@ object WidgetMenu {
           Icon.chevronDown,
           "New widget"
         ),
-        <.div(
+        (<.div(
           ^.className := "input-group",
           <.input(
             ^.className := "form-control",
             ^.placeholder := "Find widget...",
-            ^.aria.describedby := "basic-addon1",
+            ^.aria.describedBy := "basic-addon1",
             ^.onChange ==> onFilterTextChange
           )
         ) ::
           WidgetList.list.collect{
             case w if (w._1.toLowerCase.contains(s.filterText.toLowerCase)) =>
               <.div(w._1, ^.onClick --> addW(w._1, w._3, w._4))
-          }: _*
+          }).toVdomArray
       )
   }
 

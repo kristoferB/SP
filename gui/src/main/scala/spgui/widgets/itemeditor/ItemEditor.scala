@@ -16,5 +16,5 @@ object ItemEditor {
   )
     .build
 
-  def apply() = (spwb: SPWidgetBase) => component(spwb)
+  def apply() = SPWidget(spwb => component(spwb))
 }

@@ -125,7 +125,7 @@ object OpcUAWidget {
                   ^.onClick --> send(API_OpcUARuntime.Write(n.name, changeType(n.datatype, internalValue))), "write"
                 )
               ))
-          })
+          }).toTagMod
         )
       )
     }
