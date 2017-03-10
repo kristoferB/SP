@@ -11,5 +11,5 @@ package sp.labkit
 class LKAttribute (var name: String,
                    var associatedSignals: List[LKSignal]
                   ) {
-  //TODO modeling which attribute type this is. might be unintresting
+  //TODO modeling which attribute type this is. might be uninteresting
 }
