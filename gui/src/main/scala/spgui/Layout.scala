@@ -15,7 +15,7 @@ object Layout {
     <.div(
       ^.className := GlobalCSS.layout.htmlClass,
       SPMenu(),
-      widgetsConnection(Dashboard(_))
+      Dashboard(widgetsConnection)
     )
   )
     .build

@@ -58,7 +58,7 @@ object Dashboard {
             }
           )
         },
-        children = widgets
+        children = widgets.toVdomArray
       )
 
 

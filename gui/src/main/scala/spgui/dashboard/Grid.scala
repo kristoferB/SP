@@ -2,8 +2,9 @@ package spgui.dashboard
 
 import japgolly.scalajs.react._
 import scala.scalajs.js
-import scala.scalajs.js.annotation.JSName
-import scala.scalajs.js.Dynamic._
+import js.annotation.JSName
+import js.Dynamic._
+import js.JSConverters._
 import japgolly.scalajs.react.vdom.html_<^._
 
 import scalacss.Defaults._
@@ -138,13 +139,14 @@ object ReactGridLayout {
     draggableHandle: String,
     onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit, children: VdomNode*) = {
     // access real js component
-    val f = React.asInstanceOf[js.Dynamic].createFactory(ReactGridLayoutJS)
+    val f = ReactDOM.asInstanceOf[js.Dynamic].createFactory(ReactGridLayoutJS)
     val facade = ReactGridLayoutFacade(Props(
       width = width,
       draggableHandle = draggableHandle,
       onLayoutChange = onLayoutChange
     ))
-    f(facade.toJS, children.toJsArray).asInstanceOf[ReactComponentU_]
+    // TODO: I really don't think throwing that type there solves this but it does compile.. let's see
+    f(facade.toJS, children.toJSArray).asInstanceOf[ScalaComponent.Unmounted[Unit, Unit, Unit]]
   }
 }
 
