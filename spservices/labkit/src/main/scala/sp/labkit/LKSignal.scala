@@ -11,5 +11,5 @@ package sp.labkit
 class LKSignal(var name: String,
                var inSignal: Boolean
              ) {
-
+//TODO do we want to save the data of each signal? needs both Booleans and Ints
 }

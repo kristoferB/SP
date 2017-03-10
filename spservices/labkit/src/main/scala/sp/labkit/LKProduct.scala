@@ -10,5 +10,5 @@ package sp.labkit
 class LKProduct (val target: Char,
                  var current: Char
                 ) {
-
+  //TODO Location?
 }
