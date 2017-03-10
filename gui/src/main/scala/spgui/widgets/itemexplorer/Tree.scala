@@ -1,7 +1,7 @@
 package spgui.widgets.itemexplorer
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import scalacss.ScalaCssReact._
 
 import spgui.SPWidget
@@ -21,7 +21,7 @@ case class Spotify(name: String, id: Int, content: String) extends Item
 case class Youtube(name: String, id: Int, content: String) extends Item
 
 object TVButton {
-  private def button(name: String, icon: ReactNode) =
+  private def button(name: String, icon: VdomNode) =
     <.div(<.div(Style.icon, icon), name, <.div(Style.chevron, Icon.chevronRight))
 
   def apply(item: Item) = item match {
@@ -114,7 +114,7 @@ object Tree {
       )
   }
 
-  private val component = ReactComponentB[Unit]("Tree")
+  private val component = ScalaComponent.build[Unit]("Tree")
     .initialState(ListItems())
     .renderBackend[TreeBackend]
     .build
@@ -161,11 +161,11 @@ object TVColumn {
       )
   }
 
-  val component = ReactComponentB[Props]("TreeDummyList")
+  val component = ScalaComponent.build[Props]("TreeDummyList")
     .initialState(State())
     .renderBackend[TVColumnBackend]
     .build
 
-  def apply(items: List[Item], itemIds: List[Int], onDrop: (String, String) => Callback): ReactElement =
+  def apply(items: List[Item], itemIds: List[Int], onDrop: (String, String) => Callback): VdomElement =
     component(Props(items, itemIds, onDrop))
 }

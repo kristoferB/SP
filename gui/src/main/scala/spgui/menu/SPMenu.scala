@@ -1,13 +1,13 @@
 package spgui.menu
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom._
 
 import spgui.components.CloseAllButton
 
 object SPMenu {
-  private val component = ReactComponentB[Unit]("SPMenu")
+  private val component = ScalaComponent.build[Unit]("SPMenu")
     .render(_ =>
     <.nav(
       ^.className := "navbar navbar-default",

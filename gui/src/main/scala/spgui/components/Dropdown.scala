@@ -1,13 +1,13 @@
 package spgui.components
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.vdom.all.aria
 
 object Dropdown {
-  case class Props(toggleButton: ReactNode, contents: Seq[ReactNode])
+  case class Props(toggleButton: VdomNode, contents: Seq[VdomNode])
 
-  private val component = ReactComponentB[Props]("Dropdown")
+  private val component = ScalaComponent.build[Props]("Dropdown")
     .render_P(p =>
     <.li(
       ^.className := ComponentCSS.clickable.htmlClass,
@@ -16,7 +16,7 @@ object Dropdown {
         ^.className := ComponentCSS.text.htmlClass,
         ^.id := "something",
         ^.tpe := "button", 
-        ReactAttr.Generic("data-toggle") := "dropdown",
+        VdomAttr.Generic("data-toggle") := "dropdown",
         aria.haspopup := "true",
         aria.expanded := "false",
         p.toggleButton
@@ -30,6 +30,6 @@ object Dropdown {
   )
     .build
 
-  def apply(toggleButton: ReactNode, contents: ReactNode*) =
+  def apply(toggleButton: VdomNode, contents: VdomNode*) =
     component(Props(toggleButton, contents.toSeq))
 }

@@ -3,7 +3,7 @@ package spgui.widgets.examples
 import java.util.UUID
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import spgui.SPWidgetBase
 import spgui.communication._
 
@@ -137,7 +137,7 @@ import scala.util.{Random, Try}
       spwb.getWidgetData.getAs[State]().getOrElse(State(None, List()))
     }
 
-    private val component = ReactComponentB[SPWidgetBase]("ExampleServiceWidget")
+    private val component = ScalaComponent.build[SPWidgetBase]("ExampleServiceWidget")
       .initialState_P(initState)
       .renderBackend[Backend]
       .componentWillUnmount(_.backend.onUnmount())

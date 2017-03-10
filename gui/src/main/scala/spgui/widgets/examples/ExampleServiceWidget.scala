@@ -3,7 +3,7 @@ package spgui.widgets.examples {
   import java.util.UUID
 
   import japgolly.scalajs.react._
-  import japgolly.scalajs.react.vdom.prefix_<^._
+  import japgolly.scalajs.react.vdom.html_<^._
 
 
   import spgui.communication._
@@ -125,7 +125,7 @@ package spgui.widgets.examples {
     }
 
 
-    private val component = ReactComponentB[Unit]("ExampleServiceWidget")
+    private val component = ScalaComponent.build[Unit]("ExampleServiceWidget")
       .initialState(State(None, List()))
       .renderBackend[Backend]
       .componentWillUnmount(_.backend.onUnmount())

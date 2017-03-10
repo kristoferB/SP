@@ -3,7 +3,7 @@ package spgui.dashboard
 import java.util.UUID
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import diode.react.ModelProxy
 
 import scalajs.js.Dynamic
@@ -69,7 +69,7 @@ object Dashboard {
     }
   }
 
-  private val component = ReactComponentB[Props]("Dashboard")
+  private val component = ScalaComponent.build[Props]("Dashboard")
     .renderBackend[Backend]
     .build
 

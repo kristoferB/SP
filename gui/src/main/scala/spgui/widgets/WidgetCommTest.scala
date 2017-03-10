@@ -3,7 +3,7 @@ package spgui.widgets
 
 import spgui.communication._
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 
 import scala.concurrent.Future
 import scala.concurrent.Promise
@@ -116,7 +116,7 @@ object WidgetCommTest {
       Callback.empty
     }
 
-    def updateMe(e: ReactEventI): Callback = {
+    def updateMe(e: ReactEventFromInput): Callback = {
       changeState(e.target.value)
     }
 
@@ -243,7 +243,7 @@ object WidgetCommTest {
   }
 
 
-  private val component = ReactComponentB[Unit]("WidgetInjectionTest")
+  private val component = ScalaComponent.build[Unit]("WidgetInjectionTest")
     .initialState(State("HEJ"))
     .renderBackend[Backend]
       .componentWillUnmount(_.backend.onUnmount())

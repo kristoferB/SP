@@ -2,7 +2,7 @@ package spgui.widgets.examples
 
 import java.util.UUID
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import spgui.communication._
 import sp.domain._
 import sp.messages._
@@ -54,7 +54,7 @@ object OpcUAWidget {
       "answers"   // the topic you want to listen to. Soon we will also add some kind of backend filter,  but for now you get all answers
     )
 
-    def urlChange(s: State)(e: ReactEventI) = {
+    def urlChange(s: State)(e: ReactEventFromInput) = {
       $.modState(s=>s.copy(url = e.target.value)).runNow()
       Callback.empty
     }
@@ -87,7 +87,7 @@ object OpcUAWidget {
       )
     }
 
-    def updateInternalValue(s: State, k: String)(e: ReactEventI) = {
+    def updateInternalValue(s: State, k: String)(e: ReactEventFromInput) = {
       val newInternalValues = s.internalValues + (k -> e.target.value)
       $.modState(s=>s.copy(internalValues = newInternalValues)).runNow()
       Callback.empty
@@ -159,7 +159,7 @@ object OpcUAWidget {
     }
   }
 
-  private val component = ReactComponentB[Unit]("OpcUAWidget")
+  private val component = ScalaComponent.build[Unit]("OpcUAWidget")
     .initialState(State(url="opc.tcp://localhost:12686", connected=false, nodes = List(), opcState=Map(),
       internalValues=Map()))
     .renderBackend[Backend]

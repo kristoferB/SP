@@ -3,7 +3,7 @@ package spgui.widgets.itemeditor
 import java.util.UUID
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 
 import scalajs.js
 import scalajs.js.Dynamic.{literal => l}
@@ -20,7 +20,7 @@ object JSONEditorTest {
   def apply(data: SPValue, id: UUID) = component(data: SPValue, id: UUID)
 
   def component(data: SPValue, id: UUID) = {
-    ReactComponentB[Unit]("JSONEditorTest")
+    ScalaComponent.build[Unit]("JSONEditorTest")
       .render_P(_ => <.div(
         ^.className := ItemEditorCSS.editor.htmlClass,
         ^.id := id.toString
