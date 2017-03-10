@@ -14,5 +14,5 @@ class LKResource (var name: String,
                   var attributes: List[LKAttribute],
                   var signals: List[LKSignal]
                  ) {
-
+//TODO how to model which state the resource is in. ready/busy/waiting
 }
