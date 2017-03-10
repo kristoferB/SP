@@ -12,7 +12,7 @@ package sp.labkit
   */
 class LKResource (var name: String,
                   var attributes: List[LKAttribute],
-                  var signals: List[Signal]
+                  var signals: List[LKSignal]
                  ) {
 
 }

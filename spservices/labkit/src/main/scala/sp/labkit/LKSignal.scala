@@ -8,8 +8,8 @@ package sp.labkit
   * @param name corresponding name in labkits statemessage
   * @param inSignal true if SP writes to this signal, false if SP reads from this signal
   */
-class Signal (var name: String,
-              var inSignal: Boolean
+class LKSignal(var name: String,
+               var inSignal: Boolean
              ) {
 
 }

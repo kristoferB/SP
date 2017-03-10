@@ -9,6 +9,6 @@ package sp.labkit
   * @param associatedSignals the signals in labkit that this attribute reads to / writes from
   */
 class LKAttribute (var name: String,
-                   var associatedSignals: List[Signal]) {
+                   var associatedSignals: List[LKSignal]) {
 
 }
