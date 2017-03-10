@@ -2,24 +2,18 @@ package sp.opcua
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+
+import scala.concurrent.duration._
+import scala.util.{Failure, Success}
+
 import akka.actor._
-import sp.domain.logic.{ActionParser, PropositionParser}
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Subscribe}
 import sp.domain._
 import sp.domain.Logic._
-import scala.concurrent.Future
-import akka.util._
-import akka.pattern.ask
-import scala.concurrent._
-import scala.concurrent.duration._
-import scala.util.Properties
-import org.joda.time.DateTime
-import akka.cluster.pubsub.DistributedPubSub
-import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
-import sp.messages._
+import sp.messages.APISP
 import sp.messages.Pickles._
-import scala.util.{Failure, Success, Try}
 import sp.milowrapper.{MiloOPCUAClient, StateUpdate}
-
 // the vd api
 import sp.opcua.{APIVirtualDevice => vdapi}
 

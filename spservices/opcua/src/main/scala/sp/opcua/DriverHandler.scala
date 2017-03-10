@@ -1,22 +1,15 @@
 package sp.opcua
 
 import java.util.UUID
+
+import scala.util.{Failure, Success}
+
 import akka.actor._
-import sp.domain.logic.{ActionParser, PropositionParser}
-import sp.domain._
-import sp.domain.Logic._
-import scala.concurrent.Future
-import akka.util._
-import akka.pattern.ask
-import scala.concurrent._
-import scala.concurrent.duration._
-import scala.util.Properties
-import org.joda.time.DateTime
 import akka.cluster.pubsub.DistributedPubSub
-import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
-import sp.messages._
+import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
+import sp.domain._
+import sp.messages.APISP
 import sp.messages.Pickles._
-import scala.util.{Failure, Success, Try}
 
 package APIVirtualDevice {
   sealed trait Requests
@@ -62,9 +55,8 @@ object DriverHandler {
 }
 
 class DriverHandler extends Actor {
-  import context.dispatcher
   val mediator = DistributedPubSub(context.system).mediator
-  mediator ! akka.cluster.pubsub.DistributedPubSubMediator.Subscribe("driverCommands", self)
+  mediator ! Subscribe("driverCommands", self)
 
   val opcUADriver = "OPCUA"
 

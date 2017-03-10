@@ -1,28 +1,18 @@
 package sp.devicehandler
 
 import java.util.UUID
-
-import akka.actor._
-import sp.domain._
-import sp.domain.Logic._
-
-import scala.concurrent.Future
-import akka.util._
-import akka.pattern.ask
-import akka.persistence._
-
-import scala.concurrent._
-import scala.concurrent.duration._
-import scala.util.Properties
-import akka.cluster.pubsub.DistributedPubSub
-import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Put, Subscribe}
 import java.util.concurrent.TimeUnit
 
-import org.joda.time.DateTime
-import sp.messages._
-import sp.messages.Pickles._
+import scala.concurrent.duration._
 
-import scala.util.{Failure, Success, Try}
+import akka.actor._
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Subscribe}
+import akka.persistence._
+import sp.domain._
+import sp.domain.Logic._
+import sp.messages.APISP
+import sp.messages.Pickles._
 
 package APIVirtualDevice {
   sealed trait Requests
