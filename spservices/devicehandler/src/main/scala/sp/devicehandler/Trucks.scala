@@ -71,8 +71,8 @@ class Trucks(ahid: ID) extends Actor with Helpers {
   mediator ! Publish("services", SPMessage.makeJson[SPHeader, vdapi.SetUpDeviceDriver](SPHeader(from = "hej"), vdapi.SetUpDeviceDriver(driver)))
 
   // setup resources
-  val operator = vdapi.Resource("operator", UUID.randomUUID(), operatorVars.map(_.id), sm(operatorVars), SPAttributes())
-  val loadFixture1 = vdapi.Resource("loadFixture1", UUID.randomUUID(), loadFixture1Vars.map(_.id), sm(loadFixture1Vars), SPAttributes())
+  val operator = vdapi.Resource("operator", UUID.randomUUID(), operatorVars.map(_.id).toSet, sm(operatorVars), SPAttributes())
+  val loadFixture1 = vdapi.Resource("loadFixture1", UUID.randomUUID(), loadFixture1Vars.map(_.id).toSet, sm(loadFixture1Vars), SPAttributes())
   val resources = List(operator, loadFixture1)
 
   resources.foreach { res =>

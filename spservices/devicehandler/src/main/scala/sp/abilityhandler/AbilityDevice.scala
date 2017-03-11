@@ -77,7 +77,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
 
 
 
-  val getResources = SPMessage.makeJson(SPHeader(from = name, fromID = Some(handlerID), toID = Some(vd), replyTo = name, replyToID = Some(handlerID)), vdAPI.GetResources())
+  val getResources = SPMessage.makeJson(SPHeader(from = handlerID.toString, to = vd.toString), vdAPI.GetResources())
   mediator ! Publish("services", getResources)
 
   override def receiveCommand = {
@@ -86,12 +86,12 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
 
       // move this to a partial function
     case CanNotStart(req, abID, error) =>
-      val h = SPHeader(from = name, replyFromID = Some(handlerID), reqID = req, messageID = ID.newID)
+      val h = SPHeader(from = handlerID.toString)
       mediator ! Publish("answers", SPMessage.makeJson(h, APISP.SPError(s"ability $abID couldn't start. $error")))
       mediator ! Publish("answers", SPMessage.makeJson(h, APISP.SPDone))
 
     case x @ AbilityStateChange(abID, s, cnt, req) =>
-      val h = SPHeader(from = name, reqID = req.getOrElse(ID.newID), messageID = ID.newID)
+      val h = SPHeader(from = handlerID.toString, reqID = req.getOrElse(ID.newID))
       abilities.get(abID).foreach{ as =>
         abilities += abID -> as.copy(current = Some(x))
       }
@@ -116,16 +116,18 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
       }
 
     case StateUpdReq(abID, s) =>
-      // match ids with resources and send to the vd
-      // but for now, will just send the state
+      val res = resources.filter(r => r.things.intersect(s.keySet).nonEmpty)
+      val toSend = res.map(r =>
+        vdAPI.ResourceCommand(r.id, s.filter(kv => r.things.contains(kv._1)))
+      )
 
-      val h = SPHeader(from = name, to = vd.toString, reqID = ID.newID)
+      val h = SPHeader(from = handlerID.toString, to = vd.toString, reply = SPValue(handlerID))
       val b = vdAPI.ResourceCommand(vd, s)
       mediator ! Publish("services", SPMessage.makeJson(h, b))
 
 
     case StateIsMissingIDs(abID, ids) =>
-      val h = SPHeader(from = name, fromID = Some(handlerID))
+      val h = SPHeader(from = handlerID.toString)
 
       mediator ! Publish("spevents", SPMessage.makeJson(h, APISP.SPError("Ability has ids that is not found in the state. Either the VD is unavailible or something is wrong",
         SPAttributes("ability" -> abilities.get(abID).map(_.ability.name).getOrElse("missing name"),
@@ -154,11 +156,11 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   def matchRequests(mess: Try[SPMessage]) = {
     for {
       m <- mess
-      h <- m.getHeaderAs[SPHeader] if h.to == name && h.toID.forall(_ == handlerID)
+      h <- m.getHeaderAs[SPHeader] if h.to == handlerID.toString || h.to == name
       b <- m.getBodyAs[api.Request]
     } yield {
 
-      val updH = h.copy(replyFrom = name, replyFromID = Some(handlerID), messageID = ID.newID)
+      val updH = h.copy(from = h.to, to = "")
 
       // Message was to me so i send an SPACK
       mediator ! Publish("answers", m.makeJson(updH, APISP.SPACK()))
@@ -203,7 +205,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
           val act = context.actorOf(AbilityActor.props(ab))
           abilities += ab.id -> AbilityStorage(ab, act, ids)
           act ! NewState(filterState(ids, state))
-          mediator ! Publish("answers", m.makeJson(h.copy(replyFrom = name, replyFromID = Some(handlerID), messageID = ID.newID), APISP.SPDone()))
+          mediator ! Publish("answers", m.makeJson(updH, APISP.SPDone()))
       }
     }
   }
@@ -211,7 +213,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   def matchVDMessages(mess: Try[SPMessage]) = {
     for {
       m <- mess
-      h <- m.getHeaderAs[SPHeader] if h.fromID.contains(vd) || h.replyToID.contains(handlerID)
+      h <- m.getHeaderAs[SPHeader] if h.from.contains(vd.toString) || h.reply == SPValue(handlerID)
       b <- m.getBodyAs[vdAPI.Replies]
     } yield {
       println("We got something from the VD " + b)
@@ -228,21 +230,21 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
 
   }
 
+  val info = SPAttributes(
+    "service" -> name,
+    "instanceID" -> handlerID,
+    "group" -> "runtime",
+    "attributes" -> SPAttributes("vd" -> vd)
+  )
+
   def matchServiceRequests(mess: Try[SPMessage]) = {
     for {
       m <- mess
       h <- m.getHeaderAs[SPHeader]
       b <- m.getBodyAs[APISP.StatusRequest]
     } yield {
-      val spHeader = h.copy(replyFrom = name, replyFromID = Some(handlerID), messageID = ID.newID)
-      val info = SPAttributes(
-        "service" -> name,
-        "instanceID" -> handlerID,
-        "group" -> "runtime",
-        "attributes" -> SPAttributes("vd" -> vd)
-
-      )
-      mediator ! Publish("answers", m.makeJson(spHeader, APISP.StatusResponse(info)))
+      val spHeader = h.copy(from = handlerID.toString)
+      mediator ! Publish("spevents", m.makeJson(spHeader, APISP.StatusResponse(info)))
     }
   }
 

@@ -43,7 +43,7 @@ package APIVirtualDevice {
   case class NewDriver(x: Driver) extends Replies
   case class RemovedDriver(x: Driver) extends Replies
 
-  case class Resource(name: String, id: UUID, things: List[UUID], stateMap: List[DriverStateMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
+  case class Resource(name: String, id: UUID, things: Set[UUID], stateMap: List[DriverStateMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
   case class Driver(name: String, id: UUID, driverType: String, setup: SPAttributes)
 
 
@@ -102,7 +102,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
                 case None => true
               }
             }.foreach { case (rid, state) if resources.contains(rid) =>
-              val header = SPHeader(from = name, fromID = Some(id))
+              val header = SPHeader(from = id.toString)
               val body = api.StateEvent(resources(rid).r.name, rid, state)
               println("sending resource state event: " + body)
               mediator ! Publish("spevents", SPMessage.makeJson(header, body))
@@ -131,12 +131,12 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
 
           case r : api.ResourceCommand =>
             println("resource command: " + r + " with request id: " + h.reqID)
-            val ackHeader = h.copy(replyFrom = api.attributes.service)
+            val ackHeader = h.copy(reply = api.attributes.service)
             mediator ! Publish("answers", SPMessage.makeJson(ackHeader, APISP.SPACK()))
 
             val diffs = getDriverDiffs(r)
 
-            val doneHeader = h.copy(replyFrom = api.attributes.service)
+            val doneHeader = h.copy(reply = api.attributes.service)
             if(diffs.isEmpty || diffs.forall { case (k,v) => v.isEmpty }) {
               println("No variables to update... Sending done immediately for requst: " + h.reqID)
               mediator ! Publish("answers", SPMessage.makeJson(doneHeader, APISP.SPDone()))
@@ -156,7 +156,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
               }
             }
           case x: api.GetResources =>
-            val updh = h.copy(replyFrom = name, replyFromID = Some(id))
+            val updh = h.copy(reply = id)
             val b = api.Resources(resources.values.toList.map(_.r))
             mediator ! Publish("answers", m.makeJson(updh, b))
 

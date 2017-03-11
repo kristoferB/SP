@@ -8,7 +8,7 @@ package sp.domain
  * TODO: Also simplify the condition structure as soon as possible,
  * TODO: e.g. remove stateEvaluater and StateUpdater
  */
-trait Condition {
+sealed trait Condition {
   val attributes: SPAttributes
 }
 
@@ -37,6 +37,7 @@ object Proposition {
   }
 
   implicit def strToProp(str: String)(implicit idables: List[IDAble] = List()): Proposition = parseStr(str, idables).get
+
 }
 
 sealed trait PropositionEvaluator extends Proposition {
@@ -80,6 +81,7 @@ case class ASSIGN(id: ID) extends StateUpdater
 private object StrMaker {
   def makeStr[T](xs: List[T], div: String) = {
     def req(list: List[T]): String = list match {
+      case Nil => ""
       case x :: Nil => x.toString
       case x :: xs => s"$x $div ${req(xs)}"
     }

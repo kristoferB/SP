@@ -132,7 +132,7 @@ object WidgetCommTest {
 
     def HoHo = {
 
-      val h = SPHeader(from = "widgetCommTest", replyTo = "widgetCommTest")
+      val h = SPHeader(from = "widgetCommTest", reply = *("widgetCommTest"))
 
       val b = APITesting.ServiceCall("Hej från mig")
       println("hej")

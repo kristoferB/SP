@@ -17,7 +17,7 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
   "Picklers" - {
     "make SPMessage" in {
       val h = SPHeader(from = "from", to = "to")
-      val b = APISP.SPACK(SPAttributes("Hej"->4))
+      val b = APISP.SPACK()
       val x = SPMessage.make(h, b)
 
       assert(true)
@@ -26,7 +26,7 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
 
     "SPMessage to json" in {
       val h = SPHeader(from = "tomte", to = "kalle")
-      val b = APISP.SPACK(SPAttributes("Hej"->4))
+      val b = APISP.SPACK()
       val x = SPMessage.makeJson(h, b)
 
       println(x)
@@ -36,7 +36,7 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
 
     "SPMessage from json" in {
       val h = SPHeader(from = "from", to = "to")
-      val b = APISP.SPACK(SPAttributes("Hej"->4))
+      val b = APISP.SPACK()
       val x = SPMessage.makeJson(h, b)
 
       val res = SPMessage.fromJson(x)
@@ -48,7 +48,7 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
 
     "testing some header union" in {
       val h = SPHeader(from = "tomte", to = "kalle")
-      val b = APISP.SPACK(SPAttributes("Hej"->4))
+      val b = APISP.SPACK()
       val x = SPMessage.make(h, b)
 
       val headerEx = SPHeader(from = "upd", to = "yes")

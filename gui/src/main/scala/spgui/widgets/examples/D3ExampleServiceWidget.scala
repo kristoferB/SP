@@ -42,14 +42,14 @@ object D3ExampleServiceWidget {
     )
 
     def start: Callback = {
-      val h = SPHeader(from = "D3ExampleServiceWidget", to = API_D3ExampleService.service, replyTo = "D3ExampleServiceWidget")
+      val h = SPHeader(from = "D3ExampleServiceWidget", to = API_D3ExampleService.service, reply = *("D3ExampleServiceWidget"))
       val json = SPMessage.make(h, API_D3ExampleService.Start())
       BackendCommunication.publishMessage("services", json)
       Callback.empty
     }
 
     def stop: Callback = {
-      val h = SPHeader(from = "D3ExampleServiceWidget", to = API_D3ExampleService.service, replyTo = "D3ExampleServiceWidget")
+      val h = SPHeader(from = "D3ExampleServiceWidget", to = API_D3ExampleService.service, reply = *("D3ExampleServiceWidget"))
       val json = SPMessage.make(h, API_D3ExampleService.Stop())
       BackendCommunication.publishMessage("services", json)
       Callback.empty

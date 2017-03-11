@@ -99,7 +99,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
         b <- m.getBodyAs[api.API_ExampleService]
       } yield {
         val toSend = commands(b) // doing the logic
-        val spHeader = h.copy(replyFrom = api.attributes.service, messageID = (ID.newID)) // upd header put keep most info
+        val spHeader = h.copy(from = api.attributes.service) // upd header put keep most info
 
         // We must do a pattern match here to enable the json conversion (SPMessage.make. Or the command can return pickled bodies
         toSend.foreach{
@@ -123,7 +123,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
         h <- m.getHeaderAs[SPHeader]
         b <- m.getBodyAs[APISP.StatusRequest]
       } yield {
-        val spHeader = h.copy(replyFrom = api.attributes.service, messageID = (ID.newID)) // upd header put keep most info
+        val spHeader = h.copy(from = api.attributes.service) // upd header put keep most info
         mediator ! Publish("answers", m.makeJson(spHeader, APISP.StatusResponse()))
       }
 

@@ -9,7 +9,7 @@ sealed trait APISP
 object APISP {
   case class SPError(message: String, attributes: SPAttributes = SPAttributes()) extends APISP
   case class SPACK() extends APISP
-  case class SPOK() extends APISP
+  //case class SPOK() extends APISP
   case class SPDone() extends APISP
 
   case class StatusRequest(attributes: SPAttributes = SPAttributes()) extends APISP
@@ -26,19 +26,13 @@ object Pickles extends SPParser {
   type Pickle = upickle.Js.Value
 
 
-  case class SPHeader(from: String, // the name of the sender
-                      fromID: Option[UUID] = None, // the id of the sender if applicable
+  case class SPHeader(from: String = "", // the name of the sender
                       to: String = "", // the name of the receiver, empty if to anyone
-                      toID: Option[UUID] = None, // the id of the receiver if applicable
-                      replyTo: String = "", // the name of who to reply to
-                      replyToID: Option[UUID] = None, // the id of the whoto reply to if applicable
                       reqID: UUID = UUID.randomUUID(), // the id to use for replies
-                      replyFrom: String = "", // the name of the replier
-                      replyFromID: Option[UUID]= None, // the id of the replier if applicable
-                      messageID: UUID = UUID.randomUUID(), // a unique id for each message
+                      reply: SPValue = SPAttributes(), // A data structure that should be included in all replies to be used for matching
                       fromTags: List[String] = List(), // a list of tags to define things about the sender. For example where the sender is located
                       toTags: List[String] = List(), // a list of tags to define things about possible receivers
-                      history: List[UUID] = List() // to be used in some scenarios, to trace the route of a message by stroing message ids
+                      attributes: SPAttributes = SPAttributes() // to be used in some scenarios, where more info in the header is needed
                      )
 
 

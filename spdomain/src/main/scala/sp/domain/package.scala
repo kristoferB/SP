@@ -39,9 +39,6 @@ package object domain {
       }
     }
 
-    import upickle.Js
-    import sp.domain.Logic._
-
 
   }
 
@@ -60,7 +57,6 @@ package object domain {
       }
     }
     def empty: SPValue = JObject()
-
 
   }
 
