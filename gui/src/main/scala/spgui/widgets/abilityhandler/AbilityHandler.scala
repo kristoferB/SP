@@ -94,14 +94,19 @@ object AbilityHandlerWidget {
         <.thead(
           <.tr(
             <.th(^.width:="100px","Name"),
-            <.th(^.width:="100px","State")
+            <.th(^.width:="200px","State"),
+            <.th(^.width:="100px","Start")
           )
         ),
         <.tbody(
           s.abilities.map(a=> {
             <.tr(
               <.td(a.name),
-              <.td(s.abilityState.get(a.id).getOrElse(Map()).toString)
+              <.td(s.abilityState.get(a.id).getOrElse(Map()).toString),
+              <.td(<.button(
+                ^.className := "btn btn-sm",
+                ^.onClick --> sendToAB(abapi.StartAbility(a.id)), "Start"
+              ))
             )
           })
         )

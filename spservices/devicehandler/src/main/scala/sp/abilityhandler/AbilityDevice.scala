@@ -77,8 +77,6 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   mediator ! Subscribe("events", self)
   mediator ! Subscribe("answers", self)
 
-
-
   val getResources = SPMessage.makeJson(SPHeader(from = handlerID.toString, to = vd.toString), vdAPI.GetResources())
   mediator ! Publish("services", getResources)
 
@@ -102,7 +100,6 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
         "counter" -> cnt
       )
       val b = api.AbilityState(abID, Map(abID -> abilityState))
-      println("     ABILITY DEVICE ABOUT TO SEND STATE : " + b)
       mediator ! Publish("events", SPMessage.makeJson(h, b))
 
       req.foreach{ req =>
@@ -120,14 +117,11 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
 
     case StateUpdReq(abID, s) =>
       val res = resources.filter(r => r.things.intersect(s.keySet).nonEmpty)
-      val toSend = res.map(r =>
-        vdAPI.ResourceCommand(r.id, s.filter(kv => r.things.contains(kv._1)))
-      )
-
-      val h = SPHeader(from = handlerID.toString, to = vd.toString, reply = SPValue(handlerID))
-      val b = vdAPI.ResourceCommand(vd, s)
-      mediator ! Publish("services", SPMessage.makeJson(h, b))
-
+      val toSend = res.map{r =>
+        val h = SPHeader(from = handlerID.toString, to = vd.toString, reply = SPValue(handlerID))
+        val b = vdAPI.ResourceCommand(r.id, s.filter(kv => r.things.contains(kv._1)))
+        mediator ! Publish("services", SPMessage.makeJson(h, b))
+      }
 
     case StateIsMissingIDs(abID, ids) =>
       val h = SPHeader(from = handlerID.toString)
@@ -221,7 +215,6 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
       h <- m.getHeaderAs[SPHeader] if h.from.contains(vd.toString) || h.reply == SPValue(handlerID)
       b <- m.getBodyAs[vdAPI.Replies]
     } yield {
-      println("We got something from the VD " + b + " " + vd.toString + " " + h.from)
       b match {
         case vdAPI.StateEvent(r, rID, s, d) =>
           state = state ++ s

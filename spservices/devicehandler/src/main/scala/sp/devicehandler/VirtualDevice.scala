@@ -88,6 +88,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
           case api.SetUpResource(r) =>
             println("new resource " + r)
             newResource(r)
+            sendResources
 
           case e @ api.DriverStateChange(name, did, state, _) =>
             println("got a statechange:" + e)
@@ -104,7 +105,6 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
             }.foreach { case (rid, state) if resources.contains(rid) =>
               val header = SPHeader(from = id.toString)
               val body = api.StateEvent(resources(rid).r.name, rid, state)
-              println("sending resource state event: " + body)
               mediator ! Publish("events", SPMessage.makeJson(header, body))
             }
 
@@ -130,7 +130,6 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
             }
 
           case r : api.ResourceCommand =>
-            println("resource command: " + r + " with request id: " + h.reqID)
             val ackHeader = h.copy(reply = api.attributes.service)
             mediator ! Publish("answers", SPMessage.makeJson(ackHeader, APISP.SPACK()))
 
@@ -156,9 +155,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
               }
             }
           case x: api.GetResources =>
-            val updh = h.copy(reply = id)
-            val b = api.Resources(resources.values.toList.map(_.r))
-            mediator ! Publish("answers", m.makeJson(updh, b))
+            sendResources
 
           case x => println("todo: " + x)
         }
@@ -170,6 +167,12 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
         println(" failed driver requests: " + reqs.mkString(", "))
       }
       activeDriverRequests = activeDriverRequests - request
+  }
+
+  def sendResources = {
+    val h = SPHeader(from = id.toString)
+    val b = api.Resources(resources.values.toList.map(_.r))
+    mediator ! Publish("answers", SPMessage.makeJson(h, b))
   }
 
   def receiveRecover = {
