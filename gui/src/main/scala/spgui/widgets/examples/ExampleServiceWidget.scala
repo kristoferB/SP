@@ -115,7 +115,7 @@ package spgui.widgets.examples {
 
 
       def send(mess: api.API_ExampleService): Callback = {
-        val h = SPHeader(from = "ExampleServiceWidget", to = api.attributes.service, replyTo = "ExampleServiceWidget")
+        val h = SPHeader(from = "ExampleServiceWidget", to = api.attributes.service, reply = SPValue("ExampleServiceWidget"))
 
         val json = SPMessage.make(h, mess) // *(...) is a shorthand for toSpValue(...)
         BackendCommunication.publish(json, "services")
@@ -136,5 +136,3 @@ package spgui.widgets.examples {
   }
 
 }
-
-

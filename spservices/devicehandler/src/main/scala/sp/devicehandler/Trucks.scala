@@ -25,24 +25,31 @@ class Trucks(ahid: ID) extends Actor with Helpers {
   val mediator = DistributedPubSub(context.system).mediator
 
   // operator
-  val startAddProduct = v("startAddProduct", "OBF_IN_Frontlid_FM 82457762_init_start")
+  val opStartAddProduct = v("startAddProduct", "OBF_IN_Frontlid_FM 82457762_init_start")
 
   // load fixture 1
-  val productSensor = v("productSensor", "126,=V1UQ51+BG1_to_7")
-  val closeClamps = v("closeClamps", "126,=V1UQ51+KH1-QN2S")
-  val openClamps = v("openClamps", "126,=V1UQ51+KH1-QN2R")
-  val clampsClosed = v("clampsClosed", "126,=V1UQ51+UQ2.1-BGS")
-  val clampsOpened = v("clampsOpened", "126,=V1UQ51+UQ2.1-BGR")
+  val lf1ProductSensor = v("productSensor", "126,=V1UQ51+BG1_to_7")
+  val lf1CloseClamps = v("closeClamps", "126,=V1UQ51+KH1-QN2S")
+  val lf1OpenClamps = v("openClamps", "126,=V1UQ51+KH1-QN2R")
+  val lf1ClampsClosed = v("clampsClosed", "126,=V1UQ51+UQ2.1-BGS")
+  val lf1ClampsOpened = v("clampsOpened", "126,=V1UQ51+UQ2.1-BGR")
 
-  val operatorVars = List(startAddProduct)
-  val loadFixture1Vars = List(productSensor, closeClamps, openClamps, clampsClosed, clampsOpened)
+  // AR31, blue robot
+  val ar31StartVacuum = v("startVacuum", "AR31_O_Vacuum_1_on")
+  val ar31StopVacuum = v("stopVacuum", "AR31_O_Vacuum_1_off")
+  val ar31VacuumOn = v("vacuumOn", "AR31_I_Vacuum_1_on")
+  val ar31VacuumOff = v("vacuumOff", "AR31_I_Vacuum_1_off")
 
-  val allVars = operatorVars ++ loadFixture1Vars
+  val operatorVars = List(opStartAddProduct)
+  val loadFixture1Vars = List(lf1ProductSensor, lf1CloseClamps, lf1OpenClamps, lf1ClampsClosed, lf1ClampsOpened)
+  val ar31Vars = List(ar31StartVacuum, ar31StopVacuum, ar31VacuumOn, ar31VacuumOff)
+
+  val allVars = operatorVars ++ loadFixture1Vars ++ ar31Vars
 
   val aStartAddProduct = ab("startAddProduct", UUID.randomUUID(),
     prop(allVars, "!startAddProduct && !productSensor", List("startAddProduct := true")),
     prop(allVars, "startAddProduct && !productSensor"),
-    prop(allVars, "productSensor", List("startAddProduct := true")))
+    prop(allVars, "productSensor", List("startAddProduct := false")))
 
   val operatorAbilities = List(aStartAddProduct)
 
@@ -58,7 +65,19 @@ class Trucks(ahid: ID) extends Actor with Helpers {
 
   val loadFixture1Abilities = List(aCloseClamps, aOpenClamps)
 
-  val allAbilities = operatorAbilities ++ loadFixture1Abilities
+  val aStartVacuum = ab("startVacuum", UUID.randomUUID(),
+    prop(allVars, "vacuumOff", List("startVacuum := true")),
+    prop(allVars, "startVacuum && !vacuumOn"),
+    prop(allVars, "vacuumOn", List("startVacuum := false")))
+
+  val aStopVacuum = ab("stopVacuum", UUID.randomUUID(),
+    prop(allVars, "vacuumOn", List("stopVacuum := true")),
+    prop(allVars, "stopVacuum && !vacuumOff"),
+    prop(allVars, "vacuumOff", List("stopVacuum := false")))
+
+  val ar31Abilities = List(aStartVacuum, aStopVacuum)
+
+  val allAbilities = operatorAbilities ++ loadFixture1Abilities ++ ar31Abilities
   println(allAbilities)
 
   // setup driver

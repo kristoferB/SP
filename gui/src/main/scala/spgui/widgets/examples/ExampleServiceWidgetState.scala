@@ -116,7 +116,7 @@ import scala.util.{Random, Try}
 
 
       def send(mess: api.API_ExampleService): Callback = {
-        val h = SPHeader(from = "ExampleServiceWidget", to = api.attributes.service, replyTo = "ExampleServiceWidget")
+        val h = SPHeader(from = "ExampleServiceWidget", to = api.attributes.service, reply = SPValue("ExampleServiceWidget"))
 
         val json = SPMessage.make(h, mess) // *(...) is a shorthand for toSpValue(...)
         BackendCommunication.publish(json, "services")
@@ -155,5 +155,3 @@ import scala.util.{Random, Try}
       val version = 1.0
       val api = "to be fixed by macros"
     }
-
-
