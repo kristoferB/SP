@@ -202,6 +202,8 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
           mediator ! Publish("answers", m.makeJson(updH, api.Abilities(xs)))
           mediator ! Publish("answers", m.makeJson(updH, APISP.SPDone))
 
+          abilities.foreach(a => a._2.actor ! GetState)
+
 
         case api.SetUpAbility(ab, hand) =>
           val ids = idsFromAbility(ab)
@@ -272,6 +274,7 @@ case class ResetAbility(state: Map[ID, SPValue])
 case object GetIds
 case class NewState(s: Map[ID, SPValue])
 case object UnAvailable
+case object GetState
 
 case class AbilityIds(ability: ID, ids: Set[ID])
 case class CanNotStart(reqID: ID, ability: ID, error: String)
@@ -314,7 +317,7 @@ class AbilityActor(val ability: api.Ability) extends Actor with AbilityActorLogi
       sendAbilityState(sender())
 
     case NewState(s) =>
-      val missingIDs = ids.filter(x => !s.keySet.contains(x))
+      val missingIDs = ids.diff(s.keySet)
       if (missingIDs.nonEmpty){
         sender() ! StateIsMissingIDs(ability.id, missingIDs)
       }
@@ -326,6 +329,8 @@ class AbilityActor(val ability: api.Ability) extends Actor with AbilityActorLogi
       res._2.foreach{ updS =>
         sender() ! StateUpdReq(ability.id, updS)
       }
+    case GetState =>
+      sendAbilityState(sender())
   }
 
   def sendAbilityState(to: ActorRef) =
