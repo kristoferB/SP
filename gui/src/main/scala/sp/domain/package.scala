@@ -15,9 +15,15 @@ package object domain {
   type SPAttributes = upickle.Js.Obj
   type SPValue = Pickle
 
+  type ID = java.util.UUID
 
   object SPValue {
     def apply[T: Writer](expr: T): SPValue = Pickles.toSPValue(expr)
+    def apply(s: String): SPValue = upickle.Js.Str(s)
+    def apply(i: Int): SPValue = upickle.Js.Num(i)
+    def apply(i: Long): SPValue = upickle.Js.Num(i)
+    def apply(b: Boolean): SPValue = if(b) upickle.Js.True else upickle.Js.False
+
     def empty: SPValue = upickle.Js.Obj()
   }
 
@@ -36,6 +42,9 @@ package object domain {
 
 
   implicit class spvalueLogic(value: SPValue) {
+    def get(key: String): Option[SPValue] = {
+      Try{value.obj(key)}.toOption
+    }
     def getAs[T: Reader](key: String = "") = {
       val x: SPValue = Try{value.obj(key)}.getOrElse(value)
       Try{readJs[T](x)}.toOption
@@ -68,10 +77,16 @@ package object domain {
 
   }
 
+  object ID {
+    def newID = java.util.UUID.randomUUID()
+    def makeID(id: String): Option[ID] = Try{java.util.UUID.fromString(id)}.toOption
+    def isID(str: String) = makeID(str).nonEmpty
+  }
+
+  implicit def strToJ(x: String): SPValue = SPValue(x)
+  implicit def intToJ(x: Int): SPValue = SPValue(x)
+  implicit def boolToJ(x: Boolean): SPValue = SPValue(x)
+  implicit def doubleToJ(x: Double): SPValue = SPValue(x)
+  implicit def idToJ(x: ID): SPValue = SPValue(x.toString())
 
 }
-
-
-
-
-
