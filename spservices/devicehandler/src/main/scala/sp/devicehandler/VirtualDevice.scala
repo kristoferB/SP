@@ -89,7 +89,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
             println("new resource " + r)
             newResource(r)
 
-          case e @ api.DriverStateChange(name, id, state, _) =>
+          case e @ api.DriverStateChange(name, did, state, _) =>
             println("got a statechange:" + e)
             val oldrs = resourceState
             driverEvent(e)
@@ -105,7 +105,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
               val header = SPHeader(from = id.toString)
               val body = api.StateEvent(resources(rid).r.name, rid, state)
               println("sending resource state event: " + body)
-              mediator ! Publish("spevents", SPMessage.makeJson(header, body))
+              mediator ! Publish("events", SPMessage.makeJson(header, body))
             }
 
           case api.DriverCommandDone(reqid, success) =>
@@ -144,7 +144,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
               val commands = getDriverCommands(diffs)
               val requests = commands.map { command =>
                 // send commands to the drivers
-                val header = SPHeader(from = name)
+                val header = SPHeader(from = id.toString)
                 mediator ! Publish("driverCommands", SPMessage.makeJson(header, command))
                 header.reqID
               }

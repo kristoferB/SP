@@ -12,25 +12,43 @@ import spgui.widgets.abilityhandler.{APIVirtualDevice => vdapi}
 import spgui.widgets.abilityhandler.{APIAbilityHandler => abapi}
 
 object AbilityHandlerWidget {
-  case class State(resources: List[vdapi.Resource], abilities: List[abapi.Ability])
+  case class State(resources: List[vdapi.Resource], abilities: List[abapi.Ability], abilityState: Map[ID, SPValue])
 
   private class Backend($: BackendScope[Unit, State]) {
-    val messObs = BackendCommunication.getMessageObserver(
+    val answerHandler = BackendCommunication.getMessageObserver(
       mess => {
-        val testing = fromSPValue[vdapi.Replies](mess.body).map{
+        fromSPValue[vdapi.Replies](mess.body).map{
           case vdapi.Resources(r) =>
             $.modState(s => s.copy(resources = r)).runNow()
           case x =>
             println(s"AbilityHandlerWidget - TODO: $x")
         }
-        val testing2 = fromSPValue[abapi.Response](mess.body).map{
+        fromSPValue[abapi.Response](mess.body).map{
           case abapi.Abilities(a) =>
             $.modState(s => s.copy(abilities = a)).runNow()
+          case abapi.AbilityState(id, state) =>
+            $.modState{s =>
+              val ns = s.abilityState ++ state
+              s.copy(abilityState = ns)}.runNow()
           case x =>
-            println(s"AbilityHandlerWidget - TODO: $x")
+            println(s"AbilityHandlerWidget - answers - TODO: $x")
         }
       },
-      "answers"   // the topic you want to listen to. Soon we will also add some kind of backend filter,  but for now you get all answers
+      "answers"
+    )
+
+    val eventHandler = BackendCommunication.getMessageObserver(
+      mess => {
+        fromSPValue[abapi.Response](mess.body).map{
+          case abapi.AbilityState(id, state) =>
+            $.modState{s =>
+              val ns = s.abilityState ++ state
+              s.copy(abilityState = ns)}.runNow()
+          case x =>
+            println(s"AbilityHandlerWidget - events - TODO: $x")
+        }
+      },
+      "events"
     )
 
     def render(s: State) = {
@@ -75,13 +93,15 @@ object AbilityHandlerWidget {
         <.caption("Abilties"),
         <.thead(
           <.tr(
-            <.th(^.width:="100px","Name")
+            <.th(^.width:="100px","Name"),
+            <.th(^.width:="100px","State")
           )
         ),
         <.tbody(
           s.abilities.map(a=> {
             <.tr(
-              <.td(a.name)
+              <.td(a.name),
+              <.td(s.abilityState.get(a.id).getOrElse(Map()).toString)
             )
           })
         )
@@ -90,7 +110,8 @@ object AbilityHandlerWidget {
 
     def onUnmount() = {
       println("Unmounting")
-      messObs.kill()
+      answerHandler.kill()
+      eventHandler.kill()
       Callback.empty
     }
 
@@ -112,7 +133,7 @@ object AbilityHandlerWidget {
   }
 
   private val component = ReactComponentB[Unit]("AbilityHandlerWidget")
-    .initialState(State(resources = List(), abilities = List()))
+    .initialState(State(resources = List(), abilities = List(), abilityState = Map()))
     .renderBackend[Backend]
     .componentWillUnmount(_.backend.onUnmount())
     .build

@@ -55,12 +55,12 @@ class Trucks(ahid: ID) extends Actor with Helpers {
 
   val aCloseClamps = ab("closeClamps", UUID.randomUUID(),
     prop(allVars, "clampsOpened", List("closeClamps := true")),
-    prop(allVars, "!clampsClosed && !clampsOpened"),
+    prop(allVars, "closeClamps && !clampsClosed && !clampsOpened"),
     prop(allVars, "clampsClosed", List("closeClamps := false")))
 
   val aOpenClamps = ab("openClamps", UUID.randomUUID(),
     prop(allVars, "clampsClosed", List("openClamps := true")),
-    prop(allVars, "!clampsClosed && !clampsOpened"),
+    prop(allVars, "openClamps && !clampsClosed && !clampsOpened"),
     prop(allVars, "clampsOpened", List("openClamps := false")))
 
   val loadFixture1Abilities = List(aCloseClamps, aOpenClamps)

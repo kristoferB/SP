@@ -102,6 +102,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
         "counter" -> cnt
       )
       val b = api.AbilityState(abID, Map(abID -> abilityState))
+      println("     ABILITY DEVICE ABOUT TO SEND STATE : " + b)
       mediator ! Publish("events", SPMessage.makeJson(h, b))
 
       req.foreach{ req =>
@@ -218,7 +219,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
       h <- m.getHeaderAs[SPHeader] if h.from.contains(vd.toString) || h.reply == SPValue(handlerID)
       b <- m.getBodyAs[vdAPI.Replies]
     } yield {
-      println("We got something from the VD " + b)
+      println("We got something from the VD " + b + " " + vd.toString + " " + h.from)
       b match {
         case vdAPI.StateEvent(r, rID, s, d) =>
           state = state ++ s
