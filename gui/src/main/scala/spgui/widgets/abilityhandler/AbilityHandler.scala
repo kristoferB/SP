@@ -9,10 +9,10 @@ import sp.messages._
 import sp.messages.Pickles._
 
 import spgui.widgets.abilityhandler.{APIVirtualDevice => vdapi}
-import spgui.widgets.abilityhandler.{APIAbilityHandler => api}
+import spgui.widgets.abilityhandler.{APIAbilityHandler => abapi}
 
 object AbilityHandlerWidget {
-  case class State(resources: List[vdapi.Resource])
+  case class State(resources: List[vdapi.Resource], abilities: List[abapi.Ability])
 
   private class Backend($: BackendScope[Unit, State]) {
     val messObs = BackendCommunication.getMessageObserver(
@@ -20,6 +20,12 @@ object AbilityHandlerWidget {
         val testing = fromSPValue[vdapi.Replies](mess.body).map{
           case vdapi.Resources(r) =>
             $.modState(s => s.copy(resources = r)).runNow()
+          case x =>
+            println(s"AbilityHandlerWidget - TODO: $x")
+        }
+        val testing2 = fromSPValue[abapi.Response](mess.body).map{
+          case abapi.Abilities(a) =>
+            $.modState(s => s.copy(abilities = a)).runNow()
           case x =>
             println(s"AbilityHandlerWidget - TODO: $x")
         }
@@ -33,9 +39,14 @@ object AbilityHandlerWidget {
         <.br(),
         <.button(
           ^.className := "btn btn-default",
-          ^.onClick --> send(vdapi.GetResources()), "Get resources"
+          ^.onClick --> sendToVD(vdapi.GetResources()), "Get resources"
         ),
-        renderResources(s)
+        <.button(
+          ^.className := "btn btn-default",
+          ^.onClick --> sendToAB(abapi.GetAbilities()), "Get abilities"
+        ),
+        renderResources(s),
+        renderAbilities(s)
       )
     }
 
@@ -58,14 +69,41 @@ object AbilityHandlerWidget {
       )
     }
 
+    def renderAbilities(s: State) = {
+      <.table(
+        ^.width:="400px",
+        <.caption("Abilties"),
+        <.thead(
+          <.tr(
+            <.th(^.width:="100px","Name")
+          )
+        ),
+        <.tbody(
+          s.abilities.map(a=> {
+            <.tr(
+              <.td(a.name)
+            )
+          })
+        )
+      )
+    }
+
     def onUnmount() = {
       println("Unmounting")
       messObs.kill()
       Callback.empty
     }
 
-    def send(mess: vdapi.Requests): Callback = {
+    def sendToVD(mess: vdapi.Requests): Callback = {
       val h = SPHeader(from = "AbilityHandlerWidget", to = vdapi.attributes.service,
+        reply = SPValue("AbilityHandlerWidget"), reqID = java.util.UUID.randomUUID())
+      val json = SPMessage(*(h), *(mess))
+      BackendCommunication.publish(json, "services")
+      Callback.empty
+    }
+
+    def sendToAB(mess: abapi.Request): Callback = {
+      val h = SPHeader(from = "AbilityHandlerWidget", to = abapi.attributes.service,
         reply = SPValue("AbilityHandlerWidget"), reqID = java.util.UUID.randomUUID())
       val json = SPMessage(*(h), *(mess))
       BackendCommunication.publish(json, "services")
@@ -74,7 +112,7 @@ object AbilityHandlerWidget {
   }
 
   private val component = ReactComponentB[Unit]("AbilityHandlerWidget")
-    .initialState(State(resources = List()))
+    .initialState(State(resources = List(), abilities = List()))
     .renderBackend[Backend]
     .componentWillUnmount(_.backend.onUnmount())
     .build

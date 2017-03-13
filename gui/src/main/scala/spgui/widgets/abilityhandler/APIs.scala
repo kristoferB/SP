@@ -77,4 +77,7 @@ package APIAbilityHandler {
                      attributes: SPAttributes = SPAttributes())
 
 
+  object attributes {
+    val service = "abilityHandler"
+  }
 }

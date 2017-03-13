@@ -44,7 +44,9 @@ package APIAbilityHandler {
                      result: List[ID] = List(),
                      attributes: SPAttributes = SPAttributes())
 
-
+  object attributes {
+    val service = "abilityHandler"
+  }
 }
 import sp.abilityhandler.{APIAbilityHandler => api}
 import sp.devicehandler.{APIVirtualDevice => vdAPI}
@@ -156,7 +158,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   def matchRequests(mess: Try[SPMessage]) = {
     for {
       m <- mess
-      h <- m.getHeaderAs[SPHeader] if h.to == handlerID.toString || h.to == name
+      h <- m.getHeaderAs[SPHeader] if h.to == handlerID.toString || h.to == name || h.to == api.attributes.service
       b <- m.getBodyAs[api.Request]
     } yield {
 
@@ -231,7 +233,8 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   }
 
   val info = SPAttributes(
-    "service" -> name,
+    "service" -> api.attributes.service,
+    "name" -> name,
     "instanceID" -> handlerID,
     "group" -> "runtime",
     "attributes" -> SPAttributes("vd" -> vd)
