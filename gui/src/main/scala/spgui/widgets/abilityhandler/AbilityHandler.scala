@@ -106,6 +106,10 @@ object AbilityHandlerWidget {
               <.td(<.button(
                 ^.className := "btn btn-sm",
                 ^.onClick --> sendToAB(abapi.StartAbility(a.id)), "Start"
+              )),
+              <.td(<.button(
+                ^.className := "btn btn-sm",
+                ^.onClick --> sendToAB(abapi.ForceResetAbility(a.id)), "Reset"
               ))
             )
           })

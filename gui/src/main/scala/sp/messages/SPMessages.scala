@@ -88,6 +88,10 @@ object Pickles extends SPParser {
   def fromJsonToSPAttributes(expr: String): Try[SPAttributes] = Try{upickle.json.read(expr).asInstanceOf[SPAttributes]}
 
 
+  implicit val sdffsaf = macroRW[SPHeader]
+  implicit val wefawef = macroRW[APISP]
+  implicit val oshffef = macroRW[PropositionCondition]
+
 }
 
 trait SPParser extends upickle.AttributeTagged {

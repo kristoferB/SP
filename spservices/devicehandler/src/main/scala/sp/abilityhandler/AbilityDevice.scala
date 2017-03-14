@@ -77,7 +77,9 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   mediator ! Subscribe("events", self)
   mediator ! Subscribe("answers", self)
 
-  val getResources = SPMessage.makeJson(SPHeader(from = handlerID.toString, to = vd.toString), vdAPI.GetResources())
+  makeMess(SPHeader(), APISP.SPDone())
+
+  val getResources = makeMess(SPHeader(from = handlerID.toString, to = vd.toString), vdAPI.GetResources())
   mediator ! Publish("services", getResources)
 
   override def receiveCommand = {
@@ -87,8 +89,8 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
       // move this to a partial function
     case CanNotStart(req, abID, error) =>
       val h = SPHeader(from = handlerID.toString)
-      mediator ! Publish("answers", SPMessage.makeJson(h, APISP.SPError(s"ability $abID couldn't start. $error")))
-      mediator ! Publish("answers", SPMessage.makeJson(h, APISP.SPDone))
+      mediator ! Publish("answers", makeMess(h, APISP.SPError(s"ability $abID couldn't start. $error")))
+      mediator ! Publish("answers", makeMess(h, APISP.SPDone()))
 
     case x @ AbilityStateChange(abID, s, cnt, req) =>
       val h = SPHeader(from = handlerID.toString, reqID = req.getOrElse(ID.newID))
@@ -100,15 +102,16 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
         "counter" -> cnt
       )
       val b = api.AbilityState(abID, Map(abID -> abilityState))
-      mediator ! Publish("events", SPMessage.makeJson(h, b))
+      println("     ABILITY DEVICE ABOUT TO SEND STATE : " + b)
+      mediator ! Publish("events", makeMess(h, b))
 
       req.foreach{ req =>
         val res = s match {
           case "executing" =>
-            mediator ! Publish("answers", SPMessage.makeJson(h, api.AbilityStarted(abID)))
+            mediator ! Publish("answers", makeMess(h, api.AbilityStarted(abID)))
           case "finished" =>
-            mediator ! Publish("answers", SPMessage.makeJson(h, api.AbilityCompleted(abID, Map())))
-            mediator ! Publish("answers", SPMessage.makeJson(h, APISP.SPDone()))
+            mediator ! Publish("answers", makeMess(h, api.AbilityCompleted(abID, Map())))
+            mediator ! Publish("answers", makeMess(h, APISP.SPDone()))
           case _ => Unit
 
         }
@@ -120,13 +123,13 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
       val toSend = res.map{r =>
         val h = SPHeader(from = handlerID.toString, to = vd.toString, reply = SPValue(handlerID))
         val b = vdAPI.ResourceCommand(r.id, s.filter(kv => r.things.contains(kv._1)))
-        mediator ! Publish("services", SPMessage.makeJson(h, b))
+        mediator ! Publish("services", makeMess(h, b))
       }
 
     case StateIsMissingIDs(abID, ids) =>
       val h = SPHeader(from = handlerID.toString)
 
-      mediator ! Publish("spevents", SPMessage.makeJson(h, APISP.SPError("Ability has ids that is not found in the state. Either the VD is unavailible or something is wrong",
+      mediator ! Publish("spevents", makeMess(h, APISP.SPError("Ability has ids that is not found in the state. Either the VD is unavailible or something is wrong",
         SPAttributes("ability" -> abilities.get(abID).map(_.ability.name).getOrElse("missing name"),
         "id" -> abID, "missingThings" -> ids)
       )))
@@ -160,7 +163,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
       val updH = h.copy(from = h.to, to = "")
 
       // Message was to me so i send an SPACK
-      mediator ! Publish("answers", m.makeJson(updH, APISP.SPACK()))
+      mediator ! Publish("answers", makeMess(updH, APISP.SPACK()))
 
       b match {
         case api.StartAbility(id, params, attr) =>
@@ -168,8 +171,8 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
             case Some(a) =>
               a.actor ! StartAbility(state, h.reqID, params, attr)
             case None =>
-              mediator ! Publish("answers", m.makeJson(updH, APISP.SPError(s"ability $id does not exists in this handler")))
-              mediator ! Publish("answers", m.makeJson(updH, APISP.SPDone))
+              mediator ! Publish("answers", makeMess(updH, APISP.SPError(s"ability $id does not exists in this handler")))
+              mediator ! Publish("answers", makeMess(updH, APISP.SPDone()))
 
           }
 
@@ -178,14 +181,14 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
             case Some(a) =>
               a.actor ! ResetAbility(state)
             case None =>
-              mediator ! Publish("answers", m.makeJson(updH, APISP.SPError(s"ability $id does not exists in this handler")))
+              mediator ! Publish("answers", makeMess(updH, APISP.SPError(s"ability $id does not exists in this handler")))
           }
-          mediator ! Publish("answers", m.makeJson(updH, APISP.SPDone))
+          mediator ! Publish("answers", makeMess(updH, APISP.SPDone()))
 
         case x: api.ForceResetAllAbilities =>
           val r = ResetAbility(state)
-          abilities.map(kv => kv._2.actor ! r)
-          mediator ! Publish("answers", m.makeJson(updH, APISP.SPDone))
+          abilities.foreach(kv => kv._2.actor ! r)
+          mediator ! Publish("answers", makeMess(updH, APISP.SPDone()))
 
         case api.ExecuteCmd(cmd) =>
         // to be implemented
@@ -193,8 +196,8 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
         case x: api.GetAbilities =>
           val xs = abilities.map(_._2.ability).toList
 
-          mediator ! Publish("answers", m.makeJson(updH, api.Abilities(xs)))
-          mediator ! Publish("answers", m.makeJson(updH, APISP.SPDone))
+          mediator ! Publish("answers", makeMess(updH, api.Abilities(xs)))
+          mediator ! Publish("answers", makeMess(updH, APISP.SPDone()))
 
           abilities.foreach(a => a._2.actor ! GetState)
 
@@ -204,7 +207,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
           val act = context.actorOf(AbilityActor.props(ab))
           abilities += ab.id -> AbilityStorage(ab, act, ids)
           act ! NewState(filterState(ids, state))
-          mediator ! Publish("answers", m.makeJson(updH, APISP.SPDone()))
+          mediator ! Publish("answers", makeMess(updH, APISP.SPDone()))
       }
     }
   }
@@ -243,7 +246,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
       b <- m.getBodyAs[APISP.StatusRequest]
     } yield {
       val spHeader = h.copy(from = handlerID.toString)
-      mediator ! Publish("spevents", m.makeJson(spHeader, APISP.StatusResponse(info)))
+      mediator ! Publish("spevents", makeMess(spHeader, APISP.StatusResponse(info)))
     }
   }
 
@@ -416,6 +419,9 @@ trait AbilityActorLogic extends AbilityLogic{
 }
 
 trait AbilityLogic {
+
+
+
   def idsFromAbility(a: api.Ability) = {
     Set(a.preCondition,
       a.postCondition,
@@ -448,4 +454,35 @@ trait AbilityLogic {
       case ASSIGN(id) => id
     }
   }
+
+//  implicit val pickStartAbility2 = macroRW[api.StartAbility]
+//  implicit val pickForceResetAbility = macroRW[api.ForceResetAbility]
+//  implicit val pickForceResetAllAbilities = macroRW[api.ForceResetAllAbilities]
+//  implicit val pickExecuteCmd = macroRW[api.ExecuteCmd]
+//  implicit val pickGetAbilities = macroRW[api.GetAbilities]
+//  implicit val pickSetUpAbility = macroRW[api.SetUpAbility]
+//  implicit val pickCmdID = macroRW[api.CmdID]
+//  implicit val pickAbilityStarted = macroRW[api.AbilityStarted]
+//  implicit val pickAbilityCompleted = macroRW[api.AbilityCompleted]
+//  implicit val pickAbilityState = macroRW[api.AbilityState]
+//  implicit val pickAbilities = macroRW[api.Abilities]
+//  implicit val pickAbility = macroRW[api.Ability]
+  //    implicit val pickSetUpDeviceDriver = macroRW[vdAPI.Replies]
+  //    implicit val pickResourceCommand = macroRW[vdAPI.ResourceCommand]
+  //    implicit val pickResource = macroRW[vdAPI.Resource]
+  //    implicit val pH = macroRW[SPHeader]
+  //    implicit val pSPError = macroRW[APISP.SPError]
+  //    implicit val pSPACK = macroRW[APISP.SPACK]
+  //    implicit val pSPDone = macroRW[APISP.SPDone]
+  //    implicit val pStatusRequest = macroRW[APISP.StatusRequest]
+  //    implicit val pStatusRequest3 = macroRW[APISP.StatusResponse]
+  //    implicit val pickStartAbility = macroRW[api.Request]
+  //    implicit val pickStartAbility3 = macroRW[api.Response]
+
+
+
+
+  def makeMess(h: SPHeader, b: api.Response) = SPMessage.makeJson[SPHeader, api.Response](h, b)
+  def makeMess(h: SPHeader, b: vdAPI.Requests) = SPMessage.makeJson[SPHeader, vdAPI.Requests](h, b)
+  def makeMess(h: SPHeader, b: APISP) = SPMessage.makeJson[SPHeader, APISP](h, b)
 }

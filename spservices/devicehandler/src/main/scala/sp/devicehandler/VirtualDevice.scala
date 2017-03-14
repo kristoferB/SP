@@ -70,6 +70,10 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
   mediator ! Subscribe("spevents", self)
   mediator ! Subscribe("driverEvents", self)
 
+
+
+
+
   override def receiveCommand = {
     case x: String =>
       val mess = SPMessage.fromJson(x)

@@ -37,6 +37,11 @@ object Pickles extends SPParser {
 
 
 
+  implicit val sdffsaf = macroRW[SPHeader]
+  implicit val wefawef = macroRW[APISP]
+  implicit val oshffef = macroRW[PropositionCondition]
+
+
   // TODO: Remove Try when creating a SPMessage from classes. The compiler will take that!
   case class SPMessage(header: Pickle, body: Pickle) {
     def getHeaderAs[T: Reader] = fromPickle[T](header)
@@ -139,6 +144,7 @@ trait SPParser extends upickle.AttributeTagged {
   import sp.domain._
   import sp.domain.Logic._
   import scala.reflect.ClassTag
+
 
   override def annotate[V: ClassTag](rw: Reader[V], n: String) = Reader[V]{
     case x: Js.Obj if n == "org.json4s.JsonAST.JObject" =>

@@ -15,14 +15,6 @@ package APIVirtualDevice {
   sealed trait Requests
   // requests setup
   case class SetUpDeviceDriver(driver: Driver) extends Requests
-  case class SetUpResource(resource: Resource) extends Requests
-  case class GetResources() extends Requests
-
-  sealed trait DriverStateMapper
-  case class OneToOneMapper(thing: UUID, driverID: UUID, driverIdentifier: String) extends DriverStateMapper
-
-  // requests command (gets a SPACK and when applied, SPDone (and indirectly a StateEvent))
-  case class ResourceCommand(resource: UUID, stateRequest: Map[UUID, SPValue], timeout: Int = 0) extends Requests
 
   // requests from driver
   case class DriverStateChange(name: String, id: UUID, state: Map[String, SPValue], diff: Boolean = false) extends Requests
@@ -31,16 +23,9 @@ package APIVirtualDevice {
 
   // answers
   sealed trait Replies
-  case class StateEvent(resource: String, id: UUID, state: Map[UUID, SPValue], diff: Boolean = false) extends Replies
-
-  case class Resources(xs: List[Resource]) extends Replies
-  case class Drivers(xs: List[Driver]) extends Replies
-  case class NewResource(x: Resource) extends Replies
-  case class RemovedResource(x: Resource) extends Replies
   case class NewDriver(x: Driver) extends Replies
   case class RemovedDriver(x: Driver) extends Replies
 
-  case class Resource(name: String, id: UUID, things: List[UUID], stateMap: List[DriverStateMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
   case class Driver(name: String, id: UUID, driverType: String, setup: SPAttributes)
 
 
