@@ -65,8 +65,8 @@ object Launch extends App {
     import sp.abilityhandler.AbilityHandler
     val ahid = java.util.UUID.randomUUID()
     system.actorOf(AbilityHandler.props("ah", ahid, vdid), "ah")
-    //system.actorOf(Trucks.props(ahid))
-    Labkit(ahid, system)
+    system.actorOf(Trucks.props(ahid))
+//    Labkit(ahid, system)
 
     // HackTest.hackTest(system)
     // HackTest.hackAbilities(system)

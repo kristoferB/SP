@@ -66,7 +66,6 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
         "counter" -> cnt
       )
       val b = api.AbilityState(abID, Map(abID -> abilityState))
-      println("     ABILITY DEVICE ABOUT TO SEND STATE : " + b)
       mediator ! Publish("events", AbilityComm.makeMess(h, b))
 
       req.foreach{ req =>

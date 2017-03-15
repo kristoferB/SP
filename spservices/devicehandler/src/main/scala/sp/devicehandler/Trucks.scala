@@ -20,65 +20,154 @@ object Trucks {
 }
 
 class Trucks(ahid: ID) extends Actor with Helpers {
-  import sp.abilityhandler.APIAbilityHandler.{Ability => ab}
   import context.dispatcher
   val mediator = DistributedPubSub(context.system).mediator
 
-  // operator
-  val opStartAddProduct = v("startAddProduct", "OBF_IN_Frontlid_FM 82457762_init_start")
+  val lf1vars = List(
+    // operator load product
+    v("lf1_startAddProduct", "OBF_IN_Frontlid_FM 82457762_start"),
 
-  // load fixture 1
-  val lf1ProductSensor = v("productSensor", "126,=V1UQ51+BG1_to_7")
-  val lf1CloseClamps = v("closeClamps", "126,=V1UQ51+KH1-QN2S")
-  val lf1OpenClamps = v("openClamps", "126,=V1UQ51+KH1-QN2R")
-  val lf1ClampsClosed = v("clampsClosed", "126,=V1UQ51+UQ2.1-BGS")
-  val lf1ClampsOpened = v("clampsOpened", "126,=V1UQ51+UQ2.1-BGR")
+    // load fixture 1
+    v("lf1_productSensor", "126,=V1UQ51+BG1_to_7"),
+    v("lf1_closeClamps", "126,=V1UQ51+KH1-QN2S"),
+    v("lf1_openClamps", "126,=V1UQ51+KH1-QN2R"),
+    v("lf1_clampsClosed", "126,=V1UQ51+UQ2.1-BGS"),
+    v("lf1_clampsOpened", "126,=V1UQ51+UQ2.1-BGR")
+  )
+
+  val lf2vars = List(
+    // operator load product
+    v("lf2_startAddProduct", "OBF_IN_Frontlid_FM 82416263_start"),
+
+    // load fixture 1
+    v("lf2_productSensor", "126,=V1UQ52+BG1_to_2"),
+    v("lf2_closeClamps", "126,=V1UQ52+KH1-QN2S"),
+    v("lf2_openClamps", "126,=V1UQ52+KH1-QN2R"),
+    v("lf2_clampsClosed", "126,=V1UQ52+UQ2.1-BGS"),
+    v("lf2_clampsOpened", "126,=V1UQ52+UQ2.1-BGR")
+  )
 
   // AR31, blue robot
-  val ar31StartVacuum = v("startVacuum", "AR31_O_Vacuum_1_on")
-  val ar31StopVacuum = v("stopVacuum", "AR31_O_Vacuum_1_off")
-  val ar31VacuumOn = v("vacuumOn", "AR31_I_Vacuum_1_on")
-  val ar31VacuumOff = v("vacuumOff", "AR31_I_Vacuum_1_off")
+  val ar31vars = List(
+    v("ar31_startVacuum", "AR31_I_Vacuum_1_on"),
+    v("ar31_stopVacuum", "AR31_I_Vacuum_1_off"),
+    v("ar31_vacuumOn", "AR31_O_Vacuum_1_on"),
+    v("ar31_vacuumOff", "AR31_O_Vacuum_1_off"),
+    v("ar31_picklf1_seg1_start", "P2545UQ51PickSeg1_start"),
+    v("ar31_picklf1_seg1_end", "P2545UQ51PickSeg1_end"),
+    v("ar31_picklf1_seg2_start", "P2545UQ51PickSeg2_start"),
+    v("ar31_picklf1_seg2_end", "P2545UQ51PickSeg2_end"),
+    v("ar31_picklf1_seg3_start", "P2545UQ51PickSeg3_start"),
+    v("ar31_picklf1_seg3_end", "P2545UQ51PickSeg3_end"),
 
-  val operatorVars = List(opStartAddProduct)
-  val loadFixture1Vars = List(lf1ProductSensor, lf1CloseClamps, lf1OpenClamps, lf1ClampsClosed, lf1ClampsOpened)
-  val ar31Vars = List(ar31StartVacuum, ar31StopVacuum, ar31VacuumOn, ar31VacuumOff)
+    v("ar31_glue42_seg1_start", "P2545XQ42Seg1_start"),
+    v("ar31_glue42_seg1_end", "P2545XQ42Seg1_end"),
+    v("ar31_glue42_start", "P2545GlueXQ42_start"),
+    v("ar31_glue42_end", "P2545GlueXQ42_end"),
+    v("ar31_glue42_check_seg1_start", "P2545CheckGlueXQ42Seg1_start"),
+    v("ar31_glue42_check_seg1_end", "P2545CheckGlueXQ42Seg1_end"),
+    v("ar31_glue41_seg1_start", "P2545XQ41Seg1_start"),
 
-  val allVars = operatorVars ++ loadFixture1Vars ++ ar31Vars
+    v("ar31_glue41_seg1_end", "P2545XQ41Seg1_end"),
+    v("ar31_glue41_start", "P2545GlueXQ41_start"),
+    v("ar31_glue41_end", "P2545GlueXQ41_end"),
+    v("ar31_glue41_check_seg1_start", "P2545CheckGlueXQ41Seg1_start"),
+    v("ar31_glue41_check_seg1_end", "P2545CheckGlueXQ41Seg1_end"),
+    v("ar31_glue41_check_seg2_start", "P2545CheckGlueXQ41Seg2_start"),
+    v("ar31_glue41_check_seg2_end", "P2545CheckGlueXQ41Seg2_end"),
 
-  val aStartAddProduct = ab("startAddProduct", UUID.randomUUID(),
-    prop(allVars, "!startAddProduct && !productSensor", List("startAddProduct := true")),
-    prop(allVars, "startAddProduct && !productSensor"),
-    prop(allVars, "productSensor", List("startAddProduct := false")))
+    v("ar31_placelf2_seg1_start", "P2545UQ52PickSeg1_start"),
+    v("ar31_placelf2_seg1_end", "P2545UQ52PickSeg1_end"),
+    v("ar31_picklf2_seg2_start", "P2545UQ52PickSeg2_start"),
+    v("ar31_picklf2_seg2_end", "P2545UQ52PickSeg2_end"),
+    v("ar31_picklf2_seg3_start", "P2545UQ52PickSeg3_start"),
+    v("ar31_picklf2_seg3_end", "P2545UQ52PickSeg3_end"),
+    v("ar31_picklf2_seg4_start", "P2545UQ52PickSeg4_start"),
+    v("ar31_picklf2_seg4_end", "P2545UQ52PickSeg4_end"),
 
-  val operatorAbilities = List(aStartAddProduct)
+    v("ar31_placett_seg1_start", "P2545UQ53PutSeg1_start"),
+    v("ar31_placett_seg1_end", "P2545UQ53PutSeg1_end"),
+    v("ar31_placett_seg2_start", "P2545UQ53PutSeg2_start"),
+    v("ar31_placett_seg2_end", "P2545UQ53PutSeg2_end"),
+    v("ar31_placett_seg3_start", "P2545UQ53PutSeg3_start"),
+    v("ar31_placett_seg3_end", "P2545UQ53PutSeg3_end"),
+    v("ar31_goto_home_start", "P2545Home_start"),
+    v("ar31_goto_home_end", "P2545Home_end")
+  )
 
-  val aCloseClamps = ab("closeClamps", UUID.randomUUID(),
-    prop(allVars, "clampsOpened", List("closeClamps := true")),
-    prop(allVars, "closeClamps && !clampsClosed && !clampsOpened"),
-    prop(allVars, "clampsClosed", List("closeClamps := false")))
+  val allVars = lf1vars ++ lf2vars ++ ar31vars
 
-  val aOpenClamps = ab("openClamps", UUID.randomUUID(),
-    prop(allVars, "clampsClosed", List("openClamps := true")),
-    prop(allVars, "openClamps && !clampsClosed && !clampsOpened"),
-    prop(allVars, "clampsOpened", List("openClamps := false")))
+  def p(cond: String,actions: List[String] = List()) = prop(allVars)(cond,actions)
 
-  val loadFixture1Abilities = List(aCloseClamps, aOpenClamps)
+  val lf1abs = List(
+    a("lf1_startAddProduct",
+      p("!lf1_startAddProduct && !lf1_productSensor", List("lf1_startAddProduct := true")),
+      p("lf1_startAddProduct && !lf1_productSensor"),
+      p("lf1_productSensor", List("lf1_startAddProduct := false"))),
 
-  val aStartVacuum = ab("startVacuum", UUID.randomUUID(),
-    prop(allVars, "vacuumOff", List("startVacuum := true")),
-    prop(allVars, "startVacuum && !vacuumOn"),
-    prop(allVars, "vacuumOn", List("startVacuum := false")))
+    a("lf1_closeClamps",
+      p("lf1_clampsOpened", List("lf1_closeClamps := true")),
+      p("lf1_closeClamps && !lf1_clampsClosed && !lf1_clampsOpened"),
+      p("lf1_clampsClosed", List("lf1_closeClamps := false"))),
 
-  val aStopVacuum = ab("stopVacuum", UUID.randomUUID(),
-    prop(allVars, "vacuumOn", List("stopVacuum := true")),
-    prop(allVars, "stopVacuum && !vacuumOff"),
-    prop(allVars, "vacuumOff", List("stopVacuum := false")))
+    a("lf1_openClamps",
+      p("lf1_clampsClosed", List("lf1_openClamps := true")),
+      p("lf1_openClamps && !lf1_clampsClosed && !lf1_clampsOpened"),
+      p("lf1_clampsOpened", List("lf1_openClamps := false")))
+  )
 
-  val ar31Abilities = List(aStartVacuum, aStopVacuum)
+  val lf2abs = List(
+    a("lf2_startAddProduct",
+      p("!lf2_startAddProduct && !lf2_productSensor", List("lf2_startAddProduct := true")),
+      p("lf2_startAddProduct && !lf2_productSensor"),
+      p("lf2_productSensor", List("lf2_startAddProduct := false"))),
 
-  val allAbilities = operatorAbilities ++ loadFixture1Abilities ++ ar31Abilities
-  println(allAbilities)
+    a("lf2_closeClamps",
+      p("lf2_clampsOpened", List("lf2_closeClamps := true")),
+      p("lf2_closeClamps && !lf2_clampsClosed && !lf2_clampsOpened"),
+      p("lf2_clampsClosed", List("lf2_closeClamps := false"))),
+
+    a("lf2_openClamps",
+      p("lf2_clampsClosed", List("lf2_openClamps := true")),
+      p("lf2_openClamps && !lf2_clampsClosed && !lf2_clampsOpened"),
+      p("lf2_clampsOpened", List("lf2_openClamps := false")))
+  )
+
+  val ar31abs = List(
+    a("ar31_startVacuum",
+      p("ar31_vacuumOff", List("ar31_startVacuum := true")),
+      p("ar31_startVacuum && !ar31_vacuumOn"),
+      p("ar31_vacuumOn", List("ar31_startVacuum := false"))),
+
+    a("ar31_stopVacuum",
+      p("ar31_vacuumOn", List("ar31_stopVacuum := true")),
+      p("ar31_stopVacuum && !ar31_vacuumOff"),
+      p("ar31_vacuumOff", List("ar31_stopVacuum := false"))),
+
+    ss(p,"ar31_picklf1_seg1", "ar31_picklf1_seg1_start", "ar31_picklf1_seg1_end"),
+    ss(p,"ar31_picklf1_seg2", "ar31_picklf1_seg2_start", "ar31_picklf1_seg2_end"),
+    ss(p,"ar31_picklf1_seg3", "ar31_picklf1_seg3_start", "ar31_picklf1_seg3_end"),
+
+    ss(p,"ar31_glue42_seg1", "ar31_glue42_seg1_start", "ar31_glue42_seg1_end"),
+    ss(p,"ar31_glue42", "ar31_glue42_start", "ar31_glue42_end"),
+    ss(p,"ar31_glue42_check_seg1", "ar31_glue42_check_seg1_start", "ar31_glue42_check_seg1_end"),
+    ss(p,"ar31_glue41_seg1", "ar31_glue41_seg1_start", "ar31_glue41_seg1_end"),
+    ss(p,"ar31_glue41", "ar31_glue41_start", "ar31_glue41_end"),
+    ss(p,"ar31_glue41_check_seg1", "ar31_glue41_check_seg1_start", "ar31_glue41_check_seg1_end"),
+    ss(p,"ar31_glue41_check_seg2", "ar31_glue41_check_seg2_start", "ar31_glue41_check_seg2_end"),
+    ss(p,"ar31_placelf2_seg1", "ar31_placelf2_seg1_start", "ar31_placelf2_seg1_end"),
+
+    ss(p,"ar31_picklf2_seg2", "ar31_picklf2_seg2_start", "ar31_picklf2_seg2_end"),
+    ss(p,"ar31_picklf2_seg3", "ar31_picklf2_seg3_start", "ar31_picklf2_seg3_end"),
+    ss(p,"ar31_picklf2_seg4", "ar31_picklf2_seg4_start", "ar31_picklf2_seg4_end"),
+
+    ss(p,"ar31_placett_seg1","ar31_placett_seg1_start", "ar31_placett_seg1_end"),
+    ss(p,"ar31_placett_seg2","ar31_placett_seg2_start", "ar31_placett_seg2_end"),
+    ss(p,"ar31_placett_seg3","ar31_placett_seg3_start", "ar31_placett_seg3_end"),
+    ss(p,"ar31_goto_home","ar31_goto_home_start", "ar31_goto_home_end")
+  )
+
+  val abs = lf1abs ++ lf2abs ++ ar31abs
 
   // setup driver
   val driverID = UUID.randomUUID()
@@ -90,9 +179,11 @@ class Trucks(ahid: ID) extends Actor with Helpers {
   mediator ! Publish("services", SPMessage.makeJson[SPHeader, vdapi.SetUpDeviceDriver](SPHeader(from = "hej"), vdapi.SetUpDeviceDriver(driver)))
 
   // setup resources
-  val operator = vdapi.Resource("operator", UUID.randomUUID(), operatorVars.map(_.id).toSet, sm(operatorVars), SPAttributes())
-  val loadFixture1 = vdapi.Resource("loadFixture1", UUID.randomUUID(), loadFixture1Vars.map(_.id).toSet, sm(loadFixture1Vars), SPAttributes())
-  val resources = List(operator, loadFixture1)
+  val lf1 = vdapi.Resource("loadFixture1", UUID.randomUUID(), lf1vars.map(_.id).toSet, sm(lf1vars), SPAttributes())
+  val lf2 = vdapi.Resource("loadFixture2", UUID.randomUUID(), lf2vars.map(_.id).toSet, sm(lf2vars), SPAttributes())
+  val ar31 = vdapi.Resource("ar31", UUID.randomUUID(), ar31vars.map(_.id).toSet, sm(ar31vars), SPAttributes())
+
+  val resources = List(lf1, lf2, ar31)
 
   resources.foreach { res =>
     val body = vdapi.SetUpResource(res)
@@ -100,7 +191,7 @@ class Trucks(ahid: ID) extends Actor with Helpers {
   }
 
   // setup abilities
-  allAbilities.foreach { ab =>
+  abs.foreach { ab =>
     val body = abapi.SetUpAbility(ab)
     val msg = SPMessage.makeJson[SPHeader, abapi.SetUpAbility](SPHeader(to = ahid.toString, from = "hej"), body)
     mediator ! Publish("services", msg)
@@ -113,8 +204,18 @@ class Trucks(ahid: ID) extends Actor with Helpers {
 }
 
 trait Helpers {
+  import sp.abilityhandler.APIAbilityHandler.Ability
+
+  def ss(p:(String,List[String])=>PropositionCondition,n:String,startvar:String,endvar:String) =
+    a(n,
+      p(s"!${startvar} && !${endvar}", List(s"${startvar} := true")),
+      p(s"${startvar} && !${endvar}", List()),
+      p(s"${startvar} && ${endvar}", List(s"${startvar} := false")))
+
+  def a(n:String,pre:PropositionCondition,exec:PropositionCondition,post:PropositionCondition) =
+    Ability(n, UUID.randomUUID(), pre, exec, post)
   def v(name: String, drivername: String) = Thing(name, SPAttributes("drivername" -> drivername))
-  def prop(vars: List[IDAble], cond: String,actions: List[String] = List()) = {
+  def prop(vars: List[IDAble])(cond: String,actions: List[String] = List()) = {
     def c(condition: String): Option[Proposition] = {
       PropositionParser(vars).parseStr(condition) match {
         case Right(p) => Some(p)
