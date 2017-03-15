@@ -25,3 +25,20 @@ case class HierarchyRoot(name: String,
 case class HierarchyNode(item: ID, children: List[HierarchyNode] = List(), id: ID = ID.newID)
 
 case class IDAbleHierarchy(item: IDAble, children: List[IDAbleHierarchy])
+
+
+/**
+  * A flat structure of items, replacing Hierarchy
+  * @param name The name of the structure
+  * @param items
+  * @param attributes
+  * @param id
+  */
+case class Struct(name: String,
+                  items: List[StructNode] = List(),
+                  attributes: SPAttributes = SPAttributes(),
+                  id: ID = ID.newID) extends Specification
+
+case class StructNode(item: ID, parent: Option[ID] = None, nodeID: ID = ID.newID)
+
+
