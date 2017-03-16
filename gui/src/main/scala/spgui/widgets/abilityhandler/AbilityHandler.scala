@@ -53,7 +53,7 @@ object AbilityHandlerWidget {
 
     def render(s: State) = {
       <.div(
-        <.h2("Hej hopp"),
+        <.h2("Ability Handler"),
         <.br(),
         <.button(
           ^.className := "btn btn-default",
@@ -87,22 +87,33 @@ object AbilityHandlerWidget {
       )
     }
 
+    def getAbilityState(s: SPValue): String = {
+      s.getAs[String]("state").getOrElse("")
+    }
+
+    def getAbilityCount(s: SPValue): Int = {
+      s.getAs[Int]("count").getOrElse(0)
+    }
+
     def renderAbilities(s: State) = {
       <.table(
-        ^.width:="400px",
+        ^.width:="550px",
         <.caption("Abilties"),
         <.thead(
           <.tr(
-            <.th(^.width:="100px","Name"),
-            <.th(^.width:="200px","State"),
-            <.th(^.width:="100px","Start")
+            <.th(^.width:="200px","Name"),
+            <.th(^.width:="100px","State"),
+            <.th(^.width:="50px","Count"),
+            <.th(^.width:="100px","Start"),
+            <.th(^.width:="100px","Reset")
           )
         ),
         <.tbody(
-          s.abilities.map(a=> {
+          s.abilities.sortBy(a=>a.name).map(a=> {
             <.tr(
               <.td(a.name),
-              <.td(s.abilityState.get(a.id).getOrElse(Map()).toString),
+              <.td(getAbilityState(s.abilityState.get(a.id).getOrElse(SPValue()))),
+              <.td(getAbilityCount(s.abilityState.get(a.id).getOrElse(SPValue()))),
               <.td(<.button(
                 ^.className := "btn btn-sm",
                 ^.onClick --> sendToAB(abapi.StartAbility(a.id)), "Start"
