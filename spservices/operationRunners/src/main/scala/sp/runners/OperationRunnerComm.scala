@@ -11,8 +11,9 @@ package API_OperationRunner {
   sealed trait Request
   sealed trait Reply
 
-  case class Setup(name: String, runnerID: ID, ops: Set[Operation], initialState: Map[ID, SPValue]) extends Request
+  case class Setup(name: String, runnerID: ID, ops: Set[Operation], opAbilityMap: Map[ID, ID], initialState: Map[ID, SPValue]) extends Request
   case class SetState(runnerID: ID, state: Map[ID, SPValue]) extends Request
+  case class ForceComplete(ability: ID) extends Request
   case class TerminateRunner(runnerID: ID) extends Request
   case class GetState(runnerID: ID) extends Request
   case class GetRunners() extends Request
@@ -36,7 +37,7 @@ object OperationRunnerComm {
   def extractRequest(mess: Try[SPMessage]) = for {
       m <- mess
       h <- m.getHeaderAs[SPHeader] if h.to == api.attributes.service
-      b <- m.getBodyAs[api.GetRunners]
+      b <- m.getBodyAs[api.Request]
     } yield (h, b)
 
   def extractAbilityReply(mess: Try[SPMessage]) = for {

@@ -40,7 +40,6 @@ package API_OpcUARuntime {
     val service = "OpcUARuntime"
   }
 }
-import sp.labkit.{API_OpcUARuntime => api}
 
 object OPC {
   def props = Props(classOf[OPC])

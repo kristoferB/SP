@@ -34,14 +34,13 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
   val mediator = akka.cluster.pubsub.DistributedPubSub(system).mediator
   val id = ID.newID
 
-  import sp.example.{ExampleService, ExampleServiceLogic}
-  import sp.example.{API_ExampleService => api}
-  import sp.messages.Pickles._
-  import sp.messages.APISP
+  import sp.runners.{API_OperationRunner => api}
+  import sp.messages._
+  import Pickles._
 
 
   override def beforeAll: Unit = {
-    val exampleS = system.actorOf(ExampleService.props, "exampleService")
+    val exampleS = system.actorOf(OperationRunner.props, "runner")
   }
 
   override def afterAll {
@@ -51,107 +50,13 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
 
 
-  val logic = new ExampleServiceLogic {}
 
 
   "The example service logic" must {
     "include a new pie" in {
-      val res = logic.commands(api.StartTheTicker(id))
-      val map = logic.thePies
-
-      assert(map.size == 1 && map.contains(id) && map(id) == Map("first"->10, "second"-> 30, "third" -> 60))
-      res.head shouldEqual APISP.SPACK()
-    }
-
-    "remove a pie" in {
-      logic.commands(api.StartTheTicker(id))
-      assert(logic.thePies.size == 1)
-
-      val res = logic.commands(api.StopTheTicker(id))
-      assert(logic.thePies.isEmpty)
-      res.head shouldEqual APISP.SPDone()
 
     }
 
-    "removing non existing pie" in {
 
-      val res = logic.commands(api.StopTheTicker(id))
-      assert(logic.thePies.isEmpty)
-      res.head shouldEqual APISP.SPDone()
-
-    }
-
-    "include a predef pie" in {
-      val xs = Map("foo"->10, "bar"-> 30)
-      val res = logic.commands(api.SetTheTicker(id, xs))
-      val map = logic.thePies
-
-      assert(map.size == 1 && map.contains(id) && map(id) == xs)
-      res.head shouldEqual APISP.SPACK()
-    }
-
-    "multiple pies" in {
-      val xs = Map("foo"->10, "bar"-> 30)
-      val res = logic.commands(api.SetTheTicker(id, xs))
-      logic.commands(api.StartTheTicker(ID.newID))
-      val map = logic.thePies
-
-      assert(map.size == 2)
-    }
-
-    "upd pie" in {
-      val xs = Map("foo"->10, "bar"-> 30)
-      val res = logic.updPie(xs)
-      println(res)
-      println(logic.updPie(res))
-    }
-
-  }
-
-
-
-  val header = SPHeader(to = api.attributes.service, from = "testing")
-
-  "The example service actor" must {
-    val p = TestProbe()
-    val e = TestProbe()
-    mediator ! Subscribe("answers", p.ref)
-    "start ticking on new pie" in {
-      val body = api.StartTheTicker(id)
-      val mess = SPMessage.makeJson(header, body)
-      mediator ! Publish("services", mess)
-
-      p.fishForMessage(10 seconds){
-        case mess @ _ if {println(s"answers probe got: $mess"); false} => false
-
-        case x: String if SPMessage.fromJson(x).isSuccess =>
-          val mess = SPMessage.fromJson(x).get
-          val b = mess.getBodyAs[api.TickerEvent]
-          b.isSuccess
-      }
-    }
-
-    mediator ! Subscribe("spevents", e.ref)
-    "answer to status request" in {
-      val body = APISP.StatusRequest()
-      val mess = SPMessage.makeJson(header, body)
-      mediator ! Publish("spevents", mess)
-
-      e.fishForMessage(10 seconds){
-        case mess @ _ if {println(s"spevents probe got: $mess"); false} => false
-
-        case x: String if SPMessage.fromJson(x).isSuccess =>
-          val mess = SPMessage.fromJson(x).get
-          val b = mess.getBodyAs[APISP.StatusResponse]
-          b.isSuccess
-      }
-    }
-
-  }
-
-  "The example service API" must {
-    "parse the classes" in {
-
-    }
   }
 }
