@@ -95,7 +95,24 @@ class Trucks(ahid: ID) extends Actor with Helpers {
     v("ar31_goto_home_end", "P2545Home_end")
   )
 
-  val allVars = lf1vars ++ lf2vars ++ ar31vars
+  val ar41vars = List(
+    v("ar41_lockTool", "AR41_I_LOCKTOOL"),
+    v("ar41_unlockTool", "AR41_I_UNLOCKTOOL"),
+    v("ar41_toolLocked", "AR41_O_LOCKTOOL"),
+    v("ar41_toolUnlocked", "AR41_O_UNLOCKTOOL"),
+
+    v("ar41_home_to_stand_start", "UQ42GrippHomeToStand_start"),
+    v("ar41_home_to_stand_end", "UQ42GrippHomeToStand_end"),
+    v("ar41_stand_to_get_check_start", "UQ42GrippStandToGetchk_start"),
+    v("ar41_stand_to_get_check_end", "UQ42GrippStandToGetchk_end"),
+    v("ar41_get_check_to_home_start", "UQ42GrippGetchkToHome_start"),
+    v("ar41_get_check_to_home_end", "UQ42GrippGetchkToHome_end"),
+    v("ar41_stand_to_put_check_start", "UQ42GrippStandToPutchk_start"),
+    v("ar41_stand_to_put_check_end", "UQ42GrippStandToPutchk_end"),
+    v("ar41_put_check_to_between_start", "UQ42GrippPutchkToBetw_start"),
+    v("ar41_put_check_to_between_end", "UQ42GrippPutchkToBetw_end")
+  )
+  val allVars = lf1vars ++ lf2vars ++ ar31vars ++ ar41vars
 
   def p(cond: String,actions: List[String] = List()) = prop(allVars)(cond,actions)
 
@@ -167,7 +184,29 @@ class Trucks(ahid: ID) extends Actor with Helpers {
     ss(p,"ar31_goto_home","ar31_goto_home_start", "ar31_goto_home_end")
   )
 
-  val abs = lf1abs ++ lf2abs ++ ar31abs
+  val ar41abs = List(
+    a("ar41_lockTool",
+      p("ar41_toolUnlocked", List("ar41_lockTool := true")),
+      p("ar41_lockTool && !ar41_toolLocked"),
+      p("ar41_toolLocked", List("ar41_lockTool := false"))),
+
+    a("ar41_unlockTool",
+      p("ar41_toolLocked", List("ar41_unlockTool := true")),
+      p("ar41_unlockTool && !ar41_toolUnlocked"),
+      p("ar41_toolUnlocked", List("ar41_unlockTool := false"))),
+
+    ss(p,"ar31_picklf1_seg1", "ar31_picklf1_seg1_start", "ar31_picklf1_seg1_end"),
+    ss(p,"ar31_picklf1_seg2", "ar31_picklf1_seg2_start", "ar31_picklf1_seg2_end"),
+    ss(p,"ar31_picklf1_seg3", "ar31_picklf1_seg3_start", "ar31_picklf1_seg3_end"),
+
+    ss(p, "ar41_home_to_stand", "ar41_home_to_stand_start", "ar41_home_to_stand_end"),
+    ss(p, "ar41_stand_to_get_check", "ar41_stand_to_get_check_start", "ar41_stand_to_get_check_end"),
+    ss(p, "ar41_get_check_to_home", "ar41_get_check_to_home_start", "ar41_get_check_to_home_end"),
+    ss(p, "ar41_stand_to_put_check", "ar41_stand_to_put_check_start", "ar41_stand_to_put_check_end"),
+    ss(p, "ar41_put_check_to_between", "ar41_put_check_to_between_start", "ar41_put_check_to_between_end")
+  )
+
+  val abs = lf1abs ++ lf2abs ++ ar31abs ++ ar41abs
 
   // setup driver
   val driverID = UUID.randomUUID()
@@ -182,8 +221,9 @@ class Trucks(ahid: ID) extends Actor with Helpers {
   val lf1 = vdapi.Resource("loadFixture1", UUID.randomUUID(), lf1vars.map(_.id).toSet, sm(lf1vars), SPAttributes())
   val lf2 = vdapi.Resource("loadFixture2", UUID.randomUUID(), lf2vars.map(_.id).toSet, sm(lf2vars), SPAttributes())
   val ar31 = vdapi.Resource("ar31", UUID.randomUUID(), ar31vars.map(_.id).toSet, sm(ar31vars), SPAttributes())
+  val ar41 = vdapi.Resource("ar41", UUID.randomUUID(), ar41vars.map(_.id).toSet, sm(ar41vars), SPAttributes())
 
-  val resources = List(lf1, lf2, ar31)
+  val resources = List(lf1, lf2, ar31, ar41)
 
   resources.foreach { res =>
     val body = vdapi.SetUpResource(res)
