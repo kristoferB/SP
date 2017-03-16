@@ -40,6 +40,7 @@ object Pickles extends SPParser {
   implicit val sdffsaf = macroRW[SPHeader]
   implicit val wefawef = macroRW[APISP]
   implicit val oshffef = macroRW[PropositionCondition]
+  implicit val sfsdfs = macroRW[Operation]
 
 
   // TODO: Remove Try when creating a SPMessage from classes. The compiler will take that!
