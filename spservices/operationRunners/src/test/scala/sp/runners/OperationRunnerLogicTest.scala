@@ -40,7 +40,7 @@ class OperationRunnerLogicTest(_system: ActorSystem) extends TestKit(_system) wi
 
   "Op runner logic" must {
 
-    val logic = new OperationRunnerLogic{}
+
 
     val t1 = Thing("t1")
     val t2 = Thing("t2")
@@ -82,6 +82,7 @@ class OperationRunnerLogicTest(_system: ActorSystem) extends TestKit(_system) wi
     val ops = Set(o1, o2, o3)
 
     "evaluate ops" in {
+      val logic = new OperationRunnerLogic{}
       val res = logic.evaluateOps(List(o1, o2, o3), initState)
       assert(res == List(o1))
 
@@ -98,6 +99,7 @@ class OperationRunnerLogicTest(_system: ActorSystem) extends TestKit(_system) wi
     }
 
     "upd state" in {
+      val logic = new OperationRunnerLogic{}
       val s = initState.add(Map[ID, SPValue](o1.id -> "f", t1.id -> 2))
 
       val res = logic.evaluateOps(List(o1, o2, o3), s)
@@ -122,6 +124,8 @@ class OperationRunnerLogicTest(_system: ActorSystem) extends TestKit(_system) wi
 
 
     "run ops" in {
+      val logic = new OperationRunnerLogic{}
+      logic.addRunner(setup)
 
       var starting = List[ID]()
       val f = (o: ID) => starting = o :: starting
