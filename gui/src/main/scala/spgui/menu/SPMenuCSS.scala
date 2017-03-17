@@ -1,22 +1,18 @@
 package spgui.menu
 
 import scalacss.Defaults._
+import spgui.circuit.SPGUICircuit
 
 object SPMenuCSS extends StyleSheet.Inline {
   import dsl._
-
-  val navbarBgColor = "#eeeeee"//"#999999"
-  val navbarFgColor = "#58666e"
-  val spOrange = "#df691a"
-  val navbar_header_background = "#999999"
-  val navbar_brand_title_color = backgroundColor.white 
-  val textColor = "#000000"
-
+  
   val topNavHeight = 50 //use in GlobalCSS.scala
 
   val splogoSVGHeight = 60.4
   val splogoSVGWidth = 170.1
 
+  val theme = SPGUICircuit.zoom(_.settings.theme)
+ 
   val topNav = style("sp-top-nav")(
     display.flex,
     flexDirection.row,
@@ -43,7 +39,7 @@ object SPMenuCSS extends StyleSheet.Inline {
   )
 
   val spLogoDiv = style("sp-logo-outer")(
-    backgroundColor :=! spOrange,
+    backgroundColor := theme.value.navbarLogoBackgroundColor,
     height.inherit,
     display.flex,
     alignItems.center
@@ -70,8 +66,8 @@ object SPMenuCSS extends StyleSheet.Inline {
 
   val container = style("sp-navbar-container")(
     paddingLeft(0.px),
-    backgroundColor := navbarBgColor,
-    color := textColor,
+    backgroundColor := theme.value.navbarBackgroundColor,
+    color := theme.value.defaultTextColor,
     border.none,
     display.flex,
     alignItems.center,

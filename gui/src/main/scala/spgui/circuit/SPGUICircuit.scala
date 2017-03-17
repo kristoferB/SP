@@ -7,12 +7,14 @@ import org.scalajs.dom.ext.LocalStorage
 import scala.util.{Success, Try}
 import scala.math._
 import java.util.UUID
+import spgui.theming.Theme
 
 object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] {
   def initialModel = BrowserStorage.load.getOrElse(InitialState())
   val actionHandler = composeHandlers(
     new DashboardHandler(zoomRW(_.openWidgets)((m,v) => m.copy(openWidgets = v))),
-    new GlobalStateHandler(zoomRW(_.globalState)((m, v) => m.copy(globalState = v)))
+    new GlobalStateHandler(zoomRW(_.globalState)((m, v) => m.copy(globalState = v))),
+    new SettingsHandler(zoomRW(_.settings)((m, v) => m.copy(settings = v)))
   )
   // store state upon any model change
   subscribe(zoomRW(myM => myM)((m,v) => v))(m => BrowserStorage.store(m.value))
@@ -52,6 +54,15 @@ class WidgetDataHandler[M](modelRW: ModelRW[M, WidgetData]) extends ActionHandle
   }
 }
 
+class SettingsHandler[M](modelRW: ModelRW[M, Settings]) extends ActionHandler(modelRW) {
+  override def handle = {
+    case SetTheme(newTheme) => {
+      updated(value.copy(
+        theme = newTheme
+      ))
+    }
+  }
+}
 
 import sp.messages.Pickles._
 object BrowserStorage {
