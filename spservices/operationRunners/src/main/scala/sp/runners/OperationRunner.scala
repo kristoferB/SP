@@ -24,7 +24,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
 
 
   def receive = {
-    case x: String =>
+    case x: String if sender() != self =>
       val mess = SPMessage.fromJson(x)
 
       matchRequests(mess)
@@ -37,6 +37,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
 
 
   def matchRequests(mess: Try[SPMessage]) = {
+
     OperationRunnerComm.extractRequest(mess).map{ case (h, b) =>
       val updH = h.copy(from = api.attributes.service)
       mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, APISP.SPACK()))
@@ -69,7 +70,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
           val xs = runners.map(_._2.setup).toList
           mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, api.Runners(xs)))
         case ForceComplete(id) =>
-          completeOPs(id, startAbility, sendState, true)
+          completeOPs(id, startAbility, sendState)
        }
 
       mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, APISP.SPDone()))
@@ -87,7 +88,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
             val ops = getOPFromAbility(id).flatMap(_._2)
             println(s"The ability with id $id started for operations: $ops")
           case abilityAPI.AbilityCompleted(id, _) =>
-            completeOPs(id, startAbility, sendState, true)
+            completeOPs(id, startAbility, sendState)
           case abilityAPI.AbilityState(id, s) =>
         }
 
@@ -109,7 +110,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
 
   val sendState = (s: State, id: ID) => {
     val myH = SPHeader(from = api.attributes.service)
-    mediator ! Publish("services", OperationRunnerComm.makeMess(myH, api.StateEvent(id, s.state)))
+    mediator ! Publish("events", OperationRunnerComm.makeMess(myH, api.StateEvent(id, s.state)))
 
   }
 

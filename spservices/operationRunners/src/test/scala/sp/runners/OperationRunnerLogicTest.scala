@@ -149,36 +149,3 @@ class OperationRunnerLogicTest(_system: ActorSystem) extends TestKit(_system) wi
 
 
 }
-
-import sp.domain.logic.{PropositionParser, ActionParser}
-trait Helpers2 {
-  def v(name: String, drivername: String) = Thing(name, SPAttributes("drivername" -> drivername))
-  def prop(vars: List[IDAble], cond: String, actions: List[String] = List(), kind: String = "pre") = {
-    def c(condition: String): Option[Proposition] = {
-      PropositionParser(vars).parseStr(condition) match {
-        case Right(p) => Some(p)
-        case Left(err) => println(s"Parsing failed on condition: $condition: $err"); None
-      }
-    }
-
-    def a(actions: List[String]): List[Action] = {
-      actions.flatMap { action =>
-        ActionParser(vars).parseStr(action) match {
-          case Right(a) => Some(a)
-          case Left(err) => println(s"Parsing failed on action: $action: $err"); None
-        }
-      }
-    }
-
-    val cRes = if (cond.isEmpty) AlwaysTrue else c(cond).get
-    val aRes = a(actions)
-
-    PropositionCondition(cRes, aRes, SPAttributes("kind" -> kind))
-  }
-
-
-  val plcPath = "|var|CODESYS Control for Raspberry Pi SL.Application."
-  def makeTheOPCVariables(xs: List[Thing], prefix: String = "") = {
-    xs.map(t => t -> (plcPath + prefix + t.name))
-  }
-}
