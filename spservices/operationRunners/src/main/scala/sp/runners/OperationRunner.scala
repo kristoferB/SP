@@ -46,7 +46,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
           addRunner(setup).foreach{xs =>
             mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, api.Runners(xs)))
 
-            println("Runner started")
+            println("Runner started. Init state: " + setup.initialState)
             setRunnerState(setup.runnerID, State(setup.initialState), startAbility, sendState(_, setup.runnerID), true)
 
           }
@@ -194,7 +194,7 @@ trait OperationRunnerLogic {
   def setRunnerState(runnerID: ID, s: State, startAbility: ID => Unit, sendState: State => Unit, runOneAtTheTime: Boolean = false) = {
     val r = runners.get(runnerID)
     r.map { x =>
-      println("set runner state: " + x.currentState)
+      println("set runner state from: " + x.currentState + " to " + s)
       if (s != x.currentState) sendState(s)
       val startOP = (o: Operation) => {
         val a = x.setup.opAbilityMap(o.id)

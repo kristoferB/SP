@@ -141,13 +141,12 @@ class RunnerRuntime extends Actor with DESModelingSupport {
       val things = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing])
       val sops = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
 
+      // TODO: clean up this mess...
       println("Running sop: " + id)
       val s = sops.find(_.id == id).get
       println("SOP name: " + s.name)
       import sp.domain.logic.SOPLogic
-      println("before extract")
-      val conds = SOPLogic.extractOperationConditions(s.sop, "sop")
-      println("after extract")
+      val conds = SOPLogic.extractOperationConditions(s.sop, "sop", true)
       val updOps = ops.flatMap { o =>
         for {
           cond <- conds.get(o.id)
@@ -155,8 +154,15 @@ class RunnerRuntime extends Actor with DESModelingSupport {
           o.copy(conditions = List(cond))
         }
       }.toList
+      val updo = updOps.map(_.id).toSet
+      val sopops = (s.sop flatMap SOPLogic.getAllOperations).toSet - updo
+      val unUpdOps = ops.filter(o=>sopops.contains(o.id)).map(o=>o.copy(conditions = List()))
+      println("unupdated: " + unUpdOps.map(_.name))
+      println("updated: " + updOps.map(_.name))
 
-      val opabmap = updOps.flatMap { o =>
+      val opsToSend = updOps ++ unUpdOps.filterNot(u=>updOps.map(_.id).contains(u.id))
+
+      val opabmap = opsToSend.flatMap { o =>
         for {
           abName <- o.attributes.getAs[String]("ability")
           ab <- ablist.find(_._2 == abName)
@@ -166,7 +172,7 @@ class RunnerRuntime extends Actor with DESModelingSupport {
       }.toMap
 
       val mess = SPAttributes("from" -> "RunnerRuntime", "command" -> "StartSOP",
-        "ops" -> updOps, "abmap" -> opabmap.toList, "initstate" -> List())
+        "ops" -> opsToSend, "abmap" -> opabmap.toList, "initstate" -> List())
 
       println("Sending mess: " + mess)
 
