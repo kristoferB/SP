@@ -47,7 +47,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
             mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, api.Runners(xs)))
 
             println("Runner started. Init state: " + setup.initialState)
-            setRunnerState(setup.runnerID, State(setup.initialState), startAbility, sendState(_, setup.runnerID), true)
+            setRunnerState(setup.runnerID, State(setup.initialState), startAbility, sendState(_, setup.runnerID), false)
 
           }
 
