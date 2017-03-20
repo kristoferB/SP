@@ -1,7 +1,7 @@
 package sp.virtcom
 
 import akka.actor._
-import sp.domain.{SPValue, HierarchyRoot, SPAttributes}
+import sp.domain.{ID, SPValue, HierarchyRoot, SPAttributes}
 import sp.services.AddHierarchies
 import sp.system._
 import sp.system.{ServiceLauncher, SPService}
@@ -17,7 +17,7 @@ import sp.domain.Logic._
  * Register the service (actor) to SP (actor system) [sp.launch.SP]
  */
 
-object CreateOpsFromManualModelService extends SPService {
+object MakeModelService extends SPService {
   val models = List(
     VolvoWeldConveyerCase(),
     GKNcase(),
@@ -37,19 +37,23 @@ object CreateOpsFromManualModelService extends SPService {
   )
 
   val transformTuple = (
-    TransformValue("setup", _.getAs[CreateOpsFromManualModelSetup]("setup"))
+    TransformValue("setup", _.getAs[MakeModelSetup]("setup"))
     )
 
   val transformation = transformToList(transformTuple.productIterator.toList)
 
   // important to incl ServiceLauncher if you want unique actors per request
-  def props = ServiceLauncher.props(Props(classOf[CreateOpsFromManualModelService]))
+  def props(sh:ActorRef) = ServiceLauncher.props(Props(classOf[MakeModelService], sh))
 
 }
 
-case class CreateOpsFromManualModelSetup(model: String)
+case class MakeModelSetup(model: String)
 
-class CreateOpsFromManualModelService extends Actor with ServiceSupport with AddHierarchies {
+class MakeModelService(sh: ActorRef) extends Actor with ServiceSupport with AddHierarchies {
+  import scala.concurrent.duration._
+  import akka.util.Timeout
+  implicit val timeout = Timeout(100.seconds)
+  import context.dispatcher
 
   def receive = {
     case r@Request(service, attr, ids, reqID) =>
@@ -65,21 +69,40 @@ class CreateOpsFromManualModelService extends Actor with ServiceSupport with Add
 
       implicit val hierarchyRoots = filterHierarchyRoots(ids)
 
-      val selectedModel = transform(CreateOpsFromManualModelService.transformTuple)
+      val selectedModel = transform(MakeModelService.transformTuple)
 
-      val modelMap = CreateOpsFromManualModelService.models.map(m => m.modelName -> m).toMap
+      val modelMap = MakeModelService.models.map(m => m.modelName -> m).toMap
 
 
-      val manualModel = modelMap.getOrElse(selectedModel.model, GKNcase())
+      val manualModel = modelMap.getOrElse(selectedModel.model, TrucksCase())
 
       import CollectorModelImplicits._
 
       val idablesFromModel = manualModel.parseToIDables()
       val idablesToReturn = idablesFromModel ++ addHierarchies(idablesFromModel, "hierarchy")
 
-      rnr.reply ! Response(idablesToReturn, SPAttributes("info" -> s"Model created from: ${manualModel.modelName}"), service, reqID)
-      progress ! PoisonPill
-      self ! PoisonPill
+      for {
+        Response(ids,_,_,_) <- askAService(Request("ExtendIDablesBasedOnAttributes",
+          SPAttributes("core" -> ServiceHandlerAttributes(model = None,
+            responseToModel = false,onlyResponse = true, includeIDAbles = List())),
+          idablesToReturn, ID.newID), sh)
+
+        ids_merged = idablesToReturn.filter(x=> !ids.exists(y=>y.id==x.id)) ++ ids
+
+        Response(ids2,synthAttr,_,_) <- askAService(Request("SynthesizeModelBasedOnAttributes",
+          SPAttributes("core" -> ServiceHandlerAttributes(model = None,
+            responseToModel = false, onlyResponse = true, includeIDAbles = List())),
+          ids_merged, ID.newID), sh)
+
+        ids_merged2 = ids_merged.filter(x=> !ids2.exists(y=>y.id==x.id)) ++ ids2
+
+      } yield {
+        rnr.reply ! Response(ids_merged2, SPAttributes("info" -> s"Model created from: ${manualModel.modelName}"), service, reqID)
+        progress ! PoisonPill
+        self ! PoisonPill
+      }
+
+
 
     case (r: Response, reply: ActorRef) =>
       reply ! r

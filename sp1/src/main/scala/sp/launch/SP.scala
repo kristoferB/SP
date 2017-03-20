@@ -92,6 +92,11 @@ object SP extends App {
     CreateOpsFromManualModelService.specification,
     CreateOpsFromManualModelService.transformation))
 
+  mediator ! Publish("serviceHandler", RegisterService("MakeModel",
+    system.actorOf(MakeModelService.props(serviceHandler), "MakeModel"),
+    MakeModelService.specification,
+    MakeModelService.transformation))
+
   mediator ! Publish("serviceHandler", RegisterService("SynthesizeModelBasedOnAttributes",
     system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler, serviceHandler),
       "SynthesizeModelBasedOnAttributes"),
