@@ -15,33 +15,38 @@ object ItemEditor {
   private val jsonEditorOptions = JSONEditorOptions(
     mode = "tree",
     schema = l(
-      "title" -> "Example Schema",
+      "title" -> "SP item",
       "type" -> "object",
       "properties" -> l(
-        "firstName" -> l(
+        "isa" -> l(
+          "enum" -> js.Array("HierarchyRoot", "Operation", "SOPSpec")
+        ),
+        "name" -> l(
           "type" -> "string"
         ),
-        "lastName" -> l(
-          "type" -> "string"
-        ),
-        "gender" -> l(
-          "enum" -> js.Array("male", "female")
-        ),
+        /*
         "age" -> l(
           "description" -> "Age in years",
           "type" -> "integer",
           "minimum" -> 0
+        ),
+         */
+        "id" -> l(
+          // dk if this is visible somewhere, but I think it would be nice
+          "description" -> "UUID as string",
+          "type" -> "string",
+          // jsoneditor doesn't, care, it seems, should facade onEditable
+          "readOnly" -> true
         )
       ),
-      "required" -> js.Array("firstName", "lastName")
+      "required" -> js.Array("isa", "name", "id")
     )
   )
 
   val json = l(
-    "firstName" -> "John",
-    "lastName" -> "Doe",
-    "gender" -> null,
-    "age" -> 28
+    "isa" -> "SomethingIncorrect",
+    "name" -> "SampleJSON",
+    "id" -> "this-should-be-an-uuid"
   )
 
   private val component = ReactComponentB[SPWidgetBase]("ItemEditor")

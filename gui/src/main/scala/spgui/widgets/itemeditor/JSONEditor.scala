@@ -43,6 +43,7 @@ object JSONEditorElement {
 }
 
 // TODO facade more stuff than just set
+// TODO facading destroy() perhaps a good idea
 @js.native
 class JSONEditor(element: raw.Element, options: js.UndefOr[js.Object] = js.undefined, json: js.UndefOr[js.Object] = js.undefined) extends js.Object {
   def set(json: js.Object): Unit = js.native
@@ -52,14 +53,18 @@ class JSONEditor(element: raw.Element, options: js.UndefOr[js.Object] = js.undef
 // this is actually a facade, even tho no annotation is needed
 // TODO facade more of the options object
 case class JSONEditorOptions(
+  history: Boolean = true,
   mode: String = "code",
   modes: Seq[String] = Seq("code", "tree"),
-  schema: js.UndefOr[js.Object] = js.undefined
+  schema: js.UndefOr[js.Object] = js.undefined,
+  search: Boolean = true
 ) {
   def toJS =
     l(
+      "history" -> history,
       "mode" -> mode,
       "modes" -> modes.toJSArray,
-      "schema" -> schema
+      "schema" -> schema,
+      "search" -> search
     )
 }
