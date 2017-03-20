@@ -27,6 +27,7 @@ package APIAbilityHandler {
   case class AbilityCompleted(id: ID, result: Map[ID, SPValue]) extends Response
   case class AbilityState(id: ID, state: Map[ID, SPValue]) extends Response
   case class Abilities(xs: List[Ability]) extends Response
+  case class Abs(a: List[(ID,String)]) extends Response
 
   case class Ability(name: String,
                      id: ID,
@@ -36,7 +37,7 @@ package APIAbilityHandler {
                      resetCondition: PropositionCondition = PropositionCondition(AlwaysTrue, List()),
                      parameters: List[ID] = List(),
                      result: List[ID] = List(),
-                     attributes: SPAttributes = SPAttributes())
+                     attributes: SPAttributes = SPAttributes()) extends Response
 
   object attributes {
     val service = "abilityHandler"
@@ -72,4 +73,3 @@ object AbilityComm {
   def makeMess(h: SPHeader, b: APISP) = SPMessage.makeJson[SPHeader, APISP](h, b)
 
 }
-

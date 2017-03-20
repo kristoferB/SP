@@ -46,6 +46,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
           addRunner(setup).foreach{xs =>
             mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, api.Runners(xs)))
 
+            println("Runner started")
             setRunnerState(setup.runnerID, State(setup.initialState), startAbility, sendState(_, setup.runnerID), true)
 
           }
@@ -104,6 +105,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
 
 
   val startAbility = (id: ID) => {
+    println("Starting ability: " + id)
     val myH = SPHeader(from = api.attributes.service, to = abilityAPI.attributes.service, reply = api.attributes.service)
     mediator ! Publish("services", OperationRunnerComm.makeMess(myH, abilityAPI.StartAbility(id)))
   }
@@ -192,6 +194,7 @@ trait OperationRunnerLogic {
   def setRunnerState(runnerID: ID, s: State, startAbility: ID => Unit, sendState: State => Unit, runOneAtTheTime: Boolean = false) = {
     val r = runners.get(runnerID)
     r.map { x =>
+      println("set runner state: " + x.currentState)
       if (s != x.currentState) sendState(s)
       val startOP = (o: Operation) => {
         val a = x.setup.opAbilityMap(o.id)
@@ -217,6 +220,7 @@ trait OperationRunnerLogic {
 
   def newState(s: State, ops: Set[Operation], sendCmd: Operation => Unit, sendState: State => Unit, runOneAtTheTime: Boolean = false): State = {
     val enabled = ops.filter(isEnabled(_, s))
+    println("runner enabled ops: " + enabled.map(_.name).mkString(", "))
     val res = enabled.headOption.map{o =>
       val updS = runOp(o, s)
       sendCmd(o)

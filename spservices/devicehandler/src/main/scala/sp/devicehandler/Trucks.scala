@@ -195,10 +195,6 @@ class Trucks(ahid: ID) extends Actor with Helpers {
       p("ar41_unlockTool && !ar41_toolUnlocked"),
       p("ar41_toolUnlocked", List("ar41_unlockTool := false"))),
 
-    ss(p,"ar31_picklf1_seg1", "ar31_picklf1_seg1_start", "ar31_picklf1_seg1_end"),
-    ss(p,"ar31_picklf1_seg2", "ar31_picklf1_seg2_start", "ar31_picklf1_seg2_end"),
-    ss(p,"ar31_picklf1_seg3", "ar31_picklf1_seg3_start", "ar31_picklf1_seg3_end"),
-
     ss(p, "ar41_home_to_stand", "ar41_home_to_stand_start", "ar41_home_to_stand_end"),
     ss(p, "ar41_stand_to_get_check", "ar41_stand_to_get_check_start", "ar41_stand_to_get_check_end"),
     ss(p, "ar41_get_check_to_home", "ar41_get_check_to_home_start", "ar41_get_check_to_home_end"),

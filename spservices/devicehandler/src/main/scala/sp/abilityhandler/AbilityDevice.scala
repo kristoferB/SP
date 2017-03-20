@@ -154,7 +154,12 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
         case x: api.GetAbilities =>
           val xs = abilities.map(_._2.ability).toList
 
+          val abs = abilities.map(a=>(a._2.ability.id,a._2.ability.name)).toList
+
+          println("got getabilitiies request")
           mediator ! Publish("answers", AbilityComm.makeMess(updH, api.Abilities(xs)))
+          mediator ! Publish("answers", AbilityComm.makeMess(updH, api.Abs(abs)))
+
           mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPDone()))
 
           abilities.foreach(a => a._2.actor ! GetState)
