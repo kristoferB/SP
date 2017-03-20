@@ -42,7 +42,7 @@ object OperationRunnerComm {
 
   def extractAbilityReply(mess: Try[SPMessage]) = for {
     m <- mess
-    h <- m.getHeaderAs[SPHeader] if h.reply == SPValue(api.attributes.service)
+    h <- m.getHeaderAs[SPHeader] // if h.reply == SPValue(api.attributes.service)
     b <- m.getBodyAs[abilityAPI.Response]
     } yield (h, b)
 

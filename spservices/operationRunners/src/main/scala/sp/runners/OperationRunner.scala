@@ -89,6 +89,8 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
             val ops = getOPFromAbility(id).flatMap(_._2)
             println(s"The ability with id $id started for operations: $ops")
           case abilityAPI.AbilityCompleted(id, _) =>
+            val ops = getOPFromAbility(id).flatMap(_._2)
+            println(s"The ability with id $id completed for operations: $ops")
             completeOPs(id, startAbility, sendState)
           case abilityAPI.AbilityState(id, s) =>
         }
@@ -200,7 +202,7 @@ trait OperationRunnerLogic {
         val a = x.setup.opAbilityMap(o.id)
         startAbility(a)
       }
-      runners += runnerID -> x
+      runners += runnerID -> x.copy(currentState = s.state)
       newState(s,x.setup.ops, startOP, sendState, runOneAtTheTime)
     }
   }
