@@ -5,14 +5,13 @@ import diode.react.ReactConnector
 import org.scalajs.dom.ext.LocalStorage
 
 import scala.util.{Success, Try}
-import scala.math._
-import java.util.UUID
 
 object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] {
   def initialModel = BrowserStorage.load.getOrElse(InitialState())
   val actionHandler = composeHandlers(
     new DashboardHandler(zoomRW(_.openWidgets)((m,v) => m.copy(openWidgets = v))),
-    new GlobalStateHandler(zoomRW(_.globalState)((m, v) => m.copy(globalState = v)))
+    new GlobalStateHandler(zoomRW(_.globalState)((m, v) => m.copy(globalState = v))),
+    new WidgetDataHandler(zoomRW(_.widgetData)((m,v) => m.copy(widgetData = v)))
   )
   // store state upon any model change
   subscribe(zoomRW(myM => myM)((m,v) => v))(m => BrowserStorage.store(m.value))
