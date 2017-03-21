@@ -114,8 +114,8 @@ package spgui.widgets.examples {
             ^.className := "btn btn-default",
             ^.onClick --> send(api.ResetAllTickers()), "Reset"
           ),
-	<.div("Left stack: Number of messages received"),
-	<.div("Right stack: Ticks since started listening"),
+	        <.div("Left stack: Number of messages received."),
+	        <.div("Right stack: Ticks since started listening."),
           <.div(
             d3DivComponent(List(messageCounter, tickCounter))
           )
@@ -186,7 +186,6 @@ package spgui.widgets.examples {
           .attr("y", rectYFun)
           .attr("dx", barWidth/2)
           .attr("class", "text")
-          //.attr("dy", "0.9em")
           .text({(d:Int) => d.toString})
 
       }
