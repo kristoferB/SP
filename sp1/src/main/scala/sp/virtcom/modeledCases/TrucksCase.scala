@@ -37,7 +37,8 @@ case class TrucksCase(modelName: String = "ENTOC Trucks cell") extends Collector
     v(name = "AR31Pos", idleValue = "home", attributes = h)
 
 
-    op("AR31PickLF1Seg1", SPAttributes(aResourceTrans("AR31Pos", "home", "home_to_atLF1", "atLF1")) merge ab("ar31_picklf1_seg1") merge h)
+    op("AR31PickLF1Seg1", SPAttributes(aResourceTrans("AR31Pos", "home", "home_to_atLF1", "atLF1_suck")) merge ab("ar31_picklf1_seg1") merge h)
+    op("AR31PickLF1Seg1_SV", SPAttributes(aResourceTrans("AR31Pos", "atLF1_suck", "stop_sucking", "atLF1")) merge ab("ar31_stopVacuum") merge h)
 
     op("AR31PickLF1", SPAttributes(
       aCarrierTrans("AR31Part", atStart = "empty", atComplete = "partA"),
@@ -85,9 +86,9 @@ case class TrucksCase(modelName: String = "ENTOC Trucks cell") extends Collector
       aCarrierTrans("AR31Part", atStart = "partA", atComplete = "empty")) merge ab("ar31_goto_home") merge h)
 
     // temp stuff to complete the cycle early
-    op("AR31ToHome", SPAttributes(
-      aResourceTrans("AR31Pos", "atGlue41_done", "atGlue41_done_to_home", "home"),
-      aCarrierTrans("AR31Part", atStart = "partA", atComplete = "empty")) merge ab("ar31_goto_home") merge h)
+    // op("AR31ToHome", SPAttributes(
+    //   aResourceTrans("AR31Pos", "atGlue41_done", "atGlue41_done_to_home", "home"),
+    //   aCarrierTrans("AR31Part", atStart = "partA", atComplete = "empty")) merge ab("ar31_goto_home") merge h)
   }
 
 }

@@ -25,7 +25,7 @@ import scala.util.Random
 
 
 object RunnerRuntime {
-  def props = Props(classOf[RunnerRuntime])
+  def props(eh: ActorRef) = Props(classOf[RunnerRuntime], eh)
 }
 
 case class Init(ops: List[Operation], things: List[Thing])
@@ -38,7 +38,7 @@ case class StateChange(state: State, enabled: List[ID])
 case class RunnerOpStarted(resource: String, name: String, time: DateTime)
 case class RunnerOpFinished(resource: String, name: String, time: DateTime)
 
-class RunnerRuntime extends Actor with DESModelingSupport {
+class RunnerRuntime(eh: ActorRef) extends Actor with DESModelingSupport {
   import context.dispatcher
   val id = ID.newID
   val mediator = DistributedPubSub(context.system).mediator
@@ -112,7 +112,29 @@ class RunnerRuntime extends Actor with DESModelingSupport {
         val abs = a.getAs[List[(ID,String)]]("abilities").getOrElse(List())
         if(abs.nonEmpty) setupAbMaps(abs)
 
-        a.getAs[ID]("finished").foreach(id => finishAb(id))
+
+        a.getAs[ID]("started").foreach{id =>
+          for {
+            opid <- abToOp.get(id)
+            op <- ops.find(_.id == opid)
+          } yield {
+            val silent = SPAttributes("silent" -> true)
+            eh ! Response(List(), SPAttributes("operation"->op.name, "executing" -> true, "resource" -> "r1") merge silent, "WidgetsBackend", ID.newID)
+          }
+
+          finishAb(id)
+        }
+        a.getAs[ID]("finished").foreach{id =>
+          finishAb(id)
+
+          for {
+            opid <- abToOp.get(id)
+            op <- ops.find(_.id == opid)
+          } yield {
+            val silent = SPAttributes("silent" -> true)
+            eh ! Response(List(), SPAttributes("operation"->op.name, "executing" -> false, "resource" -> "r1") merge silent, "WidgetsBackend", ID.newID)
+          }
+        }
       }
     }
 

@@ -75,6 +75,10 @@ class Sp1Talker extends Actor {
             println("got abilities!!. sending on")
             val reply = SPAttributes("from" -> "AbilityHandler", "abilities" -> a)
             mediator ! Publish("sp1answers", reply)
+          case api.AbilityStarted(id) =>
+            println("got abilty started!!. sending on")
+            val reply = SPAttributes("from" -> "AbilityHandler", "started" -> id)
+            mediator ! Publish("sp1answers", reply)
           case api.AbilityCompleted(id, result) =>
             println("got abilty completed!!. sending on")
             val reply = SPAttributes("from" -> "AbilityHandler", "finished" -> id, "result" -> result)

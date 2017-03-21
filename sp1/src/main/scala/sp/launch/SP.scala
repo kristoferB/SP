@@ -147,7 +147,7 @@ object SP extends App {
 
   import sp.opcRunner._
 //  system.actorOf(OPCUARunner.props, "OPCUARunner")
-  system.actorOf(RunnerRuntime.props, "RunnerRuntime")
+  system.actorOf(RunnerRuntime.props(eventHandler), "RunnerRuntime")
   mediator ! Publish("serviceHandler", RegisterService("OPCUARunnerFrontend",
     system.actorOf(OPCUARunnerFrontend.props(eventHandler), "OPCUARunnerFrontend"),
     OPCUARunnerFrontend.specification, OPCUARunnerFrontend.transformation))

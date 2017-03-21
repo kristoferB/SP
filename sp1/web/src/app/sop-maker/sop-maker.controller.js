@@ -9,10 +9,10 @@
         .controller('SOPMakerController', SOPMakerController);
 
     SOPMakerController.$inject = ['$element', '$scope', 'sopDrawer', 'itemService', 'logger', 'dashboardService',
-                                  '$uibModal', 'uuid4', 'dialogs','$rootScope'];
+                                  '$uibModal', 'uuid4', 'dialogs','$rootScope','eventService'];
     /* @ngInject */
     function SOPMakerController($element, $scope, sopDrawer, itemService, logger, dashboardService, $uibModal, uuid4,
-                                dialogs,$rootScope) {
+                                dialogs,$rootScope,eventService) {
         var vm = this, paper = null;
         var widgetModel = $scope.$parent.$parent.$parent.vm;
         vm.widget = widgetModel.widget;
@@ -27,6 +27,8 @@
         vm.saveButtonText = function() {return vm.widget.storage.sopSpecID ? 'Save' : 'Save As';};
         vm.closeSOPMakerWidgetOnItemEvent = closeSOPMakerWidgetOnItemEvent;
         vm.closeSOPMakerWidgetsOnModelChange = closeSOPMakerWidgetsOnModelChange;
+
+        var activeOpNames = [];
 
         activate();
 
@@ -59,6 +61,7 @@
 
             vm.closeSOPMakerWidgetOnItemEvent('itemDeletion');
             vm.closeSOPMakerWidgetsOnModelChange();
+            eventService.addListener('Response', onEvent);
         }
 
         function addSop() {
@@ -87,11 +90,11 @@
         }
 
         function draw() {
-            sopDrawer.calcAndDrawSop($scope, paper, true, true);
+            sopDrawer.calcAndDrawSop($scope, paper, true, true, activeOpNames);
         }
 
         function reDraw() {
-            sopDrawer.calcAndDrawSop($scope, paper, true, false);
+            sopDrawer.calcAndDrawSop($scope, paper, true, false, activeOpNames);
         }
 
         function loadAndDraw() {
@@ -113,7 +116,7 @@
                 vm.sopSpecCopy = {
                     name: 'Nameless SOP',
                     sop: []
-                }
+                };
             }
             widgetModel.title = vm.sopSpecCopy.name;
             vm.sopSpecCopy.vertDir = true;
@@ -222,6 +225,19 @@
             $rootScope.$on('modelChanged', function(event, model) {
                 dashboardService.closeWidget(vm.widget.id);
             });
+        }
+
+        function onEvent(event){
+            if(!(_.isUndefined(event.service)) && event.service != "WidgetsBackend") return;
+            if(!(_.isUndefined(event.isa)) && event.isa != "Response") return;
+
+            if(_.has(event, 'attributes.resource') && _.has(event, 'attributes.executing')) {
+                var res = event.attributes.resource;
+                var name = event.attributes.operation;
+                if(event.attributes.executing) activeOpNames.push(name);
+                else activeOpNames = _.filter(activeOpNames, function(n) { return n != name; });
+                clearAndDrawFromScratch();
+            }
         }
 
 
