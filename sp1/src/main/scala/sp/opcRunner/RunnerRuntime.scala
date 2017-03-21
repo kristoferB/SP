@@ -112,25 +112,21 @@ class RunnerRuntime(eh: ActorRef) extends Actor with DESModelingSupport {
         val abs = a.getAs[List[(ID,String)]]("abilities").getOrElse(List())
         if(abs.nonEmpty) setupAbMaps(abs)
 
+        def abToOps(abid: ID) = {
+          val opids = opToAb.filter(_._2 == abid).keySet
+          ops.filter(o => opids.contains(o.id))
+        }
 
         a.getAs[ID]("started").foreach{id =>
-          for {
-            opid <- abToOp.get(id)
-            op <- ops.find(_.id == opid)
-          } yield {
+          abToOps(id).foreach { op =>
             val silent = SPAttributes("silent" -> true)
             eh ! Response(List(), SPAttributes("operation"->op.name, "executing" -> true, "resource" -> "r1") merge silent, "WidgetsBackend", ID.newID)
           }
-
-          finishAb(id)
         }
         a.getAs[ID]("finished").foreach{id =>
           finishAb(id)
 
-          for {
-            opid <- abToOp.get(id)
-            op <- ops.find(_.id == opid)
-          } yield {
+          abToOps(id).foreach { op =>
             val silent = SPAttributes("silent" -> true)
             eh ! Response(List(), SPAttributes("operation"->op.name, "executing" -> false, "resource" -> "r1") merge silent, "WidgetsBackend", ID.newID)
           }
