@@ -14,18 +14,18 @@ import org.scalajs.dom.raw
 // the state of the jsoneditor is best handled by the jsoneditor-module itself
 // the whole jsoneditor-element is put as state to let it do that
 object JSONEditor {
-  case class Props(options: JSONEditorOptions, json: js.Object)
+  case class Props(options: JSONEditorOptions, json: js.Dynamic)
 
   val component = ReactComponentB[Props]("JSONEditor")
     .initialState_P(p => JSONEditorElement(p.options, p.json))
     .render(dcb => dcb.state)
     .build
 
-  def apply(options: JSONEditorOptions, json: js.Object) = component(Props(options, json))
+  def apply(options: JSONEditorOptions, json: js.Dynamic) = component(Props(options, json))
 }
 
 object JSONEditorElement {
-  case class Props(options: JSONEditorOptions, json: js.Object)
+  case class Props(options: JSONEditorOptions, json: js.Dynamic)
 
   def component = ReactComponentB[Props]("JSONEditorElement")
     .render(_ => <.div(ItemEditorCSS.editor))
@@ -34,9 +34,9 @@ object JSONEditorElement {
     )
     .build
 
-  def apply(options: JSONEditorOptions, json: js.Object) = component(Props(options, json))
+  def apply(options: JSONEditorOptions, json: js.Dynamic) = component(Props(options, json))
 
-  private def addTheJSONEditor(element: raw.Element, options: JSONEditorOptions, json: js.Object): Unit = {
+  private def addTheJSONEditor(element: raw.Element, options: JSONEditorOptions, json: js.Dynamic): Unit = {
     val optionsInJS = options.toJS
     val editor = new JSONEditor(element, optionsInJS, json)
   }
@@ -45,7 +45,7 @@ object JSONEditorElement {
 // TODO facade more stuff than just set
 // TODO facading destroy() perhaps a good idea
 @js.native
-class JSONEditor(element: raw.Element, options: js.UndefOr[js.Object] = js.undefined, json: js.UndefOr[js.Object] = js.undefined) extends js.Object {
+class JSONEditor(element: raw.Element, options: js.UndefOr[js.Dynamic] = js.undefined, json: js.UndefOr[js.Dynamic] = js.undefined) extends js.Object {
   def set(json: js.Object): Unit = js.native
   def resize(): Unit = js.native
 }
