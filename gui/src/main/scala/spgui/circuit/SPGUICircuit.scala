@@ -5,8 +5,6 @@ import diode.react.ReactConnector
 import org.scalajs.dom.ext.LocalStorage
 
 import scala.util.{Success, Try}
-import scala.math._
-import java.util.UUID
 import spgui.theming.Theme
 
 object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] {
@@ -14,7 +12,8 @@ object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] 
   val actionHandler = composeHandlers(
     new DashboardHandler(zoomRW(_.openWidgets)((m,v) => m.copy(openWidgets = v))),
     new GlobalStateHandler(zoomRW(_.globalState)((m, v) => m.copy(globalState = v))),
-    new SettingsHandler(zoomRW(_.settings)((m, v) => m.copy(settings = v)))
+    new SettingsHandler(zoomRW(_.settings)((m, v) => m.copy(settings = v))),
+    new WidgetDataHandler(zoomRW(_.widgetData)((m,v) => m.copy(widgetData = v)))
   )
   // store state upon any model change
   subscribe(zoomRW(myM => myM)((m,v) => v))(m => BrowserStorage.store(m.value))
