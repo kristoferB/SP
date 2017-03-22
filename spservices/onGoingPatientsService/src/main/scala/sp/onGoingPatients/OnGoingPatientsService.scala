@@ -66,7 +66,6 @@ class OnGoingPatientsService extends Actor with ActorLogging {
 
     case x: String =>
       patientsToElastic.messageReceived(x)
-
   }
 
 

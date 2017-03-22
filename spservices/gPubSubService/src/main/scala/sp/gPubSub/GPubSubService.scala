@@ -108,40 +108,10 @@ class GPubSub(applicationName: String, implicit val projectName: String) extends
 
 
 
-// The messages that this service can send and receive is
-// is defined using this API structure
-
 package API_GPubSubService {
-  sealed trait API_GPubSubService
-  // Messages you can send to me
-  /**
-    * Adds a new pie to the memory with an id
-    * @param id an UUID identifying the pie
-    */
-  case class StartTheTicker(id: java.util.UUID) extends API_GPubSubService
-
-  /**
-    * removes the pie with the id
-    * @param id an UUID identifying the pie
-    */
-  case class StopTheTicker(id: java.util.UUID) extends API_GPubSubService
-
-  /**
-    * Changes the pie to the given map
-    * @param id  an UUID identifying the pie
-    * @param map A map representing a pie
-    */
-  case class SetTheTicker(id: java.util.UUID, map: Map[String, Int]) extends API_GPubSubService
-  case class GetTheTickers() extends API_GPubSubService
-  case class ResetAllTickers() extends API_GPubSubService
 
   // included here for simplicity
   case object StartThePLC extends API_GPubSubService
-
-
-  // Messages that I will send as answer
-  case class TickerEvent(map: Map[String, Int], id: java.util.UUID) extends API_GPubSubService
-  case class TheTickers(ids: List[java.util.UUID]) extends API_GPubSubService
 
   object attributes {
     val service = "exampleService"
