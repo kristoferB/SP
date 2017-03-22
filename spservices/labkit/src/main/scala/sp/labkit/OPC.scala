@@ -45,6 +45,7 @@ object OPC {
   def props = Props(classOf[OPC])
 }
 
+import sp.labkit.{API_OpcUARuntime => api}
 
 // simple example opc ua client useage
 class OPC extends Actor {
