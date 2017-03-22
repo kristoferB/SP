@@ -19,6 +19,8 @@ object API_D3ExampleService {
 
 class D3ExampleService extends Actor with ActorLogging {
 
+  println("INSIDE D3 SERVICE")
+
   // conneting to the pubsub bus using the mediator actor
   import akka.cluster.pubsub._
   import DistributedPubSubMediator.{ Subscribe, Publish }
