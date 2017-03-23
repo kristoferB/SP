@@ -24,7 +24,7 @@ object Pickles extends SPParser {
   case class SPHeader(from: String = "", // the name of the sender
                       to: String = "", // the name of the receiver, empty if to anyone
                       reqID: UUID = UUID.randomUUID(), // the id to use for replies
-                      reply: SPValue = SPValue(), // A data structure that should be included in all replies to be used for matching
+                      reply: SPValue = SPValue.empty, // A data structure that should be included in all replies to be used for matching
                       fromTags: List[String] = List(), // a list of tags to define things about the sender. For example where the sender is located
                       toTags: List[String] = List(), // a list of tags to define things about possible receivers
                       attributes: SPAttributes = SPAttributes() // to be used in some scenarios, where more info in the header is needed
@@ -88,9 +88,16 @@ object Pickles extends SPParser {
   def fromJsonToSPAttributes(expr: String): Try[SPAttributes] = Try{upickle.json.read(expr).asInstanceOf[SPAttributes]}
 
 
-  implicit val sdffsaf = macroRW[SPHeader]
-  implicit val wefawef = macroRW[APISP]
-  implicit val oshffef = macroRW[PropositionCondition]
+  implicit lazy val asdasd = {val asdasd = ();   macroRW[SPMessage]}
+  implicit lazy val sdffsaf = {val sdffsaf = ();   macroRW[SPHeader]}
+  implicit lazy val wefawef = {val wefawef = ();   macroRW[APISP]}
+  implicit lazy val aasdasd = {val aasdasd = ();   macroRW[StateUpdater]}
+  implicit lazy val csdcsdc = {val csdcsdc = ();   macroRW[StateEvaluator]}
+  implicit lazy val oshffef = {val oshffef = ();   macroRW[PropositionEvaluator]}
+  implicit lazy val scvvvds = {val scvvvds = ();   macroRW[Proposition]}
+  implicit lazy val ccscsc = {val ccscsc = ();   macroRW[PropositionCondition]}
+  implicit lazy val vfvfvfv = {val vfvfvfv = ();   macroRW[Condition]}
+  implicit lazy val bfgbfgb = {val bfgbfgb = ();   macroRW[Operation]}
 
 }
 
