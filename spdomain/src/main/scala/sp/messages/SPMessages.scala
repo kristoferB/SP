@@ -36,10 +36,17 @@ object Pickles extends SPParser {
 
 
 
-  implicit val sdffsaf = macroRW[SPHeader]
-  implicit val wefawef = macroRW[APISP]
-  implicit val oshffef = macroRW[PropositionCondition]
-  implicit val sfsdfs = macroRW[Operation]
+
+  implicit lazy val asdasd = {val asdasd = ();   macroRW[SPMessage]}
+  implicit lazy val sdffsaf = {val sdffsaf = ();   macroRW[SPHeader]}
+  implicit lazy val wefawef = {val wefawef = ();   macroRW[APISP]}
+  implicit lazy val aasdasd = {val aasdasd = ();   macroRW[StateUpdater]}
+  implicit lazy val csdcsdc = {val csdcsdc = ();   macroRW[StateEvaluator]}
+  implicit lazy val oshffef = {val oshffef = ();   macroRW[PropositionEvaluator]}
+  implicit lazy val scvvvds = {val scvvvds = ();   macroRW[Proposition]}
+  implicit lazy val ccscsc = {val ccscsc = ();   macroRW[PropositionCondition]}
+  implicit lazy val vfvfvfv = {val vfvfvfv = ();   macroRW[Condition]}
+  implicit lazy val bfgbfgb = {val bfgbfgb = ();   macroRW[Operation]}
 
 
   // TODO: Remove Try when creating a SPMessage from classes. The compiler will take that!
