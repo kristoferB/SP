@@ -5,8 +5,8 @@ import javax.swing.JList
 import com.github.nscala_time.time.Imports._
 import com.typesafe.config.ConfigFactory
 import wabisabi._
-import org.json4s.native.JsonMethods._
-import org.json4s.native.Serialization._
+import org.json4s.jackson.JsonMethods._
+import org.json4s.jackson.Serialization._
 import org.json4s._
 import org.json4s.JsonDSL._
 import scala.concurrent.ExecutionContext.Implicits.global // Client.get gets sad without this
@@ -30,13 +30,17 @@ class PatientsToElastic {
   val client = new Client(s"http://$ip:$port") // creates a wabisabi client for communication with elasticsearch
 
   /** Handles the initial parsing of incoming messages */
-  def messageReceived(message: String) {
+  def messageReceived(messageU: String) {
+    var message: String = messageU.replaceAll("\\\\", "")
+    var m1 = message.dropRight(1)
+    var m2 = m1.reverse.dropRight(1)
+    var m = m2.reverse
     println("************************* new message *************************")
     println("TIME: " + getNow)
-    println("MESS: " + message)
+    println("MESS: " + m)
     // figure out what sort of message we just received
-    val json:JValue = parse(message) // this jsons the String.
-    val isa = json \ "new"
+    val json: JValue = parse(m) // this jsons the String.
+    val isa = json \ "isa"
     println("isa: " + isa)
 
     isa match {
@@ -269,6 +273,7 @@ class PatientsToElastic {
     */
   def addPatient(patient : JValue, targetIndex: String): Unit = {
     val careContactId:String = (patient \"CareContactId").values.toString
+    println("----CareContactId: " + careContactId)
     client.index(
       index = targetIndex,
       `type` = PATIENT_TYPE,
