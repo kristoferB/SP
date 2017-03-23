@@ -108,7 +108,11 @@ class GPubSub(applicationName: String, implicit val projectName: String) extends
 
 
 
+// The messages that this service can send and receive is
+// is defined using this API structure
+
 package API_GPubSubService {
+  sealed trait API_GPubSubService
 
   // included here for simplicity
   case object StartThePLC extends API_GPubSubService
