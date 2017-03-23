@@ -8,6 +8,9 @@ import spgui.SPWidget
 import spgui.components.Icon
 
 import java.util.UUID
+import scalajs.js
+import js.Dynamic.{ literal => l }
+import js.JSON
 
 case class OperationDirItem(name: String, id: String, content: String) extends DirectoryItem
 case class SOPSpecDirItem(name: String, id: String, content: String) extends DirectoryItem
@@ -35,9 +38,20 @@ object GetItemIcon {
 }
 
 object RenderItemContent {
+  // pre-tag keeps the indentation and gives a nice frame
+  def contentToElement(content: js.Object) = <.pre(
+    Style.itemContent,
+    JSON.stringify(content, space = 2),
+    ^.onClick --> Callback.log(
+      "Clicked button with content " + JSON.stringify(content) +
+        ". TODO: make this open the json in itemeditor"
+    )
+  )
+
   def apply(item: DirectoryItem): ReactNode = item match {
-    case op: OperationDirItem => op.content
-    case ss: SOPSpecDirItem => ss.content
+    case item: OperationDirItem => contentToElement(l("stuff" -> item.content))
+    case item: SOPSpecDirItem => contentToElement(l("stuff" -> item.content))
+
   }
 }
 

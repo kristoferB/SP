@@ -6,6 +6,12 @@ import scalacss.ScalaCssReact._
 object Style extends StyleSheet.Inline {
   import dsl._
 
+  val itemContent = style(
+    &.hover(
+      cursor.pointer
+    )
+  )
+
   val outerDiv = style(
     //backgroundColor.white,
     //display.inlineBlock,
