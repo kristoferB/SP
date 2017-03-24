@@ -1,20 +1,15 @@
-name := "ssyx02-16-03"
-
-version := "1.0"
-
-scalaVersion := "2.11.7"
-
 scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf8")
 
 //för wabasabi
 resolvers += "gphat" at "https://raw.github.com/gphat/mvn-repo/master/releases/"
 
 libraryDependencies ++= {
-  val akkaV       = "2.4.1"
-  val akkaStreamV = "2.0.1"
+  val akkaV       = "2.4.17"
+  val akkaStreamV = "2.0.5"
   val scalaTestV  = "2.2.5"
+
   Seq(
-    "wabisabi" %% "wabisabi" % "2.1.4",
+    "com.github.gphat" % "wabisabi_2.11" % "2.2.0",
     "com.typesafe"       % "config"                               % "1.3.0",
     "com.typesafe.akka" %% "akka-actor"                           % akkaV,
     "com.typesafe.akka" %% "akka-stream-experimental"             % akkaStreamV,
