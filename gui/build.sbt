@@ -32,8 +32,10 @@ libraryDependencies ++= Seq(
   "com.lihaoyi" %%% "upickle" % "0.4.3",
   "com.lihaoyi" %%% "scalarx" % "0.3.2",
   "org.singlespaced" %%% "scalajs-d3" % "0.3.3",
-  "org.scalatest" %%% "scalatest" % "3.0.0" % "test"
+  "org.scalatest" %%% "scalatest" % "3.0.0" % "test",
+  "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
 )
+
 
 /* This is how to include js files. Put it in src/main/resources.
 jsDependencies ++= Seq(

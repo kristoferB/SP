@@ -93,8 +93,21 @@ lazy val exampleService = (project in file("spservices/exampleService"))
 .settings(libraryDependencies ++= akka)
 
 lazy val d3exampleService = (project in file("spservices/d3exampleservice"))
-lazy val gPubSubService = (project in file("spservices/gPubSubService"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
 
+lazy val gPubSubService = (project in file("spservices/gPubSubService"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
+
+lazy val fakeElvisService = (project in file("spservices/fakeElvisService"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
+
+lazy val patientCardsService = (project in file("spservices/patientCardsService"))
   .dependsOn(spdomain, macros)
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
