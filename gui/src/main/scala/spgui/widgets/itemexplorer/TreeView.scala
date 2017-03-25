@@ -2,7 +2,9 @@ package spgui.widgets.itemexplorer
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.all.aria
 import scalacss.ScalaCssReact._
+
 
 import spgui.components.DragAndDrop.{ DataOnDrag, OnDataDrop }
 import spgui.components.{ Icon, Dropdown }
@@ -17,13 +19,40 @@ object TreeView {
     onSaveButtonClick: RootDirectory => Callback
   )
 
-  class TreeViewBackend($: BackendScope[TreeViewProps, RootDirectory]) {
-    def addItem(item: DirectoryItem) = $.modState(_.addItem(item))
+  case class TreeViewState(
+    rt: RootDirectory,
+    visIds: Seq[String] = Seq()
+  )
+
+  class TreeViewBackend($: BackendScope[TreeViewProps, TreeViewState]) {
+    def addItem(item: DirectoryItem) = {//Callback.empty
+      $.modState(s => s.copy(s.rt.addItem(item)))
+    }
 
     def onDrop(senderId: String, receiverId: String) =
-        $.modState(_.moveItem(senderId, receiverId))
+        $.modState(s => s.copy(s.rt.moveItem(senderId, receiverId)))
 
-    def render(p: TreeViewProps, s: RootDirectory) =
+    def onFilterTextChange(e :ReactEventI): CallbackTo[Unit] = {
+      e.extract(_.target.value)(searchText => {
+        $.props >>= (p => ( filter(searchText,p.rootDirectory)))
+        }
+      )
+    }
+
+    private def filter(s:String,rts:RootDirectory) = {
+        Console.println("filtering:" +s)
+        var visMap: Seq[String] = Seq()
+        rts.items.map(item => visMap :+= item.id)
+        $.modState(_.copy(visIds = visMap))
+    }
+
+    def iterate(s:Any) = {
+      Console.println("d" +s)
+      Callback.empty
+    }
+    $.state >>= (s => (iterate(s.visIds)))
+
+    def render(p: TreeViewProps, s: TreeViewState) =
       <.div(
         Style.outerDiv,
         <.div(
@@ -39,18 +68,27 @@ object TreeView {
           <.div(
             ^.className := "btn btn-default",
             Icon.floppyO,
-            ^.onClick --> p.onSaveButtonClick(s)
+            ^.onClick --> p.onSaveButtonClick(s.rt)
+          ),
+          <.div(
+            ^.className := "input-group",
+            <.input(
+              ^.className := "form-control",
+              ^.placeholder := "Filter",
+              ^.aria.describedby := "basic-addon1",
+              ^.onChange ==> onFilterTextChange
+            )
           )
         ),
         <.div(
           Style.treeDiv,
-          TVColumn(s.items, s.rootLevelItemIds, p.getItemIcon, p.renderContent, onDrop)
+          TVColumn(s.rt.items, s.rt.rootLevelItemIds, p.getItemIcon, p.renderContent, onDrop, s.visIds)
         )
       )
   }
 
   private val component = ReactComponentB[TreeViewProps]("TreeView")
-    .initialState_P(p => p.rootDirectory)
+    .initialState_P(p => TreeViewState(p.rootDirectory))
     .renderBackend[TreeViewBackend]
     .build
 
@@ -71,7 +109,8 @@ object TVColumn {
     itemIds: Seq[String],
     getItemIcon: DirectoryItem => ReactNode,
     renderContent: DirectoryItem => ReactNode,
-    onDrop: (String, String) => Callback
+    onDrop: (String, String) => Callback,
+    visIds : Seq[String]
   )
   case class TVColumnState(selectedItemId: String = "-1")
 
@@ -90,7 +129,9 @@ object TVColumn {
         Style.tvColumn,
         <.ul(
           Style.ul,
-          p.itemIds.map{id =>
+          { //Console.println(p.visIds.toString() +"  " +p.itemIds.toString())
+            val visItems = p.visIds.intersect(p.itemIds)
+          visItems.map{id =>
             val item = p.items.find(_.id == id).get
             <.li(
               Style.li(item.id == s.selectedItemId),
@@ -102,11 +143,11 @@ object TVColumn {
               ^.onClick --> (setSelectedId(item.id) >> Callback.log("selected sumthing"))
             )
           }
-        ),
+        }),
         if(s.selectedItemId == "-1") ""
         else p.items.find(_.id == s.selectedItemId).get match {
           case Directory(_, _, childrenIds) =>
-            TVColumn(p.items, childrenIds, p.getItemIcon, p.renderContent, p.onDrop)
+            TVColumn(p.items, childrenIds, p.getItemIcon, p.renderContent, p.onDrop,p.visIds)
           case item: DirectoryItem => p.renderContent(item)
         }
       )
@@ -122,7 +163,8 @@ object TVColumn {
     itemIds: Seq[String],
     getItemIcon: DirectoryItem => ReactNode,
     renderContent: DirectoryItem => ReactNode,
-    onDrop: (String, String) => Callback
+    onDrop: (String, String) => Callback,
+    visIds : Seq[String]
   ): ReactElement =
-    component(TVColumnProps(items, itemIds, getItemIcon, renderContent, onDrop))
+    component(TVColumnProps(items, itemIds, getItemIcon, renderContent, onDrop,visIds))
 }
