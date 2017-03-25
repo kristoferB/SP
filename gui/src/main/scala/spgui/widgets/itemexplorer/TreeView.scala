@@ -21,7 +21,7 @@ object TreeView {
 
   case class TreeViewState(
     rt: RootDirectory,
-    visIds: Seq[String] = Seq()
+    visIds: Seq[String]
   )
 
   class TreeViewBackend($: BackendScope[TreeViewProps, TreeViewState]) {
@@ -40,17 +40,18 @@ object TreeView {
     }
 
     private def filter(s:String,rts:RootDirectory) = {
-        Console.println("filtering:" +s)
         var visMap: Seq[String] = Seq()
-        rts.items.map(item => visMap :+= item.id)
+        rts.items.map(item =>
+          if(item.name.toLowerCase.contains(s.toLowerCase)){
+            visMap :+= item.id })
+        visMap = findFathersTo(visMap,rts)
         $.modState(_.copy(visIds = visMap))
     }
 
-    def iterate(s:Any) = {
-      Console.println("d" +s)
-      Callback.empty
+    private def findFathersTo(ids:Seq[String] rts:RootDirectory) = {
+      return ids;
     }
-    $.state >>= (s => (iterate(s.visIds)))
+
 
     def render(p: TreeViewProps, s: TreeViewState) =
       <.div(
@@ -88,7 +89,7 @@ object TreeView {
   }
 
   private val component = ReactComponentB[TreeViewProps]("TreeView")
-    .initialState_P(p => TreeViewState(p.rootDirectory))
+    .initialState_P(p => TreeViewState(p.rootDirectory, p.rootDirectory.items.map(item => item.id) ) )
     .renderBackend[TreeViewBackend]
     .build
 
