@@ -16,22 +16,19 @@ object Themes {
       widgetHeadingIconColor= "#ff0000",
       navbarBackgroundColor= "#ff0000",
       navbarForegroundColor= "#ff0000",
-      navbarLogoBackgroundColor= "#ff0000",
       defaultTextColor= "#ff0000"
     ),
 
     Theme(
-      name = "debug-blue",
+      name = "dark",
       borderless =  false,
       shadow = "1px 2px 2px rgba(0, 0, 0, 0.1), 0 1px 0 rgba(0, 0, 0, 0.1)" ,
-      mainBackgroundColor= "#0000ff",
-      widgetBackgroundColor ="#0000ff",
-      widgetHeadingColor= "#0000ff",
-      widgetHeadingIconColor= "#0000ff",
-      navbarBackgroundColor= "#0000ff",
-      navbarForegroundColor= "#0000ff",
-      navbarLogoBackgroundColor= "#0000ff",
-      defaultTextColor= "#0000ff"
+      mainBackgroundColor= "#333333",
+      widgetBackgroundColor ="#555555",
+      widgetHeadingColor= "#1a1a1a",
+      widgetHeadingIconColor= "#ffffff",
+      navbarBackgroundColor= "#555555",
+      defaultTextColor= "#000000"
     )
   )
 }

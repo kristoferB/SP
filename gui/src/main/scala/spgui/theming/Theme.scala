@@ -6,6 +6,7 @@ case class Theme(
   name: String = "default",
   borderless: Boolean = false,
   shadow: String = "1px 2px 2px rgba(0, 0, 0, 0.1), 0 1px 0 rgba(0, 0, 0, 0.1)",
+  iconColor: String = "#ffffff",
   mainBackgroundColor: String = "#ffffff",
   widgetBackgroundColor: String = "#ededed",
   widgetHeadingColor: String = "#999999",

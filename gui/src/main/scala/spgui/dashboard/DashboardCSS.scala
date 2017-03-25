@@ -7,10 +7,6 @@ object DashboardCSS extends StyleSheet.Inline {
   import dsl._
   val theme = SPGUICircuit.zoom(_.settings.theme)
 
-  val widgetBgColor = "#ededed"
-  val widgetHeadingBg = "#999999"
-  val widgetHeadingIconColor = "#ffffff"
-
   val widgetPanel = style("sp-widget-panel")(
     backgroundColor := theme.value.widgetBackgroundColor,
     height(100.%%),
@@ -39,7 +35,8 @@ object DashboardCSS extends StyleSheet.Inline {
 
   val widgetPanelContent = style("sp-widget-panel-content")(
     backgroundColor := theme.value.widgetBackgroundColor,
-    height(100.%%)
+    height(100.%%),
+    padding(0.px)
   )
 
   val reactGridPlaceholder = style("react-grid-placeholder")(
@@ -50,7 +47,8 @@ object DashboardCSS extends StyleSheet.Inline {
   val closeButton = style("close-button")(
     float.right,
     fontSize(15.px),
-    padding(0.px, 7.px, 0.px, 0.px)
+    padding(0.px, 7.px, 0.px, 0.px),
+    color := theme.value.iconColor
   )
 
   val overridPlaceholder = style(
