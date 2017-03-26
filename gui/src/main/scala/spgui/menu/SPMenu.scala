@@ -5,10 +5,19 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 import org.scalajs.dom._
 
 import spgui.components.CloseAllButton
+import spgui.circuit._
+import diode.react.ModelProxy
+
 
 object SPMenu {
-  private val component = ReactComponentB[Unit]("SPMenu")
-    .render(_ =>
+
+  case class Props(proxy: ModelProxy[Settings])
+
+  private val component = ReactComponentB[Props]("SPMenu")
+    .render_P(p =>
+    p.proxy().compact match {
+      case true => <.div()
+      case false => 
     <.nav(
       ^.className := "navbar navbar-default",
       ^.className := SPMenuCSS.topNav.htmlClass,
@@ -36,9 +45,9 @@ object SPMenu {
         )
       )
     )
-  )
-      .build
-
+    })
+    .build
+  
 
 
   private val spLogo = (
@@ -48,5 +57,5 @@ object SPMenu {
         ^.className := SPMenuCSS.spLogo.htmlClass
       )
     ))
-  def apply() = component()
+  def apply(proxy: ModelProxy[Settings]) = component(Props(proxy))
 }

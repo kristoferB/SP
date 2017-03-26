@@ -60,6 +60,11 @@ class SettingsHandler[M](modelRW: ModelRW[M, Settings]) extends ActionHandler(mo
         theme = newTheme
       ))
     }
+    case ToggleCompactMode() => {
+      updated(value.copy(
+        compact = !value.compact
+      ))
+    }
   }
 }
 
