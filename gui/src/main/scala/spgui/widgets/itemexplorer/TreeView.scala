@@ -5,10 +5,8 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 import japgolly.scalajs.react.vdom.all.aria
 import scalacss.ScalaCssReact._
 
-
 import spgui.components.DragAndDrop.{ DataOnDrag, OnDataDrop }
 import spgui.components.{ Icon, Dropdown }
-
 
 object TreeView {
   case class TreeViewProps(
@@ -25,31 +23,34 @@ object TreeView {
   )
 
   class TreeViewBackend($: BackendScope[TreeViewProps, TreeViewState]) {
-    def addItem(item: DirectoryItem) = {//Callback.empty
-      $.modState(s => s.copy(s.rt.addItem(item)))
+    def addItem(item: DirectoryItem) = {
+      $.modState(s => (  TreeViewState(s.rt.addItem(item), s.visIds :+ item.id)) )
     }
 
     def onDrop(senderId: String, receiverId: String) =
         $.modState(s => s.copy(s.rt.moveItem(senderId, receiverId)))
 
-    def onFilterTextChange(e :ReactEventI): CallbackTo[Unit] = {
-      e.extract(_.target.value)(searchText => {
-        $.props >>= (p => ( filter(searchText,p.rootDirectory)))
-        }
-      )
-    }
+    def onFilterTextChange(e :ReactEventI): CallbackTo[Unit] =
+        e.extract(_.target.value)(searchText => { $.props >>= (p => ( filter(searchText,p.rootDirectory)))  })
 
     private def filter(s:String,rts:RootDirectory) = {
         var visMap: Seq[String] = Seq()
         rts.items.map(item =>
           if(item.name.toLowerCase.contains(s.toLowerCase)){
-            visMap :+= item.id })
-        visMap = findFathersTo(visMap,rts)
+            visMap :+= item.id
+            visMap = visMap.union(findParentsTo(item,rts))
+          })
         $.modState(_.copy(visIds = visMap))
     }
 
-    private def findFathersTo(ids:Seq[String] rts:RootDirectory) = {
-      return ids;
+    private def findParentsTo(childItem:DirectoryItem,rts:RootDirectory): Seq[String] = {
+      var visMap:Seq[String] = Seq()
+      rts.items.foreach(item => item match{
+          case item:Directory =>
+            if(item.childrenIds.contains(childItem.id))  visMap :+= item.id
+          case _ => null
+          })
+      visMap
     }
 
 
@@ -130,9 +131,9 @@ object TVColumn {
         Style.tvColumn,
         <.ul(
           Style.ul,
-          { //Console.println(p.visIds.toString() +"  " +p.itemIds.toString())
+          {
             val visItems = p.visIds.intersect(p.itemIds)
-          visItems.map{id =>
+            visItems.map{id =>
             val item = p.items.find(_.id == id).get
             <.li(
               Style.li(item.id == s.selectedItemId),
