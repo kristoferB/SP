@@ -31,7 +31,7 @@ object TreeView {
         $.modState(s => s.copy(s.rt.moveItem(senderId, receiverId)))
 
     def onFilterTextChange(e :ReactEventI): CallbackTo[Unit] =
-        e.extract(_.target.value)(searchText => { $.props >>= (p => ( filter(searchText,p.rootDirectory)))  })
+        e.extract(_.target.value)(searchText => { $.state >>= (p => ( filter(searchText,p.rt)))  })
 
     private def filter(s:String,rts:RootDirectory) = {
         var visMap: Seq[String] = Seq()
