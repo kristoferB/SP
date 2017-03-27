@@ -112,8 +112,8 @@ object AbilityHandlerWidget {
           s.abilities.sortBy(a=>a.name).map(a=> {
             <.tr(
               <.td(a.name),
-              <.td(getAbilityState(s.abilityState.get(a.id).getOrElse(SPValue()))),
-              <.td(getAbilityCount(s.abilityState.get(a.id).getOrElse(SPValue()))),
+              <.td(getAbilityState(s.abilityState.get(a.id).getOrElse(SPValue.empty))),
+              <.td(getAbilityCount(s.abilityState.get(a.id).getOrElse(SPValue.empty))),
               <.td(<.button(
                 ^.className := "btn btn-sm",
                 ^.onClick --> sendToAB(abapi.StartAbility(a.id)), "Start"
