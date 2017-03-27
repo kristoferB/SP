@@ -33,13 +33,8 @@ object ServiceListWidget {
 
     def render(s: State) = {
       <.div(
-        <.h2("Services"),
-        <.br(),
-        <.button(
-          ^.className := "btn btn-default",
-          ^.onClick --> sendToHandler(api.GetServices()), "Get services"
-        ),
-        renderServices(s)
+        renderServices(s),
+        <.div("todo: Add search and sorting. Add possibility to send messaged based on api")
       )
     }
 
