@@ -1,19 +1,17 @@
 package sp.devicehandler
 
 // Labkit abilities. TODO: Move to its own node s
-import akka.actor._
-import sp.domain._
-import sp.domain.Logic._
 import java.util.UUID
-import akka.cluster.pubsub.DistributedPubSub
-import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
-import sp.messages._
-import sp.messages.Pickles._
-import scala.util.{Failure, Success, Try}
-import sp.domain.logic.{PropositionParser, ActionParser}
 
-import sp.devicehandler.{APIVirtualDevice => vdapi}
+import akka.actor._
+import akka.cluster.pubsub.DistributedPubSub
+import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 import sp.abilityhandler.{APIAbilityHandler => abapi}
+import sp.devicehandler.{APIVirtualDevice => vdapi}
+import sp.domain.Logic._
+import sp.domain._
+import sp.domain.logic.{ActionParser, PropositionParser}
+import sp.messages.Pickles._
 
 
 
