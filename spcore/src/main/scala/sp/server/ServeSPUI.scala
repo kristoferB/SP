@@ -21,6 +21,7 @@ object ServeSPUI extends App{
 
     // Start all you actors here.
     println("SP core node has joined the cluster")
+    sys.actorOf(sp.service.ServiceHandler.props)
 
   }
   cluster.registerOnMemberRemoved{

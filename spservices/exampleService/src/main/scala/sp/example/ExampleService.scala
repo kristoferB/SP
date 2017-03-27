@@ -125,7 +125,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
         b <- m.getBodyAs[APISP.StatusRequest]
       } yield {
         val spHeader = h.copy(from = api.attributes.service) // upd header put keep most info
-        mediator ! Publish("answers", m.makeJson(spHeader, statusResponse))
+        mediator ! Publish("spevents", m.makeJson(spHeader, statusResponse))
       }
 
 

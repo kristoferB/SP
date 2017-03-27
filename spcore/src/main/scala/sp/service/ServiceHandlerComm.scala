@@ -8,7 +8,7 @@ import scala.util.{Try}
 
 package APIServiceHandler {
   sealed trait Request
-  case class GetServices(names: List[String] = List(), ids: List[ID] = List(), tags: List[String] = List()) extends Request
+  case class GetServices() extends Request
 
   sealed trait Response
   case class Services(xs: List[APISP.StatusResponse]) extends Response
@@ -25,9 +25,9 @@ import sp.service.{APIServiceHandler => api}
 
 
 object ServiceHandlerComm {
-  def extractRequest(mess: Try[SPMessage], instanceID: ID) = for {
+  def extractRequest(mess: Try[SPMessage]) = for {
     m <- mess
-    h <- m.getHeaderAs[SPHeader] if h.to == instanceID.toString || h.to == api.attributes.service
+    h <- m.getHeaderAs[SPHeader] if h.to == api.attributes.service
     b <- m.getBodyAs[api.Request]
   } yield (h, b)
 

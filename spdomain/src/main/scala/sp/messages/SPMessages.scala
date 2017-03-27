@@ -12,7 +12,7 @@ object APISP {
   case class SPDone() extends APISP
 
   case class StatusRequest(attributes: SPAttributes = SPAttributes()) extends APISP
-  case class StatusResponse(service: String, instanceID: ID = ID.newID, instanceName: String = "", tags: List[String] = List(), api: SPAttributes = SPAttributes(), version: Int = 1, attributes: SPAttributes = SPAttributes()) extends APISP
+  case class StatusResponse(service: String, instanceID: Option[ID] = None, instanceName: String = "", tags: List[String] = List(), api: SPAttributes = SPAttributes(), version: Int = 1, attributes: SPAttributes = SPAttributes()) extends APISP
 
 
   object StatusResponse {
@@ -20,7 +20,7 @@ object APISP {
     def apply(attr: SPAttributes): StatusResponse = {
       val service = attr.getAs[String]("service").getOrElse("noName")
       val instanceName = attr.getAs[String]("instanceName").orElse(attr.getAs[String]("name")).getOrElse("")
-      val id = attr.getAs[UUID]("instanceID").getOrElse(ID.newID)
+      val id = attr.getAs[UUID]("instanceID")
       val tags = attr.getAs[List[String]]("tags").getOrElse(List())
       val api = attr.getAs[SPAttributes]("api").getOrElse(SPAttributes())
       val version = attr.getAs[Int]("version").getOrElse(1)

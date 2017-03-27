@@ -11,8 +11,9 @@ object APISP {
   case class SPOK(attributes: SPAttributes = SPAttributes()) extends APISP
   case class SPDone(attributes: SPAttributes = SPAttributes()) extends APISP
 
+
   case class StatusRequest(attributes: SPAttributes = SPAttributes()) extends APISP
-  case class StatusResponse(attributes: SPAttributes = SPAttributes()) extends APISP
+  case class StatusResponse(service: String, instanceID: Option[ID] = None, instanceName: String = "", tags: List[String] = List(), api: SPAttributes = SPAttributes(), version: Int = 1, attributes: SPAttributes = SPAttributes()) extends APISP
 
   //  implicit val readWriter: ReadWriter[APISP] =
   //    macroRW[SPError] merge macroRW[SPACK] merge macroRW[SPOK] merge macroRW[SPDone] merge macroRW[StatusRequest] merge macroRW[StatusResponse]
