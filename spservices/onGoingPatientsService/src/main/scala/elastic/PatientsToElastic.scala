@@ -31,13 +31,9 @@ class PatientsToElastic {
 
   /** Handles the initial parsing of incoming messages */
   def messageReceived(messageU: String) {
-    //  var message: String = messageU.replaceAll("\\\\", "")
-    //  var m1 = message.dropRight(1)
-    //  var m2 = m1.reverse.dropRight(1)
-    //  var m = m2.reverse
     println("************************* new message *************************")
-    println("TIME: " + getNow)
-    println("MESS: " + messageU)
+    //println("TIME: " + getNow)
+    //println("MESS: " + messageU)
     // figure out what sort of message we just received
     val json: JValue = parse(messageU) // this jsons the String.
 
@@ -272,7 +268,6 @@ class PatientsToElastic {
     */
     def addPatient(patient : JValue, targetIndex: String): Unit = {
       val careContactId:String = (patient \"CareContactId").values.toString
-      println("----CareContactId: " + careContactId)
       client.index(
         index = targetIndex,
         `type` = PATIENT_TYPE,

@@ -112,6 +112,11 @@ lazy val onGoingPatientsService = (project in file("spservices/onGoingPatientsSe
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
+lazy val butlerService = (project in file("spservices/butlerService"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
+
 lazy val spseed = (project in file("spservices/spseed"))
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= akka)
