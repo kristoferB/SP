@@ -5,6 +5,7 @@ import akka.actor._
 import scala.util.{Failure, Random, Success, Try}
 import sp.domain._
 import sp.domain.Logic._
+import sp.messages.APISP.StatusResponse
 import sp.messages._
 import sp.messages.Pickles._
 
@@ -47,7 +48,7 @@ package API_ExampleService {
 
   object attributes {
     val service = "exampleService"
-    val version = 1.0
+    val version = 1
     val api = "to be fixed by macros"
   }
 }
@@ -124,7 +125,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
         b <- m.getBodyAs[APISP.StatusRequest]
       } yield {
         val spHeader = h.copy(from = api.attributes.service) // upd header put keep most info
-        mediator ! Publish("answers", m.makeJson(spHeader, APISP.StatusResponse()))
+        mediator ! Publish("spevents", m.makeJson(spHeader, statusResponse))
       }
 
 
@@ -133,12 +134,9 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
 
 
 
-  val statusResponse = SPAttributes(
-    "service" -> api.attributes.service,
-    "api" -> "to be added with macros later",
-    "groups" -> List("examples"),
-    "attributes" -> api.attributes,
-    "instanceID" -> ID.newID
+  val statusResponse = APISP.StatusResponse(
+    service = api.attributes.service,
+    version = api.attributes.version
   )
 
   // Sends a status response when the actor is started so service handlers finds it

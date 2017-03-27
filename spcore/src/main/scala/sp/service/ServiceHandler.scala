@@ -7,23 +7,9 @@ import sp.domain._
 import sp.domain.Logic._
 import sp.messages._
 import Pickles._
-import sp.service.APIServiceHandler.APIServiceHandler
 
 
-package APIServiceHandler {
-  sealed trait APIServiceHandler
-  case class GetServices(names: List[String] = List(), ids: List[UUID] = List(), groups: List[String] = List()) extends APIServiceHandler
-
-  case class Service(name: String,
-                     id: Option[UUID] = None,
-                     groups: List[String] = List(),
-                     api: SPAttributes = SPAttributes(),
-                     attributes: SPAttributes = SPAttributes())
-
-  case class Services(xs: List[Service]) extends APIServiceHandler
-  case class NewService(x: Service) extends APIServiceHandler
-  case class RemovedService(x: Service) extends APIServiceHandler
-}
+import sp.service.{APIServiceHandler => api}
 
 
 /**
@@ -40,68 +26,102 @@ class ServiceHandler extends Actor with ServiceHandlerLogic {
   import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
   val mediator = DistributedPubSub(context.system).mediator
   mediator ! Subscribe("spevents", self)
+  mediator ! Subscribe("services", self)
 
   override def receive = {
-    case x: String =>
-      val message = SPMessage.fromJson(x)
-      val header = for {m <- message; h <- m.getHeaderAs[SPHeader]} yield h
-      val response = for {
-        m <- message
-        b <- m.getBodyAs[APISP.StatusResponse]
-      } yield {
-        val r = addResponse(b, sender())
+    case x: String if sender() != self =>
+      val mess = SPMessage.fromJson(x)
+
+      ServiceHandlerComm.extractRequest(mess).map{case (h, b) =>
+        b match {
+          case x: api.GetServices =>
+            val res = services.map(_._2._1).toList
+            val updH = h.copy(from = api.attributes.service, to = h.from)
+            mediator ! Publish("answers", ServiceHandlerComm.makeMess(updH, api.Services(res)))
+        }
+      }
+
+      ServiceHandlerComm.extractAPISP(mess).map{case (h, b) =>
+        b match {
+          case x: APISP.StatusResponse =>
+            val res = addResponse(x, sender())
+            context.watch(sender())
+            if (res) {
+              val h = SPHeader(from = api.attributes.service)
+              mediator ! Publish("spevents", ServiceHandlerComm.makeMess(h, api.NewService(x)))
+            }
+          case doNothing => Unit
+         }
+      }
+
+    case Terminated(ref) =>
+      println("Removing service")
+      val res = deathWatch(ref)
+      val h = SPHeader(from = api.attributes.service)
+      res.foreach{kv =>
+        mediator ! Publish("spevents", ServiceHandlerComm.makeMess(h, api.RemovedService(kv._2)))
       }
 
 
 
-
-
-
     case Tick =>
+      aTick()
       val h = SPHeader("ServiceHandler")
       val b = APISP.StatusRequest(SPAttributes().addTimeStamp)
       val m = SPMessage.makeJson(h, b)
       mediator ! Publish("services", m)
+      services.foreach(x => println(x._1))
   }
 
 
 
   import scala.concurrent.duration._
   import context.dispatcher
-  val ticker = context.system.scheduler.schedule(5 seconds, 1 minute, self, Tick)
+  val ticker = context.system.scheduler.schedule(5 seconds, 5 seconds, self, Tick)
 
+}
+
+object ServiceHandler {
+  def props = Props(classOf[ServiceHandler])
 }
 
 
 trait ServiceHandlerLogic {
-  var services: Map[String, (APIServiceHandler.Service, ActorRef)] = Map()
-  var gotResponse: Map[String, APIServiceHandler.Service] = Map()
-  var waitingResponse: Map[String, APIServiceHandler.Service] = Map()
+  var services: Map[String, (APISP.StatusResponse, ActorRef)] = Map()
+  var waitingResponse: Map[String, APISP.StatusResponse] = Map()
 
 
   def aTick() = {
-
+    val noAnswer = waitingResponse.map{kv =>
+      services -= kv._1
+      kv
+    }
+    waitingResponse = services.map(kv => kv._1 -> kv._2._1)
+    noAnswer
   }
 
   def addResponse(resp: APISP.StatusResponse, sender: ActorRef) = {
-    val name = resp.attributes.getAs[String]("service").getOrElse("")
-    val id = resp.attributes.getAs[UUID]("instanceID")
-    val groups = resp.attributes.getAs[List[String]]("groups").getOrElse(List())
-    val api = resp.attributes.getAs[SPAttributes]("api").getOrElse(SPAttributes())
+    val re = services.filter(kv => kv._2._2 == sender).map(kv => kv._1 -> kv._2._1)
+    val n = if (re.isEmpty) createName(resp) else re.head._1
 
-    val ss = APIServiceHandler.Service(name, id, groups, api, resp.attributes)
-    gotResponse += createName(name, id) -> ss
-    services += createName(name, id) -> (ss, sender)
+    val res = !services.contains(n)
+    waitingResponse -= n
+    services += n -> (resp, sender)
+    res
   }
 
   def deathWatch(actor: ActorRef) = {
-
+    val re = services.filter(kv => kv._2._2 == actor).map(kv => kv._1 -> kv._2._1)
+    services = services.filterNot(kv => re.contains(kv._1))
+    waitingResponse = waitingResponse.filterNot(kv => re.contains(kv._1))
+    re
   }
 
 
-  def createName(name: String, id: Option[UUID]) = {
-    if (name.isEmpty) "noName-" + id.getOrElse(UUID.randomUUID())
-    else name + id.map(_.toString).getOrElse("")
+  def createName(x: APISP.StatusResponse ) = {
+    val id = if (x.instanceID.isEmpty) "" else "-" +x.instanceID.get.toString
+    val n = if (x.instanceName.isEmpty) id else "-" +x.instanceName
+    x.service + n
   }
 
 
