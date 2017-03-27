@@ -18,6 +18,10 @@ object SP extends App {
   import akka.cluster.pubsub.DistributedPubSub
   import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
   val mediator = DistributedPubSub(system).mediator
+  val cluster = akka.cluster.Cluster(system)
+
+  cluster.registerOnMemberUp {
+    println("SP1 node has joined the cluster")
 
   val modelHandler = system.actorOf(PubActor.props("modelHandler"))
   val serviceHandler = system.actorOf(PubActor.props("serviceHandler"))
@@ -92,6 +96,11 @@ object SP extends App {
     CreateOpsFromManualModelService.specification,
     CreateOpsFromManualModelService.transformation))
 
+  mediator ! Publish("serviceHandler", RegisterService("MakeModel",
+    system.actorOf(MakeModelService.props(serviceHandler), "MakeModel"),
+    MakeModelService.specification,
+    MakeModelService.transformation))
+
   mediator ! Publish("serviceHandler", RegisterService("SynthesizeModelBasedOnAttributes",
     system.actorOf(SynthesizeModelBasedOnAttributesService.props(modelHandler, serviceHandler),
       "SynthesizeModelBasedOnAttributes"),
@@ -136,13 +145,12 @@ object SP extends App {
     MakeNewGanttTrajectory.specification,
     MakeNewGanttTrajectory.transformation))
 
-  import sp.opcrunner._
-
-  mediator ! Publish("serviceHandler", RegisterService("OpcRunner",
-    system.actorOf(OpcRunner.props, "OpcRunner"), OpcRunner.specification, OpcRunner.transformation))
-
-  mediator ! Publish("serviceHandler", RegisterService("Simulation",
-    system.actorOf(Simulation.props, "Simulation"), Simulation.specification, Simulation.transformation))
+  import sp.opcRunner._
+//  system.actorOf(OPCUARunner.props, "OPCUARunner")
+  system.actorOf(RunnerRuntime.props(eventHandler), "RunnerRuntime")
+  mediator ! Publish("serviceHandler", RegisterService("OPCUARunnerFrontend",
+    system.actorOf(OPCUARunnerFrontend.props(eventHandler), "OPCUARunnerFrontend"),
+    OPCUARunnerFrontend.specification, OPCUARunnerFrontend.transformation))
 
   import sp.virtcom.ProcessSimulate
   mediator ! Publish("serviceHandler", RegisterService("ProcessSimulate",
@@ -291,8 +299,20 @@ object SP extends App {
     OperatorInstructions.transformation
   )  )
 
-  // launch REST API
+      // launch REST API
   sp.server.LaunchGUI.launch
+  }
+
+  cluster.registerOnMemberRemoved{
+    println("sp1 node has been removed from the cluster")
+  }
+
+
+  scala.io.StdIn.readLine("Press ENTER to exit cluster.\n")
+  cluster.leave(cluster.selfAddress)
+
+
+
   scala.io.StdIn.readLine("Press ENTER to exit application.\n") match {
     case x =>
       system.terminate()

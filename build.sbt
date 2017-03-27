@@ -77,6 +77,11 @@ lazy val labkit = (project in file("spservices/labkit"))
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= akka)
 
+lazy val devicehandler = (project in file("spservices/devicehandler"))
+  .dependsOn(spdomain, operationRunners)
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= akka)
+
 lazy val modelsTest = (project in file("spservices/modelsTest"))
   .dependsOn(spdomain, macros)
 .settings(commonSettings: _*)
@@ -88,6 +93,11 @@ lazy val opcua = (project in file("spservices/opcua"))
 .settings(libraryDependencies ++= akka)
 
 lazy val exampleService = (project in file("spservices/exampleService"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
+
+lazy val operationRunners = (project in file("spservices/operationRunners"))
   .dependsOn(spdomain, macros)
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)

@@ -40,12 +40,12 @@ package API_OpcUARuntime {
     val service = "OpcUARuntime"
   }
 }
-import sp.labkit.{API_OpcUARuntime => api}
 
 object OPC {
   def props = Props(classOf[OPC])
 }
 
+import sp.labkit.{API_OpcUARuntime => api}
 
 // simple example opc ua client useage
 class OPC extends Actor {
@@ -79,10 +79,10 @@ class OPC extends Actor {
 
     case "connect" =>
       println("labkit: connecting to opc")
-      val header = SPHeader(from = api.attributes.service,  to = api.attributes.service, replyID = Some(ID.newID.value))
+      val header = SPHeader(from = api.attributes.service,  to = api.attributes.service)
       val body = api.Connect(url)
-      val message = SPMessage.make(header, body).map(_.toJson)
-      message.map(m => mediator ! Publish("services", m))
+      val message = SPMessage.makeJson(header, body)
+      mediator ! Publish("services", message)
 
 
     case x: String =>
@@ -104,11 +104,11 @@ class OPC extends Actor {
         body match {
           case api.ConnectionStatus(connectionStatus) if !connected && connectionStatus =>
               connected = true
-              val header = SPHeader(from = api.attributes.service,  to = api.attributes.service, replyID = Some(ID.newID.value))
-              val body = api.Subscribe(nodeIDsToNode.map(_._1).toList)
-              val message = SPMessage.makeJson(header, body).map(m =>
-                mediator ! Publish("services", m)
-              )
+              val header = SPHeader(from = api.attributes.service,  to = api.attributes.service)
+              val body = api.Subscribe(nodeIDsToNode.keys.toList)
+              val message = SPMessage.makeJson(header, body)
+              mediator ! Publish("services", message)
+
 
           case api.ConnectionStatus(connectionStatus) if !connected && connectionStatus =>
               context.system.scheduler.scheduleOnce(Duration(5, TimeUnit.SECONDS), self, "connect")
@@ -124,8 +124,8 @@ class OPC extends Actor {
         body <- bodySP
         oldMess <- message
       } yield {
-        val mess = oldMess.makeJson(SPHeader(api.attributes.service, "serviceHandler"), APISP.StatusResponse(statusResponse))
-        mess.map(m => mediator ! Publish("spevents", m))
+        val mess = oldMess.makeJson(SPHeader(from = api.attributes.service, to = "serviceHandler"), APISP.StatusResponse(statusResponse))
+        mediator ! Publish("spevents", mess)
 
       }
 

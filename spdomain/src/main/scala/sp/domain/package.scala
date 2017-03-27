@@ -1,7 +1,11 @@
 package sp
 
+import java.util.UUID
+
 import org.json4s.JsonAST.JValue
 import org.json4s._
+
+import scala.util.Try
 
 /**
  * Created by kristofer on 15-05-27.
@@ -12,6 +16,8 @@ package object domain {
   //val SPAttributes = JObject
   type SPValue = JValue
   //val SPValue = JValue
+
+  type ID = java.util.UUID
 
   object SPAttributes {
     def apply[T](pair: (String, T)*)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]): SPAttributes = {
@@ -33,9 +39,6 @@ package object domain {
       }
     }
 
-    import upickle.Js
-    import sp.domain.Logic._
-
 
   }
 
@@ -55,7 +58,12 @@ package object domain {
     }
     def empty: SPValue = JObject()
 
+  }
 
+  object ID {
+    def newID = UUID.randomUUID()
+    def makeID(id: String): Option[ID] = Try{UUID.fromString(id)}.toOption
+    def isID(str: String) = makeID(str).nonEmpty
   }
 
 

@@ -1,4 +1,4 @@
-package sp.opcMilo
+package sp.milowrapper
 
 // SP
 import sp.domain._
@@ -210,7 +210,7 @@ class MiloOPCUAClient {
     }
   }
 
-  def write(nodeIdentifier: String, spVal: SPValue): Unit = {
+  def write(nodeIdentifier: String, spVal: SPValue): Boolean = {
     availableNodes.get(nodeIdentifier) match {
       case Some(n) =>
         val typeid = n.getDataType().get()
@@ -218,11 +218,13 @@ class MiloOPCUAClient {
         println("trying to write: " + dv)
         if(client.writeValue(n.getNodeId().get(), dv).get().isGood()) {
           println("OPCUA - value written")
+          true
         }
         else {
           println(s"OPCUA - Failed to write to node ${nodeIdentifier} - probably wrong datatype, should be: " + typeid)
+          false
         }
-      case None => println(s"OPCUA No such node ${nodeIdentifier}")
+      case None => println(s"OPCUA No such node ${nodeIdentifier}"); false
     }
   }
 

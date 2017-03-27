@@ -2,6 +2,8 @@ package spgui
 
 import org.scalatest._
 import sp.domain._
+import sp.messages._
+import Pickles._
 
 import scala.util.Success
 

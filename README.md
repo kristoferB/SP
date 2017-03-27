@@ -1,4 +1,4 @@
-#Sequence Planner
+# Sequence Planner 2
 Sequence Planner (SP) is a micro service architecture for modeling and analyzing automation system. 
 Initially, the focus was on supporting engineers in developing control
 code for programmable logical controllers (PLCs). During the first years, 
@@ -10,14 +10,14 @@ cycle time optimization, energy optimization and hybrid systems,
 online monitoring and control (the tweeting factory), 
 as well as emergency department online planning support. 
  
-##Frontend
+## Frontend
 check gui/README.md for instructions 
 
-##Backend
-###Setup
+## Backend
+### Setup
 Download and install Simple Build Tool (SBT). Files and instructions for your platform are available at the project website, http://www.scala-sbt.org/.
 
-###Run
+### Run
 SP is a set of micro services that communicates via json messages in an akka cluster. 
 
 You have to start each service or group of services in a seperate terminal
