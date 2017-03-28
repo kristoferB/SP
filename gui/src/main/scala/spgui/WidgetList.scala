@@ -24,6 +24,7 @@ object WidgetList {
       ("ExampleServiceWidgetState", ExampleServiceWidgetState(), 2, 3),
       ("OpcUAWidget", OpcUAWidget(), 5, 2),
       ("ChartWithReact", widgets.examples.ChartWithReact(), 2, 2),
+      ("PathsTest", widgets.examples.PathsTest(), 2, 2),
       ("Tree", widgets.itemexplorer.Tree(), 2, 4)
 
     )

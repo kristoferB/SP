@@ -1,11 +1,12 @@
 {
   "scripts": {
-    "postinstall": "webpack",
+    "postinstall": "webpack --display-error-details",
     "build": "NODE_ENV=production webpack"
   },
   "dependencies": {
     "bootstrap": "~3.3.7",
     "chart.js": "~2.5.0",
+    "paths-js": "~0.4.5",
     "font-awesome": "~4.7.0",
     "jquery": "~3.1.1",
     "jsoneditor": "~4.2.1",
