@@ -96,9 +96,9 @@ package spgui.widgets.examples {
 
           <.button(
             ^.className := "btn btn-default",
+
             ^.onClick --> send(api.StartTheTicker(pieID)), "New Pie"
           ),
-
           <.button(
             ^.className := "btn btn-default",
             ^.onClick --> send(api.ResetAllTickers()), "Reset all Pies"
@@ -115,7 +115,8 @@ package spgui.widgets.examples {
 
 
       def send(mess: api.API_ExampleService): Callback = {
-        val h = SPHeader("ExampleServiceWidget", api.attributes.service, "ExampleServiceWidget", java.util.UUID.randomUUID())
+        val h = SPHeader(from = "ExampleServiceWidget", to = api.attributes.service, reply = SPValue("ExampleServiceWidget"))
+
         val json = SPMessage.make(h, mess) // *(...) is a shorthand for toSpValue(...)
         BackendCommunication.publish(json, "services")
         Callback.empty
@@ -184,5 +185,3 @@ package spgui.widgets.examples {
       def newChart
   }*/
 }
-
-

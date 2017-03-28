@@ -4,9 +4,14 @@ import spgui.menu.SPMenuCSS
 
 import scalacss.Defaults._
 
+import spgui.circuit.SPGUICircuit
+import diode._
+import org.scalajs.dom.Console
+import org.scalajs.dom.raw.Location
+
 object GlobalCSS extends StyleSheet.Inline {
   import dsl._
-  val defaultShadow = "0 2px 2px rgba(0, 0, 0, 0.05), 0 1px 0 rgba(0, 0, 0, 0.05)"
+  val defaultShadow = "1px 2px 2px rgba(0, 0, 0, 0.1), 0 1px 0 rgba(0, 0, 0, 0.1)"
 
   val gridSpacing = "80px"
   val gridSpacingSmall = "20px"
@@ -14,22 +19,14 @@ object GlobalCSS extends StyleSheet.Inline {
   val gridColorSmall = "#999999"
   val gridOffsetY = SPMenuCSS.topNavHeight
 
-  val background = style(
+  val theme = SPGUICircuit.zoom(_.settings.theme)
+ 
+  var background = style(
     unsafeRoot("body")(
-      backgroundColor.white
-      /*backgroundImage :=
-        s"linear-gradient(to right,  $gridColor 2px, transparent 0px)," +
-        s"linear-gradient(to bottom, $gridColor 2px, transparent 0px),"  +
-        s"linear-gradient(to right,  $gridColorSmall 2px, transparent 0px)," +
-        s"linear-gradient(to bottom, $gridColorSmall 2px, transparent 0px)",
-      backgroundSize :=
-        s"$gridSpacing $gridSpacingSmall,"+
-        s"$gridSpacingSmall $gridSpacing,"+
-        s"$gridSpacingSmall  $gridSpacing",
-      backgroundPosition:=s"0px $gridOffsetY"
-      */
+      backgroundColor := theme.value.mainBackgroundColor
     )
   )
+
   val h2 = style(
     unsafeRoot("h2")(
       fontSize(30.px),

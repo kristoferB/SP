@@ -27,7 +27,7 @@ object DragAndDrop {
         )
       )
     }
-
+    
     def handleNameChange(s: Props)(e: ReactEventI) =
       $.setState(s.copy(
         name = e.target.value

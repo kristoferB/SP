@@ -118,7 +118,7 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
     mediator ! Subscribe("answers", p.ref)
     "start ticking on new pie" in {
       val body = api.StartTheTicker(id)
-      val mess = SPMessage.make(header, body).get.toJson  // only use get in tests!
+      val mess = SPMessage.makeJson(header, body)
       mediator ! Publish("services", mess)
 
       p.fishForMessage(10 seconds){
@@ -134,7 +134,7 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
     mediator ! Subscribe("spevents", e.ref)
     "answer to status request" in {
       val body = APISP.StatusRequest()
-      val mess = SPMessage.make(header, body).get.toJson
+      val mess = SPMessage.makeJson(header, body)
       mediator ! Publish("spevents", mess)
 
       e.fishForMessage(10 seconds){

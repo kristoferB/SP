@@ -16,14 +16,12 @@
         vm.widget = $scope.$parent.$parent.$parent.vm.widget; //lol what
 
         vm.opcServ = opcRunnerService;
-        vm.run_op = run_op;
         vm.get_init_state = get_init_state;
         vm.state = null;
         vm.enabled = [ ];
         vm.execute_op = execute_op;
         vm.selected = [ ];
         vm.reload_selection = reload_selection;
-        vm.get_item_name = get_item_name;
         vm.get_item_state = get_item_state;
         vm.opsFilterQuery = "";
         vm.operations = [];
@@ -32,9 +30,11 @@
         vm.variables = "";
         vm.manualEnabled = [];
         vm.manualOpsFilterQuery = "";
-        vm.get_autostart = get_autostart;
-        vm.set_autostart = set_autostart;
+        vm.autostart_all = autostart_all;
+        vm.all_auto = false;
         vm.force_finish = force_finish;
+        vm.autostart = autostart;
+        vm.run_sop = run_sop;
 
         // pose/state test
         vm.devices = [];
@@ -42,7 +42,11 @@
 
         activate();
 
-        var mutex = 0;
+        function autostart_all() {
+            vm.all_auto = !vm.all_auto;
+            _.each(vm.operations, function (op) { op.item.attributes.autostart = vm.all_auto; });
+            autostart();
+        }
 
         function format_pose(p) {
             return _.map(p, format_double).join();
@@ -84,17 +88,16 @@
                         },
                         "reqID":id
                     };
-                    return restService.postToServiceInstance(message, "ProcessSimulate")
+                    return restService.postToServiceInstance(message, "ProcessSimulate");
                 });
             });
         }
 
         function on_ps_event(event){
-            // only care about OPC service, assume simulation service always finishes in time
             if(!(_.isUndefined(event.service)) && event.service != "ProcessSimulate") return;
             if(!(_.isUndefined(event.isa)) && event.isa != "Response") return;
             if(event.ids[0].attributes.current_pose.length === 0) return;
-            var device = _.find(vm.devices, function (dev) { return dev.item.attributes.txid == event.ids[0].attributes.txid });
+            var device = _.find(vm.devices, function (dev) { return dev.item.attributes.txid == event.ids[0].attributes.txid; });
             if(_.isUndefined(device)) return;
             // fix 2*pi joint values for revolute joints...
             var current_pose = _.zipWith(event.ids[0].attributes.current_pose, device.item.attributes.joints, function (p,j) {
@@ -113,32 +116,10 @@
         }
 
         function on_service_event(event){
-            // only care about OPC service, assume simulation service always finishes in time
-            if(!(_.isUndefined(event.service)) && event.service != "OpcRunner") return;
+            if(!(_.isUndefined(event.service)) && event.service != "OPCUARunnerFrontend") return;
             if(!(_.isUndefined(event.isa)) && event.isa != "Response") return;
-            console.log('operation finished ' + itemService.getItem(event.attributes.op).name);
-            execute_op(vm.state, event.attributes.op);
-        }
-
-        function force_finish(opID) {
-            if(vm.state[opID] == "e") {
-                console.log('FORCE FINISHING OP: ' + opID);
-                execute_op(vm.state, opID);
-            }
-        }
-
-        function autostart() {
-            // get autostart ops
-            var auto_enabled = _.filter(vm.enabled, function(id) {
-                var attr = itemService.getItem(id).attributes;
-                return (attr.hasOwnProperty('autostart') && attr['autostart'])
-            });
-            // select random op and run it
-            if(auto_enabled.length > 0) {
-                var run_op = auto_enabled[Math.floor(Math.random()*auto_enabled.length)];
-                console.log('starting op: ' + itemService.getItem(run_op).name);
-                execute_op(vm.state,run_op);
-            }
+            if(!(_.isUndefined(event.newstate))) return;
+            update_state(event.attributes.newstate,event.attributes.enabled);
         }
 
         function activate() {
@@ -180,10 +161,6 @@
             });
         }
 
-        function get_item_name(id) {
-            return itemService.getItem(id).name
-        }
-
         function get_item_state(item) {
             if(item.isa == 'Operation') {
                 if(vm.state[item.id] == 'i') return 'idle';
@@ -194,16 +171,7 @@
                 var index = vm.state[item.id];
                 return item.attributes.stateVariable.domain[index];
             }
-        }
-
-        function get_autostart(id) {
-            var attr = itemService.getItem(id).attributes;
-            return (attr.hasOwnProperty('autostart') && attr['autostart'])
-        }
-
-        function set_autostart(id, status) {
-            itemService.getItem(id).attributes['autostart'] = status;
-            itemService.saveItem(id);
+            return 'error!';
         }
 
         function update_state(newstate,newenabled) {
@@ -226,40 +194,34 @@
             // in gui only show manually started ops
             vm.manualEnabled = _.map(_.filter(vm.enabled, function(id) {
                 var attr = itemService.getItem(id).attributes;
-                return !(attr.hasOwnProperty('autostart') && attr['autostart'])
+                return !(attr.hasOwnProperty('autostart') && attr['autostart']);
             }), function(id) {
                 return { id: id, name: itemService.getItem(id).name };
             });
-
-            // let other functions update
-            mutex=0;
-
-            autostart();
         }
 
         function re_filter_enabled() {
-            mutex=1;
+        }
+
+        function send_to_backend(setup) {
             var idF = restService.getNewID();
             var answerF = idF.then(function(id){
                 var message = {
-                    "setup": {
-                        "command":"re-filter enabled by state",
-                        "state":vm.state,
-                    },
+                    "setup": setup,
                     "core":{
                         "model":modelService.activeModel.id,
                         "responseToModel":false,
-                        "includeIDAbles":vm.selected,
+                        "includeIDAbles": vm.selected,
                         "onlyResponse":true
                     },
                     "reqID":id
                 };
-                return restService.postToServiceInstance(message, "Simulation")
+                return restService.postToServiceInstance(message, "OPCUARunnerFrontend");
             });
 
             return answerF.then(function(serviceAnswer){
-                update_state(serviceAnswer.attributes.newstate,serviceAnswer.attributes.enabled);
-            })
+
+            });
         }
 
         function get_init_state() {
@@ -269,86 +231,38 @@
                     !_.isUndefined(itemService.getItem(v).attributes.current_pose) &&
                     itemService.getItem(v).attributes.current_pose.length > 0;
             });
-            vm.devices = _.map(device_ids, function(dev) { return { item: itemService.getItem(dev), current_pose : [], current_pose_name: ""}});
+            vm.devices = _.map(device_ids, function(dev) { return { item: itemService.getItem(dev), current_pose : [], current_pose_name: ""};});
 
-            var idF = restService.getNewID();
-            var answerF = idF.then(function(id){
-                var message = {
-                    "setup": {
-                        "command":"get init state"
-                    },
-                    "core":{
-                        "model":modelService.activeModel.id,
-                        "responseToModel":false,
-                        "includeIDAbles": vm.selected,
-                        "onlyResponse":true
-                    },
-                    "reqID":id
-                };
-                return restService.postToServiceInstance(message, "Simulation")
-            });
-
-            return answerF.then(function(serviceAnswer){
-                update_state(serviceAnswer.attributes.newstate,serviceAnswer.attributes.enabled);
-            })
+            var setup = { "command" : "get init state" };
+            send_to_backend(setup);
         }
 
-        function execute_op(state,opID) {
-            // onle let one op update at a time...
-            if(mutex > 0) {
-                setTimeout(function() { execute_op(vm.state,opID) }, 50);
-                return;
+        function autostart() {
+            // get autostart ops
+            var auto_enabled = _.filter(vm.operations, function (op) {
+                var attr = op.item.attributes;
+                return (_.has(attr, 'autostart') && attr['autostart']);
+            });
+            var auto_ids = _.map(auto_enabled, function (op) { return op.item.id; });
+
+            var setup = { "command" : "set autostart", "operations" : auto_ids };
+            send_to_backend(setup);
+        }
+
+        function force_finish(opID) {
+            var setup = { "command" : "force finish", "operation" : opID };
+            send_to_backend(setup);
+        }
+        function execute_op(opID) {
+            var setup = { "command":"execute", "operation":opID };
+            send_to_backend(setup);
+        }
+        function run_sop() {
+            if(itemService.selected.length > 0) {
+                var setup = { "command":"run sop", "operation":itemService.selected[0].id };
+                send_to_backend(setup);
             }
-            mutex=1;
-
-            // if starting op, start opc service
-            if(state[opID] == "i") {
-                run_op(opID);
-            }
-
-            var idF = restService.getNewID();
-            var answerF = idF.then(function(id){
-                var message = {
-                    "setup": {
-                        "command":"execute",
-                        "state":state,
-                        "operation":opID
-                    },
-                    "core":{
-                        "model":modelService.activeModel.id,
-                        "responseToModel":false,
-                        "includeIDAbles":vm.selected,
-                        "onlyResponse":true
-                    },
-                    "reqID":id
-                };
-                return restService.postToServiceInstance(message, "Simulation")
-            });
-
-
-            return answerF.then(function(serviceAnswer){
-                update_state(serviceAnswer.attributes.newstate,serviceAnswer.attributes.enabled);
-            })
         }
 
-        function run_op(opID) {
-            var idF = restService.getNewID();
-            var answerF = idF.then(function(id){
-                var message = {
-                    "setup": {
-                        "command":"start_op",
-                        "ops":[opID]
-                    },
-                    "core":{
-                        "model":modelService.activeModel.id,
-                        "responseToModel":false,
-                        "includeIDAbles":[],
-                        "onlyResponse":false
-                    },
-                    "reqID":id
-                };
-                return restService.postToServiceInstance(message, "OpcRunner")
-            });
-        }
     }
 })();
