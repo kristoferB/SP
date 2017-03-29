@@ -22,15 +22,12 @@ trait JsonLogics {
     override val customSerializers: List[Serializer[_]] = org.json4s.ext.JodaTimeSerializers.all :+
       org.json4s.ext.UUIDSerializer :+
       new IDSerializer :+
-      new StateSerializer :+
-      new RelationSerializer
+      new StateSerializer
     override val dateFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     override val typeHints = ShortTypeHints(List(
       classOf[Operation],
       classOf[Thing],
-      classOf[RelationResult],
       classOf[SPSpec],
-      classOf[HierarchyRoot],
       classOf[SOPSpec],
       classOf[Parallel],
       classOf[Alternative],
@@ -53,7 +50,7 @@ trait JsonLogics {
       classOf[ASSIGN],
       classOf[ValueHolder],
       classOf[SVIDEval],
-      classOf[PropositionCondition]
+      classOf[Condition]
     ))
   }
 
@@ -110,27 +107,6 @@ trait JsonLogics {
     }
     ))
 
-  class RelationSerializer extends CustomSerializer[RelationMap](format => (
-    {
-      case JObject(JField("relations", JArray(ops)) :: JField("enabledMap", JArray(enabled)) :: Nil) => {
-        println("Not parsing relationsmap just yet!!!")
-        RelationMap(Map(),EnabledStatesMap(Map()) )
-      }
-    },
-    {
-      case x: RelationMap =>
-        implicit val formats2 = new JsonFormats {}
-        val remap = x.relations map{
-          case (ops, sop) =>
-            SPAttributes("operations" -> ops, "sop" -> sop)
-        }
-        SPAttributes(
-          "relations" -> remap
-          //"enabledMap" -> x.enabledStates
-        )
-    }
-
-    ))
 
   implicit class JoinJsonFormats(x: JsonFormats) {
     def join(y: JsonFormats): JsonFormats = {

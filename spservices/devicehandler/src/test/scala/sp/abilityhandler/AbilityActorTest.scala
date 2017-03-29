@@ -34,10 +34,10 @@ class AbilityActorTest(_system: ActorSystem) extends TestKit(_system) with Impli
   val id = ID.newID
 
   val v1 = Thing("v1")
-  val pre = PropositionCondition(EQ(v1.id, 1), List(Action(v1.id, ValueHolder(2))))
-  val post = PropositionCondition(EQ(v1.id, 3), List(Action(v1.id, ValueHolder(4))))
-  val started = PropositionCondition(EQ(v1.id, 2), List())
-  val reset = PropositionCondition(AlwaysTrue, List(Action(v1.id, ValueHolder(1))))
+  val pre = Condition(EQ(v1.id, 1), List(Action(v1.id, ValueHolder(2))))
+  val post = Condition(EQ(v1.id, 3), List(Action(v1.id, ValueHolder(4))))
+  val started = Condition(EQ(v1.id, 2), List())
+  val reset = Condition(AlwaysTrue, List(Action(v1.id, ValueHolder(1))))
   val ability = api.Ability("test", id, pre, started, post, reset)
 
 

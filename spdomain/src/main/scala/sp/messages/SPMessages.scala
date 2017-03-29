@@ -52,16 +52,18 @@ object Pickles extends SPParser {
 
 
 
-  implicit lazy val asdasd = {val asdasd = ();   macroRW[SPMessage]}
-  implicit lazy val sdffsaf = {val sdffsaf = ();   macroRW[SPHeader]}
-  implicit lazy val wefawef = {val wefawef = ();   macroRW[APISP]}
-  implicit lazy val aasdasd = {val aasdasd = ();   macroRW[StateUpdater]}
-  implicit lazy val csdcsdc = {val csdcsdc = ();   macroRW[StateEvaluator]}
-  implicit lazy val oshffef = {val oshffef = ();   macroRW[PropositionEvaluator]}
-  implicit lazy val scvvvds = {val scvvvds = ();   macroRW[Proposition]}
-  implicit lazy val ccscsc = {val ccscsc = ();   macroRW[PropositionCondition]}
-  implicit lazy val vfvfvfv = {val vfvfvfv = ();   macroRW[Condition]}
-  implicit lazy val bfgbfgb = {val bfgbfgb = ();   macroRW[Operation]}
+  implicit lazy val spmessageMacro = {val spmessageMacro = ();   macroRW[SPMessage]}
+  implicit lazy val spheaderMacro = {val spheaderMacro = ();   macroRW[SPHeader]}
+  implicit lazy val apispMacro = {val apispMacro = ();   macroRW[APISP]}
+  implicit lazy val stateUpdaterMacro = {val stateUpdaterMacro = ();   macroRW[StateUpdater]}
+  implicit lazy val stateEvaluatorMacro = {val stateEvaluatorMacro = ();   macroRW[StateEvaluator]}
+  implicit lazy val propEvalMacro = {val propEvalMacro = ();   macroRW[PropositionEvaluator]}
+  implicit lazy val propositionMacro = {val propositionMacro = ();   macroRW[Proposition]}
+  implicit lazy val conditionMacro = {val conditionMacro = ();   macroRW[Condition]}
+  implicit lazy val operationMacro = {val operationMacro = ();   macroRW[Operation]}
+  implicit lazy val sopMAcro = {val sopMAcro = ();   macroRW[SOP]}
+  implicit lazy val idableMacro = {val idableMacro = ();   macroRW[IDAble]}
+
 
 
   // TODO: Remove Try when creating a SPMessage from classes. The compiler will take that!
