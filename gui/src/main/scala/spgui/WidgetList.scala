@@ -24,8 +24,8 @@ object WidgetList {
       ("ExampleServiceWidgetState", ExampleServiceWidgetState(), 2, 3),
       ("OpcUAWidget", OpcUAWidget(), 5, 2),
       ("ChartWithReact", widgets.examples.ChartWithReact(), 2, 2),
-      ("Tree", widgets.itemexplorer.Tree(), 2, 4)
-
+      ("Tree", widgets.itemexplorer.Tree(), 2, 4),
+      ("ManualMode", widgets.examples.Manualmode(), 2, 2)
     )
 
   val map = list.map(t => t._1 -> (t._2, t._3, t._4)).toMap

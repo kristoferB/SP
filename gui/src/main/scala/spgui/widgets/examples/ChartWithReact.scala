@@ -11,8 +11,10 @@ object ChartWithReact {
   def apply() = SPWidget{spwb =>
     component()
   }
+
   private val component = ReactComponentB[Unit]("ChartWithReact")
     .initialState(getDataval())
+
     .render(dcb =>
       <.div(
         <.button("mod state", ^.onClick --> dcb.modState(_ => getDataval())),
