@@ -33,7 +33,8 @@ libraryDependencies ++= Seq(
   "com.lihaoyi" %%% "scalarx" % "0.3.2",
   "org.singlespaced" %%% "scalajs-d3" % "0.3.3",
   "org.scalatest" %%% "scalatest" % "3.0.0" % "test",
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+  "eu.unicredit" %%% "paths-scala-js" % "0.4.5"
 )
 
 /* This is how to include js files. Put it in src/main/resources.

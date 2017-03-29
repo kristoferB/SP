@@ -25,7 +25,8 @@ object WidgetList {
       ("Item explorer", widgets.itemexplorer.ItemExplorer(), 2, 4),
       ("Ability Handler", widgets.abilityhandler.AbilityHandlerWidget(), 2, 2),
       ("ServiceList", widgets.services.ServiceListWidget(), 2, 2),
-      ("Settings", widgets.settings.SettingsWidget(), 2, 4)
+      ("Settings", widgets.settings.SettingsWidget(), 2, 4),
+      ("SopMaker", widgets.sopmaker.SopMakerWidget(), 2, 4)
     )
 
   val map = list.map(t => t._1 -> (t._2, t._3, t._4)).toMap
