@@ -36,7 +36,7 @@ object PathsTest{
       <.div(
         <.button("Countries", ^.onClick --> dcb.modState(_ => countries)),
           <.button("Countries2", ^.onClick --> dcb.modState(_ => countries2)),
-        PieChart(dcb.state)
+            PieChart(dcb.state)
       )
     }
     .build
@@ -81,10 +81,10 @@ object Piechart extends MakeColor {
         p("Mexico: ", span(className := "label label-info", countries.props(1).population)),
         p("France: ", span(className := "label label-info", countries.props(2).population)),
         p("Argentina: ", span(className := "label label-info", countries.props(3).population)),
-        p("Japan: ", span(className := "label label-info", countries.props(4).population))
-      ),
-      svg(width := 400, height := 400,
-        g(transform := move(js.Array(200, 200)), slices)
+        p("Japan: ", span(className := "label label-info", countries.props(4).population)),
+        svg(width := 400, height := 400,
+          g(transform := move(js.Array(200, 200)), slices)
+        )
       )
       )
     })
