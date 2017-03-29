@@ -15,7 +15,7 @@ import org.json4s._
  */
 trait IDAble {
   val name: String
-  val id: ID
+  val id: UUID
   val attributes: SPAttributes
 
   def |=(x: Any) = x match {
@@ -24,24 +24,3 @@ trait IDAble {
   }
 }
 
-
-case class ID(value: UUID){
-  override def toString = value.toString
-}
-
-
-object ID {
-  implicit def uuidToID(id: UUID) = ID(id)
-  implicit def idToUUID(id: ID) = id.value
-  def newID = ID(UUID.randomUUID())
-  def makeID(id: String): Option[ID] = {
-    try {
-      Some(ID(UUID.fromString(id)))
-    } catch {
-      case e: IllegalArgumentException => None
-    }
-  }
-  def isID(str: String) = {
-    makeID(str) != None
-  }
-}

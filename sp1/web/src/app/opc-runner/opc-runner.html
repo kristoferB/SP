@@ -16,13 +16,18 @@
             </button>
         </div>
         <div ng-if="vm.state != null">
-            <div style="padding: 10px; float: left; width: 50%">
+            <div style="padding: 10px; float: left; width: 30%">
+                <h4>Execute sequence</h4>
+                <button type="button" class="btn btn-sm btn-primary" ng-click="vm.run_sop()">
+                    <i class="fa fa-play"></i>Start sop
+                </button>
+
                 <h4>Enabled operations</h4>
                 <label>Filter operations: <input ng-model="vm.manualOpsFilterQuery"></label>
                 <table ng-repeat="op in vm.manualEnabled | orderBy:'name' | filter:vm.manualOpsFilterQuery">
                     <tr>
                         <td style="padding: 5px">
-                            <button type="button" class="btn btn-sm btn-primary" ng-click="vm.execute_op(vm.state,op.id)">
+                            <button type="button" class="btn btn-sm btn-primary" ng-click="vm.execute_op(op.id)">
                                 <i class="fa fa-play"></i>{{op.name}}
                             </button>
                         </td>
@@ -30,14 +35,14 @@
                 </table>
             </div>
 
-            <div style="padding: 10px; float: right; width: 50%">
+            <div style="padding: 10px; float: right; width: 70%">
                 <h4>System state</h4>
                 <label>Filter operations: <input ng-model="vm.opsFilterQuery"></label>
                 <table width="100%" border="1">
                     <thead>
                         <th class="col-md-6">Operation</th>
                         <th class="col-md-4">State</th>
-                        <th class="col-md-2">Autorun</th>
+                        <th class="col-md-2">Autorun<br><center><input type="checkbox" ng-checked="vm.all_auto" ng-click="vm.autostart_all()"/></center></th>
                     </thead>
                     <tbody ng-repeat="op in vm.operations | orderBy:'name' |  filter:vm.opsFilterQuery">
                         <tr>
@@ -49,7 +54,7 @@
                                     {{op.state}}
                                 </div>
                             </td>
-                            <td><center><input type="checkbox" ng-model="op.item.attributes.autostart"/></center></td>
+                            <td><center><input type="checkbox" ng-model="op.item.attributes.autostart" ng-click="vm.autostart()"/></center></td>
                         </tr>
                     </tbody>
                 </table>

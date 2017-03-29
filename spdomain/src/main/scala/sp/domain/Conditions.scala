@@ -8,7 +8,7 @@ package sp.domain
  * TODO: Also simplify the condition structure as soon as possible,
  * TODO: e.g. remove stateEvaluater and StateUpdater
  */
-trait Condition {
+sealed trait Condition {
   val attributes: SPAttributes
 }
 
@@ -37,9 +37,10 @@ object Proposition {
   }
 
   implicit def strToProp(str: String)(implicit idables: List[IDAble] = List()): Proposition = parseStr(str, idables).get
+
 }
 
-trait PropositionEvaluator extends Proposition {
+sealed trait PropositionEvaluator extends Proposition {
   val left: StateEvaluator
   val right: StateEvaluator
 }
@@ -59,12 +60,12 @@ case object AlwaysTrue extends Proposition
 
 case object AlwaysFalse extends Proposition
 
-trait StateEvaluator
+sealed trait StateEvaluator
 
 object StateEvaluator {
-  implicit def idToSE(id: ID) = SVIDEval(id)
-  implicit def strToSE(value: String) = ValueHolder(org.json4s.JString(value))
-  implicit def intToSE(value: Int) = ValueHolder(org.json4s.JInt(value))
+  implicit def idToSE(id: ID): SVIDEval = SVIDEval(id)
+  implicit def strToSE(value: String): ValueHolder = ValueHolder(org.json4s.JString(value))
+  implicit def intToSE(value: Int): ValueHolder = ValueHolder(org.json4s.JInt(value))
 }
 
 case class SVIDEval(id: ID) extends StateEvaluator
@@ -80,6 +81,7 @@ case class ASSIGN(id: ID) extends StateUpdater
 private object StrMaker {
   def makeStr[T](xs: List[T], div: String) = {
     def req(list: List[T]): String = list match {
+      case Nil => ""
       case x :: Nil => x.toString
       case x :: xs => s"$x $div ${req(xs)}"
     }
