@@ -1,5 +1,5 @@
 package spgui.widgets.examples
-
+/*
 import scala.scalajs.js
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.all.{className, div, h4, key, p, span}
@@ -134,3 +134,4 @@ trait MakeColor {
     if (c.alpha == 1) s"rgb(${ c.r.floor },${ c.g.floor },${ c.b.floor })"
     else s"rgba(${ c.r.floor },${ c.g.floor },${ c.b.floor },${ c.alpha })"
 }
+*/
