@@ -57,7 +57,7 @@ object FakeElvisDevice {
   while (true) {
     var li = readFromFile
     while (li.hasNext) {
-      Thread.sleep(5000)
+      Thread.sleep(1000)
       felvisPublisher ! li.next()
     }
   }

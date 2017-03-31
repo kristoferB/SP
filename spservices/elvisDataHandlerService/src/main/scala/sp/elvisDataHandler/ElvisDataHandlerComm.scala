@@ -10,9 +10,9 @@ package API_PatientEvent {
 
   // Messages I can send
   sealed trait PatientEvent
-  case class NewPatient(careContactId: String, patientData: Map[String, String]) extends PatientEvent
-  case class DiffPatient(careContactId: String, patientData: Map[String, String]) extends PatientEvent
-  case class RemovePatient(careContactId: String) extends PatientEvent
+  case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
+  case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
+  case class RemovedPatient(careContactId: String) extends PatientEvent
 
   // Messages I can receive
   sealed trait ElvisEvent

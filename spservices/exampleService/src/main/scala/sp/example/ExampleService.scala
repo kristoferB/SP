@@ -20,9 +20,9 @@ package API_PatientEvent {
 
   // Messages I can receive
   sealed trait PatientEvent
-  case class NewPatient(careContactId: String, patientData: Map[String, String]) extends PatientEvent
-  case class DiffPatient(careContactId: String, patientData: Map[String, String]) extends PatientEvent
-  case class RemovePatient(careContactId: String) extends PatientEvent
+  case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
+  case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
+  case class RemovedPatient(careContactId: String) extends PatientEvent
 
   object attributes {
     val service = "exampleService"
@@ -64,9 +64,9 @@ class ExampleService extends Actor with ActorLogging {
  def matchRequests(mess: Try[SPMessage]) = {
   extractPatientEvent(mess) map { case (h, b) =>
     b match {
-      case api.NewPatient(careContactId, patientData) => println("new patient: " + careContactId + " -- patient data: " + patientData)
-      case api.DiffPatient(careContactId, patientData) => println("updated patient: " + careContactId + " -- patient data: " + patientData)
-      case api.RemovePatient(careContactId) => println("removed patient: " + careContactId)
+      case api.NewPatient(careContactId, patientData, events) => println("new patient: " + careContactId + " -- patient data: " + patientData + " --- events: " + events)
+      case api.DiffPatient(careContactId, patientData, newEvents, removedEvents) => println("updated patient: " + careContactId + " -- patient data: " + patientData + " --- newEvents: " + newEvents + " ---- removedEvents: " + removedEvents)
+      case api.RemovedPatient(careContactId) => println("removed patient: " + careContactId)
     }
   }
 }

@@ -86,7 +86,7 @@ val info = SPAttributes(
     val json: JValue = parse(message) // this jsons the String.
     json.mapField(k => (k._1, k._2)).extract[Map[String, _ ]].keys.head match {
       case "newLoad" | "new"          => newPatient(json)
-      case "diff"                     => println("diff")
+      case "diff"                     => diffPatient(json)
       case "removed"                  => println("removed")
       case _ => println("WARNING: Searcher received an unrecognized message format. json: "+json)
     }
@@ -96,8 +96,11 @@ val info = SPAttributes(
     val header = SPHeader(from = "elvisDataHandlerService", to = "exampleService")
     val patientJson = patientsToElastic.initiatePatient(json \ "new" \ "patient")
     val careContactId = (patientJson \ "CareContactId").values.toString
-    val patientData = extractPatientData(patientJson)
-    val body = api.NewPatient(careContactId, patientData)
+    val patientData = extractNewPatientData(patientJson)
+    //println("Patientdata: " + patientData)
+    val events = extractNewPatientEvents(patientJson)
+    println("Events: " + events)
+    val body = api.NewPatient(careContactId, patientData, events)
     val toSend = ElvisDataHandlerComm.makeMess(header, body)
     toSend match {
       case Success(v) =>
@@ -108,7 +111,111 @@ val info = SPAttributes(
     }
   }
 
-  def extractPatientData(patient: JValue): Map[String, String] = {
+  def diffPatient(json: JValue) {
+    val header = SPHeader(from = "elvisDataHandlerService", to = "exampleService")
+    val careContactId = (json \ "diff" \ "updates" \ "CareContactId").values.toString
+    val patientData = extractDiffPatientData(json \ "diff" \ "updates")
+    val newEvents = extractNewEvents(json \ "diff" \ "updates")
+    val removedEvents = extractRemovedEvents(json \ "diff" \ "updates")
+    val body = api.DiffPatient(careContactId, patientData, newEvents, removedEvents)
+    val toSend = ElvisDataHandlerComm.makeMess(header, body)
+    toSend match {
+      case Success(v) =>
+        println(s"About to publish on akka: $v")
+        mediator ! Publish("patient-event-topic", v)
+      case Failure(e) =>
+        println("Failed")
+    }
+  }
+
+  def removePatient(json: JValue) {
+    val header = SPHeader(from = "elvisDataHandlerService", to = "exampleService")
+    val careContactId = (json \ "removed" \ "patient" \ "CareContactId").values.toString
+    val body = api.RemovedPatient(careContactId)
+    val toSend = ElvisDataHandlerComm.makeMess(header, body)
+    toSend match {
+      case Success(v) =>
+        println(s"About to publish on akka: $v")
+        mediator ! Publish("patient-event-topic", v)
+      case Failure(e) =>
+        println("Failed")
+    }
+  }
+
+  /** Casts a jValue to a List[A] without crashing on empty lists */
+  def castJValueToList[A](list:JValue): List[A] = {
+    list match {
+      case JNothing => List[A]()
+      case _ => list.asInstanceOf[JArray].values.asInstanceOf[List[A]]
+    }
+  }
+
+  def extractNewEvents(patient: JValue): List[Map[String, String]] = {
+    var tmpList = new ListBuffer[Map[String,String]]()
+    val events = castJValueToList[Map[String, JValue]](patient \ "newEvents")
+    events.foreach{ m =>
+      var tmpMap = Map[String, String]()
+      m.foreach{ kv => tmpMap += kv._1 -> kv._2.toString
+      }
+      tmpList += tmpMap
+    }
+    return tmpList.toList
+  }
+
+  def extractRemovedEvents(patient: JValue): List[Map[String, String]] = {
+    var tmpList = new ListBuffer[Map[String,String]]()
+    val events = castJValueToList[Map[String, JValue]](patient \ "removedEvents")
+    events.foreach{ m =>
+      var tmpMap = Map[String, String]()
+      m.foreach{ kv => tmpMap += kv._1 -> kv._2.toString }
+      tmpList += tmpMap
+    }
+    return tmpList.toList
+  }
+
+  def extractNewPatientEvents(patient: JValue): List[Map[String, String]] = {
+    var tmpList = new ListBuffer[Map[String,String]]()
+    val events = castJValueToList[Map[String, JValue]](patient \ "Events")
+    events.foreach{ m =>
+      var tmpMap = Map[String,String]()
+      m.foreach{ kv => tmpMap += kv._1 -> kv._2.toString }
+      tmpList += tmpMap
+    }
+    return tmpList.toList
+  }
+
+  def extractDiffPatientData(patient: JValue): Map[String, String] = {
+    var departmentComment = ""
+    var location = ""
+    var reasonForVisit = ""
+    var team = ""
+
+    val departmentCommentJson = (patient \ "DepartmentComment")
+    val locationJson = (patient \ "Location")
+    val reasonForVisitJson = (patient \ "ReasonForVisit")
+    val teamJson = (patient \ "Team")
+
+    if (departmentCommentJson != JNothing) {
+      departmentComment = departmentCommentJson.values.toString
+    }
+    if (locationJson != JNothing) {
+      location = locationJson.values.toString
+    }
+    if (reasonForVisitJson != JNothing) {
+      reasonForVisit = reasonForVisitJson.values.toString
+    }
+    if (teamJson != JNothing) {
+      team = teamJson.values.toString
+    }
+
+    val timestamp = (patient \ "timestamp").values.toString
+    val careContactId = (patient \ "CareContactId").values.toString
+    val patientId = (patient \ "PatientId").values.toString
+    return Map("DepartmentComment" -> departmentComment, "Location" -> location, "ReasonForVisit" -> reasonForVisit,
+    "Team" -> team, "timestamp" -> timestamp, "CareContactId" -> careContactId, "PatientId" -> patientId)
+  }
+
+  def extractNewPatientData(patient: JValue): Map[String, String] = {
     val careContactId = (patient \ "CareContactId").values.toString
     val careContactRegistrationTime = (patient \ "CareContactRegistrationTime").values.toString
     val departmentComment = (patient \ "DepartmentComment").values.toString
@@ -126,17 +233,13 @@ val info = SPAttributes(
     val timeOfTriage = (patient \ "TimeOfTriage").values.toString
     val timeOfFinished = (patient \ "TimeOfFinished").values.toString
     val timestamp = (patient \ "timestamp").values.toString
-    //val events = (patient \ "Events")
-    //val updates = (patient \ "Updates")
+
     return Map("CareContactId" -> careContactId, "CareContactRegistrationTime" -> careContactRegistrationTime,
       "DepartmentComment" -> departmentComment, "Location" -> location, "PatientId" -> patientId,
       "ReasonForVisit" -> reasonForVisit, "Team" -> team, "VisitId" -> visitId,
       "VisitRegistrationTime" -> visitRegistrationTime, "Priority" -> priority, "TimeToDoctor" -> timeToDoctor,
       "TimeToTriage" -> timeToTriage, "TimeToFinished" -> timeToFinished, "TimeOfDoctor" -> timeOfDoctor,
-      "TimeOfTriage" -> timeOfTriage, "TimeOfFinished" -> timeOfFinished,
-      "timestamp" -> timestamp
-      //"Events" -> events,
-      //"Updates" -> updates
+      "TimeOfTriage" -> timeOfTriage, "TimeOfFinished" -> timeOfFinished, "timestamp" -> timestamp
     )
   }
 
