@@ -15,7 +15,7 @@ package spgui.widgets.examples {
   // Import this to make SPAttributes work including json handling
   import sp.messages.Pickles._
   import sp.messages._
-
+  import sp.domain._
 
   package API_ExampleService {
 

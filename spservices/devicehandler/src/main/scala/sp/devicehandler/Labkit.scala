@@ -27,12 +27,16 @@ case class Labkit(ahid: ID, system: ActorSystem) extends Helpers2 {
   val  testingOut       = Thing("testingOut")
   val  testingOutInt    = Thing("testingOutInt")
   val  testingOutMirror = Thing("testingOutMirror")
+  val  feedRun          = Thing("feedRun")
+  val  feedSensor       = Thing("feedSensor")
+  val  feedState        = Thing("feedState")
+
 
   // resources
   val testingResource = Thing("testingResource")
 
 
-  val allVars = List(testingIn, testingInInt, testingOut, testingOutInt, testingOutMirror)
+  val allVars = List(testingIn, testingInInt, testingOut, testingOutInt, testingOutMirror, feedRun, feedSensor, feedState)
 
   // abilities
   val a1 = abapi.Ability(name = "a1", id = ID.newID,
@@ -48,7 +52,13 @@ case class Labkit(ahid: ID, system: ActorSystem) extends Helpers2 {
     resetCondition = prop(allVars, s"${testingOutInt.name} == 7", List(s"${testingInInt.name} := 2"))
   )
 
-  val allAbilities = List(a1, a2)
+  val feeder = abapi.Ability(name = "feeder", id = ID.newID,
+    preCondition = prop(allVars, s" not ${feedRun.name} and not ${feedSensor.name}", List(s"${feedRun.name} := true")),
+    postCondition = prop(allVars, s"${feedState.name} == 3", List(s"${feedRun.name} := false")),
+    started = prop(allVars, s"${feedState.name} == 2", List())
+  )
+
+  val allAbilities = List(a1, a2, feeder)
   println(allAbilities)
 
 
