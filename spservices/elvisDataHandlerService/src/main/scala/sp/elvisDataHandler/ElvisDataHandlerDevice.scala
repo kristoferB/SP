@@ -87,7 +87,7 @@ val info = SPAttributes(
     json.mapField(k => (k._1, k._2)).extract[Map[String, _ ]].keys.head match {
       case "newLoad" | "new"          => newPatient(json)
       case "diff"                     => diffPatient(json)
-      case "removed"                  => println("removed")
+      case "removed"                  => removedPatient(json)
       case _ => println("WARNING: Searcher received an unrecognized message format. json: "+json)
     }
   }
@@ -97,18 +97,10 @@ val info = SPAttributes(
     val patientJson = patientsToElastic.initiatePatient(json \ "new" \ "patient")
     val careContactId = (patientJson \ "CareContactId").values.toString
     val patientData = extractNewPatientData(patientJson)
-    //println("Patientdata: " + patientData)
     val events = extractNewPatientEvents(patientJson)
     println("Events: " + events)
     val body = api.NewPatient(careContactId, patientData, events)
-    val toSend = ElvisDataHandlerComm.makeMess(header, body)
-    toSend match {
-      case Success(v) =>
-        println(s"About to publish on akka: $v")
-        mediator ! Publish("patient-event-topic", v)
-      case Failure(e) =>
-        println("Failed")
-    }
+    publishOnAkka(header, body)
   }
 
   def diffPatient(json: JValue) {
@@ -118,36 +110,14 @@ val info = SPAttributes(
     val newEvents = extractNewEvents(json \ "diff" \ "updates")
     val removedEvents = extractRemovedEvents(json \ "diff" \ "updates")
     val body = api.DiffPatient(careContactId, patientData, newEvents, removedEvents)
-    val toSend = ElvisDataHandlerComm.makeMess(header, body)
-    toSend match {
-      case Success(v) =>
-        println(s"About to publish on akka: $v")
-        mediator ! Publish("patient-event-topic", v)
-      case Failure(e) =>
-        println("Failed")
-    }
+    publishOnAkka(header, body)
   }
 
-  def removePatient(json: JValue) {
+  def removedPatient(json: JValue) {
     val header = SPHeader(from = "elvisDataHandlerService", to = "exampleService")
     val careContactId = (json \ "removed" \ "patient" \ "CareContactId").values.toString
     val body = api.RemovedPatient(careContactId)
-    val toSend = ElvisDataHandlerComm.makeMess(header, body)
-    toSend match {
-      case Success(v) =>
-        println(s"About to publish on akka: $v")
-        mediator ! Publish("patient-event-topic", v)
-      case Failure(e) =>
-        println("Failed")
-    }
-  }
-
-  /** Casts a jValue to a List[A] without crashing on empty lists */
-  def castJValueToList[A](list:JValue): List[A] = {
-    list match {
-      case JNothing => List[A]()
-      case _ => list.asInstanceOf[JArray].values.asInstanceOf[List[A]]
-    }
+    publishOnAkka(header, body)
   }
 
   def extractNewEvents(patient: JValue): List[Map[String, String]] = {
@@ -211,6 +181,7 @@ val info = SPAttributes(
     val timestamp = (patient \ "timestamp").values.toString
     val careContactId = (patient \ "CareContactId").values.toString
     val patientId = (patient \ "PatientId").values.toString
+
     return Map("DepartmentComment" -> departmentComment, "Location" -> location, "ReasonForVisit" -> reasonForVisit,
     "Team" -> team, "timestamp" -> timestamp, "CareContactId" -> careContactId, "PatientId" -> patientId)
   }
@@ -241,6 +212,25 @@ val info = SPAttributes(
       "TimeToTriage" -> timeToTriage, "TimeToFinished" -> timeToFinished, "TimeOfDoctor" -> timeOfDoctor,
       "TimeOfTriage" -> timeOfTriage, "TimeOfFinished" -> timeOfFinished, "timestamp" -> timestamp
     )
+  }
+
+  def publishOnAkka(header: SPHeader, body: api.PatientEvent) {
+    val toSend = ElvisDataHandlerComm.makeMess(header, body)
+    toSend match {
+      case Success(v) =>
+        println(s"About to publish on akka: $v")
+        mediator ! Publish("patient-event-topic", v)
+      case Failure(e) =>
+        println("Failed")
+    }
+  }
+
+  /** Casts a jValue to a List[A] without crashing on empty lists */
+  def castJValueToList[A](list:JValue): List[A] = {
+    list match {
+      case JNothing => List[A]()
+      case _ => list.asInstanceOf[JArray].values.asInstanceOf[List[A]]
+    }
   }
 
 }
