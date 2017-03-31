@@ -27,7 +27,7 @@ class GetFromElastic {
   val ip = config.getString("elastic.ip")
   val port = config.getString("elastic.port")
 
-  println("GetFromElastic instance attempting to connect to elasticsearch on address: " + ip + ":" + port )
+  //println("GetFromElastic instance attempting to connect to elasticsearch on address: " + ip + ":" + port )
   val client = new Client(s"http://$ip:$port") // creates a wabisabi client for communication with elasticsearch
 
   def searchES(index: String, query: String): JValue = {
@@ -56,14 +56,13 @@ class GetFromElastic {
   /**
   :return: list containg all patients currently at the emergency room.
   */
-  def getAllPatients(): List[JValue] = {
+  def getAllPatients(): List[JObject] = {
     val results = searchES("on_going_patient_index", "{\"query\": {\"match_all\": {}}}")
     val extractedResults = results \ "hits" \ "hits"
-    var patients = new ListBuffer[JValue]()
+    var patients = new ListBuffer[JObject]()
     for {
-      JObject(obj) <- extractedResults
-      JField("CareContactId", JInt(careContactId)) <- obj } {
-        patients += careContactId }
+      JObject(obj) <- extractedResults } {
+        patients += obj }
     return patients.toList.distinct // return list withouth duplicates
   }
 
@@ -101,7 +100,24 @@ class GetFromElastic {
     val oldPatientQuery = client.get(index, PATIENT_TYPE, careContactId).map(_.getResponseBody) //fetch patient from database
     while (!oldPatientQuery.isCompleted) {} // patiently wait for response from the database. //TODO at some point add timeout. It could get stuck here forever (but probably not). Update: it has not happened for 60 days
     val oldPatient:JValue = parse(oldPatientQuery.value.get.get) // unpack the string and cast to json-map
-    println("Retrieved patient: " +oldPatient \ "_source")
+    //println("Retrieved patient: " +oldPatient \ "_source")
     return oldPatient \ "_source" // The good stuff is located in _source.
   }
+
+
+  def getArrivingPatients(startTime: Long, endTime: Long, intervalMinutes: Int): String = {
+    val str: String = "{\"query\":{\"match_all\":{}},\"filter\":{\"range\":{\"VisitRegistrationTime\":{\"gte\":" + startTime + ",\"lte\":" + endTime + ",\"format\":\"epoch_millis\"}}}}"
+    println(str)
+    val resQuery = client.search(index = "*", query = str).map(_.getResponseBody)
+    println(resQuery)
+    while (!resQuery.isCompleted) {} // patiently wait for response from the database. //TODO at some point add timeout. It could get stuck here forever (but probably not). Update: it has not happened for 60 days
+    val results:JValue = parse(resQuery.value.get.get) // unpack the string and cast to json-map
+    val extractedResults = results \ "hits" \ "hits"
+    println(extractedResults)
+    return "hej"
+  }
+
+
+
+
 }

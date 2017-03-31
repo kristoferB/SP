@@ -107,12 +107,7 @@ lazy val fakeElvisService = (project in file("spservices/fakeElvisService"))
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
-lazy val onGoingPatientsService = (project in file("spservices/onGoingPatientsService"))
-  .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
-
-lazy val butlerService = (project in file("spservices/butlerService"))
+lazy val elvisDataHandlerService = (project in file("spservices/elvisDataHandlerService"))
   .dependsOn(spdomain, macros)
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)

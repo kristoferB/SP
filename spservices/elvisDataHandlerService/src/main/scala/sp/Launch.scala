@@ -2,12 +2,10 @@ package sp
 
 import akka.actor._
 import sp.domain._
-import sp.onGoingPatients.{API_OnGoingPatientsService, OnGoingPatientsService}
+import sp.elvisDataHandler.{API_PatientEvent, ElvisDataHandlerDevice}
 import sp.messages._
 
 import scala.util.{Failure, Success, Try}
-
-
 
 
 object Launch extends App {
@@ -17,12 +15,12 @@ object Launch extends App {
   cluster.registerOnMemberUp {
 
     // Start all you actors here.
-    println("OnGoingPatientsService node has joined the cluster")
-    system.actorOf(OnGoingPatientsService.props, API_OnGoingPatientsService.attributes.service)
+    println("ElvisDataHandlerService node has joined the cluster")
+    system.actorOf(ElvisDataHandlerDevice.props, API_PatientEvent.attributes.service)
 
   }
   cluster.registerOnMemberRemoved{
-    println("OnGoingPatientsService node has been removed from the cluster")
+    println("ElvisDataHandlerService node has been removed from the cluster")
   }
 
   scala.io.StdIn.readLine("Press ENTER to exit cluster.\n")

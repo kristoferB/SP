@@ -1,4 +1,4 @@
-package sp.fakeelvisservice
+package sp.fakeElvis
 
 import akka.actor._
 
@@ -8,17 +8,9 @@ import sp.domain.Logic._
 import sp.messages._
 import sp.messages.Pickles._
 
-package API_FakeElvisService {
-  sealed trait API_FakeElvisService
-  object attributes {
-    val service = "fakeElvisService"
-    val version = 1.0
-    val api = "to be fixed by macros"
-  }
-}
-import sp.fakeelvisservice.{API_FakeElvisService => api}
+import sp.fakeElvis.{API_PatientEvent => api}
 
-class FakeElvisService extends Actor {
+class FakeElvisDevice extends Actor {
   import akka.cluster.pubsub._
   import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
   // activate the extension
@@ -26,8 +18,16 @@ class FakeElvisService extends Actor {
 
   def receive = {
     case mess: String => {
-      println(s"Publishing felvis message: $mess")
-      mediator ! Publish("felvis-data", mess)
+      val header = SPHeader(from = "fakeElvisService", to = "elvisDataHandlerService")
+      val body = api.ElvisData(mess)
+      val elvisDataSPMessage = FakeElvisComm.makeMess(header, body)
+      elvisDataSPMessage match {
+        case Success(v) =>
+          println(s"Publishing felvis message: $v")
+          mediator ! Publish("felvis-data-topic", v)
+        case Failure(e) =>
+          println("Failed")
+      }
     }
   }
 
@@ -40,10 +40,10 @@ class FakeElvisService extends Actor {
   // Sends a status response when the actor is started so service handlers finds it
 }
 
-object FakeElvisService {
-  def props = Props(classOf[FakeElvisService])
+object FakeElvisDevice {
+  def props = Props(classOf[FakeElvisDevice])
   implicit val system = ActorSystem("SP")
-  val felvisPublisher = system.actorOf(Props[FakeElvisService], "felvis-publisher")
+  val felvisPublisher = system.actorOf(Props[FakeElvisDevice], "felvis-publisher")
 
   val felvisdataPath = getClass.getResource("/output170201-0217.txt") // ("/test.txt")
 
@@ -57,7 +57,7 @@ object FakeElvisService {
   while (true) {
     var li = readFromFile
     while (li.hasNext) {
-      Thread.sleep(2000)
+      Thread.sleep(5000)
       felvisPublisher ! li.next()
     }
   }
