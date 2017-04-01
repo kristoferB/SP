@@ -20,7 +20,7 @@ import com.codemettle.reactivemq._
 import com.codemettle.reactivemq.ReActiveMQMessages._
 import com.codemettle.reactivemq.model._
 import elastic.PatientsToElastic
-
+import sp.spservices.fakeelvisservice.FakeElvisService._
 
 // The messages that this service can send and receive is
 // is defined using this API structure

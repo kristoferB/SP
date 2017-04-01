@@ -27,7 +27,7 @@ class FakeElvisService extends Actor {
   def receive = {
     case mess: String => {
       println(s"Publishing felvis message: $mess")
-      mediator ! Publish("felvis-data", mess)
+      mediator ! Publish("felvis-topic", mess)
     }
   }
 
@@ -45,7 +45,7 @@ object FakeElvisService {
   implicit val system = ActorSystem("SP")
   val felvisPublisher = system.actorOf(Props[FakeElvisService], "felvis-publisher")
 
-  val felvisdataPath = getClass.getResource("/output170201-0217.txt") // ("/test.txt")
+  val felvisdataPath = getClass.getResource("/output170201-0217.txt") //("/test.txt") //
 
   def readFromFile : collection.Iterator[String] = {
     val source = scala.io.Source.fromFile(felvisdataPath.getPath, "utf-8")
@@ -55,7 +55,7 @@ object FakeElvisService {
   }
 
   while (true) {
-    var li = readFromFile
+    var li = readFromFile // the file is only read once. Probably compiler optimising.
     while (li.hasNext) {
       Thread.sleep(2000)
       felvisPublisher ! li.next()
