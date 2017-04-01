@@ -112,15 +112,15 @@ lazy val elvisDataHandlerService = (project in file("spservices/elvisDataHandler
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
-lazy val patientCardsService = (project in file("spservices/PatientCardsService"))
+lazy val patientCardsService = (project in file("spservices/patientCardsService"))
   .dependsOn(spdomain, macros)
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
-lazy val patientCardsDevice = (project in file("spservices/PatientCardsDevice"))
-  .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
+// lazy val patientCardsDevice = (project in file("spservices/PatientCardsDevice"))
+//   .dependsOn(spdomain, macros)
+// .settings(commonSettings: _*)
+// .settings(libraryDependencies ++= akka)
 
 lazy val spseed = (project in file("spservices/spseed"))
   .settings(commonSettings: _*)

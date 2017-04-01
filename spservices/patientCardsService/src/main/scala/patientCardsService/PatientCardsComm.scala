@@ -8,10 +8,15 @@ import sp.messages.Pickles._
 
 
 package API_PatientEvent {
+
+  // messages I can recieve
   sealed trait PatientEvent
-  case class NewPatient( careContactId: String, patientData: Map[String,Any]) extends PatientEvent
-  case class DiffPatient( careContactId: String, patientData: Map[String,Any]) extends PatientEvent
-  case class RemovedPatient( careContactId: String) extends PatientEvent
+  case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
+  case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
+  case class RemovedPatient(careContactId: String) extends PatientEvent
+  // case class NewPatient( careContactId: String, patientData: Map[String,Any]) extends PatientEvent
+  // case class DiffPatient( careContactId: String, patientData: Map[String,Any]) extends PatientEvent
+  // case class RemovedPatient( careContactId: String) extends PatientEvent
 
   // sealed trait API_PatientCardsDevice
   // case class NewPatient() extends API_PatientCardsDevice

@@ -21,37 +21,79 @@ import scala.util.Random.nextInt
 //
 //   val service = "patientCardsDevice"
 // }
-
-package API_PatientEvent {
-  sealed trait PatientEvent
-  case class NewPatient( careContactId: String, patientData: Map[String,Any]) extends PatientEvent
-  case class DiffPatient( careContactId: String, patientData: Map[String,Any]) extends PatientEvent
-  case class RemovedPatient( careContactId: String) extends PatientEvent
-
-  // sealed trait API_PatientCardsDevice
-  // case class NewPatient() extends API_PatientCardsDevice
-  // case class DiffPatient() extends API_PatientCardsDevice
-  // case class RemovedPatient() extends API_PatientCardsDevice
-  // case class Patient( careContactId: String, patientData: Map[String,Any]) extends API_PatientCardsDevice
-  // case class elvisEvent( eventType: String, patient: Patient) extends API_PatientCardsDevice
-  // case class State(state: State) extends API_PatientCardsDevice
-
-  object attributes {
-    val service = "patientCardsService"
-}
-}
+// 
+// package API_PatientEvent {
+//   sealed trait PatientEvent
+//   case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
+//   case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
+//   case class RemovedPatient(careContactId: String) extends PatientEvent
+//
+//   // sealed trait API_PatientCardsDevice
+//   // case class NewPatient() extends API_PatientCardsDevice
+//   // case class DiffPatient() extends API_PatientCardsDevice
+//   // case class RemovedPatient() extends API_PatientCardsDevice
+//   // case class Patient( careContactId: String, patientData: Map[String,Any]) extends API_PatientCardsDevice
+//   // case class elvisEvent( eventType: String, patient: Patient) extends API_PatientCardsDevice
+//   // case class State(state: State) extends API_PatientCardsDevice
+//
+//   object attributes {
+//     val service = "patientCardsService"
+//   }
+// }
 
 import sp.patientcardsservice.{API_PatientEvent => api}
 
 class PatientCardsDevice extends Actor with ActorLogging {
-
+  // *****************************************************************************
   // conneting to the pubsub bus using the mediator actor
   import akka.cluster.pubsub._
   import DistributedPubSubMediator.{ Subscribe, Publish }
   val mediator = DistributedPubSub(context.system).mediator
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
-  mediator ! Subscribe(PatientCardsDevice.service, self) // "self" is an actor, goes to actors "recieve()"
+  mediator ! Subscribe("patient-event-topic", self) // "self" is an actor, goes to actors "recieve()"
+
+  def receive = {
+    case mess @ _ if {log.debug(s"ExampleService MESSAGE: $mess from $sender"); false} => Unit
+
+    case x: String => handleRequests(x)
+
+  }
+
+  def handleRequests(x: String): Unit = {
+    val mess = SPMessage.fromJson(x)
+    matchRequests(mess)
+  }
+
+  def matchRequests(mess: Try[SPMessage]) = {
+    extractPatientEvent(mess) map { case (h, b) =>
+      b match {
+        case api.NewPatient(careContactId, patientData, events) => println("new patient: " + careContactId + " -- patient data: " + patientData + " --- events: " + events)
+        case api.DiffPatient(careContactId, patientData, newEvents, removedEvents) => println("updated patient: " + careContactId + " -- patient data: " + patientData + " --- newEvents: " + newEvents + " ---- removedEvents: " + removedEvents)
+        case api.RemovedPatient(careContactId) => println("removed patient: " + careContactId)
+      }
+    }
+  }
+
+  def extractPatientEvent(mess: Try[SPMessage]) = for {
+    m <- mess
+    h <- m.getHeaderAs[SPHeader]
+    b <- m.getBodyAs[api.PatientEvent]
+  } yield (h, b)
+
+  val statusResponse = SPAttributes(
+    "service" -> api.attributes.service,
+    "api" -> "to be added with macros later",
+    "groups" -> List("examples"),
+    "attributes" -> api.attributes
+  )
+
+  // Sends a status response when the actor is started so service handlers finds it
+  override def preStart() = {
+    val mess = SPMessage.makeJson(SPHeader(api.attributes.service, "serviceHandler"), statusResponse)
+    mess.map(m => mediator ! Publish("spevents", m))
+  }
+  // *****************************************************************************
 
 
   var serviceOn: Boolean = false

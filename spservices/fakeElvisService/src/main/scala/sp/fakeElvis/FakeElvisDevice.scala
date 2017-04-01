@@ -18,10 +18,6 @@ class FakeElvisDevice extends Actor {
 
   def receive = {
     case mess: String => {
-<<<<<<< HEAD:spservices/fakeElvisService/src/main/scala/sp/fakeelvisservice/FakeElvisService.scala
-      println(s"Publishing felvis message: $mess")
-      mediator ! Publish("felvis-topic", mess)
-=======
       val header = SPHeader(from = "fakeElvisService", to = "elvisDataHandlerService")
       val body = api.ElvisData(mess)
       val elvisDataSPMessage = FakeElvisComm.makeMess(header, body)
@@ -32,7 +28,6 @@ class FakeElvisDevice extends Actor {
         case Failure(e) =>
           println("Failed")
       }
->>>>>>> 5227ad676106e412421dba0d379a39f7b4ef2dfc:spservices/fakeElvisService/src/main/scala/sp/fakeElvis/FakeElvisDevice.scala
     }
   }
 
