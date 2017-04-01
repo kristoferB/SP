@@ -2,7 +2,7 @@ package sp
 
 import akka.actor._
 import sp.domain._
-import sp.fakeelvisservice.{API_FakeElvisService, FakeElvisService}
+import sp.fakeElvis.{API_PatientEvent, FakeElvisDevice}
 import sp.messages._
 
 import scala.util.{Failure, Success, Try}
@@ -18,7 +18,7 @@ object Launch extends App {
 
     // Start all you actors here.
     println("FakeElvisService node has joined the cluster")
-    system.actorOf(FakeElvisService.props, API_FakeElvisService.attributes.service)
+    system.actorOf(FakeElvisDevice.props, API_PatientEvent.attributes.service)
 
   }
   cluster.registerOnMemberRemoved{

@@ -2,7 +2,7 @@ package sp
 
 import akka.actor._
 import sp.domain._
-import sp.gPubSub.{API_GPubSubService, GPubSubService}
+import sp.gPubSub.{API_PatientEvent, GPubSubDevice}
 import sp.messages._
 
 import scala.util.{Failure, Success, Try}
@@ -18,7 +18,7 @@ object Launch extends App {
 
     // Start all you actors here.
     println("GPubSubService node has joined the cluster")
-    system.actorOf(GPubSubService.props, API_GPubSubService.attributes.service)
+    system.actorOf(GPubSubDevice.props, API_PatientEvent.attributes.service)
 
   }
   cluster.registerOnMemberRemoved{

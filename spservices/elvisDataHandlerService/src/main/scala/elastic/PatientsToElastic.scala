@@ -26,20 +26,15 @@ class PatientsToElastic {
   val ip = config.getString("elastic.ip")
   val port = config.getString("elastic.port")
 
-  println("PatientsToElastic instance attempting to connect to elasticsearch on address: " + ip + ":" + port )
+  //println("PatientsToElastic instance attempting to connect to elasticsearch on address: " + ip + ":" + port )
   val client = new Client(s"http://$ip:$port") // creates a wabisabi client for communication with elasticsearch
 
   /** Handles the initial parsing of incoming messages */
-  def messageReceived(messageU: String) {
-    //  var message: String = messageU.replaceAll("\\\\", "")
-    //  var m1 = message.dropRight(1)
-    //  var m2 = m1.reverse.dropRight(1)
-    //  var m = m2.reverse
-    println("************************* new message *************************")
-    println("TIME: " + getNow)
-    println("MESS: " + messageU)
+  def messageReceived(message: String) {
+    //println("TIME: " + getNow)
+    //println("MESS: " + messageU)
     // figure out what sort of message we just received
-    val json: JValue = parse(messageU) // this jsons the String.
+    val json: JValue = parse(message) // this jsons the String.
 
     json.mapField(k => (k._1, k._2)).extract[Map[String, _ ]].keys.head match {
       case "newLoad" | "new"          => postEntirePatientToElastic(json)
@@ -61,7 +56,7 @@ class PatientsToElastic {
   /** This reformats a patient from the Transfomrationservice way of doing things to the OnGoingPatients way of doing things.
   * This essentially means adding a bunch of fields.
   */
-  private def initiatePatient(patient: JValue): JValue = {
+  def initiatePatient(patient: JValue): JValue = {
     val events: List[Map[String, JValue]] = castJValueToList[Map[String, JValue]](patient \ "Events")
     val careContactRegistrationTime = DateTime.parse((patient \ "CareContactRegistrationTime").values.toString)
 
@@ -94,7 +89,7 @@ class PatientsToElastic {
     val diff = data \ "diff"
     // extract CareContactId and fetch patient from elasticsearch
     val careContactId:String = ( diff \ "updates" \ "CareContactId" ).values.toString
-    println("CareContactId: " + careContactId)
+    //println("CareContactId: " + careContactId)
     val patient:JValue = getPatientFromElastic(ONGOING_PATIENT_INDEX, careContactId)
 
     // add and remove Events from event array.
@@ -209,7 +204,7 @@ class PatientsToElastic {
     val relevantKeys = List("DepartmentComment", "Location", "ReasonForVisit", "Team") // the four keys which interest us
     var updatedVariables: List[ElvisUpdateEvent] = castJValueToList[ElvisUpdateEvent](patient \ "updates")  // make a mutable list and fill it with the current list of updates
     relevantKeys.foreach( k => if(newUpdates \ k != JNothing){ // foreach relevant key, check if newUpdates has an associated value
-      println("update recorded: " +k+ "->" +(newUpdates \ k).values)
+      //println("update recorded: " +k+ "->" +(newUpdates \ k).values)
       updatedVariables ++= List(
         read[ElvisUpdateEvent](write(Map( // ElvisUpdateEvent made from String made from Map
           "Timestamp"-> (newUpdates\"timestamp").values, // please note timestamp vs Timestamp
@@ -272,7 +267,6 @@ class PatientsToElastic {
     */
     def addPatient(patient : JValue, targetIndex: String): Unit = {
       val careContactId:String = (patient \"CareContactId").values.toString
-      println("----CareContactId: " + careContactId)
       client.index(
         index = targetIndex,
         `type` = PATIENT_TYPE,
@@ -287,8 +281,7 @@ class PatientsToElastic {
       val oldPatientQuery = client.get(index, PATIENT_TYPE, careContactId).map(_.getResponseBody) //fetch patient from database
       while (!oldPatientQuery.isCompleted) {} // patiently wait for response from the database. //TODO at some point add timeout. It could get stuck here forever (but probably not). Update: it has not happened for 60 days
       val oldPatient:JValue = parse(oldPatientQuery.value.get.get) // unpack the string and cast to json-map
-
-      println("Retrieved patient: " +oldPatient \ "_source")
+      //println("Retrieved patient: " +oldPatient \ "_source")
       return oldPatient \ "_source" // The good stuff is located in _source.
     }
 
