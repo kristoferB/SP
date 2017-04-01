@@ -5,6 +5,8 @@ import sp.domain.Logic._
 import sp.messages._
 import sp.messages.Pickles._
 
+import scala.util.Try
+
 
 
 package API_PatientEvent {
@@ -37,7 +39,7 @@ object PatientCardsComm {
   def extractRequest(mess: Try[SPMessage]) = for {
       m <- mess
       h <- m.getHeaderAs[SPHeader] // if h.to == instanceID.toString || h.to == name || h.to == api.attributes.service
-      b <- m.getBodyAs[api.Request]
+      b <- m.getBodyAs[api.PatientEvent]
     } yield (h, b)
 
   // def extractServiceRequest(mess: Try[SPMessage]) = for {

@@ -21,7 +21,7 @@ import scala.util.Random.nextInt
 //
 //   val service = "patientCardsDevice"
 // }
-// 
+//
 // package API_PatientEvent {
 //   sealed trait PatientEvent
 //   case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
@@ -99,45 +99,27 @@ class PatientCardsDevice extends Actor with ActorLogging {
   var serviceOn: Boolean = false
 
 
-  def parseCommand(x: String): Try[API_PatientEvent] =
-    SPMessage fromJson(x) flatMap (_.getBodyAs[API_PatientEvent])
+  def parseCommand(x: String): Try[api.PatientEvent] =
+    SPMessage fromJson(x) flatMap (_.getBodyAs[api.PatientEvent])
 
-    def handleCommand: API_PatientEvent => Unit = {
-      case api.Start() => serviceOn = true
-      case api.Stop() => serviceOn = false
-    }
+    // def handleCommand: api.PatientEvent => Unit = {
+    //   println("handleCommand")
+    //   // case api.Start() => serviceOn = true
+    //   // case api.Stop() => serviceOn = false
+    // }
 
-    def dataMsg() = SPMessage.make(
-      SPAttributes("from" -> PatientCardsDevice.service).addTimeStamp,
-      api.D3Data(List.fill(7)(nextInt(50)))
-    ).get.toJson
+    // def dataMsg() = SPMessage.make(
+    //   SPAttributes("from" -> api.attributes.service).addTimeStamp
+    //   // api.D3Data(List.fill(7)(nextInt(50)))
+    // ).get.toJson
 
-    def receive = {
-      case "tick" => if(serviceOn) mediator ! Publish("d3ExampleAnswers", dataMsg())
-      case x: String => parseCommand(x) foreach handleCommand
-      case z => println(s"PatientCardsDevice didn't recognize $z")
-    }
-
-
-    def handleRequests(x: String): Unit = {
-      val mess = SPMessage.fromJson(x)
-
-      matchRequests(mess)
-
-    }
-
-    def matchRequests(mess: Try[SPMessage]) = {
-      PatientCardsComm.extractRequest(mess) map { case (h, b) =>
-        val updH = h.copy(from = h.to, to = "")
+    // def receive = {
+    //   case "tick" => if(serviceOn) mediator ! Publish("d3ExampleAnswers", dataMsg())
+    //   case x: String => parseCommand(x) foreach handleCommand
+    //   case z => println(s"PatientCardsDevice didn't recognize $z")
+    // }
 
 
-        b match {
-          case api.NewPatient(careContactId, patientData) =>
-
-
-        }
-      }
-    }
 
   }
 
