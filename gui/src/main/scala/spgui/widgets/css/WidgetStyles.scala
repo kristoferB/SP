@@ -22,6 +22,8 @@ object WidgetStyles extends StyleSheet.Inline {
     fontFamily(ff)
   )
 
+  val patientCardStyle = style(
+  )
   // val cirkel = style(
   //   fill :=! "green"
   // )

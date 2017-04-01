@@ -10,37 +10,6 @@ import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 import scala.util.{ Try, Success }
 import scala.util.Random.nextInt
 
-// sealed trait API_PatientEvent
-// object API_PatientEvent {
-//   case class NewPatient() extends API_PatientEvent
-//   case class DiffPatient() extends API_PatientEvent
-//   case class RemovedPatient() extends API_PatientEvent
-//   case class Patient( careContactId: String, patientData: Map[String,Any]) extends API_PatientEvent
-//   case class elvisEvent( eventType: String, patient: Patient) extends API_PatientEvent
-//   case class State(state: State) extends API_PatientEvent
-//
-//   val service = "patientCardsDevice"
-// }
-//
-// package API_PatientEvent {
-//   sealed trait PatientEvent
-//   case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
-//   case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
-//   case class RemovedPatient(careContactId: String) extends PatientEvent
-//
-//   // sealed trait API_PatientCardsDevice
-//   // case class NewPatient() extends API_PatientCardsDevice
-//   // case class DiffPatient() extends API_PatientCardsDevice
-//   // case class RemovedPatient() extends API_PatientCardsDevice
-//   // case class Patient( careContactId: String, patientData: Map[String,Any]) extends API_PatientCardsDevice
-//   // case class elvisEvent( eventType: String, patient: Patient) extends API_PatientCardsDevice
-//   // case class State(state: State) extends API_PatientCardsDevice
-//
-//   object attributes {
-//     val service = "patientCardsService"
-//   }
-// }
-
 import sp.patientcardsservice.{API_PatientEvent => api}
 
 class PatientCardsDevice extends Actor with ActorLogging {

@@ -55,11 +55,8 @@ package API_PatientEvent {
   case class Patient( careContactId: String, patientData: Map[String,Any]) extends PatientEvent
   case class elvisEvent( eventType: String, patient: Patient) extends PatientEvent
 
-  // sealed trait API_PatientCardsDevice
-  // case class NewPatient() extends API_PatientCardsDevice
-  // case class DiffPatient() extends API_PatientCardsDevice
-  // case class RemovedPatient() extends API_PatientCardsDevice
-  // case class State(state: State) extends API_PatientCardsDevice
+  sealed trait API_PatientCardsService
+  case class State(state: State) extends API_PatientCardsService
 
   object attributes {
     val service = "patientCardsService"
@@ -73,7 +70,7 @@ object PatientCardsServiceWidget {
   var activePatientCards = Map.empty[String, api.Patient] //new scala.collection.mutable.HashMap[String, Map[String,api.Patient]]() with scala.collection.mutable.SynchronizedMap[String, Map[String,api.Patient]]
 
   private class Backend($: BackendScope[Map[String,api.Patient], Unit]) {
-
+    spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
@@ -116,6 +113,7 @@ object PatientCardsServiceWidget {
 
     def render(p: Map[String,api.Patient]) = {
       <.div(^.`class` := "card-holder-root")( // really not necessary
+        //Styles.patientCardStyle
       )
     }
 
@@ -153,12 +151,13 @@ object PatientCardsServiceWidget {
 
       svg
       .append("path")
-      .attr("id", "klinikfield")
+      .attr("class", "klinikfield")
       .attr("d", "m 0,160 40,40 -40,0 z")
       .attr("fill", "lightblue")
 
       svg
       .append("text")
+      .attr("class", "roomNr")
       .attr("font-size", 52)
       .attr("x", 20)
       .attr("y", 50)
