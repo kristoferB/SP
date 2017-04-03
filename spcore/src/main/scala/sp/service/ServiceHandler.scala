@@ -70,7 +70,7 @@ class ServiceHandler extends Actor with ServiceHandlerLogic {
       val b = APISP.StatusRequest(SPAttributes().addTimeStamp)
       val m = SPMessage.makeJson(h, b)
       mediator ! Publish("services", m)
-      services.foreach(x => println(x._1))
+      //services.foreach(x => println(x._1))
   }
 
 
