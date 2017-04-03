@@ -4,11 +4,7 @@ import akka.actor._
 import sp.domain._
 import sp.fakeElvis.{API_PatientEvent, FakeElvisDevice}
 import sp.messages._
-
 import scala.util.{Failure, Success, Try}
-
-
-
 
 object Launch extends App {
   implicit val system = ActorSystem("SP")

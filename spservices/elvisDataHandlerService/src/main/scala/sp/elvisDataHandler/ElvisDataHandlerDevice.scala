@@ -40,7 +40,6 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   val patientsToElastic = new PatientsToElastic
   val getFromElastic = new GetFromElastic
 
-  // connecting to the pubsub bus using the mediator actor
   import akka.cluster.pubsub._
   import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
   val mediator = DistributedPubSub(context.system).mediator

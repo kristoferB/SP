@@ -4,7 +4,6 @@ import akka.actor._
 import sp.domain._
 import sp.elvisDataHandler.{API_PatientEvent, ElvisDataHandlerDevice}
 import sp.messages._
-
 import scala.util.{Failure, Success, Try}
 
 
