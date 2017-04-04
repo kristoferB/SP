@@ -3,6 +3,8 @@ package sp.messages
 import sp.domain._
 import java.util.UUID
 
+import scala.util.Try
+
 
 
 sealed trait APISP
@@ -189,7 +191,7 @@ trait SPParser extends upickle.AttributeTagged {
     case x: JsonAST.JBool => upickle.default.writeJs(x.values)
     case x: JsonAST.JDecimal => upickle.default.writeJs(x.values)
     case x: JsonAST.JDouble => upickle.default.writeJs(x.values)
-    case x: JsonAST.JInt => upickle.default.writeJs(x.values)
+    case x: JsonAST.JInt => upickle.default.writeJs(x.values.toInt)
     case x: JsonAST.JLong => upickle.default.writeJs(x.values)
     case x: JsonAST.JString => upickle.default.writeJs(x.values)
     case x: JsonAST.JObject =>
@@ -199,9 +201,12 @@ trait SPParser extends upickle.AttributeTagged {
     case x => upickle.Js.Null
   }
   def fromUpickle(value: upickle.Js.Value): SPValue = value match {
-    case x: upickle.Js.Str => SPValue(x.value)
+    case x: upickle.Js.Str =>
+      Try{x.value.toInt}.map(SPValue(_)).getOrElse(SPValue(x.value))
     case x: upickle.Js.Arr => SPValue(x.value.map(fromUpickle))
-    case x: upickle.Js.Num => SPValue(x.value)
+    case x: upickle.Js.Num =>
+      if (x.value.isValidInt) SPValue(x.value.toInt)
+      else SPValue(x.value)
     case upickle.Js.False => SPValue(false)
     case upickle.Js.True => SPValue(true)
     case upickle.Js.Null => SPValue(None)
