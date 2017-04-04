@@ -8,7 +8,7 @@ import scala.util.{Try}
 
 package APIModels {
   sealed trait Request
-  case class CreateModel(name: String, attributes: Option[SPAttributes], id: ID) extends Request
+  case class CreateModel(name: String, attributes: SPAttributes = SPAttributes(), id: ID = ID.newID) extends Request
   case class DeleteModel(id: ID) extends Request
   case class UpdateModelAttributes(name: Option[String], attributes: Option[SPAttributes]) extends Request
   case class RevertModel(toVersion: Int) extends Request

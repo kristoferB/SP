@@ -7,6 +7,16 @@ import java.util.UUID
 
 sealed trait APISP
 object APISP {
+
+  // topics
+  val services = "services"
+  val answers = "answers"
+  val spevents = "spevents"
+  val commands = "commands"
+  val events = "events"
+
+
+
   case class SPError(message: String, attributes: SPAttributes = SPAttributes()) extends APISP
   case class SPACK() extends APISP
   case class SPDone() extends APISP
