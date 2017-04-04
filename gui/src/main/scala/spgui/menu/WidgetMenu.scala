@@ -19,11 +19,7 @@ object WidgetMenu {
       e.extract(_.target.value)(v => $.modState(_.copy(filterText = v)))
 
     def render(s: State) =
-      Dropdown(
-        <.div(
-          Icon.chevronDown,
-          "New widget"
-        ),
+      Dropdown("New widget", Seq(),
         <.div(
           ^.className := "input-group",
           <.input(
@@ -32,8 +28,7 @@ object WidgetMenu {
             ^.aria.describedby := "basic-addon1",
             ^.onChange ==> onFilterTextChange
           )
-        ) ::
-          WidgetList.list.collect{
+        ) :: WidgetList.list.collect{
             case w if (w._1.toLowerCase.contains(s.filterText.toLowerCase)) =>
               <.div(w._1, ^.onClick --> addW(w._1, w._3, w._4))
           }: _*

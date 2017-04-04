@@ -5,14 +5,14 @@ import spgui.circuit.SPGUICircuit
 
 object SPMenuCSS extends StyleSheet.Inline {
   import dsl._
-  
+
   val topNavHeight = 50 //use in GlobalCSS.scala
 
   val splogoSVGHeight = 60.4
   val splogoSVGWidth = 170.1
 
   val theme = SPGUICircuit.zoom(_.settings.theme)
- 
+
   val topNav = style("sp-top-nav")(
     display.flex,
     flexDirection.row,
@@ -21,9 +21,9 @@ object SPMenuCSS extends StyleSheet.Inline {
     border.none
   )
 
-  val buttonPadding = 10
-  val buttonList = style("sp-button-list")(
-   paddingLeft(0.px)
+  val buttonPadding = 4;
+  val navItem = style("sp-nav-item")(
+      paddingRight(buttonPadding.px)
   )
 
   val logoPadding = 0 // currently no padding needed

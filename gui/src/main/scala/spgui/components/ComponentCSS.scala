@@ -10,8 +10,9 @@ object ComponentCSS extends StyleSheet.Inline {
     cursor.pointer,
     userSelect:= "none",
     backgroundColor.transparent,
+    listStyle:= "none",
     &.hover(
-      backgroundColor := "#999999"//"#ededed"
+      //backgroundColor := "#999999"//"#ededed"
     )
   )
 
@@ -20,6 +21,14 @@ object ComponentCSS extends StyleSheet.Inline {
     unsafeRoot(".navbar-nav > .open > a")(
       (backgroundColor := "#999999").important
     )
+  )
+
+  val buttonStyle = style("sp-btn")(
+    (padding(6.px,12.px, 6.px, 12.px)).important //There are a file somewhere overriding bootstrap defaults using ".nav > li > a"
+  )
+
+  val buttonCaret = style("btn-caret")(
+      (marginLeft(4.px)).important
   )
 
   val ovveride = style("hello")(
