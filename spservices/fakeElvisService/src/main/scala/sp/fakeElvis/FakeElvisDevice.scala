@@ -30,14 +30,6 @@ class FakeElvisDevice extends Actor {
       }
     }
   }
-
-  val statusResponse = SPAttributes(
-    "service" -> api.attributes.service,
-    "api" -> "to be added with macros later",
-    "groups" -> List("examples"),
-    "attributes" -> api.attributes
-  )
-  // Sends a status response when the actor is started so service handlers finds it
 }
 
 object FakeElvisDevice {
@@ -45,19 +37,18 @@ object FakeElvisDevice {
   implicit val system = ActorSystem("SP")
   val felvisPublisher = system.actorOf(Props[FakeElvisDevice], "felvis-publisher")
 
-  val felvisdataPath = getClass.getResource("/output170201-0217.txt") //("/test.txt") //
+  val felvisdataPath = getClass.getResource("/test.txt") // ("/output170201-0217.txt") // 
 
   def readFromFile : collection.Iterator[String] = {
     val source = scala.io.Source.fromFile(felvisdataPath.getPath, "utf-8")
     val lines = try source.getLines mkString "\n" finally source.close() // getLines returns an Iterator[String] which mkString turns into a String
-    //println("lines loaded")
     lines.split(",\n").iterator // splits read results to an Array which is made into a collection.Iterator[String]
   }
 
   while (true) {
     var li = readFromFile // the file is only read once. Probably compiler optimising.
     while (li.hasNext) {
-      Thread.sleep(1000)
+      Thread.sleep(3000)
       felvisPublisher ! li.next()
     }
   }

@@ -40,7 +40,6 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   val patientsToElastic = new PatientsToElastic
   val getFromElastic = new GetFromElastic
 
-  // connecting to the pubsub bus using the mediator actor
   import akka.cluster.pubsub._
   import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
   val mediator = DistributedPubSub(context.system).mediator
@@ -93,7 +92,7 @@ val info = SPAttributes(
   }
 
   def newPatient(json: JValue) {
-    val header = SPHeader(from = "elvisDataHandlerService", to = "exampleService")
+    val header = SPHeader(from = "elvisDataHandlerService")
     val patientJson = patientsToElastic.initiatePatient(json \ "new" \ "patient")
     val careContactId = (patientJson \ "CareContactId").values.toString
     val patientData = extractNewPatientData(patientJson)
@@ -104,7 +103,7 @@ val info = SPAttributes(
   }
 
   def diffPatient(json: JValue) {
-    val header = SPHeader(from = "elvisDataHandlerService", to = "exampleService")
+    val header = SPHeader(from = "elvisDataHandlerService")
     val careContactId = (json \ "diff" \ "updates" \ "CareContactId").values.toString
     val patientData = extractDiffPatientData(json \ "diff" \ "updates")
     val newEvents = extractNewEvents(json \ "diff" \ "updates")
@@ -114,7 +113,7 @@ val info = SPAttributes(
   }
 
   def removedPatient(json: JValue) {
-    val header = SPHeader(from = "elvisDataHandlerService", to = "exampleService")
+    val header = SPHeader(from = "elvisDataHandlerService")
     val careContactId = (json \ "removed" \ "patient" \ "CareContactId").values.toString
     val body = api.RemovedPatient(careContactId)
     publishOnAkka(header, body)
