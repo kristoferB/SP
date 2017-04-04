@@ -50,7 +50,7 @@ import scalacss.Defaults._
 package API_PatientEvent {
   sealed trait PatientEvent
   case class NewPatient( careContactId: String, patientData: Map[String,Any]) extends PatientEvent
-  case class DiffPatient( careContactId: String, patientData: Map[String,Any]) extends PatientEvent
+  case class DiffPatient( careContactId: String, patientData: Map[String,Any]) extends PatientEvents
   case class RemovedPatient( careContactId: String) extends PatientEvent
   case class Patient( careContactId: String, patientData: Map[String,Any]) extends PatientEvent
   case class elvisEvent( eventType: String, patient: Patient) extends PatientEvent
