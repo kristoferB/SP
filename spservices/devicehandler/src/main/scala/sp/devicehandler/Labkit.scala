@@ -56,6 +56,7 @@ case class Labkit(ahid: ID, system: ActorSystem) extends Helpers2 {
     preCondition = prop(allVars, s" not ${feedRun.name} and not ${feedSensor.name}", List(s"${feedRun.name} := true")),
     postCondition = prop(allVars, s"${feedState.name} == 3", List(s"${feedRun.name} := false")),
     started = prop(allVars, s"${feedState.name} == 2", List())
+
   )
 
   val allAbilities = List(a1, a2, feeder)

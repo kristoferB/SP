@@ -24,13 +24,10 @@ object WidgetList {
       ("ExampleServiceWidgetState", ExampleServiceWidgetState(), 2, 3),
       ("OpcUAWidget", OpcUAWidget(), 5, 2),
       ("ChartWithReact", widgets.examples.ChartWithReact(), 2, 2),
-
-      ("Tree", widgets.itemexplorer.Tree(), 2, 4),
-      ("ManualMode", widgets.examples.Manualmode(), 2, 2)
-
-      ("PathsTest", widgets.examples.PathsTest(), 2, 2),
+      //("Tree", widgets.itemexplorer.Tree(), 2, 4),
+     ("PathsTest", widgets.examples.PathsTest(), 2, 2),
       // TODO Fix TreView
-      //("Tree", widgets.itemexplorer.TreeView(), 2, 4),
+     // ("Tree", widgets.itemexplorer.TreeView(), 2, 4),
       ("Item explorer", widgets.itemexplorer.ItemExplorer(), 2, 4),
       ("Ability Handler", widgets.abilityhandler.AbilityHandlerWidget(), 2, 2),
       ("ServiceList", widgets.services.ServiceListWidget(), 2, 2),
