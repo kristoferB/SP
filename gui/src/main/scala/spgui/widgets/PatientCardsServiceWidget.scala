@@ -35,11 +35,21 @@ import scalacss.ScalaCssReact._
 import scalacss.Defaults._
 
 package API_PatientEvent {
-  // Messages I can receive
+
   sealed trait PatientEvent
   case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
   case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
   case class RemovedPatient(careContactId: String) extends PatientEvent
+
+  //sealed trait ReminderEvent
+  //case class DiffPatientReminder(reminderMap: Map[String, Map[String, String]]) extends ReminderEvent
+
+  sealed trait TriageEvent
+  case class Undefined(toAdd: Boolean) extends TriageEvent
+  case class Green(toAdd: Boolean) extends TriageEvent
+  case class Yellow(toAdd: Boolean) extends TriageEvent
+  case class Orange(toAdd: Boolean) extends TriageEvent
+  case class Red(toAdd: Boolean) extends TriageEvent
 
   object attributes {
     val service = "patientCardsService"
@@ -52,6 +62,7 @@ object PatientCardsServiceWidget {
 
   case class Patient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]])
 
+  // Keeps track of active patients and are used for constructing graphical components
   var activePatientCards: Map[String, Patient] = Map()
 
   private class Backend($: BackendScope[Map[String, Patient], Unit]) {
@@ -68,7 +79,9 @@ object PatientCardsServiceWidget {
             var modPatientData = activePatientCards(careContactId).patientData
             // Add and/or modify fields to the patient data
             patientDataDiff.foreach{ d =>
-              modPatientData += d._1 -> d._2
+              if (d._2 != "" && d._2 != " ") {
+                modPatientData += d._1 -> d._2
+              }
             }
             activePatientCards += careContactId -> Patient(careContactId, modPatientData, activePatientCards(careContactId).events)
           }

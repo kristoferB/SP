@@ -40,75 +40,42 @@ import spgui.widgets.{API_PatientEvent => api}
 
 object TriageDiagramServiceWidget {
 
-  case class Patient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]])
-  case class Triage(colorMap: Map[String, Int])
-
-  var activePatientCards: Map[String, Patient] = Map()
-  var triageCounter: Map[String, Triage] = Map(
-    "TriageDiagram" -> Triage(Map(
-      "Grön" -> 0,
-      "Gul" -> 0,
-      "Orange" -> 0,
-      "Röd" -> 0
-      )
-    )
+  var triageMap: Map[String, Double] = Map(
+    "Undefined" -> 0,
+    "Green" -> 0,
+    "Yellow" -> 0,
+    "Orange" -> 0,
+    "Red" -> 0
   )
 
-  private class Backend($: BackendScope[List[Double], Unit]) {
+  def handleTriageEvent(toAdd: Boolean, triage: String) {
+    if (toAdd) {
+      triageMap += triage -> (triageMap(triage) + 1)
+    } else {
+      triageMap += triage -> (triageMap(triage) - 1)
+    }
+  }
+
+  private class Backend($: BackendScope[Map[String, Double], Unit]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.PatientEvent] map {
-          case api.NewPatient(careContactId, patientData, events) => {
-            var extractedTriageMap = triageCounter("TriageDiagram").colorMap
-            val triage = patientData("Priority")
-            if (triage != "" && triage != " ") {
-              val oldCounter: Int = extractedTriageMap(triage)
-              val count: Int = oldCounter + 1
-              extractedTriageMap += triage -> count
-              triageCounter += "TriageDiagram" -> Triage(extractedTriageMap)
-              activePatientCards += careContactId -> Patient(careContactId, patientData, events)
-            }
+        mess.getBodyAs[api.TriageEvent] map {
+          case api.Undefined(toAdd) => {
+            handleTriageEvent(toAdd, "Undefined")
           }
-          case api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents) => {
-            var extractedTriageMap = triageCounter("TriageDiagram").colorMap
-            var modPatientData = activePatientCards(careContactId).patientData
-            val oldTriage = modPatientData("Priority")
-            patientDataDiff.foreach{ d =>
-              modPatientData += d._1 -> d._2
-            }
-            activePatientCards += careContactId -> Patient(careContactId, modPatientData, activePatientCards(careContactId).events)
-            val newTriage = modPatientData("Priority")
-            if (newTriage != "" && newTriage != " ") {
-
-              val oldCounterNewTriage = extractedTriageMap(newTriage)
-              val oldCounterOldTriage = extractedTriageMap(oldTriage)
-              if (oldTriage != "" && oldTriage != " ") {
-                if (newTriage != oldTriage) {
-                  val newCount: Int = oldCounterNewTriage + 1
-                  val oldCount: Int = oldCounterOldTriage - 1
-                  extractedTriageMap += newTriage -> newCount
-                  extractedTriageMap += oldTriage -> oldCount
-                  triageCounter += "TriageDiagram" -> Triage(extractedTriageMap)
-                }
-              } else {
-                val count: Int = oldCounterNewTriage + 1
-                extractedTriageMap += newTriage -> count
-                triageCounter += "TriageDiagram" -> Triage(extractedTriageMap)
-              }
-            }
+          case api.Green(toAdd) => {
+            handleTriageEvent(toAdd, "Green")
           }
-          case api.RemovedPatient(careContactId) => {
-            var extractedTriageMap = triageCounter("TriageDiagram").colorMap
-            val triage = activePatientCards(careContactId).patientData("Priority")
-            if (triage != "" && triage != " ") {
-              val oldCounter = extractedTriageMap(triage)
-              val count = oldCounter - 1
-              extractedTriageMap += triage -> count
-              triageCounter += triage -> Triage(extractedTriageMap)
-            }
-            activePatientCards -= careContactId
+          case api.Yellow(toAdd) => {
+            handleTriageEvent(toAdd, "Yellow")
+          }
+          case api.Orange(toAdd) => {
+            handleTriageEvent(toAdd, "Orange")
+          }
+          case api.Red(toAdd) => {
+            handleTriageEvent(toAdd, "Red")
           }
           case x => println(s"THIS WAS NOT EXPECTED IN TriageDiagramServiceWidget: $x")
         }
@@ -116,13 +83,13 @@ object TriageDiagramServiceWidget {
     )
 
     // What is this function used for?
-    def render(p: List[Double]) = {
+    def render(p: Map[String, Double]) = {
       <.div(^.`class` := "card-holder-root")( // really not necessary
       )
     }
   }
 
-  private val component = ReactComponentB[List[Double]]("teamVBelastning")
+  private val component = ReactComponentB[Map[String, Double]]("teamVBelastning")
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentProps)))
   .build
@@ -138,7 +105,7 @@ object TriageDiagramServiceWidget {
     else{d.toString()}
   }
 
-  private def addTheD3(element: raw.Element, list: List[Double]): Unit = {
+  private def addTheD3(element: raw.Element, triageMap: Map[String, Double]): Unit = {
      d3.select(element).selectAll("*").remove()
 
      val distance = 50
@@ -148,13 +115,13 @@ object TriageDiagramServiceWidget {
      val barWidth = 35
      val currentTeam = "STREAMTEAM"
 
-     var length = new ListBuffer[Double]()
+     var length: Map[String, Double] = Map()
 
-     for(i <- 0 to 4){
-       length += (list(i)/(list(0) + list(1) + list(2) + list(3) + list(4)))*barHeight
+     triageMap.foreach{ t =>
+       length += t._1 -> (t._2/(triageMap("Undefined") + triageMap("Green") + triageMap("Yellow") + triageMap("Orange") + triageMap("Red")))*barHeight
      }
 
-     var scaleBars = barHeight / length.max
+     var scaleBars = barHeight / length.valuesIterator.max
 
      val svg = d3.select(element).append("svg")
        .attr("width", width)
@@ -164,76 +131,76 @@ object TriageDiagramServiceWidget {
      // ------------------------ Graf ett BLÅ
      g.append("rect")
        .attr("x", distance)
-       .attr("y", 500 - length(0) * scaleBars)
+       .attr("y", 500 - length("Undefined") * scaleBars)
        .attr("width", barWidth)
-       .attr("height", length(0) * scaleBars)
-       .attr("fill", "#0000cd")
+       .attr("height", length("Undefined") * scaleBars)
+       .attr("fill", "#000000")
 
      svg.append("text")
-       .attr("x", (dist(list(0)) + distance))
+       .attr("x", (dist(triageMap("Undefined")) + distance))
        .attr("y", 495)
        .attr("font-size", "20px")
-       .text(s"${removeZero(list(0))}")
+       .text(s"${removeZero(triageMap("Undefined"))}")
        .attr("fill", "#FFFFFF")
 
      // ------------------------ Graf två GRÖN
      g.append("rect")
        .attr("x", 2*distance + barWidth)
-       .attr("y", 500 - length(1) * scaleBars)
+       .attr("y", 500 - length("Green") * scaleBars)
        .attr("width", barWidth)
-       .attr("height", length(1) * scaleBars)
-       .attr("fill", "#008000")
+       .attr("height", length("Green") * scaleBars)
+       .attr("fill", "#289500")
 
      svg.append("text")
-       .attr("x", (dist(list(1)) + 2 * distance + barWidth))
+       .attr("x", (dist(triageMap("Green")) + 2 * distance + barWidth))
        .attr("y", 495)
        .attr("font-size", "20px")
-       .text(s"${removeZero(list(1))}")
+       .text(s"${removeZero(triageMap("Green"))}")
        .attr("fill", "#FFFFFF")
 
      // ------------------------ Graf tre GUL
      g.append("rect")
        .attr("x", 3*distance + 2*barWidth)
-       .attr("y", 500 - length(2) * scaleBars)
+       .attr("y", 500 - length("Yellow") * scaleBars)
        .attr("width", barWidth)
-       .attr("height", length(2) * scaleBars)
-       .attr("fill", "#ebeb00")
+       .attr("height", length("Yellow") * scaleBars)
+       .attr("fill", "#EAC706")
 
      svg.append("text")
-       .attr("x", (dist(list(2)) + 3 * distance + 2 * barWidth))
+       .attr("x", (dist(triageMap("Yellow")) + 3 * distance + 2 * barWidth))
        .attr("y", 495)
        .attr("font-size", "20px")
-       .text(s"${removeZero(list(2))}")
+       .text(s"${removeZero(triageMap("Yellow"))}")
        .attr("fill", "#FFFFFF")
 
      // ------------------------ Graf fyra ORANGE
      g.append("rect")
        .attr("x", 4 * distance + 3 * barWidth)
-       .attr("y", 500 - length(3) * scaleBars)
+       .attr("y", 500 - length("Orange") * scaleBars)
        .attr("width", barWidth)
-       .attr("height", length(3) * scaleBars)
-       .attr("fill", "#FFA500")
+       .attr("height", length("Orange") * scaleBars)
+       .attr("fill", "#F08100")
 
      svg.append("text")
-       .attr("x", (dist(list(3)) + 4 * distance + 3 * barWidth))
+       .attr("x", (dist(triageMap("Orange")) + 4 * distance + 3 * barWidth))
        .attr("y", 495)
        .attr("font-size", "20px")
-       .text(s"${removeZero(list(3))}")
+       .text(s"${removeZero(triageMap("Orange"))}")
        .attr("fill", "#FFFFFF")
 
      // ------------------------ Graf fem RÖD
      g.append("rect")
        .attr("x",  5 * distance + 4 * barWidth)
-       .attr("y", 500 - length(4) * scaleBars)
+       .attr("y", 500 - length("Red") * scaleBars)
        .attr("width", barWidth)
-       .attr("height", length(4) * scaleBars)
-       .attr("fill", "#FF0000")
+       .attr("height", length("Red") * scaleBars)
+       .attr("fill", "#950000")
 
      svg.append("text")
-       .attr("x", (dist(list(4)) +  5 * distance + 4 * barWidth))
+       .attr("x", (dist(triageMap("Red")) +  5 * distance + 4 * barWidth))
        .attr("y", 495)
        .attr("font-size", "20px")
-       .text(s"${removeZero(list(4))}")
+       .text(s"${removeZero(triageMap("Red"))}")
        .attr("fill", "#FFFFFF")
 
 
@@ -253,7 +220,7 @@ object TriageDiagramServiceWidget {
        .attr("x", 0)
        .attr("y", 50)
        .attr("font-size", "20px")
-       .text(s"${list(0) + list(1) + list(2) + list(3) + list(4)}" + " " + "PATIENTER TOTALT")
+       .text(s"${triageMap("Undefined") + triageMap("Green") + triageMap("Yellow") + triageMap("Orange") + triageMap("Red")}" + " " + "PATIENTER TOTALT")
        .attr("fill", "#000000")
 
      // ------- STATUS ------------
@@ -268,13 +235,6 @@ object TriageDiagramServiceWidget {
   }
 
   def apply() = spgui.SPWidget(spwb => {
-    var listToSend = new ListBuffer[Double]()
-    listToSend += 0 // noll "svarta"
-    triageCounter.foreach{ t =>
-      t._2.colorMap.foreach{ c =>
-        listToSend += c._2.toDouble
-      }
-    }
-    component(listToSend.toList)
+    component(triageMap)
   })
 }
