@@ -4,7 +4,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
 import spgui.circuit.{ SPGUICircuit, CloseWidget }
-import spgui.components.Icon
+import spgui.components.{Icon,SPButton}
 
 object DashboardItem {
   case class Props(element: ReactElement, widgetType: String, id: java.util.UUID)
@@ -14,15 +14,12 @@ object DashboardItem {
         ^.className := DashboardCSS.widgetPanel.htmlClass,
         ^.className := "panel panel-default",
         <.div(
-          ^.className := DashboardCSS.widgetPanelHeader.htmlClass,
-//          <.div(props.widgetType),
-          <.div(
-            ^.className := DashboardCSS.closeButton.htmlClass,
-                      ^.className := "btn",
-            Icon.close,
-            ^.onClick --> Callback(SPGUICircuit.dispatch(CloseWidget(props.id))
-            )
-          )
+          ^.className := "modal-header " + DashboardCSS.widgetPanelHeader.htmlClass,
+          <.h5(^.className:="modal-title "+ DashboardCSS.widgetPanelLabel.htmlClass, props.widgetType),
+            <.a(^.className := "close",
+                ^.onClick --> Callback(SPGUICircuit.dispatch(CloseWidget(props.id))),
+                Icon.close
+              )
         ),
         <.div(
           ^.className := DashboardCSS.widgetPanelBody.htmlClass,

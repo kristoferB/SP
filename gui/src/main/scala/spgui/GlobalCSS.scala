@@ -20,7 +20,7 @@ object GlobalCSS extends StyleSheet.Inline {
   val gridOffsetY = SPMenuCSS.topNavHeight
 
   val theme = SPGUICircuit.zoom(_.settings.theme)
- 
+
   var background = style(
     unsafeRoot("body")(
       backgroundColor := theme.value.mainBackgroundColor

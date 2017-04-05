@@ -1,14 +1,5 @@
 # Sequence Planner 2
-Sequence Planner (SP) is a micro service architecture for modeling and analyzing automation system. 
-Initially, the focus was on supporting engineers in developing control
-code for programmable logical controllers (PLCs). During the first years, 
-algorithms to handle product and au- tomation system interaction, 
-and to visualize complex operation sequences using multiple projections, 
-was developed. Over the years, other use cases have been integrated, 
-like formal verification and synthesis using Supremica, restart support, 
-cycle time optimization, energy optimization and hybrid systems, 
-online monitoring and control (the tweeting factory), 
-as well as emergency department online planning support. 
+Sequence Planner (SP) is a micro service architecture for modeling and analyzing automation systems. Initially, the focus was on supporting engineers in developing control code for programmable logical controllers (PLCs). During the first years, algorithms to handle product and au- tomation system interaction, and to visualize complex operation sequences using multiple projections, was developed. Over the years, other use cases have been integrated, like formal verification and synthesis using Supremica, restart support, cycle time optimization, energy optimization and hybrid systems, online monitoring and control (the tweeting factory), as well as emergency department online planning support. 
  
 ## Frontend
 check gui/README.md for instructions 
