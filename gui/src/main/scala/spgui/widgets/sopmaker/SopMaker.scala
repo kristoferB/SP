@@ -9,6 +9,8 @@ import paths.mid.Bezier
 import paths.mid.Rectangle
 
 
+import spgui.components.DragAndDrop.{ OnDragMod, OnDropMod }
+
 import spgui.communication._
 import sp.domain._
 import sp.messages._
@@ -29,7 +31,7 @@ object measures {
 }
 
 object SopMakerWidget {
-  case class State(sop: List[String])
+  case class State(drag: String, drop: String, sop: List[String])
 
   private class Backend($: BackendScope[Unit, State]) {
     val eventHandler = BackendCommunication.getMessageObserver(
@@ -39,42 +41,44 @@ object SopMakerWidget {
       "events"
     )
 
-    val points: List[(Double,Double)] = List(
-      (0, 50),
-      (50, 70),
-      (100, 40),
-      (150, 30),
-      (200, 60),
-      (250, 80),
-      (300, 50)
-    )
+    def handleDrag(drag: String)(e: ReactDragEventI): Callback = {
+      Callback({
+        e.dataTransfer.setData("json", drag)
+      })
+    }
 
-    def render(s: State) = {
-      val line = Bezier(points)
-      val circles = line.path.points.map(p => circle(
-        r := 5,
-        cx := p(0),
-        cy := p(1),
-        stroke := "red",
-        strokeWidth := 2,
-        fill := "white",
-        key := UUID.randomUUID().toString // reacts wants something unique...
-      ))
-      val rr = Rectangle(top = 0,left = 0,bottom = 200,right = 200)
+    def handleDrop(drop: String)(e: ReactDragEvent): Callback = {
+      val drag = e.dataTransfer.getData("json")
+      Callback({
+        println("Dropping " + drag + " onto " + drop)
+      })
+    }
+
+    def render(state: State) = {
+      val ops = List(Operation("op1"), Operation("op2"))
+      val idm = ops.map(o=>o.id -> o).toMap
+
+      val fakeSop = Sequence(ops(0), ops(1))
+      def drawSop(s: SOP): Seq[ReactTag] = {
+        s match {
+          case s:Sequence =>
+            s.sop.flatMap(drawSop)
+          case h:Hierarchy =>
+            val opname = idm.get(h.operation).map(_.name).getOrElse("[unknown op]")
+            Seq(
+              div(OnDragMod(handleDrag(opname)), OnDropMod(handleDrop(opname)),
+                svg(width := measures.opW, height := measures.opH,
+                  rect(x:=0, y:=0, width:=measures.opW, height:=measures.opH, rx:=5, ry:=5, fill := "white", stroke:="black", strokeWidth:=1),
+                  text(x:="50%", y:="50%", textAnchor:="middle", dy:=".3em", opname)
+                ))
+            )
+        }
+      }
 
       div(
         h2("Insert sop here:"),
         br(),
-        svg(width := 400, height := 400,
-          g(transform := "translate(100, 0)",
-            path(d := rr.path.print, stroke := "blue", fill := "white"),
-            text(transform := "translate(0,15)", "Testing"),
-            path(d := line.path.print, stroke := "red", fill := "none"),
-            circles
-
-// rect(0, 0, struct.clientSideAdditions.width, struct.clientSideAdditions.height, 5).attr({fill:bgcolor, 'stroke-width':1, text: struct.clientSideAdditions.drawnText})
-          )
-        )
+        drawSop(fakeSop)
       )
     }
 
@@ -87,7 +91,7 @@ object SopMakerWidget {
   }
 
   private val component = ReactComponentB[Unit]("SopMakerWidget")
-    .initialState(State(sop = List()))
+    .initialState(State(drag = "", drop = "", sop = List()))
     .renderBackend[Backend]
     .componentWillUnmount(_.backend.onUnmount())
     .build
