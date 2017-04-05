@@ -20,6 +20,7 @@ object Style extends StyleSheet.Inline {
   )
 
   val optionBar = style(
+    position.relative,
     display.flex,
     flexDirection.row
   )

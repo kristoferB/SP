@@ -1,7 +1,7 @@
 package spgui.dashboard
 
 import scalacss.Defaults._
-import spgui.circuit.SPGUICircuit 
+import spgui.circuit.SPGUICircuit
 
 object DashboardCSS extends StyleSheet.Inline {
   import dsl._
@@ -24,11 +24,15 @@ object DashboardCSS extends StyleSheet.Inline {
     boxShadow := theme.value.shadow
   )
 
+  val widgetPanelLabel = style("sp-widget-label")(
+    float.left
+  )
+
   val widgetPanelHeader = style("sp-widget-header")(
-    padding(2.px),
-    display.block,
-    backgroundColor := theme.value.widgetHeadingColor,
-    color := theme.value.widgetHeadingColor
+    //padding(2.px),
+    //display.block,
+    //backgroundColor := theme.value.widgetHeadingColor,
+    //color := theme.value.widgetHeadingColor
   )
 
   val widgetPanelBody = style("sp-panel-body")(
@@ -39,7 +43,8 @@ object DashboardCSS extends StyleSheet.Inline {
 
   val widgetPanelContent = style("sp-widget-panel-content")(
     backgroundColor := theme.value.widgetBackgroundColor,
-    height(100.%%)
+    height(100.%%),
+    padding(4.px)
   )
 
   val reactGridPlaceholder = style("react-grid-placeholder")(
