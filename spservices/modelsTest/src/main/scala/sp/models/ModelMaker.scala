@@ -9,10 +9,9 @@ import sp.domain._
 import sp.domain.LogicNoImplicit._
 import sp.messages.Pickles.SPMessage
 import sp.messages._
+import sp.models.APIModels.CreateModel
 
 import scala.util.{Failure, Success, Try}
-
-
 import sp.models.{APIModels => api}
 
 
@@ -27,14 +26,14 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
 
   private var modelMap: Map[ID, ActorRef] = Map()
 
-  val instanceID = ID.newID.toString
+  val instanceID = ID.newID
 
 
   def receiveCommand = {
     case x: String if sender() != self =>
       val mess = SPMessage.fromJson(x)
 
-      ModelsComm.extractRequest(mess, instanceID).toOption.collect{
+      ModelsComm.extractRequest(mess, instanceID.toString).collect{
         case (h, b: api.CreateModel) =>
           val updH = h.copy(from = api.attributes.service, to = h.from)
           if (modelMap.contains(b.id)){
@@ -65,6 +64,21 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
           mediator ! Publish(APISP.answers, mess)
       }
 
+
+      ModelsComm.extractAPISP(mess).collect{
+        case (h, b: APISP.StatusRequest) =>
+          val updH = h.copy(from = api.attributes.service, to = h.from)
+          val resp = APISP.StatusResponse(
+            service = api.attributes.service,
+            instanceID = Some(instanceID),
+            tags = List("models", "modelhandler"),
+            attributes = SPAttributes("models" -> modelMap.keys.toList)
+          )
+
+          mediator ! Publish(APISP.spevents, ModelsComm.makeMess(updH, resp))
+
+      }
+
   }
 
   def createModel(model: api.CreateModel) = {
@@ -74,27 +88,29 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
 
     def deleteModel(del: api.DeleteModel) = {
       if (modelMap.contains(del.id)){
+        modelMap(del.id) ! PoisonPill
         modelMap = modelMap - del.id
       }
     }
 
 
 
-
+  var models = Map[ID, api.CreateModel]()
  def receiveRecover = {
-   case x => "hej"
-//    case x: String => ModelMakerAPI.readPF(x) {
-//      case cm: ModelMakerAPI.CreateModel =>
-//        reMod = reMod + (cm.model.get -> cm)
-//      case dm: ModelMakerAPI.DeleteModel =>
-//        reMod = reMod - dm.model
-//    }
-//    {PartialFunction.empty}
-//    {x => println("Recover error in modelmaker. Got command: "+x)}
-//
-//    case RecoveryCompleted =>
-//      reMod.values.foreach(addModel)
-//      reMod = Map()
+   case x: String =>
+
+     val mess = SPMessage.fromJson(x)
+
+     ModelsComm.extractRequest(mess, instanceID.toString).map{
+      case (h, b: api.CreateModel) => models += (b.id -> b)
+      case (h, b: api.DeleteModel) => models = models - b.id
+      case _ => Unit
+     }
+
+
+    case RecoveryCompleted =>
+      models.values.foreach(createModel)
+      models = Map()
   }
 
 }

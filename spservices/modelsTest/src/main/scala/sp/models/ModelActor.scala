@@ -34,7 +34,7 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
     case x: String if sender() != self =>
       val mess = SPMessage.fromJson(x)
 
-      ModelsComm.extractRequest(mess, id.toString).map{case (h, b) =>
+      ModelsComm.extractRequest(mess, id.toString).foreach{case (h, b) =>
         val updH = h.copy(from = api.attributes.service, to = h.from)
         sendAnswer(updH, APISP.SPACK())
 
@@ -73,6 +73,21 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
         }
 
           sendAnswer(updH, APISP.SPDone())
+
+      }
+
+
+      ModelsComm.extractAPISP(mess).collect{
+        case (h, b: APISP.StatusRequest) =>
+          val updH = h.copy(from = api.attributes.service, to = h.from)
+          val resp = APISP.StatusResponse(
+            service = id.toString,
+            instanceID = Some(id),
+            tags = List("models", "modelhandler"),
+            attributes = SPAttributes("modelInfo" -> getModelInfo)
+          )
+
+          mediator ! Publish(APISP.spevents, ModelsComm.makeMess(updH, resp))
 
       }
 

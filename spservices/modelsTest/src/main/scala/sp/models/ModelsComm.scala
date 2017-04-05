@@ -50,14 +50,14 @@ import sp.models.{APIModels => api}
 
 
 object ModelsComm {
-  def extractRequest(mess: Try[SPMessage], id: String) = for {
-    m <- mess
+  def extractRequest(mess: Try[SPMessage], id: String): Option[(SPHeader, api.Request)] = for {
+    m <- mess.toOption
     h <- m.getHeaderAs[SPHeader] if h.to == id || h.to == api.attributes.service
     b <- m.getBodyAs[api.Request]
   } yield (h, b)
 
-  def extractAPISP(mess: Try[SPMessage]) = for {
-    m <- mess
+  def extractAPISP(mess: Try[SPMessage]): Option[(SPHeader, APISP)] = for {
+    m <- mess.toOption
     h <- m.getHeaderAs[SPHeader]
     b <- m.getBodyAs[APISP]
   } yield (h, b)
