@@ -92,18 +92,17 @@ val info = SPAttributes(
   }
 
   def newPatient(json: JValue) {
-    val header = SPHeader(from = "elvisDataHandlerService", to = "exampleService")
+    val header = SPHeader(from = "elvisDataHandlerService")
     val patientJson = patientsToElastic.initiatePatient(json \ "new" \ "patient")
     val careContactId = (patientJson \ "CareContactId").values.toString
     val patientData = extractNewPatientData(patientJson)
     val events = extractNewPatientEvents(patientJson)
-    println("Events: " + events)
     val body = api.NewPatient(careContactId, patientData, events)
     publishOnAkka(header, body)
   }
 
   def diffPatient(json: JValue) {
-    val header = SPHeader(from = "elvisDataHandlerService", to = "exampleService")
+    val header = SPHeader(from = "elvisDataHandlerService")
     val careContactId = (json \ "diff" \ "updates" \ "CareContactId").values.toString
     val patientData = extractDiffPatientData(json \ "diff" \ "updates")
     val newEvents = extractNewEvents(json \ "diff" \ "updates")
@@ -113,7 +112,7 @@ val info = SPAttributes(
   }
 
   def removedPatient(json: JValue) {
-    val header = SPHeader(from = "elvisDataHandlerService", to = "exampleService")
+    val header = SPHeader(from = "elvisDataHandlerService")
     val careContactId = (json \ "removed" \ "patient" \ "CareContactId").values.toString
     val body = api.RemovedPatient(careContactId)
     publishOnAkka(header, body)
@@ -217,7 +216,7 @@ val info = SPAttributes(
     val toSend = ElvisDataHandlerComm.makeMess(header, body)
     toSend match {
       case Success(v) =>
-        println(s"About to publish on akka: $v")
+        //println(s"About to publish on akka: $v")
         mediator ! Publish("patient-event-topic", v)
       case Failure(e) =>
         println("Failed")
