@@ -41,12 +41,21 @@ object ClockWidget {
           interval = js.undefined
         }
 
+        def addZero(i: Int): String = {
+          if (i < 10) {
+            f"${i}%02d"
+          } else {
+            i.toString
+          }
+        }
+
+
         def render(s: State) = {
           var currentTime = LocalTime.now()
           <.div(
             <.p()(
               Styles.clock,
-              currentTime.getHour(),":",currentTime.getMinute()
+              addZero(currentTime.getHour()),":",addZero(currentTime.getMinute())
             )
           )
         }
