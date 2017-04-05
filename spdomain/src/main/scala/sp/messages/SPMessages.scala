@@ -9,6 +9,16 @@ import scala.util.Try
 
 sealed trait APISP
 object APISP {
+
+  // topics
+  val services = "services"
+  val answers = "answers"
+  val spevents = "spevents"
+  val commands = "commands"
+  val events = "events"
+
+
+
   case class SPError(message: String, attributes: SPAttributes = SPAttributes()) extends APISP
   case class SPACK() extends APISP
   case class SPDone() extends APISP
@@ -19,6 +29,8 @@ object APISP {
 
   object StatusResponse {
     import sp.domain.Logic._
+    def apply(service: String, instanceID: Option[ID] = None, instanceName: String = "", tags: List[String] = List(), api: SPAttributes = SPAttributes(), version: Int = 1, attributes: SPAttributes = SPAttributes()) =
+      StatusResponse(service, instanceID , instanceName, tags, api, version, attributes
     def apply(attr: SPAttributes): StatusResponse = {
       val service = attr.getAs[String]("service").getOrElse("noName")
       val instanceName = attr.getAs[String]("instanceName").orElse(attr.getAs[String]("name")).getOrElse("")
@@ -28,7 +40,6 @@ object APISP {
       val version = attr.getAs[Int]("version").getOrElse(1)
       StatusResponse(service, id, instanceName, tags, api, version, attr)
     }
-    def apply(): StatusResponse = StatusResponse("")
   }
 }
 

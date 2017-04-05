@@ -8,7 +8,7 @@ import scala.util.{Try}
 
 package APIModels {
   sealed trait Request
-  case class CreateModel(name: String, attributes: Option[SPAttributes], id: ID) extends Request
+  case class CreateModel(name: String, attributes: SPAttributes = SPAttributes(), id: ID = ID.newID) extends Request
   case class DeleteModel(id: ID) extends Request
   case class UpdateModelAttributes(name: Option[String], attributes: Option[SPAttributes]) extends Request
   case class RevertModel(toVersion: Int) extends Request
@@ -50,14 +50,14 @@ import sp.models.{APIModels => api}
 
 
 object ModelsComm {
-  def extractRequest(mess: Try[SPMessage], id: String) = for {
-    m <- mess
+  def extractRequest(mess: Try[SPMessage], id: String): Option[(SPHeader, api.Request)] = for {
+    m <- mess.toOption
     h <- m.getHeaderAs[SPHeader] if h.to == id || h.to == api.attributes.service
     b <- m.getBodyAs[api.Request]
   } yield (h, b)
 
-  def extractAPISP(mess: Try[SPMessage]) = for {
-    m <- mess
+  def extractAPISP(mess: Try[SPMessage]): Option[(SPHeader, APISP)] = for {
+    m <- mess.toOption
     h <- m.getHeaderAs[SPHeader]
     b <- m.getBodyAs[APISP]
   } yield (h, b)
