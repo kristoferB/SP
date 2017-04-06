@@ -177,7 +177,7 @@ case class Labkit(ahid: ID, system: ActorSystem) extends Helpers2 {
     started = prop(allVars, s"${robot1State.name} == 2", List())
   )
   println(robot1to1);
-  val allAbilities = List(a1, a2, feeder, conv1proc1, conv1proc2,conv2proc1, conv3proc1, conv3proc2, conv3proc3,robot1to1)
+  val allAbilities = List(a1, a2, feeder, conv1proc1, conv1proc2,conv2proc1, conv3proc1, conv3proc2, conv3proc3,robot1to1put,robot1to1pick)
   println(allAbilities)
 
 
