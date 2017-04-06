@@ -162,16 +162,16 @@ case class Labkit(ahid: ID, system: ActorSystem) extends Helpers2 {
     started = prop(allVars, s"${c3p3State.name} == 2", List())
   )
   // Conv 4
-  val robot1to1put = abapi.Ability(name = "robot1to1put", id = ID.newID,
+  val robot1to1pick = abapi.Ability(name = "robot1to1put", id = ID.newID,
     preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and not ${robot1gripping.name} and  ${c1p1State.name} == 1 " +
-      s"and not ${c1p1Sensor.name} and not ${c1p2Sensor.name}) ",
+      s"and ${c1p1Sensor.name} and not ${c1p2Sensor.name}) ",
       List(s"${robot1Run.name} := true", s"${robot1Target.name} := 1")),
     postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
     started = prop(allVars, s"${robot1State.name} == 2", List())
   )
-  val robot1to1pick = abapi.Ability(name = "robot1to1pick", id = ID.newID,
+  val robot1to1put = abapi.Ability(name = "robot1to1pick", id = ID.newID,
     preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and ${robot1gripping.name} and  ${c1p1State.name} == 1 " +
-      s"and ${c1p1Sensor.name} and not ${c1p2Sensor.name}) ",
+      s"and not ${c1p1Sensor.name} and not ${c1p2Sensor.name}) ",
       List(s"${robot1Run.name} := true", s"${robot1Target.name} := 1")),
     postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
     started = prop(allVars, s"${robot1State.name} == 2", List())
