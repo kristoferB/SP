@@ -68,13 +68,6 @@ class TriageDiagramDevice extends Actor with ActorLogging {
       b match {
         case api.NewPatient(careContactId, patientData, events) => {
           println("+ New patient: " + careContactId + ", Prio: " + patientData("Priority"))
-          //if (isValidTriage(triage)) {
-            //extractedTriageMap += triage -> (extractedTriageMap(triage) + 1)
-            //triageCounter = Triage(extractedTriageMap)
-          //} else {
-            //extractedTriageMap += "Odefinierade" -> (extractedTriageMap("Odefinierade") + 1)
-            //triageCounter = Triage(extractedTriageMap)
-          //}
           activePatientCards += careContactId -> Patient(careContactId, patientData, events)
           publishOnAkka(header, getTriageApi(patientData("Priority"), true))
         }
@@ -89,35 +82,11 @@ class TriageDiagramDevice extends Actor with ActorLogging {
           activePatientCards += careContactId -> Patient(careContactId, modPatientData, activePatientCards(careContactId).events)
           publishOnAkka(header, getTriageApi(oldTriage, false))
           publishOnAkka(header, getTriageApi(newTriage, true))
-
-          //if (isValidTriage(newTriage)) {
-          //  if (isValidTriage(oldTriage)) {
-          //    if (newTriage != oldTriage) {
-                //extractedTriageMap += newTriage -> (extractedTriageMap(newTriage) + 1)
-                //extractedTriageMap += oldTriage -> (extractedTriageMap(oldTriage) - 1)
-                //triageCounter = Triage(extractedTriageMap)
-          //    }
-          //  } else {
-              //extractedTriageMap += newTriage -> (extractedTriageMap(newTriage) + 1)
-              //extractedTriageMap += "Odefinierade" -> (extractedTriageMap("Odefinierade") - 1)
-              //triageCounter = Triage(extractedTriageMap)
-          //  }
-          //} else {
-            //extractedTriageMap += "Odefinierade" -> (extractedTriageMap("Odefinierade") + 1)
-            //triageCounter = Triage(extractedTriageMap)
-          //}
         }
         case api.RemovedPatient(careContactId) => {
           println("- Removed patient: " + careContactId)
           activePatientCards -= careContactId
           publishOnAkka(header, getTriageApi(activePatientCards(careContactId).patientData("Priority"), false))
-          //if (isValidTriage(triage)) {
-            //extractedTriageMap += triage -> (extractedTriageMap(triage) - 1)
-            //triageCounter = Triage(extractedTriageMap)
-          //} else {
-            //extractedTriageMap += "Odefinierade" -> (extractedTriageMap("Odefinierade") - 1)
-            //triageCounter = Triage(extractedTriageMap)
-        //  }
         }
       }
     }
