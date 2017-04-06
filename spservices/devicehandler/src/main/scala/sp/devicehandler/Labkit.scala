@@ -83,6 +83,13 @@ case class Labkit(ahid: ID, system: ActorSystem) extends Helpers2 {
   val  robot1ResetRun   = Thing("robot1ResetRun")
   val  robot1ResetState = Thing("robot1ResetState")
 
+  val  robot2Run        = Thing("robot2Run")
+  val  robot2Target     = Thing("robot2Target")
+  val  robot2gripping   = Thing("robot2gripping")
+  val  robot2State      = Thing("robot2State")
+  val  robot2ResetRun   = Thing("robot2ResetRun")
+  val  robot2ResetState = Thing("robot2ResetState")
+
   // resources
   val testingResource = Thing("testingResource")
 
@@ -91,7 +98,7 @@ case class Labkit(ahid: ID, system: ActorSystem) extends Helpers2 {
     c1p1State, c1p1Sensor, c1p2Run, c1p2Dir, c1p2State, c1p2Sensor, c2p1Run, c2p1Dir, c2p1State, c2p1Sensor, c3p1Run, c3p1Dir, c3p1State, c3p1Sensor, c3p2Run
       , c3p2Dir, c3p2State, c3p2Sensor, c3p3Run, c3p3Dir, c3p3State, c3p3Sensor, c4p1Run, c4p1Dir, c4p1State, c4p1Sensor,
     c4p2Run, c4p2Dir, c4p2State, c4p2Sensor, c4p3Run, c4p3Dir, c4p3State, c4p3Sensor, robot1Run, robot1Target, robot1State, robot1ResetRun, robot1ResetState,
-    robot1gripping)
+    robot1gripping, robot2Run, robot2Target,robot2gripping, robot2State, robot2ResetRun, robot2ResetState )
 
   // abilities
   val a1 = abapi.Ability(name = "a1", id = ID.newID,
@@ -141,7 +148,7 @@ case class Labkit(ahid: ID, system: ActorSystem) extends Helpers2 {
       List(s"${c3p1Run.name} := true", s"${c3p1Dir.name} := true")),
     postCondition = prop(allVars, s"${c3p1State.name} == 3", List(s"${c3p1Run.name} := false", s"${c3p1Dir.name} := false)")),
     started = prop(allVars, s"${c3p1State.name} == 2", List())
-  )
+  )´´
   val conv3proc2 = abapi.Ability(name = "conv3proc2", id = ID.newID,
     preCondition = prop(allVars, s"${c3p2State.name} == 1 and not ${c3p2Sensor.name}",
       List(s"${c3p2Run.name} := true", s"${c3p2Dir.name} := true")),
@@ -155,9 +162,16 @@ case class Labkit(ahid: ID, system: ActorSystem) extends Helpers2 {
     started = prop(allVars, s"${c3p3State.name} == 2", List())
   )
   // Conv 4
-  val robot1to1 = abapi.Ability(name = "robot1to1", id = ID.newID,
-    preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and ((${robot1gripping.name} and  ${c1p1State.name} == 1 " +
-      s"and not ${c1p1Sensor.name} and not ${c1p2Sensor.name}) or (not ${robot1gripping.name} and ${c1p1State.name} == 1 and ${c1p1Sensor.name}))",
+  val robot1to1put = abapi.Ability(name = "robot1to1put", id = ID.newID,
+    preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and not ${robot1gripping.name} and  ${c1p1State.name} == 1 " +
+      s"and not ${c1p1Sensor.name} and not ${c1p2Sensor.name}) ",
+      List(s"${robot1Run.name} := true", s"${robot1Target.name} := 1")),
+    postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
+    started = prop(allVars, s"${robot1State.name} == 2", List())
+  )
+  val robot1to1pick = abapi.Ability(name = "robot1to1pick", id = ID.newID,
+    preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and ${robot1gripping.name} and  ${c1p1State.name} == 1 " +
+      s"and ${c1p1Sensor.name} and not ${c1p2Sensor.name}) ",
       List(s"${robot1Run.name} := true", s"${robot1Target.name} := 1")),
     postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
     started = prop(allVars, s"${robot1State.name} == 2", List())
