@@ -88,9 +88,8 @@ class PatientsToElastic {
   def diffPatient(data: JValue) {
     val diff = data \ "diff"
     // extract CareContactId and fetch patient from elasticsearch
-    val careContactId:String = ( diff \ "updates" \ "CareContactId" ).values.toString
-    //println("CareContactId: " + careContactId)
-    val patient:JValue = getPatientFromElastic(ONGOING_PATIENT_INDEX, careContactId)
+    val careContactId: String = ( diff \ "updates" \ "CareContactId" ).values.toString
+    val patient: JValue = getPatientFromElastic(ONGOING_PATIENT_INDEX, careContactId)
 
     // add and remove Events from event array.
     val oldEvents:      List[Map[String, JValue]] = castJValueToList[Map[String, JValue]](patient \ "Events")
