@@ -26,7 +26,9 @@ object WidgetList {
       ("Tree", widgets.itemexplorer.Tree(), 2, 4),
       ("ClockWidget", widgets.ClockWidget(), 3, 2),
       ("PatientCardsWidget", widgets.PatientCardsServiceWidget(), 3, 3),
-      ("TriageDiagramWidget", widgets.TriageDiagramServiceWidget(), 3, 3)
+      ("TriageDiagramWidget", widgets.TriageDiagramServiceWidget(), 3, 3),
+      ("PatientReminderWidget", widgets.PatientReminderServiceWidget(), 3, 3),
+      ("StatusDiagramWidget", widgets.StatusDiagramServiceWidget(), 3, 3)
     )
 
   val map = list.map(t => t._1 -> (t._2, t._3, t._4)).toMap

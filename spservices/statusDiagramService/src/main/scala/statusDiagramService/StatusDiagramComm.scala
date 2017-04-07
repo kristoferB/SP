@@ -1,0 +1,41 @@
+package sp.statusdiagramservice
+
+import sp.domain._
+import sp.domain.Logic._
+import sp.messages._
+import sp.messages.Pickles._
+
+import scala.util.Try
+
+package API_PatientEvent {
+
+  // Messages I can receive (from elvisDataHandler)
+  sealed trait PatientEvent
+  case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
+  case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
+  case class RemovedPatient(careContactId: String) extends PatientEvent
+
+  // Messages I can send (to my widget)
+  sealed trait StatusEvent
+  case class Unattended(toAdd: Boolean) extends StatusEvent
+  case class Attended(toAdd: Boolean) extends StatusEvent
+  case class Finished(toAdd: Boolean) extends StatusEvent
+
+  object attributes {
+    val service = "statusDiagramService"
+  }
+}
+
+import sp.statusdiagramservice.{API_PatientEvent => api}
+
+object StatusDiagramComm {
+
+  def extractPatientEvent(mess: Try[SPMessage]) = for {
+    m <- mess
+    h <- m.getHeaderAs[SPHeader]
+    b <- m.getBodyAs[api.PatientEvent]
+  } yield (h, b)
+
+  def makeMess(h: SPHeader, b: api.StatusEvent) = SPMessage.makeJson[SPHeader, api.StatusEvent](h, b)
+
+}
