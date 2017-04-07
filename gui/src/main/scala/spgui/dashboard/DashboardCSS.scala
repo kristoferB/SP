@@ -12,6 +12,7 @@ object DashboardCSS extends StyleSheet.Inline {
   val widgetHeadingIconColor = "#ffffff"
 
   val widgetPanel = style("sp-widget-panel")(
+    addClassName("panel panel-default"),
     backgroundColor := theme.value.widgetBackgroundColor,
     height(100.%%),
     marginBottom(0.px),
@@ -24,15 +25,30 @@ object DashboardCSS extends StyleSheet.Inline {
     boxShadow := theme.value.shadow
   )
 
-  val widgetPanelLabel = style("sp-widget-label")(
+  val widgetPanelLabel = style(
+    addClassName("modal-title"),
     float.left
   )
 
-  val widgetPanelHeader = style("sp-widget-header")(
+  val widgetPanelHidden = style(
+    transitionDuration := "100ms",
+    &.not(_.hover) (
+      padding(0.px),
+      opacity(0),
+      height(8.px)
+    )
+  )
+
+  val widgetPanelHeader = style(
     //padding(2.px),
     //display.block,
     //backgroundColor := theme.value.widgetHeadingColor,
     //color := theme.value.widgetHeadingColor
+
+  )
+
+  val widgetPanelButton = style(
+    paddingLeft(4.px)
   )
 
   val widgetPanelBody = style("sp-panel-body")(
