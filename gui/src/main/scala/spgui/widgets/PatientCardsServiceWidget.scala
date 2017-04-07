@@ -34,28 +34,6 @@ import org.singlespaced.d3js.Ops._
 import scalacss.ScalaCssReact._
 import scalacss.Defaults._
 
-package API_PatientEvent {
-
-  sealed trait PatientEvent
-  case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
-  case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
-  case class RemovedPatient(careContactId: String) extends PatientEvent
-
-  //sealed trait ReminderEvent
-  //case class DiffPatientReminder(reminderMap: Map[String, Map[String, String]]) extends ReminderEvent
-
-  sealed trait TriageEvent
-  case class Undefined(toAdd: Boolean) extends TriageEvent
-  case class Green(toAdd: Boolean) extends TriageEvent
-  case class Yellow(toAdd: Boolean) extends TriageEvent
-  case class Orange(toAdd: Boolean) extends TriageEvent
-  case class Red(toAdd: Boolean) extends TriageEvent
-
-  object attributes {
-    val service = "patientCardsService"
-  }
-}
-
 import spgui.widgets.{API_PatientEvent => api}
 
 object PatientCardsServiceWidget {
@@ -74,6 +52,7 @@ object PatientCardsServiceWidget {
           case api.NewPatient(careContactId, patientData, events) => {
             // Add new patient and map to a specific careContactId
             activePatientCards += careContactId -> Patient(careContactId, patientData, events)
+            //$.modState(s => s.runNow())
           }
           case api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents) => {
             var modPatientData = activePatientCards(careContactId).patientData
@@ -84,10 +63,12 @@ object PatientCardsServiceWidget {
               }
             }
             activePatientCards += careContactId -> Patient(careContactId, modPatientData, activePatientCards(careContactId).events)
+            //$.modState(s => s.runNow())
           }
           case api.RemovedPatient(careContactId) => {
             // Remove patient mapped to some specific careContactId
             activePatientCards -= careContactId
+            //$.modState(s => s.runNow())
           }
           case x => println(s"THIS WAS NOT EXPECTED IN PatientCardsServiceWidget: $x")
         }
