@@ -29,12 +29,14 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
   val mediator = DistributedPubSub(context.system).mediator
   mediator ! Subscribe(APISP.services, self)
 
+  sendEvent(SPHeader(from = id.toString), getModelInfo)
+
 
   def receiveCommand = {
     case x: String if sender() != self =>
       val mess = SPMessage.fromJson(x)
 
-      ModelsComm.extractRequest(mess, id.toString).foreach{case (h, b) =>
+      ModelsComm.extractRequest(mess, "modelActor",id).foreach{case (h, b) =>
         val updH = h.copy(from = api.attributes.service, to = h.from)
         sendAnswer(updH, APISP.SPACK())
 
@@ -69,6 +71,8 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
           case k: api.GetStructures   =>
             val res = state.items.filter(_.isInstanceOf[Struct])
             sendAnswer(updH, api.SPItems(res))
+          case k: api.DeleteModel =>
+            if (k.id == id) context.parent ! k
           case k =>
         }
 
@@ -83,7 +87,7 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
           val resp = APISP.StatusResponse(
             service = id.toString,
             instanceID = Some(id),
-            tags = List("models", "modelhandler"),
+            tags = List("models"),
             attributes = SPAttributes("modelInfo" -> getModelInfo)
           )
 
@@ -110,7 +114,7 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
 
   def sendAnswer(h: SPHeader, b: APISP) = mediator ! Publish(APISP.answers, ModelsComm.makeMess(h, b))
   def sendAnswer(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.answers, ModelsComm.makeMess(h, b))
-  def sendEvent(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.spevents, ModelsComm.makeMess(h, b))
+  def sendEvent(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.spevents, ModelsComm.makeMess(h.copy(to = ""), b))
 }
 
 
@@ -169,8 +173,7 @@ trait ModelLogic {
     def createDiffUpd(ids: List[IDAble], info: SPAttributes): Option[ModelDiff] = {
       val upd = ids.flatMap{i =>
         val xs = state.idMap.get(i.id)
-        if (!xs.exists(_ == i))
-          Some(i)
+        if (!xs.contains(i)) Some(i)
         else None
       }
       if (upd.isEmpty ) None

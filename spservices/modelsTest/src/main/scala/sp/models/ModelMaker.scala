@@ -7,7 +7,7 @@ import scala.concurrent.duration._
 import akka.persistence._
 import sp.domain._
 import sp.domain.LogicNoImplicit._
-import sp.messages.Pickles.SPMessage
+import sp.messages.Pickles._
 import sp.messages._
 import sp.models.APIModels.CreateModel
 
@@ -33,35 +33,36 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
     case x: String if sender() != self =>
       val mess = SPMessage.fromJson(x)
 
-      ModelsComm.extractRequest(mess, instanceID.toString).collect{
+      ModelsComm.extractRequest(mess, api.attributes.service, instanceID).collect{
         case (h, b: api.CreateModel) =>
           val updH = h.copy(from = api.attributes.service, to = h.from)
           if (modelMap.contains(b.id)){
-            mediator ! Publish(APISP.answers, ModelsComm.makeMess(updH, APISP.SPError(s"Model ${b.id} already exist. Can not be created")))
+            sendAnswer(updH, APISP.SPError(s"Model ${b.id} already exist. Can not be created"))
           } else {
-            mediator ! Publish(APISP.answers, ModelsComm.makeMess(updH, APISP.SPACK()))
+            sendAnswer(updH, APISP.SPACK())
             persist(x){mess =>
               createModel(b)
-              mediator ! Publish(APISP.spevents, ModelsComm.makeMess(updH, api.ModelDeleted(b.id)))
-              mediator ! Publish(APISP.answers, ModelsComm.makeMess(updH, APISP.SPDone()))
+              sendAnswer(updH, APISP.SPDone())
             }
 
           }
         case (h, b: api.DeleteModel) =>
           val updH = h.copy(from = api.attributes.service, to = h.from)
           if (!modelMap.contains(b.id)){
-            mediator ! Publish(APISP.answers, ModelsComm.makeMess(updH, APISP.SPError(s"Model ${b.id} does not exists. Can not be deleted")))
+            sendAnswer(updH, APISP.SPError(s"Model ${b.id} does not exists. Can not be deleted"))
           } else {
-            mediator ! Publish(APISP.answers, ModelsComm.makeMess(updH, APISP.SPACK()))
+            sendAnswer(updH, APISP.SPACK())
             persist(x){mess =>
               deleteModel(b)
-              mediator ! Publish(APISP.answers, ModelsComm.makeMess(updH, APISP.SPDone()))
+              sendEvent(updH, api.ModelDeleted(b.id))
+              sendAnswer(updH, APISP.SPDone())
             }
 
           }
         case (h, b: api.GetModels) =>
-          val mess = ModelsComm.makeMess(h.copy(from = api.attributes.service, to = h.from), api.ModelList(modelMap.keys.toList))
-          mediator ! Publish(APISP.answers, mess)
+          val updH = h.copy(from = api.attributes.service, to = h.from)
+          sendAnswer(updH, api.ModelList(modelMap.keys.toList))
+          sendAnswer(updH, APISP.SPDone())
       }
 
 
@@ -75,9 +76,12 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
             attributes = SPAttributes("models" -> modelMap.keys.toList)
           )
 
-          mediator ! Publish(APISP.spevents, ModelsComm.makeMess(updH, resp))
+          sendEvent(updH, resp)
 
       }
+
+    case x: api.DeleteModel =>
+
 
   }
 
@@ -101,7 +105,7 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
 
      val mess = SPMessage.fromJson(x)
 
-     ModelsComm.extractRequest(mess, instanceID.toString).map{
+     ModelsComm.extractRequest(mess, api.attributes.service, instanceID).map{
       case (h, b: api.CreateModel) => models += (b.id -> b)
       case (h, b: api.DeleteModel) => models = models - b.id
       case _ => Unit
@@ -112,6 +116,12 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
       models.values.foreach(createModel)
       models = Map()
   }
+
+
+  def sendAnswer(h: SPHeader, b: APISP) = mediator ! Publish(APISP.answers, ModelsComm.makeMess(h, b))
+  def sendAnswer(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.answers, ModelsComm.makeMess(h, b))
+  def sendEvent(h: SPHeader, b: APISP) = mediator ! Publish(APISP.spevents, ModelsComm.makeMess(h.copy(to = ""), b))
+  def sendEvent(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.spevents, ModelsComm.makeMess(h.copy(to = ""), b))
 
 }
 
