@@ -9,6 +9,8 @@ import akka.actor._
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 import scala.util.{ Try, Success, Failure }
 
+import scala.collection.mutable.ListBuffer
+
 import sp.triagediagramservice.{API_PatientEvent => api}
 
 class TriageDiagramDevice extends Actor with ActorLogging {
@@ -78,8 +80,15 @@ class TriageDiagramDevice extends Actor with ActorLogging {
           patientDataDiff.foreach{ d =>
             modPatientData += d._1 -> d._2
           }
+          var eventsBuffer = new ListBuffer[Map[String,String]]()
+          activePatientCards(careContactId).events.foreach{ e =>
+            eventsBuffer += e
+          }
+          newEvents.foreach{ e =>
+            eventsBuffer += e
+          }
           val newTriage = modPatientData("Priority")
-          activePatientCards += careContactId -> Patient(careContactId, modPatientData, activePatientCards(careContactId).events)
+          activePatientCards += careContactId -> Patient(careContactId, modPatientData, eventsBuffer.toList)
           publishOnAkka(header, getTriageApi(oldTriage, false))
           publishOnAkka(header, getTriageApi(newTriage, true))
         }
