@@ -2,30 +2,30 @@ package spgui.widgets.css
 
 import scalacss.Defaults._
 
-
 object WidgetStyles extends StyleSheet.Inline {
   import dsl._
 
-  val ff = fontFace("AlteHaasGrotesk")(
-    _.src("local(./fonts/AlteHaasGroteskRegular.ttf)")
-  ) //ARTO: dessa genererar @font-face
+  // val ff = fontFace("helveticaNeueRegular")(
+  //   _.src("local(HelveticaNeue)", "url(font2.woff)")
+  // ) //ARTO: dessa genererar @font-face
 
-  val ff2 = fontFace("Dosis")(
-    _.src("url(https://fonts.gstatic.com/s/dosis/v6/yeSIYeveYSpVN04ZbWTWghTbgVql8nDJpwnrE27mub0.woff2)")
-    .fontWeight._600
-    .fontStyle.normal
+
+  val commonFont = mixin(
+    //fontFamily(ff)
+    fontSize(26.px),
+    paddingLeft(10.px)
   )
 
   val clock = style(
     textAlign.center,
-    fontSize(70.px),
-    fontFamily(ff)
+    fontSize(70.px)
+    //fontFamily(ff)
   )
 
-  val patientCardStyle = style(
+  val patientCardText = style(
+    fontSize(26.px),
+    svgFill := "black"
   )
-  // val cirkel = style(
-  //   fill :=! "green"
-  // )
+  
 
-}
+  }

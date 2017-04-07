@@ -34,18 +34,53 @@ import org.singlespaced.d3js.Ops._
 import scalacss.ScalaCssReact._
 import scalacss.Defaults._
 
+// package API_PatientEvent {
+//   // Messages I can receive
+//   sealed trait PatientEvent
+//   case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
+//   case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
+//   case class RemovedPatient(careContactId: String) extends PatientEvent
+//
+//   sealed trait API_PatientCardsService
+//   case class State(state: State) extends API_PatientCardsService
+//
+//
+//   object attributes {
+//     val service = "patientCardsService"
+//   }
+// }
+
 package API_PatientEvent {
-  // Messages I can receive
   sealed trait PatientEvent
   case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
   case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
   case class RemovedPatient(careContactId: String) extends PatientEvent
-  case class Patient( careContactId: String, patientData: Map[String,Any]) extends PatientEvent
-  case class elvisEvent( eventType: String, patient: Patient) extends PatientEvent
 
-  sealed trait API_PatientCardsService
-  case class State(state: State) extends API_PatientCardsService
+  sealed trait TriageEvent
+  case class NotTriaged(timestamp: String) extends TriageEvent
+  case class Green(timestamp: String) extends TriageEvent
+  case class Yellow(timestamp: String) extends TriageEvent
+  case class Orange(timestamp: String) extends TriageEvent
+  case class Red(timestamp: String) extends TriageEvent
 
+  sealed trait StatusEvent
+  case class Unattended(toAdd: Boolean) extends StatusEvent
+  case class Attended(doctorId: String, timestamp: String) extends StatusEvent
+  case class Finished(timestamp: String) extends StatusEvent
+
+  sealed trait LocationEvent
+  case class RoomNr(roomNr: String) extends LocationEvent
+
+  sealed trait TeamEvent
+  case class Team(team: String, klinik: String) extends TeamEvent
+
+  sealed trait LatestEventEvent
+  case class LatestEvent(latestEvent: String, timestamp: String) extends LatestEventEvent
+
+  sealed trait ArrivalTimeEvent
+  case class arrivalTime(arrivalTime: String) extends ArrivalTimeEvent
+
+  case class Undefined()
 
   object attributes {
     val service = "patientCardsService"
@@ -58,104 +93,249 @@ object PatientCardsServiceWidget {
 
   case class Patient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]])
 
-  var activePatientCards: Map[String, Patient] = Map()
+  //var activePatientCards: Map[String, Patient] = Map()
 
-  private class Backend($: BackendScope[Map[String, Patient], Unit]) {
+  private class Backend($: BackendScope[Unit, Map[String, Patient]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
+
+
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
         mess.getBodyAs[api.PatientEvent] map {
           case api.NewPatient(careContactId, patientData, events) => {
             // Add new patient and map to a specific careContactId
-            activePatientCards += careContactId -> Patient(careContactId, patientData, events)
+            $.modState(s => s + (careContactId -> Patient(careContactId, patientData, events)) ).runNow()
           }
           case api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents) => {
-            var modPatientData = activePatientCards(careContactId).patientData
-            // Add and/or modify fields to the patient data
-            patientDataDiff.foreach{ d =>
-              modPatientData += d._1 -> d._2
-            }
-            activePatientCards += careContactId -> Patient(careContactId, modPatientData, activePatientCards(careContactId).events)
+            $.modState(s => {
+              var modPatientData = s(careContactId).patientData
+              // Add and/or modify fields to the patient data
+              patientDataDiff.foreach{ d =>
+                modPatientData + d._1 -> d._2
+              }
+              s + (careContactId -> Patient(careContactId, modPatientData, s(careContactId).events))
+            }).runNow()
           }
           case api.RemovedPatient(careContactId) => {
             // Remove patient mapped to some specific careContactId
-            activePatientCards -= careContactId
+            $.modState(s => s - careContactId).runNow()
           }
           case x => println(s"THIS WAS NOT EXPECTED IN PatientCardsServiceWidget: $x")
         }
       }, "patient-cards-widget-topic"
     )
 
+    // def latestEventOfTitle(event: String, p: Patient): Tuple2[String, String] = {
+    //
+    // }
+
+
+    def triageColor(p: String) = {
+      p match {
+        case "Grön" => "green"//"#289500" //"prio4"
+        case "Gul" => "yellow"//"#EAC706" //"prio3"
+        case "Orange" => "orange"//"#F08100" //"prio2"
+        case "Röd" => "red"//"#950000" //"prio1"
+        case _ =>  "grey"//"#D5D5D5" //"prioNA"
+      }
+    }
+
     def patientCard(p: Patient) = {
+      val cardHeight = 186
+      val cardWidth = cardHeight * 1.7
+      val triageFieldWidth = (cardWidth / 3)
+      val textLeftAlignment = (triageFieldWidth + (triageFieldWidth / 11))
+      val fontSize = (cardHeight / 12)
+      val roomNrFontSize = (cardHeight / 3)
+      //println(triageColor(p.patientData("Priority")))
+      //println(p.patientData("Priority"))
+
       <.svg.svg( //ARTO: Skapar en <svg>-tagg att fylla med obekt
         ^.`class` := "patientcard",
         ^.svg.id := p.careContactId,
-        ^.svg.width := "300",
-        ^.svg.height := "200",
+        ^.svg.width := cardWidth.toString,
+        ^.svg.height := cardHeight.toString,
         <.svg.rect(
           ^.`class` := "bg",
           ^.svg.x := "0",
           ^.svg.y := "0",
-          ^.svg.width := "300",
-          ^.svg.height := "200",
-          ^.svg.fill := "lightgrey"
+          ^.svg.width := cardWidth.toString,
+          ^.svg.height := cardHeight.toString,
+          ^.svg.fill := "white"
         ),
         <.svg.rect(
-          ^.`class` := "triagefield",
+          ^.`class` := "triageField",
           ^.svg.x := "0",
           ^.svg.y := "0",
-          ^.svg.width := "80",
-          ^.svg.height := "200",
-          ^.svg.fill := "darkseagreen"
+          ^.svg.width := triageFieldWidth.toString,
+          ^.svg.height := cardHeight.toString
+          //^.svg.fill := triageColor(p.patientData("Priority"))
+        ),
+        <.svg.rect(
+          ^.`class` := "delimiter",
+          ^.svg.x := textLeftAlignment,
+          ^.svg.y := (cardHeight / 1.24).toString,
+          ^.svg.width := (cardWidth - triageFieldWidth - ((textLeftAlignment - triageFieldWidth) * 2)).toString,
+          ^.svg.height := "1"
+          //^.svg.fill := triageColor(p.patientData("Priority"))
         ),
         <.svg.path(
           ^.`class` := "klinikfield",
-          ^.svg.d := "M 0,180, 60,180, -60,0 Z",
+          // ^.svg.d := s"M 0,$cardHeight, "+(cardWidth / 4.6).toString+s",$cardHeight, -"+(cardWidth / 4.6).toString+s",0 Z",
+          ^.svg.d := s"M 0,$cardHeight, 0,"+(cardHeight - (cardHeight / 2.6)).toString+s", "+(cardHeight / 2.6).toString+s",$cardHeight Z",
           ^.svg.fill := "lightblue"
+        ),
+        <.svg.path(
+          ^.`class` := "teamfield",
+          // ^.svg.d := s"M 0,$cardHeight, "+(cardWidth / 4.6).toString+s",$cardHeight, -"+(cardWidth / 4.6).toString+s",0 Z",
+          ^.svg.d := s"M 0,$cardHeight, 0,"+(cardHeight - (cardHeight / 3)).toString+s", "+(cardHeight / 3).toString+s",$cardHeight Z",
+          ^.svg.fill := "darkseagreen"
         ),
         <.svg.text(
           ^.`class` := "roomNr",
-          ^.svg.x := "10",
-          ^.svg.y := "50",
-          ^.svg.fontSize := "52",
+          ^.svg.x := (triageFieldWidth / 2).toString,
+          ^.svg.y := (triageFieldWidth - (triageFieldWidth / 2.3)).toString,
+          ^.svg.width := triageFieldWidth.toString,
+          //^.svg.align := "center",
+          ^.svg.textAnchor := "middle",
+          ^.svg.fontSize := roomNrFontSize.toString  + "px",
           ^.svg.fill := "white",
           p.patientData("Location")
         ),
+        // <.svg.text(
+        //   ^.`class` := "careContactId",
+        //   ^.svg.x := "100",
+        //   ^.svg.y := "40",
+        //   ^.svg.fontSize := "47",
+        //   ^.svg.fill := "black",
+        //   p.careContactId
+        // ),
         <.svg.text(
-          ^.`class` := "careContactId",
-          ^.svg.x := "100",
-          ^.svg.y := "40",
-          ^.svg.fontSize := "47",
-          ^.svg.fill := "black",
-          p.careContactId
+          ^.`class` := "textLatestEvent",
+          ^.svg.x := textLeftAlignment.toString,
+          ^.svg.y := ((cardHeight / 3) / 3).toString,
+          ^.svg.textAnchor := "top",
+          ^.svg.fontSize := fontSize.toString  + "px",
+          "Senaste händelse"
         ),
         <.svg.text(
-          ^.`class` := "lastEvent",
-          ^.svg.x := "100",
-          ^.svg.y := "100",
-          ^.svg.fontSize := "25",
-          ^.svg.fill := "black",
-          p.patientData("CareContactRegistrationTime")
+          ^.`class` := "latestEvent",
+          ^.svg.x := textLeftAlignment.toString,
+          ^.svg.y := (cardHeight / 2.8).toString,
+          ^.svg.textAnchor := "bottom",
+          ^.svg.fontSize := (roomNrFontSize * 0.8).toString  + "px",
+          p.careContactId
+        ),
+        <.svg.svg(
+          ^.`class` := "timerSymbol",
+          ^.svg.x := textLeftAlignment.toString,
+          ^.svg.y := (cardHeight / 2.3).toString,
+          //^.svg.viewBox := "0 50 400 400",
+          // ^.svg.viewBox := textLeftAlignment.toString+" "+(cardHeight / 2.3).toString+" 40 40",
+          <.svg.path(
+            ^.svg.d := "m 1.9316099,0.03941873 -0.8388126,0 0,0.27960417 0.8388126,0 0,-0.27960417 z M 1.3724015,1.856846 l 0.2796042,0 0,-0.8388125 -0.2796042,0 0,0.8388125 z M 2.4950124,0.93275411 2.6935313,0.73423513 C 2.6334165,0.66293603 2.5677095,0.59583103 2.4964104,0.53711413 L 2.2978914,0.73563319 C 2.0811982,0.56227853 1.8085841,0.45882498 1.5122036,0.45882498 c -0.69481669,0 -1.25821911,0.56340252 -1.25821911,1.25821892 0,0.6948164 0.56200436,1.2582189 1.25821911,1.2582189 0.6962145,0 1.2582189,-0.5634025 1.2582189,-1.2582189 0,-0.2963805 -0.1034535,-0.5689945 -0.2754101,-0.78428979 z M 1.5122036,2.6956586 c -0.5410343,0 -0.97861487,-0.4375806 -0.97861487,-0.9786147 0,-0.5410341 0.43758057,-0.97861475 0.97861487,-0.97861475 0.5410342,0 0.9786147,0.43758065 0.9786147,0.97861475 0,0.5410341 -0.4375805,0.9786147 -0.9786147,0.9786147 z",
+            ^.svg.fill := "black",
+            ^.svg.transform := "scale("+(cardHeight / 11).toString+")"
+
+            // <.svg.animateTransform(
+            //   ^.svg.`type` := "scale",
+            //   ^.svg.attributeType := "XML",
+            //   ^.svg.attributeName := "transform",
+            //   ^.svg.from := "1 1",
+            //   ^.svg.to := "2 2",
+            //   ^.svg.dur := "10s"
+            // )
+          )),
+          <.svg.text(
+            ^.`class` := "timeSinceLatestEvent",
+            ^.svg.x := (textLeftAlignment * 1.48).toString,
+            ^.svg.y := (cardHeight / 1.5).toString,
+            ^.svg.fontSize := (fontSize * 2).toString  + "px",
+            p.patientData("CareContactRegistrationTime")
+          ),
+          // <.svg.svg(
+          //   ^.`class` := "latestActor",
+          //   ^.svg.x := (cardWidth / 1.8).toString,
+          //   ^.svg.y := (cardHeight / 1.7).toString,
+          //   <.svg.path(
+          //     ^.`class` := "actorSymbol",
+          //     ^.svg.d := "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z",
+          //     ^.svg.fill := "black"
+          //   ),
+          //   <.svg.text(
+          //     ^.svg.x := (textLeftAlignment * 0.2).toString,
+          //     ^.svg.y := 20.toString,
+          //     ^.svg.fontSize := (cardHeight / 9).toString,
+          //     Styles.patientCardText,
+          //     p.patientData("CareContactRegistrationTime")
+          //   )
+          // ),
+          <.svg.svg(
+            ^.`class` := "arrivalTime",
+            ^.svg.x := textLeftAlignment.toString,
+            ^.svg.y := (cardHeight / 1.2).toString,
+            <.svg.path(
+              ^.`class` := "clockSymbol",
+              //^.svg.width := cardWidth.toString,
+              ^.svg.d := "m 12.510169,6.8983051 -1.530508,0 0,6.1220339 5.35678,3.214068 0.765254,-1.255017 -4.591526,-2.724305 z M 11.989797,1.7966102 C 6.3575254,1.7966102 1.7966102,6.3677288 1.7966102,12 c 0,5.632271 4.5609152,10.20339 10.1931868,10.20339 5.642474,0 10.213593,-4.571119 10.213593,-10.20339 0,-5.6322712 -4.571119,-10.2033898 -10.213593,-10.2033898 z M 12,20.162712 C 7.4901017,20.162712 3.8372881,16.509898 3.8372881,12 3.8372881,7.4901017 7.4901017,3.8372881 12,3.8372881 c 4.509898,0 8.162712,3.6528136 8.162712,8.1627119 0,4.509898 -3.652814,8.162712 -8.162712,8.162712 z",
+              ^.svg.fill := "black"
+            ),
+            <.svg.text(
+              ^.svg.x := (textLeftAlignment * 0.3).toString,
+              ^.svg.y := 20.toString,
+              ^.svg.fontSize := fontSize.toString  + "px",
+              p.patientData("CareContactRegistrationTime")
+            )
+          ),
+          <.svg.svg(
+            ^.`class` := "doctorStatus",
+            ^.svg.x := (textLeftAlignment + ((cardWidth - triageFieldWidth) / 2)).toString,
+            ^.svg.y := (cardHeight / 1.2).toString,
+            <.svg.path(
+              ^.`class` := "doctorSymbol",
+              //^.svg.width := cardWidth.toString,
+              ^.svg.d := "m 19.632768,2.7559322 -4.557853,0 C 14.616949,1.5605424 13.417514,0.69491525 12,0.69491525 c -1.417514,0 -2.6169492,0.86562715 -3.0749153,2.06101695 l -4.5578531,0 c -1.199435,0 -2.1807909,0.9274576 -2.1807909,2.0610169 l 0,14.4271189 c 0,1.133559 0.9813559,2.061017 2.1807909,2.061017 l 15.2655364,0 c 1.199435,0 2.180791,-0.927458 2.180791,-2.061017 l 0,-14.4271189 c 0,-1.1335593 -0.981356,-2.0610169 -2.180791,-2.0610169 z m -7.632768,0 c 0.599718,0 1.090395,0.4637288 1.090395,1.0305085 0,0.5667796 -0.490677,1.0305084 -1.090395,1.0305084 -0.599718,0 -1.090395,-0.4637288 -1.090395,-1.0305084 0,-0.5667797 0.490677,-1.0305085 1.090395,-1.0305085 z M 9.819209,17.183051 5.4576271,13.061017 6.9950847,11.608 9.819209,14.266712 17.004915,7.475661 18.542373,8.938983 9.819209,17.183051 Z",
+              ^.svg.fill := "black"
+            ),
+            <.svg.text(
+              ^.svg.x := (textLeftAlignment * 0.3).toString,
+              ^.svg.y := 20.toString,
+              ^.svg.fontSize := fontSize.toString  + "px",
+              p.patientData("CareContactRegistrationTime")
+            )
+          )
+
         )
-      )
+      }
+
+      def render(pmap: Map[String, Patient]) = {
+        spgui.widgets.css.WidgetStyles.addToDocument()
+
+        <.div(^.`class` := "card-holder-root")( // This div is really not necessary
+          pmap.values map ( p =>
+            patientCard(p)
+          )
+        )
+      }
     }
 
-    def render(pmap: Map[String, Patient]) = {
-      <.div(^.`class` := "card-holder-root")( // This div is really not necessary
-        //Styles.patientCardStyle
-        pmap.values map ( p =>
-          patientCard(p)
-        )
-      )
-    }
+    private val cardHolderComponent = ReactComponentB[Unit]("cardHolderComponent")
+    .initialState(Map("4502085" -> Patient("4502085", Map("careContactId" -> "4502085", "Location" -> "13", "CareContactRegistrationTime"->"2017-02-01T15:49:19Z" ), List(Map("1"->"I")))))
+    .renderBackend[Backend]
+    .build
+
+    def apply() = spgui.SPWidget(spwb => {
+      // val llist = List(
+      //   Patient("4502085", Map("careContactId" -> "4502085", "Location" -> "13", "CareContactRegistrationTime"->"2017-02-01T15:49:19Z" ), List(Map("1"->"I"))),
+      //   Patient("4502134", Map("careContactId" -> "4502134", "Location" -> "24", "CareContactRegistrationTime"->"2017-02-01T15:58:33Z" ), List(Map("1"->"I"))),
+      //   Patient("4508659", Map("careContactId" -> "4508659", "Location" -> "56", "CareContactRegistrationTime"->"2017-02-01T16:01:37Z" ), List(Map("1"->"I"))),
+      //   Patient("4538659", Map("careContactId" -> "4538659", "Location" -> "93", "CareContactRegistrationTime"->"2017-02-01T16:01:38Z" ), List(Map("1"->"I")))
+      // )
+      // llist map{ p =>
+      //   activePatientCards += (p.careContactId -> p)
+      // }
+      // println("activePatientCards: "+activePatientCards)
+      cardHolderComponent()
+    })
   }
-
-  private val cardHolderComponent = ReactComponentB[Map[String, Patient]]("cardHolderComponent")
-  .renderBackend[Backend]
-  .build
-
-  def apply() = spgui.SPWidget(spwb => {
-    cardHolderComponent(activePatientCards)
-  })
-}

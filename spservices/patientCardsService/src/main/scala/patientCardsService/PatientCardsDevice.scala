@@ -18,7 +18,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
   val mediator = DistributedPubSub(context.system).mediator
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
-  mediator ! Subscribe("patient-event-topic", self) 
+  mediator ! Subscribe("patient-event-topic", self)
 
   def receive = {
     case mess @ _ if {log.debug(s"ExampleService MESSAGE: $mess from $sender"); false} => Unit
@@ -51,6 +51,16 @@ class PatientCardsDevice extends Actor with ActorLogging {
       }
     }
   }
+
+  // def getTeam(dp: api.DiffPatient): api.Team = {
+  //   println(dp.careContactId+": Team updated to: "+dp.newEvents.Team)
+  //   if (dp.) {
+  //
+  //   }
+  //
+  //   dp.newEvents.Team
+  // }
+
 
   def publishOnAkka(header: SPHeader, body: api.PatientEvent) {
     val toSend = PatientCardsComm.makeMess(header, body)
