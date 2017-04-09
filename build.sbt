@@ -122,6 +122,16 @@ lazy val triageDiagramService = (project in file("spservices/triageDiagramServic
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
+lazy val statusDiagramService = (project in file("spservices/statusDiagramService"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
+
+lazy val patientReminderService = (project in file("spservices/patientReminderService"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
+
 
 
 lazy val spseed = (project in file("spservices/spseed"))

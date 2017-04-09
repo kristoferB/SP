@@ -1,4 +1,4 @@
-package sp.triagediagramservice
+package sp.statusdiagramservice
 
 import sp.domain._
 import sp.domain.Logic._
@@ -16,21 +16,19 @@ package API_PatientEvent {
   case class RemovedPatient(careContactId: String) extends PatientEvent
 
   // Messages I can send (to my widget)
-  sealed trait TriageEvent
-  case class Undefined(toAdd: Boolean) extends TriageEvent
-  case class Green(toAdd: Boolean) extends TriageEvent
-  case class Yellow(toAdd: Boolean) extends TriageEvent
-  case class Orange(toAdd: Boolean) extends TriageEvent
-  case class Red(toAdd: Boolean) extends TriageEvent
+  sealed trait StatusEvent
+  case class Unattended(toAdd: Boolean) extends StatusEvent
+  case class Attended(toAdd: Boolean) extends StatusEvent
+  case class Finished(toAdd: Boolean) extends StatusEvent
 
   object attributes {
-    val service = "triageDiagramService"
+    val service = "statusDiagramService"
   }
 }
 
-import sp.triagediagramservice.{API_PatientEvent => api}
+import sp.statusdiagramservice.{API_PatientEvent => api}
 
-object TriageDiagramComm {
+object StatusDiagramComm {
 
   def extractPatientEvent(mess: Try[SPMessage]) = for {
     m <- mess
@@ -38,6 +36,6 @@ object TriageDiagramComm {
     b <- m.getBodyAs[api.PatientEvent]
   } yield (h, b)
 
-  def makeMess(h: SPHeader, b: api.TriageEvent) = SPMessage.makeJson[SPHeader, api.TriageEvent](h, b)
+  def makeMess(h: SPHeader, b: api.StatusEvent) = SPMessage.makeJson[SPHeader, api.StatusEvent](h, b)
 
 }

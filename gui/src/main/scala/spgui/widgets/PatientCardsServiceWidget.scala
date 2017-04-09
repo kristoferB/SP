@@ -90,6 +90,7 @@ package API_PatientEvent {
   }
 }
 
+
 import spgui.widgets.{API_PatientEvent => api}
 
 object PatientCardsServiceWidget {
@@ -97,6 +98,7 @@ object PatientCardsServiceWidget {
   case class Patient(careContactId: String, triageColor: api.PriorityEvent, attended: api.Attended, location: api.RoomNr, team: api.Team, latestEvent: api.LatestEvent, arrivalTime: api.ArrivalTime)
 
   //var activePatientCards: Map[String, Patient] = Map()
+
 
   private class Backend($: BackendScope[Unit, Map[String, Patient]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()

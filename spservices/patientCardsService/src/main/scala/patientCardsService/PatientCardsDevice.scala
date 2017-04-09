@@ -59,94 +59,127 @@ class PatientCardsDevice extends Actor with ActorLogging {
       }
     }
   }
-  def extractDiffPatient(dp: api.DiffPatient): List[api.PatientProperty] = {
-    var tempList = new ListBuffer[api.PatientProperty]()
-    np.events.foreach{ e => if(e("Category") == ("T"|"U")){
-      val tmpp: api.PatientProperty = e("Type") match {
-        case "EJKÖLAPP" =>
-        case "EXT MOTT" =>
-        case "KLAR" =>
-        case "KÖLAPP" =>
-        case "LÄKARE" =>
-        case "OMSKOORD" =>
-        case "OMVÅRDNAD" =>
-        case "RTG-REMISS" =>
-        case "TRIAGE" =>
-        case "VPLKOORD" =>
-        case "VÄND" =>
 
-        // case "Priority" => updatePriority(np.patientData("Priority"), np.patientData("TimeOfTriage")) //println(np.patientData("CareContactId")+" : will have propety: "+np.patientData(k))
-        // case "TimeOfDoctor" => updateAttended( !("0000-01-24T00:00:00.000Z" == np.patientData("TimeOfDoctor")), ( for ( e <- np.events; if (e("Title") == "Läkare") ) yield e("Value") ).mkString, np.patientData("TimeOfDoctor"))
-        // case "Location" => updateLocation(np.patientData("Location")) // Should this have timestamp
-        // case "Team" => updateTeam(np.patientData("Team"), np.patientData("ReasonForVisit"), np.patientData("Location"))
-        case _ => api.Undefined() // ???
-      }
-    }
-    tempList = tempList ++ List(tmpp)
-    //println(tempList+": TMPLIST")
+  /*
+  Takes two LatestEvent and returns the most recent one
+  **/
+  def latestEventOf(newE: api.LatestEvent, oldE: api.LatestEvent): api.LatestEvent = {
+    if (happenedAfter(newE.timestamp, oldE.timestamp))
+    api.LatestEvent(newE.latestEvent, newE.timestamp)
+    else api.LatestEvent(oldE.latestEvent, oldE.timestamp)
+  }
+
+  /*
+    Takes a list of events and returns a list containing only the most recent one of each type
+  **/
+  def filterMostRecent(pplist: List[api.PatientProperty]): List[api.PatientProperty] = {
+
+  }
+
+  /*
+  Takes the "newEvents"-field of a DiffPatient and returns corresponding
+  list of PatientProperty
+  **/
+  def extractDiffPatientNewEvents(dp: List[Map[String, String]]): List[api.PatientProperty] = { // TODO needs to account for NewEvents/RemovedEvents
+    var tempList = new ListBuffer[api.PatientProperty]()
+    dp.newEvents.foreach{ e =>
+      tempList = tempList ++ List(api.PatientProperty = extractEvents(e))
     }
     val listigt: List[api.PatientProperty] = tempList.toList
     //println(listigt.filter(_ != (api.Undefined())).filter(_ != api.Attended(false,"","0000-01-24T00:00:00.000Z") )+" : LISTIGT")
-    listigt.filter(_ != (api.Undefined())).filter(_ != api.Attended(false,"","0000-01-24T00:00:00.000Z")
+    listigt.filter(_ != (api.Undefined()))
   }
 
   def extractNewPatient(np: api.NewPatient): List[api.PatientProperty] = {
     var tempList = new ListBuffer[api.PatientProperty]()
     np.patientData.keys.foreach{ k =>
       val tmpp: api.PatientProperty = k match {
-        case "Priority" => updatePriority(np.patientData("Priority"), np.patientData("TimeOfTriage")) //println(np.patientData("CareContactId")+" : will have propety: "+np.patientData(k))
-        case "TimeOfDoctor" => updateAttended( !("0000-01-24T00:00:00.000Z" == np.patientData("TimeOfDoctor")), ( for ( e <- np.events; if (e("Title") == "Läkare") ) yield e("Value") ).mkString, np.patientData("TimeOfDoctor"))
-        case "Location" => updateLocation(np.patientData("Location")) // Should this have timestamp
-        case "Team" => updateTeam(np.patientData("Team"), np.patientData("ReasonForVisit"), np.patientData("Location"))
+        case "Priority" => updatePriority(np.careContactId, np.patientData("Priority"), np.patientData("TimeOfTriage")) //println(np.patientData("CareContactId")+" : will have propety: "+np.patientData(k))
+        case "TimeOfDoctor" => updateAttended(np.careContactId,  ( for ( e <- np.events; if (e("Title") == "Läkare") ) yield e("Value") ).mkString, np.patientData("TimeOfDoctor"))
+        case "Location" => updateLocation(np.careContactId, np.patientData("Location")) // Should this have timestamp
+        case "Team" => updateTeam(np.careContactId, np.patientData("Team"), np.patientData("ReasonForVisit"), np.patientData("Location"))
         case _ => api.Undefined() // ???
       }
       tempList = tempList ++ List(tmpp)
       //println(tempList+": TMPLIST")
     }
+    np.events.foreach{ e =>         // Checking the events-list
+      val tmpp: api.PatientProperty = extractEvents(e)
+    }
+    tempList = tempList ++ List(tmpp)
+
     val listigt: List[api.PatientProperty] = tempList.toList
     println(listigt.filter(_ != (api.Undefined())).filter(_ != api.Attended(false,"","0000-01-24T00:00:00.000Z") )+" : LISTIGT")
     listigt.filter(_ != (api.Undefined())).filter(_ != api.Attended(false,"","0000-01-24T00:00:00.000Z"))
   }
 
+  /*
+  To test if laterTimestamp happened later than timestamp
+  **/
   def happenedAfter(laterTimestamp: String, timestamp: String ): Boolean = {
     timestampToODT(laterTimestamp).isAfter(timestampToODT(timestamp))
   }
 
+  /*
+  Converts String of type "0000-01-24T00:00:00.000Z" into OffsetDateTime
+  Used by happenedAfter.
+  **/
   def timestampToODT(timestamp: String): OffsetDateTime = {
     OffsetDateTime.parse(timestamp, DateTimeFormatter.ISO_INSTANT)
   }
 
-  def updatePriority(newPriority: String, timestamp: String): api.PriorityEvent = {
+  /*
+  Discerns priority and returns corresponding PriorityEvent-type
+  **/
+  def updatePriority(ccid: String, newPriority: String, timestamp: String): api.PriorityEvent = {
     newPriority match {
-      case "Grön" => api.Green(timestamp)
-      case "Gul" =>  api.Yellow(timestamp)
-      case "Orange" => api.Orange(timestamp)
-      case "Röd" => api.Red(timestamp)
-      case _ => api.NotTriaged(timestamp)
+      case "Grön" => api.Green(ccid, timestamp)
+      case "Gul" =>  api.Yellow(ccid, timestamp)
+      case "Orange" => api.Orange(ccid, timestamp)
+      case "Röd" => api.Red(ccid, timestamp)
+      case _ => api.NotTriaged(ccid, timestamp)
     }
   }
 
-  def updateAttended(att: Boolean, attId: String, timestamp: String): api.Attended = {
-    api.Attended(att, attId, timestamp)
+  /*
+  Takes attendantId and timestamp, returns an Attended-type.
+  **/
+  def updateAttended(ccid: String, attId: String, timestamp: String): api.Attended = {
+    api.Attended(ccid, (timestamp != "0000-01-24T00:00:00.000Z"), attId, timestamp)
   }
 
-  def updateLocation(roomNr: String): api.RoomNr = {
-    api.RoomNr(roomNr.replaceAll("[^0-9ivr]",""))
+  /*
+  Cleans up Location-value and returns a RoomNr-type.
+  **/
+  def updateLocation(ccid: String, location: String): api.RoomNr = {
+    api.RoomNr(ccid, location.replaceAll("[^0-9ivr]",""))
   }
 
-  def updateTeam(klinik: String, reasonForVisit: String, roomNr: String): api.Team = {
-    api.Team(decodeTeam(reasonForVisit, roomNr), decodeKlinik(klinik))
+  /*
+  Discerns team and klinik, returns a Team-type.
+  **/
+  def updateTeam(ccid: String, klinik: String, reasonForVisit: String, location: String): api.Team = {
+    api.Team(ccid, decodeTeam(reasonForVisit, location), decodeKlinik(klinik))
   }
 
-  def decodeTeam(reasonForVisit: String, roomNr: String): String = {
-    (reasonForVisit, roomNr.charAt(0)) match {
-      case ("APK", roomNr) => "Streamteam"
+  /*
+  Discerns team from ReasonForVisit and Location-fields.
+  Used by updateTeam().
+  **/
+  def decodeTeam(reasonForVisit: String, location: String): String = {
+    (reasonForVisit, location.charAt(0)) match {
+      case ("APK", location) => "Streamteam"
       case (reasonForVisit, 'B') => "Blå"
       case (reasonForVisit, 'G') => "Gul"
       case (reasonForVisit, 'P') => "Process"
       case _ => "Röd"
     }
   }
+
+  /*
+  Discerns klinik from Team-field.
+  Used by updateTeam().
+  **/
   def decodeKlinik(klinik: String): String = {
     klinik match {
       case "NAKKI" => "kirurgi"
@@ -156,14 +189,44 @@ class PatientCardsDevice extends Actor with ActorLogging {
     }
   }
 
-  def updateLatestEvent(newE: api.LatestEvent, oldE: api.LatestEvent): api.LatestEvent = {
-    if (happenedAfter(newE.timestamp, oldE.timestamp))
-    api.LatestEvent(newE.latestEvent, newE.timestamp)
-    else api.LatestEvent(oldE.latestEvent, oldE.timestamp)
+  /*
+  Takes a single event (e.g. from "Events", "newEvents", "removedEvents" fields)
+  and returns corresponding PatientProperty
+  **/
+  def extractEvents(ccid: String, e: Map[String, String]): api.PatientProperty = {
+    e("Category") match{
+      case ("T"|"U"|"Q") => updateLatestEvent(ccid, e) // Not sure if all of these should return LatestEvent()
+      // afaik T: title?, U: röntgen, Q: que
+      case "P" =>  updatePriority(ccid, e("Value"), e("Start"))
+      case "B" =>  Undefined() // Value -> "Omvårdnad"
+      case _ => println("Unexpected event Type in patientcardsservice: "+e)
+    }
   }
 
-  def updateArrivalTime(ts: String): api.ArrivalTime = {
-    api.ArrivalTime(ts)
+  /*
+  Takes a single event (e.g. from "Events", "newEvents", "removedEvents" fields)
+  and returns corresponding LatestEvent with text to present on patient card
+  **/
+  def updateLatestEvent(ccid: String, e: Map[String, String]): api.LatestEvent = {
+    val tmpp: api.PatientProperty = e("Type") match {
+      case "EJKÖLAPP" => api.LatestEvent(ccid, "Ej Kölapp", e("Start"))
+      case "EXT MOTT" => api.LatestEvent(ccid, "Ext.mottagen", e("Start"))
+      case "KLAR" => api.LatestEvent(ccid, "Klar", e("Start"))
+      case "KÖLAPP" => api.LatestEvent(ccid, "Kölapp", e("Start"))
+      case "LÄKARE" => api.LatestEvent(ccid, "Läkare", e("Start"))
+      case "OMSKOORD" => api.LatestEvent(ccid, "Oms.koord", e("Start"))
+      case "RTG-REMISS" => api.LatestEvent(ccid, "RTG-remiss", e("Start"))
+      case "TRIAGE" => api.LatestEvent(ccid, "Triage", e("Start"))
+      case "VPLKOORD" => api.LatestEvent(ccid, "Vpl.koord", e("Start"))
+      case "VÄND" => api.LatestEvent(ccid, "Vänd", e("Start"))
+      case "RÖNT/KLIN" => api.LatestEvent(ccid, "Röntgen", e("Start"))
+      case _ => api.Undefined()
+    }
+  }
+
+
+  def updateArrivalTime(ccid: String, ts: String): api.ArrivalTime = {
+    api.ArrivalTime(ccid, ts)
   }
 
 
