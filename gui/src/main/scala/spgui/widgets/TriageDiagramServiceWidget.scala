@@ -40,22 +40,6 @@ import spgui.widgets.{API_PatientEvent => api}
 
 object TriageDiagramServiceWidget {
 
-  // var triageMap: Map[String, Double] = Map(
-  //   "Undefined" -> 0,
-  //   "Green" -> 0,
-  //   "Yellow" -> 0,
-  //   "Orange" -> 0,
-  //   "Red" -> 0
-  // )
-
-  // def handleTriageEvent(toAdd: Boolean, triage: String) {
-  //   if (toAdd) {
-  //     triageMap += triage -> (triageMap(triage) + 1)
-  //   } else {
-  //     triageMap += triage -> (triageMap(triage) - 1)
-  //   }
-  // }
-
   private class Backend($: BackendScope[Unit, Map[String, Double]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
@@ -63,24 +47,24 @@ object TriageDiagramServiceWidget {
       mess => {
         mess.getBodyAs[api.TriageEvent] map {
           case api.Undefined(toAdd) => {
-            if (toAdd) $.modState(s => s + ("Undefined" -> (s.get("Undefined") + 1))).runNow()
-            else $.modState(s => s + ("Undefined" -> (s.get("Undefined") - 1))).runNow()
+            if (toAdd) $.modState(s => s + ("Undefined" -> (s("Undefined") + 1))).runNow()
+            else $.modState(s => s + ("Undefined" -> (s("Undefined") - 1))).runNow()
           }
           case api.Green(toAdd) => {
-            if (toAdd) $.modState(s => s + ("Green" -> (s.get("Greend") + 1))).runNow()
-            else $.modState(s => s + ("Green" -> (s.get("Green") - 1))).runNow()
+            if (toAdd) $.modState(s => s + ("Green" -> (s("Green") + 1))).runNow()
+            else $.modState(s => s + ("Green" -> (s("Green") - 1))).runNow()
           }
           case api.Yellow(toAdd) => {
-            if (toAdd) $.modState(s => s + ("Yellow" -> (s.get("Yellow") + 1))).runNow()
-            else $.modState(s => s + ("Yellow" -> (s.get("Yellow") - 1))).runNow()
+            if (toAdd) $.modState(s => s + ("Yellow" -> (s("Yellow") + 1))).runNow()
+            else $.modState(s => s + ("Yellow" -> (s("Yellow") - 1))).runNow()
           }
           case api.Orange(toAdd) => {
-            if (toAdd) $.modState(s => s + ("Orange" -> (s.get("Orange") + 1))).runNow()
-            else $.modState(s => s + ("Orange" -> (s.get("Orange") - 1))).runNow()
+            if (toAdd) $.modState(s => s + ("Orange" -> (s("Orange") + 1))).runNow()
+            else $.modState(s => s + ("Orange" -> (s("Orange") - 1))).runNow()
           }
           case api.Red(toAdd) => {
-            if (toAdd) $.modState(s => s + ("Red" -> (s.get("Red") + 1))).runNow()
-            else $.modState(s => s + ("Red" -> (s.get("Red") - 1))).runNow()
+            if (toAdd) $.modState(s => s + ("Red" -> (s("Red") + 1))).runNow()
+            else $.modState(s => s + ("Red" -> (s("Red") - 1))).runNow()
           }
           case x => println(s"THIS WAS NOT EXPECTED IN TriageDiagramServiceWidget: $x")
         }
@@ -95,9 +79,9 @@ object TriageDiagramServiceWidget {
   }
 
   private val component = ReactComponentB[Unit]("teamVBelastning")
-  .initialState(Map("Undefined" -> 0, "Green" -> 0, "Yellow" -> 0, "Orange" -> 0, "Red" -> 0))
+  .initialState(Map("Undefined" -> 0.toDouble, "Green" -> 0.toDouble, "Yellow" -> 0.toDouble, "Orange" -> 0.toDouble, "Red" -> 0.toDouble))
   .renderBackend[Backend]
-  .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentProps)))
+  .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
   .build
 
   def dist(d: Double): Double = { // Bestämmer avstånd för antal patienter i widget.
