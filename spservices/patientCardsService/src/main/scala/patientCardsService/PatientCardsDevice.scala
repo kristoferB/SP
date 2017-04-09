@@ -60,35 +60,61 @@ class PatientCardsDevice extends Actor with ActorLogging {
     }
   }
 
-  /*
-  Takes two LatestEvent and returns the most recent one
-  **/
-  def latestEventOf(newE: api.LatestEvent, oldE: api.LatestEvent): api.LatestEvent = {
-    if (happenedAfter(newE.timestamp, oldE.timestamp))
-    api.LatestEvent(newE.latestEvent, newE.timestamp)
-    else api.LatestEvent(oldE.latestEvent, oldE.timestamp)
-  }
-
-  /*
-    Takes a list of events and returns a list containing only the most recent one of each type
-  **/
-  def filterMostRecent(pplist: List[api.PatientProperty]): List[api.PatientProperty] = {
-
-  }
+  // /*
+  // Takes two LatestEvent and returns the most recent one
+  // **/
+  // def latestEventOf(newE: api.LatestEvent, oldE: api.LatestEvent): api.LatestEvent = {
+  //   if (happenedAfter(newE.timestamp, oldE.timestamp))
+  //   api.LatestEvent(newE.latestEvent, newE.timestamp)
+  //   else api.LatestEvent(oldE.latestEvent, oldE.timestamp)
+  // }
+  //
+  // /*
+  //   Takes a list of events and returns a list containing only the most recent one of each type
+  // **/
+  // def filterMostRecent(pplist: List[api.LatestEvent]): List[api.LatestEvent] = {
+  //
+  //
+  //   latestEventOf()
+  // }
 
   /*
   Takes the "newEvents"-field of a DiffPatient and returns corresponding
   list of PatientProperty
   **/
-  def extractDiffPatientNewEvents(dp: List[Map[String, String]]): List[api.PatientProperty] = { // TODO needs to account for NewEvents/RemovedEvents
+  def extractDiffPatientNewEvents(ccid: String, dp: List[Map[String, String]]): List[api.PatientProperty] = { // TODO may need to account for RemovedEvents. No idea how they work.
     var tempList = new ListBuffer[api.PatientProperty]()
-    dp.newEvents.foreach{ e =>
-      tempList = tempList ++ List(api.PatientProperty = extractEvents(e))
+    dp.foreach{ e =>
+      tempList = tempList ++ List(extractEvent(ccid, e))
     }
     val listigt: List[api.PatientProperty] = tempList.toList
     //println(listigt.filter(_ != (api.Undefined())).filter(_ != api.Attended(false,"","0000-01-24T00:00:00.000Z") )+" : LISTIGT")
-    listigt.filter(_ != (api.Undefined()))
+    listigt.filter(_ != (api.Undefined(ccid)))
   }
+
+  // ### HOW TO SOLVE THE PROBLEM THAT UPDATES DON'T CONTAIN COMPLETE INFO?
+  // /*
+  // Takes the "updates"-field of a DiffPatient and returns corresponding
+  // PatientProperty
+  // **/
+  // def extractDiffPatientUpdates(u: Map[String, String]): api.PatientProperty = {
+  //   var tempList = new ListBuffer[api.PatientProperty]()
+  //   u.keys.foreach{ k =>
+  //     val tmpp: api.PatientProperty = k match {
+  //       case "ReasonForVisit" => api.Team(k("CareContactId"), "", k("ReasonForVisit")) // Ugly way to bypass the problem of not having all info available
+  //       case "Location" => updateLocation(k("careContactId"), k("Location")) // Should this have timestamp
+  //       case "Team" => api.Team(k("careContactId"), k("Team"), "") // Ugly way to bypass the problem of not having all info available
+  //       case _ => api.Undefined() // ???
+  //     }
+  //     tempList = tempList ++ List(tmpp)
+  //     //println(tempList+": TMPLIST")
+  //     // tempList = tempList ++ List(api.PatientProperty = extractEvents(e))
+  //   }
+  //   val listigt: List[api.PatientProperty] = tempList.toList
+  //   //println(listigt.filter(_ != (api.Undefined())).filter(_ != api.Attended(false,"","0000-01-24T00:00:00.000Z") )+" : LISTIGT")
+  //   listigt.filter(_ != (api.Undefined()))
+  // }
+
 
   def extractNewPatient(np: api.NewPatient): List[api.PatientProperty] = {
     var tempList = new ListBuffer[api.PatientProperty]()
@@ -98,19 +124,19 @@ class PatientCardsDevice extends Actor with ActorLogging {
         case "TimeOfDoctor" => updateAttended(np.careContactId,  ( for ( e <- np.events; if (e("Title") == "Läkare") ) yield e("Value") ).mkString, np.patientData("TimeOfDoctor"))
         case "Location" => updateLocation(np.careContactId, np.patientData("Location")) // Should this have timestamp
         case "Team" => updateTeam(np.careContactId, np.patientData("Team"), np.patientData("ReasonForVisit"), np.patientData("Location"))
-        case _ => api.Undefined() // ???
+        case _ => api.Undefined(np.careContactId) // ???
       }
       tempList = tempList ++ List(tmpp)
       //println(tempList+": TMPLIST")
     }
     np.events.foreach{ e =>         // Checking the events-list
-      val tmpp: api.PatientProperty = extractEvents(e)
+      val tmpp: api.PatientProperty = extractEvent(np.careContactId, e)
+      tempList = tempList ++ List(tmpp)
     }
-    tempList = tempList ++ List(tmpp)
 
     val listigt: List[api.PatientProperty] = tempList.toList
-    println(listigt.filter(_ != (api.Undefined())).filter(_ != api.Attended(false,"","0000-01-24T00:00:00.000Z") )+" : LISTIGT")
-    listigt.filter(_ != (api.Undefined())).filter(_ != api.Attended(false,"","0000-01-24T00:00:00.000Z"))
+    println(listigt.filter(_ != (api.Undefined(np.careContactId))).filter(_ != api.Attended(np.careContactId, false,"","0000-01-24T00:00:00.000Z") )+" : LISTIGT")
+    listigt.filter(_ != (api.Undefined(np.careContactId))).filter(_ != api.Attended(np.careContactId, false,"","0000-01-24T00:00:00.000Z"))
   }
 
   /*
@@ -152,7 +178,15 @@ class PatientCardsDevice extends Actor with ActorLogging {
   Cleans up Location-value and returns a RoomNr-type.
   **/
   def updateLocation(ccid: String, location: String): api.RoomNr = {
-    api.RoomNr(ccid, location.replaceAll("[^0-9ivr]",""))
+    api.RoomNr(ccid, decodeLocation(location))
+  }
+
+  /*
+  Filters out a room nr or "ivr" from a location
+  **/
+  def decodeLocation(l: String): String = {
+    if (l contains "ivr") "ivr"
+    else l.replaceAll("[^0-9]","")
   }
 
   /*
@@ -193,22 +227,24 @@ class PatientCardsDevice extends Actor with ActorLogging {
   Takes a single event (e.g. from "Events", "newEvents", "removedEvents" fields)
   and returns corresponding PatientProperty
   **/
-  def extractEvents(ccid: String, e: Map[String, String]): api.PatientProperty = {
+  def extractEvent(ccid: String, e: Map[String, String]): api.PatientProperty = {
     e("Category") match{
       case ("T"|"U"|"Q") => updateLatestEvent(ccid, e) // Not sure if all of these should return LatestEvent()
       // afaik T: title?, U: röntgen, Q: que
       case "P" =>  updatePriority(ccid, e("Value"), e("Start"))
-      case "B" =>  Undefined() // Value -> "Omvårdnad"
-      case _ => println("Unexpected event Type in patientcardsservice: "+e)
+      case "B" =>  api.Undefined(ccid) // Value -> "Omvårdnad"
+      case _ => {
+        println("Unexpected event Type in patientcardsservice: "+e)
+        api.Undefined(ccid)}
     }
   }
 
   /*
   Takes a single event (e.g. from "Events", "newEvents", "removedEvents" fields)
-  and returns corresponding LatestEvent with text to present on patient card
+  and returns corresponding LatestEvent with text to present on patient card, or Undefined
   **/
-  def updateLatestEvent(ccid: String, e: Map[String, String]): api.LatestEvent = {
-    val tmpp: api.PatientProperty = e("Type") match {
+  def updateLatestEvent(ccid: String, e: Map[String, String]): api.PatientProperty = {
+    e("Type") match {
       case "EJKÖLAPP" => api.LatestEvent(ccid, "Ej Kölapp", e("Start"))
       case "EXT MOTT" => api.LatestEvent(ccid, "Ext.mottagen", e("Start"))
       case "KLAR" => api.LatestEvent(ccid, "Klar", e("Start"))
@@ -220,7 +256,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
       case "VPLKOORD" => api.LatestEvent(ccid, "Vpl.koord", e("Start"))
       case "VÄND" => api.LatestEvent(ccid, "Vänd", e("Start"))
       case "RÖNT/KLIN" => api.LatestEvent(ccid, "Röntgen", e("Start"))
-      case _ => api.Undefined()
+      case _ => api.Undefined(ccid)
     }
   }
 

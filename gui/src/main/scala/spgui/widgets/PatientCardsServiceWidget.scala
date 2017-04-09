@@ -83,7 +83,7 @@ package API_PatientEvent {
   sealed trait FinishedEvent
   case class Finished(careContactId: String) extends PatientProperty with FinishedEvent
 
-  case class Undefined() extends PatientProperty with PriorityEvent with AttendedEvent with LocationEvent with TeamEvent with LatestEventEvent with ArrivalTimeEvent with FinishedEvent
+  case class Undefined(careContactId: String) extends PatientProperty with PriorityEvent with AttendedEvent with LocationEvent with TeamEvent with LatestEventEvent with ArrivalTimeEvent with FinishedEvent
 
   object attributes {
     val service = "patientCardsService"
