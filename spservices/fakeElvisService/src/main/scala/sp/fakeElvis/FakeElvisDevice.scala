@@ -18,7 +18,7 @@ class FakeElvisDevice extends Actor {
 
   def receive = {
     case mess: String => {
-      val header = SPHeader(from = "fakeElvisService", to = "elvisDataHandlerService")
+      val header = SPHeader(from = "fakeElvisService")
       val body = api.ElvisData(mess)
       val elvisDataSPMessage = FakeElvisComm.makeMess(header, body)
       elvisDataSPMessage match {
