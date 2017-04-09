@@ -26,36 +26,40 @@ package API_PatientEvent {
   case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
   case class RemovedPatient(careContactId: String) extends PatientEvent
 
-  sealed trait TriageEvent
-  case class NotTriaged(careContactId: String, timestamp: String) extends TriageEvent
-  case class Green(careContactId: String, timestamp: String) extends TriageEvent
-  case class Yellow(careContactId: String, timestamp: String) extends TriageEvent
-  case class Orange(careContactId: String, timestamp: String) extends TriageEvent
-  case class Red(careContactId: String, timestamp: String) extends TriageEvent
+  sealed trait PatientProperty
 
-  sealed trait StatusEvent
-  case class Unattended(careContactId: String, toAdd: Boolean) extends StatusEvent
-  case class Attended(careContactId: String, doctorId: String, timestamp: String) extends StatusEvent
-  case class Finished(careContactId: String, timestamp: String) extends StatusEvent
+  sealed trait PriorityEvent extends PatientProperty
+  case class NotTriaged(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+  case class Green(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+  case class Yellow(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+  case class Orange(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+  case class Red(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+
+  sealed trait AttendedEvent
+  case class Attended(careContactId: String, attended: Boolean, attendantId: String, timestamp: String) extends PatientProperty with AttendedEvent
 
   sealed trait LocationEvent
-  case class RoomNr(careContactId: String, roomNr: String) extends LocationEvent
+  case class RoomNr(careContactId: String, roomNr: String) extends PatientProperty with LocationEvent
 
   sealed trait TeamEvent
-  case class Team(careContactId: String, team: String, klinik: String) extends TeamEvent
+  case class Team(careContactId: String, team: String, klinik: String) extends PatientProperty with TeamEvent
 
   sealed trait LatestEventEvent
-  case class LatestEvent(careContactId: String, latestEvent: String, timestamp: String) extends LatestEventEvent
+  case class LatestEvent(careContactId: String, latestEvent: String, timestamp: String) extends PatientProperty with LatestEventEvent
 
   sealed trait ArrivalTimeEvent
-  case class arrivalTime(careContactId: String, arrivalTime: String) extends ArrivalTimeEvent
+  case class ArrivalTime(careContactId: String, timestamp: String) extends PatientProperty with ArrivalTimeEvent
 
-  case class Undefined(careContactId: String)
+  sealed trait FinishedEvent
+  case class Finished(careContactId: String) extends PatientProperty with FinishedEvent
+
+  case class Undefined() extends PatientProperty with PriorityEvent with AttendedEvent with LocationEvent with TeamEvent with LatestEventEvent with ArrivalTimeEvent with FinishedEvent
 
   object attributes {
     val service = "patientCardsService"
   }
 }
+
 
 import sp.patientcardsservice.{API_PatientEvent => api}
 
@@ -67,6 +71,6 @@ object PatientCardsComm {
     b <- m.getBodyAs[api.PatientEvent]
   } yield (h, b)
 
-  def makeMess(h: SPHeader, b: api.PatientEvent) = SPMessage.makeJson[SPHeader, api.PatientEvent](h, b)
+  def makeMess(h: SPHeader, b: api.PatientProperty) = SPMessage.makeJson[SPHeader, api.PatientProperty](h, b)
 
 }

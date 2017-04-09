@@ -56,31 +56,34 @@ package API_PatientEvent {
   case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
   case class RemovedPatient(careContactId: String) extends PatientEvent
 
-  sealed trait TriageEvent
-  case class NotTriaged(timestamp: String) extends TriageEvent
-  case class Green(timestamp: String) extends TriageEvent
-  case class Yellow(timestamp: String) extends TriageEvent
-  case class Orange(timestamp: String) extends TriageEvent
-  case class Red(timestamp: String) extends TriageEvent
+  sealed trait PatientProperty
 
-  sealed trait StatusEvent
-  case class Unattended(toAdd: Boolean) extends StatusEvent
-  case class Attended(doctorId: String, timestamp: String) extends StatusEvent
-  case class Finished(timestamp: String) extends StatusEvent
+  sealed trait PriorityEvent extends PatientProperty
+  case class NotTriaged(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+  case class Green(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+  case class Yellow(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+  case class Orange(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+  case class Red(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+
+  sealed trait AttendedEvent
+  case class Attended(careContactId: String, attended: Boolean, attendantId: String, timestamp: String) extends PatientProperty with AttendedEvent
 
   sealed trait LocationEvent
-  case class RoomNr(roomNr: String) extends LocationEvent
+  case class RoomNr(careContactId: String, roomNr: String) extends PatientProperty with LocationEvent
 
   sealed trait TeamEvent
-  case class Team(team: String, klinik: String) extends TeamEvent
+  case class Team(careContactId: String, team: String, klinik: String) extends PatientProperty with TeamEvent
 
   sealed trait LatestEventEvent
-  case class LatestEvent(latestEvent: String, timestamp: String) extends LatestEventEvent
+  case class LatestEvent(careContactId: String, latestEvent: String, timestamp: String) extends PatientProperty with LatestEventEvent
 
   sealed trait ArrivalTimeEvent
-  case class arrivalTime(arrivalTime: String) extends ArrivalTimeEvent
+  case class ArrivalTime(careContactId: String, timestamp: String) extends PatientProperty with ArrivalTimeEvent
 
-  case class Undefined()
+  sealed trait FinishedEvent
+  case class Finished(careContactId: String) extends PatientProperty with FinishedEvent
+
+  case class Undefined() extends PatientProperty with PriorityEvent with AttendedEvent with LocationEvent with TeamEvent with LatestEventEvent with ArrivalTimeEvent with FinishedEvent
 
   object attributes {
     val service = "patientCardsService"
@@ -91,7 +94,7 @@ import spgui.widgets.{API_PatientEvent => api}
 
 object PatientCardsServiceWidget {
 
-  case class Patient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]])
+  case class Patient(careContactId: String, triageColor: api.PriorityEvent, attended: api.Attended, location: api.RoomNr, team: api.Team, latestEvent: api.LatestEvent, arrivalTime: api.ArrivalTime)
 
   //var activePatientCards: Map[String, Patient] = Map()
 
@@ -102,34 +105,48 @@ object PatientCardsServiceWidget {
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.PatientEvent] map {
-          case api.NewPatient(careContactId, patientData, events) => {
-            // Add new patient and map to a specific careContactId
-            $.modState(s => s + (careContactId -> Patient(careContactId, patientData, events)) ).runNow()
-          }
-          case api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents) => {
-            $.modState(s => {
-              var modPatientData = s(careContactId).patientData
-              // Add and/or modify fields to the patient data
-              patientDataDiff.foreach{ d =>
-                modPatientData + d._1 -> d._2
-              }
-              s + (careContactId -> Patient(careContactId, modPatientData, s(careContactId).events))
-            }).runNow()
-          }
-          case api.RemovedPatient(careContactId) => {
-            // Remove patient mapped to some specific careContactId
-            $.modState(s => s - careContactId).runNow()
-          }
-          case x => println(s"THIS WAS NOT EXPECTED IN PatientCardsServiceWidget: $x")
-        }
+        println("*********************")
+        println(mess.getBodyAs[List[api.PatientProperty]])
+        println("*********************")
+        // .map { _.foreach(pp =>
+        //   pp match {
+        //
+        //   case api.PatientProperty => {
+        //     // Add new patient and map to a specific careContactId
+        //     $.modState(s => s + (careContactId -> updatePatient(s("careContactId"), pp)).runNow()
+        //   }
+        //   case api.RemovedPatient(careContactId) => {
+        //     // Remove patient mapped to some specific careContactId
+        //     $.modState(s => s - careContactId).runNow()
+        //   }
+        //   case _ => println(s"THIS WAS NOT EXPECTED IN PatientCardsServiceWidget: $x")
+        //
+        // })
+        //}
       }, "patient-cards-widget-topic"
     )
 
-    // def latestEventOfTitle(event: String, p: Patient): Tuple2[String, String] = {
-    //
-    // }
 
+    // def updatePatient(p: Patient, pp, PatientProperty): Patient ={
+    //   case PriorityEvent => {
+    //
+    //   }
+    //   case AttendedEvent => {
+    //
+    //   }
+    //   case LocationEvent(roomNr) => {
+    //
+    //   }
+    //   case TeamEvent(team, klinik) => {
+    //
+    //   }
+    //   case LatestEventEvent => {
+    //
+    //   }
+    //   case ArrivaltimeEvent => {
+    //
+    //   }
+    // }
 
     def triageColor(p: String) = {
       p match {
@@ -201,7 +218,7 @@ object PatientCardsServiceWidget {
           ^.svg.textAnchor := "middle",
           ^.svg.fontSize := roomNrFontSize.toString  + "px",
           ^.svg.fill := "white",
-          p.patientData("Location")
+          p.location.roomNr
         ),
         // <.svg.text(
         //   ^.`class` := "careContactId",
@@ -252,7 +269,7 @@ object PatientCardsServiceWidget {
             ^.svg.x := (textLeftAlignment * 1.48).toString,
             ^.svg.y := (cardHeight / 1.5).toString,
             ^.svg.fontSize := (fontSize * 2).toString  + "px",
-            p.patientData("CareContactRegistrationTime")
+            p.latestEvent.timestamp
           ),
           // <.svg.svg(
           //   ^.`class` := "latestActor",
@@ -285,11 +302,11 @@ object PatientCardsServiceWidget {
               ^.svg.x := (textLeftAlignment * 0.3).toString,
               ^.svg.y := 20.toString,
               ^.svg.fontSize := fontSize.toString  + "px",
-              p.patientData("CareContactRegistrationTime")
+              p.arrivalTime.timestamp
             )
           ),
           <.svg.svg(
-            ^.`class` := "doctorStatus",
+            ^.`class` := "attendedStatus",
             ^.svg.x := (textLeftAlignment + ((cardWidth - triageFieldWidth) / 2)).toString,
             ^.svg.y := (cardHeight / 1.2).toString,
             <.svg.path(
@@ -302,7 +319,7 @@ object PatientCardsServiceWidget {
               ^.svg.x := (textLeftAlignment * 0.3).toString,
               ^.svg.y := 20.toString,
               ^.svg.fontSize := fontSize.toString  + "px",
-              p.patientData("CareContactRegistrationTime")
+              p.attended.attendantId
             )
           )
 
@@ -321,7 +338,7 @@ object PatientCardsServiceWidget {
     }
 
     private val cardHolderComponent = ReactComponentB[Unit]("cardHolderComponent")
-    .initialState(Map("4502085" -> Patient("4502085", Map("careContactId" -> "4502085", "Location" -> "13", "CareContactRegistrationTime"->"2017-02-01T15:49:19Z" ), List(Map("1"->"I")))))
+    .initialState(Map("4502085" -> Patient("4502085", api.Green("2017-02-01T15:49:19Z"), api.Attended(true, "sarli29", "2017-02-01T15:58:33Z"), api.RoomNr("52"), api.Team("GUL","NAKME"), api.LatestEvent("OmsKoord","2017-02-01T15:58:33Z"), api.ArrivalTime("2017-02-01T10:01:38Z"))))
     .renderBackend[Backend]
     .build
 

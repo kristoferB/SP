@@ -37,7 +37,7 @@ object FakeElvisDevice {
   implicit val system = ActorSystem("SP")
   val felvisPublisher = system.actorOf(Props[FakeElvisDevice], "felvis-publisher")
 
-  val felvisdataPath = getClass.getResource("/test.txt") // ("/output170201-0217.txt") // 
+  val felvisdataPath = getClass.getResource("/output170201-0217.txt") // ("/test.txt") // 
 
   def readFromFile : collection.Iterator[String] = {
     val source = scala.io.Source.fromFile(felvisdataPath.getPath, "utf-8")
