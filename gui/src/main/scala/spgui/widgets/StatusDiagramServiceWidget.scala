@@ -40,34 +40,37 @@ import spgui.widgets.{API_PatientEvent => api}
 
 object StatusDiagramServiceWidget {
 
-  var statusMap: Map[String, Double] = Map(
-    "Unattended" -> 0,
-    "Attended" -> 0,
-    "Finished" -> 0
-  )
+  // var statusMap: Map[String, Double] = Map(
+  //   "Unattended" -> 0,
+  //   "Attended" -> 0,
+  //   "Finished" -> 0
+  // )
 
-  def handleStatusEvent(toAdd: Boolean, status: String) {
-    if (toAdd) {
-      statusMap += status -> (statusMap(status) + 1)
-    } else {
-      statusMap += status -> (statusMap(status) - 1)
-    }
-  }
+  // def handleStatusEvent(toAdd: Boolean, status: String) {
+  //   if (toAdd) {
+  //     statusMap += status -> (statusMap(status) + 1)
+  //   } else {
+  //     statusMap += status -> (statusMap(status) - 1)
+  //   }
+  // }
 
-  private class Backend($: BackendScope[Map[String, Double], Unit]) {
+  private class Backend($: BackendScope[Unit, Map[String, Double]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
         mess.getBodyAs[api.StatusEvent] map {
           case api.Unattended(toAdd) => {
-            handleStatusEvent(toAdd, "Unattended")
+            if (toAdd) $.modState(s => s + ("Unattended" -> (s.get("Unattended") + 1))).runNow()
+            else $.modState(s => s + ("Unattended" -> (s.get("Unattended") - 1))).runNow()
           }
           case api.Attended(toAdd) => {
-            handleStatusEvent(toAdd, "Attended")
+            if (toAdd) $.modState(s => s + ("Attended" -> (s.get("Attended") + 1))).runNow()
+            else $.modState(s => s + ("Attended" -> (s.get("Attended") - 1))).runNow()
           }
           case api.Finished(toAdd) => {
-            handleStatusEvent(toAdd, "Finished")
+            if (toAdd) $.modState(s => s + ("Finished" -> (s.get("Finished") + 1))).runNow()
+            else $.modState(s => s + ("Finished" -> (s.get("Finished") - 1))).runNow()
           }
           case x => println(s"THIS WAS NOT EXPECTED IN StatusDiagramServiceWidget: $x")
         }
@@ -81,7 +84,8 @@ object StatusDiagramServiceWidget {
     }
   }
 
-  private val component = ReactComponentB[Map[String, Double]]("TeamStatusWidget")
+  private val component = ReactComponentB[Unit]("TeamStatusWidget")
+  .initialState(Map("Unattended" -> 0, "Attended" -> 0, "Finished" -> 0))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentProps)))
   .build

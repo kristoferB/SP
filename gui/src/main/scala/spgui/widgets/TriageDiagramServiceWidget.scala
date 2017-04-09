@@ -40,42 +40,47 @@ import spgui.widgets.{API_PatientEvent => api}
 
 object TriageDiagramServiceWidget {
 
-  var triageMap: Map[String, Double] = Map(
-    "Undefined" -> 0,
-    "Green" -> 0,
-    "Yellow" -> 0,
-    "Orange" -> 0,
-    "Red" -> 0
-  )
+  // var triageMap: Map[String, Double] = Map(
+  //   "Undefined" -> 0,
+  //   "Green" -> 0,
+  //   "Yellow" -> 0,
+  //   "Orange" -> 0,
+  //   "Red" -> 0
+  // )
 
-  def handleTriageEvent(toAdd: Boolean, triage: String) {
-    if (toAdd) {
-      triageMap += triage -> (triageMap(triage) + 1)
-    } else {
-      triageMap += triage -> (triageMap(triage) - 1)
-    }
-  }
+  // def handleTriageEvent(toAdd: Boolean, triage: String) {
+  //   if (toAdd) {
+  //     triageMap += triage -> (triageMap(triage) + 1)
+  //   } else {
+  //     triageMap += triage -> (triageMap(triage) - 1)
+  //   }
+  // }
 
-  private class Backend($: BackendScope[Map[String, Double], Unit]) {
+  private class Backend($: BackendScope[Unit, Map[String, Double]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
         mess.getBodyAs[api.TriageEvent] map {
           case api.Undefined(toAdd) => {
-            handleTriageEvent(toAdd, "Undefined")
+            if (toAdd) $.modState(s => s + ("Undefined" -> (s.get("Undefined") + 1))).runNow()
+            else $.modState(s => s + ("Undefined" -> (s.get("Undefined") - 1))).runNow()
           }
           case api.Green(toAdd) => {
-            handleTriageEvent(toAdd, "Green")
+            if (toAdd) $.modState(s => s + ("Green" -> (s.get("Greend") + 1))).runNow()
+            else $.modState(s => s + ("Green" -> (s.get("Green") - 1))).runNow()
           }
           case api.Yellow(toAdd) => {
-            handleTriageEvent(toAdd, "Yellow")
+            if (toAdd) $.modState(s => s + ("Yellow" -> (s.get("Yellow") + 1))).runNow()
+            else $.modState(s => s + ("Yellow" -> (s.get("Yellow") - 1))).runNow()
           }
           case api.Orange(toAdd) => {
-            handleTriageEvent(toAdd, "Orange")
+            if (toAdd) $.modState(s => s + ("Orange" -> (s.get("Orange") + 1))).runNow()
+            else $.modState(s => s + ("Orange" -> (s.get("Orange") - 1))).runNow()
           }
           case api.Red(toAdd) => {
-            handleTriageEvent(toAdd, "Red")
+            if (toAdd) $.modState(s => s + ("Red" -> (s.get("Red") + 1))).runNow()
+            else $.modState(s => s + ("Red" -> (s.get("Red") - 1))).runNow()
           }
           case x => println(s"THIS WAS NOT EXPECTED IN TriageDiagramServiceWidget: $x")
         }
@@ -89,7 +94,8 @@ object TriageDiagramServiceWidget {
     }
   }
 
-  private val component = ReactComponentB[Map[String, Double]]("teamVBelastning")
+  private val component = ReactComponentB[Unit]("teamVBelastning")
+  .initialState(Map("Undefined" -> 0, "Green" -> 0, "Yellow" -> 0, "Orange" -> 0, "Red" -> 0))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentProps)))
   .build
@@ -306,6 +312,6 @@ object TriageDiagramServiceWidget {
 }
 
   def apply() = spgui.SPWidget(spwb => {
-    component(triageMap)
+    component()
   })
 }
