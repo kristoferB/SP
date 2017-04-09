@@ -8,8 +8,8 @@ package API_PatientEvent {
   case class RemovedPatient(careContactId: String) extends PatientEvent
 
   sealed trait PatientReminderEvent
-  case class AddPatientReminder(careContactId: String, reminderData: Map[String, String]) extends PatientReminderEvent
-  case class RemovePatientReminder(careContactId: String) extends PatientReminderEvent
+  case class NewPatientReminder(careContactId: String, patientData: Map[String, String]) extends PatientReminderEvent
+  case class RemovedPatientReminder(careContactId: String) extends PatientReminderEvent
 
   sealed trait TriageEvent
   case class Undefined(toAdd: Boolean) extends TriageEvent
