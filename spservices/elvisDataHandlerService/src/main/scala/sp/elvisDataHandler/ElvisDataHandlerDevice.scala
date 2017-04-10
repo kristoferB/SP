@@ -47,8 +47,6 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   mediator ! Subscribe("spevents", self)
   mediator ! Subscribe("felvis-data-topic", self)
 
-
-
   // The metod that receive messages. Add service logic in a trait so you can test it. Here the focus is on parsing
   // and on the messages on the bus
   def receive = {
@@ -105,8 +103,10 @@ val info = SPAttributes(
     val header = SPHeader(from = "elvisDataHandlerService")
     val careContactId = (json \ "diff" \ "updates" \ "CareContactId").values.toString
     val patientData = extractDiffPatientData(json \ "diff" \ "updates")
-    val newEvents = extractNewEvents(json \ "diff" \ "updates")
-    val removedEvents = extractRemovedEvents(json \ "diff" \ "updates")
+    val newEvents = extractNewEvents(json \ "diff" \ "newEvents")
+    println("innei diffpatin")
+    println("innei diffpatin: "+(json \ "diff"))
+    val removedEvents = extractRemovedEvents(json \ "diff" \ "removedEvents")
     val body = api.DiffPatient(careContactId, patientData, newEvents, removedEvents)
     publishOnAkka(header, body)
   }

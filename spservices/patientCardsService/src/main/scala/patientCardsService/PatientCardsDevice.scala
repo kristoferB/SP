@@ -45,12 +45,16 @@ class PatientCardsDevice extends Actor with ActorLogging {
           println("+ New patient: " + careContactId)
           //extractNewPatient(api.NewPatient(careContactId, patientData, events))
           for (ne <- extractNewPatient(api.NewPatient(careContactId, patientData, events))){
+            //println("fromNEW: "+header, ne)
             publishOnAkka(header, ne)
           }
         }
         case api.DiffPatient(careContactId, patientData, newEvents, removedEvents) => {
           println("Diff patient: " + careContactId)
-          //publishOnAkka(header, api.DiffPatient(careContactId, patientData, newEvents, removedEvents))
+          for (de <- extractDiffPatient(api.DiffPatient(careContactId, patientData, newEvents, removedEvents))){
+            println("fromDIFF: "+header, de)
+            publishOnAkka(header, de)
+          }
         }
         case api.RemovedPatient(careContactId) => {
           println("- Removed patient: " + careContactId)
@@ -79,16 +83,31 @@ class PatientCardsDevice extends Actor with ActorLogging {
   // }
 
   /*
+  Takes a DiffPatient and returns relevant events from fields "updates" and "newEvents"
+  **/
+  def extractDiffPatient(dp: api.DiffPatient): List[api.PatientProperty] = {
+    var tempList = new ListBuffer[api.PatientProperty]()
+    println("dp.newEvents: "+dp.newEvents.headOption)
+    tempList = tempList ++ extractDiffPatientNewEvents(dp.careContactId, dp.newEvents)
+    // tempList = tempList ++ List(extractDiffPatientUpdate(dp.patientData)) // atm not implemented
+    val listigt: List[api.PatientProperty] = tempList.toList
+    println("filterd EXTRDP"+listigt.filter(_ != (api.Undefined(dp.patientData("careContactId")))).filter(_ != api.Attended(dp.careContactId, false,"","0000-01-24T00:00:00.000Z") ))
+    listigt.filter(_ != (api.Undefined(dp.careContactId)))
+  }
+
+  /*
   Takes the "newEvents"-field of a DiffPatient and returns corresponding
   list of PatientProperty
   **/
   def extractDiffPatientNewEvents(ccid: String, dp: List[Map[String, String]]): List[api.PatientProperty] = { // TODO may need to account for RemovedEvents. No idea how they work.
+    //println("extractEvent: "+extractEvent(ccid, dp.head))
+    //println("inside EXTRDPNE: "+ccid+ Option(dp.head))
     var tempList = new ListBuffer[api.PatientProperty]()
     dp.foreach{ e =>
       tempList = tempList ++ List(extractEvent(ccid, e))
     }
     val listigt: List[api.PatientProperty] = tempList.toList
-    //println(listigt.filter(_ != (api.Undefined())).filter(_ != api.Attended(false,"","0000-01-24T00:00:00.000Z") )+" : LISTIGT")
+    println("filterd EXTRDPNE"+listigt.filter(_ != (api.Undefined(ccid))).filter(_ != api.Attended(ccid, false,"","0000-01-24T00:00:00.000Z") ))
     listigt.filter(_ != (api.Undefined(ccid)))
   }
 
@@ -96,8 +115,9 @@ class PatientCardsDevice extends Actor with ActorLogging {
   // /*
   // Takes the "updates"-field of a DiffPatient and returns corresponding
   // PatientProperty
+  // (Note that careContactId is a key in "updates", so it is passed inside "u")
   // **/
-  // def extractDiffPatientUpdates(u: Map[String, String]): api.PatientProperty = {
+  // def extractDiffPatientUpdate(u: Map[String, String]): api.PatientProperty = {
   //   var tempList = new ListBuffer[api.PatientProperty]()
   //   u.keys.foreach{ k =>
   //     val tmpp: api.PatientProperty = k match {
@@ -135,7 +155,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
     }
 
     val listigt: List[api.PatientProperty] = tempList.toList
-    println(listigt.filter(_ != (api.Undefined(np.careContactId))).filter(_ != api.Attended(np.careContactId, false,"","0000-01-24T00:00:00.000Z") )+" : LISTIGT")
+    println(listigt.filter(_ != (api.Undefined(np.careContactId))).filter(_ != api.Attended(np.careContactId, false,"","0000-01-24T00:00:00.000Z") )+" : LISTIGT EXTRN")
     listigt.filter(_ != (api.Undefined(np.careContactId))).filter(_ != api.Attended(np.careContactId, false,"","0000-01-24T00:00:00.000Z"))
   }
 
@@ -236,48 +256,48 @@ class PatientCardsDevice extends Actor with ActorLogging {
       case _ => {
         println("Unexpected event Type in patientcardsservice: "+e)
         api.Undefined(ccid)}
+      }
     }
-  }
 
-  /*
-  Takes a single event (e.g. from "Events", "newEvents", "removedEvents" fields)
-  and returns corresponding LatestEvent with text to present on patient card, or Undefined
-  **/
-  def updateLatestEvent(ccid: String, e: Map[String, String]): api.PatientProperty = {
-    e("Type") match {
-      case "EJKÖLAPP" => api.LatestEvent(ccid, "Ej Kölapp", e("Start"))
-      case "EXT MOTT" => api.LatestEvent(ccid, "Ext.mottagen", e("Start"))
-      case "KLAR" => api.LatestEvent(ccid, "Klar", e("Start"))
-      case "KÖLAPP" => api.LatestEvent(ccid, "Kölapp", e("Start"))
-      case "LÄKARE" => api.LatestEvent(ccid, "Läkare", e("Start"))
-      case "OMSKOORD" => api.LatestEvent(ccid, "Oms.koord", e("Start"))
-      case "RTG-REMISS" => api.LatestEvent(ccid, "RTG-remiss", e("Start"))
-      case "TRIAGE" => api.LatestEvent(ccid, "Triage", e("Start"))
-      case "VPLKOORD" => api.LatestEvent(ccid, "Vpl.koord", e("Start"))
-      case "VÄND" => api.LatestEvent(ccid, "Vänd", e("Start"))
-      case "RÖNT/KLIN" => api.LatestEvent(ccid, "Röntgen", e("Start"))
-      case _ => api.Undefined(ccid)
+    /*
+    Takes a single event (e.g. from "Events", "newEvents", "removedEvents" fields)
+    and returns corresponding LatestEvent with text to present on patient card, or Undefined
+    **/
+    def updateLatestEvent(ccid: String, e: Map[String, String]): api.PatientProperty = {
+      e("Type") match {
+        case "EJKÖLAPP" => api.LatestEvent(ccid, "Ej Kölapp", e("Start"))
+        case "EXT MOTT" => api.LatestEvent(ccid, "Ext.mottagen", e("Start"))
+        case "KLAR" => api.LatestEvent(ccid, "Klar", e("Start"))
+        case "KÖLAPP" => api.LatestEvent(ccid, "Kölapp", e("Start"))
+        case "LÄKARE" => api.LatestEvent(ccid, "Läkare", e("Start"))
+        case "OMSKOORD" => api.LatestEvent(ccid, "Oms.koord", e("Start"))
+        case "RTG-REMISS" => api.LatestEvent(ccid, "RTG-remiss", e("Start"))
+        case "TRIAGE" => api.LatestEvent(ccid, "Triage", e("Start"))
+        case "VPLKOORD" => api.LatestEvent(ccid, "Vpl.koord", e("Start"))
+        case "VÄND" => api.LatestEvent(ccid, "Vänd", e("Start"))
+        case "RÖNT/KLIN" => api.LatestEvent(ccid, "Röntgen", e("Start"))
+        case _ => api.Undefined(ccid)
+      }
     }
-  }
 
 
-  def updateArrivalTime(ccid: String, ts: String): api.ArrivalTime = {
-    api.ArrivalTime(ccid, ts)
-  }
-
-
-  def publishOnAkka(header: SPHeader, body: api.PatientProperty) {
-    val toSend = PatientCardsComm.makeMess(header, body)
-    toSend match {
-      case Success(v) =>
-      mediator ! Publish("patient-cards-widget-topic", v) // Publishes on bus for widget to receive
-      case Failure(e) =>
-      println("Failed")
+    def updateArrivalTime(ccid: String, ts: String): api.ArrivalTime = {
+      api.ArrivalTime(ccid, ts)
     }
+
+
+    def publishOnAkka(header: SPHeader, body: api.PatientProperty) {
+      val toSend = PatientCardsComm.makeMess(header, body)
+      toSend match {
+        case Success(v) =>
+        mediator ! Publish("patient-cards-widget-topic", v) // Publishes on bus for widget to receive
+        case Failure(e) =>
+        println("Failed")
+      }
+    }
+
   }
 
-}
-
-object PatientCardsDevice {
-  def props = Props(classOf[PatientCardsDevice])
-}
+  object PatientCardsDevice {
+    def props = Props(classOf[PatientCardsDevice])
+  }

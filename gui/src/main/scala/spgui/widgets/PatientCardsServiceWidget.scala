@@ -50,45 +50,6 @@ import scalacss.Defaults._
 //   }
 // }
 
-package API_PatientEvent {
-  sealed trait PatientEvent
-  case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
-  case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
-  case class RemovedPatient(careContactId: String) extends PatientEvent
-
-  sealed trait PatientProperty
-
-  sealed trait PriorityEvent extends PatientProperty
-  case class NotTriaged(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
-  case class Green(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
-  case class Yellow(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
-  case class Orange(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
-  case class Red(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
-
-  sealed trait AttendedEvent
-  case class Attended(careContactId: String, attended: Boolean, attendantId: String, timestamp: String) extends PatientProperty with AttendedEvent
-
-  sealed trait LocationEvent
-  case class RoomNr(careContactId: String, roomNr: String) extends PatientProperty with LocationEvent
-
-  sealed trait TeamEvent
-  case class Team(careContactId: String, team: String, klinik: String) extends PatientProperty with TeamEvent
-
-  sealed trait LatestEventEvent
-  case class LatestEvent(careContactId: String, latestEvent: String, timestamp: String) extends PatientProperty with LatestEventEvent
-
-  sealed trait ArrivalTimeEvent
-  case class ArrivalTime(careContactId: String, timestamp: String) extends PatientProperty with ArrivalTimeEvent
-
-  sealed trait FinishedEvent
-  case class Finished(careContactId: String) extends PatientProperty with FinishedEvent
-
-  case class Undefined(careContactId: String) extends PatientProperty with PriorityEvent with AttendedEvent with LocationEvent with TeamEvent with LatestEventEvent with ArrivalTimeEvent with FinishedEvent
-
-  object attributes {
-    val service = "patientCardsService"
-  }
-}
 
 
 import spgui.widgets.{API_PatientEvent => api}
@@ -340,7 +301,7 @@ object PatientCardsServiceWidget {
     }
 
     private val cardHolderComponent = ReactComponentB[Unit]("cardHolderComponent")
-    .initialState(Map("4502085" -> Patient("4502085", api.Green("2017-02-01T15:49:19Z"), api.Attended(true, "sarli29", "2017-02-01T15:58:33Z"), api.RoomNr("52"), api.Team("GUL","NAKME"), api.LatestEvent("OmsKoord","2017-02-01T15:58:33Z"), api.ArrivalTime("2017-02-01T10:01:38Z"))))
+    .initialState(Map("4502085" -> Patient("4502085", api.Green("4502085", "2017-02-01T15:49:19Z"), api.Attended("4502085", true, "sarli29", "2017-02-01T15:58:33Z"), api.RoomNr("4502085", "52"), api.Team("4502085", "GUL","NAKME"), api.LatestEvent("4502085", "OmsKoord","2017-02-01T15:58:33Z"), api.ArrivalTime("4502085", "2017-02-01T10:01:38Z"))))
     .renderBackend[Backend]
     .build
 
