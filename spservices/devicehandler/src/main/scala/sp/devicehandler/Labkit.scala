@@ -175,28 +175,48 @@ case class Labkit(ahid: ID, system: ActorSystem) extends Helpers2 {
   )
   // Conv 4
 
-  val robot1to1pick = abapi.Ability(name = "robot1to1put", id = ID.newID,
+  val robot1to1pick = abapi.Ability(name = "robot1to1pick", id = ID.newID,
     preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and not ${robot1gripping.name} and  ${c1p1State.name} == 1 " +
       s"and ${c1p1Sensor.name} and not ${c1p2Sensor.name}) ",
       List(s"${robot1Run.name} := true", s"${robot1Target.name} := 1")),
     postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
     started = prop(allVars, s"${robot1State.name} == 2", List())
   )
-  val robot1to1put = abapi.Ability(name = "robot1to1pick", id = ID.newID,
+  val robot1to1put = abapi.Ability(name = "robot1to1put", id = ID.newID,
     preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and ${robot1gripping.name} and  ${c1p1State.name} == 1 " +
       s"and not ${c1p1Sensor.name} and not ${c1p2Sensor.name}) ",
       List(s"${robot1Run.name} := true", s"${robot1Target.name} := 1")),
     postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
     started = prop(allVars, s"${robot1State.name} == 2", List())
   )
+  val robot1to2place = abapi.Ability(name = "robot1to2put", id = ID.newID,
+    preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and ${robot1gripping.name} and ${c2p1State.name} == 1 not and ${c2p1Run.name} and ${conv2proc1.name} == 1 ",
+      List(s"${robot1Run.name} := true", s"${robot1Target.name} := 1")),
+    postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
+    started = prop(allVars, s"${robot1State.name} == 2", List())
+  )
+  val robot1toFeedCylPick = abapi.Ability(name = "robot1toFeedCylPick ", id = ID.newID,
+    preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and not ${robot1gripping.name} and ${feedSensor.name}",
+      List(s"${robot1Run.name} := true", s"${robot1Target.name} := 3")),
+    postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
+    started = prop(allVars, s"${robot1State.name} == 2", List())
+  )
+  val robot2to2pick = abapi.Ability(name = "robot2to2pick", id = ID.newID,
+    preCondition = prop(allVars, s"${robot2State.name} == 1 and not ${robot2Run.name} and not ${robot1gripping.name} and  ${c1p1State.name} == 1 " +
+      s"and ${c1p1Sensor.name} and not ${c1p2Sensor.name}) ",
+      List(s"${robot1Run.name} := true", s"${robot1Target.name} := 1")),
+    postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
+    started = prop(allVars, s"${robot1State.name} == 2", List())
+  )
+
   val allAbilities = List(a1, a2, feeder, conv1proc1, conv1proc2,conv2proc1, conv3proc1left, conv3proc1right, conv3proc2left, conv3proc2right,
-    conv3proc3,robot1to1put,robot1to1pick)
+    conv3proc3,robot1to1put,robot1to1pick, robot1to2place, robot1toFeedCylPick )
 
   println(allAbilities)
 
 
 
-  // setup driver
+  // setupj6 driver
   val driverID = UUID.randomUUID()
   val opcVariables = makeTheOPCVariables(allVars, "Process_IOs.")
   val mappers = opcVariables.map(kv => vdapi.OneToOneMapper(kv._1.id, driverID, kv._2))
