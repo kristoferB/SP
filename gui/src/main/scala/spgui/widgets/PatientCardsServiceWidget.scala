@@ -282,7 +282,7 @@ object PatientCardsServiceWidget {
               ^.svg.x := (textLeftAlignment * 0.3).toString,
               ^.svg.y := 20.toString,
               ^.svg.fontSize := fontSize.toString  + "px",
-              p.attended.attendantId
+              p.attended.doctorId
             )
           )
 
@@ -301,7 +301,7 @@ object PatientCardsServiceWidget {
     }
 
     private val cardHolderComponent = ReactComponentB[Unit]("cardHolderComponent")
-    .initialState(Map("4502085" -> Patient("4502085", api.Green("4502085", "2017-02-01T15:49:19Z"), api.Attended("4502085", true, "sarli29", "2017-02-01T15:58:33Z"), api.RoomNr("4502085", "52"), api.Team("4502085", "GUL","NAKME"), api.LatestEvent("4502085", "OmsKoord","2017-02-01T15:58:33Z"), api.ArrivalTime("4502085", "2017-02-01T10:01:38Z"))))
+    .initialState(Map("4502085" -> Patient("4502085", api.Green("4502085", "2017-02-01T15:49:19Z"), api.Attended("4502085", "2017-02-01T15:58:33Z", true, "sarli29"), api.RoomNr("4502085", "2017-02-01T15:58:33Z", "52"), api.Team("4502085", "2017-02-01T15:58:33Z", "GUL","NAKME"), api.LatestEvent("4502085", "2017-02-01T15:58:33Z", "OmsKoord"), api.ArrivalTime("4502085", "2017-02-01T10:01:38Z"))))
     .renderBackend[Backend]
     .build
 

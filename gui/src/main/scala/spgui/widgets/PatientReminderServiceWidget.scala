@@ -45,15 +45,7 @@ object PatientReminderServiceWidget {
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.PatientReminderEvent] map {
-          case api.NewPatientReminder(careContactId, patientData) => {
-            // Add new patient and map to a specific careContactId
-            $.modState(s => s + (careContactId -> Patient(careContactId, patientData))).runNow()
-          }
-          case api.RemovedPatientReminder(careContactId) => {
-            // Remove patient mapped to some specific careContactId
-            $.modState(s => s - careContactId).runNow()
-          }
+        mess.getBodyAs[api.PatientProperty] map {
           case x => println(s"THIS WAS NOT EXPECTED IN PatientReminderServiceWidget: $x")
         }
       }, "patient-reminder-widget-topic"
