@@ -145,36 +145,84 @@ case class Labkit(ahid: ID, system: ActorSystem) extends Helpers2 {
  val conv3proc1right = abapi.Ability(name = "conv3proc1right", id = ID.newID,
     preCondition = prop(allVars, s"${c3p1State.name} == 1 and ${c3p2State.name} == 1 and ${c3p3State.name} == 1 and not ${c3p1Sensor.name}",
       List(s"${c3p1Run.name} := true", s"${c3p1Dir.name} := true")),
-    postCondition = prop(allVars, s"${c3p1State.name} == 3", List(s"${c3p1Run.name} := false", s"${c3p1Dir.name} := false)")),
-    started = prop(allVars, s"${c3p1State.name} == 2 and ${c3p1Dir.name} == true", List())
+    postCondition = prop(allVars, s"${c3p1State.name} == 3", List(s"${c3p1Dir.name} := false)")),
+    started = prop(allVars, s"${c3p1State.name} == 2", List())
   )
   val conv3proc1left = abapi.Ability(name = "conv3proc1left", id = ID.newID,
     preCondition = prop(allVars, s"${c3p1State.name} == 1 and ${c3p2State.name} == 1 and ${c3p3State.name} == 1 and not ${c3p1Sensor.name}",
       List(s"${c3p1Run.name} := true", s"${c3p1Dir.name} := false")),
     postCondition = prop(allVars, s"${c3p1State.name} == 3", List(s"${c3p1Run.name} := false")),
-    started = prop(allVars, s"${c3p1State.name} == 2 and and ${c3p1Dir.name} == false", List())
+    started = prop(allVars, s"${c3p1State.name} == 2", List())
   )
-
   val conv3proc2right = abapi.Ability(name = "conv3proc2right", id = ID.newID,
     preCondition = prop(allVars, s"${c3p2State.name} == 1 and ${c3p1State.name} == 1 and ${c3p3State.name} == 1 and not ${c3p2Sensor.name}",
       List(s"${c3p2Run.name} := true", s"${c3p2Dir.name} := true")),
     postCondition = prop(allVars, s"${c3p2State.name} == 3", List(s"${c3p2Run.name} := false", s"${c3p2Dir.name} := false)")),
-    started = prop(allVars, s"${c3p2State.name} == 2 and ${c3p2Run.name} == true", List())
+    started = prop(allVars, s"${c3p2State.name} == 2", List())
   )
   val conv3proc2left = abapi.Ability(name = "conv3proc2left", id = ID.newID,
     preCondition = prop(allVars, s"${c3p2State.name} == 1 and ${c3p1State.name} == 1 and ${c3p3State.name} == 1 and not ${c3p2Sensor.name}",
       List(s"${c3p2Run.name} := true", s"${c3p2Dir.name} := false")),
     postCondition = prop(allVars, s"${c3p2State.name} == 3", List(s"${c3p2Run.name} := false")),
-    started = prop(allVars, s"${c3p2State.name} == 2 and ${c3p2Run.name} == false", List())
+    started = prop(allVars, s"${c3p2State.name} == 2", List())
   )
   val conv3proc3 = abapi.Ability(name = "conv3proc3", id = ID.newID,
     preCondition = prop(allVars, s"${c3p3State.name} == 1 and not ${c3p3Sensor.name} and ${c3p1State.name} == 1 and ${c3p2State.name} == 1",
       List(s"${c3p3Run.name} := true", s"${c3p3Dir.name} := true")),
-    postCondition = prop(allVars, s"${c3p3State.name} == 3", List(s"${c3p3Run.name} := false", s"${c3p3Dir.name} := false)")),
+    postCondition = prop(allVars, s"${c3p3State.name} == 3", List(s"${c3p3Dir.name} := false)", s"${c3p3Run.name} := false")),
     started = prop(allVars, s"${c3p3State.name} == 2", List())
   )
 
+  val conv3DirSet = abapi.Ability(name = "conv3DirSet", id = ID.newID,
+    preCondition = prop(allVars, s"1 == 1", List(s"${c3p1Dir.name} := false")),
+    postCondition = prop(allVars, s"${c3p1Dir.name} == false", List()),
+    started = prop(allVars, s"${c3p1Dir.name} == false", List())
+  )
   // Conv 4
+
+  val conv4proc1right = abapi.Ability(name = "conv4proc1right", id = ID.newID,
+    preCondition = prop(allVars, s"${c4p1State.name} == 1 and ${c4p2State.name} == 1 and ${c4p3State.name} == 1 and not ${c4p1Sensor.name}",
+      List(s"${c4p1Run.name} := true", s"${c4p1Dir.name} := true")),
+    started = prop(allVars, s"${c4p1State.name} == 2", List()),
+    postCondition = prop(allVars, s"${c4p1State.name} == 3", List(s"${c4p1Run.name} := false)", s"${c4p1Dir.name} := false)"))
+  )
+
+  val conv4proc1left = abapi.Ability(name = "conv4proc1left", id = ID.newID,
+    preCondition = prop(allVars, s"${c4p1State.name} == 1 and ${c4p2State.name} == 1 and ${c4p3State.name} == 1 and not ${c4p1Sensor.name}",
+      List(s"${c4p1Run.name} := true", s"${c4p1Dir.name} := false")),
+    started = prop(allVars, s"${c4p1State.name} == 2", List()),
+    postCondition = prop(allVars, s"${c4p1State.name} == 3", List(s"${c4p1Run.name} := false", s"${c4p1Dir.name} := false)"))
+  )
+
+  val conv4proc2right = abapi.Ability(name = "conv4proc2right", id = ID.newID,
+    preCondition = prop(allVars, s"${c4p2State.name} == 1 and ${c4p1State.name} == 1 and ${c4p3State.name} == 1 and not ${c4p2Sensor.name}",
+      List(s"${c4p2Run.name} := true", s"${c4p2Dir.name} := true")),
+    postCondition = prop(allVars, s"${c4p2State.name} == 3", List(s"${c4p2Run.name} := false", s"${c4p2Dir.name} := false)")),
+    started = prop(allVars, s"${c4p2State.name} == 2", List())
+  )
+
+  val conv4proc2left = abapi.Ability(name = "conv4proc2left", id = ID.newID,
+    preCondition = prop(allVars, s"${c4p2State.name} == 1 and ${c4p1State.name} == 1 and ${c4p3State.name} == 1 and not ${c4p2Sensor.name}",
+      List(s"${c4p2Run.name} := true", s"${c4p2Dir.name} := false")),
+    postCondition = prop(allVars, s"${c4p2State.name} == 3", List(s"${c4p2Run.name} := false", s"${c4p2Dir.name} := false)")),
+    started = prop(allVars, s"${c4p2State.name} == 2", List())
+  )
+
+  val conv4proc3right = abapi.Ability(name = "conv4proc3right", id = ID.newID,
+    preCondition = prop(allVars, s"${c4p3State.name} == 1 and ${c4p1State.name} == 1 and ${c4p2State.name} == 1 and not ${c4p3Sensor.name}",
+      List(s"${c4p3Run.name} := true", s"${c4p3Dir.name} := true")),
+    postCondition = prop(allVars, s"${c4p3State.name} == 3", List(s"${c4p3Run.name} := false", s"${c4p3Dir.name} := false)")),
+    started = prop(allVars, s"${c4p3State.name} == 2", List())
+  )
+
+  val conv4proc3left = abapi.Ability(name = "conv4proc3left", id = ID.newID,
+    preCondition = prop(allVars, s"${c4p3State.name} == 1 and ${c4p1State.name} == 1 and ${c4p2State.name} == 1 and not ${c4p3Sensor.name}",
+      List(s"${c4p3Run.name} := true", s"${c4p3Dir.name} := false")),
+    postCondition = prop(allVars, s"${c4p3State.name} == 3", List(s"${c4p3Run.name} := false", s"${c4p3Dir.name} := false)")),
+    started = prop(allVars, s"${c4p3State.name} == 2", List())
+  )
+
+  // Robot 1
 
   val robot1to1pick = abapi.Ability(name = "robot1to1pick", id = ID.newID,
     preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and not ${robot1gripping.name} and  ${c1p1State.name} == 1 " +
@@ -183,15 +231,6 @@ case class Labkit(ahid: ID, system: ActorSystem) extends Helpers2 {
     postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
     started = prop(allVars, s"${robot1State.name} == 2", List())
   )
-  val robot1to1put = abapi.Ability(name = "robot1to1put", id = ID.newID,
-    preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and ${robot1gripping.name} and  ${c1p1State.name} == 1 " +
-      s"and not ${c1p1Sensor.name} and not ${c1p2Sensor.name} ",
-      List(s"${robot1Run.name} := true", s"${robot1Target.name} := 5")),
-    postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
-    started = prop(allVars, s"${robot1State.name} == 2", List())
-  )
-
-  // Robot 1
 
   val robot1to2put = abapi.Ability(name = "robot1to2put", id = ID.newID,
     preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and ${robot1gripping.name} and ${c2p1State.name} == 1" +
@@ -242,7 +281,8 @@ case class Labkit(ahid: ID, system: ActorSystem) extends Helpers2 {
     started = prop(allVars, s"${robot2State.name} == 2", List())
   )
   val allAbilities = List(a1, a2, feeder, conv1proc1, conv1proc2,conv2proc1, conv3proc1left, conv3proc1right, conv3proc2left, conv3proc2right,
-    conv3proc3,robot1to1put,robot1to1pick, robot1to2put, robot1toFeedCylPick, robot2to3put, robot2to4put, robot2to2pick)
+    conv3proc3,conv4proc1right, conv4proc1left, conv4proc2right, conv4proc2left, conv4proc3right, conv4proc3left, robot1to1put, robot1to1pick, robot1to2put, robot1toFeedCylPick, robot2to3put, robot2to4put, robot2to2pick
+    , conv3DirSet)
 
   println(allAbilities)
 
