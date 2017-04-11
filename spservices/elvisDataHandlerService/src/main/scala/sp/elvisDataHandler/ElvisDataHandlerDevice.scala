@@ -93,7 +93,9 @@ val info = SPAttributes(
     val header = SPHeader(from = "elvisDataHandlerService")
     val patientJson = patientsToElastic.initiatePatient(json \ "new" \ "patient")
     val careContactId = (patientJson \ "CareContactId").values.toString
-    val patientData = extractNewPatientData(patientJson)
+    var patientData = extractNewPatientData(patientJson)
+    val timestamp = (json \ "new" \ "timestamp").values.toString
+    patientData += ("timestamp" -> timestamp)
     val events = extractNewPatientEvents(patientJson)
     val body = api.NewPatient(careContactId, patientData, events)
     publishOnAkka(header, body)
@@ -103,10 +105,8 @@ val info = SPAttributes(
     val header = SPHeader(from = "elvisDataHandlerService")
     val careContactId = (json \ "diff" \ "updates" \ "CareContactId").values.toString
     val patientData = extractDiffPatientData(json \ "diff" \ "updates")
-    val newEvents = extractNewEvents(json \ "diff" \ "newEvents")
-    println("innei diffpatin")
-    println("innei diffpatin: "+(json \ "diff"))
-    val removedEvents = extractRemovedEvents(json \ "diff" \ "removedEvents")
+    val newEvents = extractNewEvents(json \ "diff")
+    val removedEvents = extractRemovedEvents(json \ "diff")
     val body = api.DiffPatient(careContactId, patientData, newEvents, removedEvents)
     publishOnAkka(header, body)
   }
@@ -114,7 +114,8 @@ val info = SPAttributes(
   def removedPatient(json: JValue) {
     val header = SPHeader(from = "elvisDataHandlerService")
     val careContactId = (json \ "removed" \ "patient" \ "CareContactId").values.toString
-    val body = api.RemovedPatient(careContactId)
+    val timestamp = (json \ "removed" \ "timestamp").values.toString
+    val body = api.RemovedPatient(careContactId, timestamp)
     publishOnAkka(header, body)
   }
 
@@ -201,14 +202,13 @@ val info = SPAttributes(
     val timeOfDoctor = (patient \ "TimeOfDoctor").values.toString
     val timeOfTriage = (patient \ "TimeOfTriage").values.toString
     val timeOfFinished = (patient \ "TimeOfFinished").values.toString
-    val timestamp = (patient \ "timestamp").values.toString
 
     return Map("CareContactId" -> careContactId, "CareContactRegistrationTime" -> careContactRegistrationTime,
       "DepartmentComment" -> departmentComment, "Location" -> location, "PatientId" -> patientId,
       "ReasonForVisit" -> reasonForVisit, "Team" -> team, "VisitId" -> visitId,
       "VisitRegistrationTime" -> visitRegistrationTime, "Priority" -> priority, "TimeToDoctor" -> timeToDoctor,
       "TimeToTriage" -> timeToTriage, "TimeToFinished" -> timeToFinished, "TimeOfDoctor" -> timeOfDoctor,
-      "TimeOfTriage" -> timeOfTriage, "TimeOfFinished" -> timeOfFinished, "timestamp" -> timestamp
+      "TimeOfTriage" -> timeOfTriage, "TimeOfFinished" -> timeOfFinished
     )
   }
 
