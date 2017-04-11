@@ -8,12 +8,14 @@ import sp.messages.Pickles._
 import akka.actor._
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 import scala.util.{ Try, Success, Failure }
-import scala.util.Random.nextInt
-import scala.util.matching.Regex
+
 import scala.collection.mutable.ListBuffer
 
-import java.time.OffsetDateTime
+import java.util.Date
+import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.chrono.ChronoLocalDate
 
 import sp.patientcardsservice.{API_PatientEvent => api}
 
@@ -25,201 +27,196 @@ class PatientCardsDevice extends Actor with ActorLogging {
   mediator ! Subscribe("spevents", self)
   mediator ! Subscribe("patient-event-topic", self)
 
+  /**
+  Receives incoming messages on the AKKA-bus
+  */
   def receive = {
-    case mess @ _ if {log.debug(s"ExampleService MESSAGE: $mess from $sender"); false} => Unit
-
+    case mess @ _ if {log.debug(s"PatientCardsService MESSAGE: $mess from $sender"); false} => Unit
     case x: String => handleRequests(x)
-
   }
 
+  /**
+  Handles the received message and sends it further
+  */
   def handleRequests(x: String): Unit = {
     val mess = SPMessage.fromJson(x)
     matchRequests(mess)
   }
 
+  /**
+  Identifies the body of the SP-message and acts correspondingly
+  */
   def matchRequests(mess: Try[SPMessage]) = {
     val header = SPHeader(from = "patientCardsService")
     PatientCardsComm.extractPatientEvent(mess) map { case (h, b) =>
       b match {
         case api.NewPatient(careContactId, patientData, events) => {
-          println("+ New patient: " + careContactId)
-          //extractNewPatient(api.NewPatient(careContactId, patientData, events))
-          for (ne <- extractNewPatient(api.NewPatient(careContactId, patientData, events))){
-            //println("fromNEW: "+header, ne)
-            publishOnAkka(header, ne)
+          for (patientProperty <- extractNewPatient(api.NewPatient(careContactId, patientData, events))) {
+            publishOnAkka(header, patientProperty)
           }
         }
-        case api.DiffPatient(careContactId, patientData, newEvents, removedEvents) => {
-          println("Diff patient: " + careContactId)
-          for (de <- extractDiffPatient(api.DiffPatient(careContactId, patientData, newEvents, removedEvents))){
-            println("fromDIFF: "+header, de)
-            publishOnAkka(header, de)
+        case api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents) => {
+          for (patientProperty <- extractDiffPatient(api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents))) {
+            publishOnAkka(header, patientProperty)
           }
         }
-        case api.RemovedPatient(careContactId) => {
-          println("- Removed patient: " + careContactId)
-          //publishOnAkka(header, api.RemovedPatient(careContactId))
+        case api.RemovedPatient(careContactId, timestamp) => {
+          println("REMOVED PATIENT: PatientProps to send: ")
+          val toSend = api.Finished(careContactId, timestamp)
+          println(toSend)
+          println()
+          println()
+          publishOnAkka(header, toSend)
         }
       }
     }
   }
 
-  // /*
-  // Takes two LatestEvent and returns the most recent one
-  // **/
-  // def latestEventOf(newE: api.LatestEvent, oldE: api.LatestEvent): api.LatestEvent = {
-  //   if (happenedAfter(newE.timestamp, oldE.timestamp))
-  //   api.LatestEvent(newE.latestEvent, newE.timestamp)
-  //   else api.LatestEvent(oldE.latestEvent, oldE.timestamp)
-  // }
-  //
-  // /*
-  //   Takes a list of events and returns a list containing only the most recent one of each type
-  // **/
-  // def filterMostRecent(pplist: List[api.LatestEvent]): List[api.LatestEvent] = {
-  //
-  //
-  //   latestEventOf()
-  // }
-
-  /*
-  Takes a DiffPatient and returns relevant events from fields "updates" and "newEvents"
-  **/
-  def extractDiffPatient(dp: api.DiffPatient): List[api.PatientProperty] = {
-    var tempList = new ListBuffer[api.PatientProperty]()
-    println("dp.newEvents: "+dp.newEvents.headOption)
-    tempList = tempList ++ extractDiffPatientNewEvents(dp.careContactId, dp.newEvents)
-    // tempList = tempList ++ List(extractDiffPatientUpdate(dp.patientData)) // atm not implemented
-    val listigt: List[api.PatientProperty] = tempList.toList
-    println("filterd EXTRDP"+listigt.filter(_ != (api.Undefined(dp.patientData("careContactId")))).filter(_ != api.Attended(dp.careContactId, false,"","0000-01-24T00:00:00.000Z") ))
-    listigt.filter(_ != (api.Undefined(dp.careContactId)))
+/**
+Takes a NewPatient and returns PatientProperties based on patient data and events.
+*/
+  def extractNewPatient(patient: api.NewPatient): List[api.PatientProperty] = {
+    val patientProperties = getNewPatientProperties(patient)
+    val filteredProps = patientProperties.filter(_ != (api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")))
+    println("NEW PATIENT: PatientProps to send: ")
+    println(filteredProps)
+    println()
+    println()
+    return filteredProps
   }
 
-  /*
-  Takes the "newEvents"-field of a DiffPatient and returns corresponding
-  list of PatientProperty
-  **/
-  def extractDiffPatientNewEvents(ccid: String, dp: List[Map[String, String]]): List[api.PatientProperty] = { // TODO may need to account for RemovedEvents. No idea how they work.
-    //println("extractEvent: "+extractEvent(ccid, dp.head))
-    //println("inside EXTRDPNE: "+ccid+ Option(dp.head))
-    var tempList = new ListBuffer[api.PatientProperty]()
-    dp.foreach{ e =>
-      tempList = tempList ++ List(extractEvent(ccid, e))
-    }
-    val listigt: List[api.PatientProperty] = tempList.toList
-    println("filterd EXTRDPNE"+listigt.filter(_ != (api.Undefined(ccid))).filter(_ != api.Attended(ccid, false,"","0000-01-24T00:00:00.000Z") ))
-    listigt.filter(_ != (api.Undefined(ccid)))
+  /**
+  Takes a DiffPatient and returns PatientProperties based on updates and new events.
+  */
+  def extractDiffPatient(patient: api.DiffPatient): List[api.PatientProperty] = {
+    val patientProperties = getDiffPatientProperties(patient)
+    val filteredProps = patientProperties.filter(_ != (api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")))
+    println("DIFF PATIENT: PatientProps to send: ")
+    println(filteredProps)
+    println()
+    println()
+    return filteredProps
   }
 
-  // ### HOW TO SOLVE THE PROBLEM THAT UPDATES DON'T CONTAIN COMPLETE INFO?
-  // /*
-  // Takes the "updates"-field of a DiffPatient and returns corresponding
-  // PatientProperty
-  // (Note that careContactId is a key in "updates", so it is passed inside "u")
-  // **/
-  // def extractDiffPatientUpdate(u: Map[String, String]): api.PatientProperty = {
-  //   var tempList = new ListBuffer[api.PatientProperty]()
-  //   u.keys.foreach{ k =>
-  //     val tmpp: api.PatientProperty = k match {
-  //       case "ReasonForVisit" => api.Team(k("CareContactId"), "", k("ReasonForVisit")) // Ugly way to bypass the problem of not having all info available
-  //       case "Location" => updateLocation(k("careContactId"), k("Location")) // Should this have timestamp
-  //       case "Team" => api.Team(k("careContactId"), k("Team"), "") // Ugly way to bypass the problem of not having all info available
-  //       case _ => api.Undefined() // ???
-  //     }
-  //     tempList = tempList ++ List(tmpp)
-  //     //println(tempList+": TMPLIST")
-  //     // tempList = tempList ++ List(api.PatientProperty = extractEvents(e))
-  //   }
-  //   val listigt: List[api.PatientProperty] = tempList.toList
-  //   //println(listigt.filter(_ != (api.Undefined())).filter(_ != api.Attended(false,"","0000-01-24T00:00:00.000Z") )+" : LISTIGT")
-  //   listigt.filter(_ != (api.Undefined()))
-  // }
-
-
-  def extractNewPatient(np: api.NewPatient): List[api.PatientProperty] = {
-    var tempList = new ListBuffer[api.PatientProperty]()
-    np.patientData.keys.foreach{ k =>
-      val tmpp: api.PatientProperty = k match {
-        case "Priority" => updatePriority(np.careContactId, np.patientData("Priority"), np.patientData("TimeOfTriage")) //println(np.patientData("CareContactId")+" : will have propety: "+np.patientData(k))
-        case "TimeOfDoctor" => updateAttended(np.careContactId,  ( for ( e <- np.events; if (e("Title") == "Läkare") ) yield e("Value") ).mkString, np.patientData("TimeOfDoctor"))
-        case "Location" => updateLocation(np.careContactId, np.patientData("Location")) // Should this have timestamp
-        case "Team" => updateTeam(np.careContactId, np.patientData("Team"), np.patientData("ReasonForVisit"), np.patientData("Location"))
-        case _ => api.Undefined(np.careContactId) // ???
+  /**
+  Takes a NewPatient and extracts PatientProperties based on patient data and events.
+  */
+  def getNewPatientProperties(patient: api.NewPatient): List[api.PatientProperty] = {
+    var patientPropertyBuffer = new ListBuffer[api.PatientProperty]()
+    patient.patientData.foreach{ p =>
+      p._1 match {
+        case "Location" => {
+          if (p._2 != "") {
+            patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
+          }
+        }
+        case "Team" => {
+          if (p._2 != "") {
+            patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
+          }
+        }
+        case "Priority" => {
+          if (p._2 != "") {
+            patientPropertyBuffer += updatePriority(patient.careContactId, patient.patientData("timestamp"), p._2)
+          }
+        }
+        case "VisitRegistrationTime" => {
+          updateArrivalTime(patient.careContactId, p._2)
+        }
+        case _ => patientPropertyBuffer += api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")
       }
-      tempList = tempList ++ List(tmpp)
-      //println(tempList+": TMPLIST")
     }
-    np.events.foreach{ e =>         // Checking the events-list
-      val tmpp: api.PatientProperty = extractEvent(np.careContactId, e)
-      tempList = tempList ++ List(tmpp)
+    patientPropertyBuffer += updateAttended(patient.careContactId, patient.events)
+    patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.events)
+    return patientPropertyBuffer.toList.filter(_ != api.LatestEvent(patient.careContactId, "-1", "NA")).filter(_ != api.Attended(patient.careContactId, "-1", false, "NA"))
+  }
+
+  /**
+  Takes a DiffPatient and extracts PatientProperties based on updates and events.
+  */
+  def getDiffPatientProperties(patient: api.DiffPatient): List[api.PatientProperty] = {
+    var patientPropertyBuffer = new ListBuffer[api.PatientProperty]()
+    patient.patientData.foreach{ p =>
+      p._1 match {
+        case "Location" => {
+          if (p._2 != "") {
+            patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
+          }
+        }
+        case "Team" => {
+          if (p._2 != "") {
+            patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
+          }
+        }
+        case _ => patientPropertyBuffer += api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")
+      }
     }
-
-    val listigt: List[api.PatientProperty] = tempList.toList
-    println(listigt.filter(_ != (api.Undefined(np.careContactId))).filter(_ != api.Attended(np.careContactId, false,"","0000-01-24T00:00:00.000Z") )+" : LISTIGT EXTRN")
-    listigt.filter(_ != (api.Undefined(np.careContactId))).filter(_ != api.Attended(np.careContactId, false,"","0000-01-24T00:00:00.000Z"))
-  }
-
-  /*
-  To test if laterTimestamp happened later than timestamp
-  **/
-  def happenedAfter(laterTimestamp: String, timestamp: String ): Boolean = {
-    timestampToODT(laterTimestamp).isAfter(timestampToODT(timestamp))
-  }
-
-  /*
-  Converts String of type "0000-01-24T00:00:00.000Z" into OffsetDateTime
-  Used by happenedAfter.
-  **/
-  def timestampToODT(timestamp: String): OffsetDateTime = {
-    OffsetDateTime.parse(timestamp, DateTimeFormatter.ISO_INSTANT)
-  }
-
-  /*
-  Discerns priority and returns corresponding PriorityEvent-type
-  **/
-  def updatePriority(ccid: String, newPriority: String, timestamp: String): api.PriorityEvent = {
-    newPriority match {
-      case "Grön" => api.Green(ccid, timestamp)
-      case "Gul" =>  api.Yellow(ccid, timestamp)
-      case "Orange" => api.Orange(ccid, timestamp)
-      case "Röd" => api.Red(ccid, timestamp)
-      case _ => api.NotTriaged(ccid, timestamp)
+    patient.newEvents.foreach{ e =>
+      if (e("Title") == "Läkare") {
+        patientPropertyBuffer += api.Attended(patient.careContactId, e("Start"), true, e("Value"))
+      }
     }
+    patientPropertyBuffer += getLatestPrioEvent(patient.careContactId, patient.newEvents)
+    patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.newEvents)
+    return patientPropertyBuffer.toList.filter(_ != api.LatestEvent(patient.careContactId, "-1", "NA")).filter(_ != api.Attended(patient.careContactId, "-1", false, "NA"))
   }
 
-  /*
-  Takes attendantId and timestamp, returns an Attended-type.
-  **/
-  def updateAttended(ccid: String, attId: String, timestamp: String): api.Attended = {
-    api.Attended(ccid, (timestamp != "0000-01-24T00:00:00.000Z"), attId, timestamp)
+  /**
+  Identifies the latest event considering triage and returns corresponding PriorityEvent.
+  OBS: revidera
+  */
+  def getLatestPrioEvent(careContactId: String, events: List[Map[String, String]]): api.PatientProperty = {
+    var prio = "NA"
+    var latestEventString = "NA"
+    var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    val tmp = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date())
+    var startOfLatestEvent = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").parse(tmp)
+    var latestEventSet: Boolean = false
+    var prioEventBuffer = new ListBuffer[Map[String, String]]()
+    events.foreach{ e =>
+      if (e("Title") == "Grön" || e("Title") == "Gul" || e("Title") == "Orange" || e("Title") == "Röd") {
+        val startOfEvent = formatter.parse(e("Start").replaceAll("Z$", "+0000"))
+        if (latestEventSet) {
+          if (startOfEvent.after(startOfLatestEvent)) {
+            startOfLatestEvent = startOfEvent
+            latestEventString = e("Start")
+            prio = e("Title")
+          }
+        } else {
+          startOfLatestEvent = startOfEvent
+          latestEventString = e("Start")
+          prio = e("Title")
+          latestEventSet = true
+        }
+      }
+    }
+    if (prio != "NA" && latestEventString != "NA") {
+      val patientProperty = prio match {
+        case "Grön" => api.Green(careContactId, latestEventString)
+        case "Gul" => api.Yellow(careContactId, latestEventString)
+        case "Orange" => api.Orange(careContactId, latestEventString)
+        case "Röd" => api.Red(careContactId, latestEventString)
+      }
+      return patientProperty
+    }
+    return api.Undefined(careContactId, "0000-00-00T00:00:00.000Z")
   }
 
-  /*
-  Cleans up Location-value and returns a RoomNr-type.
-  **/
-  def updateLocation(ccid: String, location: String): api.RoomNr = {
-    api.RoomNr(ccid, decodeLocation(location))
-  }
-
-  /*
-  Filters out a room nr or "ivr" from a location
-  **/
-  def decodeLocation(l: String): String = {
-    if (l contains "ivr") "ivr"
-    else l.replaceAll("[^0-9]","")
-  }
-
-  /*
+  /**
   Discerns team and klinik, returns a Team-type.
-  **/
-  def updateTeam(ccid: String, klinik: String, reasonForVisit: String, location: String): api.Team = {
-    api.Team(ccid, decodeTeam(reasonForVisit, location), decodeKlinik(klinik))
+  */
+  def updateTeam(careContactId: String, timestamp: String, clinic: String, reasonForVisit: String, location: String): api.Team = {
+    api.Team(careContactId, timestamp, decodeTeam(reasonForVisit, location), decodeClinic(clinic))
   }
 
-  /*
+  def updateArrivalTime(careContactId: String, timestamp: String): api.ArrivalTime = {
+    api.ArrivalTime(careContactId, timestamp)
+  }
+
+  /**
   Discerns team from ReasonForVisit and Location-fields.
   Used by updateTeam().
-  **/
+  */
   def decodeTeam(reasonForVisit: String, location: String): String = {
     (reasonForVisit, location.charAt(0)) match {
       case ("APK", location) => "Streamteam"
@@ -230,12 +227,12 @@ class PatientCardsDevice extends Actor with ActorLogging {
     }
   }
 
-  /*
-  Discerns klinik from Team-field.
+  /**
+  Discerns clinic from Team-field.
   Used by updateTeam().
-  **/
-  def decodeKlinik(klinik: String): String = {
-    klinik match {
+  */
+  def decodeClinic(clinic: String): String = {
+    clinic match {
       case "NAKKI" => "kirurgi"
       case "NAKME" => "medicin"
       case "NAKOR" => "ortopedi"
@@ -243,58 +240,114 @@ class PatientCardsDevice extends Actor with ActorLogging {
     }
   }
 
-  /*
-  Takes a single event (e.g. from "Events", "newEvents", "removedEvents" fields)
-  and returns corresponding PatientProperty
-  **/
-  def extractEvent(ccid: String, e: Map[String, String]): api.PatientProperty = {
-    e("Category") match{
-      case ("T"|"U"|"Q") => updateLatestEvent(ccid, e) // Not sure if all of these should return LatestEvent()
-      // afaik T: title?, U: röntgen, Q: que
-      case "P" =>  updatePriority(ccid, e("Value"), e("Start"))
-      case "B" =>  api.Undefined(ccid) // Value -> "Omvårdnad"
-      case _ => {
-        println("Unexpected event Type in patientcardsservice: "+e)
-        api.Undefined(ccid)}
+  /**
+  Cleans up Location-value and returns a RoomNr-type.
+  */
+  def updateLocation(careContactId: String, timestamp: String, location: String): api.RoomNr = {
+    api.RoomNr(careContactId, timestamp, decodeLocation(location))
+  }
+
+  /**
+  Filters out a room nr or "ivr" from a location
+  */
+  def decodeLocation(location: String): String = {
+    if (location contains "ivr") {
+      return "ivr"
+    }
+    return location.replaceAll("[^0-9]","")
+  }
+
+  /**
+  Checks if patient has been attended by doctor, returns an Attended-type.
+  */
+  def updateAttended(careContactId: String, events: List[Map[String, String]]): api.Attended = {
+    events.foreach{ e =>
+      if (e("Title") == "Läkare" || e("Title") == "läkare") {
+        return api.Attended(careContactId, e("Start"), true, e("Value"))
       }
     }
+    return api.Attended(careContactId, "-1", false, "NA")
+  }
 
-    /*
-    Takes a single event (e.g. from "Events", "newEvents", "removedEvents" fields)
-    and returns corresponding LatestEvent with text to present on patient card, or Undefined
-    **/
-    def updateLatestEvent(ccid: String, e: Map[String, String]): api.PatientProperty = {
-      e("Type") match {
-        case "EJKÖLAPP" => api.LatestEvent(ccid, "Ej Kölapp", e("Start"))
-        case "EXT MOTT" => api.LatestEvent(ccid, "Ext.mottagen", e("Start"))
-        case "KLAR" => api.LatestEvent(ccid, "Klar", e("Start"))
-        case "KÖLAPP" => api.LatestEvent(ccid, "Kölapp", e("Start"))
-        case "LÄKARE" => api.LatestEvent(ccid, "Läkare", e("Start"))
-        case "OMSKOORD" => api.LatestEvent(ccid, "Oms.koord", e("Start"))
-        case "RTG-REMISS" => api.LatestEvent(ccid, "RTG-remiss", e("Start"))
-        case "TRIAGE" => api.LatestEvent(ccid, "Triage", e("Start"))
-        case "VPLKOORD" => api.LatestEvent(ccid, "Vpl.koord", e("Start"))
-        case "VÄND" => api.LatestEvent(ccid, "Vänd", e("Start"))
-        case "RÖNT/KLIN" => api.LatestEvent(ccid, "Röntgen", e("Start"))
-        case _ => api.Undefined(ccid)
+  /**
+  Discerns priority and returns corresponding PriorityEvent-type
+  */
+  def updatePriority(careContactId: String, timestamp: String, priority: String): api.PriorityEvent = {
+    priority match {
+      case "Grön" => api.Green(careContactId, timestamp)
+      case "Gul" =>  api.Yellow(careContactId, timestamp)
+      case "Orange" => api.Orange(careContactId, timestamp)
+      case "Röd" => api.Red(careContactId, timestamp)
+      case _ => api.NotTriaged(careContactId, timestamp)
+    }
+  }
+
+  def getTimePrintString(milliSec: String): String = {
+    val minutesDiff = ((milliSec.toLong / (1000*60)) % 60)
+    val hoursDiff = ((milliSec.toLong / (1000*60*60)) % 24)
+    val daysDiff = milliSec.toLong / (1000*60*60*24)
+    return daysDiff + " d " + hoursDiff + " h " + minutesDiff + " m "
+  }
+
+  /**
+  Checks if finished, i.e. if field "TimeToFinished" has a time in millisec that is not -1
+  */
+  def isFinished(timeToFinished: String): Boolean = {
+    if (timeToFinished == "-1") {
+      return false
+    }
+    return true
+  }
+
+  /**
+  Identifies the latest event if there is any in the events list, returns LatestEvent-type
+  */
+  def updateLatestEvent(careContactId: String, events: List[Map[String, String]]): api.LatestEvent = {
+    var eventFound: Boolean = false
+    var timeDiff: Long = Long.MaxValue
+    var title = ""
+    var timestampString = ""
+    // Get the latest event title and its time diff
+    events.foreach{ e =>
+      val startOfEventString = e("Start")
+      var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+      val startOfEvent = formatter.parse(startOfEventString.replaceAll("Z$", "+0000"))
+      val nowString = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date())
+      val now = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").parse(nowString)
+      val diff: Long = now.getTime() - startOfEvent.getTime() // returns diff in millisec
+      if (diff < timeDiff) {
+        timeDiff = diff
+        timestampString = startOfEventString
+        eventFound = true
+        if (e("Title") == "" || e("Title") == " ") {
+          title = "> ej angett <"
+        } else {
+          if (e("Title") == "Grön" || e("Title") == "Gul" || e("Title") == "Orange" || e("Title") == "Röd") {
+            title = "Triage"
+          } else {
+            title = e("Title")
+          }
+        }
       }
     }
-
-
-    def updateArrivalTime(ccid: String, ts: String): api.ArrivalTime = {
-      api.ArrivalTime(ccid, ts)
+    if (eventFound) {
+      return api.LatestEvent(careContactId, timestampString, title)
     }
+    return api.LatestEvent(careContactId, "-1", "NA")
+  }
 
-
-    def publishOnAkka(header: SPHeader, body: api.PatientProperty) {
-      val toSend = PatientCardsComm.makeMess(header, body)
-      toSend match {
-        case Success(v) =>
+  /**
+  Publishes a SPMessage on bus with header and body
+  */
+  def publishOnAkka(header: SPHeader, body: api.PatientProperty) {
+    val toSend = PatientCardsComm.makeMess(header, body)
+    toSend match {
+      case Success(v) =>
         mediator ! Publish("patient-cards-widget-topic", v) // Publishes on bus for widget to receive
-        case Failure(e) =>
+      case Failure(e) =>
         println("Failed")
-      }
     }
+  }
 
   }
 

@@ -7,24 +7,11 @@ import sp.messages.Pickles._
 
 import scala.util.Try
 
-// package API_PatientEvent {
-//
-//   // Messages I can send and receive
-//   sealed trait PatientEvent
-//   case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
-//   case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
-//   case class RemovedPatient(careContactId: String) extends PatientEvent
-//
-//   object attributes {
-//     val service = "patientCardsService"
-//   }
-// }
-
 package API_PatientEvent {
   sealed trait PatientEvent
   case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
   case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
-  case class RemovedPatient(careContactId: String) extends PatientEvent
+  case class RemovedPatient(careContactId: String, timestamp: String) extends PatientEvent
 
   sealed trait PatientProperty
 
@@ -36,24 +23,24 @@ package API_PatientEvent {
   case class Red(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
 
   sealed trait AttendedEvent
-  case class Attended(careContactId: String, attended: Boolean, attendantId: String, timestamp: String) extends PatientProperty with AttendedEvent
+  case class Attended(careContactId: String, timestamp: String, attended: Boolean, doctorId: String) extends PatientProperty with AttendedEvent
 
   sealed trait LocationEvent
-  case class RoomNr(careContactId: String, roomNr: String) extends PatientProperty with LocationEvent
+  case class RoomNr(careContactId: String, timestamp: String, roomNr: String) extends PatientProperty with LocationEvent
 
   sealed trait TeamEvent
-  case class Team(careContactId: String, team: String, klinik: String) extends PatientProperty with TeamEvent
+  case class Team(careContactId: String, timestamp: String, team: String, klinik: String) extends PatientProperty with TeamEvent
 
   sealed trait LatestEventEvent
-  case class LatestEvent(careContactId: String, latestEvent: String, timestamp: String) extends PatientProperty with LatestEventEvent
+  case class LatestEvent(careContactId: String, timestamp: String, latestEvent: String) extends PatientProperty with LatestEventEvent
 
   sealed trait ArrivalTimeEvent
   case class ArrivalTime(careContactId: String, timestamp: String) extends PatientProperty with ArrivalTimeEvent
 
   sealed trait FinishedEvent
-  case class Finished(careContactId: String) extends PatientProperty with FinishedEvent
+  case class Finished(careContactId: String, timestamp: String) extends PatientProperty with FinishedEvent
 
-  case class Undefined(careContactId: String) extends PatientProperty with PriorityEvent with AttendedEvent with LocationEvent with TeamEvent with LatestEventEvent with ArrivalTimeEvent with FinishedEvent
+  case class Undefined(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent with AttendedEvent with LocationEvent with TeamEvent with LatestEventEvent with ArrivalTimeEvent with FinishedEvent
 
   object attributes {
     val service = "patientCardsService"
