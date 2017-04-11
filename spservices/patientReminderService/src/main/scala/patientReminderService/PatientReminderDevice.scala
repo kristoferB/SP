@@ -27,48 +27,258 @@ class PatientReminderDevice extends Actor with ActorLogging {
   mediator ! Subscribe("spevents", self)
   mediator ! Subscribe("patient-event-topic", self)
 
-  case class Patient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]])
-
-  var activePatients: Map[String, Patient] = Map()
-
+  /**
+  Receives incoming messages on the AKKA-bus
+  */
   def receive = {
     case mess @ _ if {log.debug(s"PatientReminderService MESSAGE: $mess from $sender"); false} => Unit
-
     case x: String => handleRequests(x)
-
   }
 
+  /**
+  Handles the received message and sends it further
+  */
   def handleRequests(x: String): Unit = {
     val mess = SPMessage.fromJson(x)
     matchRequests(mess)
   }
 
+  /**
+  Identifies the body of the SP-message and acts correspondingly
+  */
   def matchRequests(mess: Try[SPMessage]) = {
     val header = SPHeader(from = "patientReminderService")
     PatientReminderComm.extractPatientEvent(mess) map { case (h, b) =>
       b match {
         case api.NewPatient(careContactId, patientData, events) => {
-          activePatients += careContactId -> Patient(careContactId, patientData, events)
-          if (!events.isEmpty && !isFinished(patientData("TimeToFinished"))) { // only send reminder if events list is not empty and the patient isnt declared finished
-            println("+ New patient: " + careContactId + ", Latest event: " + getLatestEvent(events)("Title") + ", with time diff: " + getTimePrintString(getLatestEvent(events)("TimeDiff")))
-            publishOnAkka(header, api.NewPatientReminder(careContactId, appendFieldsToPatientData(patientData, events)))
+          for (patientProperty <- extractNewPatient(api.NewPatient(careContactId, patientData, events))) {
+            publishOnAkka(header, patientProperty)
           }
         }
         case api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents) => {
-          val updatedPatientData = appendNewPatientData(careContactId, patientDataDiff)
-          val updatedEvents = appendNewEvents(careContactId, newEvents)
-          activePatients += careContactId -> Patient(careContactId, updatedPatientData, updatedEvents)
-          if (!updatedEvents.isEmpty && !isFinished(updatedPatientData("TimeToFinished"))) { // only send reminder if events list is not empty and the patient isnt declared finished
-            println("Diff patient: " + careContactId + ", Latest event: " + getLatestEvent(updatedEvents)("Title") + ", with time diff: " + getTimePrintString(getLatestEvent(updatedEvents)("TimeDiff")))
-            publishOnAkka(header, api.NewPatientReminder(careContactId, appendFieldsToPatientData(updatedPatientData, updatedEvents)))
+          for (patientProperty <- extractDiffPatient(api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents))) {
+            publishOnAkka(header, patientProperty)
           }
         }
-        case api.RemovedPatient(careContactId) => {
-          println("- Removed patient: " + careContactId)
-          activePatients -= careContactId
-          publishOnAkka(header, api.RemovedPatientReminder(careContactId))
+        case api.RemovedPatient(careContactId, timestamp) => {
+          println("REMOVED PATIENT: PatientProps to send: ")
+          val toSend = api.Finished(careContactId, timestamp)
+          println(toSend)
+          println()
+          println()
+          publishOnAkka(header, toSend)
         }
       }
+    }
+  }
+
+/**
+Takes a NewPatient and returns PatientProperties based on patient data and events.
+*/
+  def extractNewPatient(patient: api.NewPatient): List[api.PatientProperty] = {
+    val patientProperties = getNewPatientProperties(patient)
+    val filteredProps = patientProperties.filter(_ != (api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")))
+    println("NEW PATIENT: PatientProps to send: ")
+    println(filteredProps)
+    println()
+    println()
+    return filteredProps
+  }
+
+  /**
+  Takes a DiffPatient and returns PatientProperties based on updates and new events.
+  */
+  def extractDiffPatient(patient: api.DiffPatient): List[api.PatientProperty] = {
+    val patientProperties = getDiffPatientProperties(patient)
+    val filteredProps = patientProperties.filter(_ != (api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")))
+    println("DIFF PATIENT: PatientProps to send: ")
+    println(filteredProps)
+    println()
+    println()
+    return filteredProps
+  }
+
+  /**
+  Takes a NewPatient and extracts PatientProperties based on patient data and events.
+  */
+  def getNewPatientProperties(patient: api.NewPatient): List[api.PatientProperty] = {
+    var patientPropertyBuffer = new ListBuffer[api.PatientProperty]()
+    patient.patientData.foreach{ p =>
+      p._1 match {
+        case "Location" => {
+          if (p._2 != "") {
+            patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
+          }
+        }
+        case "Team" => {
+          if (p._2 != "") {
+            patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
+          }
+        }
+        case "Priority" => {
+          if (p._2 != "") {
+            patientPropertyBuffer += updatePriority(patient.careContactId, patient.patientData("timestamp"), p._2)
+          }
+        }
+        case "VisitRegistrationTime" => {
+          updateArrivalTime(patient.careContactId, p._2)
+        }
+        case _ => patientPropertyBuffer += api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")
+      }
+    }
+    patientPropertyBuffer += updateAttended(patient.careContactId, patient.events)
+    patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.events)
+    return patientPropertyBuffer.toList.filter(_ != api.LatestEvent(patient.careContactId, "-1", "NA")).filter(_ != api.Attended(patient.careContactId, "-1", false, "NA"))
+  }
+
+  /**
+  Takes a DiffPatient and extracts PatientProperties based on updates and events.
+  */
+  def getDiffPatientProperties(patient: api.DiffPatient): List[api.PatientProperty] = {
+    var patientPropertyBuffer = new ListBuffer[api.PatientProperty]()
+    patient.patientData.foreach{ p =>
+      p._1 match {
+        case "Location" => {
+          if (p._2 != "") {
+            patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
+          }
+        }
+        case "Team" => {
+          if (p._2 != "") {
+            patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
+          }
+        }
+        case _ => patientPropertyBuffer += api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")
+      }
+    }
+    patient.newEvents.foreach{ e =>
+      if (e("Title") == "Läkare") {
+        patientPropertyBuffer += api.Attended(patient.careContactId, e("Start"), true, e("Value"))
+      }
+    }
+    patientPropertyBuffer += getLatestPrioEvent(patient.careContactId, patient.newEvents)
+    patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.newEvents)
+    return patientPropertyBuffer.toList.filter(_ != api.LatestEvent(patient.careContactId, "-1", "NA")).filter(_ != api.Attended(patient.careContactId, "-1", false, "NA"))
+  }
+
+  /**
+  Identifies the latest event considering triage and returns corresponding PriorityEvent.
+  OBS: revidera
+  */
+  def getLatestPrioEvent(careContactId: String, events: List[Map[String, String]]): api.PatientProperty = {
+    var prio = "NA"
+    var latestEventString = "NA"
+    var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    val tmp = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date())
+    var startOfLatestEvent = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").parse(tmp)
+    var latestEventSet: Boolean = false
+    var prioEventBuffer = new ListBuffer[Map[String, String]]()
+    events.foreach{ e =>
+      if (e("Title") == "Grön" || e("Title") == "Gul" || e("Title") == "Orange" || e("Title") == "Röd") {
+        val startOfEvent = formatter.parse(e("Start").replaceAll("Z$", "+0000"))
+        if (latestEventSet) {
+          if (startOfEvent.after(startOfLatestEvent)) {
+            startOfLatestEvent = startOfEvent
+            latestEventString = e("Start")
+            prio = e("Title")
+          }
+        } else {
+          startOfLatestEvent = startOfEvent
+          latestEventString = e("Start")
+          prio = e("Title")
+          latestEventSet = true
+        }
+      }
+    }
+    if (prio != "NA" && latestEventString != "NA") {
+      val patientProperty = prio match {
+        case "Grön" => api.Green(careContactId, latestEventString)
+        case "Gul" => api.Yellow(careContactId, latestEventString)
+        case "Orange" => api.Orange(careContactId, latestEventString)
+        case "Röd" => api.Red(careContactId, latestEventString)
+      }
+      return patientProperty
+    }
+    return api.Undefined(careContactId, "0000-00-00T00:00:00.000Z")
+  }
+
+  /**
+  Discerns team and klinik, returns a Team-type.
+  */
+  def updateTeam(careContactId: String, timestamp: String, clinic: String, reasonForVisit: String, location: String): api.Team = {
+    api.Team(careContactId, timestamp, decodeTeam(reasonForVisit, location), decodeClinic(clinic))
+  }
+
+  def updateArrivalTime(careContactId: String, timestamp: String): api.ArrivalTime = {
+    api.ArrivalTime(careContactId, timestamp)
+  }
+
+  /**
+  Discerns team from ReasonForVisit and Location-fields.
+  Used by updateTeam().
+  */
+  def decodeTeam(reasonForVisit: String, location: String): String = {
+    (reasonForVisit, location.charAt(0)) match {
+      case ("APK", location) => "Streamteam"
+      case (reasonForVisit, 'B') => "Blå"
+      case (reasonForVisit, 'G') => "Gul"
+      case (reasonForVisit, 'P') => "Process"
+      case _ => "Röd"
+    }
+  }
+
+  /**
+  Discerns clinic from Team-field.
+  Used by updateTeam().
+  */
+  def decodeClinic(clinic: String): String = {
+    clinic match {
+      case "NAKKI" => "kirurgi"
+      case "NAKME" => "medicin"
+      case "NAKOR" => "ortopedi"
+      case "NAKBA" | "NAKGY" | "NAKÖN" => "bgö"
+    }
+  }
+
+  /**
+  Cleans up Location-value and returns a RoomNr-type.
+  */
+  def updateLocation(careContactId: String, timestamp: String, location: String): api.RoomNr = {
+    api.RoomNr(careContactId, timestamp, decodeLocation(location))
+  }
+
+  /**
+  Filters out a room nr or "ivr" from a location
+  */
+  def decodeLocation(location: String): String = {
+    if (location contains "ivr") {
+      return "ivr"
+    }
+    return location.replaceAll("[^0-9]","")
+  }
+
+  /**
+  Checks if patient has been attended by doctor, returns an Attended-type.
+  */
+  def updateAttended(careContactId: String, events: List[Map[String, String]]): api.Attended = {
+    events.foreach{ e =>
+      if (e("Title") == "Läkare" || e("Title") == "läkare") {
+        return api.Attended(careContactId, e("Start"), true, e("Value"))
+      }
+    }
+    return api.Attended(careContactId, "-1", false, "NA")
+  }
+
+  /**
+  Discerns priority and returns corresponding PriorityEvent-type
+  */
+  def updatePriority(careContactId: String, timestamp: String, priority: String): api.PriorityEvent = {
+    priority match {
+      case "Grön" => api.Green(careContactId, timestamp)
+      case "Gul" =>  api.Yellow(careContactId, timestamp)
+      case "Orange" => api.Orange(careContactId, timestamp)
+      case "Röd" => api.Red(careContactId, timestamp)
+      case _ => api.NotTriaged(careContactId, timestamp)
     }
   }
 
@@ -79,25 +289,9 @@ class PatientReminderDevice extends Actor with ActorLogging {
     return daysDiff + " d " + hoursDiff + " h " + minutesDiff + " m "
   }
 
-  def appendNewPatientData(careContactId: String, patientData: Map[String, String]): Map[String, String] = {
-    var updatedPatientData: Map[String, String] = activePatients(careContactId).patientData
-    patientData.foreach{ d =>
-      updatedPatientData += d._1 -> d._2
-    }
-    return updatedPatientData
-  }
-
-  def appendNewEvents(careContactId: String, newEvents: List[Map[String, String]]): List[Map[String, String]] = {
-    var eventsBuffer = new ListBuffer[Map[String,String]]()
-    activePatients(careContactId).events.foreach{ e =>
-      eventsBuffer += e
-    }
-    newEvents.foreach{ e =>
-      eventsBuffer += e
-    }
-    return eventsBuffer.toList
-  }
-
+  /**
+  Checks if finished, i.e. if field "TimeToFinished" has a time in millisec that is not -1
+  */
   def isFinished(timeToFinished: String): Boolean = {
     if (timeToFinished == "-1") {
       return false
@@ -105,20 +299,14 @@ class PatientReminderDevice extends Actor with ActorLogging {
     return true
   }
 
-  def appendFieldsToPatientData(patientData: Map[String, String], events: List[Map[String, String]]): Map[String, String] = {
-    val latestEvent = getLatestEvent(events)
-    var tmp: Map[String, String] = Map()
-    patientData.foreach{ p =>
-      tmp += p._1 -> p._2
-    }
-    tmp += ("LatestEventTitle" -> latestEvent("Title"))
-    tmp += ("LatestEventTimeDiff" -> latestEvent("TimeDiff"))
-    return tmp
-  }
-
-  def getLatestEvent(events: List[Map[String, String]]): Map[String, String] = {
+  /**
+  Identifies the latest event if there is any in the events list, returns LatestEvent-type
+  */
+  def updateLatestEvent(careContactId: String, events: List[Map[String, String]]): api.LatestEvent = {
+    var eventFound: Boolean = false
     var timeDiff: Long = Long.MaxValue
     var title = ""
+    var timestampString = ""
     // Get the latest event title and its time diff
     events.foreach{ e =>
       val startOfEventString = e("Start")
@@ -129,18 +317,29 @@ class PatientReminderDevice extends Actor with ActorLogging {
       val diff: Long = now.getTime() - startOfEvent.getTime() // returns diff in millisec
       if (diff < timeDiff) {
         timeDiff = diff
+        timestampString = startOfEventString
+        eventFound = true
         if (e("Title") == "" || e("Title") == " ") {
           title = "> ej angett <"
         } else {
-          title = e("Title")
+          if (e("Title") == "Grön" || e("Title") == "Gul" || e("Title") == "Orange" || e("Title") == "Röd") {
+            title = "Triage"
+          } else {
+            title = e("Title")
+          }
         }
       }
     }
-    return Map("Title" -> title, "TimeDiff" -> timeDiff.toString)
+    if (eventFound) {
+      return api.LatestEvent(careContactId, timestampString, title)
+    }
+    return api.LatestEvent(careContactId, "-1", "NA")
   }
 
-
-  def publishOnAkka(header: SPHeader, body: api.PatientReminderEvent) {
+  /**
+  Publishes a SPMessage on bus with header and body
+  */
+  def publishOnAkka(header: SPHeader, body: api.PatientProperty) {
     val toSend = PatientReminderComm.makeMess(header, body)
     toSend match {
       case Success(v) =>
