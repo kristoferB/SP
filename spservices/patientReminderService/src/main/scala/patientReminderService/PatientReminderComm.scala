@@ -41,6 +41,7 @@ package API_PatientEvent {
   case class ArrivalTime(careContactId: String, timestamp: String) extends PatientProperty with ArrivalTimeEvent
 
   sealed trait FinishedEvent
+  case class FinishedStillPresent(careContactId: String, timestamp: String) extends PatientProperty with FinishedEvent
   case class Finished(careContactId: String, timestamp: String) extends PatientProperty with FinishedEvent
 
   case class Undefined(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent with AttendedEvent with LocationEvent with TeamEvent with LatestEventEvent with ArrivalTimeEvent with FinishedEvent

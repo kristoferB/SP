@@ -51,12 +51,12 @@ class PatientCardsDevice extends Actor with ActorLogging {
     PatientCardsComm.extractPatientEvent(mess) map { case (h, b) =>
       b match {
         case api.NewPatient(careContactId, patientData, events) => {
-          for (patientProperty <- extractNewPatient(api.NewPatient(careContactId, patientData, events))) {
+          for (patientProperty <- extractNewPatientProperties(api.NewPatient(careContactId, patientData, events))) {
             publishOnAkka(header, patientProperty)
           }
         }
         case api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents) => {
-          for (patientProperty <- extractDiffPatient(api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents))) {
+          for (patientProperty <- extractDiffPatientProperties(api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents))) {
             publishOnAkka(header, patientProperty)
           }
         }
@@ -72,30 +72,28 @@ class PatientCardsDevice extends Actor with ActorLogging {
     }
   }
 
-/**
-Takes a NewPatient and returns PatientProperties based on patient data and events.
-*/
-  def extractNewPatient(patient: api.NewPatient): List[api.PatientProperty] = {
-    val patientProperties = getNewPatientProperties(patient)
-    val filteredProps = patientProperties.filter(_ != (api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")))
+  /**
+  Takes a NewPatient and returns PatientProperties based on patient data and events.
+  */
+  def extractNewPatientProperties(patient: api.NewPatient): List[api.PatientProperty] = {
+    val filteredPatientProps = filterNewPatientProperties(patient, getNewPatientProperties(patient))
     println("NEW PATIENT: PatientProps to send: ")
-    println(filteredProps)
+    println(filteredPatientProps)
     println()
     println()
-    return filteredProps
+    return filteredPatientProps
   }
 
   /**
   Takes a DiffPatient and returns PatientProperties based on updates and new events.
   */
-  def extractDiffPatient(patient: api.DiffPatient): List[api.PatientProperty] = {
-    val patientProperties = getDiffPatientProperties(patient)
-    val filteredProps = patientProperties.filter(_ != (api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")))
+  def extractDiffPatientProperties(patient: api.DiffPatient): List[api.PatientProperty] = {
+    val filteredPatientProps = filterDiffPatientProperties(patient, getDiffPatientProperties(patient))
     println("DIFF PATIENT: PatientProps to send: ")
-    println(filteredProps)
+    println(filteredPatientProps)
     println()
     println()
-    return filteredProps
+    return filteredPatientProps
   }
 
   /**
@@ -105,30 +103,16 @@ Takes a NewPatient and returns PatientProperties based on patient data and event
     var patientPropertyBuffer = new ListBuffer[api.PatientProperty]()
     patient.patientData.foreach{ p =>
       p._1 match {
-        case "Location" => {
-          if (p._2 != "") {
-            patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
-          }
-        }
-        case "Team" => {
-          if (p._2 != "") {
-            patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
-          }
-        }
-        case "Priority" => {
-          if (p._2 != "") {
-            patientPropertyBuffer += updatePriority(patient.careContactId, patient.patientData("timestamp"), p._2)
-          }
-        }
-        case "VisitRegistrationTime" => {
-          updateArrivalTime(patient.careContactId, p._2)
-        }
+        case "Location" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
+        case "Team" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
+        case "Priority" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updatePriority(patient.careContactId, patient.patientData("timestamp"), p._2)
+        case "VisitRegistrationTime" => updateArrivalTime(patient.careContactId, p._2)
         case _ => patientPropertyBuffer += api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")
       }
     }
     patientPropertyBuffer += updateAttended(patient.careContactId, patient.events)
     patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.events)
-    return patientPropertyBuffer.toList.filter(_ != api.LatestEvent(patient.careContactId, "-1", "NA")).filter(_ != api.Attended(patient.careContactId, "-1", false, "NA"))
+    return patientPropertyBuffer.toList
   }
 
   /**
@@ -138,16 +122,8 @@ Takes a NewPatient and returns PatientProperties based on patient data and event
     var patientPropertyBuffer = new ListBuffer[api.PatientProperty]()
     patient.patientData.foreach{ p =>
       p._1 match {
-        case "Location" => {
-          if (p._2 != "") {
-            patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
-          }
-        }
-        case "Team" => {
-          if (p._2 != "") {
-            patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
-          }
-        }
+        case "Location" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
+        case "Team" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
         case _ => patientPropertyBuffer += api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")
       }
     }
@@ -158,7 +134,27 @@ Takes a NewPatient and returns PatientProperties based on patient data and event
     }
     patientPropertyBuffer += getLatestPrioEvent(patient.careContactId, patient.newEvents)
     patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.newEvents)
-    return patientPropertyBuffer.toList.filter(_ != api.LatestEvent(patient.careContactId, "-1", "NA")).filter(_ != api.Attended(patient.careContactId, "-1", false, "NA"))
+    return patientPropertyBuffer.toList
+  }
+
+  /**
+  Filters out unwanted patient properties.
+  */
+  def filterNewPatientProperties(patient: api.NewPatient, patientProperties: List[api.PatientProperty]): List[api.PatientProperty] = {
+    patientProperties
+      .filter(_ != (api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")))
+      .filter(_ != api.LatestEvent(patient.careContactId, "-1", "NA"))
+      .filter(_ != api.Attended(patient.careContactId, "-1", false, "NA"))
+  }
+
+  /**
+  Filters out unwanted patient properties.
+  */
+  def filterDiffPatientProperties(patient: api.DiffPatient, patientProperties: List[api.PatientProperty]): List[api.PatientProperty] = {
+    patientProperties
+      .filter(_ != (api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")))
+      .filter(_ != api.LatestEvent(patient.careContactId, "-1", "NA"))
+      .filter(_ != api.Attended(patient.careContactId, "-1", false, "NA"))
   }
 
   /**
@@ -174,7 +170,7 @@ Takes a NewPatient and returns PatientProperties based on patient data and event
     var latestEventSet: Boolean = false
     var prioEventBuffer = new ListBuffer[Map[String, String]]()
     events.foreach{ e =>
-      if (e("Title") == "Grön" || e("Title") == "Gul" || e("Title") == "Orange" || e("Title") == "Röd") {
+      if (isValidTriageColor(e("Title"))) {
         val startOfEvent = formatter.parse(e("Start").replaceAll("Z$", "+0000"))
         if (latestEventSet) {
           if (startOfEvent.after(startOfLatestEvent)) {
@@ -191,13 +187,7 @@ Takes a NewPatient and returns PatientProperties based on patient data and event
       }
     }
     if (prio != "NA" && latestEventString != "NA") {
-      val patientProperty = prio match {
-        case "Grön" => api.Green(careContactId, latestEventString)
-        case "Gul" => api.Yellow(careContactId, latestEventString)
-        case "Orange" => api.Orange(careContactId, latestEventString)
-        case "Röd" => api.Red(careContactId, latestEventString)
-      }
-      return patientProperty
+      return updatePriority(careContactId, latestEventString, prio)
     }
     return api.Undefined(careContactId, "0000-00-00T00:00:00.000Z")
   }
@@ -209,52 +199,20 @@ Takes a NewPatient and returns PatientProperties based on patient data and event
     api.Team(careContactId, timestamp, decodeTeam(reasonForVisit, location), decodeClinic(clinic))
   }
 
+  /**
+  Returns an ArrivalTime-type.
+  */
   def updateArrivalTime(careContactId: String, timestamp: String): api.ArrivalTime = {
     api.ArrivalTime(careContactId, timestamp)
   }
 
-  /**
-  Discerns team from ReasonForVisit and Location-fields.
-  Used by updateTeam().
-  */
-  def decodeTeam(reasonForVisit: String, location: String): String = {
-    (reasonForVisit, location.charAt(0)) match {
-      case ("APK", location) => "Streamteam"
-      case (reasonForVisit, 'B') => "Blå"
-      case (reasonForVisit, 'G') => "Gul"
-      case (reasonForVisit, 'P') => "Process"
-      case _ => "Röd"
-    }
-  }
 
-  /**
-  Discerns clinic from Team-field.
-  Used by updateTeam().
-  */
-  def decodeClinic(clinic: String): String = {
-    clinic match {
-      case "NAKKI" => "kirurgi"
-      case "NAKME" => "medicin"
-      case "NAKOR" => "ortopedi"
-      case "NAKBA" | "NAKGY" | "NAKÖN" => "bgö"
-    }
-  }
 
   /**
   Cleans up Location-value and returns a RoomNr-type.
   */
   def updateLocation(careContactId: String, timestamp: String, location: String): api.RoomNr = {
     api.RoomNr(careContactId, timestamp, decodeLocation(location))
-  }
-
-  /**
-  Filters out a room nr or "ivr" from a location
-  */
-  def decodeLocation(location: String): String = {
-    if (location contains "ivr") {
-      return "ivr"
-    }
-    return location.replaceAll("[^0-9]","")
   }
 
   /**
@@ -280,23 +238,6 @@ Takes a NewPatient and returns PatientProperties based on patient data and event
       case "Röd" => api.Red(careContactId, timestamp)
       case _ => api.NotTriaged(careContactId, timestamp)
     }
-  }
-
-  def getTimePrintString(milliSec: String): String = {
-    val minutesDiff = ((milliSec.toLong / (1000*60)) % 60)
-    val hoursDiff = ((milliSec.toLong / (1000*60*60)) % 24)
-    val daysDiff = milliSec.toLong / (1000*60*60*24)
-    return daysDiff + " d " + hoursDiff + " h " + minutesDiff + " m "
-  }
-
-  /**
-  Checks if finished, i.e. if field "TimeToFinished" has a time in millisec that is not -1
-  */
-  def isFinished(timeToFinished: String): Boolean = {
-    if (timeToFinished == "-1") {
-      return false
-    }
-    return true
   }
 
   /**
@@ -334,6 +275,63 @@ Takes a NewPatient and returns PatientProperties based on patient data and event
       return api.LatestEvent(careContactId, timestampString, title)
     }
     return api.LatestEvent(careContactId, "-1", "NA")
+  }
+
+  /**
+  Filters out a room nr or "ivr" from a location
+  */
+  def decodeLocation(location: String): String = {
+    if (location contains "ivr") {
+      return "ivr"
+    }
+    return location.replaceAll("[^0-9]","")
+  }
+
+  /**
+  Discerns clinic from Team-field.
+  Used by updateTeam().
+  */
+  def decodeClinic(clinic: String): String = {
+    clinic match {
+      case "NAKKI" => "kirurgi"
+      case "NAKME" => "medicin"
+      case "NAKOR" => "ortopedi"
+      case "NAKBA" | "NAKGY" | "NAKÖN" => "bgö"
+    }
+  }
+
+  /**
+  Discerns team from ReasonForVisit and Location-fields.
+  Used by updateTeam().
+  */
+  def decodeTeam(reasonForVisit: String, location: String): String = {
+    (reasonForVisit, location.charAt(0)) match {
+      case ("APK", location) => "Streamteam"
+      case (reasonForVisit, 'B') => "Blå"
+      case (reasonForVisit, 'G') => "Gul"
+      case (reasonForVisit, 'P') => "Process"
+      case _ => "Röd"
+    }
+  }
+
+  /**
+  Checks if string is valid triage color.
+  */
+  def isValidTriageColor(string: String): Boolean = {
+    if (string == "Grön" || string == "Gul" || string == "Orange" || string == "Röd") {
+      return true
+    }
+    return false
+  }
+
+  /**
+  Checks if given field is empty or not.
+  */
+  def fieldEmpty(field: String): Boolean = {
+    if (field == "") {
+      return true
+    }
+    return false
   }
 
   /**
