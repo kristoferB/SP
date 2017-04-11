@@ -13,13 +13,19 @@ package API_PatientEvent {
   sealed trait PatientEvent
   case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
   case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
-  case class RemovedPatient(careContactId: String) extends PatientEvent
+  case class RemovedPatient(careContactId: String, timestamp: String) extends PatientEvent
 
   // Messages I can send (to my widget)
-  sealed trait StatusEvent
-  case class Unattended(toAdd: Boolean) extends StatusEvent
-  case class Attended(toAdd: Boolean) extends StatusEvent
-  case class Finished(toAdd: Boolean) extends StatusEvent
+  sealed trait PatientProperty
+
+  sealed trait AttendedEvent
+  case class Attended(careContactId: String, timestamp: String, attended: Boolean, doctorId: String) extends PatientProperty with AttendedEvent
+
+  sealed trait FinishedEvent
+  case class FinishedStillPresent(careContactId: String, timestamp: String) extends PatientProperty with FinishedEvent
+  case class Finished(careContactId: String, timestamp: String) extends PatientProperty with FinishedEvent
+
+  case class Undefined(careContactId: String, timestamp: String) extends PatientProperty with AttendedEvent with FinishedEvent
 
   object attributes {
     val service = "statusDiagramService"
@@ -36,6 +42,6 @@ object StatusDiagramComm {
     b <- m.getBodyAs[api.PatientEvent]
   } yield (h, b)
 
-  def makeMess(h: SPHeader, b: api.StatusEvent) = SPMessage.makeJson[SPHeader, api.StatusEvent](h, b)
+  def makeMess(h: SPHeader, b: api.PatientProperty) = SPMessage.makeJson[SPHeader, api.PatientProperty](h, b)
 
 }

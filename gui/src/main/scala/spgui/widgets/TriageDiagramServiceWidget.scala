@@ -40,41 +40,25 @@ import spgui.widgets.{API_PatientEvent => api}
 
 object TriageDiagramServiceWidget {
 
-
-  private class Backend($: BackendScope[Unit, Map[String, Double]]) {
+  private class Backend($: BackendScope[Unit, Map[String, String]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.TriageEvent] map {
-          case api.PingUndefined(toAdd) => {
-
-            if (toAdd) $.modState(s => s + ("Undefined" -> (s("Undefined") + 1))).runNow()
-            else $.modState(s => s + ("Undefined" -> (s("Undefined") - 1))).runNow()
-          }
-          case api.PingGreen(toAdd) => {
-            if (toAdd) $.modState(s => s + ("Green" -> (s("Green") + 1))).runNow()
-            else $.modState(s => s + ("Green" -> (s("Green") - 1))).runNow()
-          }
-          case api.PingYellow(toAdd) => {
-            if (toAdd) $.modState(s => s + ("Yellow" -> (s("Yellow") + 1))).runNow()
-            else $.modState(s => s + ("Yellow" -> (s("Yellow") - 1))).runNow()
-          }
-          case api.PingOrange(toAdd) => {
-            if (toAdd) $.modState(s => s + ("Orange" -> (s("Orange") + 1))).runNow()
-            else $.modState(s => s + ("Orange" -> (s("Orange") - 1))).runNow()
-          }
-          case api.PingRed(toAdd) => {
-            if (toAdd) $.modState(s => s + ("Red" -> (s("Red") + 1))).runNow()
-            else $.modState(s => s + ("Red" -> (s("Red") - 1))).runNow()
-          }
+        mess.getBodyAs[api.PatientProperty] map {
+          case api.NotTriaged(careContactId, timestamp) => $.modState(s => s + (careContactId -> "NotTriaged")).runNow()
+          case api.Green(careContactId, timestamp) => $.modState(s => s + (careContactId -> "Green")).runNow()
+          case api.Yellow(careContactId, timestamp) => $.modState(s => s + (careContactId -> "Yellow")).runNow()
+          case api.Orange(careContactId, timestamp) => $.modState(s => s + (careContactId -> "Orange")).runNow()
+          case api.Red(careContactId, timestamp) => $.modState(s => s + (careContactId -> "Red")).runNow()
+          case api.Finished(careContactId, timestamp) => $.modState(s => s - careContactId).runNow()
           case x => println(s"THIS WAS NOT EXPECTED IN TriageDiagramServiceWidget: $x")
         }
       }, "triage-diagram-widget-topic"
     )
 
     // What is this function used for?
-    def render(p: Map[String, Double]) = {
+    def render(p: Map[String, String]) = {
       <.div(^.`class` := "card-holder-root")( // really not necessary
       )
     }
@@ -82,7 +66,7 @@ object TriageDiagramServiceWidget {
 
   private val component = ReactComponentB[Unit]("teamVBelastning")
 
-  .initialState(Map("Undefined" -> 0.toDouble, "Green" -> 0.toDouble, "Yellow" -> 0.toDouble, "Orange" -> 0.toDouble, "Red" -> 0.toDouble))
+  .initialState(Map("0" -> "Initial"))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
   .build
@@ -98,7 +82,7 @@ object TriageDiagramServiceWidget {
     else{d.toString()}
   }
 
-  private def addTheD3(element: raw.Element, triageMap: Map[String, Double]): Unit = {
+  private def addTheD3(element: raw.Element, initialTriageMap: Map[String, String]): Unit = {
   d3.select(element).selectAll("*").remove()
 
   val barGap = 22    // Avstånd mellan graferna
@@ -133,10 +117,36 @@ object TriageDiagramServiceWidget {
 
   //-------------------------
 
+  // Count number of patients of each triage color
+  var notTriagedCount = 0
+  var greenCount = 0
+  var yellowCount = 0
+  var orangeCount = 0
+  var redCount = 0
+
+  initialTriageMap.foreach{ p =>
+    p._2 match {
+      case "NotTriaged" => notTriagedCount += 1
+      case "Green" => greenCount += 1
+      case "Yellow" => yellowCount += 1
+      case "Orange" => orangeCount += 1
+      case "Red" => redCount += 1
+      case _ => // do nothing
+    }
+  }
+
+  var triageMap: Map[String, Double] = Map(
+    "NotTriaged" -> notTriagedCount,
+    "Green" -> greenCount,
+    "Yellow" -> yellowCount,
+    "Orange" -> orangeCount,
+    "Red" -> redCount
+  )
+
   var length: Map[String, Double] = Map()
 
   triageMap.foreach{ t =>
-    length += t._1 -> (t._2/(triageMap("Undefined") + triageMap("Green") + triageMap("Yellow") + triageMap("Orange") + triageMap("Red")))*barHeight
+    length += t._1 -> (t._2/(triageMap("NotTriaged") + triageMap("Green") + triageMap("Yellow") + triageMap("Orange") + triageMap("Red")))*barHeight
   }
 
   var scaleBars = barHeight / length.valuesIterator.max // Skalar graferna så den med högst antal patienter blir 100% av höjden
@@ -165,16 +175,16 @@ object TriageDiagramServiceWidget {
   // ----------- Graf ett, Svart Otriagerade -------------
   g.append("rect")
     .attr("x", distance)
-    .attr("y", height - length("Undefined") * scaleBars)
+    .attr("y", height - length("NotTriaged") * scaleBars)
     .attr("width", barWidth)
-    .attr("height", length("Undefined") * scaleBars)
+    .attr("height", length("NotTriaged") * scaleBars)
     .attr("fill", colorBarOne)
 
   svg.append("text")
-    .attr("x", (dist(triageMap("Undefined")) + distance))
+    .attr("x", (dist(triageMap("NotTriaged")) + distance))
     .attr("y", height - 4)
     .attr("font-size", sizeNumbers)
-    .text(s"${removeZero(triageMap("Undefined"))}")
+    .text(s"${removeZero(triageMap("NotTriaged"))}")
     .attr("fill", colorNumbers)
 
   // ----------- Graf två, Grön  -------------
@@ -253,7 +263,7 @@ object TriageDiagramServiceWidget {
     .attr("x", 0)
     .attr("y", 50)
     .attr("font-size", sizePatients)
-    .text(s"${triageMap("Undefined") + triageMap("Green") + triageMap("Yellow") + triageMap("Orange") + triageMap("Red")}" + " " + "PATIENTER TOTALT")
+    .text(s"${triageMap("NotTriaged") + triageMap("Green") + triageMap("Yellow") + triageMap("Orange") + triageMap("Red")}" + " " + "PATIENTER TOTALT")
     .attr("fill", colorText)
 
   // ------- Triage och Belastning ------------

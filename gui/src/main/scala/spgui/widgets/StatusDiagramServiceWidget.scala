@@ -42,23 +42,24 @@ object StatusDiagramServiceWidget {
 
 
 
-  private class Backend($: BackendScope[Unit, Map[String, Double]]) {
+  private class Backend($: BackendScope[Unit, Map[String, String]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.StatusEvent] map {
-          case api.PingUnattended(toAdd) => {
-            if (toAdd) $.modState(s => s + ("Unattended" -> (s("Unattended") + 1))).runNow()
-            else $.modState(s => s + ("Unattended" -> (s("Unattended") - 1))).runNow()
+        mess.getBodyAs[api.PatientProperty] map {
+          case api.Attended(careContactId, timestamp, attended, doctorId) => {
+            if (attended) {
+              $.modState(s => s + (careContactId -> "Attended")).runNow()
+            } else {
+              $.modState(s => s + (careContactId -> "Unattended")).runNow()
+            }
           }
-          case api.PingAttended(toAdd) => {
-            if (toAdd) $.modState(s => s + ("Attended" -> (s("Attended") + 1))).runNow()
-            else $.modState(s => s + ("Attended" -> (s("Attended") - 1))).runNow()
+          case api.FinishedStillPresent(careContactId, timestamp) => {
+            $.modState(s => s + (careContactId -> "Finished")).runNow()
           }
-          case api.PingFinished(toAdd) => {
-            if (toAdd) $.modState(s => s + ("Finished" -> (s("Finished") + 1))).runNow()
-            else $.modState(s => s + ("Finished" -> (s("Finished") - 1))).runNow()
+          case api.Finished(careContactId, timestamp) => {
+            $.modState(s => s - careContactId).runNow()
           }
           case x => println(s"THIS WAS NOT EXPECTED IN StatusDiagramServiceWidget: $x")
         }
@@ -66,14 +67,14 @@ object StatusDiagramServiceWidget {
     )
 
     // What is this function used for?
-    def render(p: Map[String, Double]) = {
+    def render(p: Map[String, String]) = {
       <.div(^.`class` := "card-holder-root")( // really not necessary
       )
     }
   }
 
   private val component = ReactComponentB[Unit]("TeamStatusWidget")
-  .initialState(Map("Unattended" -> 0.toDouble, "Attended" -> 0.toDouble, "Finished" -> 0.toDouble))
+  .initialState(Map("0" -> "Initial"))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
   .build
@@ -89,7 +90,7 @@ object StatusDiagramServiceWidget {
     else {d.toString()}
   }
 
-  private def addTheD3(element: raw.Element, statusMap: Map[String, Double]): Unit = {
+  private def addTheD3(element: raw.Element, initialStatusMap: Map[String, String]): Unit = {
 
     d3.select(element).selectAll("*").remove()
 
@@ -106,6 +107,26 @@ object StatusDiagramServiceWidget {
     val colorBarThree = "#bebebe"
     val colorNumbers = "#FFFFFF"
     // --------------
+
+    // Count the number of patients of each status
+    var finishedCount = 0
+    var attendedCount = 0
+    var unattendedCount = 0
+
+    initialStatusMap.foreach{ p =>
+      p._2 match {
+        case "Finished" => finishedCount += 1
+        case "Attended" => attendedCount += 1
+        case "Unattended" => unattendedCount += 1
+        case _ => // do nothing
+      }
+    }
+
+    var statusMap: Map[String, Double] = Map(
+      "Finished" -> finishedCount,
+      "Attended" -> attendedCount,
+      "Unattended" -> unattendedCount
+    )
 
     var length: Map[String, Double] = Map()
 

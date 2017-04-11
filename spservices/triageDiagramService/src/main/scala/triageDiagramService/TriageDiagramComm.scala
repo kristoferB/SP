@@ -13,15 +13,22 @@ package API_PatientEvent {
   sealed trait PatientEvent
   case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
   case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
-  case class RemovedPatient(careContactId: String) extends PatientEvent
+  case class RemovedPatient(careContactId: String, timestamp: String) extends PatientEvent
 
-  // Messages I can send (to my widget)
-  sealed trait TriageEvent
-  case class Undefined(toAdd: Boolean) extends TriageEvent
-  case class Green(toAdd: Boolean) extends TriageEvent
-  case class Yellow(toAdd: Boolean) extends TriageEvent
-  case class Orange(toAdd: Boolean) extends TriageEvent
-  case class Red(toAdd: Boolean) extends TriageEvent
+  // Messages I can send to my widget
+  sealed trait PatientProperty
+
+  sealed trait PriorityEvent extends PatientProperty
+  case class NotTriaged(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+  case class Green(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+  case class Yellow(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+  case class Orange(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+  case class Red(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+
+  sealed trait FinishedEvent
+  case class Finished(careContactId: String, timestamp: String) extends PatientProperty with FinishedEvent
+
+  case class Undefined(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent with FinishedEvent
 
   object attributes {
     val service = "triageDiagramService"
@@ -38,6 +45,6 @@ object TriageDiagramComm {
     b <- m.getBodyAs[api.PatientEvent]
   } yield (h, b)
 
-  def makeMess(h: SPHeader, b: api.TriageEvent) = SPMessage.makeJson[SPHeader, api.TriageEvent](h, b)
+  def makeMess(h: SPHeader, b: api.PatientProperty) = SPMessage.makeJson[SPHeader, api.PatientProperty](h, b)
 
 }
