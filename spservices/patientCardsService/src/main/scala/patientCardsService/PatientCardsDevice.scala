@@ -143,7 +143,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
   def filterNewPatientProperties(patient: api.NewPatient, patientProperties: List[api.PatientProperty]): List[api.PatientProperty] = {
     patientProperties
       .filter(_ != (api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")))
-      .filter(_ != api.LatestEvent(patient.careContactId, "-1", "NA"))
+      .filter(_ != api.LatestEvent(patient.careContactId, "-1", "NA", -1))
       .filter(_ != api.Attended(patient.careContactId, "-1", false, "NA"))
   }
 
@@ -153,7 +153,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
   def filterDiffPatientProperties(patient: api.DiffPatient, patientProperties: List[api.PatientProperty]): List[api.PatientProperty] = {
     patientProperties
       .filter(_ != (api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")))
-      .filter(_ != api.LatestEvent(patient.careContactId, "-1", "NA"))
+      .filter(_ != api.LatestEvent(patient.careContactId, "-1", "NA", -1))
       .filter(_ != api.Attended(patient.careContactId, "-1", false, "NA"))
   }
 
@@ -272,9 +272,9 @@ class PatientCardsDevice extends Actor with ActorLogging {
       }
     }
     if (eventFound) {
-      return api.LatestEvent(careContactId, timestampString, title)
+      return api.LatestEvent(careContactId, timestampString, title, timeDiff)
     }
-    return api.LatestEvent(careContactId, "-1", "NA")
+    return api.LatestEvent(careContactId, "-1", "NA", -1)
   }
 
   /**

@@ -32,7 +32,7 @@ package API_PatientEvent {
   case class Team(careContactId: String, timestamp: String, team: String, klinik: String) extends PatientProperty with TeamEvent
 
   sealed trait LatestEventEvent
-  case class LatestEvent(careContactId: String, timestamp: String, latestEvent: String) extends PatientProperty with LatestEventEvent
+  case class LatestEvent(careContactId: String, timestamp: String, latestEvent: String, timeDiff: Long) extends PatientProperty with LatestEventEvent
 
   sealed trait ArrivalTimeEvent
   case class ArrivalTime(careContactId: String, timestamp: String) extends PatientProperty with ArrivalTimeEvent
