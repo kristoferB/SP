@@ -106,7 +106,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
         case "Location" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
         case "Team" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
         case "Priority" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updatePriority(patient.careContactId, patient.patientData("timestamp"), p._2)
-        case "VisitRegistrationTime" => updateArrivalTime(patient.careContactId, p._2)
+        case "VisitRegistrationTime" => patientPropertyBuffer += updateArrivalTime(patient.careContactId, p._2)
         case _ => patientPropertyBuffer += api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")
       }
     }
@@ -200,10 +200,15 @@ class PatientCardsDevice extends Actor with ActorLogging {
   }
 
   /**
-  Returns an ArrivalTime-type.
+  Calculates the time diff. in milliseconds between arrival time and now, returns an ArrivalTime-type.
   */
   def updateArrivalTime(careContactId: String, timestamp: String): api.ArrivalTime = {
-    api.ArrivalTime(careContactId, timestamp)
+    var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    val arrival = formatter.parse(timestamp.replaceAll("Z$", "+0000"))
+    val nowString = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date())
+    val now = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").parse(nowString)
+    val diff: Long = now.getTime() - arrival.getTime() // returns diff in millisec
+    return api.ArrivalTime(careContactId, diff, timestamp)
   }
 
 

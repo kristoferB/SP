@@ -48,7 +48,7 @@ object PatientCardsServiceWidget {
   case class Location(roomNr: String, timestamp: String) extends PatientProperty
   case class Team(team: String, clinic: String, timestamp: String) extends PatientProperty
   case class LatestEvent(latestEvent: String, timeDiff: Long, timestamp: String) extends PatientProperty
-  case class ArrivalTime(timestamp: String) extends PatientProperty
+  case class ArrivalTime(timeDiff: Long, timestamp: String) extends PatientProperty
 
   case class Patient(
     var careContactId: String,
@@ -92,8 +92,8 @@ object PatientCardsServiceWidget {
           case api.LatestEvent(careContactId, timestamp, latestEvent, timeDiff) => {
             $.modState{ s => updateState(s, careContactId, timestamp, LatestEvent(latestEvent, timeDiff, timestamp)) }.runNow()
           }
-          case api.ArrivalTime(careContactId, timestamp) => {
-            $.modState{ s => updateState(s, careContactId, timestamp, ArrivalTime(timestamp)) }.runNow()
+          case api.ArrivalTime(careContactId, timeDiff, timestamp) => {
+            $.modState{ s => updateState(s, careContactId, timestamp, ArrivalTime(timeDiff, timestamp)) }.runNow()
           }
           case api.Finished(careContactId, timestamp) => {
             $.modState{ s => s - careContactId }.runNow()
@@ -113,13 +113,13 @@ object PatientCardsServiceWidget {
 
   def updateNewPatient(ccid: String, timestamp: String, prop: PatientProperty): Patient = {
     prop match {
-      case Priority(color, timestamp) => Patient(ccid, Priority(color, timestamp), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(""))
-      case Attended(attended, doctorId, timestamp) => Patient(ccid, Priority("", ""), Attended(attended, doctorId, timestamp), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(""))
-      case Location(roomNr, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location(roomNr, timestamp), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(""))
-      case Team(team, clinic, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team(team, clinic, timestamp), LatestEvent("", -1, ""), ArrivalTime(""))
-      case LatestEvent(latestEvent, timeDiff, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent(latestEvent, -1, timestamp), ArrivalTime(""))
-      case ArrivalTime(timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(timestamp))
-      case _ => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(""))
+      case Priority(color, timestamp) => Patient(ccid, Priority(color, timestamp), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
+      case Attended(attended, doctorId, timestamp) => Patient(ccid, Priority("", ""), Attended(attended, doctorId, timestamp), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
+      case Location(roomNr, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location(roomNr, timestamp), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
+      case Team(team, clinic, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team(team, clinic, timestamp), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
+      case LatestEvent(latestEvent, timeDiff, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent(latestEvent, -1, timestamp), ArrivalTime(-1, ""))
+      case ArrivalTime(timeDiff, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(timeDiff, timestamp))
+      case _ => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
     }
   }
 
@@ -130,8 +130,8 @@ object PatientCardsServiceWidget {
       case Location(roomNr, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, Location(roomNr, timestamp), s(ccid).team, s(ccid).latestEvent, s(ccid).arrivalTime)
       case Team(team, clinic, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, Team(team, clinic, timestamp), s(ccid).latestEvent, s(ccid).arrivalTime)
       case LatestEvent(latestEvent, timeDiff, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, LatestEvent(latestEvent, timeDiff, timestamp), s(ccid).arrivalTime)
-      case ArrivalTime(timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).latestEvent, ArrivalTime(timestamp))
-      case _ => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(""))
+      case ArrivalTime(timeDiff, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).latestEvent, ArrivalTime(timeDiff, timestamp))
+      case _ => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
     }
   }
 
@@ -173,17 +173,16 @@ object PatientCardsServiceWidget {
 
   def decodeTriageColor(p: Priority): String = {
     p.color match {
-      case "NotTriaged" => "grey"//"#D5D5D5"
-      case "Blue" => "blue"//"#1288FF"
-      case "Green" => "green"//"#289500" //"prio4"
-      case "Yellow" => "yellow"//"#EAC706" //"prio3"
-      case "Orange" => "orange"//"#F08100" //"prio2"
-      case "Red" => "red"//"#950000" //"prio1"
+      case "NotTriaged" => "#D5D5D5"
+      case "Blue" => "#1288FF"
+      case "Green" => "#289500" //"prio4"
+      case "Yellow" => "#EAC706" //"prio3"
+      case "Orange" => "#F08100" //"prio2"
+      case "Red" => "#950000" //"prio1"
       case _ =>  {
         println("TriageColor: "+ p.color +" not expected in patientCardsService")
-        "grey" //"#D5D5D5" //"prioNA"
+        return "#D5D5D5" //"prioNA"
       }
-
     }
   }
 
@@ -203,12 +202,12 @@ object PatientCardsServiceWidget {
   **/
   def decodeTeamColor(t: Team): String = {
     t.team match {
-      case "Streamteam" => "lightblue" // "#BEABEB"
-      case "Process" => "pink" // "#FF93B8"
-      case "Blå" => "blue" // "#0060C1
-      case "Röd" => "red" // "#D15353"
-      case "Gul" => "yellow" // ""
-      case _ => "grey" // "#E8E8E8"
+      case "Streamteam" => "#BEABEB"
+      case "Process" => "#FF93B8"
+      case "Blå" => "#0060C1"
+      case "Röd" => "#D15353"
+      case "Gul" => ""
+      case _ => "#E8E8E8"
     }
   }
 
@@ -380,7 +379,7 @@ object PatientCardsServiceWidget {
             ^.svg.x := (textLeftAlignment * 0.3).toString,
             ^.svg.y := 20.toString,
             ^.svg.fontSize := fontSize.toString  + "px",
-            "TODO" // WAS:timestampToODT(p.arrivalTime.timestamp).format(DateTimeFormatter.ofPattern("H'.'m'"))
+            getTimeDiffReadable(p.arrivalTime.timeDiff) // WAS:timestampToODT(p.arrivalTime.timestamp).format(DateTimeFormatter.ofPattern("H'.'m'"))
           )
         ),
         <.svg.svg(
@@ -429,7 +428,7 @@ object PatientCardsServiceWidget {
       Location("52", "2017-02-01T15:58:33Z"),
       Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
       LatestEvent("OmsKoord", 190, "2017-02-01T15:58:33Z"),
-      ArrivalTime("2017-02-01T10:01:38Z")
+      ArrivalTime(-1, "2017-02-01T10:01:38Z")
       )))
   .renderBackend[Backend]
   .build
