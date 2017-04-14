@@ -61,7 +61,8 @@ object ItemEditor {
     "name" -> "SampleJSON",
     "id" -> "this-should-be-an-uuid")
 
-  case class State(spvOp: Option[SPValue])
+  // SPValue is None until we have received it from the backend
+  case class State(spvOp: Option[SPValue] = None)
 
   class Backend($: BackendScope[SPWidgetBase, State]) {
 
@@ -81,16 +82,29 @@ object ItemEditor {
       "itemEditorAnswers"
     )
 
-    // TODO figure out or create a way to send a message to itemEditorService upon widget opened
-    //val wsMessObs = BackendCommunication.getWebSocketNotificationsCB(spm => println(spm), "services")
-
-    /*
+    // send a command to service once websocket is open
+    // two ways to do it here
     import rx._
     implicit val ctx: Ctx.Owner = Ctx.Owner.safe()
-    val messVar = BackendCommunication.getWebSocketStatus("services")
-    if(messVar.now == true) sendHello()
-    else messVar.triggerLater{ sendHello(); messVar.kill() }
+    /*
+    val statusObs: rx.Obs = BackendCommunication.getWebSocketStatusCB(
+      status => {
+        println("websocketstatus is " + status + ", requesting sample item")
+        requestSampleItem()
+      },
+      "services"
+    )
      */
+    // commented out one also works but can't kill it when done
+    // TODO maybe make this in some less weird way
+    val statusVar = BackendCommunication.getWebSocketStatus("services")
+    statusVar.trigger{
+      println("statusVar is " + statusVar.now)
+      if(statusVar.now == true) {
+        requestSampleItem()
+        statusVar.kill()
+      }
+    }
 
     def sendCommand(cmd: API_ItemEditorService) = {
       val h = SPHeader(from = "ItemEditorWidget", to = "itemEditorService", reply = *("ItemEditorWidget"))
@@ -104,24 +118,19 @@ object ItemEditor {
     def sendHello() = sendCommand(API_ItemEditorService.Hello())
 
     def render(spwb: SPWidgetBase, s: State) =
-      <.div(
-        <.button("Get sample item", ^.onClick --> Callback(requestSampleItem())),
-        <.button("Send hello", ^.onClick --> Callback(sendHello())),
-        s.spvOp match {
-          case Some(spv) => {
-            <.div(ItemEditorCSS.editor, JSONEditor(jsonEditorOptions, JSON.parse(spv.toJson)))
-          }
-          case None =>
-            "No json received yet"
-        }
-      )
+      // can't rerender JSONEditor on ItemEditor state change,
+      // because JSONEditor uses componentDidMount I think
+      s.spvOp match {
+        case Some(spv) =>
+          <.div(ItemEditorCSS.editor, JSONEditor(jsonEditorOptions, JSON.parse(spv.toJson)))
+        case None =>
+          <.div("No json received yet")
+      }
   }
 
   private val component = ReactComponentB[SPWidgetBase]("ItemEditor")
-    //.render_P(p => <.div(ItemEditorCSS.editor, JSONEditor(p.getWidgetData)))
-    .initialState(State(None))
+    .initialState(State())
     .renderBackend[Backend]
-    //.componentDidMount(dcb => Callback(dcb.backend.sendHello()))
     .build
 
   def apply() = (spwb: SPWidgetBase) => component(spwb)
