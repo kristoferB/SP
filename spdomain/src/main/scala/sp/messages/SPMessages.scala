@@ -3,17 +3,33 @@ package sp.messages
 import sp.domain._
 import java.util.UUID
 
+import scala.util.Try
+
 
 
 sealed trait APISP
 object APISP {
   case class SPError(message: String, attributes: SPAttributes = SPAttributes()) extends APISP
-  case class SPACK(attributes: SPAttributes = SPAttributes()) extends APISP
-  case class SPOK(attributes: SPAttributes = SPAttributes()) extends APISP
-  case class SPDone(attributes: SPAttributes = SPAttributes()) extends APISP
+  case class SPACK() extends APISP
+  case class SPDone() extends APISP
 
   case class StatusRequest(attributes: SPAttributes = SPAttributes()) extends APISP
-  case class StatusResponse(attributes: SPAttributes = SPAttributes()) extends APISP
+  case class StatusResponse(service: String, instanceID: Option[ID] = None, instanceName: String = "", tags: List[String] = List(), api: SPAttributes = SPAttributes(), version: Int = 1, attributes: SPAttributes = SPAttributes()) extends APISP
+
+
+  object StatusResponse {
+    import sp.domain.Logic._
+    def apply(attr: SPAttributes): StatusResponse = {
+      val service = attr.getAs[String]("service").getOrElse("noName")
+      val instanceName = attr.getAs[String]("instanceName").orElse(attr.getAs[String]("name")).getOrElse("")
+      val id = attr.getAs[UUID]("instanceID")
+      val tags = attr.getAs[List[String]]("tags").getOrElse(List())
+      val api = attr.getAs[SPAttributes]("api").getOrElse(SPAttributes())
+      val version = attr.getAs[Int]("version").getOrElse(1)
+      StatusResponse(service, id, instanceName, tags, api, version, attr)
+    }
+    def apply(): StatusResponse = StatusResponse("")
+  }
 }
 
 
@@ -26,14 +42,31 @@ object Pickles extends SPParser {
   type Pickle = upickle.Js.Value
 
 
-  case class SPHeader(from: String,
-                       to: String = "",
-                       replyTo: String = "",
-                       reqID: UUID = UUID.randomUUID(),
-                       replyFrom: String = "",
-                       replyID: Option[UUID] = None)
+  case class SPHeader(from: String = "", // the name of the sender
+                      to: String = "", // the name of the receiver, empty if to anyone
+                      reqID: UUID = UUID.randomUUID(), // the id to use for replies
+                      reply: SPValue = SPAttributes(), // A data structure that should be included in all replies to be used for matching
+                      fromTags: List[String] = List(), // a list of tags to define things about the sender. For example where the sender is located
+                      toTags: List[String] = List(), // a list of tags to define things about possible receivers
+                      attributes: SPAttributes = SPAttributes() // to be used in some scenarios, where more info in the header is needed
+                     )
 
 
+
+
+  implicit lazy val asdasd = {val asdasd = ();   macroRW[SPMessage]}
+  implicit lazy val sdffsaf = {val sdffsaf = ();   macroRW[SPHeader]}
+  implicit lazy val wefawef = {val wefawef = ();   macroRW[APISP]}
+  implicit lazy val aasdasd = {val aasdasd = ();   macroRW[StateUpdater]}
+  implicit lazy val csdcsdc = {val csdcsdc = ();   macroRW[StateEvaluator]}
+  implicit lazy val oshffef = {val oshffef = ();   macroRW[PropositionEvaluator]}
+  implicit lazy val scvvvds = {val scvvvds = ();   macroRW[Proposition]}
+  implicit lazy val ccscsc = {val ccscsc = ();   macroRW[PropositionCondition]}
+  implicit lazy val vfvfvfv = {val vfvfvfv = ();   macroRW[Condition]}
+  implicit lazy val bfgbfgb = {val bfgbfgb = ();   macroRW[Operation]}
+
+
+  // TODO: Remove Try when creating a SPMessage from classes. The compiler will take that!
   case class SPMessage(header: Pickle, body: Pickle) {
     def getHeaderAs[T: Reader] = fromPickle[T](header)
     def getBodyAs[T: Reader] = fromPickle[T](body)
@@ -53,28 +86,25 @@ object Pickles extends SPParser {
       * @return an updated SPMessage
       */
     def make[T: Writer, V: Writer](h: T, b: V) = {
-      Try {
         val newh = toPickle[T](h)
         val newb = toPickle[V](b)
         val updH = header.union(newh)
         SPMessage(updH, newb)
-      }
     }
     def makeJson[T: Writer, V: Writer](header: T, body: V) = {
-      this.make[T, V](header, body).map(_.toJson)
+      this.make[T, V](header, body).toJson
     }
   }
 
   object SPMessage {
     def make[T: Writer, V: Writer](header: T, body: V) = {
-      Try{
         val h = toPickle[T](header)
         val b = toPickle[V](body)
         SPMessage(h, b)
-      }
+
     }
     def makeJson[T: Writer, V: Writer](header: T, body: V) = {
-      make[T, V](header, body).map(_.toJson)
+      make[T, V](header, body).toJson
     }
 
     def fromJson(json: String) = Try{
@@ -139,6 +169,7 @@ trait SPParser extends upickle.AttributeTagged {
   import sp.domain.Logic._
   import scala.reflect.ClassTag
 
+
   override def annotate[V: ClassTag](rw: Reader[V], n: String) = Reader[V]{
     case x: Js.Obj if n == "org.json4s.JsonAST.JObject" =>
       val res = x.value.map(kv => kv._1 -> fromUpickle(kv._2))
@@ -160,7 +191,7 @@ trait SPParser extends upickle.AttributeTagged {
     case x: JsonAST.JBool => upickle.default.writeJs(x.values)
     case x: JsonAST.JDecimal => upickle.default.writeJs(x.values)
     case x: JsonAST.JDouble => upickle.default.writeJs(x.values)
-    case x: JsonAST.JInt => upickle.default.writeJs(x.values)
+    case x: JsonAST.JInt => upickle.default.writeJs(x.values.toInt)
     case x: JsonAST.JLong => upickle.default.writeJs(x.values)
     case x: JsonAST.JString => upickle.default.writeJs(x.values)
     case x: JsonAST.JObject =>
@@ -170,9 +201,12 @@ trait SPParser extends upickle.AttributeTagged {
     case x => upickle.Js.Null
   }
   def fromUpickle(value: upickle.Js.Value): SPValue = value match {
-    case x: upickle.Js.Str => SPValue(x.value)
+    case x: upickle.Js.Str =>
+      Try{x.value.toInt}.map(SPValue(_)).getOrElse(SPValue(x.value))
     case x: upickle.Js.Arr => SPValue(x.value.map(fromUpickle))
-    case x: upickle.Js.Num => SPValue(x.value)
+    case x: upickle.Js.Num =>
+      if (x.value.isValidInt) SPValue(x.value.toInt)
+      else SPValue(x.value)
     case upickle.Js.False => SPValue(false)
     case upickle.Js.True => SPValue(true)
     case upickle.Js.Null => SPValue(None)
@@ -188,53 +222,3 @@ trait SPParser extends upickle.AttributeTagged {
 
 
 
-//object APIParser extends upickle.AttributeTagged {
-//  override val tagName = "isa"
-//
-//  import sp.domain.Logic._
-//
-//  override def annotate[V: ClassTag](rw: Reader[V], n: String) = Reader[V]{
-//    case x: Js.Obj if n == "org.json4s.JsonAST.JObject" =>
-//      val res = x.value.map(kv => kv._1 -> fromUpickle(kv._2))
-//      SPAttributes(res:_*).asInstanceOf[V]
-//    case Js.Obj(x@_*) if x.contains((tagName, Js.Str(n.split('.').takeRight(2).mkString(".")))) =>
-//      rw.read(Js.Obj(x.filter(_._1 != tagName):_*))
-//  }
-//
-//  override def annotate[V: ClassTag](rw: Writer[V], n: String) = Writer[V]{
-//    case x: SPValue =>
-//      toUpickle(x)
-//    case x: V =>
-//    val filter = n.split('.').takeRight(2).mkString(".")
-//    Js.Obj((tagName, Js.Str(filter)) +: rw.write(x).asInstanceOf[Js.Obj].value:_*)
-//  }
-//
-//  def toUpickle(value: SPValue): upickle.Js.Value = value match {
-//    case x: JsonAST.JBool => upickle.default.writeJs(x.values)
-//    case x: JsonAST.JDecimal => upickle.default.writeJs(x.values)
-//    case x: JsonAST.JDouble => upickle.default.writeJs(x.values)
-//    case x: JsonAST.JInt => upickle.default.writeJs(x.values)
-//    case x: JsonAST.JLong => upickle.default.writeJs(x.values)
-//    case x: JsonAST.JString => upickle.default.writeJs(x.values)
-//    case x: JsonAST.JObject =>
-//      val res = x.obj.map(kv => kv._1 -> toUpickle(kv._2))
-//      upickle.Js.Obj(res:_*)
-//    case x: JsonAST.JArray => upickle.Js.Arr(x.arr.map(toUpickle):_*)
-//    case x => upickle.Js.Null
-//  }
-//  def fromUpickle(value: upickle.Js.Value): SPValue = value match {
-//    case x: upickle.Js.Str => SPValue(x.value)
-//    case x: upickle.Js.Arr => SPValue(x.value.map(fromUpickle))
-//    case x: upickle.Js.Num => SPValue(x.value)
-//    case upickle.Js.False => SPValue(false)
-//    case upickle.Js.True => SPValue(true)
-//    case upickle.Js.Null => SPValue(None)
-//    case x: upickle.Js.Obj =>
-//      val json = upickle.json.write(value)
-//      SPValue.fromJson(json).getOrElse(SPValue("ERROR_UPICKLE"))
-//
-//  }
-//
-//
-//
-//}

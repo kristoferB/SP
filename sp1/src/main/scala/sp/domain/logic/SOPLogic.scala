@@ -110,7 +110,11 @@ case object SOPLogic {
   def findOpProps(sop: SOP, map: Map[ID, Set[Proposition]], addToAll: Boolean = false): Map[ID, Set[Proposition]] = {
     sop match {
       case x: SOP if x.isEmpty => map
-      case x: Hierarchy => map // impl Hierarchy here later
+      case x: Hierarchy =>
+        val props = x.conditions.filter(_.isInstanceOf[PropositionCondition]).map(_.asInstanceOf[PropositionCondition]).map(_.guard)
+        val newMap = Map(x.operation -> props.toSet)
+        updateMap(newMap, map)
+        // map // impl Hierarchy here later
       case x: SOP => {
         val childProps = x.sop.foldLeft(map) { (map, child) =>
           val props = findOpProps(child, map)

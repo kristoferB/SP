@@ -44,7 +44,7 @@ class WebsocketAPITest(_system: ActorSystem) extends TestKit(_system) with Impli
 
   val messHeader = upickle.default.writeJs(DummyHeader(java.util.UUID.randomUUID()))
   val messBody = upickle.default.writeJs(DummyBody("hej", "då"))
-  val mess = UPickleMessage(messHeader, messBody)
+  //val mess = UPickleMessage(messHeader, messBody)
 
 
   "Testing transformers" - {
