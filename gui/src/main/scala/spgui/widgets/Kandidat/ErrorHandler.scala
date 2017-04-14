@@ -8,9 +8,7 @@ package spgui.widgets.Kandidat
   import japgolly.scalajs.react._
   import japgolly.scalajs.react.vdom.prefix_<^._
   import spgui.circuit.{AddWidget, SPGUICircuit}
-  import spgui.{SPWidget, SPWidgetBase}
   import spgui.communication._
-  import spgui.widgets.abilityhandler
   import sp.messages._
   import sp.messages.Pickles._
   import spgui.widgets.abilityhandler.{APIVirtualDevice => vdapi}
@@ -40,6 +38,24 @@ object ErrorHandler{
               println(s"THIS WAS NOT EXPECTED IN D3ExampleServiceWidget: $x")
           }
         }, "d3ExampleAnswers"
+      )
+      val answerHandler = BackendCommunication.getMessageObserver(
+        mess => {
+          fromSPValue[vdapi.Replies](mess.body).map{
+            case vdapi.Resources(r) =>
+
+            case x =>
+              println(s"AbilityHandlerWidget - TODO: $x")
+          }
+          fromSPValue[abapi.Response](mess.body).map{
+            case abapi.Abilities(a) =>
+            case abapi.AbilityState(id, state) =>
+              
+            case x =>
+              println(s"AbilityHandlerWidget - answers - TODO: $x")
+          }
+        },
+        "answers"
       )
       def render() = {
         <.div(
