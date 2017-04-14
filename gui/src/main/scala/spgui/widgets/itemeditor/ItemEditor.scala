@@ -8,7 +8,20 @@ import js.Dynamic.{ literal => l }
 import js.JSON
 
 import spgui.SPWidgetBase
+
+import spgui.communication._
 import sp.domain._
+//import sp.messages._
+import sp.messages.Pickles._
+
+// TODO: function to convert SPValue to JSONEditor-props
+
+sealed trait API_ItemEditorService
+object API_ItemEditorService {
+  case class Hello() extends API_ItemEditorService
+  case class RequestSampleItem() extends API_ItemEditorService
+  case class SampleItem(operationSPV: SPValue) extends API_ItemEditorService
+}
 
 object ItemEditor {
 
@@ -43,23 +56,72 @@ object ItemEditor {
     )
   )
 
-  val sampleJson = l(
+  val jsonSample = l(
     "isa" -> "SomethingIncorrect",
     "name" -> "SampleJSON",
-    "id" -> "this-should-be-an-uuid"
-  )
+    "id" -> "this-should-be-an-uuid")
 
-  class Backend($: BackendScope[SPWidgetBase, Unit]) {
-    def getDataOrSample(spV: SPValue) = if(spV == SPValue.empty) sampleJson else JSON.parse(spV.toJson)
+  case class State(spvOp: Option[SPValue])
 
-    def render(spwb: SPWidgetBase) = <.div(
-      JSONEditor(options = jsonEditorOptions, json = getDataOrSample(spwb.getWidgetData)),
-      ItemEditorCSS.editor
+  class Backend($: BackendScope[SPWidgetBase, State]) {
+
+    def parseCommand(spm: SPMessage) = spm.getBodyAs[API_ItemEditorService]
+
+    def handleCommand: API_ItemEditorService => Unit = {
+      case API_ItemEditorService.Hello() => { println("ItemEditorWidget: Somebody said hi") }
+      case opSPV: API_ItemEditorService.SampleItem => {
+        println(opSPV.operationSPV)
+        $.setState(State(Some(opSPV.operationSPV))).runNow()
+      }
+      case x => println(s"THIS WAS NOT EXPECTED IN ItemEditorWidget: $x")
+    }
+
+    val messObs = BackendCommunication.getMessageObserver(
+      spm => spm.getBodyAs[API_ItemEditorService] foreach handleCommand,
+      "itemEditorAnswers"
     )
+
+    // TODO figure out or create a way to send a message to itemEditorService upon widget opened
+    //val wsMessObs = BackendCommunication.getWebSocketNotificationsCB(spm => println(spm), "services")
+
+    /*
+    import rx._
+    implicit val ctx: Ctx.Owner = Ctx.Owner.safe()
+    val messVar = BackendCommunication.getWebSocketStatus("services")
+    if(messVar.now == true) sendHello()
+    else messVar.triggerLater{ sendHello(); messVar.kill() }
+     */
+
+    def sendCommand(cmd: API_ItemEditorService) = {
+      val h = SPHeader(from = "ItemEditorWidget", to = "itemEditorService", reply = *("ItemEditorWidget"))
+      val jsonMsg = SPMessage.make(h, cmd)
+      BackendCommunication.publishMessage("services", jsonMsg)
+      //BackendCommunication.ask(jsonMsg)
+    }
+
+    def requestSampleItem() = sendCommand(API_ItemEditorService.RequestSampleItem())
+
+    def sendHello() = sendCommand(API_ItemEditorService.Hello())
+
+    def render(spwb: SPWidgetBase, s: State) =
+      <.div(
+        <.button("Get sample item", ^.onClick --> Callback(requestSampleItem())),
+        <.button("Send hello", ^.onClick --> Callback(sendHello())),
+        s.spvOp match {
+          case Some(spv) => {
+            <.div(ItemEditorCSS.editor, JSONEditor(jsonEditorOptions, JSON.parse(spv.toJson)))
+          }
+          case None =>
+            "No json received yet"
+        }
+      )
   }
 
   private val component = ReactComponentB[SPWidgetBase]("ItemEditor")
+    //.render_P(p => <.div(ItemEditorCSS.editor, JSONEditor(p.getWidgetData)))
+    .initialState(State(None))
     .renderBackend[Backend]
+    //.componentDidMount(dcb => Callback(dcb.backend.sendHello()))
     .build
 
   def apply() = (spwb: SPWidgetBase) => component(spwb)

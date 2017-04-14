@@ -46,7 +46,7 @@ object JSONEditorElement {
 // TODO facading destroy() perhaps a good idea
 @js.native
 class JSONEditor(element: raw.Element, options: js.UndefOr[js.Dynamic] = js.undefined, json: js.UndefOr[js.Dynamic] = js.undefined) extends js.Object {
-  def set(json: js.Object): Unit = js.native
+  def set(json: js.Dynamic): Unit = js.native
   def resize(): Unit = js.native
 }
 
@@ -56,7 +56,7 @@ case class JSONEditorOptions(
   history: Boolean = true,
   mode: String = "code",
   modes: Seq[String] = Seq("code", "tree"),
-  schema: js.UndefOr[js.Object] = js.undefined,
+  schema: js.UndefOr[js.Dynamic] = js.undefined,
   search: Boolean = true
 ) {
   def toJS =
