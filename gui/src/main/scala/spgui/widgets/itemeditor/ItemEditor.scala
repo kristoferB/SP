@@ -14,13 +14,12 @@ import sp.domain._
 //import sp.messages._
 import sp.messages.Pickles._
 
-// TODO: function to convert SPValue to JSONEditor-props
-
 sealed trait API_ItemEditorService
 object API_ItemEditorService {
   case class Hello() extends API_ItemEditorService
   case class RequestSampleItem() extends API_ItemEditorService
   case class SampleItem(operationSPV: SPValue) extends API_ItemEditorService
+  case class Item(item: SPValue) extends API_ItemEditorService
 }
 
 object ItemEditor {
@@ -102,6 +101,7 @@ object ItemEditor {
       println("statusVar is " + statusVar.now)
       if(statusVar.now == true) {
         requestSampleItem()
+        sendSampleItem()
         statusVar.kill()
       }
     }
@@ -116,6 +116,10 @@ object ItemEditor {
     def requestSampleItem() = sendCommand(API_ItemEditorService.RequestSampleItem())
 
     def sendHello() = sendCommand(API_ItemEditorService.Hello())
+
+    val sampleJsonToSend = l("blå" -> "bär")
+    val sampleItem = fromJsonToSPValue(JSON.stringify(sampleJsonToSend)).get
+    def sendSampleItem() = sendCommand(API_ItemEditorService.Item(sampleItem))
 
     def render(spwb: SPWidgetBase, s: State) =
       // can't rerender JSONEditor on ItemEditor state change,

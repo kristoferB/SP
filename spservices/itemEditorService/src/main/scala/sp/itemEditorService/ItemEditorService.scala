@@ -15,6 +15,7 @@ object API_ItemEditorService {
   case class Hello() extends API_ItemEditorService
   case class RequestSampleItem() extends API_ItemEditorService
   case class SampleItem(operationSPV: SPValue = SampleItemAsSPV()) extends API_ItemEditorService
+  case class Item(item: SPValue) extends API_ItemEditorService
 }
 
 object SampleItemAsSPV {
@@ -57,6 +58,8 @@ class ItemEditorService extends Actor {
       mediator ! Publish("itemEditorAnswers", helloAns())
     case API_ItemEditorService.RequestSampleItem() =>
       mediator ! Publish("itemEditorAnswers", sampleItemAns())
+    case API_ItemEditorService.Item(item) =>
+      println("ItemEditorService: received " + item)
   }
 
   def receive = {
