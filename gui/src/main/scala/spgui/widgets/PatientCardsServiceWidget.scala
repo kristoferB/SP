@@ -65,35 +65,38 @@ object PatientCardsServiceWidget {
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
         mess.getBodyAs[api.PatientProperty].map {
+          case api.Tick() => {
+              $.modState{ s => updateAllTimeDiffs(s) }.runNow()
+          }
           case api.NotTriaged(careContactId, timestamp) => {
-              $.modState{ s => updateState(s, careContactId, timestamp, Priority("NotTriaged", timestamp)) }.runNow()
+              $.modState{ s => updateState(s, careContactId, Priority("NotTriaged", timestamp)) }.runNow()
           }
           case api.Green(careContactId, timestamp) => {
-              $.modState{ s => updateState(s, careContactId, timestamp, Priority("Green", timestamp)) }.runNow()
+              $.modState{ s => updateState(s, careContactId, Priority("Green", timestamp)) }.runNow()
           }
           case api.Yellow(careContactId, timestamp) => {
-              $.modState{ s => updateState(s, careContactId, timestamp, Priority("Yellow", timestamp)) }.runNow()
+              $.modState{ s => updateState(s, careContactId, Priority("Yellow", timestamp)) }.runNow()
           }
           case api.Orange(careContactId, timestamp) => {
-              $.modState{ s => updateState(s, careContactId, timestamp, Priority("Orange", timestamp)) }.runNow()
+              $.modState{ s => updateState(s, careContactId, Priority("Orange", timestamp)) }.runNow()
           }
           case api.Red(careContactId, timestamp) => {
-              $.modState{ s => updateState(s, careContactId, timestamp, Priority("Red", timestamp)) }.runNow()
+              $.modState{ s => updateState(s, careContactId, Priority("Red", timestamp)) }.runNow()
           }
           case api.Attended(careContactId, timestamp, attended, doctorId) => {
-            $.modState{ s => updateState(s, careContactId, timestamp, Attended(attended, doctorId, timestamp)) }.runNow()
+            $.modState{ s => updateState(s, careContactId, Attended(attended, doctorId, timestamp)) }.runNow()
           }
           case api.RoomNr(careContactId, timestamp, roomNr) => {
-            $.modState{ s => updateState(s, careContactId, timestamp, Location(roomNr, timestamp)) }.runNow()
+            $.modState{ s => updateState(s, careContactId, Location(roomNr, timestamp)) }.runNow()
           }
           case api.Team(careContactId, timestamp, team, clinic) => {
-            $.modState{ s => updateState(s, careContactId, timestamp, Team(team, clinic, timestamp)) }.runNow()
+            $.modState{ s => updateState(s, careContactId, Team(team, clinic, timestamp)) }.runNow()
           }
           case api.LatestEvent(careContactId, timestamp, latestEvent, timeDiff) => {
-            $.modState{ s => updateState(s, careContactId, timestamp, LatestEvent(latestEvent, timeDiff, timestamp)) }.runNow()
+            $.modState{ s => updateState(s, careContactId, LatestEvent(latestEvent, timeDiff, timestamp)) }.runNow()
           }
-          case api.ArrivalTime(careContactId, timeDiff, timestamp) => {
-            $.modState{ s => updateState(s, careContactId, timestamp, ArrivalTime(timeDiff, timestamp)) }.runNow()
+          case api.ArrivalTime(careContactId, timestamp, timeDiff) => {
+            $.modState{ s => updateState(s, careContactId, ArrivalTime(timeDiff, timestamp)) }.runNow()
           }
           case api.Finished(careContactId, timestamp) => {
             $.modState{ s => s - careContactId }.runNow()
@@ -103,15 +106,28 @@ object PatientCardsServiceWidget {
     }, "patient-cards-widget-topic"
   )
 
-  def updateState(s: Map[String, Patient], careContactId: String, timestamp: String, prop: PatientProperty): Map[String, Patient] = {
+  def updateState(s: Map[String, Patient], careContactId: String, prop: PatientProperty): Map[String, Patient] = {
     if (s.keys.exists(_ == careContactId)) {
-      s + (careContactId -> updateExistingPatient(s, careContactId, timestamp, prop))
+      s + (careContactId -> updateExistingPatient(s, careContactId, prop))
     } else {
-      s + (careContactId -> updateNewPatient(careContactId, timestamp, prop))
+      s + (careContactId -> updateNewPatient(careContactId, prop))
     }
   }
 
-  def updateNewPatient(ccid: String, timestamp: String, prop: PatientProperty): Patient = {
+  def updateAllTimeDiffs(s: Map[String, Patient]): Map[String, Patient] = {
+    var newState: Map[String, Patient] = s
+    s.foreach{ p =>
+      if (p._2.latestEvent.timeDiff != -1) {
+        newState = updateState(newState, p._1, LatestEvent(p._2.latestEvent.latestEvent, p._2.latestEvent.timeDiff + 60000, p._2.latestEvent.timestamp)) // 60 000 ms is one minute
+      }
+      if (p._2.arrivalTime.timeDiff != -1) {
+        newState = updateState(newState, p._1, ArrivalTime(p._2.arrivalTime.timeDiff + 60000, p._2.arrivalTime.timestamp)) // 60 000 ms is one minute
+      }
+    }
+    return newState
+  }
+
+  def updateNewPatient(ccid: String, prop: PatientProperty): Patient = {
     prop match {
       case Priority(color, timestamp) => Patient(ccid, Priority(color, timestamp), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
       case Attended(attended, doctorId, timestamp) => Patient(ccid, Priority("", ""), Attended(attended, doctorId, timestamp), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
@@ -123,7 +139,7 @@ object PatientCardsServiceWidget {
     }
   }
 
-  def updateExistingPatient(s: Map[String, Patient], ccid: String, timestamp: String, prop: PatientProperty): Patient = {
+  def updateExistingPatient(s: Map[String, Patient], ccid: String, prop: PatientProperty): Patient = {
     prop match {
       case Priority(color, timestamp) => Patient(ccid, Priority(color, timestamp), s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).latestEvent, s(ccid).arrivalTime)
       case Attended(attended, doctorId, timestamp) => Patient(ccid, s(ccid).priority, Attended(attended, doctorId, timestamp), s(ccid).location, s(ccid).team, s(ccid).latestEvent, s(ccid).arrivalTime)
@@ -427,7 +443,7 @@ object PatientCardsServiceWidget {
       Attended(true, "sarli29", "2017-02-01T15:58:33Z"),
       Location("52", "2017-02-01T15:58:33Z"),
       Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
-      LatestEvent("OmsKoord", 190, "2017-02-01T15:58:33Z"),
+      LatestEvent("OmsKoord", -1, "2017-02-01T15:58:33Z"),
       ArrivalTime(-1, "2017-02-01T10:01:38Z")
       )))
   .renderBackend[Backend]

@@ -32,6 +32,10 @@ class PatientCardsDevice extends Actor with ActorLogging {
   */
   def receive = {
     case mess @ _ if {log.debug(s"PatientCardsService MESSAGE: $mess from $sender"); false} => Unit
+    case "tick" => {
+      println("Sending tick")
+      publishOnAkka(SPHeader(from = "patientCardsService"), api.Tick())
+    }
     case x: String => handleRequests(x)
   }
 
@@ -203,12 +207,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
   Calculates the time diff. in milliseconds between arrival time and now, returns an ArrivalTime-type.
   */
   def updateArrivalTime(careContactId: String, timestamp: String): api.ArrivalTime = {
-    var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-    val arrival = formatter.parse(timestamp.replaceAll("Z$", "+0000"))
-    val nowString = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date())
-    val now = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").parse(nowString)
-    val diff: Long = now.getTime() - arrival.getTime() // returns diff in millisec
-    return api.ArrivalTime(careContactId, diff, timestamp)
+    return api.ArrivalTime(careContactId, timestamp, getTimeDiff(timestamp))
   }
 
 
@@ -246,7 +245,19 @@ class PatientCardsDevice extends Actor with ActorLogging {
   }
 
   /**
-  Identifies the latest event if there is any in the events list, returns LatestEvent-type
+  Returns the time difference (in milliseconds) between a given start time and now.
+  Argument startTimeString must be received in date-time-format: yyyy-MM-ddTHH:mm:ssZ
+  */
+  def getTimeDiff(startTimeString: String): Long = {
+    var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    val startTime = formatter.parse(startTimeString.replaceAll("Z$", "+0000"))
+    val nowString = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date())
+    val now = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").parse(nowString)
+    return now.getTime() - startTime.getTime() // returns diff in millisec
+  }
+
+  /**
+  Identifies the latest event if there is any in the events list, returns LatestEvent-type.
   */
   def updateLatestEvent(careContactId: String, events: List[Map[String, String]]): api.LatestEvent = {
     var eventFound: Boolean = false
@@ -256,11 +267,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
     // Get the latest event title and its time diff
     events.foreach{ e =>
       val startOfEventString = e("Start")
-      var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-      val startOfEvent = formatter.parse(startOfEventString.replaceAll("Z$", "+0000"))
-      val nowString = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date())
-      val now = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").parse(nowString)
-      val diff: Long = now.getTime() - startOfEvent.getTime() // returns diff in millisec
+      val diff = getTimeDiff(startOfEventString)
       if (diff < timeDiff) {
         timeDiff = diff
         timestampString = startOfEventString
@@ -351,6 +358,11 @@ class PatientCardsDevice extends Actor with ActorLogging {
         println("Failed")
     }
   }
+
+  // A "ticker" that sends a "tick" string to self every 1 minute
+  import scala.concurrent.duration._
+  import context.dispatcher
+  val ticker = context.system.scheduler.schedule(0 seconds, 1 minutes, self, "tick")
 
   }
 
