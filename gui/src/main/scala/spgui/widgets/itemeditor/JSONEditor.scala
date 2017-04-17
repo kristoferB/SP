@@ -18,7 +18,7 @@ object JSONEditor {
   }
 }
 
-// TODO facade more stuff than just set
+// TODO facade more stuff
 // TODO facading destroy() perhaps a good idea
 @js.native
 class JSONEditor(element: raw.Element, options: js.UndefOr[js.Dynamic] = js.undefined, json: js.UndefOr[js.Dynamic] = js.undefined) extends js.Object {
