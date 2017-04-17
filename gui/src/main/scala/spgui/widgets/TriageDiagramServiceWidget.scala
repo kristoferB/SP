@@ -65,7 +65,6 @@ object TriageDiagramServiceWidget {
   }
 
   private val component = ReactComponentB[Unit]("teamVBelastning")
-
   .initialState(Map("0" -> "Initial"))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))

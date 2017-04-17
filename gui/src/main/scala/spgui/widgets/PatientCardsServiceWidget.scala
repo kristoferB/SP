@@ -151,36 +151,6 @@ object PatientCardsServiceWidget {
     }
   }
 
-  /*
-  Takes a Patient modifies it according to passed PatientProperty and returns
-  an updated Patient
-  **/
-  /**
-  def updatePatient(p: Patient, pp: api.PatientProperty): Patient ={
-    var tempPatient: Patient = p
-  }
-  */
-
-  /*
-  To test if laterTimestamp happened later than timestamp
-  **/
-  /**
-  def happenedAfter(laterTimestamp: String, timestamp: String ): Boolean = {
-    timestampToODT(laterTimestamp).isAfter(timestampToODT(timestamp))
-  }*/
-
-  /*
-  Converts String of type "0000-01-24T00:00:00.000Z" into OffsetDateTime
-  Used by happenedAfter.
-  **/
-  /**
-  def timestampToODT(timestamp: String): OffsetDateTime = {
-    OffsetDateTime.parse(timestamp, DateTimeFormatter.ISO_INSTANT)
-  }*/
-
-  /*
-
-  **/
   def getTimeDiffReadable(milliseconds: Long): String = {
     val minutes = ((milliseconds / (1000*60)) % 60)
     val hours = ((milliseconds / (1000*60*60)) % 24)
@@ -239,14 +209,6 @@ object PatientCardsServiceWidget {
       case _ => ""
     }
   }
-
-  /*
-  Takes a PatientProperty and calculates minutes since the event happened
-  **/
-  /**
-  def timeSinceEvent(pp: LatestEvent): String = {
-    timestampToODT(pp.timestamp).until(OffsetDateTime.now(ZoneId.of("Z")), temporal.ChronoUnit.valueOf("MINUTES")).toString
-  }*/
 
   /*
   Specifies a patientCard in SVG for scalajs-react based on a Patient.

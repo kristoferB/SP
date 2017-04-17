@@ -38,29 +38,178 @@ import spgui.widgets.{API_PatientEvent => api}
 
 object PatientReminderServiceWidget {
 
-  case class Patient(careContactId: String, patientData: Map[String, String])
+  sealed trait PatientProperty
+
+  case class Priority(color: String, timestamp: String) extends PatientProperty
+  case class Attended(attended: Boolean, doctorId: String, timestamp: String) extends PatientProperty
+  case class Location(roomNr: String, timestamp: String) extends PatientProperty
+  case class Team(team: String, clinic: String, timestamp: String) extends PatientProperty
+  case class LatestEvent(latestEvent: String, timeDiff: Long, timestamp: String) extends PatientProperty
+  case class ArrivalTime(timeDiff: Long, timestamp: String) extends PatientProperty
+
+  case class Patient(
+    var careContactId: String,
+    var priority: Priority,
+    var attended: Attended,
+    var location: Location,
+    var team: Team,
+    var latestEvent: LatestEvent,
+    var arrivalTime: ArrivalTime)
 
   private class Backend($: BackendScope[Unit, Map[String, Patient]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.PatientProperty] map {
-          case x => println(s"THIS WAS NOT EXPECTED IN PatientReminderServiceWidget: $x")
-        }
-      }, "patient-reminder-widget-topic"
-    )
+        mess.getBodyAs[api.PatientProperty].map {
+          case api.Tick() => {
+              $.modState{ s => updateAllTimeDiffs(s) }.runNow()
+          }
+          case api.NotTriaged(careContactId, timestamp) => {
+              $.modState{ s => updateState(s, careContactId, Priority("NotTriaged", timestamp)) }.runNow()
+          }
+          case api.Green(careContactId, timestamp) => {
+              $.modState{ s => updateState(s, careContactId, Priority("Green", timestamp)) }.runNow()
+          }
+          case api.Yellow(careContactId, timestamp) => {
+              $.modState{ s => updateState(s, careContactId, Priority("Yellow", timestamp)) }.runNow()
+          }
+          case api.Orange(careContactId, timestamp) => {
+              $.modState{ s => updateState(s, careContactId, Priority("Orange", timestamp)) }.runNow()
+          }
+          case api.Red(careContactId, timestamp) => {
+              $.modState{ s => updateState(s, careContactId, Priority("Red", timestamp)) }.runNow()
+          }
+          case api.Attended(careContactId, timestamp, attended, doctorId) => {
+            $.modState{ s => updateState(s, careContactId, Attended(attended, doctorId, timestamp)) }.runNow()
+          }
+          case api.RoomNr(careContactId, timestamp, roomNr) => {
+            $.modState{ s => updateState(s, careContactId, Location(roomNr, timestamp)) }.runNow()
+          }
+          case api.Team(careContactId, timestamp, team, clinic) => {
+            $.modState{ s => updateState(s, careContactId, Team(team, clinic, timestamp)) }.runNow()
+          }
+          case api.LatestEvent(careContactId, timestamp, latestEvent, timeDiff) => {
+            $.modState{ s => updateState(s, careContactId, LatestEvent(latestEvent, timeDiff, timestamp)) }.runNow()
+          }
+          case api.ArrivalTime(careContactId, timestamp, timeDiff) => {
+            $.modState{ s => updateState(s, careContactId, ArrivalTime(timeDiff, timestamp)) }.runNow()
+          }
+          case api.Finished(careContactId, timestamp) => {
+            $.modState{ s => s - careContactId }.runNow()
+          }
+          case _ => println("THIS WAS NOT EXPECTED IN PatientCardsServiceWidget.")
+      }
+    }, "patient-reminder-widget-topic"
+  )
 
-    def triageColor(p: String) = {
-      p match {
-        case "Grön" => "green"//"#289500" //"prio4"
-        case "Gul" => "yellow"//"#EAC706" //"prio3"
-        case "Orange" => "orange"//"#F08100" //"prio2"
-        case "Röd" => "red"//"#950000" //"prio1"
-        case _ =>  "grey"//"#D5D5D5" //"prioNA"
+    def updateState(s: Map[String, Patient], careContactId: String, prop: PatientProperty): Map[String, Patient] = {
+      if (s.keys.exists(_ == careContactId)) {
+        s + (careContactId -> updateExistingPatient(s, careContactId, prop))
+      } else {
+        s + (careContactId -> updateNewPatient(careContactId, prop))
       }
     }
 
+    def updateAllTimeDiffs(s: Map[String, Patient]): Map[String, Patient] = {
+      var newState: Map[String, Patient] = s
+      s.foreach{ p =>
+        if (p._2.latestEvent.timeDiff != -1) {
+          newState = updateState(newState, p._1, LatestEvent(p._2.latestEvent.latestEvent, p._2.latestEvent.timeDiff + 60000, p._2.latestEvent.timestamp)) // 60 000 ms is one minute
+        }
+        if (p._2.arrivalTime.timeDiff != -1) {
+          newState = updateState(newState, p._1, ArrivalTime(p._2.arrivalTime.timeDiff + 60000, p._2.arrivalTime.timestamp)) // 60 000 ms is one minute
+        }
+      }
+      return newState
+    }
+
+    def updateNewPatient(ccid: String, prop: PatientProperty): Patient = {
+      prop match {
+        case Priority(color, timestamp) => Patient(ccid, Priority(color, timestamp), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
+        case Attended(attended, doctorId, timestamp) => Patient(ccid, Priority("", ""), Attended(attended, doctorId, timestamp), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
+        case Location(roomNr, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location(roomNr, timestamp), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
+        case Team(team, clinic, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team(team, clinic, timestamp), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
+        case LatestEvent(latestEvent, timeDiff, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent(latestEvent, -1, timestamp), ArrivalTime(-1, ""))
+        case ArrivalTime(timeDiff, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(timeDiff, timestamp))
+        case _ => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
+      }
+    }
+
+    def updateExistingPatient(s: Map[String, Patient], ccid: String, prop: PatientProperty): Patient = {
+      prop match {
+        case Priority(color, timestamp) => Patient(ccid, Priority(color, timestamp), s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).latestEvent, s(ccid).arrivalTime)
+        case Attended(attended, doctorId, timestamp) => Patient(ccid, s(ccid).priority, Attended(attended, doctorId, timestamp), s(ccid).location, s(ccid).team, s(ccid).latestEvent, s(ccid).arrivalTime)
+        case Location(roomNr, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, Location(roomNr, timestamp), s(ccid).team, s(ccid).latestEvent, s(ccid).arrivalTime)
+        case Team(team, clinic, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, Team(team, clinic, timestamp), s(ccid).latestEvent, s(ccid).arrivalTime)
+        case LatestEvent(latestEvent, timeDiff, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, LatestEvent(latestEvent, timeDiff, timestamp), s(ccid).arrivalTime)
+        case ArrivalTime(timeDiff, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).latestEvent, ArrivalTime(timeDiff, timestamp))
+        case _ => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
+      }
+    }
+
+    def getTimeDiffReadable(milliseconds: Long): String = {
+      val minutes = ((milliseconds / (1000*60)) % 60)
+      val hours = ((milliseconds / (1000*60*60)) % 24)
+      return hours + " h " + minutes + " m "
+    }
+
+    def decodeTriageColor(p: Priority): String = {
+      p.color match {
+        case "NotTriaged" => "#D5D5D5"
+        case "Blue" => "#1288FF"
+        case "Green" => "#289500" //"prio4"
+        case "Yellow" => "#EAC706" //"prio3"
+        case "Orange" => "#F08100" //"prio2"
+        case "Red" => "#950000" //"prio1"
+        case _ =>  {
+          println("TriageColor: "+ p.color +" not expected in patientCardsService")
+          return "#D5D5D5" //"prioNA"
+        }
+      }
+    }
+
+    /*
+    Takes an AttendedEvent and returns a tuple containing a bool declaring wether
+    icon should be filled or not as we as a string containing text to be shown
+    **/
+    def decodeAttended(a: Attended): (Boolean, String) = {
+      if (a.attended)
+      (true, a.doctorId)
+      else
+      (false, "Ej Påtittad")
+    }
+
+    /*
+    Converts the Team.team-field of a given Team into a color value
+    **/
+    def decodeTeamColor(t: Team): String = {
+      t.team match {
+        case "Streamteam" => "#BEABEB"
+        case "Process" => "#FF93B8"
+        case "Blå" => "#0060C1"
+        case "Röd" => "#D15353"
+        case "Gul" => ""
+        case _ => "#E8E8E8"
+      }
+    }
+
+    /*
+    Converts the Team.klinik-field of a given Team into a letter to present
+    **/
+    def decodeKlinikLetter(t: Team): String = {
+      t.clinic match {
+        case "NAKKI" => "K"
+        case "NAKME" => "M"
+        case "NAKOR" => "O"
+        case "NAKBA" | "NAKGY" | "NAKÖN" => "J"
+        case _ => ""
+      }
+    }
+
+    /*
+    Specifies a patientCard in SVG for scalajs-react based on a Patient.
+    **/
     def patientReminder(p: Patient) = {
       val cardHeight = 186
       val cardWidth = cardHeight * 1.7
@@ -68,15 +217,11 @@ object PatientReminderServiceWidget {
       val textLeftAlignment = (triageFieldWidth + (triageFieldWidth / 11))
       val fontSize = (cardHeight / 12)
       val roomNrFontSize = (cardHeight / 3)
-
-      val secondsDiff = ((p.patientData("LatestEventTimeDiff").toLong / (1000)) % 60)
-      val minutesDiff = ((p.patientData("LatestEventTimeDiff").toLong / (1000*60)) % 60)
-      val hoursDiff = ((p.patientData("LatestEventTimeDiff").toLong / (1000*60*60)) % 24)
-      val daysDiff = p.patientData("LatestEventTimeDiff").toLong / (1000*60*60*24)
-
+      //println(triageColor(p.patientData("Priority")))
+      //println(p.patientData("Priority"))
 
       <.svg.svg( //ARTO: Skapar en <svg>-tagg att fylla med obekt
-        ^.`class` := "patientReminder",
+        ^.`class` := "patientcard",
         ^.svg.id := p.careContactId,
         ^.svg.width := cardWidth.toString,
         ^.svg.height := cardHeight.toString,
@@ -93,8 +238,8 @@ object PatientReminderServiceWidget {
           ^.svg.x := "0",
           ^.svg.y := "0",
           ^.svg.width := triageFieldWidth.toString,
-          ^.svg.height := cardHeight.toString
-          //^.svg.fill := triageColor(p.patientData("Priority"))
+          ^.svg.height := cardHeight.toString,
+          ^.svg.fill := decodeTriageColor(p.priority)
         ),
         <.svg.rect(
           ^.`class` := "delimiter",
@@ -108,13 +253,13 @@ object PatientReminderServiceWidget {
           ^.`class` := "klinikfield",
           // ^.svg.d := s"M 0,$cardHeight, "+(cardWidth / 4.6).toString+s",$cardHeight, -"+(cardWidth / 4.6).toString+s",0 Z",
           ^.svg.d := s"M 0,$cardHeight, 0,"+(cardHeight - (cardHeight / 2.6)).toString+s", "+(cardHeight / 2.6).toString+s",$cardHeight Z",
-          ^.svg.fill := "lightblue"
+          ^.svg.fill := decodeKlinikLetter(p.team)
         ),
         <.svg.path(
           ^.`class` := "teamfield",
           // ^.svg.d := s"M 0,$cardHeight, "+(cardWidth / 4.6).toString+s",$cardHeight, -"+(cardWidth / 4.6).toString+s",0 Z",
           ^.svg.d := s"M 0,$cardHeight, 0,"+(cardHeight - (cardHeight / 3)).toString+s", "+(cardHeight / 3).toString+s",$cardHeight Z",
-          ^.svg.fill := "darkseagreen"
+          ^.svg.fill := decodeTeamColor(p.team)
         ),
         <.svg.text(
           ^.`class` := "roomNr",
@@ -125,7 +270,7 @@ object PatientReminderServiceWidget {
           ^.svg.textAnchor := "middle",
           ^.svg.fontSize := roomNrFontSize.toString  + "px",
           ^.svg.fill := "white",
-          p.patientData("Location")
+          p.location.roomNr
         ),
         // <.svg.text(
         //   ^.`class` := "careContactId",
@@ -149,7 +294,7 @@ object PatientReminderServiceWidget {
           ^.svg.y := (cardHeight / 2.8).toString,
           ^.svg.textAnchor := "bottom",
           ^.svg.fontSize := (roomNrFontSize * 0.8).toString  + "px",
-          p.patientData("LatestEventTitle")
+          p.latestEvent.latestEvent
         ),
         <.svg.svg(
           ^.`class` := "timerSymbol",
@@ -175,8 +320,8 @@ object PatientReminderServiceWidget {
             ^.`class` := "timeSinceLatestEvent",
             ^.svg.x := (textLeftAlignment * 1.48).toString,
             ^.svg.y := (cardHeight / 1.5).toString,
-            ^.svg.fontSize := (fontSize * 1).toString  + "px",
-            daysDiff + " d " + hoursDiff + " h " + minutesDiff + " m " + secondsDiff + " s "
+            ^.svg.fontSize := (fontSize * 2).toString  + "px",
+            getTimeDiffReadable(p.latestEvent.timeDiff) // WAS: timeSinceEvent(p.latestEvent)
           ),
           // <.svg.svg(
           //   ^.`class` := "latestActor",
@@ -209,24 +354,29 @@ object PatientReminderServiceWidget {
               ^.svg.x := (textLeftAlignment * 0.3).toString,
               ^.svg.y := 20.toString,
               ^.svg.fontSize := fontSize.toString  + "px",
-              p.patientData("LatestEventTitle")
+              getTimeDiffReadable(p.arrivalTime.timeDiff) // WAS:timestampToODT(p.arrivalTime.timestamp).format(DateTimeFormatter.ofPattern("H'.'m'"))
             )
           ),
           <.svg.svg(
-            ^.`class` := "doctorStatus",
+            ^.`class` := "attendedStatus",
             ^.svg.x := (textLeftAlignment + ((cardWidth - triageFieldWidth) / 2)).toString,
             ^.svg.y := (cardHeight / 1.2).toString,
             <.svg.path(
               ^.`class` := "doctorSymbol",
               //^.svg.width := cardWidth.toString,
-              ^.svg.d := "m 19.632768,2.7559322 -4.557853,0 C 14.616949,1.5605424 13.417514,0.69491525 12,0.69491525 c -1.417514,0 -2.6169492,0.86562715 -3.0749153,2.06101695 l -4.5578531,0 c -1.199435,0 -2.1807909,0.9274576 -2.1807909,2.0610169 l 0,14.4271189 c 0,1.133559 0.9813559,2.061017 2.1807909,2.061017 l 15.2655364,0 c 1.199435,0 2.180791,-0.927458 2.180791,-2.061017 l 0,-14.4271189 c 0,-1.1335593 -0.981356,-2.0610169 -2.180791,-2.0610169 z m -7.632768,0 c 0.599718,0 1.090395,0.4637288 1.090395,1.0305085 0,0.5667796 -0.490677,1.0305084 -1.090395,1.0305084 -0.599718,0 -1.090395,-0.4637288 -1.090395,-1.0305084 0,-0.5667797 0.490677,-1.0305085 1.090395,-1.0305085 z M 9.819209,17.183051 5.4576271,13.061017 6.9950847,11.608 9.819209,14.266712 17.004915,7.475661 18.542373,8.938983 9.819209,17.183051 Z",
-              ^.svg.fill := "black"
+              ^.svg.d := "m 4.9752607,1044.5838 c -1.8280207,0 -3.6508627,0.8979 -4.7910985,2.7296 1.8619399,3.5028 7.5608327,3.7247 9.6092216,0 -1.1569646,-1.8081 -2.9901024,-2.7236 -4.8181231,-2.7296 z m 0.011583,0.6602 a 2.059132,2.059132 0 0 1 2.0577403,2.0578 2.059132,2.059132 0 0 1 -2.0577403,2.0615 2.059132,2.059132 0 0 1 -2.05774,-2.0615 2.059132,2.059132 0 0 1 2.05774,-2.0578 z m -0.096517,0.6873 a 1.3727547,1.3727547 0 0 0 -1.274023,1.3705 1.3727547,1.3727547 0 0 0 1.3705399,1.3745 1.3727547,1.3727547 0 0 0 1.3744007,-1.3745 1.3727547,1.3727547 0 0 0 -1.3744007,-1.3705 1.3727547,1.3727547 0 0 0 -0.096517,0 z",
+              ^.svg.fill := {
+                if (decodeAttended(p.attended)._1) "black"
+                else "grey" // "#E8E8E8"
+              }
+
             ),
             <.svg.text(
               ^.svg.x := (textLeftAlignment * 0.3).toString,
               ^.svg.y := 20.toString,
               ^.svg.fontSize := fontSize.toString  + "px",
-              p.careContactId
+              decodeAttended(p.attended)._2
+
             )
           )
 
@@ -235,7 +385,7 @@ object PatientReminderServiceWidget {
 
       def render(pmap: Map[String, Patient]) = {
         spgui.widgets.css.WidgetStyles.addToDocument()
-        val longestWaiting = getLongestWaitingPatients(pmap)
+        val longestWaiting = getLongestWaitingPatients(pmap - "-1")
 
         <.div(^.`class` := "card-holder-root")( // This div is really not necessary
           longestWaiting.values map ( p =>
@@ -248,7 +398,7 @@ object PatientReminderServiceWidget {
         var longestWaiting: Map[String, Patient] = Map()
         var timeDiffMap: Map[String, Long] = Map()
         patients.foreach{ p =>
-          timeDiffMap += p._2.careContactId -> p._2.patientData("LatestEventTimeDiff").toLong
+          timeDiffMap += p._1 -> p._2.latestEvent.timeDiff
         }
         if (timeDiffMap.size > 4) {
           for (i <- 1 to 4) {
@@ -268,7 +418,16 @@ object PatientReminderServiceWidget {
   }
 
   private val patientReminderComponent = ReactComponentB[Unit]("patientReminderComponent")
-  .initialState(Map("4502085" -> Patient("4502085", Map("careContactId" -> "4502085", "Location" -> "13", "CareContactRegistrationTime"->"2017-02-01T15:49:19Z", "LatestEventTitle" -> "testtitel", "LatestEventTimeDiff" -> "7"))))
+  .initialState(Map("-1" ->
+    Patient(
+      "4502085",
+      Priority("NotTriaged", "2017-02-01T15:49:19Z"),
+      Attended(true, "sarli29", "2017-02-01T15:58:33Z"),
+      Location("52", "2017-02-01T15:58:33Z"),
+      Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
+      LatestEvent("OmsKoord", -1, "2017-02-01T15:58:33Z"),
+      ArrivalTime(-1, "2017-02-01T10:01:38Z")
+      )))
   .renderBackend[Backend]
   .build
 
