@@ -32,7 +32,6 @@ class TriageDiagramDevice extends Actor with ActorLogging {
   */
   def receive = {
     case mess @ _ if {log.debug(s"TriageDiagramService MESSAGE: $mess from $sender"); false} => Unit
-
     case x: String => handleRequests(x)
 
   }
@@ -53,22 +52,93 @@ class TriageDiagramDevice extends Actor with ActorLogging {
     TriageDiagramComm.extractPatientEvent(mess) map { case (h, b) =>
       b match {
         case api.NewPatient(careContactId, patientData, events) => {
-          println("+ New patient: " + careContactId + ", Prio: " + patientData("Priority"))
-          publishOnAkka(header, updatePriority(careContactId, patientData("timestamp"), patientData("Priority")))
+          val patientProperties = extractNewPatientProperties(api.NewPatient(careContactId, patientData, events))
+          if (!patientProperties.isEmpty) {
+            printProperties("NEW PATIENT: PatientProps to send: ", patientProperties)
+            for (patientProperty <- patientProperties) {
+              publishOnAkka(header, patientProperty)
+            }
+          }
         }
         case api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents) => {
-          println("DIFF: new events: " + newEvents + ", removed events: " + removedEvents)
-          val latestPrioEvent = getLatestPrioEvent(careContactId, newEvents)
-          if (latestPrioEvent != api.Undefined(careContactId, "0000-00-00T00:00:00.000Z")) {
-            publishOnAkka(header, latestPrioEvent)
+          val patientProperties = extractDiffPatientProperties(api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents))
+          if (!patientProperties.isEmpty) {
+            printProperties("DIFF PATIENT: PatientProps to send: ", patientProperties)
+            for (patientProperty <- patientProperties) {
+              publishOnAkka(header, patientProperty)
+            }
           }
         }
         case api.RemovedPatient(careContactId, timestamp) => {
-          println("- Removed patient: " + careContactId)
-          publishOnAkka(header, api.Finished(careContactId, timestamp))
+          val toSend = api.Finished(careContactId, timestamp)
+          printProperties("REMOVED PATIENT: PatientProps to send: ", toSend)
+          publishOnAkka(header, toSend)
         }
       }
     }
+  }
+
+  /**
+  * Prints what is about to be sent on bus.
+  */
+  def printProperties(firstRow: String, secondRow: Any) {
+    println(firstRow)
+    println(secondRow)
+    println()
+    println()
+  }
+
+  /**
+  Takes a NewPatient and returns PatientProperties based on patient data and events.
+  */
+  def extractNewPatientProperties(patient: api.NewPatient): List[api.PatientProperty] = {
+    return filterNewPatientProperties(patient, getNewPatientProperties(patient))
+  }
+
+  /**
+  Takes a DiffPatient and returns PatientProperties based on updates and new events.
+  */
+  def extractDiffPatientProperties(patient: api.DiffPatient): List[api.PatientProperty] = {
+    return filterDiffPatientProperties(patient, getDiffPatientProperties(patient))
+  }
+
+  /**
+  Takes a NewPatient and extracts PatientProperties based on patient data and events.
+  */
+  def getNewPatientProperties(patient: api.NewPatient): List[api.PatientProperty] = {
+    var patientPropertyBuffer = new ListBuffer[api.PatientProperty]()
+    patient.patientData.foreach{ p =>
+      p._1 match {
+        case "Priority" => patientPropertyBuffer += updatePriority(patient.careContactId, patient.patientData("timestamp"), p._2)
+        case _ => patientPropertyBuffer += api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")
+      }
+    }
+    return patientPropertyBuffer.toList
+  }
+
+  /**
+  Takes a DiffPatient and extracts PatientProperties based on updates and events.
+  */
+  def getDiffPatientProperties(patient: api.DiffPatient): List[api.PatientProperty] = {
+    var patientPropertyBuffer = new ListBuffer[api.PatientProperty]()
+    patientPropertyBuffer += getLatestPrioEvent(patient.careContactId, patient.newEvents)
+    return patientPropertyBuffer.toList
+  }
+
+  /**
+  Filters out unwanted patient properties.
+  */
+  def filterNewPatientProperties(patient: api.NewPatient, patientProperties: List[api.PatientProperty]): List[api.PatientProperty] = {
+    patientProperties
+      .filter(_ != (api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")))
+  }
+
+  /**
+  Filters out unwanted patient properties.
+  */
+  def filterDiffPatientProperties(patient: api.DiffPatient, patientProperties: List[api.PatientProperty]): List[api.PatientProperty] = {
+    patientProperties
+      .filter(_ != (api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")))
   }
 
   /**
@@ -124,6 +194,16 @@ class TriageDiagramDevice extends Actor with ActorLogging {
   */
   def isValidTriageColor(string: String): Boolean = {
     if (string == "Grön" || string == "Gul" || string == "Orange" || string == "Röd") {
+      return true
+    }
+    return false
+  }
+
+  /**
+  Checks if given field is empty or not.
+  */
+  def fieldEmpty(field: String): Boolean = {
+    if (field == "") {
       return true
     }
     return false

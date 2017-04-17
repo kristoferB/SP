@@ -55,21 +55,26 @@ class PatientCardsDevice extends Actor with ActorLogging {
     PatientCardsComm.extractPatientEvent(mess) map { case (h, b) =>
       b match {
         case api.NewPatient(careContactId, patientData, events) => {
-          for (patientProperty <- extractNewPatientProperties(api.NewPatient(careContactId, patientData, events))) {
-            publishOnAkka(header, patientProperty)
+          val patientProperties = extractNewPatientProperties(api.NewPatient(careContactId, patientData, events))
+          if (!patientProperties.isEmpty) {
+            printProperties("NEW PATIENT: PatientProps to send: ", patientProperties)
+            for (patientProperty <- patientProperties) {
+              publishOnAkka(header, patientProperty)
+            }
           }
         }
         case api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents) => {
-          for (patientProperty <- extractDiffPatientProperties(api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents))) {
-            publishOnAkka(header, patientProperty)
+          val patientProperties = extractDiffPatientProperties(api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents))
+          if (!patientProperties.isEmpty) {
+            printProperties("DIFF PATIENT: PatientProps to send: ", patientProperties)
+            for (patientProperty <- patientProperties) {
+              publishOnAkka(header, patientProperty)
+            }
           }
         }
         case api.RemovedPatient(careContactId, timestamp) => {
-          println("REMOVED PATIENT: PatientProps to send: ")
           val toSend = api.Finished(careContactId, timestamp)
-          println(toSend)
-          println()
-          println()
+          printProperties("REMOVED PATIENT: PatientProps to send: ", toSend)
           publishOnAkka(header, toSend)
         }
       }
@@ -77,27 +82,27 @@ class PatientCardsDevice extends Actor with ActorLogging {
   }
 
   /**
+  * Prints what is about to be sent on bus.
+  */
+  def printProperties(firstRow: String, secondRow: Any) {
+    println(firstRow)
+    println(secondRow)
+    println()
+    println()
+  }
+
+  /**
   Takes a NewPatient and returns PatientProperties based on patient data and events.
   */
   def extractNewPatientProperties(patient: api.NewPatient): List[api.PatientProperty] = {
-    val filteredPatientProps = filterNewPatientProperties(patient, getNewPatientProperties(patient))
-    println("NEW PATIENT: PatientProps to send: ")
-    println(filteredPatientProps)
-    println()
-    println()
-    return filteredPatientProps
+    return filterNewPatientProperties(patient, getNewPatientProperties(patient))
   }
 
   /**
   Takes a DiffPatient and returns PatientProperties based on updates and new events.
   */
   def extractDiffPatientProperties(patient: api.DiffPatient): List[api.PatientProperty] = {
-    val filteredPatientProps = filterDiffPatientProperties(patient, getDiffPatientProperties(patient))
-    println("DIFF PATIENT: PatientProps to send: ")
-    println(filteredPatientProps)
-    println()
-    println()
-    return filteredPatientProps
+    return filterDiffPatientProperties(patient, getDiffPatientProperties(patient))
   }
 
   /**
@@ -108,8 +113,8 @@ class PatientCardsDevice extends Actor with ActorLogging {
     patient.patientData.foreach{ p =>
       p._1 match {
         case "Location" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
-        case "Team" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
-        case "Priority" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updatePriority(patient.careContactId, patient.patientData("timestamp"), p._2)
+        case "Team" => if (!fieldEmpty(p._2) && !fieldEmpty(patient.patientData("Location"))) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
+        case "Priority" => patientPropertyBuffer += updatePriority(patient.careContactId, patient.patientData("timestamp"), p._2)
         case "VisitRegistrationTime" => patientPropertyBuffer += updateArrivalTime(patient.careContactId, p._2)
         case _ => patientPropertyBuffer += api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")
       }
@@ -127,7 +132,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
     patient.patientData.foreach{ p =>
       p._1 match {
         case "Location" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
-        case "Team" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
+        case "Team" => if (!fieldEmpty(p._2) && !fieldEmpty(patient.patientData("Location"))) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
         case _ => patientPropertyBuffer += api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")
       }
     }
@@ -200,7 +205,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
   Discerns team and klinik, returns a Team-type.
   */
   def updateTeam(careContactId: String, timestamp: String, clinic: String, reasonForVisit: String, location: String): api.Team = {
-    api.Team(careContactId, timestamp, decodeTeam(reasonForVisit, location), decodeClinic(clinic))
+    return api.Team(careContactId, timestamp, decodeTeam(reasonForVisit, location), decodeClinic(clinic))
   }
 
   /**
@@ -210,13 +215,11 @@ class PatientCardsDevice extends Actor with ActorLogging {
     return api.ArrivalTime(careContactId, timestamp, getTimeDiff(timestamp))
   }
 
-
-
   /**
   Cleans up Location-value and returns a RoomNr-type.
   */
   def updateLocation(careContactId: String, timestamp: String, location: String): api.RoomNr = {
-    api.RoomNr(careContactId, timestamp, decodeLocation(location))
+    return api.RoomNr(careContactId, timestamp, decodeLocation(location))
   }
 
   /**
@@ -232,7 +235,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
   }
 
   /**
-  Discerns priority and returns corresponding PriorityEvent-type
+  Discerns priority and returns corresponding PriorityEvent-type.
   */
   def updatePriority(careContactId: String, timestamp: String, priority: String): api.PriorityEvent = {
     priority match {
@@ -309,6 +312,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
       case "NAKME" => "medicin"
       case "NAKOR" => "ortopedi"
       case "NAKBA" | "NAKGY" | "NAKÖN" => "bgö"
+      case _ => "bgö" // dont know what this means, ex NAK23T
     }
   }
 

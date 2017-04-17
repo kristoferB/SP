@@ -18,6 +18,8 @@ package API_PatientEvent {
   // Messages I can send to my widget
   sealed trait PatientProperty
 
+  case class Tick() extends PatientProperty
+
   sealed trait PriorityEvent extends PatientProperty
   case class NotTriaged(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
   case class Green(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
@@ -35,16 +37,17 @@ package API_PatientEvent {
   case class Team(careContactId: String, timestamp: String, team: String, klinik: String) extends PatientProperty with TeamEvent
 
   sealed trait LatestEventEvent
-  case class LatestEvent(careContactId: String, timestamp: String, latestEvent: String) extends PatientProperty with LatestEventEvent
+  case class LatestEvent(careContactId: String, timestamp: String, latestEvent: String, timeDiff: Long) extends PatientProperty with LatestEventEvent
 
   sealed trait ArrivalTimeEvent
-  case class ArrivalTime(careContactId: String, timestamp: String) extends PatientProperty with ArrivalTimeEvent
+  case class ArrivalTime(careContactId: String, timestamp: String, timeDiff: Long) extends PatientProperty with ArrivalTimeEvent
 
   sealed trait FinishedEvent
   case class FinishedStillPresent(careContactId: String, timestamp: String) extends PatientProperty with FinishedEvent
   case class Finished(careContactId: String, timestamp: String) extends PatientProperty with FinishedEvent
 
   case class Undefined(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent with AttendedEvent with LocationEvent with TeamEvent with LatestEventEvent with ArrivalTimeEvent with FinishedEvent
+
   object attributes {
     val service = "patientReminderService"
   }
