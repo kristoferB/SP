@@ -21,7 +21,11 @@ object JSONEditor {
 // TODO facade more stuff
 // TODO facading destroy() perhaps a good idea
 @js.native
-class JSONEditor(element: raw.Element, options: js.UndefOr[js.Dynamic] = js.undefined, json: js.UndefOr[js.Dynamic] = js.undefined) extends js.Object {
+class JSONEditor(
+  element: raw.Element,
+  options: js.UndefOr[js.Dynamic] = js.undefined,
+  json: js.UndefOr[js.Dynamic] = js.undefined
+) extends js.Object {
   def set(json: js.Dynamic): Unit = js.native
   def resize(): Unit = js.native
   def get(): js.Dynamic = js.native
@@ -30,6 +34,8 @@ class JSONEditor(element: raw.Element, options: js.UndefOr[js.Dynamic] = js.unde
 // this is actually a facade, even tho no annotation is needed
 // TODO facade more of the options object
 case class JSONEditorOptions(
+  // return boolean or object e.g. {field: true, value: false}
+  onEditable: js.Dynamic => Any = node => false,
   history: Boolean = true,
   mode: String = "code",
   modes: Seq[String] = Seq("code", "tree"),
@@ -38,6 +44,7 @@ case class JSONEditorOptions(
 ) {
   def toJS =
     l(
+      "onEditable" -> onEditable,
       "history" -> history,
       "mode" -> mode,
       "modes" -> modes.toJSArray,
