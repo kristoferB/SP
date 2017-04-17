@@ -65,15 +65,17 @@ object ItemEditor {
 
   class Backend($: BackendScope[SPWidgetBase, State]) {
 
+    var jsonEditor: JSONEditor = null // initalized for real upon mounting
+
     def parseCommand(spm: SPMessage) = spm.getBodyAs[API_ItemEditorService]
 
     def handleCommand: API_ItemEditorService => Unit = {
-      case API_ItemEditorService.Hello() => { println("ItemEditorWidget: Somebody said hi") }
-      case opSPV: API_ItemEditorService.SampleItem => {
-        println(opSPV.operationSPV)
-        $.setState(State(Some(opSPV.operationSPV))).runNow()
-      }
-      case x => println(s"THIS WAS NOT EXPECTED IN ItemEditorWidget: $x")
+      case API_ItemEditorService.Hello() =>
+        println("ItemEditorWidget: Somebody said hi")
+      case opSPV: API_ItemEditorService.SampleItem =>
+        jsonEditor.set(JSON.parse(opSPV.operationSPV.toJson))
+      case x =>
+        println(s"THIS WAS NOT EXPECTED IN ItemEditorWidget: $x")
     }
 
     val messObs = BackendCommunication.getMessageObserver(
@@ -117,24 +119,30 @@ object ItemEditor {
 
     def sendHello() = sendCommand(API_ItemEditorService.Hello())
 
+    def changeJSON() = Callback{
+      val someLit = l("mmm2um" -> "kkkkkk")
+      jsonEditor.set(someLit)
+    }
+
+    def returnItem() = Callback{
+      val spVal = fromJsonToSPValue(JSON.stringify(jsonEditor.get())).get
+      sendCommand(API_ItemEditorService.Item(spVal))
+    }
+
     val sampleJsonToSend = l("blå" -> "bär")
     val sampleItem = fromJsonToSPValue(JSON.stringify(sampleJsonToSend)).get
     def sendSampleItem() = sendCommand(API_ItemEditorService.Item(sampleItem))
 
     def render(spwb: SPWidgetBase, s: State) =
-      // can't rerender JSONEditor on ItemEditor state change,
-      // because JSONEditor uses componentDidMount I think
-      s.spvOp match {
-        case Some(spv) =>
-          <.div(ItemEditorCSS.editor, JSONEditor(jsonEditorOptions, JSON.parse(spv.toJson)))
-        case None =>
-          <.div("No json received yet")
-      }
+      <.div(<.button("Save", ^.onClick --> returnItem()))
   }
 
   private val component = ReactComponentB[SPWidgetBase]("ItemEditor")
     .initialState(State())
     .renderBackend[Backend]
+    .componentDidMount(dcb =>
+      Callback(dcb.backend.jsonEditor = JSONEditor(dcb.getDOMNode, jsonEditorOptions))
+    )
     .build
 
   def apply() = (spwb: SPWidgetBase) => component(spwb)

@@ -11,34 +11,10 @@ import js.Dynamic.{ literal => l }
 import js.JSConverters._
 import org.scalajs.dom.raw
 
-// the state of the jsoneditor is best handled by the jsoneditor-module itself
-// the whole jsoneditor-element is put as state to let it do that
 object JSONEditor {
-  case class Props(options: JSONEditorOptions, json: js.Dynamic)
-
-  val component = ReactComponentB[Props]("JSONEditor")
-    .initialState_P(p => JSONEditorElement(p.options, p.json))
-    .render(dcb => dcb.state)
-    .build
-
-  def apply(options: JSONEditorOptions, json: js.Dynamic) = component(Props(options, json))
-}
-
-object JSONEditorElement {
-  case class Props(options: JSONEditorOptions, json: js.Dynamic)
-
-  def component = ReactComponentB[Props]("JSONEditorElement")
-    .render(_ => <.div(ItemEditorCSS.editor))
-    .componentDidMount(
-      dcb => Callback(addTheJSONEditor(dcb.getDOMNode, dcb.props.options, dcb.props.json))
-    )
-    .build
-
-  def apply(options: JSONEditorOptions, json: js.Dynamic) = component(Props(options, json))
-
-  private def addTheJSONEditor(element: raw.Element, options: JSONEditorOptions, json: js.Dynamic): Unit = {
+  def apply(element: raw.Element, options: JSONEditorOptions): JSONEditor = {
     val optionsInJS = options.toJS
-    val editor = new JSONEditor(element, optionsInJS, json)
+    new JSONEditor(element, optionsInJS)
   }
 }
 
@@ -48,6 +24,7 @@ object JSONEditorElement {
 class JSONEditor(element: raw.Element, options: js.UndefOr[js.Dynamic] = js.undefined, json: js.UndefOr[js.Dynamic] = js.undefined) extends js.Object {
   def set(json: js.Dynamic): Unit = js.native
   def resize(): Unit = js.native
+  def get(): js.Dynamic = js.native
 }
 
 // this is actually a facade, even tho no annotation is needed
