@@ -48,6 +48,6 @@ import sp.gPubSub.{API_PatientEvent => api}
 
 object GPubSubComm {
 
-  def makeMess(h: SPHeader, b: api.ElvisEvent) = SPMessage.makeJson[SPHeader, api.ElvisEvent](h, b)
+  //def makeMess(h: SPHeader, b: api.ElvisEvent) = SPMessage.makeJson[SPHeader, api.ElvisEvent](h, b)
 
 }

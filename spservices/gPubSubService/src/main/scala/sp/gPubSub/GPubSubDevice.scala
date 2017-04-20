@@ -52,13 +52,15 @@ class GPubSubDevice extends Actor with ActorLogging {
     case "pull-mess" => {
       while(true) {
         val messList = getMessages
+        println("MessList size: " + messList.size)
         if (!messList.isEmpty) {
-        //  val body = api.ElvisData(messList(0))
-          val patientMap: Map[String, List[ElvisPatient]]  = read[Map[String, List[ElvisPatient]]](messList(0))
-          val patients = patientMap("patients") // will fail if wrong structure
-          println(s"No of patients: ${patients.size}")
-          checkTheDiff(patients)
-          Thread.sleep(5000)
+          messList.foreach{ m =>
+            val patientMap: Map[String, List[ElvisPatient]]  = read[Map[String, List[ElvisPatient]]](m)
+            val patients = patientMap("patients") // will fail if wrong structure
+            println(s"No of patients: ${patients.size}")
+            checkTheDiff(patients)
+          }
+          Thread.sleep(4000)
         }
       }
     }
