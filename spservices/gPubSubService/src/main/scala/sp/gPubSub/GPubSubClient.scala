@@ -40,7 +40,7 @@ class GPubSubClient(applicationName: String, implicit val projectName: String) e
   var creds = GoogleCredential.getApplicationDefault()
 
   def main(): List[String] = {
-    val sub = getSubscription("arto-topic", "arto-sub")
+    val sub = getSubscription("elvis-snap", "elvis-snap-sub")
     var listOfMessages = new ListBuffer[String]()
     for (x <- sub.pullMessages()) {
       x.foreach { m =>
