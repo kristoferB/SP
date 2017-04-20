@@ -69,7 +69,7 @@ object Launch extends App {
     //system.actorOf(Sp1Talker.props, "sp1talker")
     //system.actorOf(Trucks.props(ahid))
 
-    Labkit(ahid, system)
+    //LabkitAbilities(ahid, system)
 
     // HackTest.hackTest(system)
     // HackTest.hackAbilities(system)

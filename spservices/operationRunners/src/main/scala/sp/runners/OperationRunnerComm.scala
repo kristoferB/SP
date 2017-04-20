@@ -13,6 +13,8 @@ package API_OperationRunner {
 
   case class Setup(name: String, runnerID: ID, ops: Set[Operation], opAbilityMap: Map[ID, ID], initialState: Map[ID, SPValue]) extends Request
   case class SetState(runnerID: ID, state: Map[ID, SPValue]) extends Request
+  case class AddOperations(runnerID: ID, ops: Set[Operation], opAbilityMap: Map[ID, ID]) extends Request
+  case class RemoveOperations(runnerID: ID, ops: Set[ID]) extends Request
   case class ForceComplete(ability: ID) extends Request
   case class TerminateRunner(runnerID: ID) extends Request
   case class GetState(runnerID: ID) extends Request

@@ -1,6 +1,7 @@
 package sp.labkit
 
 import akka.actor._
+import sp.labkit.operations._
 
 
 object Launch extends App {
@@ -9,11 +10,20 @@ object Launch extends App {
 
   cluster.registerOnMemberUp {
     // Add root actors used in node here
-    println("labkit node has joined the cluster")
-    system.actorOf(OPC.props, "OPC")
-    system.actorOf(OPMakerLabKit.props, "opMakerLabKit")
-    system.actorOf(ProductAggregator.props, "ProductAggregator")
-    system.actorOf(ResourceAggregator.props, "ResourceAggregator")
+
+    // load the abilities and the OPC
+    // this must be launched after the ability handler and the OPC
+    sp.labkit.operations.LoadLabkitAbilities(system)
+    system.actorOf(LabkitOperationService.props, "LabkitOperations")
+
+
+
+    // Below is for the old labkit demo
+//    println("labkit node has joined the cluster")
+//    system.actorOf(OPC.props, "OPC")
+//    system.actorOf(OPMakerLabKit.props, "opMakerLabKit")
+//    system.actorOf(ProductAggregator.props, "ProductAggregator")
+//    system.actorOf(ResourceAggregator.props, "ResourceAggregator")
   }
 
   cluster.registerOnMemberRemoved{
