@@ -244,6 +244,7 @@ class AbilityActor(val ability: api.Ability) extends Actor with AbilityActorLogi
       sendAbilityState(sender())
 
     case StartAbility(s, id, p, attr) =>
+      println("STARTING ABILITY")
       val res = start(s)
       res.foreach { updS =>
         reqID = Some(id)

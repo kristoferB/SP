@@ -1,7 +1,10 @@
 package sp.labkit
 
 import akka.actor._
+import sp.abilityhandler.AbilityHandler
+import sp.devicehandler.VirtualDevice
 import sp.labkit.operations._
+import sp.runners.OperationRunner
 
 
 object Launch extends App {
@@ -11,9 +14,17 @@ object Launch extends App {
   cluster.registerOnMemberUp {
     // Add root actors used in node here
 
+    val vdid = java.util.UUID.randomUUID()
+    system.actorOf(VirtualDevice.props("vd", vdid), "vd")
+    import sp.abilityhandler.AbilityHandler
+    val ahid = java.util.UUID.randomUUID()
+    system.actorOf(AbilityHandler.props("ah", ahid, vdid), "ah")
+    system.actorOf(OperationRunner.props)
+
     // load the abilities and the OPC
     // this must be launched after the ability handler and the OPC
     sp.labkit.operations.LoadLabkitAbilities(system)
+
     system.actorOf(LabkitOperationService.props, "LabkitOperations")
 
 

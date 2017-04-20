@@ -19,25 +19,27 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
   mediator ! Subscribe("answers", self)
-  mediator ! Subscribe("events", self)
+  mediator ! Subscribe("eveents", self)
 
 
+  import scala.concurrent.duration._
+  import context.dispatcher
+  context.system.scheduler.scheduleOnce(30 seconds, self, DelayStart)
 
 
-  // testing
-  val testingMakingOps = makeMeOps("hej")
-  val mess = opAPI.Setup("testing", ID.newID, testingMakingOps._1.toSet, testingMakingOps._2, testingMakingOps._3)
-  println("sending some ops: "+ mess)
-
-  mediator ! Publish("services", LabKitComm.makeMess(SPHeader(from = api.attributes.service, to = opAPI.attributes.service), mess))
-
+  case object DelayStart
 
 
   def receive = {
+    case DelayStart =>
+      // testing
+      val testingMakingOps = makeMeOps("hej")
+      val mess = opAPI.Setup("testing", ID.newID, testingMakingOps._1.toSet, testingMakingOps._2, testingMakingOps._3)
+      //println("sending some ops: "+ mess)
+
+      mediator ! Publish("services", LabKitComm.makeMess(SPHeader(from = api.attributes.service, to = opAPI.attributes.service), mess))
     case x: String if sender() != self =>
       val mess = SPMessage.fromJson(x)
-      println("Getting things to LabkitOpService")
-      println(mess)
 
       matchRequests(mess)
       matchRunnerAPI(mess)
@@ -59,6 +61,7 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
   def matchRunnerAPI(mess: Try[SPMessage]) = {
     LabKitComm.extractOPReply(mess).map {
       case (h, opAPI.StateEvent(r, state)) =>
+        println("Runner: " + state)
       case (h, opAPI.Runners(runners)) =>
 
     }
@@ -153,7 +156,8 @@ trait MyOperationModel  {
     )
 
     val opAbilityMap = Map( // init is not using an ability (this is not tested if it works 100%)
-      move.id -> LabKitAbilityModel.a1.id,
+      move.id -> LabKitAbilityModel.feeder.id,
+      init.id -> LabKitAbilityModel.a1.id,
       remove.id -> LabKitAbilityModel.a2.id
     )
 
