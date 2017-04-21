@@ -46,9 +46,8 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
   mediator ! Subscribe("felvis-data-topic", self)
+  mediator ! Subscribe("elvis-diff", self)
 
-  // The metod that receive messages. Add service logic in a trait so you can test it. Here the focus is on parsing
-  // and on the messages on the bus
   def receive = {
     case mess @ _ if {log.debug(s"ElvisDataHandlerService MESSAGE: $mess from $sender"); false} => Unit
 

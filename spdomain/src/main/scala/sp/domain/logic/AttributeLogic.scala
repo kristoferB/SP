@@ -106,6 +106,12 @@ trait AttributeLogics {
       } yield t
     }
 
+    def tryAs[T](key: String)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = {
+      scala.util.Try{
+        get(key).get.extract[T]
+      }
+    }
+
     def find(key: String) = x \\ key match {
       case JObject(xs) => xs.map(_._2)
       case x: JValue => List(x)
