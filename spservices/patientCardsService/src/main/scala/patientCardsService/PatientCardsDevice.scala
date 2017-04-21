@@ -112,8 +112,8 @@ class PatientCardsDevice extends Actor with ActorLogging {
     var patientPropertyBuffer = new ListBuffer[api.PatientProperty]()
     patient.patientData.foreach{ p =>
       p._1 match {
-        case "Location" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
         case "Team" => if (!fieldEmpty(p._2) && !fieldEmpty(patient.patientData("Location"))) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
+        case "Location" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
         case "Priority" => patientPropertyBuffer += updatePriority(patient.careContactId, patient.patientData("timestamp"), p._2)
         case "VisitRegistrationTime" => patientPropertyBuffer += updateArrivalTime(patient.careContactId, p._2)
         case _ => patientPropertyBuffer += api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")
@@ -131,8 +131,8 @@ class PatientCardsDevice extends Actor with ActorLogging {
     var patientPropertyBuffer = new ListBuffer[api.PatientProperty]()
     patient.patientData.foreach{ p =>
       p._1 match {
-        case "Location" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
         case "Team" => if (!fieldEmpty(p._2) && !fieldEmpty(patient.patientData("Location"))) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
+        case "Location" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
         case _ => patientPropertyBuffer += api.Undefined(patient.careContactId, "0000-00-00T00:00:00.000Z")
       }
     }
@@ -204,8 +204,8 @@ class PatientCardsDevice extends Actor with ActorLogging {
   /**
   Discerns team and klinik, returns a Team-type.
   */
-  def updateTeam(careContactId: String, timestamp: String, clinic: String, reasonForVisit: String, location: String): api.Team = {
-    return api.Team(careContactId, timestamp, decodeTeam(reasonForVisit, location), decodeClinic(clinic))
+  def updateTeam(careContactId: String, timestamp: String, team: String, reasonForVisit: String, location: String): api.Team = {
+    return api.Team(careContactId, timestamp, decodeTeam(reasonForVisit, location, team), decodeClinic(team))
   }
 
   /**
@@ -306,27 +306,40 @@ class PatientCardsDevice extends Actor with ActorLogging {
   Discerns clinic from Team-field.
   Used by updateTeam().
   */
-  def decodeClinic(clinic: String): String = {
-    clinic match {
+  def decodeClinic(team: String): String = {
+    team match {
       case "NAKKI" => "kirurgi"
       case "NAKME" => "medicin"
       case "NAKOR" => "ortopedi"
       case "NAKBA" | "NAKGY" | "NAKÖN" => "bgö"
-      case _ => "bgö" // dont know what this means, ex NAK23T
+      case _ => "bgö"
     }
   }
 
   /**
-  Discerns team from ReasonForVisit and Location-fields.
-  Used by updateTeam().
+  Discerns team from ReasonForVisit and Location, and Team fields.
   */
-  def decodeTeam(reasonForVisit: String, location: String): String = {
-    (reasonForVisit, location.charAt(0)) match {
-      case ("APK", location) => "Streamteam"
-      case (reasonForVisit, 'B') => "Blå"
-      case (reasonForVisit, 'G') => "Gul"
-      case (reasonForVisit, 'P') => "Process"
-      case _ => "Röd"
+  def decodeTeam(reasonForVisit: String, location: String, team: String): String = {
+    reasonForVisit match {
+      case "AKP" => "stream"
+      case "ALL" | "TRAU" => "process"
+      case "B" => {
+        team match {
+          case "NAKME" => {
+            location.charAt(0) match {
+              case 'B' => "medicin blå"
+              case 'G' => "medicin gul"
+              case 'P' => "process"
+              case _ => "medicin"
+            }
+          }
+          case "NAKKI" => "kirurgi"
+          case "NAKOR" => "ortopedi"
+          case "NAKBA" | "NAKGY" | "NAKÖN" => "jour"
+          case _ => "no-match"
+        }
+      }
+      case _ => "no-match"
     }
   }
 
