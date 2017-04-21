@@ -102,6 +102,11 @@ lazy val gPubSubService = (project in file("spservices/gPubSubService"))
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
+lazy val transformationService = (project in file("spservices/TransformationService"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
+
 lazy val fakeElvisService = (project in file("spservices/fakeElvisService"))
   .dependsOn(spdomain, macros)
 .settings(commonSettings: _*)
@@ -123,6 +128,11 @@ lazy val triageDiagramService = (project in file("spservices/triageDiagramServic
 .settings(libraryDependencies ++= akka)
 
 lazy val statusDiagramService = (project in file("spservices/statusDiagramService"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
+
+lazy val placeDiagramService = (project in file("spservices/placeDiagramService"))
   .dependsOn(spdomain, macros)
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
