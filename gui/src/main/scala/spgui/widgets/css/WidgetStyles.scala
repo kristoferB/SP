@@ -26,6 +26,10 @@ object WidgetStyles extends StyleSheet.Inline {
     fontSize(26.px),
     svgFill := "black"
   )
-  
+
+  val helveticaZ = style(
+      fontFamily :=! "Helvetica, Arial, sans-serif"
+)
+
 
   }

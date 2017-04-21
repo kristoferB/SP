@@ -8,27 +8,49 @@ import spgui.widgets.examples._
 object WidgetList {
   val list =
     List[(String, SPWidgetBase => ReactElement, Int, Int)](
-      ("Grid Test", spgui.dashboard.GridTest(), 5, 5),
-      ("Widget Injection", widgets.injection.WidgetInjectionTest(), 2, 2),
-      ("Item Editor", widgets.itemeditor.ItemEditor(), 2, 2),
-      ("DragDrop Example", widgets.examples.DragAndDrop(), 2, 2),
-      ("Widget with json", widgets.examples.WidgetWithJSON(), 2, 2),
-      ("PlcHldrC", PlaceholderComp(), 2, 2),
-      ("SPWBTest", SPWidgetBaseTest(), 2, 2),
-      ("Widget with data", widgets.examples.WidgetWithData(), 2, 2),
-      ("CommTest", widgets.WidgetCommTest(), 2, 2),
-      ("D3Example", widgets.examples.D3Example(), 2, 2),
-      ("D3ExampleServiceWidget", widgets.examples.D3ExampleServiceWidget(), 2, 2),
-      ("ExampleServiceWidget", ExampleServiceWidget(), 2, 2),
-      ("GPubSubServiceWidget", GPubSubServiceWidget(), 4,3),
-      ("ExampleServiceWidgetState", ExampleServiceWidgetState(), 2, 3),
-      ("OpcUAWidget", OpcUAWidget(), 5, 2),
-      ("Tree", widgets.itemexplorer.Tree(), 2, 4),
       ("ClockWidget", widgets.ClockWidget(), 3, 2),
-      ("PatientCardsWidget", widgets.PatientCardsServiceWidget(), 3, 3),
-      ("TriageDiagramWidget", widgets.TriageDiagramServiceWidget(), 3, 3),
+
+      // Triage diagram widgets -->
+      ("Triagediagram (process)", widgets.ProcessTriageWidget(), 3, 3),
+      ("Triagediagram (stream)", widgets.StreamTriageWidget(), 3, 3),
+      ("Triagediagram (medicin blå)", widgets.MedicineBlueTriageWidget(), 3, 3),
+      ("Triagediagram (medicin gul)", widgets.MedicineYellowTriageWidget(), 3, 3),
+      ("Triagediagram (kirurgi)", widgets.SurgeryTriageWidget(), 3, 3),
+      ("Triagediagram (ortopedi)", widgets.OrthopedyTriageWidget(), 3, 3),
+      ("Triagediagram (jour)", widgets.JourTriageWidget(), 3, 3),
+      // <--
+
+      // Status diagram widgets -->
+      ("Statusdiagram (process)", widgets.ProcessStatusWidget(), 4, 1),
+      ("Statusdiagram (stream)", widgets.StreamStatusWidget(), 4, 1),
+      ("Statusdiagram (medicin blå)", widgets.MedicineBlueStatusWidget(), 4, 1),
+      ("Statusdiagram (medicin gul)", widgets.MedicineYellowStatusWidget(), 4, 1),
+      ("Statusdiagram (kirurgi)", widgets.SurgeryStatusWidget(), 4, 1),
+      ("Statusdiagram (ortopedi)", widgets.OrthopedyStatusWidget(), 4, 1),
+      ("Statusdiagram (jour)", widgets.JourStatusWidget(), 4, 1),
+      // <--
+
+      // Place diagram widgets -->
+      ("Platsdiagram (process)", widgets.ProcessPlaceWidget(), 4, 1),
+      ("Platsdiagram (stream)", widgets.StreamPlaceWidget(), 4, 1),
+      ("Platsdiagram (medicin blå)", widgets.MedicineBluePlaceWidget(), 4, 1),
+      ("Platsdiagram (medicin gul)", widgets.MedicineYellowPlaceWidget(), 4, 1),
+      ("Platsdiagram (kirurgi)", widgets.SurgeryPlaceWidget(), 4, 1),
+      ("Platsdiagram (ortopedi)", widgets.OrthopedyPlaceWidget(), 4, 1),
+      ("Platsdiagram (jour)", widgets.JourPlaceWidget(), 4, 1),
+      // <--
+
+      // Patient cards widgets -->
+      ("Patientkort (process)", widgets.ProcessPatientCardsWidget(), 8, 8),
+      ("Patientkort (stream)", widgets.StreamPatientCardsWidget(), 8, 8),
+      ("Patientkort (medicin blå)", widgets.MedicineBluePatientCardsWidget(), 8, 8),
+      ("Patientkort (medicin gul)", widgets.MedicineYellowPatientCardsWidget(), 8, 8),
+      ("Patientkort (kirurgi)", widgets.SurgeryPatientCardsWidget(), 8, 8),
+      ("Patientkort (ortopedi)", widgets.OrthopedyPatientCardsWidget(), 8, 8),
+      ("Patientkort (jour)", widgets.JourPatientCardsWidget(), 8, 8),
+      // <--
+
       ("PatientReminderWidget", widgets.PatientReminderServiceWidget(), 3, 3),
-      ("StatusDiagramWidget", widgets.StatusDiagramServiceWidget(), 3, 3),
       ("RoomOverviewWidget", widgets.RoomOverviewServiceWidget(), 3, 3),
       ("CoordinatorDiagramWidget", widgets.CoordinatorDiagramServiceWidget(), 3, 3)
     )
