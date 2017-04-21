@@ -18,8 +18,8 @@ object WidgetStyles extends StyleSheet.Inline {
 
   val clock = style(
     textAlign.center,
-    fontSize(70.px)
-    //fontFamily(ff)
+    fontSize(70.px),
+    fontFamily :=! "Helvetica, Arial, sans-serif"
   )
 
   val patientCardText = style(
