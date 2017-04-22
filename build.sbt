@@ -102,11 +102,6 @@ lazy val gPubSubService = (project in file("spservices/gPubSubService"))
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
-lazy val transformationService = (project in file("spservices/TransformationService"))
-  .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
-
 lazy val fakeElvisService = (project in file("spservices/fakeElvisService"))
   .dependsOn(spdomain, macros)
 .settings(commonSettings: _*)
