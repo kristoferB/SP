@@ -38,7 +38,7 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
 
   val patientsToElastic = new PatientsToElastic
-  val getFromElastic = new GetFromElastic
+  //val getFromElastic = new GetFromElastic
 
   import akka.cluster.pubsub._
   import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
@@ -46,6 +46,7 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
   mediator ! Subscribe("felvis-data-topic", self)
+  mediator ! Subscribe("elvis-data-topic", self)
 
   // The metod that receive messages. Add service logic in a trait so you can test it. Here the focus is on parsing
   // and on the messages on the bus
