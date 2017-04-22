@@ -35,12 +35,11 @@ class PatientsToElastic {
     //println("MESS: " + messageU)
     // figure out what sort of message we just received
     val json: JValue = parse(message) // this jsons the String.
-
-    json.mapField(k => (k._1, k._2)).extract[Map[String, _ ]].keys.head match {
-      case "newLoad" | "new"          => postEntirePatientToElastic(json)
-      case "diff"                     => diffPatient(json)
-      case "removed"                  => removePatient(json)
-      case _ => println("WARNING: Searcher received an unrecognized message format. json: "+json)
+    (json \ "isa").values.toString match {
+      case "newLoad" | "new" => postEntirePatientToElastic(json)
+      case "diff" => diffPatient(json)
+      case "removed" => removePatient(json)
+      case _ => println("WARNING: Searcher received an unrecognized message format. json: " + json)
     }
 
   }
@@ -49,7 +48,7 @@ class PatientsToElastic {
   * @param data patient to send to elastic
   */
   def postEntirePatientToElastic(data: JValue): Unit = {
-    val patient = initiatePatient(data \ "new" \ "patient")
+    val patient = initiatePatient(data \ "data" \ "patient")
     addPatient(patient, ONGOING_PATIENT_INDEX) // index the new patient
   }
 
@@ -86,7 +85,7 @@ class PatientsToElastic {
   * patient. The new patient is then indexed into the database, overwriting the old version
   */
   def diffPatient(data: JValue) {
-    val diff = data \ "diff"
+    val diff = data \ "data"
     // extract CareContactId and fetch patient from elasticsearch
     val careContactId: String = ( diff \ "updates" \ "CareContactId" ).values.toString
     val patient: JValue = getPatientFromElastic(ONGOING_PATIENT_INDEX, careContactId)
@@ -228,7 +227,7 @@ class PatientsToElastic {
     * @param data the patient to be removed (as a JSON)
     */
     def removePatient(data: JValue) {
-      val careContactId = (data \ "removed" \ "patient"\ "CareContactId").values.toString
+      val careContactId = (data \ "data" \ "patient"\ "CareContactId").values.toString
       val patient = getPatientFromElastic(ONGOING_PATIENT_INDEX, careContactId)
       val visitRegistrationTime = DateTime.parse((patient \ "CareContactRegistrationTime").values.toString)
 
