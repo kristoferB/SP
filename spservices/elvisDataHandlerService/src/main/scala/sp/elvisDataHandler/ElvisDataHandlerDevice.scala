@@ -47,9 +47,8 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   mediator ! Subscribe("spevents", self)
   mediator ! Subscribe("felvis-data-topic", self)
   mediator ! Subscribe("elvis-data-topic", self)
+  mediator ! Subscribe("elvis-diff", self)
 
-  // The metod that receive messages. Add service logic in a trait so you can test it. Here the focus is on parsing
-  // and on the messages on the bus
   def receive = {
     case mess @ _ if {log.debug(s"ElvisDataHandlerService MESSAGE: $mess from $sender"); false} => Unit
 
@@ -82,20 +81,20 @@ val info = SPAttributes(
   def handleMessage(message: String) {
     // figure out what sort of message we just received
     val json: JValue = parse(message) // this jsons the String.
-    json.mapField(k => (k._1, k._2)).extract[Map[String, _ ]].keys.head match {
-      case "newLoad" | "new"          => newPatient(json)
-      case "diff"                     => diffPatient(json)
-      case "removed"                  => removedPatient(json)
-      case _ => println("WARNING: Searcher received an unrecognized message format. json: "+json)
+    (json \ "isa").values.toString match {
+      case "newLoad" | "new" => newPatient(json)
+      case "diff" => diffPatient(json)
+      case "removed" => removedPatient(json)
+      case _ => println("WARNING: Searcher received an unrecognized message format. json: " + json)
     }
   }
 
   def newPatient(json: JValue) {
     val header = SPHeader(from = "elvisDataHandlerService")
-    val patientJson = patientsToElastic.initiatePatient(json \ "new" \ "patient")
+    val patientJson = patientsToElastic.initiatePatient(json \ "data" \ "patient")
     val careContactId = (patientJson \ "CareContactId").values.toString
     var patientData = extractNewPatientData(patientJson)
-    val timestamp = (json \ "new" \ "timestamp").values.toString
+    val timestamp = (json \ "data" \ "timestamp").values.toString
     patientData += ("timestamp" -> timestamp)
     val events = extractNewPatientEvents(patientJson)
     val body = api.NewPatient(careContactId, patientData, events)
@@ -104,18 +103,18 @@ val info = SPAttributes(
 
   def diffPatient(json: JValue) {
     val header = SPHeader(from = "elvisDataHandlerService")
-    val careContactId = (json \ "diff" \ "updates" \ "CareContactId").values.toString
-    val patientData = extractDiffPatientData(json \ "diff" \ "updates")
-    val newEvents = extractNewEvents(json \ "diff")
-    val removedEvents = extractRemovedEvents(json \ "diff")
+    val careContactId = (json \ "data" \ "updates" \ "CareContactId").values.toString
+    val patientData = extractDiffPatientData(json \ "data" \ "updates")
+    val newEvents = extractNewEvents(json \ "data")
+    val removedEvents = extractRemovedEvents(json \ "data")
     val body = api.DiffPatient(careContactId, patientData, newEvents, removedEvents)
     publishOnAkka(header, body)
   }
 
   def removedPatient(json: JValue) {
     val header = SPHeader(from = "elvisDataHandlerService")
-    val careContactId = (json \ "removed" \ "patient" \ "CareContactId").values.toString
-    val timestamp = (json \ "removed" \ "timestamp").values.toString
+    val careContactId = (json \ "data" \ "patient" \ "CareContactId").values.toString
+    val timestamp = (json \ "data" \ "timestamp").values.toString
     val body = api.RemovedPatient(careContactId, timestamp)
     publishOnAkka(header, body)
   }

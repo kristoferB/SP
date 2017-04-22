@@ -3,117 +3,167 @@ package sp.gPubSub
 import akka.actor._
 
 import scala.util.{Failure, Random, Success, Try}
-import sp.domain._
-import sp.domain.Logic._
 import sp.messages._
 import sp.messages.Pickles._
-
-import java.io.File
-import java.io.IOException
 import java.util
 
-import javax.servlet.http.HttpServlet
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-
-import com.typesafe.scalalogging.LazyLogging
-
-import scala.collection.JavaConversions._
-import scala.collection.mutable.ListBuffer
-import scala.collection.immutable.ListMap
-
-import com.typesafe.config.ConfigFactory
-import org.json4s._
-import org.json4s.native.Serialization
-import org.json4s.native.Serialization.{read, write}
-import com.github.nscala_time.time.Imports._
-
+import sp.domain._
+import sp.domain.Logic._
 import sp.gPubSub.{API_PatientEvent => api}
 
-/**
-  *  This is the actor (the service) that listens for messages on the bus
-  *  It keeps track of a set of Pie diagrams that is updated every second
-  */
-class GPubSubDevice extends Actor with ActorLogging {
-  implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
 
-  var currentState: List[ElvisPatient] = List()
+
+
+object GPubSubDevice {
+  def props = Props(classOf[GPubSubDevice])
+}
+
+
+
+class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
+
+  import akka.stream.scaladsl._
+  import akka.stream._
+  import akka.NotUsed
+  import com.qubit.pubsub.akka._
+  import com.qubit.pubsub.client._
+  import com.qubit.pubsub.client.retry._
+  import scala.concurrent.Await
+  import scala.concurrent.duration._
+  import com.google.common.base.Charsets
+
+  println("hej")
+
+  implicit val system = context.system
+  implicit val materializer = ActorMaterializer()
+
 
   // connecting to the pubsub bus using the mediator actor
   import akka.cluster.pubsub._
   import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
   val mediator = DistributedPubSub(context.system).mediator
-  mediator ! Subscribe("services", self)
-  mediator ! Subscribe("spevents", self)
+//  mediator ! Subscribe("services", self)
+//  mediator ! Subscribe("spevents", self)
+  mediator ! Subscribe("elvis-diff", self)
 
   def receive = {
-    case mess @ _ if {log.debug(s"GPubSubService MESSAGE: $mess from $sender"); false} => Unit
+    case mess @ _ if {println(s"GPubSubService MESSAGE: $mess from $sender"); false} => Unit
 
-    case "pull-mess" => {
-      while(true) {
-        val messList = getMessages
-        println("MessList size: " + messList.size)
-        if (!messList.isEmpty) {
-          messList.foreach{ m =>
-            val patientMap: Map[String, List[ElvisPatient]]  = read[Map[String, List[ElvisPatient]]](m)
-            val patients = patientMap("patients") // will fail if wrong structure
-            println(s"No of patients: ${patients.size}")
-            checkTheDiff(patients)
-          }
-          Thread.sleep(4000)
-        }
-      }
+  }
+
+  val timeout = 10 second
+  val project = "intelligentaakuten-158811"
+  val testTopic = PubSubTopic(project, s"elvis-snap")
+  val testSubscription = PubSubSubscription(project, s"getSnap")
+
+  import com.qubit.pubsub.akka.attributes._
+  val attributes = Attributes(List(
+    PubSubStageBufferSizeAttribute(10),
+    PubSubStageMaxRetriesAttribute(10),
+    PubSubPublishTimeoutAttribute(10.seconds)))
+
+  val client = com.qubit.pubsub.client.retry.RetryingPubSubClient(com.qubit.pubsub.client.grpc.PubSubGrpcClient())
+  client.createSubscription(testSubscription, testTopic)
+
+
+  val toJsonString:Flow[PubSubMessage, String, NotUsed] = Flow[PubSubMessage]
+    .map{m => new String(m.payload, Charsets.UTF_8)}
+
+  val jsonToList: Flow[String, List[ElvisPatient], NotUsed] = Flow[String]
+    .map{json => SPAttributes.fromJson(json)}
+    .collect{
+      case Some(attr) => attr.tryAs[List[ElvisPatient]]("patients")
     }
-  }
-
-  def getMessages() = {
-    val inst = new GPubSubClient("Intelligentaakuten","intelligentaakuten-158811")
-    inst.main() // returns list of received messages
-  }
-
-  def checkTheDiff(ps: List[ElvisPatient]) = {
-  if (currentState.isEmpty) {
-    currentState = ps
-    ps.foreach{p =>
-      val newP = NewPatient(getNow, p)
-      val json = write(Map("data"->newP, "isa"->"newLoad"))
-      sendToEvah(json)
+    .collect{
+      case Success(xs) => xs
     }
-  }
-  else if (currentState != ps)  {
-    val changes = ps.filterNot(currentState.contains)
-    val removed = currentState.filterNot(p => ps.exists(_.CareContactId == p.CareContactId))
 
-    changes.map{ p =>
-      val diffP = diffPat(p, currentState.find(_.CareContactId == p.CareContactId))
-      diffP match {
-        case None => {
-          val newP = NewPatient(getNow, p)
-          val json = write(Map("data"->newP, "isa"->"new"))
-          sendToEvah(json)
-        }
-        case Some(d) => {
-          val diffPatient = PatientDiff(d._1, d._2, d._3)
-          val json = write(Map("data"->diffPatient, "isa"->"diff"))
-          sendToEvah(json)
-          }
-        }
-      }
+  val makeDiff: Flow[List[ElvisPatient], String, NotUsed] = Flow[List[ElvisPatient]]
+    .mapConcat(checkTheDiff)
 
-    removed.map{p =>
-      val removedPat = RemovedPatient(getNow, p)
-      val json = write(Map("data"->removedPat, "isa"->"removed"))
-      sendToEvah(json)
-    }
-    currentState = ps
+  val s = Source.fromGraph(new PubSubSource(testSubscription)).withAttributes(attributes)
+
+  val testSink = Sink.foreach{ x: Any =>
+    println()
+    println(x)
+    println()
   }
+
+  val mediatorSink = Sink.foreach{ s: String =>
+    val h = SPHeader(from = "gPubSubDevice")
+    val b = api.ElvisData(s)
+    val mess = SPMessage.makeJson(h, b).get
+    mediator ! Publish("elvis-diff", mess)
+  }
+
+  val test = s via toJsonString via jsonToList via makeDiff runWith(mediatorSink)
+
+  override def postStop(): Unit = {
+    println("OFF")
+    println(materializer.isShutdown)
+  }
+
+
 }
 
-def sendToEvah(json: String) = {
-  val header = SPHeader(from = "gPubSubService")
-  println(json)
-  /**
-  val elvisDataSPMessage = GPubSubComm.makeMess(header, api.ElvisData(json))
+
+trait DiffMagic {
+  import org.json4s._
+  import org.json4s.native.Serialization
+  import org.json4s.native.Serialization.{read, write}
+  import com.github.nscala_time.time.Imports._
+  //implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
+
+
+  var currentState: List[ElvisPatient] = List()
+
+
+  def checkTheDiff(ps: List[ElvisPatient]): List[String] = {
+    if (currentState.isEmpty) {
+      currentState = ps
+      ps.map{p =>
+        val newP = NewPatient(getNow, p)
+        val json = write(Map("data"->newP, "isa"->"newLoad"))
+        json
+      }
+    }
+    else if (currentState != ps)  {
+      val changes = ps.filterNot(currentState.contains)
+      val removed = currentState.filterNot(p => ps.exists(_.CareContactId == p.CareContactId))
+
+      val upd = changes.map{ p =>
+        val diffP = diffPat(p, currentState.find(_.CareContactId == p.CareContactId))
+        diffP match {
+          case None => {
+            val newP = NewPatient(getNow, p)
+            val json = write(Map("data"->newP, "isa"->"new"))
+            json
+          }
+          case Some(d) => {
+            val diffPatient = PatientDiff(d._1, d._2, d._3)
+            val json = write(Map("data"->diffPatient, "isa"->"diff"))
+            json
+          }
+        }
+      }
+
+      val rem = removed.map{p =>
+        val removedPat = RemovedPatient(getNow, p)
+        val json = write(Map("data"->removedPat, "isa"->"removed"))
+        json
+      }
+      currentState = ps
+
+      upd ++ rem
+    }
+    else List()
+  }
+
+  def sendToEvah(json: String) = {
+    val header = SPHeader(from = "gPubSubService")
+    println(json)
+    /**
+    val elvisDataSPMessage = GPubSubComm.makeMess(header, api.ElvisData(json))
   elvisDataSPMessage match {
     case Success(v) =>
       println(s"Publishing elvis message: $v")
@@ -121,53 +171,42 @@ def sendToEvah(json: String) = {
     case Failure(e) =>
       println("Failed")
   }*/
-}
-
-def toNewPat(p: ElvisPatient)= {
-  val t = p.CareContactRegistrationTime
-  NewPatient(t,p)
-}
-
-
-def diffPat(curr: ElvisPatient, old: Option[ElvisPatient])={
-  old.map {
-    case prev: ElvisPatient => {
-      (Map(
-        "CareContactId" -> Some(Extraction.decompose(curr.CareContactId)),
-        "CareContactRegistrationTime" -> diffThem(prev.CareContactRegistrationTime, curr.CareContactRegistrationTime),
-        "DepartmentComment" -> diffThem(prev.DepartmentComment, curr.DepartmentComment),
-        "Location" -> diffThem(prev.Location, curr.Location),
-        "PatientId" -> Some(Extraction.decompose(curr.PatientId)),
-        "ReasonForVisit" -> diffThem(prev.ReasonForVisit, curr.ReasonForVisit),
-        "Team" -> diffThem(prev.Team, curr.Team),
-        "VisitId" -> diffThem(prev.VisitId, curr.VisitId),
-        "VisitRegistrationTime" -> diffThem(prev.VisitRegistrationTime, curr.VisitRegistrationTime),
-        "timestamp" -> Some(Extraction.decompose(getNow))
-      ).filter(kv=> kv._2 != None).map(kv=> kv._1 -> kv._2.get),
-        curr.Events.filterNot(prev.Events.contains),
-        prev.Events.filterNot(curr.Events.contains))
-    }
   }
 
-}
+  def toNewPat(p: ElvisPatient)= {
+    val t = p.CareContactRegistrationTime
+    NewPatient(t,p)
+  }
 
-def diffThem[T](prev: T, current: T): Option[JValue]= {
-  if (prev == current) None
-  else Some(Extraction.decompose(current))
-}
 
-def getNow = {
-  DateTime.now(DateTimeZone.forID("Europe/Stockholm"))
-}
+  def diffPat(curr: ElvisPatient, old: Option[ElvisPatient])={
+    old.map {
+      case prev: ElvisPatient => {
+        (Map(
+          "CareContactId" -> Some(Extraction.decompose(curr.CareContactId)),
+          "CareContactRegistrationTime" -> diffThem(prev.CareContactRegistrationTime, curr.CareContactRegistrationTime),
+          "DepartmentComment" -> diffThem(prev.DepartmentComment, curr.DepartmentComment),
+          "Location" -> diffThem(prev.Location, curr.Location),
+          "PatientId" -> Some(Extraction.decompose(curr.PatientId)),
+          "ReasonForVisit" -> diffThem(prev.ReasonForVisit, curr.ReasonForVisit),
+          "Team" -> diffThem(prev.Team, curr.Team),
+          "VisitId" -> diffThem(prev.VisitId, curr.VisitId),
+          "VisitRegistrationTime" -> diffThem(prev.VisitRegistrationTime, curr.VisitRegistrationTime),
+          "timestamp" -> Some(Extraction.decompose(getNow))
+        ).filter(kv=> kv._2 != None).map(kv=> kv._1 -> kv._2.get),
+          curr.Events.filterNot(prev.Events.contains),
+          prev.Events.filterNot(curr.Events.contains))
+      }
+    }
 
-}
+  }
 
-object GPubSubDevice {
-  def props = Props(classOf[GPubSubDevice])
-  implicit val system = ActorSystem("SP")
-  val elvisPublisher = system.actorOf(Props[GPubSubDevice], "elvis-publisher")
-  while (true) {
-    Thread.sleep(500)
-    elvisPublisher ! "pull-mess"
+  def diffThem[T](prev: T, current: T): Option[JValue]= {
+    if (prev == current) None
+    else Some(Extraction.decompose(current))
+  }
+
+  def getNow = {
+    DateTime.now(DateTimeZone.forID("Europe/Stockholm")).toString("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
   }
 }

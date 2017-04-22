@@ -126,8 +126,7 @@ object CoordinatorDiagramServiceWidget {
       <.div(Styles.helveticaZ)
     }
   }
-
-  val totWidth: Double = 701
+  
   case class ys(x: Double, h: Double, y0: Double)
 
   private val component = ReactComponentB[Unit]("teamVStatus")

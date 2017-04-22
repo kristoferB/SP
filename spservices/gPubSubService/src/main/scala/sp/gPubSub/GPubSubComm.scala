@@ -10,7 +10,7 @@ import com.github.nscala_time.time.Imports._
 import org.json4s._
 
 case class ElvisPatient(CareContactId: Int,
-                        CareContactRegistrationTime: DateTime,
+                        CareContactRegistrationTime: String,
                         DepartmentComment: String,
                         Events: List[ElvisEvent],
                         Location: String,
@@ -18,20 +18,20 @@ case class ElvisPatient(CareContactId: Int,
                         ReasonForVisit: String,
                         Team: String,
                         VisitId: Int,
-                        VisitRegistrationTime: DateTime)
+                        VisitRegistrationTime: String)
 
 case class ElvisEvent(CareEventId: Int,
                       Category: String,
-                      End: DateTime,
-                      Start: DateTime,
+                      End: String,
+                      Start: String,
                       Title: String,
                       Type: String,
                       Value: String,
                       VisitId: Int)
 
 case class PatientDiff(updates: Map[String, JValue], newEvents: List[ElvisEvent], removedEvents: List[ElvisEvent])
-case class NewPatient(timestamp: DateTime, patient: ElvisPatient)
-case class RemovedPatient(timestamp: DateTime, patient: ElvisPatient)
+case class NewPatient(timestamp: String, patient: ElvisPatient)
+case class RemovedPatient(timestamp: String, patient: ElvisPatient)
 case class SnapShot(patients: List[ElvisPatient])
 
 package API_PatientEvent {
