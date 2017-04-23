@@ -51,8 +51,12 @@ object WidgetList {
       // <--
 
       ("PatientReminderWidget", widgets.PatientReminderServiceWidget(), 3, 3),
-      ("RoomOverviewWidget", widgets.RoomOverviewServiceWidget(), 3, 3),
-      ("CoordinatorDiagramWidget", widgets.CoordinatorDiagramServiceWidget(), 3, 3)
+
+      // Coordinator widgets -->
+      ("Rumskarta (koordinator)", widgets.RoomOverviewServiceWidget(), 3, 3),
+      ("Triage- och statusdiagram (koordinator)", widgets.CoordinatorDiagramServiceWidget(), 3, 3),
+      ("Väntrumsdiagram (koordinator)", widgets.WaitingRoomServiceWidget(), 3, 3)
+      // <--
     )
 
   val map = list.map(t => t._1 -> (t._2, t._3, t._4)).toMap
