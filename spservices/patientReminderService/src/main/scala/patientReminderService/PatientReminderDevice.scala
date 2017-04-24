@@ -212,7 +212,7 @@ class PatientReminderDevice extends Actor with ActorLogging {
   Calculates the time diff. in milliseconds between arrival time and now, returns an ArrivalTime-type.
   */
   def updateArrivalTime(careContactId: String, timestamp: String): api.ArrivalTime = {
-    return api.ArrivalTime(careContactId, timestamp, getTimeDiff(timestamp))
+    return api.ArrivalTime(careContactId, timestamp, getArrivalFormat(timestamp))
   }
 
 
@@ -289,9 +289,27 @@ class PatientReminderDevice extends Actor with ActorLogging {
   def getTimeDiff(startTimeString: String): Long = {
     var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
     val startTime = formatter.parse(startTimeString.replaceAll("Z$", "+0000"))
-    val nowString = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date())
-    val now = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").parse(nowString)
-    return now.getTime() - startTime.getTime() // returns diff in millisec
+    val now: Long = System.currentTimeMillis
+    return Math.abs(now - startTime.getTime()) // returns diff in millisec
+  }
+
+  /**
+  * Returns "hh:mm (day)"-format of argument given in milliseconds.
+  */
+  def getArrivalFormat(startTimeString: String): String = {
+    var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    val startTime = formatter.parse(startTimeString.replaceAll("Z$", "+0000"))
+    val timeFormat = new SimpleDateFormat("HH:mm")
+    val timeString = timeFormat.format(startTime)
+    val diff = getTimeDiff(startTimeString)
+    val days = (diff / (1000*60*60*24))
+    var dayString = ""
+    days match {
+      case 1 => dayString = "(igår)"
+      case 2 => dayString = "(förrgår)"
+      case _ => dayString = ""
+    }
+    return timeString + " " + dayString
   }
 
   /**
