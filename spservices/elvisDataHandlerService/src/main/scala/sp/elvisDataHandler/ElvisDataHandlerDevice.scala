@@ -8,17 +8,9 @@ import sp.domain.Logic._
 import sp.messages._
 import sp.messages.Pickles._
 
-import java.io.File
-import java.io.IOException
-import java.util
 
-import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
-import scala.collection.immutable.ListMap
 
-import com.codemettle.reactivemq._
-import com.codemettle.reactivemq.ReActiveMQMessages._
-import com.codemettle.reactivemq.model._
 
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization._

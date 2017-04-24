@@ -49,6 +49,7 @@ class LaunchGUI(system: ActorSystem)  {
   import akka.pattern.ask
   implicit val actorSystem = system
   implicit val materializer = ActorMaterializer()
+  implicit val dispatcher = system.dispatcher
   val mediator = DistributedPubSub(system).mediator
 
   def launch = {
@@ -96,7 +97,33 @@ class LaunchGUI(system: ActorSystem)  {
         getFromFile(webFolder + "/index.html")
 
 
-    val bindingFuture = Http().bindAndHandle(route, interface, port)
+
+    import java.io.InputStream
+    import java.security.{ SecureRandom, KeyStore }
+    import javax.net.ssl.{ SSLContext, TrustManagerFactory, KeyManagerFactory }
+
+    import akka.actor.ActorSystem
+    import akka.http.scaladsl.server.{ Route, Directives }
+    import akka.http.scaladsl.{ ConnectionContext, HttpsConnectionContext, Http }
+    import akka.stream.ActorMaterializer
+    import com.typesafe.sslconfig.akka.AkkaSSLConfig
+
+
+    val serverContext: ConnectionContext = {
+      val password = "abcdef".toCharArray
+      val context = SSLContext.getInstance("TLS")
+      val ks = KeyStore.getInstance("PKCS12")
+      ks.load(getClass.getClassLoader.getResourceAsStream("keys/server.p12"), password)
+      val keyManagerFactory = KeyManagerFactory.getInstance("SunX509")
+      keyManagerFactory.init(ks, password)
+      context.init(keyManagerFactory.getKeyManagers, null, new SecureRandom)
+      // start up the web server
+      ConnectionContext.https(context)
+    }
+
+
+    //Http().setDefaultServerHttpContext(serverContext)
+    val bindingFuture = Http().bindAndHandle(route, interface, port) //, connectionContext = serverContext)
 
     println(s"Server started ${system.name}, $interface:$port")
 
