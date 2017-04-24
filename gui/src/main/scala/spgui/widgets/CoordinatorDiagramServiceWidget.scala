@@ -83,7 +83,6 @@ object CoordinatorDiagramServiceWidget {
     * Updates the current state based on what patient property is received.
     */
     def updateState(s: Map[String, Patient], careContactId: String, prop: PatientProperty): Map[String, Patient] = {
-      println(s)
       if (s.keys.exists(_ == careContactId)) {
         if (prop.isInstanceOf[Finished]) {
           return s - careContactId
@@ -126,7 +125,7 @@ object CoordinatorDiagramServiceWidget {
       <.div(Styles.helveticaZ)
     }
   }
-  
+
   case class ys(x: Double, h: Double, y0: Double)
 
   private val component = ReactComponentB[Unit]("teamVStatus")
@@ -233,6 +232,8 @@ object CoordinatorDiagramServiceWidget {
     var attendedWithPlanCountJ = 0
     var unAttendedCountJ = 0
 
+    var tmp = 0
+
     (m - "-1").foreach{ p =>
       p._2.priority.color match {
         case "NotTriaged" => {
@@ -244,6 +245,7 @@ object CoordinatorDiagramServiceWidget {
             case "jour" => notTriagedCountJ += 1
             case "kirurgi" => notTriagedCountK += 1
             case "ortopedi" => notTriagedCountO += 1
+            case _ => tmp += 1
           }
         }
         case "Blue" => {
@@ -255,6 +257,7 @@ object CoordinatorDiagramServiceWidget {
             case "jour" => blueCountJ += 1
             case "kirurgi" => blueCountK += 1
             case "ortopedi" => blueCountO += 1
+            case _ => tmp += 1
           }
         }
         case "Green" => {
@@ -266,6 +269,7 @@ object CoordinatorDiagramServiceWidget {
             case "jour" => greenCountJ += 1
             case "kirurgi" => greenCountK += 1
             case "ortopedi" => greenCountO += 1
+            case _ => tmp += 1
           }
         }
         case "Yellow" => {
@@ -277,6 +281,7 @@ object CoordinatorDiagramServiceWidget {
             case "jour" => yellowCountJ += 1
             case "kirurgi" => yellowCountK += 1
             case "ortopedi" => yellowCountO += 1
+            case _ => tmp += 1
           }
         }
         case "Orange" => {
@@ -288,6 +293,7 @@ object CoordinatorDiagramServiceWidget {
             case "jour" => orangeCountJ += 1
             case "kirurgi" => orangeCountK += 1
             case "ortopedi" => orangeCountO += 1
+            case _ => tmp += 1
           }
         }
         case "Red" => {
@@ -299,6 +305,7 @@ object CoordinatorDiagramServiceWidget {
             case "jour" => redCountJ += 1
             case "kirurgi" => redCountK += 1
             case "ortopedi" => redCountO += 1
+            case _ => tmp += 1
           }
         }
       }
@@ -311,6 +318,7 @@ object CoordinatorDiagramServiceWidget {
           case "jour" => finishedCountJ += 1
           case "kirurgi" => finishedCountK += 1
           case "ortopedi" => finishedCountO += 1
+          case _ => tmp += 1
         }
       } else {
         if (p._2.attended.attended) {
@@ -322,6 +330,7 @@ object CoordinatorDiagramServiceWidget {
             case "jour" => attendedCountJ += 1
             case "kirurgi" => attendedCountK += 1
             case "ortopedi" => attendedCountO += 1
+            case _ => tmp += 1
           }
         } else {
           p._2.team.team match {
@@ -332,14 +341,14 @@ object CoordinatorDiagramServiceWidget {
             case "jour" => unAttendedCountJ += 1
             case "kirurgi" => unAttendedCountK += 1
             case "ortopedi" => unAttendedCountO += 1
+            case _ => tmp += 1
           }
         }
       }
     }
+    val sumNotTriaged: Int = notTriagedCountMG + notTriagedCountMB + notTriagedCountK + notTriagedCountO + notTriagedCountS + notTriagedCountP + notTriagedCountJ
 
-    val sumNotTriaged = notTriagedCountMG + notTriagedCountMB + notTriagedCountK + notTriagedCountO + notTriagedCountS + notTriagedCountP + notTriagedCountJ
-
-    val listy = List[List[Int]](List(sumNotTriaged.toInt),
+    val listy: List[List[Int]] = List(List(sumNotTriaged),
       List(blueCountMG, greenCountMG, yellowCountMG, orangeCountMG, redCountMG, notTriagedCountMG), List(unAttendedCountMG, attendedCountMG, attendedWithPlanCountMG, finishedCountMG, notTriagedCountMG),
       List(blueCountMB, greenCountMB, yellowCountMB, orangeCountMB, redCountMB, notTriagedCountMB), List(unAttendedCountMB, attendedCountMB, attendedWithPlanCountMB, finishedCountMB, notTriagedCountMB),
       List(blueCountK, greenCountK, yellowCountK, orangeCountK, redCountK, notTriagedCountK), List(unAttendedCountK, attendedCountK, attendedWithPlanCountK, finishedCountK, notTriagedCountK),
@@ -358,7 +367,6 @@ object CoordinatorDiagramServiceWidget {
    spgui.widgets.css.WidgetStyles.addToDocument()
 
    val listy = getTriageStatusList(patients)
-   println(listy)
 
    val totWidth = element.clientWidth.toDouble//701.0 utgår ifrån detta
 

@@ -147,10 +147,17 @@ lazy val roomOverviewService = (project in file("spservices/roomOverviewService"
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
+
 lazy val ericaBackend = (project in file("spservices/elvisDataHandlerService"))
   .dependsOn(spdomain, macros, spcore, gPubSubService, patientCardsService, triageDiagramService, statusDiagramService, placeDiagramService, patientReminderService, coordinatorDiagramService, roomOverviewService)
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
+
+lazy val waitingRoomService = (project in file("spservices/waitingRoomService"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
+
 
 
 lazy val spseed = (project in file("spservices/spseed"))
