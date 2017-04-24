@@ -182,7 +182,9 @@ trait OperationRunnerLogic {
 
 
   def addRunner(setup: api.Setup) = {
-    val updState = setup.initialState ++ setup.ops.map(o => o.id -> SPValue(OperationState.init))
+    val updState = setup.initialState ++
+      setup.ops.map(o => o.id -> SPValue(OperationState.init)) ++
+      setup.opAbilityMap.values.toList.map(id => id -> SPValue("notEnabled"))
     val r = Runner(setup.copy(initialState = updState), updState)
     if (! validateRunner(setup)) None
     else {
@@ -202,7 +204,8 @@ trait OperationRunnerLogic {
       val updOps = (setup.setup.ops ++ add).filter(o => !remove.contains(o.id))
       val updMap = (setup.setup.opAbilityMap ++ opAbilityMap).filter(kv => !remove.contains(kv._1))
       val updSetup = setup.setup.copy(ops = updOps, opAbilityMap = updMap)
-      val updState = (setup.currentState ++ add.map(o => o.id -> SPValue(OperationState.init))).filter(kv => !remove.contains(kv._1))
+      val updState = (setup.currentState ++ add.map(o => o.id -> SPValue(OperationState.init))).filter(kv => !remove.contains(kv._1)) ++
+        setup.opAbilityMap.values.toList.map(id => id -> SPValue("notEnabled"))
 
       Runner(updSetup, updState)
     }
@@ -236,6 +239,10 @@ trait OperationRunnerLogic {
 
   }
 
+  def newAbilityState(ability: ID, newState: SPValue, startAbility: ID => Unit, sendState: (State, ID) => Unit) = {
+
+  }
+
   def setRunnerState(runnerID: ID, s: State, startAbility: ID => Unit, sendState: State => Unit, runOneAtTheTime: Boolean = false) = {
     val r = runners.get(runnerID)
     r.map { x =>
@@ -265,6 +272,7 @@ trait OperationRunnerLogic {
 
   def newState(s: State, ops: Set[Operation], sendCmd: Operation => Unit, sendState: State => Unit, runOneAtTheTime: Boolean = false): State = {
     val enabled = ops.filter(isEnabled(_, s))
+    // kolla abilities.
     println("runner enabled ops: " + enabled.map(_.name).mkString(", "))
     val res = enabled.headOption.map{o =>
       val updS = runOp(o, s)
