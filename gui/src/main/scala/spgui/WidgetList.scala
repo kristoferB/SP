@@ -8,7 +8,7 @@ import spgui.widgets.examples._
 object WidgetList {
   val list =
     List[(String, SPWidgetBase => ReactElement, Int, Int)](
-      ("ClockWidget", widgets.ClockWidget(), 3, 2),
+      ("Klocka", widgets.ClockWidget(), 3, 2),
 
       // Triage diagram widgets -->
       ("Triagediagram (process)", widgets.ProcessTriageWidget(), 3, 3),
@@ -50,12 +50,14 @@ object WidgetList {
       ("Patientkort (jour)", widgets.JourPatientCardsWidget(), 8, 8),
       // <--
 
-      ("PatientReminderWidget", widgets.PatientReminderServiceWidget(), 3, 3),
-
       // Coordinator widgets -->
       ("Rumskarta (koordinator)", widgets.RoomOverviewServiceWidget(), 3, 3),
       ("Triage- och statusdiagram (koordinator)", widgets.CoordinatorDiagramServiceWidget(), 3, 3),
       ("Väntrumsdiagram (koordinator)", widgets.WaitingRoomServiceWidget(), 3, 3)
+      // <--
+
+      // Undone widgets -->
+      ("PatientReminderWidget", widgets.PatientReminderServiceWidget(), 3, 3)
       // <--
     )
 

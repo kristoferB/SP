@@ -25,8 +25,8 @@ object DashboardCSS extends StyleSheet.Inline {
   val widgetPanelHeader = style("sp-widget-header")(
     padding(2.px),
     display.block,
-    backgroundColor :=! widgetHeadingBg,
-    color :=! widgetHeadingIconColor
+    backgroundColor :=! widgetBgColor,
+    color :=! widgetBgColor
   )
 
   val widgetPanelBody = style("sp-panel-body")(
