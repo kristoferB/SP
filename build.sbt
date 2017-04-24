@@ -149,7 +149,7 @@ lazy val roomOverviewService = (project in file("spservices/roomOverviewService"
 
 
 lazy val ericaBackend = (project in file("spservices/elvisDataHandlerService"))
-  .dependsOn(spdomain, macros, spcore, gPubSubService, patientCardsService, triageDiagramService, statusDiagramService, placeDiagramService, patientReminderService, coordinatorDiagramService, roomOverviewService)
+  .dependsOn(spdomain, macros, spcore, waitingRoomService, patientCardsService, triageDiagramService, statusDiagramService, placeDiagramService, patientReminderService, coordinatorDiagramService, roomOverviewService)
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 

@@ -10,12 +10,30 @@ import scala.util.{Failure, Success, Try}
 object Launch extends App {
   implicit val system = ActorSystem("SP")
   val cluster = akka.cluster.Cluster(system)
+  implicit val ec = system.dispatcher
+  val webServer = new sp.server.LaunchGUI(system)
+  val f = webServer.launch
 
   cluster.registerOnMemberUp {
 
     // Start all you actors here.
     println("ElvisDataHandlerService node has joined the cluster")
     system.actorOf(ElvisDataHandlerDevice.props, API_PatientEvent.attributes.service)
+    system.actorOf(sp.waitingroomservice.WaitingRoomDevice.props)
+    system.actorOf(sp.patientcardsservice.PatientCardsDevice.props)
+    system.actorOf(sp.placediagramservice.PlaceDiagramDevice.props)
+    system.actorOf(sp.roomoverviewservice.RoomOverviewDevice.props)
+    system.actorOf(sp.statusdiagramservice.StatusDiagramDevice.props)
+    system.actorOf(sp.triagediagramservice.TriageDiagramDevice.props)
+    system.actorOf(sp.patientreminderservice.PatientReminderDevice.props)
+    system.actorOf(sp.coordinatordiagramservice.CoordinatorDiagramDevice.props)
+    system.actorOf(sp.patientreminderservice.PatientReminderDevice.props)
+    system.actorOf(sp.patientreminderservice.PatientReminderDevice.props)
+    system.actorOf(sp.patientreminderservice.PatientReminderDevice.props)
+    system.actorOf(sp.patientreminderservice.PatientReminderDevice.props)
+    system.actorOf(sp.patientreminderservice.PatientReminderDevice.props)
+    system.actorOf(sp.patientreminderservice.PatientReminderDevice.props)
+
 
   }
   cluster.registerOnMemberRemoved{
@@ -26,6 +44,12 @@ object Launch extends App {
   cluster.leave(cluster.selfAddress)
 
   scala.io.StdIn.readLine("Press ENTER to exit application.\n")
-  system.terminate()
+  f.flatMap(_.unbind()) // trigger unbinding from the port
+    .onComplete{_ =>
+    system.terminate()
+  } // and shutdown when done
 
 }
+
+
+

@@ -10,19 +10,21 @@ libraryDependencies ++= {
 
   Seq(
     "com.github.gphat" % "wabisabi_2.11" % "2.2.0",
-    "com.typesafe"       % "config"                               % "1.3.0",
-    "com.typesafe.akka" %% "akka-actor"                           % akkaV,
-    "com.typesafe.akka" %% "akka-stream-experimental"             % akkaStreamV,
-    "com.typesafe.akka" %% "akka-http-core-experimental"          % akkaStreamV,
-    "com.typesafe.akka" %% "akka-http-experimental"               % akkaStreamV,
-    "com.typesafe.akka" %% "akka-http-spray-json-experimental"    % akkaStreamV,
-    "com.typesafe.akka" %% "akka-http-testkit-experimental"       % akkaStreamV,
-    "com.codemettle.reactivemq" %% "reactivemq"                   % "0.5.0",
-    "org.apache.activemq" % "activemq-client"                     % "5.13.1",
-    "org.json4s" %% "json4s-native"                               % "3.3.0",
-    "org.json4s" %% "json4s-ext"                                  % "3.3.0",
-    "org.json4s" %% "json4s-jackson"                              % "3.3.0",
+    "com.typesafe.akka" %% "akka-persistence" % "2.4.16",
+    "org.iq80.leveldb"            % "leveldb"          % "0.7",
+    "org.fusesource.leveldbjni"   % "leveldbjni-all"   % "1.8",
+    "com.github.nscala-time" %% "nscala-time" % "2.12.0",
+    "org.json4s" %% "json4s-native" % "3.4.0",
+    "org.json4s" %% "json4s-ext" % "3.4.0",
+    "org.json4s" %% "json4s-jackson"                              % "3.4.0",
     "com.github.nscala-time" %% "nscala-time"                     % "1.8.0",
-    "org.scalatest"     %% "scalatest"                            % scalaTestV % "test"
+    "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+    "com.typesafe.akka" %% "akka-http-core" % "10.0.3",
+    "com.typesafe.akka" %% "akka-http" % "10.0.3",
+    "com.typesafe.akka" %% "akka-http-testkit" % "10.0.3",
+    "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.1"
   )
 }
+
+
+

@@ -122,8 +122,8 @@ class LaunchGUI(system: ActorSystem)  {
     }
 
 
-    Http().setDefaultServerHttpContext(serverContext)
-    val bindingFuture = Http().bindAndHandle(route, interface, port, connectionContext = serverContext)
+    //Http().setDefaultServerHttpContext(serverContext)
+    val bindingFuture = Http().bindAndHandle(route, interface, port) //, connectionContext = serverContext)
 
     println(s"Server started ${system.name}, $interface:$port")
 
