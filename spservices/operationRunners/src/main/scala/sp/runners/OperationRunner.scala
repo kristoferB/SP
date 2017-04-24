@@ -240,7 +240,21 @@ trait OperationRunnerLogic {
   }
 
   def newAbilityState(ability: ID, newState: SPValue, startAbility: ID => Unit, sendState: (State, ID) => Unit) = {
+    val tempR = runners
+    val ops = tempR.map{r =>
+      val opsID = r._2.setup.opAbilityMap.filter(_._2 == ability).keySet
+      val xs = r._2.setup.ops.filter(o => opsID.contains(o.id))
+      xs.map{o =>
+        val cS = State(runners(r._1).currentState)
 
+        setRunnerState(r._1, cS, startAbility, sendState(_,r._1), runOneAtTheTime)// KOLLA PÅ DET HÄR
+      }
+      r._2.noAbilityOps.map {o =>
+        val cS = State(runners(r._1).currentState)
+
+        setRunnerState(r._1, cS, startAbility, sendState(_,r._1), runOneAtTheTime)
+      }
+    }
   }
 
   def setRunnerState(runnerID: ID, s: State, startAbility: ID => Unit, sendState: State => Unit, runOneAtTheTime: Boolean = false) = {
@@ -272,7 +286,7 @@ trait OperationRunnerLogic {
 
   def newState(s: State, ops: Set[Operation], sendCmd: Operation => Unit, sendState: State => Unit, runOneAtTheTime: Boolean = false): State = {
     val enabled = ops.filter(isEnabled(_, s))
-    // kolla abilities.
+    // kolla abilities. Jämföra och kolla vilka som är not enabled, kanske.
     println("runner enabled ops: " + enabled.map(_.name).mkString(", "))
     val res = enabled.headOption.map{o =>
       val updS = runOp(o, s)
