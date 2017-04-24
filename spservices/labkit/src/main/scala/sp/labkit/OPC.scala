@@ -23,7 +23,8 @@ import scala.util.{Failure, Success, Try}
 
 // to be able to use opcua runtime api
 package API_OpcUARuntime {
-  sealed trait API_OpcUARuntime
+  sealed trait
+  API_OpcUARuntime
   // requests
   case class Connect(url: String) extends API_OpcUARuntime
   case class Disconnect() extends API_OpcUARuntime

@@ -116,6 +116,10 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
 
 
   val startAbility = (id: ID) => {
+    var i = 1
+    for(i <- 1 to 10000){
+      print("Delay")
+    }
     println("Starting ability: " + id)
     val myH = SPHeader(from = api.attributes.service, to = abilityAPI.attributes.service, reply = api.attributes.service)
     mediator ! Publish("services", OperationRunnerComm.makeMess(myH, abilityAPI.StartAbility(id)))

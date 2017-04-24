@@ -24,7 +24,7 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
 
   import scala.concurrent.duration._
   import context.dispatcher
-  context.system.scheduler.scheduleOnce(30 seconds, self, DelayStart)
+  context.system.scheduler.scheduleOnce(7 seconds, self, DelayStart)
 
 
   case object DelayStart
@@ -106,8 +106,8 @@ object LabkitOperationService {
 
 
 /*
- * Using a trait to make the logic testable
- */
+* Using a trait to make the logic testable
+*/
 trait OperationRunnerLogic extends MyOperationModel {
   case class AProductRun(id: ID, name: String, ops: Set[Operation], currentState: Map[ID, SPValue])
   var myProducts: Map[ID, AProductRun] = Map()
@@ -121,10 +121,23 @@ import sp.domain.logic.{ActionParser, PropositionParser}
 trait MyOperationModel  {
 
   val things: Map[String, IDAble] = List(
-    Thing("v_inPos"),
-    Thing("v_pos1"),
+
+    // Feeder
+    Thing("feedSensor"),
+    // Robot 1
     Thing("R1"),
-    Thing("R2")
+    Thing("R2"),
+    Thing("C1"),
+    Thing("C2"),
+    //Thing("C3"),
+    //Thing("C4"),
+    Thing("c2in"),
+    Thing("robot1"),
+    //Thing("robot2"),
+
+    // Band 1
+    Thing("c1p1Sensor"),
+    Thing("c2p1Sensor")
   ).map(x => x.name -> x).toMap
 
 
@@ -135,37 +148,85 @@ trait MyOperationModel  {
   // alternativ om olika resurser kan göra en viss ability
   // Obs Ni måste skicka in mer saker i denna metod
   def makeMeOps(cylName: String) = {
-    val init = Operation("init")
-    val move = Operation("move")
-    val remove = Operation("remove")
+    val feeder = Operation("feeder")
+    val robot1toFeedCylPick = Operation("robot1toFeedCylPick")
+    val robot1to1put = Operation("robot1to1put")
+    val robot1to2put = Operation("robot1to2put")
+    val conv2proc1 = Operation("conv2proc1")
+    val robot2to2pick = Operation("robot2to2pick")
 
-    val vars = things.values.toList ++ List(init, move, remove) // need to add ops if they are used in conditions
+    val vars = things.values.toList ++ List(feeder, robot1toFeedCylPick, robot1to1put, robot1to2put, conv2proc1) // need to add ops
 
     val ops = List(
+      /*
       init.copy(conditions = List(
         prop(vars, s"${things("v_inPos").id} == empty", List(s"${things("v_inPos").id} := $cylName"), "pre") // using the ${things("v_inPos").id} just to find typos
       )),
       move.copy(conditions = List(
-        prop(vars, s"${things("v_inPos").id} == $cylName && ${things("R1").id}", List(s"${things("R1").id} := false"), "pre"),
-        prop(vars, "", List(s"${things("R1").id} := true", s"${things("v_inPos").id} := empty", s"${things("v_pos1").id} := $cylName"), "post")
+        prop(vars, s"${things("v_inPos").id} == $cylName && ${things("RR1").id}", List(s"${things("RR1").id} := false"), "pre"),
+        prop(vars, "", List(s"${things("RR1").id} := true", s"${things("v_inPos").id} := empty", s"${things("v_pos1").id} := $cylName"), "post")
       )),
       remove.copy(conditions = List(
-        prop(vars, s"${move.id} == f && ${things("R2").id}", List(s"${things("R2").id} := false"), "pre"), // it also works to have a op state condition like this
-        prop(vars, "", List(s"${things("R2").id} := true", s"${things("v_pos1").id} := empty"), "post")
-      ))
-    )
+        prop(vars, s"${move.id} == f && ${things("RR2").id}", List(s"${things("RR2").id} := false"), "pre"), // it also works to have a op state condition like this
+        prop(vars, "", List(s"${things("RR2").id} := true", s"${things("v_pos1").id} := empty"), "post")
+      )),*/
+      feeder.copy(conditions = List(
+        prop(vars, s"${things("feedSensor").id} == empty", List(), "pre"),
+        prop(vars, "", List(s"${things("feedSensor").id} := $cylName"), "post")
+      )),
+      robot1toFeedCylPick.copy(conditions = List(
+        prop(vars, s"${things("feedSensor").id} == $cylName && ${things("C1").id} == available && ${things("R1").id} == available",
+          List(s"${things("R1").id} := unavailable"), "pre"),
+        prop(vars, "", List(s"${things("feedSensor").id} := empty", s"${things("robot1").id} := $cylName"), "post")
+      )),
+      robot1to1put.copy(conditions = List(
+        prop(vars, s"${robot1toFeedCylPick.id} == fjhj", List(s"${things("C1").id} := unavailable"), "pre"),
+        prop(vars, "", List(s"${things("robot1").id} := empty", s"${things("c1p1Sensor").id} := $cylName",
+          s"${things("R1").id} := available"), "post")
+      )),
+      robot1to2put.copy(conditions = List(
+        prop(vars, s"${things("c2in").id} == empty && ${things("robot1").id} == $cylName", List(s"${things("C2").id} := unavailable"), "pre"),
+        prop(vars, "", List(s"${things("robot1").id} := empty", s"${things("c2in").id} := $cylName",
+          s"${things("R1").id} := available"), "post")
+      )),
+      conv2proc1.copy(conditions = List(
+        prop(vars, s"${things("c2p1Sensor").id} == empty && ${things("c2in").id} == $cylName", List(), "pre"),
+        prop(vars, "", List(s"${things("c2p1Sensor").id} := $cylName && ${things("c2in").id} := empty"), "post")
+      ))/*,
+      robot2to2pick.copy(conditions = List(
+        prop(vars, s"${conv2proc1.id} == f",
+          List(s"${things("R2").id} := unavailable"), "pre"),
+        prop(vars, "", List(s"${things("c2p1Sensor").id} := empty", s"${things("robot2").id} := $cylName",
+          s"${things("C2").id} := available"), "post")//${things("c2p1Sensor").id} == $cylName && ${things("C4").id} == available && ${things("R2").id} == available
+      ))*/
 
+    )
+//things("robot1").id} == $cylName things("c1p1Sensor").id} == empty && ${things("robot1").id} == $cylName
     val opAbilityMap = Map( // init is not using an ability (this is not tested if it works 100%)
-      move.id -> LabKitAbilityModel.feeder.id,
-      init.id -> LabKitAbilityModel.a1.id,
-      remove.id -> LabKitAbilityModel.a2.id
+      //move.id -> LabKitAbilityModel.feeder.id,
+      //init.id -> LabKitAbilityModel.a1.id,
+     // remove.id -> LabKitAbilityModel.a2.id
+      feeder.id -> LabKitAbilityModel.feeder.id,
+      robot1toFeedCylPick.id -> LabKitAbilityModel.robot1toFeedCylPick.id,
+      robot1to1put.id -> LabKitAbilityModel.robot1to1put.id,
+      robot1to2put.id -> LabKitAbilityModel.robot1to2put.id,
+      conv2proc1.id -> LabKitAbilityModel.conv2proc1.id
+      //robot2to2pick.id -> LabKitAbilityModel.robot2to2pick.id
     )
 
     val state: Map[ID, SPValue] = Map(
-      things("v_inPos").id -> "empty",
-      things("v_pos1").id -> "empty",
-      things("R1").id -> true,
-      things("R2").id -> true
+      things("feedSensor").id -> "empty",
+      things("R1").id -> "available",
+      things("R2").id -> "available",
+      things("C1").id -> "available",
+      things("C2").id -> "available",
+      //things("C3").id -> "available",
+      //things("C4").id -> "available",
+      things("robot1").id -> "empty",
+      //things("robot2").id -> "empty",
+      things("c2in").id -> "empty",
+      things("c1p1Sensor").id -> "empty",
+      things("c2p1Sensor").id -> "empty"
     )
 
 
@@ -203,3 +264,4 @@ trait MyOperationModel  {
     PropositionCondition(cRes, aRes, SPAttributes("kind" -> kind))
   }
 }
+

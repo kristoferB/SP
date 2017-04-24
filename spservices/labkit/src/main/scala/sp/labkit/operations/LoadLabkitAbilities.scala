@@ -124,8 +124,7 @@ object LabKitAbilityModel extends Helpers2{
   )
   // Problem med kommunikationen mellan Codesys och SP för c1p2Sensor
   val conv1proc2 = abapi.Ability(name = "conv1proc2", id = ID.newID,
-    preCondition = prop(allVars, s"${c1p2Sensor.name}",
-      // s"${c1p2State.name} == 1 and not ${c1p2Sensor.name} and ${c1p1State.name} == 1",
+    preCondition = prop(allVars, s"${c1p2State.name} == 1 and not ${c1p2Sensor.name} and ${c1p1State.name} == 1",
       List(s"${c1p2Run.name} := true", s"${c1p2Dir.name} := false")),
     postCondition = prop(allVars, s"${c1p2State.name} == 3", List(s"${c1p2Run.name} := false")),
     started = prop(allVars, s"${c1p2State.name} == 2", List())
@@ -230,14 +229,14 @@ object LabKitAbilityModel extends Helpers2{
 
   val robot1to2put = abapi.Ability(name = "robot1to2put", id = ID.newID,
     preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and ${robot1gripping.name} and ${c2p1State.name} == 1" +
-      s"and not ${c2p1Run.name} and ${conv2proc1.name} == 1",
+      s"and not ${c2p1Run.name}",
       List(s"${robot1Run.name} := true", s"${robot1Target.name} := 1")),
     postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
     started = prop(allVars, s"${robot1State.name} == 2", List())
   )
 
   val robot1to1put = abapi.Ability(name = "robot1to1put", id = ID.newID,
-    preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and ${robot1gripping.name} and ${c1p1State.name} == 1" +
+    preCondition = prop(allVars, s"${robot1State.name} == 1 and ${robot1Run.name} and ${robot1gripping.name} and ${c1p1State.name} == 1" +
       s"and not ${c1p1Run.name} and not ${c1p1Sensor.name} and not ${c1p2Sensor.name} and ${c1p2State.name} == 1",
       List(s"${robot1Run.name} := true", s"${robot1Target.name} := 5")),
     postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
@@ -302,7 +301,7 @@ case class LoadLabkitAbilities(system: ActorSystem) {
   val opcVariables = makeTheOPCVariables(allVars, "Process_IOs.")
   val mappers = opcVariables.map(kv => vdapi.OneToOneMapper(kv._1.id, driverID, kv._2))
 
-  val setup = SPAttributes("url" -> "opc.tcp://192.168.0.50:4840", "identifiers" -> mappers.map(_.driverIdentifier))
+  val setup = SPAttributes("url" -> "opc.tcp://192.168.0.10:4840", "identifiers" -> mappers.map(_.driverIdentifier))
   val driver = vdapi.Driver("labkit", driverID, "OPCUA", setup)
   mediator ! Publish("services", SPMessage.makeJson[SPHeader, vdapi.SetUpDeviceDriver](SPHeader(from = "labkitModel"), vdapi.SetUpDeviceDriver(driver)))
 
