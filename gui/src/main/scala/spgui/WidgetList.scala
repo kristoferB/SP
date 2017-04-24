@@ -58,6 +58,13 @@ object WidgetList {
 
       // Undone widgets -->
       ("PatientReminderWidget", widgets.PatientReminderServiceWidget(), 3, 3)
+      //("Patientpåminnelser (process)", widgets.ProcessPatientRemindersWidget(), 8, 8),
+      //("Patientpåminnelser (stream)", widgets.StreamPatientRemindersWidget(), 8, 8),
+      //("Patientpåminnelser (medicin blå)", widgets.MedicineBluePatientRemindersWidget(), 8, 8),
+      //("Patientpåminnelser (medicin gul)", widgets.MedicineYellowPatientRemindersWidget(), 8, 8),
+      //("Patientpåminnelser (kirurgi)", widgets.SurgeryPatientRemindersWidget(), 8, 8),
+      //("Patientpåminnelser (ortopedi)", widgets.OrthopedyPatientRemindersWidget(), 8, 8),
+      //("Patientpåminnelser (jour)", widgets.JourPatientRemindersWidget(), 8, 8),
       // <--
     )
 
