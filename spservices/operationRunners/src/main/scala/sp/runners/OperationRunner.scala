@@ -100,6 +100,9 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
             println(s"The ability with id $id completed for operations: $ops")
             completeOPs(id, startAbility, sendState)
           case abilityAPI.AbilityState(id, s) =>
+            val ops = getOPFromAbility(id).flatMap(_._2)
+            println(s"The ability with id $id updated for operations: $ops")
+            newAbilityState(id, s.get(id).get, startAbility, sendState)
             // Update here to also include varaibles in the operaitons state from the abilities.
             // But it needs to be matched somehow before running
         }
@@ -236,7 +239,6 @@ trait OperationRunnerLogic {
         setRunnerState(r._1, s, startAbility, sendState(_,r._1), runOneAtTheTime)
       }
     }
-
   }
 
   def newAbilityState(ability: ID, newState: SPValue, startAbility: ID => Unit, sendState: (State, ID) => Unit) = {
@@ -247,12 +249,11 @@ trait OperationRunnerLogic {
       xs.map{o =>
         val cS = State(runners(r._1).currentState)
 
-        setRunnerState(r._1, cS, startAbility, sendState(_,r._1), runOneAtTheTime)// KOLLA PÅ DET HÄR
+        setRunnerState(r._1, cS, startAbility, sendState(_,r._1))// KOLLA PÅ DET HÄR
       }
       r._2.noAbilityOps.map {o =>
         val cS = State(runners(r._1).currentState)
-
-        setRunnerState(r._1, cS, startAbility, sendState(_,r._1), runOneAtTheTime)
+        setRunnerState(r._1, cS, startAbility, sendState(_,r._1))
       }
     }
   }

@@ -297,13 +297,13 @@ class AbilityActor(val ability: api.Ability) extends Actor with AbilityActorLogi
 
 // The various states that an ability can be in
 object AbilityState {
-  val unavailable = "unavailable"
-  val notEnabled = "notEnabled"
-  val enabled = "enabled"
-  val starting = "starting"
-  val executing = "executing"
-  val finished = "finished"
-  val forcedReset = "forcedReset"
+    val unavailable = "unavailable"
+    val notEnabled = "notEnabled"
+    val enabled = "enabled"
+    val starting = "starting"
+    val executing = "executing"
+    val finished = "finished"
+    val forcedReset = "forcedReset"
 }
 
 trait AbilityActorLogic extends AbilityLogic{
