@@ -109,6 +109,11 @@ object ProcessPlaceWidget {
     def render(p: Map[String, Patient]) = {
       <.div(Styles.helveticaZ)
     }
+    def onUnmount() = {
+      println("Unmounting")
+      messObs.kill()
+      Callback.empty
+    }
   }
 
   private val component = ReactComponentB[Unit]("TeamStatusWidget")
@@ -122,6 +127,7 @@ object ProcessPlaceWidget {
   ))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
+  .componentWillUnmount(_.backend.onUnmount())
   .build
 
   /**
@@ -218,7 +224,8 @@ object ProcessPlaceWidget {
   )
 
   placeMap.foreach{ p =>
-    length += p._1 -> (p._2/(placeMap("RoomOnSquare") + placeMap("InnerWaitingRoom") + placeMap("Examination") + placeMap("Other")))*width
+    if (p._2 == 0) 0
+    else length += p._1 -> (p._2/(placeMap("RoomOnSquare") + placeMap("InnerWaitingRoom") + placeMap("Examination") + placeMap("Other")))*width
   }
 
   val svg = d3.select(element).append("svg")
