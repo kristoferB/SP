@@ -48,7 +48,7 @@ object MedicineYellowPatientCardsWidget {
   case class Location(roomNr: String, timestamp: String) extends PatientProperty
   case class Team(team: String, clinic: String, timestamp: String) extends PatientProperty
   case class LatestEvent(latestEvent: String, timeDiff: Long, timestamp: String) extends PatientProperty
-  case class ArrivalTime(timeDiff: Long, timestamp: String) extends PatientProperty
+  case class ArrivalTime(timeDiff: String, timestamp: String) extends PatientProperty
   case class Finished() extends PatientProperty
 
   case class Patient(
@@ -118,13 +118,13 @@ object MedicineYellowPatientCardsWidget {
       */
       def updateNewPatient(ccid: String, prop: PatientProperty): Patient = {
         prop match {
-          case Priority(color, timestamp) => Patient(ccid, Priority(color, timestamp), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
-          case Attended(attended, doctorId, timestamp) => Patient(ccid, Priority("", ""), Attended(attended, doctorId, timestamp), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
-          case Location(roomNr, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location(roomNr, timestamp), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
-          case Team(team, clinic, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team(team, clinic, timestamp), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
-          case LatestEvent(latestEvent, timeDiff, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent(latestEvent, -1, timestamp), ArrivalTime(-1, ""))
+          case Priority(color, timestamp) => Patient(ccid, Priority(color, timestamp), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime("", ""))
+          case Attended(attended, doctorId, timestamp) => Patient(ccid, Priority("", ""), Attended(attended, doctorId, timestamp), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime("", ""))
+          case Location(roomNr, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location(roomNr, timestamp), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime("", ""))
+          case Team(team, clinic, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team(team, clinic, timestamp), LatestEvent("", -1, ""), ArrivalTime("", ""))
+          case LatestEvent(latestEvent, timeDiff, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent(latestEvent, -1, timestamp), ArrivalTime("", ""))
           case ArrivalTime(timeDiff, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(timeDiff, timestamp))
-          case _ => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
+          case _ => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime("", ""))
         }
       }
 
@@ -139,7 +139,7 @@ object MedicineYellowPatientCardsWidget {
           case Team(team, clinic, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, Team(team, clinic, timestamp), s(ccid).latestEvent, s(ccid).arrivalTime)
           case LatestEvent(latestEvent, timeDiff, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, LatestEvent(latestEvent, timeDiff, timestamp), s(ccid).arrivalTime)
           case ArrivalTime(timeDiff, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).latestEvent, ArrivalTime(timeDiff, timestamp))
-          case _ => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(-1, ""))
+          case _ => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime("", ""))
         }
       }
       
@@ -343,7 +343,7 @@ object MedicineYellowPatientCardsWidget {
               ^.svg.x := (textLeftAlignment * 0.20).toString,
               ^.svg.y := (cardHeight / 10.5).toString,
               ^.svg.fontSize := fontSize.toString  + "px",
-              getTimeDiffReadable(p.arrivalTime.timeDiff) // WAS:timestampToODT(p.arrivalTime.timestamp).format(DateTimeFormatter.ofPattern("H'.'m'"))
+              p.arrivalTime.timeDiff // WAS:timestampToODT(p.arrivalTime.timestamp).format(DateTimeFormatter.ofPattern("H'.'m'"))
             )
 
           ),
@@ -411,7 +411,7 @@ object MedicineYellowPatientCardsWidget {
         }
       }
 
-      <.div(^.`class` := "card-holder-root")( // This div is really not necessary
+      <.div(^.`class` := "card-holder-root", Styles.helveticaZ)( // This div is really not necessary
         teamMap.values map { p =>
           patientCard(p)
         }
@@ -428,7 +428,7 @@ object MedicineYellowPatientCardsWidget {
       Location("52", "2017-02-01T15:58:33Z"),
       Team("process", "NAKME", "2017-02-01T15:58:33Z"),
       LatestEvent("OmsKoord", 500000, "2017-02-01T15:58:33Z"),
-      ArrivalTime(700000, "2017-02-01T10:01:38Z")
+      ArrivalTime("700000", "2017-02-01T10:01:38Z")
     )))
     .renderBackend[Backend]
     .build
