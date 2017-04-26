@@ -177,6 +177,7 @@ class RoomOverviewDevice extends Actor with ActorLogging {
     }
     patientPropertyBuffer += updateAttended(patient.careContactId, patient.events)
     patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.events)
+    patientPropertyBuffer += updateFinishedStillPresent(patient.careContactId, patient.events)
     return patientPropertyBuffer.toList
   }
 
@@ -199,6 +200,7 @@ class RoomOverviewDevice extends Actor with ActorLogging {
     }
     patientPropertyBuffer += getLatestPrioEvent(patient.careContactId, patient.newEvents)
     patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.newEvents)
+    patientPropertyBuffer += updateFinishedStillPresent(patient.careContactId, patient.newEvents)
     return patientPropertyBuffer.toList
   }
 
@@ -334,6 +336,18 @@ class RoomOverviewDevice extends Actor with ActorLogging {
   }
 
   /**
+  * Checks if patient has been attended, i.e. check if events contains event title "Läkare", returns apiPatient.FinishedStillPresent-type.
+  */
+  def updateFinishedStillPresent(careContactId: String, events: List[Map[String, String]]): apiPatient.FinishedStillPresent = {
+    events.foreach{ e =>
+      if (e("Title") == "Klar") {
+        return apiPatient.FinishedStillPresent(true, e("Start"))
+      }
+    }
+    return apiPatient.FinishedStillPresent(false, "")
+  }
+
+  /**
   Identifies the latest event if there is any in the events list, returns apiPatient.LatestEvent-type.
   */
   def updateLatestEvent(careContactId: String, events: List[Map[String, String]]): apiPatient.LatestEvent = {
@@ -397,7 +411,7 @@ class RoomOverviewDevice extends Actor with ActorLogging {
     reasonForVisit match {
       case "AKP" => "stream"
       case "ALL" | "TRAU" => "process"
-      case "B" => {
+      case "B" | "MEP" => {
         team match {
           case "NAKME" => {
             location.charAt(0) match {

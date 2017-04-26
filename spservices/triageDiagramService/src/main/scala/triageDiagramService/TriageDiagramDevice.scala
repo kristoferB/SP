@@ -32,8 +32,6 @@ class TriageDiagramDevice extends Actor with ActorLogging {
   var state: Map[String, apiPatient.Patient] = Map()
   var widgetStarted: Boolean = false
 
-  println("triagediagram started")
-
   /**
   Receives incoming messages on the AKKA-bus
   */
@@ -46,7 +44,6 @@ class TriageDiagramDevice extends Actor with ActorLogging {
   Handles the received message and sends it further
   */
   def handleRequests(x: String): Unit = {
-    println("TRIAGE:" + x)
     val mess = SPMessage.fromJson(x)
     matchRequests(mess)
   }
@@ -180,6 +177,7 @@ class TriageDiagramDevice extends Actor with ActorLogging {
     }
     patientPropertyBuffer += updateAttended(patient.careContactId, patient.events)
     patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.events)
+    patientPropertyBuffer += updateFinishedStillPresent(patient.careContactId, patient.events)
     return patientPropertyBuffer.toList
   }
 
@@ -202,6 +200,7 @@ class TriageDiagramDevice extends Actor with ActorLogging {
     }
     patientPropertyBuffer += getLatestPrioEvent(patient.careContactId, patient.newEvents)
     patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.newEvents)
+    patientPropertyBuffer += updateFinishedStillPresent(patient.careContactId, patient.newEvents)
     return patientPropertyBuffer.toList
   }
 
@@ -334,6 +333,18 @@ class TriageDiagramDevice extends Actor with ActorLogging {
       case _ => dayString = ""
     }
     return timeString + " " + dayString
+  }
+
+  /**
+  * Checks if patient has been attended, i.e. check if events contains event title "Läkare", returns apiPatient.FinishedStillPresent-type.
+  */
+  def updateFinishedStillPresent(careContactId: String, events: List[Map[String, String]]): apiPatient.FinishedStillPresent = {
+    events.foreach{ e =>
+      if (e("Title") == "Klar") {
+        return apiPatient.FinishedStillPresent(true, e("Start"))
+      }
+    }
+    return apiPatient.FinishedStillPresent(false, "")
   }
 
   /**
