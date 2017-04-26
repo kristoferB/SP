@@ -17,7 +17,8 @@ case class WidgetLayout(x: Int, y: Int, w: Int, h: Int)
 case class GlobalState(currentModel: Option[UUID] = None,
                        selectedItems: List[UUID] = List(),
                        userID: Option[UUID] = None,
-                       clientID: UUID = UUID.randomUUID()
+                       clientID: UUID = UUID.randomUUID(),
+                       attributes: Map[String, SPValue] = Map()
                         )
 
 case class WidgetData(xs: Map[UUID, SPValue])
@@ -29,6 +30,8 @@ case object CloseAllWidgets extends Action
 case class UpdateWidgetData(id: UUID, data: SPValue) extends Action
 case class UpdateLayout(id: UUID, newLayout: WidgetLayout) extends Action
 case class UpdateGlobalState(state: GlobalState) extends Action
+case class UpdateGlobalAttributes(key: String, value: SPValue) extends Action
+
 
 // used when failing to retrieve a state from browser storage
 object InitialState {

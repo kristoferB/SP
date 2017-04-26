@@ -1,7 +1,9 @@
 package spgui.widgets
 
-import java.time._ //ARTO: Använder wrappern https://github.com/scala-js/scala-js-java-time
+import java.time._
 import java.time.OffsetDateTime
+
+import spgui.circuit.SPGUICircuit
 // import java.time.temporal._
 import java.time.format.DateTimeFormatter
 import java.text.SimpleDateFormat
@@ -63,11 +65,8 @@ object ChangeMedicineYellowPatientCardsWidget {
   /**
   * Checks if the patient belongs to this team.
   */
-  def belongsToThisTeam(patient: apiPatient.Patient): Boolean = {
-    patient.team.team match {
-      case "medicin gul" | "medicin" => true
-      case _ => false
-    }
+  def belongsToThisTeam(patient: apiPatient.Patient, filter: String): Boolean = {
+    patient.team.team.contains(filter)
   }
 
       /**
@@ -318,20 +317,22 @@ object ChangeMedicineYellowPatientCardsWidget {
         )
       }
 
+    val globalState = SPGUICircuit.connect(x => (x.openWidgets.xs, x.globalState))
+
     def render(pmap: Map[String, apiPatient.Patient]) = {
       spgui.widgets.css.WidgetStyles.addToDocument()
-      var teamMap: Map[String, apiPatient.Patient] = Map()
-      (pmap - "-1").foreach{ p =>
-        if (belongsToThisTeam(p._2)) {
-          teamMap += p._1 -> p._2
-        }
+
+      globalState{x =>
+        val filter = x()._2.attributes.get("team").map(x => x.str).getOrElse("medicin")
+        val pats = (pmap - "-1").filter(p => belongsToThisTeam(p._2, filter))
+
+        <.div(^.`class` := "card-holder-root", Styles.helveticaZ)( // This div is really not necessary
+          pats.values map { p =>
+            patientCard(p)
+          }
+        )
       }
 
-      <.div(^.`class` := "card-holder-root", Styles.helveticaZ)( // This div is really not necessary
-        teamMap.values map { p =>
-          patientCard(p)
-        }
-      )
     }
 
     def onUnmount() = {
