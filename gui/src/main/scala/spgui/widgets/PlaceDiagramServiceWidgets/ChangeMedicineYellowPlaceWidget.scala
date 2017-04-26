@@ -41,14 +41,6 @@ import spgui.widgets.{API_Patient => apiPatient}
 
 object ChangeMedicineYellowPlaceWidget {
 
-  send(api.GetState())
-
-  def send(mess: api.StateEvent) {
-    val h = SPHeader(from = "MedicineYellowPlaceWidget", to = "PlaceDiagramService")
-    val json = SPMessage.make(h, mess)
-    BackendCommunication.publish(json, "place-diagram-service-topic")
-  }
-
   private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
@@ -61,8 +53,21 @@ object ChangeMedicineYellowPlaceWidget {
       }, "place-diagram-widget-topic"
     )
 
+    send(api.GetState())
+
+    def send(mess: api.StateEvent) {
+      val h = SPHeader(from = "MedicineYellowPlaceWidget", to = "PlaceDiagramService")
+      val json = SPMessage.make(h, mess)
+      BackendCommunication.publish(json, "place-diagram-service-topic")
+    }
+
     def render(p: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
+    }
+    def onUnmount() = {
+      println("Unmounting")
+      messObs.kill()
+      Callback.empty
     }
   }
 
@@ -81,6 +86,7 @@ object ChangeMedicineYellowPlaceWidget {
       )))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
+  .componentWillUnmount(_.backend.onUnmount())
   .build
 
   /**
@@ -177,7 +183,8 @@ object ChangeMedicineYellowPlaceWidget {
   )
 
   placeMap.foreach{ p =>
-    length += p._1 -> (p._2/(placeMap("RoomOnSquare") + placeMap("InnerWaitingRoom") + placeMap("Examination") + placeMap("Other")))*width
+    if (p._2 == 0) 0
+    else length += p._1 -> (p._2/(placeMap("RoomOnSquare") + placeMap("InnerWaitingRoom") + placeMap("Examination") + placeMap("Other")))*width
   }
 
   val svg = d3.select(element).append("svg")

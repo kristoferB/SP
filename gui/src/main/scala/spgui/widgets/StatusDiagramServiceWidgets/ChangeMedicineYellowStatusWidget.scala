@@ -41,14 +41,6 @@ import spgui.widgets.{API_Patient => apiPatient}
 
 object ChangeMedicineYellowStatusWidget {
 
-  send(api.GetState())
-
-  def send(mess: api.StateEvent) {
-    val h = SPHeader(from = "MedicineYellowStatusWidget", to = "StatusDiagramService")
-    val json = SPMessage.make(h, mess)
-    BackendCommunication.publish(json, "status-diagram-service-topic")
-  }
-
   private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
@@ -60,6 +52,14 @@ object ChangeMedicineYellowStatusWidget {
         }
       }, "status-diagram-widget-topic"
     )
+
+    send(api.GetState())
+
+    def send(mess: api.StateEvent) {
+      val h = SPHeader(from = "MedicineYellowStatusWidget", to = "StatusDiagramService")
+      val json = SPMessage.make(h, mess)
+      BackendCommunication.publish(json, "status-diagram-service-topic")
+    }
 
     def render(p: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)

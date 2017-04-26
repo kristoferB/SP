@@ -32,6 +32,8 @@ class TriageDiagramDevice extends Actor with ActorLogging {
   var state: Map[String, apiPatient.Patient] = Map()
   var widgetStarted: Boolean = false
 
+  println("triagediagram started")
+
   /**
   Receives incoming messages on the AKKA-bus
   */
@@ -44,6 +46,7 @@ class TriageDiagramDevice extends Actor with ActorLogging {
   Handles the received message and sends it further
   */
   def handleRequests(x: String): Unit = {
+    println("TRIAGE:" + x)
     val mess = SPMessage.fromJson(x)
     matchRequests(mess)
   }
@@ -93,16 +96,6 @@ class TriageDiagramDevice extends Actor with ActorLogging {
         updateState(p._1, apiPatient.LatestEvent(p._2.latestEvent.latestEvent, p._2.latestEvent.timeDiff + 60000, p._2.latestEvent.timestamp)) // 60 000 ms is one minute
       }
     }
-  }
-
-  /**
-  * Prints what is about to be sent on bus.
-  */
-  def printProperties(firstRow: String, secondRow: Any) {
-    println(firstRow)
-    println(secondRow)
-    println()
-    println()
   }
 
   /**

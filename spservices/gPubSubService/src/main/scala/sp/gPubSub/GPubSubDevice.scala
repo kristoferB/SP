@@ -19,6 +19,7 @@ object GPubSubDevice {
 }
 
 
+case object Ticker
 
 class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
 
@@ -44,9 +45,14 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
   val mediator = DistributedPubSub(context.system).mediator
 //  mediator ! Subscribe("services", self)
 //  mediator ! Subscribe("spevents", self)
-  mediator ! Subscribe("elvis-diff", self)
+//  mediator ! Subscribe("elvis-diff", self)
+
+  import context.dispatcher
+  val ticker = context.system.scheduler.schedule(100 seconds, 100 seconds, self, Ticker)
+
 
   def receive = {
+    case Ticker => clearState()
     case mess @ _ if {println(s"GPubSubService MESSAGE: $mess from $sender"); false} => Unit
 
   }
@@ -93,6 +99,7 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
     val h = SPHeader(from = "gPubSubDevice")
     val b = api.ElvisData(s)
     val mess = SPMessage.makeJson(h, b).get
+    println("Sending a patient diff")
     mediator ! Publish("elvis-diff", mess)
   }
 
@@ -116,6 +123,8 @@ trait DiffMagic {
 
 
   var currentState: List[ElvisPatient] = List()
+
+  def clearState() = currentState = List()
 
 
   def checkTheDiff(ps: List[ElvisPatient]): List[String] = {

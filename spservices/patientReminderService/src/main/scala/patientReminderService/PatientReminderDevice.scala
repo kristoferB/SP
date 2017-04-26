@@ -51,13 +51,13 @@ class PatientReminderDevice extends Actor with ActorLogging {
   Identifies the body of the SP-message and acts correspondingly
   */
   def matchRequests(mess: Try[SPMessage]) = {
+    /**
     val header = SPHeader(from = "patientReminderService")
     PatientReminderComm.extractPatientEvent(mess) map { case (h, b) =>
       b match {
         case api.NewPatient(careContactId, patientData, events) => {
           val patientProperties = extractNewPatientProperties(api.NewPatient(careContactId, patientData, events))
           if (!patientProperties.isEmpty) {
-            printProperties("NEW PATIENT: PatientProps to send: ", patientProperties)
             for (patientProperty <- patientProperties) {
               publishOnAkka(header, patientProperty)
             }
@@ -66,7 +66,6 @@ class PatientReminderDevice extends Actor with ActorLogging {
         case api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents) => {
           val patientProperties = extractDiffPatientProperties(api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents))
           if (!patientProperties.isEmpty) {
-            printProperties("DIFF PATIENT: PatientProps to send: ", patientProperties)
             for (patientProperty <- patientProperties) {
               publishOnAkka(header, patientProperty)
             }
@@ -78,17 +77,7 @@ class PatientReminderDevice extends Actor with ActorLogging {
           publishOnAkka(header, toSend)
         }
       }
-    }
-  }
-
-  /**
-  * Prints what is about to be sent on bus.
-  */
-  def printProperties(firstRow: String, secondRow: Any) {
-    println(firstRow)
-    println(secondRow)
-    println()
-    println()
+    }*/
   }
 
   /**

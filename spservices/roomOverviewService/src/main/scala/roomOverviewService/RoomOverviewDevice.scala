@@ -96,16 +96,6 @@ class RoomOverviewDevice extends Actor with ActorLogging {
   }
 
   /**
-  * Prints what is about to be sent on bus.
-  */
-  def printProperties(firstRow: String, secondRow: Any) {
-    println(firstRow)
-    println(secondRow)
-    println()
-    println()
-  }
-
-  /**
   * Updates the current state based on what patient property is received.
   */
   def updateState(careContactId: String, prop: apiPatient.PatientProperty) {

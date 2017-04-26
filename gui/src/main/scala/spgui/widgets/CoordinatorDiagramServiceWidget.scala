@@ -61,6 +61,11 @@ object CoordinatorDiagramServiceWidget {
     BackendCommunication.publish(json, "coordinator-diagram-service-topic")
   }
 
+    def onUnmount() = {
+      messObs.kill()
+      Callback.empty
+    }
+
     def render(p: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
     }
@@ -83,7 +88,8 @@ object CoordinatorDiagramServiceWidget {
       )))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
-  .build
+    .componentWillUnmount(_.backend.onUnmount())
+    .build
 
   def dist(d: Double): Double = { // Bestämmer avstånd för antal patienter i widget.
     if( d > 99){1}
