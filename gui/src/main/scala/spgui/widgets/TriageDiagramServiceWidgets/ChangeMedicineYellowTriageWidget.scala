@@ -64,6 +64,12 @@ object ChangeMedicineYellowTriageWidget {
     def render(p: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
     }
+
+    def onUnmount() = {
+      println("Unmounting")
+      messObs.kill()
+      Callback.empty
+    }
   }
 
   private val component = ReactComponentB[Unit]("teamVBelastning")
@@ -81,6 +87,7 @@ object ChangeMedicineYellowTriageWidget {
       )))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
+  .componentWillUnmount(_.backend.onUnmount())
   .build
 
   def dist(d: Double): Double = { // Bestämmer avstånd för antal patienter i widget.
@@ -167,7 +174,12 @@ object ChangeMedicineYellowTriageWidget {
   )
 
   triageMap.foreach{ t =>
-    length += t._1 -> (t._2/(triageMap("NotTriaged") +  triageMap("Blue") + triageMap("Green") + triageMap("Yellow") + triageMap("Orange") + triageMap("Red")))*barHeight
+    val sum = triageMap("NotTriaged") +  triageMap("Blue") + triageMap("Green") + triageMap("Yellow") + triageMap("Orange") + triageMap("Red")
+    if (sum == 0) {
+      length += t._1 -> 0
+    } else {
+      length += t._1 -> (t._2/(sum))*barHeight
+    }
   }
 
   // ------- Färger ---------

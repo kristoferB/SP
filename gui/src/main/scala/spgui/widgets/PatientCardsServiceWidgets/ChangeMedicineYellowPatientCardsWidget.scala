@@ -333,6 +333,12 @@ object ChangeMedicineYellowPatientCardsWidget {
         }
       )
     }
+
+    def onUnmount() = {
+      println("Unmounting")
+      messObs.kill()
+      Callback.empty
+    }
   }
 
   private val cardHolderComponent = ReactComponentB[Unit]("cardHolderComponent")
@@ -349,6 +355,7 @@ object ChangeMedicineYellowPatientCardsWidget {
       apiPatient.FinishedStillPresent(false, "2017-02-01T10:01:38Z")
       )))
   .renderBackend[Backend]
+  .componentWillUnmount(_.backend.onUnmount())
   .build
 
   def apply() = spgui.SPWidget(spwb => {

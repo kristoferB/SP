@@ -65,6 +65,12 @@ object RoomOverviewServiceWidget {
     def render(p: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
     }
+
+    def onUnmount() = {
+      println("Unmounting")
+      messObs.kill()
+      Callback.empty
+    }
   }
 
   private val component = ReactComponentB[Unit]("KoordMapWidget")
@@ -82,6 +88,7 @@ object RoomOverviewServiceWidget {
       )))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
+  .componentWillUnmount(_.backend.onUnmount())
   .build
 
   private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Patient]): Unit = {

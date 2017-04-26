@@ -64,6 +64,12 @@ object ChangeMedicineYellowStatusWidget {
     def render(p: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
     }
+
+    def onUnmount() = {
+      println("Unmounting")
+      messObs.kill()
+      Callback.empty
+    }
   }
 
   private val component = ReactComponentB[Unit]("TeamStatusWidget")
@@ -81,6 +87,7 @@ object ChangeMedicineYellowStatusWidget {
       )))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
+  .componentWillUnmount(_.backend.onUnmount())
   .build
 
   /**
@@ -159,7 +166,12 @@ object ChangeMedicineYellowStatusWidget {
     var length: Map[String, Double] = Map()
 
     statusMap.foreach{ s =>
-      length += s._1 -> (s._2/(statusMap("Unattended") + statusMap("Attended") + statusMap("Finished") + statusMap("AttendedWithPlan")))*width
+      val sum = statusMap("Unattended") + statusMap("Attended") + statusMap("Finished") + statusMap("AttendedWithPlan")
+      if (sum == 0) {
+        length += s._1 -> 0
+      } else {
+        length += s._1 -> (s._2/(sum))*width
+      }
     }
 
     val svg = d3.select(element).append("svg")

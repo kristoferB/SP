@@ -65,6 +65,12 @@ object WaitingRoomServiceWidget {
     def render(p: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
     }
+
+    def onUnmount() = {
+      println("Unmounting")
+      messObs.kill()
+      Callback.empty
+    }
   }
 
   def getWaitingRoomOccupation(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
@@ -171,6 +177,7 @@ object WaitingRoomServiceWidget {
       )))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
+  .componentWillUnmount(_.backend.onUnmount())
   .build
 
   private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Patient]): Unit = {
