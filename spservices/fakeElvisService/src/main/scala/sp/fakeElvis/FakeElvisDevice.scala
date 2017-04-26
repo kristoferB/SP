@@ -37,7 +37,7 @@ object FakeElvisDevice {
   implicit val system = ActorSystem("SP")
   val felvisPublisher = system.actorOf(Props[FakeElvisDevice], "felvis-publisher")
 
-  val felvisdataPath = getClass.getResource("/test.txt") // ("/output170201-0217.txt") // 
+  val felvisdataPath = getClass.getResource("/output170201-0217.txt") // ("/output170201-0217.txt") //
 
   def readFromFile : collection.Iterator[String] = {
     val source = scala.io.Source.fromFile(felvisdataPath.getPath, "utf-8")
@@ -48,7 +48,7 @@ object FakeElvisDevice {
   while (true) {
     var li = readFromFile // the file is only read once. Probably compiler optimising.
     while (li.hasNext) {
-      Thread.sleep(3000)
+      Thread.sleep(500)
       felvisPublisher ! li.next()
     }
   }

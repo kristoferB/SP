@@ -37,91 +37,31 @@ import scalacss.Defaults._
 import scala.collection.mutable.ListBuffer
 
 import spgui.widgets.{API_PatientEvent => api}
+import spgui.widgets.{API_Patient => apiPatient}
 
 object CoordinatorDiagramServiceWidget {
 
-  sealed trait PatientProperty
-
-  case class Priority(color: String, timestamp: String) extends PatientProperty
-  case class Attended(attended: Boolean, doctorId: String, timestamp: String) extends PatientProperty
-  case class FinishedStillPresent(finished: Boolean, timestamp: String) extends PatientProperty
-  case class Location(roomNr: String, timestamp: String) extends PatientProperty
-  case class Team(team: String, clinic: String, timestamp: String) extends PatientProperty
-  case class Finished() extends PatientProperty
-
-  case class Patient(
-    var careContactId: String,
-    var priority: Priority,
-    var attended: Attended,
-    var location: Location,
-    var team: Team,
-    var finishedStillPresent: FinishedStillPresent)
-
-  private class Backend($: BackendScope[Unit, Map[String, Patient]]) {
+  private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.PatientProperty] map {
-          case api.NotTriaged(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Priority("NotTriaged", timestamp)) }.runNow()
-          case api.Blue(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Priority("Blue", timestamp)) }.runNow()
-          case api.Green(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Priority("Green", timestamp)) }.runNow()
-          case api.Yellow(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Priority("Yellow", timestamp)) }.runNow()
-          case api.Orange(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Priority("Orange", timestamp)) }.runNow()
-          case api.Red(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Priority("Red", timestamp)) }.runNow()
-          case api.Attended(careContactId, timestamp, attended, doctorId) => $.modState{ s => updateState(s, careContactId, Attended(attended, doctorId, timestamp)) }.runNow()
-          case api.RoomNr(careContactId, timestamp, roomNr) => $.modState{ s => updateState(s, careContactId, Location(roomNr, timestamp)) }.runNow()
-          case api.Team(careContactId, timestamp, team, clinic) => $.modState{ s => updateState(s, careContactId, Team(team, clinic, timestamp)) }.runNow()
-          case api.FinishedStillPresent(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, FinishedStillPresent(true, timestamp)) }.runNow()
-          case api.Finished(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Finished()) }.runNow()
-          case x => println(s"THIS WAS NOT EXPECTED IN CoordinatorDiagramServiceWidget: $x")
-        }
-      }, "coordinator-diagram-widget-topic"
-    )
-
-    /**
-    * Updates the current state based on what patient property is received.
-    */
-    def updateState(s: Map[String, Patient], careContactId: String, prop: PatientProperty): Map[String, Patient] = {
-      if (s.keys.exists(_ == careContactId)) {
-        if (prop.isInstanceOf[Finished]) {
-          return s - careContactId
-        }
-        return s + (careContactId -> updateExistingPatient(s, careContactId, prop))
-      } else {
-        return s + (careContactId -> updateNewPatient(careContactId, prop))
+        mess.getBodyAs[api.Event].map {
+          case api.State(patients) => $.modState{s => patients}.runNow()
+          case _ => println("THIS WAS NOT EXPECTED IN CoordinatorDiagramServiceWidget.")
       }
-    }
+    }, "coordinator-diagram-widget-topic"
+  )
 
-    /**
-    * Constructs a new patient object.
-    */
-    def updateNewPatient(ccid: String, prop: PatientProperty): Patient = {
-      prop match {
-        case Priority(color, timestamp) => Patient(ccid, Priority(color, timestamp), Attended(false, "", ""), Location("", ""), Team("", "", ""), FinishedStillPresent(false, ""))
-        case Attended(attended, doctorId, timestamp) => Patient(ccid, Priority("", ""), Attended(attended, doctorId, timestamp), Location("", ""), Team("", "", ""), FinishedStillPresent(false, ""))
-        case FinishedStillPresent(finished, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), FinishedStillPresent(finished, timestamp))
-        case Location(roomNr, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location(roomNr, timestamp), Team("", "", ""), FinishedStillPresent(false, ""))
-        case Team(team, clinic, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team(team, clinic, timestamp), FinishedStillPresent(false, ""))
-        case _ => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), FinishedStillPresent(false, ""))
-      }
-    }
+  send(api.GetState())
 
-    /**
-    * Constructs an updates patient object.
-    */
-    def updateExistingPatient(s: Map[String, Patient], ccid: String, prop: PatientProperty): Patient = {
-      prop match {
-        case Priority(color, timestamp) => Patient(ccid, Priority(color, timestamp), s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).finishedStillPresent)
-        case Attended(attended, doctorId, timestamp) => Patient(ccid, s(ccid).priority, Attended(attended, doctorId, timestamp), s(ccid).location, s(ccid).team, s(ccid).finishedStillPresent)
-        case FinishedStillPresent(finished, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, FinishedStillPresent(finished, timestamp))
-        case Location(roomNr, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, Location(roomNr, timestamp), s(ccid).team, s(ccid).finishedStillPresent)
-        case Team(team, clinic, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, Team(team, clinic, timestamp), s(ccid).finishedStillPresent)
-        case _ => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), FinishedStillPresent(false, ""))
-      }
-    }
+  def send(mess: api.StateEvent) {
+    val h = SPHeader(from = "CoordinatorDiagramWidget", to = "CoordinatorDiagramService")
+    val json = SPMessage.make(h, mess)
+    BackendCommunication.publish(json, "coordinator-diagram-service-topic")
+  }
 
-    def render(p: Map[String, Patient]) = {
+    def render(p: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
     }
   }
@@ -130,14 +70,17 @@ object CoordinatorDiagramServiceWidget {
 
   private val component = ReactComponentB[Unit]("teamVStatus")
   .initialState(Map("-1" ->
-    Patient(
-      "-1",
-      Priority("", ""),
-      Attended(false, "", ""),
-      Location("", ""),
-      Team("", "", ""),
-      FinishedStillPresent(false, "")
-    )))
+    apiPatient.Patient(
+      "4502085",
+      apiPatient.Priority("NotTriaged", "2017-02-01T15:49:19Z"),
+      apiPatient.Attended(true, "sarli29", "2017-02-01T15:58:33Z"),
+      apiPatient.Location("52", "2017-02-01T15:58:33Z"),
+      apiPatient.Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
+      apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
+      apiPatient.LatestEvent("OmsKoord", -1, "2017-02-01T15:58:33Z"),
+      apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
+      apiPatient.FinishedStillPresent(false, "2017-02-01T10:01:38Z")
+      )))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
   .build
@@ -153,7 +96,7 @@ object CoordinatorDiagramServiceWidget {
     else{d.toString()}
   }
 
-  def getTriageStatusList(m: Map[String, Patient]): List[List[Int]] = {
+  def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
     // Count number of patients of each triage color and status
     var notTriagedCountMG = 0
     var blueCountMG = 0
@@ -309,7 +252,7 @@ object CoordinatorDiagramServiceWidget {
           }
         }
       }
-      if (p._2.finishedStillPresent.finished) {
+      if (p._2.finishedStillPresent.finishedStillPresent) {
         p._2.team.team match {
           case "medicin gul" | "medicin" => finishedCountMG += 1
           case "medicin blå" => finishedCountMB += 1
@@ -360,7 +303,7 @@ object CoordinatorDiagramServiceWidget {
     return listy
   }
 
-  private def addTheD3(element: raw.Element, patients: Map[String, Patient]): Unit = {
+  private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Patient]): Unit = {
 
    d3.select(element).selectAll("*").remove()
 
@@ -388,7 +331,11 @@ object CoordinatorDiagramServiceWidget {
      val summera = list.sum
 
      for(i <- list.indices){
-       lista += ( list(i).toDouble / summera ) * h
+       if (summera == 0) {
+         lista += 0
+       } else {
+         lista += ( list(i).toDouble / summera ) * h
+       }
      }
      return lista
    }
@@ -485,7 +432,13 @@ object CoordinatorDiagramServiceWidget {
    val sel2 = svg.selectAll("g").data(js.Array(0,1,2,3,4)).enter()
 
    val kvot: Double = getKvot(listy)
-   val firstRect: Double = listy.head.sum.toDouble / kvot * graphHeight
+   var firstRect: Double = 0
+   if (kvot == 0) {
+     firstRect = 0
+   } else {
+     firstRect = listy.head.sum.toDouble / kvot * graphHeight
+   }
+
 
    // Ej påbörjade
    val dispFirstText = (d: Int) => if(d <= 0){""} else{d.toString}
@@ -774,32 +727,61 @@ object CoordinatorDiagramServiceWidget {
 
 
    // Medicin - Gul
-   draw(getHeights(getLength(listy(1), listy(1).sum * (graphHeight-offset) / kvot), barSecond, graphHeight), listy(1))
-   draw2(getHeights(getLength(listy(2), listy(1).sum * (graphHeight-offset) / kvot), barWidth + barSecond, graphHeight), listy(2))
+   if (kvot == 0) {
+     draw(getHeights(getLength(listy(1), 0), barSecond, graphHeight), listy(1))
+     draw2(getHeights(getLength(listy(2), 0), barWidth + barSecond, graphHeight), listy(2))
 
-   // Medicin - Blå
-   draw(getHeights(getLength(listy(3), listy(3).sum * (graphHeight-offset) / kvot), horizontalBarDistance + barSecond, graphHeight), listy(3))
-   draw2(getHeights(getLength(listy(4), listy(3).sum * (graphHeight-offset) / kvot), horizontalBarDistance + barWidth + barSecond, graphHeight), listy(4))
+     // Medicin - Blå
+     draw(getHeights(getLength(listy(3), 0), horizontalBarDistance + barSecond, graphHeight), listy(3))
+     draw2(getHeights(getLength(listy(4), 0), horizontalBarDistance + barWidth + barSecond, graphHeight), listy(4))
 
-   // Kirurgi
-   draw(getHeights(getLength(listy(5), listy(5).sum * (graphHeight-offset) / kvot), 2*horizontalBarDistance + barSecond, graphHeight), listy(5))
-   draw2(getHeights(getLength(listy(6), listy(5).sum * (graphHeight-offset) / kvot), 2*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(6))
+     // Kirurgi
+     draw(getHeights(getLength(listy(5), 0), 2*horizontalBarDistance + barSecond, graphHeight), listy(5))
+     draw2(getHeights(getLength(listy(6), 0), 2*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(6))
 
-   // Ortopedi
-   draw(getHeights(getLength(listy(7), listy(7).sum * (graphHeight-offset) / kvot), 3*horizontalBarDistance + barSecond, graphHeight), listy(7))
-   draw2(getHeights(getLength(listy(8), listy(7).sum * (graphHeight-offset) / kvot), 3*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(8))
+     // Ortopedi
+     draw(getHeights(getLength(listy(7), 0), 3*horizontalBarDistance + barSecond, graphHeight), listy(7))
+     draw2(getHeights(getLength(listy(8), 0), 3*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(8))
 
-   // Stream
-   draw(getHeights(getLength(listy(9), listy(9).sum * (graphHeight-offset) / kvot), 4*horizontalBarDistance + barSecond, graphHeight), listy(9))
-   draw2(getHeights(getLength(listy(10), listy(9).sum * (graphHeight-offset) / kvot), 4*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(10))
+     // Stream
+     draw(getHeights(getLength(listy(9), 0), 4*horizontalBarDistance + barSecond, graphHeight), listy(9))
+     draw2(getHeights(getLength(listy(10), 0), 4*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(10))
 
-   // Process
-   draw(getHeights(getLength(listy(11), listy(11).sum * (graphHeight-offset) / kvot), 5*horizontalBarDistance + barSecond, graphHeight), listy(11))
-   draw2(getHeights(getLength(listy(12), listy(11).sum * (graphHeight-offset) / kvot), 5*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(12))
+     // Process
+     draw(getHeights(getLength(listy(11), 0), 5*horizontalBarDistance + barSecond, graphHeight), listy(11))
+     draw2(getHeights(getLength(listy(12), 0), 5*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(12))
 
-   // Jour
-   draw(getHeights(getLength(listy(13), listy(13).sum * (graphHeight-offset) / kvot), 6*horizontalBarDistance + barSecond, graphHeight), listy(13))
-   draw2(getHeights(getLength(listy(14), listy(13).sum * (graphHeight-offset) / kvot), 6*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(14))
+     // Jour
+     draw(getHeights(getLength(listy(13), 0), 6*horizontalBarDistance + barSecond, graphHeight), listy(13))
+     draw2(getHeights(getLength(listy(14), 0), 6*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(14))
+   } else {
+     draw(getHeights(getLength(listy(1), listy(1).sum * (graphHeight-offset) / kvot), barSecond, graphHeight), listy(1))
+     draw2(getHeights(getLength(listy(2), listy(1).sum * (graphHeight-offset) / kvot), barWidth + barSecond, graphHeight), listy(2))
+
+     // Medicin - Blå
+     draw(getHeights(getLength(listy(3), listy(3).sum * (graphHeight-offset) / kvot), horizontalBarDistance + barSecond, graphHeight), listy(3))
+     draw2(getHeights(getLength(listy(4), listy(3).sum * (graphHeight-offset) / kvot), horizontalBarDistance + barWidth + barSecond, graphHeight), listy(4))
+
+     // Kirurgi
+     draw(getHeights(getLength(listy(5), listy(5).sum * (graphHeight-offset) / kvot), 2*horizontalBarDistance + barSecond, graphHeight), listy(5))
+     draw2(getHeights(getLength(listy(6), listy(5).sum * (graphHeight-offset) / kvot), 2*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(6))
+
+     // Ortopedi
+     draw(getHeights(getLength(listy(7), listy(7).sum * (graphHeight-offset) / kvot), 3*horizontalBarDistance + barSecond, graphHeight), listy(7))
+     draw2(getHeights(getLength(listy(8), listy(7).sum * (graphHeight-offset) / kvot), 3*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(8))
+
+     // Stream
+     draw(getHeights(getLength(listy(9), listy(9).sum * (graphHeight-offset) / kvot), 4*horizontalBarDistance + barSecond, graphHeight), listy(9))
+     draw2(getHeights(getLength(listy(10), listy(9).sum * (graphHeight-offset) / kvot), 4*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(10))
+
+     // Process
+     draw(getHeights(getLength(listy(11), listy(11).sum * (graphHeight-offset) / kvot), 5*horizontalBarDistance + barSecond, graphHeight), listy(11))
+     draw2(getHeights(getLength(listy(12), listy(11).sum * (graphHeight-offset) / kvot), 5*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(12))
+
+     // Jour
+     draw(getHeights(getLength(listy(13), listy(13).sum * (graphHeight-offset) / kvot), 6*horizontalBarDistance + barSecond, graphHeight), listy(13))
+     draw2(getHeights(getLength(listy(14), listy(13).sum * (graphHeight-offset) / kvot), 6*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(14))
+   }
 
    def draw(listzz: ListBuffer[ys], listxx: List[Int]): Unit = {
 

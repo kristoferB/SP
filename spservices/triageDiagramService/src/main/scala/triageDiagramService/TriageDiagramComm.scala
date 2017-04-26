@@ -7,60 +7,63 @@ import sp.messages.Pickles._
 
 import scala.util.Try
 
-package API_PatientEvent {
-
-  // Messages I can receive (from elvisDataHandler)
-  sealed trait PatientEvent
-  case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
-  case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
-  case class RemovedPatient(careContactId: String, timestamp: String) extends PatientEvent
-
-  // Messages I can send to my widget
+package API_Patient {
   sealed trait PatientProperty
+  case class Priority(color: String, timestamp: String) extends PatientProperty
+  case class Attended(attended: Boolean, doctorId: String, timestamp: String) extends PatientProperty
+  case class Location(roomNr: String, timestamp: String) extends PatientProperty
+  case class Team(team: String, clinic: String, timestamp: String) extends PatientProperty
+  case class Examination(isOnExam: Boolean, timestamp: String) extends PatientProperty
+  case class LatestEvent(latestEvent: String, timeDiff: Long, timestamp: String) extends PatientProperty
+  case class ArrivalTime(timeDiff: String, timestamp: String) extends PatientProperty
+  case class FinishedStillPresent(finishedStillPresent: Boolean, timestamp: String) extends PatientProperty
+  case class Finished() extends PatientProperty
+  case class Undefined() extends PatientProperty
 
-  sealed trait PriorityEvent extends PatientProperty
-  case class NotTriaged(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
-  case class Green(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
-  case class Yellow(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
-  case class Orange(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
-  case class Red(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent
+  case class Patient(
+    var careContactId: String,
+    var priority: Priority,
+    var attended: Attended,
+    var location: Location,
+    var team: Team,
+    var examination: Examination,
+    var latestEvent: LatestEvent,
+    var arrivalTime: ArrivalTime,
+    var finishedStillPresent: FinishedStillPresent)
+}
 
-  sealed trait AttendedEvent
-  case class Attended(careContactId: String, timestamp: String, attended: Boolean, doctorId: String) extends PatientProperty with AttendedEvent
+package API_PatientEvent {
+  import sp.triagediagramservice.{API_Patient => api}
 
-  sealed trait LocationEvent
-  case class RoomNr(careContactId: String, timestamp: String, roomNr: String) extends PatientProperty with LocationEvent
+  sealed trait Event
 
-  sealed trait TeamEvent
-  case class Team(careContactId: String, timestamp: String, team: String, klinik: String) extends PatientProperty with TeamEvent
+  sealed trait PatientEvent
+  case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent with Event
+  case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent with Event
+  case class RemovedPatient(careContactId: String, timestamp: String) extends PatientEvent with Event
 
-  sealed trait LatestEventEvent
-  case class LatestEvent(careContactId: String, timestamp: String, latestEvent: String, timeDiff: Long) extends PatientProperty with LatestEventEvent
+  sealed trait StateEvent
+  case class GetState() extends StateEvent with Event
+  case class State(patients: Map[String, api.Patient]) extends StateEvent with Event
 
-  sealed trait ArrivalTimeEvent
-  case class ArrivalTime(careContactId: String, timestamp: String, timeDiff: Long) extends PatientProperty with ArrivalTimeEvent
-
-  sealed trait FinishedEvent
-  case class FinishedStillPresent(careContactId: String, timestamp: String) extends PatientProperty with FinishedEvent
-  case class Finished(careContactId: String, timestamp: String) extends PatientProperty with FinishedEvent
-
-  case class Undefined(careContactId: String, timestamp: String) extends PatientProperty with PriorityEvent with AttendedEvent with LocationEvent with TeamEvent with LatestEventEvent with ArrivalTimeEvent with FinishedEvent
+  case class Tick() extends StateEvent with Event
 
   object attributes {
-    val service = "triageDiagramService"
+    val service = "patientCardsService"
   }
 }
+
 
 import sp.triagediagramservice.{API_PatientEvent => api}
 
 object TriageDiagramComm {
 
-  def extractPatientEvent(mess: Try[SPMessage]) = for {
+  def extractEvent(mess: Try[SPMessage]) = for {
     m <- mess
     h <- m.getHeaderAs[SPHeader]
-    b <- m.getBodyAs[api.PatientEvent]
+    b <- m.getBodyAs[api.Event]
   } yield (h, b)
 
-  def makeMess(h: SPHeader, b: api.PatientProperty) = SPMessage.makeJson[SPHeader, api.PatientProperty](h, b)
+  def makeMess(h: SPHeader, b: api.StateEvent) = SPMessage.makeJson[SPHeader, api.StateEvent](h, b)
 
 }

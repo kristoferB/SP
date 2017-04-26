@@ -37,48 +37,68 @@ import scalacss.Defaults._
 import scala.collection.mutable.ListBuffer
 
 import spgui.widgets.{API_PatientEvent => api}
+import spgui.widgets.{API_Patient => apiPatient}
 
 object RoomOverviewServiceWidget {
 
-  private class Backend($: BackendScope[Unit, Map[String, String]]) {
+  private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.PatientProperty] map {
-          case api.RoomNr(careContactId, timestamp, roomNr) => $.modState(s => s + (careContactId -> roomNr)).runNow()
-          case api.Finished(careContactId, timestamp) => $.modState(s => s - careContactId).runNow()
+        mess.getBodyAs[api.Event] map {
+          case api.State(patients) => $.modState{s => patients}.runNow()
           case x => println(s"THIS WAS NOT EXPECTED IN RoomOverviewServiceWidget: $x")
         }
       }, "room-overview-widget-topic"
     )
 
+    send(api.GetState())
+
+    def send(mess: api.StateEvent) {
+      val h = SPHeader(from = "RoomOverviewWidget", to = "RoomOverviewService")
+      val json = SPMessage.make(h, mess)
+      BackendCommunication.publish(json, "room-overview-service-topic")
+    }
+
     // What is this function used for?
-    def render(p: Map[String, String]) = {
+    def render(p: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
     }
   }
 
   private val component = ReactComponentB[Unit]("KoordMapWidget")
-  .initialState(Map("0" -> "Initial"))
+  .initialState(Map("-1" ->
+    apiPatient.Patient(
+      "4502085",
+      apiPatient.Priority("NotTriaged", "2017-02-01T15:49:19Z"),
+      apiPatient.Attended(true, "sarli29", "2017-02-01T15:58:33Z"),
+      apiPatient.Location("52", "2017-02-01T15:58:33Z"),
+      apiPatient.Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
+      apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
+      apiPatient.LatestEvent("OmsKoord", -1, "2017-02-01T15:58:33Z"),
+      apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
+      apiPatient.FinishedStillPresent(false, "2017-02-01T10:01:38Z")
+      )))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
   .build
 
-  private def addTheD3(element: raw.Element, rooms: Map[String, String]): Unit = {
+  private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Patient]): Unit = {
 
    d3.select(element).selectAll("*").remove()
 
    spgui.widgets.css.WidgetStyles.addToDocument()
 
    var busyRoomsBuffer = new ListBuffer[String]()
-   rooms.foreach{ r =>
-     if (r._1 != "0") {
-       busyRoomsBuffer += r._2
+   patients.foreach{ p =>
+     if (p._1 != "0") {
+       if (p._2.location.roomNr != "" && p._2.location.roomNr != "ivr") {
+         busyRoomsBuffer += p._2.location.roomNr
+       }
      }
    }
    val busyRooms = busyRoomsBuffer.toList
-
 
    val width = element.clientWidth                      // Kroppens bredd
    val height = (1080/1372.0) * width     // Kroppens höjd

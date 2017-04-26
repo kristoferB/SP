@@ -35,82 +35,31 @@ import scalacss.ScalaCssReact._
 import scalacss.Defaults._
 
 import spgui.widgets.{API_PatientEvent => api}
+import spgui.widgets.{API_Patient => apiPatient}
 
 object PatientReminderServiceWidget {
 
-  sealed trait PatientProperty
+  send(api.GetState())
 
-  case class Priority(color: String, timestamp: String) extends PatientProperty
-  case class Attended(attended: Boolean, doctorId: String, timestamp: String) extends PatientProperty
-  case class Location(roomNr: String, timestamp: String) extends PatientProperty
-  case class Team(team: String, clinic: String, timestamp: String) extends PatientProperty
-  case class LatestEvent(latestEvent: String, timeDiff: Long, timestamp: String) extends PatientProperty
-  case class ArrivalTime(timeDiff: String, timestamp: String) extends PatientProperty
+  def send(mess: api.StateEvent) {
+    val h = SPHeader(from = "PatientReminderWidget", to = "PatientReminderService")
+    val json = SPMessage.make(h, mess)
+    BackendCommunication.publish(json, "services")
+  }
 
-  case class Patient(
-    var careContactId: String,
-    var priority: Priority,
-    var attended: Attended,
-    var location: Location,
-    var team: Team,
-    var latestEvent: LatestEvent,
-    var arrivalTime: ArrivalTime)
-
-  private class Backend($: BackendScope[Unit, Map[String, Patient]]) {
+  private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.PatientProperty].map {
-          case api.Tick() => {
-              $.modState{ s => updateAllTimeDiffs(s) }.runNow()
-          }
-          case api.NotTriaged(careContactId, timestamp) => {
-              $.modState{ s => updateState(s, careContactId, Priority("NotTriaged", timestamp)) }.runNow()
-          }
-          case api.Green(careContactId, timestamp) => {
-              $.modState{ s => updateState(s, careContactId, Priority("Green", timestamp)) }.runNow()
-          }
-          case api.Yellow(careContactId, timestamp) => {
-              $.modState{ s => updateState(s, careContactId, Priority("Yellow", timestamp)) }.runNow()
-          }
-          case api.Orange(careContactId, timestamp) => {
-              $.modState{ s => updateState(s, careContactId, Priority("Orange", timestamp)) }.runNow()
-          }
-          case api.Red(careContactId, timestamp) => {
-              $.modState{ s => updateState(s, careContactId, Priority("Red", timestamp)) }.runNow()
-          }
-          case api.Attended(careContactId, timestamp, attended, doctorId) => {
-            $.modState{ s => updateState(s, careContactId, Attended(attended, doctorId, timestamp)) }.runNow()
-          }
-          case api.RoomNr(careContactId, timestamp, roomNr) => {
-            $.modState{ s => updateState(s, careContactId, Location(roomNr, timestamp)) }.runNow()
-          }
-          case api.Team(careContactId, timestamp, team, clinic) => {
-            $.modState{ s => updateState(s, careContactId, Team(team, clinic, timestamp)) }.runNow()
-          }
-          case api.LatestEvent(careContactId, timestamp, latestEvent, timeDiff) => {
-            $.modState{ s => updateState(s, careContactId, LatestEvent(latestEvent, timeDiff, timestamp)) }.runNow()
-          }
-          case api.ArrivalTime(careContactId, timestamp, timeDiff) => {
-            $.modState{ s => updateState(s, careContactId, ArrivalTime(timeDiff, timestamp)) }.runNow()
-          }
-          case api.Finished(careContactId, timestamp) => {
-            $.modState{ s => s - careContactId }.runNow()
-          }
-          case _ => println("THIS WAS NOT EXPECTED IN PatientCardsServiceWidget.")
+        mess.getBodyAs[api.Event].map {
+          case api.State(patients) => $.modState{s => patients}.runNow()
+          case _ => println("THIS WAS NOT EXPECTED IN PatientReminderServiceWidget.")
       }
     }, "patient-reminder-widget-topic"
   )
 
-    def updateState(s: Map[String, Patient], careContactId: String, prop: PatientProperty): Map[String, Patient] = {
-      if (s.keys.exists(_ == careContactId)) {
-        s + (careContactId -> updateExistingPatient(s, careContactId, prop))
-      } else {
-        s + (careContactId -> updateNewPatient(careContactId, prop))
-      }
-    }
-
+/**
     def updateAllTimeDiffs(s: Map[String, Patient]): Map[String, Patient] = {
       var newState: Map[String, Patient] = s
       s.foreach{ p =>
@@ -119,31 +68,7 @@ object PatientReminderServiceWidget {
         }
       }
       return newState
-    }
-
-    def updateNewPatient(ccid: String, prop: PatientProperty): Patient = {
-      prop match {
-        case Priority(color, timestamp) => Patient(ccid, Priority(color, timestamp), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime("", ""))
-        case Attended(attended, doctorId, timestamp) => Patient(ccid, Priority("", ""), Attended(attended, doctorId, timestamp), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime("", ""))
-        case Location(roomNr, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location(roomNr, timestamp), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime("", ""))
-        case Team(team, clinic, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team(team, clinic, timestamp), LatestEvent("", -1, ""), ArrivalTime("", ""))
-        case LatestEvent(latestEvent, timeDiff, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent(latestEvent, -1, timestamp), ArrivalTime("", ""))
-        case ArrivalTime(timeDiff, timestamp) => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime(timeDiff, timestamp))
-        case _ => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime("", ""))
-      }
-    }
-
-    def updateExistingPatient(s: Map[String, Patient], ccid: String, prop: PatientProperty): Patient = {
-      prop match {
-        case Priority(color, timestamp) => Patient(ccid, Priority(color, timestamp), s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).latestEvent, s(ccid).arrivalTime)
-        case Attended(attended, doctorId, timestamp) => Patient(ccid, s(ccid).priority, Attended(attended, doctorId, timestamp), s(ccid).location, s(ccid).team, s(ccid).latestEvent, s(ccid).arrivalTime)
-        case Location(roomNr, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, Location(roomNr, timestamp), s(ccid).team, s(ccid).latestEvent, s(ccid).arrivalTime)
-        case Team(team, clinic, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, Team(team, clinic, timestamp), s(ccid).latestEvent, s(ccid).arrivalTime)
-        case LatestEvent(latestEvent, timeDiff, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, LatestEvent(latestEvent, timeDiff, timestamp), s(ccid).arrivalTime)
-        case ArrivalTime(timeDiff, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).latestEvent, ArrivalTime(timeDiff, timestamp))
-        case _ => Patient(ccid, Priority("", ""), Attended(false, "", ""), Location("", ""), Team("", "", ""), LatestEvent("", -1, ""), ArrivalTime("", ""))
-      }
-    }
+    }*/
 
     def getTimeDiffReadable(milliseconds: Long): String = {
       val minutes = ((milliseconds / (1000*60)) % 60)
@@ -151,7 +76,7 @@ object PatientReminderServiceWidget {
       return hours + " h " + minutes + " m "
     }
 
-    def decodeTriageColor(p: Priority): String = {
+    def decodeTriageColor(p: apiPatient.Priority): String = {
       p.color match {
         case "NotTriaged" => "#D5D5D5"
         case "Blue" => "#1288FF"
@@ -170,7 +95,7 @@ object PatientReminderServiceWidget {
     Takes an AttendedEvent and returns a tuple containing a bool declaring wether
     icon should be filled or not as we as a string containing text to be shown
     **/
-    def decodeAttended(a: Attended): (Boolean, String) = {
+    def decodeAttended(a: apiPatient.Attended): (Boolean, String) = {
       if (a.attended)
       (true, a.doctorId)
       else
@@ -180,7 +105,7 @@ object PatientReminderServiceWidget {
     /*
     Converts the Team.team-field of a given Team into a color value
     **/
-    def decodeTeamColor(t: Team): String = {
+    def decodeTeamColor(t: apiPatient.Team): String = {
       t.team match {
         case "Streamteam" => "#BEABEB"
         case "Process" => "#FF93B8"
@@ -194,7 +119,7 @@ object PatientReminderServiceWidget {
     /*
     Converts the Team.klinik-field of a given Team into a letter to present
     **/
-    def decodeKlinikLetter(t: Team): String = {
+    def decodeKlinikLetter(t: apiPatient.Team): String = {
       t.clinic match {
         case "NAKKI" => "K"
         case "NAKME" => "M"
@@ -207,7 +132,7 @@ object PatientReminderServiceWidget {
     /*
     Specifies a patientCard in SVG for scalajs-react based on a Patient.
     **/
-    def patientReminder(p: Patient) = {
+    def patientReminder(p: apiPatient.Patient) = {
       val cardHeight = 186
       val cardWidth = cardHeight * 1.7
       val triageFieldWidth = (cardWidth / 3)
@@ -380,7 +305,7 @@ object PatientReminderServiceWidget {
         )
       }
 
-      def render(pmap: Map[String, Patient]) = {
+      def render(pmap: Map[String, apiPatient.Patient]) = {
         spgui.widgets.css.WidgetStyles.addToDocument()
         val longestWaiting = getLongestWaitingPatients(pmap - "-1")
 
@@ -391,8 +316,8 @@ object PatientReminderServiceWidget {
         )
       }
 
-      def getLongestWaitingPatients(patients: Map[String, Patient]): Map[String, Patient] = {
-        var longestWaiting: Map[String, Patient] = Map()
+      def getLongestWaitingPatients(patients: Map[String, apiPatient.Patient]): Map[String, apiPatient.Patient] = {
+        var longestWaiting: Map[String, apiPatient.Patient] = Map()
         var timeDiffMap: Map[String, Long] = Map()
         patients.foreach{ p =>
           timeDiffMap += p._1 -> p._2.latestEvent.timeDiff
@@ -416,14 +341,16 @@ object PatientReminderServiceWidget {
 
   private val patientReminderComponent = ReactComponentB[Unit]("patientReminderComponent")
   .initialState(Map("-1" ->
-    Patient(
+    apiPatient.Patient(
       "4502085",
-      Priority("NotTriaged", "2017-02-01T15:49:19Z"),
-      Attended(true, "sarli29", "2017-02-01T15:58:33Z"),
-      Location("52", "2017-02-01T15:58:33Z"),
-      Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
-      LatestEvent("OmsKoord", -1, "2017-02-01T15:58:33Z"),
-      ArrivalTime("", "2017-02-01T10:01:38Z")
+      apiPatient.Priority("NotTriaged", "2017-02-01T15:49:19Z"),
+      apiPatient.Attended(true, "sarli29", "2017-02-01T15:58:33Z"),
+      apiPatient.Location("52", "2017-02-01T15:58:33Z"),
+      apiPatient.Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
+      apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
+      apiPatient.LatestEvent("OmsKoord", -1, "2017-02-01T15:58:33Z"),
+      apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
+      apiPatient.FinishedStillPresent(false, "2017-02-01T10:01:38Z")
       )))
   .renderBackend[Backend]
   .build

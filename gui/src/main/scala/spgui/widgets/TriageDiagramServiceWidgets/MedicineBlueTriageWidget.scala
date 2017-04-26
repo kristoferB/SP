@@ -37,92 +37,47 @@ import scalacss.Defaults._
 import scala.collection.mutable.ListBuffer
 
 import spgui.widgets.{API_PatientEvent => api}
+import spgui.widgets.{API_Patient => apiPatient}
 
 object MedicineBlueTriageWidget {
 
-  sealed trait PatientProperty
+  send(api.GetState())
 
-  case class Priority(color: String, timestamp: String) extends PatientProperty
-  case class Location(roomNr: String, timestamp: String) extends PatientProperty
-  case class Team(team: String, clinic: String, timestamp: String) extends PatientProperty
-  case class Finished() extends PatientProperty
+  def send(mess: api.StateEvent) {
+    val h = SPHeader(from = "MedicineBlueTriageWidget", to = "TriageDiagramService")
+    val json = SPMessage.make(h, mess)
+    BackendCommunication.publish(json, "services")
+  }
 
-  case class Patient(
-    var careContactId: String,
-    var priority: Priority,
-    var location: Location,
-    var team: Team)
-
-  private class Backend($: BackendScope[Unit, Map[String, Patient]]) {
+  private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.PatientProperty] map {
-          case api.NotTriaged(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Priority("NotTriaged", timestamp)) }.runNow()
-          case api.Blue(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Priority("Blue", timestamp)) }.runNow()
-          case api.Green(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Priority("Green", timestamp)) }.runNow()
-          case api.Yellow(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Priority("Yellow", timestamp)) }.runNow()
-          case api.Orange(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Priority("Orange", timestamp)) }.runNow()
-          case api.Red(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Priority("Red", timestamp)) }.runNow()
-          case api.RoomNr(careContactId, timestamp, roomNr) => $.modState{ s => updateState(s, careContactId, Location(roomNr, timestamp)) }.runNow()
-          case api.Team(careContactId, timestamp, team, clinic) => $.modState{ s => updateState(s, careContactId, Team(team, clinic, timestamp)) }.runNow()
-          case api.Finished(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Finished()) }.runNow()
+        mess.getBodyAs[api.Event] map {
+          case api.State(patients) => $.modState{s => patients}.runNow()
           case x => println(s"THIS WAS NOT EXPECTED IN MedicineBlueTriageWidget: $x")
         }
-      }, "triage-diagram-widget-topic"
+      }, "triage-diagram-medicine-blue-widget-topic"
     )
 
-    /**
-    * Updates the current state based on what patient property is received.
-    */
-    def updateState(s: Map[String, Patient], careContactId: String, prop: PatientProperty): Map[String, Patient] = {
-      if (s.keys.exists(_ == careContactId)) {
-        if (prop.isInstanceOf[Finished]) {
-          return s - careContactId
-        }
-        return s + (careContactId -> updateExistingPatient(s, careContactId, prop))
-      } else {
-        return s + (careContactId -> updateNewPatient(careContactId, prop))
-      }
-    }
-
-    /**
-    * Constructs a new patient object.
-    */
-    def updateNewPatient(ccid: String, prop: PatientProperty): Patient = {
-      prop match {
-        case Priority(color, timestamp) => Patient(ccid, Priority(color, timestamp), Location("", ""), Team("", "", ""))
-        case Location(roomNr, timestamp) => Patient(ccid, Priority("", ""), Location(roomNr, timestamp), Team("", "", ""))
-        case Team(team, clinic, timestamp) => Patient(ccid, Priority("", ""), Location("", ""), Team(team, clinic, timestamp))
-        case _ => Patient(ccid, Priority("", ""), Location("", ""), Team("", "", ""))
-      }
-    }
-
-    /**
-    * Constructs an updates patient object.
-    */
-    def updateExistingPatient(s: Map[String, Patient], ccid: String, prop: PatientProperty): Patient = {
-      prop match {
-        case Priority(color, timestamp) => Patient(ccid, Priority(color, timestamp), s(ccid).location, s(ccid).team)
-        case Location(roomNr, timestamp) => Patient(ccid, s(ccid).priority, Location(roomNr, timestamp), s(ccid).team)
-        case Team(team, clinic, timestamp) => Patient(ccid, s(ccid).priority, s(ccid).location, Team(team, clinic, timestamp))
-        case _ => Patient(ccid, s(ccid).priority, s(ccid).location, s(ccid).team)
-      }
-    }
-
-    def render(p: Map[String, Patient]) = {
+    def render(p: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
     }
   }
 
   private val component = ReactComponentB[Unit]("teamVBelastning")
   .initialState(Map("-1" ->
-    Patient(
+    apiPatient.Patient(
       "4502085",
-      Priority("NotTriaged", "2017-02-01T15:49:19Z"),
-      Location("52", "2017-02-01T15:58:33Z"),
-      Team("GUL", "NAKME", "2017-02-01T15:58:33Z")
+      apiPatient.Priority("NotTriaged", "2017-02-01T15:49:19Z"),
+      apiPatient.Attended(true, "sarli29", "2017-02-01T15:58:33Z"),
+      apiPatient.Location("52", "2017-02-01T15:58:33Z"),
+      apiPatient.Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
+      apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
+      apiPatient.LatestEvent("OmsKoord", -1, "2017-02-01T15:58:33Z"),
+      apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
+      apiPatient.FinishedStillPresent(false, "2017-02-01T10:01:38Z")
       )))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
@@ -140,16 +95,16 @@ object MedicineBlueTriageWidget {
   }
 
   /**
-  * Checks if the patient belongs to this team. HERE: Medicin blå.
+  * Checks if the patient belongs to this team.
   */
-  def belongsToThisTeam(patient: Patient): Boolean = {
+  def belongsToThisTeam(patient: apiPatient.Patient): Boolean = {
     patient.team.team match {
       case "medicin blå" => true
       case _ => false
     }
   }
 
-  private def addTheD3(element: raw.Element, patients: Map[String, Patient]): Unit = {
+  private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Patient]): Unit = {
   d3.select(element).selectAll("*").remove()
 
   val width = element.clientWidth           // Kroppens bredd
@@ -175,7 +130,7 @@ object MedicineBlueTriageWidget {
   var orangeCount = 0
   var redCount = 0
 
-  var teamMap: Map[String, Patient] = Map()
+  var teamMap: Map[String, apiPatient.Patient] = Map()
   (patients - "-1").foreach{ p =>
     if (belongsToThisTeam(p._2)) {
       teamMap += p._1 -> p._2

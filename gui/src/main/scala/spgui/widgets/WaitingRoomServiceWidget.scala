@@ -37,87 +37,37 @@ import scalacss.Defaults._
 import scala.collection.mutable.ListBuffer
 
 import spgui.widgets.{API_PatientEvent => api}
+import spgui.widgets.{API_Patient => apiPatient}
 
 object WaitingRoomServiceWidget {
 
-  sealed trait PatientProperty
-
-  case class Attended(attended: Boolean, doctorId: String, timestamp: String) extends PatientProperty
-  case class FinishedStillPresent(finished: Boolean, timestamp: String) extends PatientProperty
-  case class Location(roomNr: String, timestamp: String) extends PatientProperty
-  case class Team(team: String, clinic: String, timestamp: String) extends PatientProperty
-  case class Finished() extends PatientProperty
-
-  case class Patient(
-    var careContactId: String,
-    var attended: Attended,
-    var location: Location,
-    var team: Team,
-    var finishedStillPresent: FinishedStillPresent)
-
-  private class Backend($: BackendScope[Unit, Map[String, Patient]]) {
+  private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.PatientProperty] map {
-          case api.Attended(careContactId, timestamp, attended, doctorId) => $.modState{ s => updateState(s, careContactId, Attended(attended, doctorId, timestamp)) }.runNow()
-          case api.RoomNr(careContactId, timestamp, roomNr) => $.modState{ s => updateState(s, careContactId, Location(roomNr, timestamp)) }.runNow()
-          case api.Team(careContactId, timestamp, team, clinic) => $.modState{ s => updateState(s, careContactId, Team(team, clinic, timestamp)) }.runNow()
-          case api.FinishedStillPresent(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, FinishedStillPresent(true, timestamp)) }.runNow()
-          case api.Finished(careContactId, timestamp) => $.modState{ s => updateState(s, careContactId, Finished()) }.runNow()
+        mess.getBodyAs[api.Event] map {
+          case api.State(patients) => $.modState{s => patients}.runNow()
           case x => println(s"THIS WAS NOT EXPECTED IN WaitingRoomServiceWidget: $x")
         }
       }, "waiting-room-widget-topic"
     )
 
-    /**
-    * Updates the current state based on what patient property is received.
-    */
-    def updateState(s: Map[String, Patient], careContactId: String, prop: PatientProperty): Map[String, Patient] = {
-      if (s.keys.exists(_ == careContactId)) {
-        if (prop.isInstanceOf[Finished]) {
-          return s - careContactId
-        }
-        return s + (careContactId -> updateExistingPatient(s, careContactId, prop))
-      } else {
-        return s + (careContactId -> updateNewPatient(careContactId, prop))
-      }
-    }
+    send(api.GetState())
 
-    /**
-    * Constructs a new patient object.
-    */
-    def updateNewPatient(ccid: String, prop: PatientProperty): Patient = {
-      prop match {
-        case Attended(attended, doctorId, timestamp) => Patient(ccid, Attended(attended, doctorId, timestamp), Location("", ""), Team("", "", ""), FinishedStillPresent(false, ""))
-        case FinishedStillPresent(finished, timestamp) => Patient(ccid, Attended(false, "", ""), Location("", ""), Team("", "", ""), FinishedStillPresent(finished, timestamp))
-        case Location(roomNr, timestamp) => Patient(ccid, Attended(false, "", ""), Location(roomNr, timestamp), Team("", "", ""), FinishedStillPresent(false, ""))
-        case Team(team, clinic, timestamp) => Patient(ccid, Attended(false, "", ""), Location("", ""), Team(team, clinic, timestamp), FinishedStillPresent(false, ""))
-        case _ => Patient(ccid, Attended(false, "", ""), Location("", ""), Team("", "", ""), FinishedStillPresent(false, ""))
-      }
-    }
-
-    /**
-    * Constructs an updates patient object.
-    */
-    def updateExistingPatient(s: Map[String, Patient], ccid: String, prop: PatientProperty): Patient = {
-      prop match {
-        case Attended(attended, doctorId, timestamp) => Patient(ccid, Attended(attended, doctorId, timestamp), s(ccid).location, s(ccid).team, s(ccid).finishedStillPresent)
-        case FinishedStillPresent(finished, timestamp) => Patient(ccid, s(ccid).attended, s(ccid).location, s(ccid).team, FinishedStillPresent(finished, timestamp))
-        case Location(roomNr, timestamp) => Patient(ccid, s(ccid).attended, Location(roomNr, timestamp), s(ccid).team, s(ccid).finishedStillPresent)
-        case Team(team, clinic, timestamp) => Patient(ccid, s(ccid).attended, s(ccid).location, Team(team, clinic, timestamp), s(ccid).finishedStillPresent)
-        case _ => Patient(ccid, Attended(false, "", ""), Location("", ""), Team("", "", ""), FinishedStillPresent(false, ""))
-      }
+    def send(mess: api.StateEvent) {
+      val h = SPHeader(from = "WaitingRoomWidget", to = "WaitingRoomService")
+      val json = SPMessage.make(h, mess)
+      BackendCommunication.publish(json, "waiting-room-service-topic")
     }
 
     // What is this function used for?
-    def render(p: Map[String, Patient]) = {
+    def render(p: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
     }
   }
 
-  def getWaitingRoomOccupation(m: Map[String, Patient]): List[List[Int]] = {
+  def getWaitingRoomOccupation(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
     var finishedCountMG = 0
     var attendedCountMG = 0
     var attendedWithPlanCountMG = 0
@@ -157,7 +107,7 @@ object WaitingRoomServiceWidget {
 
     (m - "-1").foreach{ p =>
       if (p._2.location.roomNr == "ivr") {
-        if (p._2.finishedStillPresent.finished) {
+        if (p._2.finishedStillPresent.finishedStillPresent) {
           p._2.team.team match {
             case "medicin gul" | "medicin" => finishedCountMG += 1
             case "medicin blå" => finishedCountMB += 1
@@ -208,18 +158,22 @@ object WaitingRoomServiceWidget {
 
   private val component = ReactComponentB[Unit]("KoordMapWidget")
   .initialState(Map("-1" ->
-    Patient(
-      "-1",
-      Attended(false, "", ""),
-      Location("", ""),
-      Team("", "", ""),
-      FinishedStillPresent(false, "")
-    )))
+    apiPatient.Patient(
+      "4502085",
+      apiPatient.Priority("NotTriaged", "2017-02-01T15:49:19Z"),
+      apiPatient.Attended(true, "sarli29", "2017-02-01T15:58:33Z"),
+      apiPatient.Location("52", "2017-02-01T15:58:33Z"),
+      apiPatient.Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
+      apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
+      apiPatient.LatestEvent("OmsKoord", -1, "2017-02-01T15:58:33Z"),
+      apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
+      apiPatient.FinishedStillPresent(false, "2017-02-01T10:01:38Z")
+      )))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
   .build
 
-  private def addTheD3(element: raw.Element, patients: Map[String, Patient]): Unit = {
+  private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Patient]): Unit = {
 
   d3.select(element).selectAll("*").remove()
 
