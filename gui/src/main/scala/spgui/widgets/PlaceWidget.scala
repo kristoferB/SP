@@ -34,7 +34,7 @@ import scala.collection.mutable.ListBuffer
 import spgui.widgets.{API_PatientEvent => api}
 import spgui.widgets.{API_Patient => apiPatient}
 
-object ChangeMedicineYellowPlaceWidget {
+object PlaceWidget {
 
 
   private class Backend($: BackendScope[String, Map[String, apiPatient.Patient]]) {

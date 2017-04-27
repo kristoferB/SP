@@ -38,7 +38,7 @@ import scalacss.Defaults._
 import spgui.widgets.{API_PatientEvent => api}
 import spgui.widgets.{API_Patient => apiPatient}
 
-object ChangeMedicineYellowPatientCardsWidget {
+object PatientCardsWidget {
 
   private class Backend($: BackendScope[String, Map[String, apiPatient.Patient]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
