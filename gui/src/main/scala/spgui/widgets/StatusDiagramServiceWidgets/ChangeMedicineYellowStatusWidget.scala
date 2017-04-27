@@ -41,12 +41,12 @@ import spgui.widgets.{API_Patient => apiPatient}
 
 object ChangeMedicineYellowStatusWidget {
 
-  private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
+  private class Backend($: BackendScope[String, Map[String, apiPatient.Patient]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.Event].map {
+        ToAndFrom.eventBody(mess).map {
           case api.State(patients) => $.modState{s => patients}.runNow()
           case x => println(s"THIS WAS NOT EXPECTED IN MedicineYellowStatusWidget: $x")
         }
@@ -57,11 +57,11 @@ object ChangeMedicineYellowStatusWidget {
 
     def send(mess: api.StateEvent) {
       val h = SPHeader(from = "MedicineYellowStatusWidget", to = "StatusDiagramService")
-      val json = SPMessage.make(h, mess)
+      val json = ToAndFrom.make(h, mess)
       BackendCommunication.publish(json, "status-diagram-service-topic")
     }
 
-    def render(p: Map[String, apiPatient.Patient]) = {
+    def render(p: String, s: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
     }
 
@@ -72,7 +72,7 @@ object ChangeMedicineYellowStatusWidget {
     }
   }
 
-  private val component = ReactComponentB[Unit]("TeamStatusWidget")
+  private val component = ReactComponentB[String]("TeamStatusWidget")
   .initialState(Map("-1" ->
     apiPatient.Patient(
       "4502085",
@@ -86,21 +86,18 @@ object ChangeMedicineYellowStatusWidget {
       apiPatient.FinishedStillPresent(false, "2017-02-01T10:01:38Z")
       )))
   .renderBackend[Backend]
-  .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
+  .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState, dcb.currentProps)))
   .componentWillUnmount(_.backend.onUnmount())
   .build
 
   /**
   * Checks if the patient belongs to this team.
   */
-  def belongsToThisTeam(patient: apiPatient.Patient): Boolean = {
-    patient.team.team match {
-      case "medicin gul" | "medicin" => true
-      case _ => false
-    }
+  def belongsToThisTeam(patient: apiPatient.Patient, filter: String): Boolean = {
+    filter.isEmpty || patient.team.team.contains(filter)
   }
 
-  private def addTheD3(element: raw.Element, initialStatusMap: Map[String, apiPatient.Patient]): Unit = {
+  private def addTheD3(element: raw.Element, initialStatusMap: Map[String, apiPatient.Patient], filter: String): Unit = {
 
     d3.select(element).selectAll("*").remove()
 
@@ -137,13 +134,10 @@ object ChangeMedicineYellowStatusWidget {
     var attendedWithPlanCount = 0 // not accounted for
     var unattendedCount = 0
 
-    var teamMap: Map[String, apiPatient.Patient] = Map()
-    (initialStatusMap - "-1").foreach{ p =>
-      if (belongsToThisTeam(p._2)) {
-        teamMap += p._1 -> p._2
-      }
-    }
+    var teamMap: Map[String, apiPatient.Patient] = (initialStatusMap - "-1").filter(p => belongsToThisTeam(p._2, filter))
 
+
+    // TODO: Never use vars if not needed in scala. Use map and foldLeft if you need to aggregate
     teamMap.foreach{ p =>
       if (p._2.finishedStillPresent.finishedStillPresent) {
         finishedCount += 1
@@ -304,7 +298,12 @@ object ChangeMedicineYellowStatusWidget {
 
   }
 
+  def extractTeam(attributes: Map[String, SPValue]) = {
+    attributes.get("team").map(x => x.str).getOrElse("medicin")
+  }
+
   def apply() = spgui.SPWidget(spwb => {
-    component()
+    val currentTeam = extractTeam(spwb.frontEndState.attributes)
+    component(currentTeam)
   })
 }

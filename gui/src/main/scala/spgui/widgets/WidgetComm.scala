@@ -1,5 +1,7 @@
 package spgui.widgets
 
+import sp.messages.Pickles.{SPHeader, SPMessage}
+
 package API_Patient {
   sealed trait PatientProperty
   case class Priority(color: String, timestamp: String) extends PatientProperty
@@ -43,4 +45,11 @@ package API_PatientEvent {
   object attributes {
     val service = "patientCardsService"
   }
+}
+
+
+object ToAndFrom {
+  def eventBody(mess: SPMessage) = mess.getBodyAs[API_PatientEvent.Event]
+
+  def make(h: SPHeader, b: API_PatientEvent.StateEvent) = SPMessage.make(h, b)
 }

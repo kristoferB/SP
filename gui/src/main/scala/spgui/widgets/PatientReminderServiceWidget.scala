@@ -43,7 +43,7 @@ object PatientReminderServiceWidget {
 
   def send(mess: api.StateEvent) {
     val h = SPHeader(from = "PatientReminderWidget", to = "PatientReminderService")
-    val json = SPMessage.make(h, mess)
+    val json = ToAndFrom.make(h, mess)
     BackendCommunication.publish(json, "services")
   }
 
@@ -52,7 +52,7 @@ object PatientReminderServiceWidget {
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.Event].map {
+        ToAndFrom.eventBody(mess).map {
           case api.State(patients) => $.modState{s => patients}.runNow()
           case _ => println("THIS WAS NOT EXPECTED IN PatientReminderServiceWidget.")
       }

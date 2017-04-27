@@ -61,6 +61,9 @@ class PatientCardsDevice extends Actor with ActorLogging {
             for (patientProperty <- patientProperties) {
               updateState(careContactId, patientProperty)
             }
+            if (widgetStarted) {
+              publishOnAkka(SPHeader(from = "patientCardsService"), api.State(state))
+            }
           }
         }
         case api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents) => {
@@ -69,10 +72,16 @@ class PatientCardsDevice extends Actor with ActorLogging {
             for (patientProperty <- patientProperties) {
               updateState(careContactId, patientProperty)
             }
+            if (widgetStarted) {
+              publishOnAkka(SPHeader(from = "patientCardsService"), api.State(state))
+            }
           }
         }
         case api.RemovedPatient(careContactId, timestamp) => {
           updateState(careContactId, apiPatient.Finished())
+          if (widgetStarted) {
+            publishOnAkka(SPHeader(from = "patientCardsService"), api.State(state))
+          }
         }
         case api.GetState() => {
           println("Got state request from " + h.from)
@@ -107,9 +116,6 @@ class PatientCardsDevice extends Actor with ActorLogging {
       }
     } else {
       state += (careContactId -> updateNewPatient(careContactId, prop))
-    }
-    if (widgetStarted) {
-      publishOnAkka(SPHeader(from = "patientCardsService"), api.State(state))
     }
   }
 
@@ -151,14 +157,14 @@ class PatientCardsDevice extends Actor with ActorLogging {
   Takes a NewPatient and returns PatientProperties based on patient data and events.
   */
   def extractNewPatientProperties(patient: api.NewPatient): List[apiPatient.PatientProperty] = {
-    return filterNewPatientProperties(patient, getNewPatientProperties(patient))
+    filterNewPatientProperties(patient, getNewPatientProperties(patient))
   }
 
   /**
   Takes a DiffPatient and returns PatientProperties based on updates and new events.
   */
   def extractDiffPatientProperties(patient: api.DiffPatient): List[apiPatient.PatientProperty] = {
-    return filterDiffPatientProperties(patient, getDiffPatientProperties(patient))
+    filterDiffPatientProperties(patient, getDiffPatientProperties(patient))
   }
 
   /**
@@ -178,7 +184,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
     patientPropertyBuffer += updateAttended(patient.careContactId, patient.events)
     patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.events)
     patientPropertyBuffer += updateFinishedStillPresent(patient.careContactId, patient.events)
-    return patientPropertyBuffer.toList
+    patientPropertyBuffer.toList
   }
 
   /**
@@ -201,7 +207,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
     patientPropertyBuffer += getLatestPrioEvent(patient.careContactId, patient.newEvents)
     patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.newEvents)
     patientPropertyBuffer += updateFinishedStillPresent(patient.careContactId, patient.newEvents)
-    return patientPropertyBuffer.toList
+    patientPropertyBuffer.toList
   }
 
   /**
@@ -254,30 +260,29 @@ class PatientCardsDevice extends Actor with ActorLogging {
       }
     }
     if (prio != "NA" && latestEventString != "NA") {
-      return updatePriority(careContactId, latestEventString, prio)
-    }
-    return apiPatient.Undefined()
+      updatePriority(careContactId, latestEventString, prio)
+    } else apiPatient.Undefined()
   }
 
   /**
   Discerns apiPatient.Team and klinik, returns a apiPatient.Team-type.
   */
   def updateTeam(careContactId: String, timestamp: String, team: String, reasonForVisit: String, location: String): apiPatient.Team = {
-    return apiPatient.Team(decodeTeam(reasonForVisit, location, team), decodeClinic(team), timestamp)
+    apiPatient.Team(decodeTeam(reasonForVisit, location, team), decodeClinic(team), timestamp)
   }
 
   /**
   Calculates the time diff. in milliseconds between arrival time and now, returns an apiPatient.ArrivalTime-type.
   */
   def updateArrivalTime(careContactId: String, timestamp: String): apiPatient.ArrivalTime = {
-    return apiPatient.ArrivalTime(getArrivalFormat(timestamp), timestamp)
+    apiPatient.ArrivalTime(getArrivalFormat(timestamp), timestamp)
   }
 
   /**
   Cleans up apiPatient.Location-value and returns a Location-type.
   */
   def updateLocation(careContactId: String, timestamp: String, location: String): apiPatient.Location = {
-    return apiPatient.Location(decodeLocation(location), timestamp)
+    apiPatient.Location(decodeLocation(location), timestamp)
   }
 
   /**
@@ -313,7 +318,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
     var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
     val startTime = formatter.parse(startTimeString.replaceAll("Z$", "+0000"))
     val now: Long = System.currentTimeMillis
-    return Math.abs(now - startTime.getTime()) // returns diff in millisec
+    Math.abs(now - startTime.getTime()) // returns diff in millisec
   }
 
   /**
@@ -332,7 +337,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
       case 2 => dayString = "(förrgår)"
       case _ => dayString = ""
     }
-    return timeString + " " + dayString
+    timeString + " " + dayString
   }
 
   /**
@@ -344,7 +349,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
         return apiPatient.FinishedStillPresent(true, e("Start"))
       }
     }
-    return apiPatient.FinishedStillPresent(false, "")
+    apiPatient.FinishedStillPresent(false, "")
   }
 
   /**
@@ -435,20 +440,14 @@ class PatientCardsDevice extends Actor with ActorLogging {
   Checks if string is valid triage color.
   */
   def isValidTriageColor(string: String): Boolean = {
-    if (string == "Grön" || string == "Gul" || string == "Orange" || string == "Röd") {
-      return true
-    }
-    return false
+    string == "Grön" || string == "Gul" || string == "Orange" || string == "Röd"
   }
 
   /**
   Checks if given field is empty or not.
   */
   def fieldEmpty(field: String): Boolean = {
-    if (field == "") {
-      return true
-    }
-    return false
+    field == ""
   }
 
   /**

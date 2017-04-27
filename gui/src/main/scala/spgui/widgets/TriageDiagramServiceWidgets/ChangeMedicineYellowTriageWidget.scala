@@ -41,12 +41,12 @@ import spgui.widgets.{API_Patient => apiPatient}
 
 object ChangeMedicineYellowTriageWidget {
 
-  private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
+  private class Backend($: BackendScope[String, Map[String, apiPatient.Patient]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.Event] map {
+        ToAndFrom.eventBody(mess) map {
           case api.State(patients) => $.modState{s => patients}.runNow()
           case x => println(s"THIS WAS NOT EXPECTED IN MedicineYellowTriageWidget: $x")
         }
@@ -57,11 +57,11 @@ object ChangeMedicineYellowTriageWidget {
 
     def send(mess: api.StateEvent) {
       val h = SPHeader(from = "MedicineYellowTriageWidget", to = "TriageDiagramService")
-      val json = SPMessage.make(h, mess)
+      val json = ToAndFrom.make(h, mess)
       BackendCommunication.publish(json, "triage-diagram-service-topic")
     }
 
-    def render(p: Map[String, apiPatient.Patient]) = {
+    def render(p: String, s: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
     }
 
@@ -72,7 +72,7 @@ object ChangeMedicineYellowTriageWidget {
     }
   }
 
-  private val component = ReactComponentB[Unit]("teamVBelastning")
+  private val component = ReactComponentB[String]("teamVBelastning")
   .initialState(Map("-1" ->
     apiPatient.Patient(
       "4502085",
@@ -86,7 +86,7 @@ object ChangeMedicineYellowTriageWidget {
       apiPatient.FinishedStillPresent(false, "2017-02-01T10:01:38Z")
       )))
   .renderBackend[Backend]
-  .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
+  .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState, dcb.currentProps)))
   .componentWillUnmount(_.backend.onUnmount())
   .build
 
@@ -104,14 +104,12 @@ object ChangeMedicineYellowTriageWidget {
   /**
   * Checks if the patient belongs to this team.
   */
-  def belongsToThisTeam(patient: apiPatient.Patient): Boolean = {
-    patient.team.team match {
-      case "medicin gul" | "medicin" => true
-      case _ => false
-    }
+  def belongsToThisTeam(patient: apiPatient.Patient, filter: String): Boolean = {
+    filter.isEmpty || patient.team.team.contains(filter)
   }
 
-  private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Patient]): Unit = {
+
+  private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Patient], filter: String): Unit = {
   d3.select(element).selectAll("*").remove()
 
   val width = element.clientWidth           // Kroppens bredd
@@ -137,12 +135,7 @@ object ChangeMedicineYellowTriageWidget {
   var orangeCount = 0
   var redCount = 0
 
-  var teamMap: Map[String, apiPatient.Patient] = Map()
-  (patients - "-1").foreach{ p =>
-    if (belongsToThisTeam(p._2)) {
-      teamMap += p._1 -> p._2
-    }
-  }
+    var teamMap: Map[String, apiPatient.Patient] = (patients - "-1").filter(p => belongsToThisTeam(p._2, filter))
 
   teamMap.foreach{ p =>
     p._2.priority.color match {
@@ -457,13 +450,13 @@ svg.append("text")
 
    // ---------- TEAM ------------
 
-   svg.append("text")
-     .attr("x", 0)
-     .attr("y", (20.0/ 450) * width)
-     .attr("font-size", sizeTeam)
-     .text(currentTeam)
-     .style("font-weight", "bold")
-     .attr("fill", colorText)
+//   svg.append("text")
+//     .attr("x", 0)
+//     .attr("y", (20.0/ 450) * width)
+//     .attr("font-size", sizeTeam)
+//     .text(currentTeam)
+//     .style("font-weight", "bold")
+//     .attr("fill", colorText)
 
    // ------- ANTAL PATIENTER ------------
 
@@ -517,7 +510,12 @@ svg.append("text")
 
 }
 
+  def extractTeam(attributes: Map[String, SPValue]) = {
+    attributes.get("team").map(x => x.str).getOrElse("medicin")
+  }
+
   def apply() = spgui.SPWidget(spwb => {
-    component()
+    val currentTeam = extractTeam(spwb.frontEndState.attributes)
+    component(currentTeam)
   })
 }

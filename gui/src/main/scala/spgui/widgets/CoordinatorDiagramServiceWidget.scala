@@ -46,7 +46,7 @@ object CoordinatorDiagramServiceWidget {
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.Event].map {
+        ToAndFrom.eventBody(mess).map {
           case api.State(patients) => $.modState{s => patients}.runNow()
           case _ => println("THIS WAS NOT EXPECTED IN CoordinatorDiagramServiceWidget.")
       }
@@ -57,7 +57,7 @@ object CoordinatorDiagramServiceWidget {
 
   def send(mess: api.StateEvent) {
     val h = SPHeader(from = "CoordinatorDiagramWidget", to = "CoordinatorDiagramService")
-    val json = SPMessage.make(h, mess)
+    val json = ToAndFrom.make(h, mess)
     BackendCommunication.publish(json, "coordinator-diagram-service-topic")
   }
 

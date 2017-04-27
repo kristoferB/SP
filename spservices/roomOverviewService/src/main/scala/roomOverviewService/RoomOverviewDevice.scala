@@ -61,6 +61,9 @@ class RoomOverviewDevice extends Actor with ActorLogging {
             for (patientProperty <- patientProperties) {
               updateState(careContactId, patientProperty)
             }
+            if (widgetStarted) {
+              publishOnAkka(SPHeader(from = "roomOverviewService"), api.State(state))
+            }
           }
         }
         case api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents) => {
@@ -69,10 +72,16 @@ class RoomOverviewDevice extends Actor with ActorLogging {
             for (patientProperty <- patientProperties) {
               updateState(careContactId, patientProperty)
             }
+            if (widgetStarted) {
+              publishOnAkka(SPHeader(from = "roomOverviewService"), api.State(state))
+            }
           }
         }
         case api.RemovedPatient(careContactId, timestamp) => {
           updateState(careContactId, apiPatient.Finished())
+          if (widgetStarted) {
+            publishOnAkka(SPHeader(from = "roomOverviewService"), api.State(state))
+          }
         }
         case api.GetState() => {
           println("Got state request from " + h.from)
@@ -108,9 +117,7 @@ class RoomOverviewDevice extends Actor with ActorLogging {
     } else {
       state += (careContactId -> updateNewPatient(careContactId, prop))
     }
-    if (widgetStarted) {
-      publishOnAkka(SPHeader(from = "roomOverviewService"), api.State(state))
-    }
+
   }
 
   /**

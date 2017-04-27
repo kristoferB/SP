@@ -46,7 +46,7 @@ object WaitingRoomServiceWidget {
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.Event] map {
+        ToAndFrom.eventBody(mess) map {
           case api.State(patients) => $.modState{s => patients}.runNow()
           case x => println(s"THIS WAS NOT EXPECTED IN WaitingRoomServiceWidget: $x")
         }
@@ -57,7 +57,7 @@ object WaitingRoomServiceWidget {
 
     def send(mess: api.StateEvent) {
       val h = SPHeader(from = "WaitingRoomWidget", to = "WaitingRoomService")
-      val json = SPMessage.make(h, mess)
+      val json = ToAndFrom.make(h, mess)
       BackendCommunication.publish(json, "waiting-room-service-topic")
     }
 

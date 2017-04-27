@@ -43,12 +43,12 @@ import spgui.widgets.{API_Patient => apiPatient}
 
 object ChangeMedicineYellowPatientCardsWidget {
 
-  private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
+  private class Backend($: BackendScope[String, Map[String, apiPatient.Patient]]) {
     spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        mess.getBodyAs[api.Event].map {
+        ToAndFrom.eventBody(mess).map {
           case api.State(patients) => $.modState{s => patients}.runNow()
           case _ => println("THIS WAS NOT EXPECTED IN MedicineYellowPatientCardsWidget.")
         }
@@ -59,7 +59,7 @@ object ChangeMedicineYellowPatientCardsWidget {
 
 
     def send(mess: api.StateEvent) {
-      val json = SPMessage.make(SPHeader(from = "MedicineYellowPatientCardsWidget", to = "PatientCardsService"), mess)
+      val json = ToAndFrom.make(SPHeader(from = "MedicineYellowPatientCardsWidget", to = "PatientCardsService"), mess)
       BackendCommunication.publish(json, "patient-cards-service-topic")
     }
 
@@ -67,7 +67,7 @@ object ChangeMedicineYellowPatientCardsWidget {
     * Checks if the patient belongs to this team.
     */
     def belongsToThisTeam(patient: apiPatient.Patient, filter: String): Boolean = {
-      patient.team.team.contains(filter)
+      filter.isEmpty || patient.team.team.contains(filter)
     }
 
 
@@ -191,8 +191,8 @@ object ChangeMedicineYellowPatientCardsWidget {
       val fontSizeLarge = 35
       //println(triageColor(p.patientData("Priority")))
       //println(p.patientData("Priority"))
-
       <.svg.svg( //ARTO: Skapar en <svg></svg>-tagg att fylla med objekt
+        ^.key := p.careContactId,
         ^.`class` := "patient-card-canvas",
         ^.svg.width := (cardScaler * 176 * 1.04).toString,
         ^.svg.height := (cardScaler * 100 * 1.04).toString,
@@ -361,24 +361,20 @@ object ChangeMedicineYellowPatientCardsWidget {
           )
         )
       )
+
     }
 
-    val globalState = SPGUICircuit.connect(x => (x.openWidgets.xs, x.globalState))
 
-    def render(pmap: Map[String, apiPatient.Patient]) = {
+    def render(filter: String, pmap: Map[String, apiPatient.Patient]) = {
       spgui.widgets.css.WidgetStyles.addToDocument()
 
-      globalState{x =>
-        val filter = x()._2.attributes.get("team").map(x => x.str).getOrElse("medicin")
         val pats = (pmap - "-1").filter(p => belongsToThisTeam(p._2, filter))
 
         <.div(^.`class` := "card-holder-root", Styles.helveticaZ)( // This div is really not necessary
-          pats.values map { p =>
+          pats map { case (id, p) =>
             patientCard(p)
           }
         )
-      }
-
     }
 
     def onUnmount() = {
@@ -388,7 +384,11 @@ object ChangeMedicineYellowPatientCardsWidget {
     }
   }
 
-  private val cardHolderComponent = ReactComponentB[Unit]("cardHolderComponent")
+  def extractTeam(attributes: Map[String, SPValue]) = {
+    attributes.get("team").map(x => x.str).getOrElse("medicin")
+  }
+
+  private val cardHolderComponent = ReactComponentB[String]("cardHolderComponent")
   .initialState(Map("-1" ->
     apiPatient.Patient(
       "4502085",
@@ -406,6 +406,7 @@ object ChangeMedicineYellowPatientCardsWidget {
     .build
 
     def apply() = spgui.SPWidget(spwb => {
-      cardHolderComponent()
+      val currentTeam = extractTeam(spwb.frontEndState.attributes)
+      cardHolderComponent(currentTeam)
     })
   }

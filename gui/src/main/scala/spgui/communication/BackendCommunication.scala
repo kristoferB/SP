@@ -166,6 +166,7 @@ case class WebSocketHandler(uri: String) {
   }
 
 
+  var c = 0
 
   val mess = Var("")
   val receivedMessage: Var[SPMessage] = Var(SPMessage(SPAttributes(), SPAttributes()))
@@ -223,7 +224,9 @@ case class WebSocketHandler(uri: String) {
       case x @ SPMessage(h, b) if getAsSPAPI(b).nonEmpty =>
         notification() = x
         receivedMessage() = x
-      case x => receivedMessage() = x
+      case x =>
+        println(s"$uri - $c"); c += 1
+        receivedMessage() = x
     }
     a.failed.foreach(t =>
       errors() = "Didn't get an SPMessage: " + t.getMessage
@@ -232,7 +235,7 @@ case class WebSocketHandler(uri: String) {
   }
 
   errors.triggerLater {
-    println(s"An error: ${errors.now}")
+    //println(s"An error: ${errors.now}")
   }
   wsOpen.triggerLater {
     println(s"Websocket is: ${wsOpen.now}")
@@ -243,9 +246,7 @@ case class WebSocketHandler(uri: String) {
   notification.triggerLater {
     println(s"A NOTIFICATION: ${notification.now}")
   }
-  errors.trigger {
-    println(s"An error: ${receivedMessage.now}")
-  }
+
 }
 
 
