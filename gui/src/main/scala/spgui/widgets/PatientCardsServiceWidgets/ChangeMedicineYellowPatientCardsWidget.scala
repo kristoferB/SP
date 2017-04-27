@@ -55,7 +55,10 @@ object ChangeMedicineYellowPatientCardsWidget {
       }, "patient-cards-widget-topic"
     )
 
-    send(api.GetState())
+    val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
+      if (mess) send(api.GetState())
+    }, "patient-cards-widget-topic")
+
 
 
     def send(mess: api.StateEvent) {
@@ -380,6 +383,7 @@ object ChangeMedicineYellowPatientCardsWidget {
     def onUnmount() = {
       println("Unmounting")
       messObs.kill()
+      wsObs.kill()
       Callback.empty
     }
   }

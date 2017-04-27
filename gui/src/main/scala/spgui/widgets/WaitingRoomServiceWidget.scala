@@ -53,7 +53,9 @@ object WaitingRoomServiceWidget {
       }, "waiting-room-widget-topic"
     )
 
-    send(api.GetState())
+    val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
+      if (mess) send(api.GetState())
+    }, "waiting-room-widget-topic")
 
     def send(mess: api.StateEvent) {
       val h = SPHeader(from = "WaitingRoomWidget", to = "WaitingRoomService")
@@ -69,6 +71,7 @@ object WaitingRoomServiceWidget {
     def onUnmount() = {
       println("Unmounting")
       messObs.kill()
+      wsObs.kill()
       Callback.empty
     }
   }

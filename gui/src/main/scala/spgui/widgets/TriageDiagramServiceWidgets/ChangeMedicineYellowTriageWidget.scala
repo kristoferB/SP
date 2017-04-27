@@ -53,7 +53,9 @@ object ChangeMedicineYellowTriageWidget {
       }, "triage-diagram-widget-topic"
     )
 
-    send(api.GetState())
+    val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
+      if (mess) send(api.GetState())
+    }, "triage-diagram-widget-topic")
 
     def send(mess: api.StateEvent) {
       val h = SPHeader(from = "MedicineYellowTriageWidget", to = "TriageDiagramService")
@@ -68,6 +70,7 @@ object ChangeMedicineYellowTriageWidget {
     def onUnmount() = {
       println("Unmounting")
       messObs.kill()
+      wsObs.kill()
       Callback.empty
     }
   }

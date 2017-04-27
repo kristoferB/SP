@@ -53,7 +53,9 @@ object CoordinatorDiagramServiceWidget {
     }, "coordinator-diagram-widget-topic"
   )
 
-  send(api.GetState())
+    val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
+      if (mess) send(api.GetState())
+    }, "coordinator-diagram-widget-topic")
 
   def send(mess: api.StateEvent) {
     val h = SPHeader(from = "CoordinatorDiagramWidget", to = "CoordinatorDiagramService")
@@ -63,6 +65,7 @@ object CoordinatorDiagramServiceWidget {
 
     def onUnmount() = {
       messObs.kill()
+      wsObs.kill()
       Callback.empty
     }
 
