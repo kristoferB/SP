@@ -69,6 +69,7 @@ object CoordinatorDiagramServiceWidget {
     def render(p: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
     }
+
   }
 
   case class ys(x: Double, h: Double, y0: Double)
@@ -88,8 +89,8 @@ object CoordinatorDiagramServiceWidget {
       )))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
-    .componentWillUnmount(_.backend.onUnmount())
-    .build
+  .componentWillUnmount(_.backend.onUnmount())
+  .build
 
   def dist(d: Double): Double = { // Bestämmer avstånd för antal patienter i widget.
     if( d > 99){1}

@@ -177,6 +177,7 @@ class WaitingRoomDevice extends Actor with ActorLogging {
     }
     patientPropertyBuffer += updateAttended(patient.careContactId, patient.events)
     patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.events)
+    patientPropertyBuffer += updateFinishedStillPresent(patient.careContactId, patient.events)
     return patientPropertyBuffer.toList
   }
 
@@ -199,6 +200,7 @@ class WaitingRoomDevice extends Actor with ActorLogging {
     }
     patientPropertyBuffer += getLatestPrioEvent(patient.careContactId, patient.newEvents)
     patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.newEvents)
+    patientPropertyBuffer += updateFinishedStillPresent(patient.careContactId, patient.newEvents)
     return patientPropertyBuffer.toList
   }
 
@@ -331,6 +333,18 @@ class WaitingRoomDevice extends Actor with ActorLogging {
       case _ => dayString = ""
     }
     return timeString + " " + dayString
+  }
+
+  /**
+  * Checks if patient has been attended, i.e. check if events contains event title "Läkare", returns apiPatient.FinishedStillPresent-type.
+  */
+  def updateFinishedStillPresent(careContactId: String, events: List[Map[String, String]]): apiPatient.FinishedStillPresent = {
+    events.foreach{ e =>
+      if (e("Title") == "Klar") {
+        return apiPatient.FinishedStillPresent(true, e("Start"))
+      }
+    }
+    return apiPatient.FinishedStillPresent(false, "")
   }
 
   /**

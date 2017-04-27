@@ -64,11 +64,13 @@ object ChangeMedicineYellowPlaceWidget {
     def render(p: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
     }
+
     def onUnmount() = {
       println("Unmounting")
       messObs.kill()
       Callback.empty
     }
+    
   }
 
   private val component = ReactComponentB[Unit]("TeamStatusWidget")
@@ -183,8 +185,12 @@ object ChangeMedicineYellowPlaceWidget {
   )
 
   placeMap.foreach{ p =>
-    if (p._2 == 0) 0
-    else length += p._1 -> (p._2/(placeMap("RoomOnSquare") + placeMap("InnerWaitingRoom") + placeMap("Examination") + placeMap("Other")))*width
+    val sum = placeMap("RoomOnSquare") + placeMap("InnerWaitingRoom") + placeMap("Examination") + placeMap("Other")
+    if (sum == 0) {
+      length += p._1 -> 0
+    } else {
+      length += p._1 -> (p._2/(sum))*width
+    }
   }
 
   val svg = d3.select(element).append("svg")

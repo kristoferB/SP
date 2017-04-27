@@ -1,7 +1,9 @@
 package spgui.widgets
 
-import java.time._ //ARTO: Använder wrappern https://github.com/scala-js/scala-js-java-time
+import java.time._
 import java.time.OffsetDateTime
+
+import spgui.circuit.SPGUICircuit
 // import java.time.temporal._
 import java.time.format.DateTimeFormatter
 import java.text.SimpleDateFormat
@@ -55,6 +57,7 @@ object ChangeMedicineYellowPatientCardsWidget {
 
     send(api.GetState())
 
+
     def send(mess: api.StateEvent) {
       val json = SPMessage.make(SPHeader(from = "MedicineYellowPatientCardsWidget", to = "PatientCardsService"), mess)
       BackendCommunication.publish(json, "patient-cards-service-topic")
@@ -63,12 +66,12 @@ object ChangeMedicineYellowPatientCardsWidget {
     /**
     * Checks if the patient belongs to this team.
     */
-    def belongsToThisTeam(patient: apiPatient.Patient): Boolean = {
-      patient.team.team match {
-        case "medicin gul" | "medicin" => true
-        case _ => false
-      }
+    def belongsToThisTeam(patient: apiPatient.Patient, filter: String): Boolean = {
+      patient.team.team.contains(filter)
     }
+
+
+
 
 
 
@@ -77,7 +80,7 @@ object ChangeMedicineYellowPatientCardsWidget {
     */
     def decodeTriageColor(p: apiPatient.Priority): String = {
       p.color match {
-        case "NotTriaged" => "#FFFFFF"
+        case "NotTriaged" => "#D5D5D5"
         case "Blue" => "#538AF4"
         case "Green" => "#009550" //"prio4"
         case "Yellow" => "#EAC706" //"prio3"
@@ -166,8 +169,15 @@ object ChangeMedicineYellowPatientCardsWidget {
     def getTimeDiffReadable(milliseconds: Long): String = {
       val minutes = ((milliseconds / (1000*60)) % 60)
       val hours = ((milliseconds / (1000*60*60)) % 24)
-      if (hours == 0) (minutes + " min").toString
-      else (hours + " h " + minutes + " m").toString
+      (hours, minutes) match {
+        case (0,_) => {if (minutes == 0) "" else (minutes + " min").toString}
+        case _ => (hours + " h " + minutes + " m").toString
+      }
+
+      // if (hours == 0) (minutes + " min").toString
+      // else (hours + " h " + minutes + " m").toString
+      // if (minutes == 0) " "
+      // else " nej"
     }
 
     /*
@@ -218,11 +228,17 @@ object ChangeMedicineYellowPatientCardsWidget {
             ^.svg.d := "m 67.626393,80.531612 0,1.07813 103.136807,0 0,-1.07813 -103.136807,0 z",
             ^.svg.fill := "#95989a"
           ),
-          <.svg.path(
-            ^.`class` := "timer-symbol",
-            ^.svg.d := "m 80.372993,39.791592 -5.9892,0 0,1.99638 5.9892,0 0,-1.99638 z m -3.9929,12.97649 1.9964,0 0,-5.98915 -1.9964,0 0,5.98915 z m 8.0157,-6.59805 1.4173,-1.41743 c -0.4292,-0.50908 -0.8984,-0.98821 -1.4074,-1.40745 l -1.4175,1.41743 c -1.5472,-1.23775 -3.4937,-1.97642 -5.6099,-1.97642 -4.961,0 -8.9836,4.02272 -8.9836,8.98373 0,4.96101 4.0127,8.98372 8.9836,8.98372 4.9711,0 8.9838,-4.02271 8.9838,-8.98372 0,-2.11617 -0.7386,-4.06264 -1.9663,-5.59986 z m -7.0175,12.5872 c -3.863,0 -6.9873,-3.12434 -6.9873,-6.98734 0,-3.863 3.1243,-6.98734 6.9873,-6.98734 3.863,0 6.9874,3.12434 6.9874,6.98734 0,3.863 -3.1244,6.98734 -6.9874,6.98734 z",
-            ^.svg.fill := "#000000"
-          ),
+          if (p.latestEvent.latestEvent != "") { // Only draw this if latestEvent exists.
+            <.svg.path(
+              ^.`class` := "timer-symbol",
+              ^.svg.d := "m 80.372993,39.791592 -5.9892,0 0,1.99638 5.9892,0 0,-1.99638 z m -3.9929,12.97649 1.9964,0 0,-5.98915 -1.9964,0 0,5.98915 z m 8.0157,-6.59805 1.4173,-1.41743 c -0.4292,-0.50908 -0.8984,-0.98821 -1.4074,-1.40745 l -1.4175,1.41743 c -1.5472,-1.23775 -3.4937,-1.97642 -5.6099,-1.97642 -4.961,0 -8.9836,4.02272 -8.9836,8.98373 0,4.96101 4.0127,8.98372 8.9836,8.98372 4.9711,0 8.9838,-4.02271 8.9838,-8.98372 0,-2.11617 -0.7386,-4.06264 -1.9663,-5.59986 z m -7.0175,12.5872 c -3.863,0 -6.9873,-3.12434 -6.9873,-6.98734 0,-3.863 3.1243,-6.98734 6.9873,-6.98734 3.863,0 6.9874,3.12434 6.9874,6.98734 0,3.863 -3.1244,6.98734 -6.9874,6.98734 z",
+              ^.svg.fill := "#000000"
+            )
+          } else {
+            <.svg.path(
+              ^.`class` := "no-timer-symbol"
+            )
+          },
           <.svg.path(
             ^.`class` := "clock-symbol",
             //  ^.svg.transform := "translate(0,1)",
@@ -256,8 +272,7 @@ object ChangeMedicineYellowPatientCardsWidget {
               ^.svg.d := "m 33.116996,86.655372 c 0.2401,0 0.4366,0.19645 0.4366,0.43654 0,0.2401 -0.1965,0.43653 -0.4366,0.43653 -0.24,0 -0.4365,-0.19643 -0.4365,-0.43653 0,-0.24009 0.1965,-0.43654 0.4365,-0.43654 l 0,0 z m 3.056,0 -1.8249,0 c -0.1835,-0.50637 -0.6635,-0.87306 -1.2311,-0.87306 -0.5674,0 -1.0477,0.36669 -1.2311,0.87306 l -1.8246,0 c -0.4803,0 -0.8731,0.39289 -0.8731,0.87307 l 0,6.11154 c 0,0.4802 0.3928,0.87309 0.8731,0.87309 l 6.1117,0 c 0.4801,0 0.8731,-0.39289 0.8731,-0.87309 l 0,-6.11154 c 0,-0.48018 -0.393,-0.87307 -0.8731,-0.87307 l 0,0 z",
               ^.svg.fill := progressBarColoring(p).tail.head._2
             )
-          }
-          else {
+          } else {
             <.svg.path(
               ^.`class` := "timeline-plan-symbol",
               ^.svg.d := "m 36.172996,86.655372 -1.8249,0 c -0.1835,-0.50637 -0.6635,-0.87306 -1.2311,-0.87306 -0.5674,0 -1.0477,0.36669 -1.2311,0.87306 l -1.8246,0 c -0.4803,0 -0.8731,0.39289 -0.8731,0.87307 l 0,6.11154 c 0,0.4802 0.3928,0.87309 0.8731,0.87309 l 6.1117,0 c 0.4801,0 0.8731,-0.39289 0.8731,-0.87309 l 0,-6.11154 c 0,-0.48018 -0.393,-0.87307 -0.8731,-0.87307 l 0,0 z m -3.056,0 c 0.2401,0 0.4366,0.19645 0.4366,0.43654 0,0.2401 -0.1965,0.43653 -0.4366,0.43653 -0.24,0 -0.4365,-0.19643 -0.4365,-0.43653 0,-0.24009 0.1965,-0.43654 0.4365,-0.43654 l 0,0 z m -0.8731,6.11153 -1.7461,-1.74615 0.6156,-0.6155 1.1305,1.12625 2.877,-2.87679 0.6155,0.61989 -3.4925,3.4923 0,0 z",
@@ -304,7 +319,8 @@ object ChangeMedicineYellowPatientCardsWidget {
             ^.svg.textAnchor := "start",
             ^.svg.fontSize :=  fontSizeSmall + "px",
             ^.svg.fill := "#000000",
-            "Senaste händelse"
+            if (p.latestEvent.latestEvent != "") "Senaste händelse"
+            else "Ingen senaste händelse"
           ),
           <.svg.text(
             ^.`class` := "latest-event",
@@ -347,20 +363,28 @@ object ChangeMedicineYellowPatientCardsWidget {
       )
     }
 
+    val globalState = SPGUICircuit.connect(x => (x.openWidgets.xs, x.globalState))
+
     def render(pmap: Map[String, apiPatient.Patient]) = {
       spgui.widgets.css.WidgetStyles.addToDocument()
-      var teamMap: Map[String, apiPatient.Patient] = Map()
-      (pmap - "-1").foreach{ p =>
-        if (belongsToThisTeam(p._2)) {
-          teamMap += p._1 -> p._2
-        }
+
+      globalState{x =>
+        val filter = x()._2.attributes.get("team").map(x => x.str).getOrElse("medicin")
+        val pats = (pmap - "-1").filter(p => belongsToThisTeam(p._2, filter))
+
+        <.div(^.`class` := "card-holder-root", Styles.helveticaZ)( // This div is really not necessary
+          pats.values map { p =>
+            patientCard(p)
+          }
+        )
       }
 
-      <.div(^.`class` := "card-holder-root", Styles.helveticaZ)( // This div is really not necessary
-        teamMap.values map { p =>
-          patientCard(p)
-        }
-      )
+    }
+
+    def onUnmount() = {
+      println("Unmounting")
+      messObs.kill()
+      Callback.empty
     }
   }
 
@@ -378,6 +402,7 @@ object ChangeMedicineYellowPatientCardsWidget {
       apiPatient.FinishedStillPresent(false, "2017-02-01T10:01:38Z")
     )))
     .renderBackend[Backend]
+    .componentWillUnmount(_.backend.onUnmount())
     .build
 
     def apply() = spgui.SPWidget(spwb => {
