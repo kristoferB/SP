@@ -134,6 +134,7 @@ import scala.util.{Random, Try}
     }
 
     def initState(spwb: SPWidgetBase): State = {
+      // kolla här så att initStatet (teamwidgettypen) inte ännu existerar
       spwb.getWidgetData.getAs[State]().getOrElse(State(None, List()))
     }
 
@@ -154,5 +155,3 @@ import scala.util.{Random, Try}
       val version = 1.0
       val api = "to be fixed by macros"
     }
-
-
