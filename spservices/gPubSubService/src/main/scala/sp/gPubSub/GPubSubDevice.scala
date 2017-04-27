@@ -47,8 +47,8 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
 //  mediator ! Subscribe("spevents", self)
 //  mediator ! Subscribe("elvis-diff", self)
 
-  import context.dispatcher
-  val ticker = context.system.scheduler.schedule(100 seconds, 100 seconds, self, Ticker)
+  //import context.dispatcher
+  //val ticker = context.system.scheduler.schedule(100 seconds, 100 seconds, self, Ticker)
 
 
   def receive = {
