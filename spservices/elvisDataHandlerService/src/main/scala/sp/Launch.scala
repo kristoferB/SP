@@ -2,7 +2,7 @@ package sp
 
 import akka.actor._
 import sp.domain._
-import sp.elvisDataHandler.{API_PatientEvent, ElvisDataHandlerDevice}
+import sp.elvisdatahandler.{API_PatientEvent, ElvisDataHandlerDevice}
 import sp.messages._
 import scala.util.{Failure, Success, Try}
 
@@ -50,6 +50,3 @@ object Launch extends App {
   } // and shutdown when done
 
 }
-
-
-
