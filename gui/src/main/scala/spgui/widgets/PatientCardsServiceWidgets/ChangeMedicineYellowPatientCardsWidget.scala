@@ -21,9 +21,6 @@ import sp.domain._
 import sp.messages._
 import Pickles._
 
-import org.singlespaced.d3js.d3
-import org.singlespaced.d3js.Ops._
-
 import scala.concurrent.duration._
 import scala.scalajs.js
 import scala.util.{ Try, Success }
@@ -55,7 +52,10 @@ object ChangeMedicineYellowPatientCardsWidget {
       }, "patient-cards-widget-topic"
     )
 
-    send(api.GetState())
+    val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
+      if (mess) send(api.GetState())
+    }, "patient-cards-widget-topic")
+
 
 
     def send(mess: api.StateEvent) {
@@ -186,17 +186,26 @@ object ChangeMedicineYellowPatientCardsWidget {
     def patientCard(p: apiPatient.Patient) = {
       val cardScaler = 1.2
 
+      val cardHeight = 100 // change only with new graphics
+      val cardWidth = 176 // change only with new graphics
+
       val fontSizeSmall = 7.7
       val fontSizeMedium = 15.2
       val fontSizeLarge = 35
-      //println(triageColor(p.patientData("Priority")))
-      //println(p.patientData("Priority"))
+
+      val cardBackgroundColor = "#ffffff"
+      val contentColorDark = "#000000"
+      val contentColorLight = "#ffffff"
+      val delimiterColor = "#95989a"
+      val shadowColor = "lightgrey"
+
+
       <.svg.svg( //ARTO: Skapar en <svg></svg>-tagg att fylla med objekt
         ^.key := p.careContactId,
         ^.`class` := "patient-card-canvas",
-        ^.svg.width := (cardScaler * 176 * 1.04).toString,
-        ^.svg.height := (cardScaler * 100 * 1.04).toString,
-        ^.svg.viewBox := "0 0 180 104",
+        ^.svg.width := (cardScaler * cardWidth * 1.04).toString,
+        ^.svg.height := (cardScaler * cardHeight * 1.04).toString,
+        ^.svg.viewBox := "0 0 "+ (cardWidth + 4).toString +" "+ (cardHeight + 4).toString,
         // ^.svg.transform := "scale(" + cardScaler + ")",
         ^.svg.id := p.careContactId,
         <.svg.g(
@@ -206,17 +215,17 @@ object ChangeMedicineYellowPatientCardsWidget {
             ^.`class` := "shadow",
             ^.svg.y := "2",
             ^.svg.x := "2",
-            ^.svg.height := "100",
-            ^.svg.width := "176",
-            ^.svg.fill := "lightgrey"
+            ^.svg.height := cardHeight.toString,
+            ^.svg.width := cardWidth.toString,
+            ^.svg.fill := shadowColor
           ),
           <.svg.rect(
             ^.`class` := "bg-field",
             ^.svg.y := 0,
             ^.svg.x := 0,
-            ^.svg.height := 100,
-            ^.svg.width := 176,
-            ^.svg.fill := "#ffffff"
+            ^.svg.height := cardHeight,
+            ^.svg.width := cardWidth,
+            ^.svg.fill := cardBackgroundColor
           ),
           <.svg.path(
             ^.`class` := "triage-field",
@@ -226,13 +235,13 @@ object ChangeMedicineYellowPatientCardsWidget {
           <.svg.path(
             ^.`class` := "delimiter",
             ^.svg.d := "m 67.626393,80.531612 0,1.07813 103.136807,0 0,-1.07813 -103.136807,0 z",
-            ^.svg.fill := "#95989a"
+            ^.svg.fill := delimiterColor
           ),
           if (p.latestEvent.latestEvent != "") { // Only draw this if latestEvent exists.
             <.svg.path(
               ^.`class` := "timer-symbol",
               ^.svg.d := "m 80.372993,39.791592 -5.9892,0 0,1.99638 5.9892,0 0,-1.99638 z m -3.9929,12.97649 1.9964,0 0,-5.98915 -1.9964,0 0,5.98915 z m 8.0157,-6.59805 1.4173,-1.41743 c -0.4292,-0.50908 -0.8984,-0.98821 -1.4074,-1.40745 l -1.4175,1.41743 c -1.5472,-1.23775 -3.4937,-1.97642 -5.6099,-1.97642 -4.961,0 -8.9836,4.02272 -8.9836,8.98373 0,4.96101 4.0127,8.98372 8.9836,8.98372 4.9711,0 8.9838,-4.02271 8.9838,-8.98372 0,-2.11617 -0.7386,-4.06264 -1.9663,-5.59986 z m -7.0175,12.5872 c -3.863,0 -6.9873,-3.12434 -6.9873,-6.98734 0,-3.863 3.1243,-6.98734 6.9873,-6.98734 3.863,0 6.9874,3.12434 6.9874,6.98734 0,3.863 -3.1244,6.98734 -6.9874,6.98734 z",
-              ^.svg.fill := "#000000"
+              ^.svg.fill := contentColorDark
             )
           } else {
             <.svg.path(
@@ -243,13 +252,13 @@ object ChangeMedicineYellowPatientCardsWidget {
             ^.`class` := "clock-symbol",
             //  ^.svg.transform := "translate(0,1)",
             ^.svg.d := "m 72.223193,87.546362 -0.6325,0 0,2.53288 2.2147,1.32892 0.3181,-0.52057 -1.8987,-1.12633 z m -0.2155,-2.10927 a 4.218563,4.218563 0 1 0 4.2229,4.21856 4.2164074,4.2164074 0 0 0 -4.2229,-4.21856 z m 0,7.59373 a 3.3746349,3.3746349 0 1 1 3.3746,-3.37464 3.374096,3.374096 0 0 1 -3.3746,3.37464 z",
-            ^.svg.fill := "#000000"
+            ^.svg.fill := contentColorDark
           ),
           <.svg.path(
             ^.`class` := "doctor-symbol",
             //^.svg.transform := "translate(0,2)",
             ^.svg.d := "m 115.9389,90.593352 c -1.1749,0 -3.519,0.58956 -3.519,1.75954 l 0,0.88002 7.0385,0 0,-0.88002 c 0,-1.16998 -2.3446,-1.75954 -3.5195,-1.75954 z m 0,-0.88004 a 1.759531,1.759531 0 1 0 -1.7596,-1.75951 1.7589921,1.7589921 0 0 0 1.7596,1.75951 z",
-            ^.svg.fill := "#000000"
+            ^.svg.fill := contentColorDark
           ),
           <.svg.path(
             ^.`class` := "timeline-attended-bg",
@@ -300,7 +309,7 @@ object ChangeMedicineYellowPatientCardsWidget {
             ^.svg.x := "31.5",
             ^.svg.textAnchor := "middle",
             ^.svg.fontSize :=  fontSizeLarge + "px",
-            ^.svg.fill := "#ffffff",
+            ^.svg.fill := contentColorLight,
             p.location.roomNr
           ),
           <.svg.text(
@@ -309,7 +318,7 @@ object ChangeMedicineYellowPatientCardsWidget {
             ^.svg.x := "165.1389",
             ^.svg.textAnchor := "start",
             ^.svg.fontSize :=  fontSizeSmall + "px",
-            ^.svg.fill := "#000000",
+            ^.svg.fill := contentColorDark,
             decodeTeam(p.team)._2
           ),
           <.svg.text(
@@ -318,7 +327,7 @@ object ChangeMedicineYellowPatientCardsWidget {
             ^.svg.x := "65.937515",
             ^.svg.textAnchor := "start",
             ^.svg.fontSize :=  fontSizeSmall + "px",
-            ^.svg.fill := "#000000",
+            ^.svg.fill := contentColorDark,
             if (p.latestEvent.latestEvent != "") "Senaste händelse"
             else "Ingen senaste händelse"
           ),
@@ -329,7 +338,7 @@ object ChangeMedicineYellowPatientCardsWidget {
             ^.svg.textAnchor := "start",
             ^.svg.fontSize := fontSizeMedium  + "px",
             ^.fontWeight.bold,
-            ^.svg.fill := "#000000",
+            ^.svg.fill := contentColorDark,
             p.latestEvent.latestEvent.toUpperCase
           ),
           <.svg.text(
@@ -338,7 +347,7 @@ object ChangeMedicineYellowPatientCardsWidget {
             ^.svg.x := "92.745262",
             ^.svg.textAnchor := "start",
             ^.svg.fontSize :=  (fontSizeMedium * 0.86) + "px",
-            ^.svg.fill := "#000000",
+            ^.svg.fill := contentColorDark,
             getTimeDiffReadable(p.latestEvent.timeDiff)
           ),
           <.svg.text(
@@ -347,7 +356,7 @@ object ChangeMedicineYellowPatientCardsWidget {
             ^.svg.x := "79.148216",
             ^.svg.textAnchor := "start",
             ^.svg.fontSize :=  fontSizeSmall + "px",
-            ^.svg.fill := "#000000",
+            ^.svg.fill := contentColorDark,
             p.arrivalTime.timeDiff // WAS:timestampToODT(p.arrivalTime.timestamp).format(DateTimeFormatter.ofPattern("H'.'m'"))
           ),
           <.svg.text(
@@ -356,30 +365,33 @@ object ChangeMedicineYellowPatientCardsWidget {
             ^.svg.x := "122.84879",
             ^.svg.textAnchor := "start",
             ^.svg.fontSize :=  fontSizeSmall + "px",
-            ^.svg.fill := "#000000",
+            ^.svg.fill := contentColorDark,
             decodeAttended(p.attended)._2
           )
         )
       )
 
+
     }
+
 
 
     def render(filter: String, pmap: Map[String, apiPatient.Patient]) = {
       spgui.widgets.css.WidgetStyles.addToDocument()
 
-        val pats = (pmap - "-1").filter(p => belongsToThisTeam(p._2, filter))
+      val pats = (pmap - "-1").filter(p => belongsToThisTeam(p._2, filter))
 
-        <.div(^.`class` := "card-holder-root", Styles.helveticaZ)( // This div is really not necessary
-          pats map { case (id, p) =>
-            patientCard(p)
-          }
-        )
+      <.div(^.`class` := "card-holder-root", Styles.helveticaZ)( // This div is really not necessary
+        pats map { case (id, p) =>
+          patientCard(p)
+        }
+      )
     }
 
     def onUnmount() = {
       println("Unmounting")
       messObs.kill()
+      wsObs.kill()
       Callback.empty
     }
   }

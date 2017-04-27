@@ -53,11 +53,11 @@ object WidgetList {
       // Coordinator widgets -->
       ("Rumskarta (koordinator)", widgets.RoomOverviewServiceWidget(), 3, 3),
       ("Triage- och statusdiagram (koordinator)", widgets.CoordinatorDiagramServiceWidget(), 3, 3),
-      ("Väntrumsdiagram (koordinator)", widgets.WaitingRoomServiceWidget(), 3, 3),
+      ("Väntrumsdiagram (koordinator)", widgets.WaitingRoomServiceWidget(), 3, 3)
       // <--
 
       // Undone widgets -->
-      ("PatientReminderWidget", widgets.PatientReminderServiceWidget(), 3, 3)
+      //("PatientReminderWidget", widgets.PatientReminderServiceWidget(), 3, 3)
       //("Patientpåminnelser (process)", widgets.ProcessPatientRemindersWidget(), 8, 8),
       //("Patientpåminnelser (stream)", widgets.StreamPatientRemindersWidget(), 8, 8),
       //("Patientpåminnelser (medicin blå)", widgets.MedicineBluePatientRemindersWidget(), 8, 8),

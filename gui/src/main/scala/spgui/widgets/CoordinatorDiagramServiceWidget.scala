@@ -53,7 +53,9 @@ object CoordinatorDiagramServiceWidget {
     }, "coordinator-diagram-widget-topic"
   )
 
-  send(api.GetState())
+    val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
+      if (mess) send(api.GetState())
+    }, "coordinator-diagram-widget-topic")
 
   def send(mess: api.StateEvent) {
     val h = SPHeader(from = "CoordinatorDiagramWidget", to = "CoordinatorDiagramService")
@@ -63,6 +65,7 @@ object CoordinatorDiagramServiceWidget {
 
     def onUnmount() = {
       messObs.kill()
+      wsObs.kill()
       Callback.empty
     }
 
@@ -381,8 +384,8 @@ object CoordinatorDiagramServiceWidget {
    // Ändra färger här:
 
    // #1288FF, #289500
-   val colorsTriage = List("#538af4","#009550", "#eac706", "#f08100", "#950000", "#950000")
-   val colorsPatit = List("#4a4a4a", "#5c5a5a", "#888888", "#bebebe", "#bebebe")
+   val colorsTriage = List("#538AF4","#009550", "#eac706", "#f08100", "#950000", "#950000")
+   val colorsPatit = List("#1c0526", "#8d47aa", "#e9b7ff", "#fffdff", "#fffdff")
 
    val fontSize = s"${(16.0/701.0)*totWidth}pt" // Om man ändrar till px blir texten mindre!!!
    val textWhite = "#ffffff"

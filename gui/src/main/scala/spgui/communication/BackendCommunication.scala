@@ -104,6 +104,10 @@ object BackendCommunication {
     subscribe(topic)
     sockets(topic).wsOpen
   }
+  def getWebSocketStatusObserver(callBack: (Boolean) => Unit, topic: String = "answers"): rx.Obs = {
+    getWebSocketStatus(topic).foreach(callBack)
+  }
+
 
 
 

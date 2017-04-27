@@ -53,7 +53,9 @@ object ChangeMedicineYellowStatusWidget {
       }, "status-diagram-widget-topic"
     )
 
-    send(api.GetState())
+    val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
+      if (mess) send(api.GetState())
+    }, "status-diagram-widget-topic")
 
     def send(mess: api.StateEvent) {
       val h = SPHeader(from = "MedicineYellowStatusWidget", to = "StatusDiagramService")
@@ -68,6 +70,7 @@ object ChangeMedicineYellowStatusWidget {
     def onUnmount() = {
       println("Unmounting")
       messObs.kill()
+      wsObs.kill()
       Callback.empty
     }
   }
@@ -121,11 +124,12 @@ object ChangeMedicineYellowStatusWidget {
     }
 
     // ------- Färger ---------
-    val colorBarOne = "#4a4a4a"
-    val colorBarTwo = "#5c5a5a"
-    val colorBarThree = "#888888"
-    val colorBarFour = "#bebebe"
-    val colorNumbers = "#FFFFFF"
+    val colorBarOne = "#1c0526"
+    val colorBarTwo = "#8d47aa"
+    val colorBarThree = "#e9b7ff"
+    val colorBarFour = "#fffbff"
+    val colorNumbersLight = "#FFFFFF"
+    val colorNumbersDark = "#000000"
     // -------------------------
 
     // Count the number of patients of each status
@@ -186,7 +190,7 @@ object ChangeMedicineYellowStatusWidget {
     .attr("y", (75/419.0)*width)
     .attr("font-size", fontSize)
     .text(s"${removeZero(statusMap("Unattended"))}")
-    .attr("fill", colorNumbers)
+    .attr("fill", colorNumbersLight)
   // ----------- Graf två -------------
   g.append("rect")
     .attr("x", length("Unattended"))
@@ -200,7 +204,7 @@ object ChangeMedicineYellowStatusWidget {
     .attr("y", (75/419.0)*width)
     .attr("font-size", fontSize)
     .text(s"${removeZero(statusMap("Attended"))}")
-    .attr("fill", colorNumbers)
+    .attr("fill", colorNumbersLight)
   // ----------- Graf tre -------------
   g.append("rect")
     .attr("x", length("Attended") + length("Unattended"))
@@ -214,7 +218,7 @@ object ChangeMedicineYellowStatusWidget {
     .attr("y", (75/419.0)*width)
     .attr("font-size", fontSize)
     .text(s"${removeZero(statusMap("AttendedWithPlan"))}")
-    .attr("fill", colorNumbers)
+    .attr("fill", colorNumbersDark)
   // ----------- Graf fyra -------------
   g.append("rect")
     .attr("x", length("AttendedWithPlan") + length("Attended") + length("Unattended"))
@@ -228,7 +232,7 @@ object ChangeMedicineYellowStatusWidget {
     .attr("y", (75/419.0)*width)
     .attr("font-size", fontSize)
     .text(s"${removeZero(statusMap("Finished"))}")
-    .attr("fill", colorNumbers)
+    .attr("fill", colorNumbersDark)
   // ------------------------------------
 
   // -------- Små Rektanglar ------------
