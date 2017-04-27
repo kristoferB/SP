@@ -167,11 +167,11 @@ object ChangeMedicineYellowTriageWidget {
   )
 
   triageMap.foreach{ t =>
-    val sum = triageMap("NotTriaged") +  triageMap("Blue") + triageMap("Green") + triageMap("Yellow") + triageMap("Orange") + triageMap("Red")
+    val sum = triageMap("NotTriaged") + triageMap("Blue") + triageMap("Green") + triageMap("Yellow") + triageMap("Orange") + triageMap("Red")
     if (sum == 0) {
       length += t._1 -> 0
     } else {
-      length += t._1 -> (t._2/(sum))*barHeight
+      length += t._1 -> (t._2/sum)*barHeight
     }
   }
 
@@ -198,7 +198,13 @@ object ChangeMedicineYellowTriageWidget {
   val x3 = (55.0/ 450) * width
   //-------------------------
 
-  var scaleBars = barHeight / length.valuesIterator.max // Skalar graferna så den med högst antal patienter blir 100% av höjden
+  // Skalar graferna så den med högst antal patienter blir 100% av höjden
+  var scaleBars: Double = 0.0
+  if (length.valuesIterator.max != 0) {
+    scaleBars = barHeight / length.valuesIterator.max
+  } else {
+    scaleBars = 0
+  }
 
   def dist(d: Double): Double = { // Placerar siffran på rätt avstånd från sidan av grafen.
     if(d > 99){(2.0 / 450) * width} // 2
