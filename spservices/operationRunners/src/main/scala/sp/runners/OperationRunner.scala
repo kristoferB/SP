@@ -183,12 +183,19 @@ trait OperationRunnerLogic {
   }
 
 
+  def updOPs(o: Operation, opAbilityMap: Map[ID, ID]) = {
+    opAbilityMap.get(o.id).map{id =>
+      val c = PropositionCondition(EQ(SVIDEval(id), ValueHolder("enabled")), List(), SPAttributes("kind" -> "pre"))
+      o.copy(conditions = c :: o.conditions)
+    }
+  }
 
   def addRunner(setup: api.Setup) = {
     val updState = setup.initialState ++
       setup.ops.map(o => o.id -> SPValue(OperationState.init)) ++
       setup.opAbilityMap.values.toList.map(id => id -> SPValue("notEnabled"))
-    val r = Runner(setup.copy(initialState = updState), updState)
+    val updOps = setup.ops.flatMap(o => updOPs(o, setup.opAbilityMap))
+    val r = Runner(setup.copy(initialState = updState, ops = updOps), updState)
     if (! validateRunner(setup)) None
     else {
       runners += setup.runnerID -> r
@@ -203,12 +210,12 @@ trait OperationRunnerLogic {
                 startAbility: ID => Unit,
                 sendState: State => Unit
                ) = {
-    val updR = runners.get(runner).map {setup =>
-      val updOps = (setup.setup.ops ++ add).filter(o => !remove.contains(o.id))
-      val updMap = (setup.setup.opAbilityMap ++ opAbilityMap).filter(kv => !remove.contains(kv._1))
-      val updSetup = setup.setup.copy(ops = updOps, opAbilityMap = updMap)
-      val updState = (setup.currentState ++ add.map(o => o.id -> SPValue(OperationState.init))).filter(kv => !remove.contains(kv._1)) ++
-        setup.opAbilityMap.values.toList.map(id => id -> SPValue("notEnabled"))
+    val updR = runners.get(runner).map {runner =>
+      val updOps = (runner.setup.ops ++ add).filter(o => !remove.contains(o.id)).flatMap(o => updOPs(o, runner.setup.opAbilityMap))
+      val updMap = (runner.setup.opAbilityMap ++ opAbilityMap).filter(kv => !remove.contains(kv._1))
+      val updSetup = runner.setup.copy(ops = updOps, opAbilityMap = updMap)
+      val updState = (runner.currentState ++ add.map(o => o.id -> SPValue(OperationState.init))).filter(kv => !remove.contains(kv._1)) ++
+        runner.setup.opAbilityMap.values.toList.map(id => id -> SPValue("notEnabled"))
 
       Runner(updSetup, updState)
     }
@@ -241,18 +248,11 @@ trait OperationRunnerLogic {
     }
   }
 
-  def newAbilityState(ability: ID, newState: SPValue, startAbility: ID => Unit, sendState: (State, ID) => Unit) = {
+  def newAbilityState(ability: ID, abilityState: SPValue, startAbility: ID => Unit, sendState: (State, ID) => Unit) = {
     val tempR = runners
     val ops = tempR.map{r =>
-      val opsID = r._2.setup.opAbilityMap.filter(_._2 == ability).keySet
-      val xs = r._2.setup.ops.filter(o => opsID.contains(o.id))
-      xs.map{o =>
-        val cS = State(runners(r._1).currentState)
-
-        setRunnerState(r._1, cS, startAbility, sendState(_,r._1))// KOLLA PÅ DET HÄR
-      }
-      r._2.noAbilityOps.map {o =>
-        val cS = State(runners(r._1).currentState)
+      if (r._2.setup.opAbilityMap.values.toSet.contains(ability)){
+        val cS = State(runners(r._1).currentState + (ability -> abilityState))
         setRunnerState(r._1, cS, startAbility, sendState(_,r._1))
       }
     }
