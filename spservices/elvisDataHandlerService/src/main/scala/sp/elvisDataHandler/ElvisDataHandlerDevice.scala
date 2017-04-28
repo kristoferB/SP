@@ -49,7 +49,6 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   mediator ! Subscribe("elvis-diff", self)
 
   var state: Map[String, apiPatient.Patient] = Map()
-  var widgetStarted: Boolean = false
 
   /**
   Receives incoming messages on the AKKA-bus
@@ -72,10 +71,7 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
     b match {
       case api.ElvisData(s) =>
         patientsToElastic.messageReceived(s) // Insert data to database
-        val patient = handleMessage(s)
-        if (patient != api.Undefined()) {
-          handlePatient(patient)
-        }
+        handlePatient(handleMessage(s))
     }
   }
 }
@@ -146,14 +142,14 @@ val info = SPAttributes(
  def updateNewPatient(ccid: String, prop: apiPatient.PatientProperty): apiPatient.Patient = {
    prop match {
      case apiPatient.Priority(color, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority(color, timestamp), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
-     case apiPatient.Attended(attended, doctorId, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("", ""), apiPatient.Attended(attended, doctorId, timestamp), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
-     case apiPatient.Location(roomNr, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("", ""), apiPatient.Attended(false, "", ""), apiPatient.Location(roomNr, timestamp), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
-     case apiPatient.Team(team, clinic, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team(team, clinic, timestamp), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
-     case apiPatient.Examination(isOnExam, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(isOnExam, timestamp), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
-     case apiPatient.LatestEvent(latestEvent, timeDiff, needsAttention, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent(latestEvent, timeDiff, needsAttention, timestamp), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
-     case apiPatient.ArrivalTime(timeDiff, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime(timeDiff, timestamp), apiPatient.FinishedStillPresent(false, ""))
-     case apiPatient.FinishedStillPresent(finishedStillPresent, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(finishedStillPresent, timestamp))
-     case _ => apiPatient.Patient(ccid, apiPatient.Priority("", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
+     case apiPatient.Attended(attended, doctorId, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(attended, doctorId, timestamp), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
+     case apiPatient.Location(roomNr, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "", ""), apiPatient.Location(roomNr, timestamp), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
+     case apiPatient.Team(team, clinic, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team(team, clinic, timestamp), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
+     case apiPatient.Examination(isOnExam, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(isOnExam, timestamp), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
+     case apiPatient.LatestEvent(latestEvent, timeDiff, needsAttention, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent(latestEvent, timeDiff, needsAttention, timestamp), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
+     case apiPatient.ArrivalTime(timeDiff, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime(timeDiff, timestamp), apiPatient.FinishedStillPresent(false, ""))
+     case apiPatient.FinishedStillPresent(finishedStillPresent, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(finishedStillPresent, timestamp))
+     case _ => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
    }
  }
 
@@ -170,7 +166,7 @@ val info = SPAttributes(
      case apiPatient.LatestEvent(latestEvent, timeDiff, needsAttention, timestamp) => apiPatient.Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).examination, apiPatient.LatestEvent(latestEvent, timeDiff, needsAttention, timestamp), s(ccid).arrivalTime, s(ccid).finishedStillPresent)
      case apiPatient.ArrivalTime(timeDiff, timestamp) => apiPatient.Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).examination, s(ccid).latestEvent, apiPatient.ArrivalTime(timeDiff, timestamp), s(ccid).finishedStillPresent)
      case apiPatient.FinishedStillPresent(finishedStillPresent, timestamp) => apiPatient.Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).examination, s(ccid).latestEvent, s(ccid).arrivalTime, apiPatient.FinishedStillPresent(finishedStillPresent, timestamp))
-     case _ => apiPatient.Patient(ccid, apiPatient.Priority("", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
+     case _ => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
    }
  }
 
@@ -203,7 +199,7 @@ val info = SPAttributes(
      }
    }
    patientPropertyBuffer += updateAttended(patient.careContactId, patient.events)
-   patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.events)
+   patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.events, patient.patientData("Priority"))
    patientPropertyBuffer += updateExamination(patient.careContactId, patient.events)
    patientPropertyBuffer += updateFinishedStillPresent(patient.careContactId, patient.events)
    return patientPropertyBuffer.toList
@@ -227,7 +223,7 @@ val info = SPAttributes(
      }
    }
    patientPropertyBuffer += getLatestPrioEvent(patient.careContactId, patient.newEvents)
-   patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.newEvents)
+   patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.newEvents, patient.patientData("Priority"))
    patientPropertyBuffer += updateExamination(patient.careContactId, patient.newEvents)
    patientPropertyBuffer += updateFinishedStillPresent(patient.careContactId, patient.newEvents)
    return patientPropertyBuffer.toList
@@ -322,6 +318,7 @@ val info = SPAttributes(
  */
  def updatePriority(careContactId: String, timestamp: String, priority: String): apiPatient.Priority = {
    priority match {
+     case "Blå" => apiPatient.Priority("Blue", timestamp)
      case "Grön" => apiPatient.Priority("Green", timestamp)
      case "Gul" =>  apiPatient.Priority("Yellow", timestamp)
      case "Orange" => apiPatient.Priority("Orange", timestamp)
@@ -363,7 +360,7 @@ val info = SPAttributes(
  /**
  Identifies the latest event if there is any in the events list, returns apiPatient.LatestEvent-type.
  */
- def updateLatestEvent(careContactId: String, events: List[Map[String, String]]): apiPatient.LatestEvent = {
+ def updateLatestEvent(careContactId: String, events: List[Map[String, String]], priority: String): apiPatient.LatestEvent = {
    var eventFound: Boolean = false
    var timeDiff: Long = Long.MaxValue
    var title = ""
@@ -388,7 +385,7 @@ val info = SPAttributes(
      }
    }
    if (eventFound) {
-     if (needsAttention(timeDiff, state(careContactId))) {
+     if (needAttention(timeDiff, priority)) {
        return apiPatient.LatestEvent(title, timeDiff, true, timestampString)
      } else {
        return apiPatient.LatestEvent(title, timeDiff, false, timestampString)
@@ -424,10 +421,10 @@ val info = SPAttributes(
  /**
  * Checks if patient needs attention, according to some specific guidelines.
  */
- def needsAttention(timeDiff: Long, patient: apiPatient.Patient): Boolean = {
+ def needAttention(timeDiff: Long, priority: String): Boolean = {
    val minutes = ((timeDiff / (1000*60)) % 60)
    val hours   = ((timeDiff / (1000*60*60)) % 24)
-   patient.priority.color match {
+   priority match {
      case "Green" => {
        if (hours > 0 || minutes == 60) return true
      }
@@ -474,7 +471,7 @@ val info = SPAttributes(
    reasonForVisit match {
      case "AKP" => "stream"
      case "ALL" | "TRAU" => "process"
-     case "B" => {
+     case "B" | "MEP" => {
        team match {
          case "NAKME" => {
            location.charAt(0) match {
@@ -535,7 +532,6 @@ val info = SPAttributes(
     patientData += ("timestamp" -> timestamp)
     val events = extractNewPatientEvents(patientJson)
     return api.NewPatient(careContactId, patientData, events)
-    //publishOnAkka(header, body)
   }
 
   def diffPatient(json: JValue): api.DiffPatient = {
@@ -545,7 +541,6 @@ val info = SPAttributes(
     val newEvents = extractNewEvents(json \ "data")
     val removedEvents = extractRemovedEvents(json \ "data")
     return api.DiffPatient(careContactId, patientData, newEvents, removedEvents)
-    //publishOnAkka(header, body)
   }
 
   def removedPatient(json: JValue): api.RemovedPatient = {
@@ -553,7 +548,6 @@ val info = SPAttributes(
     val careContactId = (json \ "data" \ "patient" \ "CareContactId").values.toString
     val timestamp = (json \ "data" \ "timestamp").values.toString
     return api.RemovedPatient(careContactId, timestamp)
-    //publishOnAkka(header, body)
   }
 
   def extractNewEvents(patient: JValue): List[Map[String, String]] = {
