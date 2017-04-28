@@ -47,7 +47,7 @@ object PatientCardsWidget {
       mess => {
         ToAndFrom.eventBody(mess).map {
           case api.State(patients) => $.modState{s => patients}.runNow()
-          case _ => println("THIS WAS NOT EXPECTED IN MedicineYellowPatientCardsWidget.")
+          case _ => println("THIS WAS NOT EXPECTED IN PatientCardsWidget.")
         }
       }, "patient-cards-widget-topic"
     )
@@ -59,7 +59,7 @@ object PatientCardsWidget {
 
 
     def send(mess: api.StateEvent) {
-      val json = ToAndFrom.make(SPHeader(from = "MedicineYellowPatientCardsWidget", to = "PatientCardsService"), mess)
+      val json = ToAndFrom.make(SPHeader(from = "PatientCardsWidget", to = "PatientCardsService"), mess)
       BackendCommunication.publish(json, "patient-cards-service-topic")
     }
 
@@ -87,7 +87,7 @@ object PatientCardsWidget {
         case "Orange" => "#F08100" //"prio2"
         case "Red" => "#950000" //"prio1"
         case _ =>  {
-          println("TriageColor: "+ p.color +" not expected in MedicineYellowPatientCardsWidget")
+          println("TriageColor: "+ p.color +" not expected in PatientCardsWidget")
           return "#D5D5D5" //"prioNA"
         }
       }
@@ -134,7 +134,7 @@ object PatientCardsWidget {
         case "Orange" => ("#FCC381", "#F08100")
         case "Red" => ("#D99898", "#950000")
         case _ =>  {
-          println("TriageColor: "+ p.color +" not expected in MedicineYellowPatientCardsWidget")
+          println("TriageColor: "+ p.color +" not expected in PatientCardsWidget")
           return ("#E0E0E0", "#AFAFAF") //"NotTriaged"
         }
       }
@@ -377,6 +377,7 @@ object PatientCardsWidget {
 
 
     def render(filter: String, pmap: Map[String, apiPatient.Patient]) = {
+      println("STATE : " + pmap)
       spgui.widgets.css.WidgetStyles.addToDocument()
 
       val pats = (pmap - "-1").filter(p => belongsToThisTeam(p._2, filter))

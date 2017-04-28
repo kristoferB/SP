@@ -48,7 +48,7 @@ object TriageWidget {
       mess => {
         ToAndFrom.eventBody(mess) map {
           case api.State(patients) => $.modState{s => patients}.runNow()
-          case x => println(s"THIS WAS NOT EXPECTED IN MedicineYellowTriageWidget: $x")
+          case x => println(s"THIS WAS NOT EXPECTED IN TriageWidget: $x")
         }
       }, "triage-diagram-widget-topic"
     )
@@ -58,7 +58,7 @@ object TriageWidget {
     }, "triage-diagram-widget-topic")
 
     def send(mess: api.StateEvent) {
-      val h = SPHeader(from = "MedicineYellowTriageWidget", to = "TriageDiagramService")
+      val h = SPHeader(from = "TriageWidget", to = "TriageDiagramService")
       val json = ToAndFrom.make(h, mess)
       BackendCommunication.publish(json, "triage-diagram-service-topic")
     }
