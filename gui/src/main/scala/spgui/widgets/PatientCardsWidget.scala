@@ -25,6 +25,7 @@ import scala.concurrent.duration._
 import scala.scalajs.js
 import scala.util.{ Try, Success }
 import scala.util.Random.nextInt
+import scala.collection.mutable.ListBuffer
 
 import org.scalajs.dom
 import org.scalajs.dom.raw
@@ -69,11 +70,6 @@ object PatientCardsWidget {
     def belongsToThisTeam(patient: apiPatient.Patient, filter: String): Boolean = {
       filter.isEmpty || patient.team.team.contains(filter)
     }
-
-
-
-
-
 
     /**
     * Returns the correct hex color for each priority.
@@ -129,7 +125,7 @@ object PatientCardsWidget {
       p.color match {
         case "NotTriaged" => ("#E0E0E0", "#AFAFAF")
         case "Blue" => ("#DDE8FF", "#538AF4")
-        case "Green" => ("#DCFAEC", "#009550")
+        case "Green" => ("#F5FAF8", "#DCE2DF")
         case "Yellow" => ("#FFED8D", "#EAC706")
         case "Orange" => ("#FCC381", "#F08100")
         case "Red" => ("#D99898", "#950000")
@@ -146,7 +142,6 @@ object PatientCardsWidget {
     (plan background color, plan symbol color, plan does exist),
     (finished background color, finished symbol color, patient is finished))
     */
-    import scala.collection.mutable.ListBuffer
     def progressBarColoring(p: apiPatient.Patient): List[(String, String, Boolean)] = {
       val coloring = ListBuffer[(String, String, Boolean)]()
       val initColoring = progressBarInitialColoring(p.priority)
@@ -157,7 +152,7 @@ object PatientCardsWidget {
       if (false) coloring += Tuple3("#E9B7FF", "#FFFFFF", true) // To be implemented: Plan exists
       else coloring += Tuple3(initColoring._1, initColoring._2, false)
 
-      if (p.finishedStillPresent.finishedStillPresent) coloring += Tuple3("#FFEDFF", "#47AA62", true)
+      if (p.finishedStillPresent.finishedStillPresent) coloring += Tuple3("#47AA62", "#FFEDFF", true)
       else coloring += Tuple3(initColoring._1, initColoring._2, false)
 
       coloring.toList
@@ -173,11 +168,20 @@ object PatientCardsWidget {
         case (0,_) => {if (minutes == 0) "" else (minutes + " min").toString}
         case _ => (hours + " h " + minutes + " m").toString
       }
+    }
 
-      // if (hours == 0) (minutes + " min").toString
-      // else (hours + " h " + minutes + " m").toString
-      // if (minutes == 0) " "
-      // else " nej"
+    /*
+    * Returns true if a patient has waited longer than is recommended according
+    * to triage priority.
+    * Prio red: immediately, Prio orange: 20 min, Prio yellow or green: 60 min.
+    **/
+    def hasWaitedTooLong(p: apiPatient.Patient) = {
+      p.priority.color match {
+        case "Green" | "Yellow" => if (p.latestEvent.timeDiff > 3600000) true else false
+        case "Orange" => if (p.latestEvent.timeDiff > 1200000) true else false
+        case "Red" => true
+        case _ => false
+      }
     }
 
     /*
@@ -196,6 +200,7 @@ object PatientCardsWidget {
       val cardBackgroundColor = "#ffffff"
       val contentColorDark = "#000000"
       val contentColorLight = "#ffffff"
+      val contentColorAttention = "#E60000"
       val delimiterColor = "#95989a"
       val shadowColor = "lightgrey"
 
@@ -257,7 +262,7 @@ object PatientCardsWidget {
           <.svg.path(
             ^.`class` := "doctor-symbol",
             //^.svg.transform := "translate(0,2)",
-            ^.svg.d := "m 115.9389,90.593352 c -1.1749,0 -3.519,0.58956 -3.519,1.75954 l 0,0.88002 7.0385,0 0,-0.88002 c 0,-1.16998 -2.3446,-1.75954 -3.5195,-1.75954 z m 0,-0.88004 a 1.759531,1.759531 0 1 0 -1.7596,-1.75951 1.7589921,1.7589921 0 0 0 1.7596,1.75951 z",
+            ^.svg.d := "m 127.7246,90.593352 c -1.1749,0 -3.519,0.58956 -3.519,1.75954 l 0,0.88002 7.0385,0 0,-0.88002 c 0,-1.16998 -2.3446,-1.75954 -3.5195,-1.75954 z m 0,-0.88004 a 1.759531,1.759531 0 1 0 -1.7596,-1.75951 1.7589921,1.7589921 0 0 0 1.7596,1.75951 z",
             ^.svg.fill := contentColorDark
           ),
           <.svg.path(
@@ -347,7 +352,7 @@ object PatientCardsWidget {
             ^.svg.x := "92.745262",
             ^.svg.textAnchor := "start",
             ^.svg.fontSize :=  (fontSizeMedium * 0.86) + "px",
-            ^.svg.fill := contentColorDark,
+            ^.svg.fill := { if (hasWaitedTooLong(p)) contentColorAttention else contentColorDark },
             getTimeDiffReadable(p.latestEvent.timeDiff)
           ),
           <.svg.text(
@@ -362,7 +367,7 @@ object PatientCardsWidget {
           <.svg.text(
             ^.`class` := "attendant-id",
             ^.svg.y := "93.13282",
-            ^.svg.x := "122.84879",
+            ^.svg.x := "133.8488",
             ^.svg.textAnchor := "start",
             ^.svg.fontSize :=  fontSizeSmall + "px",
             ^.svg.fill := contentColorDark,
@@ -370,21 +375,36 @@ object PatientCardsWidget {
           )
         )
       )
-
-
     }
 
+    /*
+      Sorts a Map[String, Patient] by room number and returns a list of sorted ccids.
+      Patients missing room number are sorted by careContactId.
+      Sorting: (1,2,3,a,b,c, , , )
+    **/
+    def sortPatientsByRoomNr(pmap: Map[String, apiPatient.Patient]): List[String] = {
+      val currentCcids = pmap.map(p => p._1)
+      val ccidsSortedByRoomNr = ListBuffer[(String, String)]()
+      val ccidsMissingRoomNr = ListBuffer[(String, String)]()
+      val ccidsWithSpecialRoomNr = ListBuffer[(String, String)]()
+
+      currentCcids.foreach{ ccid =>
+        if (pmap(ccid).location.roomNr == "") ccidsMissingRoomNr += Tuple2(ccid, ccid)
+        else if (pmap(ccid).location.roomNr.forall(_.isDigit)) ccidsSortedByRoomNr += Tuple2(ccid, pmap(ccid).location.roomNr)
+        else ccidsWithSpecialRoomNr += Tuple2(ccid, pmap(ccid).location.roomNr)
+      }
+      (ccidsSortedByRoomNr.sortBy(_._2.toInt) ++ ccidsWithSpecialRoomNr.sortBy(_._2) ++ ccidsMissingRoomNr.sortBy(_._2)).map(p => p._1).toList
+    }
 
 
     def render(filter: String, pmap: Map[String, apiPatient.Patient]) = {
       println("STATE : " + pmap)
       spgui.widgets.css.WidgetStyles.addToDocument()
-
       val pats = (pmap - "-1").filter(p => belongsToThisTeam(p._2, filter))
 
-      <.div(^.`class` := "card-holder-root", Styles.helveticaZ)( // This div is really not necessary
-        pats map { case (id, p) =>
-          patientCard(p)
+      <.div(^.`class` := "card-holder-root", Styles.helveticaZ)(
+        sortPatientsByRoomNr(pats) map { ccid =>
+          patientCard(pats(ccid))
         }
       )
     }

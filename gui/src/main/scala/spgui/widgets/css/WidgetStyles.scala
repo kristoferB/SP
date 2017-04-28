@@ -19,12 +19,21 @@ object WidgetStyles extends StyleSheet.Inline {
   val clock = style(
     textAlign.center,
     fontSize(70.px),
-    fontFamily :=! "Helvetica, Arial, sans-serif"
+    fontFamily :=! "Helvetica, Arial, sans-serif",
+    fontWeight :=! "bold"
   )
 
-  val patientCardText = style(
-    fontSize(26.px),
-    svgFill := "black"
+  val widgetHeader = style(
+    fontSize(23.px),
+    paddingBottom(8.px),
+    fontFamily :=! "Helvetica, Arial, sans-serif",
+    fontWeight :=! "bold"
+  )
+
+  val widgetText = style(
+    fontSize(22.px),
+    paddingBottom(8.px),
+    fontFamily :=! "Helvetica, Arial, sans-serif"
   )
 
   val helveticaZ = style(

@@ -203,7 +203,13 @@ object WaitingRoomServiceWidget {
 
   val svg = d3.select(element).append("svg").attr("width", width).attr("height", height)
 
-  val colors = List("#ffffff", "#4a4a4a", "#5c5a5a", "#888888", "#bebebe", "#000000")
+  val contentColorLight = "#ffffff"
+  val contentColorDark = "#000000"
+  val colorNotAttended = "#1c0526"
+  val colorAttended = "#8d47aa"
+  val colorPlanExists = "#e9b7ff"
+  val colorFinished = "#fffdff"
+
   val fontSizeVantrum = s"${(24.0/1094.00)*width}px"
   val fontSizeSmallBox = s"${(15/1094.00)*width}px"
   val fontSizeBigBox = s"${(19/1094.00)*width}px"
@@ -214,13 +220,13 @@ object WaitingRoomServiceWidget {
     .attr("y", (36.9/1094.00)*width)
     .attr("font-size", fontSizeVantrum)
     .attr("font-weight", "bold")
-    .attr("fill", colors.last)
+    .attr("fill", contentColorDark)
     .text("VÄNTRUM")
 
-  val opatittad = smallBox("Opåtittad", (15.5/1094.00)*width, (57.3/1094.00)*width, colors(1))
-  val patittad = smallBox("Påtittad", (130.0/1094.00)*width, (57.3/1094.00)*width, colors(2))
-  val patittadMPlan = smallBox("Påtittad m. Plan", (240.0/1094.0)*width, (57.3/1094.00)*width, colors(3))
-  val klar = smallBox("Klar", (388.6/1094.00)*width, (57.3/1094.00)*width, colors(4))
+  val opatittad = smallBox("Opåtittad", (15.5/1094.00)*width, (57.3/1094.00)*width, colorNotAttended)
+  val patittad = smallBox("Påtittad", (130.0/1094.00)*width, (57.3/1094.00)*width, colorAttended)
+  val patittadMPlan = smallBox("Påtittad m. Plan", (240.0/1094.0)*width, (57.3/1094.00)*width, colorPlanExists)
+  val klar = smallBox("Klar", (388.6/1094.00)*width, (57.3/1094.00)*width, colorFinished)
 
   draw2(opatittad)
   draw2(patittad)
@@ -240,14 +246,14 @@ object WaitingRoomServiceWidget {
       .attr("x", box.x + box.w + (5.00/1094.00)*width)
       .attr("y", box.y + box.h - (2.00/1094.00)*width)
       .attr("font-size", fontSizeSmallBox)
-      .attr("fill", colors.last)
+      .attr("fill", contentColorDark)
       .text(box.text)
   }
 
   // Boxar ovansidan
   val kirurgi = xyBegin("Kirurgi", (14.6/1094.00)*width, (98.6/1094.00)*width) //box("Kirurgi",14.6, 98.6, 27.3, 310.5)
   val ortopedi = xyBegin("Ortopedi", (391.7/1094.00)*width, (98.6/1094.00)*width) //box("Ortopedi", 391.7, 98.6, 27.3, 310.5)
-  val ovriga = xyBegin("Övriga", (768.7/1094.00)*width, (98.6/1094.00)*width) //box("Övriga", 768.7, 98.6, 27.3, 310.5)
+  val ovriga = xyBegin("Ej väntrum", (768.7/1094.00)*width, (98.6/1094.00)*width) //box("Övriga", 768.7, 98.6, 27.3, 310.5)
 
   // Boxar nedsian
   val medicin = xyBegin("Medicin", (14.6/1094.00)*width, (135.6/1094.00)*width) //box("Medicin", 14.6, 135.6, 27.3, 310.5)
@@ -267,35 +273,35 @@ object WaitingRoomServiceWidget {
       .attr("y", xy.y)
       .attr("width", (115.00/1094.00)*width)
       .attr("height", boxHeight)
-      .style("fill", colors.head)
+      .style("fill", contentColorLight)
 
     svg.append("rect")
       .attr("x", xy.x + (115.00/1094.00)*width)
       .attr("y", xy.y)
       .attr("width", boxWidth)
       .attr("height", boxHeight)
-      .style("fill", colors(1))
+      .style("fill", colorNotAttended)
 
     svg.append("rect")
       .attr("x", xy.x + (115.00/1094.00)*width + boxWidth)
       .attr("y", xy.y)
       .attr("width", boxWidth)
       .attr("height", boxHeight)
-      .style("fill", colors(2))
+      .style("fill", colorAttended)
 
     svg.append("rect")
       .attr("x", xy.x + (115.00/1094.00)*width + 2*boxWidth)
       .attr("y", xy.y)
       .attr("width", boxWidth)
       .attr("height", boxHeight)
-      .style("fill", colors(3))
+      .style("fill", colorPlanExists)
 
     svg.append("rect")
       .attr("x", xy.x + (115.00/1094.00)*width + 3*boxWidth)
       .attr("y", xy.y)
       .attr("width", boxWidth)
       .attr("height", boxHeight)
-      .style("fill", colors(4))
+      .style("fill", colorFinished)
 
     // Text
     svg.append("text")
@@ -303,7 +309,7 @@ object WaitingRoomServiceWidget {
       .attr("y", xy.y + boxHeight - (7.00/1094.00)*width)
       .attr("font-size", fontSizeBigBox)
       .attr("font-weight", "bold")
-      .attr("fill", colors.last)
+      .attr("fill", contentColorDark)
       .text(xy.name)
 
     svg.append("text")
@@ -311,7 +317,7 @@ object WaitingRoomServiceWidget {
       .attr("y", xy.y + boxHeight - (7.00/1094.00)*width)
       .attr("font-size", fontSizeBigBox)
       .attr("font-weight", "bold")
-      .attr("fill", colors.head)
+      .attr("fill", colorFinished)
       .text(list.head)
 
     svg.append("text")
@@ -319,7 +325,7 @@ object WaitingRoomServiceWidget {
       .attr("y", xy.y + boxHeight - (7.00/1094.00)*width)
       .attr("font-size", fontSizeBigBox)
       .attr("font-weight", "bold")
-      .attr("fill", colors.head)
+      .attr("fill", colorFinished)
       .text(list(1))
 
     svg.append("text")
@@ -327,7 +333,7 @@ object WaitingRoomServiceWidget {
       .attr("y", xy.y + boxHeight - (7.00/1094.00)*width)
       .attr("font-size", fontSizeBigBox)
       .attr("font-weight", "bold")
-      .attr("fill", colors.head)
+      .attr("fill", colorNotAttended)
       .text(list(2))
 
     svg.append("text")
@@ -335,7 +341,7 @@ object WaitingRoomServiceWidget {
       .attr("y", xy.y + boxHeight - (7.00/1094.00)*width)
       .attr("font-size", fontSizeBigBox)
       .attr("font-weight", "bold")
-      .attr("fill", colors.head)
+      .attr("fill", colorNotAttended)
       .text(list.last)
   }
 }

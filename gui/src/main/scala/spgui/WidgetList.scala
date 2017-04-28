@@ -44,7 +44,10 @@ object WidgetList {
       //("Patientkort (process)", widgets.ProcessPatientCardsWidget(), 8, 8),
       //("Patientkort (stream)", widgets.StreamPatientCardsWidget(), 8, 8),
       //("Patientkort (medicin blå)", widgets.MedicineBluePatientCardsWidget(), 8, 8),
+
       ("Patientkort", widgets.PatientCardsWidget(), 7, 5),
+      ("Lång tid sedan händelse", widgets.PatientReminderWidget(), 2, 3),
+
       //("Patientkort (kirurgi)", widgets.SurgeryPatientCardsWidget(), 8, 8),
       //("Patientkort (ortopedi)", widgets.OrthopedyPatientCardsWidget(), 8, 8),
       //("Patientkort (jour)", widgets.JourPatientCardsWidget(), 8, 8),
