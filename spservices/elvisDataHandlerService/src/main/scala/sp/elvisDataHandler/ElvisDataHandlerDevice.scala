@@ -350,9 +350,9 @@ val info = SPAttributes(
    val days = (diff / (1000*60*60*24))
    var dayString = ""
    days match {
+     case 0 => dayString = ""
      case 1 => dayString = "(igår)"
-     case 2 => dayString = "(förrgår)"
-     case _ => dayString = ""
+     case (n: Long) => dayString = "(+" + n + " d.)"
    }
    return timeString + " " + dayString
  }

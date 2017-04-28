@@ -161,13 +161,20 @@ object PatientCardsWidget {
     /**
     * Converts milliseconds to hours and minutes, visualized in string.
     */
-    def getTimeDiffReadable(milliseconds: Long): String = {
+    def getTimeDiffReadable(milliseconds: Long): (String, String) = {
       val minutes = ((milliseconds / (1000*60)) % 60)
-      val hours = ((milliseconds / (1000*60*60)) % 24)
-      (hours, minutes) match {
+      val hours = ((milliseconds / (1000*60*60)) )//% 24)
+
+      val timeString = (hours, minutes) match {
         case (0,_) => {if (minutes == 0) "" else (minutes + " min").toString}
         case _ => (hours + " h " + minutes + " m").toString
       }
+      val days = (milliseconds / (1000*60*60*24))
+      val dayString = days match {
+        case 0 => ""
+        case (n: Long) => "(> "+ n + " dygn)"
+      }
+      (timeString, dayString)
     }
 
     /*
@@ -193,7 +200,7 @@ object PatientCardsWidget {
       val cardHeight = 100 // change only with new graphics
       val cardWidth = 176 // change only with new graphics
 
-      val fontSizeSmall = 7.7
+      val fontSizeSmall = 7.6
       val fontSizeMedium = 15.2
       val fontSizeLarge = 35
 
@@ -262,7 +269,7 @@ object PatientCardsWidget {
           <.svg.path(
             ^.`class` := "doctor-symbol",
             //^.svg.transform := "translate(0,2)",
-            ^.svg.d := "m 127.7246,90.593352 c -1.1749,0 -3.519,0.58956 -3.519,1.75954 l 0,0.88002 7.0385,0 0,-0.88002 c 0,-1.16998 -2.3446,-1.75954 -3.5195,-1.75954 z m 0,-0.88004 a 1.759531,1.759531 0 1 0 -1.7596,-1.75951 1.7589921,1.7589921 0 0 0 1.7596,1.75951 z",
+            ^.svg.d := "m 127.90317,90.593352 c -1.1749,0 -3.519,0.58956 -3.519,1.75954 l 0,0.88002 7.0385,0 0,-0.88002 c 0,-1.16998 -2.3446,-1.75954 -3.5195,-1.75954 z m 0,-0.88004 a 1.759531,1.759531 0 1 0 -1.7596,-1.75951 1.7589921,1.7589921 0 0 0 1.7596,1.75951 z",
             ^.svg.fill := contentColorDark
           ),
           <.svg.path(
@@ -349,16 +356,17 @@ object PatientCardsWidget {
           <.svg.text(
             ^.`class` := "time-since-latest-event",
             ^.svg.y := "56.387848",
-            ^.svg.x := "92.745262",
+            ^.svg.x := "93",
             ^.svg.textAnchor := "start",
             ^.svg.fontSize :=  (fontSizeMedium * 0.86) + "px",
             ^.svg.fill := { if (hasWaitedTooLong(p)) contentColorAttention else contentColorDark },
-            getTimeDiffReadable(p.latestEvent.timeDiff)
+            <.svg.tspan(^.svg.x := "93")(getTimeDiffReadable(p.latestEvent.timeDiff)._1)
+            //<.svg.tspan(^.svg.x := "93", ^.svg.dy := "15 px")(getTimeDiffReadable(p.latestEvent.timeDiff)._2)
           ),
           <.svg.text(
             ^.`class` := "arrival-time",
             ^.svg.y := "93.13282",
-            ^.svg.x := "79.148216",
+            ^.svg.x := "79",
             ^.svg.textAnchor := "start",
             ^.svg.fontSize :=  fontSizeSmall + "px",
             ^.svg.fill := contentColorDark,

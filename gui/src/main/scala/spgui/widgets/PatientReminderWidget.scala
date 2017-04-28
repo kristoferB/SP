@@ -138,13 +138,20 @@ object PatientReminderWidget {
     /**
     * Converts milliseconds to hours and minutes, visualized in string.
     */
-    def getTimeDiffReadable(milliseconds: Long): String = {
+    def getTimeDiffReadable(milliseconds: Long): (String, String) = {
       val minutes = ((milliseconds / (1000*60)) % 60)
-      val hours = ((milliseconds / (1000*60*60)) % 24)
-      (hours, minutes) match {
+      val hours = ((milliseconds / (1000*60*60)) )// % 24)
+
+      val timeString = (hours, minutes) match {
         case (0,_) => {if (minutes == 0) "" else (minutes + " min").toString}
         case _ => (hours + " h " + minutes + " m").toString
       }
+      val days = (milliseconds / (1000*60*60*24))
+      val dayString = days match {
+        case 0 => ""
+        case (n: Long) => "(+ " + n + " dygn)"
+      }
+      (timeString, dayString)
     }
 
     /*
@@ -269,11 +276,11 @@ object PatientReminderWidget {
           <.svg.text(
             ^.`class` := "time-since-latest-event",
             ^.svg.y := "23.813511",
-            ^.svg.x := "249.32289",
             ^.svg.textAnchor := "start",
             ^.svg.fontSize :=  fontSizeSmall + "px",
             ^.svg.fill := { if (hasWaitedTooLong(p)) contentColorAttention else contentColorDark },
-            getTimeDiffReadable(p.latestEvent.timeDiff)
+            <.svg.tspan(^.svg.x := "251")(getTimeDiffReadable(p.latestEvent.timeDiff)._1)
+            //<.svg.tspan(^.svg.x := "252", ^.svg.dy := "15 px")(getTimeDiffReadable(p.latestEvent.timeDiff)._2)
           )
         )
       )
