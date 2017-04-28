@@ -314,11 +314,11 @@ object CoordinatorDiagramServiceWidget {
      List(blueCountMG, greenCountMG, yellowCountMG, orangeCountMG, redCountMG, notTriagedCountMG), List(finishedCountMG, attendedWithPlanCountMG, attendedCountMG, unAttendedCountMG),
      List(blueCountMB, greenCountMB, yellowCountMB, orangeCountMB, redCountMB, notTriagedCountMB), List(finishedCountMB, attendedWithPlanCountMB, attendedCountMB, unAttendedCountMB),
      List(blueCountNakm, greenCountNakm, yellowCountNakm, orangeCountNakm, redCountNakm, notTriagedCountNakm), List(finishedCountNakm, attendedWithPlanCountNakm, attendedCountNakm, unAttendedCountNakm),
-     List(blueCountK, greenCountK, yellowCountK, orangeCountK, redCountK, notTriagedCountK), List(unAttendedCountK, attendedCountK, attendedWithPlanCountK, finishedCountK),
-     List(blueCountO, greenCountO, yellowCountO, orangeCountO, redCountO, notTriagedCountO), List(unAttendedCountO, attendedCountO, attendedWithPlanCountO, finishedCountO),
-     List(blueCountS, greenCountS, yellowCountS, orangeCountS, redCountS, notTriagedCountS), List(unAttendedCountS, attendedCountS, attendedWithPlanCountS, finishedCountS),
-     List(blueCountP, greenCountP, yellowCountP, orangeCountP, redCountP, notTriagedCountP), List(unAttendedCountP, attendedCountP, attendedWithPlanCountP, finishedCountP),
-     List(blueCountJ, greenCountJ, yellowCountJ, orangeCountJ, redCountJ, notTriagedCountJ), List(unAttendedCountJ, attendedCountJ, attendedWithPlanCountJ, finishedCountJ)
+     List(blueCountK, greenCountK, yellowCountK, orangeCountK, redCountK, notTriagedCountK), List(finishedCountK, attendedWithPlanCountK, attendedCountK, unAttendedCountK),
+     List(blueCountO, greenCountO, yellowCountO, orangeCountO, redCountO, notTriagedCountO), List(finishedCountO, attendedWithPlanCountO, attendedCountO, unAttendedCountO),
+     List(blueCountS, greenCountS, yellowCountS, orangeCountS, redCountS, notTriagedCountS), List(finishedCountS, attendedWithPlanCountS, attendedCountS, unAttendedCountS),
+     List(blueCountP, greenCountP, yellowCountP, orangeCountP, redCountP, notTriagedCountP), List(finishedCountP, attendedWithPlanCountP, attendedCountP, unAttendedCountP),
+     List(blueCountJ, greenCountJ, yellowCountJ, orangeCountJ, redCountJ, notTriagedCountJ), List(finishedCountJ, attendedWithPlanCountJ, attendedCountJ, unAttendedCountJ)
    )
    return listy
  }
@@ -454,9 +454,9 @@ object CoordinatorDiagramServiceWidget {
    var firstRect: Double = 0
    if (kvot == 0) {
      firstRect = 0
-   } else {
+   } else (
      firstRect = listy.head.sum.toDouble / kvot * graphHeight
-   }
+   )
 
    // Ej påbörjade
    val dispFirstText = (d: Int) => if(d <= 0){""} else{d.toString}
@@ -529,7 +529,7 @@ object CoordinatorDiagramServiceWidget {
      .attr("fill", textBlack)
      .style("font-weight", "bold")
      .attr("transform", s"translate(${(305.0/scaleWidth)*totWidth},${(40.0/scaleWidth)*totWidth})rotate(-50)")
-     .text("Nakm")
+     .text("NAKM")
 
    botText.append("text")
      .style("font-weight", "bold")
@@ -742,7 +742,6 @@ object CoordinatorDiagramServiceWidget {
      .attr("font-size", botTextSize)
      .text("Opåtittad")
 
-
      if (kvot == 0) {
        // Medicin - Gul
        draw(getHeights(getLength(listy(1), 0), barSecond, graphHeight), listy(1))
@@ -808,7 +807,6 @@ object CoordinatorDiagramServiceWidget {
        draw(getHeights(getLength(listy(15), listy(15).sum * (graphHeight-offset) / kvot), 7*horizontalBarDistance + barSecond, graphHeight), listy(15))
        draw2(getHeights(getLength(listy(16), listy(15).sum * (graphHeight-offset) / kvot), 7*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(16))
      }
-
 
    def draw(listzz: ListBuffer[ys], listxx: List[Int]): Unit = {
 

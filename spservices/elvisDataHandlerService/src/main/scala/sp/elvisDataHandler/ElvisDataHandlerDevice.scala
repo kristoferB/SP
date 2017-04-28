@@ -166,7 +166,7 @@ val info = SPAttributes(
      case apiPatient.LatestEvent(latestEvent, timeDiff, needsAttention, timestamp) => apiPatient.Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).examination, apiPatient.LatestEvent(latestEvent, timeDiff, needsAttention, timestamp), s(ccid).arrivalTime, s(ccid).finishedStillPresent)
      case apiPatient.ArrivalTime(timeDiff, timestamp) => apiPatient.Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).examination, s(ccid).latestEvent, apiPatient.ArrivalTime(timeDiff, timestamp), s(ccid).finishedStillPresent)
      case apiPatient.FinishedStillPresent(finishedStillPresent, timestamp) => apiPatient.Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).examination, s(ccid).latestEvent, s(ccid).arrivalTime, apiPatient.FinishedStillPresent(finishedStillPresent, timestamp))
-     case _ => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
+     case _ => apiPatient.Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).examination, s(ccid).latestEvent, s(ccid).arrivalTime, s(ccid).finishedStillPresent)
    }
  }
 
@@ -399,7 +399,7 @@ val info = SPAttributes(
  */
  def updateExamination(careContactId: String, events: List[Map[String, String]]): apiPatient.Examination = {
    events.foreach{ e =>
-     if (e("Title") == "Rö/klin" && e("End") != "0001-01-02T23:00:00Z") {
+     if (e("Title") == "Rö/klin" && e("End") == "0001-01-02T23:00:00Z") {
        return apiPatient.Examination(true, e("Start"))
      }
    }
