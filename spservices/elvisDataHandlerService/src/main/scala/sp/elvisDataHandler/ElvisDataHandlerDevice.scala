@@ -457,7 +457,7 @@ val info = SPAttributes(
  def decodeClinic(team: String): String = {
    team match {
      case "NAKKI" => "kirurgi"
-     case "NAKME" => "medicin"
+     case "NAKME" | "NAKM" => "medicin"
      case "NAKOR" => "ortopedi"
      case "NAKBA" | "NAKGY" | "NAKÖN" => "bgö"
      case _ => "bgö"
@@ -484,6 +484,14 @@ val info = SPAttributes(
          case "NAKKI" => "kirurgi"
          case "NAKOR" => "ortopedi"
          case "NAKBA" | "NAKGY" | "NAKÖN" => "jour"
+         case "NAKM" => {
+           location.charAt(0) match {
+             case 'B' => "medicin blå"
+             case 'G' => "medicin gul"
+             case 'P' => "process"
+             case _ => "NAKM"
+           }
+         }
          case _ => "no-match"
        }
      }
