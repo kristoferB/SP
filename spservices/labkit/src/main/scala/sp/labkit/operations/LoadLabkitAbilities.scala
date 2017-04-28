@@ -168,11 +168,11 @@ object LabKitAbilityModel extends Helpers2{
     started = prop(allVars, s"${c3p3State.name} == 2", List())
   )
 
-  val conv3DirSet = abapi.Ability(name = "conv3DirSet", id = ID.newID,
+  /*val conv3DirSet = abapi.Ability(name = "conv3DirSet", id = ID.newID,
     preCondition = prop(allVars, s"1 == 1", List(s"${c3p1Dir.name} := false")),
     postCondition = prop(allVars, s"${c3p1Dir.name} == false", List()),
     started = prop(allVars, s"${c3p1Dir.name} == false", List())
-  )
+  )*/
   // Conv 4
 
   val conv4proc1right = abapi.Ability(name = "conv4proc1right", id = ID.newID,
@@ -286,8 +286,8 @@ object LabKitAbilityModel extends Helpers2{
   )
   val allAbilities = List(a1, a2, feeder, conv1proc1, conv1proc2,conv2proc1, conv3proc1left, conv3proc1right, conv3proc2left, conv3proc2right,
     conv3proc3,conv4proc1right, conv4proc1left, conv4proc2right, conv4proc2left, conv4proc3right, conv4proc3left, robot1to1put, robot1to1pick,
-    robot1to2put, robot1toFeedCylPick, robot2to2pick, robot2to3put, robot2to4pick, robot2to4put, conv3DirSet)
-}
+    robot1to2put, robot1toFeedCylPick, robot2to2pick, robot2to3put, robot2to4pick, robot2to4put)
+}//conv3DirSet
 
 case class LoadLabkitAbilities(system: ActorSystem) {
   import LabKitAbilityModel._
