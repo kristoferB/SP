@@ -353,7 +353,11 @@ object CoordinatorDiagramServiceWidget {
      val summera = list.sum
 
      for(i <- list.indices){
-       lista += ( list(i).toDouble / summera ) * h
+       if (summera == 0) {
+         lista += ( 0 ) * h
+       } else {
+         lista += ( list(i).toDouble / summera ) * h
+       }
      }
      return lista
    }
@@ -447,7 +451,12 @@ object CoordinatorDiagramServiceWidget {
    val sel2 = svg.selectAll("g").data(js.Array(0,1,2,3)).enter()
 
    val kvot: Double = getKvot(listy)
-   val firstRect: Double = listy.head.sum.toDouble / kvot * graphHeight
+   var firstRect: Double = 0
+   if (kvot == 0) {
+     firstRect = 0
+   } else {
+     firstRect = listy.head.sum.toDouble / kvot * graphHeight
+   }
 
    // Ej påbörjade
    val dispFirstText = (d: Int) => if(d <= 0){""} else{d.toString}
@@ -734,37 +743,71 @@ object CoordinatorDiagramServiceWidget {
      .text("Opåtittad")
 
 
-   // Medicin - Gul
-   draw(getHeights(getLength(listy(1), listy(1).sum * (graphHeight-offset) / kvot), barSecond, graphHeight), listy(1))
-   draw2(getHeights(getLength(listy(2), listy(1).sum * (graphHeight-offset) / kvot), barWidth + barSecond, graphHeight), listy(2))
+     if (kvot == 0) {
+       // Medicin - Gul
+       draw(getHeights(getLength(listy(1), 0), barSecond, graphHeight), listy(1))
+       draw2(getHeights(getLength(listy(2), 0), barWidth + barSecond, graphHeight), listy(2))
 
-   // Medicin - Blå
-   draw(getHeights(getLength(listy(3), listy(3).sum * (graphHeight-offset) / kvot), horizontalBarDistance + barSecond, graphHeight), listy(3))
-   draw2(getHeights(getLength(listy(4), listy(3).sum * (graphHeight-offset) / kvot), horizontalBarDistance + barWidth + barSecond, graphHeight), listy(4))
+       // Medicin - Blå
+       draw(getHeights(getLength(listy(3), 0), horizontalBarDistance + barSecond, graphHeight), listy(3))
+       draw2(getHeights(getLength(listy(4), 0), horizontalBarDistance + barWidth + barSecond, graphHeight), listy(4))
 
-   // Nakm
-   draw(getHeights(getLength(listy(5), listy(5).sum * (graphHeight-offset) / kvot), 2*horizontalBarDistance + barSecond, graphHeight), listy(5))
-   draw2(getHeights(getLength(listy(6), listy(5).sum * (graphHeight-offset) / kvot), 2*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(6))
+       // Nakm
+       draw(getHeights(getLength(listy(5), 0), 2*horizontalBarDistance + barSecond, graphHeight), listy(5))
+       draw2(getHeights(getLength(listy(6), 0), 2*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(6))
 
-   // Kirurgi
-   draw(getHeights(getLength(listy(7), listy(7).sum * (graphHeight-offset) / kvot), 3*horizontalBarDistance + barSecond, graphHeight), listy(7))
-   draw2(getHeights(getLength(listy(8), listy(7).sum * (graphHeight-offset) / kvot), 3*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(8))
+       // Kirurgi
+       draw(getHeights(getLength(listy(7), 0), 3*horizontalBarDistance + barSecond, graphHeight), listy(7))
+       draw2(getHeights(getLength(listy(8), 0), 3*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(8))
 
-   // Ortopedi
-   draw(getHeights(getLength(listy(9), listy(9).sum * (graphHeight-offset) / kvot), 4*horizontalBarDistance + barSecond, graphHeight), listy(9))
-   draw2(getHeights(getLength(listy(10), listy(9).sum * (graphHeight-offset) / kvot), 4*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(10))
+       // Ortopedi
+       draw(getHeights(getLength(listy(9), 0), 4*horizontalBarDistance + barSecond, graphHeight), listy(9))
+       draw2(getHeights(getLength(listy(10), 0), 4*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(10))
 
-   // Stream
-   draw(getHeights(getLength(listy(11), listy(11).sum * (graphHeight-offset) / kvot), 5*horizontalBarDistance + barSecond, graphHeight), listy(11))
-   draw2(getHeights(getLength(listy(12), listy(11).sum * (graphHeight-offset) / kvot), 5*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(12))
+       // Stream
+       draw(getHeights(getLength(listy(11), 0), 5*horizontalBarDistance + barSecond, graphHeight), listy(11))
+       draw2(getHeights(getLength(listy(12), 0), 5*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(12))
 
-   // Process
-   draw(getHeights(getLength(listy(13), listy(13).sum * (graphHeight-offset) / kvot), 6*horizontalBarDistance + barSecond, graphHeight), listy(13))
-   draw2(getHeights(getLength(listy(14), listy(13).sum * (graphHeight-offset) / kvot), 6*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(14))
+       // Process
+       draw(getHeights(getLength(listy(13), 0), 6*horizontalBarDistance + barSecond, graphHeight), listy(13))
+       draw2(getHeights(getLength(listy(14), 0), 6*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(14))
 
-   //Jour
-   draw(getHeights(getLength(listy(15), listy(15).sum * (graphHeight-offset) / kvot), 7*horizontalBarDistance + barSecond, graphHeight), listy(15))
-   draw2(getHeights(getLength(listy(16), listy(15).sum * (graphHeight-offset) / kvot), 7*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(16))
+       //Jour
+       draw(getHeights(getLength(listy(15), 0), 7*horizontalBarDistance + barSecond, graphHeight), listy(15))
+       draw2(getHeights(getLength(listy(16), 0), 7*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(16))
+     } else {
+       // Medicin - Gul
+       draw(getHeights(getLength(listy(1), listy(1).sum * (graphHeight-offset) / kvot), barSecond, graphHeight), listy(1))
+       draw2(getHeights(getLength(listy(2), listy(1).sum * (graphHeight-offset) / kvot), barWidth + barSecond, graphHeight), listy(2))
+
+       // Medicin - Blå
+       draw(getHeights(getLength(listy(3), listy(3).sum * (graphHeight-offset) / kvot), horizontalBarDistance + barSecond, graphHeight), listy(3))
+       draw2(getHeights(getLength(listy(4), listy(3).sum * (graphHeight-offset) / kvot), horizontalBarDistance + barWidth + barSecond, graphHeight), listy(4))
+
+       // Nakm
+       draw(getHeights(getLength(listy(5), listy(5).sum * (graphHeight-offset) / kvot), 2*horizontalBarDistance + barSecond, graphHeight), listy(5))
+       draw2(getHeights(getLength(listy(6), listy(5).sum * (graphHeight-offset) / kvot), 2*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(6))
+
+       // Kirurgi
+       draw(getHeights(getLength(listy(7), listy(7).sum * (graphHeight-offset) / kvot), 3*horizontalBarDistance + barSecond, graphHeight), listy(7))
+       draw2(getHeights(getLength(listy(8), listy(7).sum * (graphHeight-offset) / kvot), 3*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(8))
+
+       // Ortopedi
+       draw(getHeights(getLength(listy(9), listy(9).sum * (graphHeight-offset) / kvot), 4*horizontalBarDistance + barSecond, graphHeight), listy(9))
+       draw2(getHeights(getLength(listy(10), listy(9).sum * (graphHeight-offset) / kvot), 4*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(10))
+
+       // Stream
+       draw(getHeights(getLength(listy(11), listy(11).sum * (graphHeight-offset) / kvot), 5*horizontalBarDistance + barSecond, graphHeight), listy(11))
+       draw2(getHeights(getLength(listy(12), listy(11).sum * (graphHeight-offset) / kvot), 5*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(12))
+
+       // Process
+       draw(getHeights(getLength(listy(13), listy(13).sum * (graphHeight-offset) / kvot), 6*horizontalBarDistance + barSecond, graphHeight), listy(13))
+       draw2(getHeights(getLength(listy(14), listy(13).sum * (graphHeight-offset) / kvot), 6*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(14))
+
+       //Jour
+       draw(getHeights(getLength(listy(15), listy(15).sum * (graphHeight-offset) / kvot), 7*horizontalBarDistance + barSecond, graphHeight), listy(15))
+       draw2(getHeights(getLength(listy(16), listy(15).sum * (graphHeight-offset) / kvot), 7*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(16))
+     }
 
 
    def draw(listzz: ListBuffer[ys], listxx: List[Int]): Unit = {
