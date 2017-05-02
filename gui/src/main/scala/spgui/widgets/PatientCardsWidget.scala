@@ -43,16 +43,12 @@ object PatientCardsWidget {
 
   private class Backend($: BackendScope[String, Map[String, apiPatient.Patient]]) {
 
-    val messObs = BackendCommunication.getMessageObserver(
-      mess => {
-        ToAndFrom.eventBody(mess).map {
-          case api.State(patients) => $.modState{s =>
-            println("STATE : " + patients)
+    val messObs = spgui.widgets.akuten.PatientModel.getPatientObserver(
+      patients => {
+          $.modState{s =>
             patients
           }.runNow()
-          case _ => println("THIS WAS NOT EXPECTED IN PatientCardsWidget.")
         }
-      }, "patient-cards-widget-topic"
     )
 
     val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
@@ -417,7 +413,6 @@ object PatientCardsWidget {
 
 
     def render(filter: String, pmap: Map[String, apiPatient.Patient]) = {
-      println("STATE : " + pmap)
       val pats = (pmap - "-1").filter(p => belongsToThisTeam(p._2, filter))
 
       <.div(^.`class` := "card-holder-root", Styles.helveticaZ)(

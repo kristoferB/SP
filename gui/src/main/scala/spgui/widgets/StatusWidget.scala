@@ -43,23 +43,21 @@ object StatusWidget {
 
   private class Backend($: BackendScope[String, Map[String, apiPatient.Patient]]) {
 
-    val messObs = BackendCommunication.getMessageObserver(
-      mess => {
-        ToAndFrom.eventBody(mess).map {
-          case api.State(patients) => $.modState{s => patients}.runNow()
-          case x => println(s"THIS WAS NOT EXPECTED IN StatusWidget: $x")
-        }
-      }, "status-diagram-widget-topic"
+    val messObs = spgui.widgets.akuten.PatientModel.getPatientObserver(
+      patients => {
+        $.modState{s =>
+          patients
+        }.runNow()
+      }
     )
 
     val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
       if (mess) send(api.GetState())
-    }, "status-diagram-widget-topic")
+    }, "patient-cards-widget-topic")
 
     def send(mess: api.StateEvent) {
-      val h = SPHeader(from = "StatusWidget", to = "StatusDiagramService")
-      val json = ToAndFrom.make(h, mess)
-      BackendCommunication.publish(json, "status-diagram-service-topic")
+      val json = ToAndFrom.make(SPHeader(from = "PatientCardsWidget", to = "PatientCardsService"), mess)
+      BackendCommunication.publish(json, "patient-cards-service-topic")
     }
 
     def render(p: String, s: Map[String, apiPatient.Patient]) = {

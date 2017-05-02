@@ -55,9 +55,11 @@ class PatientCardsDevice extends Actor with ActorLogging {
     PatientCardsComm.extractEvent(mess) map { case (h, b) =>
       b match {
         case api.State(state) => {
-          localState = state
-          if (widgetStarted) {
-            publishOnAkka(header, api.State(state))
+          if (localState != state){
+            localState = state
+            if (widgetStarted) {
+              publishOnAkka(header, api.State(state))
+            }
           }
         }
         case api.GetState() => {

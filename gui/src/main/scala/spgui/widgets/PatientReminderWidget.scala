@@ -43,20 +43,20 @@ object PatientReminderWidget {
 
   private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
 
-    val messObs = BackendCommunication.getMessageObserver(
-      mess => {
-        mess.getBodyAs[api.Event].map {
-          case api.State(patients) => $.modState{s => patients}.runNow()
-          case _ => println("THIS WAS NOT EXPECTED IN PatientReminderWidget.")
-        }
-      }, "patient-cards-widget-topic"
+    val messObs = spgui.widgets.akuten.PatientModel.getPatientObserver(
+      patients => {
+        $.modState{s =>
+          patients
+        }.runNow()
+      }
     )
+
 
     send(api.GetState())
 
 
     def send(mess: api.StateEvent) {
-      val json = SPMessage.make(SPHeader(from = "PatientReminderWidget", to = "PatientCardsService"), mess)
+      val json = ToAndFrom.make(SPHeader(from = "PatientCardsWidget", to = "PatientCardsService"), mess)
       BackendCommunication.publish(json, "patient-cards-service-topic")
     }
 

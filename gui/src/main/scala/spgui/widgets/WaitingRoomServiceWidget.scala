@@ -43,23 +43,21 @@ object WaitingRoomServiceWidget {
 
   private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
 
-    val messObs = BackendCommunication.getMessageObserver(
-      mess => {
-        ToAndFrom.eventBody(mess) map {
-          case api.State(patients) => $.modState{s => patients}.runNow()
-          case x => println(s"THIS WAS NOT EXPECTED IN WaitingRoomServiceWidget: $x")
-        }
-      }, "waiting-room-widget-topic"
+    val messObs = spgui.widgets.akuten.PatientModel.getPatientObserver(
+      patients => {
+        $.modState{s =>
+          patients
+        }.runNow()
+      }
     )
 
     val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
       if (mess) send(api.GetState())
-    }, "waiting-room-widget-topic")
+    }, "patient-cards-widget-topic")
 
     def send(mess: api.StateEvent) {
-      val h = SPHeader(from = "WaitingRoomWidget", to = "WaitingRoomService")
-      val json = ToAndFrom.make(h, mess)
-      BackendCommunication.publish(json, "waiting-room-service-topic")
+      val json = ToAndFrom.make(SPHeader(from = "PatientCardsWidget", to = "PatientCardsService"), mess)
+      BackendCommunication.publish(json, "patient-cards-service-topic")
     }
 
     // What is this function used for?

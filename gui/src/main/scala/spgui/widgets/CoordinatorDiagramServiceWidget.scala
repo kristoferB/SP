@@ -43,24 +43,22 @@ object CoordinatorDiagramServiceWidget {
 
 private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
 
-  val messObs = BackendCommunication.getMessageObserver(
-    mess => {
-      ToAndFrom.eventBody(mess).map {
-        case api.State(patients) => $.modState{s => patients}.runNow()
-        case _ => println("THIS WAS NOT EXPECTED IN CoordinatorDiagramServiceWidget.")
+  val messObs = spgui.widgets.akuten.PatientModel.getPatientObserver(
+    patients => {
+      $.modState{s =>
+        patients
+      }.runNow()
     }
-  }, "coordinator-diagram-widget-topic"
-)
+  )
 
   val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
     if (mess) send(api.GetState())
-  }, "coordinator-diagram-widget-topic")
+  }, "patient-cards-widget-topic")
 
-def send(mess: api.StateEvent) {
-  val h = SPHeader(from = "CoordinatorDiagramWidget", to = "CoordinatorDiagramService")
-  val json = ToAndFrom.make(h, mess)
-  BackendCommunication.publish(json, "coordinator-diagram-service-topic")
-}
+  def send(mess: api.StateEvent) {
+    val json = ToAndFrom.make(SPHeader(from = "PatientCardsWidget", to = "PatientCardsService"), mess)
+    BackendCommunication.publish(json, "patient-cards-service-topic")
+  }
 
   def onUnmount() = {
     messObs.kill()

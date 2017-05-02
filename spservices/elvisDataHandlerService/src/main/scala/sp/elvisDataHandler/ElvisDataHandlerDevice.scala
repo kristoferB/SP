@@ -95,6 +95,7 @@ val info = SPAttributes(
          for (patientProperty <- patientProperties) {
            updateState(careContactId, patientProperty)
          }
+         publishOnAkka(SPHeader(from = "elvisDataHandler"), api.State(state))
        }
      }
      case api.DiffPatient(careContactId, patientDataDiff, newEvents, removedEvents) => {
@@ -104,11 +105,13 @@ val info = SPAttributes(
          for (patientProperty <- patientProperties) {
            updateState(careContactId, patientProperty)
          }
+         publishOnAkka(SPHeader(from = "elvisDataHandler"), api.State(state))
        }
      }
      case api.RemovedPatient(careContactId, timestamp) => {
        println("REMOVED CCID: " + careContactId)
        updateState(careContactId, apiPatient.Removed(timestamp))
+       publishOnAkka(SPHeader(from = "elvisDataHandler"), api.State(state))
      }
      case _ => println("Not expected")
    }
@@ -162,7 +165,7 @@ val info = SPAttributes(
        stateWithoutRemoved += p._1 -> p._2
      }
    }*/
-   publishOnAkka(SPHeader(from = "elvisDataHandler"), api.State(state))
+
  }
 
  /**
