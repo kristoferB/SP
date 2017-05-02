@@ -128,7 +128,7 @@ object PatientReminderWidget {
       if (false) coloring += Tuple3("#E9B7FF", "#FFFFFF", true) // To be implemented: Plan exists
       else coloring += Tuple3(initColoring._1, initColoring._2, false)
 
-      if (p.finishedStillPresent.finishedStillPresent) coloring += Tuple3("#47AA62", "#FFEDFF", true)
+      if (p.finished.finishedStillPresent) coloring += Tuple3("#47AA62", "#FFEDFF", true)
       else coloring += Tuple3(initColoring._1, initColoring._2, false)
 
       coloring.toList
@@ -354,7 +354,7 @@ object PatientReminderWidget {
       apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
       apiPatient.LatestEvent("OmsKoord", -1, "2017-02-01T15:58:33Z"),
       apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
-      apiPatient.FinishedStillPresent(false, "2017-02-01T10:01:38Z")
+      apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
     )))
     .renderBackend[Backend]
     .componentWillUnmount(_.backend.onUnmount())

@@ -154,7 +154,7 @@ object PatientCardsWidget {
       if (false) coloring += Tuple3("#E9B7FF", "#FFFFFF", true) // To be implemented: Plan exists
       else coloring += Tuple3(initColoring._1, initColoring._2, false)
 
-      if (p.finishedStillPresent.finishedStillPresent) coloring += Tuple3("#47AA62", "#FFEDFF", true)
+      if (p.finished.finishedStillPresent) coloring += Tuple3("#47AA62", "#FFEDFF", true)
       else coloring += Tuple3(initColoring._1, initColoring._2, false)
 
       coloring.toList
