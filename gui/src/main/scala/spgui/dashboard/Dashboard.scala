@@ -19,7 +19,7 @@ object Dashboard {
     def render(p: Props) = {
 
       val widgets = for {
-        openWidget <- p.proxy()._1.values
+        openWidget <- p.proxy()._1.values if WidgetList.map.contains(openWidget.widgetType)
       } yield {
         val frontEndState = p.proxy()._2
 
