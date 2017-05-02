@@ -32,11 +32,13 @@ object DashboardCSS extends StyleSheet.Inline {
   val widgetPanelBody = style("sp-panel-body")(
     backgroundColor :=! widgetBgColor,
     overflow.auto,
+    padding(3.px),
     height(100.%%)
   )
 
   val widgetPanelContent = style("sp-widget-panel-content")(
     backgroundColor :=! widgetBgColor,
+    padding(3.px),
     height(100.%%)
   )
 
@@ -47,7 +49,7 @@ object DashboardCSS extends StyleSheet.Inline {
 
   val closeButton = style("close-button")(
     float.right,
-    fontSize(15.px),
+    fontSize(2.px),
     padding(0.px, 7.px, 0.px, 0.px)
   )
 

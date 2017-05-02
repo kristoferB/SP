@@ -24,7 +24,6 @@ object ClockWidget {
   case class State(secondsElapsed: Long)
 
   private class Backend($: BackendScope[Unit, State]) {
-    spgui.widgets.css.WidgetStyles.addToDocument()
 
     var interval: js.UndefOr[js.timers.SetIntervalHandle] =
       js.undefined
@@ -53,10 +52,9 @@ object ClockWidget {
         def render(s: State) = {
           var currentTime = LocalTime.now()
           <.div(
-            <.p()(
-              Styles.clock,
-              addZero(currentTime.getHour()),":",addZero(currentTime.getMinute())
-            )
+            ^.height := 70,
+            Styles.clock,
+            addZero(currentTime.getHour()),".",addZero(currentTime.getMinute())
           )
         }
 

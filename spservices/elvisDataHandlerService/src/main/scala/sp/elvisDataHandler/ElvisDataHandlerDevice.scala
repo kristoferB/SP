@@ -3,6 +3,7 @@ package sp.elvisdatahandler
 import akka.actor._
 
 import scala.util.{Failure, Random, Success, Try}
+import scala.util.matching.Regex
 import sp.domain._
 import sp.domain.Logic._
 import sp.messages._
@@ -84,6 +85,7 @@ val info = SPAttributes(
  /**
  * Acts according to which kind of patient was received (new, diff or removed).
  */
+  //---------------------------------------HÄR?
  def handlePatient(patient: api.PatientEvent) {
    patient match {
      case api.NewPatient(careContactId, patientData, events) => {
@@ -123,6 +125,7 @@ val info = SPAttributes(
  /**
  * Updates the current state based on what patient property is received.
  */
+  //---------------------------------------HÄR?
  def updateState(careContactId: String, prop: apiPatient.PatientProperty) {
    if (state.keys.exists(_ == careContactId)) {
      if (prop.isInstanceOf[apiPatient.Finished]) {
@@ -133,12 +136,14 @@ val info = SPAttributes(
    } else {
      state += (careContactId -> updateNewPatient(careContactId, prop))
    }
+   println("updateState: " + SPHeader(from = "elvisDataHandler"), api.State(state) )
    publishOnAkka(SPHeader(from = "elvisDataHandler"), api.State(state))
  }
 
  /**
  * Constructs a new patient object.
  */
+  //---------------------------------------HÄR?
  def updateNewPatient(ccid: String, prop: apiPatient.PatientProperty): apiPatient.Patient = {
    prop match {
      case apiPatient.Priority(color, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority(color, timestamp), apiPatient.Attended(false, "", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.ArrivalTime("", ""), apiPatient.FinishedStillPresent(false, ""))
@@ -156,6 +161,7 @@ val info = SPAttributes(
  /**
  * Constructs an updates patient object.
  */
+  //---------------------------------------HÄR?
  def updateExistingPatient(s: Map[String, apiPatient.Patient], ccid: String, prop: apiPatient.PatientProperty): apiPatient.Patient = {
    prop match {
      case apiPatient.Priority(color, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority(color, timestamp), s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).examination, s(ccid).latestEvent, s(ccid).arrivalTime, s(ccid).finishedStillPresent)
@@ -173,6 +179,7 @@ val info = SPAttributes(
  /**
  Takes a NewPatient and returns PatientProperties based on patient data and events.
  */
+  //---------------------------------------HÄR?
  def extractNewPatientProperties(patient: api.NewPatient): List[apiPatient.PatientProperty] = {
    return filterNewPatientProperties(patient, getNewPatientProperties(patient))
  }
@@ -187,11 +194,12 @@ val info = SPAttributes(
  /**
  Takes a NewPatient and extracts PatientProperties based on patient data and events.
  */
+  //---------------------------------------HÄR?
  def getNewPatientProperties(patient: api.NewPatient): List[apiPatient.PatientProperty] = {
    var patientPropertyBuffer = new ListBuffer[apiPatient.PatientProperty]()
    patient.patientData.foreach{ p =>
      p._1 match {
-       case "Team" => if (!fieldEmpty(p._2) && !fieldEmpty(patient.patientData("Location"))) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
+       case "Team" => if (!fieldEmpty(p._2) && !fieldEmpty(patient.patientData("Location")) || ((patient.patientData("Team") == "NAKM") && (patient.patientData("Location").charAt(0) == new Regex("[bBpPgG]") )) ) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
        case "Location" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
        case "Priority" => patientPropertyBuffer += updatePriority(patient.careContactId, patient.patientData("timestamp"), p._2)
        case "VisitRegistrationTime" => patientPropertyBuffer += updateArrivalTime(patient.careContactId, p._2)
@@ -360,6 +368,7 @@ val info = SPAttributes(
  /**
  Identifies the latest event if there is any in the events list, returns apiPatient.LatestEvent-type.
  */
+ //---------------------------------------HÄR?
  def updateLatestEvent(careContactId: String, events: List[Map[String, String]], priority: String): apiPatient.LatestEvent = {
    var eventFound: Boolean = false
    var timeDiff: Long = Long.MaxValue
@@ -441,7 +450,7 @@ val info = SPAttributes(
  }
 
  /**
- Filters out a room nr or "ivr" from a apiPatient.Location
+ Filters out a roomNR from a apiPatient.Location
  */
  def decodeLocation(location: String): String = {
    if (location == "ivr" || location == "yvr" || location == "gvr" || location == "bvr" || location == "iv" || location == "vr") {
@@ -475,9 +484,9 @@ val info = SPAttributes(
        team match {
          case "NAKME" => {
            location.charAt(0) match {
-             case 'B' => "medicin blå"
-             case 'G' => "medicin gul"
-             case 'P' => "process"
+             case 'B' | 'b' => "medicin blå"
+             case 'G' | 'g' => "medicin gul"
+             case 'P' | 'p' => "process"
              case _ => "medicin"
            }
          }
@@ -486,9 +495,9 @@ val info = SPAttributes(
          case "NAKBA" | "NAKGY" | "NAKÖN" => "jour"
          case "NAKM" => {
            location.charAt(0) match {
-             case 'B' => "medicin blå"
-             case 'G' => "medicin gul"
-             case 'P' => "process"
+             case 'B' | 'b' => "medicin blå"
+             case 'G' | 'g' => "medicin gul"
+             case 'P' | 'p' => "process"
              case _ => "NAKM"
            }
          }
@@ -527,11 +536,15 @@ val info = SPAttributes(
       case "newLoad" | "new" => newPatient(json)
       case "diff" => diffPatient(json)
       case "removed" => removedPatient(json)
-      case _ => api.Undefined()
+      case _ => {
+        println("UNDEFINED IN handleMessage") 
+        api.Undefined()
+      }
     }
   }
 
   def newPatient(json: JValue): api.NewPatient = {
+    println("newPatient: " +json)
     val header = SPHeader(from = "elvisDataHandlerService")
     val patientJson = patientsToElastic.initiatePatient(json \ "data" \ "patient")
     val careContactId = (patientJson \ "CareContactId").values.toString
@@ -539,22 +552,27 @@ val info = SPAttributes(
     val timestamp = (json \ "data" \ "timestamp").values.toString
     patientData += ("timestamp" -> timestamp)
     val events = extractNewPatientEvents(patientJson)
+    println("newPatient: "+ api.NewPatient(careContactId, patientData, events))
     return api.NewPatient(careContactId, patientData, events)
   }
 
   def diffPatient(json: JValue): api.DiffPatient = {
+    println("diffPatient: " +json)
     val header = SPHeader(from = "elvisDataHandlerService")
     val careContactId = (json \ "data" \ "updates" \ "CareContactId").values.toString
     val patientData = extractDiffPatientData(json \ "data" \ "updates")
     val newEvents = extractNewEvents(json \ "data")
     val removedEvents = extractRemovedEvents(json \ "data")
+    println("diffPatient: "+ api.DiffPatient(careContactId, patientData, newEvents, removedEvents))
     return api.DiffPatient(careContactId, patientData, newEvents, removedEvents)
   }
 
   def removedPatient(json: JValue): api.RemovedPatient = {
+    println("removedPatient: " +json)
     val header = SPHeader(from = "elvisDataHandlerService")
     val careContactId = (json \ "data" \ "patient" \ "CareContactId").values.toString
     val timestamp = (json \ "data" \ "timestamp").values.toString
+    println("removedPatient: "+ api.RemovedPatient(careContactId, timestamp))
     return api.RemovedPatient(careContactId, timestamp)
   }
 
@@ -567,6 +585,7 @@ val info = SPAttributes(
       }
       tmpList += tmpMap
     }
+    println("extractNewEvents: " + tmpList.toList)
     return tmpList.toList
   }
 
@@ -578,6 +597,7 @@ val info = SPAttributes(
       m.foreach{ kv => tmpMap += kv._1 -> kv._2.toString }
       tmpList += tmpMap
     }
+    println("extractRemovedEvents" + tmpList.toList)
     return tmpList.toList
   }
 
@@ -589,6 +609,7 @@ val info = SPAttributes(
       m.foreach{ kv => tmpMap += kv._1 -> kv._2.toString }
       tmpList += tmpMap
     }
+    println("extractNewPatientEvents" + tmpList.toList)
     return tmpList.toList
   }
 
@@ -619,7 +640,8 @@ val info = SPAttributes(
     val timestamp = (patient \ "timestamp").values.toString
     val careContactId = (patient \ "CareContactId").values.toString
     val patientId = (patient \ "PatientId").values.toString
-
+    println("extractDiffPatientData: " + Map("DepartmentComment" -> departmentComment, "Location" -> location, "ReasonForVisit" -> reasonForVisit,
+    "Team" -> team, "timestamp" -> timestamp, "CareContactId" -> careContactId, "PatientId" -> patientId))
     return Map("DepartmentComment" -> departmentComment, "Location" -> location, "ReasonForVisit" -> reasonForVisit,
     "Team" -> team, "timestamp" -> timestamp, "CareContactId" -> careContactId, "PatientId" -> patientId)
   }
@@ -641,7 +663,13 @@ val info = SPAttributes(
     val timeOfDoctor = (patient \ "TimeOfDoctor").values.toString
     val timeOfTriage = (patient \ "TimeOfTriage").values.toString
     val timeOfFinished = (patient \ "TimeOfFinished").values.toString
-
+    println("extractNewPatientData: "+ Map("CareContactId" -> careContactId, "CareContactRegistrationTime" -> careContactRegistrationTime,
+      "DepartmentComment" -> departmentComment, "Location" -> location, "PatientId" -> patientId,
+      "ReasonForVisit" -> reasonForVisit, "Team" -> team, "VisitId" -> visitId,
+      "VisitRegistrationTime" -> visitRegistrationTime, "Priority" -> priority, "TimeToDoctor" -> timeToDoctor,
+      "TimeToTriage" -> timeToTriage, "TimeToFinished" -> timeToFinished, "TimeOfDoctor" -> timeOfDoctor,
+      "TimeOfTriage" -> timeOfTriage, "TimeOfFinished" -> timeOfFinished
+    ))
     return Map("CareContactId" -> careContactId, "CareContactRegistrationTime" -> careContactRegistrationTime,
       "DepartmentComment" -> departmentComment, "Location" -> location, "PatientId" -> patientId,
       "ReasonForVisit" -> reasonForVisit, "Team" -> team, "VisitId" -> visitId,

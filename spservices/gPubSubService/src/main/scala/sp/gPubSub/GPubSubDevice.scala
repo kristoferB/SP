@@ -33,7 +33,7 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
   import scala.concurrent.duration._
   import com.google.common.base.Charsets
 
-  println("hej")
+  println("hej från gPubSubDevice")
 
   implicit val system = context.system
   implicit val materializer = ActorMaterializer()
@@ -52,7 +52,7 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
 
 
   def receive = {
-    case Ticker => clearState()
+    case Ticker => clearState() // Propably used for testing. Only locally present.
     case mess @ _ if {println(s"GPubSubService MESSAGE: $mess from $sender"); false} => Unit
 
   }
@@ -74,6 +74,7 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
 
   val toJsonString:Flow[PubSubMessage, String, NotUsed] = Flow[PubSubMessage]
     .map{m => new String(m.payload, Charsets.UTF_8)}
+//println("toJsonString: "+ toJsonString)
 
   val jsonToList: Flow[String, List[ElvisPatient], NotUsed] = Flow[String]
     .map{json => SPAttributes.fromJson(json)}
@@ -83,15 +84,18 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
     .collect{
       case Success(xs) => xs
     }
+//    println("jsonToList: " +jsonToList)
 
   val makeDiff: Flow[List[ElvisPatient], String, NotUsed] = Flow[List[ElvisPatient]]
     .mapConcat(checkTheDiff)
+
+//  println("makeDiff: " + makeDiff)
 
   val s = Source.fromGraph(new PubSubSource(testSubscription)).withAttributes(attributes)
 
   val testSink = Sink.foreach{ x: Any =>
     println()
-    println(x)
+    println("testSink: " + x)
     println()
   }
 
@@ -99,7 +103,7 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
     val h = SPHeader(from = "gPubSubDevice")
     val b = api.ElvisData(s)
     val mess = SPMessage.makeJson(h, b).get
-    println("Sending a patient diff")
+    println("Sending a patient diff: " + mess)
     mediator ! Publish("elvis-diff", mess)
   }
 
@@ -126,13 +130,14 @@ trait DiffMagic {
 
   def clearState() = currentState = List()
 
-
+/// CLEAR TO HERE
   def checkTheDiff(ps: List[ElvisPatient]): List[String] = {
     if (currentState.isEmpty) {
       currentState = ps
       ps.map{p =>
         val newP = NewPatient(getNow, p)
         val json = write(Map("data"->newP, "isa"->"newLoad"))
+        println("=== checkTheDiff_currentState = ps: " + json)
         json
       }
     }
@@ -146,11 +151,13 @@ trait DiffMagic {
           case None => {
             val newP = NewPatient(getNow, p)
             val json = write(Map("data"->newP, "isa"->"new"))
+            println("=== checkTheDiff_currentState != ps_changes_diffP_match_None: " + json)
             json
           }
           case Some(d) => {
             val diffPatient = PatientDiff(d._1, d._2, d._3)
             val json = write(Map("data"->diffPatient, "isa"->"diff"))
+            println("=== checkTheDiff_currentState != ps_changes_diffP_match_None_diffP_match_Some: " + json)
             json
           }
         }
@@ -159,18 +166,24 @@ trait DiffMagic {
       val rem = removed.map{p =>
         val removedPat = RemovedPatient(getNow, p)
         val json = write(Map("data"->removedPat, "isa"->"removed"))
+        println("=== checkTheDiff_currentState != ps_removed: " + json)
         json
       }
       currentState = ps
-
+      println("Cominug out of checkTheDiff; setting currentState = ps: " + currentState)
+      println("Cominug out of checkTheDiff; returning upd ++ rem: " + upd ++ rem)
       upd ++ rem
+
     }
-    else List()
+    else {
+      println("Cominug out of checkTheDiff; no changes to return: " + List())
+      List()
+    }
   }
 
   def sendToEvah(json: String) = {
     val header = SPHeader(from = "gPubSubService")
-    println(json)
+    println("== sendToEvah: " + json)
     /**
     val elvisDataSPMessage = GPubSubComm.makeMess(header, api.ElvisData(json))
   elvisDataSPMessage match {
@@ -182,10 +195,10 @@ trait DiffMagic {
   }*/
   }
 
-  def toNewPat(p: ElvisPatient)= {
-    val t = p.CareContactRegistrationTime
-    NewPatient(t,p)
-  }
+  // def toNewPat(p: ElvisPatient)= {
+  //   val t = p.CareContactRegistrationTime
+  //   NewPatient(t,p)
+  // }
 
 
   def diffPat(curr: ElvisPatient, old: Option[ElvisPatient])={

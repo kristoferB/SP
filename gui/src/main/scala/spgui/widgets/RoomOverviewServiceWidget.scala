@@ -42,7 +42,6 @@ import spgui.widgets.{API_Patient => apiPatient}
 object RoomOverviewServiceWidget {
 
   private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
-    spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
@@ -97,8 +96,6 @@ object RoomOverviewServiceWidget {
     private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Patient]): Unit = {
 
       d3.select(element).selectAll("*").remove()
-
-      spgui.widgets.css.WidgetStyles.addToDocument()
 
       var busyRoomsBuffer = new ListBuffer[String]()
       patients.foreach{ p =>

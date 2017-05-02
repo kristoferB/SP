@@ -38,7 +38,6 @@ object PlaceWidget {
 
 
   private class Backend($: BackendScope[String, Map[String, apiPatient.Patient]]) {
-    spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
@@ -118,8 +117,6 @@ object PlaceWidget {
 
     private def addTheD3(element: raw.Element, initialPlaceMap: Map[String, apiPatient.Patient], filter: String): Unit = {
 
-      spgui.widgets.css.WidgetStyles.addToDocument()
-
       d3.select(element).selectAll("*").remove()
 
       val width = element.clientWidth          // Kroppens bredd
@@ -152,10 +149,7 @@ object PlaceWidget {
       val colorNumbersDark = "#000000"
       // -------------------------
 
-
-
       // TODO: Never use vars if not needed in scala. Use map and foldLeft if you need to aggregate
-
       var teamMap: Map[String, apiPatient.Patient] = (initialPlaceMap - "-1").filter(p => belongsToThisTeam(p._2, filter))
 
 
@@ -324,6 +318,7 @@ object PlaceWidget {
       .attr("font-size", s"${(15/419.0)*width}pt")
       .text("PLATS")
       .attr("fill", "#95989a")
+      ^.`class` := "timeline-finished-bg"
       // ---------------------------------
     }
 

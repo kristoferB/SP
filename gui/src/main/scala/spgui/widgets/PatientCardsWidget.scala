@@ -42,7 +42,6 @@ import spgui.widgets.{API_Patient => apiPatient}
 object PatientCardsWidget {
 
   private class Backend($: BackendScope[String, Map[String, apiPatient.Patient]]) {
-    spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
@@ -76,7 +75,7 @@ object PatientCardsWidget {
     */
     def decodeTriageColor(p: apiPatient.Priority): String = {
       p.color match {
-        case "NotTriaged" => "#D5D5D5"
+        case "NotTriaged" => "url(#untriagedPattern)"//"#D5D5D5"
         case "Blue" => "#538AF4"
         case "Green" => "#009550" //"prio4"
         case "Yellow" => "#EAC706" //"prio3"
@@ -321,7 +320,7 @@ object PatientCardsWidget {
             ^.svg.x := "31.5",
             ^.svg.textAnchor := "middle",
             ^.svg.fontSize :=  fontSizeLarge + "px",
-            ^.svg.fill := contentColorLight,
+            ^.svg.fill := {if (p.priority.color == "NotTriaged") contentColorDark else contentColorLight},
             p.location.roomNr
           ),
           <.svg.text(
@@ -343,13 +342,22 @@ object PatientCardsWidget {
             if (p.latestEvent.latestEvent != "") "Senaste händelse"
             else "Ingen senaste händelse"
           ),
+          // <.svg.text(
+          //   ^.`class` := "ccid",
+          //   ^.svg.y := "75.844307",
+          //   ^.svg.x := "1.9170269",
+          //   ^.svg.textAnchor := "start",
+          //   ^.svg.fontSize :=  "15 px",
+          //   ^.svg.fill := contentColorDark,
+          //   p.careContactId
+          // ),
           <.svg.text(
             ^.`class` := "latest-event",
             ^.svg.y := "32.553322",
             ^.svg.x := "65.937515",
             ^.svg.textAnchor := "start",
             ^.svg.fontSize := fontSizeMedium  + "px",
-            ^.fontWeight.bold,
+            Styles.freeSansBold,
             ^.svg.fill := contentColorDark,
             p.latestEvent.latestEvent.toUpperCase
           ),
@@ -386,9 +394,9 @@ object PatientCardsWidget {
     }
 
     /*
-      Sorts a Map[String, Patient] by room number and returns a list of sorted ccids.
-      Patients missing room number are sorted by careContactId.
-      Sorting: (1,2,3,a,b,c, , , )
+    Sorts a Map[String, Patient] by room number and returns a list of sorted ccids.
+    Patients missing room number are sorted by careContactId.
+    Sorting: (1,2,3,a,b,c, , , )
     **/
     def sortPatientsByRoomNr(pmap: Map[String, apiPatient.Patient]): List[String] = {
       val currentCcids = pmap.map(p => p._1)
@@ -407,10 +415,26 @@ object PatientCardsWidget {
 
     def render(filter: String, pmap: Map[String, apiPatient.Patient]) = {
       println("STATE : " + pmap)
-      spgui.widgets.css.WidgetStyles.addToDocument()
       val pats = (pmap - "-1").filter(p => belongsToThisTeam(p._2, filter))
 
       <.div(^.`class` := "card-holder-root", Styles.helveticaZ)(
+        <.svg.svg(
+          ^.svg.width := "0",
+          ^.svg.height := "0",
+          <.svg.defs(
+            <.svg.pattern(
+              ^.svg.id := "untriagedPattern",
+              ^.svg.width := "35.43",
+              ^.svg.height := "35.43",
+              ^.svg.patternUnits := "userSpaceOnUse",
+              ^.svg.patternTransform := "translate(0,0)",
+              <.svg.path(
+                ^.svg.fill := "#000000",
+                ^.svg.d := "M 1.96875 0 L 0 1.96875 L 0 2.25 L 2.25 0 L 1.96875 0 z M 10.814453 0 L 0 10.816406 L 0 11.097656 L 11.097656 0 L 10.814453 0 z M 19.65625 0 L 0 19.65625 L 0 19.941406 L 19.939453 0 L 19.65625 0 z M 28.517578 0 L 0 28.517578 L 0 28.800781 L 28.800781 0 L 28.517578 0 z M 35.433594 1.9453125 L 1.9453125 35.433594 L 2.2285156 35.433594 L 35.433594 2.2285156 L 35.433594 1.9453125 z M 35.433594 10.841797 L 10.841797 35.433594 L 11.125 35.433594 L 35.433594 11.125 L 35.433594 10.841797 z M 35.433594 19.738281 L 19.738281 35.433594 L 20.019531 35.433594 L 35.433594 20.021484 L 35.433594 19.738281 z M 35.433594 28.603516 L 28.605469 35.433594 L 28.886719 35.433594 L 35.433594 28.886719 L 35.433594 28.603516 z "
+              )
+            )
+          )
+        ),
         sortPatientsByRoomNr(pats) map { ccid =>
           patientCard(pats(ccid))
         }

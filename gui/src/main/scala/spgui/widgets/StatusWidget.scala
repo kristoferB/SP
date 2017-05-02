@@ -42,7 +42,6 @@ import spgui.widgets.{API_Patient => apiPatient}
 object StatusWidget {
 
   private class Backend($: BackendScope[String, Map[String, apiPatient.Patient]]) {
-    spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {

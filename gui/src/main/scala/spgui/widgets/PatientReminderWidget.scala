@@ -42,7 +42,6 @@ import spgui.widgets.{API_Patient => apiPatient}
 object PatientReminderWidget {
 
   private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
-    spgui.widgets.css.WidgetStyles.addToDocument()
 
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
@@ -172,7 +171,7 @@ object PatientReminderWidget {
     * Specifies a patientCard in SVG for scalajs-react based on a Patient.
     **/
     def patientCard(p: apiPatient.Patient) = {
-      val cardScaler = 1 // Use this to scale cards
+      val cardScaler = 0.99 // Use this to scale cards
 
       val cardWidth = 307 // change only with new graphics
       val cardHeight = 72 // change only with new graphics
@@ -269,7 +268,7 @@ object PatientReminderWidget {
             ^.svg.x := "118.19789",
             ^.svg.textAnchor := "start",
             ^.svg.fontSize := fontSizeMedium  + "px",
-            ^.fontWeight.bold,
+            Styles.freeSansBold,
             ^.svg.fill := contentColorDark,
             p.latestEvent.latestEvent.toUpperCase
           ),
@@ -306,7 +305,6 @@ object PatientReminderWidget {
     val globalState = SPGUICircuit.connect(x => (x.openWidgets.xs, x.globalState))
 
     def render(pmap: Map[String, apiPatient.Patient]) = {
-      spgui.widgets.css.WidgetStyles.addToDocument()
 
       globalState{x =>
         val filter = x()._2.attributes.get("team").map(x => x.str).getOrElse("medicin")

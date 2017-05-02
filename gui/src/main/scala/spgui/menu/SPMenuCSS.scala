@@ -9,9 +9,9 @@ object SPMenuCSS extends StyleSheet.Inline {
   val navbarFgColor = "#58666e"
   val spOrange = "#df691a"
   val navbar_header_background = "#999999"
-  val navbar_brand_title_color = backgroundColor.white 
+  val navbar_brand_title_color = backgroundColor.white
 
-  val topNavHeight = 50 //use in GlobalCSS.scala
+  val topNavHeight = 40 //use in GlobalCSS.scala
 
   val splogoSVGHeight = 638.44
   val splogoSVGWidth = 960.05
@@ -24,7 +24,7 @@ object SPMenuCSS extends StyleSheet.Inline {
     border.none
   )
 
-  val buttonPadding = 10
+  val buttonPadding = 2
   val buttonList = style("sp-button-list")(
    // marginBottom(0.px),
    // paddingLeft(0.px),
