@@ -375,15 +375,6 @@ object PatientCardsWidget {
             //<.svg.tspan(^.svg.x := "93", ^.svg.dy := "15 px")(getTimeDiffReadable(p.latestEvent.timeDiff)._2)
           ),
           <.svg.text(
-            ^.`class` := "ccid",
-            ^.svg.y := "75.8",
-            ^.svg.x := "1.9",
-            ^.svg.textAnchor := "start",
-            ^.svg.fontSize :=  "15 px",
-            ^.svg.fill := contentColorDark,
-            p.careContactId
-          ),
-          <.svg.text(
             ^.`class` := "arrival-time",
             ^.svg.y := "93.13282",
             ^.svg.x := "79",
