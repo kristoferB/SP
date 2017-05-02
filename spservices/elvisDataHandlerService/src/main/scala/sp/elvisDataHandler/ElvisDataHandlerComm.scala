@@ -49,12 +49,6 @@ package API_PatientEvent {
 
   case class Tick() extends StateEvent with Event
 
-/**  // Messages I can send
-  sealed trait PatientEvent
-  case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent
-  case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent
-  case class RemovedPatient(careContactId: String, timestamp: String) extends PatientEvent*/
-
   // Messages I can receive
   sealed trait ElvisEvent
   case class ElvisData(data: String) extends ElvisEvent

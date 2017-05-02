@@ -71,8 +71,8 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   ElvisDataHandlerComm.extractElvisEvent(mess) map { case (h, b) =>
     b match {
       case api.ElvisData(s) =>
-        patientsToElastic.messageReceived(s) // Insert data to database
         handlePatient(handleMessage(s))
+        patientsToElastic.messageReceived(s) // Insert data to database. Doesnt work for diffs with location
     }
   }
 }
@@ -256,7 +256,11 @@ val info = SPAttributes(
    patient.patientData.foreach{ p =>
      p._1 match {
        case "Team" => if (!fieldEmpty(p._2) && patient.patientData.contains("Location") && patient.patientData.contains("ReasonForVisit")) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
-       case "Location" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
+       case "Location" => {
+         if (!fieldEmpty(p._2)) {
+           patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
+         }
+       }
        case _ => patientPropertyBuffer += apiPatient.Undefined()
      }
    }
@@ -507,7 +511,7 @@ val info = SPAttributes(
  */
  def decodeLocation(location: String): String = {
    if (location == "ivr" || location == "yvr" || location == "gvr" || location == "bvr" || location == "iv" || location == "vr") {
-     return ""
+     return "ivr"
    }
    return location.replaceAll("[^0-9]","")
  }
