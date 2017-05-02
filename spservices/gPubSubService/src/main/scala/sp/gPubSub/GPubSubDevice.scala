@@ -95,7 +95,6 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
     val h = SPHeader(from = "gPubSubDevice")
     val b = api.ElvisData(s)
     val mess = SPMessage.makeJson(h, b).get
-    println("Sending a patient diff: " + mess)
     mediator ! Publish("elvis-diff", mess)
   }
 
