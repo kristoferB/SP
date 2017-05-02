@@ -77,7 +77,6 @@ class PlaceDiagramDevice extends Actor with ActorLogging {
     val toSend = PlaceDiagramComm.makeMess(header, body)
     toSend match {
       case Success(v) =>
-        println("Published current state to place-diagram-widget-topic")
         mediator ! Publish("place-diagram-widget-topic", v) // Publishes on bus for widget to receive
       case Failure(e) =>
         println("Failed")

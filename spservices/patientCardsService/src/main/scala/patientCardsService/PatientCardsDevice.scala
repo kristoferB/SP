@@ -77,7 +77,6 @@ class PatientCardsDevice extends Actor with ActorLogging {
     val toSend = PatientCardsComm.makeMess(header, body)
     toSend match {
       case Success(v) =>
-        println("Published current state to patient-cards-widget-topic")
         mediator ! Publish("patient-cards-widget-topic", v) // Publishes on bus for widget to receive
       case Failure(e) =>
         println("Failed")

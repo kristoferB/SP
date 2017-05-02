@@ -77,7 +77,6 @@ class TriageDiagramDevice extends Actor with ActorLogging {
     val toSend = TriageDiagramComm.makeMess(header, body)
     toSend match {
       case Success(v) =>
-        println("Published current state to triage-diagram-widget-topic")
         mediator ! Publish("triage-diagram-widget-topic", v) // Publishes on bus for widget to receive
       case Failure(e) =>
         println("Failed")

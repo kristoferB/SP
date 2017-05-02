@@ -14,10 +14,10 @@ package API_Patient {
   case class Location(roomNr: String, timestamp: String) extends PatientProperty
   case class Team(team: String, clinic: String, timestamp: String) extends PatientProperty
   case class Examination(isOnExam: Boolean, timestamp: String) extends PatientProperty
-  case class LatestEvent(latestEvent: String, timeDiff: Long, timestamp: String) extends PatientProperty
+  case class LatestEvent(latestEvent: String, timeDiff: Long, needsAttention: Boolean, timestamp: String) extends PatientProperty
   case class ArrivalTime(timeDiff: String, timestamp: String) extends PatientProperty
-  case class FinishedStillPresent(finishedStillPresent: Boolean, timestamp: String) extends PatientProperty
-  case class Finished() extends PatientProperty
+  case class Finished(finished: Boolean, finishedStillPresent: Boolean, timestamp: String) extends PatientProperty
+  case class Removed(timestamp: String) extends PatientProperty
   case class Undefined() extends PatientProperty
 
   case class Patient(
@@ -29,7 +29,8 @@ package API_Patient {
     var examination: Examination,
     var latestEvent: LatestEvent,
     var arrivalTime: ArrivalTime,
-    var finishedStillPresent: FinishedStillPresent)
+    var finished: Finished
+  )
 }
 
 package API_PatientEvent {

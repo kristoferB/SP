@@ -77,7 +77,6 @@ class WaitingRoomDevice extends Actor with ActorLogging {
     val toSend = WaitingRoomComm.makeMess(header, body)
     toSend match {
       case Success(v) =>
-        println("Published current state to waiting-room-widget-topic")
         mediator ! Publish("waiting-room-widget-topic", v) // Publishes on bus for widget to receive
       case Failure(e) =>
         println("Failed")

@@ -46,7 +46,10 @@ object PatientCardsWidget {
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
         ToAndFrom.eventBody(mess).map {
-          case api.State(patients) => $.modState{s => patients}.runNow()
+          case api.State(patients) => $.modState{s =>
+            println("STATE : " + patients)
+            patients
+          }.runNow()
           case _ => println("THIS WAS NOT EXPECTED IN PatientCardsWidget.")
         }
       }, "patient-cards-widget-topic"
@@ -372,6 +375,15 @@ object PatientCardsWidget {
             //<.svg.tspan(^.svg.x := "93", ^.svg.dy := "15 px")(getTimeDiffReadable(p.latestEvent.timeDiff)._2)
           ),
           <.svg.text(
+            ^.`class` := "ccid",
+            ^.svg.y := "75.8",
+            ^.svg.x := "1.9",
+            ^.svg.textAnchor := "start",
+            ^.svg.fontSize :=  "15 px",
+            ^.svg.fill := contentColorDark,
+            p.careContactId
+          ),
+          <.svg.text(
             ^.`class` := "arrival-time",
             ^.svg.y := "93.13282",
             ^.svg.x := "79",
@@ -464,7 +476,7 @@ object PatientCardsWidget {
       apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
       apiPatient.LatestEvent("OmsKoord", -1, "2017-02-01T15:58:33Z"),
       apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
-      apiPatient.FinishedStillPresent(false, "2017-02-01T10:01:38Z")
+      apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
     )))
     .renderBackend[Backend]
     .componentWillUnmount(_.backend.onUnmount())

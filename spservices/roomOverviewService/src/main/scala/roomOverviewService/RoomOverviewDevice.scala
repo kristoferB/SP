@@ -77,7 +77,6 @@ class RoomOverviewDevice extends Actor with ActorLogging {
     val toSend = RoomOverviewComm.makeMess(header, body)
     toSend match {
       case Success(v) =>
-        println("Published current state to room-overview-widget-topic")
         mediator ! Publish("room-overview-widget-topic", v) // Publishes on bus for widget to receive
       case Failure(e) =>
         println("Failed")

@@ -115,7 +115,7 @@ object WaitingRoomServiceWidget {
 
     (m - "-1").foreach{ p =>
       if (p._2.location.roomNr == "ivr") {
-        if (p._2.finishedStillPresent.finishedStillPresent) {
+        if (p._2.finished.finishedStillPresent) {
           p._2.team.team match {
             case "medicin gul" | "medicin" => finishedCountMG += 1
             case "medicin blå" => finishedCountMB += 1
@@ -175,7 +175,7 @@ object WaitingRoomServiceWidget {
       apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
       apiPatient.LatestEvent("OmsKoord", -1, "2017-02-01T15:58:33Z"),
       apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
-      apiPatient.FinishedStillPresent(false, "2017-02-01T10:01:38Z")
+      apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
       )))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))

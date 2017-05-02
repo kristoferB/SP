@@ -77,7 +77,6 @@ class CoordinatorDiagramDevice extends Actor with ActorLogging {
     val toSend = CoordinatorDiagramComm.makeMess(header, body)
     toSend match {
       case Success(v) =>
-        println("Published current state to coordinator-diagram-widget-topic")
         mediator ! Publish("coordinator-diagram-widget-topic", v) // Publishes on bus for widget to receive
       case Failure(e) =>
         println("Failed")

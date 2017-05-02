@@ -25,15 +25,7 @@ object Launch extends App {
     system.actorOf(sp.roomoverviewservice.RoomOverviewDevice.props)
     system.actorOf(sp.statusdiagramservice.StatusDiagramDevice.props)
     system.actorOf(sp.triagediagramservice.TriageDiagramDevice.props)
-    system.actorOf(sp.patientreminderservice.PatientReminderDevice.props)
     system.actorOf(sp.coordinatordiagramservice.CoordinatorDiagramDevice.props)
-    system.actorOf(sp.patientreminderservice.PatientReminderDevice.props)
-    system.actorOf(sp.patientreminderservice.PatientReminderDevice.props)
-    system.actorOf(sp.patientreminderservice.PatientReminderDevice.props)
-    system.actorOf(sp.patientreminderservice.PatientReminderDevice.props)
-    system.actorOf(sp.patientreminderservice.PatientReminderDevice.props)
-    system.actorOf(sp.patientreminderservice.PatientReminderDevice.props)
-
 
   }
   cluster.registerOnMemberRemoved{
