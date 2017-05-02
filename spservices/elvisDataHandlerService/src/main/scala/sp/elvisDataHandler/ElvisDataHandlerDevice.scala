@@ -264,6 +264,15 @@ val info = SPAttributes(
        case _ => patientPropertyBuffer += apiPatient.Undefined()
      }
    }
+   patient.removedEvents.foreach{ r =>
+     r("Title") match {
+       case "Läkare" => patientPropertyBuffer += apiPatient.Attended(false, "", "")
+       case "Blå" | "Grön" | "Gul" | "Orange" | "Röd" => patientPropertyBuffer += apiPatient.Priority("NotTriaged", r("Start"))
+       case "Rö/klin" => if (r("Start") == state(patient.careContactId).examination.timestamp && state(patient.careContactId).examination.isOnExam) patientPropertyBuffer += apiPatient.Examination(false, r("Start"))
+       case "Klar" => patientPropertyBuffer += apiPatient.Finished(false, state(patient.careContactId).finished.finishedStillPresent, state(patient.careContactId).finished.timestamp)
+       case _ => if (state(patient.careContactId).latestEvent.latestEvent == r("Title") && state(patient.careContactId).latestEvent.timestamp == r("Start")) patientPropertyBuffer += apiPatient.LatestEvent("(togs bort)", 0, false, r("Start"))
+     }
+   }
    patient.newEvents.foreach{ e =>
      if (e("Title") == "Läkare") {
        patientPropertyBuffer += apiPatient.Attended(true, e("Value"), e("Start"))
@@ -432,7 +441,7 @@ val info = SPAttributes(
        if (e("Title") == "" || e("Title") == " ") {
          title = "> ej angett <"
        } else {
-         if (e("Title") == "Grön" || e("Title") == "Gul" || e("Title") == "Orange" || e("Title") == "Röd") {
+         if (e("Title") == "Blå" || e("Title") == "Grön" || e("Title") == "Gul" || e("Title") == "Orange" || e("Title") == "Röd") {
            title = "Triage"
          } else {
            title = e("Title")
