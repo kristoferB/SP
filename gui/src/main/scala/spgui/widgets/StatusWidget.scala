@@ -82,6 +82,7 @@ object StatusWidget {
       apiPatient.Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
       apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
       apiPatient.LatestEvent("OmsKoord", -1, false, "2017-02-01T15:58:33Z"),
+      apiPatient.Plan(false, "2017-02-01T15:58:33Z"),
       apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
       apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
     )))
@@ -132,7 +133,7 @@ object StatusWidget {
     // Count the number of patients of each status
     var finishedCount = 0
     var attendedCount = 0
-    var attendedWithPlanCount = 0 // not accounted for
+    var attendedWithPlanCount = 0
     var unattendedCount = 0
 
     var teamMap: Map[String, apiPatient.Patient] = (initialStatusMap - "-1").filter(p => belongsToThisTeam(p._2, filter))
@@ -143,7 +144,9 @@ object StatusWidget {
       if (p._2.finished.finishedStillPresent) {
         finishedCount += 1
       } else {
-        if (p._2.attended.attended) {
+        if (p._2.plan.hasPlan) {
+          attendedWithPlanCount += 1
+        } else if (p._2.attended.attended) {
           attendedCount += 1
         } else {
           unattendedCount += 1

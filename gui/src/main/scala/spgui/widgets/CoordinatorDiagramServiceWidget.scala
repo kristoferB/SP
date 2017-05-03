@@ -85,6 +85,7 @@ private val component = ReactComponentB[Unit]("teamVStatus")
     apiPatient.Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
     apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
     apiPatient.LatestEvent("OmsKoord", -1, false, "2017-02-01T15:58:33Z"),
+    apiPatient.Plan(false, "2017-02-01T15:58:33Z"),
     apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
     apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
     )))
@@ -279,7 +280,19 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
         case _ => tmp += 1
       }
     } else {
-      if (p._2.attended.attended) {
+      if (p._2.plan.hasPlan) {
+        p._2.team.team match {
+          case "medicin gul" | "medicin" => attendedWithPlanCountMG += 1
+          case "medicin blå" => attendedWithPlanCountMB += 1
+          case "process" => attendedWithPlanCountP += 1
+          case "stream" => attendedWithPlanCountS += 1
+          case "jour" => attendedWithPlanCountJ += 1
+          case "kirurgi" => attendedWithPlanCountK += 1
+          case "ortopedi" => attendedWithPlanCountO += 1
+          case "NAKM" => attendedWithPlanCountNakm += 1
+          case _ => tmp += 1
+        }
+      } else if (p._2.attended.attended) {
         p._2.team.team match {
           case "medicin gul" | "medicin" => attendedCountMG += 1
           case "medicin blå" => attendedCountMB += 1

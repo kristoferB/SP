@@ -171,6 +171,7 @@ object WaitingRoomServiceWidget {
       apiPatient.Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
       apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
       apiPatient.LatestEvent("OmsKoord", -1, false, "2017-02-01T15:58:33Z"),
+      apiPatient.Plan(false, "2017-02-01T15:58:33Z"),
       apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
       apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
     )))

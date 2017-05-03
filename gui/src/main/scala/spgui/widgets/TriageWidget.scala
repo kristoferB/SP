@@ -77,17 +77,18 @@ object TriageWidget {
 
   private val component = ReactComponentB[String]("teamVBelastning")
   .initialState(Map("-1" ->
-	apiPatient.Patient(
-  	"4502085",
-  	apiPatient.Priority("NotTriaged", "2017-02-01T15:49:19Z"),
-  	apiPatient.Attended(true, "sarli29", "2017-02-01T15:58:33Z"),
-  	apiPatient.Location("52", "2017-02-01T15:58:33Z"),
-  	apiPatient.Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
-  	apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
-  	apiPatient.LatestEvent("OmsKoord", -1, false, "2017-02-01T15:58:33Z"),
-  	apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
-  	apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
-  	)))
+    apiPatient.Patient(
+      "4502085",
+      apiPatient.Priority("NotTriaged", "2017-02-01T15:49:19Z"),
+      apiPatient.Attended(true, "sarli29", "2017-02-01T15:58:33Z"),
+      apiPatient.Location("52", "2017-02-01T15:58:33Z"),
+      apiPatient.Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
+      apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
+      apiPatient.LatestEvent("OmsKoord", -1, false, "2017-02-01T15:58:33Z"),
+      apiPatient.Plan(false, "2017-02-01T15:58:33Z"),
+      apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
+      apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
+      )))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState, dcb.currentProps)))
   .componentWillUnmount(_.backend.onUnmount())
