@@ -13,6 +13,7 @@ package API_Patient {
   case class ArrivalTime(timeDiff: String, timestamp: String) extends PatientProperty
   case class Finished(finished: Boolean, finishedStillPresent: Boolean, timestamp: String) extends PatientProperty
   case class Removed(timestamp: String) extends PatientProperty
+  case class Undefined() extends PatientProperty
 
   case class Patient(
     var careContactId: String,
@@ -23,7 +24,8 @@ package API_Patient {
     var examination: Examination,
     var latestEvent: LatestEvent,
     var arrivalTime: ArrivalTime,
-    var finished: Finished)
+    var finished: Finished
+  )
 }
 
 package API_PatientEvent {

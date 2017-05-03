@@ -23,7 +23,12 @@ object WidgetStyles extends StyleSheet.Inline {
     .fontStyle.oblique
   )
 
+  val hideScrollBar = style(
+    overflow.hidden
+  )
+
   val clock = style(
+    hideScrollBar,
     textAlign.center,
     fontSize(68.px),
     fontFamily(freeSansBoldFF)
@@ -42,26 +47,31 @@ object WidgetStyles extends StyleSheet.Inline {
   )
 
   val widgetText = style(
+    hideScrollBar,
     fontSize(22.px),
     paddingBottom(8.px),
     fontFamily(freeSansFF)
   )
 
   val widgetTextBold = style(
+    hideScrollBar,
     fontSize(22.px),
     paddingBottom(8.px),
     fontFamily(freeSansBoldFF)
   )
 
   val freeSans = style(
+    hideScrollBar,
     fontFamily(freeSansFF)
   )
 
   val freeSansBold = style(
+    hideScrollBar,
     fontFamily(freeSansBoldFF)
   )
 
   val helveticaZ = style(
+    hideScrollBar,
     padding(2.px),
     fontFamily(freeSansFF) //:=! "Helvetica Neue, Helvetica, Liberation Sans, Arial, sans-serif"
   )

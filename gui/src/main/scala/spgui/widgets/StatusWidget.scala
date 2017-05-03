@@ -84,7 +84,7 @@ object StatusWidget {
       apiPatient.LatestEvent("OmsKoord", -1, false, "2017-02-01T15:58:33Z"),
       apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
       apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
-      )))
+    )))
   .renderBackend[Backend]
   .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState, dcb.currentProps)))
   .componentWillUnmount(_.backend.onUnmount())

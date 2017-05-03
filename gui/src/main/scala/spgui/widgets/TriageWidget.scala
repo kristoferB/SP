@@ -225,6 +225,7 @@ object TriageWidget {
 	.attr("width", width)
 	.attr("height", height)
 
+
   val g = svg.append("g")
 /*  // ----------- Nuvarande Belastning --------------------
   g.append("polygon")

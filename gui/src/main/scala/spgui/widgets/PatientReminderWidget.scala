@@ -25,7 +25,7 @@ import scala.concurrent.duration._
 import scala.scalajs.js
 import scala.util.{ Try, Success }
 import scala.util.Random.nextInt
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ListBuffer, ArrayBuffer}
 
 import org.scalajs.dom
 import org.scalajs.dom.raw
@@ -139,16 +139,17 @@ object PatientReminderWidget {
     */
     def getTimeDiffReadable(milliseconds: Long): (String, String) = {
       val minutes = ((milliseconds / (1000*60)) % 60)
-      val hours = ((milliseconds / (1000*60*60)) )// % 24)
+      val hours = ((milliseconds / (1000*60*60)) )//% 24)
 
       val timeString = (hours, minutes) match {
         case (0,_) => {if (minutes == 0) "" else (minutes + " min").toString}
+        case (_,0) => (hours + " h").toString
         case _ => (hours + " h " + minutes + " m").toString
       }
       val days = (milliseconds / (1000*60*60*24))
       val dayString = days match {
         case 0 => ""
-        case (n: Long) => "(+ " + n + " dygn)"
+        case (n: Long) => "(> "+ n + " dygn)"
       }
       (timeString, dayString)
     }
@@ -157,13 +158,14 @@ object PatientReminderWidget {
     * Returns true if a patient has waited longer than is recommended according
     * to triage priority.
     * Prio red: immediately, Prio orange: 20 min, Prio yellow or green: 60 min.
+    * Prio "not triaged": 60 min
     **/
     def hasWaitedTooLong(p: apiPatient.Patient) = {
       p.priority.color match {
-        case "Green" | "Yellow" => if (p.latestEvent.timeDiff > 1200000) true else false
-        case "Orange" => if (p.latestEvent.timeDiff > 3600000) true else false
+        case "Blue" | "Green" | "Yellow" => if (p.latestEvent.timeDiff > 3600000) true else false
+        case "Orange" => if (p.latestEvent.timeDiff > 1200000) true else false
         case "Red" => true
-        case _ => false
+        case _ => if (p.latestEvent.timeDiff > 3600000) true else false
       }
     }
 
@@ -171,7 +173,7 @@ object PatientReminderWidget {
     * Specifies a patientCard in SVG for scalajs-react based on a Patient.
     **/
     def patientCard(p: apiPatient.Patient) = {
-      val cardScaler = 0.99 // Use this to scale cards
+      val cardScaler = 0.75 // Use this to scale cards
 
       val cardWidth = 307 // change only with new graphics
       val cardHeight = 72 // change only with new graphics
@@ -221,7 +223,7 @@ object PatientReminderWidget {
           ),
           <.svg.path(
             ^.`class` := "clock-symbol",
-            ^.svg.d := "m 236.88792,15.039552 -1.366,0 0,5.465 4.782,2.869 0.683,-1.12 -4.1,-2.432 z m -0.463,-4.554 a 9.108,9.108 0 1 0 9.117,9.108 9.1,9.1 0 0 0 -9.117,-9.108 z m 0.01,16.394 a 7.286,7.286 0 1 1 7.286,-7.286 7.284,7.284 0 0 1 -7.287,7.286 z",
+            ^.svg.d := "m 200.88792,15.039552 -1.366,0 0,5.465 4.782,2.869 0.683,-1.12 -4.1,-2.432 z m -0.463,-4.554 a 9.108,9.108 0 1 0 9.117,9.108 9.1,9.1 0 0 0 -9.117,-9.108 z m 0.01,16.394 a 7.286,7.286 0 1 1 7.286,-7.286 7.284,7.284 0 0 1 -7.287,7.286 z",
             ^.svg.fill := contentColorDark
           ),
           <.svg.path(
@@ -259,7 +261,7 @@ object PatientReminderWidget {
             ^.svg.textAnchor := "start",
             ^.svg.fontSize :=  fontSizeSmall + "px",
             ^.svg.fill := contentColorDark,
-            if (p.latestEvent.latestEvent != "") "Senaste händelse"
+            if (p.latestEvent.latestEvent != "") "Senast"
             else "Ingen senaste händelse"
           ),
           <.svg.text(
@@ -274,11 +276,11 @@ object PatientReminderWidget {
           ),
           <.svg.text(
             ^.`class` := "time-since-latest-event",
-            ^.svg.y := "23.813511",
+            ^.svg.y := "27.208241",
             ^.svg.textAnchor := "start",
-            ^.svg.fontSize :=  fontSizeSmall + "px",
+            ^.svg.fontSize :=  "19 px",
             ^.svg.fill := { if (hasWaitedTooLong(p)) contentColorAttention else contentColorDark },
-            <.svg.tspan(^.svg.x := "251")(getTimeDiffReadable(p.latestEvent.timeDiff)._1)
+            <.svg.tspan(^.svg.x := "217.03676")(getTimeDiffReadable(p.latestEvent.timeDiff)._1)
             //<.svg.tspan(^.svg.x := "252", ^.svg.dy := "15 px")(getTimeDiffReadable(p.latestEvent.timeDiff)._2)
           )
         )
@@ -301,6 +303,37 @@ object PatientReminderWidget {
       (ccidsSortedByLatestEvent.sortBy(_._2) ++ ccidsMissingLatestEvent.sortBy(_._2)).map(p => p._1).toList.reverse
     }
 
+    /*
+    * Sorts a Map[String, Patient] by priority and time since latest event and returns a list of sorted ccids.
+    * Patients missing latest event are placed last and sorted by careContactId.
+    **/
+    def sortPatientsByPriority(pmap: Map[String, apiPatient.Patient]): List[String] = {
+      val currentCcids = pmap.map(p => p._1)
+      var ccidsWithPrio1 = Map[String, apiPatient.Patient]()
+      var ccidsWithPrio2 = Map[String, apiPatient.Patient]()
+      var ccidsWithPrio3 = Map[String, apiPatient.Patient]()
+      var ccidsWithPrio4 = Map[String, apiPatient.Patient]()
+      var ccidsWithPrio5 = Map[String, apiPatient.Patient]()
+      var ccidsWithPrioNA = Map[String, apiPatient.Patient]()
+      var ccidsMissingPriority = Map[String, apiPatient.Patient]()
+
+      currentCcids.foreach{ ccid =>
+        if (pmap(ccid).priority.color == "") ccidsMissingPriority += (ccid -> pmap(ccid))
+        else pmap(ccid).priority.color match {
+          case "Red" => ccidsWithPrio1 += (ccid -> pmap(ccid))
+          case "Orange" => ccidsWithPrio2 += (ccid -> pmap(ccid))
+          case "Yellow" => ccidsWithPrio3 += (ccid -> pmap(ccid))
+          case "Green" => ccidsWithPrio4 += (ccid -> pmap(ccid))
+          case "Blue" => ccidsWithPrio5 += (ccid -> pmap(ccid))
+          case "NotTriaged" => ccidsWithPrioNA += (ccid -> pmap(ccid))
+          case _ => ccidsWithPrioNA += (ccid -> pmap(ccid))
+
+        }
+      }
+
+      (sortPatientsByLatestEvent(ccidsWithPrio1) ::: sortPatientsByLatestEvent(ccidsWithPrio2) ::: sortPatientsByLatestEvent(ccidsWithPrio3) ::: sortPatientsByLatestEvent(ccidsWithPrio4) ::: sortPatientsByLatestEvent(ccidsWithPrio5) ::: sortPatientsByLatestEvent(ccidsWithPrioNA) :::
+      sortPatientsByLatestEvent(ccidsMissingPriority))
+    }
 
     val globalState = SPGUICircuit.connect(x => (x.openWidgets.xs, x.globalState))
 
@@ -309,7 +342,8 @@ object PatientReminderWidget {
       globalState{x =>
         val filter = x()._2.attributes.get("team").map(x => x.str).getOrElse("medicin")
         val pats = (pmap - "-1").filter(p => belongsToThisTeam(p._2, filter))
-        var numberToDraw = 4
+        var numberToDraw = 14
+        var ccidsToDraw = List[String]()
 
         <.div(^.`class` := "card-holder-root", Styles.helveticaZ)(
           <.div(^.`class` := "widget-header", Styles.widgetHeader)(
@@ -317,15 +351,20 @@ object PatientReminderWidget {
               "LÅNG TID SEDAN HÄNDELSE"
             )
           ),
-          sortPatientsByLatestEvent(pats).take(numberToDraw) map { ccid =>
+          {
+          ccidsToDraw = sortPatientsByPriority(pats.filter((t) => hasWaitedTooLong(t._2)))
+          ccidsToDraw.take(numberToDraw) map { ccid =>
             patientCard(pats(ccid))
-          },
+            //sortPatientsByPriority(pats.filter((t) => t._2.latestEvent.needsAttention)).take(numberToDraw) map { ccid =>
+            // patientCard(pats(ccid))
+          }},
 
           <.div(^.`class` := "number-not-shown", Styles.widgetText)(
             <.svg.text(
               ^.fontWeight.bold,
-              if ((pats.size - numberToDraw) >= 0) (pats.size - numberToDraw)
-              else pats.size
+              if ((ccidsToDraw.size - numberToDraw) >= 0) (ccidsToDraw.size - numberToDraw)
+              else if ((ccidsToDraw.size - numberToDraw) < 0) "0"
+              else ccidsToDraw.size
             ),
             <.svg.text(
               " till i kö"

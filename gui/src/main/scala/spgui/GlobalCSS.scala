@@ -12,11 +12,11 @@ object GlobalCSS extends StyleSheet.Inline {
   val gridSpacingSmall = "20px"
   val gridColor = "#777777"
   val gridColorSmall = "#999999"
-  val gridOffsetY = SPMenuCSS.topNavHeight
+  val gridOffsetY = 20//SPMenuCSS.topNavHeight
 
   val background = style(
     unsafeRoot("body")(
-      backgroundColor.white
+      backgroundColor :=! "#ededed"
       /*backgroundImage :=
         s"linear-gradient(to right,  $gridColor 2px, transparent 0px)," +
         s"linear-gradient(to bottom, $gridColor 2px, transparent 0px),"  +

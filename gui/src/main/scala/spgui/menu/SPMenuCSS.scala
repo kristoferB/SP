@@ -11,7 +11,7 @@ object SPMenuCSS extends StyleSheet.Inline {
   val navbar_header_background = "#999999"
   val navbar_brand_title_color = backgroundColor.white
 
-  val topNavHeight = 40 //use in GlobalCSS.scala
+  val topNavHeight = 50 //use in GlobalCSS.scala
 
   val splogoSVGHeight = 638.44
   val splogoSVGWidth = 960.05

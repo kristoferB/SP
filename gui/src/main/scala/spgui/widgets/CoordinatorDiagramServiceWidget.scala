@@ -41,6 +41,7 @@ import spgui.widgets.{API_Patient => apiPatient}
 
 object CoordinatorDiagramServiceWidget {
 
+
 private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
 
   val messObs = spgui.widgets.akuten.PatientModel.getPatientObserver(

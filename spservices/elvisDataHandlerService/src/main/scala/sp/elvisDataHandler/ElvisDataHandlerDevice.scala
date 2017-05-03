@@ -490,42 +490,23 @@ val info = SPAttributes(
  * Checks if patient needs attention, according to some specific guidelines.
  */
  def needAttention(timeDiff: Long, priority: String): Boolean = {
-   val minutes = ((timeDiff / (1000*60)) % 60)
-   val hours   = ((timeDiff / (1000*60*60)) % 24)
    priority match {
-     case "Green" => {
-       if (hours > 0 || minutes == 60) {
-         return true
-       }
-     }
-     case "Yellow" => {
-       if (hours > 0 || minutes == 60) {
-         return true
-       }
-     }
-     case "Orange" => {
-       if (hours > 0 || minutes >= 20) {
-         return true
-       }
-     }
-     case "Red" => {
-       return true
-     }
-     case _ => {
-       return false
-     }
+     case "Blue" | "Green" | "Yellow" => if (timeDiff > 3600000) true else false
+     case "Orange" => if (timeDiff > 1200000) true else false
+     case "Red" => true
+     case _ => false
    }
-   return false
  }
 
  /**
- Filters out a room nr or "ivr" from a apiPatient.Location.
+ Filters out a room nr to present from an apiPatient.Location.
  */
  def decodeLocation(location: String): String = {
-   if (location == "ivr" || location == "yvr" || location == "gvr" || location == "bvr" || location == "iv" || location == "vr") {
-     return "ivr"
-   }
-   return location.replaceAll("[^0-9]","")
+if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
+     location.replaceAll("[^0-9]","")
+   } else if (location matches "[BbGgPp].{2}") {
+     location.replaceAll("[^0-9]","")
+   } else location
  }
 
  /**

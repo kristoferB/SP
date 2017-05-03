@@ -49,7 +49,7 @@ object DashboardCSS extends StyleSheet.Inline {
 
   val closeButton = style("close-button")(
     float.right,
-    fontSize(2.px),
+    fontSize(10.px),
     padding(0.px, 7.px, 0.px, 0.px)
   )
 

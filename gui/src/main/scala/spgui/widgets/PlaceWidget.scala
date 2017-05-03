@@ -86,6 +86,7 @@ object PlaceWidget {
       apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
     ))
 
+
     private val component = ReactComponentB[String]("TeamStatusWidget")
     .initialState(initState)
     .renderBackend[Backend]

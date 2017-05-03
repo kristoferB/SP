@@ -97,7 +97,7 @@ object ReactGridLayout {
   case class Props(
     width: Int,
     autoSize: js.UndefOr[Boolean] = true,
-    cols: js.UndefOr[js.Object] = js.Dynamic.literal("lg" -> 24, "md" -> 16, "sm" -> 12, "xs" -> 8, "xxs" -> 4),
+    cols: js.UndefOr[js.Object] = js.Dynamic.literal("lg" -> 8, "md" -> 4, "sm" -> 3, "xs" -> 2, "xxs" -> 1),
     draggableCancel: js.UndefOr[String] = "",
     draggableHandle: js.UndefOr[String] = "",
     verticalCompact: js.UndefOr[Boolean] = true,

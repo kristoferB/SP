@@ -7,20 +7,20 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 object WidgetList {
   val list =
     List[(String, SPWidgetBase => ReactElement, Int, Int)](
-      ("Klocka", widgets.ClockWidget(), 3, 1),
+      ("Klocka", widgets.ClockWidget(), 2, 2),
 
       // Team widgets -->
-      ("Triagediagram", widgets.TriageWidget(), 3, 3),
-      ("Statusdiagram", widgets.StatusWidget(), 3, 1),
-      ("Platsdiagram", widgets.PlaceWidget(), 3, 1),
-      ("Patientkort", widgets.PatientCardsWidget(), 7, 5),
-      ("Lång tid sedan händelse", widgets.PatientReminderWidget(), 3, 3),
+      ("Triagediagram", widgets.TriageWidget(), 2, 8),
+      ("Statusdiagram", widgets.StatusWidget(), 2, 3),
+      ("Platsdiagram", widgets.PlaceWidget(), 2, 3),
+      ("Patientkort", widgets.PatientCardsWidget(), 5, 19),
+      ("Lång tid sedan händelse", widgets.PatientReminderWidget(), 1, 19),
       // <--
 
       // Coordinator widgets -->
-      ("Rumskarta (koordinator)", widgets.RoomOverviewServiceWidget(), 3, 3),
-      ("Triage- och statusdiagram (koordinator)", widgets.CoordinatorDiagramServiceWidget(), 3, 3),
-      ("Väntrumsdiagram (koordinator)", widgets.WaitingRoomServiceWidget(), 3, 3)
+      ("Rumskarta (koordinator)", widgets.RoomOverviewServiceWidget(), 15, 4),
+      ("Triage- och statusdiagram (koordinator)", widgets.CoordinatorDiagramServiceWidget(), 17, 3),
+      ("Väntrumsdiagram (koordinator)", widgets.WaitingRoomServiceWidget(), 4, 3)
       // <--
     )
 

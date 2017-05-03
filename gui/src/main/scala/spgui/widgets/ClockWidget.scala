@@ -52,7 +52,7 @@ object ClockWidget {
         def render(s: State) = {
           var currentTime = LocalTime.now()
           <.div(
-            ^.height := 70,
+            ^.height := "70",
             Styles.clock,
             addZero(currentTime.getHour()),".",addZero(currentTime.getMinute())
           )

@@ -100,17 +100,19 @@ object PatientCardsWidget {
     /*
     Converts the Team.team-field of a given Team into a color value and letter to display
     **/
-    def decodeTeam(t: apiPatient.Team): (String, String) = {
+    def decodeTeam(t: apiPatient.Team): (String) = {
       t.team match {
-        case "no-match" => ("#E8E8E8","")
-        case "process" => ("FF93B8","P")
-        case "stream" => ("#F8B150","S")
-        case "kirurgi" => ("#D15353","K")
-        case "medicin gul" => ("#FFE36F","M")
-        case "medicin blå" => ("#0060C1","M")
-        case "ortopedi" => ("#7DC761","O")
-        case "jour" => ("#BEABEB","J")
-        case _ => ("#E8E8E8","")
+        case "no-match" => ("")
+        case "process" => ("P")
+        case "stream" => ("S")
+        case "kirurgi" => ("K")
+        case "medicin gul" => ("M")
+        case "medicin blå" => ("M")
+        case "medicin" =>  ("M")
+        case "NAKM" =>  ("NAKM")
+        case "ortopedi" => ("O")
+        case "jour" => ("J")
+        case _ => ("")
       }
     }
 
@@ -165,6 +167,7 @@ object PatientCardsWidget {
 
       val timeString = (hours, minutes) match {
         case (0,_) => {if (minutes == 0) "" else (minutes + " min").toString}
+        case (_,0) => (hours + " h").toString
         case _ => (hours + " h " + minutes + " m").toString
       }
       val days = (milliseconds / (1000*60*60*24))
@@ -325,11 +328,11 @@ object PatientCardsWidget {
           <.svg.text(
             ^.`class` := "team-letter",
             ^.svg.y := "10.549294",
-            ^.svg.x := "165.1389",
-            ^.svg.textAnchor := "start",
+            ^.svg.x := "170.73709",
+            ^.svg.textAnchor := "end",
             ^.svg.fontSize :=  fontSizeSmall + "px",
             ^.svg.fill := contentColorDark,
-            decodeTeam(p.team)._2
+            decodeTeam(p.team)
           ),
           <.svg.text(
             ^.`class` := "header-latest-event",
@@ -341,15 +344,6 @@ object PatientCardsWidget {
             if (p.latestEvent.latestEvent != "") "Senaste händelse"
             else "Ingen senaste händelse"
           ),
-          // <.svg.text(
-          //   ^.`class` := "ccid",
-          //   ^.svg.y := "75.844307",
-          //   ^.svg.x := "1.9170269",
-          //   ^.svg.textAnchor := "start",
-          //   ^.svg.fontSize :=  "15 px",
-          //   ^.svg.fill := contentColorDark,
-          //   p.careContactId
-          // ),
           <.svg.text(
             ^.`class` := "latest-event",
             ^.svg.y := "32.553322",
@@ -370,6 +364,15 @@ object PatientCardsWidget {
             <.svg.tspan(^.svg.x := "93")(getTimeDiffReadable(p.latestEvent.timeDiff)._1)
             //<.svg.tspan(^.svg.x := "93", ^.svg.dy := "15 px")(getTimeDiffReadable(p.latestEvent.timeDiff)._2)
           ),
+          // <.svg.text(
+          //   ^.`class` := "ccid",
+          //   ^.svg.y := "75.8",
+          //   ^.svg.x := "1.9",
+          //   ^.svg.textAnchor := "start",
+          //   ^.svg.fontSize :=  "15 px",
+          //   ^.svg.fill := contentColorDark,
+          //   p.careContactId
+          // ),
           <.svg.text(
             ^.`class` := "arrival-time",
             ^.svg.y := "93.13282",
@@ -415,7 +418,7 @@ object PatientCardsWidget {
     def render(filter: String, pmap: Map[String, apiPatient.Patient]) = {
       val pats = (pmap - "-1").filter(p => belongsToThisTeam(p._2, filter))
 
-      <.div(^.`class` := "card-holder-root", Styles.helveticaZ)(
+      <.div(^.`class` := "card-holder-root", Styles.helveticaZ, Styles.hideScrollBar)(
         <.svg.svg(
           ^.svg.width := "0",
           ^.svg.height := "0",
