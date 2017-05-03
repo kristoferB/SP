@@ -98,9 +98,9 @@ object RoomOverviewServiceWidget {
 
       var busyRoomsBuffer = new ListBuffer[String]()
       patients.foreach{ p =>
-        if (p._1 != "0") {
-          if (p._2.location.roomNr != "" && p._2.location.roomNr != "ivr") {
-            busyRoomsBuffer += p._2.location.roomNr
+        if (p._1 != "-1") {
+          if (p._2.location.roomNr != "" && p._2.location.roomNr != "ivr" && p._2.location != "yvr" && p._2.location != "iv" && p._2.location != "vr") {
+            busyRoomsBuffer += p._2.location.roomNr.replaceAll("[^0-9]", "")
           }
         }
       }
