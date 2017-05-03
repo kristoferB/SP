@@ -107,6 +107,11 @@ lazy val d3exampleService = (project in file("spservices/d3exampleservice"))
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
+lazy val itemEditorService = (project in file("spservices/itemEditorService"))
+  .dependsOn(spdomain, macros)
+.settings(commonSettings: _*)
+.settings(libraryDependencies ++= akka)
+
 lazy val spseed = (project in file("spservices/spseed"))
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= akka)
