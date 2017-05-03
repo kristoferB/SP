@@ -153,11 +153,10 @@ object WaitingRoomServiceWidget {
     }
     val list: List[List[Int]] = List(
       List(unAttendedCountK, attendedCountK, attendedWithPlanCountK, finishedCountK),
-      List(unAttendedCountMG + unAttendedCountMB, attendedCountMB + attendedCountMG, attendedWithPlanCountMB + attendedWithPlanCountMG, finishedCountMB + finishedCountMG),
       List(unAttendedCountO, attendedCountO, attendedWithPlanCountO, finishedCountO),
-      List(unAttendedCountJ, attendedCountJ, attendedWithPlanCountJ, finishedCountJ),
-      List(unAttendedCountP + unAttendedCountS, attendedCountP + attendedCountS, attendedWithPlanCountP + attendedWithPlanCountS, finishedCountP + finishedCountS)
-
+      List(unAttendedCountP + unAttendedCountS, attendedCountP + attendedCountS, attendedWithPlanCountP + attendedWithPlanCountS, finishedCountP + finishedCountS),
+      List(unAttendedCountMG + unAttendedCountMB, attendedCountMB + attendedCountMG, attendedWithPlanCountMB + attendedWithPlanCountMG, finishedCountMB + finishedCountMG),
+      List(unAttendedCountJ, attendedCountJ, attendedWithPlanCountJ, finishedCountJ)
     )
     return list
   }
