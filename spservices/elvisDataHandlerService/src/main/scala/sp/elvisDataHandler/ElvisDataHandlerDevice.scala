@@ -528,8 +528,8 @@ if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
  }
 
  /**
- Discerns clinic from apiPatient.Team-field.
- Used by updateapiPatient.Team().
+ * Discerns clinic from apiPatient.Team-field.
+ * Used by updateapiPatient.Team().
  */
  def decodeClinic(team: String): String = {
    team match {

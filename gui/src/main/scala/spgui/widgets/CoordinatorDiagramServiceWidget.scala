@@ -94,7 +94,7 @@ private val component = ReactComponentB[Unit]("teamVStatus")
 .componentWillUnmount(_.backend.onUnmount())
 .build
 
-def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
+def getTriageStatusList(m: Map[String, apiPatient.Patient]): (List[List[Int]], Int) = {
   // Count number of patients of each triage color and status
   var notTriagedCountMG = 0
   var blueCountMG = 0
@@ -128,6 +128,17 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
   var attendedCountNakm = 0
   var attendedWithPlanCountNakm = 0
   var unAttendedCountNakm = 0
+
+  var notTriagedCountMedicin = 0
+  var blueCountMedicin = 0
+  var greenCountMedicin = 0
+  var yellowCountMedicin = 0
+  var orangeCountMedicin = 0
+  var redCountMedicin = 0
+  var finishedCountMedicin = 0
+  var attendedCountMedicin = 0
+  var attendedWithPlanCountMedicin = 0
+  var unAttendedCountMedicin = 0
 
   var notTriagedCountK = 0
   var blueCountK = 0
@@ -190,7 +201,7 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
     p._2.priority.color match {
       case "NotTriaged" => {
         p._2.team.team match {
-          case "medicin gul" | "medicin" => notTriagedCountMG += 1
+          case "medicin gul" => notTriagedCountMG += 1
           case "medicin blå" => notTriagedCountMB += 1
           case "process" => notTriagedCountP += 1
           case "stream" => notTriagedCountS += 1
@@ -198,12 +209,13 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
           case "kirurgi" => notTriagedCountK += 1
           case "ortopedi" => notTriagedCountO += 1
           case "NAKM" => notTriagedCountNakm += 1
+          case "medicin" => notTriagedCountMedicin += 1
           case _ => tmp += 1
         }
       }
       case "Blue" => {
         p._2.team.team match {
-          case "medicin gul" | "medicin" => blueCountMG += 1
+          case "medicin gul" => blueCountMG += 1
           case "medicin blå" => blueCountMB += 1
           case "process" => blueCountP += 1
           case "stream" => blueCountS += 1
@@ -211,12 +223,13 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
           case "kirurgi" => blueCountK += 1
           case "ortopedi" => blueCountO += 1
           case "NAKM" => blueCountNakm += 1
+          case "medicin" => blueCountMedicin += 1
           case _ => tmp += 1
         }
       }
       case "Green" => {
         p._2.team.team match {
-          case "medicin gul" | "medicin" => greenCountMG += 1
+          case "medicin gul" => greenCountMG += 1
           case "medicin blå" => greenCountMB += 1
           case "process" => greenCountP += 1
           case "stream" => greenCountS += 1
@@ -224,12 +237,13 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
           case "kirurgi" => greenCountK += 1
           case "ortopedi" => greenCountO += 1
           case "NAKM" => greenCountNakm += 1
+          case "medicin" => greenCountMedicin += 1
           case _ => tmp += 1
         }
       }
       case "Yellow" => {
         p._2.team.team match {
-          case "medicin gul" | "medicin" => yellowCountMG += 1
+          case "medicin gul" => yellowCountMG += 1
           case "medicin blå" => yellowCountMB += 1
           case "process" => yellowCountP += 1
           case "stream" => yellowCountS += 1
@@ -237,12 +251,13 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
           case "kirurgi" => yellowCountK += 1
           case "ortopedi" => yellowCountO += 1
           case "NAKM" => yellowCountNakm += 1
+          case "medicin" => yellowCountMedicin += 1
           case _ => tmp += 1
         }
       }
       case "Orange" => {
         p._2.team.team match {
-          case "medicin gul" | "medicin" => orangeCountMG += 1
+          case "medicin gul" => orangeCountMG += 1
           case "medicin blå" => orangeCountMB += 1
           case "process" => orangeCountP += 1
           case "stream" => orangeCountS += 1
@@ -250,12 +265,13 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
           case "kirurgi" => orangeCountK += 1
           case "ortopedi" => orangeCountO += 1
           case "NAKM" => orangeCountNakm += 1
+          case "medicin" => orangeCountMedicin += 1
           case _ => tmp += 1
         }
       }
       case "Red" => {
         p._2.team.team match {
-          case "medicin gul" | "medicin" => redCountMG += 1
+          case "medicin gul" => redCountMG += 1
           case "medicin blå" => redCountMB += 1
           case "process" => redCountP += 1
           case "stream" => redCountS += 1
@@ -263,13 +279,14 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
           case "kirurgi" => redCountK += 1
           case "ortopedi" => redCountO += 1
           case "NAKM" => redCountNakm += 1
+          case "medicin" => redCountMedicin += 1
           case _ => tmp += 1
         }
       }
     }
     if (p._2.finished.finishedStillPresent) {
       p._2.team.team match {
-        case "medicin gul" | "medicin" => finishedCountMG += 1
+        case "medicin gul" => finishedCountMG += 1
         case "medicin blå" => finishedCountMB += 1
         case "process" => finishedCountP += 1
         case "stream" => finishedCountS += 1
@@ -277,12 +294,13 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
         case "kirurgi" => finishedCountK += 1
         case "ortopedi" => finishedCountO += 1
         case "NAKM" => finishedCountNakm += 1
+        case "medicin" => finishedCountMedicin += 1
         case _ => tmp += 1
       }
     } else {
       if (p._2.plan.hasPlan) {
         p._2.team.team match {
-          case "medicin gul" | "medicin" => attendedWithPlanCountMG += 1
+          case "medicin gul" => attendedWithPlanCountMG += 1
           case "medicin blå" => attendedWithPlanCountMB += 1
           case "process" => attendedWithPlanCountP += 1
           case "stream" => attendedWithPlanCountS += 1
@@ -290,11 +308,12 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
           case "kirurgi" => attendedWithPlanCountK += 1
           case "ortopedi" => attendedWithPlanCountO += 1
           case "NAKM" => attendedWithPlanCountNakm += 1
+          case "medicin" => attendedWithPlanCountMedicin += 1
           case _ => tmp += 1
         }
       } else if (p._2.attended.attended) {
         p._2.team.team match {
-          case "medicin gul" | "medicin" => attendedCountMG += 1
+          case "medicin gul" => attendedCountMG += 1
           case "medicin blå" => attendedCountMB += 1
           case "process" => attendedCountP += 1
           case "stream" => attendedCountS += 1
@@ -302,11 +321,12 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
           case "kirurgi" => attendedCountK += 1
           case "ortopedi" => attendedCountO += 1
           case "NAKM" => attendedCountNakm += 1
+          case "medicin" => attendedCountMedicin += 1
           case _ => tmp += 1
         }
       } else {
         p._2.team.team match {
-          case "medicin gul" | "medicin" => unAttendedCountMG += 1
+          case "medicin gul" => unAttendedCountMG += 1
           case "medicin blå" => unAttendedCountMB += 1
           case "process" => unAttendedCountP += 1
           case "stream" => unAttendedCountS += 1
@@ -314,6 +334,7 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
           case "kirurgi" => unAttendedCountK += 1
           case "ortopedi" => unAttendedCountO += 1
           case "NAKM" => unAttendedCountNakm += 1
+          case "medicin" => unAttendedCountMedicin += 1
           case _ => tmp += 1
         }
       }
@@ -324,6 +345,7 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
   val listy: List[List[Int]] = List(List(sumNotTriaged),
     List(blueCountMG, greenCountMG, yellowCountMG, orangeCountMG, redCountMG, notTriagedCountMG), List(finishedCountMG, attendedWithPlanCountMG, attendedCountMG, unAttendedCountMG),
     List(blueCountMB, greenCountMB, yellowCountMB, orangeCountMB, redCountMB, notTriagedCountMB), List(finishedCountMB, attendedWithPlanCountMB, attendedCountMB, unAttendedCountMB),
+    List(blueCountMedicin, greenCountMedicin, yellowCountMedicin, orangeCountMedicin, redCountMedicin, notTriagedCountMB), List(finishedCountMedicin, attendedWithPlanCountMedicin, attendedCountMedicin, unAttendedCountMedicin),
     List(blueCountNakm, greenCountNakm, yellowCountNakm, orangeCountNakm, redCountNakm, notTriagedCountNakm), List(finishedCountNakm, attendedWithPlanCountNakm, attendedCountNakm, unAttendedCountNakm),
     List(blueCountK, greenCountK, yellowCountK, orangeCountK, redCountK, notTriagedCountK), List(finishedCountK, attendedWithPlanCountK, attendedCountK, unAttendedCountK),
     List(blueCountO, greenCountO, yellowCountO, orangeCountO, redCountO, notTriagedCountO), List(finishedCountO, attendedWithPlanCountO, attendedCountO, unAttendedCountO),
@@ -331,18 +353,17 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): List[List[Int]] = {
     List(blueCountP, greenCountP, yellowCountP, orangeCountP, redCountP, notTriagedCountP), List(finishedCountP, attendedWithPlanCountP, attendedCountP, unAttendedCountP),
     List(blueCountJ, greenCountJ, yellowCountJ, orangeCountJ, redCountJ, notTriagedCountJ), List(finishedCountJ, attendedWithPlanCountJ, attendedCountJ, unAttendedCountJ)
   )
-  return listy
+  return (listy, tmp)
 }
 
 private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Patient]): Unit = {
 
   d3.select(element).selectAll("*").remove()
 
-  val listy = getTriageStatusList(patients)
 
-  val totWidth = element.clientWidth.toDouble//scaleWidth utgår ifrån detta
+  val totWidth = element.clientWidth.toDouble - 15//scaleWidth utgår ifrån detta
 
-  val scaleWidth = 794.0
+  val scaleWidth = 885.0
 
   def getOffsetBarText(d: Int): Double = {if(d > 9){(28.0/scaleWidth)*totWidth} else{(18.0/scaleWidth)*totWidth}} // Dessa måste fixas manuellt!!!!
 
@@ -357,17 +378,22 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
     return totPatients
   }
 
+  val listyTuple = getTriageStatusList(patients)
+  val listy = listyTuple._1
+  println(getTotPatients(listy))
+  val sumPatients = (getTotPatients(listy) + listyTuple._2)
+
+
   def getLength(list: List[Int], h: Double): ListBuffer[Double] = {
     val lista = new ListBuffer[Double]()
     val summera = list.sum
 
     for(i <- list.indices){
       if (summera == 0) {
-        lista += ( 0 ) * h
+        lista += 0
       } else {
         lista += ( list(i).toDouble / summera ) * h
       }
-
     }
     return lista
   }
@@ -424,6 +450,7 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
   val yTriagePatient: Double = (145.0/scaleWidth)*totWidth
   val OversiktSize = s"${(37.0/scaleWidth)*totWidth}pt"
   val PatTriSta = s"${(24.0/scaleWidth)*totWidth}pt"
+  val PatToto = s"${(24.0/scaleWidth)*totWidth}pt"
 
   topText.append("text")
     .attr("x", xBegin)
@@ -447,7 +474,22 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
     .attr("y", yPatient)
     .attr("font-size", PatTriSta)
     .attr("fill", textBlack)
-    .text("PATIENTER TOTALT")
+    .text("PATIENTER I TEAM /")
+
+    topText.append("text")
+      .attr("x", xBegin + (360/scaleWidth)*totWidth)
+      .attr("y", yPatient)
+      .attr("font-size", PatToto)
+      .style("font-weight", "bold")
+      .attr("fill", textBlack)
+      .text(sumPatients.toString)
+
+    topText.append("text")
+      .attr("x", xBegin + (45/scaleWidth)*totWidth + (360/scaleWidth)*totWidth)
+      .attr("y", yPatient)
+      .attr("font-size", PatToto)
+      .attr("fill", textBlack)
+      .text("TOTALT PÅ MOTT.")
 
   topText.append("text")
     .attr("x", xBegin)
@@ -461,12 +503,9 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
   val sel2 = svg.selectAll("g").data(js.Array(0,1,2,3)).enter()
 
   val kvot: Double = getKvot(listy)
-  var firstRect: Double = 0
-  if (kvot == 0) {
-    firstRect = 0 - offset
-  } else {
-    firstRect = listy.head.sum.toDouble / kvot * graphHeight - offset
-  }
+  val firstRect: Double = if(kvot.equals(0)){0}else{listy.head.sum.toDouble / kvot * graphHeight - offset}
+
+  //listy.head.sum.toDouble / kvot * graphHeight - offset
 
   // Ej påbörjade
   val dispFirstText = (d: Int) => if(d <= 0){""} else{d.toString}
@@ -538,7 +577,15 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
     .attr("font-size", snedText)
     .attr("fill", textBlack)
     .style("font-weight", "bold")
-    .attr("transform", s"translate(${(305.0/scaleWidth)*totWidth},${(50.0/scaleWidth)*totWidth})rotate(-50)")
+    .attr("transform", s"translate(${(250.0/scaleWidth)*totWidth},${(105.0/scaleWidth)*totWidth})rotate(-50)")
+    .text("Medicin - Övriga")
+
+  botText.append("text")
+    .style("font-weight", "bold")
+    .attr("font-size", snedText)
+    .attr("fill", textBlack)
+    .style("font-weight", "bold")
+    .attr("transform", s"translate(${(390.0/scaleWidth)*totWidth},${(47.0/scaleWidth)*totWidth})rotate(-50)")
     .text("NAKM")
 
   botText.append("text")
@@ -546,7 +593,7 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
     .attr("font-size", snedText)
     .attr("fill", textBlack)
     .style("font-weight", "bold")
-    .attr("transform", s"translate(${(385.0/scaleWidth)*totWidth},${(50.0/scaleWidth)*totWidth})rotate(-50)")
+    .attr("transform", s"translate(${(475.0/scaleWidth)*totWidth},${(50.0/scaleWidth)*totWidth})rotate(-50)")
     .text("Kirurgi")
 
   botText.append("text")
@@ -554,7 +601,7 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
     .attr("font-size", snedText)
     .attr("fill", textBlack)
     .style("font-weight", "bold")
-    .attr("transform", s"translate(${(470.0/scaleWidth)*totWidth},${(60.0/scaleWidth)*totWidth})rotate(-50)")
+    .attr("transform", s"translate(${(555.0/scaleWidth)*totWidth},${(60.0/scaleWidth)*totWidth})rotate(-50)")
     .text("Ortopedi")
 
   botText.append("text")
@@ -562,7 +609,7 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
     .attr("font-size", snedText)
     .attr("fill", textBlack)
     .style("font-weight", "bold")
-    .attr("transform", s"translate(${(565.0/scaleWidth)*totWidth},${(47.0/scaleWidth)*totWidth})rotate(-50)")
+    .attr("transform", s"translate(${(650.0/scaleWidth)*totWidth},${(47.0/scaleWidth)*totWidth})rotate(-50)")
     .text("Stream")
 
   botText.append("text")
@@ -570,7 +617,7 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
     .attr("font-size", snedText)
     .attr("fill", textBlack)
     .style("font-weight", "bold")
-    .attr("transform", s"translate(${(650.0/scaleWidth)*totWidth},${(55.0/scaleWidth)*totWidth})rotate(-50)")
+    .attr("transform", s"translate(${(740.0/scaleWidth)*totWidth},${(55.0/scaleWidth)*totWidth})rotate(-50)")
     .text("Process")
 
   botText.append("text")
@@ -578,7 +625,7 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
     .attr("font-size", snedText)
     .attr("fill", textBlack)
     .style("font-weight", "bold")
-    .attr("transform", s"translate(${(755.0/scaleWidth)*totWidth},${(35.0/scaleWidth)*totWidth})rotate(-50)")
+    .attr("transform", s"translate(${(845.0/scaleWidth)*totWidth},${(35.0/scaleWidth)*totWidth})rotate(-50)")
     .text("Jour")
 
   // Botten rektanglar -------------------------------
@@ -753,7 +800,7 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
     .text("Opåtittad")
 
 
-  if (kvot == 0) {
+  if (kvot.equals(0)) {
     // Medicin - Gul
     draw(getHeights(getLength(listy(1), listy(1).sum * 0), barSecond, graphHeight), listy(1))
     draw2(getHeights(getLength(listy(2), listy(1).sum * 0), barWidth + barSecond, graphHeight), listy(2))
@@ -762,29 +809,34 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
     draw(getHeights(getLength(listy(3), listy(3).sum * 0), horizontalBarDistance + barSecond, graphHeight), listy(3))
     draw2(getHeights(getLength(listy(4), listy(3).sum * 0), horizontalBarDistance + barWidth + barSecond, graphHeight), listy(4))
 
-    // Nakm
+    // Medicin övriga
+
     draw(getHeights(getLength(listy(5), listy(5).sum * 0), 2*horizontalBarDistance + barSecond, graphHeight), listy(5))
     draw2(getHeights(getLength(listy(6), listy(5).sum * 0), 2*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(6))
 
-    // Kirurgi
+    // Nakm
     draw(getHeights(getLength(listy(7), listy(7).sum * 0), 3*horizontalBarDistance + barSecond, graphHeight), listy(7))
     draw2(getHeights(getLength(listy(8), listy(7).sum * 0), 3*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(8))
 
-    // Ortopedi
+    // Kirurgi
     draw(getHeights(getLength(listy(9), listy(9).sum * 0), 4*horizontalBarDistance + barSecond, graphHeight), listy(9))
     draw2(getHeights(getLength(listy(10), listy(9).sum * 0), 4*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(10))
 
-    // Stream
+    // Ortopedi
     draw(getHeights(getLength(listy(11), listy(11).sum * 0), 5*horizontalBarDistance + barSecond, graphHeight), listy(11))
     draw2(getHeights(getLength(listy(12), listy(11).sum * 0), 5*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(12))
 
-    // Process
+    // Stream
     draw(getHeights(getLength(listy(13), listy(13).sum * 0), 6*horizontalBarDistance + barSecond, graphHeight), listy(13))
     draw2(getHeights(getLength(listy(14), listy(13).sum * 0), 6*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(14))
 
-    //Jour
+    // Process
     draw(getHeights(getLength(listy(15), listy(15).sum * 0), 7*horizontalBarDistance + barSecond, graphHeight), listy(15))
     draw2(getHeights(getLength(listy(16), listy(15).sum * 0), 7*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(16))
+
+    //Jour
+    draw(getHeights(getLength(listy(17), listy(17).sum * 0), 8*horizontalBarDistance + barSecond, graphHeight), listy(17))
+    draw2(getHeights(getLength(listy(18), listy(17).sum * 0), 8*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(18))
   } else {
     // Medicin - Gul
     draw(getHeights(getLength(listy(1), listy(1).sum * (graphHeight-offset) / kvot), barSecond, graphHeight), listy(1))
@@ -794,29 +846,34 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
     draw(getHeights(getLength(listy(3), listy(3).sum * (graphHeight-offset) / kvot), horizontalBarDistance + barSecond, graphHeight), listy(3))
     draw2(getHeights(getLength(listy(4), listy(3).sum * (graphHeight-offset) / kvot), horizontalBarDistance + barWidth + barSecond, graphHeight), listy(4))
 
-    // Nakm
+    // Medicin övriga
+
     draw(getHeights(getLength(listy(5), listy(5).sum * (graphHeight-offset) / kvot), 2*horizontalBarDistance + barSecond, graphHeight), listy(5))
     draw2(getHeights(getLength(listy(6), listy(5).sum * (graphHeight-offset) / kvot), 2*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(6))
 
-    // Kirurgi
+    // Nakm
     draw(getHeights(getLength(listy(7), listy(7).sum * (graphHeight-offset) / kvot), 3*horizontalBarDistance + barSecond, graphHeight), listy(7))
     draw2(getHeights(getLength(listy(8), listy(7).sum * (graphHeight-offset) / kvot), 3*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(8))
 
-    // Ortopedi
+    // Kirurgi
     draw(getHeights(getLength(listy(9), listy(9).sum * (graphHeight-offset) / kvot), 4*horizontalBarDistance + barSecond, graphHeight), listy(9))
     draw2(getHeights(getLength(listy(10), listy(9).sum * (graphHeight-offset) / kvot), 4*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(10))
 
-    // Stream
+    // Ortopedi
     draw(getHeights(getLength(listy(11), listy(11).sum * (graphHeight-offset) / kvot), 5*horizontalBarDistance + barSecond, graphHeight), listy(11))
     draw2(getHeights(getLength(listy(12), listy(11).sum * (graphHeight-offset) / kvot), 5*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(12))
 
-    // Process
+    // Stream
     draw(getHeights(getLength(listy(13), listy(13).sum * (graphHeight-offset) / kvot), 6*horizontalBarDistance + barSecond, graphHeight), listy(13))
     draw2(getHeights(getLength(listy(14), listy(13).sum * (graphHeight-offset) / kvot), 6*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(14))
 
-    //Jour
+    // Process
     draw(getHeights(getLength(listy(15), listy(15).sum * (graphHeight-offset) / kvot), 7*horizontalBarDistance + barSecond, graphHeight), listy(15))
     draw2(getHeights(getLength(listy(16), listy(15).sum * (graphHeight-offset) / kvot), 7*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(16))
+
+    //Jour
+    draw(getHeights(getLength(listy(17), listy(17).sum * (graphHeight-offset) / kvot), 8*horizontalBarDistance + barSecond, graphHeight), listy(17))
+    draw2(getHeights(getLength(listy(18), listy(17).sum * (graphHeight-offset) / kvot), 8*horizontalBarDistance + barWidth + barSecond, graphHeight), listy(18))
   }
 
   def draw(listzz: ListBuffer[ys], listxx: List[Int]): Unit = {

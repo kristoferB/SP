@@ -42,6 +42,7 @@ import spgui.widgets.{API_Patient => apiPatient}
 object PatientReminderWidget {
 
   private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
+    // private val widgetWidth
 
     val messObs = spgui.widgets.akuten.PatientModel.getPatientObserver(
       patients => {
@@ -50,7 +51,6 @@ object PatientReminderWidget {
         }.runNow()
       }
     )
-
 
     send(api.GetState())
 
@@ -276,7 +276,7 @@ object PatientReminderWidget {
           ),
           <.svg.text(
             ^.`class` := "time-since-latest-event",
-            ^.svg.y := "27.208241",
+            ^.svg.y := "26.208241",
             ^.svg.textAnchor := "start",
             ^.svg.fontSize :=  "19 px",
             ^.svg.fill := { if (hasWaitedTooLong(p)) contentColorAttention else contentColorDark },
@@ -342,7 +342,7 @@ object PatientReminderWidget {
       globalState{x =>
         val filter = x()._2.attributes.get("team").map(x => x.str).getOrElse("medicin")
         val pats = (pmap - "-1").filter(p => belongsToThisTeam(p._2, filter))
-        var numberToDraw = 14
+        var numberToDraw = 10
         var ccidsToDraw = List[String]()
 
         <.div(^.`class` := "card-holder-root", Styles.helveticaZ)(
@@ -358,8 +358,12 @@ object PatientReminderWidget {
             //sortPatientsByPriority(pats.filter((t) => t._2.latestEvent.needsAttention)).take(numberToDraw) map { ccid =>
             // patientCard(pats(ccid))
           }},
-
-          <.div(^.`class` := "number-not-shown", Styles.widgetText)(
+          // <.div(^.`class` := "hallå", Styles.widgetText)(
+          //   <.svg.text(
+          //     "widgetWidth: " + widgetWidth
+          //   )
+          // ),
+          <.div(^.`class` := "number-not-shown", ^.ref := "numbNot", Styles.widgetText)(
             <.svg.text(
               ^.fontWeight.bold,
               if ((ccidsToDraw.size - numberToDraw) >= 0) (ccidsToDraw.size - numberToDraw)
@@ -380,6 +384,11 @@ object PatientReminderWidget {
       messObs.kill()
       Callback.empty
     }
+
+    // def getWidgetWidth() = {
+    //   widgetWidth = "3"//ReactDOM.findDOMNode(cardHolderComponent)
+    // }
+
   }
 
   private val cardHolderComponent = ReactComponentB[Unit]("cardHolderComponent")
@@ -387,7 +396,7 @@ object PatientReminderWidget {
     apiPatient.Patient(
       "4502085",
       apiPatient.Priority("NotTriaged", "2017-02-01T15:49:19Z"),
-      apiPatient.Attended(true, "sarli29", "2017-02-01T15:58:33Z"),
+      apiPatient.Attended(true, "SARLI29", "2017-02-01T15:58:33Z"),
       apiPatient.Location("52", "2017-02-01T15:58:33Z"),
       apiPatient.Team("GUL", "NAKME", "2017-02-01T15:58:33Z"),
       apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
@@ -397,6 +406,7 @@ object PatientReminderWidget {
       apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
       )))
     .renderBackend[Backend]
+    // .componentDidMount(_.backend.getWidgetWidth())
     .componentWillUnmount(_.backend.onUnmount())
     .build
 
