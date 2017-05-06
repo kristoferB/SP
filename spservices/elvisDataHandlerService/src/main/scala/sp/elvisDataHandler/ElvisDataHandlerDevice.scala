@@ -133,45 +133,20 @@ val info = SPAttributes(
  */
   //---------------------------------------HÄR?
  def updateState(careContactId: String, prop: apiPatient.PatientProperty) {
-   //import scala.util.matching.Regex
-   //val timestampWithoutMillis = """(.{19}) (.*) (\+[0-9]{4})"""
    if (state.keys.exists(_ == careContactId)) {
      if (prop.isInstanceOf[apiPatient.Removed]) {
        state -= careContactId
-       //state += (careContactId -> updateRemovedPatient(state, careContactId, apiPatient.Finished(true, state(careContactId).finished.finishedStillPresent, (prop.asInstanceOf[apiPatient.Removed]).timestamp)))
      } else {
        state += (careContactId -> updateExistingPatient(state, careContactId, prop))
-       /**
-       if (state(careContactId).finished.finished == false) {
-         state += (careContactId -> updateExistingPatient(state, careContactId, prop))
-       } else if (state(careContactId).finished.timestamp != "") {
-         val sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-         val output = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-         val d = sdf.parse(state(careContactId).finished.timestamp)
-         val formattedTime = output.format(d)
-         // was: if (getTimeDiff(state(careContactId).finished.timestamp.replaceAll(timestampWithoutMillis, "$1$3")) > 3600000) {
-         if (getTimeDiff(formattedTime) > 3600000) {
-           state -= careContactId
-         }
-       }*/
      }
    } else {
      state += (careContactId -> updateNewPatient(careContactId, prop))
    }
-   /**
-   var stateWithoutRemoved: Map[String, apiPatient.Patient] = Map()
-   state.foreach{ p =>
-     if (p._2.finished.finished == false) {
-       stateWithoutRemoved += p._1 -> p._2
-     }
-   }*/
-
  }
 
  /**
  * Constructs a new patient object.
  */
-  //---------------------------------------HÄR?
  def updateNewPatient(ccid: String, prop: apiPatient.PatientProperty): apiPatient.Patient = {
    prop match {
      case apiPatient.Priority(color, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority(color, timestamp), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Finished(false, false, ""))
@@ -190,7 +165,6 @@ val info = SPAttributes(
  /**
  * Constructs an updates patient object.
  */
-  //---------------------------------------HÄR?
  def updateExistingPatient(s: Map[String, apiPatient.Patient], ccid: String, prop: apiPatient.PatientProperty): apiPatient.Patient = {
    prop match {
      case apiPatient.Priority(color, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority(color, timestamp), s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).examination, s(ccid).latestEvent, s(ccid).plan, s(ccid).arrivalTime, s(ccid).finished)
@@ -237,6 +211,8 @@ val info = SPAttributes(
   //---------------------------------------HÄR?
  def getNewPatientProperties(patient: api.NewPatient): List[apiPatient.PatientProperty] = {
    var patientPropertyBuffer = new ListBuffer[apiPatient.PatientProperty]()
+
+   // Update properties based on the patient data
    patient.patientData.foreach{ p =>
      p._1 match {
        case "Team" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
@@ -246,6 +222,8 @@ val info = SPAttributes(
        case _ => patientPropertyBuffer += apiPatient.Undefined()
      }
    }
+
+   // Update properties based on new events
    patientPropertyBuffer += updateAttended(patient.careContactId, patient.events)
    patientPropertyBuffer += updateLatestEvent(patient.careContactId, patient.events, patient.patientData("Priority"))
    patientPropertyBuffer += updatePlan(patient.careContactId, patient.events)
@@ -259,17 +237,22 @@ val info = SPAttributes(
  */
  def getDiffPatientProperties(patient: api.DiffPatient): List[apiPatient.PatientProperty] = {
    var patientPropertyBuffer = new ListBuffer[apiPatient.PatientProperty]()
+
+   // Update properties based on the patient data
    patient.patientData.foreach{ p =>
      p._1 match {
-       case "Team" => if (!fieldEmpty(p._2) && patient.patientData.contains("Location") && patient.patientData.contains("ReasonForVisit")) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
+       case "Team" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateTeamNoLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
        case "Location" => {
          if (!fieldEmpty(p._2)) {
+           patientPropertyBuffer += updateTeamDiff(patient.careContactId, patient.patientData("timestamp"), p._2, state(patient.careContactId).team.team)
            patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
          }
        }
        case _ => patientPropertyBuffer += apiPatient.Undefined()
      }
    }
+
+   // Update properties based on removed events
    patient.removedEvents.foreach{ r =>
      r("Title") match {
        case "Läkare" => patientPropertyBuffer += apiPatient.Attended(false, "", "")
@@ -280,6 +263,8 @@ val info = SPAttributes(
        case _ => if (state(patient.careContactId).latestEvent.latestEvent == r("Title") && state(patient.careContactId).latestEvent.timestamp == r("Start")) patientPropertyBuffer += apiPatient.LatestEvent("(togs bort)", 0, false, r("Start"))
      }
    }
+
+   // Update properties based on new events
    patient.newEvents.foreach{ e =>
      if (e("Title") == "Läkare") {
        patientPropertyBuffer += apiPatient.Attended(true, e("Value"), e("Start"))
@@ -359,6 +344,20 @@ val info = SPAttributes(
  */
  def updateTeam(careContactId: String, timestamp: String, team: String, reasonForVisit: String, location: String): apiPatient.Team = {
    return apiPatient.Team(decodeTeam(reasonForVisit, location, team), decodeClinic(team), timestamp)
+ }
+
+ /**
+
+ */
+ def updateTeamNoLocation(careContactId: String, timestamp: String, team: String): apiPatient.Team = {
+   return apiPatient.Team(decodeTeamNoLocation(team), decodeClinic(team), timestamp)
+ }
+
+ /**
+ Discerns apiPatient.Team and klinik, returns a apiPatient.Team-type.
+ */
+ def updateTeamDiff(careContactId: String, timestamp: String, location: String, team: String): apiPatient.Team = {
+   return apiPatient.Team(decodeTeamDiff(location, team), decodeClinic(team), timestamp)
  }
 
  /**
@@ -528,8 +527,8 @@ if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
  }
 
  /**
- * Discerns clinic from apiPatient.Team-field.
- * Used by updateapiPatient.Team().
+ * Discerns clinic from Team-field.
+ * Used by updateTeam().
  */
  def decodeClinic(team: String): String = {
    team match {
@@ -542,7 +541,57 @@ if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
  }
 
  /**
- Discerns apiPatient.Team from ReasonForVisit and apiPatient.Location, and apiPatient.Team fields.
+ Discerns Team from Team field.
+ */
+ def decodeTeamNoLocation(team: String): String = {
+   team match {
+     case "NAKME" => "medicin"
+     case "NAKKI" => "kirurgi"
+     case "NAKOR" => "ortopedi"
+     case "NAKBA" | "NAKGY" | "NAKÖN" => "jour"
+     case "NAKM" => "NAKM"
+     case _ => "no-match"
+   }
+ }
+
+ /**
+ Discerns Team from Location and latest Team fields.
+ */
+ def decodeTeamDiff(location: String, team: String): String = {
+   team match {
+     case "medicin" | "medicin gul" | "medicin blå" => {
+       if (location != "") {
+         location.charAt(0) match {
+           case 'B' => "medicin blå"
+           case 'G' => "medicin gul"
+           case 'P' => "process"
+           case _ => "medicin"
+         }
+       } else {
+         "medicin"
+       }
+     }
+     case "kirirgu" => "kirurgi"
+     case "ortopedi" => "ortopedi"
+     case "jour" => "jour"
+     case "NAKM" => {
+       if (location != "") {
+         location.charAt(0) match {
+           case 'B' => "medicin blå"
+           case 'G' => "medicin gul"
+           case 'P' => "process"
+           case _ => "NAKM"
+         }
+       } else {
+         "NAKM"
+       }
+     }
+     case _ => "no-match"
+   }
+ }
+
+ /**
+ Discerns Team from ReasonForVisit, Location and Team fields.
  */
  def decodeTeam(reasonForVisit: String, location: String, team: String): String = {
    reasonForVisit match {
