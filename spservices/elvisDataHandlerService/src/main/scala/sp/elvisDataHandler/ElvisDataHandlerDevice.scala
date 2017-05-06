@@ -318,7 +318,7 @@ val info = SPAttributes(
    var prioEventBuffer = new ListBuffer[Map[String, String]]()
    events.foreach{ e =>
      if (isValidTriageColor(e("Title"))) {
-       val startOfEvent = formatter.parse(e("Start").replaceAll("Z$", "+0200"))
+       val startOfEvent = formatter.parse(e("Start").replaceAll("Z$", "+0000"))
        if (latestEventSet) {
          if (startOfEvent.after(startOfLatestEvent)) {
            startOfLatestEvent = startOfEvent
@@ -406,7 +406,7 @@ val info = SPAttributes(
  */
  def getTimeDiff(startTimeString: String): Long = {
    var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-   val startTime = formatter.parse(startTimeString.replaceAll("Z$", "+0200"))
+   val startTime = formatter.parse(startTimeString.replaceAll("Z$", "+0000"))
    val now: Long = System.currentTimeMillis
    return Math.abs(now - startTime.getTime()) // returns diff in millisec
  }
@@ -416,7 +416,7 @@ val info = SPAttributes(
  */
  def getArrivalFormat(startTimeString: String): String = {
    var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-   val startTime = formatter.parse(startTimeString.replaceAll("Z$", "+0200"))
+   val startTime = formatter.parse(startTimeString.replaceAll("Z$", "+0000"))
    val timeFormat = new SimpleDateFormat("HH:mm")
    val timeString = timeFormat.format(startTime)
    val diff = getTimeDiff(startTimeString)
