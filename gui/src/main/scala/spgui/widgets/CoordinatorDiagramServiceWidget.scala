@@ -89,6 +89,7 @@ private val component = ReactComponentB[Unit]("teamVStatus")
     apiPatient.LatestEvent("OmsKoord", -1, false, "2017-02-01T15:58:33Z"),
     apiPatient.Plan(false, "2017-02-01T15:58:33Z"),
     apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
+    apiPatient.Debugging("NAKKK","B","B23"),
     apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
     )))
 .renderBackend[Backend]
@@ -353,7 +354,8 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): (List[List[Int]], I
       }
     }
   }
-  val sumNotTriaged: Int = notTriagedCountMG + notTriagedCountMB + notTriagedCountMedicin + notTriagedCountNakm + notTriagedCountK + notTriagedCountO + notTriagedCountS + notTriagedCountP + notTriagedCountJ
+
+  val sumNotTriaged: Int = notTriagedCountMG + notTriagedCountMB + notTriagedCountMedicin + notTriagedCountNakm + notTriagedCountK + notTriagedCountO + notTriagedCountS + notTriagedCountP + notTriagedCountJ + notTriagedCountMedicin + notTriagedCountNakm
 
   // Om man kör tmp += 1 hela tiden får man dubbletter, då en kanske båda har Orange och Klar -> Ökning med 2 i tmp.
   // Valde att splitta upp dem på Triage och Status.
@@ -450,7 +452,7 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
   val colorsTriage = List("#538AF4","#009550", "#EAC706", "#F08100", "#950000", "#950000")
   val colorsPatit = List("#FFFDFF", "#E9B7FF", "#8D47AA", "#1C0526")
 
-  val fontSize = s"${(16.0/scaleWidth)*totWidth}pt" // Om man ändrar till px blir texten mindre!!!
+  val fontSize = s"${(18.0/scaleWidth)*totWidth}pt" // Om man ändrar till px blir texten mindre!!!
   val textWhite = "#FFFFFF"
   val textBlack = "#000000"
 

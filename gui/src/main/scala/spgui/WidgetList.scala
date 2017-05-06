@@ -14,6 +14,7 @@ object WidgetList {
       ("Statusdiagram", widgets.StatusWidget(), 2, 3),
       ("Platsdiagram", widgets.PlaceWidget(), 2, 3),
       ("Patientkort", widgets.PatientCardsWidget(), 5, 19),
+      ("Felsökning", widgets.DebuggingWidget(), 5, 19),
       ("Lång tid sedan händelse", widgets.PatientReminderWidget(), 1, 19),
       // <--
 

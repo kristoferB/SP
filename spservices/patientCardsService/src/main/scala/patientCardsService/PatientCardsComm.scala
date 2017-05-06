@@ -18,6 +18,7 @@ package API_Patient {
   case class Plan(hasPlan: Boolean, timestamp: String) extends PatientProperty
   case class ArrivalTime(timeDiff: String, timestamp: String) extends PatientProperty
   case class Finished(finished: Boolean, finishedStillPresent: Boolean, timestamp: String) extends PatientProperty
+  case class Debugging(clinic: String, reasonForVisit: String, location: String) extends PatientProperty
   case class Removed(timestamp: String) extends PatientProperty
   case class Undefined() extends PatientProperty
 
@@ -31,6 +32,7 @@ package API_Patient {
     var latestEvent: LatestEvent,
     var plan: Plan,
     var arrivalTime: ArrivalTime,
+    var debugging: Debugging,
     var finished: Finished
   )
 }
