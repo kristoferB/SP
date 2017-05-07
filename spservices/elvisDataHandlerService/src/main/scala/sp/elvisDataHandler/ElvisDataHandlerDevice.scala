@@ -244,6 +244,7 @@ val info = SPAttributes(
  */
  def getDiffPatientProperties(patient: api.DiffPatient): List[apiPatient.PatientProperty] = {
    var patientPropertyBuffer = new ListBuffer[apiPatient.PatientProperty]()
+   var teamUpdated: Boolean = false
 
    // Update properties based on the patient data
    patient.patientData.foreach{ p =>
@@ -251,8 +252,10 @@ val info = SPAttributes(
        case "Team" => {
          if (!fieldEmpty(p._2)) {
            if (patient.patientData.contains("ReasonForVisit") && (patient.patientData.contains("Location") && !fieldEmpty(patient.patientData("Location")))) {
+             teamUpdated = true
              patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
            } else if (patient.patientData.contains("Location") && !fieldEmpty(patient.patientData("Location"))) {
+             teamUpdated = true
              patientPropertyBuffer += updateTeamDiff(patient.careContactId, patient.patientData("timestamp"), patient.patientData("Location"), p._2)
            } else {
              patientPropertyBuffer += updateTeamNoLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
@@ -261,7 +264,9 @@ val info = SPAttributes(
        }
        case "Location" => {
          if (!fieldEmpty(p._2)) {
-           patientPropertyBuffer += updateTeamDiff(patient.careContactId, patient.patientData("timestamp"), p._2, state(patient.careContactId).team.team)
+           if (!teamUpdated) {
+             patientPropertyBuffer += updateTeamDiff(patient.careContactId, patient.patientData("timestamp"), p._2, state(patient.careContactId).team.team)
+           }
            patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
          }
        }
@@ -824,8 +829,7 @@ if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
     val toSend = ElvisDataHandlerComm.makeMess(header, body)
     toSend match {
       case Success(v) => {
-        println(Publish("patient-event-topic", v))
-      mediator ! Publish("patient-event-topic", v)
+        mediator ! Publish("patient-event-topic", v)
       }
       case Failure(e) =>
         println("Failed")
