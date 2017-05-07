@@ -613,7 +613,7 @@ if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
          "medicin"
        }
      }
-     case "kirirgu" => "kirurgi"
+     case "kirurgi" => "kirurgi"
      case "ortopedi" => "ortopedi"
      case "jour" => "jour"
      case "NAKM" => {
