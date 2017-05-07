@@ -248,11 +248,25 @@ val info = SPAttributes(
    // Update properties based on the patient data
    patient.patientData.foreach{ p =>
      p._1 match {
-       case "Team" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateTeamNoLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
+       case "Team" => {
+         if (!fieldEmpty(p._2)) {
+           if (patient.patientData.contains("ReasonForVisit") && (patient.patientData.contains("Location") && !fieldEmpty(patient.patientData("Location")))) {
+             patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
+           } else if (patient.patientData.contains("Location") && !fieldEmpty(patient.patientData("Location"))) {
+             patientPropertyBuffer += updateTeamDiff(patient.careContactId, patient.patientData("timestamp"), patient.patientData("Location"), p._2)
+           } else {
+             patientPropertyBuffer += updateTeamNoLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
+           }
+         }
+       }
        case "Location" => {
          if (!fieldEmpty(p._2)) {
            patientPropertyBuffer += updateTeamDiff(patient.careContactId, patient.patientData("timestamp"), p._2, state(patient.careContactId).team.team)
            patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
+         } else {
+           if (state(patient.careContactId).location.roomNr != "") {
+             patientPropertyBuffer += apiPatient.Location("", patient.patientData("timestamp"))
+           }
          }
        }
        case _ => patientPropertyBuffer += apiPatient.Undefined()
