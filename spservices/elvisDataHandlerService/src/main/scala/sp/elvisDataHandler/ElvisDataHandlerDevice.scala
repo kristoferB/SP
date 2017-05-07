@@ -263,10 +263,6 @@ val info = SPAttributes(
          if (!fieldEmpty(p._2)) {
            patientPropertyBuffer += updateTeamDiff(patient.careContactId, patient.patientData("timestamp"), p._2, state(patient.careContactId).team.team)
            patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
-         } else {
-           if (state(patient.careContactId).location.roomNr != "") {
-             patientPropertyBuffer += apiPatient.Location("", patient.patientData("timestamp"))
-           }
          }
        }
        case _ => patientPropertyBuffer += apiPatient.Undefined()
