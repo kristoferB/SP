@@ -355,7 +355,7 @@ def getTriageStatusList(m: Map[String, apiPatient.Patient]): (List[List[Int]], I
     }
   }
 
-  val sumNotTriaged: Int = notTriagedCountMG + notTriagedCountMB + notTriagedCountMedicin + notTriagedCountNakm + notTriagedCountK + notTriagedCountO + notTriagedCountS + notTriagedCountP + notTriagedCountJ + notTriagedCountMedicin + notTriagedCountNakm
+  val sumNotTriaged: Int = notTriagedCountMG + notTriagedCountMB + notTriagedCountK + notTriagedCountO + notTriagedCountS + notTriagedCountP + notTriagedCountJ + notTriagedCountMedicin + notTriagedCountNakm
 
   // Om man kör tmp += 1 hela tiden får man dubbletter, då en kanske båda har Orange och Klar -> Ökning med 2 i tmp.
   // Valde att splitta upp dem på Triage och Status.
