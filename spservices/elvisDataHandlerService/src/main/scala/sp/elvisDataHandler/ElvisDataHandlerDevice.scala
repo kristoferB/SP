@@ -149,17 +149,17 @@ val info = SPAttributes(
  */
  def updateNewPatient(ccid: String, prop: apiPatient.PatientProperty): apiPatient.Patient = {
    prop match {
-     case apiPatient.Priority(color, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority(color, timestamp), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
-     case apiPatient.Attended(attended, doctorId, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(attended, doctorId, timestamp), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
-     case apiPatient.Location(roomNr, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location(roomNr, timestamp), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
-     case apiPatient.Team(team, clinic, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team(team, clinic, timestamp), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
-     case apiPatient.Examination(isOnExam, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(isOnExam, timestamp), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
-     case apiPatient.LatestEvent(latestEvent, timeDiff, needsAttention, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent(latestEvent, timeDiff, needsAttention, timestamp), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
-     case apiPatient.Plan(hasPlan, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(hasPlan, timestamp), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
-     case apiPatient.ArrivalTime(timeDiff, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime(timeDiff, timestamp), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
-     case apiPatient.Debugging(clinic, reasonForVisit, location) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging(clinic, reasonForVisit, location), apiPatient.Finished(false, false, ""))
-     case apiPatient.Finished(finished, finishedStillPresent, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(finished, finishedStillPresent, timestamp))
-     case _ => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
+     case apiPatient.Priority(color, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority(color, timestamp), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
+     case apiPatient.Attended(attended, doctorId, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(attended, doctorId, timestamp), apiPatient.Location("", ""), apiPatient.Team("", "", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
+     case apiPatient.Location(roomNr, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location(roomNr, timestamp), apiPatient.Team("", "", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
+     case apiPatient.Team(team, clinic, reasonForVisit, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team(team, clinic, reasonForVisit, timestamp), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
+     case apiPatient.Examination(isOnExam, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", "", ""), apiPatient.Examination(isOnExam, timestamp), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
+     case apiPatient.LatestEvent(latestEvent, timeDiff, needsAttention, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent(latestEvent, timeDiff, needsAttention, timestamp), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
+     case apiPatient.Plan(hasPlan, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(hasPlan, timestamp), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
+     case apiPatient.ArrivalTime(timeDiff, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime(timeDiff, timestamp), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
+     case apiPatient.Debugging(clinic, reasonForVisit, location) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging(clinic, reasonForVisit, location), apiPatient.Finished(false, false, ""))
+     case apiPatient.Finished(finished, finishedStillPresent, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(finished, finishedStillPresent, timestamp))
+     case _ => apiPatient.Patient(ccid, apiPatient.Priority("NotTriaged", ""), apiPatient.Attended(false, "NA", ""), apiPatient.Location("", ""), apiPatient.Team("", "", "", ""), apiPatient.Examination(false, ""), apiPatient.LatestEvent("", -1, false, ""), apiPatient.Plan(false, ""), apiPatient.ArrivalTime("", ""), apiPatient.Debugging("","",""), apiPatient.Finished(false, false, ""))
    }
  }
 
@@ -171,7 +171,7 @@ val info = SPAttributes(
      case apiPatient.Priority(color, timestamp) => apiPatient.Patient(ccid, apiPatient.Priority(color, timestamp), s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).examination, s(ccid).latestEvent, s(ccid).plan, s(ccid).arrivalTime, s(ccid).debugging, s(ccid).finished)
      case apiPatient.Attended(attended, doctorId, timestamp) => apiPatient.Patient(ccid, s(ccid).priority, apiPatient.Attended(attended, doctorId, timestamp), s(ccid).location, s(ccid).team, s(ccid).examination, s(ccid).latestEvent, s(ccid).plan, s(ccid).arrivalTime, s(ccid).debugging, s(ccid).finished)
      case apiPatient.Location(roomNr, timestamp) => apiPatient.Patient(ccid, s(ccid).priority, s(ccid).attended, apiPatient.Location(roomNr, timestamp), s(ccid).team, s(ccid).examination, s(ccid).latestEvent, s(ccid).plan, s(ccid).arrivalTime, s(ccid).debugging, s(ccid).finished)
-     case apiPatient.Team(team, clinic, timestamp) => apiPatient.Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, apiPatient.Team(team, clinic, timestamp), s(ccid).examination, s(ccid).latestEvent, s(ccid).plan, s(ccid).arrivalTime, s(ccid).debugging, s(ccid).finished)
+     case apiPatient.Team(team, clinic, reasonForVisit, timestamp) => apiPatient.Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, apiPatient.Team(team, clinic, reasonForVisit, timestamp), s(ccid).examination, s(ccid).latestEvent, s(ccid).plan, s(ccid).arrivalTime, s(ccid).debugging, s(ccid).finished)
      case apiPatient.Examination(isOnExam, timestamp) => apiPatient.Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, apiPatient.Examination(isOnExam, timestamp), s(ccid).latestEvent, s(ccid).plan, s(ccid).arrivalTime, s(ccid).debugging, s(ccid).finished)
      case apiPatient.LatestEvent(latestEvent, timeDiff, needsAttention, timestamp) => apiPatient.Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).examination, apiPatient.LatestEvent(latestEvent, timeDiff, needsAttention, timestamp), s(ccid).plan, s(ccid).arrivalTime, s(ccid).debugging, s(ccid).finished)
      case apiPatient.Plan(hasPlan, timestamp) => apiPatient.Patient(ccid, s(ccid).priority, s(ccid).attended, s(ccid).location, s(ccid).team, s(ccid).examination, s(ccid).latestEvent, apiPatient.Plan(hasPlan, timestamp), s(ccid).arrivalTime, s(ccid).debugging, s(ccid).finished)
@@ -216,7 +216,7 @@ val info = SPAttributes(
    // Update properties based on the patient data
    patient.patientData.foreach{ p =>
      p._1 match {
-       case "Team" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
+       case "Team" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"), "NA", "NA")
        case "Location" => if (!fieldEmpty(p._2)) patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
        case "Priority" => patientPropertyBuffer += updatePriority(patient.careContactId, patient.patientData("timestamp"), p._2)
        case "VisitRegistrationTime" => patientPropertyBuffer += updateArrivalTime(patient.careContactId, p._2)
@@ -239,6 +239,20 @@ val info = SPAttributes(
    return patientPropertyBuffer.toList
  }
 
+ def hasReasonForVisitAndLocation(data: Map[String, String]): Boolean = {
+   if (data.contains("ReasonForVisit") && data.contains("Location")) {
+     return true
+   }
+   return false
+ }
+
+ def hasLocation(data: Map[String, String]): Boolean = {
+   if (data.contains("Location")) {
+     return true
+   }
+   return false
+ }
+
  /**
  Takes a DiffPatient and extracts PatientProperties based on updates and events.
  */
@@ -250,21 +264,20 @@ val info = SPAttributes(
    patient.patientData.foreach{ p =>
      p._1 match {
        case "Team" => {
-           if (patient.patientData.contains("ReasonForVisit") && (patient.patientData.contains("Location") && !fieldEmpty(patient.patientData("Location")))) {
-             teamUpdated = true
-             patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
-           } else if (patient.patientData.contains("Location") && !fieldEmpty(patient.patientData("Location"))) {
-             teamUpdated = true
-             patientPropertyBuffer += updateTeamDiff(patient.careContactId, patient.patientData("timestamp"), patient.patientData("Location"), p._2)
-           } else {
-             teamUpdated = true
-             patientPropertyBuffer += updateTeamNoLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
-           }
+         if (hasReasonForVisitAndLocation(patient.patientData)) {
+           teamUpdated = true
+           patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"), state(patient.careContactId).team.team, state(patient.careContactId).team.reasonForVisit)
+         } else if (hasLocation(patient.patientData)) {
+           teamUpdated = true
+           patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, "NA", patient.patientData("Location"), state(patient.careContactId).team.team, state(patient.careContactId).team.reasonForVisit)
+         } else {
+           patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, "NA", "NA", state(patient.careContactId).team.team, state(patient.careContactId).team.reasonForVisit)
+         }
        }
        case "Location" => {
          if (!fieldEmpty(p._2)) {
            if (!teamUpdated) {
-             patientPropertyBuffer += updateTeamDiffExistingTeam(patient.careContactId, patient.patientData("timestamp"), p._2, state(patient.careContactId).team.team)
+             patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), state(patient.careContactId).team.team, state(patient.careContactId).team.reasonForVisit, p._2, "given", "given")
            }
            patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
          } else {
@@ -272,7 +285,7 @@ val info = SPAttributes(
              println("Patient " + patient.careContactId + " had location " + state(patient.careContactId).location.roomNr + ", now has diff with empty location field.")
              patientPropertyBuffer += apiPatient.Location(p._2, patient.patientData("timestamp"))
              if (!teamUpdated) {
-               patientPropertyBuffer += updateTeamDiffExistingTeam(patient.careContactId, patient.patientData("timestamp"), state(patient.careContactId).team.team)
+               patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), state(patient.careContactId).team.team, state(patient.careContactId).team.reasonForVisit, p._2, "given", "given")
              }
            }
          }
@@ -376,32 +389,59 @@ val info = SPAttributes(
    return apiPatient.Undefined()
  }
 
- /**
- Discerns apiPatient.Team.team and clinic, returns a apiPatient.Team-type.
- */
- def updateTeam(careContactId: String, timestamp: String, team: String, reasonForVisit: String, location: String): apiPatient.Team = {
-   return apiPatient.Team(decodeTeam(reasonForVisit, location, team), decodeClinic(team), timestamp)
+ def decodeTeamWithOldGiven(location: String, team: String, reasonForVisit: String): String = {
+   if (location != "") {
+     location.charAt(0) match {
+       case 'B' => "medicin blå"
+       case 'G' => "medicin gul"
+       case 'P' => "process"
+       case _ => {
+         if (reasonForVisit == "B" || reasonForVisit == "MEP") {
+           team match {
+             case "medicin" | "medicin gul" | "medicin blå" => "medicin"
+             case "kirurgi" => "kirurgi"
+             case "ortopedi" => "ortopedi"
+             case "jour" => "jour"
+             case "NAKM" => "NAKM"
+             case _ => "no-match"
+           }
+         } else {
+           team
+         }
+       }
+     }
+   } else {
+     if (reasonForVisit == "B" || reasonForVisit == "MEP") {
+       if (team == "medicin gul" || team == "medicin blå") {
+         "medicin"
+       } else {
+         team
+       }
+     } else {
+       team
+     }
+   }
  }
 
  /**
-
+ Discerns team and clinic, returns a apiPatient.Team-type.
  */
- def updateTeamNoLocation(careContactId: String, timestamp: String, team: String): apiPatient.Team = {
-   return apiPatient.Team(decodeTeamNoLocation(team), decodeClinic(team), timestamp)
- }
-
- /**
- Discerns team, returns a Team-type.
- */
- def updateTeamDiff(careContactId: String, timestamp: String, location: String, team: String): apiPatient.Team = {
-   return apiPatient.Team(decodeTeamDiff(location, team), decodeClinic(team), timestamp)
- }
-
- /**
- Discerns team, returns a Team-type.
- */
- def updateTeamDiffExistingTeam(careContactId: String, timestamp: String, location: String, team: String): apiPatient.Team = {
-   return apiPatient.Team(decodeTeamDiffExistingTeam(location, team), decodeClinic(team), timestamp)
+ def updateTeam(careContactId: String, timestamp: String, team: String, reasonForVisit: String, location: String, oldTeam: String, oldReasonForVisit: String): apiPatient.Team = {
+   if (oldTeam == "given" && oldReasonForVisit == "given") {
+     if (fieldEmpty(location)) {
+       return apiPatient.Team(decodeTeamWithOldGiven(location, team, reasonForVisit), decodeClinic(team), reasonForVisit, timestamp)
+     } else {
+       return apiPatient.Team(decodeTeamWithOldGiven(location, team, reasonForVisit), decodeClinic(team), reasonForVisit, timestamp)
+     }
+   } else {
+     if (reasonForVisit != "NA" && location != "NA") {
+       return apiPatient.Team(decodeTeamWithReasonForVisitAndLocation(reasonForVisit, location, team), decodeClinic(team), reasonForVisit, timestamp)
+     } else if (location != "NA") {
+       return apiPatient.Team(decodeTeamWithLocation(location, team, oldTeam, oldReasonForVisit), decodeClinic(team), oldReasonForVisit, timestamp)
+     } else {
+       return apiPatient.Team(decodeTeam(team, oldTeam, oldReasonForVisit), decodeClinic(team), oldReasonForVisit, timestamp)
+     }
+   }
  }
 
  /**
@@ -613,7 +653,7 @@ if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
  /**
  Discerns Team from Location and latest Team fields.
  */
- def decodeTeamDiffExistingTeam(location: String, team: String): String = {
+ def decodeTeamDiffExistingTeamClinic(location: String, team: String, clinic: String): String = {
    if (location != "") {
      location.charAt(0) match {
        case 'B' => "medicin blå"
@@ -631,50 +671,61 @@ if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
        }
      }
    } else {
+     if (team == "medicin gul" || team == "medicin blå") {
+       return "medicin"
+     }
      return team
    }
  }
 
- /**
- Discerns Team from Location and latest Team fields.
- */
- def decodeTeamDiff(location: String, team: String): String = {
-   team match {
-     case "NAKME" => {
-       if (location != "") {
-         location.charAt(0) match {
-           case 'B' => "medicin blå"
-           case 'G' => "medicin gul"
-           case 'P' => "process"
-           case _ => "medicin"
-         }
-       } else {
-         "medicin"
-       }
+ def decodeTeam(team: String, oldTeam: String, oldReasonForVisit: String): String = {
+   if (oldReasonForVisit == "B" || oldReasonForVisit == "MEP") {
+     team match {
+       case "NAKME" => "medicin"
+       case "NAKKI" => "kirurgi"
+       case "NAKOR" => "ortopedi"
+       case "NAKBA" | "NAKGY" | "NAKÖN" => "jour"
+       case "NAKM" => "NAKM"
+       case _ => "no-match"
      }
-     case "NAKKI" => "kirurgi"
-     case "NAKOR" => "ortopedi"
-     case "NAKBA" | "NAKGY" | "NAKÖN" => "jour"
-     case "NAKM" => {
-       if (location != "") {
-         location.charAt(0) match {
-           case 'B' => "medicin blå"
-           case 'G' => "medicin gul"
-           case 'P' => "process"
-           case _ => "NAKM"
-         }
-       } else {
-         "NAKM"
-       }
-     }
-     case _ => "no-match"
+   } else {
+     oldTeam
    }
  }
 
  /**
  Discerns Team from ReasonForVisit, Location and Team fields.
  */
- def decodeTeam(reasonForVisit: String, location: String, clinic: String): String = {
+ def decodeTeamWithLocation(location: String, clinic: String, oldTeam: String, oldReasonForVisit: String): String = {
+   if (location != "") {
+     location.charAt(0) match {
+       case 'B' => "medicin blå"
+       case 'G' => "medicin gul"
+       case 'P' => "process"
+       case _ => {
+         if (oldReasonForVisit == "B" || oldReasonForVisit == "MEP") {
+           clinic match {
+             case "NAKME" => "medicin"
+             case "NAKKI" => "kirurgi"
+             case "NAKOR" => "ortopedi"
+             case "NAKBA" | "NAKGY" | "NAKÖN" => "jour"
+             case "NAKM" => "NAKM"
+             case _ => "no-match"
+           }
+         } else {
+           oldTeam
+         }
+       }
+     }
+   } else {
+     oldTeam
+   }
+ }
+
+ /**
+ Discerns Team from ReasonForVisit, Location and Team fields.
+ */
+ def decodeTeamWithReasonForVisitAndLocation(reasonForVisit: String, location: String, clinic: String): String = {
    reasonForVisit match {
      case "AKP" => "stream"
      case "ALL" | "TRAU" => "process"

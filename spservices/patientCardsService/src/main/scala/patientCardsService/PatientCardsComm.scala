@@ -12,7 +12,7 @@ package API_Patient {
   case class Priority(color: String, timestamp: String) extends PatientProperty
   case class Attended(attended: Boolean, doctorId: String, timestamp: String) extends PatientProperty
   case class Location(roomNr: String, timestamp: String) extends PatientProperty
-  case class Team(team: String, clinic: String, timestamp: String) extends PatientProperty
+  case class Team(team: String, clinic: String, reasonForVisit: String, timestamp: String) extends PatientProperty
   case class Examination(isOnExam: Boolean, timestamp: String) extends PatientProperty
   case class LatestEvent(latestEvent: String, timeDiff: Long, needsAttention: Boolean, timestamp: String) extends PatientProperty
   case class Plan(hasPlan: Boolean, timestamp: String) extends PatientProperty
