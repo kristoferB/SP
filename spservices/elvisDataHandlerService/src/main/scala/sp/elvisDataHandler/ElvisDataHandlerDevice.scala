@@ -272,6 +272,12 @@ val info = SPAttributes(
          } else {
            if (state(patient.careContactId).location.roomNr != "") {
              println("Patient " + patient.careContactId + " had location " + state(patient.careContactId).location.roomNr + ", now has diff with empty location field.")
+             patientPropertyBuffer += apiPatient.Location(p._2, patient.patientData("timestamp"))
+             if (!teamUpdated) {
+               if (state(patient.careContactId).team.team == "medicin gul" || state(patient.careContactId).team.team == "medicin blå" || state(patient.careContactId).team.team == "process") {
+                 patientPropertyBuffer += updateTeamNoLocation(patient.careContactId, patient.patientData("timestamp"), state(patient.careContactId).team.team)
+               }
+             }
            }
          }
        }
@@ -784,24 +790,33 @@ if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
     val reasonForVisitJson = (patient \ "ReasonForVisit")
     val teamJson = (patient \ "Team")
 
+    var mapToReturn: Map[String, String] = Map()
+
     if (departmentCommentJson != JNothing) {
       departmentComment = departmentCommentJson.values.toString
+      mapToReturn += "DepartmentComment" -> departmentComment
     }
     if (locationJson != JNothing) {
       location = locationJson.values.toString
+      mapToReturn += "Location" -> location
     }
     if (reasonForVisitJson != JNothing) {
       reasonForVisit = reasonForVisitJson.values.toString
+      mapToReturn += "ReasonForVisit" -> reasonForVisit
     }
     if (teamJson != JNothing) {
       team = teamJson.values.toString
+      mapToReturn += "Team" -> team
     }
 
     val timestamp = (patient \ "timestamp").values.toString
     val careContactId = (patient \ "CareContactId").values.toString
     val patientId = (patient \ "PatientId").values.toString
-    return Map("DepartmentComment" -> departmentComment, "Location" -> location, "ReasonForVisit" -> reasonForVisit,
-    "Team" -> team, "timestamp" -> timestamp, "CareContactId" -> careContactId, "PatientId" -> patientId)
+
+    mapToReturn += "timestamp" -> timestamp
+    mapToReturn += "CareContactId" -> careContactId
+    mapToReturn += "PatientId" -> patientId
+    return mapToReturn
   }
 
   def extractNewPatientData(patient: JValue): Map[String, String] = {
