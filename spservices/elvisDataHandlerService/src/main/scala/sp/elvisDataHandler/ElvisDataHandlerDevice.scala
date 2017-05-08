@@ -250,7 +250,6 @@ val info = SPAttributes(
    patient.patientData.foreach{ p =>
      p._1 match {
        case "Team" => {
-         if (!fieldEmpty(p._2)) {
            if (patient.patientData.contains("ReasonForVisit") && (patient.patientData.contains("Location") && !fieldEmpty(patient.patientData("Location")))) {
              teamUpdated = true
              patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), p._2, patient.patientData("ReasonForVisit"), patient.patientData("Location"))
@@ -261,7 +260,6 @@ val info = SPAttributes(
              teamUpdated = true
              patientPropertyBuffer += updateTeamNoLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
            }
-         }
        }
        case "Location" => {
          if (!fieldEmpty(p._2)) {
@@ -274,9 +272,7 @@ val info = SPAttributes(
              println("Patient " + patient.careContactId + " had location " + state(patient.careContactId).location.roomNr + ", now has diff with empty location field.")
              patientPropertyBuffer += apiPatient.Location(p._2, patient.patientData("timestamp"))
              if (!teamUpdated) {
-               if (state(patient.careContactId).team.team == "medicin gul" || state(patient.careContactId).team.team == "medicin blå" || state(patient.careContactId).team.team == "process") {
-                 patientPropertyBuffer += updateTeamNoLocation(patient.careContactId, patient.patientData("timestamp"), state(patient.careContactId).team.team)
-               }
+               patientPropertyBuffer += updateTeamDiffExistingTeam(patient.careContactId, patient.patientData("timestamp"), state(patient.careContactId).team.team)
              }
            }
          }
