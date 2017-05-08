@@ -258,6 +258,7 @@ val info = SPAttributes(
              teamUpdated = true
              patientPropertyBuffer += updateTeamDiff(patient.careContactId, patient.patientData("timestamp"), patient.patientData("Location"), p._2)
            } else {
+             teamUpdated = true
              patientPropertyBuffer += updateTeamNoLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
            }
          }
@@ -268,6 +269,10 @@ val info = SPAttributes(
              patientPropertyBuffer += updateTeamDiff(patient.careContactId, patient.patientData("timestamp"), p._2, state(patient.careContactId).team.team)
            }
            patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
+         } else {
+           if (state(patient.careContactId).location.roomNr != "") {
+             println("Patient " + patient.careContactId + " had location " + state(patient.careContactId).location.roomNr + ", now has diff with empty location field.")
+           }
          }
        }
        case _ => patientPropertyBuffer += apiPatient.Undefined()
