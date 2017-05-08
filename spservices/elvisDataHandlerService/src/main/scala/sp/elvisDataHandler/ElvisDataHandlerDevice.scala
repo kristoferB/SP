@@ -266,7 +266,7 @@ val info = SPAttributes(
        case "Location" => {
          if (!fieldEmpty(p._2)) {
            if (!teamUpdated) {
-             patientPropertyBuffer += updateTeamDiff(patient.careContactId, patient.patientData("timestamp"), p._2, state(patient.careContactId).team.team)
+             patientPropertyBuffer += updateTeamDiffExistingTeam(patient.careContactId, patient.patientData("timestamp"), p._2, state(patient.careContactId).team.team)
            }
            patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
          } else {
@@ -395,10 +395,17 @@ val info = SPAttributes(
  }
 
  /**
- Discerns apiPatient.Team and klinik, returns a apiPatient.Team-type.
+ Discerns team, returns a Team-type.
  */
  def updateTeamDiff(careContactId: String, timestamp: String, location: String, team: String): apiPatient.Team = {
    return apiPatient.Team(decodeTeamDiff(location, team), decodeClinic(team), timestamp)
+ }
+
+ /**
+ Discerns team, returns a Team-type.
+ */
+ def updateTeamDiffExistingTeam(careContactId: String, timestamp: String, location: String, team: String): apiPatient.Team = {
+   return apiPatient.Team(decodeTeamDiffExistingTeam(location, team), decodeClinic(team), timestamp)
  }
 
  /**
@@ -610,9 +617,34 @@ if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
  /**
  Discerns Team from Location and latest Team fields.
  */
+ def decodeTeamDiffExistingTeam(location: String, team: String): String = {
+   if (location != "") {
+     location.charAt(0) match {
+       case 'B' => "medicin blå"
+       case 'G' => "medicin gul"
+       case 'P' => "process"
+       case _ => {
+         team match {
+           case "medicin" | "medicin gul" | "medicin blå" => "medicin"
+           case "kirurgi" => "kirurgi"
+           case "ortopedi" => "ortopedi"
+           case "jour" => "jour"
+           case "NAKM" => "NAKM"
+           case _ => "no-match"
+         }
+       }
+     }
+   } else {
+     return team
+   }
+ }
+
+ /**
+ Discerns Team from Location and latest Team fields.
+ */
  def decodeTeamDiff(location: String, team: String): String = {
    team match {
-     case "medicin" | "medicin gul" | "medicin blå" => {
+     case "NAKME" => {
        if (location != "") {
          location.charAt(0) match {
            case 'B' => "medicin blå"
@@ -624,9 +656,9 @@ if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
          "medicin"
        }
      }
-     case "kirurgi" => "kirurgi"
-     case "ortopedi" => "ortopedi"
-     case "jour" => "jour"
+     case "NAKKI" => "kirurgi"
+     case "NAKOR" => "ortopedi"
+     case "NAKBA" | "NAKGY" | "NAKÖN" => "jour"
      case "NAKM" => {
        if (location != "") {
          location.charAt(0) match {
