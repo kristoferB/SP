@@ -9,6 +9,9 @@ import scala.util.Try
 import com.github.nscala_time.time.Imports._
 import org.json4s._
 
+// Internally
+
+package API_Data {
 case class ElvisPatient(CareContactId: Int,
                         CareContactRegistrationTime: String,
                         DepartmentComment: String,
@@ -29,15 +32,27 @@ case class ElvisEvent(CareEventId: Int,
                       Value: String,
                       VisitId: Int)
 
+case class EricaEvent(CareContactId: Int,
+                      Category: String,
+                      End: String,
+                      Start: String,
+                      Title: String,
+                      Type: String,
+                      Value: String,
+                      VisitId: Int)
+
 case class PatientDiff(updates: Map[String, JValue], newEvents: List[ElvisEvent], removedEvents: List[ElvisEvent])
 case class NewPatient(timestamp: String, patient: ElvisPatient)
 case class RemovedPatient(timestamp: String, patient: ElvisPatient)
 case class SnapShot(patients: List[ElvisPatient])
+}
+
 
 package API_PatientEvent {
+  import sp.gPubSub.{API_Data => api}
   // Messages I can send
   sealed trait ElvisEvent
-  case class ElvisData(data: String) extends ElvisEvent
+  case class ElvisData(events: List[api.EricaEvent]) extends ElvisEvent
 
   object attributes {
     val service = "gPubSubService"
@@ -47,7 +62,5 @@ package API_PatientEvent {
 import sp.gPubSub.{API_PatientEvent => api}
 
 object GPubSubComm {
-
-  //def makeMess(h: SPHeader, b: api.ElvisEvent) = SPMessage.makeJson[SPHeader, api.ElvisEvent](h, b)
 
 }

@@ -19,13 +19,7 @@ object Launch extends App {
     // Start all you actors here.
     println("ElvisDataHandlerService node has joined the cluster")
     system.actorOf(ElvisDataHandlerDevice.props, API_PatientEvent.attributes.service)
-    system.actorOf(sp.waitingroomservice.WaitingRoomDevice.props)
     system.actorOf(sp.patientcardsservice.PatientCardsDevice.props)
-    system.actorOf(sp.placediagramservice.PlaceDiagramDevice.props)
-    system.actorOf(sp.roomoverviewservice.RoomOverviewDevice.props)
-    system.actorOf(sp.statusdiagramservice.StatusDiagramDevice.props)
-    system.actorOf(sp.triagediagramservice.TriageDiagramDevice.props)
-    system.actorOf(sp.coordinatordiagramservice.CoordinatorDiagramDevice.props)
 
   }
   cluster.registerOnMemberRemoved{

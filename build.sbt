@@ -87,16 +87,6 @@ lazy val opcua = (project in file("spservices/opcua"))
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
-lazy val exampleService = (project in file("spservices/exampleService"))
-  .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
-
-lazy val d3exampleService = (project in file("spservices/d3exampleservice"))
-  .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
-
 lazy val gPubSubService = (project in file("spservices/gPubSubService"))
   .dependsOn(spdomain, macros)
 .settings(commonSettings: _*)
@@ -107,53 +97,15 @@ lazy val fakeElvisService = (project in file("spservices/fakeElvisService"))
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
-//lazy val elvisDataHandlerService = (project in file("spservices/elvisDataHandlerService"))
-//  .dependsOn(spdomain, macros)
-//.settings(commonSettings: _*)
-//.settings(libraryDependencies ++= akka)
-
 lazy val patientCardsService = (project in file("spservices/patientCardsService"))
   .dependsOn(spdomain, macros)
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
-lazy val triageDiagramService = (project in file("spservices/triageDiagramService"))
-  .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
-
-lazy val statusDiagramService = (project in file("spservices/statusDiagramService"))
-  .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
-
-lazy val placeDiagramService = (project in file("spservices/placeDiagramService"))
-  .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
-
-lazy val coordinatorDiagramService = (project in file("spservices/coordinatorDiagramService"))
-  .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
-
-lazy val roomOverviewService = (project in file("spservices/roomOverviewService"))
-  .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
-
-
 lazy val ericaBackend = (project in file("spservices/elvisDataHandlerService"))
-  .dependsOn(spdomain, macros, spcore, waitingRoomService, patientCardsService, statusDiagramService, placeDiagramService, triageDiagramService, coordinatorDiagramService, roomOverviewService)
+  .dependsOn(spdomain, macros, spcore, patientCardsService)
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
-
-lazy val waitingRoomService = (project in file("spservices/waitingRoomService"))
-  .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
-
-
 
 lazy val spseed = (project in file("spservices/spseed"))
   .settings(commonSettings: _*)

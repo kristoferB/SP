@@ -7,12 +7,12 @@ import sp.messages._
 import sp.messages.Pickles._
 import java.util
 
+import scala.collection.mutable.ListBuffer
+
 import sp.domain._
 import sp.domain.Logic._
-import sp.gPubSub.{API_PatientEvent => api}
-
-
-
+import sp.gPubSub.{API_Data => api}
+import sp.gPubSub.{API_PatientEvent => sendApi}
 
 object GPubSubDevice {
   def props = Props(classOf[GPubSubDevice])
@@ -41,18 +41,12 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
   import akka.cluster.pubsub._
   import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
   val mediator = DistributedPubSub(context.system).mediator
-//  mediator ! Subscribe("services", self)
-//  mediator ! Subscribe("spevents", self)
-//  mediator ! Subscribe("elvis-diff", self)
 
-  //import context.dispatcher
-  //val ticker = context.system.scheduler.schedule(100 seconds, 100 seconds, self, Ticker)
-
+  var state: List[api.EricaEvent] = List()
 
   def receive = {
     case Ticker => clearState() // Propably used for testing. Only locally present.
     case mess @ _ if {println(s"GPubSubService MESSAGE: $mess from $sender"); false} => Unit
-
   }
 
   val timeout = 10 second
@@ -70,32 +64,40 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
   client.createSubscription(testSubscription, testTopic)
 
 
-  val toJsonString:Flow[PubSubMessage, String, NotUsed] = Flow[PubSubMessage]
-    .map{m => new String(m.payload, Charsets.UTF_8)}
+  val toJsonString: Flow[PubSubMessage, String, NotUsed] = Flow[PubSubMessage]
+    .map{m => {
+      new String(m.payload, Charsets.UTF_8)
+      }
+    }
 
-  val jsonToList: Flow[String, List[ElvisPatient], NotUsed] = Flow[String]
+  val jsonToList: Flow[String, List[api.ElvisPatient], NotUsed] = Flow[String]
     .map{json => SPAttributes.fromJson(json)}
     .collect{
-      case Some(attr) => attr.tryAs[List[ElvisPatient]]("patients")
+      case Some(attr) => attr.tryAs[List[api.ElvisPatient]]("patients")
     }
     .collect{
-      case Success(xs) => xs
+      case Success(xs) => {
+        xs
+      }
     }
 
-  val makeDiff: Flow[List[ElvisPatient], String, NotUsed] = Flow[List[ElvisPatient]]
+  val makeDiff: Flow[List[api.ElvisPatient], String, NotUsed] = Flow[List[api.ElvisPatient]]
     .mapConcat(checkTheDiff)
 
 
   val s = Source.fromGraph(new PubSubSource(testSubscription)).withAttributes(attributes)
 
-  val testSink = Sink.foreach{ x: Any =>
-  }
-
   val mediatorSink = Sink.foreach{ s: String =>
-    val h = SPHeader(from = "gPubSubDevice")
-    val b = api.ElvisData(s)
-    val mess = SPMessage.makeJson(h, b).get
-    mediator ! Publish("elvis-diff", mess)
+    val patientsToElastic = new elastic.DataAggregation
+    var newState = patientsToElastic.handleMessage(s)
+    if (!newState.isEmpty) {
+      state = state ++ newState
+      println("Publishing current list of events")
+      val h = SPHeader(from = "gPubSubDevice")
+      val b = sendApi.ElvisData(state)
+      val mess = SPMessage.makeJson(h, b).get
+      mediator ! Publish("elvis-diff", mess)
+    }
   }
 
   val test = s via toJsonString via jsonToList via makeDiff runWith(mediatorSink)
@@ -117,16 +119,15 @@ trait DiffMagic {
   //implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
 
 
-  var currentState: List[ElvisPatient] = List()
+  var currentState: List[api.ElvisPatient] = List()
 
   def clearState() = currentState = List()
 
-/// CLEAR TO HERE
-  def checkTheDiff(ps: List[ElvisPatient]): List[String] = {
+  def checkTheDiff(ps: List[api.ElvisPatient]): List[String] = {
     if (currentState.isEmpty) {
       currentState = ps
       ps.map{p =>
-        val newP = NewPatient(getNow, p)
+        val newP = api.NewPatient(getNow, p)
         val json = write(Map("data"->newP, "isa"->"newLoad"))
         json
       }
@@ -139,12 +140,12 @@ trait DiffMagic {
         val diffP = diffPat(p, currentState.find(_.CareContactId == p.CareContactId))
         diffP match {
           case None => {
-            val newP = NewPatient(getNow, p)
+            val newP = api.NewPatient(getNow, p)
             val json = write(Map("data"->newP, "isa"->"new"))
             json
           }
           case Some(d) => {
-            val diffPatient = PatientDiff(d._1, d._2, d._3)
+            val diffPatient = api.PatientDiff(d._1, d._2, d._3)
             val json = write(Map("data"->diffPatient, "isa"->"diff"))
             json
           }
@@ -152,7 +153,7 @@ trait DiffMagic {
       }
 
       val rem = removed.map{p =>
-        val removedPat = RemovedPatient(getNow, p)
+        val removedPat = api.RemovedPatient(getNow, p)
         val json = write(Map("data"->removedPat, "isa"->"removed"))
         json
       }
@@ -170,9 +171,9 @@ trait DiffMagic {
   }
 
 
-  def diffPat(curr: ElvisPatient, old: Option[ElvisPatient])={
+  def diffPat(curr: api.ElvisPatient, old: Option[api.ElvisPatient])={
     old.map {
-      case prev: ElvisPatient => {
+      case prev: api.ElvisPatient => {
         (Map(
           "CareContactId" -> Some(Extraction.decompose(curr.CareContactId)),
           "CareContactRegistrationTime" -> diffThem(prev.CareContactRegistrationTime, curr.CareContactRegistrationTime),

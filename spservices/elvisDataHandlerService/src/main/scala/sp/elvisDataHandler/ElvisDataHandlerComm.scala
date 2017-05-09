@@ -5,7 +5,7 @@ import sp.domain.Logic._
 import sp.messages._
 import Pickles._
 import scala.util._
-
+/**
 package API_Patient {
   sealed trait PatientProperty
   case class Priority(color: String, timestamp: String) extends PatientProperty
@@ -34,28 +34,49 @@ package API_Patient {
     var debugging: Debugging,
     var finished: Finished
   )
+}*/
+
+package API_Data {
+  case class EricaPatient(CareContactId: Int,
+                        CareContactRegistrationTime: String,
+                        DepartmentComment: String,
+                        Location: String,
+                        PatientId: Int,
+                        ReasonForVisit: String,
+                        Team: String,
+                        VisitId: Int,
+                        VisitRegistrationTime: String)
+
+  case class EricaEvent(CareContactId: Int,
+                      Category: String,
+                      End: String,
+                      Start: String,
+                      Title: String,
+                      Type: String,
+                      Value: String,
+                      VisitId: Int)
 }
 
 package API_PatientEvent {
-  import sp.elvisdatahandler.{API_Patient => api}
+  import sp.elvisdatahandler.{API_Data => api}
 
   sealed trait Event
-
+/**
   sealed trait PatientEvent
   case class NewPatient(careContactId: String, patientData: Map[String, String], events: List[Map[String, String]]) extends PatientEvent with Event
   case class DiffPatient(careContactId: String, patientData: Map[String, String], newEvents: List[Map[String, String]], removedEvents: List[Map[String, String]]) extends PatientEvent with Event
   case class RemovedPatient(careContactId: String, timestamp: String) extends PatientEvent with Event
-  case class Undefined() extends PatientEvent with Event
+  case class Undefined() extends PatientEvent with Event*/
 
   sealed trait StateEvent
   case class GetState() extends StateEvent with Event
-  case class State(patients: Map[String, api.Patient]) extends StateEvent with Event
+  case class State(patients: Map[String, api.EricaPatient]) extends StateEvent with Event
 
   case class Tick() extends StateEvent with Event
 
   // Messages I can receive
   sealed trait ElvisEvent
-  case class ElvisData(data: String) extends ElvisEvent
+  case class ElvisData(events: List[api.EricaEvent]) extends ElvisEvent
 
   object attributes {
     val service = "elvisDataHandlerService"
