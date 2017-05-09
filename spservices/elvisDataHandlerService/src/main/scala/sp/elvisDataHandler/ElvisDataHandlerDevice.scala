@@ -259,6 +259,7 @@ val info = SPAttributes(
  def getDiffPatientProperties(patient: api.DiffPatient): List[apiPatient.PatientProperty] = {
    var patientPropertyBuffer = new ListBuffer[apiPatient.PatientProperty]()
    var teamUpdated: Boolean = false
+   var locationUpdated: Boolean = false
 
    // Update properties based on the patient data
    patient.patientData.foreach{ p =>
@@ -276,18 +277,29 @@ val info = SPAttributes(
        }
        case "Location" => {
          if (!fieldEmpty(p._2)) {
+           patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
+           locationUpdated = true
            if (!teamUpdated) {
              patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), state(patient.careContactId).team.team, state(patient.careContactId).team.reasonForVisit, p._2, "given", "given")
            }
-           patientPropertyBuffer += updateLocation(patient.careContactId, patient.patientData("timestamp"), p._2)
          } else {
            if (state(patient.careContactId).location.roomNr != "") {
              println("Patient " + patient.careContactId + " had location " + state(patient.careContactId).location.roomNr + ", now has diff with empty location field.")
              patientPropertyBuffer += apiPatient.Location(p._2, patient.patientData("timestamp"))
+             locationUpdated = true
              if (!teamUpdated) {
                patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), state(patient.careContactId).team.team, state(patient.careContactId).team.reasonForVisit, p._2, "given", "given")
              }
            }
+         }
+       }
+       case "ReasonForVisit" => {
+         if (!teamUpdated && !locationUpdated) {
+           patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), state(patient.careContactId).team.team, p._2, "NA", "given", "new")
+         } else if (locationUpdated && !teamUpdated) {
+           patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), state(patient.careContactId).team.team, p._2, patient.patientData("Location"), "given", "new")
+         } else if (locationUpdated && teamUpdated) {
+           patientPropertyBuffer += updateTeam(patient.careContactId, patient.patientData("timestamp"), patient.patientData("Team"), p._2, patient.patientData("Location"), "new", "new")
          }
        }
        case _ => patientPropertyBuffer += apiPatient.Undefined()
@@ -389,6 +401,49 @@ val info = SPAttributes(
    return apiPatient.Undefined()
  }
 
+ def decodeTeamWithReasonForVisit(team: String, reasonForVisit: String): String = {
+   reasonForVisit match {
+     case "AKP" => "stream"
+     case "ALL" | "TRAU" => "process"
+     case _ => team
+   }
+ }
+
+ def decodeTeamWithReasonForVisitAndLocation(team: String, location: String, reasonForVisit: String): String = {
+   reasonForVisit match {
+     case "AKP" => "stream"
+     case "ALL" | "TRAU" => "process"
+     case _ => {
+       if (location != "") {
+         location.charAt(0) match {
+           case 'B' => "medicin blå"
+           case 'G' => "medicin gul"
+           case 'P' => "process"
+           case _ => {
+             team match {
+               case "medicin" | "medicin gul" | "medicin blå" => "medicin"
+               case "kirurgi" => "kirurgi"
+               case "ortopedi" => "ortopedi"
+               case "jour" => "jour"
+               case "NAKM" => "NAKM"
+               case _ => team
+             }
+           }
+         }
+       } else {
+         team match {
+           case "medicin" | "medicin gul" | "medicin blå" => "medicin"
+           case "kirurgi" => "kirurgi"
+           case "ortopedi" => "ortopedi"
+           case "jour" => "jour"
+           case "NAKM" => "NAKM"
+           case _ => team
+         }
+       }
+     }
+   }
+ }
+
  def decodeTeamWithOldGiven(location: String, team: String, reasonForVisit: String): String = {
    if (location != "") {
      location.charAt(0) match {
@@ -428,14 +483,16 @@ val info = SPAttributes(
  */
  def updateTeam(careContactId: String, timestamp: String, team: String, reasonForVisit: String, location: String, oldTeam: String, oldReasonForVisit: String): apiPatient.Team = {
    if (oldTeam == "given" && oldReasonForVisit == "given") {
-     if (fieldEmpty(location)) {
-       return apiPatient.Team(decodeTeamWithOldGiven(location, team, reasonForVisit), decodeClinic(team), reasonForVisit, timestamp)
-     } else {
-       return apiPatient.Team(decodeTeamWithOldGiven(location, team, reasonForVisit), decodeClinic(team), reasonForVisit, timestamp)
-     }
+     return apiPatient.Team(decodeTeamWithOldGiven(location, team, reasonForVisit), decodeClinic(team), reasonForVisit, timestamp)
+   } else if (oldTeam == "given" && oldReasonForVisit == "new" && location == "NA") {
+     return apiPatient.Team(decodeTeamWithReasonForVisit(team, reasonForVisit), decodeClinic(team), reasonForVisit, timestamp)
+   } else if (oldTeam == "given" && oldReasonForVisit == "new") {
+     return apiPatient.Team(decodeTeamWithReasonForVisitAndLocation(team, location, reasonForVisit), decodeClinic(team), reasonForVisit, timestamp)
+   } else if (oldTeam == "new" && oldReasonForVisit == "new") {
+     return apiPatient.Team(decodeTeamWithReasonForVisitAndLocationAndTeam(team, location, reasonForVisit), decodeClinic(team), reasonForVisit, timestamp)
    } else {
      if (reasonForVisit != "NA" && location != "NA") {
-       return apiPatient.Team(decodeTeamWithReasonForVisitAndLocation(reasonForVisit, location, team), decodeClinic(team), reasonForVisit, timestamp)
+       return apiPatient.Team(decodeTeamWithReasonForVisitAndLocationAndClinic(reasonForVisit, location, team), decodeClinic(team), reasonForVisit, timestamp)
      } else if (location != "NA") {
        return apiPatient.Team(decodeTeamWithLocation(location, team, oldTeam, oldReasonForVisit), decodeClinic(team), oldReasonForVisit, timestamp)
      } else {
@@ -615,7 +672,7 @@ val info = SPAttributes(
  Filters out a room nr to present from an apiPatient.Location.
  */
  def decodeLocation(location: String): String = {
-if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
+   if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
      location.replaceAll("[^0-9]","")
    } else if (location matches "[BbGgPp].{2}") {
      location.replaceAll("[^0-9]","")
@@ -722,10 +779,50 @@ if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
    }
  }
 
+ def decodeTeamWithReasonForVisitAndLocationAndTeam(clinic: String, location: String, reasonForVisit: String): String = {
+   reasonForVisit match {
+     case "AKP" => "stream"
+     case "ALL" | "TRAU" => "process"
+     case "B" | "MEP" => {
+       clinic match {
+         case "NAKME" => {
+           if (location != "") {
+             location.charAt(0) match {
+               case 'B' => "medicin blå"
+               case 'G' => "medicin gul"
+               case 'P' => "process"
+               case _ => "medicin"
+             }
+           } else {
+             "medicin"
+           }
+         }
+         case "NAKKI" => "kirurgi"
+         case "NAKOR" => "ortopedi"
+         case "NAKBA" | "NAKGY" | "NAKÖN" => "jour"
+         case "NAKM" => {
+           if (location != "") {
+             location.charAt(0) match {
+               case 'B' => "medicin blå"
+               case 'G' => "medicin gul"
+               case 'P' => "process"
+               case _ => "NAKM"
+             }
+           } else {
+             "NAKM"
+           }
+         }
+         case _ => "no-match"
+       }
+     }
+     case _ => "no-match"
+   }
+ }
+
  /**
  Discerns Team from ReasonForVisit, Location and Team fields.
  */
- def decodeTeamWithReasonForVisitAndLocation(reasonForVisit: String, location: String, clinic: String): String = {
+ def decodeTeamWithReasonForVisitAndLocationAndClinic(reasonForVisit: String, location: String, clinic: String): String = {
    reasonForVisit match {
      case "AKP" => "stream"
      case "ALL" | "TRAU" => "process"
