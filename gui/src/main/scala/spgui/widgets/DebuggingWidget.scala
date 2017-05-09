@@ -375,14 +375,14 @@ object DebuggingWidget {
             ^.svg.height := "11.111678",
             ^.svg.width := "11.111678",
             ^.svg.fill := { if (p.finished.finishedStillPresent) { // code from statuswidget
-                "#1c0526"
+                "#ffedff"
               } else {
                 if (p.plan.hasPlan) {
-                  "#8d47aa"
-                } else if (p.attended.attended) {
                   "#e9b7ff"
+                } else if (p.attended.attended) {
+                  "#8d47aa"
                 } else {
-                  "#fffbff"
+                  "#1c0526"
                 }
               }
             }
@@ -395,9 +395,9 @@ object DebuggingWidget {
             ^.svg.height := "11.111678",
             ^.svg.width := "11.111678",
             ^.svg.fill := { // code from placewidget: method getPlace
-              if (p.examination.isOnExam) "#4d5256"
+              if (p.examination.isOnExam) "#9df2e9"
               else if (p.location.roomNr == "ivr") "#1b998b"
-              else if (p.location.roomNr != "") "#9df2e9"
+              else if (p.location.roomNr != "") "#4d5256"
               else "#f5fffe"
             }
           )
