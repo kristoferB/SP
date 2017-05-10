@@ -26,6 +26,7 @@ import org.json4s.JsonDSL._
 
 import sp.elvisdatahandler.{API_PatientEvent => api}
 import sp.elvisdatahandler.{API_Data => dataApi}
+import sp.elvisdatahandler.{API_Patient => patientApi}
 
 
 /**
@@ -44,6 +45,7 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   mediator ! Subscribe("elvis-diff", self)
 
   var state: Map[Int, dataApi.EricaPatient] = Map()
+  var guiState: Map[String, patientApi.Patient] = Map()
 
   /**
   Receives incoming messages on the AKKA-bus
@@ -65,13 +67,6 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   ElvisDataHandlerComm.extractElvisEvent(mess) map { case (h, b) =>
     b match {
       case api.ElvisData(s) => {
-
-          println("Got elvis data:  -->")
-          s.foreach{ event =>
-            println(event)
-          }
-
-          /**
           var visited: Map[Int, Boolean] = Map()
           s.foreach{ e => {
             if (!visited.contains(e.CareContactId)) {
@@ -80,62 +75,212 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
               visited += e.CareContactId -> true
               }
             }
-          }*/
-          println("Current state:")
-          println(state)
-          //println(s.filter(_.careContactId == ))
-          // Assemble patient objects based on list of events in variable "s"
-
-          /**
-           - filter based on ccid
-           - filter based on category:
-              * LocationUpdate
-              * ReasonForVisitUpdate
-              * TeamUpdate
-              * DepartmentCommentUpdate
-              * VisitRegistrationTimeUpdate
-           - filter based on titles?
-          */
+          }
+          createVisualizablePatients(state)
       }
         //handlePatient(handleMessage(s)) <-- according to old structure
     }
   }
 }
 
+def createVisualizablePatients(patients: Map[Int, dataApi.EricaPatient]) {
+  patients.foreach{ p =>
+    guiState += (p._2.CareContactId.toString -> patientApi.Patient(
+      p._2.CareContactId.toString,
+      patientApi.Priority(p._2.Priority, ""),
+      patientApi.Attended(p._2.IsAttended, "", ""),
+      patientApi.Location(p._2.Location, ""),
+      patientApi.Team(getTeam(p._2.Clinic, p._2.Location, p._2.ReasonForVisit), p._2.Clinic, p._2.ReasonForVisit, ""),
+      patientApi.Examination(p._2.OnExamination, ""),
+      patientApi.LatestEvent(p._2.LatestEvent, p._2.LatestEventTimeDiff, false, ""),
+      patientApi.Plan(p._2.HasPlan, ""),
+      patientApi.ArrivalTime(getArrivalFormat(p._2.VisitRegistrationTime), ""),
+      patientApi.Debugging(p._2.Clinic, p._2.ReasonForVisit, p._2.Location),
+      patientApi.Finished(p._2.IsFinished, p._2.IsFinished, "")
+    ))
+  }
+  publishOnAkka(SPHeader(from = "elvisDataHandler"), api.State(guiState))
+}
+
+def publishOnAkka(header: SPHeader, body: api.Event) {
+  val toSend = ElvisDataHandlerComm.makeMess(header, body)
+  toSend match {
+    case Success(v) => {
+      mediator ! Publish("patient-event-topic", v)
+    }
+    case Failure(e) =>
+      println("Failed")
+  }
+}
+
+/**
+* Returns "hh:mm (day)"-format of argument date string in format yyyy-MM-dd'T'HH:mm:ssZ.
+*/
+def getArrivalFormat(startTimeString: String): String = {
+  var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+  val startTime = formatter.parse(startTimeString.replaceAll("Z$", "+0000"))
+  val timeFormat = new SimpleDateFormat("HH:mm")
+  val timeString = timeFormat.format(startTime)
+  val diff = getTimeDiff(startTimeString)
+  val days = (diff / (1000*60*60*24))
+  var dayString = ""
+  days match {
+    case 0 => dayString = ""
+    case 1 => dayString = "(igår)"
+    case (n: Long) => dayString = "(+" + n + " d.)"
+  }
+  return timeString + " " + dayString
+}
+
+/**
+Returns the time difference (in milliseconds) between a given start time and now.
+Argument startTimeString must be received in date-time-format: yyyy-MM-ddTHH:mm:ssZ
+*/
+def getTimeDiff(startTimeString: String): Long = {
+  if (startTimeString != "") {
+    var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    val startTime = formatter.parse(startTimeString.replaceAll("Z$", "+0000"))
+    val now: Long = System.currentTimeMillis
+    return Math.abs(now - startTime.getTime()) // returns diff in millisec
+  }
+  return 0
+}
+
+def getTeam(clinic: String, location: String, reasonForVisit: String): String = {
+  reasonForVisit match {
+    case "AKP" => "stream"
+    case "ALL" | "TRAU" => "process"
+    case "B" | "MEP" => {
+        if (location != "") {
+          location.charAt(0) match {
+            case 'G' => "medicin gul"
+            case 'B' => "medicin blå"
+            case 'P' => "process"
+            case _ => {
+              clinic match {
+                case "NAKME" => "medicin"
+                case "NAKKI" => "kirurgi"
+                case "NAKOR" => "ortopedi"
+                case "NAKOR" | "NAKBA" | "NAKÖN" => "jour"
+                case "NAKM" => "NAKM"
+                case _ => "no-match"
+              }
+            }
+          }
+        } else {
+          clinic match {
+            case "NAKME" => "medicin"
+            case "NAKKI" => "kirurgi"
+            case "NAKOR" => "ortopedi"
+            case "NAKOR" | "NAKBA" | "NAKÖN" => "jour"
+            case "NAKM" => "NAKM"
+            case _ => "no-match"
+          }
+        }
+    }
+    case _ => "no-match"
+  }
+}
+
 def constructPatient(events: List[dataApi.EricaEvent]): dataApi.EricaPatient = {
+  val (latestEvent, timeDiff) = getLatestEvent(events.filter( e => (e.Category == "T" || e.Category == "U" || e.Category == "Q")))
   dataApi.EricaPatient(
         events(0).CareContactId,
         getValue(events.filter(_.Category == "DepartmentCommentUpdate")),
         getValue(events.filter(_.Category == "LocationUpdate")),
         getValue(events.filter(_.Category == "ReasonForVisitUpdate")),
         getValue(events.filter(_.Category == "TeamUpdate")),
-        //getPriority(events.filter(_.Type == "Triage")),
-        //LatestEvent: String,
-        //IsAttended: Boolean,
-        //OnExamination: Boolean,
-        //HasPlan: Boolean,
-        //IsFinished: Boolean,
-        //events(0).VisitId,
+        getPriority(events.filter(_.Category == "P")),
+        latestEvent,
+        timeDiff,
+        getIsAttended(events.filter(_.Category == "T")),
+        getNeedsAttention(timeDiff, getPriority(events.filter(_.Category == "P"))),
+        getOnExamination(events.filter(_.Category == "T")),
+        getHasPlan(events.filter(_.Category == "T")),
+        getIsFinished(events.filter(_.Category == "T")),
         events(0).VisitId,
         getValue(events.filter(_.Category == "VisitRegistrationTimeUpdate"))
       )
 }
+
 /**
+* Checks if patient needs attention, according to some specific guidelines.
+*/
+def getNeedsAttention(timeDiff: Long, priority: String): Boolean = {
+  priority match {
+    case "Blue" | "Green" | "Yellow" => if (timeDiff > 3600000) true else false
+    case "Orange" => if (timeDiff > 1200000) true else false
+    case "Red" => true
+    case _ => false
+  }
+}
+
+def getIsFinished(events: List[dataApi.EricaEvent]): Boolean = {
+  events.foreach{ e => if (e.Title == "Klar") { return true } }
+  return false
+}
+
+def getHasPlan(events: List[dataApi.EricaEvent]): Boolean = {
+  events.foreach{ e => if (e.Title == "Plan") { return true } }
+  return false
+}
+
+def getOnExamination(events: List[dataApi.EricaEvent]): Boolean = {
+  events.foreach{ e => if (e.Title == "Rö/klin" && e.End == "0001-01-02T23:00:00Z") { return true } }
+  return false
+}
+
+def getIsAttended(events: List[dataApi.EricaEvent]): Boolean = {
+  events.foreach{ e => if (e.Title == "Läkare") { return true } }
+  return false
+}
+
+def getLatestEvent(events: List[dataApi.EricaEvent]): (String, Long) = {
+  var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+  val tmp = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date())
+  var startOfLatestEvent = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").parse(tmp)
+  var latestEvent = ""
+  var latestEventTimeDiffString = ""
+
+  events.foreach{ e =>
+    val startOfEvent = formatter.parse(e.Start.replaceAll("Z$", "+0000"))
+    if (startOfEvent.after(startOfLatestEvent)) {
+      latestEvent = e.Title
+      latestEventTimeDiffString = e.Start
+      startOfLatestEvent = startOfEvent
+    }
+  }
+  return (latestEvent, getTimeDiff(latestEventTimeDiffString))
+}
+
 def getPriority(events: List[dataApi.EricaEvent]): String = {
   var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
   val tmp = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date())
   var startOfLatestEvent = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").parse(tmp)
   var latestPrioEvent = "Otriagerad"
 
-  events.filter(isValidTriageColor(_.Title)).foreach{ e =>
-    val startOfEvent = formatter.parse(e.Start.replaceAll("Z$", "+0000"))
-    if (startOfEvent.after(startOfLatestEvent)) {
-      latestPrioEvent = e.Title
-      startOfLatestEvent = startOfEvent
+  events.foreach{ e =>
+    if (isValidTriageColor(e.Title)) {
+      val startOfEvent = formatter.parse(e.Start.replaceAll("Z$", "+0000"))
+      if (startOfEvent.after(startOfLatestEvent)) {
+        latestPrioEvent = e.Title
+        startOfLatestEvent = startOfEvent
+      }
     }
   }
-  return latestPrioEvent
-}*/
+  return translate(latestPrioEvent)
+}
+
+def translate(str: String): String = {
+  str match {
+    case "Otriagerad" => "NotTriaged"
+    case "Blå" => "Blue"
+    case "Grön" => "Green"
+    case "Gul" => "Yellow"
+    case "Röd" => "Red"
+    case _ => str
+  }
+}
 
 /**
 Checks if string is valid triage color.
@@ -383,17 +528,7 @@ val info = SPAttributes(
      }
    }
 
-   // Update properties based on removed events
-   patient.removedEvents.foreach{ r =>
-     r("Title") match {
-       case "Läkare" => patientPropertyBuffer += apiPatient.Attended(false, "", "")
-       case "Blå" | "Grön" | "Gul" | "Orange" | "Röd" => patientPropertyBuffer += apiPatient.Priority("NotTriaged", r("Start"))
-       case "Rö/klin" => if (r("Start") == state(patient.careContactId).examination.timestamp && state(patient.careContactId).examination.isOnExam) patientPropertyBuffer += apiPatient.Examination(false, r("Start"))
-       case "Plan" => if (r("Start") == state(patient.careContactId).plan.timestamp && state(patient.careContactId).plan.hasPlan) patientPropertyBuffer += apiPatient.Plan(false, "NA")
-       case "Klar" => patientPropertyBuffer += apiPatient.Finished(false, state(patient.careContactId).finished.finishedStillPresent, state(patient.careContactId).finished.timestamp)
-       case _ => if (state(patient.careContactId).latestEvent.latestEvent == r("Title") && state(patient.careContactId).latestEvent.timestamp == r("Start")) patientPropertyBuffer += apiPatient.LatestEvent("(togs bort)", 0, false, r("Start"))
-     }
-   }
+
 
    // Update properties based on new events
    patient.newEvents.foreach{ e =>
@@ -542,36 +677,6 @@ val info = SPAttributes(
  }*/
 
  /**
- Returns the time difference (in milliseconds) between a given start time and now.
- Argument startTimeString must be received in date-time-format: yyyy-MM-ddTHH:mm:ssZ
- *//**
- def getTimeDiff(startTimeString: String): Long = {
-   var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-   val startTime = formatter.parse(startTimeString.replaceAll("Z$", "+0000"))
-   val now: Long = System.currentTimeMillis
-   return Math.abs(now - startTime.getTime()) // returns diff in millisec
- }*/
-
- /**
- * Returns "hh:mm (day)"-format of argument given in milliseconds.
- *//**
- def getArrivalFormat(startTimeString: String): String = {
-   var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-   val startTime = formatter.parse(startTimeString.replaceAll("Z$", "+0000"))
-   val timeFormat = new SimpleDateFormat("HH:mm")
-   val timeString = timeFormat.format(startTime)
-   val diff = getTimeDiff(startTimeString)
-   val days = (diff / (1000*60*60*24))
-   var dayString = ""
-   days match {
-     case 0 => dayString = ""
-     case 1 => dayString = "(igår)"
-     case (n: Long) => dayString = "(+" + n + " d.)"
-   }
-   return timeString + " " + dayString
- }*/
-
- /**
  * Checks if the patient has a "plan", returns apiPatient.Plan-type.
  *//**
  def updatePlan(careContactId: String, events: List[Map[String, String]]): apiPatient.Plan = {
@@ -581,43 +686,6 @@ val info = SPAttributes(
      }
    }
    return apiPatient.Plan(false, "")
- }*/
-
- /**
- Identifies the latest event if there is any in the events list, returns apiPatient.LatestEvent-type.
- *//**
- def updateLatestEvent(careContactId: String, events: List[Map[String, String]], priority: String): apiPatient.LatestEvent = {
-   var eventFound: Boolean = false
-   var timeDiff: Long = Long.MaxValue
-   var title = ""
-   var timestampString = ""
-   // Get the latest event title and its time diff
-   events.foreach{ e =>
-     val startOfEventString = e("Start")
-     val diff = getTimeDiff(startOfEventString)
-     if (diff < timeDiff) {
-       timeDiff = diff
-       timestampString = startOfEventString
-       eventFound = true
-       if (e("Title") == "" || e("Title") == " ") {
-         title = "> ej angett <"
-       } else {
-         if (e("Title") == "Blå" || e("Title") == "Grön" || e("Title") == "Gul" || e("Title") == "Orange" || e("Title") == "Röd") {
-           title = "Triage"
-         } else {
-           title = e("Title")
-         }
-       }
-     }
-   }
-   if (eventFound) {
-     if (needAttention(timeDiff, priority)) {
-       return apiPatient.LatestEvent(title, timeDiff, true, timestampString)
-     } else {
-       return apiPatient.LatestEvent(title, timeDiff, false, timestampString)
-     }
-   }
-   return apiPatient.LatestEvent("", -1, false, "")
  }*/
 
  /**
@@ -643,30 +711,6 @@ val info = SPAttributes(
  //   }
  //   return apiPatient.Examination(false, "")
  // }
-
- /**
- * Determines if the patient is finished but still present, returns Finished-type.
- *//**
- def updateFinished(careContactId: String, events: List[Map[String, String]], finished: Boolean): apiPatient.Finished = {
-   events.foreach{ e =>
-     if (e("Title") == "Klar") {
-       return apiPatient.Finished(finished, true, e("Start"))
-     }
-   }
-   return apiPatient.Finished(finished, false, "")
- }*/
-
- /**
- * Checks if patient needs attention, according to some specific guidelines.
- *//**
- def needAttention(timeDiff: Long, priority: String): Boolean = {
-   priority match {
-     case "Blue" | "Green" | "Yellow" => if (timeDiff > 3600000) true else false
-     case "Orange" => if (timeDiff > 1200000) true else false
-     case "Red" => true
-     case _ => false
-   }
- }*/
 
  /**
  Filters out a room nr to present from an apiPatient.Location.
@@ -743,16 +787,7 @@ val info = SPAttributes(
    return false
  }*/
 
-  def publishOnAkka(header: SPHeader, body: api.Event) {
-    val toSend = ElvisDataHandlerComm.makeMess(header, body)
-    toSend match {
-      case Success(v) => {
-        mediator ! Publish("patient-event-topic", v)
-      }
-      case Failure(e) =>
-        println("Failed")
-    }
-  }
+
 
   // A "ticker" that sends a "tick" string to self every 1 minute
   import scala.concurrent.duration._

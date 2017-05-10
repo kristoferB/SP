@@ -5,7 +5,7 @@ import sp.domain.Logic._
 import sp.messages._
 import Pickles._
 import scala.util._
-/**
+
 package API_Patient {
   sealed trait PatientProperty
   case class Priority(color: String, timestamp: String) extends PatientProperty
@@ -34,21 +34,22 @@ package API_Patient {
     var debugging: Debugging,
     var finished: Finished
   )
-}*/
+}
 
 package API_Data {
   case class EricaPatient(CareContactId: Int,
                         DepartmentComment: String,
                         Location: String,
                         ReasonForVisit: String,
-                        Team: String,
-                        //Priority: String,
-                        //LatestEvent: String,
-                        //IsAttended: Boolean,
-                        //OnExamination: Boolean,
-                        //HasPlan: Boolean,
-                        //IsFinished: Boolean,
-                        //PatientId: Int,
+                        Clinic: String,
+                        Priority: String,
+                        LatestEvent: String,
+                        LatestEventTimeDiff: Long,
+                        IsAttended: Boolean,
+                        NeedsAttention: Boolean,
+                        OnExamination: Boolean,
+                        HasPlan: Boolean,
+                        IsFinished: Boolean,
                         VisitId: Int,
                         VisitRegistrationTime: String)
 
@@ -64,6 +65,7 @@ package API_Data {
 
 package API_PatientEvent {
   import sp.elvisdatahandler.{API_Data => api}
+  import sp.elvisdatahandler.{API_Patient => patientApi}
 
   sealed trait Event
 /**
@@ -75,7 +77,7 @@ package API_PatientEvent {
 
   sealed trait StateEvent
   case class GetState() extends StateEvent with Event
-  case class State(patients: Map[String, api.EricaPatient]) extends StateEvent with Event
+  case class State(patients: Map[String, patientApi.Patient]) extends StateEvent with Event
 
   case class Tick() extends StateEvent with Event
 
