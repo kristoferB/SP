@@ -66,10 +66,16 @@ class DataAggregation {
   }
 
   def removedPatient(json: JValue): List[api.EricaEvent] = {
-    List(api.EricaEvent(0, "RemovedPatient", "", (json \ "data" \ "timestamp").values.toString, "", "", "", 0))
-    //val careContactId = (json \ "data" \ "patient" \ "CareContactId").values.toString
-    //val timestamp = (json \ "data" \ "timestamp").values.toString
-    //return api.RemovedPatient(careContactId, timestamp)
+    List(api.EricaEvent(
+      (json \ "data" \ "patient" \ "CareContactId").values.toString.toInt,
+      "RemovedPatient",
+      "NA",
+      (json \ "data" \ "timestamp").values.toString,
+      "",
+      "",
+      "",
+      (json \ "data" \ "patient" \ "CareContactId").values.toString.toInt
+    ))
   }
 
   def initiatePatient(patient: JValue): JValue = {
