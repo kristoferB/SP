@@ -66,7 +66,7 @@ class DataAggregation {
   }
 
   def removedPatient(json: JValue): List[api.EricaEvent] = {
-    List(api.EricaEvent(0, "", "", "", "", "", "", 0))
+    List(api.EricaEvent(0, "RemovedPatient", "", (json \ "data" \ "timestamp").values.toString, "", "", "", 0))
     //val careContactId = (json \ "data" \ "patient" \ "CareContactId").values.toString
     //val timestamp = (json \ "data" \ "timestamp").values.toString
     //return api.RemovedPatient(careContactId, timestamp)
@@ -357,7 +357,7 @@ class DataAggregation {
     prio
   }
 
-    def getNow:DateTime = {
+    def getNow: DateTime = {
       DateTime.now(DateTimeZone.forID("Europe/Stockholm"))
     }
   }

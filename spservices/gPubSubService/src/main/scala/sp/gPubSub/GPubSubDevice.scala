@@ -88,8 +88,8 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
   val s = Source.fromGraph(new PubSubSource(testSubscription)).withAttributes(attributes)
 
   val mediatorSink = Sink.foreach{ s: String =>
-    val patientsToElastic = new elastic.DataAggregation
-    var newState = patientsToElastic.handleMessage(s)
+    val dataAggregation = new elastic.DataAggregation
+    var newState = dataAggregation.handleMessage(s)
     if (!newState.isEmpty) {
       state = state ++ newState
       println("Publishing current list of events")

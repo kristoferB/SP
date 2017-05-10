@@ -38,12 +38,17 @@ package API_Patient {
 
 package API_Data {
   case class EricaPatient(CareContactId: Int,
-                        CareContactRegistrationTime: String,
                         DepartmentComment: String,
                         Location: String,
-                        PatientId: Int,
                         ReasonForVisit: String,
                         Team: String,
+                        //Priority: String,
+                        //LatestEvent: String,
+                        //IsAttended: Boolean,
+                        //OnExamination: Boolean,
+                        //HasPlan: Boolean,
+                        //IsFinished: Boolean,
+                        //PatientId: Int,
                         VisitId: Int,
                         VisitRegistrationTime: String)
 

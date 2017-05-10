@@ -43,7 +43,7 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   mediator ! Subscribe("elvis-data-topic", self)
   mediator ! Subscribe("elvis-diff", self)
 
-  var state: Map[String, dataApi.EricaPatient] = Map()
+  var state: Map[Int, dataApi.EricaPatient] = Map()
 
   /**
   Receives incoming messages on the AKKA-bus
@@ -65,15 +65,91 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   ElvisDataHandlerComm.extractElvisEvent(mess) map { case (h, b) =>
     b match {
       case api.ElvisData(s) => {
+
           println("Got elvis data:  -->")
           s.foreach{ event =>
             println(event)
           }
+
+          /**
+          var visited: Map[Int, Boolean] = Map()
+          s.foreach{ e => {
+            if (!visited.contains(e.CareContactId)) {
+              //println("Events for ccid: " + e.CareContactId)
+              state += e.CareContactId -> constructPatient(s.filter(_.CareContactId == e.CareContactId))
+              visited += e.CareContactId -> true
+              }
+            }
+          }*/
+          println("Current state:")
+          println(state)
+          //println(s.filter(_.careContactId == ))
           // Assemble patient objects based on list of events in variable "s"
+
+          /**
+           - filter based on ccid
+           - filter based on category:
+              * LocationUpdate
+              * ReasonForVisitUpdate
+              * TeamUpdate
+              * DepartmentCommentUpdate
+              * VisitRegistrationTimeUpdate
+           - filter based on titles?
+          */
       }
         //handlePatient(handleMessage(s)) <-- according to old structure
     }
   }
+}
+
+def constructPatient(events: List[dataApi.EricaEvent]): dataApi.EricaPatient = {
+  dataApi.EricaPatient(
+        events(0).CareContactId,
+        getValue(events.filter(_.Category == "DepartmentCommentUpdate")),
+        getValue(events.filter(_.Category == "LocationUpdate")),
+        getValue(events.filter(_.Category == "ReasonForVisitUpdate")),
+        getValue(events.filter(_.Category == "TeamUpdate")),
+        //getPriority(events.filter(_.Type == "Triage")),
+        //LatestEvent: String,
+        //IsAttended: Boolean,
+        //OnExamination: Boolean,
+        //HasPlan: Boolean,
+        //IsFinished: Boolean,
+        //events(0).VisitId,
+        events(0).VisitId,
+        getValue(events.filter(_.Category == "VisitRegistrationTimeUpdate"))
+      )
+}
+/**
+def getPriority(events: List[dataApi.EricaEvent]): String = {
+  var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+  val tmp = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date())
+  var startOfLatestEvent = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").parse(tmp)
+  var latestPrioEvent = "Otriagerad"
+
+  events.filter(isValidTriageColor(_.Title)).foreach{ e =>
+    val startOfEvent = formatter.parse(e.Start.replaceAll("Z$", "+0000"))
+    if (startOfEvent.after(startOfLatestEvent)) {
+      latestPrioEvent = e.Title
+      startOfLatestEvent = startOfEvent
+    }
+  }
+  return latestPrioEvent
+}*/
+
+/**
+Checks if string is valid triage color.
+*/
+def isValidTriageColor(string: String): Boolean = {
+  if (string == "Blå" || string == "Grön" || string == "Gul" || string == "Orange" || string == "Röd") {
+    return true
+  }
+  return false
+}
+
+def getValue(events: List[dataApi.EricaEvent]): String = {
+  events.foreach{ e => return e.Value}
+  return ""
 }
 
 val info = SPAttributes(
@@ -655,16 +731,6 @@ val info = SPAttributes(
      }
      case _ => "no-match"
    }
- }*/
-
- /**
- Checks if string is valid triage color.
- *//**
- def isValidTriageColor(string: String): Boolean = {
-   if (string == "Blå" || string == "Grön" || string == "Gul" || string == "Orange" || string == "Röd") {
-     return true
-   }
-   return false
  }*/
 
  /**
