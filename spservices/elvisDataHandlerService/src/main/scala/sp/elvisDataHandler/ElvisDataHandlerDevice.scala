@@ -71,7 +71,7 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
           s.foreach{ e => {
             if (!visited.contains(e.CareContactId)) {
               if (s.filter(_.CareContactId == e.CareContactId).filter(_.Category == "RemovedPatient").isEmpty) {
-                state += e.CareContactId -> constructPatient(s.filter(_.CareContactId == e.CareContactId))
+                state += e.CareContactId -> constructPatient(s.filter(_.CareContactId == e.CareContactId).filter( p => (!p.Category.contains("removed"))))
               } else {
                 state -= e.CareContactId
               }
@@ -79,10 +79,17 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
               }
             }
           }
-          createVisualizablePatients(state)
+          createVisualizablePatients(state.filter( p => (isValidClinic(p._2.Clinic))))
       }
         //handlePatient(handleMessage(s)) <-- according to old structure
     }
+  }
+}
+
+def isValidClinic(clinic: String): Boolean = {
+  clinic match {
+    case "NAKME" | "NAKM" | "NAKKI" | "NAKOR" | "NAKBA" | "NAKOR" | "NAKÖN" => return true
+    case _ => return false
   }
 }
 
