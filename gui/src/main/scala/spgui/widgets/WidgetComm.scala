@@ -49,7 +49,7 @@ package API_PatientEvent {
   case class Tick() extends StateEvent with Event
 
   object attributes {
-    val service = "patientCardsService"
+    val service = "widgetService"
   }
 }
 

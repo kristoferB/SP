@@ -59,7 +59,7 @@ object DebuggingWidget {
 
     def send(mess: api.StateEvent) {
       val json = ToAndFrom.make(SPHeader(from = "DebuggingWidget", to = "FelsökningsService"), mess)
-      BackendCommunication.publish(json, "patient-cards-service-topic")
+      BackendCommunication.publish(json, "widget-event")
     }
 
     /**
@@ -199,7 +199,7 @@ object DebuggingWidget {
 
     /**
     From ElvisDataHandler.scala
-    Code used for data to CoordinatorDiagramServiceWidget
+    Code used for data to CoordinatorDiagramWidget
     */
     def decodeTeam(reasonForVisit: String, location: String, clinic: String): String = {
       reasonForVisit match {

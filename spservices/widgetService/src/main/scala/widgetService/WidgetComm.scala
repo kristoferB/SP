@@ -1,4 +1,4 @@
-package sp.patientcardsservice
+package sp.widgetservice
 
 import sp.domain._
 import sp.domain.Logic._
@@ -38,7 +38,7 @@ package API_Patient {
 }
 
 package API_PatientEvent {
-  import sp.patientcardsservice.{API_Patient => api}
+  import sp.widgetservice.{API_Patient => api}
 
   sealed trait Event
 
@@ -54,14 +54,14 @@ package API_PatientEvent {
   case class Tick() extends StateEvent with Event
 
   object attributes {
-    val service = "patientCardsService"
+    val service = "widgetservice"
   }
 }
 
 
-import sp.patientcardsservice.{API_PatientEvent => api}
+import sp.widgetservice.{API_PatientEvent => api}
 
-object PatientCardsComm {
+object WidgetComm {
 
   def extractEvent(mess: Try[SPMessage]) = for {
     m <- mess

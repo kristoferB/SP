@@ -58,8 +58,8 @@ object PatientCardsWidget {
 
 
     def send(mess: api.StateEvent) {
-      val json = ToAndFrom.make(SPHeader(from = "PatientCardsWidget", to = "PatientCardsService"), mess)
-      BackendCommunication.publish(json, "patient-cards-service-topic")
+      val json = ToAndFrom.make(SPHeader(from = "PatientCardsWidget", to = "WidgetService"), mess)
+      BackendCommunication.publish(json, "widget-event")
     }
 
     /**

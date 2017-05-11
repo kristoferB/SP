@@ -56,8 +56,8 @@ object StatusWidget {
     }, "patient-cards-widget-topic")
 
     def send(mess: api.StateEvent) {
-      val json = ToAndFrom.make(SPHeader(from = "PatientCardsWidget", to = "PatientCardsService"), mess)
-      BackendCommunication.publish(json, "patient-cards-service-topic")
+      val json = ToAndFrom.make(SPHeader(from = "PatientCardsWidget", to = "WidgetService"), mess)
+      BackendCommunication.publish(json, "widget-event")
     }
 
     def render(p: String, s: Map[String, apiPatient.Patient]) = {

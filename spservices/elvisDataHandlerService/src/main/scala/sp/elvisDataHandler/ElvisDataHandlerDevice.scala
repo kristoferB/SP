@@ -41,7 +41,6 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   val mediator = DistributedPubSub(context.system).mediator
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
-  mediator ! Subscribe("elvis-data-topic", self)
   mediator ! Subscribe("elvis-diff", self)
 
   var state: Map[Int, dataApi.EricaPatient] = Map()
@@ -73,8 +72,8 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
               if (s.filter(_.CareContactId == e.CareContactId).filter(_.Category == "RemovedPatient").isEmpty) {
                 state += e.CareContactId -> constructPatient(s.filter(_.CareContactId == e.CareContactId))
               } else {
-                state -= e.CareContactId
-                guiState -= e.CareContactId.toString
+                //state -= e.CareContactId
+                //guiState -= e.CareContactId.toString
               }
               visited += e.CareContactId -> true
               }
@@ -110,7 +109,7 @@ def publishOnAkka(header: SPHeader, body: api.Event) {
   val toSend = ElvisDataHandlerComm.makeMess(header, body)
   toSend match {
     case Success(v) => {
-      mediator ! Publish("patient-event-topic", v)
+      mediator ! Publish("state-event", v)
     }
     case Failure(e) =>
       println("Failed")

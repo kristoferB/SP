@@ -1,4 +1,4 @@
-package sp.patientcardsservice
+package sp.widgetservice
 
 import sp.domain._
 import sp.domain.Logic._
@@ -17,17 +17,17 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.chrono.ChronoLocalDate
 
-import sp.patientcardsservice.{API_PatientEvent => api}
-import sp.patientcardsservice.{API_Patient => apiPatient}
+import sp.widgetservice.{API_PatientEvent => api}
+import sp.widgetservice.{API_Patient => apiPatient}
 
-class PatientCardsDevice extends Actor with ActorLogging {
+class WidgetDevice extends Actor with ActorLogging {
   import akka.cluster.pubsub._
   import DistributedPubSubMediator.{ Subscribe, Publish }
   val mediator = DistributedPubSub(context.system).mediator
   //mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
-  mediator ! Subscribe("patient-event-topic", self)
-  mediator ! Subscribe("patient-cards-service-topic", self)
+  mediator ! Subscribe("state-event", self)
+  mediator ! Subscribe("widget-event", self)
 
   var localState: Map[String, apiPatient.Patient] = Map()
   var widgetStarted: Boolean = false
@@ -51,8 +51,8 @@ class PatientCardsDevice extends Actor with ActorLogging {
   Identifies the body of the SP-message and acts correspondingly
   */
   def matchRequests(mess: Try[SPMessage]) = {
-    val header = SPHeader(from = "patientCardsService")
-    PatientCardsComm.extractEvent(mess) map { case (h, b) =>
+    val header = SPHeader(from = "widgetService")
+    WidgetComm.extractEvent(mess) map { case (h, b) =>
       b match {
         case api.State(state) => {
           if (localState != state){
@@ -76,7 +76,7 @@ class PatientCardsDevice extends Actor with ActorLogging {
   Publishes a SPMessage on bus with header and body.
   */
   def publishOnAkka(header: SPHeader, body: api.StateEvent) {
-    val toSend = PatientCardsComm.makeMess(header, body)
+    val toSend = WidgetComm.makeMess(header, body)
     toSend match {
       case Success(v) =>
         mediator ! Publish("patient-cards-widget-topic", v) // Publishes on bus for widget to receive
@@ -87,6 +87,6 @@ class PatientCardsDevice extends Actor with ActorLogging {
 
   }
 
-  object PatientCardsDevice {
-    def props = Props(classOf[PatientCardsDevice])
+  object WidgetDevice {
+    def props = Props(classOf[WidgetDevice])
   }

@@ -19,7 +19,7 @@ object Launch extends App {
     // Start all you actors here.
     println("ElvisDataHandlerService node has joined the cluster")
     system.actorOf(ElvisDataHandlerDevice.props, API_PatientEvent.attributes.service)
-    system.actorOf(sp.patientcardsservice.PatientCardsDevice.props)
+    system.actorOf(sp.widgetservice.WidgetDevice.props)
 
   }
   cluster.registerOnMemberRemoved{

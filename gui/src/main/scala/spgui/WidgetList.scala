@@ -19,9 +19,9 @@ object WidgetList {
       // <--
 
       // Coordinator widgets -->
-      ("Rumskarta (koordinator)", widgets.RoomOverviewServiceWidget(), 4, 15),
-      ("Triage- och statusdiagram (koordinator)", widgets.CoordinatorDiagramServiceWidget(), 3, 17),
-      ("Väntrumsdiagram (koordinator)", widgets.WaitingRoomServiceWidget(), 3, 4)
+      ("Rumskarta (koordinator)", widgets.RoomOverviewWidget(), 4, 15),
+      ("Triage- och statusdiagram (koordinator)", widgets.CoordinatorDiagramWidget(), 3, 17),
+      ("Väntrumsdiagram (koordinator)", widgets.WaitingRoomWidget(), 3, 4)
       // <--
     )
 

@@ -39,7 +39,7 @@ import scala.collection.mutable.ListBuffer
 import spgui.widgets.{API_PatientEvent => api}
 import spgui.widgets.{API_Patient => apiPatient}
 
-object RoomOverviewServiceWidget {
+object RoomOverviewWidget {
 
   private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
 
@@ -56,8 +56,8 @@ object RoomOverviewServiceWidget {
     }, "patient-cards-widget-topic")
 
     def send(mess: api.StateEvent) {
-      val json = ToAndFrom.make(SPHeader(from = "PatientCardsWidget", to = "PatientCardsService"), mess)
-      BackendCommunication.publish(json, "patient-cards-service-topic")
+      val json = ToAndFrom.make(SPHeader(from = "PatientCardsWidget", to = "WidgetService"), mess)
+      BackendCommunication.publish(json, "widget-event")
     }
 
     // What is this function used for?
