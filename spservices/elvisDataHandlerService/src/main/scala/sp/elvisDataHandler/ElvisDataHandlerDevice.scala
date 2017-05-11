@@ -70,11 +70,11 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
           var visited: Map[Int, Boolean] = Map()
           s.foreach{ e => {
             if (!visited.contains(e.CareContactId)) {
-              //println("Events for ccid: " + e.CareContactId)
               if (s.filter(_.CareContactId == e.CareContactId).filter(_.Category == "RemovedPatient").isEmpty) {
                 state += e.CareContactId -> constructPatient(s.filter(_.CareContactId == e.CareContactId))
               } else {
                 state -= e.CareContactId
+                guiState -= e.CareContactId.toString
               }
               visited += e.CareContactId -> true
               }
