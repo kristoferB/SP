@@ -81,7 +81,6 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
           }
           createVisualizablePatients(state.filter( p => (isValidClinic(p._2.Clinic))))
       }
-        //handlePatient(handleMessage(s)) <-- according to old structure
     }
   }
 }
@@ -99,7 +98,7 @@ def createVisualizablePatients(patients: Map[Int, dataApi.EricaPatient]) {
     guiState += (p._2.CareContactId.toString -> patientApi.Patient(
       p._2.CareContactId.toString,
       patientApi.Priority(p._2.Priority, ""),
-      patientApi.Attended(p._2.IsAttended, "", ""),
+      patientApi.Attended(p._2.IsAttended, p._2.DoctorId, ""),
       patientApi.Location(decodeLocation(p._2.Location), ""),
       patientApi.Team(getTeam(p._2.Clinic, p._2.Location, p._2.ReasonForVisit), p._2.Clinic, p._2.ReasonForVisit, ""),
       patientApi.Examination(p._2.OnExamination, ""),
@@ -115,6 +114,7 @@ def createVisualizablePatients(patients: Map[Int, dataApi.EricaPatient]) {
 
 def constructPatient(events: List[dataApi.EricaEvent]): dataApi.EricaPatient = {
   val (latestEvent, timeDiff) = getLatestEvent(events.filter( e => (e.Category == "T" || e.Category == "U" || e.Category == "Q")))
+  val (isAttended, doctorId) = getIsAttended(events.filter(_.Category == "T"))
   dataApi.EricaPatient(
         events(0).CareContactId,
         getValue(events.filter(_.Category == "DepartmentCommentUpdate")),
@@ -124,7 +124,8 @@ def constructPatient(events: List[dataApi.EricaEvent]): dataApi.EricaPatient = {
         getPriority(events.filter(_.Category == "P")),
         latestEvent,
         timeDiff,
-        getIsAttended(events.filter(_.Category == "T")),
+        isAttended,
+        doctorId,
         getNeedsAttention(timeDiff, getPriority(events.filter(_.Category == "P"))),
         getOnExamination(events.filter(_.Category == "T")),
         getHasPlan(events.filter(_.Category == "T")),
@@ -241,9 +242,9 @@ def getOnExamination(events: List[dataApi.EricaEvent]): Boolean = {
   return false
 }
 
-def getIsAttended(events: List[dataApi.EricaEvent]): Boolean = {
-  events.foreach{ e => if (e.Title == "Läkare") { return true } }
-  return false
+def getIsAttended(events: List[dataApi.EricaEvent]): (Boolean, String) = {
+  events.foreach{ e => if (e.Title == "Läkare") { return (true, e.Value) } }
+  return (false, "NA")
 }
 
 def getLatestEvent(events: List[dataApi.EricaEvent]): (String, Long) = {
@@ -270,13 +271,11 @@ def getPriority(events: List[dataApi.EricaEvent]): String = {
   var startOfLatestEvent = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").parse(tmp)
   var latestPrioEvent = "Otriagerad"
 
-  events.foreach{ e =>
-    if (isValidTriageColor(e.Title)) {
-      val startOfEvent = formatter.parse(e.Start.replaceAll("Z$", "+0000"))
-      if (startOfEvent.after(startOfLatestEvent)) {
-        latestPrioEvent = e.Title
-        startOfLatestEvent = startOfEvent
-      }
+  events.filter(p => isValidTriageColor(p.Title)).foreach{ e =>
+    val startOfEvent = formatter.parse(e.Start.replaceAll("Z$", "+0000"))
+    if (startOfEvent.after(startOfLatestEvent)) {
+      latestPrioEvent = e.Title
+      startOfLatestEvent = startOfEvent
     }
   }
   return translate(latestPrioEvent)

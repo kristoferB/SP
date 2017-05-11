@@ -46,6 +46,7 @@ package API_Data {
                         LatestEvent: String,
                         LatestEventTimeDiff: Long,
                         IsAttended: Boolean,
+                        DoctorId: String,
                         NeedsAttention: Boolean,
                         OnExamination: Boolean,
                         HasPlan: Boolean,
