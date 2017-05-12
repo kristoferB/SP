@@ -59,7 +59,6 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   */
   def handleRequests(x: String): Unit = {
     val mess = SPMessage.fromJson(x)
-    println("Got list in ElvisDataHandler: " + mess)
     matchRequests(mess)
   }
 

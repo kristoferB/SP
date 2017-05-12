@@ -56,7 +56,6 @@ class WidgetDevice extends Actor with ActorLogging {
       b match {
         case api.State(state) => {
           if (localState != state){
-            println("Got state in WidgetService: " + state)
             localState = state
             if (widgetStarted) {
               publishOnAkka(header, api.State(state))
@@ -64,7 +63,6 @@ class WidgetDevice extends Actor with ActorLogging {
           }
         }
         case api.GetState() => {
-          println("Got state request from " + h.from)
           widgetStarted = true
           publishOnAkka(header, api.State(localState))
         }
