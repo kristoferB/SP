@@ -66,6 +66,7 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
 
   val toJsonString: Flow[PubSubMessage, String, NotUsed] = Flow[PubSubMessage]
     .map{m => {
+      println("Received mess from GCPS")
       new String(m.payload, Charsets.UTF_8)
       }
     }
@@ -96,6 +97,7 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
       val h = SPHeader(from = "gPubSubDevice")
       val b = sendApi.ElvisData(state)
       val mess = SPMessage.makeJson(h, b).get
+      println("Sending list: " + state)
       mediator ! Publish("elvis-diff", mess)
     }
   }
