@@ -19,7 +19,7 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
   mediator ! Subscribe("answers", self)
-  mediator ! Subscribe("eveents", self)
+  mediator ! Subscribe("events", self)
 
 
   import scala.concurrent.duration._
@@ -40,6 +40,8 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
       mediator ! Publish("services", LabKitComm.makeMess(SPHeader(from = api.attributes.service, to = opAPI.attributes.service), mess))
     case x: String if sender() != self =>
       val mess = SPMessage.fromJson(x)
+
+      println("Operation Service got: "+ mess)
 
       matchRequests(mess)
       matchRunnerAPI(mess)

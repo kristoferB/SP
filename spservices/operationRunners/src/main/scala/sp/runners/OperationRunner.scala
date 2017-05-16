@@ -100,11 +100,14 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
             println(s"The ability with id $id completed for operations: $ops")
             completeOPs(id, startAbility, sendState)
           case abilityAPI.AbilityState(id, s) =>
-            val ops = getOPFromAbility(id).flatMap(_._2)
-            println(s"The ability with id $id updated for operations: $ops")
-            newAbilityState(id, s.get(id).get, startAbility, sendState)
-            // Update here to also include varaibles in the operaitons state from the abilities.
-            // But it needs to be matched somehow before running
+
+            //val ops = getOPFromAbility(id).flatMap(_._2)
+            val abState = (for {
+              x <- s.get(id) if x.isInstanceOf[SPAttributes]
+              v <- x.asInstanceOf[SPAttributes].get("state")
+            } yield v).getOrElse(SPValue("notEnabled"))
+            println(s"The ability with id $id updated with state: $abState")
+            newAbilityState(id, abState, startAbility, sendState)
         }
 
     }
@@ -249,9 +252,9 @@ trait OperationRunnerLogic {
   }
 
   def newAbilityState(ability: ID, abilityState: SPValue, startAbility: ID => Unit, sendState: (State, ID) => Unit) = {
-    val tempR = runners
-    val ops = tempR.map{r =>
+    runners.map{r =>
       if (r._2.setup.opAbilityMap.values.toSet.contains(ability)){
+        println("An ability has an operation and was updated")
         val cS = State(runners(r._1).currentState + (ability -> abilityState))
         setRunnerState(r._1, cS, startAbility, sendState(_,r._1))
       }
@@ -287,7 +290,11 @@ trait OperationRunnerLogic {
 
   def newState(s: State, ops: Set[Operation], sendCmd: Operation => Unit, sendState: State => Unit, runOneAtTheTime: Boolean = false): State = {
     val enabled = ops.filter(isEnabled(_, s))
+    val tempR = runners
+    val enAb = runners.map(r =>
+       r._2.setup.opAbilityMap.filter(a => a.equals(SPValue("notEnabled")))).toList
     // kolla abilities. Jämföra och kolla vilka som är not enabled, kanske.
+    println("runner enabled abilities: " + enAb.toString())
     println("runner enabled ops: " + enabled.map(_.name).mkString(", "))
     val res = enabled.headOption.map{o =>
       val updS = runOp(o, s)

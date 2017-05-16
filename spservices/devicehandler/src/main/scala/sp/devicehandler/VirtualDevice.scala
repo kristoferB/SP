@@ -95,11 +95,11 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
             sendResources
 
           case e @ api.DriverStateChange(name, did, state, _) =>
-            println("got a statechange:" + e)
+            //println("got a statechange:" + e)
             val oldrs = resourceState
             driverEvent(e)
-            println("new driver state: " + driverState)
-            println("new resource state: " + resourceState)
+            //println("new driver state: " + driverState)
+            //println("new resource state: " + resourceState)
 
             resourceState.filter { case (nid, ns) =>
               oldrs.get(nid) match {
