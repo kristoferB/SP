@@ -166,6 +166,16 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
 
 
         case api.SetUpAbility(ab, hand) =>
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println(ab)
           val ids = idsFromAbility(ab)
           val act = context.actorOf(AbilityActor.props(ab))
           abilities += ab.id -> AbilityStorage(ab, act, ids)

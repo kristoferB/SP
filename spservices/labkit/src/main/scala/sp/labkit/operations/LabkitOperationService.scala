@@ -25,7 +25,7 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
   import scala.concurrent.duration._
   import context.dispatcher
   context.system.scheduler.scheduleOnce(7 seconds, self, DelayStart)
-
+  println("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK-")
 
   case object DelayStart
 
@@ -33,15 +33,22 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
   def receive = {
     case DelayStart =>
       // testing
-      val testingMakingOps = makeMeOps("hej")
-      val mess = opAPI.Setup("testing", ID.newID, testingMakingOps._1.toSet, testingMakingOps._2, testingMakingOps._3)
-      //println("sending some ops: "+ mess)
+      val test = Try{
+        val testingMakingOps = makeMeOps("hej")
+        val mess = opAPI.Setup("testing", ID.newID, testingMakingOps._1.toSet, testingMakingOps._2, testingMakingOps._3)
+        println("sending some ops: "+ mess)
+        mediator ! Publish("services", LabKitComm.makeMess(SPHeader(from = api.attributes.service, to = opAPI.attributes.service), mess))
+      }
 
-      mediator ! Publish("services", LabKitComm.makeMess(SPHeader(from = api.attributes.service, to = opAPI.attributes.service), mess))
+      println("UUUUUUUUUUUUUUUUUUUUUUUUU")
+      println(test)
+
+
+
     case x: String if sender() != self =>
       val mess = SPMessage.fromJson(x)
 
-      println("Operation Service got: "+ mess)
+      //println("Operation Service got: "+ mess)
 
       matchRequests(mess)
       matchRunnerAPI(mess)
@@ -55,7 +62,12 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
 
 
   def matchRequests(mess: Try[SPMessage]) = {
-
+    LabKitComm.extractAbilityResponse(mess).map {
+      case (h, APIVirtualDevice.StateEvent(r, id, state, diff)) =>
+        println("HÄR KOMMER DET:")
+        state.foreach(println)
+      case _ =>
+    }
 
   }
 
@@ -128,18 +140,13 @@ trait MyOperationModel  {
     Thing("feedSensor"),
     // Robot 1
     Thing("R1"),
-    Thing("R2"),
     Thing("C1"),
-    Thing("C2"),
-    //Thing("C3"),
-    //Thing("C4"),
-    Thing("c2in"),
     Thing("robot1"),
-    //Thing("robot2"),
+    Thing("convDone"),
 
     // Band 1
     Thing("c1p1Sensor"),
-    Thing("c2p1Sensor")
+    Thing("c1p2Sensor")
   ).map(x => x.name -> x).toMap
 
 
@@ -153,11 +160,10 @@ trait MyOperationModel  {
     val feeder = Operation("feeder")
     val robot1toFeedCylPick = Operation("robot1toFeedCylPick")
     val robot1to1put = Operation("robot1to1put")
-    val robot1to2put = Operation("robot1to2put")
-    val conv2proc1 = Operation("conv2proc1")
-    val robot2to2pick = Operation("robot2to2pick")
+    val conv1proc2 = Operation("conv1proc2")
+    val conv1proc1 = Operation("conv1proc1")
 
-    val vars = things.values.toList ++ List(feeder, robot1toFeedCylPick, robot1to1put, robot1to2put, conv2proc1) // need to add ops
+    val vars = things.values.toList ++ List(feeder, robot1toFeedCylPick, robot1to1put, conv1proc1, conv1proc2) // need to add ops
 
     val ops = List(
       /*
@@ -186,7 +192,16 @@ trait MyOperationModel  {
         prop(vars, "", List(s"${things("robot1").id} := empty", s"${things("c1p1Sensor").id} := $cylName",
           s"${things("R1").id} := available"), "post")
       )),
-      robot1to2put.copy(conditions = List(
+      conv1proc2.copy(conditions = List(
+        prop(vars, s"${things("c1p1Sensor").id} == $cylName && ${things("convDone").id} == false", List(), "pre"),
+        prop(vars, "", List(s"${things("c1p1Sensor").id} := empty", s"${things("c1p2Sensor").id} := $cylName"), "post")
+      )),
+      conv1proc1.copy(conditions = List(
+        prop(vars, s"${things("c1p2Sensor").id} == $cylName", List(), "pre"),
+        prop(vars, "", List(s"${things("c1p1Sensor").id} := $cylName", s"${things("c1p2Sensor").id} := empty",
+          s"${things("convDone").id} := true"), "post")
+      ))
+      /*robot1to2put.copy(conditions = List(
         prop(vars, s"${things("c2in").id} == empty && ${things("robot1").id} == $cylName", List(s"${things("C2").id} := unavailable"), "pre"),
         prop(vars, "", List(s"${things("robot1").id} := empty", s"${things("c2in").id} := $cylName",
           s"${things("R1").id} := available"), "post")
@@ -194,7 +209,7 @@ trait MyOperationModel  {
       conv2proc1.copy(conditions = List(
         prop(vars, s"${things("c2p1Sensor").id} == empty && ${things("c2in").id} == $cylName", List(), "pre"),
         prop(vars, "", List(s"${things("c2p1Sensor").id} := $cylName && ${things("c2in").id} := empty"), "post")
-      ))/*,
+      )),
       robot2to2pick.copy(conditions = List(
         prop(vars, s"${conv2proc1.id} == f",
           List(s"${things("R2").id} := unavailable"), "pre"),
@@ -211,24 +226,19 @@ trait MyOperationModel  {
       feeder.id -> LabKitAbilityModel.feeder.id,
       robot1toFeedCylPick.id -> LabKitAbilityModel.robot1toFeedCylPick.id,
       robot1to1put.id -> LabKitAbilityModel.robot1to1put.id,
-      robot1to2put.id -> LabKitAbilityModel.robot1to2put.id,
-      conv2proc1.id -> LabKitAbilityModel.conv2proc1.id
-      //robot2to2pick.id -> LabKitAbilityModel.robot2to2pick.id
+      conv1proc1.id -> LabKitAbilityModel.conv1proc1.id,
+      conv1proc2.id -> LabKitAbilityModel.conv1proc2.id
+
     )
 
     val state: Map[ID, SPValue] = Map(
       things("feedSensor").id -> "empty",
       things("R1").id -> "available",
-      things("R2").id -> "available",
       things("C1").id -> "available",
-      things("C2").id -> "available",
-      //things("C3").id -> "available",
-      //things("C4").id -> "available",
       things("robot1").id -> "empty",
-      //things("robot2").id -> "empty",
-      things("c2in").id -> "empty",
       things("c1p1Sensor").id -> "empty",
-      things("c2p1Sensor").id -> "empty"
+      things("c1p2Sensor").id -> "empty",
+      things("convDone").id -> "false"
     )
 
 

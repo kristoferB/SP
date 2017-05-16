@@ -62,7 +62,7 @@ trait PropositionConditionLogics {
         } yield e(left, right)) match {
           case ok@Some(_) => ok
           case _ => {
-            println(s"Problem to do evaluation for $l and $r with function ${e.toString}");
+            //println(s"Problem to do evaluation for $l and $r with function ${e.toString}");
             None
           }
         }

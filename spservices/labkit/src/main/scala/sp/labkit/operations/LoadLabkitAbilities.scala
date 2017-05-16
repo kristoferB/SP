@@ -18,12 +18,12 @@ import sp.labkit.operations.{API_OperationRunner => opAPI}
 
 object LabKitAbilityModel extends Helpers2{
   // Variables
-  val  testingIn        = Thing("testingIn")
+/*  val  testingIn        = Thing("testingIn")
   val  testingInInt     = Thing("testingInInt")
   val  testingOut       = Thing("testingOut")
   val  testingOutInt    = Thing("testingOutInt")
   val  testingOutMirror = Thing("testingOutMirror")
-  val  feedRun          = Thing("feedRun")
+*/  val  feedRun          = Thing("feedRun")
   val  feedSensor       = Thing("feedSensor")
   val  feedState        = Thing("feedState")
   // Conv 1
@@ -37,7 +37,7 @@ object LabKitAbilityModel extends Helpers2{
   val  c1p2State        = Thing("c1p2State")
   val  c1p2Sensor       = Thing("c1p2Sensor")
   // Conv 2
-  val  c2p1Run          = Thing("c2p1Run")
+/*  val  c2p1Run          = Thing("c2p1Run")
   val  c2p1Dir          = Thing("c2p1Dir")
   val  c2p1State        = Thing("c2p1State")
   val  c2p1Sensor       = Thing("c2p1Sensor")
@@ -71,33 +71,37 @@ object LabKitAbilityModel extends Helpers2{
   val  c4p3Dir          = Thing("c4p3Dir")
   val  c4p3State        = Thing("c4p3State")
   val  c4p3Sensor       = Thing("c4p3Sensor")
-
+*/
   val  robot1Run        = Thing("robot1Run")
   val  robot1Target     = Thing("robot1Target")
   val  robot1gripping   = Thing("robot1gripping")
   val  robot1State      = Thing("robot1State")
   val  robot1ResetRun   = Thing("robot1ResetRun")
   val  robot1ResetState = Thing("robot1ResetState")
-
+/*
   val  robot2Run        = Thing("robot2Run")
   val  robot2Target     = Thing("robot2Target")
   val  robot2gripping   = Thing("robot2gripping")
   val  robot2State      = Thing("robot2State")
   val  robot2ResetRun   = Thing("robot2ResetRun")
   val  robot2ResetState = Thing("robot2ResetState")
-
+*/
   // resources
   val testingResource = Thing("testingResource")
 
 
-  val allVars = List(testingIn, testingInInt, testingOut, testingOutInt, testingOutMirror, feedRun, feedSensor, feedState, c1p1Run, c1p1Dir,
-    c1p1State, c1p1Sensor, c1p2Run, c1p2Dir, c1p2State, c1p2Sensor, c2p1Run, c2p1Dir, c2p1State, c2p1Sensor, c3p1Run, c3p1Dir, c3p1State, c3p1Sensor, c3p2Run
+  val allVars = List( feedRun, feedSensor, feedState, c1p1Run, c1p1Dir,
+    c1p1State, c1p1Sensor, c1p2Run, c1p2Dir, c1p2State, c1p2Sensor,  robot1Run, robot1Target, robot1State, robot1ResetRun, robot1ResetState,
+    robot1gripping)
+
+  /*
+  testingIn, testingInInt, testingOut, testingOutInt, testingOutMirror, c2p1Run, c2p1Dir, c2p1State, c2p1Sensor, c3p1Run, c3p1Dir, c3p1State, c3p1Sensor, c3p2Run
     , c3p2Dir, c3p2State, c3p2Sensor, c3p3Run, c3p3Dir, c3p3State, c3p3Sensor, c4p1Run, c4p1Dir, c4p1State, c4p1Sensor,
-    c4p2Run, c4p2Dir, c4p2State, c4p2Sensor, c4p3Run, c4p3Dir, c4p3State, c4p3Sensor, robot1Run, robot1Target, robot1State, robot1ResetRun, robot1ResetState,
-    robot1gripping, robot2Run, robot2Target,robot2gripping, robot2State, robot2ResetRun, robot2ResetState )
+    c4p2Run, c4p2Dir, c4p2State, c4p2Sensor, c4p3Run, c4p3Dir, c4p3State, c4p3Sensor, robot2Run, robot2Target,robot2gripping, robot2State, robot2ResetRun, robot2ResetState
+  */
 
   // abilities
-  val a1 = abapi.Ability(name = "a1", id = ID.newID,
+ /* val a1 = abapi.Ability(name = "a1", id = ID.newID,
     preCondition = prop(allVars, s"1 == 1", List(s"${robot1Target.name} := 5")),
     postCondition = prop(allVars, s"${testingOut.name}", List(s"${testingIn.name} := false")),
     started = prop(allVars, s"${testingOutMirror.name}", List())
@@ -108,7 +112,7 @@ object LabKitAbilityModel extends Helpers2{
     postCondition = prop(allVars, s"${testingOutInt.name} == 5", List(s"${testingInInt.name} := 6")),
     started = prop(allVars, s"${testingOutInt.name} == 4", List()),
     resetCondition = prop(allVars, s"${testingOutInt.name} == 7", List(s"${testingInInt.name} := 2"))
-  )
+  )*/
 
   val feeder = abapi.Ability(name = "feeder", id = ID.newID,
     preCondition = prop(allVars, s" not ${feedRun.name} and not ${feedSensor.name} and ${feedState.name} == 1", List(s"${feedRun.name} := true")),
@@ -130,6 +134,7 @@ object LabKitAbilityModel extends Helpers2{
     started = prop(allVars, s"${c1p2State.name} == 2", List())
   )
   // Conv 2
+  /*
   val conv2proc1 = abapi.Ability(name = "conv2proc1", id = ID.newID,
     preCondition = prop(allVars, s"${c2p1State.name} == 1 and not ${c2p1Sensor.name}",// maybe a not robot to 5
       List(s"${c2p1Run.name} := true", s"${c2p1Dir.name} := true")),
@@ -228,12 +233,12 @@ object LabKitAbilityModel extends Helpers2{
   )
 
   val robot1to2put = abapi.Ability(name = "robot1to2put", id = ID.newID,
-    preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and ${robot1gripping.name} and ${c2p1State.name} == 1" +
+      preCondition = prop(allVars, s"${robot1State.name} == 1 and not ${robot1Run.name} and ${robot1gripping.name} and ${c2p1State.name} == 1" +
       s"and not ${c2p1Run.name}",
       List(s"${robot1Run.name} := true", s"${robot1Target.name} := 1")),
     postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
     started = prop(allVars, s"${robot1State.name} == 2", List())
-  )
+  )*/
 
   val robot1to1put = abapi.Ability(name = "robot1to1put", id = ID.newID,
     preCondition = prop(allVars, s"${robot1State.name} == 1 and ${robot1Run.name} and ${robot1gripping.name} and ${c1p1State.name} == 1" +
@@ -252,7 +257,7 @@ object LabKitAbilityModel extends Helpers2{
 
 
   // Robot 2
-
+/*
   val robot2to3put = abapi.Ability(name = "robot2to3put", id = ID.newID,
     preCondition = prop(allVars, s"${robot2State.name} == 1 and not ${robot2Run.name} and ${robot2gripping.name} and ${c3p1State.name} == 1" +
       s"and ${c3p2State.name} == 1 and ${c3p3State.name} == 1 and not ${c3p1Sensor.name} and not ${c3p2Sensor.name} and not ${c3p3Sensor.name} ",
@@ -283,12 +288,13 @@ object LabKitAbilityModel extends Helpers2{
       List(s"${robot2Run.name} := true", s"${robot2Target.name} := 5")),
     postCondition = prop(allVars, s"${robot2State.name} == 3", List(s"${robot2Run.name} := false")),
     started = prop(allVars, s"${robot2State.name} == 2", List())
-  )
-  val allAbilities = List(a1, a2, feeder, conv1proc1, conv1proc2,conv2proc1, conv3proc1left, conv3proc1right, conv3proc2left, conv3proc2right,
-    conv3proc3,conv4proc1right, conv4proc1left, conv4proc2right, conv4proc2left, conv4proc3right, conv4proc3left, robot1to1put, robot1to1pick,
-    robot1to2put, robot1toFeedCylPick, robot2to2pick, robot2to3put, robot2to4pick, robot2to4put)
-}//conv3DirSet
-
+  )*/
+  val allAbilities = List(feeder, conv1proc1, conv1proc2, robot1to1put,
+     robot1toFeedCylPick )
+}
+/*a1, a2, conv2proc1, conv3proc1left, conv3proc1right, conv3proc2left, conv3proc2right,
+    conv3proc3,conv4proc1right, conv4proc1left, conv4proc2right, conv4proc2left, conv4proc3right, conv4proc3left,
+     robot1to1pick, robot1to2put,robot2to2pick, robot2to3put, robot2to4pick, robot2to4put*/
 case class LoadLabkitAbilities(system: ActorSystem) {
   import LabKitAbilityModel._
 

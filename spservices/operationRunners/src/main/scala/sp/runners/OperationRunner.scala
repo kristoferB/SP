@@ -22,6 +22,9 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
   mediator ! Subscribe("answers", self)
   mediator ! Subscribe("events", self)
 
+  val myH = SPHeader(from = api.attributes.service, to = abilityAPI.attributes.service, reply = api.attributes.service)
+  mediator ! Publish("services", OperationRunnerComm.makeMess(myH, abilityAPI.GetAbilities()))
+
 
   def receive = {
     case x: String if sender() != self =>

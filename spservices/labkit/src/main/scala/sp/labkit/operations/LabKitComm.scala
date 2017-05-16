@@ -52,6 +52,14 @@ object LabKitComm {
     b <- m.getBodyAs[APISP.StatusRequest]
     } yield (h, b)
 
+  def extractAbilityResponse(mess: Try[SPMessage]) = for {
+    m <- mess
+    h <- m.getHeaderAs[SPHeader]
+    b <- m.getBodyAs[APIVirtualDevice.Response]
+    } yield (h, b)
+
+
+
 
   def makeMess(h: SPHeader, b: api.Response) = SPMessage.makeJson[SPHeader, api.Response](h, b)
   def makeMess(h: SPHeader, b: vdAPI.Request) = SPMessage.makeJson[SPHeader, vdAPI.Request](h, b)
@@ -85,7 +93,6 @@ package API_OperationRunner {
 
 package APIAbilityHandler {
   sealed trait Request
-  sealed trait Response
 
   case class StartAbility(id: ID, params: Map[ID, SPValue] = Map(), attributes: SPAttributes = SPAttributes()) extends Request
   case class ForceResetAbility(id: ID) extends Request
@@ -98,6 +105,7 @@ package APIAbilityHandler {
   case class SetUpAbility(ability: Ability, handshake: Boolean = false) extends Request
 
 
+  sealed trait Response
 
   case class CmdID(cmd: ID) extends Response
   case class AbilityStarted(id: ID) extends Response

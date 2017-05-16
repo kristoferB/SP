@@ -25,6 +25,7 @@ object Launch extends App {
     // this must be launched after the ability handler and the OPC
     sp.labkit.operations.LoadLabkitAbilities(system)
 
+    println("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH")
     system.actorOf(LabkitOperationService.props, "LabkitOperations")
 
 
