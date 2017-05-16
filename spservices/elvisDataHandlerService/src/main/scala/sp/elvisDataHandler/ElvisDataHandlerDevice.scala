@@ -249,7 +249,7 @@ def getIsAttended(events: List[dataApi.EricaEvent]): (Boolean, String) = {
 
 def getLatestEvent(events: List[dataApi.EricaEvent]): (String, Long) = {
   var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-  val tmp = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date())
+  val tmp = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date(63, 0, 16))
   var startOfLatestEvent = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").parse(tmp)
   var latestEvent = ""
   var latestEventTimeDiffString = ""
@@ -267,7 +267,7 @@ def getLatestEvent(events: List[dataApi.EricaEvent]): (String, Long) = {
 
 def getPriority(events: List[dataApi.EricaEvent]): String = {
   var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-  val tmp = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date())
+  val tmp = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date(63, 0, 16))
   var startOfLatestEvent = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").parse(tmp)
   var latestPrioEvent = "Otriagerad"
 
