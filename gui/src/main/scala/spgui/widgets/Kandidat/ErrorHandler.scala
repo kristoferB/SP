@@ -21,20 +21,9 @@ package spgui.widgets.Kandidat
 object ErrorHandler extends StyleSheet.Inline{
 
     private class Backend($: BackendScope[Unit, Unit]) {
-      import dsl._
-
 
       def render() = {
-        <.div(
-          ^.className := style(
-            backgroundColor(rgb(0,255,0)),
-            width(100.px),
-            height(100.px)
-        ).htmlClass
-        )
-        <.div(
 
-        )
       }
 
       def onUnmount() = {
