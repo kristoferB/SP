@@ -10,6 +10,7 @@ import sp.messages.Pickles._
 
 
 import sp.labkit.operations.{APILabkitControl => api}
+import sp.labkit.operations.{APIAbilityHandler => abapi}
 import sp.labkit.operations.{API_OperationRunner => opAPI}
 
 class LabkitOperationService extends Actor with ActorLogging with OperationRunnerLogic {
@@ -53,22 +54,28 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
       matchRequests(mess)
       matchRunnerAPI(mess)
       matchServiceRequests(mess)
+      matchVariables(mess)
 
 
   }
 
-
+  def matchVariables(mess: Try[SPMessage]) = {
+    LabKitComm.extractRequest(mess).map {
+      case(h, APIAbilityHandler.sendThings(values)) =>
+        values.filter(x => x.name.contains("Sensor"))
+        values.map(a => things.get(a.name).get.id -> a.id)
+    }
+  }
 
 
 
   def matchRequests(mess: Try[SPMessage]) = {
     LabKitComm.extractAbilityResponse(mess).map {
       case (h, APIVirtualDevice.StateEvent(r, id, state, diff)) =>
-        println("HÄR KOMMER DET:")
+        println("HÄR KOMMER DET: MIIIIIIIIIIIIIIIIIISA INTEEEEEEEEEEEEEEEE")
         state.foreach(println)
       case _ =>
     }
-
   }
 
 
@@ -188,7 +195,7 @@ trait MyOperationModel  {
         prop(vars, "", List(s"${things("feedSensor").id} := empty", s"${things("robot1").id} := $cylName"), "post")
       )),
       robot1to1put.copy(conditions = List(
-        prop(vars, s"${robot1toFeedCylPick.id} == fjhj", List(s"${things("C1").id} := unavailable"), "pre"),
+        prop(vars, s"${things("robot1").id} == $cylName", List(s"${things("C1").id} := unavailable"), "pre"),
         prop(vars, "", List(s"${things("robot1").id} := empty", s"${things("c1p1Sensor").id} := $cylName",
           s"${things("R1").id} := available"), "post")
       )),
@@ -240,7 +247,11 @@ trait MyOperationModel  {
       things("c1p2Sensor").id -> "empty",
       things("convDone").id -> "false"
     )
+    state.foreach(println)
+    things.foreach(println)
+    println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 
+    println(things.get("R1"))
 
     (ops, opAbilityMap, state)
   }

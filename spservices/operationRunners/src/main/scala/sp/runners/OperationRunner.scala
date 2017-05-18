@@ -112,7 +112,6 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
             println(s"The ability with id $id updated with state: $abState")
             newAbilityState(id, abState, startAbility, sendState)
         }
-
     }
   }
 

@@ -82,6 +82,7 @@ package API_OperationRunner {
 
   case class StateEvent(runnerID: ID, state: Map[ID, SPValue]) extends Response
   case class Runners(ids: List[Setup]) extends Response
+  case class getThings() extends Request
 
 
   object attributes {
@@ -103,7 +104,7 @@ package APIAbilityHandler {
 
   case class GetAbilities() extends Request
   case class SetUpAbility(ability: Ability, handshake: Boolean = false) extends Request
-
+  case class sendThings(things: List[Thing]) extends Request
 
   sealed trait Response
 
@@ -113,6 +114,8 @@ package APIAbilityHandler {
   case class AbilityState(id: ID, state: Map[ID, SPValue]) extends Response
   case class Abilities(xs: List[Ability]) extends Response
   case class Abs(a: List[(ID,String)]) extends Response
+
+
 
   case class Ability(name: String,
                      id: ID,

@@ -5,16 +5,18 @@ import java.util.UUID
 
 import akka.actor._
 import akka.cluster.pubsub.DistributedPubSub
-import akka.cluster.pubsub.DistributedPubSubMediator.Publish
+import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Subscribe}
 import sp.domain.Logic._
 import sp.domain._
 import sp.domain.logic.{ActionParser, PropositionParser}
 import sp.messages.Pickles._
-
 import sp.labkit.operations.{APIAbilityHandler => abapi}
 import sp.labkit.operations.{APIVirtualDevice => vdapi}
 import sp.labkit.operations.{API_OperationRunner => opAPI}
+import sp.messages.APISP
+import sp.runners.{API_OperationRunner, OperationRunnerComm}
 
+import scala.util.Try
 
 object LabKitAbilityModel extends Helpers2{
   // Variables
@@ -93,6 +95,8 @@ object LabKitAbilityModel extends Helpers2{
   val allVars = List( feedRun, feedSensor, feedState, c1p1Run, c1p1Dir,
     c1p1State, c1p1Sensor, c1p2Run, c1p2Dir, c1p2State, c1p2Sensor,  robot1Run, robot1Target, robot1State, robot1ResetRun, robot1ResetState,
     robot1gripping)
+
+
 
   /*
   testingIn, testingInInt, testingOut, testingOutInt, testingOutMirror, c2p1Run, c2p1Dir, c2p1State, c2p1Sensor, c3p1Run, c3p1Dir, c3p1State, c3p1Sensor, c3p2Run
@@ -241,7 +245,7 @@ object LabKitAbilityModel extends Helpers2{
   )*/
 
   val robot1to1put = abapi.Ability(name = "robot1to1put", id = ID.newID,
-    preCondition = prop(allVars, s"${robot1State.name} == 1 and ${robot1Run.name} and ${robot1gripping.name} and ${c1p1State.name} == 1" +
+    preCondition = prop(allVars, s"${robot1State.name} == 1 and ${robot1gripping.name} and ${c1p1State.name} == 1" +
       s"and not ${c1p1Run.name} and not ${c1p1Sensor.name} and not ${c1p2Sensor.name} and ${c1p2State.name} == 1",
       List(s"${robot1Run.name} := true", s"${robot1Target.name} := 5")),
     postCondition = prop(allVars, s"${robot1State.name} == 3", List(s"${robot1Run.name} := false")),
@@ -297,8 +301,21 @@ object LabKitAbilityModel extends Helpers2{
      robot1to1pick, robot1to2put,robot2to2pick, robot2to3put, robot2to4pick, robot2to4put*/
 case class LoadLabkitAbilities(system: ActorSystem) {
   import LabKitAbilityModel._
-
   val mediator = DistributedPubSub(system).mediator
+  /*mediator ! Subscribe("events", self)
+  def receive = {
+    case x: String if sender() != self =>
+      val mess = SPMessage.fromJson(x)
+
+      matchServiceRequests(mess)
+  }
+
+  def matchServiceRequests(mess: Try[SPMessage]) = {
+    OperationRunnerComm.extractServiceRequest(mess) map { case (h, b) =>
+      val spHeader = h.copy(from = api.attributes.service)
+      mediator ! Publish("spevents", OperationRunnerComm.makeMess(spHeader, APISP.StatusResponse(statusResponse)))
+    }
+  }*/
 
   println(allAbilities)
 
@@ -310,7 +327,7 @@ case class LoadLabkitAbilities(system: ActorSystem) {
   val setup = SPAttributes("url" -> "opc.tcp://192.168.0.10:4840", "identifiers" -> mappers.map(_.driverIdentifier))
   val driver = vdapi.Driver("labkit", driverID, "OPCUA", setup)
   mediator ! Publish("services", SPMessage.makeJson[SPHeader, vdapi.SetUpDeviceDriver](SPHeader(from = "labkitModel"), vdapi.SetUpDeviceDriver(driver)))
-
+  mediator ! Publish("evetns", SPMessage.makeJson[SPHeader,abapi.sendThings](SPHeader(from = "labkitModel"), abapi.sendThings(allVars)))
   // setup resources
   val testing = vdapi.Resource(testingResource.name, testingResource.id, allVars.map(_.id).toSet, mappers, SPAttributes())
 
