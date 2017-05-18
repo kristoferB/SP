@@ -34,7 +34,18 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
   import com.google.common.base.Charsets
 
   implicit val system = context.system
-  implicit val materializer = ActorMaterializer()
+
+
+  val decider: Supervision.Decider = {
+    case x =>
+      println("Stream problems in gPubSub")
+      println(x.getMessage)
+      Supervision.Restart
+  }
+
+  implicit val materializer = ActorMaterializer(
+    ActorMaterializerSettings(system).withSupervisionStrategy(decider)
+  )
 
 
   // connecting to the pubsub bus using the mediator actor
