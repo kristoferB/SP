@@ -143,7 +143,7 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
     println
     println("+++++++++++++++++++++++++++++++++++++++++++++")
     val spHeader = SPHeader(from = los.attributes.service, to = "ErrorHandler")
-    val message = los.sendThings(PLC.toList,Model.toList)
+    val message = los.sendThings(PLC.toList, Model.toList)
     mediator ! Publish("error", SPMessage.makeJson(spHeader, message))
   }
 
