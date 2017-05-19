@@ -9,6 +9,7 @@ object WidgetList {
 
   val list =
     List[(String, SPWidgetBase => ReactElement, Int, Int)](
+      ("OrderCylinder", spgui.widgets.Kandidat.ErrorHandler(), 5, 5),
       ("Grid Test", spgui.dashboard.GridTest(), 5, 5),
       ("Widget Injection", widgets.injection.WidgetInjectionTest(), 2, 2),
       ("Item Editor", widgets.itemeditor.ItemEditor(), 2, 2),
