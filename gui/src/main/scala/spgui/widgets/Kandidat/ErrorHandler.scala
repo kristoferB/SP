@@ -9,9 +9,23 @@ package spgui.widgets.Kandidat
   import org.scalajs.dom.raw
   import org.singlespaced.d3js.d3
   import org.singlespaced.d3js.Ops._
+  import sp.domain.{ID, SPValue}
   import spgui.components.SPButton
+  import sp.labkit.operations.{APIAbilityHandler => abapi}
+  import sp.labkit.operations.{API_OperationRunner => opapi}
+  import spgui.communication.BackendCommunication
+  import spgui.widgets.abilityhandler.{APIAbilityHandler, APIVirtualDevice}
 
 object ErrorHandler{
+  /*case class State(internal: Map[String, SPValue], external: Map[String, SPValue])
+  private class Backend($: BackendScope[Unit, State])
+  val answerHandler = BackendCommunication.getMessageObserver(
+    mess => {
+      fromSPValue[abapi.Replies](mess.body).map{
+        case abapi.sendThings(t) =>
+
+      }
+    }*/
   def apply() = SPWidget{spwb =>
     component()
   }
@@ -39,7 +53,14 @@ object ErrorHandler{
       )
     }
     .build
-  }
+  }/*
+  def sendToAB(mess: abapi.Request): Callback = {
+    val h = SPHeader(from = "AbilityHandlerWidget", to = abapi.attributes.service,
+    reply = SPValue("AbilityHandlerWidget"), reqID = java.util.UUID.randomUUID())
+    val json = SPMessage(*(h), *(mess))
+    BackendCommunication.publish(json, "services")
+    Callback.empty
+  }*/
 
 object D3BarsComponent {
   def apply(data: List[String]) = component(data)

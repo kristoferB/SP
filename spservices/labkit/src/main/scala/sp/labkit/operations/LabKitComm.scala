@@ -42,7 +42,7 @@ object LabKitComm {
 
   def extractOPReply(mess: Try[SPMessage]) = for {
     m <- mess
-    h <- m.getHeaderAs[SPHeader] if h.to == api.attributes.service
+    h <- m.getHeaderAs[SPHeader]
     b <- m.getBodyAs[opAPI.Response]
     } yield (h, b)
 
@@ -104,7 +104,7 @@ package APIAbilityHandler {
 
   case class GetAbilities() extends Request
   case class SetUpAbility(ability: Ability, handshake: Boolean = false) extends Request
-  case class sendThings(things: List[Thing]) extends Request
+
 
   sealed trait Response
 
@@ -114,7 +114,7 @@ package APIAbilityHandler {
   case class AbilityState(id: ID, state: Map[ID, SPValue]) extends Response
   case class Abilities(xs: List[Ability]) extends Response
   case class Abs(a: List[(ID,String)]) extends Response
-
+  case class sendThings(things: List[Thing]) extends Response
 
 
   case class Ability(name: String,

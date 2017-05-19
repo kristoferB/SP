@@ -13,6 +13,8 @@ import sp.labkit.operations.{APILabkitControl => api}
 import sp.labkit.operations.{APIAbilityHandler => abapi}
 import sp.labkit.operations.{API_OperationRunner => opAPI}
 
+import scala.collection.mutable.ListBuffer
+
 class LabkitOperationService extends Actor with ActorLogging with OperationRunnerLogic {
   import akka.cluster.pubsub._
   import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
@@ -29,7 +31,7 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
   println("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK-")
 
   case object DelayStart
-
+  var doOnce = false
 
   def receive = {
     case DelayStart =>
@@ -41,8 +43,8 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
         mediator ! Publish("services", LabKitComm.makeMess(SPHeader(from = api.attributes.service, to = opAPI.attributes.service), mess))
       }
 
-      println("UUUUUUUUUUUUUUUUUUUUUUUUU")
-      println(test)
+      //println("UUUUUUUUUUUUUUUUUUUUUUUUU")
+      //println(test)
 
 
 
@@ -54,39 +56,94 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
       matchRequests(mess)
       matchRunnerAPI(mess)
       matchServiceRequests(mess)
-      matchVariables(mess)
+      //matchVariables(mess)
 
 
   }
-
+  /*
   def matchVariables(mess: Try[SPMessage]) = {
     LabKitComm.extractRequest(mess).map {
       case(h, APIAbilityHandler.sendThings(values)) =>
         values.filter(x => x.name.contains("Sensor"))
-        values.map(a => things.get(a.name).get.id -> a.id)
+        values.map(a => things.get(a.name).get.id -> a.id).toMap
+        values
     }
+  }*/
+
+  // Sorting out sensors
+  var fromPLC = new ListBuffer[Thing]()
+  var fromModel = new ListBuffer[Thing]()
+  var i = 0
+  var j = 0
+  println("Size allVars: " + LabKitAbilityModel.allVars.size)
+  for (i <- 0 to LabKitAbilityModel.allVars.size) {
+    println(i)
+  }
+  if(!doOnce) {
+    doOnce = true
+    for (i <- 0 to LabKitAbilityModel.allVars.size-1) {
+      if (LabKitAbilityModel.allVars(i).name.contains("Sensor")) {
+        fromPLC += LabKitAbilityModel.allVars(i)
+      }
+    }
+    for (i <- 0 to allVarsHere.size-1) {
+      if (allVarsHere(i).name.contains("Sensor")) {
+        fromModel+= allVarsHere(i)
+      }
+    }
+    fromPLC.toList
+    fromModel.toList
   }
 
 
 
+  var PLC = new ListBuffer[String]()
+  var Model = new ListBuffer[String]()
   def matchRequests(mess: Try[SPMessage]) = {
+    i = 0
+    j = 0
+
+
     LabKitComm.extractAbilityResponse(mess).map {
       case (h, APIVirtualDevice.StateEvent(r, id, state, diff)) =>
-        println("HÄR KOMMER DET: MIIIIIIIIIIIIIIIIIISA INTEEEEEEEEEEEEEEEE")
-        state.foreach(println)
+        PLC = new ListBuffer[String]()
+        println("HÄMTA ABILITY GREJ +++++++++++++++++++++++++++++++++")
+        for (i <- 0 to fromPLC.size-1) {
+          PLC += fromPLC(i).name
+          PLC += state.get(fromPLC(i).id).toString
+        }
       case _ =>
     }
+    LabKitComm.extractOPReply(mess).map {
+      case (h, opAPI.StateEvent(r, state)) =>
+        Model = new ListBuffer[String]()
+        println("HÄMTA MODEL -----------------------------")
+        for (j <- 0 to fromModel.size - 1) {
+          Model += fromModel(j).name
+          Model += state.get(fromModel(j).id).toString
+        }
+      case _ =>
+        println("--------------------------------------")
+    }
+    PLC.toList
+    Model.toList
+    println("+++++++++++++++++++++++++++++++++++++++++++++")
+    print("PLC - state")
+    PLC.foreach(print)
+    println
+    print("Model - state")
+    Model.foreach(print)
+    println
+    println("+++++++++++++++++++++++++++++++++++++++++++++")
   }
 
 
   def matchRunnerAPI(mess: Try[SPMessage]) = {
     LabKitComm.extractOPReply(mess).map {
       case (h, opAPI.StateEvent(r, state)) =>
-        println("Runner: " + state)
+        //println("Runner: " + state)
       case (h, opAPI.Runners(runners)) =>
-
     }
-
   }
 
   def matchServiceRequests(mess: Try[SPMessage]) = {
@@ -140,8 +197,8 @@ trait OperationRunnerLogic extends MyOperationModel {
 
 import sp.domain.logic.{ActionParser, PropositionParser}
 trait MyOperationModel  {
-
-  val things: Map[String, IDAble] = List(
+  //Potentiellt så ska denna listan stå där nere där den nu används men deta kändes smidigare för mitt ändamål att komma åt alla things //Joel
+  var allVarsHere = List(
 
     // Feeder
     Thing("feedSensor"),
@@ -154,7 +211,8 @@ trait MyOperationModel  {
     // Band 1
     Thing("c1p1Sensor"),
     Thing("c1p2Sensor")
-  ).map(x => x.name -> x).toMap
+  )
+  val things: Map[String, IDAble] = allVarsHere.map(x => x.name -> x).toMap
 
 
 
@@ -169,8 +227,9 @@ trait MyOperationModel  {
     val robot1to1put = Operation("robot1to1put")
     val conv1proc2 = Operation("conv1proc2")
     val conv1proc1 = Operation("conv1proc1")
+    val conv1TimeRun  = Operation("conv1TimeRun")
 
-    val vars = things.values.toList ++ List(feeder, robot1toFeedCylPick, robot1to1put, conv1proc1, conv1proc2) // need to add ops
+    val vars = things.values.toList ++ List(feeder, robot1toFeedCylPick, robot1to1put, conv1proc1, conv1proc2, conv1TimeRun) // need to add ops
 
     val ops = List(
       /*
@@ -200,13 +259,18 @@ trait MyOperationModel  {
           s"${things("R1").id} := available"), "post")
       )),
       conv1proc2.copy(conditions = List(
-        prop(vars, s"${things("c1p1Sensor").id} == $cylName && ${things("convDone").id} == false", List(), "pre"),
+        prop(vars, s"${things("c1p1Sensor").id} == $cylName", List(), "pre"),
         prop(vars, "", List(s"${things("c1p1Sensor").id} := empty", s"${things("c1p2Sensor").id} := $cylName"), "post")
       )),
       conv1proc1.copy(conditions = List(
         prop(vars, s"${things("c1p2Sensor").id} == $cylName", List(), "pre"),
         prop(vars, "", List(s"${things("c1p1Sensor").id} := $cylName", s"${things("c1p2Sensor").id} := empty",
           s"${things("convDone").id} := true"), "post")
+      )),
+      conv1TimeRun.copy(conditions = List(
+        prop(vars, s"${things("convDone").id} == true", List(), "pre"),
+        prop(vars, "", List(s"${things("c1p1Sensor").id} := empty",
+          s"${things("convDone").id} := false"), "post")
       ))
       /*robot1to2put.copy(conditions = List(
         prop(vars, s"${things("c2in").id} == empty && ${things("robot1").id} == $cylName", List(s"${things("C2").id} := unavailable"), "pre"),
@@ -234,7 +298,8 @@ trait MyOperationModel  {
       robot1toFeedCylPick.id -> LabKitAbilityModel.robot1toFeedCylPick.id,
       robot1to1put.id -> LabKitAbilityModel.robot1to1put.id,
       conv1proc1.id -> LabKitAbilityModel.conv1proc1.id,
-      conv1proc2.id -> LabKitAbilityModel.conv1proc2.id
+      conv1proc2.id -> LabKitAbilityModel.conv1proc2.id,
+      conv1TimeRun.id -> LabKitAbilityModel.conv1TimeRun.id
 
     )
 
@@ -247,11 +312,11 @@ trait MyOperationModel  {
       things("c1p2Sensor").id -> "empty",
       things("convDone").id -> "false"
     )
-    state.foreach(println)
-    things.foreach(println)
-    println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+    //state.foreach(println)
+    //things.foreach(println)
+    //println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 
-    println(things.get("R1"))
+    //println(things.get("R1"))
 
     (ops, opAbilityMap, state)
   }

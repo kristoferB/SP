@@ -38,6 +38,10 @@ object LabKitAbilityModel extends Helpers2{
   val  c1p2Dir          = Thing("c1p2Dir")
   val  c1p2State        = Thing("c1p2State")
   val  c1p2Sensor       = Thing("c1p2Sensor")
+
+  val c1TimeRun         = Thing("c1TimeRun")
+  val c1TimeTime        = Thing("c1TimeTime")
+  val c1TimeState       = Thing("c1TimeState")
   // Conv 2
 /*  val  c2p1Run          = Thing("c2p1Run")
   val  c2p1Dir          = Thing("c2p1Dir")
@@ -93,7 +97,7 @@ object LabKitAbilityModel extends Helpers2{
 
 
   val allVars = List( feedRun, feedSensor, feedState, c1p1Run, c1p1Dir,
-    c1p1State, c1p1Sensor, c1p2Run, c1p2Dir, c1p2State, c1p2Sensor,  robot1Run, robot1Target, robot1State, robot1ResetRun, robot1ResetState,
+    c1p1State, c1p1Sensor, c1p2Run, c1p2Dir, c1p2State, c1p2Sensor, c1TimeRun, c1TimeTime, c1TimeState, robot1Run, robot1Target, robot1State, robot1ResetRun, robot1ResetState,
     robot1gripping)
 
 
@@ -137,6 +141,13 @@ object LabKitAbilityModel extends Helpers2{
     postCondition = prop(allVars, s"${c1p2State.name} == 3", List(s"${c1p2Run.name} := false")),
     started = prop(allVars, s"${c1p2State.name} == 2", List())
   )
+  val conv1TimeRun = abapi.Ability(name = "conv1TimeRun", id = ID.newID,
+    preCondition = prop(allVars, s"${c1p2State.name} == 1 and ${c1p1State.name} == 1",
+      List(s"${c1TimeRun.name} := true", s"${c1p2Dir.name} := false", s"${c1TimeTime.name} := 7")),
+    postCondition = prop(allVars, s"${c1TimeState.name} == 3", List(s"${c1TimeRun.name} := false")),
+    started = prop(allVars, s"${c1TimeState.name} == 2", List())
+  )
+
   // Conv 2
   /*
   val conv2proc1 = abapi.Ability(name = "conv2proc1", id = ID.newID,
@@ -293,7 +304,7 @@ object LabKitAbilityModel extends Helpers2{
     postCondition = prop(allVars, s"${robot2State.name} == 3", List(s"${robot2Run.name} := false")),
     started = prop(allVars, s"${robot2State.name} == 2", List())
   )*/
-  val allAbilities = List(feeder, conv1proc1, conv1proc2, robot1to1put,
+  val allAbilities = List(feeder, conv1proc1, conv1proc2, conv1TimeRun, robot1to1put,
      robot1toFeedCylPick )
 }
 /*a1, a2, conv2proc1, conv3proc1left, conv3proc1right, conv3proc2left, conv3proc2right,
