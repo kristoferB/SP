@@ -30,7 +30,7 @@ object TestOrder {
         <.br,
 
         <.button("Make cylinder",
-          ^.onClick --> sendToVD(vdapi.GetResources()//dcb.modState(_ => getList()))
+          ^.onClick --> sendToVD(//vdapi.GetResources()//dcb.modState(_ => getList()))
           )
         )
       )
@@ -44,12 +44,12 @@ object TestOrder {
     val x = 1
     var nr = x + 1
   }
-
+/*
   def sendToVD(mess: vdapi.Requests): Callback = {
     val h = SPHeader(from = "AbilityHandlerWidget", to = vdapi.attributes.service,
       reply = SPValue("AbilityHandlerWidget"), reqID = java.util.UUID.randomUUID())
     val json = SPMessage(*(h), *(mess))
     BackendCommunication.publish(json, "services")
     Callback.empty
-  }
+  }*/
 }
