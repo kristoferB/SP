@@ -114,7 +114,7 @@ package APIAbilityHandler {
   case class AbilityState(id: ID, state: Map[ID, SPValue]) extends Response
   case class Abilities(xs: List[Ability]) extends Response
   case class Abs(a: List[(ID,String)]) extends Response
-  case class sendThings(things: List[Thing]) extends Response
+  case class sendThings(things: List[String], things2: List[String]) extends Response
 
 
   case class Ability(name: String,
