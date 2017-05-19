@@ -338,7 +338,6 @@ case class LoadLabkitAbilities(system: ActorSystem) {
   val setup = SPAttributes("url" -> "opc.tcp://192.168.0.10:4840", "identifiers" -> mappers.map(_.driverIdentifier))
   val driver = vdapi.Driver("labkit", driverID, "OPCUA", setup)
   mediator ! Publish("services", SPMessage.makeJson[SPHeader, vdapi.SetUpDeviceDriver](SPHeader(from = "labkitModel"), vdapi.SetUpDeviceDriver(driver)))
-  mediator ! Publish("evetns", SPMessage.makeJson[SPHeader,abapi.sendThings](SPHeader(from = "labkitModel"), abapi.sendThings(allVars)))
   // setup resources
   val testing = vdapi.Resource(testingResource.name, testingResource.id, allVars.map(_.id).toSet, mappers, SPAttributes())
 
