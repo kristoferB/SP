@@ -14,6 +14,14 @@ import sp.labkit.operations.{APIAbilityHandler => abapi}
 import sp.labkit.operations.{API_OperationRunner => opAPI}
 
 import scala.collection.mutable.ListBuffer
+package API_LOS{
+  sealed trait API_LOS
+  case class sendThings(things: List[String], things2: List[String]) extends API_LOS
+  object attributes {
+    val service = "LOS"
+  }
+}
+import sp.labkit.operations.{API_LOS => los}
 
 class LabkitOperationService extends Actor with ActorLogging with OperationRunnerLogic {
   import akka.cluster.pubsub._
@@ -99,6 +107,7 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
 
   var PLC = new ListBuffer[String]()
   var Model = new ListBuffer[String]()
+
   def matchRequests(mess: Try[SPMessage]) = {
     i = 0
     j = 0
@@ -125,8 +134,6 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
       case _ =>
         println("--------------------------------------")
     }
-    PLC.toList
-    Model.toList
     println("+++++++++++++++++++++++++++++++++++++++++++++")
     print("PLC - state")
     PLC.foreach(print)
@@ -135,6 +142,9 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
     Model.foreach(print)
     println
     println("+++++++++++++++++++++++++++++++++++++++++++++")
+    val spHeader = SPHeader(from = los.attributes.service, to = "ErrorHandler")
+    val message = los.sendThings(PLC.toList,Model.toList)
+    mediator ! Publish("spevents", SPMessage.makeJson(spHeader, message))
   }
 
 

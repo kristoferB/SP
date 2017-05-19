@@ -13,19 +13,36 @@ package spgui.widgets.Kandidat
   import spgui.components.SPButton
   import sp.labkit.operations.{APIAbilityHandler => abapi}
   import sp.labkit.operations.{API_OperationRunner => opapi}
+  import sp.labkit.operations.{API_LOS => los}
   import spgui.communication.BackendCommunication
   import spgui.widgets.abilityhandler.{APIAbilityHandler, APIVirtualDevice}
-
+package API_LOS{
+  sealed trait API_LOS
+  case class sendThings(things: List[String], things2: List[String]) extends API_LOS
+  object attributes {
+    val service = "LOS"
+  }
+}
 object ErrorHandler{
-  /*case class State(internal: Map[String, SPValue], external: Map[String, SPValue])
-  private class Backend($: BackendScope[Unit, State])
-  val answerHandler = BackendCommunication.getMessageObserver(
-    mess => {
-      fromSPValue[abapi.Replies](mess.body).map{
-        case abapi.sendThings(t) =>
+  case class State(things: List[String], things2: List[String])
+  private class Backend($: BackendScope[Unit, State]) {
+
+    val messObs = BackendCommunication.getMessageObserver(
+      mess => {
+        //println(s"The widget example got: $mess" +s"parsing: ${mess.getBodyAs[api.API_ExampleService]}")
+        mess.getBodyAs[los.API_LOS].map {
+          case los.sendThings(m, id) =>
+
+          case x =>
+            println(s"THIS WAS NOT EXPECTED IN EXAMPLEWIDGET: $x")
+        }
+
+      },
+      "answers" // the topic you want to listen to. Soon we will also add some kind of backend filter,  but for now you get all answers
+    )
 
       }
-    }*/
+    }
   def apply() = SPWidget{spwb =>
     component()
   }
