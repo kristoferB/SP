@@ -11,6 +11,7 @@ import scala.collection.mutable.ListBuffer
 
 import sp.domain._
 import sp.domain.Logic._
+import datahandler.ElvisDataHandlerDevice
 import sp.gPubSub.{API_Data => api}
 import sp.gPubSub.{API_PatientEvent => sendApi}
 
@@ -43,6 +44,7 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
   val mediator = DistributedPubSub(context.system).mediator
 
   var state: List[api.EricaEvent] = List()
+  val elvisActor = context.actorOf(ElvisDataHandlerDevice.props, "elvisdatahandler")
 
   def receive = {
     case Ticker => clearState() // Propably used for testing. Only locally present.
@@ -92,10 +94,12 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
     var newState = dataAggregation.handleMessage(s)
     if (!newState.isEmpty) {
       state = state ++ newState
-      val h = SPHeader(from = "gPubSubDevice")
-      val b = sendApi.ElvisData(state)
-      val mess = SPMessage.makeJson(h, b).get
-      mediator ! Publish("elvis-diff", mess)
+      println("New events: " + newState)
+      elvisActor ! state
+      //val h = SPHeader(from = "gPubSubDevice")
+      //val b = sendApi.ElvisData(state)
+      //val mess = SPMessage.makeJson(h, b).get
+      //mediator ! Publish("elvis-diff", mess)
     }
   }
 

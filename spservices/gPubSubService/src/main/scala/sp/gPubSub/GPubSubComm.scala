@@ -23,6 +23,23 @@ case class ElvisPatient(CareContactId: Int,
                         VisitId: Int,
                         VisitRegistrationTime: String)
 
+case class EricaPatient(CareContactId: Int,
+                        DepartmentComment: String,
+                        Location: String,
+                        ReasonForVisit: String,
+                        Clinic: String,
+                        Priority: String,
+                        LatestEvent: String,
+                        LatestEventTimeDiff: Long,
+                        IsAttended: Boolean,
+                        DoctorId: String,
+                        NeedsAttention: Boolean,
+                        OnExamination: Boolean,
+                        HasPlan: Boolean,
+                        IsFinished: Boolean,
+                        VisitId: Int,
+                        VisitRegistrationTime: String)
+
 case class ElvisEvent(CareEventId: Int,
                       Category: String,
                       End: String,
@@ -49,10 +66,20 @@ case class SnapShot(patients: List[ElvisPatient])
 
 
 package API_PatientEvent {
-  import sp.gPubSub.{API_Data => api}
+  //import sp.gPubSub.{API_Data => api}
+  import datahandler.{API_Data => api}
+  import datahandler.{API_Patient => patientApi}
+
+  sealed trait Event
+
+  sealed trait StateEvent
+  case class GetState() extends StateEvent with Event
+  case class State(patients: Map[String, patientApi.Patient]) extends StateEvent with Event
+
+  case class Tick() extends StateEvent with Event
   // Messages I can send
-  sealed trait ElvisEvent
-  case class ElvisData(events: List[api.EricaEvent]) extends ElvisEvent
+  //sealed trait ElvisEvent
+  //case class ElvisData(events: List[api.EricaEvent]) extends ElvisEvent
 
   object attributes {
     val service = "gPubSubService"
