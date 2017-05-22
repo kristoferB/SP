@@ -41,10 +41,10 @@ object TestOrder {
     .render(dcb =>
     <.div(
       <.h1("Order a cylinder"),
-      <.ul(<.h4("Cylinder " + getList.toString),
-        <.ul(<.input.checkbox(), <.span(" Process 1 ")),
-        <.ul(<.input.checkbox(), <.span(" Process 2 ")),
-        <.ul(<.input.checkbox(), <.span(" Process 3 "))),
+      //<.ul(<.h4("Cylinder " + getList.toString),
+        //<.ul(<.input.checkbox(), <.span(" Process 1 ")),
+        //<.ul(<.input.checkbox(), <.span(" Process 2 ")),
+        //<.ul(<.input.checkbox(), <.span(" Process 3 "))),
       // ^.checked := temp.process1 = true, ^.onChange --> p.stateChange(item.copy(completed = !item.completed))),
       <.br,
 

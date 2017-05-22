@@ -23,7 +23,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
   mediator ! Subscribe("events", self)
 
   val myH = SPHeader(from = api.attributes.service, to = abilityAPI.attributes.service, reply = api.attributes.service)
-  mediator ! Publish("services", OperationRunnerComm.makeMess(myH, abilityAPI.GetAbilities()))
+
 
 
   def receive = {
@@ -45,6 +45,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
     OperationRunnerComm.extractRequest(mess).map{ case (h, b) =>
       val updH = h.copy(from = api.attributes.service)
       mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, APISP.SPACK()))
+      mediator ! Publish("services", OperationRunnerComm.makeMess(myH, abilityAPI.GetAbilities()))
       b match {
         case setup: api.Setup =>
           addRunner(setup).foreach{xs =>
@@ -213,11 +214,11 @@ trait OperationRunnerLogic {
                 sendState: State => Unit
                ) = {
     val updR = runners.get(runner).map {runner =>
-      val updOps = (runner.setup.ops ++ add).filter(o => !remove.contains(o.id)).flatMap(o => updOPs(o, runner.setup.opAbilityMap))
       val updMap = (runner.setup.opAbilityMap ++ opAbilityMap).filter(kv => !remove.contains(kv._1))
+      val updOps = (runner.setup.ops ++ add).filter(o => !remove.contains(o.id)).flatMap(o => updOPs(o, updMap))
       val updSetup = runner.setup.copy(ops = updOps, opAbilityMap = updMap)
       val updState = (runner.currentState ++ add.map(o => o.id -> SPValue(OperationState.init))).filter(kv => !remove.contains(kv._1)) ++
-        runner.setup.opAbilityMap.values.toList.map(id => id -> SPValue("notEnabled"))
+        updMap.values.toList.map(id => id -> SPValue("notEnabled"))
 
       Runner(updSetup, updState)
     }

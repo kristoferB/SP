@@ -35,21 +35,23 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
 
   import scala.concurrent.duration._
   import context.dispatcher
-  context.system.scheduler.scheduleOnce(7 seconds, self, DelayStart)
+  context.system.scheduler.scheduleOnce(4 seconds, self, DelayStart)
   println("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK-")
 
   case object DelayStart
   var doOnce = false
 
+  val runnerID = ID.newID
+
   def receive = {
-    /*case DelayStart =>
+    case DelayStart =>
       // testing
       val test = Try{
-        val testingMakingOps = makeMeOps("hej")
-        val mess = opAPI.Setup("testing", ID.newID, testingMakingOps._1.toSet, testingMakingOps._2, testingMakingOps._3)
+        val testingMakingOps = makeMeOps("cyl")
+        val mess = opAPI.Setup("testing", runnerID, Set(), Map(), testingMakingOps._3)
         println("sending some ops: "+ mess)
         mediator ! Publish("services", LabKitComm.makeMess(SPHeader(from = api.attributes.service, to = opAPI.attributes.service), mess))
-      }*/
+      }
 
       //println("UUUUUUUUUUUUUUUUUUUUUUUUU")
       //println(test)
@@ -74,8 +76,8 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
       case (h, b) =>
         if (b.string == "Starta jävla skit"){
           val test = Try{
-            val testingMakingOps = makeMeOps("hej")
-            val mess = opAPI.Setup("testing", ID.newID, testingMakingOps._1.toSet, testingMakingOps._2, testingMakingOps._3)
+            val testingMakingOps = makeMeOps("cyl")
+            val mess = opAPI.AddOperations(runnerID, testingMakingOps._1.toSet, testingMakingOps._2)
             println("STARTA FFS "+ b.string)
             mediator ! Publish("services", LabKitComm.makeMess(SPHeader(from = api.attributes.service, to = opAPI.attributes.service), mess))
           }
@@ -133,7 +135,17 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
         //println("HÄMTA ABILITY GREJ +++++++++++++++++++++++++++++++++")
         for (i <- 0 to fromPLC.size-1) {
           PLC += fromPLC(i).name
-          PLC += state.get(fromPLC(i).id).toString
+          val s = state.get(fromPLC(i).id).toString
+          if (s.contains("false")){
+            PLC += "false"
+          }
+          else if (s.contains("true")){
+            PLC += "true"
+          }
+          else {
+            PLC += ""
+          }
+
         }
       case _ =>
     }
@@ -143,7 +155,16 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
         //println("HÄMTA MODEL -----------------------------")
         for (j <- 0 to fromModel.size - 1) {
           Model += fromModel(j).name
-          Model += state.get(fromModel(j).id).toString
+          val s = state.get(fromModel(j).id).get.toString
+          if (s.contains("empty")){
+            Model += "empty"
+          }
+          else if (s.contains("cyl")){
+            Model += "cyl"
+          }
+          else {
+            Model += ""
+          }
         }
       case _ =>
         //println("--------------------------------------")
