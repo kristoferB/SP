@@ -9,9 +9,8 @@ package spgui.widgets.Kandidat
   import org.scalajs.dom.raw
   import org.singlespaced.d3js.d3
   import org.singlespaced.d3js.Ops._
-  import sp.domain.{ID, SPValue}
-  import spgui.components.SPButton
-  import spgui.communication.BackendCommunication
+  import sp.domain._
+  import spgui.communication._
 
 package API_LOS{
   sealed trait API_LOS
@@ -30,28 +29,65 @@ object ErrorHandler{
         mess.getBodyAs[API_LOS.sendThings].map { x =>
           println("000000000000000000000000000000000000000000")
           println(x)
+          //$.modState(s => s.copy(things = x.things)).runNow()
+          //$.modState(s => s.copy(things2 = x.things2)).runNow()
+          $.modState(s => State(things = x.things, things2 = x.things2)).runNow()
           println("000000000000000000000000000000000000000000")
         }
 
       },
       "error" // the topic you want to listen to. Soon we will also add some kind of backend filter,  but for now you get all answers
     )
+
+    def render(s: State) = {
+      <.div(
+        <.h2("Error Handler"),
+        <.br(),
+        <.table(
+          ^.width:="800px",
+          <.caption("States & Values"),
+          <.thead(
+            <.tr(
+              <.th(^.width:="200px","Name PLC"),
+              <.th(^.width:="200px","State PLC"),
+              <.th(^.width:="200px","Name Model"),
+              <.th(^.width:="200px","State Model")
+            )
+        ),
+        <.tbody(
+          <.tr(
+            <.td(s.things(0)),
+            <.td(s.things(1)),
+            <.td(s.things2(0)),
+            <.td(s.things2(1))
+          ),
+          <.tr(
+            <.td(s.things(2)),
+            <.td(s.things(3)),
+            <.td(s.things2(2)),
+            <.td(s.things2(3))
+          ),
+          <.tr(
+            <.td(s.things(4)),
+            <.td(s.things(5)),
+            <.td(s.things2(4)),
+            <.td(s.things2(5))
+          )
+        )
+      )
+      )
+      //println(s)
+    }
     def onUnmount() = {
       println("Unmounting")
       messObs.kill()
       Callback.empty
     }
 
-
-
-    def render(s: State) = {
-      <.div(
-      )
-    }
-
   }
-  private val component = ReactComponentB[Unit]("ExampleServiceWidget")
-    .initialState(State(List(), List()))
+
+  private val component = ReactComponentB[Unit]("ErrorHandler")
+    .initialState(State(things = List("a", "a", "a", "a", "a", "a"),things2 = List("", "", "", "", "", "")))
     .renderBackend[Backend]
     .componentWillUnmount(_.backend.onUnmount())
     .build
