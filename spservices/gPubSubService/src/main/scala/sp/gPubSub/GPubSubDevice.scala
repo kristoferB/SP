@@ -35,7 +35,18 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
   import com.google.common.base.Charsets
 
   implicit val system = context.system
-  implicit val materializer = ActorMaterializer()
+
+
+  val decider: Supervision.Decider = {
+    case x =>
+      println("Stream problems in gPubSub")
+      println(x.getMessage)
+      Supervision.Restart
+  }
+
+  implicit val materializer = ActorMaterializer(
+    ActorMaterializerSettings(system).withSupervisionStrategy(decider)
+  )
 
 
   // connecting to the pubsub bus using the mediator actor
@@ -57,10 +68,10 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
   val testSubscription = PubSubSubscription(project, s"getSnap")
 
   import com.qubit.pubsub.akka.attributes._
-  val attributes = Attributes(List(
-    PubSubStageBufferSizeAttribute(10),
-    PubSubStageMaxRetriesAttribute(10),
-    PubSubPublishTimeoutAttribute(10.seconds)))
+  val attributes = Attributes(List())
+//    PubSubStageBufferSizeAttribute(100),
+//    PubSubStageMaxRetriesAttribute(100),
+//    PubSubPublishTimeoutAttribute(10.seconds)))
 
   val client = com.qubit.pubsub.client.retry.RetryingPubSubClient(com.qubit.pubsub.client.grpc.PubSubGrpcClient())
   client.createSubscription(testSubscription, testTopic)
@@ -106,8 +117,9 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
   val test = s via toJsonString via jsonToList via makeDiff runWith(mediatorSink)
 
   override def postStop(): Unit = {
+    materializer.shutdown()
     println("OFF")
-    println(materializer.isShutdown)
+    println(test)
   }
 
 
