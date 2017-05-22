@@ -27,12 +27,12 @@ object ErrorHandler{
       mess => {
         //println(s"The widget example got: $mess" +s"parsing: ${mess.getBodyAs[api.API_ExampleService]}")
         mess.getBodyAs[API_LOS.sendThings].map { x =>
-          println("000000000000000000000000000000000000000000")
-          println(x)
+         // println("000000000000000000000000000000000000000000")
+          //println(x)
           //$.modState(s => s.copy(things = x.things)).runNow()
           //$.modState(s => s.copy(things2 = x.things2)).runNow()
           $.modState(s => State(things = x.things, things2 = x.things2)).runNow()
-          println("000000000000000000000000000000000000000000")
+         // println("000000000000000000000000000000000000000000")
         }
 
       },

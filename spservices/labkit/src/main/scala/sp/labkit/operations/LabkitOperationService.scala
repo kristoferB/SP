@@ -42,14 +42,14 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
   var doOnce = false
 
   def receive = {
-    case DelayStart =>
+    /*case DelayStart =>
       // testing
       val test = Try{
         val testingMakingOps = makeMeOps("hej")
         val mess = opAPI.Setup("testing", ID.newID, testingMakingOps._1.toSet, testingMakingOps._2, testingMakingOps._3)
         println("sending some ops: "+ mess)
         mediator ! Publish("services", LabKitComm.makeMess(SPHeader(from = api.attributes.service, to = opAPI.attributes.service), mess))
-      }
+      }*/
 
       //println("UUUUUUUUUUUUUUUUUUUUUUUUU")
       //println(test)
@@ -64,9 +64,23 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
       matchRequests(mess)
       matchRunnerAPI(mess)
       matchServiceRequests(mess)
-      //matchVariables(mess)
+      matchStartString(mess)
 
 
+  }
+
+  def matchStartString(mess: Try[SPMessage]) = {
+    LabKitComm.extractStartRequest(mess) map {
+      case (h, b) =>
+        if (b.string == "Starta jävla skit"){
+          val test = Try{
+            val testingMakingOps = makeMeOps("hej")
+            val mess = opAPI.Setup("testing", ID.newID, testingMakingOps._1.toSet, testingMakingOps._2, testingMakingOps._3)
+            println("STARTA FFS "+ b.string)
+            mediator ! Publish("services", LabKitComm.makeMess(SPHeader(from = api.attributes.service, to = opAPI.attributes.service), mess))
+          }
+        }
+    }
   }
   /*
   def matchVariables(mess: Try[SPMessage]) = {
@@ -116,7 +130,7 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
     LabKitComm.extractAbilityResponse(mess).map {
       case (h, APIVirtualDevice.StateEvent(r, id, state, diff)) =>
         PLC = new ListBuffer[String]()
-        println("HÄMTA ABILITY GREJ +++++++++++++++++++++++++++++++++")
+        //println("HÄMTA ABILITY GREJ +++++++++++++++++++++++++++++++++")
         for (i <- 0 to fromPLC.size-1) {
           PLC += fromPLC(i).name
           PLC += state.get(fromPLC(i).id).toString
@@ -126,22 +140,22 @@ class LabkitOperationService extends Actor with ActorLogging with OperationRunne
     LabKitComm.extractOPReply(mess).map {
       case (h, opAPI.StateEvent(r, state)) =>
         Model = new ListBuffer[String]()
-        println("HÄMTA MODEL -----------------------------")
+        //println("HÄMTA MODEL -----------------------------")
         for (j <- 0 to fromModel.size - 1) {
           Model += fromModel(j).name
           Model += state.get(fromModel(j).id).toString
         }
       case _ =>
-        println("--------------------------------------")
+        //println("--------------------------------------")
     }
-    println("+++++++++++++++++++++++++++++++++++++++++++++")
+    /*println("+++++++++++++++++++++++++++++++++++++++++++++")
     print("PLC - state")
     PLC.foreach(print)
     println
     print("Model - state")
     Model.foreach(print)
     println
-    println("+++++++++++++++++++++++++++++++++++++++++++++")
+    println("+++++++++++++++++++++++++++++++++++++++++++++")*/
     val spHeader = SPHeader(from = los.attributes.service, to = "ErrorHandler")
     val message = los.sendThings(PLC.toList, Model.toList)
     mediator ! Publish("error", SPMessage.makeJson(spHeader, message))

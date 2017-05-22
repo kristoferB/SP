@@ -14,7 +14,7 @@ package APILabkitControl {
   sealed trait Request
   sealed trait Response
 
-  case class SomeNice() extends Request
+  case class SomeNice(string: String) extends Request
   case class SomeResp() extends Response
 
   // Här lägger ni in ett api för frontend att styra systemet
@@ -57,6 +57,12 @@ object LabKitComm {
     h <- m.getHeaderAs[SPHeader]
     b <- m.getBodyAs[APIVirtualDevice.Response]
     } yield (h, b)
+  def extractStartRequest(mess: Try[SPMessage]) = for {
+    m <- mess
+    h <- m.getHeaderAs[SPHeader]
+    b <- m.getBodyAs[APILabkitControl.SomeNice]
+  } yield (h, b)
+
 
 
 
