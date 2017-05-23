@@ -105,7 +105,6 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
     var newState = dataAggregation.handleMessage(s)
     if (!newState.isEmpty) {
       state = state ++ newState
-      println("New events: " + newState)
       elvisActor ! state
       //val h = SPHeader(from = "gPubSubDevice")
       //val b = sendApi.ElvisData(state)

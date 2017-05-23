@@ -91,7 +91,7 @@ def handleElvisData(data: List[dataApi.EricaEvent]) {
   data.foreach{ e => {
     if (!visited.contains(e.CareContactId)) {
       if (data.filter(_.CareContactId == e.CareContactId).filter(_.Category == "RemovedPatient").isEmpty) {
-        state += e.CareContactId -> constructPatient(data.filter(_.CareContactId == e.CareContactId).filter( p => (!p.Category.contains("removed"))))
+        state += e.CareContactId -> constructPatient(data.filter(_.CareContactId == e.CareContactId).filter(p => (!p.Category.contains("removed"))))
       } else {
         state -= e.CareContactId
       }
@@ -134,10 +134,10 @@ def constructPatient(events: List[dataApi.EricaEvent]): dataApi.EricaPatient = {
   val (isAttended, doctorId) = getIsAttended(events.filter(_.Category == "T"))
   dataApi.EricaPatient(
         events(0).CareContactId,
-        getValue(events.filter(_.Category == "DepartmentCommentUpdate")),
-        getValue(events.filter(_.Category == "LocationUpdate")),
-        getValue(events.filter(_.Category == "ReasonForVisitUpdate")),
-        getValue(events.filter(_.Category == "TeamUpdate")),
+        getLatestEventValue(events.filter(_.Category == "DepartmentCommentUpdate")),
+        getLatestEventValue(events.filter(_.Category == "LocationUpdate")),
+        getLatestEventValue(events.filter(_.Category == "ReasonForVisitUpdate")),
+        getLatestEventValue(events.filter(_.Category == "TeamUpdate")),
         getPriority(events.filter(_.Category == "P")),
         latestEvent,
         timeDiff,
@@ -148,7 +148,7 @@ def constructPatient(events: List[dataApi.EricaEvent]): dataApi.EricaPatient = {
         getHasPlan(events.filter(_.Category == "T")),
         getIsFinished(events.filter(_.Category == "T")),
         events(0).VisitId,
-        getValue(events.filter(_.Category == "VisitRegistrationTimeUpdate"))
+        getLatestEventValue(events.filter(_.Category == "VisitRegistrationTimeUpdate"))
       )
 }
 
@@ -264,6 +264,22 @@ def getIsAttended(events: List[dataApi.EricaEvent]): (Boolean, String) = {
   return (false, "NA")
 }
 
+def getLatestEventValue(events: List[dataApi.EricaEvent]): String = {
+  var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
+  val tmp = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss.SSS").format(new Date(63, 0, 16))
+  var startOfLatestEventValue = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss.SSS").parse(tmp)
+  var latestEventValue = ""
+
+  events.foreach{ e =>
+    val startOfEventValue = formatter.parse(e.Start)
+    if (startOfEventValue.after(startOfLatestEventValue)) {
+      latestEventValue = e.Value
+      startOfLatestEventValue = startOfEventValue
+    }
+  }
+  return latestEventValue
+}
+
 def getLatestEvent(events: List[dataApi.EricaEvent]): (String, Long) = {
   var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
   val tmp = new SimpleDateFormat("yyyy-MM-dd'T'hh:MM:ss'Z'").format(new Date(63, 0, 16))
@@ -328,11 +344,6 @@ def isValidTriageColor(string: String): Boolean = {
     return true
   }
   return false
-}
-
-def getValue(events: List[dataApi.EricaEvent]): String = {
-  events.foreach{ e => return e.Value}
-  return ""
 }
 
 val info = SPAttributes(
