@@ -30,7 +30,7 @@ object WidgetStyles extends StyleSheet.Inline {
   val clock = style(
     hideScrollBar,
     textAlign.center,
-    fontSize(68.px),
+    fontSize(60.px),
     fontFamily(freeSansBoldFF)
   )
 

@@ -329,10 +329,14 @@ def translate(str: String): String = {
 Filters out a room nr to present from an apiPatient.Location.
 */
 def decodeLocation(location: String): String = {
-  if (location matches "[GgBbPp]([Tt]|[Ii])[1,4]") {
+  if (location matches "[GgBbPp][Tt][1-4]") {
     location.replaceAll("[^0-9]","")
-  } else if (location matches "[BbGgPp].{2}") {
+  } else if (location matches "[BbGgPp].{0,2}") {
     location.replaceAll("[^0-9]","")
+  } else if (location matches "[Aa][Kk][1-4]") {
+    location.replaceAll("[Kk]","")
+  } else if (location matches "[Ii][Nn][1-4]") {
+    location.replaceAll("[Nn]","")
   } else location
 }
 

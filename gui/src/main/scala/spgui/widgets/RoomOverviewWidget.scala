@@ -101,7 +101,7 @@ object RoomOverviewWidget {
       patients.foreach{ p =>
         if (p._1 != "-1") {
           if (p._2.location.roomNr != "" && p._2.location.roomNr != "ivr" && p._2.location != "yvr" && p._2.location != "iv" && p._2.location != "vr") {
-            busyRoomsBuffer += p._2.location.roomNr.replaceAll("[^0-9]", "")
+            busyRoomsBuffer += p._2.location.roomNr.toLowerCase()
           }
         }
       }
@@ -295,14 +295,14 @@ object RoomOverviewWidget {
       .attr("y", (34.1/1372.0)*width)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkInfektion(1.toString))
+      .attr("fill", checkInfektion("i1"))
 
       svg.append("text")
       .attr("x", (45/1372.0)*width + smallRec/2.5)
       .attr("y", (34.1/1372.0)*width + 2*smallRec/3)
       .attr("font-size", sizeNumbers)
       .text(s"${1}")
-      .attr("fill", checkNumbers(1.toString))
+      .attr("fill", checkNumbers("i1"))
       .style("font-weight", "bold")
 
       g.append("rect")
@@ -310,14 +310,14 @@ object RoomOverviewWidget {
       .attr("y", (34.1/1372.0)*width + smallRec + barDistance)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkInfektion(2.toString))
+      .attr("fill", checkInfektion("i2"))
 
       svg.append("text")
       .attr("x", (45/1372.0)*width + smallRec/2.5)
       .attr("y", (34.1/1372.0)*width + 2*smallRec/3 + smallRec + barDistance)
       .attr("font-size", sizeNumbers)
       .text(s"${2}")
-      .attr("fill", checkNumbers(2.toString))
+      .attr("fill", checkNumbers("i2"))
       .style("font-weight", "bold")
 
       g.append("rect")
@@ -325,14 +325,14 @@ object RoomOverviewWidget {
       .attr("y", (34.1/1372.0)*width + 2*smallRec + 2*barDistance)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkInfektion(3.toString))
+      .attr("fill", checkInfektion("i3"))
 
       svg.append("text")
       .attr("x", (45/1372.0)*width + smallRec/2.5)
       .attr("y", (34.1/1372.0)*width + 2*smallRec/3 + 2*smallRec + 2*barDistance)
       .attr("font-size", sizeNumbers)
       .text(s"${3}")
-      .attr("fill", checkNumbers(3.toString))
+      .attr("fill", checkNumbers("i3"))
       .style("font-weight", "bold")
 
       g.append("rect")
@@ -340,14 +340,14 @@ object RoomOverviewWidget {
       .attr("y", (34.1/1372.0)*width + 3*smallRec + 3*barDistance)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkInfektion(4.toString))
+      .attr("fill", checkInfektion("i4"))
 
       svg.append("text")
       .attr("x", (45/1372.0)*width + smallRec/2.5)
       .attr("y",  (34.1/1372.0)*width + 2*smallRec/3 + 3*smallRec + 3*barDistance)
       .attr("font-size", sizeNumbers)
       .text(s"${4}")
-      .attr("fill", checkNumbers(4.toString))
+      .attr("fill", checkNumbers("i4"))
       .style("font-weight", "bold")
 
       // ---------------------------------------
@@ -358,14 +358,14 @@ object RoomOverviewWidget {
       .attr("y", (34.1/1372.0)*width)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkInfektion(5.toString))
+      .attr("fill", checkInfektion("i5"))
 
       svg.append("text")
       .attr("x", (162.9/1372.0)*width + smallRec/2.5)
       .attr("y", (34.1/1372.0)*width + 2*smallRec/3)
       .attr("font-size", sizeNumbers)
       .text(s"${5}")
-      .attr("fill", checkNumbers(5.toString))
+      .attr("fill", checkNumbers("i5"))
       .style("font-weight", "bold")
 
       g.append("rect")
@@ -373,14 +373,14 @@ object RoomOverviewWidget {
       .attr("y", (34.1/1372.0)*width + smallRec + barDistance)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkInfektion(6.toString))
+      .attr("fill", checkInfektion("i6"))
 
       svg.append("text")
       .attr("x", (162.9/1372.0)*width + smallRec/2.5)
       .attr("y", (34.1/1372.0)*width + 2*smallRec/3 + smallRec + barDistance)
       .attr("font-size", sizeNumbers)
       .text(s"${6}")
-      .attr("fill", checkNumbers(6.toString))
+      .attr("fill", checkNumbers("i6"))
       .style("font-weight", "bold")
 
       g.append("rect")
@@ -388,14 +388,14 @@ object RoomOverviewWidget {
       .attr("y", (34.1/1372.0)*width + 2*smallRec + 2*barDistance)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkInfektion(7.toString))
+      .attr("fill", checkInfektion("i7"))
 
       svg.append("text")
       .attr("x", (162.9/1372.0)*width + smallRec/2.5)
       .attr("y", (34.1/1372.0)*width + 2*smallRec/3 + 2*smallRec + 2*barDistance)
       .attr("font-size", sizeNumbers)
       .text(s"${7}")
-      .attr("fill", checkNumbers(7.toString))
+      .attr("fill", checkNumbers("i7"))
       .style("font-weight", "bold")
 
       g.append("rect")
@@ -403,14 +403,14 @@ object RoomOverviewWidget {
       .attr("y", (34.1/1372.0)*width + 3*smallRec + 3*barDistance)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkInfektion(8.toString))
+      .attr("fill", checkInfektion("i8"))
 
       svg.append("text")
       .attr("x", (162.9/1372.0)*width + smallRec/2.5)
       .attr("y",  (34.1/1372.0)*width + 2*smallRec/3 + 3*smallRec + 3*barDistance)
       .attr("font-size", sizeNumbers)
       .text(s"${8}")
-      .attr("fill", checkNumbers(8.toString))
+      .attr("fill", checkNumbers("i8"))
       .style("font-weight", "bold")
 
       g.append("rect")
@@ -418,14 +418,14 @@ object RoomOverviewWidget {
       .attr("y", (34.1/1372.0)*width + 4*smallRec + 4*barDistance)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkInfektion(9.toString))
+      .attr("fill", checkInfektion("i9"))
 
       svg.append("text")
       .attr("x", (162.9/1372.0)*width + smallRec/2.5)
       .attr("y",  (34.1/1372.0)*width + 2*smallRec/3 + 4*smallRec + 4*barDistance)
       .attr("font-size", sizeNumbers)
       .text(s"${9}")
-      .attr("fill", checkNumbers(9.toString))
+      .attr("fill", checkNumbers("i9"))
       .style("font-weight", "bold")
 
       // -------------------------------------------------------------------------
@@ -714,14 +714,14 @@ object RoomOverviewWidget {
       .attr("y", (103.7/1372.0)*width + 6*smallRec + 4*barDistance)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkInfektion("A4"))
+      .attr("fill", checkInfektion("a4"))
 
       svg.append("text")
       .attr("x", (285.9/1372.0)*width + smallRec/4 + smallRec + barDistance)
       .attr("y", (103.7/1372.0)*width + 2*smallRec/3 + 6*smallRec + 4*barDistance)
       .attr("font-size", sizeNumbers)
       .text(s"A4")
-      .attr("fill", checkNumbers("A4"))
+      .attr("fill", checkNumbers("a4"))
       .style("font-weight", "bold")
 
       g.append("rect")
@@ -729,14 +729,14 @@ object RoomOverviewWidget {
       .attr("y", (103.7/1372.0)*width + 6*smallRec + 4*barDistance)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkInfektion("A3"))
+      .attr("fill", checkInfektion("a3"))
 
       svg.append("text")
       .attr("x", (285.9/1372.0)*width + smallRec/4 + 2*smallRec + 2*barDistance)
       .attr("y", (103.7/1372.0)*width + 2*smallRec/3 + 6*smallRec + 4*barDistance)
       .attr("font-size", sizeNumbers)
       .text(s"A3")
-      .attr("fill", checkNumbers("A3"))
+      .attr("fill", checkNumbers("a3"))
       .style("font-weight", "bold")
 
       g.append("rect")
@@ -744,14 +744,14 @@ object RoomOverviewWidget {
       .attr("y", (103.7/1372.0)*width + 6*smallRec + 4*barDistance)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkInfektion("A2"))
+      .attr("fill", checkInfektion("a2"))
 
       svg.append("text")
       .attr("x", (285.9/1372.0)*width + smallRec/4 + 3*smallRec + 3*barDistance)
       .attr("y", (103.7/1372.0)*width + 2*smallRec/3 + 6*smallRec + 4*barDistance)
       .attr("font-size", sizeNumbers)
       .text(s"A2")
-      .attr("fill", checkNumbers("A2"))
+      .attr("fill", checkNumbers("a2"))
       .style("font-weight", "bold")
 
       g.append("rect")
@@ -759,14 +759,14 @@ object RoomOverviewWidget {
       .attr("y", (103.7/1372.0)*width + 6*smallRec + 4*barDistance)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkInfektion("A1"))
+      .attr("fill", checkInfektion("a1"))
 
       svg.append("text")
       .attr("x", (285.9/1372.0)*width + smallRec/4 + 4*smallRec + 4*barDistance)
       .attr("y", (103.7/1372.0)*width + 2*smallRec/3 + 6*smallRec + 4*barDistance)
       .attr("font-size", sizeNumbers)
       .text(s"A1")
-      .attr("fill", checkNumbers("A1"))
+      .attr("fill", checkNumbers("a1"))
       .style("font-weight", "bold")
 
       // -----------------------------------------------------------------------------

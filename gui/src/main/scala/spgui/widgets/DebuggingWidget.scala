@@ -74,7 +74,7 @@ object DebuggingWidget {
     */
     def decodeTriageColor(p: apiPatient.Priority): String = {
       p.color match {
-        case "NotTriaged" => "url(#untriagedPattern)"//"#D5D5D5"
+        case "NotTriaged" => "#afafaf"//"#D5D5D5"
         case "Blue" => "#538AF4"
         case "Green" => "#009550" //"prio4"
         case "Yellow" => "#EAC706" //"prio3"
