@@ -159,7 +159,7 @@ class LaunchGUI(system: ActorSystem)  {
           }
         } else {
           mediator ! Publish(topic, mess)
-          val re = SPMessage(h, *(APISP.SPACK(SPAttributes("result" ->"Message sent"))))
+          val re = SPMessage(h, *(APISP.SPACK())) // SPAttributes("result" ->"Message sent")
           complete(re.toJson)
         }
       }}

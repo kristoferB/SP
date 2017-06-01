@@ -38,7 +38,7 @@
 
         }
 
-        function calcAndDrawSop(dirScope, paper, firstLoop, doRedraw) {
+        function calcAndDrawSop(dirScope, paper, firstLoop, doRedraw, activeOpNames) {
             measures = {
                 'margin' : 15,
                 'opH' : 50,
@@ -46,7 +46,7 @@
                 'para' : 7,
                 'arrow' : 5,
                 'textScale': 6,
-                'animTime': 300,
+                'animTime': 0,
                 'commonLineColor': 'black',
                 'condLineHeight': 12,
                 'nameLineHeight': 50
@@ -65,7 +65,7 @@
             }
 
             dirScope.vm.sopSpecCopy.sop.forEach(function(sequence) {
-                service.drawSop(sequence, measures, paper, firstLoop, doRedraw, dirScope, sequence);
+                service.drawSop(sequence, measures, paper, firstLoop, doRedraw, dirScope, sequence, activeOpNames);
             });
 
             dirScope.vm.saveToSessionStorage();
@@ -117,7 +117,7 @@
             return j;
         }
 
-        function drawSop(struct, measures, paper, firstLoop, doRedraw, dirScope, sequence) {
+        function drawSop(struct, measures, paper, firstLoop, doRedraw, dirScope, sequence, activeOpNames) {
             var animTime = measures.animTime;
 
             //Despite the name, this context menu is for all node types...
@@ -139,7 +139,7 @@
             };
 
             for (var n = 0; n < struct.sop.length; n++) {
-                service.drawSop(struct.sop[n], measures, paper, false, doRedraw, dirScope, sequence);
+                service.drawSop(struct.sop[n], measures, paper, false, doRedraw, dirScope, sequence, activeOpNames);
                 if(struct.isa === 'Sequence') {
                     service.drawLine(struct.clientSideAdditions.lines[n], measures, paper, struct, n+1, 'red', dirScope); // Line after each op in sequence
                 } else {
@@ -159,7 +159,8 @@
                     var op = itemService.getItem(struct.operation);
 
                     struct.clientSideAdditions.drawnText = paper.text(struct.clientSideAdditions.width / 2, (struct.clientSideAdditions.preGuards.length + struct.clientSideAdditions.preActions.length + 1) * measures.condLineHeight + (measures.nameLineHeight-measures.condLineHeight) / 2 , op.name).attr({'font-weight': 'bold'});
-                    struct.clientSideAdditions.drawnRect = paper.rect(0, 0, struct.clientSideAdditions.width, struct.clientSideAdditions.height, 5).attr({fill:'#FFFFFF', 'stroke-width':1, text: struct.clientSideAdditions.drawnText});
+                    var bgcolor = _.find(activeOpNames, function(o) { return o == op.name; }) === undefined ? '#ffffff' : '#55ffaa';
+                    struct.clientSideAdditions.drawnRect = paper.rect(0, 0, struct.clientSideAdditions.width, struct.clientSideAdditions.height, 5).attr({fill:bgcolor, 'stroke-width':1, text: struct.clientSideAdditions.drawnText});
 
                     if(dirScope.vm.widget.storage.editable) {
                         angular.element(struct.clientSideAdditions.drawnRect.node).contextmenu(opContextMenu);

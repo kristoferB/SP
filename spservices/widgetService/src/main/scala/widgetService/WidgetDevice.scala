@@ -76,12 +76,7 @@ class WidgetDevice extends Actor with ActorLogging {
   */
   def publishOnAkka(header: SPHeader, body: api.StateEvent) {
     val toSend = WidgetComm.makeMess(header, body)
-    toSend match {
-      case Success(v) =>
-        mediator ! Publish("patient-cards-widget-topic", v) // Publishes on bus for widget to receive
-      case Failure(e) =>
-        println("Failed")
-    }
+    mediator ! Publish("patient-cards-widget-topic", toSend)
   }
 
   }

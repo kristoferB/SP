@@ -154,13 +154,7 @@ def constructPatient(events: List[dataApi.EricaEvent]): dataApi.EricaPatient = {
 
 def publishOnAkka(header: SPHeader, body: api.Event) {
   val toSend = ElvisDataHandlerComm.makeMess(header, body)
-  toSend match {
-    case Success(v) => {
-      mediator ! Publish("state-event", v)
-    }
-    case Failure(e) =>
-      println("Failed")
-  }
+  mediator ! Publish("state-event", toSend)
 }
 
 /**

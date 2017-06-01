@@ -21,13 +21,7 @@ class FakeElvisDevice extends Actor {
       val header = SPHeader(from = "fakeElvisService")
       val body = api.ElvisData(mess)
       val elvisDataSPMessage = FakeElvisComm.makeMess(header, body)
-      elvisDataSPMessage match {
-        case Success(v) =>
-          println(s"Publishing felvis message: $v")
-          mediator ! Publish("felvis-data-topic", v)
-        case Failure(e) =>
-          println("Failed")
-      }
+      mediator ! Publish("felvis-data-topic", elvisDataSPMessage)
     }
   }
 }

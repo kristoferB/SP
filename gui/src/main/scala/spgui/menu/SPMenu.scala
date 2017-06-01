@@ -3,9 +3,9 @@ package spgui.menu
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import org.scalajs.dom._
+
+import spgui.components.SPButton
 import spgui.circuit.{CloseAllWidgets, SPGUICircuit, UpdateGlobalAttributes}
-
-
 
 object SPMenu {
   val storage = SPGUICircuit.connect(x => (x.openWidgets.xs, x.globalState))
@@ -22,32 +22,15 @@ object SPMenu {
           spLogo
         )
       ),
-      <.div(
-        <.div(
-        ^.className := "navbar-toggle collapsed",
-        "Navbar has collapsed, i am a placeholder as width < 768px"
-      ),
-        ^.className := "container-fluid",
-        ^.className := SPMenuCSS.container.htmlClass,
-        <.ul(
-          ^.id := "navbar-collapse-id",
-          ^.className := "collapse navbar-collapse",
-          ^.className := SPMenuCSS.buttonList.htmlClass,
-          ^.className := "nav navbar-nav",
-          ^.className := SPMenuCSS.navbarCell.htmlClass,
-          WidgetMenu()
-        ),
-        <.ul(
-          section
+      NavBar(
+        Seq(
+          NavItem( WidgetMenu()),
+          NavItem( SPButton("Close All", Seq(^.onClick -->  Callback(SPGUICircuit.dispatch(CloseAllWidgets)))  ))
         )
       ),
-      <.button(
-        ^.className := "btn btn-default",
-        ^.onClick --> Callback(SPGUICircuit.dispatch(CloseAllWidgets)), "Remove all"
-      )
+      section   // make this a NavItem!!!
     )
-  )
-    .build
+  ).build
 
   import sp.domain._
   import sp.messages.Pickles._
@@ -71,12 +54,11 @@ object SPMenu {
       )
     }
 
-  private val spLogo = (
+  private val spLogo:ReactNode = (
     <.div(
       ^.className := SPMenuCSS.splogoContainer.htmlClass,
       <.div(
-        ^.className := SPMenuCSS.spLogo.htmlClass,
-        ^.className := SPMenuCSS.navbarCell.htmlClass
+        ^.className := SPMenuCSS.spLogo.htmlClass
       )
     ))
   def apply() = component()
