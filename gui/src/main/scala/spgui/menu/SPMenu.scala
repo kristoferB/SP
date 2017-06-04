@@ -4,7 +4,8 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom._
 
-import spgui.components.CloseAllButton
+import spgui.components.SPButton
+import spgui.circuit.{CloseAllWidgets, SPGUICircuit}
 
 object SPMenu {
   private val component = ScalaComponent.builder[Unit]("SPMenu")
@@ -19,29 +20,18 @@ object SPMenu {
           spLogo
         )
       ),
-      <.div(
-        <.div(
-          ^.className := "navbar-toggle collapsed",
-          "Navbar has collapsed, i am a placeholder as width < 768px"
-        ),
-        ^.className := "container-fluid",
-        ^.className := SPMenuCSS.container.htmlClass,
-        <.ul(
-          ^.id := "navbar-collapse-id",
-          ^.className := "collapse navbar-collapse",
-          ^.className := SPMenuCSS.buttonList.htmlClass,
-          ^.className := "nav navbar-nav",
-          WidgetMenu(),
-          CloseAllButton()
+      NavBar(
+        Seq(
+          NavItem( WidgetMenu()),
+          NavItem( SPButton("Close All", Seq(^.onClick -->  Callback(SPGUICircuit.dispatch(CloseAllWidgets)))  ))
         )
       )
     )
-  )
-      .build
+  ).build
 
 
 
-  private val spLogo = (
+  private val spLogo:VdomNode = (
     <.div(
       ^.className := SPMenuCSS.splogoContainer.htmlClass,
       <.div(

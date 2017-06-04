@@ -1,9 +1,11 @@
-package sp.opcMilo
+package sp.milowrapper
 
 // SP
 import sp.domain._
-import org.json4s.JsonAST.{JValue,JBool,JInt,JDouble,JString}
+import org.json4s.JsonAST.{JBool, JDouble, JInt, JString, JValue}
 import org.json4s.DefaultFormats
+
+import scala.util.Try
 
 // Milo
 import org.eclipse.milo.opcua.stack.core.Identifiers
@@ -188,41 +190,48 @@ class MiloOPCUAClient {
     }
   }
 
-  def toDataValue(spVal: SPValue, targetType: NodeId): DataValue = {
-    implicit val formats = DefaultFormats
-    val c = BuiltinDataType.getBackingClass(targetType)
-    c match {
-      case q if q == classOf[java.lang.Integer] => new DataValue(new Variant(spVal.extract[Int]))
-      case q if q == classOf[UByte] => new DataValue(new Variant(ubyte(spVal.extract[Int])))
-      case q if q == classOf[UShort] => new DataValue(new Variant(ushort(spVal.extract[Int])))
-      case q if q == classOf[java.lang.Short] => new DataValue(new Variant(spVal.extract[Short]))
-      case q if q == classOf[java.lang.Long] =>
-        val l = spVal match {
-          case JString(s) => s.toLong // upickle longs are strings
-          case _ => spVal.extract[Long]
-        }
-        new DataValue(new Variant(l))
-      case q if q == classOf[String] => new DataValue(new Variant(spVal.extract[String]))
-      case q if q == classOf[ByteString] => new DataValue(new Variant(ByteString.of(spVal.extract[String].getBytes())))
-      case q if q == classOf[java.lang.Boolean] => new DataValue(new Variant(spVal.extract[Boolean]))
-      case q if q == classOf[java.lang.Double] => new DataValue(new Variant(spVal.extract[Double]))
-      case _ => println(s"need to add type: ${c}"); new DataValue(new Variant(false))
+  def toDataValue(spVal: SPValue, targetType: NodeId): Try[DataValue] = {
+    Try {
+      implicit val formats = DefaultFormats
+      val c = BuiltinDataType.getBackingClass(targetType)
+      println("milo backing type: " + c.toString)
+      c match {
+        case q if q == classOf[java.lang.Integer] => new DataValue(new Variant(spVal.extract[Int]))
+        case q if q == classOf[UByte] => new DataValue(new Variant(ubyte(spVal.extract[Byte])))
+        case q if q == classOf[UShort] => new DataValue(new Variant(ushort(spVal.extract[Short])))
+        case q if q == classOf[java.lang.Short] => new DataValue(new Variant(spVal.extract[Short]))
+        case q if q == classOf[java.lang.Long] =>
+          val l = spVal match {
+            case JString(s) => s.toLong // upickle longs are strings
+            case _ => spVal.extract[Int]
+          }
+          new DataValue(new Variant(l))
+        case q if q == classOf[String] => new DataValue(new Variant(spVal.extract[String]))
+        case q if q == classOf[ByteString] => new DataValue(new Variant(ByteString.of(spVal.extract[String].getBytes())))
+        case q if q == classOf[java.lang.Boolean] => new DataValue(new Variant(spVal.extract[Boolean]))
+        case q if q == classOf[java.lang.Double] => new DataValue(new Variant(spVal.extract[Double]))
+        case _ => println(s"need to add type: ${c}"); new DataValue(new Variant(false))
+      }
     }
   }
 
-  def write(nodeIdentifier: String, spVal: SPValue): Unit = {
+  def write(nodeIdentifier: String, spVal: SPValue): Boolean = {
     availableNodes.get(nodeIdentifier) match {
       case Some(n) =>
         val typeid = n.getDataType().get()
         val dv = toDataValue(spVal, typeid)
         println("trying to write: " + dv)
-        if(client.writeValue(n.getNodeId().get(), dv).get().isGood()) {
-          println("OPCUA - value written")
-        }
-        else {
-          println(s"OPCUA - Failed to write to node ${nodeIdentifier} - probably wrong datatype, should be: " + typeid)
-        }
-      case None => println(s"OPCUA No such node ${nodeIdentifier}")
+        dv.map { d =>
+          if (client.writeValue(n.getNodeId().get(), d).get().isGood()) {
+            println("OPCUA - value written")
+            true
+          }
+          else {
+            println(s"OPCUA - Failed to write to node ${nodeIdentifier} - probably wrong datatype, should be: " + typeid)
+            false
+          }
+        }.getOrElse(false)
+      case None => println(s"OPCUA No such node ${nodeIdentifier}"); false
     }
   }
 

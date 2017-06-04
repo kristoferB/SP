@@ -132,7 +132,8 @@ object WidgetCommTest {
 
     def HoHo = {
 
-      val h = SPHeader("widgetCommTest", "", "widgetCommTest", java.util.UUID.randomUUID())
+      val h = SPHeader(from = "widgetCommTest", reply = *("widgetCommTest"))
+
       val b = APITesting.ServiceCall("Hej från mig")
       println("hej")
 

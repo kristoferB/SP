@@ -146,6 +146,7 @@ object ReactGridLayout {
       onLayoutChange = onLayoutChange
     ))
     // TODO: I really don't think throwing that type there solves this but it does compile.. let's see
+    //f(facade.toJS, children.toJSArray).asInstanceOf[ScalaComponent.Unmounted[Unit, Unit, Unit]]
     f(facade.toJS, children.toJSArray).asInstanceOf[ScalaComponent.Unmounted[Unit, Unit, Unit]]
   }
 }

@@ -18,10 +18,12 @@ object Dashboard {
   class Backend($: BackendScope[Props, Unit]) {
     def render(p: Props) = {
 
+      /*
       val widgets = for {
         openWidget <- p.proxy()._1.values
       } yield {
-        val frontEndState = p.proxy()._2
+       
+ val frontEndState = p.proxy()._2
 
         ReactGridLayoutItem(
           key = openWidget.id.toString,
@@ -58,14 +60,15 @@ object Dashboard {
             }
           )
         },
-        children = widgets.toVdomArray
+        children = <.div()//widgets.toVdomArray
       )
-
-
 
       <.div(
         rg
       )
+       */
+
+      <.div("awerouuh db")
     }
   }
 

@@ -6,11 +6,23 @@ import scalacss.ScalaCssReact._
 object Style extends StyleSheet.Inline {
   import dsl._
 
+  val itemContent = style(
+    &.hover(
+      cursor.pointer
+    )
+  )
+
   val outerDiv = style(
     //backgroundColor.white,
     //display.inlineBlock,
     //minWidth(400 px),
     //minHeight(400 px)
+  )
+
+  val optionBar = style(
+    position.relative,
+    display.flex,
+    flexDirection.row
   )
 
   val treeDiv = style(

@@ -23,7 +23,8 @@ object CreateOpsFromManualModelService extends SPService {
     GKNcase(),
     GKNSmallcase(),
     ROARcase(),
-    PSLFloorRoofCase()
+    PSLFloorRoofCase(),
+    TrucksCase()
   )
 
   val specification = SPAttributes(
@@ -31,7 +32,7 @@ object CreateOpsFromManualModelService extends SPService {
       "description" -> "Creates operations for a manual model"
     ),
     "setup" -> SPAttributes(
-      "model" -> KeyDefinition("String", models.map(m => SPValue(m.modelName)), Some(GKNSmallcase().modelName))
+      "model" -> KeyDefinition("String", models.map(m => SPValue(m.modelName)), Some(TrucksCase().modelName))
     )
   )
 
