@@ -8,7 +8,7 @@ import spgui.circuit.{CloseAllWidgets, SPGUICircuit}
 object CloseAllButton {
   case class Props()
 
-  private val component = ScalaComponent.build[Props]("SPButton")
+  private val component = ScalaComponent.builder[Props]("SPButton")
     .render_P(p =>
     <.li(
       ^.className := ComponentCSS.clickable.htmlClass,

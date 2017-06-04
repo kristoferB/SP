@@ -17,7 +17,7 @@ object D3Example {
     component()
   }
 
-  private val component = ScalaComponent.build[Unit]("D3Example")
+  private val component = ScalaComponent.builder[Unit]("D3Example")
     .initialState(List.fill(8)(nextInt(50)))
     .render{dcb =>
       <.div(
@@ -32,7 +32,7 @@ object D3Example {
 object D3BarsComponent {
   def apply(data: List[Int]) = component(data)
 
-  private val component = ScalaComponent.build[List[Int]]("d3DivComponent")
+  private val component = ScalaComponent.builder[List[Int]]("d3DivComponent")
     .render(_ => <.div())
     .componentDidUpdate(ctx => Callback(addTheD3(ctx.getDOMNode, ctx.currentProps)))
     .build

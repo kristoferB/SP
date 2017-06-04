@@ -8,7 +8,7 @@ import spgui.components.Icon
 
 object DashboardItem {
   case class Props(element: VdomElement, widgetType: String, id: java.util.UUID)
-  private val component = ScalaComponent.build[Props]("Widget")
+  private val component = ScalaComponent.builder[Props]("Widget")
     .render_P(props =>
       <.div(
         ^.className := DashboardCSS.widgetPanel.htmlClass,

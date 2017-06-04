@@ -137,8 +137,8 @@ import scala.util.{Random, Try}
       spwb.getWidgetData.getAs[State]().getOrElse(State(None, List()))
     }
 
-    private val component = ScalaComponent.build[SPWidgetBase]("ExampleServiceWidget")
-      .initialState_P(initState)
+    private val component = ScalaComponent.builder[SPWidgetBase]("ExampleServiceWidget")
+      .initialStateFromProps(initState)
       .renderBackend[Backend]
       .componentWillUnmount(_.backend.onUnmount())
       .build

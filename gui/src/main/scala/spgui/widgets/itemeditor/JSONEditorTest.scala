@@ -20,7 +20,7 @@ object JSONEditorTest {
   def apply(data: SPValue, id: UUID) = component(data: SPValue, id: UUID)
 
   def component(data: SPValue, id: UUID) = {
-    ScalaComponent.build[Unit]("JSONEditorTest")
+    ScalaComponent.builder[Unit]("JSONEditorTest")
       .render_P(_ => <.div(
         ^.className := ItemEditorCSS.editor.htmlClass,
         ^.id := id.toString

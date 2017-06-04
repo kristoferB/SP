@@ -7,7 +7,7 @@ import org.scalajs.dom._
 import spgui.components.CloseAllButton
 
 object SPMenu {
-  private val component = ScalaComponent.build[Unit]("SPMenu")
+  private val component = ScalaComponent.builder[Unit]("SPMenu")
     .render(_ =>
     <.nav(
       ^.className := "navbar navbar-default",

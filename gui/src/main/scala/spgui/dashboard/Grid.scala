@@ -32,7 +32,7 @@ object GridTest {
 object Grid {
   CSS.addToDocument()
 
-  val component = ScalaComponent.build[Unit]("Grid")
+  val component = ScalaComponent.builder[Unit]("Grid")
     .render(_ =>
     <.div(
       ^.className:=CSS.dashboard.htmlClass,

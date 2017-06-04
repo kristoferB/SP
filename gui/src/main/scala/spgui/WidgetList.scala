@@ -29,7 +29,7 @@ object WidgetList {
 }
 
 object PlaceholderComp {
-  val component = ScalaComponent.build[Unit]("PlaceholderComp")
+  val component = ScalaComponent.builder[Unit]("PlaceholderComp")
     .render(_ => <.h2("placeholder"))
     .build
 

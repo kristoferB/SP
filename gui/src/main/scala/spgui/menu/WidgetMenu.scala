@@ -40,7 +40,7 @@ object WidgetMenu {
       )
   }
 
-  private val component = ScalaComponent.build[Unit]("WidgetMenu")
+  private val component = ScalaComponent.builder[Unit]("WidgetMenu")
     .initialState(State(""))
     .renderBackend[Backend]
     .build

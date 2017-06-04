@@ -243,7 +243,7 @@ object WidgetCommTest {
   }
 
 
-  private val component = ScalaComponent.build[Unit]("WidgetInjectionTest")
+  private val component = ScalaComponent.builder[Unit]("WidgetInjectionTest")
     .initialState(State("HEJ"))
     .renderBackend[Backend]
       .componentWillUnmount(_.backend.onUnmount())

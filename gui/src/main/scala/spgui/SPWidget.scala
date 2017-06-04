@@ -37,7 +37,7 @@ case class SPWidgetBase(id: UUID, frontEndState: GlobalState) {
 
 object SPWidget {
   case class Props(spwb: SPWidgetBase, renderWidget: SPWidgetBase => VdomElement)
-  private val component = ScalaComponent.build[Props]("SpWidgetComp")
+  private val component = ScalaComponent.builder[Props]("SpWidgetComp")
     .render_P(p => p.renderWidget(p.spwb))
     .build
 

@@ -69,7 +69,7 @@ object Dashboard {
     }
   }
 
-  private val component = ScalaComponent.build[Props]("Dashboard")
+  private val component = ScalaComponent.builder[Props]("Dashboard")
     .renderBackend[Backend]
     .build
 

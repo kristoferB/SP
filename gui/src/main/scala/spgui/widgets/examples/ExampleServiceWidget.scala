@@ -125,7 +125,7 @@ package spgui.widgets.examples {
     }
 
 
-    private val component = ScalaComponent.build[Unit]("ExampleServiceWidget")
+    private val component = ScalaComponent.builder[Unit]("ExampleServiceWidget")
       .initialState(State(None, List()))
       .renderBackend[Backend]
       .componentWillUnmount(_.backend.onUnmount())

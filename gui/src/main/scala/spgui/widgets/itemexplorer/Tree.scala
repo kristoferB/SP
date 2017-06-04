@@ -114,7 +114,7 @@ object Tree {
       )
   }
 
-  private val component = ScalaComponent.build[Unit]("Tree")
+  private val component = ScalaComponent.builder[Unit]("Tree")
     .initialState(ListItems())
     .renderBackend[TreeBackend]
     .build
@@ -161,7 +161,7 @@ object TVColumn {
       )
   }
 
-  val component = ScalaComponent.build[Props]("TreeDummyList")
+  val component = ScalaComponent.builder[Props]("TreeDummyList")
     .initialState(State())
     .renderBackend[TVColumnBackend]
     .build

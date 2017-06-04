@@ -7,7 +7,7 @@ import japgolly.scalajs.react.vdom.all.aria
 object Dropdown {
   case class Props(toggleButton: VdomNode, contents: Seq[VdomNode])
 
-  private val component = ScalaComponent.build[Props]("Dropdown")
+  private val component = ScalaComponent.builder[Props]("Dropdown")
     .render_P(p =>
     <.li(
       ^.className := ComponentCSS.clickable.htmlClass,

@@ -17,9 +17,9 @@ scalacOptions  := Seq(
   "-language:postfixOps"
 )
 
-val scalaJSReactVersion = "1.0.0-RC1"
+val scalaJSReactVersion = "1.0.0"
 val scalaCssVersion = "0.5.3-RC1"
-val diodeVersion = "1.1.1"
+val diodeVersion = "1.1.2"
 
 
 libraryDependencies ++= Seq(

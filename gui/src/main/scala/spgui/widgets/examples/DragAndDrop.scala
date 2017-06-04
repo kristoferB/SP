@@ -56,7 +56,7 @@ object DragAndDrop {
       )
   }
 
-  private val component = ScalaComponent.build[Unit]("DragAndDrop")
+  private val component = ScalaComponent.builder[Unit]("DragAndDrop")
     .initialState(
     Props(
       name = "default",

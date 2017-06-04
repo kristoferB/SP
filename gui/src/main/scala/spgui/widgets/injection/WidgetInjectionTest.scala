@@ -45,11 +45,11 @@ object WidgetInjectionTest {
     "To replace it with sp-simple-widget, a component unknown to this app so far, " +
     "serve it with http-server -p 8080 --cors sp-example-widget/ " +
     "(having installed it with npm install http-server -g), then press fetch."
-  private val PlaceholderComp = ScalaComponent.build[Unit]("PlaceholderComp")
+  private val PlaceholderComp = ScalaComponent.builder[Unit]("PlaceholderComp")
     .render(_ => <.h4(placeholderText))
     .build
 
-  private val component = ScalaComponent.build[Unit]("WidgetInjectionTest")
+  private val component = ScalaComponent.builder[Unit]("WidgetInjectionTest")
     .initialState(State(PlaceholderComp()))
     .renderBackend[Backend]
     .build

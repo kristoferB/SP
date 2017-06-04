@@ -7,7 +7,7 @@ import spgui._
 
 object ItemEditor {
 
-  private val component = ScalaComponent.build[SPWidgetBase]("ItemEditor")
+  private val component = ScalaComponent.builder[SPWidgetBase]("ItemEditor")
     .render_P(p =>
     <.div(
       ^.className := ItemEditorCSS.editor.htmlClass,

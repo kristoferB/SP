@@ -159,7 +159,7 @@ object OpcUAWidget {
     }
   }
 
-  private val component = ScalaComponent.build[Unit]("OpcUAWidget")
+  private val component = ScalaComponent.builder[Unit]("OpcUAWidget")
     .initialState(State(url="opc.tcp://localhost:12686", connected=false, nodes = List(), opcState=Map(),
       internalValues=Map()))
     .renderBackend[Backend]

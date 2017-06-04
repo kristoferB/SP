@@ -8,7 +8,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 //  type ComponentType =  ReactComponentU[Unit,Unit,Unit,org.scalajs.dom.raw.Element]
 //
 //  // i am really not sure about what the naming convention should be here
-//  val getComponent = ScalaComponent.build[Unit]("App")
+//  val getComponent = ScalaComponent.builder[Unit]("App")
 //    .initialState(Widget)
 //    .renderBackend[WrapperBackend]
 //    .build
