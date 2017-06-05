@@ -64,14 +64,14 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
 
   val timeout = 10 second
   val project = "intelligentaakuten-158811"
-  val testTopic = PubSubTopic(project, s"elvis-snap")
-  val testSubscription = PubSubSubscription(project, s"getSnap")
+  val testTopic = PubSubTopic(project, s"erica-snap")
+  val testSubscription = PubSubSubscription(project, s"getEricaSnap")
 
   import com.qubit.pubsub.akka.attributes._
-  val attributes = Attributes(List(
-    PubSubStageBufferSizeAttribute(100),
-    PubSubStageMaxRetriesAttribute(100),
-    PubSubPublishTimeoutAttribute(10.seconds)))
+  val attributes = Attributes(List())
+//    PubSubStageBufferSizeAttribute(100),
+//    PubSubStageMaxRetriesAttribute(100),
+//    PubSubPublishTimeoutAttribute(10.seconds)))
 
   val client = com.qubit.pubsub.client.retry.RetryingPubSubClient(com.qubit.pubsub.client.grpc.PubSubGrpcClient())
   client.createSubscription(testSubscription, testTopic)
@@ -79,6 +79,11 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
 
   val toJsonString: Flow[PubSubMessage, String, NotUsed] = Flow[PubSubMessage]
     .map{m => {
+      println("")
+      println("message info")
+      m.attributes.map(x => x.foreach(println))
+      println(m.publishTs)
+      println("")
       new String(m.payload, Charsets.UTF_8)
       }
     }
