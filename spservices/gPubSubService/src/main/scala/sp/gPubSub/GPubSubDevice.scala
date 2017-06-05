@@ -68,10 +68,10 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
   val testSubscription = PubSubSubscription(project, s"getSnap")
 
   import com.qubit.pubsub.akka.attributes._
-  val attributes = Attributes(List())
-//    PubSubStageBufferSizeAttribute(100),
-//    PubSubStageMaxRetriesAttribute(100),
-//    PubSubPublishTimeoutAttribute(10.seconds)))
+  val attributes = Attributes(List(
+    PubSubStageBufferSizeAttribute(100),
+    PubSubStageMaxRetriesAttribute(100),
+    PubSubPublishTimeoutAttribute(10.seconds)))
 
   val client = com.qubit.pubsub.client.retry.RetryingPubSubClient(com.qubit.pubsub.client.grpc.PubSubGrpcClient())
   client.createSubscription(testSubscription, testTopic)
@@ -95,7 +95,16 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
     }
 
   val makeDiff: Flow[List[api.ElvisPatient], String, NotUsed] = Flow[List[api.ElvisPatient]]
-    .mapConcat(checkTheDiff)
+    .statefulMapConcat{ () =>
+      var prev = List[api.ElvisPatient]()
+
+      xs => {
+        println("A snap: " + xs.size)
+        val res = checkTheDiff(xs, prev)
+        prev = xs
+        res
+      }
+    }
 
 
   val s = Source.fromGraph(new PubSubSource(testSubscription)).withAttributes(attributes)
@@ -141,9 +150,9 @@ trait DiffMagic {
 
   def clearState() = currentState = List()
 
-  def checkTheDiff(ps: List[api.ElvisPatient]): List[String] = {
+  def checkTheDiff(ps: List[api.ElvisPatient], currentState: List[api.ElvisPatient]): List[String] = {
     val res = if (currentState.isEmpty) {
-      currentState = ps
+      //currentState = ps
       ps.map{p =>
         val newP = api.NewPatient(getNow, p)
         val json = write(Map("data"->newP, "isa"->"newLoad"))
@@ -198,7 +207,7 @@ trait DiffMagic {
     else {
       List()
     }
-    currentState = ps
+    //currentState = ps
     res
   }
 
