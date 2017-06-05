@@ -81,10 +81,10 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
   var messT: Option[ZonedDateTime] = None
   val toJsonString: Flow[PubSubMessage, String, NotUsed] = Flow[PubSubMessage]
     .map{m => {
-      println("")
-      println("message time: "+ m.publishTs)
-      println("prev time: "+ messT)
-      println("")
+//      println("")
+//      println("message time: "+ m.publishTs)
+//      println("prev time: "+ messT)
+//      println("")
 
       if (messT.isEmpty) messT = m.publishTs
 
@@ -135,6 +135,8 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
 
       println("")
       newState.foreach(println)
+      println("number of events: " + state.size)
+      println("")
 
       elvisActor ! state
       //val h = SPHeader(from = "gPubSubDevice")
@@ -215,8 +217,7 @@ trait DiffMagic {
       println("")
       println("no of pats changed: " + changes.size)
       println("no of pats removed: " + removed.size)
-      println("no of pats actually changed: " + upd.size)
-      upd.foreach(println)
+      //upd.foreach(println)
       println("")
 
       upd ++ rem
