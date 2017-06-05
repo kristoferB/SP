@@ -86,6 +86,8 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
       println("prev time: "+ messT)
       println("")
 
+      if (messT.isEmpty) messT = m.publishTs
+
       val res = for {
         ct <- m.publishTs
         pT <- messT if ct.isAfter(pT)
