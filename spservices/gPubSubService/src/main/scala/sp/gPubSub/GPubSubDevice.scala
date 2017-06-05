@@ -1,5 +1,7 @@
 package sp.gPubSub
 
+import java.time.ZonedDateTime
+
 import akka.actor._
 
 import scala.util.{Failure, Random, Success, Try}
@@ -8,7 +10,6 @@ import sp.messages.Pickles._
 import java.util
 
 import scala.collection.mutable.ListBuffer
-
 import sp.domain._
 import sp.domain.Logic._
 import datahandler.ElvisDataHandlerDevice
@@ -77,14 +78,24 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
   client.createSubscription(testSubscription, testTopic)
 
 
+  var messT: Option[ZonedDateTime] = None
   val toJsonString: Flow[PubSubMessage, String, NotUsed] = Flow[PubSubMessage]
     .map{m => {
       println("")
-      println("message info")
-      m.attributes.map(x => x.foreach(println))
-      println(m.publishTs)
+      println("message time: "+ m.publishTs)
+      println("prev time: "+ messT)
       println("")
-      new String(m.payload, Charsets.UTF_8)
+
+      val res = for {
+        ct <- m.publishTs
+        pT <- messT if ct.isAfter(pT)
+      } yield {
+        messT = m.publishTs
+        println("is newer")
+        new String(m.payload, Charsets.UTF_8)
+      }
+
+      res.getOrElse("")
       }
     }
 
