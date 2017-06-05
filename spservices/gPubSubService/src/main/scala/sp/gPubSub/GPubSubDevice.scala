@@ -138,7 +138,7 @@ trait DiffMagic {
   def clearState() = currentState = List()
 
   def checkTheDiff(ps: List[api.ElvisPatient]): List[String] = {
-    if (currentState.isEmpty) {
+    val res = if (currentState.isEmpty) {
       currentState = ps
       ps.map{p =>
         val newP = api.NewPatient(getNow, p)
@@ -147,8 +147,16 @@ trait DiffMagic {
       }
     }
     else if (currentState != ps)  {
+
+      println("A change identified")
+      println("no of pats in snap: " + ps.size)
+
+
       val changes = ps.filterNot(currentState.contains)
       val removed = currentState.filterNot(p => ps.exists(_.CareContactId == p.CareContactId))
+
+
+
 
       val upd = changes.map{ p =>
         val diffP = diffPat(p, currentState.find(_.CareContactId == p.CareContactId))
@@ -171,13 +179,23 @@ trait DiffMagic {
         val json = write(Map("data"->removedPat, "isa"->"removed"))
         json
       }
-      currentState = ps
+
+
+      println("")
+      println("no of pats changed: " + changes.size)
+      println("no of pats removed: " + removed.size)
+      println("no of pats actually changed: " + upd.size)
+      upd.foreach(println)
+      println("")
+
       upd ++ rem
 
     }
     else {
       List()
     }
+    currentState = ps
+    res
   }
 
   def sendToEvah(json: String) = {
