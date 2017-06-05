@@ -81,3 +81,8 @@ package APIAbilityHandler {
     val service = "abilityHandler"
   }
 }
+
+object AbilityComm {
+  def extractVDReply(mess: SPMessage) = fromSPValue[APIVirtualDevice.Replies](mess.body)
+  def extractAbilityReply(mess: SPMessage) = fromSPValue[APIAbilityHandler.Response](mess.body)
+}

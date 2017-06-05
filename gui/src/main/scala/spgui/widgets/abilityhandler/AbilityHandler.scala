@@ -17,7 +17,7 @@ object AbilityHandlerWidget {
   private class Backend($: BackendScope[Unit, State]) {
     val answerHandler = BackendCommunication.getMessageObserver(
       mess => {
-        fromSPValue[vdapi.Replies](mess.body).map{
+        AbilityComm.extractVDReply(mess).map{
           case vdapi.Resources(r) =>
             $.modState(s => s.copy(resources = r)).runNow()
           case x =>
