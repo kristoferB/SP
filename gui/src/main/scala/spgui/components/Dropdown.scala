@@ -8,7 +8,8 @@ object Dropdown {
   case class Props(
     label:String,
     tags: Option[Seq[TagMod]] = None,
-    contents: Seq[VdomNode])
+    contents: Seq[TagMod]
+  )
 
   private val component = ScalaComponent.builder[Props]("Dropdown")
     .render_P(p =>
@@ -28,8 +29,8 @@ object Dropdown {
     )
     .build
 
-  def apply(label:String, tags:Seq[TagMod], contents: VdomNode*) =
-    component(Props(label, Some(tags), contents.toSeq ))
+  def apply(label:String, tags:Seq[TagMod], contents: Seq[TagMod]) =
+    component(Props(label, Some(tags), contents))
 
   // def apply(label:String, contents: VdomNode*) =
   //   component(Props(label, None, contents.toSeq))

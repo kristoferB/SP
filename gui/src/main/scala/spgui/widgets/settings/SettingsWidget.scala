@@ -29,7 +29,9 @@ object SettingsWidget {
               })
             )
           ).toTagMod
-        ))
+          ),
+          Seq()
+          )
       )
   }
 

@@ -31,7 +31,7 @@ object WidgetMenu {
         ) :: WidgetList.list.collect{
             case w if (w._1.toLowerCase.contains(s.filterText.toLowerCase)) =>
               <.div(w._1, ^.onClick --> addW(w._1, w._3, w._4))
-         }).toVdomArray
+         })
       )
   }
 

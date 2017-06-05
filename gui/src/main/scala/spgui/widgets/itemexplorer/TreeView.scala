@@ -58,7 +58,7 @@ object TreeView {
       <.div(^.className := "nav", Style.outerDiv,
         <.div( Style.optionBar,
           Dropdown("Add Item", Seq(^.className := "nav-item"),
-            p.itemCreators.map(ic => <.div(ic._1, ^.onClick --> addItem(ic._2()))).toVdomArray
+            p.itemCreators.map(ic => <.div(ic._1, ^.onClick --> addItem(ic._2())))
           ),
           SPButton("", Icon.floppyO, Seq(^.onClick --> p.onSaveButtonClick(s.rt))  ),
           <.div(
