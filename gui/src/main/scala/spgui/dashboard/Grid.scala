@@ -39,7 +39,7 @@ object Grid {
       ReactGridLayout(
         width = 1920,
         draggableHandle = "",
-        onLayoutChange = (layout:js.Object) => None,
+        onLayoutChange = (layout:js.Object) => Unit,
         ReactGridLayoutItem(key = "c", i = "c", x = 3, y = 4, w = 5, h = 1, isDraggable = true, child = <.h3("c")),
         ReactGridLayoutItem(key = "d", i = "c", x = 0, y = 0, w = 1, h = 1, isDraggable = false, child = <.h3("C: undraggable"))
       )
@@ -95,6 +95,7 @@ object ReactGridLayoutJS extends js.Object {}
 
 object ReactGridLayout {
 
+  /*
   case class Props(
     width: Int,
     autoSize: js.UndefOr[Boolean] = true,
@@ -111,7 +112,61 @@ object ReactGridLayout {
     useCSSTransforms: js.UndefOr[Boolean] = true,
     onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit
   )
+   */
 
+  @js.native
+  trait JSProps extends js.Object {
+    var width: Int = js.native
+    var autoSize: Boolean = js.native
+    var cols: js.Object = js.native
+    var draggableCancel: String = js.native
+    var draggableHandle: String = js.native
+    var verticalCompact: Boolean = js.native
+    var layout: js.UndefOr[Object with js.Dynamic] = js.native
+    var margin: js.Array[Int] = js.native
+    var containerPadding: js.Array[Int] = js.native
+    var rowHeight: Int = js.native
+    var isDraggable: Boolean = js.native
+    var isResizable: Boolean = js.native
+    var useCSSTransforms: Boolean = js.native
+    var onLayoutChange: js.Function1[js.Array[js.Object with js.Dynamic], Unit] = js.native
+  }
+
+  def props(
+    width: Int,
+    autoSize: Boolean = true,
+    cols: js.Object = js.Dynamic.literal("lg" -> 12, "md" -> 8, "sm" -> 6, "xs" -> 4, "xxs" -> 2),
+    draggableCancel: String = "",
+    draggableHandle: String = "",
+    verticalCompact: Boolean = true,
+    layout: js.UndefOr[js.Object with js.Dynamic] = js.undefined,
+    margin: js.Array[Int] = js.Array(3,3),
+    containerPadding: js.Array[Int] = js.Array(3,3),
+    rowHeight: Int = 160,
+    isDraggable: Boolean = true,
+    isResizable: Boolean = true,
+    useCSSTransforms: Boolean = true,
+    onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit = (x) => println("wooba")
+  ): JSProps = {
+    val p = (new js.Object).asInstanceOf[JSProps]
+    p.width = width
+    p.autoSize = autoSize
+    p.cols = cols
+    p.draggableCancel = draggableCancel
+    p.draggableHandle = draggableHandle
+    p.verticalCompact = verticalCompact
+    p.layout = layout
+    p.margin = margin
+    p.containerPadding = containerPadding
+    p.rowHeight = rowHeight
+    p.isDraggable = isDraggable
+    p.isResizable = isResizable
+    p.useCSSTransforms = useCSSTransforms
+    p.onLayoutChange = onLayoutChange
+    p
+  }
+
+  /*
   case class ReactGridLayoutFacade(props: Props) {
     def toJS: js.Object = {global
       val p = js.Dynamic.literal()
@@ -133,21 +188,25 @@ object ReactGridLayout {
       p
     }
   }
+   */
 
   def apply(
     width: Int,
     draggableHandle: String,
-    onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit, children: VdomNode*) = {
+    onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit,
+    children: VdomNode*) = {
     // access real js component
+    /*
     val f = ReactDOM.asInstanceOf[js.Dynamic].createFactory(ReactGridLayoutJS)
     val facade = ReactGridLayoutFacade(Props(
       width = width,
       draggableHandle = draggableHandle,
       onLayoutChange = onLayoutChange
     ))
-    // TODO: I really don't think throwing that type there solves this but it does compile.. let's see
-    //f(facade.toJS, children.toJSArray).asInstanceOf[ScalaComponent.Unmounted[Unit, Unit, Unit]]
     f(facade.toJS, children.toJSArray).asInstanceOf[ScalaComponent.Unmounted[Unit, Unit, Unit]]
+     */
+    var component = JsComponent[JSProps, Children.Varargs, Null](ReactGridLayoutJS)
+    component(props(width, draggableHandle=draggableHandle, onLayoutChange=onLayoutChange))(children.toVdomArray)
   }
 }
 
