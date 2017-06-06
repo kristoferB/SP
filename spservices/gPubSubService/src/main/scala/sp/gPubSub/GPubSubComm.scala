@@ -56,7 +56,8 @@ case class EricaEvent(CareContactId: Int,
                       Title: String,
                       Type: String,
                       Value: String,
-                      VisitId: Int)
+                      VisitId: Int,
+                      TimeEvent: String)
 
 case class PatientDiff(updates: Map[String, JValue], newEvents: List[ElvisEvent], removedEvents: List[ElvisEvent])
 case class NewPatient(timestamp: String, patient: ElvisPatient)

@@ -90,8 +90,13 @@ def handleElvisData(data: List[dataApi.EricaEvent]) {
   var visited: Map[Int, Boolean] = Map()
   data.foreach{ e => {
     if (!visited.contains(e.CareContactId)) {
-      if (data.filter(_.CareContactId == e.CareContactId).filter(_.Category == "RemovedPatient").isEmpty) {
-        state += e.CareContactId -> constructPatient(data.filter(_.CareContactId == e.CareContactId).filter(p => (!p.Category.contains("removed"))))
+      val pE = data.filter(_.CareContactId == e.CareContactId)
+      val removedEvent = getLatest(pE.filter(d => d.Category == "RemovedPatient"))
+      val latestEvent = getLatest(pE.filter(d => d.Category != "RemovedPatient"))
+      if (pE.filter(d => d.Category == "RemovedPatient").isEmpty) {
+        state += e.CareContactId -> constructPatient(pE.filter(p => (!p.Category.contains("-removed"))))
+      } else if (!isLatest(removedEvent,latestEvent)) {
+        state += e.CareContactId -> constructPatient(data.filter(_.CareContactId == e.CareContactId).filter(p => (!p.Category.contains("-removed") || p.Category != "RemovedPatient")))
       } else {
         state -= e.CareContactId
       }
@@ -99,7 +104,32 @@ def handleElvisData(data: List[dataApi.EricaEvent]) {
       }
     }
   }
+  println("Patients with valid clinic: " + state.filter( p => (isValidClinic(p._2.Clinic))).size)
   createVisualizablePatients(state.filter( p => (isValidClinic(p._2.Clinic))))
+}
+
+def isLatest(firstEvent: Option[dataApi.EricaEvent], secondEvent: Option[dataApi.EricaEvent]): Boolean = {
+  val formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
+  val res = for {
+    f <- firstEvent
+    s <- secondEvent
+  } yield formatter.parse(f.TimeEvent).after(formatter.parse(s.TimeEvent))
+  res.getOrElse(true)
+}
+
+def getLatest(events: List[dataApi.EricaEvent]): Option[dataApi.EricaEvent] = {
+  var formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
+  val init: Option[dataApi.EricaEvent] = None
+  events.foldLeft(init){(a, b) =>
+    a match {
+      case None => Some(b)
+      case Some(e) => {
+        val prevT = formatter.parse(e.TimeEvent)
+        val eventT = formatter.parse(b.TimeEvent)
+        if (eventT.after(prevT)) Some(b) else a
+      }
+    }
+  }
 }
 
 def isValidClinic(clinic: String): Boolean = {
@@ -194,7 +224,7 @@ def getTeam(clinic: String, location: String, reasonForVisit: String): String = 
   reasonForVisit match {
     case "AKP" => "stream"
     case "ALL" | "TRAU" => "process"
-    case "B" | "MEP" => {
+    case "B" | "MEP" | "HÖFT" => {
         if (location != "") {
           location.charAt(0) match {
             case 'G' => "medicin gul"

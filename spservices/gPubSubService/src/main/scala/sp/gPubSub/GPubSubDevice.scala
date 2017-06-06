@@ -1,5 +1,7 @@
 package sp.gPubSub
 
+import java.time.ZonedDateTime
+
 import akka.actor._
 
 import scala.util.{Failure, Random, Success, Try}
@@ -64,22 +66,34 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
 
   val timeout = 10 second
   val project = "intelligentaakuten-158811"
-  val testTopic = PubSubTopic(project, s"elvis-snap")
-  val testSubscription = PubSubSubscription(project, s"getSnap")
+  val testTopic = PubSubTopic(project, s"erica-snap")
+  val testSubscription = PubSubSubscription(project, s"getEricaSnap")
 
   import com.qubit.pubsub.akka.attributes._
   val attributes = Attributes(List())
-//    PubSubStageBufferSizeAttribute(100),
-//    PubSubStageMaxRetriesAttribute(100),
-//    PubSubPublishTimeoutAttribute(10.seconds)))
+  /**  PubSubStageBufferSizeAttribute(100),
+    PubSubStageMaxRetriesAttribute(100),
+    PubSubPublishTimeoutAttribute(10.seconds))*/
 
   val client = com.qubit.pubsub.client.retry.RetryingPubSubClient(com.qubit.pubsub.client.grpc.PubSubGrpcClient())
   client.createSubscription(testSubscription, testTopic)
 
 
+  var messT: Option[ZonedDateTime] = None
   val toJsonString: Flow[PubSubMessage, String, NotUsed] = Flow[PubSubMessage]
     .map{m => {
-      new String(m.payload, Charsets.UTF_8)
+      if (messT.isEmpty) messT = m.publishTs
+
+      val res = for {
+        ct <- m.publishTs
+        pT <- messT if ct.isAfter(pT)
+      } yield {
+        messT = m.publishTs
+        println("is newer")
+        new String(m.payload, Charsets.UTF_8)
+      }
+
+      res.getOrElse("")
       }
     }
 
@@ -90,27 +104,51 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
     }
     .collect{
       case Success(xs) => {
+        println("Nr of pat: " + xs.length)
         xs
       }
     }
 
-  val makeDiff: Flow[List[api.ElvisPatient], String, NotUsed] = Flow[List[api.ElvisPatient]]
-    .mapConcat(checkTheDiff)
+//  val makeDiff: Flow[List[api.ElvisPatient], List[api.EricaEvent], NotUsed] = Flow[List[api.ElvisPatient]]
+//    .mapConcat(checkTheDiff)
+
+
+    val makeDiff: Flow[List[api.ElvisPatient], List[api.EricaEvent], NotUsed] = Flow[List[api.ElvisPatient]]
+   .statefulMapConcat{ () =>
+     var prev = List[api.ElvisPatient]()
+
+     xs => {
+       println("A snap: " + xs.size)
+       val res = checkTheDiff(xs, prev)
+       prev = xs
+       res
+     }
+   }
 
 
   val s = Source.fromGraph(new PubSubSource(testSubscription)).withAttributes(attributes)
 
-  val mediatorSink = Sink.foreach{ s: String =>
-    val dataAggregation = new elastic.DataAggregation
-    var newState = dataAggregation.handleMessage(s)
-    if (!newState.isEmpty) {
-      state = state ++ newState
+  val mediatorSink = Sink.foreach{ s: List[api.EricaEvent] =>
+    if (!s.isEmpty) {
+      state = state ++ s
+
+      println("")
+      s.foreach(println)
+      println("number of events: " + state.size)
+      println("")
+
       elvisActor ! state
+    }
+    //val dataAggregation = new elastic.DataAggregation
+    //var newState = dataAggregation.handleMessage(s)
+    //if (!newState.isEmpty) {
+    //  state = state ++ newState
+    //  elvisActor ! state
       //val h = SPHeader(from = "gPubSubDevice")
       //val b = sendApi.ElvisData(state)
       //val mess = SPMessage.makeJson(h, b).get
       //mediator ! Publish("elvis-diff", mess)
-    }
+    //}
   }
 
   val test = s via toJsonString via jsonToList via makeDiff runWith(mediatorSink)
@@ -137,16 +175,14 @@ trait DiffMagic {
 
   def clearState() = currentState = List()
 
-  def checkTheDiff(ps: List[api.ElvisPatient]): List[String] = {
+  def checkTheDiff(ps: List[api.ElvisPatient], currentState: List[api.ElvisPatient]): List[List[api.EricaEvent]] = {
+    val dataAggregation = new elastic.DataAggregation
     if (currentState.isEmpty) {
-      currentState = ps
+      //currentState = ps
       ps.map{p =>
-        val newP = api.NewPatient(getNow, p)
-        val json = write(Map("data"->newP, "isa"->"newLoad"))
-        json
+        dataAggregation.convertToEricaEvents(p)
       }
-    }
-    else if (currentState != ps)  {
+    } else if (currentState != ps)  {
       val changes = ps.filterNot(currentState.contains)
       val removed = currentState.filterNot(p => ps.exists(_.CareContactId == p.CareContactId))
 
@@ -154,28 +190,30 @@ trait DiffMagic {
         val diffP = diffPat(p, currentState.find(_.CareContactId == p.CareContactId))
         diffP match {
           case None => {
-            val newP = api.NewPatient(getNow, p)
-            val json = write(Map("data"->newP, "isa"->"new"))
-            json
+            dataAggregation.convertToEricaEvents(p)
           }
           case Some(d) => {
-            val diffPatient = api.PatientDiff(d._1, d._2, d._3)
-            val json = write(Map("data"->diffPatient, "isa"->"diff"))
-            json
+            dataAggregation.convertDiffToEricaEvents(d._1, d._2, d._3)
           }
         }
       }
 
       val rem = removed.map{p =>
-        val removedPat = api.RemovedPatient(getNow, p)
-        val json = write(Map("data"->removedPat, "isa"->"removed"))
-        json
+        List(api.EricaEvent(
+              p.CareContactId,
+              "RemovedPatient",
+              "NA",
+              getNow.toString,
+              "",
+              "",
+              "",
+              p.VisitId,
+              getNow.toString))
       }
-      currentState = ps
+      //currentState = ps
       upd ++ rem
 
-    }
-    else {
+    } else {
       List()
     }
   }
@@ -185,7 +223,7 @@ trait DiffMagic {
   }
 
 
-  def diffPat(curr: api.ElvisPatient, old: Option[api.ElvisPatient])={
+  def diffPat(curr: api.ElvisPatient, old: Option[api.ElvisPatient]) = {
     old.map {
       case prev: api.ElvisPatient => {
         (Map(
@@ -204,7 +242,6 @@ trait DiffMagic {
           prev.Events.filterNot(curr.Events.contains))
       }
     }
-
   }
 
   def diffThem[T](prev: T, current: T): Option[JValue]= {

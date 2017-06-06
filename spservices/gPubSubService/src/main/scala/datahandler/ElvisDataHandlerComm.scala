@@ -61,7 +61,8 @@ package API_Data {
                       Title: String,
                       Type: String,
                       Value: String,
-                      VisitId: Int)
+                      VisitId: Int,
+                      TimeEvent: String)
 }
 
 package API_PatientEvent {
