@@ -36,7 +36,8 @@ object ChartTest {
       println(GoogleChartsLoaded);
       if(GoogleChartsLoaded.asInstanceOf[Boolean]) {
         val data = new GoogleVisualization.DataTable();
-        data.addColumn("string", "product type");
+        data.addColumn("string", "productType")
+        //js.Dynamic.literal(`type` = "string", id = "product type"));
         data.addColumn("number", "produced");
         val rows = js.Array[js.Array[js.Any]](
           js.Array[js.Any]("M1",3),
@@ -45,20 +46,20 @@ object ChartTest {
           js.Array[js.Any]("M4",1)
         )
         data.addRows(rows)
-        val options = js.Dynamic.literal(title = id, width=400, height=300)
+        val options = js.Dynamic.literal(title = id, width=400, height=300, is3D = true)
         val element = js.Dynamic.global.document.getElementById(id+"pie")
         val piechart = new GoogleVisualization.PieChart(element)
         piechart.draw(data, options)
 
         val ganttData = new GoogleVisualization.DataTable();
-        ganttData.addColumn("string", "Task ID")
-        ganttData.addColumn("string", "Task Name")
-        ganttData.addColumn("string", "Resource")
-        ganttData.addColumn("date", "Start Date")
-        ganttData.addColumn("date", "End Date")
-        ganttData.addColumn("number", "Duration")
-        ganttData.addColumn("number", "Percent Complete")
-        ganttData.addColumn("string", "Dependencies")
+        ganttData.addColumn("string", "Task Id")
+        ganttData.addColumn("string", "Task Name")    //js.Dynamic.literal(`type` = "string", id = "Task Name"))
+        ganttData.addColumn("string", "Resource")     // js.Dynamic.literal(`type` = "string", id = "Resource"))
+        ganttData.addColumn("date", "Start Date")     //js.Dynamic.literal(`type` = "date", id = "Start Date"))
+        ganttData.addColumn("date", "End Date")       //js.Dynamic.literal(`type` = "date", id = "End Date"))
+        ganttData.addColumn("number", "Duration")     //js.Dynamic.literal(`type` = "number", id = "Duration"))
+        ganttData.addColumn("number", "Percent Complete") //js.Dynamic.literal(`type` = "number", id = "Percent Complete"))
+        ganttData.addColumn("string", "Dependencies")     //js.Dynamic.literal(`type` = "string", id = "Dependencies"))
 
         val ganttRows = js.Array[js.Array[js.Any]](
           js.Array[js.Any]("2014Spring","Spring 2014", "spring", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20), null, 100, null),
@@ -79,21 +80,34 @@ object ChartTest {
 
 
         val timelineData = new GoogleVisualization.DataTable();
-        timelineData.addColumn("string", "Task Name")
-        timelineData.addColumn("date", "Start Date")
-        timelineData.addColumn("date", "End Date")
+        timelineData.addColumn("string", "Timeline id")     //js.Dynamic.literal(`type` = "string", id = "Label id"))
+        timelineData.addColumn("string", "Timeline Name")   //js.Dynamic.literal(`type` = "string", id = "Label Name"))
+        timelineData.addColumn("date", "Start Date")        //js.Dynamic.literal(`type` = "date", id = "Start Date"))
+        timelineData.addColumn("date", "End Date")          //js.Dynamic.literal(`type` = "date", id = "End Date"))
 
         val timelineRows = js.Array[js.Array[js.Any]](
-          js.Array[js.Any]("spring", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20)),
-          js.Array[js.Any]("summer", new js.Date(2014, 5, 21), new js.Date(2014, 8, 20)),
-          js.Array[js.Any]("autumn", new js.Date(2014, 8, 21), new js.Date(2014, 11, 20)),
-          js.Array[js.Any]("winter", new js.Date(2014, 11, 21), new js.Date(2015, 2, 21)),
-          js.Array[js.Any]("spring", new js.Date(2015, 2, 22), new js.Date(2015, 5, 20)),
-          js.Array[js.Any]("summer", new js.Date(2015, 5, 21), new js.Date(2015, 8, 20))
+          js.Array[js.Any]("spring", "startup", new js.Date(2014, 2, 22, 20, 3, 0, 0), new js.Date(2014, 2, 22, 20, 3, 55, 0)),
+          js.Array[js.Any]("summer", "beach", new js.Date(2014, 2, 22, 20, 3, 0, 0), new js.Date(2014, 2, 22, 20, 3, 45, 0)),
+          js.Array[js.Any]("autumn", "rain", new js.Date(2014, 2, 22, 20, 3, 0, 0), new js.Date(2014, 2, 22, 20, 3, 48, 0)),
+          js.Array[js.Any]("winter", "snow", new js.Date(2014, 2, 22, 20, 3, 0, 0), new js.Date(2014, 2, 22, 20, 3, 52, 0)),
+          js.Array[js.Any]("spring", "bloom", new js.Date(2014, 2, 22, 20, 3, 0, 0), new js.Date(2014, 2, 22, 20, 3, 30, 20)),
+          js.Array[js.Any]("summer", "sun", new js.Date(2014, 2, 22, 20, 3, 0, 0), new js.Date(2014, 2, 22, 20, 3, 20, 0))
         )
+
+
+
         timelineData.addRows(timelineRows)
 
-        val timelineOptions = js.Dynamic.literal(title = id, height=300, width=600, timeline = js.Dynamic.literal(showRowLabels = true))
+        val timelineOptions = js.Dynamic.literal(title = id, height=300, width=600,
+          timeline = js.Dynamic.literal(showRowLabels = true, colorByRowLabel = true),
+          hAxis = js.Dynamic.literal(
+            viewWindow = js.Dynamic.literal(
+              min = new js.Date(2014, 2, 22, 20, 2, 59, 30),
+              max = new js.Date(2014, 2, 22, 20, 4, 0, 0)
+            )
+          )
+        )
+
         val timelineElement = js.Dynamic.global.document.getElementById(id+"timeline")
         val timeline = new GoogleVisualization.Timeline(timelineElement)
         timeline.draw(timelineData, timelineOptions)
@@ -140,6 +154,7 @@ object GoogleVisualization extends js.Object {
   @js.native
   class DataTable extends js.Object {
     def addColumn(t: js.Any, d: js.Any): Unit = js.native
+    //def addColumn(obj: js.Object): Unit = js.native
     def addRows(list: js.Any): Unit = js.native
   }
 }
