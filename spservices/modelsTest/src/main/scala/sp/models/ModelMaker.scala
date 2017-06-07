@@ -6,7 +6,7 @@ import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 import scala.concurrent.duration._
 import akka.persistence._
 import sp.domain._
-import sp.domain.LogicNoImplicit._
+import sp.domain.Logic._
 import sp.messages.Pickles._
 import sp.messages._
 import sp.models.APIModels.CreateModel
