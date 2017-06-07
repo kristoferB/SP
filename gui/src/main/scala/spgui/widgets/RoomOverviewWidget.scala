@@ -1036,14 +1036,14 @@ object RoomOverviewWidget {
       .attr("y", (34.1/1372.0)*width)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkOrto("47A"))
+      .attr("fill", checkOrto("47a"))
 
       svg.append("text")
       .attr("x", (1254.1/1372.0)*width + smallRec/12)
       .attr("y", (34.1/1372.0)*width + 2*smallRec/3)
       .attr("font-size", sizeNumbers)
       .text(s"47A")
-      .attr("fill", checkNumbers("47A"))
+      .attr("fill", checkNumbers("47a"))
       .style("font-weight", "bold")
 
       g.append("rect")
@@ -1051,14 +1051,14 @@ object RoomOverviewWidget {
       .attr("y", (34.1/1372.0)*width + smallRec + barDistance)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkOrto("47B"))
+      .attr("fill", checkOrto("47b"))
 
       svg.append("text")
       .attr("x", (1254.1/1372.0)*width + smallRec/12)
       .attr("y", (34.1/1372.0)*width + 2*smallRec/3 + smallRec + barDistance)
       .attr("font-size", sizeNumbers)
       .text(s"47B")
-      .attr("fill", checkNumbers("47B"))
+      .attr("fill", checkNumbers("47b"))
       .style("font-weight", "bold")
 
       g.append("rect")
@@ -1066,14 +1066,14 @@ object RoomOverviewWidget {
       .attr("y", (34.1/1372.0)*width + 2*smallRec + 2*barDistance)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkOrto("48A"))
+      .attr("fill", checkOrto("48a"))
 
       svg.append("text")
       .attr("x", (1254.1/1372.0)*width + smallRec/12)
       .attr("y", (34.1/1372.0)*width + 2*smallRec/3 + 2*smallRec + 2*barDistance)
       .attr("font-size", sizeNumbers)
       .text(s"48A")
-      .attr("fill", checkNumbers("48A"))
+      .attr("fill", checkNumbers("48a"))
       .style("font-weight", "bold")
 
       g.append("rect")
@@ -1081,14 +1081,14 @@ object RoomOverviewWidget {
       .attr("y", (34.1/1372.0)*width + 3*smallRec + 3*barDistance)
       .attr("width", smallRec)
       .attr("height", smallRec)
-      .attr("fill", checkOrto("48B"))
+      .attr("fill", checkOrto("48b"))
 
       svg.append("text")
       .attr("x", (1254.1/1372.0)*width + smallRec/12)
       .attr("y", (34.1/1372.0)*width + 2*smallRec/3 + 3*smallRec + 3*barDistance)
       .attr("font-size", sizeNumbers)
       .text(s"48B")
-      .attr("fill", checkNumbers("48B"))
+      .attr("fill", checkNumbers("48b"))
       .style("font-weight", "bold")
 
       // -----------------------------------------------------------------------------

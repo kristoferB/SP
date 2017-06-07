@@ -112,7 +112,7 @@ object WaitingRoomWidget {
     var tmp = 0
 
     (m - "-1").foreach{ p =>
-      if (p._2.location.roomNr == "ivr" || p._2.location == "yvr" || p._2.location == "iv" || p._2.location == "vr") {
+      if (p._2.location.roomNr == "ivr" || p._2.location.roomNr == "yvr" || p._2.location.roomNr == "iv" || p._2.location.roomNr == "vr") {
         if (p._2.finished.finishedStillPresent) {
           p._2.team.team match {
             case "medicin gul" | "medicin" => finishedCountMG += 1

@@ -105,7 +105,7 @@ object PlaceWidget {
 
     def getPlace(patient: apiPatient.Patient): String = {
       if (patient.examination.isOnExam) "Examination"
-      else if (patient.location.roomNr == "ivr") "InnerWaitingRoom"
+      else if (patient.location.roomNr == "ivr" || patient.location.roomNr == "iv") "InnerWaitingRoom"
       else if (patient.location.roomNr != "") "RoomOnSquare"
       else "Other"
     }
