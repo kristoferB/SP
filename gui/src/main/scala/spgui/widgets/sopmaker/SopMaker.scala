@@ -59,7 +59,9 @@ object SopMakerWidget {
       val ops = List(Operation("op1"), Operation("op2"))
       val idm = ops.map(o=>o.id -> o).toMap
 
-      val fakeSop = Sequence(ops(0), ops(1))
+      ops
+
+      val fakeSop = SOP(ops(0), EmptySOP)
       def drawSop(s: SOP): Seq[VdomTag] = {
         s match {
           case s:Sequence =>
