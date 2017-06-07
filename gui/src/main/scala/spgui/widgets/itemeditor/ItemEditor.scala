@@ -14,12 +14,12 @@ import sp.domain._
 //import sp.messages._
 import sp.messages.Pickles._
 
-sealed trait API_ItemEditorService
-object API_ItemEditorService {
-  case class Hello() extends API_ItemEditorService
-  case class RequestSampleItem() extends API_ItemEditorService
-  case class SampleItem(operationSPV: SPValue) extends API_ItemEditorService
-  case class Item(item: SPValue) extends API_ItemEditorService
+sealed trait API_ItemServiceDummy
+object API_ItemServiceDummy {
+  case class Hello() extends API_ItemServiceDummy
+  case class RequestSampleItem() extends API_ItemServiceDummy
+  case class SampleItem(operationSPV: SPValue) extends API_ItemServiceDummy
+  case class Item(item: SPValue) extends API_ItemServiceDummy
 }
 
 object ItemEditor {
@@ -28,17 +28,17 @@ object ItemEditor {
 
     var jsonEditor: JSONEditor = null // initalized for real upon mounting
 
-    def handleCommand: API_ItemEditorService => Unit = {
-      case API_ItemEditorService.Hello() =>
+    def handleCommand: API_ItemServiceDummy => Unit = {
+      case API_ItemServiceDummy.Hello() =>
         println("ItemEditorWidget: Somebody said hi")
-      case opSPV: API_ItemEditorService.SampleItem =>
+      case opSPV: API_ItemServiceDummy.SampleItem =>
         jsonEditor.set(JSON.parse(opSPV.operationSPV.toJson))
       case x =>
         println(s"THIS WAS NOT EXPECTED IN ItemEditorWidget: $x")
     }
 
     val messObs = BackendCommunication.getMessageObserver(
-      spm => spm.getBodyAs[API_ItemEditorService] foreach handleCommand,
+      spm => spm.getBodyAs[API_ItemServiceDummy] foreach handleCommand,
       "itemEditorAnswers"
     )
 
@@ -53,20 +53,20 @@ object ItemEditor {
       }
     )
 
-    def sendCommand(cmd: API_ItemEditorService) = {
+    def sendCommand(cmd: API_ItemServiceDummy) = {
       val h = SPHeader(from = "ItemEditorWidget", to = "itemEditorService", reply = *("ItemEditorWidget"))
       val jsonMsg = SPMessage.make(h, cmd)
       BackendCommunication.publishMessage("services", jsonMsg)
       //BackendCommunication.ask(jsonMsg)
     }
 
-    def requestSampleItem() = sendCommand(API_ItemEditorService.RequestSampleItem())
+    def requestSampleItem() = sendCommand(API_ItemServiceDummy.RequestSampleItem())
 
-    def sendHello() = sendCommand(API_ItemEditorService.Hello())
+    def sendHello() = sendCommand(API_ItemServiceDummy.Hello())
 
     def returnItem() = Callback{
       val spVal = fromJsonToSPValue(JSON.stringify(jsonEditor.get())).get
-      sendCommand(API_ItemEditorService.Item(spVal))
+      sendCommand(API_ItemServiceDummy.Item(spVal))
     }
 
     def render(spwb: SPWidgetBase) =
