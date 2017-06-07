@@ -1,23 +1,23 @@
 package spgui.menu
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 
 import org.scalajs.dom._
 
 object NavItem {
   case class Props (
-    content: Option[ReactNode] = None
+    content: Option[VdomNode] = None
   )
 
-  private val component = ReactComponentB[Props]("WidgetItem")
+  private val component = ScalaComponent.builder[Props]("WidgetItem")
   .render_P(p =>
       <.li(
             ^.className := "nav-item " + SPMenuCSS.navItem.htmlClass,
-            p.content
+            p.content.get // TODO option?
         )
   ).build
 
-  def apply(content:ReactNode) = component(Props(Some(content)))
+  def apply(content:VdomNode) = component(Props(Some(content)))
 
 }

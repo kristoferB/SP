@@ -1,13 +1,13 @@
 package spgui.widgets.itemeditor
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import scalacss.ScalaCssReact._
 import scalajs.js
 import js.Dynamic.{ literal => l }
 import js.JSON
 
-import spgui.SPWidgetBase
+import spgui.{ SPWidget, SPWidgetBase }
 
 import spgui.communication._
 import sp.domain._
@@ -73,12 +73,12 @@ object ItemEditor {
       <.div(<.button("Save", ^.onClick --> returnItem())) // editor added after mount
   }
 
-  private val component = ReactComponentB[SPWidgetBase]("ItemEditor")
+  private val component = ScalaComponent.builder[SPWidgetBase]("ItemEditor")
     .renderBackend[Backend]
     .componentDidMount(dcb =>
       Callback(dcb.backend.jsonEditor = JSONEditor(dcb.getDOMNode, ItemEditorOptions()))
     )
     .build
 
-  def apply() = (spwb: SPWidgetBase) => component(spwb)
+  def apply() = SPWidget(spwb => component(spwb))
 }
