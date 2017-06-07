@@ -4,10 +4,49 @@ import org.json4s._
 import sp.domain._
 import sp.domain.Logic._
 
-
 case object PropositionConditionLogic extends PropositionConditionLogics
 
 trait PropositionConditionLogics {
+
+  /**
+    * Pretty-printing
+    */
+  private def stateVal(x : StateEvaluator, ids: List[IDAble]): String = {
+    x match {
+      case ValueHolder(v: SPValue) => v.toString
+      case SVIDEval(id: ID) => ids.find(x => x.id == id).map(_.name).getOrElse(id.toString)
+      case _ => "not implemented"
+    }
+  }
+
+  def prettyPrint(ids: List[IDAble])(prop: Proposition): String = {
+    prop match {
+      case AND(props: List[Proposition]) => props.map(prettyPrint(ids)).mkString(" && ")
+      case OR(props: List[Proposition]) => props.map(prettyPrint(ids)).mkString(" || ")
+      case EQ(left: StateEvaluator, right: StateEvaluator) => stateVal(left,ids) + " == " + stateVal(right,ids)
+      case NEQ(left: StateEvaluator, right: StateEvaluator) => stateVal(left,ids) + " != " + stateVal(right,ids)
+      case GREQ(left: StateEvaluator, right: StateEvaluator) => stateVal(left,ids) + " >= " + stateVal(right,ids)
+      case LEEQ(left: StateEvaluator, right: StateEvaluator) => stateVal(left,ids) + " <= " + stateVal(right,ids)
+      case GR(left: StateEvaluator, right: StateEvaluator) => stateVal(left,ids) + " > " + stateVal(right,ids)
+      case LE(left: StateEvaluator, right: StateEvaluator) => stateVal(left,ids) + " < " + stateVal(right,ids)
+      case AlwaysTrue => "true"
+      case AlwaysFalse => "false"
+      case s@_ => "i forgot something: " + s.toString
+    }
+  }
+
+  def prettyPrintAction(ids: List[IDAble])(action: Action): String = {
+    val id = ids.find(x => x.id == action.id).map(_.name).getOrElse(action.id.toString)
+    action.value match {
+      case INCR(1) => id + "++"
+      case INCR(n) => id + " += " + n.toString
+      case DECR(1) => id + "--"
+      case DECR(n) => id + " -= " + n.toString
+      case ASSIGN(rhs: ID) => id + " := " + ids.find(x => x.id == rhs).map(_.name).getOrElse(rhs.toString)
+      case ValueHolder(v : SPValue) => id + " := " + v.toString
+      case s@_ => "i forgot something: " + s.toString
+    }
+  }
 
   /**
    * Evaluate Propositions by calling eval(proposition, state)
@@ -78,7 +117,7 @@ trait PropositionConditionLogics {
    * @param cond: Condition, but must be of type PropositionCondition
    */
   implicit class condLogic(cond: Condition) {
-    val c = cond.asInstanceOf[PropositionCondition]
+    val c = cond.asInstanceOf[Condition]
     def eval(s: State) = c.guard.eval(s)
     def next(s: State) = s.next(c.action.map(a => a.id -> a.nextValue(s)) toMap)
     def inDomain(s: State, stateVars: Map[ID, SPValue => Boolean]) = {

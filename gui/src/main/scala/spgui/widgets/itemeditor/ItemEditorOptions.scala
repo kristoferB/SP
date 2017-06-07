@@ -6,7 +6,6 @@ import js.Dynamic.{ literal => l }
 object ItemEditorOptions {
   def apply() =
     JSONEditorOptions(
-      onEditable = onItemNodeEditable,
       mode = "code",
       schema = itemEditorSchema
     )

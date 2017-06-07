@@ -242,13 +242,13 @@ class Trucks(ahid: ID) extends Actor with Helpers {
 trait Helpers {
   import sp.abilityhandler.APIAbilityHandler.Ability
 
-  def ss(p:(String,List[String])=>PropositionCondition,n:String,startvar:String,endvar:String) =
+  def ss(p:(String,List[String])=>Condition, n:String, startvar:String, endvar:String) =
     a(n,
       p(s"!${startvar} && !${endvar}", List(s"${startvar} := true")),
       p(s"${startvar} && !${endvar}", List()),
       p(s"${startvar} && ${endvar}", List(s"${startvar} := false")))
 
-  def a(n:String,pre:PropositionCondition,exec:PropositionCondition,post:PropositionCondition) =
+  def a(n:String, pre:Condition, exec:Condition, post:Condition) =
     Ability(n, UUID.randomUUID(), pre, exec, post)
   def v(name: String, drivername: String) = Thing(name, SPAttributes("drivername" -> drivername))
   def prop(vars: List[IDAble])(cond: String,actions: List[String] = List()) = {
@@ -267,6 +267,6 @@ trait Helpers {
         }
       }
     }
-    PropositionCondition(c(cond).get, a(actions))
+    Condition(c(cond).get, a(actions))
   }
 }

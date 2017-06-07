@@ -24,15 +24,15 @@ class AbilityActorLogicTest extends FreeSpec with Matchers{
       val g = AND(List(OR(List(EQ(v1.id, 3), EQ(v4.id, 40))), NEQ(v2.id, ValueHolder(false))))
       val a = Action(v3.id, ValueHolder(2))
 
-      val res = logic.extractVariables(PropositionCondition(g, List(a)))
+      val res = logic.extractVariables(Condition(g, List(a)))
       res.toSet shouldEqual Set(v1.id, v2.id, v3.id, v4.id)
     }
 
     val v1 = Thing("v1")
-    val pre = PropositionCondition(EQ(v1.id, 1), List(Action(v1.id, ValueHolder(2))))
-    val post = PropositionCondition(EQ(v1.id, 3), List(Action(v1.id, ValueHolder(4))))
-    val started = PropositionCondition(EQ(v1.id, 2), List())
-    val reset = PropositionCondition(AlwaysTrue, List(Action(v1.id, ValueHolder(1))))
+    val pre = Condition(EQ(v1.id, 1), List(Action(v1.id, ValueHolder(2))))
+    val post = Condition(EQ(v1.id, 3), List(Action(v1.id, ValueHolder(4))))
+    val started = Condition(EQ(v1.id, 2), List())
+    val reset = Condition(AlwaysTrue, List(Action(v1.id, ValueHolder(1))))
     val a = api.Ability("test", ID.newID, pre, started, post, reset)
 
     import AbilityState._
