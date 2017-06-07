@@ -124,7 +124,7 @@ trait PropositionConditionLogics {
    * @param cond: Condition, but must be of type PropositionCondition
    */
   implicit class condLogic(cond: Condition) {
-    val c = cond.asInstanceOf[PropositionCondition]
+    val c = cond.asInstanceOf[Condition]
     def eval(s: State) = c.guard.eval(s)
     def next(s: State) = s.next(c.action.map(a => a.id -> a.nextValue(s)) toMap)
     def inDomain(s: State, stateVars: Map[ID, SPValue => Boolean]) = {
