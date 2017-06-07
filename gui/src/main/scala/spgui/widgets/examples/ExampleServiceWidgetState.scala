@@ -3,7 +3,7 @@ package spgui.widgets.examples
 import java.util.UUID
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import spgui.SPWidgetBase
 import spgui.communication._
 
@@ -69,11 +69,11 @@ import scala.util.{Random, Try}
       def render(p: SPWidgetBase, s: State) = {
         <.div(
           <.h1(s"The Pie ID:"),
-          s.pie.toList.map { p => <.div(p.id.toString) },
-          s.pie.toList.flatMap { p => p.map.map { case (key, v) => <.div(key + "--" + v.toString) } },
+          s.pie.toList.map { p => <.div(p.id.toString) }.toTagMod,
+          s.pie.toList.flatMap { p => p.map.map { case (key, v) => <.div(key + "--" + v.toString) } }.toTagMod,
           <.br(),
           <.h1("Other pies"),
-          s.otherPies.map { id => <.div(id.toString) },
+          s.otherPies.map { id => <.div(id.toString) }.toTagMod,
           <.br(),
 
           <.button(
@@ -138,8 +138,8 @@ import scala.util.{Random, Try}
       spwb.getWidgetData.getAs[State]().getOrElse(State(None, List()))
     }
 
-    private val component = ReactComponentB[SPWidgetBase]("ExampleServiceWidget")
-      .initialState_P(initState)
+    private val component = ScalaComponent.builder[SPWidgetBase]("ExampleServiceWidget")
+      .initialStateFromProps(initState)
       .renderBackend[Backend]
       .componentWillUnmount(_.backend.onUnmount())
       .build

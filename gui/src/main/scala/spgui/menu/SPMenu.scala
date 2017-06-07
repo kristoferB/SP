@@ -1,14 +1,14 @@
 package spgui.menu
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom._
 
 import spgui.components.SPButton
 import spgui.circuit.{CloseAllWidgets, SPGUICircuit}
 
 object SPMenu {
-  private val component = ReactComponentB[Unit]("SPMenu")
+  private val component = ScalaComponent.builder[Unit]("SPMenu")
     .render(_ =>
     <.nav(
       ^.className := "navbar navbar-default",
@@ -31,7 +31,7 @@ object SPMenu {
 
 
 
-  private val spLogo:ReactNode = (
+  private val spLogo:VdomNode = (
     <.div(
       ^.className := SPMenuCSS.splogoContainer.htmlClass,
       <.div(
