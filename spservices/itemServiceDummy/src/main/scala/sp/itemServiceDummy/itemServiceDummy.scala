@@ -15,6 +15,7 @@ object API_ItemServiceDummy {
   case class Hello() extends API_ItemServiceDummy
   case class RequestSampleItem() extends API_ItemServiceDummy
   case class SampleItem(operation: IDAble = GetSampleItem()) extends API_ItemServiceDummy
+  case class SampleItemList(items: List[IDAble] = List(GetSampleItem(), GetSampleItem())) extends API_ItemServiceDummy
   case class Item(item: IDAble) extends API_ItemServiceDummy
 }
 
@@ -51,11 +52,17 @@ class ItemServiceDummy extends Actor {
     API_ItemServiceDummy.SampleItem()
   )
 
+  def itemListAns() = SPMessage.makeJson(
+    SPAttributes("from" -> "itemEditorService").addTimeStamp,
+    API_ItemServiceDummy.SampleItemList()
+  )
+
   def handleCommand: API_ItemServiceDummy => Unit = {
     case API_ItemServiceDummy.Hello() =>
       mediator ! Publish("itemEditorAnswers", helloAns())
     case API_ItemServiceDummy.RequestSampleItem() =>
       mediator ! Publish("itemEditorAnswers", sampleItemAns())
+      mediator ! Publish("itemEditorAnswers", itemListAns())
     case API_ItemServiceDummy.Item(item) =>
       println("ItemServiceDummy: received " + item)
   }

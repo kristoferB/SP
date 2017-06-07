@@ -19,6 +19,7 @@ object API_ItemServiceDummy {
   case class Hello() extends API_ItemServiceDummy
   case class RequestSampleItem() extends API_ItemServiceDummy
   case class SampleItem(operation: IDAble) extends API_ItemServiceDummy
+  case class SampleItemList(items: List[IDAble]) extends API_ItemServiceDummy
   case class Item(item: IDAble) extends API_ItemServiceDummy
 }
 
@@ -33,6 +34,8 @@ object ItemEditor {
         println("ItemEditorWidget: Somebody said hi")
       case op: API_ItemServiceDummy.SampleItem =>
         jsonEditor.set(JSON.parse(SPValue(op.operation).toJson))
+      case API_ItemServiceDummy.SampleItemList(items) =>
+        println("received items: " + items)
       case x =>
         println(s"THIS WAS NOT EXPECTED IN ItemEditorWidget: $x")
     }
