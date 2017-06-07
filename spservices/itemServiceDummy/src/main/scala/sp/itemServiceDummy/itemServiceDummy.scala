@@ -14,14 +14,12 @@ sealed trait API_ItemServiceDummy
 object API_ItemServiceDummy {
   case class Hello() extends API_ItemServiceDummy
   case class RequestSampleItem() extends API_ItemServiceDummy
-  case class SampleItem(operationSPV: SPValue = SampleItemAsSPV()) extends API_ItemServiceDummy
-  case class Item(item: SPValue) extends API_ItemServiceDummy
+  case class SampleItem(operation: IDAble = GetSampleItem()) extends API_ItemServiceDummy
+  case class Item(item: IDAble) extends API_ItemServiceDummy
 }
 
-object SampleItemAsSPV {
-  def apply() = SPValue[Operation](
-    Operation("sample operation")
-  )
+object GetSampleItem {
+  def apply() = Operation("sample operation")
 }
 
 //

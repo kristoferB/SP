@@ -18,8 +18,8 @@ sealed trait API_ItemServiceDummy
 object API_ItemServiceDummy {
   case class Hello() extends API_ItemServiceDummy
   case class RequestSampleItem() extends API_ItemServiceDummy
-  case class SampleItem(operationSPV: SPValue) extends API_ItemServiceDummy
-  case class Item(item: SPValue) extends API_ItemServiceDummy
+  case class SampleItem(operation: IDAble) extends API_ItemServiceDummy
+  case class Item(item: IDAble) extends API_ItemServiceDummy
 }
 
 object ItemEditor {
@@ -31,8 +31,8 @@ object ItemEditor {
     def handleCommand: API_ItemServiceDummy => Unit = {
       case API_ItemServiceDummy.Hello() =>
         println("ItemEditorWidget: Somebody said hi")
-      case opSPV: API_ItemServiceDummy.SampleItem =>
-        jsonEditor.set(JSON.parse(opSPV.operationSPV.toJson))
+      case op: API_ItemServiceDummy.SampleItem =>
+        jsonEditor.set(JSON.parse(SPValue(op.operation).toJson))
       case x =>
         println(s"THIS WAS NOT EXPECTED IN ItemEditorWidget: $x")
     }
@@ -65,8 +65,9 @@ object ItemEditor {
     def sendHello() = sendCommand(API_ItemServiceDummy.Hello())
 
     def returnItem() = Callback{
-      val spVal = fromJsonToSPValue(JSON.stringify(jsonEditor.get())).get
-      sendCommand(API_ItemServiceDummy.Item(spVal))
+      // TODO remove shitty gets
+      val idAble = fromJsonToSPValue(JSON.stringify(jsonEditor.get())).get.getAs[IDAble]("").get
+      sendCommand(API_ItemServiceDummy.Item(idAble))
     }
 
     def render(spwb: SPWidgetBase) =
