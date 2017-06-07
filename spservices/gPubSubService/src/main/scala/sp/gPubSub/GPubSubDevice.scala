@@ -109,10 +109,6 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
       }
     }
 
-//  val makeDiff: Flow[List[api.ElvisPatient], List[api.EricaEvent], NotUsed] = Flow[List[api.ElvisPatient]]
-//    .mapConcat(checkTheDiff)
-
-
     val makeDiff: Flow[List[api.ElvisPatient], List[api.EricaEvent], NotUsed] = Flow[List[api.ElvisPatient]]
    .statefulMapConcat{ () =>
      var prev = List[api.ElvisPatient]()
@@ -178,7 +174,6 @@ trait DiffMagic {
   def checkTheDiff(ps: List[api.ElvisPatient], currentState: List[api.ElvisPatient]): List[List[api.EricaEvent]] = {
     val dataAggregation = new elastic.DataAggregation
     if (currentState.isEmpty) {
-      //currentState = ps
       ps.map{p =>
         dataAggregation.convertToEricaEvents(p)
       }
@@ -210,7 +205,6 @@ trait DiffMagic {
               p.VisitId,
               getNow.toString))
       }
-      //currentState = ps
       upd ++ rem
 
     } else {
