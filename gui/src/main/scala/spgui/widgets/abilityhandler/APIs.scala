@@ -68,10 +68,10 @@ package APIAbilityHandler {
 
   case class Ability(name: String,
                      id: ID,
-                     preCondition: PropositionCondition = PropositionCondition(AlwaysFalse, List()),
-                     started: PropositionCondition = PropositionCondition(AlwaysFalse, List()),
-                     postCondition: PropositionCondition = PropositionCondition(AlwaysTrue, List()),
-                     resetCondition: PropositionCondition = PropositionCondition(AlwaysTrue, List()),
+                     preCondition: Condition = Condition(AlwaysFalse, List()),
+                     started: Condition = Condition(AlwaysFalse, List()),
+                     postCondition: Condition = Condition(AlwaysTrue, List()),
+                     resetCondition: Condition = Condition(AlwaysTrue, List()),
                      parameters: List[ID] = List(),
                      result: List[ID] = List(),
                      attributes: SPAttributes = SPAttributes())
