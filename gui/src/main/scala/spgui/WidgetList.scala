@@ -26,6 +26,7 @@ object WidgetList {
       ("Ability Handler", widgets.abilityhandler.AbilityHandlerWidget(), 2, 2),
       ("ServiceList", widgets.services.ServiceListWidget(), 2, 2),
       ("Settings", widgets.settings.SettingsWidget(), 2, 4),
+      ("ChartTest", widgets.charts.ChartTest(), 3, 3),
       ("SopMaker", widgets.sopmaker.SopMakerWidget(), 2, 4)
     )
 

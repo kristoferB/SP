@@ -65,11 +65,19 @@ object SopMakerWidget {
             s.sop.flatMap(drawSop)
           case h:Hierarchy =>
             val opname = idm.get(h.operation).map(_.name).getOrElse("[unknown op]")
+            // val preGuardYPos = measures.condLineHeight
+            // val preActionYPos = preGuardYPos + struct.clientSideAdditions.preGuards.length * measures.condLineHeight
+            // val preLineYPos = preActionYPos + struct.clientSideAdditions.preActions.length * measures.condLineHeight
+            // val postGuardYPos = preLineYPos + measures.nameLineHeight
+            // val postLineYPos = postGuardYPos - measures.condLineHeight
+            // val postActionYPos = postGuardYPos + struct.clientSideAdditions.postGuards.length * measures.condLineHeight
+
             Seq(
               div(OnDragMod(handleDrag(opname)), OnDropMod(handleDrop(opname)),
                 svg(width := measures.opW, height := measures.opH,
                   rect(x:=0, y:=0, width:=measures.opW, height:=measures.opH, rx:=5, ry:=5, fill := "white", stroke:="black", strokeWidth:=1),
-                  text(x:="50%", y:="50%", textAnchor:="middle", dy:=".3em", opname)
+                  text(x:="50%", y:="50%", textAnchor:="middle", dy:=".3em", opname) // ,
+                  // text(struct.clientSideAdditions.width / 2, ystart + measures.condLineHeight*j, array[j])
                 ))
             )
         }
