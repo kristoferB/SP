@@ -123,7 +123,7 @@ lazy val d3exampleService = (project in file("spservices/d3exampleservice"))
 .settings(libraryDependencies ++= akka)
 
 lazy val ericaBackend = (project in file("spservices/elvisDataHandlerService"))
-  .dependsOn(spdomain, macros, spcore, widgetService)
+  .dependsOn(spdomain, macros, spcore, widgetService, gPubSubService)
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
