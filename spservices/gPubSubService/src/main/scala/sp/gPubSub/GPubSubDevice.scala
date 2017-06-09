@@ -59,12 +59,27 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
   import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
   val mediator = DistributedPubSub(context.system).mediator
 
+  // A "ticker" that sends a "tick" string to self every 1 minute
+  import scala.concurrent.duration._
+  import context.dispatcher
+  val ticker = context.system.scheduler.schedule(0 seconds, 1 minutes, self, "tick")
+
   var state: List[api.EricaEvent] = List()
   val elvisActor = context.actorOf(ElvisDataHandlerDevice.props, "elvisdatahandler")
+  var timeWhenMessageReceived = System.currentTimeMillis
 
   override def receive = {
+    case "tick" => checkTimeSinceMessageReceived()
     case Ticker => clearState() // Propably used for testing. Only locally present.
     //case mess @ _ if {println(s"GPubSubService MESSAGE: $mess from $sender"); false} => Unit
+  }
+
+  def checkTimeSinceMessageReceived() {
+    val timeDiff = Math.abs(timeWhenMessageReceived - System.currentTimeMillis)
+    val timeLimit = 1000*60*5 // 5 minutes currently
+    if (timeDiff > timeLimit) {
+      elvisActor ! "NoElvisDataFlowing"
+    }
   }
 
   val timeout = 10 second
@@ -81,10 +96,11 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
   val client = com.qubit.pubsub.client.retry.RetryingPubSubClient(com.qubit.pubsub.client.grpc.PubSubGrpcClient())
   client.createSubscription(testSubscription, testTopic)
 
-
   var messT: Option[ZonedDateTime] = None
   val toJsonString: Flow[PubSubMessage, String, NotUsed] = Flow[PubSubMessage]
     .map{m => {
+      elvisActor ! "ElvisDataFlowing"
+      timeWhenMessageReceived = System.currentTimeMillis
       if (messT.isEmpty) messT = m.publishTs
 
       val res = for {

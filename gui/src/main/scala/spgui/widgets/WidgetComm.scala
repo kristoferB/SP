@@ -48,6 +48,8 @@ package API_PatientEvent {
 
   case class Tick() extends StateEvent with Event
 
+  case class ElvisDataFlowing(dataFlowing: Boolean) extends StateEvent with Event
+
   object attributes {
     val service = "widgetService"
   }

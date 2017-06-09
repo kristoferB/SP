@@ -31,7 +31,7 @@ class DataAggregation {
 
   //println("PatientsToElastic instance attempting to connect to elasticsearch on address: " + ip + ":" + port )
   //val client = new Client(s"http://$ip:$port") // creates a wabisabi client for communication with elasticsearch
-
+/*
   def handleMessage(message: String): List[api.EricaEvent] = {
     val json: JValue = parse(message)
     (json \ "isa").values.toString match {
@@ -43,7 +43,7 @@ class DataAggregation {
         List(api.EricaEvent(0, "", "", "", "", "", "", 0, ""))
       }
     }
-  }
+  }*/
 
   def convertDiffToEricaEvents(updates: Map[String, JValue], newEvents: List[api.ElvisEvent], removedEvents: List[api.ElvisEvent]): List[api.EricaEvent] = {
     var departmentComment = ""
@@ -58,7 +58,7 @@ class DataAggregation {
     val reasonForVisitJson = updates.get("ReasonForVisit")
     val teamJson = updates.get("Team")
 
-    var ericaEvents = new ListBuffer[api.EricaEvent]()
+    var ericaEvents = List[api.EricaEvent]()
 
     if (departmentCommentJson != JNothing && departmentCommentJson.values.toString != "None") {
       departmentComment = departmentCommentJson.values.toString
@@ -73,7 +73,7 @@ class DataAggregation {
         careContactId.toInt,
         getNow.toString
       )
-      ericaEvents += departmentCommentEvent
+      departmentCommentEvent :: ericaEvents
     }
     if (locationJson != JNothing && locationJson.values.toString != "None") {
       location = locationJson.values.toString
@@ -88,7 +88,7 @@ class DataAggregation {
         careContactId.toInt,
         getNow.toString
       )
-      ericaEvents += locationEvent
+      locationEvent :: ericaEvents
     }
     if (reasonForVisitJson != JNothing && reasonForVisitJson.values.toString != "None") {
       reasonForVisit = reasonForVisitJson.values.toString
@@ -103,7 +103,7 @@ class DataAggregation {
         careContactId.toInt,
         getNow.toString
       )
-      ericaEvents += reasonForVisitEvent
+      reasonForVisitEvent :: ericaEvents
     }
     if (teamJson != JNothing && teamJson.values.toString != "None") {
       team = teamJson.values.toString
@@ -118,13 +118,12 @@ class DataAggregation {
         careContactId.toInt,
         getNow.toString
       )
-      ericaEvents += teamEvent
+      teamEvent :: ericaEvents
     }
 
     // Handle new events
-    var ericaNewEvents = new ListBuffer[api.EricaEvent]()
-    newEvents.foreach{ e =>
-      ericaNewEvents += api.EricaEvent(
+    val newEricaEvents = newEvents.foldLeft(List.empty[api.EricaEvent]){ (list, e) =>
+      api.EricaEvent(
         e.CareEventId.toInt,
         e.Category,
         e.End.toString,
@@ -134,13 +133,12 @@ class DataAggregation {
         e.Value,
         e.VisitId.toInt,
         getNow.toString
-      )
+      ) :: list
     }
 
     // Handle removed events
-    var ericaRemovedEvents = new ListBuffer[api.EricaEvent]()
-    removedEvents.foreach{ e =>
-      ericaRemovedEvents += api.EricaEvent(
+    val removedEricaEvents = removedEvents.foldLeft(List.empty[api.EricaEvent]){ (list, e) =>
+      api.EricaEvent(
         e.CareEventId.toInt,
         e.Category + "-removed",
         e.End.toString,
@@ -150,9 +148,9 @@ class DataAggregation {
         e.Value,
         e.VisitId.toInt,
         getNow.toString
-      )
+      ) :: list
     }
-    return ericaNewEvents.toList ::: ericaRemovedEvents.toList ::: ericaEvents.toList
+    return newEricaEvents ::: removedEricaEvents ::: ericaEvents
   }
 
   def convertToEricaEvents(elvisPatient: api.ElvisPatient): List[api.EricaEvent] = {
@@ -300,7 +298,7 @@ class DataAggregation {
     val reasonForVisitJson = (patient \ "updates" \ "ReasonForVisit")
     val teamJson = (patient \ "updates" \ "Team")
 
-    var ericaEvents = new ListBuffer[api.EricaEvent]()
+    var ericaEvents = List[api.EricaEvent]()
 
     if (departmentCommentJson != JNothing) {
       departmentComment = departmentCommentJson.values.toString
@@ -315,7 +313,7 @@ class DataAggregation {
         careContactId.toInt,
         getNow.toString
       )
-      ericaEvents += departmentCommentEvent
+      departmentCommentEvent :: ericaEvents
     }
     if (locationJson != JNothing) {
       location = locationJson.values.toString
@@ -330,7 +328,7 @@ class DataAggregation {
         careContactId.toInt,
         getNow.toString
       )
-      ericaEvents += locationEvent
+      locationEvent :: ericaEvents
     }
     if (reasonForVisitJson != JNothing) {
       reasonForVisit = reasonForVisitJson.values.toString
@@ -345,7 +343,7 @@ class DataAggregation {
         careContactId.toInt,
         getNow.toString
       )
-      ericaEvents += reasonForVisitEvent
+      reasonForVisitEvent :: ericaEvents
     }
     if (teamJson != JNothing) {
       team = teamJson.values.toString
@@ -360,59 +358,40 @@ class DataAggregation {
         careContactId.toInt,
         getNow.toString
       )
-      ericaEvents += teamEvent
+      teamEvent :: ericaEvents
     }
 
     // Handle new events
-    var tmpListNewEvents = new ListBuffer[Map[String,String]]()
-    val newEvents = castJValueToList[Map[String, JValue]](patient \ "newEvents")
-    newEvents.foreach{ m =>
-      var tmpMap = Map[String, String]()
-      m.foreach{ kv => tmpMap += kv._1 -> kv._2.toString
-      }
-      tmpListNewEvents += tmpMap
-    }
-
-    var ericaNewEvents = new ListBuffer[api.EricaEvent]()
-    tmpListNewEvents.toList.foreach{ e =>
-      ericaNewEvents += api.EricaEvent(
+    val newEvents = castJValueToList[Map[String, JValue]](patient \ "newEvents").foldLeft(List.empty[api.EricaEvent]){ (list, e) =>
+      api.EricaEvent(
         careContactId.toInt,
-        e("Category"),
-        e("End"),
-        e("Start"),
-        e("Title"),
-        e("Type"),
-        e("Value"),
-        e("VisitId").toInt,
+        e.get("Category").toString,
+        e.get("End").toString,
+        e.get("Start").toString,
+        e.get("Title").toString,
+        e.get("Type").toString,
+        e.get("Value").toString,
+        e.get("VisitId").toString.toInt,
         getNow.toString
-      )
+      ) :: list
     }
 
     // Handle removed events
-    var tmpListRemovedEvents = new ListBuffer[Map[String,String]]()
-    val removedEvents = castJValueToList[Map[String, JValue]](patient \ "removedEvents")
-    removedEvents.foreach{ m =>
-      var tmpMap = Map[String, String]()
-      m.foreach{ kv => tmpMap += kv._1 -> kv._2.toString }
-      tmpListRemovedEvents += tmpMap
-    }
-
-    var ericaRemovedEvents = new ListBuffer[api.EricaEvent]()
-    tmpListRemovedEvents.toList.foreach{ e =>
-      ericaRemovedEvents += api.EricaEvent(
+    val removedEvents = castJValueToList[Map[String, JValue]](patient \ "removedEvents").foldLeft(List.empty[api.EricaEvent]){ (list, e) =>
+      api.EricaEvent(
         careContactId.toInt,
-        e("Category") + "-removed",
-        e("End"),
-        e("Start"),
-        e("Title"),
-        e("Type"),
-        e("Value"),
-        e("VisitId").toInt,
+        e.get("Category").toString + "-removed",
+        e.get("End").toString,
+        e.get("Start").toString,
+        e.get("Title").toString,
+        e.get("Type").toString,
+        e.get("Value").toString,
+        e.get("VisitId").toString.toInt,
         getNow.toString
-      )
+      ) :: list
     }
 
-    return ericaNewEvents.toList ::: ericaRemovedEvents.toList ::: ericaEvents.toList
+    return newEvents ::: removedEvents ::: ericaEvents
   }
 
   def newPatientDataToEricaEvents(patient: JValue): List[api.EricaEvent] = {
@@ -484,30 +463,21 @@ class DataAggregation {
       getNow.toString
     )
 
-    var tmpList = new ListBuffer[Map[String,String]]()
-    val events = castJValueToList[Map[String, JValue]](patient \ "Events")
-    events.foreach{ m =>
-      var tmpMap = Map[String,String]()
-      m.foreach{ kv => tmpMap += kv._1 -> kv._2.toString }
-      tmpList += tmpMap
-    }
-
-    var ericaEventList = new ListBuffer[api.EricaEvent]()
-    tmpList.toList.foreach{ e =>
-      ericaEventList += api.EricaEvent(
+    val ericaEvents = castJValueToList[Map[String, JValue]](patient \ "Events").foldLeft(List.empty[api.EricaEvent]){ (list, e) =>
+      api.EricaEvent(
         careContactId.toInt,
-        e("Category"),
-        e("End"),
-        e("Start"),
-        e("Title"),
-        e("Type"),
-        e("Value"),
-        e("VisitId").toInt,
+        e.get("Category").toString,
+        e.get("End").toString,
+        e.get("Start").toString,
+        e.get("Title").toString,
+        e.get("Type").toString,
+        e.get("Value").toString,
+        e.get("VisitId").toString.toInt,
         getNow.toString
-      )
+      ) :: list
     }
 
-    return ericaEventList.toList ::: List(departmentCommentEvent, locationEvent, reasonForVisitEvent, teamEvent, visitRegistrationTimeEvent)
+    return ericaEvents ::: List(departmentCommentEvent, locationEvent, reasonForVisitEvent, teamEvent, visitRegistrationTimeEvent)
   }
 
   /** Casts a jValue to a List[A] without crashing on empty lists */

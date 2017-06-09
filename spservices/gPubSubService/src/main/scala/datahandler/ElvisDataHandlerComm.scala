@@ -77,6 +77,8 @@ package API_PatientEvent {
 
   case class Tick() extends StateEvent with Event
 
+  case class ElvisDataFlowing(dataFlowing: Boolean) extends StateEvent with Event
+
   // Messages I can receive
   sealed trait ElvisEvent
   case class ElvisData(events: List[api.EricaEvent]) extends ElvisEvent

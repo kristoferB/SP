@@ -55,6 +55,11 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   Receives incoming messages on the AKKA-bus.
   */
   def receive = {
+    case "NoElvisDataFlowing" => {
+      println("No updates in some time... Sending to front-end")
+      publishOnAkka(SPHeader(from = "elvisDataHandler"), api.ElvisDataFlowing(false), "elvis-data-flowing-topic")
+    }
+    case "ElvisDataFlowing" => publishOnAkka(SPHeader(from = "elvisDataHandler"), api.ElvisDataFlowing(true), "elvis-data-flowing-topic")
     case x: List[dataApi.EricaEvent] => handleElvisData(x)
   }
 
@@ -73,10 +78,10 @@ def handleElvisData(data: List[dataApi.EricaEvent]) {
       val latestEvent = getLatestEventByInternalFormatter(patientEventsExclRemoved) // gets latest event, except "RemovedPatient"-events, for specific patient
       if (removedPatientEvents.isEmpty) {
         // Patient has never been removed and will be constructed.
-        state += e.CareContactId -> constructPatient(patientEvents.filter(p => !isRemovedEvent(p, patientEvents)))
+        state += e.CareContactId -> constructPatient(patientEvents.filter(p => !isRemovedEvent(p, removedPatientEvents)))
       } else if (!isLatest(removedEvent,latestEvent)) {
         // Patient has been removed, but has another event (not related to RemovedPatient-event) after the removed event, indicating that the patient is still present.
-        state += e.CareContactId -> constructPatient(patientEvents.filter(p => (!isRemovedEvent(p, patientEvents) || p.Category != "RemovedPatient")))
+        state += e.CareContactId -> constructPatient(patientEvents.filter(p => (!isRemovedEvent(p, removedPatientEvents) || p.Category != "RemovedPatient")))
       } else {
         // Patient has RemovedPatient as latest event and should be removed from the local state.
         state -= e.CareContactId
@@ -85,18 +90,15 @@ def handleElvisData(data: List[dataApi.EricaEvent]) {
       }
     }
   }
-  println("Patients with valid clinic: " + state.filter( p => (isValidClinic(p._2.Clinic))).size)
-  createVisualizablePatients(state.filter( p => (isValidClinic(p._2.Clinic))))
+  println("Patients with valid clinic: " + state.filter( pa => (isValidClinic(pa._2.Clinic))).size)
+  createVisualizablePatients(state.filter( pa => (isValidClinic(pa._2.Clinic))))
 }
 
 /**
 Checks if ERICA-event has been removed by using identification based on event title and start time of event.
 */
 def isRemovedEvent(event: dataApi.EricaEvent, events: List[dataApi.EricaEvent]): Boolean = {
-  events.filter(r => (r.Category.contains("-removed"))).foreach{ e =>
-    if ((e.Title == event.Title) && (e.Start == event.Start)) true
-  }
-  false
+  events.exists(e => (e.Title == event.Title && e.Start == event.Start))
 }
 
 /**
@@ -162,23 +164,22 @@ def isValidClinic(clinic: String): Boolean = {
 Reconstructs the local state (gui-state) by converting data structured in EricaPatient:s to visualizable patient objects, whose structure is understood by front-end in SP.
 */
 def createVisualizablePatients(patients: Map[Int, dataApi.EricaPatient]) {
-  guiState = Map() // clear before assembling new local state
-  patients.foreach{ p =>
-    guiState += (p._2.CareContactId.toString -> patientApi.Patient(
-      p._2.CareContactId.toString,
-      patientApi.Priority(p._2.Priority, ""),
-      patientApi.Attended(p._2.IsAttended, p._2.DoctorId, ""),
-      patientApi.Location(decodeLocation(p._2.Location), ""),
-      patientApi.Team(getTeam(p._2.Clinic, p._2.Location, p._2.ReasonForVisit), p._2.Clinic, p._2.ReasonForVisit, ""),
-      patientApi.Examination(p._2.OnExamination, ""),
-      patientApi.LatestEvent(p._2.LatestEvent, p._2.LatestEventTimeDiff, false, ""),
-      patientApi.Plan(p._2.HasPlan, ""),
-      patientApi.ArrivalTime(getArrivalFormat(p._2.VisitRegistrationTime), ""),
-      patientApi.Debugging(p._2.Clinic, p._2.ReasonForVisit, p._2.Location),
-      patientApi.Finished(p._2.IsFinished, p._2.IsFinished, "")
-    ))
+  guiState = patients.values.foldLeft(Map.empty[String, patientApi.Patient]){ (a, p) =>
+    a + (p.CareContactId.toString -> (patientApi.Patient(
+      p.CareContactId.toString,
+      patientApi.Priority(p.Priority, ""),
+      patientApi.Attended(p.IsAttended, p.DoctorId, ""),
+      patientApi.Location(decodeLocation(p.Location), ""),
+      patientApi.Team(getTeam(p.Clinic, p.Location, p.ReasonForVisit), p.Clinic, p.ReasonForVisit, ""),
+      patientApi.Examination(p.OnExamination, ""),
+      patientApi.LatestEvent(p.LatestEvent, p.LatestEventTimeDiff, false, ""),
+      patientApi.Plan(p.HasPlan, ""),
+      patientApi.ArrivalTime(getArrivalFormat(p.VisitRegistrationTime), ""),
+      patientApi.Debugging(p.Clinic, p.ReasonForVisit, p.Location),
+      patientApi.Finished(p.IsFinished, p.IsFinished, "")
+    )))
   }
-  publishOnAkka(SPHeader(from = "elvisDataHandler"), api.State(guiState))
+  publishOnAkka(SPHeader(from = "elvisDataHandler"), api.State(guiState), "state-event-topic")
 }
 
 /**
@@ -210,9 +211,9 @@ def constructPatient(events: List[dataApi.EricaEvent]): dataApi.EricaPatient = {
 /**
 Publishes messages on the AKKA-bus.
 */
-def publishOnAkka(header: SPHeader, body: api.Event) {
+def publishOnAkka(header: SPHeader, body: api.Event, topic: String) {
   val toSend = ElvisDataHandlerComm.makeMess(header, body)
-  mediator ! Publish("state-event", toSend)
+  mediator ! Publish(topic, toSend)
 }
 
 /**
@@ -237,12 +238,12 @@ Returns the time difference (in milliseconds) between a given start time and now
 Argument startTimeString must be received in date-time-format: yyyy-MM-ddTHH:mm:ss.SSSZ
 */
 def getTimeDiffExternalFormat(startTimeString: String): Long = {
-  if (startTimeString != "") {
-    val startTime = externalFormatter.parse(startTimeString.replaceAll("Z$", "+0000"))
-    val now: Long = System.currentTimeMillis
-    return Math.abs(now - startTime.getTime()) // returns diff in millisec
+  val now: Long = System.currentTimeMillis
+  val startTime = Try(externalFormatter.parse(startTimeString.replaceAll("Z$", "+0000")))
+  startTime match {
+    case Success(s) => Math.abs(now - s.getTime()) // returns diff in millisec
+    case _ => 0
   }
-  return 0
 }
 
 /**
@@ -300,32 +301,32 @@ def getNeedsAttention(timeDiff: Long, priority: String): Boolean = {
 Checks if events contains event with title "Klar", indicating that patient is finished.
 */
 def getIsFinished(events: List[dataApi.EricaEvent]): Boolean = {
-  events.foreach{ e => if (e.Title == "Klar") { return true } }
-  return false
+  events.exists(e => (e.Title == "Klar"))
 }
 
 /**
 Checks if events contains event with title "Plan", indicating that patient has a plan assigned.
 */
 def getHasPlan(events: List[dataApi.EricaEvent]): Boolean = {
-  events.foreach{ e => if (e.Title == "Plan") { return true } }
-  return false
+  events.exists(e => (e.Title == "Plan"))
 }
 
 /**
 Checks if events contains event with title "Rö/klin" and unvalid end time, indicating that patient is on examination.
 */
 def getOnExamination(events: List[dataApi.EricaEvent]): Boolean = {
-  events.foreach{ e => if (e.Title == "Rö/klin" && e.End == "0001-01-02T23:00:00Z") { return true } }
-  return false
+  events.exists(e => (e.Title == "Rö/klin" && e.End == "0001-01-02T23:00:00Z"))
 }
 
 /**
 Checks if events contains event with title "Läkare", indicating that patient has seen a doctor.
 */
 def getIsAttended(events: List[dataApi.EricaEvent]): (Boolean, String) = {
-  events.foreach{ e => if (e.Title == "Läkare") { return (true, e.Value) } }
-  return (false, "NA")
+  val latestDoctorEvent = getLatestEventByExternalFormatter(events.filter(f => (f.Title == "Läkare")))
+  val res = for {
+    e <- latestDoctorEvent
+  } yield (true, e.Value)
+  res.getOrElse((false, "NA"))
 }
 
 /**
@@ -395,8 +396,10 @@ def decodeLocation(location: String): String = {
 Checks if string is valid triage color.
 */
 def isValidTriageColor(string: String): Boolean = {
-  if (string == "Blå" || string == "Grön" || string == "Gul" || string == "Orange" || string == "Röd") return true
-  return false
+  string match {
+    case "Blå" | "Grön" | "Gul" | "Orange" | "Röd" => true
+    case _ => false
+  }
 }
 
 val info = SPAttributes(

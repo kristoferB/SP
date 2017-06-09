@@ -92,11 +92,6 @@ lazy val opcua = (project in file("spservices/opcua"))
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
-lazy val gPubSubService = (project in file("spservices/gPubSubService"))
-  .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
-
 lazy val fakeElvisService = (project in file("spservices/fakeElvisService"))
   .dependsOn(spdomain, macros)
 .settings(commonSettings: _*)
@@ -122,8 +117,8 @@ lazy val d3exampleService = (project in file("spservices/d3exampleservice"))
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
-lazy val ericaBackend = (project in file("spservices/elvisDataHandlerService"))
-  .dependsOn(spdomain, macros, spcore, widgetService, gPubSubService)
+lazy val ericaBackend = (project in file("spservices/gPubSubService"))
+  .dependsOn(spdomain, macros, spcore, widgetService)
 .settings(commonSettings: _*)
 .settings(libraryDependencies ++= akka)
 
