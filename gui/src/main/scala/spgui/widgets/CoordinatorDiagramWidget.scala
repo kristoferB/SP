@@ -470,7 +470,6 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
   val yTriagePatient: Double = (145.0/scaleWidth)*totWidth
   val OversiktSize = s"${(37.0/scaleWidth)*totWidth}pt"
   val PatTriSta = s"${(24.0/scaleWidth)*totWidth}pt"
-  val PatToto = s"${(24.0/scaleWidth)*totWidth}pt"
 
   topText.append("text")
     .attr("x", xBegin)
@@ -494,22 +493,7 @@ private def addTheD3(element: raw.Element, patients: Map[String, apiPatient.Pati
     .attr("y", yPatient)
     .attr("font-size", PatTriSta)
     .attr("fill", textBlack)
-    .text("PATIENTER I TEAM /")
-
-  topText.append("text")
-    .attr("x", xBegin + (360.0/scaleWidth)*totWidth)
-    .attr("y", yPatient)
-    .attr("font-size", PatToto)
-    .style("font-weight", "bold")
-    .attr("fill", textBlack)
-    .text((getTotPatients(listy) + noTeamTot))
-
-topText.append("text")
-    .attr("x", xBegin + (45.0/scaleWidth)*totWidth + (360.0/scaleWidth)*totWidth)
-    .attr("y", yPatient)
-    .attr("font-size", PatToto)
-    .attr("fill", textBlack)
-    .text("TOTALT PÅ MOTT.")
+    .text("PATIENTER PÅ MOTTAGNINGEN")
 
   topText.append("text")
     .attr("x", xBegin)
