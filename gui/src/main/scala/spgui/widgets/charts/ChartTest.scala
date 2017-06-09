@@ -43,7 +43,7 @@ object ChartTest {
           js.Array[js.Any]("M1",3),
           js.Array[js.Any]("M2",3),
           js.Array[js.Any]("M3",4),
-          js.Array[js.Any]("M4",1)
+          js.Array[js.Any]("M4",2)
         )
         data.addRows(rows)
         val options = js.Dynamic.literal(title = id, width=400, height=300, is3D = true)
@@ -84,33 +84,43 @@ object ChartTest {
         timelineData.addColumn("string", "Timeline Name")   //js.Dynamic.literal(`type` = "string", id = "Label Name"))
         timelineData.addColumn("date", "Start Date")        //js.Dynamic.literal(`type` = "date", id = "Start Date"))
         timelineData.addColumn("date", "End Date")          //js.Dynamic.literal(`type` = "date", id = "End Date"))
+        
 
-        val timelineRows = js.Array[js.Array[js.Any]](
-          js.Array[js.Any]("spring", "startup", new js.Date(2014, 2, 22, 20, 3, 0, 0), new js.Date(2014, 2, 22, 20, 3, 55, 0)),
-          js.Array[js.Any]("summer", "beach", new js.Date(2014, 2, 22, 20, 3, 0, 0), new js.Date(2014, 2, 22, 20, 3, 45, 0)),
-          js.Array[js.Any]("autumn", "rain", new js.Date(2014, 2, 22, 20, 3, 0, 0), new js.Date(2014, 2, 22, 20, 3, 48, 0)),
-          js.Array[js.Any]("winter", "snow", new js.Date(2014, 2, 22, 20, 3, 0, 0), new js.Date(2014, 2, 22, 20, 3, 52, 0)),
-          js.Array[js.Any]("spring", "bloom", new js.Date(2014, 2, 22, 20, 3, 0, 0), new js.Date(2014, 2, 22, 20, 3, 30, 20)),
-          js.Array[js.Any]("summer", "sun", new js.Date(2014, 2, 22, 20, 3, 0, 0), new js.Date(2014, 2, 22, 20, 3, 20, 0))
-        )
+        val getStartTime = new js.Date(2017, 5, 9, 6, 6, 6, 6)
 
 
+        def simpleTimelineDraw(rows: js.Any) =  {
+          val timelineData = new GoogleVisualization.DataTable();
+          timelineData.addColumn("string", "Timeline id")     //js.Dynamic.literal(`type` = "string", id = "Label id"))
+          timelineData.addColumn("string", "Timeline Name")   //js.Dynamic.literal(`type` = "string", id = "Label Name"))
+          timelineData.addColumn("date", "Start Date")        //js.Dynamic.literal(`type` = "date", id = "Start Date"))
+          timelineData.addColumn("date", "End Date")          //js.Dynamic.literal(`type` = "date", id = "End Date"))
+          
 
-        timelineData.addRows(timelineRows)
+          val timelineRows = rows
+          timelineData.addRows(timelineRows)
 
-        val timelineOptions = js.Dynamic.literal(title = id, height=300, width=600,
-          timeline = js.Dynamic.literal(showRowLabels = true, colorByRowLabel = true),
-          hAxis = js.Dynamic.literal(
-            viewWindow = js.Dynamic.literal(
-              min = new js.Date(2014, 2, 22, 20, 2, 59, 30),
-              max = new js.Date(2014, 2, 22, 20, 4, 0, 0)
-            )
+          val timelineOptions = js.Dynamic.literal(title = id, height=300, width=600,
+            timeline = js.Dynamic.literal(showRowLabels = true, colorByRowLabel = true)
           )
-        )
 
-        val timelineElement = js.Dynamic.global.document.getElementById(id+"timeline")
-        val timeline = new GoogleVisualization.Timeline(timelineElement)
-        timeline.draw(timelineData, timelineOptions)
+          val timelineElement = js.Dynamic.global.document.getElementById(id+"timeline")
+          val timeline = new GoogleVisualization.Timeline(timelineElement)
+          timeline.draw(timelineData, timelineOptions)
+        }
+
+        def simpleUpdateRows(start: js.Date, end: js.Date): js.Any = {
+            js.Array[js.Array[js.Any]](
+              js.Array[js.Any]("spring", "startup",   start,   end),
+              js.Array[js.Any]("summer", "beach",     start,   end),
+              js.Array[js.Any]("autumn", "rain",      start,   end),
+              js.Array[js.Any]("winter", "snow",      start,   end),
+              js.Array[js.Any]("spring", "bloom",     start,   end),
+              js.Array[js.Any]("summer", "sun",       start,   end)
+            )
+        }
+
+        simpleTimelineDraw(simpleUpdateRows(getStartTime, new js.Date()))
       }
       Callback.empty
     }
