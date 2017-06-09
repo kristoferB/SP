@@ -26,7 +26,7 @@ class WidgetDevice extends Actor with ActorLogging {
   val mediator = DistributedPubSub(context.system).mediator
   //mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
-  mediator ! Subscribe("state-event", self)
+  mediator ! Subscribe("state-event-topic", self)
   mediator ! Subscribe("widget-event", self)
 
   var localState: Map[String, apiPatient.Patient] = Map()
