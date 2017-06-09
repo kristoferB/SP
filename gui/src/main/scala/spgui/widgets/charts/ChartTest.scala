@@ -76,18 +76,11 @@ object ChartTest {
         val ganttOptions = js.Dynamic.literal(title = id, height=300, width=600, gantt = js.Dynamic.literal(trackHeight = 30))
         val ganttElement = js.Dynamic.global.document.getElementById(id+"gantt")
         val gantt = new GoogleVisualization.Gantt(ganttElement)
-        gantt.draw(ganttData, ganttOptions)
+        gantt.draw(ganttData, ganttOptions)        
 
-
-        val timelineData = new GoogleVisualization.DataTable();
-        timelineData.addColumn("string", "Timeline id")     //js.Dynamic.literal(`type` = "string", id = "Label id"))
-        timelineData.addColumn("string", "Timeline Name")   //js.Dynamic.literal(`type` = "string", id = "Label Name"))
-        timelineData.addColumn("date", "Start Date")        //js.Dynamic.literal(`type` = "date", id = "Start Date"))
-        timelineData.addColumn("date", "End Date")          //js.Dynamic.literal(`type` = "date", id = "End Date"))
         
 
         val getStartTime = new js.Date(2017, 5, 9, 6, 6, 6, 6)
-
 
         def simpleTimelineDraw(rows: js.Any) =  {
           val timelineData = new GoogleVisualization.DataTable();
@@ -96,7 +89,6 @@ object ChartTest {
           timelineData.addColumn("date", "Start Date")        //js.Dynamic.literal(`type` = "date", id = "Start Date"))
           timelineData.addColumn("date", "End Date")          //js.Dynamic.literal(`type` = "date", id = "End Date"))
           
-
           val timelineRows = rows
           timelineData.addRows(timelineRows)
 
