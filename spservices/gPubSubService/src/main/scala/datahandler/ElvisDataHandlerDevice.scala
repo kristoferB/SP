@@ -55,7 +55,6 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   Receives incoming messages on the AKKA-bus.
   */
   def receive = {
-    case "tick" => //updateAllTimeDiffs()
     case x: List[dataApi.EricaEvent] => handleElvisData(x)
   }
 
@@ -404,11 +403,6 @@ val info = SPAttributes(
    "service" -> api.attributes.service,
    "group" -> "runtime"
  )
-
-  // A "ticker" that sends a "tick" string to self every 1 minute
-  import scala.concurrent.duration._
-  import context.dispatcher
-  val ticker = context.system.scheduler.schedule(0 seconds, 1 minutes, self, "tick")
 
 }
 

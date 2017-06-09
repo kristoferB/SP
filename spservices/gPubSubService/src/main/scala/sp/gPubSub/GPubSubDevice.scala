@@ -1,8 +1,10 @@
 package sp.gPubSub
 
 import java.time.ZonedDateTime
+import java.io.FileWriter
 
 import akka.actor._
+import akka.persistence._
 
 import scala.util.{Failure, Random, Success, Try}
 import sp.messages._
@@ -24,7 +26,8 @@ object GPubSubDevice {
 
 case object Ticker
 
-class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
+class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
+  override def persistenceId = "gPubSub"
 
   import akka.stream.scaladsl._
   import akka.stream._
@@ -59,15 +62,15 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
   var state: List[api.EricaEvent] = List()
   val elvisActor = context.actorOf(ElvisDataHandlerDevice.props, "elvisdatahandler")
 
-  def receive = {
+  override def receive = {
     case Ticker => clearState() // Propably used for testing. Only locally present.
-    case mess @ _ if {println(s"GPubSubService MESSAGE: $mess from $sender"); false} => Unit
+    //case mess @ _ if {println(s"GPubSubService MESSAGE: $mess from $sender"); false} => Unit
   }
 
   val timeout = 10 second
   val project = "intelligentaakuten-158811"
   val testTopic = PubSubTopic(project, s"erica-snap")
-  val testSubscription = PubSubSubscription(project, s"getEricaSnap")
+  val testSubscription = PubSubSubscription(project, s"testSub")
 
   import com.qubit.pubsub.akka.attributes._
   val attributes = Attributes(List())
@@ -92,7 +95,12 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
         println("is newer")
         new String(m.payload, Charsets.UTF_8)
       }
-
+      /*
+      val fw = new FileWriter("oldNALDataJSON.txt", true)
+      try {
+        fw.write(res.getOrElse("") + "\n\n")
+      }
+      finally fw.close()*/
       res.getOrElse("")
       }
     }
@@ -126,26 +134,27 @@ class GPubSubDevice extends Actor with ActorLogging with DiffMagic {
 
   val mediatorSink = Sink.foreach{ s: List[api.EricaEvent] =>
     if (!s.isEmpty) {
+      self ! s
       state = state ++ s
-
       println("")
       s.foreach(println)
       println("number of events: " + state.size)
       println("")
-
       elvisActor ! state
     }
-    //val dataAggregation = new elastic.DataAggregation
-    //var newState = dataAggregation.handleMessage(s)
-    //if (!newState.isEmpty) {
-    //  state = state ++ newState
-    //  elvisActor ! state
-      //val h = SPHeader(from = "gPubSubDevice")
-      //val b = sendApi.ElvisData(state)
-      //val mess = SPMessage.makeJson(h, b).get
-      //mediator ! Publish("elvis-diff", mess)
-    //}
   }
+
+  val receiveRecover: Receive = {
+    case _ =>
+ }
+
+ val receiveCommand: Receive = {
+   case data: List[api.EricaEvent] => {
+     persist(write(data)) { events =>
+       println("Persisted: " + events)
+     }
+   }
+}
 
   val test = s via toJsonString via jsonToList via makeDiff runWith(mediatorSink)
 
