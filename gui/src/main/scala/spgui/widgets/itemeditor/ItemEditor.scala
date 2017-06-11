@@ -14,20 +14,12 @@ import sp.domain._
 //import sp.messages._
 import sp.messages.Pickles._
 
-sealed trait API_ItemServiceDummy
-object API_ItemServiceDummy {
-  case class Hello() extends API_ItemServiceDummy
-  case class RequestSampleItem() extends API_ItemServiceDummy
-  case class SampleItem(operation: IDAble) extends API_ItemServiceDummy
-  case class SampleItemList(items: List[IDAble]) extends API_ItemServiceDummy
-  case class Item(item: IDAble) extends API_ItemServiceDummy
-}
 
 object ItemEditor {
 
   class Backend($: BackendScope[SPWidgetBase, Unit]) {
 
-    var jsonEditor: JSONEditor = null // initalized for real upon mounting
+    var jsonEditor: JSONEditor = null // initialized for real upon mounting
 
     def handleCommand: API_ItemServiceDummy => Unit = {
       case API_ItemServiceDummy.Hello() =>
@@ -57,7 +49,7 @@ object ItemEditor {
     )
 
     def sendCommand(cmd: API_ItemServiceDummy) = {
-      val h = SPHeader(from = "ItemEditorWidget", to = "itemEditorService", reply = *("ItemEditorWidget"))
+      val h = SPHeader(from = "ItemEditorWidget", to = API_ItemServiceDummy.attributes.service, reply = *("ItemEditorWidget"))
       val jsonMsg = SPMessage.make(h, cmd)
       BackendCommunication.publishMessage("services", jsonMsg)
       //BackendCommunication.ask(jsonMsg)
