@@ -12,6 +12,12 @@ import scalajs.js
 import js.Dynamic.{ literal => l }
 import js.JSON
 
+// TODO refactor this and TreeView into diode-like one-source-of-truth thinking
+// RootDirectory should not be needed
+// upon dragging an item onto another, a validation should be made somewhere and the notification
+// should be sent to itemService/modelService which should in turn notify ItemExplorer to rerender itself
+// should have more props and less state
+
 case class OperationDirItem(name: String, id: String, content: String) extends DirectoryItem
 case class SOPSpecDirItem(name: String, id: String, content: String) extends DirectoryItem
 

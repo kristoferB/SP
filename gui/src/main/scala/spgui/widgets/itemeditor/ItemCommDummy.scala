@@ -6,10 +6,12 @@ import sp.domain.Logic._
 import sp.messages.Pickles._
 
 import scala.util.Try
+import java.util.UUID
 
 sealed trait API_ItemServiceDummy
 object API_ItemServiceDummy {
   case class Hello() extends API_ItemServiceDummy
+  case class RequestItem(id: UUID) extends API_ItemServiceDummy
   case class RequestSampleItem() extends API_ItemServiceDummy
   case class RequestSampleItems() extends API_ItemServiceDummy
   case class SampleItem(operation: IDAble) extends API_ItemServiceDummy

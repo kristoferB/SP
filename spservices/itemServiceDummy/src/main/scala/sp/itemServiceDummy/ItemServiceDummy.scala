@@ -31,6 +31,8 @@ class ItemServiceDummy extends Actor {
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
 
+  val sampleItems = SampleSPItems()
+
   def parseCommand(x: String): Option[API_ItemServiceDummy] =
     API_ItemServiceDummy.extract(SPMessage.fromJson(x)).map(_._2)
 
@@ -40,12 +42,21 @@ class ItemServiceDummy extends Actor {
     mediator ! Publish("itemEditorAnswers", mess)
   }
 
+  def publishToExplorer(cmd: API_ItemServiceDummy): Unit = {
+    val sph = SPHeader(from = "itemEditorService", to = "itemExplorerWidget")
+    val mess = API_ItemServiceDummy.makeMess(sph, cmd)
+    mediator ! Publish("itemExplorerAnswers", mess)
+  }
+
   def handleCommand: API_ItemServiceDummy => Unit = {
     case API_ItemServiceDummy.Hello() =>
       publishToEditor(API_ItemServiceDummy.Hello())
+    case API_ItemServiceDummy.RequestItem(id) =>
+      sampleItems.find(_.id == id).foreach(idAble => publishToEditor(API_ItemServiceDummy.Item(idAble)))
     case API_ItemServiceDummy.RequestSampleItem() =>
       publishToEditor(API_ItemServiceDummy.SampleItem())
-      //mediator ! Publish("itemEditorAnswers", itemListAns())
+    case API_ItemServiceDummy.RequestSampleItems() =>
+      publishToExplorer(API_ItemServiceDummy.SampleItemList(sampleItems))
     case API_ItemServiceDummy.Item(item) =>
       println("ItemServiceDummy: received " + item)
   }
