@@ -94,9 +94,7 @@ object ChartTest {
           val timelineRows = rows
           timelineData.addRows(timelineRows)
 
-          val timelineOptions = js.Dynamic.literal(title = id, height=300, width=600,
-            timeline = js.Dynamic.literal(showRowLabels = true, colorByRowLabel = true)
-          )
+          val timelineOptions = Options("Timeline", 300,600, 14)
 
           val timelineElement = js.Dynamic.global.document.getElementById(id+"timeline")
           val timeline = new GoogleVisualization.Timeline(timelineElement)
@@ -163,7 +161,6 @@ object GoogleVisualization extends js.Object {
   }
 }
 
-
 @js.native
 trait OptionsTooltip extends js.Object {
   val isHtml: Boolean = js.native
@@ -221,25 +218,30 @@ trait Options extends js.Object {
   val fontSize:                   Int               = js.native
   val forceIFrame:                Boolean           = js.native
   val height:                     Int               = js.native
-  val OptionsTimeline:            OptionsTimeline   = js.native
+  val optionsTimeline:            OptionsTimeline   = js.native
   val optionsTooltip:             OptionsTooltip    = js.native
+  val title:                      String            = js.native
   val width:                      Int               = js.native
 
 }
 
 object Options {
   def apply(
+    title:                      String,
+    height:                     Int,
+    width:                      Int,   
+
+    // how to get colors and fontSize automatically???            
+    fontSize:                   Int,
+    colors:                     js.Array[String] = js.Array[String]("red", "blue", "green", "white", "black"),
+
     avoidOverlappingGridLines:  Boolean   = true,           
-    backgroundColor:            String    = "white",            
-    colors:                     js.Array[String],     
+    backgroundColor:            String    = "white",                 
     enableInteractivity:        Boolean   = true,           
-    fontName:                   String    = "Arial",            
-    fontSize:                   Int,               
-    forceIFrame:                Boolean,           
-    height:                     Int,               
+    fontName:                   String    = "Arial",                             
+    forceIFrame:                Boolean = false,                         
     optionsTimeline:            js.Object = OptionsTimeline(null, false, true, null, true, true, null),            
-    optionsTooltip:             js.Object = OptionsTooltip(true, "focus"),          
-    width:                      Int               
+    optionsTooltip:             js.Object = OptionsTooltip(true, "focus")          
     ) = js.Dynamic.literal(
       avoidOverlappingGridLines = avoidOverlappingGridLines,
       backgroundColor = backgroundColor, 
@@ -251,6 +253,7 @@ object Options {
       height = height,
       optionsTimeline = optionsTimeline,
       optionsTooltip = optionsTooltip,
+      title = title,
       width = width
     )
 }
