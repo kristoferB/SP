@@ -233,7 +233,7 @@ object Options {
 
     // how to get colors and fontSize automatically???            
     fontSize:                   Int,
-    colors:                     js.Array[String] = js.Array[String]("red", "blue", "green", "white", "black"),
+    colors:                     js.Array[String] = null,
 
     avoidOverlappingGridLines:  Boolean   = true,           
     backgroundColor:            String    = "white",                 
