@@ -31,7 +31,7 @@ object DashboardCSS extends StyleSheet.Inline {
   )
 
   val widgetPanelHidden = style(
-    transitionDuration := "100ms",
+    transitionDuration:="100ms",
     &.not(_.hover) (
       padding(0.px),
       opacity(0),

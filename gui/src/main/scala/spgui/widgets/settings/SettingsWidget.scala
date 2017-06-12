@@ -16,6 +16,7 @@ object SettingsWidget {
       <.div(
         Dropdown(
           "Theme picker dropdown placeholder element",
+          Seq(),
           Seq(Themes.themeList.map(theme =>
             <.div(
               theme.name,

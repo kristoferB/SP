@@ -7,7 +7,7 @@ import scalacss.ScalaCssReact._
 
 import spgui.circuit.{SPGUICircuit, AddWidget}
 import spgui.WidgetList
-import spgui.components.{ Dropdown, Icon }
+import spgui.components.{ Dropdown, Icon, SPDropdownNew }
 
 object WidgetMenu {
   case class State(filterText: String)
@@ -30,7 +30,7 @@ object WidgetMenu {
           )
         ) :: WidgetList.list.collect{
             case w if (w._1.toLowerCase.contains(s.filterText.toLowerCase)) =>
-              <.div(w._1, ^.onClick --> addW(w._1, w._3, w._4))
+            <.div(w._1, ^.onClick --> addW(w._1, w._3, w._4))
           }: _*
       )
   }

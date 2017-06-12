@@ -1,3 +1,4 @@
+
 package spgui.widgets.itemexplorer
 
 import japgolly.scalajs.react._
@@ -60,7 +61,7 @@ object TreeView {
           Dropdown("Add Item", Seq(^.className := "nav-item"),
             p.itemCreators.map(ic => <.div(ic._1, ^.onClick --> addItem(ic._2()))): _*
           ),
-          SPButton("", Icon.floppyO, Seq(^.onClick --> p.onSaveButtonClick(s.rt))  ),
+          SPButton("", Icon.floppyO, Seq(^.onClick --> p.onSaveButtonClick(s.rt))),
           <.div(
             ^.className := "input-group",
             <.input(

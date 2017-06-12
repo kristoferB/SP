@@ -23,7 +23,8 @@ object SPMenuCSS extends StyleSheet.Inline {
 
   val buttonPadding = 4;
   val navItem = style("sp-nav-item")(
-      paddingRight(buttonPadding.px)
+    paddingRight(buttonPadding.px),
+    height(100.%%)
   )
 
   val logoPadding = 0 // currently no padding needed

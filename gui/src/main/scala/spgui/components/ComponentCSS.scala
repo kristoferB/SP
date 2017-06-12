@@ -6,16 +6,6 @@ object ComponentCSS extends StyleSheet.Inline {
   import dsl._
   val textColor = "#000000"
 
-  val clickable = style(
-    cursor.pointer,
-    userSelect:= "none",
-    backgroundColor.transparent,
-    listStyle:= "none",
-    &.hover(
-      //backgroundColor := "#999999"//"#ededed"
-    )
-  )
-
   // override bootstrap
   val navbar = style(
     unsafeRoot(".navbar-nav > .open > a")(

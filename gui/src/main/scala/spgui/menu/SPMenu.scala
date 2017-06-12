@@ -4,7 +4,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import org.scalajs.dom._
 
-import spgui.components.SPButton
+import spgui.components.{SPButton, SPButtonElements}
 import spgui.circuit.{CloseAllWidgets, SPGUICircuit}
 
 object SPMenu {
@@ -22,21 +22,26 @@ object SPMenu {
       ),
       NavBar(
         Seq(
-          NavItem( WidgetMenu()),
-          NavItem( SPButton("Close All", Seq(^.onClick -->  Callback(SPGUICircuit.dispatch(CloseAllWidgets)))  ))
+          <.div(
+            WidgetMenuNew()
+          ),
+          <.div(
+            SPButtonElements.clickable(Callback(SPGUICircuit.dispatch(CloseAllWidgets))),
+            SPButtonElements.navButton("Close All")
+          )
         )
       )
     )
-  ).build
+).build
 
 
 
-  private val spLogo:ReactNode = (
+private val spLogo:ReactNode = (
+  <.div(
+    ^.className := SPMenuCSS.splogoContainer.htmlClass,
     <.div(
-      ^.className := SPMenuCSS.splogoContainer.htmlClass,
-      <.div(
-        ^.className := SPMenuCSS.spLogo.htmlClass
-      )
-    ))
-  def apply() = component()
+      ^.className := SPMenuCSS.spLogo.htmlClass
+    )
+  ))
+def apply() = component()
 }

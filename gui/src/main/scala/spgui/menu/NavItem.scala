@@ -11,11 +11,11 @@ object NavItem {
   )
 
   private val component = ReactComponentB[Props]("WidgetItem")
-  .render_P(p =>
-      <.li(
-            ^.className := "nav-item " + SPMenuCSS.navItem.htmlClass,
-            p.content
-        )
+    .render_P(p =>
+    <.li(
+      ^.className := "nav-item " + SPMenuCSS.navItem.htmlClass,
+      p.content
+    )
   ).build
 
   def apply(content:ReactNode) = component(Props(Some(content)))
