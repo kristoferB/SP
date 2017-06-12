@@ -10,6 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import spgui.circuit.{SPGUICircuit}
 import spgui.communication._
 
+import scala.scalajs.js.annotation.JSName
+
 object ChartTest {
   case class State(x: Int)
 
@@ -161,9 +163,94 @@ object GoogleVisualization extends js.Object {
   }
 }
 
+
+@js.native
+trait OptionsTooltip extends js.Object {
+  val isHtml: Boolean = js.native
+  val trigger: String = js.native
+}
+
+object OptionsTooltip {
+  def apply(
+      isHtml: Boolean,
+      trigger: String
+    ) = js.Dynamic.literal(
+      isHtml = isHtml,
+      trigger = trigger
+    )
+}
+
+@js.native
+trait OptionsTimeline extends js.Object {
+  val barLabelStyle:     js.Object         = js.native
+  val colorByRowLabel:   Boolean           = js.native
+  val groupByRowLabel:   Boolean           = js.native
+  val rowLabelStyle:     js.Object         = js.native
+  val showBarLabels:     Boolean           = js.native
+  val showRowLabels:     Boolean           = js.native
+  val singleColor:       String            = js.native
+}
+
+object OptionsTimeline {
+  def apply(
+    barLabelStyle:    js.Object,
+    colorByRowLabel:  Boolean,
+    groupByRowLabel:  Boolean,
+    rowLabelStyle:    js.Object,
+    showBarLabels:    Boolean,
+    showRowLabels:    Boolean,
+    singleColor:      String
+  ) = js.Dynamic.literal(
+    barLabelStyle = barLabelStyle,
+    colorByRowLabel = colorByRowLabel,
+    groupByRowLabel = groupByRowLabel,
+    rowLabelStyle = rowLabelStyle,
+    showBarLabels = showRowLabels,
+    showRowLabels = showRowLabels,
+    singleColor = singleColor)
+}
+
+// Documentation:     https://developers.google.com/chart/interactive/docs/gallery/timeline#configuration-options
 @js.native
 trait Options extends js.Object {
-  val title: js.UndefOr[String] = js.native
-  val width: js.UndefOr[Int] = js.native
-  val height: js.UndefOr[Int] = js.native
+  val avoidOverlappingGridLines:  Boolean           = js.native
+  val backgroundColor:            String            = js.native
+  val colors:                     js.Array[String]  = js.native
+  val enableInteractivity:        Boolean           = js.native
+  val fontName:                   String            = js.native
+  val fontSize:                   Int               = js.native
+  val forceIFrame:                Boolean           = js.native
+  val height:                     Int               = js.native
+  val OptionsTimeline:            OptionsTimeline   = js.native
+  val optionsTooltip:             OptionsTooltip    = js.native
+  val width:                      Int               = js.native
+
+}
+
+object Options {
+  def apply(
+    avoidOverlappingGridLines:  Boolean   = true,           
+    backgroundColor:            String    = "white",            
+    colors:                     js.Array[String],     
+    enableInteractivity:        Boolean   = true,           
+    fontName:                   String    = "Arial",            
+    fontSize:                   Int,               
+    forceIFrame:                Boolean,           
+    height:                     Int,               
+    optionsTimeline:            js.Object = OptionsTimeline(null, false, true, null, true, true, null),            
+    optionsTooltip:             js.Object = OptionsTooltip(true, "focus"),          
+    width:                      Int               
+    ) = js.Dynamic.literal(
+      avoidOverlappingGridLines = avoidOverlappingGridLines,
+      backgroundColor = backgroundColor, 
+      colors = colors,
+      enableInteractivity = enableInteractivity,
+      fontName = fontName,
+      fontSize = fontSize,
+      forceIFrame = forceIFrame,
+      height = height,
+      optionsTimeline = optionsTimeline,
+      optionsTooltip = optionsTooltip,
+      width = width
+    )
 }
