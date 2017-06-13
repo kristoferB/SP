@@ -10,38 +10,46 @@ import spgui.circuit.{CloseAllWidgets, SPGUICircuit}
 object SPMenu {
   private val component = ReactComponentB[Unit]("SPMenu")
     .render(_ =>
-    <.nav(
-      ^.className := "navbar navbar-default",
-      ^.className := SPMenuCSS.topNav.htmlClass,
-      <.div(
-        ^.className := "navbar-header",
+      <.nav(
+        ^.className := "navbar navbar-default",
         <.div(
-          ^.className := SPMenuCSS.spLogoDiv.htmlClass,
-          spLogo
-        )
-      ),
-      NavBar(
-        Seq(
-          <.div(
-            WidgetMenuNew()
+          ^.className := "navbar-header",
+          <.button(
+            ^.className := "navbar-toggle collapsed",
+            ReactAttr.Generic("data-toggle") := "collapse",
+            ReactAttr.Generic("data-target") := "#navbar-contents",
+            "hello i am the button text"
           ),
-          <.div(
-            SPButtonElements.clickable(Callback(SPGUICircuit.dispatch(CloseAllWidgets))),
-            SPButtonElements.navButton("Close All")
+          <.a(
+            ^.className:= "navbar-brand",
+            spLogo
+          )
+        ),
+
+        // navbar contents
+        <.div(
+          ^.className := "collapse navbar-collapse",
+          ^.id := "navbar-contents",
+          <.ul(
+            ^.className := "nav navbar-nav",
+            <.li(
+              WidgetMenuNew()
+            ),
+            <.li(
+              ^.onClick --> (Callback(SPGUICircuit.dispatch(CloseAllWidgets))),
+              SPButtonElements.navButton("Close All")
+            ) 
           )
         )
       )
-    )
-).build
+    ).build
 
-
-
-private val spLogo:ReactNode = (
-  <.div(
-    ^.className := SPMenuCSS.splogoContainer.htmlClass,
+  private val spLogo: ReactNode = (
     <.div(
-      ^.className := SPMenuCSS.spLogo.htmlClass
-    )
-  ))
-def apply() = component()
+      ^.className := SPMenuCSS.splogoContainer.htmlClass,
+      <.div(
+        ^.className := SPMenuCSS.spLogo.htmlClass
+      )
+    ))
+  def apply() = component()
 }

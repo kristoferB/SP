@@ -2,12 +2,10 @@ package spgui.menu
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import japgolly.scalajs.react.vdom.all.aria
-import scalacss.ScalaCssReact._
 
 import spgui.circuit.{SPGUICircuit, AddWidget}
 import spgui.WidgetList
-import spgui.components.{ Dropdown, Icon, SPDropdownNew, SPButtonElements, SPTextBox }
+import spgui.components.{ Icon, SPDropdownNew, SPButtonElements, SPTextBox }
 
 object WidgetMenuNew {
   case class State(filterText: String)
@@ -20,18 +18,14 @@ object WidgetMenuNew {
       SPDropdownNew(
         SPButtonElements.navButton("New thing", Icon.caretDown),
         List(
-          s.filterText,
           SPTextBox(
             "Find widget...",
-            (t: String) => {
-              $.setState(State(filterText = t))
-            }
+            (t: String) => { $.setState(State(filterText = t)) }
           ),
-       
           WidgetList.list.collect{
             case e if (e._1.toLowerCase.contains(s.filterText.toLowerCase))=>
               <.div(
-                SPButtonElements.clickable(addW(e._1, e._3, e._4)),
+                ^.onClick --> ( addW(e._1, e._3, e._4) ),
                 e._1
               )
           })

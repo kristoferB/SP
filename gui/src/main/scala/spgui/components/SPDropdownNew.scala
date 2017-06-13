@@ -9,8 +9,7 @@ object SPDropdownNew {
 
   private val component = ReactComponentB[Props]("SPButton")
     .render_P(p =>
-      <.div(
-        SPButtonElements.clickable(Callback(None)),  // this is maybe weird. empty callback to get the correct css.
+      <.div(   
         <.a(
           p.buttonTags,
           ^.id:="something",
@@ -21,6 +20,7 @@ object SPDropdownNew {
         ),
         <.ul(
           p.contents,
+          ^.className := ComponentCSS.dropDownList.htmlClass,
           ^.className := "dropdown-menu",
           aria.labelledby := "something"
         )
@@ -29,3 +29,4 @@ object SPDropdownNew {
   def apply(buttonTags: Seq[TagMod], contents: List[ReactNode]) =
     component(Props(buttonTags, contents))
 }
+

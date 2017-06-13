@@ -6,6 +6,10 @@ object ComponentCSS extends StyleSheet.Inline {
   import dsl._
   val textColor = "#000000"
 
+  val dropDownList = style(
+    top.unset
+  )
+
   // override bootstrap
   val navbar = style(
     unsafeRoot(".navbar-nav > .open > a")(
@@ -13,9 +17,9 @@ object ComponentCSS extends StyleSheet.Inline {
     )
   )
 
-  val buttonStyle = style("sp-btn")(
-    (padding(6.px,12.px, 6.px, 12.px)).important //There are a file somewhere overriding bootstrap defaults using ".nav > li > a"
-  )
+  // val buttonStyle = style("sp-btn")(
+  //   (padding(6.px,12.px, 6.px, 12.px)).important //There are a file somewhere overriding bootstrap defaults using ".nav > li > a"
+  // )
 
   val buttonCaret = style("btn-caret")(
       (marginLeft(4.px)).important

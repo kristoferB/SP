@@ -12,28 +12,28 @@ object ComponentTest {
   private class MyBackend($: BackendScope[Unit, Unit]) {
     def render(p: Unit) =
       <.div(
-        // SPClickable(
-        //   SPButtonElements.widgetButton("hello"),
-        //   Callback(testCallback("lols"))
-        // ),
-        // SPClickable(
-        //   SPButtonElements.widgetButton("hello", Icon.adjust),
-        //   Callback(testCallback("lols"))
-        // ),
-        // SPClickable(
-        //   SPButtonElements.widgetButton(Icon.exclamation),
-        //   Callback(testCallback("lols"))
-        // ),
-        // SPClickable(
-        //   Seq(<.button("custom element created on the spot")),
-        //   Callback(testCallback("custom element"))
-        // ),
+        <.div(
+          ^.onClick --> Callback(testCallback("first test")) ,
+          SPButtonElements.widgetButton("first test")
+        ),
+        <.div(
+          ^.onClick --> Callback(testCallback("second test") ),
+          SPButtonElements.widgetButton("second test", Icon.adjust)
+        ),
+        <.div(
+          ^.onClick --> Callback(testCallback("! third test !") ),
+          SPButtonElements.widgetButton(Icon.exclamation)
+        ),
+        <.div(
+          ^.onClick --> Callback(testCallback("custom element test" )),
+          Seq(<.button("custom element test"))
+        ),
         SPDropdownNew(
           SPButtonElements.widgetButton("dropdown", Icon.caretDown),
           List(
-            //SPClickable(<.div("hello0"), Callback(testCallback("hello"))),
-            //SPClickable("hello1", Callback(None)),
-            //SPClickable("hello2", Callback(println("triple, explicit hello")))
+            (<.div("hello0",^.onClick --> Callback(println("hello")))),
+            (<.div("hello1", ^.onClick --> Callback(println(None)))),
+            (<.div("hello2", ^.onClick --> Callback(println("triple, explicit hello"))))
           )
         )
       )

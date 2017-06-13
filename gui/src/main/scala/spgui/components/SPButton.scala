@@ -13,7 +13,7 @@ object SPButton {
 
   private val component = ReactComponentB[Props]("SPButton")
     .render_P(p =>
-    <.a(p.text, ^.className:= "btn btn-default "+ComponentCSS.buttonStyle.htmlClass , p.tags, p.content)
+    <.a(p.text, ^.className:= "btn btn-default " , p.tags, p.content)
   ).build
 
   def apply(t:String,content:ReactNode,tags:Seq[TagMod])

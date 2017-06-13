@@ -71,6 +71,7 @@ object SPMenuCSS extends StyleSheet.Inline {
     color := theme.value.defaultTextColor,
     border.none,
     display.flex,
+    flexDirection.row,
     alignItems.center,
     width(100.%%),
     height(topNavHeight.px),
