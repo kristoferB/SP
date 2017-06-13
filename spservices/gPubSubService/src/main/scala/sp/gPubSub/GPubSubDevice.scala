@@ -93,8 +93,8 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
     // PubSubStageMaxRetriesAttribute(100),
     // PubSubPublishTimeoutAttribute(10.seconds))
 
-  val client = com.qubit.pubsub.client.retry.RetryingPubSubClient(com.qubit.pubsub.client.grpc.PubSubGrpcClient())
-  client.createSubscription(testSubscription, testTopic)
+  //val client = com.qubit.pubsub.client.retry.RetryingPubSubClient(com.qubit.pubsub.client.grpc.PubSubGrpcClient())
+  //client.createSubscription(testSubscription, testTopic)
 
   var messT: Option[ZonedDateTime] = None
   val toJsonString: Flow[PubSubMessage, String, NotUsed] = Flow[PubSubMessage]
