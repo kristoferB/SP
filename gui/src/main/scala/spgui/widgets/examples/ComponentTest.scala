@@ -28,8 +28,9 @@ object ComponentTest {
           ^.onClick --> Callback(testCallback("custom element test" )),
           Seq(<.button("custom element test"))
         ),
-        SPDropdownNew(
-          SPButtonElements.widgetButton("dropdown", Icon.caretDown),
+        
+        SPButtonElements.dropdown(
+          "dropdown",
           List(
             (<.div("hello0",^.onClick --> Callback(println("hello")))),
             (<.div("hello1", ^.onClick --> Callback(println(None)))),

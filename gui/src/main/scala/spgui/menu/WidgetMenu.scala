@@ -7,7 +7,7 @@ import scalacss.ScalaCssReact._
 
 import spgui.circuit.{SPGUICircuit, AddWidget}
 import spgui.WidgetList
-import spgui.components.{ Dropdown, Icon, SPDropdownNew }
+import spgui.components.{ Dropdown, Icon }
 
 object WidgetMenu {
   case class State(filterText: String)

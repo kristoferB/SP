@@ -2,6 +2,7 @@ package spgui.components
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.all.aria
 
 object SPButtonElements{
   def navButton(text:String):Seq[TagMod] = Seq(
@@ -41,6 +42,25 @@ object SPButtonElements{
     ^.className := "btn btn-default",
     ^.className := SPButtonElementsCSS.clickable.htmlClass,
     ^.className := SPButtonElementsCSS.widgetButton.htmlClass
+  )
+
+  def dropdown(text: String, contents: List[ReactNode]) = Seq(
+    <.a(
+      text,
+      Icon.caretDown,
+      ReactAttr.Generic("data-toggle") := "dropdown",
+      ^.id:="something",
+      ^.className := "nav-link dropdown-toggle",
+      aria.haspopup := "true",
+      aria.expanded := "false",
+      ^.className := SPButtonElementsCSS.clickable.htmlClass
+    ),
+    <.ul(
+      contents,
+      ^.className := ComponentCSS.dropDownList.htmlClass,
+      ^.className := "dropdown-menu",
+      aria.labelledby := "something"
+    )
   )
 }
 

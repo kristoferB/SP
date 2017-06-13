@@ -17,12 +17,11 @@ object SPButtonElementsCSS extends StyleSheet.Inline {
     cursor.pointer,
     userSelect:= "none",
     backgroundColor.transparent,
-    listStyle:= "none",
-    &.hover(
-      //backgroundColor := "#999999"//"#ededed"
-    )
+    listStyle:= "none"//,
+    //&.hover(
+    //  backgroundColor:= "#ff0000"//"#ededed"
+    //)
   )
-
 
   this.addToDocument()
 }

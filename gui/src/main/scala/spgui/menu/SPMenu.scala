@@ -4,52 +4,58 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import org.scalajs.dom._
 
-import spgui.components.{SPButton, SPButtonElements}
+import spgui.components.{SPButton, SPButtonElements, Icon, SPButtonElementsCSS}
 import spgui.circuit.{CloseAllWidgets, SPGUICircuit}
 
 object SPMenu {
   private val component = ReactComponentB[Unit]("SPMenu")
     .render(_ =>
       <.nav(
+        ^.className:= SPMenuCSS.topNav.htmlClass,
         ^.className := "navbar navbar-default",
+
+        // navbar header: logo+toggle button
         <.div(
+          //^.classname := SPMenuCSS.topNavHeader.htmlClass,
           ^.className := "navbar-header",
-          <.button(
+          <.a(
+            ^.className := SPMenuCSS.navbarToggleButton.htmlClass,
             ^.className := "navbar-toggle collapsed",
             ReactAttr.Generic("data-toggle") := "collapse",
             ReactAttr.Generic("data-target") := "#navbar-contents",
-            "hello i am the button text"
+            <.div(
+              ^.className := SPMenuCSS.navbarToggleButtonIcon.htmlClass,
+              Icon.bars
+            )
           ),
           <.a(
             ^.className:= "navbar-brand",
-            spLogo
+            ^.className := SPMenuCSS.splogoContainer.htmlClass,
+            <.div(
+              ^.className := SPMenuCSS.spLogo.htmlClass
+            )
           )
         ),
 
         // navbar contents
         <.div(
+          ^.className := SPMenuCSS.navbarContents.htmlClass,
           ^.className := "collapse navbar-collapse",
           ^.id := "navbar-contents",
           <.ul(
             ^.className := "nav navbar-nav",
-            <.li(
-              WidgetMenuNew()
-            ),
+
+            WidgetMenuNew(),
+
             <.li(
               ^.onClick --> (Callback(SPGUICircuit.dispatch(CloseAllWidgets))),
+              ^.className := SPButtonElementsCSS.clickable.htmlClass,
               SPButtonElements.navButton("Close All")
-            ) 
+            )
           )
         )
       )
     ).build
 
-  private val spLogo: ReactNode = (
-    <.div(
-      ^.className := SPMenuCSS.splogoContainer.htmlClass,
-      <.div(
-        ^.className := SPMenuCSS.spLogo.htmlClass
-      )
-    ))
   def apply() = component()
 }

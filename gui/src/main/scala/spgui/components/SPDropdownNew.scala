@@ -9,12 +9,12 @@ object SPDropdownNew {
 
   private val component = ReactComponentB[Props]("SPButton")
     .render_P(p =>
-      <.div(   
-        <.a(
-          p.buttonTags,
+      <.li(
+        p.buttonTags,
+          ReactAttr.Generic("data-toggle") := "dropdown",
+        <.div(
           ^.id:="something",
           ^.className := "nav-link dropdown-toggle",
-          ReactAttr.Generic("data-toggle") := "dropdown",
           aria.haspopup := "true",
           aria.expanded := "false"
         ),
