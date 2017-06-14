@@ -8,16 +8,15 @@ import spgui.SPWidget
 
 import org.scalajs.dom.window.location
 import spgui.theming._
-import spgui.components.Dropdown
+import spgui.components.SPWidgetElements
 
 object SettingsWidget {
   private class MyBackend($: BackendScope[Unit, Unit]) {
     def render(p: Unit) =
       <.div(
-        Dropdown(
+        SPWidgetElements.dropdown(
           "Theme picker dropdown placeholder element",
-          Seq(),
-          Seq(Themes.themeList.map(theme =>
+          List(Themes.themeList.map(theme =>
             <.div(
               theme.name,
               ^.onClick --> Callback({

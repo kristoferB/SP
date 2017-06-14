@@ -13,17 +13,16 @@ object ComponentTest {
     def render(p: Unit) =
       <.div(
         <.div(
-          ^.onClick --> Callback(testCallback("first test")) ,
-          SPWidgetElements.button("first test")
+          SPWidgetElements.button("first test", Callback(testCallback("first test")))
+        ),
+         <.div(
+          SPWidgetElements.button("second test",Icon.ship, Callback(testCallback("second test")))
         ),
         <.div(
-          ^.onClick --> Callback(testCallback("second test") ),
-          SPWidgetElements.button("second test", Icon.adjust)
+          SPWidgetElements.button(Icon.exclamation, Callback(testCallback("!!!!")))
         ),
-        <.div(
-          ^.onClick --> Callback(testCallback("! third test !") ),
-          SPWidgetElements.button(Icon.exclamation)
-        ),
+        
+
         <.div(
           ^.onClick --> Callback(testCallback("custom element test" )),
           Seq(<.button("custom element test"))

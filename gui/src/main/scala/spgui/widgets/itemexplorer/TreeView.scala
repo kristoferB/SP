@@ -7,7 +7,7 @@ import japgolly.scalajs.react.vdom.all.aria
 import scalacss.ScalaCssReact._
 
 import spgui.components.DragAndDrop.{ DataOnDrag, OnDataDrop }
-import spgui.components.{ Icon, Dropdown,SPButton }
+import spgui.components.{ Icon, SPWidgetElements, SPButton }
 
 object TreeView {
   case class TreeViewProps(
@@ -57,12 +57,14 @@ object TreeView {
 
     def render(p: TreeViewProps, s: TreeViewState) =
       <.div(^.className := "nav", Style.outerDiv,
-        <.div( Style.optionBar,
-          Dropdown("Add Item", Seq(^.className := "nav-item"),
-            p.itemCreators.map(ic => <.div(ic._1, ^.onClick --> addItem(ic._2()))): _*
-          ),
-          SPButton("", Icon.floppyO, Seq(^.onClick --> p.onSaveButtonClick(s.rt))),
-          <.div(
+        <.div(
+          Style.optionBar,
+          <.li(SPWidgetElements.dropdown(
+            "Add Item",
+            p.itemCreators.map(ic => <.div(ic._1, ^.onClick --> addItem(ic._2()))) 
+          )),
+          <.li(SPWidgetElements.button(Icon.floppyO, p.onSaveButtonClick(s.rt))),
+          <.li(
             ^.className := "input-group",
             <.input(
               ^.className := "form-control",
