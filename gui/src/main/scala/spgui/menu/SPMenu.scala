@@ -4,7 +4,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import org.scalajs.dom._
 
-import spgui.components.{SPButton, SPButtonElements, Icon, SPButtonElementsCSS}
+import spgui.components.{SPButton,Icon, SPNavbarElements}
 import spgui.circuit.{CloseAllWidgets, SPGUICircuit}
 
 object SPMenu {
@@ -48,8 +48,7 @@ object SPMenu {
 
             <.li(
               ^.onClick --> (Callback(SPGUICircuit.dispatch(CloseAllWidgets))),
-              ^.className := SPButtonElementsCSS.clickable.htmlClass,
-              SPButtonElements.navButton("Close All")
+              SPNavbarElements.button("Close All")
             )
           )
         )

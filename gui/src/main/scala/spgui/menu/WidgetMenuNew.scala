@@ -5,7 +5,7 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import spgui.circuit.{SPGUICircuit, AddWidget}
 import spgui.WidgetList
-import spgui.components.{ Icon, SPButtonElements, SPTextBox }
+import spgui.components.{ Icon, SPNavbarElements, SPTextBox }
 
 object WidgetMenuNew {
   case class State(filterText: String)
@@ -16,7 +16,7 @@ object WidgetMenuNew {
 
     def render(s: State) =
       <.li(
-        SPButtonElements.navbarDropdown(
+        SPNavbarElements.dropdown(
           "New widget",
           List(
             SPTextBox(

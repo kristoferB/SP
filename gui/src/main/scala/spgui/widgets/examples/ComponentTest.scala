@@ -14,22 +14,22 @@ object ComponentTest {
       <.div(
         <.div(
           ^.onClick --> Callback(testCallback("first test")) ,
-          SPButtonElements.widgetButton("first test")
+          SPWidgetElements.button("first test")
         ),
         <.div(
           ^.onClick --> Callback(testCallback("second test") ),
-          SPButtonElements.widgetButton("second test", Icon.adjust)
+          SPWidgetElements.button("second test", Icon.adjust)
         ),
         <.div(
           ^.onClick --> Callback(testCallback("! third test !") ),
-          SPButtonElements.widgetButton(Icon.exclamation)
+          SPWidgetElements.button(Icon.exclamation)
         ),
         <.div(
           ^.onClick --> Callback(testCallback("custom element test" )),
           Seq(<.button("custom element test"))
         ),
         
-        SPButtonElements.widgetDropdown(
+        SPWidgetElements.dropdown(
           "dropdown",
           List(
             (<.li("hello0",^.onClick --> Callback(println("hello")))),
