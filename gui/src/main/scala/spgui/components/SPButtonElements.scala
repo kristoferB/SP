@@ -44,7 +44,7 @@ object SPButtonElements{
     ^.className := SPButtonElementsCSS.widgetButton.htmlClass
   )
 
-  def dropdown(text: String, contents: List[ReactNode]) = Seq(
+  def navbarDropdown(text: String, contents: List[ReactNode]) = Seq(
     <.a(
       text,
       Icon.caretDown,
@@ -53,6 +53,27 @@ object SPButtonElements{
       ^.className := "nav-link dropdown-toggle",
       aria.haspopup := "true",
       aria.expanded := "false",
+      ^.className := SPButtonElementsCSS.clickable.htmlClass
+    ),
+    <.ul(
+      contents,
+      ^.className := ComponentCSS.dropDownList.htmlClass,
+      ^.className := "dropdown-menu",
+      aria.labelledby := "something"
+    )
+  )
+
+  def widgetDropdown(text: String, contents: List[ReactNode]) = Seq(
+    <.a(
+      text,
+      Icon.caretDown,
+      ReactAttr.Generic("data-toggle") := "dropdown",
+      ^.id:="something",
+      ^.className := "nav-link dropdown-toggle",
+      aria.haspopup := "true",
+      aria.expanded := "false",
+      ^.className := "btn btn-default",
+      ^.className := SPButtonElementsCSS.widgetButton.htmlClass,
       ^.className := SPButtonElementsCSS.clickable.htmlClass
     ),
     <.ul(

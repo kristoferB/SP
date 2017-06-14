@@ -16,7 +16,7 @@ object WidgetMenuNew {
 
     def render(s: State) =
       <.li(
-        SPButtonElements.dropdown(
+        SPButtonElements.navbarDropdown(
           "New widget",
           List(
             SPTextBox(

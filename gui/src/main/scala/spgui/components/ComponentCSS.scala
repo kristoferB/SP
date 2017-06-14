@@ -11,18 +11,14 @@ object ComponentCSS extends StyleSheet.Inline {
   )
 
   // override bootstrap
-  val navbar = style(
-    unsafeRoot(".navbar-nav > .open > a")(
-      (backgroundColor := "#999999").important
-    )
-  )
-
-  // val buttonStyle = style("sp-btn")(
-  //   (padding(6.px,12.px, 6.px, 12.px)).important //There are a file somewhere overriding bootstrap defaults using ".nav > li > a"
+  // val navbar = style(
+  //   unsafeRoot(".navbar-nav > .open > a")(
+  //     (backgroundColor := "#999999").important
+  //   )
   // )
 
   val buttonCaret = style("btn-caret")(
-      (marginLeft(4.px)).important
+    (marginLeft(4.px)).important
   )
 
   val ovveride = style("hello")(

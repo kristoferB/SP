@@ -29,12 +29,12 @@ object ComponentTest {
           Seq(<.button("custom element test"))
         ),
         
-        SPButtonElements.dropdown(
+        SPButtonElements.widgetDropdown(
           "dropdown",
           List(
-            (<.div("hello0",^.onClick --> Callback(println("hello")))),
-            (<.div("hello1", ^.onClick --> Callback(println(None)))),
-            (<.div("hello2", ^.onClick --> Callback(println("triple, explicit hello"))))
+            (<.li("hello0",^.onClick --> Callback(println("hello")))),
+            (<.li("hello1", ^.onClick --> Callback(println(None)))),
+            (<.li("hello2", ^.onClick --> Callback(println("triple, explicit hello"))))
           )
         )
       )
