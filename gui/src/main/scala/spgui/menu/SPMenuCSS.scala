@@ -26,20 +26,30 @@ object SPMenuCSS extends StyleSheet.Inline {
   )
 
   val navbarToggleButton = style(
-    height(topNavHeight.px),
-    width(topNavHeight.px),
+    fontSize(20.px),
+    height(50.px),
+    width(50.px),
     margin.unset,
     borderRadius.unset,
     border.none,
     textAlign.center,
     padding.unset,
-    backgroundColor:=theme.value.spOrange
+    color:=theme.value.spOrange,
+    backgroundColor.transparent,
+    position.relative
   )
 
 
   val navbarToggleButtonIcon = style(
-
+    position.absolute,
+    top(50.%%),
+    left(50.%%),
+    transform := "translate(-50%,-50%)"
   )
+
+  val navbarToggleButtonOuter = style(
+
+   )
 
   val buttonPadding = 4;
   val navItem = style("sp-nav-item")(

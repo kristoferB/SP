@@ -16,7 +16,6 @@ object SPMenu {
 
         // navbar header: logo+toggle button
         <.div(
-          //^.classname := SPMenuCSS.topNavHeader.htmlClass,
           ^.className := "navbar-header",
           <.a(
             ^.className := SPMenuCSS.navbarToggleButton.htmlClass,
