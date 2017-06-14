@@ -1,13 +1,13 @@
 package spgui
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import spgui.widgets.examples._
 
 
 object WidgetList {
   val list =
-    List[(String, SPWidgetBase => ReactElement, Int, Int)](
+    List[(String, SPWidgetBase => VdomElement, Int, Int)](
       ("Grid Test", spgui.dashboard.GridTest(), 5, 5),
       ("Widget Injection", widgets.injection.WidgetInjectionTest(), 2, 2),
       ("Item Editor", widgets.itemeditor.ItemEditor(), 2, 2),
@@ -26,14 +26,15 @@ object WidgetList {
       ("Ability Handler", widgets.abilityhandler.AbilityHandlerWidget(), 2, 2),
       ("ServiceList", widgets.services.ServiceListWidget(), 2, 2),
       ("Settings", widgets.settings.SettingsWidget(), 2, 4),
-      ("ComponentTest", widgets.componenttest.ComponentTest(), 2, 4)      
+      ("ComponentTest", widgets.componenttest.ComponentTest(), 2, 4),      
+      ("SopMaker", widgets.sopmaker.SopMakerWidget(), 2, 4)
     )
 
   val map = list.map(t => t._1 -> (t._2, t._3, t._4)).toMap
 }
 
 object PlaceholderComp {
-  val component = ReactComponentB[Unit]("PlaceholderComp")
+  val component = ScalaComponent.builder[Unit]("PlaceholderComp")
     .render(_ => <.h2("placeholder"))
     .build
 

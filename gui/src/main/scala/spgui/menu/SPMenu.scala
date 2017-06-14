@@ -1,14 +1,14 @@
 package spgui.menu
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom._
 
-import spgui.components.{SPButton,Icon, SPNavbarElements}
+import spgui.components.{Icon, SPNavbarElements}
 import spgui.circuit.{CloseAllWidgets, SPGUICircuit}
 
 object SPMenu {
-  private val component = ReactComponentB[Unit]("SPMenu")
+  private val component = ScalaComponent.builder[Unit]("SPMenu")
     .render(_ =>
       <.nav(
         ^.className:= SPMenuCSS.topNav.htmlClass,
@@ -20,8 +20,8 @@ object SPMenu {
           <.a(
             ^.className := SPMenuCSS.navbarToggleButton.htmlClass,
             ^.className := "navbar-toggle collapsed",
-            ReactAttr.Generic("data-toggle") := "collapse",
-            ReactAttr.Generic("data-target") := "#navbar-contents",
+            VdomAttr("data-toggle") := "collapse",
+            VdomAttr("data-target") := "#navbar-contents",
             <.div(
               ^.className := SPMenuCSS.navbarToggleButtonIcon.htmlClass,
               Icon.bars
@@ -56,3 +56,7 @@ object SPMenu {
 
   def apply() = component()
 }
+
+
+
+

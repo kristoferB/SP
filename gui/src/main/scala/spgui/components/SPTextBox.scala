@@ -15,15 +15,15 @@ object SPTextBox {
       <.input(
         ^.className := "form-control",
         ^.placeholder := p.defaultText,
-        ^.aria.describedby := "basic-addon1",
+        ^.aria.describedBy := "basic-addon1",
         ^.onChange ==> onFilterTextChange(p)
       )    
     )
-    def onFilterTextChange(p:Props)(e: ReactEventI): Callback = 
-      e.extract(_.target.value)(v => (p.onChange(v)))
+    def onFilterTextChange(p:Props)(e: ReactEvent): Callback =
+      e.extract(_.target.nodeValue)(v => (p.onChange(v))) // TODO check if this works
   }
 
-  private val component = ReactComponentB[Props]("SPTextBox")
+  private val component = ScalaComponent.builder[Props]("SPTextBox")
     .initialState(State("test"))
     .renderBackend[Backend]
     .build

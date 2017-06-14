@@ -26,26 +26,26 @@ module.exports = {
                 test: /\.png(\?v=\d+\.\d+\.\d+)?$/,
                 loader: 'url-loader?limit=100000'
             }, {
-								test: /\.json$/,
-								loader: 'json-loader'
-						}
+		test: /\.json$/,
+		loader: 'json-loader'
+	    }
         ]
     },
     plugins: PROD ? [
-						new webpack.optimize.UglifyJsPlugin({
-								minimize: true,
-								mangle: true,
-								compressor: { warnings: false }
-            }),
-            new webpack.DefinePlugin({
-                'process.env': {
-                    // setting this again here, cause react needs it this way to
-                    // generate a real build-version of itself
-                    'NODE_ENV': JSON.stringify('production')
-                }
-            }),
-        ] : [
-					  // ignores 3 warnings, that are probably irrelevant, when webpacking
-						// new webpack.IgnorePlugin(/regenerator|nodent|js\-beautify/, /ajv/)
-				]
-    };
+	new webpack.optimize.UglifyJsPlugin({
+	    minimize: true,
+	    mangle: true,
+	    compressor: { warnings: false }
+        }),
+        new webpack.DefinePlugin({
+            'process.env': {
+                // setting this again here, cause react needs it this way to
+                // generate a real build-version of itself
+                'NODE_ENV': JSON.stringify('production')
+            }
+        }),
+    ] : [
+	// ignores 3 warnings, that are probably irrelevant, when webpacking
+	// new webpack.IgnorePlugin(/regenerator|nodent|js\-beautify/, /ajv/)
+    ]
+};

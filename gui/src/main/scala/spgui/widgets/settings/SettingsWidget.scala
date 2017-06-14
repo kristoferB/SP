@@ -1,7 +1,7 @@
 package spgui.widgets.settings
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import spgui.circuit.{SPGUICircuit, SetTheme}
 
 import spgui.SPWidget
@@ -16,7 +16,7 @@ object SettingsWidget {
       <.div(
         SPWidgetElements.dropdown(
           "Theme picker dropdown placeholder element",
-          List(Themes.themeList.map(theme =>
+          Themes.themeList.map(theme =>
             <.div(
               theme.name,
               ^.onClick --> Callback({
@@ -29,11 +29,11 @@ object SettingsWidget {
               })
             )
           )
-        ))
+        ).toTagMod
       )
   }
 
-  private val component = ReactComponentB[Unit]("Settings")
+  private val component = ScalaComponent.builder[Unit]("Settings")
     .renderBackend[MyBackend]
     .build
 

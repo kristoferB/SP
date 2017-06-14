@@ -6,6 +6,7 @@ package sp.domain.logic
 object IDAbleLogic {
 
   import sp.domain._
+  import sp.domain.logic.SOPLogic._
 
 
 
@@ -16,7 +17,7 @@ object IDAbleLogic {
         case x: Thing => removeIDFromThing(id, x)
         case x: SPSpec => removeIDFromSPSpec(id, x)
         case x: SOPSpec => removeIDFromSOPSpec(id, x)
-        case x:HierarchyRoot => removeIDFromHierarchyRoot(id, x)
+        case x:Struct => removeIDFromStruct(id, x)
         case _ => item
       }
       if (newItem == item) None
@@ -68,23 +69,24 @@ object IDAbleLogic {
       obj.copy(sop = newSOP, attributes = newAttr)
   }
 
-  def removeIDFromHierarchyRoot(id: Set[ID], obj: HierarchyRoot): HierarchyRoot = {
+  def removeIDFromStruct(id: Set[ID], obj: Struct): Struct = {
     val newAttr = removeIDFromAttribute(id, obj.attributes)
-    val newCh = obj.children.flatMap((c => removeIDFromHierarchyNode(id, c)))
-    if (newAttr == obj.attributes && newCh == obj.children)
+    val newCh = obj.items.flatMap((c => removeIDFromStructNode(id, c)))
+    if (newAttr == obj.attributes && newCh == obj.items)
       obj
     else
-      obj.copy(children = newCh, attributes = newAttr)
+      obj.copy(items = newCh, attributes = newAttr)
   }
 
-  def removeIDFromHierarchyNode(id: Set[ID], obj: HierarchyNode): Option[HierarchyNode] = {
-    {if (id.contains(obj.item)) None else Some(obj)}.map(
-      node => node.copy(children = node.children.flatMap(c => removeIDFromHierarchyNode(id, c)))
-    )
+  def removeIDFromStructNode(ids: Set[ID], obj: StructNode): Option[StructNode] = {
+    val p = obj.parent.flatMap(x => if (ids.contains(x)) None else Some(x))
+    val newAttr = removeIDFromAttribute(ids, obj.attributes)
+
+    if (ids.contains(obj.item)) None else Some(obj.copy(parent = p, attributes = newAttr))
   }
 
   def removeIDFromSOP(id: Set[ID], sop: SOP): Option[SOP] = {
-    def filter(xs: Seq[SOP]) = {
+    def filter(xs: List[SOP]) = {
       println(s"id: $id, \n filter: $xs")
       val t = xs flatMap(x => removeIDFromSOP(id, x))
       println(s"res: $t")
@@ -97,7 +99,7 @@ object IDAbleLogic {
         else {
           val newChildren = filter(h.sop)
           if (newChildren == sop.sop) Some(h)
-          else Some(h.modify(newChildren))
+          else Some(h.copy(sop = newChildren))
         }
       }
       case EmptySOP => Some(EmptySOP)
@@ -110,7 +112,7 @@ object IDAbleLogic {
         else if (newChildren.size == 1)
           Some(newChildren.head)
         else
-          Some(sop.modify(newChildren))
+          Some(sop.modifySOP(newChildren))
       }
     }
 
@@ -123,11 +125,11 @@ object IDAbleLogic {
 
   def removeIDFromCondition(id: Set[ID], cond: Condition): Condition = {
     cond match {
-      case c @ PropositionCondition(guard, action, attr) => {
+      case c @ Condition(guard, action, attr) => {
         val newGuard = removeIDFromProposition(id, guard)
         val newActions = removeIDFromAction(id, action)
         val newAttr = removeIDFromAttribute(id, attr)
-        PropositionCondition(newGuard, newActions, newAttr)
+        Condition(newGuard, newActions, newAttr)
       }
       case _ => cond
     }

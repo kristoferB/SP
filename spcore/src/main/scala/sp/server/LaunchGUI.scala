@@ -127,12 +127,12 @@ class LaunchGUI(system: ActorSystem)  {
         if (shouldAsk){
           val answer = mediator.ask(Publish(topic, mess)).mapTo[String]
           completeOrRecoverWith(answer){ extr =>
-            val re = SPMessage(h, *(APISP.SPError("No service answered the request")))
+            val re = SPMessage(h, Pickles.*(APISP.SPError("No service answered the request")))
             complete(re.toJson)
           }
         } else {
           mediator ! Publish(topic, mess)
-          val re = SPMessage(h, *(APISP.SPACK())) // SPAttributes("result" ->"Message sent")
+          val re = SPMessage(h, Pickles.*(APISP.SPACK())) // SPAttributes("result" ->"Message sent")
           complete(re.toJson)
         }
       }}

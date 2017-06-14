@@ -1,7 +1,7 @@
 package spgui.widgets.itemexplorer
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import scalacss.ScalaCssReact._
 
 import spgui.SPWidget
@@ -30,7 +30,7 @@ object SPItemsToRootDirectory {
 }
 
 object GetItemIcon {
-  def apply(item: DirectoryItem): ReactNode = item match {
+  def apply(item: DirectoryItem): VdomNode = item match {
     case d: Directory => Icon.folder
     case op: OperationDirItem => Icon.arrowCircleRight
     case ss: SOPSpecDirItem => Icon.sitemap
@@ -48,7 +48,7 @@ object RenderItemContent {
     )
   )
 
-  def apply(item: DirectoryItem): ReactNode = item match {
+  def apply(item: DirectoryItem): VdomNode = item match {
     case item: OperationDirItem => contentToElement(l("stuff" -> item.content))
     case item: SOPSpecDirItem => contentToElement(l("stuff" -> item.content))
 

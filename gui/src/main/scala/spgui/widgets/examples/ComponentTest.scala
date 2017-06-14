@@ -1,7 +1,7 @@
 package spgui.widgets.componenttest
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import spgui.circuit.{SPGUICircuit, SetTheme}
 
 import spgui.SPWidget
@@ -23,9 +23,9 @@ object ComponentTest {
         ),
         
 
-        <.div(
+        <.button(
           ^.onClick --> Callback(testCallback("custom element test" )),
-          Seq(<.button("custom element test"))
+          "custom element test"
         ),
         
         SPWidgetElements.dropdown(
@@ -35,11 +35,11 @@ object ComponentTest {
             (<.li("hello1", ^.onClick --> Callback(println(None)))),
             (<.li("hello2", ^.onClick --> Callback(println("triple, explicit hello"))))
           )
-        )
+        ).toTagMod
       )
   }
 
-  private val component = ReactComponentB[Unit]("Settings")
+  private val component = ScalaComponent.builder[Unit]("Settings")
     .renderBackend[MyBackend]
     .build
 
