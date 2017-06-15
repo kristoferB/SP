@@ -1,7 +1,7 @@
 package spgui.components
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.vdom.all.aria
 
 object SPTextBox {
@@ -19,8 +19,8 @@ object SPTextBox {
         ^.onChange ==> onFilterTextChange(p)
       )    
     )
-    def onFilterTextChange(p:Props)(e: ReactEvent): Callback =
-      e.extract(_.target.nodeValue)(v => (p.onChange(v))) // TODO check if this works
+    def onFilterTextChange(p:Props)(e: ReactEventFromInput): Callback =
+      e.extract(_.target.value)(v => (p.onChange(v))) // TODO check if this works
   }
 
   private val component = ScalaComponent.builder[Props]("SPTextBox")

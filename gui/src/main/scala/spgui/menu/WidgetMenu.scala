@@ -19,22 +19,17 @@ object WidgetMenu {
     def render(s: State) =
       SPNavbarElements.dropdown(
         "New widget",
-        
-          // TODO: elementize sptextbox and put it back here
-          // SPTextBox(
-          //   "Find widget...",
-          //   (t: String) => { $.setState(State(filterText = t)) }
-          // )
-
-          WidgetList.list.collect{
-            case e if (e._1.toLowerCase.contains(s.filterText.toLowerCase))=>
-              <.div(
-                ^.onClick --> ( addW(e._1, e._3, e._4) ),
-                e._1
-              )
-          }
-        )
-      
+        SPTextBox(
+          "Find widget...",
+          (t: String) => { $.setState(State(filterText = t)) }
+        ) :: WidgetList.list.collect{
+          case e if (e._1.toLowerCase.contains(s.filterText.toLowerCase))=>
+            <.div(
+              ^.onClick --> ( addW(e._1, e._3, e._4) ),
+              e._1
+            )
+        }
+      )
   }
 
   private val component = ScalaComponent.builder[Unit]("WidgetMenu")
