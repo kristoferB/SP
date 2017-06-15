@@ -12,22 +12,9 @@ object ComponentTest {
   private class MyBackend($: BackendScope[Unit, Unit]) {
     def render(p: Unit) =
       <.div(
-        <.div(
-          SPWidgetElements.button("first test", Callback(testCallback("first test")))
-        ),
-         <.div(
-          SPWidgetElements.button("second test",Icon.ship, Callback(testCallback("second test")))
-        ),
-        <.div(
-          SPWidgetElements.button(Icon.exclamation, Callback(testCallback("!!!!")))
-        ),
-        
-
-        <.button(
-          ^.onClick --> Callback(testCallback("custom element test" )),
-          "custom element test"
-        ),
-        
+        SPWidgetElements.button("first test", Callback(testCallback("first test"))),
+        SPWidgetElements.button("second test",Icon.ship, Callback(testCallback("second test"))),
+        SPWidgetElements.button(Icon.exclamation, Callback(testCallback("!!!!"))),        
         SPWidgetElements.dropdown(
           "dropdown",
           List(
@@ -35,7 +22,7 @@ object ComponentTest {
             (<.li("hello1", ^.onClick --> Callback(println(None)))),
             (<.li("hello2", ^.onClick --> Callback(println("triple, explicit hello"))))
           )
-        ).toTagMod
+        )
       )
   }
 

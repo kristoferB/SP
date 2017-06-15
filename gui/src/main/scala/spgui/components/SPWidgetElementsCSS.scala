@@ -13,11 +13,16 @@ object SPWidgetElementsCSS extends StyleSheet.Inline {
   )
 
   val button = style(
+    margin(2.px)
     //backgroundColor(rgb(255,0,0))
   )
 
   val dropDownList = style(
-    top.unset
+    //top.unset
+  )
+
+  val dropdownOuter = style(
+    display.inlineBlock
   )
 
   val clickable = style(

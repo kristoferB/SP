@@ -7,7 +7,7 @@ object SPNavbarElementsCSS extends StyleSheet.Inline {
 
   // TODO move to a file containing all ovverides
   val bootstrapDropdownOverride = style(
-    unsafeRoot(".dropdown-menu")(
+    unsafeRoot("dropdown-menu")(
       padding(8.px)
     )
   )

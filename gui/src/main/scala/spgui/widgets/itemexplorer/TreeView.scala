@@ -59,7 +59,7 @@ object TreeView {
           <.li(SPWidgetElements.dropdown(
             "Add Item",
             p.itemCreators.map(ic => <.div(ic._1, ^.onClick --> addItem(ic._2())))
-          ).toTagMod),
+          )),
           <.li(SPWidgetElements.button(Icon.floppyO, p.onSaveButtonClick(s.rt))),
           SPTextBox("Filter...", filter(s.rt))
         ),

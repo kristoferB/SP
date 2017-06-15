@@ -6,7 +6,7 @@ import japgolly.scalajs.react.vdom.all.aria
 
 object SPWidgetElements{
   def button(text:String, onClick: Callback): VdomNode =
-    <.a(text,
+    <.button(text,
       ^.onClick --> onClick,
       ^.className := "btn btn-default",
       ^.className := SPWidgetElementsCSS.clickable.htmlClass,
@@ -14,7 +14,7 @@ object SPWidgetElements{
     )
   
   def button(text:String, icon:VdomNode, onClick: Callback): VdomNode =
-    <.a(
+    <.button(
       text,
       icon,
       ^.onClick --> onClick,
@@ -24,7 +24,7 @@ object SPWidgetElements{
     )
   
   def button(icon: VdomNode, onClick: Callback): VdomNode =
-    <.a(icon,
+    <.button(icon,
       ^.onClick --> onClick,
       ^.className := "btn btn-default",
       ^.className := SPWidgetElementsCSS.clickable.htmlClass,
@@ -32,24 +32,27 @@ object SPWidgetElements{
     )
   
 
-  def dropdown(text: String, contents: Seq[TagMod]) = Seq(
-    <.a(
-      text,
-      Icon.caretDown,
-      VdomAttr("data-toggle") := "dropdown",
-      ^.id:="something",
-      ^.className := "nav-link dropdown-toggle",
-      aria.hasPopup := "true",
-      aria.expanded := "false",
-      ^.className := "btn btn-default",
-      ^.className := SPWidgetElementsCSS.button.htmlClass,
-      ^.className := SPWidgetElementsCSS.clickable.htmlClass
-    ),
-    <.ul(
-      contents.toTagMod,
-      ^.className := SPWidgetElementsCSS.dropDownList.htmlClass,
-      ^.className := "dropdown-menu",
-      aria.labelledBy := "something"
+  def dropdown(text: String, contents: Seq[TagMod]): VdomNode =
+    <.span(
+      ^.className:= SPWidgetElementsCSS.dropdownOuter.htmlClass,
+      ^.className:= "dropdown",
+      <.button(
+        text,
+        Icon.caretDown,
+        VdomAttr("data-toggle") := "dropdown",
+        ^.id:="something",
+        ^.className := "nav-link dropdown-toggle",
+        aria.hasPopup := "true",
+        aria.expanded := "false",
+        ^.className := "btn btn-default",
+        ^.className := SPWidgetElementsCSS.button.htmlClass,
+        ^.className := SPWidgetElementsCSS.clickable.htmlClass
+      ),
+      <.ul(
+        contents.toTagMod,
+        ^.className := SPWidgetElementsCSS.dropDownList.htmlClass,
+        ^.className := "dropdown-menu",
+        aria.labelledBy := "something"
+      )
     )
-  )
 }
