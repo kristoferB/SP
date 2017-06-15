@@ -28,17 +28,17 @@ object ChartTest {
     def render(s: State) =
       <.div(
         <.div(
-        ^.className := ChartCSS.charts.htmlClass,
-        ^.id := id,
-        <.p("Hello To Chart!!!")
+          ^.className := ChartCSS.charts.htmlClass,
+          ^.id := id,
+          <.p("Hello To Chart!!!")
         ),
         <.div(
-        ^.className := ChartCSS.charts.htmlClass,
-        ^.id := id,
-        <.div(^.id := id+"pie"),
-        <.div(^.id := id+"gantt"),
-        <.div(
-          ^.id := id+"timeline")
+          ^.className := ChartCSS.charts.htmlClass,
+          ^.id := id,
+          <.div(^.id := id+"pie"),
+          <.div(^.id := id+"gantt"),
+          <.div(
+            ^.id := id+"timeline")
         )
       )
 
@@ -71,6 +71,12 @@ object ChartTest {
         ganttData.addColumn("number", "Percent Complete") //js.Dynamic.literal(`type` = "number", id = "Percent Complete"))
         ganttData.addColumn("string", "Dependencies")     //js.Dynamic.literal(`type` = "string", id = "Dependencies"))
 
+
+        @js.native
+        trait TimelineData extends js.Object {
+          id: 
+        }
+
         val ganttRows = js.Array[js.Array[js.Any]](
           js.Array[js.Any]("2014Spring","Spring 2014", "spring", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20), null, 100, null),
           js.Array[js.Any]("2014Spring","Spring 2014", "spring", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20), null, 100, null),
@@ -86,9 +92,9 @@ object ChartTest {
         val ganttOptions = js.Dynamic.literal(title = id, height=300, width=600, gantt = js.Dynamic.literal(trackHeight = 30))
         val ganttElement = js.Dynamic.global.document.getElementById(id+"gantt")
         val gantt = new GoogleVisualization.Gantt(ganttElement)
-        gantt.draw(ganttData, ganttOptions)        
+        gantt.draw(ganttData, ganttOptions)
 
-        
+
 
         val getStartTime = new js.Date(2017, 5, 9, 6, 6, 6, 6)
 
@@ -98,7 +104,7 @@ object ChartTest {
           timelineData.addColumn("string", "Timeline Name")   //js.Dynamic.literal(`type` = "string", id = "Label Name"))
           timelineData.addColumn("date", "Start Date")        //js.Dynamic.literal(`type` = "date", id = "Start Date"))
           timelineData.addColumn("date", "End Date")          //js.Dynamic.literal(`type` = "date", id = "End Date"))
-          
+
           val timelineRows = rows
           timelineData.addRows(timelineRows)
 
@@ -110,14 +116,14 @@ object ChartTest {
         }
 
         def simpleUpdateRows(start: js.Date, end: js.Date): js.Any = {
-            js.Array[js.Array[js.Any]](
-              js.Array[js.Any]("spring", "startup",   start,   end),
-              js.Array[js.Any]("summer", "beach",     start,   end),
-              js.Array[js.Any]("autumn", "rain",      start,   end),
-              js.Array[js.Any]("winter", "snow",      start,   end),
-              js.Array[js.Any]("spring", "bloom",     start,   end),
-              js.Array[js.Any]("summer", "sun",       start,   end)
-            )
+          js.Array[js.Array[js.Any]](
+            js.Array[js.Any]("spring", "startup",   start,   end),
+            js.Array[js.Any]("summer", "beach",     start,   end),
+            js.Array[js.Any]("autumn", "rain",      start,   end),
+            js.Array[js.Any]("winter", "snow",      start,   end),
+            js.Array[js.Any]("spring", "bloom",     start,   end),
+            js.Array[js.Any]("summer", "sun",       start,   end)
+          )
         }
 
         simpleTimelineDraw(simpleUpdateRows(getStartTime, new js.Date()))

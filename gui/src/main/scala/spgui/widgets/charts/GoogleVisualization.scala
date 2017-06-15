@@ -6,10 +6,6 @@ package spgui.widgets.charts
 
 import scala.scalajs.js
 
-
-@js.native
-object GoogleChartsLoaded extends js.Object
-
 @js.native
 object GoogleVisualization extends js.Object {
   @js.native
@@ -31,3 +27,4 @@ object GoogleVisualization extends js.Object {
     def addRows(list: js.Any): Unit = js.native
   }
 }
+

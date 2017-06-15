@@ -59,7 +59,7 @@ trait Options extends js.Object {
   val colors:                     js.Array[String]  = js.native
   val enableInteractivity:        Boolean           = js.native
   val fontName:                   String            = js.native
-  val fontSize:                   String               = js.native
+  val fontSize:                   String            = js.native
   val forceIFrame:                Boolean           = js.native
   val height:                     Int               = js.native
   val optionsTimeline:            OptionsTimeline   = js.native
