@@ -27,6 +27,8 @@ import org.json4s.JsonDSL._
 import sp.gPubSub.{API_PatientEvent => api}
 import sp.gPubSub.{API_Data => dataApi}
 import datahandler.{API_Patient => patientApi}
+//import spgui.circuit.{SPGUICircuit, UpdateGlobalAttributes}
+//import japgolly.scalajs.react._
 
 
 /**
@@ -57,11 +59,15 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   def receive = {
     case "NoElvisDataFlowing" => {
       println("No updates in some time... Sending to front-end")
-      publishOnAkka(SPHeader(from = "elvisDataHandler"), api.ElvisDataFlowing(false), "elvis-data-flowing-topic")
+      publishOnAkka(SPHeader(from = "elvisDataHandler"), api.ElvisDataFlowing(false), "spevents")
     }
-    case "ElvisDataFlowing" => publishOnAkka(SPHeader(from = "elvisDataHandler"), api.ElvisDataFlowing(true), "elvis-data-flowing-topic")
+    case "ElvisDataFlowing" => {
+      publishOnAkka(SPHeader(from = "elvisDataHandler"), api.ElvisDataFlowing(true), "spevents")
+    }
     case x: List[dataApi.EricaEvent] => handleElvisData(x)
   }
+
+
 
 /**
 Initial handling of ERICA-events that came as messages on the bus.

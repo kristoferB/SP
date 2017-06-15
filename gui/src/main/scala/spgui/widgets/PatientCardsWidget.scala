@@ -196,7 +196,7 @@ object PatientCardsWidget {
     Specifies a patientCard in SVG for scalajs-react based on a Patient.
     **/
     def patientCard(p: apiPatient.Patient) = {
-      val cardScaler = 1.2
+      //val cardScaler = 1.2 // deprecated
 
       val cardHeight = 100 // change only with new graphics
       val cardWidth = 176 // change only with new graphics
@@ -216,8 +216,8 @@ object PatientCardsWidget {
       <.svg.svg( //ARTO: Skapar en <svg></svg>-tagg att fylla med objekt
         ^.key := p.careContactId,
         ^.`class` := "patient-card-canvas",
-        ^.svg.width := (cardScaler * cardWidth * 1.04).toString,
-        ^.svg.height := (cardScaler * cardHeight * 1.04).toString,
+        ^.svg.width := "20%", // 20% to get 5 cards per row.    OLD: (cardScaler * cardWidth * 1.04).toString,
+        ^.svg.height := "auto", //keeps aspect ratio for card    OLD: (cardScaler * cardHeight * 1.04).toString,
         ^.svg.viewBox := "0 0 "+ (cardWidth + 4).toString +" "+ (cardHeight + 4).toString,
         // ^.svg.transform := "scale(" + cardScaler + ")",
         ^.svg.id := p.careContactId,

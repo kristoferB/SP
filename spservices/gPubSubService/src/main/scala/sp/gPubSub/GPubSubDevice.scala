@@ -89,9 +89,9 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
 
   import com.qubit.pubsub.akka.attributes._
   val attributes = Attributes(List())
-  /**  PubSubStageBufferSizeAttribute(100),
-    PubSubStageMaxRetriesAttribute(100),
-    PubSubPublishTimeoutAttribute(10.seconds))*/
+    // PubSubStageBufferSizeAttribute(100),
+    // PubSubStageMaxRetriesAttribute(100),
+    // PubSubPublishTimeoutAttribute(10.seconds))
 
   val client = com.qubit.pubsub.client.retry.RetryingPubSubClient(com.qubit.pubsub.client.grpc.PubSubGrpcClient())
   client.createSubscription(testSubscription, testTopic)

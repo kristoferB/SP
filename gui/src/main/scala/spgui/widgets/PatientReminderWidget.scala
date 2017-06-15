@@ -192,8 +192,8 @@ object PatientReminderWidget {
       <.svg.svg( //ARTO: Skapar en <svg></svg>-tagg att fylla med objekt
         ^.key := p.careContactId,
         ^.`class` := "patient-card-canvas",
-        ^.svg.width := (cardScaler * cardWidth * 1.04).toString,
-        ^.svg.height := (cardScaler * cardHeight * 1.04).toString,
+        ^.svg.width := "100%",//(cardScaler * cardWidth * 1.04).toString,
+        ^.svg.height := "auto",//(cardScaler * cardHeight * 1.04).toString,
         ^.svg.viewBox := "0 0 "+ (cardWidth + 4).toString +" "+ (cardHeight + 4).toString,
         // ^.svg.transform := "scale(" + cardScaler + ")",
         ^.svg.id := p.careContactId,
