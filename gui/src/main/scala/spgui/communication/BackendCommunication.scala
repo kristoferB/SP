@@ -139,7 +139,8 @@ object BackendCommunication {
 
   def getWebsocketUri(topic: String): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}/socket/$topic/$id"
+    val url = dom.document.location.host.replace("/#", "")
+    s"$wsProtocol://${url}/socket/$topic/$id"
 
   }
 
