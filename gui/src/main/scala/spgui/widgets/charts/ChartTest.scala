@@ -102,7 +102,7 @@ object ChartTest {
           val timelineRows = rows
           timelineData.addRows(timelineRows)
 
-          val timelineOptions = Options("Timeline", 300,600, 14)
+          val timelineOptions = Options("Timeline", 300,600,"43")
 
           val timelineElement = js.Dynamic.global.document.getElementById(id+"timeline")
           val timeline = new GoogleVisualization.Timeline(timelineElement)
@@ -223,7 +223,7 @@ trait Options extends js.Object {
   val colors:                     js.Array[String]  = js.native
   val enableInteractivity:        Boolean           = js.native
   val fontName:                   String            = js.native
-  val fontSize:                   Int               = js.native
+  val fontSize:                   String               = js.native
   val forceIFrame:                Boolean           = js.native
   val height:                     Int               = js.native
   val optionsTimeline:            OptionsTimeline   = js.native
@@ -240,7 +240,7 @@ object Options {
     width:                      Int,   
 
     // how to get colors and fontSize automatically???            
-    fontSize:                   Int,
+    fontSize:                   String = "automatic",
     colors:                     js.Array[String] = null,
 
     avoidOverlappingGridLines:  Boolean   = true,           
