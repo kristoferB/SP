@@ -362,7 +362,8 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
   override def postStop(): Unit = {
     materializer.shutdown()
 
-    res.map(_.stopAsync())
+    //res.map(_.stopAsync())
+    res.stopAsync()
 
     println("OFF")
   }
