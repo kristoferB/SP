@@ -73,7 +73,7 @@ class DataAggregation {
         careContactId.toInt,
         getNow.toString
       )
-      departmentCommentEvent :: ericaEvents
+      ericaEvents = departmentCommentEvent :: ericaEvents
     }
     if (locationJson != JNothing && locationJson.values.toString != "None") {
       location = locationJson.values.toString
@@ -88,7 +88,7 @@ class DataAggregation {
         careContactId.toInt,
         getNow.toString
       )
-      locationEvent :: ericaEvents
+      ericaEvents = locationEvent :: ericaEvents
     }
     if (reasonForVisitJson != JNothing && reasonForVisitJson.values.toString != "None") {
       reasonForVisit = reasonForVisitJson.values.toString
@@ -103,7 +103,7 @@ class DataAggregation {
         careContactId.toInt,
         getNow.toString
       )
-      reasonForVisitEvent :: ericaEvents
+      ericaEvents = reasonForVisitEvent :: ericaEvents
     }
     if (teamJson != JNothing && teamJson.values.toString != "None") {
       team = teamJson.values.toString
@@ -118,7 +118,7 @@ class DataAggregation {
         careContactId.toInt,
         getNow.toString
       )
-      teamEvent :: ericaEvents
+      ericaEvents = teamEvent :: ericaEvents
     }
 
     // Handle new events

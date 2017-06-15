@@ -413,23 +413,29 @@ trait DiffMagic {
 
 
   def diffPat(curr: api.ElvisPatient, old: Option[api.ElvisPatient]) = {
-    old.map {
-      case prev: api.ElvisPatient => {
-        (Map(
-          "CareContactId" -> Some(Extraction.decompose(curr.CareContactId)),
-          "CareContactRegistrationTime" -> diffThem(prev.CareContactRegistrationTime, curr.CareContactRegistrationTime),
-          "DepartmentComment" -> diffThem(prev.DepartmentComment, curr.DepartmentComment),
-          "Location" -> diffThem(prev.Location, curr.Location),
-          "PatientId" -> Some(Extraction.decompose(curr.PatientId)),
-          "ReasonForVisit" -> diffThem(prev.ReasonForVisit, curr.ReasonForVisit),
-          "Team" -> diffThem(prev.Team, curr.Team),
-          "VisitId" -> diffThem(prev.VisitId, curr.VisitId),
-          "VisitRegistrationTime" -> diffThem(prev.VisitRegistrationTime, curr.VisitRegistrationTime),
-          "timestamp" -> Some(Extraction.decompose(getNowString))
-        ).filter(kv=> kv._2 != None).map(kv=> kv._1 -> kv._2.get),
-          curr.Events.filterNot(prev.Events.contains),
-          prev.Events.filterNot(curr.Events.contains))
-      }
+    old.map { prev => {
+      newLocation(curr, old)
+      (Map(
+        "CareContactId" -> Some(Extraction.decompose(curr.CareContactId)),
+        "CareContactRegistrationTime" -> diffThem(prev.CareContactRegistrationTime, curr.CareContactRegistrationTime),
+        "DepartmentComment" -> diffThem(prev.DepartmentComment, curr.DepartmentComment),
+        "Location" -> diffThem(prev.Location, curr.Location),
+        "PatientId" -> Some(Extraction.decompose(curr.PatientId)),
+        "ReasonForVisit" -> diffThem(prev.ReasonForVisit, curr.ReasonForVisit),
+        "Team" -> diffThem(prev.Team, curr.Team),
+        "VisitId" -> diffThem(prev.VisitId, curr.VisitId),
+        "VisitRegistrationTime" -> diffThem(prev.VisitRegistrationTime, curr.VisitRegistrationTime),
+        "timestamp" -> Some(Extraction.decompose(getNowString))
+      ).filter(kv=> kv._2 != None).map(kv=> kv._1 -> kv._2.get),
+        curr.Events.filterNot(prev.Events.contains),
+        prev.Events.filterNot(curr.Events.contains))
+    }
+    }
+  }
+
+  def newLocation(curr: api.ElvisPatient, old: Option[api.ElvisPatient]) = {
+    old.foreach{o =>
+      if (curr.Location != o.Location) println("PATIENT MOVED: " + o.Location +" -> "+ curr.Location )
     }
   }
 
