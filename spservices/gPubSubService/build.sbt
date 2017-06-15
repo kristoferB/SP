@@ -1,5 +1,5 @@
-libraryDependencies += "com.qubit" % "akka-cloudpubsub_2.11" % "1.0.0"
-libraryDependencies += "com.google.guava" % "guava" % "20.0"
+//libraryDependencies += "com.qubit" % "akka-cloudpubsub_2.11" % "1.0.0"
+//libraryDependencies += "com.google.guava" % "guava" % "20.0"
 
 
 
@@ -25,6 +25,7 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-http-core" % "10.0.3",
     "com.typesafe.akka" %% "akka-http" % "10.0.3",
     "com.typesafe.akka" %% "akka-http-testkit" % "10.0.3",
-    "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.1"
+    "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.1",
+    "com.google.cloud" % "google-cloud" % "0.19.0-alpha"
   )
 }
