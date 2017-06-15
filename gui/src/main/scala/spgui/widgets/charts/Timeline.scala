@@ -46,6 +46,8 @@ object Timeline {
 
     // Handles start-events for a cycle
     def handleStart(s: State) = ???
+
+    
   }
 
   // Create a value component of type:
