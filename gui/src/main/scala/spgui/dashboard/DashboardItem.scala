@@ -10,7 +10,7 @@ import spgui.components.{Icon,SPButton}
 
 object DashboardItem {
   case class Props(element: ReactElement, widgetType: String, id: java.util.UUID)
-  case class State(hiddenMenuBar: Boolean = false)
+  case class State(hiddenMenuBar: Boolean = true)
 
 class DashboardItemBackend($: BackendScope[Props, State]){
     def ToggleMenuBar(e :ReactEventI): CallbackTo[Unit] = { //ugly..
