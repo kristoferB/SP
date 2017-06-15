@@ -107,7 +107,7 @@ trait Helpers2 {
     val cRes = if (cond.isEmpty) AlwaysTrue else c(cond).get
     val aRes = a(actions)
 
-    Condition(cRes, aRes)
+    PropositionCondition(cRes, aRes)
   }
 
 

@@ -3,7 +3,7 @@ package spgui.dashboard
 import java.util.UUID
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.vdom.prefix_<^._
 import diode.react.ModelProxy
 
 import scalajs.js.Dynamic
@@ -11,8 +11,6 @@ import scalajs.js.JSON
 import spgui.SPWidgetBase
 import spgui.circuit._
 import spgui.WidgetList
-
-import spgui.dashboard.{ ResponsiveReactGridLayout => RRGL }
 
 object Dashboard {
   case class Props(proxy: ModelProxy[(Map[UUID, OpenWidget], GlobalState)])
@@ -23,37 +21,35 @@ object Dashboard {
       val widgets = for {
         openWidget <- p.proxy()._1.values if WidgetList.map.contains(openWidget.widgetType)
       } yield {
-
         val frontEndState = p.proxy()._2
 
-        val layoutElement = RRGL.LayoutElement(
+        ReactGridLayoutItem(
+          key = openWidget.id.toString,
           i = openWidget.id.toString,
           x = openWidget.layout.x,
           y = openWidget.layout.y,
           w = openWidget.layout.w,
           h = openWidget.layout.h,
           isDraggable = true,
-          isResizable = true
-        )
-
-        <.div(
-          DashboardItem(
+          isResizable = true,
+          child = DashboardItem(
             WidgetList.map(openWidget.widgetType)._1(
-              SPWidgetBase(openWidget.id, frontEndState)
+              SPWidgetBase(
+                openWidget.id,
+                frontEndState
+              )
             ),
             openWidget.widgetType,
             openWidget.id
-          ),
-          ^.key := openWidget.id.toString,
-          VdomAttr("data-grid") := layoutElement
+          )
         )
       }
 
-      val rg = RRGL(
+      val rg = ReactGridLayout(
         width = 1920,
         draggableHandle = "." + DashboardCSS.widgetPanelHeader.htmlClass,
         onLayoutChange = layout => {
-          layout.asInstanceOf[RRGL.Layout].foreach(
+          layout.asInstanceOf[LayoutData].foreach(
             g => {
               p.proxy()._1.values.toList.foreach(widget => if (widget.id.toString == g.i) {
                 val newLayout = WidgetLayout(g.x, g.y, g.w, g.h)
@@ -62,8 +58,10 @@ object Dashboard {
             }
           )
         },
-        children = widgets.toVdomArray
+        children = widgets
       )
+
+
 
       <.div(
         rg
@@ -71,7 +69,7 @@ object Dashboard {
     }
   }
 
-  private val component = ScalaComponent.builder[Props]("Dashboard")
+  private val component = ReactComponentB[Props]("Dashboard")
     .renderBackend[Backend]
     .build
 

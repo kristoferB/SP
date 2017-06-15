@@ -1,7 +1,7 @@
 package spgui.widgets.injection
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -10,10 +10,10 @@ import spgui.SPWidget
 
 object WidgetInjectionTest {
 
-  case class State(component: VdomElement)
+  case class State(component: ReactElement)
 
   class Backend($: BackendScope[Unit, State]) {
-    def changeState(element: VdomElement): Callback = $.setState(State(element))
+    def changeState(element: ReactElement): Callback = $.setState(State(element))
     def render(s: State) =
       <.div(
         s.component,
@@ -45,11 +45,11 @@ object WidgetInjectionTest {
     "To replace it with sp-simple-widget, a component unknown to this app so far, " +
     "serve it with http-server -p 8080 --cors sp-example-widget/ " +
     "(having installed it with npm install http-server -g), then press fetch."
-  private val PlaceholderComp = ScalaComponent.builder[Unit]("PlaceholderComp")
+  private val PlaceholderComp = ReactComponentB[Unit]("PlaceholderComp")
     .render(_ => <.h4(placeholderText))
     .build
 
-  private val component = ScalaComponent.builder[Unit]("WidgetInjectionTest")
+  private val component = ReactComponentB[Unit]("WidgetInjectionTest")
     .initialState(State(PlaceholderComp()))
     .renderBackend[Backend]
     .build

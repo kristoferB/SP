@@ -1,16 +1,16 @@
 package spgui.menu
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.vdom.prefix_<^._
 
 import org.scalajs.dom._
 
 object NavBar {
   case class Props (
-    navItems: Option[Seq[VdomNode]] = None
+    navItems: Option[Seq[ReactNode]] = None
   )
 
-  private val component = ScalaComponent.builder[Props]("WidgetItem")
+  private val component = ReactComponentB[Props]("WidgetItem")
   .render_P(p =>
     <.div(
       <.div(
@@ -23,11 +23,11 @@ object NavBar {
         ^.id := "navbar-collapse-id",
         ^.className := "collapse navbar-collapse",
         ^.className := "nav navbar-nav",
-        p.navItems.get.toTagMod
+        p.navItems
       )
     )
   ).build
 
-  def apply(navItems:Seq[VdomNode]) = component(Props(Some(navItems)))
+  def apply(navItems:Seq[ReactNode]) = component(Props(Some(navItems)))
 
 }

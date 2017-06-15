@@ -68,10 +68,10 @@ package APIAbilityHandler {
 
   case class Ability(name: String,
                      id: ID,
-                     preCondition: Condition = Condition(AlwaysFalse, List()),
-                     started: Condition = Condition(AlwaysFalse, List()),
-                     postCondition: Condition = Condition(AlwaysTrue, List()),
-                     resetCondition: Condition = Condition(AlwaysTrue, List()),
+                     preCondition: PropositionCondition = PropositionCondition(AlwaysFalse, List()),
+                     started: PropositionCondition = PropositionCondition(AlwaysFalse, List()),
+                     postCondition: PropositionCondition = PropositionCondition(AlwaysTrue, List()),
+                     resetCondition: PropositionCondition = PropositionCondition(AlwaysTrue, List()),
                      parameters: List[ID] = List(),
                      result: List[ID] = List(),
                      attributes: SPAttributes = SPAttributes())
@@ -80,4 +80,9 @@ package APIAbilityHandler {
   object attributes {
     val service = "abilityHandler"
   }
+}
+
+object AbilityComm {
+  def extractVDReply(mess: SPMessage) = fromSPValue[APIVirtualDevice.Replies](mess.body)
+  def extractAbilityReply(mess: SPMessage) = fromSPValue[APIAbilityHandler.Response](mess.body)
 }

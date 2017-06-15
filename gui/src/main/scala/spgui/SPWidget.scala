@@ -1,7 +1,7 @@
 package spgui
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scala.util.Try
 import spgui.circuit._
@@ -36,20 +36,20 @@ case class SPWidgetBase(id: UUID, frontEndState: GlobalState) {
 }
 
 object SPWidget {
-  case class Props(spwb: SPWidgetBase, renderWidget: SPWidgetBase => VdomElement)
-  private val component = ScalaComponent.builder[Props]("SpWidgetComp")
+  case class Props(spwb: SPWidgetBase, renderWidget: SPWidgetBase => ReactElement)
+  private val component = ReactComponentB[Props]("SpWidgetComp")
     .render_P(p => p.renderWidget(p.spwb))
     .build
 
-  def apply(renderWidget: SPWidgetBase => VdomElement): SPWidgetBase => VdomElement =
-    spwb => component(Props(spwb, renderWidget))
+  def apply(renderWidget: SPWidgetBase => ReactElement) =
+    (spwb: SPWidgetBase) => component(Props(spwb, renderWidget))
 }
 
 
 object SPWidgetBaseTest {
   import sp.messages.Pickles._
   def apply() = SPWidget{spwb =>
-    def saveOnChange(e: ReactEventFromInput): Callback =
+    def saveOnChange(e: ReactEventI): Callback =
       Callback(spwb.updateWidgetData(*(e.target.value)))
 
     def copyMe(): Callback = {

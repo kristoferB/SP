@@ -1,13 +1,12 @@
 package spgui.widgets.itemeditor
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.vdom.prefix_<^._
 import scalacss.ScalaCssReact._
 import scalajs.js
 import js.Dynamic.{ literal => l }
 
 import spgui.SPWidgetBase
-import spgui.SPWidget
 import sp.domain.SPValue
 // TODO: function to convert SPValue to JSONEditor-props
 
@@ -50,10 +49,10 @@ object ItemEditor {
     "id" -> "this-should-be-an-uuid"
   )
 
-  private val component = ScalaComponent.builder[SPWidgetBase]("ItemEditor")
+  private val component = ReactComponentB[SPWidgetBase]("ItemEditor")
     //.render_P(p => <.div(ItemEditorCSS.editor, JSONEditor(p.getWidgetData)))
     .render_P(p => <.div(ItemEditorCSS.editor, JSONEditor(jsonEditorOptions, json)))
     .build
 
-  def apply() = SPWidget(spwb => component(spwb))
+  def apply() = (spwb: SPWidgetBase) => component(spwb)
 }

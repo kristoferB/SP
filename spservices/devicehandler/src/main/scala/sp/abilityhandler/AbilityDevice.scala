@@ -378,7 +378,7 @@ trait AbilityLogic {
       a.parameters ++ a.result
   }
 
-  def extractVariables(p: Condition) = {
+  def extractVariables(p: PropositionCondition) = {
     fromGuard(p.guard) ++ fromAction(p.action)
   }
 

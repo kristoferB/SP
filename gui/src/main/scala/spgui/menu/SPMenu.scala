@@ -1,7 +1,7 @@
 package spgui.menu
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.vdom.prefix_<^._
 import org.scalajs.dom._
 
 import spgui.components.SPButton
@@ -9,13 +9,16 @@ import spgui.circuit.{CloseAllWidgets, SPGUICircuit, UpdateGlobalAttributes}
 
 import spgui.communication.BackendCommunication
 import spgui.widgets.{API_Patient, API_PatientEvent, ToAndFrom}
-import spgui.circuit.{CloseAllWidgets, SPGUICircuit}
 import sp.domain._
 import sp.messages.Pickles._
 
+
 object SPMenu {
-  private val component = ScalaComponent.builder[Unit]("SPMenu")
-    .render(_ =>
+  val storage = SPGUICircuit.connect(x => (x.openWidgets.xs, x.globalState))
+  val flowStorage = SPGUICircuit.connect(x => (x.openWidgets.xs, x.globalState))
+
+  private val component = ReactComponentB[Unit]("SPMenu")
+  .render(_ =>
     <.nav(
       ^.className := "navbar navbar-default",
       ^.className := SPMenuCSS.topNav.htmlClass,
@@ -82,11 +85,12 @@ object SPMenu {
       )
     ) else (
       <.div(^.className := "notifier-not-shown")
-      )
     )
-  ).build
+  }
 
-val messObs = BackendCommunication.getMessageObserver(
+
+
+  val messObs = BackendCommunication.getMessageObserver(
     mess => {
       ToAndFrom.eventBody(mess).map {
         case API_PatientEvent.ElvisDataFlowing(_) => {
@@ -127,12 +131,12 @@ val messObs = BackendCommunication.getMessageObserver(
       )
     }
 
-  private val spLogo:VdomNode = (
-    <.div(
-      ^.className := SPMenuCSS.splogoContainer.htmlClass,
+    private val spLogo:ReactNode = (
       <.div(
-        ^.className := SPMenuCSS.spLogo.htmlClass
-      )
-    ))
-  def apply() = component()
-}
+        ^.className := SPMenuCSS.splogoContainer.htmlClass,
+        <.div(
+          ^.className := SPMenuCSS.spLogo.htmlClass
+        )
+      ))
+      def apply() = component()
+    }

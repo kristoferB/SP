@@ -8,6 +8,6 @@ import scala.scalajs.js.annotation.JSExport
 object Main extends JSApp {
   @JSExport
   override def main(): Unit = {
-    Layout().renderIntoDOM(document.getElementById("spgui-root"))
+    ReactDOM.render(Layout(), document.getElementById("spgui-root"))
   }
 }

@@ -10,11 +10,11 @@ object Logic extends
   OperationLogics with
   ThingLogics with
   PropositionConditionLogics with
-  StructLogics
+  HierarchyLogics
 
 object LogicNoImplicit extends
   StateLogics with
   OperationLogics with
   ThingLogics with
   PropositionConditionLogics with
-  StructLogics
+  HierarchyLogics

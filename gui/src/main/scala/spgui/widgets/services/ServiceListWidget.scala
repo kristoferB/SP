@@ -2,7 +2,7 @@ package spgui.widgets.services
 
 import java.util.UUID
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.vdom.prefix_<^._
 import spgui.communication._
 import sp.domain._
 import sp.messages._
@@ -60,7 +60,7 @@ object ServiceListWidget {
               <.td(s.api.toString()),
               <.td(s.version)
             )
-          }).toTagMod
+          })
         )
       )
     }
@@ -87,7 +87,7 @@ object ServiceListWidget {
 
   }
 
-  private val component = ScalaComponent.builder[Unit]("AbilityHandlerWidget")
+  private val component = ReactComponentB[Unit]("AbilityHandlerWidget")
     .initialState(State(services = List()))
     .renderBackend[Backend]
     .componentDidMount(_.backend.onMount())

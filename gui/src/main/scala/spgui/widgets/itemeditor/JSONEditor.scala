@@ -1,7 +1,7 @@
 package spgui.widgets.itemeditor
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.vdom.prefix_<^._
 import scalacss.ScalaCssReact._
 
 import sp.domain.SPValue
@@ -16,8 +16,8 @@ import org.scalajs.dom.raw
 object JSONEditor {
   case class Props(options: JSONEditorOptions, json: js.Object)
 
-  val component = ScalaComponent.builder[Props]("JSONEditor")
-    .initialStateFromProps(p => JSONEditorElement(p.options, p.json))
+  val component = ReactComponentB[Props]("JSONEditor")
+    .initialState_P(p => JSONEditorElement(p.options, p.json))
     .render(dcb => dcb.state)
     .build
 
@@ -27,7 +27,7 @@ object JSONEditor {
 object JSONEditorElement {
   case class Props(options: JSONEditorOptions, json: js.Object)
 
-  def component = ScalaComponent.builder[Props]("JSONEditorElement")
+  def component = ReactComponentB[Props]("JSONEditorElement")
     .render(_ => <.div(ItemEditorCSS.editor))
     .componentDidMount(
       dcb => Callback(addTheJSONEditor(dcb.getDOMNode, dcb.props.options, dcb.props.json))

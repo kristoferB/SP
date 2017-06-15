@@ -84,8 +84,8 @@ object BackendCommunication {
   def getWebSocketErrorsCB(callBack: (String) => Unit, topic: String = "answers" ): rx.Obs = {
     getWebSocketErrors(topic).foreach(callBack)
   }
-  def getWebSocketStatusCB(callBack: (Boolean) => Unit, topic: String = "answers"): rx.Obs = {
-    getWebSocketStatus(topic).foreach(callBack)
+  def getWebSocketStatusCB(topic: String = "answers") = {
+    getWebSocketStatus(topic)
   }
 
   def getMessageVar(topic: String = "answers"): rx.Var[SPMessage] = {

@@ -13,8 +13,9 @@ import scala.util.Try
 package object domain {
 
   type SPAttributes = JObject
+  //val SPAttributes = JObject
   type SPValue = JValue
-  type ID = java.util.UUID
+  //val SPValue = JValue
 
   type ID = java.util.UUID
 

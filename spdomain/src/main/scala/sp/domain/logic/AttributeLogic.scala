@@ -18,12 +18,15 @@ object AttributeLogic extends AttributeLogics {
 trait AttributeLogics {
   import JsonLogic._
   import sp.domain.ID
+  //implicit val f = jsonFormats
 
   implicit def strToJ(x: String): JValue = JString(x)
   implicit def intToJ(x: Int): JValue = JInt(x)
   implicit def boolToJ(x: Boolean): JValue = JBool(x)
   implicit def doubleToJ(x: Double): JValue = JDouble(x)
   implicit def idToJ(x: ID): JValue = JString(x.toString())
+//  implicit def pairToSPAttr(p: (String, Any))(implicit formats : org.json4s.Formats): SPAttributes =
+//    SPAttributes(p._1->Extraction.decompose(p._2))
 
 
   implicit class valueLogic(value: SPValue) {
@@ -37,7 +40,20 @@ trait AttributeLogics {
     def toJson = org.json4s.native.JsonMethods.compact(render(value))
   }
 
+//  implicit class pairAttr(p: (String, Any))(implicit formats : org.json4s.Formats) {
+//    val k = p._1
+//    val v = Extraction.decompose(p._2)
+//    def + : SPAttributes = {
+//      val res = List(k->v)
+//      SPAttributes(res)
+//    }
+//    def +(p2: (String, Any)): SPAttributes = {
+//      val res = List(k->v, p2._1->Extraction.decompose(p2._2))
+//      SPAttributes(res)
+//    }
+//  }
 
+  // TODO: WE must update these names and improve the API 150916
   implicit class messLogic(x: SPAttributes) {
     val obj = x.obj
     def addTimeStamp = {
