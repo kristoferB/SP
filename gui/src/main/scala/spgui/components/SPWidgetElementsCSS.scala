@@ -21,9 +21,8 @@ object SPWidgetElementsCSS extends StyleSheet.Inline {
     //top.unset
   )
 
-  val dropdownOuter = style(
-    display.inlineBlock
-  )
+  val dropdownOuter = style(display.inlineBlock)
+  val textIconClearance = style(marginRight(6.px) )
 
   val clickable = style(
     cursor.pointer,

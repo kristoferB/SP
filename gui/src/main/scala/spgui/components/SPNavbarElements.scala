@@ -13,7 +13,8 @@ object SPNavbarElements{
     )
   
   def button(text:String, icon:VdomNode, onClick: Callback): VdomNode =
-    <.a(text,
+    <.a(
+      <.span(text, ^.className:= SPWidgetElementsCSS.textIconClearance.htmlClass),
       icon,
       ^.onClick --> onClick,
       ^.className := SPNavbarElementsCSS.clickable.htmlClass,
@@ -29,7 +30,7 @@ object SPNavbarElements{
   def dropdown(text: String, contents: Seq[TagMod]): VdomElement =
     <.li(
       <.a(
-        text,
+        <.span(text, ^.className:= SPWidgetElementsCSS.textIconClearance.htmlClass),
         Icon.caretDown,
         VdomAttr("data-toggle") := "dropdown",
         ^.id:="something",

@@ -22,6 +22,10 @@ object ComponentTest {
             (<.li("hello1", ^.onClick --> Callback(println(None)))),
             (<.li("hello2", ^.onClick --> Callback(println("triple, explicit hello"))))
           )
+        ),
+        SPTextBox(
+          "I am the default text",
+          (e => Callback(println("Text contents changed to: " + e)))
         )
       )
   }

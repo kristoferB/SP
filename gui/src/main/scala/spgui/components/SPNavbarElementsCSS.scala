@@ -16,10 +16,11 @@ object SPNavbarElementsCSS extends StyleSheet.Inline {
     //backgroundColor(rgb(255,0,0))
   )
 
+  val textIconClearance = style(marginRight(6.px) )
+
   val dropDownList = style(
     top.unset
   )
-
   val clickable = style(
     cursor.pointer,
     userSelect:= "none",

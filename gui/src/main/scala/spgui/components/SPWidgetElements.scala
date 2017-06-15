@@ -15,7 +15,7 @@ object SPWidgetElements{
   
   def button(text:String, icon:VdomNode, onClick: Callback): VdomNode =
     <.button(
-      text,
+      <.span(text, ^.className:= SPWidgetElementsCSS.textIconClearance.htmlClass),
       icon,
       ^.onClick --> onClick,
       ^.className := "btn btn-default",
@@ -31,13 +31,12 @@ object SPWidgetElements{
       ^.className := SPWidgetElementsCSS.button.htmlClass
     )
   
-
   def dropdown(text: String, contents: Seq[TagMod]): VdomNode =
     <.span(
       ^.className:= SPWidgetElementsCSS.dropdownOuter.htmlClass,
       ^.className:= "dropdown",
       <.button(
-        text,
+        <.span(text, ^.className:= SPWidgetElementsCSS.textIconClearance.htmlClass),
         Icon.caretDown,
         VdomAttr("data-toggle") := "dropdown",
         ^.id:="something",
