@@ -6,7 +6,7 @@ object ChartCSS extends StyleSheet.Inline {
   import dsl._
 
   val charts = style(
-    backgroundColor.rgb(0, 128, 0)
+    backgroundColor(rgb(0, 180, 0))
   )
 
   this.addToDocument()

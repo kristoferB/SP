@@ -27,11 +27,19 @@ object ChartTest {
 
     def render(s: State) =
       <.div(
+        <.div(
+        ^.className := ChartCSS.charts.htmlClass,
+        ^.id := id,
+        <.p("Hello To Chart!!!")
+        ),
+        <.div(
         ^.className := ChartCSS.charts.htmlClass,
         ^.id := id,
         <.div(^.id := id+"pie"),
         <.div(^.id := id+"gantt"),
-        <.div(^.id := id+"timeline")
+        <.div(
+          ^.id := id+"timeline")
+        )
       )
 
     def onMount() = {

@@ -7,20 +7,19 @@ import spgui.SPWidget
 import spgui.components.DragAndDrop.{ OnDragMod, OnDropMod }
 
 object DragAndDrop {
-  private case class Props(
+  private case class State(
     name: String,
     mailbox: String
-  )
+                          )
 
-  private class MyBackend($: BackendScope[Unit, Props]) {
-
-    def handleDrag(s: Props)(e: ReactDragEventI): Callback = {
+  private class MyBackend($: BackendScope[Unit, State]) {
+    def handleDrag(s: State)(e: ReactDragEventI): Callback = {
       Callback({
         e.dataTransfer.setData("json", s.name)
       })
     }
 
-    def handleDrop(s: Props)(e: ReactDragEvent): Callback = {
+    def handleDrop(s: State)(e: ReactDragEvent): Callback = {
       $.setState(
         s.copy(
           mailbox = e.dataTransfer.getData("json")
@@ -28,12 +27,12 @@ object DragAndDrop {
       )
     }
     
-    def handleNameChange(s: Props)(e: ReactEventI) =
+    def handleNameChange(s: State)(e: ReactEventI) =
       $.setState(s.copy(
         name = e.target.value
       ))
 
-    def render(s: Props) =
+    def render(s: State) =
       <.div(
         "name:",
         <.input(
@@ -58,7 +57,7 @@ object DragAndDrop {
 
   private val component = ReactComponentB[Unit]("DragAndDrop")
     .initialState(
-    Props(
+    State(
       name = "default",
       mailbox = "no mail yet"
     )
