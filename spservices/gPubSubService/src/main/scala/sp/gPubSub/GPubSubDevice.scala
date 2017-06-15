@@ -48,9 +48,9 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
   implicit val system = context.system
 
 
-  val project = "intelligentaakuten-158811"
+  val project = "double-carport-162512"
   val topic = "erica-snap"
-  val subscription = "snapper"
+  val subscription = "snapper_temp"
 
 
 
