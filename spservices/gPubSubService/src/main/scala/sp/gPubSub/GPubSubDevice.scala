@@ -307,7 +307,7 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
        if (newEvents.nonEmpty){
          val eventsJson = write(newEvents)
          persist(eventsJson) { events =>
-           state = newEvents ++ state
+           state = state ++ newEvents
            state = filterOldEvents(state)
            newEvents.foreach(println)
            println("number of events: " + state.size)
@@ -329,7 +329,8 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
   def filterOldEvents(ev: List[api.EricaEvent]) = {
     val threeDaysAgo = getNow.minusDays(3)
     val reEv = ev.filter(e => isAfter(e, threeDaysAgo))
-    ev.sortWith(isLatest)
+    //reEv.sortWith(isLatest)
+    reEv
   }
 
   //val test = s via toJsonString via jsonToList via makeDiff runWith(mediatorSink)
