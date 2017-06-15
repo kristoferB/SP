@@ -111,26 +111,45 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
 
 
   println("starting pubSub")
-  deleteSubscription(subscription)
-  val subTry = createSubscription(topic, subscription)
-  val res = subTry.map{s =>
+  //deleteSubscription(subscription)
+  //val subTry = createSubscription(topic, subscription)
+//  val res = subTry.map{s =>
+//
+//    import com.google.cloud.pubsub.spi.v1.AckReplyConsumer
+//    import com.google.cloud.pubsub.spi.v1.MessageReceiver
+//    import com.google.pubsub.v1.PubsubMessage
+//    val receiver = new MessageReceiver() {
+//      override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
+//        self ! APubSubMess(message)
+//        consumer.ack()
+//      }
+//    }
+//
+//    val subscriptionName = SubscriptionName.create(project, "snapper")
+//    //Subscriber.defaultBuilder(s.getNameAsSubscriptionName, receiver).build()
+//    Subscriber.defaultBuilder(subscriptionName, receiver).build()
+//
+//  }
+//
+//  res.map(_.startAsync())
 
-    import com.google.cloud.pubsub.spi.v1.AckReplyConsumer
-    import com.google.cloud.pubsub.spi.v1.MessageReceiver
-    import com.google.pubsub.v1.PubsubMessage
-    val receiver = new MessageReceiver() {
-      override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
-        self ! APubSubMess(message)
-        consumer.ack()
-      }
+
+  import com.google.cloud.pubsub.spi.v1.AckReplyConsumer
+  import com.google.cloud.pubsub.spi.v1.MessageReceiver
+  import com.google.pubsub.v1.PubsubMessage
+  val receiver = new MessageReceiver() {
+    override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
+      self ! APubSubMess(message)
+      consumer.ack()
     }
-
-    Subscriber.defaultBuilder(s.getNameAsSubscriptionName, receiver).build()
-
   }
 
-  res.map(_.startAsync())
+  val subscriptionName = SubscriptionName.create(project, "snapper")
+  //Subscriber.defaultBuilder(s.getNameAsSubscriptionName, receiver).build()
+  val res = Subscriber.defaultBuilder(subscriptionName, receiver).build()
 
+  println("starting")
+  res.startAsync()
 
 
 
