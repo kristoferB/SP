@@ -418,7 +418,12 @@ trait DiffMagic {
           "CareContactId" -> Some(Extraction.decompose(curr.CareContactId)),
           "CareContactRegistrationTime" -> diffThem(prev.CareContactRegistrationTime, curr.CareContactRegistrationTime),
           "DepartmentComment" -> diffThem(prev.DepartmentComment, curr.DepartmentComment),
-          "Location" -> diffThem(prev.Location, curr.Location),
+          "Location" -> {
+            val res = diffThem(prev.Location, curr.Location)
+            if (res.nonEmpty) println("patient moved: " + prev.Location +" -> "+curr.Location)
+            if (prev.Location.isEmpty && curr.Location.nonEmpty) println("prev loc empty: " + prev.Location +" -> "+curr.Location)
+            res
+          },
           "PatientId" -> Some(Extraction.decompose(curr.PatientId)),
           "ReasonForVisit" -> diffThem(prev.ReasonForVisit, curr.ReasonForVisit),
           "Team" -> diffThem(prev.Team, curr.Team),
