@@ -12,7 +12,7 @@ object Logic extends
   OperationLogics with
   ThingLogics with
   PropositionConditionLogics with
-  HierarchyLogics with
+  StructLogics with
   JsonImplicit
 
 object LogicNoImplicit extends
@@ -22,4 +22,4 @@ object LogicNoImplicit extends
   OperationLogics with
   ThingLogics with
   PropositionConditionLogics with
-  HierarchyLogics
+  StructLogics

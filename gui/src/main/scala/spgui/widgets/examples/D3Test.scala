@@ -1,7 +1,7 @@
 package spgui.widgets.examples
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.ReactDOM
 
 import spgui.SPWidget
@@ -10,6 +10,9 @@ import org.singlespaced.d3js.d3
 import org.singlespaced.d3js.Ops._
 import org.scalajs.dom.raw
 import util.Random.nextInt
+import scalajs.js.JSConverters._
+
+import spgui.components.SPButton
 
 import spgui.components.SPButton
 
@@ -18,7 +21,7 @@ object D3Example {
     component()
   }
 
-  private val component = ReactComponentB[Unit]("D3Example")
+  private val component = ScalaComponent.builder[Unit]("D3Example")
     .initialState(List.fill(8)(nextInt(50)))
     .render{dcb =>
       <.div(
@@ -33,9 +36,9 @@ object D3Example {
 object D3BarsComponent {
   def apply(data: List[Int]) = component(data)
 
-  private val component = ReactComponentB[List[Int]]("d3DivComponent")
+  private val component = ScalaComponent.builder[List[Int]]("d3DivComponent")
     .render(_ => <.div())
-    .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentProps)))
+    .componentDidUpdate(ctx => Callback(addTheD3(ctx.getDOMNode, ctx.currentProps)))
     .build
 
   private def addTheD3(element: raw.Element, list: List[Int]): Unit = {
@@ -57,7 +60,7 @@ object D3BarsComponent {
     // to let react take care of the rerendering, rather than d3 itself
     d3.select(element).selectAll("*").remove()
     val svg = d3.select(element).append("svg").attr("width", "100%").attr("height", "220")
-    val sel = svg.selectAll("rect").data(list.toJsArray)
+    val sel = svg.selectAll("rect").data(list.toJSArray)
 
     sel.enter()
       .append("rect")

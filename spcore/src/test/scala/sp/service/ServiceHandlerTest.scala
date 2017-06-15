@@ -53,14 +53,14 @@ class ServiceHandlerTest(_system: ActorSystem) extends TestKit(_system) with Imp
 
       val s1 = APISP.StatusResponse(
       service = "s1",
-      instanceID = Some(ID.newID),
+      instanceID = ID.newID,
         instanceName = "s1_1",
         tags = List("test", "1")
       )
 
       val s2 = APISP.StatusResponse(
         service = "s2",
-        instanceID = Some(ID.newID),
+        instanceID = ID.newID,
         instanceName = "s2_1",
         tags = List("test", "2")
       )

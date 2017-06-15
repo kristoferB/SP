@@ -6,121 +6,125 @@ import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 import scala.concurrent.duration._
 import akka.persistence._
 import sp.domain._
-import sp.domain.LogicNoImplicit._
+import sp.domain.Logic._
+import sp.messages.Pickles._
 import sp.messages._
+import sp.models.APIModels.CreateModel
 
 import scala.util.{Failure, Success, Try}
-
-sealed trait ModelMakerAPI
-object ModelMakerAPI {
-  // request
-  case class CreateModel(name: String, attributes: Option[SPAttributes], model: Option[ID]) extends ModelMakerAPI
-  case class DeleteModel(model: ID) extends ModelMakerAPI
-
-  // event
-  case class ModelDeleted(model: ID) extends ModelMakerAPI
-  // the model itself sends out a model creation event
+import sp.models.{APIModels => api}
 
 
-}
-
-
-
-class ModelMaker(modelActorMaker: ID => Props) extends PersistentActor with ActorLogging  {
+class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentActor with ActorLogging  {
   override def persistenceId = "modelMaker"
   import context.dispatcher
-
   import akka.cluster.pubsub._
   import DistributedPubSubMediator.{ Put, Subscribe }
   val mediator = DistributedPubSub(context.system).mediator
-  mediator ! Subscribe("modelmessages", self)
+  mediator ! Subscribe(APISP.services, self)
   mediator ! Put(self)
 
   private var modelMap: Map[ID, ActorRef] = Map()
-  private var viewMap: Map[String, ActorRef] = Map()
+
+  val instanceID = ID.newID
 
 
   def receiveCommand = {
-    case mess @ _ if {println(s"ModelMaker got: $mess from $sender"); false} => Unit
+    case x: String if sender() != self =>
+      val mess = SPMessage.fromJson(x)
 
-//    case x: String =>
-//
-//      val reply = sender()
-//      val res = ModelMakerAPI.readPF(x){messageAPI(reply)} {spMessageAPI} {reply ! _}
-//      if (!res) log.info("ModelMaker didn't match the string "+x)
-//
-//    case x: ModelMakerAPI.API => messageAPI(sender())(x)
-//    case x: SPMessages => spMessageAPI(x)
-//    case x => log.debug("Model maker got a message it did not response to: "+x)
+      ModelsComm.extractRequest(mess, api.attributes.service, instanceID).collect{
+        case (h, b: api.CreateModel) =>
+          val updH = h.copy(from = api.attributes.service, to = h.from)
+          if (modelMap.contains(b.id)){
+            sendAnswer(updH, APISP.SPError(s"Model ${b.id} already exist. Can not be created"))
+          } else {
+            sendAnswer(updH, APISP.SPACK())
+            persist(x){mess =>
+              createModel(b)
+              sendAnswer(updH, APISP.SPDone())
+            }
+
+          }
+        case (h, b: api.DeleteModel) =>
+          val updH = h.copy(from = api.attributes.service, to = h.from)
+          if (!modelMap.contains(b.id)){
+            sendAnswer(updH, APISP.SPError(s"Model ${b.id} does not exists. Can not be deleted"))
+          } else {
+            sendAnswer(updH, APISP.SPACK())
+            persist(x){mess =>
+              deleteModel(b)
+              sendEvent(updH, api.ModelDeleted(b.id))
+              sendAnswer(updH, APISP.SPDone())
+            }
+
+          }
+        case (h, b: api.GetModels) =>
+          val updH = h.copy(from = api.attributes.service, to = h.from)
+          sendAnswer(updH, api.ModelList(modelMap.keys.toList))
+          sendAnswer(updH, APISP.SPDone())
+      }
+
+
+      ModelsComm.extractAPISP(mess).collect{
+        case (h, b: APISP.StatusRequest) =>
+          val updH = h.copy(from = api.attributes.service, to = h.from)
+          val resp = APISP.StatusResponse(
+            service = api.attributes.service,
+            instanceID = Some(instanceID),
+            tags = List("models", "modelhandler"),
+            attributes = SPAttributes("models" -> modelMap.keys.toList)
+          )
+
+          sendEvent(updH, resp)
+
+      }
+
+    case x: api.DeleteModel =>
+
+
   }
 
-//  def messageAPI(reply: ActorRef): PartialFunction[ModelMakerAPI.API, Unit] = {
-//    case mess @ ModelMakerAPI.CreateModel(name, attr, idOption) =>
-//      val cm = mess.copy(model = idOption.orElse(Some(ID.newID)))
-//      if (!modelMap.contains(cm.model.get)) {
-//        persist(ModelMakerAPI.write(cm)) { n =>
-//          log.info(s"The modelHandler creates a new model called ${cm.name} id: ${cm.model.get}")
-//          addModel(cm)
-//          modelMap(cm.model.get) ! cm
-//          reply ! ModelMakerAPI.write(SPOK())
-//          log.info(s"A model was created: $cm")
-//        }
-//      } else reply ! ModelMakerAPI.write(SPError(s"Model ${cm.name} already exists"))
-//
-//
-//    case del @ ModelMakerAPI.DeleteModel(id) =>
-//      val reply = sender()
-//      if (modelMap.contains(del.model)) {
-//        persist(ModelMakerAPI.write(del)) { d =>
-//          modelMap(del.model) ! PoisonPill
-//          deleteModel(del)
-//          reply ! ModelMakerAPI.write(SPOK())
-//          val test = ModelMakerAPI.write(ModelMakerAPI.ModelDeleted(del.model))
-//          mediator ! Publish("modelevents", ModelMakerAPI.write(ModelMakerAPI.ModelDeleted(del.model)))
-//          log.info(s"A model was deleted: $del")
-//        }
-//      }
-//      else reply ! ModelMakerAPI.write(SPOK())
-//  }
-//
-//  def spMessageAPI: PartialFunction[SPMessages, Unit] = {
-//    case s: StatusRequest =>
-//      mediator ! Publish("modelevents", ModelMakerAPI.write(sp.messages.StatusResponse(SPAttributes("service"->"ModelMaker", "noOfModels"->modelMap.keys.size, "models"->modelMap.keys.toList))))
-//  }
-
-
-  def addModel(cm: ModelMakerAPI.CreateModel) = {
-    val newModelH = context.actorOf(modelActorMaker(cm.model.get), cm.model.get.toString)
-    modelMap += (cm.model.get -> newModelH)
+  def createModel(model: api.CreateModel) = {
+    val a = context.actorOf(modelActorMaker(model))
+    modelMap += (model.id -> a)
   }
 
-  def deleteModel(del: ModelMakerAPI.DeleteModel) = {
-    if (modelMap.contains(del.model)){
-      modelMap = modelMap - del.model
+    def deleteModel(del: api.DeleteModel) = {
+      if (modelMap.contains(del.id)){
+        modelMap(del.id) ! PoisonPill
+        modelMap = modelMap - del.id
+      }
     }
-  }
 
-  def viewNameMaker(id: ID, v: Long) = id.toString() + " - Version: " + v
 
-  var reMod = Map[ID, ModelMakerAPI.CreateModel]()
+
+  var models = Map[ID, api.CreateModel]()
  def receiveRecover = {
-   case x => "hej"
-//    case x: String => ModelMakerAPI.readPF(x) {
-//      case cm: ModelMakerAPI.CreateModel =>
-//        reMod = reMod + (cm.model.get -> cm)
-//      case dm: ModelMakerAPI.DeleteModel =>
-//        reMod = reMod - dm.model
-//    }
-//    {PartialFunction.empty}
-//    {x => println("Recover error in modelmaker. Got command: "+x)}
-//
-//    case RecoveryCompleted =>
-//      reMod.values.foreach(addModel)
-//      reMod = Map()
+   case x: String =>
+
+     val mess = SPMessage.fromJson(x)
+
+     ModelsComm.extractRequest(mess, api.attributes.service, instanceID).map{
+      case (h, b: api.CreateModel) => models += (b.id -> b)
+      case (h, b: api.DeleteModel) => models = models - b.id
+      case _ => Unit
+     }
+
+
+    case RecoveryCompleted =>
+      models.values.foreach(createModel)
+      models = Map()
   }
+
+
+  def sendAnswer(h: SPHeader, b: APISP) = mediator ! Publish(APISP.answers, ModelsComm.makeMess(h, b))
+  def sendAnswer(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.answers, ModelsComm.makeMess(h, b))
+  def sendEvent(h: SPHeader, b: APISP) = mediator ! Publish(APISP.spevents, ModelsComm.makeMess(h.copy(to = ""), b))
+  def sendEvent(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.spevents, ModelsComm.makeMess(h.copy(to = ""), b))
 
 }
 
 object ModelMaker {
-  def props(maker: ID => Props) = Props(classOf[ModelMaker], maker)
+  def props(maker: api.CreateModel => Props) = Props(classOf[ModelMaker], maker)
 }
