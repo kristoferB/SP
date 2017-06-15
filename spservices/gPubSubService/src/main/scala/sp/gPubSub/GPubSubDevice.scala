@@ -308,7 +308,7 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
          val eventsJson = write(newEvents)
          persist(eventsJson) { events =>
            state = state ++ newEvents
-           state = filterOldEvents(state)
+           //state = filterOldEvents(state)
            newEvents.foreach(println)
            println("number of events: " + state.size)
            println("")
