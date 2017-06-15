@@ -89,16 +89,16 @@ object Pickles extends SPParser {
   def fromJsonToSPAttributes(expr: String): Try[SPAttributes] = Try{upickle.json.read(expr).asInstanceOf[SPAttributes]}
 
 
-  implicit lazy val asdasd = {val asdasd = ();   macroRW[SPMessage]}
-  implicit lazy val sdffsaf = {val sdffsaf = ();   macroRW[SPHeader]}
-  implicit lazy val wefawef = {val wefawef = ();   macroRW[APISP]}
-  implicit lazy val aasdasd = {val aasdasd = ();   macroRW[StateUpdater]}
-  implicit lazy val csdcsdc = {val csdcsdc = ();   macroRW[StateEvaluator]}
-  implicit lazy val oshffef = {val oshffef = ();   macroRW[PropositionEvaluator]}
-  implicit lazy val scvvvds = {val scvvvds = ();   macroRW[Proposition]}
-  implicit lazy val ccscsc = {val ccscsc = ();   macroRW[PropositionCondition]}
-  implicit lazy val vfvfvfv = {val vfvfvfv = ();   macroRW[Condition]}
-  implicit lazy val bfgbfgb = {val bfgbfgb = ();   macroRW[Operation]}
+//  implicit lazy val asdasd = {val asdasd = ();   macroRW[SPMessage]}
+//  implicit lazy val sdffsaf = {val sdffsaf = ();   macroRW[SPHeader]}
+//  implicit lazy val wefawef = {val wefawef = ();   macroRW[APISP]}
+//  implicit lazy val aasdasd = {val aasdasd = ();   macroRW[StateUpdater]}
+//  implicit lazy val csdcsdc = {val csdcsdc = ();   macroRW[StateEvaluator]}
+//  implicit lazy val oshffef = {val oshffef = ();   macroRW[PropositionEvaluator]}
+//  implicit lazy val scvvvds = {val scvvvds = ();   macroRW[Proposition]}
+//  implicit lazy val ccscsc = {val ccscsc = ();   macroRW[PropositionCondition]}
+//  implicit lazy val vfvfvfv = {val vfvfvfv = ();   macroRW[Condition]}
+//  implicit lazy val bfgbfgb = {val bfgbfgb = ();   macroRW[Operation]}
 
 }
 
