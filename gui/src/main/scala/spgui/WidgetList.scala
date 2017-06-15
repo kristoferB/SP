@@ -48,7 +48,7 @@ object WidgetList {
       ("Settings", widgets.settings.SettingsWidget(), 2, 4)
     )
 
-   val list = erica ++ sp
+   val list = erica //++ sp
 
   val map = list.map(t => t._1 -> (t._2, t._3, t._4)).toMap
 }
