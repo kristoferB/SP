@@ -10,7 +10,7 @@ object SPTextBox {
 
   class Backend($: BackendScope[Props, State]) {
     def render(p:Props,s: State) =
-    <.div(
+    <.li(
       ^.className := "input-group",
       <.input(
         ^.className := "form-control",

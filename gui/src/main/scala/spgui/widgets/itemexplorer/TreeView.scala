@@ -7,7 +7,7 @@ import japgolly.scalajs.react.vdom.all.aria
 import scalacss.ScalaCssReact._
 
 import spgui.components.DragAndDrop.{ DataOnDrag, OnDataDrop }
-import spgui.components.{ Icon, SPWidgetElements }
+import spgui.components.{ Icon, SPWidgetElements, SPTextBox }
 
 object TreeView {
   case class TreeViewProps(
@@ -31,10 +31,7 @@ object TreeView {
     def onDrop(senderId: String, receiverId: String) =
       $.modState(s => s.copy(s.rt.moveItem(senderId, receiverId)))
 
-    def onFilterTextChange(e :ReactEventFromInput): CallbackTo[Unit] =
-      e.extract(_.target.value)(searchText => { $.state >>= (p => ( filter(searchText,p.rt)))  })
-
-    private def filter(s:String,rts:RootDirectory) = {
+    private def filter(rts: RootDirectory)(s:String) = {
       var visMap: Seq[String] = Seq()
       rts.items.map(item =>
         if(item.name.toLowerCase.contains(s.toLowerCase)){
@@ -64,15 +61,7 @@ object TreeView {
             p.itemCreators.map(ic => <.div(ic._1, ^.onClick --> addItem(ic._2())))
           ).toTagMod),
           <.li(SPWidgetElements.button(Icon.floppyO, p.onSaveButtonClick(s.rt))),
-          <.li(
-            ^.className := "input-group",
-            <.input(
-              ^.className := "form-control",
-              ^.placeholder := "Filter",
-              ^.aria.describedBy := "basic-addon1",
-              ^.onChange ==> onFilterTextChange
-            )
-          )
+          SPTextBox("Filter...", filter(s.rt))
         ),
         <.div(
           Style.treeDiv,
