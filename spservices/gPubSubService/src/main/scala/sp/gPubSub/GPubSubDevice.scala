@@ -307,8 +307,8 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
        if (newEvents.nonEmpty){
          val eventsJson = write(newEvents)
          persist(eventsJson) { events =>
-           state = state ++ newEvents
-           //state = filterOldEvents(state)
+           state = newEvents ++ state
+           state = filterOldEvents(state)
            newEvents.foreach(println)
            println("number of events: " + state.size)
            println("")
@@ -329,8 +329,8 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
   def filterOldEvents(ev: List[api.EricaEvent]) = {
     val threeDaysAgo = getNow.minusDays(3)
     val reEv = ev.filter(e => isAfter(e, threeDaysAgo))
-    //reEv.sortWith(isLatest)
-    reEv
+    reEv.sortWith(isLatest)
+    //reEv
   }
 
   //val test = s via toJsonString via jsonToList via makeDiff runWith(mediatorSink)
@@ -413,7 +413,7 @@ trait DiffMagic {
 
 
   def diffPat(curr: api.ElvisPatient, old: Option[api.ElvisPatient]) = {
-    old.map { prev => {
+    old.map { prev =>
       newLocation(curr, old)
       (Map(
         "CareContactId" -> Some(Extraction.decompose(curr.CareContactId)),
@@ -429,13 +429,15 @@ trait DiffMagic {
       ).filter(kv=> kv._2 != None).map(kv=> kv._1 -> kv._2.get),
         curr.Events.filterNot(prev.Events.contains),
         prev.Events.filterNot(curr.Events.contains))
-    }
+
     }
   }
 
   def newLocation(curr: api.ElvisPatient, old: Option[api.ElvisPatient]) = {
     old.foreach{o =>
-      if (curr.Location != o.Location) println("PATIENT MOVED: " + o.Location +" -> "+ curr.Location )
+      if (curr.Location != o.Location){
+        println(s"PATIENT MOVED: ${curr.CareContactId} " + o.Location +" -> "+ curr.Location )
+      }
     }
   }
 
@@ -446,7 +448,7 @@ trait DiffMagic {
 
 
 
-  val timePattern = "yyyy-MM-dd'T'HH:mm:ss.SSS"
+  val timePattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
   def getNow = {
     DateTime.now(DateTimeZone.forID("Europe/Stockholm"))
   }
@@ -457,13 +459,15 @@ trait DiffMagic {
 
 
   def getEventTime(e: api.EricaEvent) = {
-    Try{DateTime.parse(e.TimeEvent, DateTimeFormat.forPattern(timePattern));}
+    val res = Try{DateTime.parse(e.TimeEvent, DateTimeFormat.forPattern(timePattern));}
+    if (res.isFailure) println(res)
+    res
   }
   def isLatest(f: api.EricaEvent, s: api.EricaEvent): Boolean = {
     (for {
       first <- getEventTime(f)
       last <- getEventTime(s)
-    } yield last.isAfter(last)
+    } yield last.isAfter(first)
     ).getOrElse(false)
   }
 
