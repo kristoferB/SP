@@ -13,13 +13,14 @@ object SPWidgetElementsCSS extends StyleSheet.Inline {
   )
 
   val button = style(
-    margin(2.px)
-    //backgroundColor(rgb(255,0,0))
+    borderRadius(0.px)
   )
 
   val dropDownList = style(
     //top.unset
   )
+
+  val defaultMargin = style(margin(2.px))
 
   val dropdownOuter = style(display.inlineBlock)
   val textIconClearance = style(marginRight(6.px) )
@@ -27,7 +28,7 @@ object SPWidgetElementsCSS extends StyleSheet.Inline {
   val clickable = style(
     cursor.pointer,
     userSelect:= "none",
-    backgroundColor.transparent,
+    //backgroundColor.transparent,
     listStyle:= "none"//,
 
     //&.hover(

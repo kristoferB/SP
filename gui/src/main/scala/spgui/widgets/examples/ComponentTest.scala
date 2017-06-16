@@ -11,7 +11,7 @@ import spgui.components._
 object ComponentTest {
   private class MyBackend($: BackendScope[Unit, Unit]) {
     def render(p: Unit) =
-      <.div(
+      SPWidgetElements.buttonGroup(Seq(
         SPWidgetElements.button("first test", Callback(testCallback("first test"))),
         SPWidgetElements.button("second test",Icon.ship, Callback(testCallback("second test"))),
         SPWidgetElements.button(Icon.exclamation, Callback(testCallback("!!!!"))),        
@@ -23,11 +23,11 @@ object ComponentTest {
             (<.li("hello2", ^.onClick --> Callback(println("triple, explicit hello"))))
           )
         ),
-        SPTextBox(
+        SPWidgetElements.TextBox(
           "I am the default text",
           (e => Callback(println("Text contents changed to: " + e)))
         )
-      )
+      ))
   }
 
   private val component = ScalaComponent.builder[Unit]("Settings")

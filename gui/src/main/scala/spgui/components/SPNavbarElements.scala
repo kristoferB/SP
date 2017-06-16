@@ -6,27 +6,31 @@ import japgolly.scalajs.react.vdom.all.aria
 
 object SPNavbarElements{
   def button(text:String, onClick: Callback): VdomNode =
-    <.a(text,
-      ^.onClick --> onClick,
-      ^.className := SPNavbarElementsCSS.clickable.htmlClass,
-      ^.className := SPNavbarElementsCSS.button.htmlClass        
+    <.li(
+      <.a(text,
+        ^.onClick --> onClick,
+        ^.className := SPNavbarElementsCSS.clickable.htmlClass,
+        ^.className := SPNavbarElementsCSS.button.htmlClass
+      )
     )
-  
   def button(text:String, icon:VdomNode, onClick: Callback): VdomNode =
-    <.a(
-      <.span(text, ^.className:= SPWidgetElementsCSS.textIconClearance.htmlClass),
-      icon,
-      ^.onClick --> onClick,
-      ^.className := SPNavbarElementsCSS.clickable.htmlClass,
-      ^.className := SPNavbarElementsCSS.button.htmlClass
+    <.li(
+      <.a(
+        <.span(text, ^.className:= SPWidgetElementsCSS.textIconClearance.htmlClass),
+        icon,
+        ^.onClick --> onClick,
+        ^.className := SPNavbarElementsCSS.clickable.htmlClass,
+        ^.className := SPNavbarElementsCSS.button.htmlClass
+      )
     )
   def button(icon:VdomNode, onClick: Callback): VdomNode =
-    <.a(icon,
-      ^.onClick --> onClick,
-      ^.className := SPNavbarElementsCSS.clickable.htmlClass,
-      ^.className := SPNavbarElementsCSS.button.htmlClass
+    <.li(
+      <.a(icon,
+        ^.onClick --> onClick,
+        ^.className := SPNavbarElementsCSS.clickable.htmlClass,
+        ^.className := SPNavbarElementsCSS.button.htmlClass
+      )
     )
-  
   def dropdown(text: String, contents: Seq[TagMod]): VdomElement =
     <.li(
       <.a(
@@ -46,6 +50,34 @@ object SPNavbarElements{
         aria.labelledBy := "something"
       )
     )
+
+  object TextBox {
+    case class Props( defaultText: String, onChange: String => Callback )
+    case class State( text: String )
+
+    class Backend($: BackendScope[Props, State]) {
+      def render(p:Props,s: State) =
+        <.span(
+          ^.className := "input-group",
+          <.input(
+            ^.className := "form-control",
+            ^.placeholder := p.defaultText,
+            ^.aria.describedBy := "basic-addon1",
+            ^.onChange ==> onFilterTextChange(p)
+          )
+        )
+      def onFilterTextChange(p:Props)(e: ReactEventFromInput): Callback =
+        e.extract(_.target.value)(v => (p.onChange(v))) // TODO check if this works
+    }
+
+    private val component = ScalaComponent.builder[Props]("SPTextBox")
+      .initialState(State("test"))
+      .renderBackend[Backend]
+      .build
+
+    def apply(defaultText: String, onChange: String => Callback) =
+      component(Props(defaultText, onChange))
+  }
 }
 
 

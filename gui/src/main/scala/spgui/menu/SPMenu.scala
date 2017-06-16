@@ -45,10 +45,8 @@ object SPMenu {
             ^.className := "nav navbar-nav",
 
             WidgetMenu(),
+            SPNavbarElements.button("Close All", Callback(SPGUICircuit.dispatch(CloseAllWidgets)))
 
-            <.li(
-              SPNavbarElements.button("Close All", Callback(SPGUICircuit.dispatch(CloseAllWidgets)))
-            )
           )
         )
       )
