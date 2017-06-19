@@ -12,9 +12,7 @@ import sp.messages._
 import sp.messages.Pickles._
 import java.util
 
-import com.google.protobuf.Timestamp
-import com.google.cloud.pubsub.spi.v1.Subscriber
-import com.google.pubsub.v1.PubsubMessage
+
 
 import scala.collection.mutable.ListBuffer
 import sp.domain._
@@ -24,6 +22,11 @@ import sp.gPubSub.API_Data.ElvisPatient
 import sp.gPubSub.{API_Data => api}
 import sp.gPubSub.{API_PatientEvent => sendApi}
 
+
+import com.google.protobuf.Timestamp
+import com.google.pubsub.v1.PubsubMessage
+
+
 object GPubSubDevice {
   def props = Props(classOf[GPubSubDevice])
 }
@@ -31,6 +34,7 @@ object GPubSubDevice {
 
 case object Ticker
 case class APubSubMess(mess: PubsubMessage)
+case object FailedPubSub
 
 class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
   override def persistenceId = "gPubSub"
@@ -38,12 +42,6 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
   import akka.stream.scaladsl._
   import akka.stream._
   import akka.NotUsed
-  //import com.qubit.pubsub.akka._
-  //import com.qubit.pubsub.client._
-  //import com.qubit.pubsub.client.retry._
-  import scala.concurrent.Await
-  import scala.concurrent.duration._
-  import com.google.common.base.Charsets
 
   implicit val system = context.system
 
@@ -56,128 +54,12 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
 
 
 
-  // Testing google pubsub client
-
-  import com.google.cloud.Identity
-  import com.google.cloud.Role
-  import com.google.cloud.ServiceOptions
-  import com.google.cloud.pubsub.spi.v1.PagedResponseWrappers.ListSubscriptionsPagedResponse
-  import com.google.cloud.pubsub.spi.v1.TopicAdminClient
-  import com.google.cloud.pubsub.spi.v1.SubscriptionAdminClient
-  import com.google.iam.v1.Binding
-  import com.google.iam.v1.Policy
-  import com.google.iam.v1.TestIamPermissionsResponse
-  import com.google.pubsub.v1.ListSubscriptionsRequest
-  import com.google.pubsub.v1.ProjectName
-  import com.google.pubsub.v1.PushConfig
-  import com.google.pubsub.v1.Subscription
-  import com.google.pubsub.v1.SubscriptionName
-  import com.google.pubsub.v1.TopicName
-
-
-  /** Example of deleting a subscription. */
-  def deleteSubscription(subscriptionId: String) = { // [START pubsub_delete_subscription]
-    Try {
-      val subscriptionAdminClient = SubscriptionAdminClient.create
-      try {
-        val subscriptionName = SubscriptionName.create(project, subscriptionId)
-        subscriptionAdminClient.deleteSubscription(subscriptionName)
-        println("subscriber deleted: "+ subscriptionId)
-        subscriptionName
-      } finally if (subscriptionAdminClient != null) subscriptionAdminClient.close()
-    }
-    // [END pubsub_delete_subscription]
-  }
-
-
-  /** Example of creating a pull subscription for a topic. */
-  @throws[Exception]
-  def createSubscription(topicId: String, subscriptionId: String) = { // [START pubsub_create_pull_subscription]
-    Try {
-      val subscriptionAdminClient = SubscriptionAdminClient.create
-      try { // eg. projectId = "my-test-project", topicId = "my-test-topic"
-        val topicName = TopicName.create(project, topicId)
-        // eg. subscriptionId = "my-test-subscription"
-        val subscriptionName = SubscriptionName.create(project, subscriptionId)
-        // create a pull subscription with default acknowledgement deadline
-        val subscription = subscriptionAdminClient.createSubscription(subscriptionName, topicName, PushConfig.getDefaultInstance, 0)
-        println("subscriber created: "+ subscriptionId)
-
-        subscription
-      } finally if (subscriptionAdminClient != null) subscriptionAdminClient.close()
-    }
-    // [END pubsub_create_pull_subscription]
-  }
-
-
-  println("starting pubSub")
-  deleteSubscription(subscription)
-  val subTry = createSubscription(topic, subscription)
-  println(subTry)
-  val res = subTry.map{s =>
-
-    import com.google.cloud.pubsub.spi.v1.AckReplyConsumer
-    import com.google.cloud.pubsub.spi.v1.MessageReceiver
-    import com.google.pubsub.v1.PubsubMessage
-    val receiver = new MessageReceiver() {
-      override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
-        self ! APubSubMess(message)
-        consumer.ack()
-      }
-    }
-
-    Subscriber.defaultBuilder(s.getNameAsSubscriptionName, receiver).build()
-
-  }
-
-  res.map(_.startAsync())
-
-
-
-
-
-
-
-
-
-
-
-//  val decider = {
-//    case x =>
-//      println("Stream problems in gPubSub")
-//      println(x.getMessage)
-//      Supervision.Restart
-//  }
-
-  implicit val materializer = ActorMaterializer()
-
-
-  // connecting to the pubsub bus using the mediator actor
-  import akka.cluster.pubsub._
-  import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
-  val mediator = DistributedPubSub(context.system).mediator
-
-  // A "ticker" that sends a "tick" string to self every 1 minute
-  import scala.concurrent.duration._
-  import context.dispatcher
-  val ticker = context.system.scheduler.schedule(0 seconds, 1 minutes, self, "tick")
-
   var state: List[api.EricaEvent] = List()
   val elvisActor = context.actorOf(ElvisDataHandlerDevice.props, "elvisdatahandler")
   var timeWhenMessageReceived = System.currentTimeMillis
 
-
-
-
-
-
-//  override def receive = {
-//
-//    //case Ticker => clearState() // Propably used for testing. Only locally present.
-//    //case mess @ _ if {println(s"GPubSubService MESSAGE: $mess from $sender"); false} => Unit
-//  }
-
-
+  def makeNewElvisPubSub = new ElvisPubSuber(project, topic, subscription, self)
+  var elvisPubSub: ElvisPubSuber = makeNewElvisPubSub
 
 
 
@@ -189,84 +71,12 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
     }
   }
 
+  // A "ticker" that sends a "tick" string to self every 1 minute
+  import scala.concurrent.duration._
+  import context.dispatcher
   val timeout = 10 second
-  //val testTopic = PubSubTopic(project, s"erica-snap")
-  //val testSubscription = PubSubSubscription(project, s"testSub")
+  val ticker = context.system.scheduler.schedule(0 seconds, 1 minutes, self, "tick")
 
-  //import com.qubit.pubsub.akka.attributes._
-  //val attributes = Attributes(List())
-  /**  PubSubStageBufferSizeAttribute(100),
-    PubSubStageMaxRetriesAttribute(100),
-    PubSubPublishTimeoutAttribute(10.seconds))*/
-
-  //val client = com.qubit.pubsub.client.retry.RetryingPubSubClient(com.qubit.pubsub.client.grpc.PubSubGrpcClient())
-  //client.createSubscription(testSubscription, testTopic)
-
-
-//  val toJsonString: Flow[PubSubMessage, String, NotUsed] = Flow[PubSubMessage]
-//    .map{m => {
-//      elvisActor ! "ElvisDataFlowing"
-//      timeWhenMessageReceived = System.currentTimeMillis
-//      if (messT.isEmpty) messT = m.publishTs
-//
-//      val res = for {
-//        ct <- m.publishTs
-//        pT <- messT if ct.isAfter(pT)
-//      } yield {
-//        messT = m.publishTs
-//        println("is newer")
-//        new String(m.payload, Charsets.UTF_8)
-//      }
-//      /*
-//      val fw = new FileWriter("oldNALDataJSON.txt", true)
-//      try {
-//        fw.write(res.getOrElse("") + "\n\n")
-//      }
-//      finally fw.close()*/
-//      res.getOrElse("")
-//      }
-//    }
-
-
-
-  val jsonToList: Flow[String, List[api.ElvisPatient], NotUsed] = Flow[String]
-    .map{json => SPAttributes.fromJson(json)}
-    .collect{
-      case Some(attr) => attr.tryAs[List[api.ElvisPatient]]("patients")
-    }
-    .collect{
-      case Success(xs) => {
-        println("Nr of pat: " + xs.length)
-        xs
-      }
-    }
-
-    val makeDiff: Flow[List[api.ElvisPatient], List[api.EricaEvent], NotUsed] = Flow[List[api.ElvisPatient]]
-   .statefulMapConcat{ () =>
-     var prev = List[api.ElvisPatient]()
-
-     xs => {
-       println("A snap: " + xs.size)
-       val res = checkTheDiff(xs, prev)
-       prev = xs
-       res
-     }
-   }
-
-
-  //val s = Source.fromGraph(new PubSubSource(testSubscription)).withAttributes(attributes)
-
-  val mediatorSink = Sink.foreach{ s: List[api.EricaEvent] =>
-    if (!s.isEmpty) {
-      self ! s
-      state = state ++ s
-      println("")
-      s.foreach(println)
-      println("number of events: " + state.size)
-      println("")
-      elvisActor ! state
-    }
-  }
 
   val receiveRecover: Receive = {
     case x: String =>
@@ -318,10 +128,9 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
          }
        }
 
-
-
-
-
+     case FailedPubSub =>
+       elvisPubSub.res.map(_.stopAsync())
+       elvisPubSub = makeNewElvisPubSub
 
 
    }
@@ -330,28 +139,18 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
     val threeDaysAgo = getNow.minusDays(3)
     val reEv = ev.filter(e => isAfter(e, threeDaysAgo))
     reEv.sortWith(isLatest)
-    //reEv
   }
 
-  //val test = s via toJsonString via jsonToList via makeDiff runWith(mediatorSink)
-
-//  test.onComplete{
-//    case Success(res) =>
-//    case Failure(res) =>
-//      println("stream failed:" + res.getMessage)
-//      self
-//  }
 
   override def postStop(): Unit = {
-    materializer.shutdown()
-
-    res.map(_.stopAsync())
-
+    elvisPubSub.res.map(_.stopAsync())
     println("OFF")
   }
 
 
 }
+
+
 
 
 trait DiffMagic {
@@ -478,4 +277,90 @@ trait DiffMagic {
       ).getOrElse(false)
   }
 
+}
+
+
+class ElvisPubSuber(project: String, topic: String, subscription: String, sendTo: ActorRef) {
+
+  import com.google.cloud.pubsub.spi.v1.SubscriptionAdminClient
+  import com.google.pubsub.v1.PushConfig
+  import com.google.pubsub.v1.Subscription
+  import com.google.pubsub.v1.SubscriptionName
+  import com.google.pubsub.v1.TopicName
+  import com.google.api.core.ApiService.Listener
+  import com.google.protobuf.Timestamp
+  import com.google.cloud.pubsub.spi.v1.Subscriber
+  import com.google.api.core._
+  import com.google.common.util.concurrent.MoreExecutors
+
+
+  /** Example of deleting a subscription. */
+  def deleteSubscription(subscriptionId: String) = { // [START pubsub_delete_subscription]
+    Try {
+      val subscriptionAdminClient = SubscriptionAdminClient.create
+      try {
+        val subscriptionName = SubscriptionName.create(project, subscriptionId)
+        subscriptionAdminClient.deleteSubscription(subscriptionName)
+        println("subscriber deleted: "+ subscriptionId)
+        subscriptionName
+      } finally if (subscriptionAdminClient != null) subscriptionAdminClient.close()
+    }
+    // [END pubsub_delete_subscription]
+  }
+
+
+  /** Example of creating a pull subscription for a topic. */
+  @throws[Exception]
+  def createSubscription(topicId: String, subscriptionId: String) = { // [START pubsub_create_pull_subscription]
+    Try {
+      val subscriptionAdminClient = SubscriptionAdminClient.create
+      try { // eg. projectId = "my-test-project", topicId = "my-test-topic"
+        val topicName = TopicName.create(project, topicId)
+        // eg. subscriptionId = "my-test-subscription"
+        val subscriptionName = SubscriptionName.create(project, subscriptionId)
+        // create a pull subscription with default acknowledgement deadline
+        val subscription = subscriptionAdminClient.createSubscription(subscriptionName, topicName, PushConfig.getDefaultInstance, 0)
+        println("subscriber created: "+ subscriptionId)
+
+        subscription
+      } finally if (subscriptionAdminClient != null) subscriptionAdminClient.close()
+    }
+    // [END pubsub_create_pull_subscription]
+  }
+
+
+
+
+
+  println("starting pubSub")
+  deleteSubscription(subscription)
+  val subTry = createSubscription(topic, subscription)
+  println(subTry)
+  val res = subTry.map{s =>
+
+    import com.google.cloud.pubsub.spi.v1.AckReplyConsumer
+    import com.google.cloud.pubsub.spi.v1.MessageReceiver
+    import com.google.pubsub.v1.PubsubMessage
+    val receiver = new MessageReceiver() {
+      override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
+        sendTo ! APubSubMess(message)
+        consumer.ack()
+      }
+    }
+
+
+    val x = Subscriber.defaultBuilder(s.getNameAsSubscriptionName, receiver).build()
+    x.addListener(new Listener() {
+      override def failed(from: ApiService.State, failure: Throwable ) {
+        println("pubSub failed: "+ failure.getMessage)
+        println("pubSub failed state: "+ from)
+        sendTo ! FailedPubSub
+      }
+    }, MoreExecutors.directExecutor())
+
+    x
+
+  }
+
+  res.map(_.startAsync())
 }
