@@ -7,7 +7,7 @@ import scalacss.ScalaCssReact._
 
 import spgui.circuit.{SPGUICircuit, AddWidget}
 import spgui.WidgetList
-import spgui.components.{ Icon, SPNavbarElements, SPTextBox }
+import spgui.components.{ Icon, SPNavbarElements }
 
 object WidgetMenu {
   case class State(filterText: String)
@@ -19,7 +19,7 @@ object WidgetMenu {
     def render(s: State) =
       SPNavbarElements.dropdown(
         "New widget",
-        SPTextBox(
+        SPNavbarElements.TextBox(
           "Find widget...",
           (t: String) => { $.setState(State(filterText = t)) }
         ) :: WidgetList.list.collect{
