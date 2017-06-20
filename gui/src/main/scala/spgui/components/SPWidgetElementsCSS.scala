@@ -1,13 +1,11 @@
 package spgui.components
 
 import scalacss.Defaults._
+import spgui.theming.SPStyleSheet
 
-import spgui.circuit.SPGUICircuit
-object SPWidgetElementsCSS extends StyleSheet.Inline {
+object SPWidgetElementsCSS extends SPStyleSheet {
   import dsl._
-  val theme = SPGUICircuit.zoom(_.settings.theme)
 
-  // TODO move to a file containing all ovverides
   val bootstrapDropdownOverride = style(
     unsafeRoot(".dropdown-menu")(
       padding(8.px)

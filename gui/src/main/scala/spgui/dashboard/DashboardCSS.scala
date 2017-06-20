@@ -1,11 +1,10 @@
 package spgui.dashboard
 
 import scalacss.Defaults._
-import spgui.circuit.SPGUICircuit
+import spgui.theming.SPStyleSheet
 
-object DashboardCSS extends StyleSheet.Inline {
+object DashboardCSS extends SPStyleSheet {
   import dsl._
-  val theme = SPGUICircuit.zoom(_.settings.theme)
 
   val widgetBgColor = "#ededed"
   val widgetHeadingBg = "#999999"
