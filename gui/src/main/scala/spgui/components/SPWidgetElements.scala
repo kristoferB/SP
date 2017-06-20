@@ -8,7 +8,7 @@ object SPWidgetElements{
   def button(text: String, onClick: Callback): VdomNode =
     <.button(text,
       ^.onClick --> onClick,
-      ^.className := "btn btn-default",
+      ^.className := "btn",
       ^.className := SPWidgetElementsCSS.defaultMargin.htmlClass,
       ^.className := SPWidgetElementsCSS.clickable.htmlClass,
       ^.className := SPWidgetElementsCSS.button.htmlClass
@@ -19,7 +19,7 @@ object SPWidgetElements{
       <.span(text, ^.className:= SPWidgetElementsCSS.textIconClearance.htmlClass),
       icon,
       ^.onClick --> onClick,
-      ^.className := "btn btn-default",
+      ^.className := "btn",
       ^.className := SPWidgetElementsCSS.defaultMargin.htmlClass,
       ^.className := SPWidgetElementsCSS.clickable.htmlClass,
       ^.className := SPWidgetElementsCSS.button.htmlClass
@@ -28,13 +28,13 @@ object SPWidgetElements{
   def button(icon: VdomNode, onClick: Callback): VdomNode =
     <.button(icon,
       ^.onClick --> onClick,
-      ^.className := "btn btn-default",
+      ^.className := "btn",
       ^.className := SPWidgetElementsCSS.defaultMargin.htmlClass,
       ^.className := SPWidgetElementsCSS.clickable.htmlClass,
       ^.className := SPWidgetElementsCSS.button.htmlClass
     )
-  
-  def dropdown(text: String, contents: Seq[TagMod]): VdomNode =
+
+  def dropdown(text: String, contents: Seq[TagMod]): VdomElement =
     <.span(
       ^.className:= SPWidgetElementsCSS.dropdownOuter.htmlClass,
       ^.className := SPWidgetElementsCSS.defaultMargin.htmlClass,
@@ -47,7 +47,7 @@ object SPWidgetElements{
         ^.className := "nav-link dropdown-toggle",
         aria.hasPopup := "true",
         aria.expanded := "false",
-        ^.className := "btn btn-default",
+        ^.className := "btn",
         ^.className := SPWidgetElementsCSS.button.htmlClass,
         ^.className := SPWidgetElementsCSS.clickable.htmlClass
       ),
@@ -75,6 +75,7 @@ object SPWidgetElements{
           ^.className := SPWidgetElementsCSS.defaultMargin.htmlClass,
           ^.className := "input-group",
           <.input(
+            ^.className := SPWidgetElementsCSS.textBox.htmlClass,
             ^.className := "form-control",
             ^.placeholder := p.defaultText,
             ^.aria.describedBy := "basic-addon1",
