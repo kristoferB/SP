@@ -2,13 +2,16 @@ package spgui.widgets.charts
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
+
 import scalajs.js
 import scalajs.js.Dynamic
 import org.scalajs.dom.raw.Element
 import org.scalajs.dom.document
 import java.util.concurrent.atomic.AtomicInteger
-import spgui.circuit.{SPGUICircuit}
+
+import spgui.circuit.SPGUICircuit
 import spgui.communication._
+import spgui.googleAPI.{GoogleChartsLoaded, GoogleVisualization, Options}
 
 import scala.scalajs.js.annotation.JSName
 
@@ -94,7 +97,7 @@ object ChartTest {
         val getStartTime = new js.Date(2017, 5, 9, 6, 6, 6, 6)
 
         def simpleTimelineDraw(rows: js.Any) =  {
-          val timelineData = new GoogleVisualization.DataTable();
+          val timelineData = new GoogleVisualization.DataTable()
           timelineData.addColumn("string", "Timeline id")     //js.Dynamic.literal(`type` = "string", id = "Label id"))
           timelineData.addColumn("string", "Timeline Name")   //js.Dynamic.literal(`type` = "string", id = "Label Name"))
           timelineData.addColumn("date", "Start Date")        //js.Dynamic.literal(`type` = "date", id = "Start Date"))
@@ -103,7 +106,7 @@ object ChartTest {
           val timelineRows = rows
           timelineData.addRows(timelineRows)
 
-          val timelineOptions = Options("Timeline", 300,600,"43")
+          val timelineOptions = Options(300,600)
 
           val timelineElement = js.Dynamic.global.document.getElementById(id+"timeline")
           val timeline = new GoogleVisualization.Timeline(timelineElement)

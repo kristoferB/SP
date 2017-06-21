@@ -11,6 +11,7 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scalajs.js
 import spgui.communication._
+import spgui.googleAPI.{GoogleVisualization, Options}
 
 import js.Date
 

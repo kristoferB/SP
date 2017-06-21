@@ -2,7 +2,7 @@
   * Created by alexa on 21/06/2017.
   */
 
-package spgui.widgets.charts
+package spgui.googleAPI
 
 trait TimelineLogic {
   val list: List[TimelineRow]

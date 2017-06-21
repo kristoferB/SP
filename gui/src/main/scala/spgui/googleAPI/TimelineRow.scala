@@ -1,4 +1,4 @@
-package spgui.widgets.charts
+package spgui.googleAPI
 
 import scala.scalajs.js
 
