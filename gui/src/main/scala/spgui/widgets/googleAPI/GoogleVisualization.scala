@@ -2,7 +2,7 @@
   * Created by alexa on 15/06/2017.
   */
 
-package spgui.googleAPI
+package spgui.widgets.googleAPI
 
 import scala.scalajs.js
 
