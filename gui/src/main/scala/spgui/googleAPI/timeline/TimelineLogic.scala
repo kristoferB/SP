@@ -1,10 +1,12 @@
-package spgui.googleAPI
-
-import scala.scalajs.js
-
 /**
   * Created by alexa on 21/06/2017.
   */
+
+package spgui.googleAPI.timeline
+
+import scala.scalajs.js
+import spgui.googleAPI.Tooltips
+
 
 // Doc. Data format
 // https://developers.google.com/chart/interactive/docs/gallery/timeline#data-format
@@ -24,6 +26,7 @@ object TimelineRow {
              name:      String,
              startDate: js.Date,
              endDate:   js.Date,
+             // Tooltips default values
              tooltips:  js.Object = Tooltips(true, "focus")
            ) = js.Dynamic.literal(
     id = id,
@@ -32,4 +35,9 @@ object TimelineRow {
     endDate = endDate,
     tooltips = tooltips
   )
+}
+
+trait TimelineLogic {
+  val list: List[TimelineRow]
+  val options: Options
 }

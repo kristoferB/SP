@@ -11,7 +11,8 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import spgui.circuit.SPGUICircuit
 import spgui.communication._
-import spgui.googleAPI.{GoogleChartsLoaded, GoogleVisualization, Options}
+import spgui.googleAPI.timeline.Options
+import spgui.googleAPI.{GoogleChartsLoaded, GoogleVisualization}
 
 import scala.scalajs.js.annotation.JSName
 

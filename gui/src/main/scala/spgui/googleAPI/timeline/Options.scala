@@ -1,73 +1,20 @@
 /**
   * Created by alexa on 15/06/2017.
   */
-package spgui.googleAPI
+package spgui.googleAPI.timeline
 
 import scala.scalajs.js
+import spgui.googleAPI.Tooltips
 
 /*
- * Timeline Doucmentation:
- * https://developers.google.com/chart/interactive/docs/gallery/timeline#configuration-options
- *
  * Full Documentation Google Charts
  * https://developers.google.com/chart/interactive/docs/reference#top_of_page
  */
 
-
 /*
- * https://developers.google.com/chart/interactive/docs/customizing_tooltip_content
- * Tooltips are the little boxes that pop up when you hover over something
+ * Timeline Doucmentation:
+ * https://developers.google.com/chart/interactive/docs/gallery/timeline#configuration-options
  */
-@js.native
-trait Tooltips extends js.Object {
-  val isHtml: Boolean = js.native
-  val trigger: String = js.native
-}
-
-// Facade for ToolTips
-object Tooltips {
-  def apply(
-             isHtml: Boolean,
-             trigger: String
-           ) =
-    js.Dynamic.literal(
-      isHtml = isHtml,
-      trigger = trigger
-    )
-}
-
-
-// Configuration Options for Timeline
-// Changing this
-@js.native
-trait OptionsTimeline extends js.Object {
-  val barLabelStyle:     js.Object         = js.native
-  val colorByRowLabel:   Boolean           = js.native
-  val groupByRowLabel:   Boolean           = js.native
-  val rowLabelStyle:     js.Object         = js.native
-  val showBarLabels:     Boolean           = js.native
-  val showRowLabels:     Boolean           = js.native
-  val singleColor:       String            = js.native
-}
-
-object OptionsTimeline {
-  def apply(
-             barLabelStyle:    js.Object,
-             colorByRowLabel:  Boolean,
-             groupByRowLabel:  Boolean,
-             rowLabelStyle:    js.Object,
-             showBarLabels:    Boolean,
-             showRowLabels:    Boolean,
-             singleColor:      String
-           ) = js.Dynamic.literal(
-    barLabelStyle = barLabelStyle,
-    colorByRowLabel = colorByRowLabel,
-    groupByRowLabel = groupByRowLabel,
-    rowLabelStyle = rowLabelStyle,
-    showBarLabels = showRowLabels,
-    showRowLabels = showRowLabels,
-    singleColor = singleColor)
-}
 
 // See Timeline Docs
 @js.native
