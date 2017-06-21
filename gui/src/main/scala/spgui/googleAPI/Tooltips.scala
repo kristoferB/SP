@@ -11,13 +11,21 @@ import scala.scalajs.js
  * Tooltips are the little boxes that pop up when you hover over something
  */
 @js.native
-trait Tooltips extends js.Object {
+trait Tooltips_Trait extends js.Object {
   val isHtml: Boolean = js.native
   val trigger: String = js.native
 }
 
+class Tooltips (
+                 override val isHtml: Boolean = true,
+                 override val trigger: String = "focus"
+               ) extends Tooltips_Trait {
+
+}
+
+/*
 // Facade for ToolTips
-object Tooltips {
+object Tooltips_Trait {
   def apply(
              isHtml: Boolean,
              trigger: String
@@ -27,3 +35,4 @@ object Tooltips {
       trigger = trigger
     )
 }
+*/

@@ -5,8 +5,8 @@ package spgui.googleAPI
 
 import scala.scalajs.js
 
-
-trait DescriptionObject extends js.Object {
+@js.native
+trait DescriptionObject_Trait extends js.Object {
   // A string with the data type of the values of the column
   val column_type: String = js.native
   // A label for the column
@@ -20,11 +20,22 @@ trait DescriptionObject extends js.Object {
   val optional_pattern: String = js.native
 }
 
-object DescriptionObject {
+class DescriptionObject(
+                         override val column_type: String,
+                         override val optional_id: String = "",
+                         override val optional_label: String = "",
+                         override val optional_role: String,
+                         override val optional_pattern: String = ""
+                       ) extends DescriptionObject_Trait {
+
+}
+
+/*
+object DescriptionObject_Trait {
   def apply(
              column_type:     String,
-             optional_label:  String = "",
              optional_id:     String = "",
+             optional_label:  String = "",
              optional_role:   String = "",
              optional_pattern: String = ""
            ) = js.Dynamic.literal(
@@ -35,3 +46,4 @@ object DescriptionObject {
     optional_pattern = optional_pattern
   )
 }
+*/

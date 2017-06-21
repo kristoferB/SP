@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import spgui.circuit.SPGUICircuit
 import spgui.communication._
-import spgui.googleAPI.timeline.Options
+import spgui.googleAPI.timeline.OptionsTimeline
 import spgui.googleAPI.{GoogleChartsLoaded, GoogleVisualization}
 
 import scala.scalajs.js.annotation.JSName
@@ -65,7 +65,7 @@ object ChartTest {
         val piechart = new GoogleVisualization.PieChart(element)
         piechart.draw(data, options)
 
-        val ganttData = new GoogleVisualization.DataTable();
+        val ganttData = new GoogleVisualization.DataTable()
         ganttData.addColumn("string", "Task Id")
         ganttData.addColumn("string", "Task Name")    //js.Dynamic.literal(`type` = "string", id = "Task Name"))
         ganttData.addColumn("string", "Resource")     // js.Dynamic.literal(`type` = "string", id = "Resource"))
@@ -107,7 +107,7 @@ object ChartTest {
           val timelineRows = rows
           timelineData.addRows(timelineRows)
 
-          val timelineOptions = Options(300,600)
+          val timelineOptions = OptionsTimeline(300,600)
 
           val timelineElement = js.Dynamic.global.document.getElementById(id+"timeline")
           val timeline = new GoogleVisualization.Timeline(timelineElement)

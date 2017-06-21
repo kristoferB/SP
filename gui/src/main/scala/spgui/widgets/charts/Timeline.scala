@@ -47,6 +47,7 @@ object Timeline {
   // Description:
   //              creates a new DataTable and adds the column 
   //              to use in the timeline
+  /*
   def setupColumns(): GoogleVisualization.DataTable = {
     // defines inner function
     def adder(d: GoogleVisualization.DataTable): GoogleVisualization.DataTable = {
@@ -54,6 +55,7 @@ object Timeline {
       d.addColumn("string", "Timeline name")
       d.addColumn("date", "Start Date")
       d.addColumn("date", "End Date")
+      d
     }
     adder(new GoogleVisualization.DataTable())
   }
@@ -63,7 +65,7 @@ object Timeline {
   val data = setupColumns()
 
 
-
+*/
 
 
   // ---Backend Class---
@@ -111,7 +113,7 @@ object Timeline {
   private val component = ReactComponentB[Unit]("Timeline")
     .initialState(
       State(
-        name = "default"
+        zoom = "default"
       )
     )
     .renderBackend[MyBackend]

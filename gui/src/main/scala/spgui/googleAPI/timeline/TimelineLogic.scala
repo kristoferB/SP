@@ -8,36 +8,15 @@ import scala.scalajs.js
 import spgui.googleAPI.Tooltips
 
 
-// Doc. Data format
-// https://developers.google.com/chart/interactive/docs/gallery/timeline#data-format
-@js.native
-trait TimelineRow extends js.Object {
-  val id:         String          = js.native
-  val name:       String          = js.native
-  val tooltips:   Tooltips        = js.native
-  val startDate:  js.Date         = js.native
-  val endDate:    js.Date         = js.native
-}
+// TODO: Look through specs to see if this is really needed!
 
-// facade for the Timeline-Rows
-object TimelineRow {
-  def apply(
-             id:        String,
-             name:      String,
-             startDate: js.Date,
-             endDate:   js.Date,
-             // Tooltips default values
-             tooltips:  js.Object = Tooltips(true, "focus")
-           ) = js.Dynamic.literal(
-    id = id,
-    name = name,
-    startDate = startDate,
-    endDate = endDate,
-    tooltips = tooltips
-  )
+trait TimelineLogic_Trait {
+  val list: List[TimelineRowTrait]
+  val options: OptionsTimeline_Trait
 }
+class TimelineLogic (
+                      override val list: List[TimelineRowTrait],
+                      override val options: OptionsTimeline_Trait
+                    )extends TimelineLogic_Trait {
 
-trait TimelineLogic {
-  val list: List[TimelineRow]
-  val options: Options
 }

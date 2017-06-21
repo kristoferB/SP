@@ -6,11 +6,6 @@ package spgui.googleAPI
 
 import scala.scalajs.js
 
-
-
-
-
-
 @js.native
 object GoogleVisualization extends js.Object {
   @js.native
