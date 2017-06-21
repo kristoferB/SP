@@ -72,11 +72,6 @@ object ChartTest {
         ganttData.addColumn("string", "Dependencies")     //js.Dynamic.literal(`type` = "string", id = "Dependencies"))
 
 
-        @js.native
-        trait TimelineData extends js.Object {
-          id: 
-        }
-
         val ganttRows = js.Array[js.Array[js.Any]](
           js.Array[js.Any]("2014Spring","Spring 2014", "spring", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20), null, 100, null),
           js.Array[js.Any]("2014Spring","Spring 2014", "spring", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20), null, 100, null),

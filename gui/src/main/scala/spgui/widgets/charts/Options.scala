@@ -5,22 +5,40 @@ package spgui.widgets.charts
 
 import scala.scalajs.js
 
+/*
+ * Timeline Doucmentation:
+ * https://developers.google.com/chart/interactive/docs/gallery/timeline#configuration-options
+ *
+ * Full Documentation Google Charts
+ * https://developers.google.com/chart/interactive/docs/reference#top_of_page
+ */
+
+
+/*
+ * https://developers.google.com/chart/interactive/docs/customizing_tooltip_content
+ * Tooltips are the little boxes that pop up when you hover over something
+ */
 @js.native
-trait OptionsTooltip extends js.Object {
+trait Tooltips extends js.Object {
   val isHtml: Boolean = js.native
   val trigger: String = js.native
 }
 
-object OptionsTooltip {
+// Facade for ToolTips
+object Tooltips {
   def apply(
              isHtml: Boolean,
              trigger: String
-           ) = js.Dynamic.literal(
-    isHtml = isHtml,
-    trigger = trigger
-  )
+           ) =
+    js.Dynamic.literal(
+      isHtml = isHtml,
+      trigger = trigger
+    )
 }
 
+
+// Configuration Options for Timeline
+// Changing this
 @js.native
 trait OptionsTimeline extends js.Object {
   val barLabelStyle:     js.Object         = js.native
@@ -51,7 +69,7 @@ object OptionsTimeline {
     singleColor = singleColor)
 }
 
-// Documentation:     https://developers.google.com/chart/interactive/docs/gallery/timeline#configuration-options
+// See Timeline Docs
 @js.native
 trait Options extends js.Object {
   val avoidOverlappingGridLines:  Boolean           = js.native
@@ -63,29 +81,29 @@ trait Options extends js.Object {
   val forceIFrame:                Boolean           = js.native
   val height:                     Int               = js.native
   val optionsTimeline:            OptionsTimeline   = js.native
-  val optionsTooltip:             OptionsTooltip    = js.native
-  val title:                      String            = js.native
+  val tooltips:                   Tooltips          = js.native
   val width:                      Int               = js.native
-
 }
 
+// Facade for the Options
 object Options {
   def apply(
-             title:                      String,
-             height:                     Int,
-             width:                      Int,
-
-             // how to get colors and fontSize automatically???
-             fontSize:                   String = "automatic",
-             colors:                     js.Array[String] = null,
-
-             avoidOverlappingGridLines:  Boolean   = true,
-             backgroundColor:            String    = "white",
-             enableInteractivity:        Boolean   = true,
-             fontName:                   String    = "Arial",
-             forceIFrame:                Boolean = false,
-             optionsTimeline:            js.Object = OptionsTimeline(null, false, true, null, true, true, null),
-             optionsTooltip:             js.Object = OptionsTooltip(true, "focus")
+             // height and width must be set
+             height:                      Int,
+             width:                       Int,
+             // see full doc for default values
+             // name:                     Type      = Default value
+             avoidOverlappingGridLines:   Boolean   = true,
+             backgroundColor:             String    = "white",
+             colors:                      js.Array[String] = null,
+             enableInteractivity:         Boolean   = true,
+             fontName:                    String    = "Arial",
+             fontSize:                    String = "automatic",
+             forceIFrame:                 Boolean = false,
+             optionsTimeline:             js.Object = OptionsTimeline(
+               null, false, true, null, true, true, null
+             ),
+             tooltips:                    js.Object = Tooltips(true, "focus")
            ) = js.Dynamic.literal(
     avoidOverlappingGridLines = avoidOverlappingGridLines,
     backgroundColor = backgroundColor,
@@ -96,8 +114,7 @@ object Options {
     forceIFrame = forceIFrame,
     height = height,
     optionsTimeline = optionsTimeline,
-    optionsTooltip = optionsTooltip,
-    title = title,
+    tooltips = tooltips,
     width = width
   )
 }
