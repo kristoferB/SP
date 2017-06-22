@@ -13,6 +13,7 @@ object SPNavbarElements{
         ^.className := SPNavbarElementsCSS.button.htmlClass
       )
     )
+
   def button(text:String, icon:VdomNode, onClick: Callback): VdomNode =
     <.li(
       <.a(
@@ -23,6 +24,7 @@ object SPNavbarElements{
         ^.className := SPNavbarElementsCSS.button.htmlClass
       )
     )
+
   def button(icon:VdomNode, onClick: Callback): VdomNode =
     <.li(
       <.a(icon,

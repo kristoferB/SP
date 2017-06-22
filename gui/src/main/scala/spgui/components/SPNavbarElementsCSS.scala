@@ -6,8 +6,11 @@ import spgui.theming.SPStyleSheet
 object SPNavbarElementsCSS extends SPStyleSheet {
   import dsl._
 
-
   val button = style(
+    (color := theme.value.defaultTextColor).important,
+    unsafeChild("span")(
+      (color := theme.value.defaultTextColor).important
+    ),
     &.active(
       //(backgroundColor:= "#aaaaaa").important
       //boxShadow:="inset 2px 2px 5px -1px rgba(0,0,0,0.2)"
@@ -34,7 +37,10 @@ object SPNavbarElementsCSS extends SPStyleSheet {
   )
 
   val dropDownList = style(
-    top.unset
+    top.unset,
+    cursor.pointer,
+    backgroundColor:= theme.value.buttonBackgroundColor,
+    color := theme.value.defaultTextColor
   )
   val clickable = style(
     (color := theme.value.defaultTextColor).important,

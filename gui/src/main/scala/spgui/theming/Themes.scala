@@ -7,6 +7,27 @@ object Themes {
     ),
 
     Theme(
+      name = "dark",
+      borderless = false,
+      defaultTextColor = "#ffffbb",
+      mainBackgroundColor= "#333333",
+
+      navbarBackgroundColor = "#111111",
+      navbarForegroundColor = "#58666e",
+      navbarLogoBackgroundColor = "#df691a",
+      navbarButtonHoverColor = "#666666",
+
+      widgetBackgroundColor = "#444444",
+      widgetHeadingColor = "#555555",
+      widgetHeadingIconColor = "#ffffff",
+      
+      buttonBorderColor = "#777777",
+      buttonBackgroundColor = "#111111",
+      buttonBackgroundColorHover = "#333333",
+      buttonTextColor = "#ffffff"
+    ),
+
+    Theme(
       name = "debug-red",
       borderless =  false,
       shadow = "1px 20px 20px rgba(0, 0, 0, 0.1), 0 10px 0 rgba(0, 0, 0, 0.1)" ,
@@ -18,20 +39,6 @@ object Themes {
       navbarForegroundColor= "#ff0000",
       navbarLogoBackgroundColor= "#ff0000",
       defaultTextColor= "#ff0000"
-    ),
-
-    Theme(
-      name = "debug-blue",
-      borderless =  false,
-      shadow = "1px 2px 2px rgba(0, 0, 0, 0.1), 0 1px 0 rgba(0, 0, 0, 0.1)" ,
-      mainBackgroundColor= "#0000ff",
-      widgetBackgroundColor ="#0000ff",
-      widgetHeadingColor= "#0000ff",
-      widgetHeadingIconColor= "#0000ff",
-      navbarBackgroundColor= "#0000ff",
-      navbarForegroundColor= "#0000ff",
-      navbarLogoBackgroundColor= "#0000ff",
-      defaultTextColor= "#0000ff"
     )
   )
 }

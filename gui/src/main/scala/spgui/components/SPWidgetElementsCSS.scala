@@ -10,11 +10,14 @@ object SPWidgetElementsCSS extends SPStyleSheet {
     borderRadius(0.px),
     borderColor := theme.value.buttonBorderColor,
     backgroundColor := theme.value.buttonBackgroundColor,
-    color := theme.value.buttonTextColor
+    (color := theme.value.defaultTextColor).important
   )
 
   val dropDownList = style(
-    borderRadius(0.px)
+    borderRadius(0.px),
+    cursor.pointer,
+    backgroundColor:= theme.value.buttonBackgroundColor,
+    color := theme.value.defaultTextColor
   )
 
   val defaultMargin = style(margin(2.px))

@@ -6,7 +6,8 @@ import japgolly.scalajs.react.vdom.all.aria
 
 object SPWidgetElements{
   def button(text: String, onClick: Callback): VdomNode =
-    <.button(text,
+    <.button(
+      text,
       ^.onClick --> onClick,
       ^.className := "btn",
       ^.className := SPWidgetElementsCSS.defaultMargin.htmlClass,
