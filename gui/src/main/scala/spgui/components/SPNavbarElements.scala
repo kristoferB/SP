@@ -31,23 +31,23 @@ object SPNavbarElements{
         ^.className := SPNavbarElementsCSS.button.htmlClass
       )
     )
+
   def dropdown(text: String, contents: Seq[TagMod]): VdomElement =
     <.li(
+      ^.className := SPNavbarElementsCSS.dropdownRoot.htmlClass,
+      ^.className := "navbar-dropdown",
       <.a(
         <.span(text, ^.className:= SPWidgetElementsCSS.textIconClearance.htmlClass),
         Icon.caretDown,
         VdomAttr("data-toggle") := "dropdown",
         ^.id:="something",
-        ^.className := "nav-link dropdown-toggle",
-        aria.hasPopup := "true",
-        aria.expanded := "false",
-        ^.className := SPNavbarElementsCSS.clickable.htmlClass
+        ^.className := SPNavbarElementsCSS.clickable.htmlClass,
+        ^.className := "nav-link dropdown-toggle"
       ),
       <.ul(
         contents.toTagMod,
         ^.className := SPNavbarElementsCSS.dropDownList.htmlClass,
-        ^.className := "dropdown-menu",
-        aria.labelledBy := "something"
+        ^.className := "dropdown-menu"
       )
     )
 

@@ -36,26 +36,29 @@ object SPWidgetElements{
 
   def dropdown(text: String, contents: Seq[TagMod]): VdomElement =
     <.span(
-      ^.className:= SPWidgetElementsCSS.dropdownOuter.htmlClass,
-      ^.className := SPWidgetElementsCSS.defaultMargin.htmlClass,
-      ^.className:= "dropdown",
-      <.button(
-        <.span(text, ^.className:= SPWidgetElementsCSS.textIconClearance.htmlClass),
-        Icon.caretDown,
-        VdomAttr("data-toggle") := "dropdown",
-        ^.id:="something",
-        ^.className := "nav-link dropdown-toggle",
-        aria.hasPopup := "true",
-        aria.expanded := "false",
-        ^.className := "btn",
-        ^.className := SPWidgetElementsCSS.button.htmlClass,
-        ^.className := SPWidgetElementsCSS.clickable.htmlClass
-      ),
-      <.ul(
-        contents.toTagMod,
-        ^.className := SPWidgetElementsCSS.dropDownList.htmlClass,
-        ^.className := "dropdown-menu",
-        aria.labelledBy := "something"
+      ^.className:= SPWidgetElementsCSS.dropdownRoot.htmlClass,
+      <.span(
+        ^.className:= SPWidgetElementsCSS.dropdownOuter.htmlClass,
+        ^.className := SPWidgetElementsCSS.defaultMargin.htmlClass,
+        ^.className:= "dropdown",
+        <.button(
+          <.span(text, ^.className:= SPWidgetElementsCSS.textIconClearance.htmlClass),
+          Icon.caretDown,
+          VdomAttr("data-toggle") := "dropdown",
+          ^.id:="something",
+          ^.className := "nav-link dropdown-toggle",
+          aria.hasPopup := "true",
+          aria.expanded := "false",
+          ^.className := "btn",
+          ^.className := SPWidgetElementsCSS.button.htmlClass,
+          ^.className := SPWidgetElementsCSS.clickable.htmlClass
+        ),
+        <.ul(
+          contents.toTagMod,
+          ^.className := SPWidgetElementsCSS.dropDownList.htmlClass,
+          ^.className := "dropdown-menu",
+          aria.labelledBy := "something"
+        )
       )
     )
 

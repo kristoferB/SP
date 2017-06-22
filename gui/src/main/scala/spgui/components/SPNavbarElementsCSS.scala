@@ -6,34 +6,43 @@ import spgui.theming.SPStyleSheet
 object SPNavbarElementsCSS extends SPStyleSheet {
   import dsl._
 
-  val bootstrapDropdownOverride = style(
-    unsafeRoot("dropdown-menu")(
-      padding(8.px)
-    ),
-    unsafeRoot("li.open > a > i")( // TODO dont use root, figure something out
-      transform := "rotate(180deg)" // flip the caret
-    ),
-    unsafeRoot("li.open > a")(
-      backgroundColor := "#000000 !important"
-    )
-  )
 
   val button = style(
-    //backgroundColor(rgb(255,0,0))
+    &.active(
+      //(backgroundColor:= "#aaaaaa").important
+      //boxShadow:="inset 2px 2px 5px -1px rgba(0,0,0,0.2)"
+    )
+      //transition:= "box-shadow 0.1s"
   )
 
   val textIconClearance = style(marginRight(6.px) )
+
+  val dropdownRoot = style (
+    &.active(
+      boxShadow:="inset 2px 2px 5px -1px rgba(0,0,0,0.2)"
+    ),
+    unsafeChild(".dropdown-menu")(
+      padding(8.px)
+    ),
+    unsafeRoot(".navbar-dropdown.open > a > i")( 
+      transform := "rotate(180deg)" // flip the caret
+    ),
+    unsafeRoot(".navbar-dropdown.open > a")(
+      // overwrite a random color set by bootstrap
+      (color := theme.value.defaultTextColor).important 
+    )
+  )
 
   val dropDownList = style(
     top.unset
   )
   val clickable = style(
+    (color := theme.value.defaultTextColor).important,
     cursor.pointer,
     userSelect:= "none",
-    //backgroundColor.transparent,
     listStyle:= "none",
     &.hover(
-      backgroundColor(rgb(0,255,0)).important
+      (backgroundColor :=! theme.value.navbarButtonHoverColor).important
     )
   )
 

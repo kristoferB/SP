@@ -6,18 +6,6 @@ import spgui.theming.SPStyleSheet
 object SPWidgetElementsCSS extends SPStyleSheet {
   import dsl._
 
-  val bootstrapDropdownOverride = style(
-    unsafeRoot(".dropdown-menu")(
-      padding(8.px)
-    ),
-    unsafeRoot("span.open > button > i")(
-      transform := "rotate(180deg)" // flip the caret
-    ),
-    unsafeRoot("span.open > button")(
-      backgroundColor := "#000000 !important"
-    )
-  )
-
   val button = style(
     borderRadius(0.px),
     borderColor := theme.value.buttonBorderColor,
@@ -31,7 +19,23 @@ object SPWidgetElementsCSS extends SPStyleSheet {
 
   val defaultMargin = style(margin(2.px))
 
-  val dropdownOuter = style(display.inlineBlock)
+  val dropdownRoot = style (
+    unsafeChild(".dropdown-menu")(
+      padding(8.px)
+    ),
+    unsafeChild("span.open > button > i")(
+      transform := "rotate(180deg)" // flip the caret
+    ),
+    unsafeChild("span.open > button")(
+      borderColor := theme.value.spOrange,
+      backgroundColor := theme.value.buttonBackgroundColorHover
+    )
+  )
+
+  val dropdownOuter = style(
+    display.inlineBlock
+  )
+
   val textIconClearance = style(marginRight(6.px) )
 
   val clickable = style(
@@ -39,10 +43,10 @@ object SPWidgetElementsCSS extends SPStyleSheet {
     userSelect:= "none",
     //backgroundColor.transparent,
     listStyle:= "none",
-
+    
     &.hover (
       borderColor := theme.value.spOrange,
-      backgroundColor := "#0000ff"
+      backgroundColor := theme.value.buttonBackgroundColorHover
     )
   )
 

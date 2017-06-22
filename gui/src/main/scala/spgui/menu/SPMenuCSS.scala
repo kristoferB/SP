@@ -2,8 +2,9 @@ package spgui.menu
 
 import scalacss.Defaults._
 import spgui.circuit.SPGUICircuit
+import spgui.theming.SPStyleSheet
 
-object SPMenuCSS extends StyleSheet.Inline {
+object SPMenuCSS extends SPStyleSheet {
   import dsl._
 
   val topNavHeight = 50 //use in GlobalCSS.scala
@@ -11,15 +12,14 @@ object SPMenuCSS extends StyleSheet.Inline {
   val splogoSVGHeight = 60.4
   val splogoSVGWidth = 170.1
 
-  val theme = SPGUICircuit.zoom(_.settings.theme)
-
   val topNav = style("sp-top-nav")(
     marginBottom(0.px),
     border.none
   )
 
   val navbarContents = style(
-    border.none
+    border.none,
+    backgroundColor:= theme.value.navbarBackgroundColor
   )
 
   val topNavHeader = style(
