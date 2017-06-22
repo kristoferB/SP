@@ -19,6 +19,9 @@ trait TimelineRow_Trait extends GoogleRow_Trait {
   val endDate: Date = js.native
 }
 
+@js.native
+object TimelineRow extends TimelineRow_Trait
+
 class TimelineRow (
                     override val id: String,
                     override val name: String,

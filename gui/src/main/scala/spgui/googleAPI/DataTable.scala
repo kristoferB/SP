@@ -48,6 +48,9 @@ trait DataTable_Trait extends js.Object {
    */
 }
 
+@js.native
+object DataTable extends DataTable_Trait
+
 class DataTable (
                   override val optional_data: String = "",
                   override val optional_version: String = "0.6"

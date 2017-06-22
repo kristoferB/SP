@@ -16,6 +16,9 @@ trait Tooltips_Trait extends js.Object {
   val trigger: String = js.native
 }
 
+@js.native
+object Tooltips extends Tooltips_Trait
+
 class Tooltips (
                  override val isHtml: Boolean = true,
                  override val trigger: String = "focus"

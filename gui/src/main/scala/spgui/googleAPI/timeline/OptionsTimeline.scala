@@ -32,6 +32,9 @@ trait OptionsTimeline_Trait extends Options_Trait {
   override val width:             Int               = js.native
 }
 
+@js.native
+object OptionsTimeline extends OptionsTimeline_Trait
+
 class OptionsTimeline (
                 override val height: Int,
                 override val width: Int,

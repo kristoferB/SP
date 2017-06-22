@@ -19,6 +19,9 @@ trait OptionsTimelineInner_Trait extends js.Object {
   val singleColor:       String            = js.native
 }
 
+@js.native
+object OptionsTimelineInner extends OptionsTimelineInner_Trait
+
 // null, false, true, null, true, true, null
 class OptionsTimelineInner (
                         override val barLabelStyle: js.Object = null,

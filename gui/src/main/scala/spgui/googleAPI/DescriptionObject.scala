@@ -20,6 +20,9 @@ trait DescriptionObject_Trait extends js.Object {
   val optional_pattern: String = js.native
 }
 
+@js.native
+object DescriptionObject extends DescriptionObject_Trait
+
 class DescriptionObject(
                          override val column_type: String,
                          override val optional_id: String = "",
