@@ -12,7 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import spgui.circuit.SPGUICircuit
 import spgui.communication._
 import spgui.googleAPI.timeline.OptionsTimeline
-import spgui.googleAPI.{GoogleChartsLoaded, GoogleVisualization}
+import spgui.googleAPI._
+import spgui.googleAPI.timeline._
 
 import scala.scalajs.js.annotation.JSName
 
@@ -49,6 +50,75 @@ object ChartTest {
     def onMount() = {
       println(GoogleChartsLoaded)
       if(GoogleChartsLoaded.asInstanceOf[Boolean]) {
+
+
+
+/*
+        val getStartTime = new js.Date(2017, 5, 9, 6, 6, 6, 6)
+
+        def simpleTimelineDraw(rows: js.Any) =  {
+          val timelineData = new GoogleVisualization.DataTable()
+          timelineData.addColumn("string", "Timeline id")     //js.Dynamic.literal(`type` = "string", id = "Label id"))
+          timelineData.addColumn("string", "Timeline Name")   //js.Dynamic.literal(`type` = "string", id = "Label Name"))
+          timelineData.addColumn("date", "Start Date")        //js.Dynamic.literal(`type` = "date", id = "Start Date"))
+          timelineData.addColumn("date", "End Date")          //js.Dynamic.literal(`type` = "date", id = "End Date"))
+
+          val timelineRows = rows
+          timelineData.addRows(timelineRows)
+
+          val timelineOptions = OptionsTimeline(300,600)
+
+          val timelineElement =
+          val timeline = new GoogleVisualization.Timeline(timelineElement)
+          timeline.draw(timelineData, timelineOptions)
+        }
+
+        def simpleUpdateRows(start: js.Date, end: js.Date): js.Any = {
+          js.Array[js.Array[js.Any]](
+            js.Array[js.Any]("spring", "startup",   start,   end),
+            js.Array[js.Any]("summer", "beach",     start,   end),
+            js.Array[js.Any]("autumn", "rain",      start,   end),
+            js.Array[js.Any]("winter", "snow",      start,   end),
+            js.Array[js.Any]("spring", "bloom",     start,   end),
+            js.Array[js.Any]("summer", "sun",       start,   end)
+          )
+        }
+
+        simpleTimelineDraw(simpleUpdateRows(getStartTime, new js.Date()))
+        */
+      }
+      Callback.empty
+    }
+
+    def onUnmount() = {
+      println("Unmounting charts")
+      eventHandler.kill()
+      Callback.empty
+    }
+
+  }
+
+  private val component = ReactComponentB[Unit]("ChartTest")
+    .initialState(State(x = 5))
+    .renderBackend[Backend]
+    .componentDidMount(_.backend.onMount())
+    .componentWillUnmount(_.backend.onUnmount())
+    .build
+
+  def apply() = spgui.SPWidget(spwb => component())
+
+}
+
+
+
+
+
+
+
+
+
+
+/*
         val data = new GoogleVisualization.DataTable()
         data.addColumn("string", "productType")
         //js.Dynamic.literal(`type` = "string", id = "product type"));
@@ -94,59 +164,4 @@ object ChartTest {
         gantt.draw(ganttData, ganttOptions)
 
 
-
-        val getStartTime = new js.Date(2017, 5, 9, 6, 6, 6, 6)
-
-        def simpleTimelineDraw(rows: js.Any) =  {
-          val timelineData = new GoogleVisualization.DataTable()
-          timelineData.addColumn("string", "Timeline id")     //js.Dynamic.literal(`type` = "string", id = "Label id"))
-          timelineData.addColumn("string", "Timeline Name")   //js.Dynamic.literal(`type` = "string", id = "Label Name"))
-          timelineData.addColumn("date", "Start Date")        //js.Dynamic.literal(`type` = "date", id = "Start Date"))
-          timelineData.addColumn("date", "End Date")          //js.Dynamic.literal(`type` = "date", id = "End Date"))
-
-          val timelineRows = rows
-          timelineData.addRows(timelineRows)
-
-          val timelineOptions = OptionsTimeline(300,600)
-
-          val timelineElement = js.Dynamic.global.document.getElementById(id+"timeline")
-          val timeline = new GoogleVisualization.Timeline(timelineElement)
-          timeline.draw(timelineData, timelineOptions)
-        }
-
-        def simpleUpdateRows(start: js.Date, end: js.Date): js.Any = {
-          js.Array[js.Array[js.Any]](
-            js.Array[js.Any]("spring", "startup",   start,   end),
-            js.Array[js.Any]("summer", "beach",     start,   end),
-            js.Array[js.Any]("autumn", "rain",      start,   end),
-            js.Array[js.Any]("winter", "snow",      start,   end),
-            js.Array[js.Any]("spring", "bloom",     start,   end),
-            js.Array[js.Any]("summer", "sun",       start,   end)
-          )
-        }
-
-        simpleTimelineDraw(simpleUpdateRows(getStartTime, new js.Date()))
-      }
-      Callback.empty
-    }
-
-    def onUnmount() = {
-      println("Unmounting charts")
-      eventHandler.kill()
-      Callback.empty
-    }
-
-  }
-
-  private val component = ReactComponentB[Unit]("ChartTest")
-    .initialState(State(x = 5))
-    .renderBackend[Backend]
-    .componentDidMount(_.backend.onMount())
-    .componentWillUnmount(_.backend.onUnmount())
-    .build
-
-  def apply() = spgui.SPWidget(spwb => component())
-
-}
-
-
+*/

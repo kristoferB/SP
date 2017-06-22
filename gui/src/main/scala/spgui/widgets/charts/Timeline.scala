@@ -11,8 +11,9 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scalajs.js
 import spgui.communication._
-import spgui.googleAPI.GoogleVisualization
-import spgui.googleAPI.timeline.Options
+import spgui.googleAPI.{GoogleChart_Trait, GoogleVisualization, timeline}
+import spgui.googleAPI.timeline.{OptionsTimeline, TimelineChart}
+import spgui.widgets.charts.ChartTest.id
 
 import js.Date
 
@@ -22,9 +23,7 @@ object Timeline {
    *      1. Look over which State is needed for Timeline
    */
   // State
-  private case class State(
-                            zoom: String
-                          )
+  case class State(zoom: String)
 
   // dummy id
   val id = "widget"
@@ -33,7 +32,8 @@ object Timeline {
    *      1. Let the Widget set the Options through PROPS!
    */
   // local variable to hold the options
-  val timelineOptions = Options(100, 100)
+
+  //val timeline_options = new OptionsTimeline(100, 100)
 
 
 
@@ -92,6 +92,19 @@ object Timeline {
         )
       )
     }
+
+    /**** SETUP LIST OF THE DIFFERENT CHARTS *****/
+    // get div element
+    val timeline_element = js.Dynamic.global.document.getElementById(id+"timeline")
+    // create a new TimelineChart with the div as argument
+    val timeline_chart = new TimelineChart(timeline_element)
+    // create the list
+    val list_charts: List[GoogleChart_Trait] = List.apply(timeline_chart)
+
+
+
+    println(list_charts.head.element)
+
 
     // Handles the updates of the Timeline cycles
     def handleUpdate(s: State) = ???

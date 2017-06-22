@@ -9,11 +9,8 @@ import js.annotation.JSExport
 // Generalised Row for charts
 // TODO: Add extensions for ex Google Gant
 
-@JSExport
+@js.native
 trait GoogleRow_Trait extends js.Object {
   val id:         String          = js.native
   val name:       String          = js.native
-  val tooltips:   Tooltips        = js.native
-  val startDate:  js.Date         = js.native
-  val endDate:    js.Date         = js.native
-}
+ }

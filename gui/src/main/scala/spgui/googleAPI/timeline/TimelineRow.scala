@@ -11,21 +11,21 @@ import scala.scalajs.js.Date
 // Doc. Data format
 // https://developers.google.com/chart/interactive/docs/gallery/timeline#data-format
 @js.native
-trait TimelineRow_Trait_Trait extends GoogleRow_Trait {
+trait TimelineRow_Trait extends GoogleRow_Trait {
   override val id: String = js.native
   override val name: String = js.native
-  override val tooltips: Tooltips = js.native
-  override val startDate: Date = js.native
-  override val endDate: Date = js.native
+  val tooltips: Tooltips = js.native
+  val startDate: Date = js.native
+  val endDate: Date = js.native
 }
 
-class TimelineRowTrait(
+class TimelineRow (
                     override val id: String,
                     override val name: String,
                     override val startDate: Date,
                     override val endDate: Date,
                     override val tooltips: Tooltips = new Tooltips()
-                  ) extends TimelineRow_Trait_Trait {
+                  ) extends TimelineRow_Trait{
 
 }
 

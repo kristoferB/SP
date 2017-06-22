@@ -3,6 +3,8 @@
   */
 package spgui.googleAPI
 
+import spgui.googleAPI.timeline.{TimelineRow, TimelineRow_Trait}
+
 import scala.scalajs.js
 
 // Documentation DataTable
@@ -50,6 +52,5 @@ class DataTable (
                   override val optional_data: String = "",
                   override val optional_version: String = "0.6"
                 ) extends DataTable_Trait {
-  override def addColumn(desc_obj: DescriptionObject_Trait): Unit = super.addColumn(desc_obj)
-  override def addRows(row: GoogleRow_Trait): Unit = super.addRows(row)
+
 }
