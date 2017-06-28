@@ -8,22 +8,19 @@ import scala.scalajs.js
 
 
 // Configuration Options for Timeline
-@js.native
-trait OptionsTimelineInner_Trait extends js.Object {
-  val barLabelStyle:     js.Object         = js.native
-  val colorByRowLabel:   Boolean           = js.native
-  val groupByRowLabel:   Boolean           = js.native
-  val rowLabelStyle:     js.Object         = js.native
-  val showBarLabels:     Boolean           = js.native
-  val showRowLabels:     Boolean           = js.native
-  val singleColor:       String            = js.native
+
+trait TimelineTrait {
+  val barLabelStyle:     js.Object
+  val colorByRowLabel:   Boolean
+  val groupByRowLabel:   Boolean
+  val rowLabelStyle:     js.Object
+  val showBarLabels:     Boolean
+  val showRowLabels:     Boolean
+  val singleColor:       String
 }
 
-@js.native
-object OptionsTimelineInner extends OptionsTimelineInner_Trait
-
 // null, false, true, null, true, true, null
-class OptionsTimelineInner (
+class Timeline (
                         override val barLabelStyle: js.Object = null,
                         override val colorByRowLabel: Boolean = false,
                         override val groupByRowLabel: Boolean = true,
@@ -31,11 +28,12 @@ class OptionsTimelineInner (
                         override val showBarLabels: Boolean = true,
                         override val showRowLabels: Boolean = true,
                         override val singleColor: String = null
-                      ) extends OptionsTimelineInner_Trait {
+                      ) extends TimelineTrait {
 
 }
+
 /*
-object OptionsTimelineInner_Trait {
+object OptionsTimelineInner {
   def apply(
              barLabelStyle:    js.Object,
              colorByRowLabel:  Boolean,
@@ -52,5 +50,4 @@ object OptionsTimelineInner_Trait {
     showBarLabels = showRowLabels,
     showRowLabels = showRowLabels,
     singleColor = singleColor)
-}
-*/
+}*/

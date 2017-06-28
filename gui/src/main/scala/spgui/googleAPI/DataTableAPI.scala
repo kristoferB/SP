@@ -2,16 +2,12 @@
   * Created by alexa on 21/06/2017.
   */
 package spgui.googleAPI
-
-import spgui.googleAPI.timeline.{TimelineRow, TimelineRow_Trait}
-
 import scala.scalajs.js
-
 // Documentation DataTable
 // Constructor : https://developers.google.com/chart/interactive/docs/reference#datatable-class
 
 @js.native
-trait DataTable_Trait extends js.Object {
+trait DataTableAPI extends js.Object {
   // ex. get data from DataTable.toJSON()
   val optional_data:    String = js.native
 
@@ -19,19 +15,29 @@ trait DataTable_Trait extends js.Object {
   // CURRENT VERSION: 0.6
   val optional_version: String = js.native
 
-  // add a new column to the DataTable
+
+  // add a new column to the DataTable,
+  // type must be specified but label and id is optional
+  def addColumn(`type`: String, opt_label: String, opt_id: String): Unit = js.native
+  def addColumn(`type`: String): Unit = addColumn(`type`, "", "")
+
+
+  // add a new column to the DataTable,
+  // TODO: Fix passing of the two arguments to addColumn(..) above
   // argument:
   //          description_object  of type:
   //                                      DescriptionObject
   //  TODO: Fix result value to be current id, def addColumns(...): Number
   //
-  def addColumn(desc_obj: DescriptionObject_Trait): Unit = js.native
-  // add a new row to the DataTable
+  def addColumn(description_object: Array[String]): Unit = js.native
+
+  def addRow(row: js.Array[js.Any]): Unit = js.native
+  // add an array of new rows to the DataTable
   // argument:
   //          row  of type:
   //                       GoogleRow
   //  TODO: Fix result value to be current id, def addRows(...): Number
-  def addRows(row: GoogleRow_Trait): Unit = js.native
+  def addRows(rows: js.Array[js.Array[js.Any]]): Unit = js.native
 
   /*
    * TODO: Add more of the methods from google-charts API
@@ -48,12 +54,22 @@ trait DataTable_Trait extends js.Object {
    */
 }
 
-@js.native
-object DataTable extends DataTable_Trait
+object DataTableAPI {
+  def apply(
+           optional_data:     String = "",
+           optional_version:  String = "0.6"
+           ) = js.Dynamic.literal(
+    optional_data = optional_data,
+    optional_version = optional_version
+  )
+}
 
+/*
+@js.native
 class DataTable (
                   override val optional_data: String = "",
                   override val optional_version: String = "0.6"
                 ) extends DataTable_Trait {
 
 }
+*/

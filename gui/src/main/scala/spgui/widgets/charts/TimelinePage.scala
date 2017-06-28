@@ -9,15 +9,17 @@ import javax.xml.stream.events.{EndDocument, StartDocument}
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
+import scala.reflect.ClassTag
+import org.scalajs.dom.document
+import org.scalajs.dom.html.Div
+
 import scalajs.js
 import spgui.communication._
-import spgui.googleAPI.{GoogleChart_Trait, GoogleVisualization, timeline}
-import spgui.googleAPI.timeline.{OptionsTimeline, TimelineChart}
-import spgui.widgets.charts.ChartTest.id
+import spgui.googleAPI._
+import spgui.googleAPI.timeline.{OptionsTimeline, TimelineRow}
 
-import js.Date
 
-object Timeline {
+object TimelinePage {
   /*
    * TODO:
    *      1. Look over which State is needed for Timeline
@@ -80,30 +82,60 @@ object Timeline {
     //          State
     // Creates a div with CSS from TimelineCSS.scala
     // The div should contain the Google Timeline Chart
-    def render(s: State) = {
+    def render() =
       <.div(
-        ^.className := TimelineCSS.timelineStyle.htmlClass,
-        ^.id := id,
         <.div(
-          ^.id := id + "name"
-        ),
-        <.div(
-          ^.id := id+"timeline"
+          ^.className := TimelineCSS.timelineStyle.htmlClass,
+          ^.id := id +"testtest"
         )
       )
-    }
+
 
     /**** SETUP LIST OF THE DIFFERENT CHARTS *****/
-    // get div element
-    val timeline_element = js.Dynamic.global.document.getElementById(id+"timeline")
-    // create a new TimelineChart with the div as argument
-    val timeline_chart = new TimelineChart(timeline_element)
-    // create the list
-    val list_charts: List[GoogleChart_Trait] = List.apply(timeline_chart)
+    println("initiate timeline chart")
+
+    val divResult = getElement[Div](id +"testtest").fold {
+      "Couldn't find div"
+    } { div => s"Div display style: ${div.style.display}" }
+
+    println(divResult)
 
 
+    val timelineElement = js.Dynamic.global.document.getElementById(id +"testingTml")
+    val timeline = new GoogleVisualization.Timeline(timelineElement)
+    println("   ---done---    ")
 
-    println(list_charts.head.element)
+    println("create Datatable")
+    val data = new GoogleVisualization.DataTable()
+    println("   ---done---    ")
+
+
+    println("addColumns")
+    data.addColumn("string", "Timeline id", "1")
+    data.addColumn("string", "Timeline Name", "2")
+    data.addColumn("date", "Start Date", "4")
+    data.addColumn("date", "End Date", "5")
+    println("   ---done---    \n")
+
+    println("create a row")
+    val exampleRow = new TimelineRow("g", "9", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20))
+    println("   ---done---    \n")
+
+    println("add row to data")
+    exampleRow.toArray(exampleRow) foreach println
+    data.addRow(exampleRow.toArray(exampleRow))
+    println("   ---done---    \n")
+
+    println("create option")
+    val exampleOptions = new OptionsTimeline(300,400)
+    println("   ---done---    \n")
+
+
+    // TODO: Fix OptionsTimeline
+    println("draw")
+    timeline.draw(data)
+    println("   ---done---    \n")
+
 
 
     // Handles the updates of the Timeline cycles
@@ -115,6 +147,15 @@ object Timeline {
     // Handles start-events for a cycle
     def handleStart(s: State) = ???
 
+    def getElement[T: ClassTag](elementId: String): Option[T] = {
+      val queryResult = document.querySelector(s"#$elementId")
+      queryResult match {
+        case elem: T => Some(elem)
+        case other =>
+          println(s"Element with ID $elementId is $other")
+          None
+      }
+    }
 
   }
 
@@ -123,7 +164,7 @@ object Timeline {
   // Set the initial state
   // Set the render class for the backend
   // Builds
-  private val component = ReactComponentB[Unit]("Timeline")
+  private val component = ReactComponentB[Unit]("TimelinePage")
     .initialState(
       State(
         zoom = "default"
@@ -134,4 +175,8 @@ object Timeline {
 
   // defines apply
   def apply() = spgui.SPWidget(spwb => component())
+
+
 }
+
+

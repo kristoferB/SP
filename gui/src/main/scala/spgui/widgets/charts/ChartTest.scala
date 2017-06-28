@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import spgui.circuit.SPGUICircuit
 import spgui.communication._
-import spgui.googleAPI.timeline.OptionsTimeline
 import spgui.googleAPI._
 import spgui.googleAPI.timeline._
 
@@ -51,41 +50,77 @@ object ChartTest {
       println(GoogleChartsLoaded)
       if(GoogleChartsLoaded.asInstanceOf[Boolean]) {
 
+        println("initiate timeline chart")
+        val timelineElement = js.Dynamic.global.document.getElementById(id+"timeline")
+        val timeline = new GoogleVisualization.Timeline(timelineElement)
+        println("   ---done---    ")
+
+        println("create Datatable")
+        val data = new GoogleVisualization.DataTable()
+        println("   ---done---    ")
 
 
-/*
-        val getStartTime = new js.Date(2017, 5, 9, 6, 6, 6, 6)
+        println("addColumns")
+        data.addColumn("string", "Timeline id", "1")
+        data.addColumn("string", "Timeline Name", "2")
+        data.addColumn("date", "Start Date", "4")
+        data.addColumn("date", "End Date", "5")
+        println("   ---done---    \n")
 
-        def simpleTimelineDraw(rows: js.Any) =  {
-          val timelineData = new GoogleVisualization.DataTable()
-          timelineData.addColumn("string", "Timeline id")     //js.Dynamic.literal(`type` = "string", id = "Label id"))
-          timelineData.addColumn("string", "Timeline Name")   //js.Dynamic.literal(`type` = "string", id = "Label Name"))
-          timelineData.addColumn("date", "Start Date")        //js.Dynamic.literal(`type` = "date", id = "Start Date"))
-          timelineData.addColumn("date", "End Date")          //js.Dynamic.literal(`type` = "date", id = "End Date"))
+        println("create a row")
+        val exampleRow = new TimelineRow("g", "9", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20))
+        println("   ---done---    \n")
 
-          val timelineRows = rows
-          timelineData.addRows(timelineRows)
+        println("add row to data")
+        exampleRow.toArray(exampleRow) foreach println
+        data.addRow(exampleRow.toArray(exampleRow))
+        println("   ---done---    \n")
 
-          val timelineOptions = OptionsTimeline(300,600)
+        println("create option")
+        val exampleOptions = new OptionsTimeline(300,400)
+        println("   ---done---    \n")
 
-          val timelineElement =
-          val timeline = new GoogleVisualization.Timeline(timelineElement)
-          timeline.draw(timelineData, timelineOptions)
-        }
 
-        def simpleUpdateRows(start: js.Date, end: js.Date): js.Any = {
-          js.Array[js.Array[js.Any]](
-            js.Array[js.Any]("spring", "startup",   start,   end),
-            js.Array[js.Any]("summer", "beach",     start,   end),
-            js.Array[js.Any]("autumn", "rain",      start,   end),
-            js.Array[js.Any]("winter", "snow",      start,   end),
-            js.Array[js.Any]("spring", "bloom",     start,   end),
-            js.Array[js.Any]("summer", "sun",       start,   end)
-          )
-        }
+        // TODO: Fix OptionsTimeline
+        println("draw")
+        timeline.draw(data)
+        println("   ---done---    \n")
 
-        simpleTimelineDraw(simpleUpdateRows(getStartTime, new js.Date()))
-        */
+
+
+        /*
+                val getStartTime = new js.Date(2017, 5, 9, 6, 6, 6, 6)
+
+                def simpleTimelineDraw(rows: js.Any) =  {
+                  val timelineData = new GoogleVisualization.DataTable()
+                  timelineData.addColumn("string", "Timeline id")     //js.Dynamic.literal(`type` = "string", id = "Label id"))
+                  timelineData.addColumn("string", "Timeline Name")   //js.Dynamic.literal(`type` = "string", id = "Label Name"))
+                  timelineData.addColumn("date", "Start Date")        //js.Dynamic.literal(`type` = "date", id = "Start Date"))
+                  timelineData.addColumn("date", "End Date")          //js.Dynamic.literal(`type` = "date", id = "End Date"))
+
+                  val timelineRows = rows
+                  timelineData.addRows(timelineRows)
+
+                  val timelineOptions = OptionsTimeline(300,600)
+
+                  val timelineElement = js.Dynamic.global.document.getElementById("timelineTesting")
+                  val timeline = new GoogleVisualization.Timeline(timelineElement)
+                  timeline.draw(timelineData, timelineOptions)
+                }
+
+                def simpleUpdateRows(start: js.Date, end: js.Date): js.Any = {
+                  js.Array[js.Array[js.Any]](
+                    js.Array[js.Any]("spring", "startup",   start,   end),
+                    js.Array[js.Any]("summer", "beach",     start,   end),
+                    js.Array[js.Any]("autumn", "rain",      start,   end),
+                    js.Array[js.Any]("winter", "snow",      start,   end),
+                    js.Array[js.Any]("spring", "bloom",     start,   end),
+                    js.Array[js.Any]("summer", "sun",       start,   end)
+                  )
+                }
+
+                simpleTimelineDraw(simpleUpdateRows(getStartTime, new js.Date()))
+                */
       }
       Callback.empty
     }

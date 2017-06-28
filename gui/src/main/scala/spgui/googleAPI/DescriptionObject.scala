@@ -5,33 +5,51 @@ package spgui.googleAPI
 
 import scala.scalajs.js
 
-@js.native
-trait DescriptionObject_Trait extends js.Object {
+trait DescriptionObjectTrait {
   // A string with the data type of the values of the column
-  val column_type: String = js.native
+  val columnType:       String
   // A label for the column
-  val optional_label: String = js.native
+  val optionalLabel:    String
   // An ID for the column
-  val optional_id: String = js.native
+  val optionalId:       String
   // TODO:Implement GOOGLEVISUALIZATION ROLE
   // A role for the column
-  val optional_role: String = js.native
+  val optionalRole:     String
   // A number (or date) format string specifying how to display the column value
-  val optional_pattern: String = js.native
+  val optionalPattern:  String
 }
 
-@js.native
-object DescriptionObject extends DescriptionObject_Trait
+/*
+object DescriptionObject {
+  def apply(
+           columnType:      String,
+           optionalId:      String,
+           optionalLabel:   String = "",
+           optionalRole:    String = "",
+           optionalPattern: String = ""
+           ) = js.Dynamic.literal(
+    columnType = columnType,
+    optionalLabel = optionalLabel,
+    optionalId = optionalId,
+    optionalRole = optionalRole,
+    optionalPattern = optionalPattern
+  )
+}
+*/
+
 
 class DescriptionObject(
-                         override val column_type: String,
-                         override val optional_id: String = "",
-                         override val optional_label: String = "",
-                         override val optional_role: String,
-                         override val optional_pattern: String = ""
-                       ) extends DescriptionObject_Trait {
+                         override val columnType: String,
+                         override val optionalLabel: String = "",
+                         override val optionalId: String = "",
+                         override val optionalRole: String,
+                         override val optionalPattern: String = ""
+                       ) extends DescriptionObjectTrait {
 
+  def toArray(obj: DescriptionObject): Array[String] =
+    Array(obj.columnType, obj.optionalLabel, obj.optionalId, obj.optionalRole, obj.optionalPattern)
 }
+
 
 /*
 object DescriptionObject_Trait {
