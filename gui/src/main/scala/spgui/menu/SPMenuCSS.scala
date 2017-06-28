@@ -34,7 +34,7 @@ object SPMenuCSS extends SPStyleSheet {
     border.none,
     textAlign.center,
     padding.unset,
-    color:=theme.value.spOrange,
+    color :=! theme.value.spOrange,
     backgroundColor.transparent,
     position.relative
   )
@@ -98,7 +98,7 @@ object SPMenuCSS extends SPStyleSheet {
   val container = style("sp-navbar-container")(
     paddingLeft(0.px),
     backgroundColor := theme.value.navbarBackgroundColor,
-    color := theme.value.defaultTextColor,
+    color :=! theme.value.defaultTextColor,
     border.none,
     display.flex,
     flexDirection.row,
@@ -106,6 +106,13 @@ object SPMenuCSS extends SPStyleSheet {
     width(100.%%),
     height(topNavHeight.px),
     position.relative
+  )
+
+  val expandButtonOverride = style(
+    unsafeRoot(".navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus")(
+      backgroundColor :=! theme.value.spOrange,
+      color :=! theme.value.navbarBackgroundColor
+    )
   )
 
   this.addToDocument()

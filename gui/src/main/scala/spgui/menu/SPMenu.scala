@@ -17,6 +17,7 @@ object SPMenu {
         // navbar header: logo+toggle button
         <.div(
           ^.className := "navbar-header",
+          ^.className := SPMenuCSS.navbarContents.htmlClass,
           <.a(
             ^.className := SPMenuCSS.navbarToggleButton.htmlClass,
             ^.className := "navbar-toggle collapsed",

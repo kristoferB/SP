@@ -10,19 +10,19 @@ case class Theme(
   defaultTextColor: String = "#000000",
   spOrange: String = "#df691a",
 
-  navbarBackgroundColor: String = "#eeeeee",
-  navbarForegroundColor: String = "#58666e",
+  navbarBackgroundColor: String = "#cccccc",
   navbarLogoBackgroundColor: String = "#df691a",
-  navbarButtonHoverColor: String = "#cccccc",
+  navbarButtonBackgroundHoverColor: String = "#bbbbbb",
+  navbarButtonTextColor: String = "#000000",
 
   widgetBackgroundColor: String = "#ededed",
   widgetHeadingColor: String = "#999999",
   widgetHeadingIconColor: String = "#ffffff",
   
-  buttonBorderColor: String = "#aaaaaa",
-  buttonBackgroundColor: String = "#cccccc",
-  buttonBackgroundColorHover: String = "#eeeeee",
-  buttonTextColor : String = "#000000"
+  widgetButtonBorderColor: String = "#aaaaaa",
+  widgetButtonBackgroundColor: String = "#dddddd",
+  widgetButtonBackgroundHoverColor: String = "#ffffff",
+  widgetButtonTextColor: String = "#000000"
 )
 
 

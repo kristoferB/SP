@@ -7,9 +7,9 @@ object SPNavbarElementsCSS extends SPStyleSheet {
   import dsl._
 
   val button = style(
-    (color := theme.value.defaultTextColor).important,
+    (color :=! theme.value.defaultTextColor).important,
     unsafeChild("span")(
-      (color := theme.value.defaultTextColor).important
+      (color :=! theme.value.defaultTextColor).important
     ),
     &.active(
       //(backgroundColor:= "#aaaaaa").important
@@ -21,34 +21,43 @@ object SPNavbarElementsCSS extends SPStyleSheet {
   val textIconClearance = style(marginRight(6.px) )
 
   val dropdownRoot = style (
-    &.active(
-      boxShadow:="inset 2px 2px 5px -1px rgba(0,0,0,0.2)"
-    ),
     unsafeChild(".dropdown-menu")(
-      padding(8.px)
+      padding(4.px)
     ),
     unsafeRoot(".navbar-dropdown.open > a > i")( 
       transform := "rotate(180deg)" // flip the caret
     ),
     unsafeRoot(".navbar-dropdown.open > a")(
-      // overwrite a random color set by bootstrap
-      (color := theme.value.defaultTextColor).important 
+      // bootstrap override
+      (color :=! theme.value.defaultTextColor).important
+    ),
+    unsafeRoot(".navbar-default .navbar-nav > .open > a")(
+      // another bootstrap override
+      (backgroundColor :=! theme.value.navbarBackgroundColor)
     )
   )
 
   val dropDownList = style(
     top.unset,
     cursor.pointer,
-    backgroundColor:= theme.value.buttonBackgroundColor,
-    color := theme.value.defaultTextColor
+    (backgroundColor :=! theme.value.navbarBackgroundColor).important,
+    color :=! theme.value.defaultTextColor
   )
+
   val clickable = style(
-    (color := theme.value.defaultTextColor).important,
+    (color :=! theme.value.defaultTextColor).important,
     cursor.pointer,
-    userSelect:= "none",
-    listStyle:= "none",
+    userSelect := "none",
+    listStyle := "none",
     &.hover(
-      (backgroundColor :=! theme.value.navbarButtonHoverColor).important
+      (backgroundColor :=! theme.value.navbarButtonBackgroundHoverColor).important
+    )
+  )
+
+  val dropdownElement = style(
+    padding(2.px),
+    &.hover(
+      (backgroundColor :=! theme.value.navbarButtonBackgroundHoverColor).important
     )
   )
 

@@ -55,7 +55,12 @@ object SPWidgetElements{
           ^.className := SPWidgetElementsCSS.clickable.htmlClass
         ),
         <.ul(
-          contents.toTagMod,
+          contents.collect{
+            case e => <.div(
+              ^.className := SPWidgetElementsCSS.dropdownElement.htmlClass,
+              e
+            )
+          }.toTagMod,
           ^.className := SPWidgetElementsCSS.dropDownList.htmlClass,
           ^.className := "dropdown-menu",
           aria.labelledBy := "something"

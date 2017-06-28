@@ -9,36 +9,42 @@ object Themes {
     Theme(
       name = "dark",
       borderless = false,
-      defaultTextColor = "#ffffbb",
-      mainBackgroundColor= "#333333",
+      defaultTextColor = "#ffffdd",
+      mainBackgroundColor= "#222222",
 
-      navbarBackgroundColor = "#111111",
-      navbarForegroundColor = "#58666e",
+      navbarBackgroundColor = "#222222",
       navbarLogoBackgroundColor = "#df691a",
-      navbarButtonHoverColor = "#666666",
+      navbarButtonBackgroundHoverColor =  "#555555",
+      navbarButtonTextColor  = "#ffffff",
 
-      widgetBackgroundColor = "#444444",
-      widgetHeadingColor = "#555555",
+      widgetBackgroundColor = "#333333",
+      widgetHeadingColor = "#222222",
       widgetHeadingIconColor = "#ffffff",
       
-      buttonBorderColor = "#777777",
-      buttonBackgroundColor = "#111111",
-      buttonBackgroundColorHover = "#333333",
-      buttonTextColor = "#ffffff"
+      widgetButtonBorderColor = "#aaaaaa",
+      widgetButtonBackgroundColor = "#222222",
+      widgetButtonBackgroundHoverColor = "#333333",
+      widgetButtonTextColor = "#ffffff"
     ),
-
     Theme(
-      name = "debug-red",
-      borderless =  false,
-      shadow = "1px 20px 20px rgba(0, 0, 0, 0.1), 0 10px 0 rgba(0, 0, 0, 0.1)" ,
-      mainBackgroundColor= "#ff0000",
-      widgetBackgroundColor ="#ff0000",
-      widgetHeadingColor= "#ff0000",
-      widgetHeadingIconColor= "#ff0000",
-      navbarBackgroundColor= "#ff0000",
-      navbarForegroundColor= "#ff0000",
-      navbarLogoBackgroundColor= "#ff0000",
-      defaultTextColor= "#ff0000"
+      name = "light",
+      borderless = false,
+      defaultTextColor = "#000000",
+      mainBackgroundColor= "#ffffff",
+
+      navbarBackgroundColor = "#eeeeee",
+      navbarLogoBackgroundColor = "#df691a",
+      navbarButtonBackgroundHoverColor =  "#dddddd",
+      navbarButtonTextColor  = "#000000",
+
+      widgetBackgroundColor = "#f5f5f5",
+      widgetHeadingColor = "#eeeeee",
+      widgetHeadingIconColor = "#000000",
+      
+      widgetButtonBorderColor = "#ffffff",
+      widgetButtonBackgroundColor = "#ffffff",
+      widgetButtonBackgroundHoverColor = "#eeeeee",
+      widgetButtonTextColor = "#000000"
     )
   )
 }

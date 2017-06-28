@@ -47,7 +47,12 @@ object SPNavbarElements{
         ^.className := "nav-link dropdown-toggle"
       ),
       <.ul(
-        contents.toTagMod,
+        contents.collect{
+          case e => <.div(
+            ^.className := SPNavbarElementsCSS.dropdownElement.htmlClass, 
+            e
+          )
+        }.toTagMod,
         ^.className := SPNavbarElementsCSS.dropDownList.htmlClass,
         ^.className := "dropdown-menu"
       )
