@@ -63,23 +63,27 @@ class TimelineRow (
     this(name, id, null, startDate, endDate, 4)
 
 
-  // no side effects?
+  // TODO: ensure no side effects
   // argument: a TimelineRow
   // return: an js.Array of js.Any
-  def toArray(that: TimelineRow): js.Array[js.Any] = {
-    if (that.cases == 0) {
-      js.Array(that.name, that.id, new Tooltips().toAny(that.tooltip), that.startDate, that.endDate)
-    } else if (that.cases == 1) {
-      js.Array(that.name, new Tooltips().toAny(that.tooltip), that.startDate, that.endDate)
-    } else if (that.cases == 2 || that.cases == 3) {
-      js.Array(that.name, that.startDate, that.endDate)
-    } else if(that.cases == 4) {
-      js.Array(that.name, that.id, that.startDate, that.endDate)
+  def toArray(): js.Array[js.Any] = {
+    if (this.cases == 0) {
+      js.Array(this.name, this.id, this.tooltip.toArray(), this.startDate, this.endDate)
+    } else if (this.cases == 1) {
+      js.Array(this.name, this.tooltip.toArray(), this.startDate, this.endDate)
+    } else if (this.cases == 2 || this.cases == 3) {
+      js.Array(this.name, this.startDate, this.endDate)
+    } else if(this.cases == 4) {
+      js.Array(this.name, this.id, this.startDate, this.endDate)
     }else {
       println("Something went wrong in TimelineRow.toArray()")
       new js.Array[js.Any]()
     }
   }
+
+
+  override def toString = s"TimelineRow($name, $id, $tooltip, " +
+    s"$startDate, $endDate, $cases)"
 }
 
 

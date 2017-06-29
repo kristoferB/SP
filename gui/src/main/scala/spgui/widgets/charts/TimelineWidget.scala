@@ -16,13 +16,12 @@ import org.scalajs.dom.html.Div
 import scalajs.js
 import spgui.communication._
 import spgui.googleAPI._
-import spgui.googleAPI.timeline.{OptionsTimeline, TimelineRow}
-
+import spgui.googleAPI.timeline._
 /*
  * TODO: Remove debugging messages
  */
 
-object TimelinePage {
+object TimelineWidget {
   /*
    * TODO:
    *      1. Look over which State is needed for Timeline
@@ -30,8 +29,11 @@ object TimelinePage {
   // State
   case class State(zoom: String)
 
-  // dummy id
-  val id = "widget"
+  /*********EXAMPLE USE OF GOOGLE API*************/
+
+  // ensures that the name in div when rendering and
+  // the Timeline Chart have the same Name
+  val divElement: String = "timelineWidget"
 
 
   /* TODO:
@@ -42,15 +44,14 @@ object TimelinePage {
   //            BackendScope[ Props , State ]
   private class Backend($: BackendScope[Unit, State]) {
     // ---render method---
-    // Argument:
-    //          State
-    // Creates a div with CSS from TimelineCSS.scala
+    // Creates a div with class CSS from TimelineCSS.scala
     // The div should contain the Google Timeline Chart
     def render() =
     <.div(
       <.div(
         ^.className := TimelineCSS.timelineStyle.htmlClass,
-        <.div(^.id := id +"testingTml")
+        // create a div with id
+        <.div(^.id := divElement)
       )
     )
 
@@ -69,43 +70,36 @@ object TimelinePage {
     def handleStart() = {
       println(GoogleChartsLoaded)
       if (GoogleChartsLoaded.asInstanceOf[Boolean]) {
-        println("initiate timeline chart")
-        val timelineElement = js.Dynamic.global.document.getElementById(id + "testingTml")
+        // create a element that gets the div we create before
+        val timelineElement = js.Dynamic.global.document.getElementById(divElement)
+        // create a new Timeline chart
+        // argument the element
         val timeline = new GoogleVisualization.Timeline(timelineElement)
-        println("   ---done---    ")
 
-        println("create Datatable")
+        // create a new DataTable
         val data = new GoogleVisualization.DataTable()
-        println("   ---done---    ")
 
-
-        println("addColumns")
+        // creates a example column setup to the DataTable
         data.addColumn("string", "Timeline id", "1")
         data.addColumn("string", "Timeline Name", "2")
         data.addColumn("date", "Start Date", "4")
         data.addColumn("date", "End Date", "5")
-        println("   ---done---    ")
 
-        println("create a row")
+        // creates example data
         val exampleRow = new TimelineRow("g", "9", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20))
-        println("   ---done---    ")
 
-        println("add row to data")
-        println("-print row")
-        exampleRow.toArray(exampleRow) foreach println
-        data.addRow(exampleRow.toArray(exampleRow))
-        println("   ---done---    ")
+        // add the data to the DataTable
+        data.addRow(exampleRow.toArray())
 
-        println("create option")
-        val exampleOptions = new OptionsTimeline(300, 400)
-        println("   ---done---    ")
+        // Create a example options (spgui.googleAPI.timeline.{OptionsTimeline, Timeline}
+        val exampleOptions = new OptionsTimeline(300,500, new Timeline())
 
+        // draw timeline chart
+        // arguments: the DataTable and the options
+        timeline.draw(data, exampleOptions.toDynamic())
 
-        // TODO: Fix OptionsTimeline
-        println("draw")
-        timeline.draw(data)
-        println("   ---done---    ")
       }
+      // send Callback log
       Callback.log("Mounting TimelinePage Done!")
     }
 
@@ -113,19 +107,16 @@ object TimelinePage {
 
   // Create a value component of type:
   //                                  ReactComponent
-  // Set the initial state
-  // Set the render class for the backend
-  // Builds
   private val component = ReactComponentB[Unit]("TimelinePage")
-    .initialState(
+    .initialState(// Set the initial state
       State(
         zoom = "default"
       )
     )
-    .renderBackend[Backend]
-    .componentDidMount(_.backend.handleStart())
-    .componentWillUnmount(_.backend.handleStop())
-    .build
+    .renderBackend[Backend]// Set the render class for the backend
+    .componentDidMount(_.backend.handleStart())//when client does mount, get handleStart()
+    .componentWillUnmount(_.backend.handleStop())// when unmounting
+    .build// Builds
 
   // defines apply
   def apply() = spgui.SPWidget(spwb => component())

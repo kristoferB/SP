@@ -21,10 +21,11 @@ class Tooltips (
                ) extends TooltipsTrait {
 
   def this() = this(true, "focus")
-  def toAny(that: Tooltips): js.Any =
-    js.Array(that.isHtml, that.trigger)
+  def toArray(): js.Array[js.Any] =
+    js.Array(this.isHtml, this.trigger)
 
-  val xtra: String = "s"
+
+  override def toString = s"Tooltips($isHtml, $trigger)"
 }
 
 /*

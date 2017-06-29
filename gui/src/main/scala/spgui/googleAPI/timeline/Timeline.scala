@@ -30,6 +30,22 @@ class Timeline (
                         override val singleColor: String = null
                       ) extends TimelineTrait {
 
+  def toArray(): js.Array[js.Any] =
+    js.Array(
+      this.barLabelStyle,
+      this.colorByRowLabel,
+      this.groupByRowLabel,
+      this.rowLabelStyle,
+      this.showBarLabels,
+      this.showRowLabels,
+      this.singleColor
+    )
+
+
+  override def toString = s"Timeline($barLabelStyle, " +
+    s"$colorByRowLabel, $groupByRowLabel, " +
+    s"$rowLabelStyle, $showBarLabels, " +
+    s"$showRowLabels, $singleColor)"
 }
 
 /*

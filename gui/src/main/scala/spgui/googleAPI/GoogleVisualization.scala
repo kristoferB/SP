@@ -21,7 +21,7 @@ object GoogleVisualization extends js.Object {
   @js.native
   class Timeline(element: js.Dynamic) extends GoogleChart {
     override def draw(data: DataTableAPI, options: js.Object): Unit = js.native
-    def draw(data: DataTableAPI): Unit = draw(data, new js.Object())
+    def draw(data: DataTableAPI): Unit = draw(data, new js.Array[js.Any]())
   }
 
   @js.native

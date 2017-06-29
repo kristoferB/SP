@@ -68,22 +68,24 @@ object ChartTest {
         println("   ---done---    \n")
 
         println("create a row")
-        val exampleRow = new TimelineRow("g", "9", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20))
+        val exampleRow = new TimelineRow("g", "9", null, new js.Date(2014, 2, 22), new js.Date(2014, 5, 20), 4)
         println("   ---done---    \n")
 
         println("add row to data")
-        exampleRow.toArray(exampleRow) foreach println
-        data.addRow(exampleRow.toArray(exampleRow))
+        exampleRow.toArray() foreach println
+        data.addRow(exampleRow.toArray())
         println("   ---done---    \n")
 
         println("create option")
         val exampleOptions = new OptionsTimeline(300,400)
+        val exampleOptions2 = js.Dynamic.literal(title = id, height=300, width=600,
+          timeline = js.Dynamic.literal(showRowLabels = false))
         println("   ---done---    \n")
 
 
         // TODO: Fix OptionsTimeline
         println("draw")
-        timeline.draw(data)
+        timeline.draw(data, exampleOptions.toDynamic())
         println("   ---done---    \n")
 
 

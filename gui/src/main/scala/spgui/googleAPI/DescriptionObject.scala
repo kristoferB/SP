@@ -46,8 +46,12 @@ class DescriptionObject(
                          override val optionalPattern: String = ""
                        ) extends DescriptionObjectTrait {
 
-  def toArray(obj: DescriptionObject): Array[String] =
-    Array(obj.columnType, obj.optionalLabel, obj.optionalId, obj.optionalRole, obj.optionalPattern)
+  def toArray(): Array[String] =
+    Array(this.columnType, this.optionalLabel, this.optionalId, this.optionalRole, this.optionalPattern)
+
+
+  override def toString = s"DescriptionObject($columnType, $optionalLabel, " +
+    s"$optionalId, $optionalRole, $optionalPattern)"
 }
 
 
