@@ -14,16 +14,47 @@ object SPMenuCSS extends StyleSheet.Inline {
   val theme = SPGUICircuit.zoom(_.settings.theme)
 
   val topNav = style("sp-top-nav")(
-    display.flex,
-    flexDirection.row,
-    // ovverride bootstrap defaults
     marginBottom(0.px),
     border.none
   )
 
+  val navbarContents = style(
+    border.none
+  )
+
+  val topNavHeader = style(
+  )
+
+  val navbarToggleButton = style(
+    fontSize(20.px),
+    height(50.px),
+    width(50.px),
+    margin.unset,
+    borderRadius.unset,
+    border.none,
+    textAlign.center,
+    padding.unset,
+    color:=theme.value.spOrange,
+    backgroundColor.transparent,
+    position.relative
+  )
+
+
+  val navbarToggleButtonIcon = style(
+    position.absolute,
+    top(50.%%),
+    left(50.%%),
+    transform := "translate(-50%,-50%)"
+  )
+
+  val navbarToggleButtonOuter = style(
+
+   )
+
   val buttonPadding = 4;
   val navItem = style("sp-nav-item")(
-      paddingRight(buttonPadding.px)
+    paddingRight(buttonPadding.px),
+    height(100.%%)
   )
 
   val logoPadding = 0 // currently no padding needed
@@ -70,6 +101,7 @@ object SPMenuCSS extends StyleSheet.Inline {
     color := theme.value.defaultTextColor,
     border.none,
     display.flex,
+    flexDirection.row,
     alignItems.center,
     width(100.%%),
     height(topNavHeight.px),

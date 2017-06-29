@@ -13,5 +13,6 @@ case class Theme(
   navbarBackgroundColor: String = "#eeeeee",
   navbarForegroundColor: String = "#58666e",
   navbarLogoBackgroundColor: String = "#df691a",
-  defaultTextColor: String = "#000000"
+  defaultTextColor: String = "#000000",
+  spOrange: String = "#df691a"
 )

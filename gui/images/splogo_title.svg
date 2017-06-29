@@ -80,17 +80,17 @@
      guidetolerance="10"
      inkscape:pageopacity="0.3254902"
      inkscape:pageshadow="2"
-     inkscape:window-width="1920"
-     inkscape:window-height="1054"
+     inkscape:window-width="1916"
+     inkscape:window-height="1041"
      id="namedview18"
      showgrid="false"
      showguides="false"
-     inkscape:zoom="8.9851074"
-     inkscape:cx="86.427595"
-     inkscape:cy="10.916407"
+     inkscape:zoom="4.4925537"
+     inkscape:cx="89.460218"
+     inkscape:cy="14.139401"
      inkscape:window-x="0"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
+     inkscape:window-y="37"
+     inkscape:window-maximized="0"
      inkscape:current-layer="svg872">
     <inkscape:grid
        type="xygrid"
@@ -115,8 +115,8 @@
      height="60.436047"
      x="-170.09911"
      y="-60.436043"
-     ry="4"
-     rx="3.9273198"
+     ry="0"
+     rx="0"
      transform="scale(-1,-1)" />
   <g
      id="layer1"
@@ -489,7 +489,7 @@
          sodipodi:role="line"
          id="tspan4362"
          x="-49.806606"
-         y="-213.87119"></tspan></text>
+         y="-213.87119" /></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:43.01934052px;line-height:125%;font-family:'Abyssinica SIL';-inkscape-font-specification:'Abyssinica SIL, Normal';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -512,7 +512,7 @@
        sodipodi:role="line"
        id="tspan4346"
        x="110"
-       y="90.436043"></tspan></text>
+       y="90.436043" /></text>
   <text
      xml:space="preserve"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:125%;font-family:'Abyssinica SIL';-inkscape-font-specification:'Abyssinica SIL, Normal';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"

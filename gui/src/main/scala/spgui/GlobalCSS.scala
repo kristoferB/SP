@@ -27,23 +27,6 @@ object GlobalCSS extends StyleSheet.Inline {
     )
   )
 
-  val h2 = style(
-    unsafeRoot("h2")(
-      fontSize(30.px),
-      lineHeight(40.px)
-    )
-  )
-
-  val button = style(
-    unsafeRoot("button")(
-      border.none,
-      padding(10.px),
-      borderWidth(1.px),
-      borderColor.gray,
-      borderStyle.solid
-    )
-  )
-
   val layout = style("sp-layout")(
 
   )
