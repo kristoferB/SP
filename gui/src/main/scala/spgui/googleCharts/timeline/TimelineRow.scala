@@ -1,9 +1,9 @@
 /**
   * Created by alexa on 21/06/2017.
   */
-package spgui.googleAPI.timeline
+package spgui.googleCharts.timeline
 
-import spgui.googleAPI.Tooltips
+import spgui.googleCharts.Tooltips
 
 import scala.scalajs.js
 import scala.scalajs.js.Date

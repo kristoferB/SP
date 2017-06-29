@@ -11,8 +11,8 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import spgui.circuit.SPGUICircuit
 import spgui.communication._
-import spgui.googleAPI._
-import spgui.googleAPI.timeline._
+import spgui.googleCharts._
+import spgui.googleCharts.timeline._
 
 import scala.scalajs.js.annotation.JSName
 

@@ -15,8 +15,8 @@ import org.scalajs.dom.html.Div
 
 import scalajs.js
 import spgui.communication._
-import spgui.googleAPI._
-import spgui.googleAPI.timeline._
+import spgui.googleCharts._
+import spgui.googleCharts.timeline._
 /*
  * TODO: Remove debugging messages
  */

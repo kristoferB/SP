@@ -1,7 +1,7 @@
 /**
   * Created by alexa on 21/06/2017.
   */
-package spgui.googleAPI
+package spgui.googleCharts
 import scala.scalajs.js
 // Documentation DataTable
 // Constructor : https://developers.google.com/chart/interactive/docs/reference#datatable-class

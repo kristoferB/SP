@@ -1,10 +1,10 @@
 /**
   * Created by alexa on 15/06/2017.
   */
-package spgui.googleAPI.timeline
+package spgui.googleCharts.timeline
 
 import scala.scalajs.js
-import spgui.googleAPI.{OptionsTrait, Tooltips}
+import spgui.googleCharts.{OptionsTrait, Tooltips}
 
 import scalacss.internal.Media.Height
 

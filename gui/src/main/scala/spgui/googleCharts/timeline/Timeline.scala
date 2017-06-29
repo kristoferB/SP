@@ -1,4 +1,4 @@
-package spgui.googleAPI.timeline
+package spgui.googleCharts.timeline
 
 import scala.scalajs.js
 
