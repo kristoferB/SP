@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat
 import java.util.UUID
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.ReactDOM
 
 import spgui.SPWidget
@@ -74,7 +74,7 @@ private class Backend($: BackendScope[String, Map[String, apiPatient.Patient]]) 
   }
 }
 
-private val component = ReactComponentB[String]("teamVBelastning")
+private val component = ScalaComponent.builder[String]("teamVBelastning")
 .initialState(Map("-1" ->
   apiPatient.Patient(
     "4502085",

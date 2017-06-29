@@ -1,7 +1,7 @@
 package spgui.widgets.examples
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.ReactDOM
 
 import spgui.SPWidget
@@ -63,7 +63,7 @@ object D3ExampleServiceWidget {
       )
   }
 
-  private val component = ReactComponentB[Unit]("D3DataReceiver")
+  private val component = ScalaComponent.builder[Unit]("D3DataReceiver")
     .initialState(List.fill(8)(nextInt(50)))
     .renderBackend[RBackend]
     .componentWillUnmount(_.backend.stop)

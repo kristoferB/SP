@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat
 import java.util.UUID
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.ReactDOM
 
 import spgui.SPWidget
@@ -73,7 +73,7 @@ object RoomOverviewWidget {
     }
   }
 
-  private val component = ReactComponentB[Unit]("KoordMapWidget")
+  private val component = ScalaComponent.builder[Unit]("KoordMapWidget")
   .initialState(Map("-1" ->
     apiPatient.Patient(
       "4502085",

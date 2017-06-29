@@ -10,7 +10,8 @@ import java.text.SimpleDateFormat
 import java.util.UUID
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.vdom.all.svg
 import japgolly.scalajs.react.ReactDOM
 
 import spgui.SPWidget
@@ -189,99 +190,99 @@ object PatientReminderWidget {
       val delimiterColor = "#95989a"
       val shadowColor = "lightgrey"
 
-      <.svg.svg( //ARTO: Skapar en <svg></svg>-tagg att fylla med objekt
+      svg.svg( //ARTO: Skapar en <svg>svg>-tagg att fylla med objekt
         ^.key := p.careContactId,
         ^.`class` := "patient-card-canvas",
-        ^.svg.width := "100%",//(cardScaler * cardWidth * 1.04).toString,
-        ^.svg.height := "auto",//(cardScaler * cardHeight * 1.04).toString,
-        ^.svg.viewBox := "0 0 "+ (cardWidth + 4).toString +" "+ (cardHeight + 4).toString,
-        // ^.svg.transform := "scale(" + cardScaler + ")",
-        ^.svg.id := p.careContactId,
-        <.svg.g(
+        svg.width := "100%",//(cardScaler * cardWidth * 1.04).toString,
+        svg.height := "auto",//(cardScaler * cardHeight * 1.04).toString,
+        svg.viewBox := "0 0 "+ (cardWidth + 4).toString +" "+ (cardHeight + 4).toString,
+        // svg.transform := "scale(" + cardScaler + ")",
+        svg.id := p.careContactId,
+        svg.g(
           ^.`class` := "patient-card-graphics",
-          //^.svg.transform := "translate(0,0)",
-          <.svg.rect(
+          //svg.transform := "translate(0,0)",
+          svg.rect(
             ^.`class` := "shadow",
-            ^.svg.y := "2",
-            ^.svg.x := "2",
-            ^.svg.height := cardHeight.toString,
-            ^.svg.width := cardWidth.toString,
-            ^.svg.fill := shadowColor
+            svg.y := "2",
+            svg.x := "2",
+            svg.height := cardHeight.toString,
+            svg.width := cardWidth.toString,
+            svg.fill := shadowColor
           ),
-          <.svg.rect(
+          svg.rect(
             ^.`class` := "bg-field",
-            ^.svg.y := 0,
-            ^.svg.x := 0,
-            ^.svg.height := cardHeight,
-            ^.svg.width := cardWidth,
-            ^.svg.fill := cardBackgroundColor
+            svg.y := 0,
+            svg.x := 0,
+            svg.height := cardHeight,
+            svg.width := cardWidth,
+            svg.fill := cardBackgroundColor
           ),
-          <.svg.path(
+          svg.path(
             ^.`class` := "triage-field",
-            ^.svg.d := "m -8.3529763e-4,0.04154422 108.15776529763,0 0,72.66000378 -108.15776529763,0 z",
-            ^.svg.fill := decodeTriageColor(p.priority)
+            svg.d := "m -8.3529763e-4,0.04154422 108.15776529763,0 0,72.66000378 -108.15776529763,0 z",
+            svg.fill := decodeTriageColor(p.priority)
           ),
-          <.svg.path(
+          svg.path(
             ^.`class` := "clock-symbol",
-            ^.svg.d := "m 200.88792,15.039552 -1.366,0 0,5.465 4.782,2.869 0.683,-1.12 -4.1,-2.432 z m -0.463,-4.554 a 9.108,9.108 0 1 0 9.117,9.108 9.1,9.1 0 0 0 -9.117,-9.108 z m 0.01,16.394 a 7.286,7.286 0 1 1 7.286,-7.286 7.284,7.284 0 0 1 -7.287,7.286 z",
-            ^.svg.fill := contentColorDark
+            svg.d := "m 200.88792,15.039552 -1.366,0 0,5.465 4.782,2.869 0.683,-1.12 -4.1,-2.432 z m -0.463,-4.554 a 9.108,9.108 0 1 0 9.117,9.108 9.1,9.1 0 0 0 -9.117,-9.108 z m 0.01,16.394 a 7.286,7.286 0 1 1 7.286,-7.286 7.284,7.284 0 0 1 -7.287,7.286 z",
+            svg.fill := contentColorDark
           ),
-          <.svg.path(
+          svg.path(
             ^.`class` := "timeline-attended-bg",
-            ^.svg.d := "m 35.252165,72.701548 -35.2530003,0 0,-7 35.2520003,0 0,0.028 0,0 3.413,3.486 -3.412,3.486 z",
-            ^.svg.fill := progressBarColoring(p).head._1
+            svg.d := "m 35.252165,72.701548 -35.2530003,0 0,-7 35.2520003,0 0,0.028 0,0 3.413,3.486 -3.412,3.486 z",
+            svg.fill := progressBarColoring(p).head._1
           ),
-          <.svg.path(
+          svg.path(
             ^.`class` := "timeline-plan-bg",
-            ^.svg.d := "m 72.180165,72.701548 -36,0 3.485,-3.486 -3.485,-3.485 36,-0.028 3.487,3.514 -3.487,3.485 z",
-            ^.svg.fill := progressBarColoring(p).tail.head._1
+            svg.d := "m 72.180165,72.701548 -36,0 3.485,-3.486 -3.485,-3.485 36,-0.028 3.487,3.514 -3.487,3.485 z",
+            svg.fill := progressBarColoring(p).tail.head._1
           ),
-          <.svg.path(
+          svg.path(
             ^.`class` := "timeline-finished-bg",
-            ^.svg.d := "m 108.18116,72.701548 -34.999995,0 3.484,-3.484 -3.484,-3.516 34.999995,0 0,7 z",
-            ^.svg.fill := progressBarColoring(p).tail.tail.head._1
+            svg.d := "m 108.18116,72.701548 -34.999995,0 3.484,-3.484 -3.484,-3.516 34.999995,0 0,7 z",
+            svg.fill := progressBarColoring(p).tail.tail.head._1
           )
         ),
-        <.svg.g(
+        svg.g(
           ^.`class` := "patient-card-text",
 
-          <.svg.text(
+          svg.text(
             ^.`class` := "room-nr",
-            ^.svg.y := "53.462563",
-            ^.svg.x := "54.5",
-            ^.svg.textAnchor := "middle",
-            ^.svg.fontSize :=  fontSizeLarge + "px",
-            ^.svg.fill := contentColorLight,
+            svg.y := "53.462563",
+            svg.x := "54.5",
+            svg.textAnchor := "middle",
+            svg.fontSize :=  fontSizeLarge + "px",
+            svg.fill := contentColorLight,
             p.location.roomNr
           ),
-          <.svg.text(
+          svg.text(
             ^.`class` := "header-latest-event",
-            ^.svg.y := "23.813511",
-            ^.svg.x := "119.74184",
-            ^.svg.textAnchor := "start",
-            ^.svg.fontSize :=  fontSizeSmall + "px",
-            ^.svg.fill := contentColorDark,
+            svg.y := "23.813511",
+            svg.x := "119.74184",
+            svg.textAnchor := "start",
+            svg.fontSize :=  fontSizeSmall + "px",
+            svg.fill := contentColorDark,
             if (p.latestEvent.latestEvent != "") "Senast"
             else "Ingen senaste händelse"
           ),
-          <.svg.text(
+          svg.text(
             ^.`class` := "latest-event",
-            ^.svg.y := "51",
-            ^.svg.x := "118.19789",
-            ^.svg.textAnchor := "start",
-            ^.svg.fontSize := fontSizeMedium  + "px",
+            svg.y := "51",
+            svg.x := "118.19789",
+            svg.textAnchor := "start",
+            svg.fontSize := fontSizeMedium  + "px",
             Styles.freeSansBold,
-            ^.svg.fill := contentColorDark,
+            svg.fill := contentColorDark,
             p.latestEvent.latestEvent.toUpperCase
           ),
-          <.svg.text(
+          svg.text(
             ^.`class` := "time-since-latest-event",
-            ^.svg.y := "26.208241",
-            ^.svg.textAnchor := "start",
-            ^.svg.fontSize :=  "19 px",
-            ^.svg.fill := { if (hasWaitedTooLong(p)) contentColorAttention else contentColorDark },
-            <.svg.tspan(^.svg.x := "217.03676")(getTimeDiffReadable(p.latestEvent.timeDiff)._1)
-            //<.svg.tspan(^.svg.x := "252", ^.svg.dy := "15 px")(getTimeDiffReadable(p.latestEvent.timeDiff)._2)
+            svg.y := "26.208241",
+            svg.textAnchor := "start",
+            svg.fontSize :=  "19 px",
+            svg.fill := { if (hasWaitedTooLong(p)) contentColorAttention else contentColorDark },
+            svg.tspan(svg.x := "217.03676")(getTimeDiffReadable(p.latestEvent.timeDiff)._1)
+            //svg.tspan(svg.x := "252", svg.dy := "15 px")(getTimeDiffReadable(p.latestEvent.timeDiff)._2)
           )
         )
       )
@@ -347,7 +348,7 @@ object PatientReminderWidget {
 
         <.div(^.`class` := "card-holder-root", Styles.helveticaZ)(
           <.div(^.`class` := "widget-header", Styles.widgetHeader)(
-            <.svg.text(
+            svg.text(
               "LÅNG TID SEDAN HÄNDELSE"
             )
           ),
@@ -359,18 +360,18 @@ object PatientReminderWidget {
             // patientCard(pats(ccid))
           }},
           // <.div(^.`class` := "hallå", Styles.widgetText)(
-          //   <.svg.text(
+          //   svg.text(
           //     "widgetWidth: " + widgetWidth
           //   )
           // ),
           <.div(^.`class` := "number-not-shown", ^.ref := "numbNot", Styles.widgetText)(
-            <.svg.text(
+            svg.text(
               ^.fontWeight.bold,
               if ((ccidsToDraw.size - numberToDraw) >= 0) (ccidsToDraw.size - numberToDraw)
               else if ((ccidsToDraw.size - numberToDraw) < 0) "0"
               else ccidsToDraw.size
             ),
-            <.svg.text(
+            svg.text(
               " till i kö"
             )
           )
@@ -391,7 +392,7 @@ object PatientReminderWidget {
 
   }
 
-  private val cardHolderComponent = ReactComponentB[Unit]("cardHolderComponent")
+  private val cardHolderComponent = ScalaComponent.builder[Unit]("cardHolderComponent")
   .initialState(Map("-1" ->
     apiPatient.Patient(
       "4502085",

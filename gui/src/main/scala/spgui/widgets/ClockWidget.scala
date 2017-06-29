@@ -3,7 +3,7 @@ package spgui.widgets
 import java.time._ //ARTO: Använder wrappern https://github.com/scala-js/scala-js-java-time
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.ReactDOM
 
 import spgui.SPWidget
@@ -60,7 +60,7 @@ object ClockWidget {
 
       }
 
-      private val component = ReactComponentB[Unit]("clockComponent")
+      private val component = ScalaComponent.builder[Unit]("clockComponent")
       .initialState(State(0))
       .renderBackend[Backend]
       .componentDidMount(_.backend.start)
