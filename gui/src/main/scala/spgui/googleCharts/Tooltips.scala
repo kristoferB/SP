@@ -1,10 +1,10 @@
+/****************************************
+  *      HELP CLASS TO GOOGLE CHARTS     *
+  ****************************************/
+
 package spgui.googleCharts
 
 import scala.scalajs.js
-
-/**
-  * Created by alexa on 21/06/2017.
-  */
 
 /*
  * https://developers.google.com/chart/interactive/docs/customizing_tooltip_content
@@ -19,24 +19,14 @@ class Tooltips (
                  override val isHtml: Boolean,
                  override val trigger: String
                ) extends TooltipsTrait {
-
+  // auxilarry constructor with default values
   def this() = this(true, "focus")
+
+  // method: toArray()
+  // returns: an js.Array of js.Any
   def toArray(): js.Array[js.Any] =
     js.Array(this.isHtml, this.trigger)
 
-
+  // toString method
   override def toString = s"Tooltips($isHtml, $trigger)"
 }
-
-/*
-// Facade for ToolTips
-object Tooltips {
-  def apply(
-             isHtml: Boolean,
-             trigger: String
-           ) =
-    js.Dynamic.literal(
-      isHtml = isHtml,
-      trigger = trigger
-    )
-}*/

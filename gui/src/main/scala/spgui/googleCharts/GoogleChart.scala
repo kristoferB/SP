@@ -1,12 +1,14 @@
-/**
-  * Created by alexa on 21/06/2017.
-  */
+/****************************************
+  *      FACADE FOR GOOGLE CHARTS        *
+  ****************************************/
+
 package spgui.googleCharts
 
 import scala.scalajs.js
 
 @js.native
 trait GoogleChart extends js.Object {
+  // a div element where the chart should be drawn
   val element: js.Dynamic = js.native
   // Draws the chart
   def draw(data: DataTableAPI, options: js.Object): Unit = js.native

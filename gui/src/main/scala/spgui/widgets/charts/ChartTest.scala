@@ -49,48 +49,46 @@ object ChartTest {
     def onMount() = {
       println(GoogleChartsLoaded)
       if(GoogleChartsLoaded.asInstanceOf[Boolean]) {
-
-        println("initiate timeline chart")
         val timelineElement = js.Dynamic.global.document.getElementById(id+"timeline")
         val timeline = new GoogleVisualization.Timeline(timelineElement)
-        println("   ---done---    ")
 
-        println("create Datatable")
         val data = new GoogleVisualization.DataTable()
-        println("   ---done---    ")
-
-
-        println("addColumns")
         data.addColumn("string", "Timeline id", "1")
         data.addColumn("string", "Timeline Name", "2")
         data.addColumn("date", "Start Date", "4")
         data.addColumn("date", "End Date", "5")
-        println("   ---done---    \n")
 
-        println("create a row")
         val exampleRow = new TimelineRow("g", "9", null, new js.Date(2014, 2, 22), new js.Date(2014, 5, 20), 4)
-        println("   ---done---    \n")
 
-        println("add row to data")
-        exampleRow.toArray() foreach println
         data.addRow(exampleRow.toArray())
-        println("   ---done---    \n")
 
-        println("create option")
         val exampleOptions = new OptionsTimeline(300,400)
-        val exampleOptions2 = js.Dynamic.literal(title = id, height=300, width=600,
-          timeline = js.Dynamic.literal(showRowLabels = false))
-        println("   ---done---    \n")
 
-
-        // TODO: Fix OptionsTimeline
-        println("draw")
         timeline.draw(data, exampleOptions.toDynamic())
-        println("   ---done---    \n")
+      }
+      Callback.empty
+    }
 
+    def onUnmount() = {
+      println("Unmounting charts")
+      eventHandler.kill()
+      Callback.empty
+    }
 
+  }
 
-        /*
+  private val component = ReactComponentB[Unit]("ChartTest")
+    .initialState(State(x = 5))
+    .renderBackend[Backend]
+    .componentDidMount(_.backend.onMount())
+    .componentWillUnmount(_.backend.onUnmount())
+    .build
+
+  def apply() = spgui.SPWidget(spwb => component())
+
+}
+
+/*
                 val getStartTime = new js.Date(2017, 5, 9, 6, 6, 6, 6)
 
                 def simpleTimelineDraw(rows: js.Any) =  {
@@ -123,37 +121,6 @@ object ChartTest {
 
                 simpleTimelineDraw(simpleUpdateRows(getStartTime, new js.Date()))
                 */
-      }
-      Callback.empty
-    }
-
-    def onUnmount() = {
-      println("Unmounting charts")
-      eventHandler.kill()
-      Callback.empty
-    }
-
-  }
-
-  private val component = ReactComponentB[Unit]("ChartTest")
-    .initialState(State(x = 5))
-    .renderBackend[Backend]
-    .componentDidMount(_.backend.onMount())
-    .componentWillUnmount(_.backend.onUnmount())
-    .build
-
-  def apply() = spgui.SPWidget(spwb => component())
-
-}
-
-
-
-
-
-
-
-
-
 
 /*
         val data = new GoogleVisualization.DataTable()

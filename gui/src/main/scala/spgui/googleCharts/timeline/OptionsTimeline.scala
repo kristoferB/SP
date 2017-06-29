@@ -1,23 +1,14 @@
-/**
-  * Created by alexa on 15/06/2017.
-  */
+/****************************************
+  *      HELP CLASS TO GOOGLE CHARTS     *
+  ****************************************/
+
 package spgui.googleCharts.timeline
 
 import scala.scalajs.js
 import spgui.googleCharts.{OptionsTrait, Tooltips}
 
-import scalacss.internal.Media.Height
-
-/*
- * Full Documentation Google Charts
- * https://developers.google.com/chart/interactive/docs/reference#top_of_page
- */
-
-/*
- * Timeline Doucmentation:
- * https://developers.google.com/chart/interactive/docs/gallery/timeline#configuration-options
- */
-
+// Trait for Timeline Options
+// children of OptionsTrait
 trait OptionsTlTrait extends OptionsTrait {
   val avoidOverlappingGridLines:  Boolean
   val backgroundColor:            String
@@ -30,13 +21,18 @@ trait OptionsTlTrait extends OptionsTrait {
   val timeline:                   Timeline
   val tooltip:                    Tooltips
   override val width:             Int
+
+  override def toDynamic():       js.Object
 }
 
+// OptionsTimeline Class
+// see configuration options of timeline doucmentation
 class OptionsTimeline (
                         override val height:                    Int,
                         override val width:                     Int,
                         override val timeline:                  Timeline,
                         override val tooltip:                   Tooltips,
+                        // default values for TimelineAPI
                         override val avoidOverlappingGridLines: Boolean = true,
                         override val backgroundColor:           String = "white",
                         override val colors:                    js.Array[String] = null,
@@ -45,6 +41,7 @@ class OptionsTimeline (
                         override val fontSize:                  String = "automatic",
                         override val forceIFrame:               Boolean = false
                       )extends OptionsTlTrait {
+  // auxilarry constructors
   def this(height: Int, width: Int, timeline: Timeline) =
     this(height, width, timeline, new Tooltips())
   def this(height: Int, width: Int, tooltip: Tooltips) =
@@ -54,10 +51,10 @@ class OptionsTimeline (
   // empty constructor
   def this() = this(0,0)
 
-  // todo: implement toObject
+  // implements method toDynamic()
   // argument: none
   // return a js.Object to match the google chart API for the options
-  def toDynamic(): js.Object =
+  override def toDynamic(): js.Object =
     js.Dynamic.literal(
       avoidOverlappingGridLines = this.avoidOverlappingGridLines,
       backgroundColor = this.backgroundColor,
@@ -83,53 +80,8 @@ class OptionsTimeline (
       width = this.width
     )
 
-
-
-
+  // overrides toString and print variables
   override def toString = s"OptionsTimeline($height, $width, $timeline, $tooltip, " +
     s"$avoidOverlappingGridLines, $backgroundColor, $colors, $enableInteractivity, " +
     s"$fontName, $fontSize, $forceIFrame)"
 }
-
-
-/*
-@js.native
-object OptionsTimeline extends OptionsTimeline_Trait
-*/
-
-
-/*
-// Facade for the Options
-object Options {
-
-  def apply(
-             // height and width must be set
-             height:                      Int,
-             width:                       Int,
-             // see full doc for default values
-             // name:                     Type      = Default value
-
-             avoidOverlappingGridLines:   Boolean   = true,
-             backgroundColor:             String    = "white",
-             colors:                      js.Array[String] = null,
-             enableInteractivity:         Boolean   = true,
-             fontName:                    String    = "Arial",
-             fontSize:                    String = "automatic",
-             forceIFrame:                 Boolean = false,
-             timeline:                    Unit = new Timeline(),
-             tooltip:                      Unit = new Tooltips()
-           ) = js.Dynamic.literal(
-    avoidOverlappingGridLines = avoidOverlappingGridLines,
-    backgroundColor = backgroundColor,
-    colors = colors,
-    enableInteractivity = enableInteractivity,
-    fontName = fontName,
-    fontSize = fontSize,
-    forceIFrame = forceIFrame,
-    height = height,
-    timeline = timeline,
-    tooltip = tooltip,
-    width = width
-  )
-}
-*/

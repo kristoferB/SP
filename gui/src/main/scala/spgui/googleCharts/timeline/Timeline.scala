@@ -1,14 +1,13 @@
+/****************************************
+  *      HELP CLASS TO GOOGLE CHARTS     *
+  ****************************************/
+
 package spgui.googleCharts.timeline
 
 import scala.scalajs.js
 
-/**
-  * Created by alexa on 21/06/2017.
-  */
-
-
-// Configuration Options for Timeline
-
+// Configuration Options for Timeline inner
+// trait
 trait TimelineTrait {
   val barLabelStyle:     js.Object
   val colorByRowLabel:   Boolean
@@ -47,23 +46,3 @@ class Timeline (
     s"$rowLabelStyle, $showBarLabels, " +
     s"$showRowLabels, $singleColor)"
 }
-
-/*
-object OptionsTimelineInner {
-  def apply(
-             barLabelStyle:    js.Object,
-             colorByRowLabel:  Boolean,
-             groupByRowLabel:  Boolean,
-             rowLabelStyle:    js.Object,
-             showBarLabels:    Boolean,
-             showRowLabels:    Boolean,
-             singleColor:      String
-           ) = js.Dynamic.literal(
-    barLabelStyle = barLabelStyle,
-    colorByRowLabel = colorByRowLabel,
-    groupByRowLabel = groupByRowLabel,
-    rowLabelStyle = rowLabelStyle,
-    showBarLabels = showRowLabels,
-    showRowLabels = showRowLabels,
-    singleColor = singleColor)
-}*/

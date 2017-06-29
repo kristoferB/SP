@@ -1,6 +1,7 @@
-/**
-  * Created by alexa on 21/06/2017.
-  */
+/****************************************
+  *      FACADE FOR GOOGLE CHARTS        *
+  ****************************************/
+
 package spgui.googleCharts
 import scala.scalajs.js
 // Documentation DataTable
@@ -26,16 +27,21 @@ trait DataTableAPI extends js.Object {
   // TODO: Fix passing of the two arguments to addColumn(..) above
   // argument:
   //          description_object  of type:
-  //                                      DescriptionObject
+  //                                      Array of Strings
   //  TODO: Fix result value to be current id, def addColumns(...): Number
   //
   def addColumn(description_object: Array[String]): Unit = js.native
 
+
+  // add a new row to DataTable
+  // argument: row of type - js.Array of js.Any
+  // Todo: fix result value
   def addRow(row: js.Array[js.Any]): Unit = js.native
+
   // add an array of new rows to the DataTable
   // argument:
-  //          row  of type:
-  //                       GoogleRow
+  //          rows  of type:
+  //                       js.Array of js.Array of js.Any
   //  TODO: Fix result value to be current id, def addRows(...): Number
   def addRows(rows: js.Array[js.Array[js.Any]]): Unit = js.native
 
@@ -63,13 +69,3 @@ object DataTableAPI {
     optional_version = optional_version
   )
 }
-
-/*
-@js.native
-class DataTable (
-                  override val optional_data: String = "",
-                  override val optional_version: String = "0.6"
-                ) extends DataTable_Trait {
-
-}
-*/
