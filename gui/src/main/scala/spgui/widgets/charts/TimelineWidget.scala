@@ -33,7 +33,7 @@ object TimelineWidget {
 
   // ensures that the name in div when rendering and
   // the Timeline Chart have the same Name
-  val divElement: String = "timelineWidget"
+  val idName: String = "timelineWidget"
 
 
   /* TODO:
@@ -50,8 +50,8 @@ object TimelineWidget {
     <.div(
       <.div(
         ^.className := TimelineCSS.timelineStyle.htmlClass,
-        // create a div with id
-        <.div(^.id := divElement)
+        // create a div with id of our id name
+        <.div(^.id := idName)
       )
     )
 
@@ -71,7 +71,8 @@ object TimelineWidget {
       println(GoogleChartsLoaded)
       if (GoogleChartsLoaded.asInstanceOf[Boolean]) {
         // create a element that gets the div we create before
-        val timelineElement = js.Dynamic.global.document.getElementById(divElement)
+        val timelineElement = js.Dynamic.global.document.getElementById(idName)
+
         // create a new Timeline chart
         // argument the element
         val timeline = new GoogleVisualization.Timeline(timelineElement)

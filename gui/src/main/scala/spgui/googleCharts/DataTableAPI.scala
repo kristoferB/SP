@@ -56,8 +56,8 @@ trait DataTableAPI extends js.Object {
 
 object DataTableAPI {
   def apply(
-           optional_data:     String = "",
-           optional_version:  String = "0.6"
+           optional_data:     String,
+           optional_version:  String
            ) = js.Dynamic.literal(
     optional_data = optional_data,
     optional_version = optional_version

@@ -25,7 +25,13 @@ object GoogleVisualization extends js.Object {
   }
 
   @js.native
-  class DataTable extends DataTableAPI {
+  class DataTable(
+                   optional_data:     String,
+                   optional_version:  String
+                 ) extends DataTableAPI {
+    // Auxillary constructors
+    def this(optionalData: String) = this(optionalData, "0.6")
+    def this() = this("", "0.6")
     // add column from super-class
     override def addColumn(`type`: String, opt_label: String, opt_id: String): Unit =
       super.addColumn(`type`, opt_label, opt_id)
