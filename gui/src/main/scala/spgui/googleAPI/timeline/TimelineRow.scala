@@ -14,9 +14,10 @@ import scala.scalajs.js.Date
 trait TimelineRowTrait {
   val name:       String
   val id:         String
-  val tooltips:   Tooltips
+  val tooltip:   Tooltips
   val startDate:  Date
   val endDate:    Date
+  val cases:      Int   // to make it more user-friendly with toArray
 }
 
 /*
@@ -36,23 +37,49 @@ object TimelineRow {
   )
 }*/
 
+object TimelineRow {
+
+}
 
 class TimelineRow (
                     override val name: String,
                     override val id: String,
+                    override val tooltip: Tooltips,
                     override val startDate: Date,
                     override val endDate: Date,
-                    override val tooltips: Tooltips = new Tooltips()
+                    override val cases: Int = 0
                   ) extends TimelineRowTrait {
+  // constructor with name, dates and tooltip
+  def this(name: String, tooltip: Tooltips, startDate: Date, endDate: Date ) =
+    this(name, "", tooltip, startDate, endDate,  1)
+  // constructor with name and dates
+  def this(name: String, startDate: Date, endDate: Date) =
+    this(name, "", null ,startDate, endDate, 2)
+  // constructor only name displayed
+  def this(name: String) =
+    this(name, "", null, new js.Date(), new js.Date(), 3)
+  // constructor missing tooltip
+  def this(name: String, id: String, startDate: Date, endDate: Date) =
+    this(name, id, null, startDate, endDate, 4)
 
 
-  // return a array of type js.any
-  // argument: that of type TimelineRow
-  /*def toArray(that: TimelineRow): js.Array[js.Any] =
-    Array(""+ that.name, ""+ that.id, ""+ that.tooltips, that.startDate, that.endDate)
-*/
-  def toArray(that: TimelineRow): js.Array[js.Any] =
-    js.Array(that.name, that.id, that.startDate, that.endDate)
+  // no side effects?
+  // argument: a TimelineRow
+  // return: an js.Array of js.Any
+  def toArray(that: TimelineRow): js.Array[js.Any] = {
+    if (that.cases == 0) {
+      js.Array(that.name, that.id, new Tooltips().toAny(that.tooltip), that.startDate, that.endDate)
+    } else if (that.cases == 1) {
+      js.Array(that.name, new Tooltips().toAny(that.tooltip), that.startDate, that.endDate)
+    } else if (that.cases == 2 || that.cases == 3) {
+      js.Array(that.name, that.startDate, that.endDate)
+    } else if(that.cases == 4) {
+      js.Array(that.name, that.id, that.startDate, that.endDate)
+    }else {
+      println("Something went wrong in TimelineRow.toArray()")
+      new js.Array[js.Any]()
+    }
+  }
 }
 
 

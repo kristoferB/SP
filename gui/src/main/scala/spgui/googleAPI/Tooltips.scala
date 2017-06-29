@@ -15,13 +15,16 @@ trait TooltipsTrait {
   val trigger: String
 }
 
-
-
 class Tooltips (
-                 override val isHtml: Boolean = true,
-                 override val trigger: String = "focus"
+                 override val isHtml: Boolean,
+                 override val trigger: String
                ) extends TooltipsTrait {
 
+  def this() = this(true, "focus")
+  def toAny(that: Tooltips): js.Any =
+    js.Array(that.isHtml, that.trigger)
+
+  val xtra: String = "s"
 }
 
 /*
