@@ -437,9 +437,9 @@ object PatientCardsWidget {
             )
           )
         ),
-        sortPatientsByRoomNr(pats) map { ccid =>
+        sortPatientsByRoomNr(pats).map{ ccid =>
           patientCard(pats(ccid))
-        }
+        }.toVdomArray
       )
     }
 

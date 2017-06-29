@@ -1,6 +1,6 @@
 package spgui.components
 
-import japgolly.scalajs.react.VdomNode
+import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.vdom.html_<^._
 
 /**

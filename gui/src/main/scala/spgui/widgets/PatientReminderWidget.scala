@@ -354,17 +354,18 @@ object PatientReminderWidget {
           ),
           {
           ccidsToDraw = sortPatientsByPriority(pats.filter((t) => hasWaitedTooLong(t._2)))
-          ccidsToDraw.take(numberToDraw) map { ccid =>
+          ccidsToDraw.take(numberToDraw).map{ ccid =>
             patientCard(pats(ccid))
             //sortPatientsByPriority(pats.filter((t) => t._2.latestEvent.needsAttention)).take(numberToDraw) map { ccid =>
             // patientCard(pats(ccid))
-          }},
+          }.toVdomArray},
           // <.div(^.`class` := "hallå", Styles.widgetText)(
           //   svg.text(
           //     "widgetWidth: " + widgetWidth
           //   )
           // ),
-          <.div(^.`class` := "number-not-shown", ^.ref := "numbNot", Styles.widgetText)(
+          //<.div(^.`class` := "number-not-shown", ^.ref := "numbNot", Styles.widgetText)(
+          <.div(^.`class` := "number-not-shown", Styles.widgetText)(
             svg.text(
               ^.fontWeight.bold,
               if ((ccidsToDraw.size - numberToDraw) >= 0) (ccidsToDraw.size - numberToDraw)

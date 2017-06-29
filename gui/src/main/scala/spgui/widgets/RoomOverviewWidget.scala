@@ -89,7 +89,7 @@ object RoomOverviewWidget {
       apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
       )))
     .renderBackend[Backend]
-    .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentState)))
+    .componentDidUpdate(ctx => Callback(addTheD3(ctx.getDOMNode, ctx.currentState)))
     .componentWillUnmount(_.backend.onUnmount())
     .build
 
