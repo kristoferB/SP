@@ -2,7 +2,7 @@
 1. Install the python project:
 ```
 virtualenv -p /usr/bin/python2.7 onlinePredictionTestEnv
-
+source onlinePredictionTestEnv/bin/activate
 pip install -r requirements.txt
 ```
 2. Run the script that exports a trained model:
