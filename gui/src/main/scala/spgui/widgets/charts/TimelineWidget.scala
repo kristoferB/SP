@@ -15,7 +15,7 @@ import org.scalajs.dom.html.Div
 
 import scalajs.js
 import spgui.communication._
-import spgui.googleCharts.{GoogleChartsLoaded, GoogleVisualization}
+import spgui.googleCharts.{DescriptionObject, GoogleChartsLoaded, GoogleVisualization}
 import spgui.googleCharts.timeline._
 /*
  * TODO: Remove debugging messages
@@ -72,14 +72,24 @@ object TimelineWidget {
         // create a new DataTable
         val data = new GoogleVisualization.DataTable()
 
-        // creates a example column setup to the DataTable
+        // creates a example column setup to the DataTable with a DescriptionObject
+        val descriptionObjects: List[DescriptionObject] =
+          new DescriptionObject("string", "Timeline", "Row Label") ::
+          new DescriptionObject("string", "Timeline", "Bar Label") ::
+          new DescriptionObject("date", "Timeline", "Start Date") ::
+          new DescriptionObject("date", "Timeline", "End Date") :: Nil
+
+        descriptionObjects.foreach(arr => data.addColumn(arr.toArray()))
+
+        /* creates a example column setup to the DataTable without DescriptionObject
         data.addColumn("string", "Timeline id", "1")
         data.addColumn("string", "Timeline Name", "2")
         data.addColumn("date", "Start Date", "4")
         data.addColumn("date", "End Date", "5")
+        */
 
         // creates example data
-        val exampleRow = new TimelineRow("g", "9", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20))
+        val exampleRow = new TimelineRow("Row Label", "Bar Label", new js.Date(2017, 2, 22), new js.Date())
 
         // add the data to the DataTable
         data.addRow(exampleRow.toArray())

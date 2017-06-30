@@ -7,7 +7,7 @@ See spgui/widgets/charts/TimelineWidget
 # To use Google Charts Facades
 To customaize Hover pop-up: See Tooltips
 To set data: 1. create DataTable
-             2. set columns, read: addColumn()
+             2. set columns (with or without help of DescriptionObject), read: addColumn()
              3. create row through Row-helper-class and add to table
 To set options:
              1. See helper-classes for the chart
