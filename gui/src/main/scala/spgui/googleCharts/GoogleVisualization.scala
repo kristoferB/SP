@@ -13,6 +13,8 @@ object GoogleVisualization extends js.Object {
   @js.native
   class Timeline(element: js.Dynamic) extends GoogleChart {
     override def draw(data: DataTableAPI, options: js.Object): Unit = js.native
+
+    override def clearChart(): Unit = js.native
   }
 
   @js.native
@@ -26,27 +28,27 @@ object GoogleVisualization extends js.Object {
 
     // add column from super-class
     override def addColumn(`type`: String, opt_label: String, opt_id: String): Unit =
-      super.addColumn(`type`, opt_label, opt_id)
+      js.native
 
     override def addColumn(`type`: String): Unit =
-      super.addColumn(`type`)
+      js.native
 
     override def addColumn(description_object: Array[String]): Unit =
-      super.addColumn(description_object)
+      js.native
 
 
     // add rows from super-class
     override def addRows(rows: js.Array[js.Array[js.Any]]): Unit =
-      super.addRows(rows)
+      js.native
 
     // add row from super-class
     override def addRow(row: js.Array[js.Any]): Unit =
-      super.addRow(row)
+      js.native
 
     // TODO - fix
     // See 'Format of the Constructor's JavaScript Literal data Parameter' under methods
     // https://developers.google.com/chart/interactive/docs/reference#methods
-    def toJSON(): String = ???
+    def toJSON(): String = js.native
   }
 }
 

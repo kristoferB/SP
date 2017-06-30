@@ -28,3 +28,4 @@ To draw:     GoogleVisualization.<Your chart>.draw(data: DataTable, options: js.
                       ( I used js.Dynamic.literal(title = this.title, ... ) )
 6. Create a new javascript facade for the chart in GoogleVisualiztion.scala (see timeline)
 7. use the helper-classes and GoogleVisualiztion in your Widget (see widgets/charts/TimelineWidget.scala)
+   or implement a new Helper-class for easy usage
