@@ -43,13 +43,12 @@ object RoomOverviewWidget {
 
   private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
 
-    val messObs = spgui.widgets.akuten.PatientModel.getPatientObserver(
-      patients => {
-        $.modState{s =>
-          patients
-        }.runNow()
-      }
-    )
+    var patientObs = Option.empty[rx.Obs]
+    def setPatientObs(): Unit = {
+      patientObs = Some(spgui.widgets.akuten.PatientModel.getPatientObserver(
+        patients => $.setState(patients).runNow()
+      ))
+    }
 
     val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
       if (mess) send(api.GetState())
@@ -67,7 +66,7 @@ object RoomOverviewWidget {
 
     def onUnmount() = {
       println("Unmounting")
-      messObs.kill()
+      patientObs.foreach(_.kill())
       wsObs.kill()
       Callback.empty
     }
@@ -89,6 +88,7 @@ object RoomOverviewWidget {
       apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
       )))
     .renderBackend[Backend]
+    .componentDidMount(ctx => Callback(ctx.backend.setPatientObs()))
     .componentDidUpdate(ctx => Callback(addTheD3(ctx.getDOMNode, ctx.currentState)))
     .componentWillUnmount(_.backend.onUnmount())
     .build

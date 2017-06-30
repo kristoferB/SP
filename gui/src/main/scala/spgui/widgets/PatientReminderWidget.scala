@@ -45,13 +45,12 @@ object PatientReminderWidget {
   private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
     // private val widgetWidth
 
-    val messObs = spgui.widgets.akuten.PatientModel.getPatientObserver(
-      patients => {
-        $.modState{s =>
-          patients
-        }.runNow()
-      }
-    )
+    var patientObs = Option.empty[rx.Obs]
+    def setPatientObs(): Unit = {
+      patientObs = Some(spgui.widgets.akuten.PatientModel.getPatientObserver(
+        patients => $.setState(patients).runNow()
+      ))
+    }
 
     send(api.GetState())
 
@@ -383,7 +382,7 @@ object PatientReminderWidget {
 
     def onUnmount() = {
       println("Unmounting")
-      messObs.kill()
+      patientObs.foreach(_.kill())
       Callback.empty
     }
 
@@ -410,6 +409,7 @@ object PatientReminderWidget {
       )))
     .renderBackend[Backend]
     // .componentDidMount(_.backend.getWidgetWidth())
+    .componentDidMount(ctx => Callback(ctx.backend.setPatientObs()))
     .componentWillUnmount(_.backend.onUnmount())
     .build
 
