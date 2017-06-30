@@ -69,29 +69,36 @@ object TimelineWidget {
         // create a new Timeline chart - helper
         val helper = TimelineHelper(timelineElement)
         // add new row
-        helper.newRow("Studying", "First", new js.Date(2017, 2, 22), new js.Date(2017,4,6))
-        helper.newRow("House Rent", "Bar Label # 2", new js.Date(2017, 3, 4), new js.Date())
-        helper.newRow("Help Neighbour", "Bar Label # 3", new js.Date(2017, 2, 27), new js.Date())
-        helper.newRow("Loan", "Bar Label # 4", new js.Date(2017, 3, 8), new js.Date())
-        helper.newRow("Studying", "Second", new js.Date(2017,4, 20), new js.Date(2017, 5,6))
+        helper.newRow("Besök", "Patientens Besök På Sjukhuset",
+          new js.Date(2017, 5, 20, 8, 5, 3, 2), new js.Date(2017, 5, 20, 10, 32, 23, 9))
+        helper.newRow("Kölapp", "Tar Kölapp",
+          new js.Date(2017, 5, 20, 8, 6, 13, 8), new js.Date(2017, 5, 20, 8, 6, 31, 7))
+        helper.newRow("Väntetid", "Patient Väntar På inskrivning",
+          new js.Date(2017, 5, 20, 8, 6, 31, 7), new js.Date(2017, 5, 20, 8, 23, 54, 1))
+        helper.newRow("Inskrivning", "Patient Skriver in sig",
+          new js.Date(2017, 5, 20, 8, 24, 11, 2), new js.Date(2017, 5, 20, 8, 26, 46, 3))
+        helper.newRow("Väntetid", "Patienten väntar på läkare",
+          new js.Date(2017, 5, 20, 8, 26, 46, 3), new js.Date(2017, 5, 20, 9, 1, 35, 4))
+        helper.newRow("Läkarbesök", "Patient träffar läkare",
+          new js.Date(2017, 5, 20, 9, 1, 35, 4), new js.Date(2017, 5, 20, 9, 9, 21, 5))
+        helper.newRow("Väntetid", "Patient väntar på diagnos",
+          new js.Date(2017, 5, 20, 9, 9, 21, 5), new js.Date(2017, 5, 20, 9, 59, 1, 0))
+        helper.newRow("Diagnostiering", "Läkare sätter diagnos",
+          new js.Date(2017, 5, 20, 9, 9, 21, 5), new js.Date(2017, 5, 20, 9, 27, 54, 9))
+        helper.newRow("Läkarbesök", "Patient träffar läkare",
+          new js.Date(2017, 5, 20, 9, 59, 1, 0), new js.Date(2017, 5, 20, 10, 14, 13, 4))
 
         // draw timeline chart
         helper.draw()
+        println("Print DataTable in JSON-format")
+        println(helper.data.toJSON())
 
-        // create a element that gets the div we create before
-        val timelineElement2 = js.Dynamic.global.document.getElementById(idName + "2")
-
+        // try to create JSON-copy
+        val timelineElement2 = js.Dynamic.global.document.getElementById(idName +"2")
         // create a new Timeline chart - helper
-        val helper2 = TimelineHelper(timelineElement2)
-        // add new row
-        helper2.newRow("Houseing", "First", new js.Date(2017, 2, 22), new js.Date(2017,4,6))
-        helper2.newRow("Sleep", "Bar Label # 2", new js.Date(2017, 5, 7), new js.Date())
-        helper2.newRow("Loan", "Bar Label # 3", new js.Date(2017, 2, 27), new js.Date())
-        helper2.newRow("Studying", "Bar Label # 4", new js.Date(2017, 3, 8), new js.Date())
-        helper2.newRow("Sleep", "Second", new js.Date(2017,4, 20), new js.Date(2017, 5,6))
+        val helper2 = TimelineHelper(timelineElement2, helper.data.toJSON())
+        helper2.draw()
 
-        // draw timeline chart
-        //helper2.draw()
       }
       // send Callback log
       Callback.log("Mounting TimelineWidget Done!")

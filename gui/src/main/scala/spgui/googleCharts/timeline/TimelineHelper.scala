@@ -38,6 +38,7 @@ class TimelineHelper (
   // draw()-method
   // this calls the Timeline.draw() with the given data and options
   override def draw(): Unit = {
+    // TODO: this can work, but then you need to filter rows of the same row label
     options.setHeight(data.getNumberOfRows() * heightPerRow + margin )
     timeline.draw(data, options.toDynamic())
   }
@@ -91,6 +92,18 @@ object TimelineHelper{
     // set the options
     options
   )
+
+  def apply(
+           element: js.Dynamic,
+           jsonData: String
+           ) = new TimelineHelper(
+    // get the predef datatable
+    preDefTimelineData(new DataTable(jsonData)),
+    // create a new GoogleVisualization.Timeline() with the given element as argument
+    new Timeline(element),
+    // create a new OptionsTimeline
+    new OptionsTimeline()
+  )
   // only element apply
   def apply(
              element: js.Dynamic
@@ -99,7 +112,7 @@ object TimelineHelper{
     preDefTimelineData(new DataTable()),
     // create a new GoogleVisualization.Timeline() with the given element as argument
     new Timeline(element),
-    // create a new
+    // create a new OptionsTimeline
     new OptionsTimeline()
   )
 }
