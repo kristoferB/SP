@@ -45,6 +45,9 @@ trait DataTableAPI extends js.Object {
   //  TODO: Fix result value to be current id, def addRows(...): Number
   def addRows(rows: js.Array[js.Array[js.Any]]): Unit = js.native
 
+  // get number of rows in datatable
+  // example use in options to set height
+  def getNumberOfRows(): Int = js.native
   /*
    * TODO: Add more of the methods from google-charts API
    *

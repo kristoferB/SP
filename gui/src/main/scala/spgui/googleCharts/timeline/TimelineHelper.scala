@@ -11,10 +11,13 @@ import spgui.googleCharts.GoogleVisualization.DataTable
 import scala.scalajs.js
 
 trait TimelineHelperTrait {
+  // variables
   val data:             DataTable
   val timeline:         Timeline
   val options:          OptionsTimeline
-
+  val margin:           Int
+  val heightPerRow:     Int
+  // methods
   def clear(): Unit
   def draw(): Unit
   def newRow(rowLabel: String, barLabel: String, startDate: js.Date, endDate: js.Date): Unit
@@ -26,19 +29,28 @@ trait TimelineHelperTrait {
 class TimelineHelper (
                        override val data:           DataTable,
                        override val timeline:       Timeline,
-                       override val options:        OptionsTimeline
+                       override val options:        OptionsTimeline,
+                       override val margin:         Int = 30, // see https://stackoverflow.com/a/23975493
+                       override val heightPerRow:   Int = 40
                      ) extends TimelineHelperTrait {
+
+
   // draw()-method
   // this calls the Timeline.draw() with the given data and options
-  override def draw(): Unit = timeline.draw(data, options.toDynamic())
+  override def draw(): Unit = {
+    options.setHeight(data.getNumberOfRows() * heightPerRow + margin )
+    timeline.draw(data, options.toDynamic())
+  }
 
+  // clears the timelineChart
   override def clear(): Unit = timeline.clearChart()
 
+  // TODO: convert to js.Date so User cannot see any js-code
   // newRow()-method
   // set the rowLabel, barLabel, startDate and endDate
   // add a new row to the DataTable with the given data, with some minor help of TimelineRow
   override def newRow(rowLabel: String, barLabel: String, startDate: js.Date, endDate: js.Date): Unit =
-    data.addRow(new TimelineRow(rowLabel, barLabel, startDate, endDate).toArray())
+  data.addRow(new TimelineRow(rowLabel, barLabel, startDate, endDate).toArray())
 }
 // simple helper to timeline
 // companion object
@@ -69,8 +81,8 @@ object TimelineHelper{
 
   // element and options apply
   def apply(
-           element: js.Dynamic,
-           options: OptionsTimeline
+             element: js.Dynamic,
+             options: OptionsTimeline
            ) = new TimelineHelper ( // create a new TimelineHelper
     // get the predef datatable
     preDefTimelineData(new DataTable()),
@@ -81,7 +93,7 @@ object TimelineHelper{
   )
   // only element apply
   def apply(
-            element: js.Dynamic
+             element: js.Dynamic
            ) = new TimelineHelper (// create a new TimelineHelper
     // get the predef datatable
     preDefTimelineData(new DataTable()),

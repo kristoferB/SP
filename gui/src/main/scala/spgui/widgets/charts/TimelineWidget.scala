@@ -29,7 +29,7 @@ object TimelineWidget {
   // State
   case class State(zoom: String)
 
-  /*********EXAMPLE USE OF GOOGLE API*************/
+  /*********EXAMPLE USE OF GOOGLE API WITH Helper-class*************/
 
   // ensures that the name in div when rendering and
   // the Timeline Chart have the same Name
@@ -54,7 +54,8 @@ object TimelineWidget {
         // get CSS Cascading Style Sheets
         ^.className := TimelineCSS.timelineStyle.htmlClass,
         // create a div with id of our id name
-        <.div(^.id := idName)
+        <.div(^.id := idName),
+        <.div(^.id := idName + "2")
       )
     )
 
@@ -68,11 +69,29 @@ object TimelineWidget {
         // create a new Timeline chart - helper
         val helper = TimelineHelper(timelineElement)
         // add new row
-        helper.newRow("Row Label # 1", "Bar Label # 1", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20))
+        helper.newRow("Studying", "First", new js.Date(2017, 2, 22), new js.Date(2017,4,6))
+        helper.newRow("House Rent", "Bar Label # 2", new js.Date(2017, 3, 4), new js.Date())
+        helper.newRow("Help Neighbour", "Bar Label # 3", new js.Date(2017, 2, 27), new js.Date())
+        helper.newRow("Loan", "Bar Label # 4", new js.Date(2017, 3, 8), new js.Date())
+        helper.newRow("Studying", "Second", new js.Date(2017,4, 20), new js.Date(2017, 5,6))
 
         // draw timeline chart
         helper.draw()
 
+        // create a element that gets the div we create before
+        val timelineElement2 = js.Dynamic.global.document.getElementById(idName + "2")
+
+        // create a new Timeline chart - helper
+        val helper2 = TimelineHelper(timelineElement2)
+        // add new row
+        helper2.newRow("Houseing", "First", new js.Date(2017, 2, 22), new js.Date(2017,4,6))
+        helper2.newRow("Sleep", "Bar Label # 2", new js.Date(2017, 5, 7), new js.Date())
+        helper2.newRow("Loan", "Bar Label # 3", new js.Date(2017, 2, 27), new js.Date())
+        helper2.newRow("Studying", "Bar Label # 4", new js.Date(2017, 3, 8), new js.Date())
+        helper2.newRow("Sleep", "Second", new js.Date(2017,4, 20), new js.Date(2017, 5,6))
+
+        // draw timeline chart
+        //helper2.draw()
       }
       // send Callback log
       Callback.log("Mounting TimelineWidget Done!")

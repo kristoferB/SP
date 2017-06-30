@@ -17,10 +17,10 @@ trait OptionsTlTrait extends OptionsTrait {
   val fontName:                   String
   val fontSize:                   String
   val forceIFrame:                Boolean
-  override val height:            Int
+  override var height:            Int
   val timeline:                   TimelineInner
   val tooltip:                    Tooltips
-  override val width:             Int
+  override var width:             Int
 
   override def toDynamic():       js.Object
 }
@@ -28,8 +28,8 @@ trait OptionsTlTrait extends OptionsTrait {
 // OptionsTimeline Class
 // see configuration options of timeline doucmentation
 class OptionsTimeline (
-                        override val height:                    Int,
-                        override val width:                     Int,
+                        override var height:                    Int,
+                        override var width:                     Int,
                         override val timeline:                  TimelineInner,
                         override val tooltip:                   Tooltips,
                         // default values for TimelineAPI
@@ -45,10 +45,12 @@ class OptionsTimeline (
   def this(height: Int, width: Int, timeline: TimelineInner) =
     this(height, width, timeline, new Tooltips())
   def this(height: Int, width: Int, tooltip: Tooltips) =
-    this(height, width, new TimelineInner(), tooltip)
+    this(height, width, new TimelineInner(null, true), tooltip)
   def this(height: Int, width: Int) =
-    this(height, width, new TimelineInner(), new Tooltips())
+    this(height, width, new TimelineInner(null, true), new Tooltips())
   // empty constructor
+  // if we leave this to zero the API says it will
+  // scale dynamicly but does not work for the height
   def this() = this(0,0)
 
   // implements method toDynamic()
@@ -79,6 +81,12 @@ class OptionsTimeline (
       ),
       width = this.width
     )
+
+  // set width and height
+  def setWidth(width: Int): Unit =
+    this.width = width
+  def setHeight(height: Int): Unit =
+    this.height = height
 
   // overrides toString and print variables
   override def toString = s"OptionsTimeline($height, $width, $timeline, $tooltip, " +

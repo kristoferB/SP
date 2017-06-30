@@ -6,6 +6,8 @@ package spgui.googleCharts.timeline
 
 import scala.scalajs.js
 
+// Doucmentation: See Configuration Options for Timeline
+
 // Configuration Options for Timeline inner
 // trait
 trait TimelineInnerTrait {
@@ -20,14 +22,15 @@ trait TimelineInnerTrait {
 
 // null, false, true, null, true, true, null
 class TimelineInner (
-                        override val barLabelStyle: js.Object = null,
-                        override val colorByRowLabel: Boolean = false,
-                        override val groupByRowLabel: Boolean = true,
-                        override val rowLabelStyle: js.Object = null,
-                        override val showBarLabels: Boolean = true,
-                        override val showRowLabels: Boolean = true,
-                        override val singleColor: String = null
-                      ) extends TimelineInnerTrait {
+                      // defaults values from API
+                      override val barLabelStyle: js.Object = null,
+                      override val colorByRowLabel: Boolean = false,
+                      override val groupByRowLabel: Boolean = true,
+                      override val rowLabelStyle: js.Object = null,
+                      override val showBarLabels: Boolean = true,
+                      override val showRowLabels: Boolean = true,
+                      override val singleColor: String = null
+                    ) extends TimelineInnerTrait {
 
   def toArray(): js.Array[js.Any] =
     js.Array(
