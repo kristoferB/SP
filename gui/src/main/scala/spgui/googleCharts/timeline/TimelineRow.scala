@@ -14,8 +14,8 @@ import scala.scalajs.js.Date
 // Doc. Data format
 // https://developers.google.com/chart/interactive/docs/gallery/timeline#data-format
 trait TimelineRowTrait {
-  val name:       String
-  val id:         String
+  val rowLabel:   String
+  val barLabel:   String
   val tooltip:    Tooltips
   val startDate:  Date
   val endDate:    Date
@@ -23,28 +23,28 @@ trait TimelineRowTrait {
 }
 
 class TimelineRow (
-                    override val name: String,
-                    override val id: String,
+                    override val rowLabel: String,
+                    override val barLabel: String,
                     override val tooltip: Tooltips,
                     override val startDate: Date,
                     override val endDate: Date,
                     override val cases: Int = 0
                   ) extends TimelineRowTrait {
-  // constructor with name, dates and tooltip
-  def this(name: String, tooltip: Tooltips, startDate: Date, endDate: Date) =
-    this(name, "", tooltip, startDate, endDate, 1)
+  // constructor with rowLabel, dates and tooltip
+  def this(rowLabel: String, tooltip: Tooltips, startDate: Date, endDate: Date) =
+    this(rowLabel, "", tooltip, startDate, endDate, 1)
 
-  // constructor with name and dates
-  def this(name: String, startDate: Date, endDate: Date) =
-    this(name, "", null, startDate, endDate, 2)
+  // constructor with rowLabel and dates
+  def this(rowLabel: String, startDate: Date, endDate: Date) =
+    this(rowLabel, "", null, startDate, endDate, 2)
 
-  // constructor only name displayed
-  def this(name: String) =
-    this(name, "", null, new js.Date(), new js.Date(), 3)
+  // constructor only rowLabel displayed
+  def this(rowLabel: String) =
+    this(rowLabel, "", null, new js.Date(), new js.Date(), 3)
 
   // constructor missing tooltip
-  def this(name: String, id: String, startDate: Date, endDate: Date) =
-    this(name, id, null, startDate, endDate, 4)
+  def this(rowLabel: String, barLabel: String, startDate: Date, endDate: Date) =
+    this(rowLabel, barLabel, null, startDate, endDate, 4)
 
 
   // TODO: ensure no side effects
@@ -52,13 +52,13 @@ class TimelineRow (
   // return: an js.Array of js.Any
   def toArray(): js.Array[js.Any] = {
     if (this.cases == 0) {
-      js.Array(this.name, this.id, this.tooltip.toArray(), this.startDate, this.endDate)
+      js.Array(this.rowLabel, this.barLabel, this.tooltip.toArray(), this.startDate, this.endDate)
     } else if (this.cases == 1) {
-      js.Array(this.name, this.tooltip.toArray(), this.startDate, this.endDate)
+      js.Array(this.rowLabel, this.tooltip.toArray(), this.startDate, this.endDate)
     } else if (this.cases == 2 || this.cases == 3) {
-      js.Array(this.name, this.startDate, this.endDate)
+      js.Array(this.rowLabel, this.startDate, this.endDate)
     } else if (this.cases == 4) {
-      js.Array(this.name, this.id, this.startDate, this.endDate)
+      js.Array(this.rowLabel, this.barLabel, this.startDate, this.endDate)
     } else {
       println("Something went wrong in TimelineRow.toArray()")
       new js.Array[js.Any]()
@@ -66,6 +66,6 @@ class TimelineRow (
   }
 
 
-  override def toString = s"TimelineRow($name, $id, $tooltip, " +
+  override def toString = s"TimelineRow($rowLabel, $barLabel, $tooltip, " +
     s"$startDate, $endDate, $cases)"
 }

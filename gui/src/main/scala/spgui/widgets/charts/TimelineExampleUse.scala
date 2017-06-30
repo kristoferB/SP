@@ -21,7 +21,7 @@ import spgui.googleCharts.timeline._
  * TODO: Remove debugging messages
  */
 
-object TimelineWidget {
+object TimelineExampleUse {
   /*
    * TODO:
    *      1. Look over which State is needed for Timeline
@@ -64,16 +64,36 @@ object TimelineWidget {
       if (GoogleChartsLoaded.asInstanceOf[Boolean]) {
         // create a element that gets the div we create before
         val timelineElement = js.Dynamic.global.document.getElementById(idName)
-        // create a new Timeline chart - helper
-        val helper = TimelineHelper(timelineElement)
-        // add new row
-        helper.newRow("Row Label # 1", "Bar Label # 1", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20))
+
+        // create a new Timeline chart
+        // argument the element
+        val timeline = new GoogleVisualization.Timeline(timelineElement)
+
+        // create a new DataTable
+        val data = new GoogleVisualization.DataTable()
+
+        // creates a example column setup to the DataTable
+        data.addColumn("string", "Timeline id", "1")
+        data.addColumn("string", "Timeline Name", "2")
+        data.addColumn("date", "Start Date", "4")
+        data.addColumn("date", "End Date", "5")
+
+        // creates example data
+        val exampleRow = new TimelineRow("g", "9", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20))
+
+        // add the data to the DataTable
+        data.addRow(exampleRow.toArray())
+
+        // Create a example options (spgui.googleAPI.timeline.{OptionsTimeline, Timeline}
+        val exampleOptions = new OptionsTimeline(400,600, new TimelineInner())
+
         // draw timeline chart
-        helper.draw()
+        // arguments: the DataTable and the options
+        timeline.draw(data, exampleOptions.toDynamic())
 
       }
       // send Callback log
-      Callback.log("Mounting TimelineWidget Done!")
+      Callback.log("Mounting TimelinePage Done!")
     }
 
     // Handles the updates of the Timeline cycles
@@ -88,7 +108,7 @@ object TimelineWidget {
 
   // Create a value component of type:
   //                                  ReactComponent
-  private val component = ReactComponentB[Unit]("TimelineWidget")
+  private val component = ReactComponentB[Unit]("TimelineExampleUse")
     .initialState(// Set the initial state
       State(
         zoom = "default"
