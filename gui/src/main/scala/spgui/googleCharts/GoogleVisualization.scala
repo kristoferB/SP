@@ -43,6 +43,7 @@ object GoogleVisualization extends js.Object {
     override def addRow(row: js.Array[js.Any]): Unit =
       super.addRow(row)
 
+    // TODO - fix
     // See 'Format of the Constructor's JavaScript Literal data Parameter' under methods
     // https://developers.google.com/chart/interactive/docs/reference#methods
     def toJSON(): String = ???

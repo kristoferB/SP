@@ -8,7 +8,7 @@ import scala.scalajs.js
 
 // Configuration Options for Timeline inner
 // trait
-trait TimelineTrait {
+trait TimelineInnerTrait {
   val barLabelStyle:     js.Object
   val colorByRowLabel:   Boolean
   val groupByRowLabel:   Boolean
@@ -19,7 +19,7 @@ trait TimelineTrait {
 }
 
 // null, false, true, null, true, true, null
-class Timeline (
+class TimelineInner (
                         override val barLabelStyle: js.Object = null,
                         override val colorByRowLabel: Boolean = false,
                         override val groupByRowLabel: Boolean = true,
@@ -27,7 +27,7 @@ class Timeline (
                         override val showBarLabels: Boolean = true,
                         override val showRowLabels: Boolean = true,
                         override val singleColor: String = null
-                      ) extends TimelineTrait {
+                      ) extends TimelineInnerTrait {
 
   def toArray(): js.Array[js.Any] =
     js.Array(

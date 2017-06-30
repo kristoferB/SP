@@ -15,7 +15,7 @@ import org.scalajs.dom.html.Div
 
 import scalajs.js
 import spgui.communication._
-import spgui.googleCharts._
+import spgui.googleCharts.{GoogleChartsLoaded, GoogleVisualization}
 import spgui.googleCharts.timeline._
 /*
  * TODO: Remove debugging messages
@@ -48,23 +48,15 @@ object TimelineWidget {
     // The div should contain the Google Timeline Chart
     def render() =
     <.div(
+      // some random name
+      ^.id := idName + "Container",
       <.div(
+        // get CSS Cascading Style Sheets
         ^.className := TimelineCSS.timelineStyle.htmlClass,
         // create a div with id of our id name
         <.div(^.id := idName)
       )
     )
-
-
-
-    // Handles the updates of the Timeline cycles
-    def handleUpdate(s: State) = ???
-
-    // Handles stopevents from a cycle
-    def handleStop() = {
-      println("Unmounting "+ this.toString )
-      Callback.log("Unmounting TimelineWidget")
-    }
 
     // Handles start-events for a cycle
     def handleStart() = {
@@ -93,7 +85,7 @@ object TimelineWidget {
         data.addRow(exampleRow.toArray())
 
         // Create a example options (spgui.googleAPI.timeline.{OptionsTimeline, Timeline}
-        val exampleOptions = new OptionsTimeline(300,500, new Timeline())
+        val exampleOptions = new OptionsTimeline(400,600, new TimelineInner())
 
         // draw timeline chart
         // arguments: the DataTable and the options
@@ -102,6 +94,14 @@ object TimelineWidget {
       }
       // send Callback log
       Callback.log("Mounting TimelinePage Done!")
+    }
+
+    // Handles the updates of the Timeline cycles
+    def handleUpdate(s: State) = ???
+
+    // Handles stopevents from a cycle
+    def handleStop() = {
+      Callback.log("Unmounting TimelineWidget")
     }
 
   }

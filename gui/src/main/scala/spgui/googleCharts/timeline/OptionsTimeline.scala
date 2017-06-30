@@ -18,7 +18,7 @@ trait OptionsTlTrait extends OptionsTrait {
   val fontSize:                   String
   val forceIFrame:                Boolean
   override val height:            Int
-  val timeline:                   Timeline
+  val timeline:                   TimelineInner
   val tooltip:                    Tooltips
   override val width:             Int
 
@@ -30,7 +30,7 @@ trait OptionsTlTrait extends OptionsTrait {
 class OptionsTimeline (
                         override val height:                    Int,
                         override val width:                     Int,
-                        override val timeline:                  Timeline,
+                        override val timeline:                  TimelineInner,
                         override val tooltip:                   Tooltips,
                         // default values for TimelineAPI
                         override val avoidOverlappingGridLines: Boolean = true,
@@ -42,12 +42,12 @@ class OptionsTimeline (
                         override val forceIFrame:               Boolean = false
                       )extends OptionsTlTrait {
   // auxilarry constructors
-  def this(height: Int, width: Int, timeline: Timeline) =
+  def this(height: Int, width: Int, timeline: TimelineInner) =
     this(height, width, timeline, new Tooltips())
   def this(height: Int, width: Int, tooltip: Tooltips) =
-    this(height, width, new Timeline(), tooltip)
+    this(height, width, new TimelineInner(), tooltip)
   def this(height: Int, width: Int) =
-    this(height, width, new Timeline(), new Tooltips())
+    this(height, width, new TimelineInner(), new Tooltips())
   // empty constructor
   def this() = this(0,0)
 
