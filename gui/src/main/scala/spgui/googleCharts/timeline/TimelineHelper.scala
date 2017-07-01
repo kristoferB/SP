@@ -51,7 +51,9 @@ class TimelineHelper (
   // set the rowLabel, barLabel, startDate and endDate
   // add a new row to the DataTable with the given data, with some minor help of TimelineRow
   override def newRow(rowLabel: String, barLabel: String, startDate: js.Date, endDate: js.Date): Unit =
-  data.addRow(new TimelineRow(rowLabel, barLabel, startDate, endDate).toArray())
+    data.addRow(new TimelineRow(rowLabel, barLabel, startDate, endDate).toArray())
+  def newRow(row: TimelineRow): Unit =
+    data.addRow(row.toArray())
 }
 // simple helper to timeline
 // companion object
@@ -97,8 +99,8 @@ object TimelineHelper{
            element: js.Dynamic,
            jsonData: String
            ) = new TimelineHelper(
-    // get the predef datatable
-    preDefTimelineData(new DataTable(jsonData)),
+    // create a new DataTable with the jsonData-string
+    new DataTable(jsonData),
     // create a new GoogleVisualization.Timeline() with the given element as argument
     new Timeline(element),
     // create a new OptionsTimeline

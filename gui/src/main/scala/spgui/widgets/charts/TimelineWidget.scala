@@ -15,7 +15,7 @@ import org.scalajs.dom.html.Div
 
 import scalajs.js
 import spgui.communication._
-import spgui.googleCharts.{DescriptionObject, GoogleChartsLoaded, GoogleVisualization}
+import spgui.googleCharts.{GoogleChartsLoaded, GoogleVisualization}
 import spgui.googleCharts.timeline._
 /*
  * TODO: Remove debugging messages
@@ -34,7 +34,26 @@ object TimelineWidget {
   // ensures that the name in div when rendering and
   // the Timeline Chart have the same Name
   val idName: String = "timelineWidget"
-
+  val rowList: List[TimelineRow] =
+    new TimelineRow("Besök", "Patientens Besök På Sjukhuset",
+      new js.Date(2017, 5, 20, 8, 5, 3, 2), new js.Date(2017, 5, 20, 10, 32, 23, 9)) ::
+    new TimelineRow("Kölapp", "Tar Kölapp",
+      new js.Date(2017, 5, 20, 8, 6, 13, 8), new js.Date(2017, 5, 20, 8, 6, 31, 7)) ::
+    new TimelineRow("Väntetid", "Patient Väntar På inskrivning",
+        new js.Date(2017, 5, 20, 8, 6, 31, 7), new js.Date(2017, 5, 20, 8, 23, 54, 1)) ::
+    new TimelineRow("Inskrivning", "Patient Skriver in sig",
+        new js.Date(2017, 5, 20, 8, 24, 11, 2), new js.Date(2017, 5, 20, 8, 26, 46, 3)) ::
+    new TimelineRow("Väntetid", "Patienten väntar på läkare",
+      new js.Date(2017, 5, 20, 8, 26, 46, 3), new js.Date(2017, 5, 20, 9, 1, 35, 4)) ::
+    new TimelineRow("Läkarbesök", "Patient träffar läkare",
+      new js.Date(2017, 5, 20, 9, 1, 35, 4), new js.Date(2017, 5, 20, 9, 9, 21, 5)) ::
+    new TimelineRow("Väntetid", "Patient väntar på diagnos",
+      new js.Date(2017, 5, 20, 9, 9, 21, 5), new js.Date(2017, 5, 20, 9, 59, 1, 0)) ::
+    new TimelineRow("Diagnostiering", "Läkare sätter diagnos",
+      new js.Date(2017, 5, 20, 9, 9, 21, 5), new js.Date(2017, 5, 20, 9, 27, 54, 9)) ::
+    new TimelineRow("Läkarbesök", "Patient träffar läkare",
+      new js.Date(2017, 5, 20, 9, 59, 1, 0), new js.Date(2017, 5, 20, 10, 14, 13, 4)) ::
+    Nil
 
   /* TODO:
   *      1. Let the Widget set the Options through PROPS!
@@ -59,6 +78,8 @@ object TimelineWidget {
       )
     )
 
+    def JSONtoTimelineRow(jsonData: String): Unit = ???
+
     // Handles start-events for a cycle
     def handleStart() = {
       println(GoogleChartsLoaded)
@@ -69,35 +90,21 @@ object TimelineWidget {
         // create a new Timeline chart - helper
         val helper = TimelineHelper(timelineElement)
         // add new row
-        helper.newRow("Besök", "Patientens Besök På Sjukhuset",
-          new js.Date(2017, 5, 20, 8, 5, 3, 2), new js.Date(2017, 5, 20, 10, 32, 23, 9))
-        helper.newRow("Kölapp", "Tar Kölapp",
-          new js.Date(2017, 5, 20, 8, 6, 13, 8), new js.Date(2017, 5, 20, 8, 6, 31, 7))
-        helper.newRow("Väntetid", "Patient Väntar På inskrivning",
-          new js.Date(2017, 5, 20, 8, 6, 31, 7), new js.Date(2017, 5, 20, 8, 23, 54, 1))
-        helper.newRow("Inskrivning", "Patient Skriver in sig",
-          new js.Date(2017, 5, 20, 8, 24, 11, 2), new js.Date(2017, 5, 20, 8, 26, 46, 3))
-        helper.newRow("Väntetid", "Patienten väntar på läkare",
-          new js.Date(2017, 5, 20, 8, 26, 46, 3), new js.Date(2017, 5, 20, 9, 1, 35, 4))
-        helper.newRow("Läkarbesök", "Patient träffar läkare",
-          new js.Date(2017, 5, 20, 9, 1, 35, 4), new js.Date(2017, 5, 20, 9, 9, 21, 5))
-        helper.newRow("Väntetid", "Patient väntar på diagnos",
-          new js.Date(2017, 5, 20, 9, 9, 21, 5), new js.Date(2017, 5, 20, 9, 59, 1, 0))
-        helper.newRow("Diagnostiering", "Läkare sätter diagnos",
-          new js.Date(2017, 5, 20, 9, 9, 21, 5), new js.Date(2017, 5, 20, 9, 27, 54, 9))
-        helper.newRow("Läkarbesök", "Patient träffar läkare",
-          new js.Date(2017, 5, 20, 9, 59, 1, 0), new js.Date(2017, 5, 20, 10, 14, 13, 4))
+
+        // add
+        rowList.foreach(row => helper.newRow(row))
 
         // draw timeline chart
         helper.draw()
         println("Print DataTable in JSON-format")
         println(helper.data.toJSON())
-
+        
         // try to create JSON-copy
         val timelineElement2 = js.Dynamic.global.document.getElementById(idName +"2")
         // create a new Timeline chart - helper
         val helper2 = TimelineHelper(timelineElement2, helper.data.toJSON())
         helper2.draw()
+
 
       }
       // send Callback log
