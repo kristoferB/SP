@@ -124,6 +124,8 @@ lazy val ericaBackend = (project in file("spservices/gPubSubService"))
 
 lazy val elvisLogger = (project in file("ElvisLogger"))
 
+lazy val ericaEventLogger = (project in file("EricaEventLogger"))
+
 lazy val spseed = (project in file("spservices/spseed"))
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= akka)
