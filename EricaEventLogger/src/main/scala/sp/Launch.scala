@@ -1,18 +1,18 @@
 package sp
 
 import akka.actor._
-import sp.EricaEventLogger.Logger
+import sp.EricaEventLogger.HistoricalElvisDataListener
 
 object Launch extends App {
   implicit val system = ActorSystem("SP")
   val cluster = akka.cluster.Cluster(system)
 
   cluster.registerOnMemberUp {
-    println("EricaEventLogger node has joined the cluster")
-    system.actorOf(Logger.props, "EricaEventLogger")
+    println("HistoricalElvisDataListener node has joined the cluster")
+    system.actorOf(HistoricalElvisDataListener.props, "HistoricalElvisDataListener")
   }
   cluster.registerOnMemberRemoved{
-    println("EricaEventLogger node has been removed from the cluster")
+    println("HistoricalElvisDataListener node has been removed from the cluster")
   }
 
   scala.io.StdIn.readLine("Press ENTER to exit cluster.\n")

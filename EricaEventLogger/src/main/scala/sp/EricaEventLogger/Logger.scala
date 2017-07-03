@@ -1,26 +1,18 @@
 package sp.EricaEventLogger
 
-import akka.actor._
 import akka.persistence._
 
-import elastic.DataAggregation
-import sp.gPubSub.{API_Data => api}
+import sp.gPubSub.API_Data.EricaEvent
 
-object Logger {
-  def props = Props(classOf[Logger])
-}
+class Logger extends PersistentActor {
+  override def persistenceId = "EricaEventLogger"
 
-
-class Logger extends Actor with ActorLogging {
-  import akka.cluster.pubsub._
-  import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
-  val mediator = DistributedPubSub(context.system).mediator
-  mediator ! Subscribe("historical-elvis-data", self)
-
-  val dataAgg = new DataAggregation
-
-  override def receive = {
-    case x: String => println(dataAgg.handleMessage(x))
+  override def receiveCommand = {
+    case ev: EricaEvent => persist(ev)(ev => println("EricaEventLogger persisted " + ev))
   }
 
+  override def receiveRecover = {
+    case ev: EricaEvent => println("EricaEventLogger recovered " + ev)
+    case RecoveryCompleted => println("EricaEventLogger recovery completed")
+  }
 }
