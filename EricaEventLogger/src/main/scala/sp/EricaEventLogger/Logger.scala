@@ -3,6 +3,8 @@ package sp.EricaEventLogger
 import akka.actor._
 import akka.persistence._
 
+import elastic.DataAggregation
+
 object Logger {
   def props = Props(classOf[Logger])
 }
@@ -14,8 +16,10 @@ class Logger extends Actor with ActorLogging {
   val mediator = DistributedPubSub(context.system).mediator
   mediator ! Subscribe("historical-elvis-data", self)
 
+  val dataAgg = new DataAggregation
+
   override def receive = {
-    case x => println("received something: " + x)
+    case x: String => println(dataAgg.handleMessage(x))
   }
 
 }
