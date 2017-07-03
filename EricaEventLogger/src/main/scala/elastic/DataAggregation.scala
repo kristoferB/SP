@@ -386,13 +386,13 @@ class DataAggregation {
     val newEvents = castJValueToList[Map[String, JValue]](patient \ "newEvents").foldLeft(List.empty[api.EricaEvent]){ (list, e) =>
       api.EricaEvent(
         careContactId.toInt,
-        e.get("Category").toString,
-        e.get("End").toString,
-        e.get("Start").toString,
-        e.get("Title").toString,
-        e.get("Type").toString,
-        e.get("Value").toString,
-        e.get("VisitId").toString.toInt,
+        e("Category").toString,
+        e("End").toString,
+        e("Start").toString,
+        e("Title").toString,
+        e("Type").toString,
+        e("Value").toString,
+        e("VisitId").toString.toInt,
         getNow.toString
       ) :: list
     }
@@ -401,13 +401,13 @@ class DataAggregation {
     val removedEvents = castJValueToList[Map[String, JValue]](patient \ "removedEvents").foldLeft(List.empty[api.EricaEvent]){ (list, e) =>
       api.EricaEvent(
         careContactId.toInt,
-        e.get("Category").toString + "-removed",
-        e.get("End").toString,
-        e.get("Start").toString,
-        e.get("Title").toString,
-        e.get("Type").toString,
-        e.get("Value").toString,
-        e.get("VisitId").toString.toInt,
+        e("Category").toString + "-removed",
+        e("End").toString,
+        e("Start").toString,
+        e("Title").toString,
+        e("Type").toString,
+        e("Value").toString,
+        e("VisitId").toString.toInt,
         getNow.toString
       ) :: list
     }
@@ -487,13 +487,13 @@ class DataAggregation {
     val ericaEvents = castJValueToList[Map[String, JValue]](patient \ "Events").foldLeft(List.empty[api.EricaEvent]){ (list, e) =>
       api.EricaEvent(
         careContactId.toInt,
-        e.get("Category").toString,
-        e.get("End").toString,
-        e.get("Start").toString,
-        e.get("Title").toString,
-        e.get("Type").toString,
-        e.get("Value").toString,
-        e.get("VisitId").toString.toInt,
+        e("Category").toString,
+        e("End").toString,
+        e("Start").toString,
+        e("Title").toString,
+        e("Type").toString,
+        e("Value").toString,
+        e("VisitId").toString.toInt,
         getNow.toString
       ) :: list
     }

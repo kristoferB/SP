@@ -21,9 +21,9 @@ libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-xml" % "1.0.2",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1",
   "com.github.nscala-time" %% "nscala-time" % "2.12.0",
-  "org.json4s" %% "json4s-native" % "3.3.0",
-  "org.json4s" %% "json4s-ext" % "3.3.0",
-  "org.json4s" %% "json4s-jackson" % "3.3.0")
+  "org.json4s" %% "json4s-native" % "3.4.0",
+  "org.json4s" %% "json4s-ext" % "3.4.0",
+  "org.json4s" %% "json4s-jackson" % "3.4.0")
 
 libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "1.8.0"
 

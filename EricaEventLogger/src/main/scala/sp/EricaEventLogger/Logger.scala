@@ -4,6 +4,7 @@ import akka.actor._
 import akka.persistence._
 
 import elastic.DataAggregation
+import sp.gPubSub.{API_Data => api}
 
 object Logger {
   def props = Props(classOf[Logger])
