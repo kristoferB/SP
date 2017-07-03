@@ -98,7 +98,7 @@ object TimelineWidget {
         helper.draw()
         println("Print DataTable in JSON-format")
         println(helper.data.toJSON())
-        
+
         // try to create JSON-copy
         val timelineElement2 = js.Dynamic.global.document.getElementById(idName +"2")
         // create a new Timeline chart - helper

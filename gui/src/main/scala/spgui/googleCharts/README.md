@@ -1,2 +1,2 @@
-# Google API Example Use
-See spgui/widgets/charts/TimelineWidget
+# GoogleCharts Facades and Help-classes
+See docs for more

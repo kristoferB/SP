@@ -4,7 +4,7 @@
 
 package spgui.googleCharts.timeline
 
-import spgui.googleCharts.Tooltips
+import spgui.googleCharts.general.Tooltips
 
 import scala.scalajs.js
 import scala.scalajs.js.Date

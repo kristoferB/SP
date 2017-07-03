@@ -1,7 +1,7 @@
 /****************************************
   *      HELP CLASS TO GOOGLE CHARTS     *
   ****************************************/
-package spgui.googleCharts
+package spgui.googleCharts.general
 
 // trait of a description object
 trait DescriptionObjectTrait {

@@ -2,7 +2,7 @@
   *      FACADE FOR GOOGLE CHARTS        *
   ****************************************/
 
-package spgui.googleCharts
+package spgui.googleCharts.general
 
 import scala.scalajs.js
 
@@ -15,9 +15,9 @@ trait GoogleChart extends js.Object {
   // Clears the chart, and releases all of its allocated resources
   def clearChart(): Unit = js.native
 
-  // TODO: Implement getSelection(): Array
+
   // Returns an array of the selected chart entities
-  // def getSelection():
+  def getSelection(): js.Array[js.Any] = js.native
 }
 
 object GoogleChart {

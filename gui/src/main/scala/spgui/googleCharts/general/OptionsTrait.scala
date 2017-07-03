@@ -2,7 +2,7 @@
   *      HELP CLASS TO GOOGLE CHARTS     *
   ****************************************/
 
-package spgui.googleCharts
+package spgui.googleCharts.general
 
 import scala.scalajs.js
 

@@ -5,7 +5,7 @@
 package spgui.googleCharts.timeline
 
 import scala.scalajs.js
-import spgui.googleCharts.{OptionsTrait, Tooltips}
+import spgui.googleCharts.general.{OptionsTrait, Tooltips}
 
 // Trait for Timeline Options
 // children of OptionsTrait
