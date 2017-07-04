@@ -45,7 +45,6 @@ class DataAggregation {
   }*/
 
  def handleMessage(message: String): List[api.EricaEvent] = {
-
    val json: JValue = parse(message)
    // get the "diff", "removed" or "new". json4s provides no straight forward way to do this.
    val messageType: String = json.extract[Map[String, JValue]].foldLeft("nothingyet"){
@@ -63,199 +62,196 @@ class DataAggregation {
    }
  }
 
-  val messStr = "{\"diff\":{\"updates\":{\"timestamp\":\"2016-02-26T18:18:38Z\",\"CareContactId\":3910262,\"PatientId\":72937},\"newEvents\":[],\"removedEvents\":[]}}"
-  //handleMessage(messStr)
+  //def convertDiffToEricaEvents(updates: Map[String, JValue], newEvents: List[api.ElvisEvent], removedEvents: List[api.ElvisEvent]): List[api.EricaEvent] = {
+  //  var departmentComment = ""
+  //  var location = ""
+  //  var reasonForVisit = ""
+  //  var team = ""
 
-  def convertDiffToEricaEvents(updates: Map[String, JValue], newEvents: List[api.ElvisEvent], removedEvents: List[api.ElvisEvent]): List[api.EricaEvent] = {
-    var departmentComment = ""
-    var location = ""
-    var reasonForVisit = ""
-    var team = ""
+  //  val careContactIdJson = updates.get("CareContactId")//(patient \ "updates" \ "CareContactId")
+  //  val careContactId = careContactIdJson.values.toString
+  //  val departmentCommentJson = updates.get("DepartmentComment")
+  //  val locationJson = updates.get("Location")
+  //  val reasonForVisitJson = updates.get("ReasonForVisit")
+  //  val teamJson = updates.get("Team")
 
-    val careContactIdJson = updates.get("CareContactId")//(patient \ "updates" \ "CareContactId")
-    val careContactId = careContactIdJson.values.toString
-    val departmentCommentJson = updates.get("DepartmentComment")
-    val locationJson = updates.get("Location")
-    val reasonForVisitJson = updates.get("ReasonForVisit")
-    val teamJson = updates.get("Team")
+  //  var ericaEvents = List[api.EricaEvent]()
 
-    var ericaEvents = List[api.EricaEvent]()
+  //  if (departmentCommentJson != JNothing && departmentCommentJson.values.toString != "None") {
+  //    departmentComment = departmentCommentJson.values.toString
+  //    val departmentCommentEvent = api.EricaEvent(
+  //      careContactId.toInt,
+  //      "DepartmentCommentUpdate",
+  //      "NA",
+  //      getNow.toString,
+  //      "",
+  //      "",
+  //      departmentComment,
+  //      careContactId.toInt,
+  //      getNow.toString
+  //    )
+  //    ericaEvents = departmentCommentEvent :: ericaEvents
+  //  }
+  //  if (locationJson != JNothing && locationJson.values.toString != "None") {
+  //    location = locationJson.values.toString
+  //    val locationEvent = api.EricaEvent(
+  //      careContactId.toInt,
+  //      "LocationUpdate",
+  //      "NA",
+  //      getNow.toString,
+  //      "",
+  //      "",
+  //      location,
+  //      careContactId.toInt,
+  //      getNow.toString
+  //    )
+  //    ericaEvents = locationEvent :: ericaEvents
+  //  }
+  //  if (reasonForVisitJson != JNothing && reasonForVisitJson.values.toString != "None") {
+  //    reasonForVisit = reasonForVisitJson.values.toString
+  //    val reasonForVisitEvent = api.EricaEvent(
+  //      careContactId.toInt,
+  //      "ReasonForVisitUpdate",
+  //      "NA",
+  //      getNow.toString,
+  //      "",
+  //      "",
+  //      reasonForVisit,
+  //      careContactId.toInt,
+  //      getNow.toString
+  //    )
+  //    ericaEvents = reasonForVisitEvent :: ericaEvents
+  //  }
+  //  if (teamJson != JNothing && teamJson.values.toString != "None") {
+  //    team = teamJson.values.toString
+  //    val teamEvent = api.EricaEvent(
+  //      careContactId.toInt,
+  //      "TeamUpdate",
+  //      "NA",
+  //      getNow.toString,
+  //      "",
+  //      "",
+  //      team,
+  //      careContactId.toInt,
+  //      getNow.toString
+  //    )
+  //    ericaEvents = teamEvent :: ericaEvents
+  //  }
 
-    if (departmentCommentJson != JNothing && departmentCommentJson.values.toString != "None") {
-      departmentComment = departmentCommentJson.values.toString
-      val departmentCommentEvent = api.EricaEvent(
-        careContactId.toInt,
-        "DepartmentCommentUpdate",
-        "NA",
-        getNow.toString,
-        "",
-        "",
-        departmentComment,
-        careContactId.toInt,
-        getNow.toString
-      )
-      ericaEvents = departmentCommentEvent :: ericaEvents
-    }
-    if (locationJson != JNothing && locationJson.values.toString != "None") {
-      location = locationJson.values.toString
-      val locationEvent = api.EricaEvent(
-        careContactId.toInt,
-        "LocationUpdate",
-        "NA",
-        getNow.toString,
-        "",
-        "",
-        location,
-        careContactId.toInt,
-        getNow.toString
-      )
-      ericaEvents = locationEvent :: ericaEvents
-    }
-    if (reasonForVisitJson != JNothing && reasonForVisitJson.values.toString != "None") {
-      reasonForVisit = reasonForVisitJson.values.toString
-      val reasonForVisitEvent = api.EricaEvent(
-        careContactId.toInt,
-        "ReasonForVisitUpdate",
-        "NA",
-        getNow.toString,
-        "",
-        "",
-        reasonForVisit,
-        careContactId.toInt,
-        getNow.toString
-      )
-      ericaEvents = reasonForVisitEvent :: ericaEvents
-    }
-    if (teamJson != JNothing && teamJson.values.toString != "None") {
-      team = teamJson.values.toString
-      val teamEvent = api.EricaEvent(
-        careContactId.toInt,
-        "TeamUpdate",
-        "NA",
-        getNow.toString,
-        "",
-        "",
-        team,
-        careContactId.toInt,
-        getNow.toString
-      )
-      ericaEvents = teamEvent :: ericaEvents
-    }
+  //  // Handle new events
+  //  val newEricaEvents = newEvents.foldLeft(List.empty[api.EricaEvent]){ (list, e) =>
+  //    api.EricaEvent(
+  //      e.CareEventId.toInt,
+  //      e.Category,
+  //      e.End.toString,
+  //      e.Start.toString,
+  //      e.Title,
+  //      e.Type,
+  //      e.Value,
+  //      e.VisitId.toInt,
+  //      getNow.toString
+  //    ) :: list
+  //  }
 
-    // Handle new events
-    val newEricaEvents = newEvents.foldLeft(List.empty[api.EricaEvent]){ (list, e) =>
-      api.EricaEvent(
-        e.CareEventId.toInt,
-        e.Category,
-        e.End.toString,
-        e.Start.toString,
-        e.Title,
-        e.Type,
-        e.Value,
-        e.VisitId.toInt,
-        getNow.toString
-      ) :: list
-    }
+  //  // Handle removed events
+  //  val removedEricaEvents = removedEvents.foldLeft(List.empty[api.EricaEvent]){ (list, e) =>
+  //    api.EricaEvent(
+  //      e.CareEventId.toInt,
+  //      e.Category + "-removed",
+  //      e.End.toString,
+  //      e.Start.toString,
+  //      e.Title,
+  //      e.Type,
+  //      e.Value,
+  //      e.VisitId.toInt,
+  //      getNow.toString
+  //    ) :: list
+  //  }
+  //  return newEricaEvents ::: removedEricaEvents ::: ericaEvents
+  //}
 
-    // Handle removed events
-    val removedEricaEvents = removedEvents.foldLeft(List.empty[api.EricaEvent]){ (list, e) =>
-      api.EricaEvent(
-        e.CareEventId.toInt,
-        e.Category + "-removed",
-        e.End.toString,
-        e.Start.toString,
-        e.Title,
-        e.Type,
-        e.Value,
-        e.VisitId.toInt,
-        getNow.toString
-      ) :: list
-    }
-    return newEricaEvents ::: removedEricaEvents ::: ericaEvents
-  }
-
-  def convertToEricaEvents(elvisPatient: api.ElvisPatient): List[api.EricaEvent] = {
-    var ericaEventsBuffer = new ListBuffer[api.EricaEvent]()
-    if (elvisPatient.Location != "None") {
-      ericaEventsBuffer += api.EricaEvent(
-        elvisPatient.CareContactId,
-        "LocationUpdate",
-        "NA",
-        getNow.toString,
-        "",
-        "",
-        elvisPatient.Location,
-        elvisPatient.VisitId,
-        getNow.toString
-      )
-    }
-    if (elvisPatient.ReasonForVisit != "None") {
-      ericaEventsBuffer += api.EricaEvent(
-        elvisPatient.CareContactId,
-        "ReasonForVisitUpdate",
-        "NA",
-        getNow.toString,
-        "",
-        "",
-        elvisPatient.ReasonForVisit,
-        elvisPatient.VisitId,
-        getNow.toString
-      )
-    }
-    if (elvisPatient.Team != "None") {
-      ericaEventsBuffer += api.EricaEvent(
-        elvisPatient.CareContactId,
-        "TeamUpdate",
-        "NA",
-        getNow.toString,
-        "",
-        "",
-        elvisPatient.Team,
-        elvisPatient.VisitId,
-        getNow.toString
-      )
-    }
-    if (elvisPatient.DepartmentComment != "None") {
-      ericaEventsBuffer += api.EricaEvent(
-        elvisPatient.CareContactId,
-        "DepartmentCommentUpdate",
-        "NA",
-        getNow.toString,
-        "",
-        "",
-        elvisPatient.DepartmentComment,
-        elvisPatient.VisitId,
-        getNow.toString
-      )
-    }
-    if (elvisPatient.VisitRegistrationTime != "None") {
-      ericaEventsBuffer += api.EricaEvent(
-        elvisPatient.CareContactId,
-        "VisitRegistrationTimeUpdate",
-        "NA",
-        getNow.toString,
-        "",
-        "",
-        elvisPatient.VisitRegistrationTime,
-        elvisPatient.VisitId,
-        getNow.toString
-      )
-    }
-    elvisPatient.Events.foreach{ e =>
-      ericaEventsBuffer += api.EricaEvent(
-        e.CareEventId.toInt,
-        e.Category,
-        e.End,
-        e.Start,
-        e.Title,
-        e.Type,
-        e.Value,
-        e.VisitId,
-        getNow.toString
-      )
-    }
-    return ericaEventsBuffer.toList
-  }
+  //def convertToEricaEvents(elvisPatient: api.ElvisPatient): List[api.EricaEvent] = {
+  //  var ericaEventsBuffer = new ListBuffer[api.EricaEvent]()
+  //  if (elvisPatient.Location != "None") {
+  //    ericaEventsBuffer += api.EricaEvent(
+  //      elvisPatient.CareContactId,
+  //      "LocationUpdate",
+  //      "NA",
+  //      getNow.toString,
+  //      "",
+  //      "",
+  //      elvisPatient.Location,
+  //      elvisPatient.VisitId,
+  //      getNow.toString
+  //    )
+  //  }
+  //  if (elvisPatient.ReasonForVisit != "None") {
+  //    ericaEventsBuffer += api.EricaEvent(
+  //      elvisPatient.CareContactId,
+  //      "ReasonForVisitUpdate",
+  //      "NA",
+  //      getNow.toString,
+  //      "",
+  //      "",
+  //      elvisPatient.ReasonForVisit,
+  //      elvisPatient.VisitId,
+  //      getNow.toString
+  //    )
+  //  }
+  //  if (elvisPatient.Team != "None") {
+  //    ericaEventsBuffer += api.EricaEvent(
+  //      elvisPatient.CareContactId,
+  //      "TeamUpdate",
+  //      "NA",
+  //      getNow.toString,
+  //      "",
+  //      "",
+  //      elvisPatient.Team,
+  //      elvisPatient.VisitId,
+  //      getNow.toString
+  //    )
+  //  }
+  //  if (elvisPatient.DepartmentComment != "None") {
+  //    ericaEventsBuffer += api.EricaEvent(
+  //      elvisPatient.CareContactId,
+  //      "DepartmentCommentUpdate",
+  //      "NA",
+  //      getNow.toString,
+  //      "",
+  //      "",
+  //      elvisPatient.DepartmentComment,
+  //      elvisPatient.VisitId,
+  //      getNow.toString
+  //    )
+  //  }
+  //  if (elvisPatient.VisitRegistrationTime != "None") {
+  //    ericaEventsBuffer += api.EricaEvent(
+  //      elvisPatient.CareContactId,
+  //      "VisitRegistrationTimeUpdate",
+  //      "NA",
+  //      getNow.toString,
+  //      "",
+  //      "",
+  //      elvisPatient.VisitRegistrationTime,
+  //      elvisPatient.VisitId,
+  //      getNow.toString
+  //    )
+  //  }
+  //  elvisPatient.Events.foreach{ e =>
+  //    ericaEventsBuffer += api.EricaEvent(
+  //      e.CareEventId.toInt,
+  //      e.Category,
+  //      e.End,
+  //      e.Start,
+  //      e.Title,
+  //      e.Type,
+  //      e.Value,
+  //      e.VisitId,
+  //      getNow.toString
+  //    )
+  //  }
+  //  return ericaEventsBuffer.toList
+  //}
 
   def newPatient(json: JValue): List[api.EricaEvent] = {
     val patientJson = initiatePatient(json \ "patient")

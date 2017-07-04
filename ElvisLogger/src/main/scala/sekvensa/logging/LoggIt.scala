@@ -38,30 +38,12 @@ case class RemovedPatient(timestamp: DateTime, patient: ElvisPatient)
 case class SnapShot(patients: List[ElvisPatient])
 
 object LoggIt extends App {
-
   val system = ActorSystem("SP")
   val cluster = akka.cluster.Cluster(system)
 
-  /*
-  val logger = system.actorOf(ElvisLogger.props, "logger")
-
-  //val comm = system.actorOf(ElvisComm.props(logger), "comm")
-
-  //comm ! "GET"
-
-  //scala.io.StdIn.readLine()
-
-  Console.readLine() // wait for enter to exit
-  system.terminate()
-  */
-
-
-cluster.registerOnMemberUp {
-
-    // Start all you actors here.
+  cluster.registerOnMemberUp {
     println("ElvisLogger node has joined the cluster")
     system.actorOf(ElvisLogger.props)
-
   }
   cluster.registerOnMemberRemoved{
     println("ElvisLogger node has been removed from the cluster")
@@ -69,6 +51,7 @@ cluster.registerOnMemberUp {
 
   scala.io.StdIn.readLine("Press ENTER to exit cluster.\n")
   cluster.leave(cluster.selfAddress)
-
+  scala.io.StdIn.readLine("Press ENTER to exit application.\n")
+  system.terminate()
 }
 
