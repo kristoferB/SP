@@ -255,7 +255,8 @@ class DataAggregation {
 
   def newPatient(json: JValue): List[api.EricaEvent] = {
     val patientJson = initiatePatient(json \ "patient")
-    val ericaEvents = newPatientDataToEricaEvents(patientJson)
+    val timestamp = (json \ "timestamp").values.toString
+    val ericaEvents = newPatientDataToEricaEvents(patientJson, timestamp)
     ericaEvents
   }
 
@@ -315,6 +316,8 @@ class DataAggregation {
     val reasonForVisitJson = (patient \ "updates" \ "ReasonForVisit")
     val teamJson = (patient \ "updates" \ "Team")
 
+    val updatesTimestamp = (patient \ "updates" \ "timestamp").values.toString
+
     var ericaEvents = List[api.EricaEvent]()
 
     if (departmentCommentJson != JNothing) {
@@ -323,7 +326,7 @@ class DataAggregation {
         careContactId.toInt,
         "DepartmentCommentUpdate",
         "NA",
-        getNow.toString,
+        updatesTimestamp,
         "",
         "",
         departmentComment,
@@ -338,7 +341,7 @@ class DataAggregation {
         careContactId.toInt,
         "LocationUpdate",
         "NA",
-        getNow.toString,
+        updatesTimestamp,
         "",
         "",
         location,
@@ -353,7 +356,7 @@ class DataAggregation {
         careContactId.toInt,
         "ReasonForVisitUpdate",
         "NA",
-        getNow.toString,
+        updatesTimestamp,
         "",
         "",
         reasonForVisit,
@@ -368,7 +371,7 @@ class DataAggregation {
         careContactId.toInt,
         "TeamUpdate",
         "NA",
-        getNow.toString,
+        updatesTimestamp,
         "",
         "",
         team,
@@ -411,7 +414,7 @@ class DataAggregation {
     return newEvents ::: removedEvents ::: ericaEvents
   }
 
-  def newPatientDataToEricaEvents(patient: JValue): List[api.EricaEvent] = {
+  def newPatientDataToEricaEvents(patient: JValue, timestamp: String): List[api.EricaEvent] = {
     val careContactId = (patient \ "CareContactId").values.toString
     val careContactRegistrationTime = (patient \ "CareContactRegistrationTime").values.toString // Currently not used
     val departmentComment = (patient \ "DepartmentComment").values.toString
@@ -428,7 +431,7 @@ class DataAggregation {
       careContactId.toInt,
       "DepartmentCommentUpdate",
       "NA",
-      getNow.toString,
+      timestamp,
       "",
       "",
       departmentComment,
@@ -439,7 +442,7 @@ class DataAggregation {
       careContactId.toInt,
       "LocationUpdate",
       "NA",
-      getNow.toString,
+      timestamp,
       "",
       "",
       location,
@@ -450,7 +453,7 @@ class DataAggregation {
       careContactId.toInt,
       "ReasonForVisitUpdate",
       "NA",
-      getNow.toString,
+      timestamp,
       "",
       "",
       reasonForVisit,
@@ -461,7 +464,7 @@ class DataAggregation {
       careContactId.toInt,
       "TeamUpdate",
       "NA",
-      getNow.toString,
+      timestamp,
       "",
       "",
       team,
@@ -472,7 +475,7 @@ class DataAggregation {
       careContactId.toInt,
       "VisitRegistrationTimeUpdate",
       "NA",
-      getNow.toString,
+      timestamp,
       "",
       "",
       visitRegistrationTime,
