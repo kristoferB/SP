@@ -58,13 +58,13 @@ object ChartTest {
         data.addColumn("date", "Start Date", "4")
         data.addColumn("date", "End Date", "5")
 
-        val exampleRow = new TimelineRow("g", "9", null, new js.Date(2014, 2, 22), new js.Date(2014, 5, 20), 4)
+        val exampleRow = TimelineRow("g", "9", null, new js.Date(2014, 2, 22), new js.Date(2014, 5, 20), 4)
 
-        data.addRow(exampleRow.toArray())
+        data.addRow(exampleRow.toArray)
 
-        val exampleOptions = new OptionsTimeline(300,400)
+        val exampleOptions = OptionsTimeline(300,400, "example")
 
-        timeline.draw(data, exampleOptions.toDynamic())
+        timeline.draw(data, exampleOptions.toDynamic)
       }
       Callback.empty
     }

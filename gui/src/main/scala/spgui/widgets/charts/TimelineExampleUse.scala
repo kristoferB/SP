@@ -79,17 +79,17 @@ object TimelineExampleUse {
         data.addColumn("date", "End Date", "5")
 
         // creates example data
-        val exampleRow = new TimelineRow("g", "9", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20))
+        val exampleRow = TimelineRow("g", "9", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20))
 
         // add the data to the DataTable
-        data.addRow(exampleRow.toArray())
+        data.addRow(exampleRow.toArray)
 
         // Create a example options (spgui.googleAPI.timeline.{OptionsTimeline, Timeline}
-        val exampleOptions = new OptionsTimeline(400,600, new TimelineInner())
+        val exampleOptions = OptionsTimeline(400,600, TimelineInner(), "exampleUse")
 
         // draw timeline chart
         // arguments: the DataTable and the options
-        timeline.draw(data, exampleOptions.toDynamic())
+        timeline.draw(data, exampleOptions.toDynamic)
 
       }
       // send Callback log

@@ -35,23 +35,23 @@ object TimelineWidget {
   // the Timeline Chart have the same Name
   val idName: String = "timelineWidget"
   val rowList: List[TimelineRow] =
-    new TimelineRow("Besök", "Patientens Besök På Sjukhuset",
+    TimelineRow("Besök", "Patientens Besök På Sjukhuset",
       new js.Date(2017, 5, 20, 8, 5, 3, 2), new js.Date(2017, 5, 20, 10, 32, 23, 9)) ::
-    new TimelineRow("Kölapp", "Tar Kölapp",
+    TimelineRow("Kölapp", "Tar Kölapp",
       new js.Date(2017, 5, 20, 8, 6, 13, 8), new js.Date(2017, 5, 20, 8, 6, 31, 7)) ::
-    new TimelineRow("Väntetid", "Patient Väntar På inskrivning",
+    TimelineRow("Väntetid", "Patient Väntar På inskrivning",
         new js.Date(2017, 5, 20, 8, 6, 31, 7), new js.Date(2017, 5, 20, 8, 23, 54, 1)) ::
-    new TimelineRow("Inskrivning", "Patient Skriver in sig",
+    TimelineRow("Inskrivning", "Patient Skriver in sig",
         new js.Date(2017, 5, 20, 8, 24, 11, 2), new js.Date(2017, 5, 20, 8, 26, 46, 3)) ::
-    new TimelineRow("Väntetid", "Patienten väntar på läkare",
+    TimelineRow("Väntetid", "Patienten väntar på läkare",
       new js.Date(2017, 5, 20, 8, 26, 46, 3), new js.Date(2017, 5, 20, 9, 1, 35, 4)) ::
-    new TimelineRow("Läkarbesök", "Patient träffar läkare",
+    TimelineRow("Läkarbesök", "Patient träffar läkare",
       new js.Date(2017, 5, 20, 9, 1, 35, 4), new js.Date(2017, 5, 20, 9, 9, 21, 5)) ::
-    new TimelineRow("Väntetid", "Patient väntar på diagnos",
+    TimelineRow("Väntetid", "Patient väntar på diagnos",
       new js.Date(2017, 5, 20, 9, 9, 21, 5), new js.Date(2017, 5, 20, 9, 59, 1, 0)) ::
-    new TimelineRow("Diagnostiering", "Läkare sätter diagnos",
+    TimelineRow("Diagnostiering", "Läkare sätter diagnos",
       new js.Date(2017, 5, 20, 9, 9, 21, 5), new js.Date(2017, 5, 20, 9, 27, 54, 9)) ::
-    new TimelineRow("Läkarbesök", "Patient träffar läkare",
+    TimelineRow("Läkarbesök", "Patient träffar läkare",
       new js.Date(2017, 5, 20, 9, 59, 1, 0), new js.Date(2017, 5, 20, 10, 14, 13, 4)) ::
     Nil
 
@@ -88,7 +88,7 @@ object TimelineWidget {
         val timelineElement = js.Dynamic.global.document.getElementById(idName)
 
         // create a new Timeline chart - helper
-        val helper = TimelineHelper(timelineElement)
+        val helper = TimelineHelper(timelineElement, "Helper-example")
         // add new row
 
         // add

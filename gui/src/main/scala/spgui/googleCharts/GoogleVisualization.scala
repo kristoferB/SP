@@ -3,7 +3,7 @@
   ****************************************/
 package spgui.googleCharts
 
-import spgui.googleCharts.general.{DataTableAPI, GoogleChart}
+import spgui.googleCharts.general.{DataTableAPI, GoogleChartTrait}
 
 import scala.scalajs.js
 
@@ -13,7 +13,7 @@ object GoogleVisualization extends js.Object {
   // Example of Google Chart
   // Help methods for Timeline under googleCharts/timeline
   @js.native
-  class Timeline(element: js.Dynamic) extends GoogleChart {
+  class Timeline(element: js.Dynamic) extends GoogleChartTrait {
     // draw()-function in API
     // Arguments:
     // -data:     DataTableAPI

@@ -20,12 +20,13 @@ trait TimelineRowTrait {
   val startDate:          Date
   val endDate:            Date
   // to make it more user-friendly with toArray
-  // to create a new auxillary constructor
   // give it a new casesId and implement its else if() state in toArray()
   val cases:              Int
+
+  def toArray: js.Array[js.Any]
 }
 
-class TimelineRow (
+case class TimelineRow (
                     override val rowLabel: String,
                     override val optionalBarLabel: String,
                     override val optionalTooltip: Tooltips,
@@ -33,31 +34,15 @@ class TimelineRow (
                     override val endDate: Date,
                     override val cases: Int = 0
                   ) extends TimelineRowTrait {
-  // constructor with rowLabel, dates and tooltip
-  def this(rowLabel: String, optionalTooltip: Tooltips, startDate: Date, endDate: Date) =
-    this(rowLabel, "", optionalTooltip, startDate, endDate, 1)
-
-  // constructor with rowLabel and dates
-  def this(rowLabel: String, startDate: Date, endDate: Date) =
-    this(rowLabel, "", new Tooltips(), startDate, endDate, 2)
-
-  // constructor only rowLabel displayed
-  def this(rowLabel: String) =
-    this(rowLabel, "", new Tooltips(), new js.Date(), new js.Date(), 3)
-
-  // constructor missing tooltip
-  def this(rowLabel: String, optionalBarLabel: String, startDate: Date, endDate: Date) =
-    this(rowLabel, optionalBarLabel, new Tooltips(), startDate, endDate, 4)
-
 
   // TODO: ensure no side effects
   // argument: a TimelineRow
   // return: an js.Array of js.Any
-  def toArray(): js.Array[js.Any] = {
+  def toArray: js.Array[js.Any] = {
     if (this.cases == 0) {
-      js.Array(this.rowLabel, this.optionalBarLabel, this.optionalTooltip.toArray(), this.startDate, this.endDate)
+      js.Array(this.rowLabel, this.optionalBarLabel, this.optionalTooltip.toArray, this.startDate, this.endDate)
     } else if (this.cases == 1) {
-      js.Array(this.rowLabel, this.optionalTooltip.toArray(), this.startDate, this.endDate)
+      js.Array(this.rowLabel, this.optionalTooltip.toArray, this.startDate, this.endDate)
     } else if (this.cases == 2 || this.cases == 3) {
       js.Array(this.rowLabel, this.startDate, this.endDate)
     } else if (this.cases == 4) {
@@ -69,6 +54,63 @@ class TimelineRow (
   }
 
 
-  override def toString = s"TimelineRow($rowLabel, $optionalBarLabel, $optionalTooltip, " +
+  override def toString: String = s"TimelineRow($rowLabel, $optionalBarLabel, $optionalTooltip, " +
     s"$startDate, $endDate, $cases)"
+}
+
+object TimelineRow {
+  def apply(
+           rowLabel:          String,
+           optionalBarLabel:  String,
+           optionalTooltip:   Tooltips,
+           startDate:         Date,
+           endDate:           Date
+           ) = new TimelineRow(
+    rowLabel,
+    optionalBarLabel,
+    optionalTooltip,
+    startDate,
+    endDate
+  )
+
+  def apply(
+             rowLabel:          String,
+             optionalTooltip:   Tooltips,
+             startDate:         Date,
+             endDate:           Date
+           ) = new TimelineRow(
+    rowLabel,
+    "",
+    optionalTooltip,
+    startDate,
+    endDate,
+    1
+  )
+
+  def apply(
+             rowLabel:          String,
+             optionalBarLabel:  String,
+             startDate:         Date,
+             endDate:           Date
+           ) = new TimelineRow(
+    rowLabel,
+    optionalBarLabel,
+    Tooltips(),
+    startDate,
+    endDate,
+    4
+  )
+
+  def apply(
+             rowLabel:          String,
+             startDate:         Date,
+             endDate:           Date
+           ) = new TimelineRow(
+    rowLabel,
+    "",
+    Tooltips(),
+    startDate,
+    endDate,
+    2
+  )
 }

@@ -13,53 +13,63 @@ trait TimelineHelperTrait {
   val data:             DataTable
   val timeline:         Timeline
   val options:          OptionsTimeline
-  val margin:           Int
-  val heightPerRow:     Int
   // methods
   def clear(): Unit
   def draw(): Unit
   def newRow(rowLabel: String, barLabel: String, startDate: js.Date, endDate: js.Date): Unit
+  def newRow(row: TimelineRow): Unit
 }
 
 // simple helper to timeline
 // companion class
 // todo: make class more functional
-class TimelineHelper (
-                       override val data:           DataTable,
-                       override val timeline:       Timeline,
-                       override val options:        OptionsTimeline,
-                       override val margin:         Int = 30, // see https://stackoverflow.com/a/23975493
-                       override val heightPerRow:   Int = 40
-                     ) extends TimelineHelperTrait {
-
+case class TimelineHelper (
+                            override val data:           DataTable,
+                            override val timeline:       Timeline,
+                            override val options:        OptionsTimeline
+                          ) extends TimelineHelperTrait {
 
   // draw()-method
   // this calls the Timeline.draw() with the given data and options
-  override def draw(): Unit = {
+  def draw: Unit = {
     // TODO: this can work, but then you need to filter rows of the same row label
-    options.setHeight(data.getNumberOfRows() * heightPerRow + margin )
-    timeline.draw(data, options.toDynamic())
+    // Todo: this approach can work, look at SQL-formatting with data.group()
+    // options.setHeight(data.getNumberOfRows() * heightPerRow + margin )
+    timeline.draw(
+      data,
+      OptionsTimeline(
+        this.data.getNumberOfRows() * 31 + 40,
+        this.options.width,
+        TimelineHelper.innerOptions,
+        this.options.title
+      ).toDynamic
+    )
   }
 
   // clears the timelineChart
-  override def clear(): Unit = timeline.clearChart()
+  def clear: Unit = timeline.clearChart()
 
-  // TODO: convert to js.Date so User cannot see any js-code
+  // TODO: convert to js.Date so User cannot see any js-code??
   // newRow()-method
   // set the rowLabel, barLabel, startDate and endDate
   // add a new row to the DataTable with the given data, with some minor help of TimelineRow
-  override def newRow(rowLabel: String, barLabel: String, startDate: js.Date, endDate: js.Date): Unit =
-    data.addRow(new TimelineRow(rowLabel, barLabel, startDate, endDate).toArray())
+  def newRow(rowLabel: String, barLabel: String, startDate: js.Date, endDate: js.Date): Unit =
+    data.addRow(TimelineRow(rowLabel, barLabel, startDate, endDate).toArray)
   def newRow(row: TimelineRow): Unit =
-    data.addRow(row.toArray())
+    data.addRow(row.toArray)
 }
 // simple helper to timeline
 // companion object
 // this setups the predefined data
 object TimelineHelper{
+  // if we set colorByRowLabel and !showBarLabel we get a nicer view
+  private val innerOptions = TimelineInner(null, true, true, null, false, true, null)
+
   // simple init of dataTable
-  def preDefTimelineData(toInit: DataTable): DataTable = {
+  private def preDefTimelineData: DataTable = {
+    val toInit: DataTable = new DataTable()
     // todo: use description object
+    // todo: do functional
     /*
     // simple setup of the description objects for each column
     val descriptionObjects: List[DescriptionObject] =
@@ -80,13 +90,23 @@ object TimelineHelper{
     toInit
   }
 
+  def apply(
+           dataTable: DataTable,
+           timeline: Timeline,
+           optionsTimeline: OptionsTimeline
+           ) = new TimelineHelper(
+    dataTable,
+    timeline,
+    optionsTimeline
+  )
+
   // element and options apply
   def apply(
              element: js.Dynamic,
              options: OptionsTimeline
            ) = new TimelineHelper ( // create a new TimelineHelper
-    // get the predef datatable
-    preDefTimelineData(new DataTable()),
+    // get the predef data table
+    preDefTimelineData,
     // create a new GoogleVisualization.Timeline() with the given element as argument
     new Timeline(element),
     // set the options
@@ -94,25 +114,37 @@ object TimelineHelper{
   )
 
   def apply(
-           element: js.Dynamic,
-           jsonData: String
+             element: js.Dynamic,
+             jsonData: String,
+             title: String
            ) = new TimelineHelper(
     // create a new DataTable with the jsonData-string
     new DataTable(jsonData),
     // create a new GoogleVisualization.Timeline() with the given element as argument
     new Timeline(element),
     // create a new OptionsTimeline
-    new OptionsTimeline()
+    OptionsTimeline(
+      0,
+      0,
+      innerOptions,
+      title
+    )
   )
-  // only element apply
+
   def apply(
-             element: js.Dynamic
-           ) = new TimelineHelper (// create a new TimelineHelper
-    // get the predef datatable
-    preDefTimelineData(new DataTable()),
+             element: js.Dynamic,
+             title: String
+           ) = new TimelineHelper(// create a new TimelineHelper
+    // get the predef data table
+    preDefTimelineData,
     // create a new GoogleVisualization.Timeline() with the given element as argument
     new Timeline(element),
     // create a new OptionsTimeline
-    new OptionsTimeline()
+    OptionsTimeline(
+      0,
+      0,
+      innerOptions,
+      title
+    )
   )
 }

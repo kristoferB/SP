@@ -18,23 +18,44 @@ trait DescriptionObjectTrait {
   val optionalPattern: String
 }
 
-class DescriptionObject(
-                         // columnType must be set
-                         override val columnType: String,
-                         // optional variables
-                         override val optionalLabel: String = "",
-                         override val optionalId: String = "",
-                         override val optionalRole: String = "",
-                         override val optionalPattern: String = ""
-                       ) extends DescriptionObjectTrait {
+case class DescriptionObject(
+                              // columnType must be set
+                              override val columnType:       String,
+                              // optional variables
+                              override val optionalLabel:    String,
+                              override val optionalId:       String,
+                              override val optionalRole:     String,
+                              override val optionalPattern:  String
+                            ) extends DescriptionObjectTrait {
 
   // method: toArray()
   // returns: Array of Strings
   // description: makes an array of the localvariables and returns the array
-  def toArray(): Array[String] =
+  def toArray: Array[String] =
   Array(this.columnType, this.optionalLabel, this.optionalId, this.optionalRole, this.optionalPattern)
 
   // toString method that prints local variables
-  override def toString = s"DescriptionObject($columnType, $optionalLabel, " +
+  override def toString: String = s"DescriptionObject($columnType, $optionalLabel, " +
     s"$optionalId, $optionalRole, $optionalPattern)"
+}
+
+object DescriptionObject {
+  def apply(
+             columnType:      String,
+             optionalLabel:   String,
+             optionalId:      String,
+             optionalRole:    String,
+             optionalPattern: String
+           ) = new DescriptionObject(
+    columnType, optionalLabel, optionalId, optionalRole, optionalPattern
+  )
+  def apply(
+             columnType:      String
+           ) = new DescriptionObject(
+    columnType,
+    "",
+    "",
+    "",
+    ""
+  )
 }

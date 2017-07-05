@@ -7,7 +7,7 @@ package spgui.googleCharts.general
 import scala.scalajs.js
 
 @js.native
-trait GoogleChart extends js.Object {
+trait GoogleChartTrait extends js.Object {
   // a div element where the chart should be drawn
   val element: js.Dynamic = js.native
   // Draws the chart
@@ -26,4 +26,5 @@ object GoogleChart {
            ) = js.Dynamic.literal(
     element = element
   )
+
 }

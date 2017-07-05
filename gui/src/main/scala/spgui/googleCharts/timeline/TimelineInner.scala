@@ -6,7 +6,7 @@ package spgui.googleCharts.timeline
 
 import scala.scalajs.js
 
-// Doucmentation: See Configuration Options for Timeline
+// Documentation: See Configuration Options for Timeline
 
 // Configuration Options for Timeline inner
 // trait
@@ -21,18 +21,18 @@ trait TimelineInnerTrait {
 }
 
 // null, false, true, null, true, true, null
-class TimelineInner (
-                      // defaults values from API
-                      override val barLabelStyle: js.Object = null,
-                      override val colorByRowLabel: Boolean = false,
-                      override val groupByRowLabel: Boolean = true,
-                      override val rowLabelStyle: js.Object = null,
-                      override val showBarLabels: Boolean = true,
-                      override val showRowLabels: Boolean = true,
-                      override val singleColor: String = null
-                    ) extends TimelineInnerTrait {
+case class TimelineInner (
+                           // defaults values from API
+                           override val barLabelStyle: js.Object,
+                           override val colorByRowLabel: Boolean,
+                           override val groupByRowLabel: Boolean,
+                           override val rowLabelStyle: js.Object,
+                           override val showBarLabels: Boolean,
+                           override val showRowLabels: Boolean,
+                           override val singleColor: String
+                         ) extends TimelineInnerTrait {
 
-  def toArray(): js.Array[js.Any] =
+  def toArray: js.Array[js.Any] =
     js.Array(
       this.barLabelStyle,
       this.colorByRowLabel,
@@ -44,8 +44,40 @@ class TimelineInner (
     )
 
 
-  override def toString = s"Timeline($barLabelStyle, " +
+  override def toString: String = s"Timeline($barLabelStyle, " +
     s"$colorByRowLabel, $groupByRowLabel, " +
     s"$rowLabelStyle, $showBarLabels, " +
     s"$showRowLabels, $singleColor)"
+}
+
+object TimelineInner {
+  def apply(
+             barLabelStyle: js.Object,
+             colorByRowLabel: Boolean,
+             groupByRowLabel: Boolean,
+             rowLabelStyle: js.Object,
+             showBarLabels: Boolean,
+             showRowLabels: Boolean,
+             singleColor: String
+           ) = new TimelineInner(
+    barLabelStyle,
+    colorByRowLabel,
+    groupByRowLabel,
+    rowLabelStyle,
+    showBarLabels,
+    showRowLabels,
+    singleColor
+  )
+
+  def apply() =
+    new TimelineInner(
+      // default values
+      null, // barLabelStyle
+      false, // colorByRowLabel
+      true, // groupByRowLabel
+      null, // rowLabelStyle
+      true, // showBarLabels
+      true, // showRowLabels
+      null // singleColor
+    )
 }

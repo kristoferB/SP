@@ -15,10 +15,12 @@ trait FiltersTrait {
   val maxValue: String
   val cases: Int
 
-  def toObject(): js.Object
+  def toObject: js.Object
 }
 
-class Filters (
+// TODO: Do functional
+
+case class Filters (
                 override val columnId: Int,
                 override val value: Int,
                 override val minValue: String,  // null for no lower bound
@@ -35,7 +37,7 @@ class Filters (
 
   // toObject method
   // returns a js.Object
-  override def toObject(): js.Object =
+  override def toObject: js.Object =
   if(cases == 0) {
     js.Dynamic.literal(
       column = this.columnId,
