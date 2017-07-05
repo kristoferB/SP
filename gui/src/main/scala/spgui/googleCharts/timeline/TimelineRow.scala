@@ -71,7 +71,8 @@ object TimelineRow {
     optionalBarLabel,
     optionalTooltip,
     startDate,
-    endDate
+    endDate,
+    cases
   )
 
   def apply(

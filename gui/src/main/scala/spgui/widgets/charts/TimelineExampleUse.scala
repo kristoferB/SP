@@ -15,8 +15,12 @@ import org.scalajs.dom.html.Div
 
 import scalajs.js
 import spgui.communication._
-import spgui.googleCharts.{GoogleChartsLoaded, GoogleVisualization}
-import spgui.googleCharts.timeline._
+import spgui.googleCharts.GoogleChartsLoaded
+import spgui.googleCharts.timeline.TimelineHelper
+import spgui.googleCharts.timeline.TimelineRow
+import spgui.googleCharts.general.Tooltips
+
+import scala.scalajs.js.Date
 /*
  * TODO: Remove debugging messages
  */
@@ -33,7 +37,7 @@ object TimelineExampleUse {
 
   // ensures that the name in div when rendering and
   // the Timeline Chart have the same Name
-  val idName: String = "timelineWidget"
+  val idName: String = "exampleUse"
 
 
   /* TODO:
@@ -67,33 +71,19 @@ object TimelineExampleUse {
 
         // create a new Timeline chart
         // argument the element
-        val timeline = new GoogleVisualization.Timeline(timelineElement)
-
-        // create a new DataTable
-        val data = new GoogleVisualization.DataTable()
-
-        // creates a example column setup to the DataTable
-        data.addColumn("string", "Timeline id", "1")
-        data.addColumn("string", "Timeline Name", "2")
-        data.addColumn("date", "Start Date", "4")
-        data.addColumn("date", "End Date", "5")
+        val helper = TimelineHelper(timelineElement, "ExampeUse")
 
         // creates example data
-        val exampleRow = TimelineRow("g", "9", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20))
+        val exampleRow = TimelineRow("RowLbl", "BarLbl", new js.Date(2014, 2, 22), new js.Date(2014, 5, 20))
 
-        // add the data to the DataTable
-        data.addRow(exampleRow.toArray)
+        // add the example object to the data table
+        helper.newRow(exampleRow)
+        //helper.emptyRow()
 
-        // Create a example options (spgui.googleAPI.timeline.{OptionsTimeline, Timeline}
-        val exampleOptions = OptionsTimeline(400,600, TimelineInner(), "exampleUse")
-
-        // draw timeline chart
-        // arguments: the DataTable and the options
-        timeline.draw(data, exampleOptions.toDynamic)
-
+        helper.draw()
       }
       // send Callback log
-      Callback.log("Mounting TimelinePage Done!")
+      Callback.log("Mounting ExampleUse Done!")
     }
 
     // Handles the updates of the Timeline cycles
@@ -101,7 +91,7 @@ object TimelineExampleUse {
 
     // Handles stopevents from a cycle
     def handleStop() = {
-      Callback.log("Unmounting TimelineWidget")
+      Callback.log("Unmounting ExampleUse")
     }
 
   }

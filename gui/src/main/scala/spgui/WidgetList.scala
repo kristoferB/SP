@@ -25,8 +25,8 @@ object WidgetList {
       ("Item explorer", widgets.itemexplorer.ItemExplorer(), 2, 4),
       ("Ability Handler", widgets.abilityhandler.AbilityHandlerWidget(), 2, 2),
       ("ServiceList", widgets.services.ServiceListWidget(), 2, 2),
-      ("TimelineWidget", widgets.charts.TimelineWidget(), 5, 2),
-      ("TimelineExampleUse", widgets.charts.TimelineExampleUse(), 4, 3),
+      ("JSONExampleGantt", widgets.charts.TimelineJSONExample(), 5, 2),
+      ("ExampleUseGantt", widgets.charts.TimelineExampleUse(), 4, 3),
       ("ChartTest", widgets.charts.ChartTest(), 5, 3),
       ("Settings", widgets.settings.SettingsWidget(), 2, 4),
       ("SopMaker", widgets.sopmaker.SopMakerWidget(), 2, 4)

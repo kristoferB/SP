@@ -21,7 +21,7 @@ import spgui.googleCharts.timeline._
  * TODO: Remove debugging messages
  */
 
-object TimelineWidget {
+object TimelineJSONExample {
   /*
    * TODO:
    *      1. Look over which State is needed for Timeline
@@ -34,7 +34,7 @@ object TimelineWidget {
   // todo: implement def JSONtoList(jsonData: String): List[TimelineRow]
   // ensures that the name in div when rendering and
   // the Timeline Chart have the same Name
-  val idName: String = "timelineWidget"
+  val idName: String = "JSONExample"
   val rowList: List[TimelineRow] =
     TimelineRow("Besök", "Patientens Besök På Sjukhuset",
       new js.Date(2017, 5, 20, 8, 5, 3, 2), new js.Date(2017, 5, 20, 10, 32, 23, 9)) ::
@@ -89,7 +89,7 @@ object TimelineWidget {
         val timelineElement = js.Dynamic.global.document.getElementById(idName)
 
         // create a new Timeline chart - helper
-        val helper = TimelineHelper(timelineElement, "Helper-example")
+        val helper = TimelineHelper(timelineElement, "JSONExample")
         // add new row
 
         // add
@@ -103,13 +103,13 @@ object TimelineWidget {
         // try to create JSON-copy
         val timelineElement2 = js.Dynamic.global.document.getElementById(idName +"2")
         // create a new Timeline chart - helper
-        val helper2 = TimelineHelper(timelineElement2, helper.data.toJSON())
+        val helper2 = TimelineHelper(timelineElement2, helper.data.toJSON(), "CopyOfData")
         helper2.draw()
 
 
       }
       // send Callback log
-      Callback.log("Mounting TimelineWidget Done!")
+      Callback.log("Mounting JSONExample Done!")
     }
 
     // Handles the updates of the Timeline cycles

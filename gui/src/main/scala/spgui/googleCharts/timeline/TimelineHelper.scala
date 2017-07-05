@@ -18,6 +18,7 @@ trait TimelineHelperTrait {
   def draw(): Unit
   def newRow(rowLabel: String, barLabel: String, startDate: js.Date, endDate: js.Date): Unit
   def newRow(row: TimelineRow): Unit
+  def emptyRow(): Unit
 }
 
 // simple helper to timeline
@@ -31,7 +32,7 @@ class TimelineHelper (
 
   // draw()-method
   // this calls the Timeline.draw() with the given data and options
-  def draw: Unit = {
+  def draw(): Unit = {
     // TODO: this can work, but then you need to filter rows of the same row label
     // Todo: this approach can work, look at SQL-formatting with data.group()
     // options.setHeight(data.getNumberOfRows() * heightPerRow + margin )
@@ -47,7 +48,7 @@ class TimelineHelper (
   }
 
   // clears the timelineChart
-  def clear: Unit = timeline.clearChart()
+  def clear(): Unit = timeline.clearChart()
 
   // TODO: convert to js.Date so User cannot see any js-code??
   // newRow()-method
@@ -57,6 +58,9 @@ class TimelineHelper (
     data.addRow(TimelineRow(rowLabel, barLabel, startDate, endDate).toArray)
   def newRow(row: TimelineRow): Unit =
     data.addRow(row.toArray)
+  // TODO: Fix data.addRow()
+  // TODO: Error 'Missing value in row 1'
+  def emptyRow(): Unit = data.addRow()
 }
 // simple helper to timeline
 // companion object

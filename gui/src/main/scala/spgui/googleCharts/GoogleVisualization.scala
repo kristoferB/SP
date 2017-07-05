@@ -73,9 +73,8 @@ object GoogleVisualization extends js.Object {
     override def addRow(row: js.Array[js.Any]): Unit =
       js.native
 
-    // addRow()-method from API
-    // add an empty row to dataTable
-    override def addRow(): Unit = js.native
+    override def addRow() = js.native
+
     // returns the numbers of rows
     override def getNumberOfRows(): Int = js.native
 
