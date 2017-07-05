@@ -106,22 +106,10 @@ class ElvisLogger extends PersistentActor {
   var i = 0
   var xs = List[PatientDiff]()
   val receiveRecover: Receive = {
-    case RecoveryCompleted => 
-
-      import akka.cluster.pubsub._
-      import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
-      val mediator = DistributedPubSub(context.system).mediator
-
-      println("******** START ************")
-      //playBack.reverse.foreach(json => sendToEvah(json))
-      //*******************
-      println("[")
-      //playBack.reverse.foreach(x => println(x + ","))
-      playBack.reverse.foreach(x => mediator ! Publish("historical-elvis-data", x))
-      println("]")
-      println("******** STOP ************")
-
-
+    case RecoveryCompleted => {
+      val sender = context.actorOf(Props[ElvisDataSender], "ElvisDataSender")
+      sender ! playBack.reverse
+    }
     case d: PatientDiff => {
       val json = write(Map("diff"->d))
       playBack = json :: playBack
