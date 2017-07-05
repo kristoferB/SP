@@ -15,7 +15,7 @@ case class SPGUIModel(
 )
 case class OpenWidgets(xs: Map[UUID, OpenWidget] = Map())
 case class OpenWidget(id: UUID, layout: WidgetLayout, widgetType: String)
-case class WidgetLayout(x: Int, y: Int, w: Int, h: Int)
+case class WidgetLayout(x: Int, y: Int, w: Int, h: Int, collapsedHeight: Int = 1)
 
 case class GlobalState(
   currentModel: Option[UUID] = None,
@@ -30,6 +30,7 @@ case class Settings(theme: Theme = Theme())
 // actions
 case class AddWidget(widgetType: String, width: Int = 2, height: Int = 2, id: UUID = UUID.randomUUID()) extends Action
 case class CloseWidget(id: UUID) extends Action
+case class CollapseWidgetToggle(id: UUID) extends Action
 case object CloseAllWidgets extends Action
 case class UpdateWidgetData(id: UUID, data: SPValue) extends Action
 case class UpdateLayout(id: UUID, newLayout: WidgetLayout) extends Action

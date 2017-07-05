@@ -6,11 +6,11 @@ import js.annotation.{ JSName, JSGlobal }
 import japgolly.scalajs.react.vdom.html_<^.VdomArray
 import java.util.UUID
 
-object ResponsiveReactGridLayout {
+object ReactGridLayout {
 
   @js.native
-  @JSGlobal("ResponsiveReactGridLayout")
-  object ResponsiveReactGridLayoutJS extends js.Object
+  @JSGlobal("ReactGridLayout")
+  object ReactGridLayoutJS extends js.Object
 
   @js.native
   trait LayoutElement extends js.Object {
@@ -63,7 +63,7 @@ object ResponsiveReactGridLayout {
   trait Props extends js.Object {
     var width: Int = js.native
     var autoSize: Boolean = js.native
-    var cols: js.Object = js.native
+    var cols: Int = js.native
     var draggableCancel: String = js.native
     var draggableHandle: String = js.native
     var verticalCompact: Boolean = js.native
@@ -82,11 +82,11 @@ object ResponsiveReactGridLayout {
   def apply(
     width: Int,
     autoSize: Boolean = true,
-    cols: js.Object = js.Dynamic.literal("lg" -> 12, "md" -> 8, "sm" -> 6, "xs" -> 4, "xxs" -> 2),
+    cols: Int = 12,
     draggableCancel: String = "",
     draggableHandle: String = "",
     verticalCompact: Boolean = true,
-    layout: Layout = js.Array(),
+    layout: js.Array[LayoutElement] = js.Array(),
     margin: js.Array[Int] = js.Array(3,3),
     containerPadding: js.Array[Int] = js.Array(3,3),
     rowHeight: Int = 50,
@@ -116,7 +116,7 @@ object ResponsiveReactGridLayout {
     p.onResize = onResize
     p.onResizeStart = onResizeStart
 
-    val component = JsComponent[Props, Children.Varargs, Null](ResponsiveReactGridLayoutJS)
+    val component = JsComponent[Props, Children.Varargs, Null](ReactGridLayoutJS)
     component(p)(children)
   }
 }

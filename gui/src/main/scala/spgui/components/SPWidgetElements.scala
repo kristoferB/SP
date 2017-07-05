@@ -6,7 +6,7 @@ import japgolly.scalajs.react.vdom.all.aria
 
 object SPWidgetElements{
   def button(text: String, onClick: Callback): VdomNode =
-    <.button(
+    <.span(
       text,
       ^.onClick --> onClick,
       ^.className := "btn",
@@ -16,7 +16,7 @@ object SPWidgetElements{
     )
   
   def button(text:String, icon:VdomNode, onClick: Callback): VdomNode =
-    <.button(
+    <.span(
       <.span(text, ^.className:= SPWidgetElementsCSS.textIconClearance.htmlClass),
       icon,
       ^.onClick --> onClick,
@@ -27,7 +27,7 @@ object SPWidgetElements{
     )
   
   def button(icon: VdomNode, onClick: Callback): VdomNode =
-    <.button(icon,
+    <.span(icon,
       ^.onClick --> onClick,
       ^.className := "btn",
       ^.className := SPWidgetElementsCSS.defaultMargin.htmlClass,
@@ -42,7 +42,7 @@ object SPWidgetElements{
         ^.className:= SPWidgetElementsCSS.dropdownOuter.htmlClass,
         ^.className := SPWidgetElementsCSS.defaultMargin.htmlClass,
         ^.className:= "dropdown",
-        <.button(
+        <.span(
           <.span(text, ^.className:= SPWidgetElementsCSS.textIconClearance.htmlClass),
           Icon.caretDown,
           VdomAttr("data-toggle") := "dropdown",

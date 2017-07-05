@@ -27,6 +27,23 @@ class DashboardHandler[M](modelRW: ModelRW[M, OpenWidgets]) extends ActionHandle
       updated(OpenWidgets(value.xs + (id -> newWidget)))
     case CloseWidget(id) =>
       updated(OpenWidgets(value.xs - id))
+    case CollapseWidgetToggle(id) =>
+      val targetWidget = value.xs.get(id).get
+      val modifiedWidget = targetWidget.layout.h match {
+        case 1 => targetWidget.copy(
+          layout = targetWidget.layout.copy(
+            collapsedHeight = 1,
+            h = targetWidget.layout.collapsedHeight
+          )
+        )
+        case _ => targetWidget.copy(
+          layout = targetWidget.layout.copy(
+            collapsedHeight = targetWidget.layout.h ,
+            h = 1
+          )
+        )
+      }
+      updated(OpenWidgets((value.xs - id ) + (id -> modifiedWidget)))
     case CloseAllWidgets => updated(OpenWidgets())
     case UpdateLayout(id, newLayout) => {
       val updW = value.xs.get(id)

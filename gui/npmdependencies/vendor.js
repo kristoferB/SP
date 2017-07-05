@@ -7,7 +7,9 @@ window.ReactDOM = ReactDOM;
 var ReactGridLayout = require('react-grid-layout');
 window.WidthProvider = ReactGridLayout.WidthProvider;
 window.ResponsiveReactGridLayout = WidthProvider(ReactGridLayout.Responsive);
+window.ReactGridLayout = ReactGridLayout;
 require('react-grid-layout/css/styles.css');
+
 
 var JSONEditor = require('jsoneditor');
 window.JSONEditor = JSONEditor;

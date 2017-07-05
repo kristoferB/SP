@@ -5,8 +5,10 @@ import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.vdom.all.aria
 import scalacss.ScalaCssReact._
 
-import spgui.circuit.{ SPGUICircuit, CloseWidget }
+import spgui.circuit.{ SPGUICircuit, CloseWidget, CollapseWidgetToggle }
 import spgui.components.{Icon}
+
+
 
 object DashboardItem {
   case class Props(element: VdomElement, widgetType: String, id: java.util.UUID)
@@ -38,7 +40,9 @@ object DashboardItem {
             VdomAttr("data-toggle") := "tooltip",
             VdomAttr("title") := "toggle panel",
             ^.className := "close",
-            ^.onClick ==>  ToggleMenuBar,
+            ^.onClick --> Callback(SPGUICircuit.dispatch(
+              CollapseWidgetToggle(p.id)
+            )),
             DashboardCSS.widgetPanelButton,
             if(s.hiddenMenuBar)Icon.arrowDown
             else Icon.arrowUp
