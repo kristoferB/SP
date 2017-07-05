@@ -15,7 +15,7 @@ trait TooltipsTrait {
   val trigger: String
 }
 
-case class Tooltips (
+class Tooltips (
                  override val isHtml: Boolean,
                  override val trigger: String
                ) extends TooltipsTrait {

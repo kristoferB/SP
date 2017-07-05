@@ -28,11 +28,11 @@ trait OptionsTlTrait extends OptionsTrait {
 
 // OptionsTimeline Class
 // see configuration options of timeline documentation
-case class OptionsTimeline (
+class OptionsTimeline (
                              override val height:                    Int,
                              override val width:                     Int,
-                             override val timeline:                  TimelineInnerTrait,
-                             override val tooltip:                   TooltipsTrait,
+                             override val timeline:                  TimelineInner,
+                             override val tooltip:                   Tooltips,
                              override val title:                     String,
                              // default values for TimelineAPI
                              override val avoidOverlappingGridLines: Boolean,

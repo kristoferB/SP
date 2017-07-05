@@ -30,7 +30,8 @@ object TimelineWidget {
   case class State(zoom: String)
 
   /*********EXAMPLE USE OF GOOGLE API WITH Helper-class*************/
-
+  // todo: method to get data from other widgets and return a List[TimelineRow]
+  // todo: implement def JSONtoList(jsonData: String): List[TimelineRow]
   // ensures that the name in div when rendering and
   // the Timeline Chart have the same Name
   val idName: String = "timelineWidget"
@@ -78,10 +79,10 @@ object TimelineWidget {
       )
     )
 
-    def JSONtoTimelineRow(jsonData: String): Unit = ???
+    def JSONtoList(jsonData: String): List[TimelineRow] = ???
 
     // Handles start-events for a cycle
-    def handleStart() = {
+    def handleStart(): Callback = {
       println(GoogleChartsLoaded)
       if (GoogleChartsLoaded.asInstanceOf[Boolean]) {
         // create a element that gets the div we create before
@@ -115,7 +116,7 @@ object TimelineWidget {
     def handleUpdate(s: State) = ???
 
     // Handles stopevents from a cycle
-    def handleStop() = {
+    def handleStop(): Callback = {
       Callback.log("Unmounting TimelineWidget")
     }
 

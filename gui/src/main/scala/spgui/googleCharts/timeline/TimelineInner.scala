@@ -21,7 +21,7 @@ trait TimelineInnerTrait {
 }
 
 // null, false, true, null, true, true, null
-case class TimelineInner (
+class TimelineInner (
                            // defaults values from API
                            override val barLabelStyle: js.Object,
                            override val colorByRowLabel: Boolean,

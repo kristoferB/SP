@@ -26,7 +26,7 @@ trait TimelineRowTrait {
   def toArray: js.Array[js.Any]
 }
 
-case class TimelineRow (
+class TimelineRow (
                     override val rowLabel: String,
                     override val optionalBarLabel: String,
                     override val optionalTooltip: Tooltips,
@@ -59,6 +59,21 @@ case class TimelineRow (
 }
 
 object TimelineRow {
+  def apply(
+             rowLabel:          String,
+             optionalBarLabel:  String,
+             optionalTooltip:   Tooltips,
+             startDate:         Date,
+             endDate:           Date,
+             cases:             Int
+           ) = new TimelineRow(
+    rowLabel,
+    optionalBarLabel,
+    optionalTooltip,
+    startDate,
+    endDate
+  )
+
   def apply(
            rowLabel:          String,
            optionalBarLabel:  String,

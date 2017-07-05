@@ -20,7 +20,7 @@ trait FiltersTrait {
 
 // TODO: Do functional
 
-case class Filters (
+class Filters (
                 override val columnId: Int,
                 override val value: Int,
                 override val minValue: String,  // null for no lower bound

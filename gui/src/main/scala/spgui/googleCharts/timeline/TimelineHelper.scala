@@ -23,7 +23,7 @@ trait TimelineHelperTrait {
 // simple helper to timeline
 // companion class
 // todo: make class more functional
-case class TimelineHelper (
+class TimelineHelper (
                             override val data:           DataTable,
                             override val timeline:       Timeline,
                             override val options:        OptionsTimeline

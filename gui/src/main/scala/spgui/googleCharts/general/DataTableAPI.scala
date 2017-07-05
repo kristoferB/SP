@@ -24,7 +24,7 @@ trait DataTableAPI extends js.Object {
   // add a new column to the DataTable,
   // type must be specified but label and id is optional
   def addColumn(`type`: String, opt_label: String, opt_id: String): Unit = js.native
-  def addColumn(`type`: String): Unit = addColumn(`type`, "", "")
+  def addColumn(`type`: String): Unit = js.native
   // add a new column to the DataTable,
   // argument:
   //          description_object  of type:

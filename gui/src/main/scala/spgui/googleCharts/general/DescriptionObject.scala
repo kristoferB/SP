@@ -18,7 +18,7 @@ trait DescriptionObjectTrait {
   val optionalPattern: String
 }
 
-case class DescriptionObject(
+class DescriptionObject(
                               // columnType must be set
                               override val columnType:       String,
                               // optional variables
@@ -49,13 +49,7 @@ object DescriptionObject {
            ) = new DescriptionObject(
     columnType, optionalLabel, optionalId, optionalRole, optionalPattern
   )
-  def apply(
-             columnType:      String
-           ) = new DescriptionObject(
-    columnType,
-    "",
-    "",
-    "",
-    ""
-  )
+
+  def apply(columnType: String) =
+    new DescriptionObject(columnType, "", "", "", "")
 }
