@@ -33,7 +33,12 @@ class DashboardHandler[M](modelRW: ModelRW[M, OpenWidgets]) extends ActionHandle
         case 1 => targetWidget.copy(
           layout = targetWidget.layout.copy(
             collapsedHeight = 1,
-            h = targetWidget.layout.collapsedHeight
+            h = targetWidget.layout.collapsedHeight match {
+              // this deals with the fact that panels can already have a height of 1
+              // it would be strange to "restore" the height to the current height
+              case 1 => 4
+              case _ => targetWidget.layout.collapsedHeight
+            }
           )
         )
         case _ => targetWidget.copy(

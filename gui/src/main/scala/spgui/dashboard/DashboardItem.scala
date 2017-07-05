@@ -11,7 +11,7 @@ import spgui.components.{Icon}
 
 
 object DashboardItem {
-  case class Props(element: VdomElement, widgetType: String, id: java.util.UUID)
+  case class Props(element: VdomElement, widgetType: String, id: java.util.UUID, panelHeight: Int)
   case class State(hiddenMenuBar: Boolean = false)
 
   class DashboardItemBackend($: BackendScope[Props, State]){
@@ -22,7 +22,7 @@ object DashboardItem {
       ))
     }
 
-    def render (p: Props, s:State) =
+    def render (p: Props, s:State) = {
       <.div(
         DashboardCSS.widgetPanel,
         <.div(
@@ -44,7 +44,7 @@ object DashboardItem {
               CollapseWidgetToggle(p.id)
             )),
             DashboardCSS.widgetPanelButton,
-            if(s.hiddenMenuBar)Icon.arrowDown
+            if(p.panelHeight == 1)Icon.arrowDown
             else Icon.arrowUp
           ),
           if(s.hiddenMenuBar){DashboardCSS.widgetPanelHidden}
@@ -60,6 +60,7 @@ object DashboardItem {
           )
         )
       )
+    }
   }
 
   private val component = ScalaComponent.builder[Props]("DashboardItem")
@@ -67,7 +68,7 @@ object DashboardItem {
     .renderBackend[DashboardItemBackend]
     .build
 
-  def apply(element: VdomElement, widgetType: String,id: java.util.UUID) =
-    component(Props(element, widgetType, id))
+  def apply(element: VdomElement, widgetType: String,id: java.util.UUID, panelHeight: Int) =
+    component(Props(element, widgetType, id, panelHeight))
 
 }

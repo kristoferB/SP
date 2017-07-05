@@ -45,7 +45,8 @@ object Dashboard {
               SPWidgetBase(openWidget.id, frontEndState)
             ),
             openWidget.widgetType,
-            openWidget.id
+            openWidget.id,
+            openWidget.layout.h
           ),
           ^.key := openWidget.id.toString
         )
@@ -64,7 +65,6 @@ object Dashboard {
             isResizable = true
           )
       }
-      console.log(bigLayout.toJSArray.asInstanceOf[RGL.Layout])
       val rg = RGL(
         layout = bigLayout.toJSArray.asInstanceOf[RGL.Layout],
         width = s.width,

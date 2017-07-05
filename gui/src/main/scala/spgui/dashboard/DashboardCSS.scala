@@ -11,9 +11,9 @@ object DashboardCSS extends SPStyleSheet {
   val widgetHeadingIconColor = "#ffffff"
 
   val widgetPanel = style("sp-widget-panel")(
-    (color := theme.value.defaultTextColor).important,
+    (color :=! theme.value.defaultTextColor).important,
     addClassName("panel panel-default"),
-    backgroundColor := theme.value.widgetBackgroundColor,
+    backgroundColor :=! theme.value.widgetBackgroundColor,
     height(100.%%),
     marginBottom(0.px),
     overflow.hidden,
@@ -31,7 +31,7 @@ object DashboardCSS extends SPStyleSheet {
   )
 
   val widgetPanelHidden = style(
-    transitionDuration:="100ms",
+    transitionDuration:=!"100ms",
     &.not(_.hover) (
       padding(0.px),
       opacity(0),
@@ -52,13 +52,13 @@ object DashboardCSS extends SPStyleSheet {
   )
 
   val widgetPanelBody = style("sp-panel-body")(
-    backgroundColor := theme.value.widgetBackgroundColor,
+    backgroundColor :=! theme.value.widgetBackgroundColor,
     overflow.auto,
     height(100.%%)
   )
 
   val widgetPanelContent = style("sp-widget-panel-content")(
-    backgroundColor := theme.value.widgetBackgroundColor,
+    backgroundColor :=! theme.value.widgetBackgroundColor,
     height(100.%%),
     padding(4.px)
   )
@@ -76,7 +76,7 @@ object DashboardCSS extends SPStyleSheet {
 
   val overridPlaceholder = style(
     unsafeRoot(".react-grid-item.react-grid-placeholder ")(
-      backgroundColor := "#df691a",
+      backgroundColor :=! "#df691a",
       opacity(0.3)
     )
   )
