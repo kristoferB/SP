@@ -2,29 +2,26 @@ package spgui.dashboard
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import japgolly.scalajs.react.vdom.all.aria
 import scalacss.ScalaCssReact._
 
 import spgui.circuit.{ SPGUICircuit, CloseWidget, CollapseWidgetToggle }
 import spgui.components.{Icon}
 
-
-
 object DashboardItem {
-  case class Props(element: VdomElement, widgetType: String, id: java.util.UUID, panelHeight: Int)
-  case class State(hiddenMenuBar: Boolean = false)
+  case class Props(
+    element: VdomElement,
+    widgetType: String,
+    id: java.util.UUID,
+    panelHeight: Int
+  )
 
-  class DashboardItemBackend($: BackendScope[Props, State]){
-    def ToggleMenuBar(e :ReactEventFromInput): CallbackTo[Unit] = { //ugly..
-      $.state >>= (s => (
-        if(s.hiddenMenuBar) $.modState(_.copy(hiddenMenuBar = false))
-        else $.modState(_.copy(hiddenMenuBar = true))
-      ))
-    }
+  val showHeaders = SPGUICircuit.zoom(_.settings.showHeaders)
 
-    def render (p: Props, s:State) = {
+  class DashboardItemBackend($: BackendScope[Props, Unit]){
+    def render (p: Props) = {
       <.div(
         DashboardCSS.widgetPanel,
+        if(showHeaders.value){
         <.div(
           ^.className := "modal-header",
           DashboardCSS.widgetPanelHeader,
