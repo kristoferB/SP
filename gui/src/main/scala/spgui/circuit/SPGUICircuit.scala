@@ -93,6 +93,11 @@ class SettingsHandler[M](modelRW: ModelRW[M, Settings]) extends ActionHandler(mo
         theme = newTheme
       ))
     }
+    case ToggleHeaders => {
+      updated(value.copy(
+        showHeaders = !value.showHeaders
+      ))
+    }
   }
 }
 

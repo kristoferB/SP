@@ -5,7 +5,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom._
 
 import spgui.components.{Icon, SPNavbarElements}
-import spgui.circuit.{CloseAllWidgets, SPGUICircuit}
+import spgui.circuit.{CloseAllWidgets, SPGUICircuit, ToggleHeaders}
 
 object SPMenu {
   private val component = ScalaComponent.builder[Unit]("SPMenu")
@@ -46,8 +46,14 @@ object SPMenu {
             ^.className := "nav navbar-nav",
 
             WidgetMenu(),
+            SPNavbarElements.dropdown(
+              "Options",
+              Seq(
+                <.li("Toggle headers", ^.onClick --> Callback(SPGUICircuit.dispatch(ToggleHeaders)))
+              )
+            ),
             SPNavbarElements.button("Close all", Callback(SPGUICircuit.dispatch(CloseAllWidgets)))
-
+            
           )
         )
       )

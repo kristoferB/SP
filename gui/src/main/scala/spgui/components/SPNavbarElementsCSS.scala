@@ -55,7 +55,7 @@ object SPNavbarElementsCSS extends SPStyleSheet {
   )
 
   val dropdownElement = style(
-    padding(2.px),
+    margin(2.px),
     &.hover(
       (backgroundColor :=! theme.value.navbarButtonBackgroundHoverColor).important
     )

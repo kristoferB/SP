@@ -4,7 +4,6 @@ import diode._
 import java.util.UUID
 import sp.domain.SPValue
 import spgui.theming.Theme
-import spgui.theming.Themes
 
 // state
 case class SPGUIModel(
@@ -25,7 +24,10 @@ case class GlobalState(
 )
 case class WidgetData(xs: Map[UUID, SPValue])
 
-case class Settings(theme: Theme = Theme())
+case class Settings(
+  theme: Theme = Theme(),
+  showHeaders: Boolean = true 
+)
 
 // actions
 case class AddWidget(widgetType: String, width: Int = 2, height: Int = 2, id: UUID = UUID.randomUUID()) extends Action
@@ -37,6 +39,7 @@ case class UpdateLayout(id: UUID, newLayout: WidgetLayout) extends Action
 case class SetLayout(layout: Map[UUID, WidgetLayout]) extends Action
 case class UpdateGlobalState(state: GlobalState) extends Action
 case class SetTheme(theme: Theme) extends Action
+case object ToggleHeaders extends Action
 
 // used when failing to retrieve a state from browser storage
 object InitialState {

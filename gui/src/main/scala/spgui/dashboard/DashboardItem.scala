@@ -46,10 +46,8 @@ object DashboardItem {
             DashboardCSS.widgetPanelButton,
             if(p.panelHeight == 1)Icon.arrowDown
             else Icon.arrowUp
-          ),
-          if(s.hiddenMenuBar){DashboardCSS.widgetPanelHidden}
-          else {EmptyVdom}
-        ),
+          )
+        )} else {EmptyVdom},
 
         <.div(
           ^.className := DashboardCSS.widgetPanelBody.htmlClass,
@@ -64,7 +62,6 @@ object DashboardItem {
   }
 
   private val component = ScalaComponent.builder[Props]("DashboardItem")
-    .initialStateFromProps(p => State())
     .renderBackend[DashboardItemBackend]
     .build
 

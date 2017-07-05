@@ -30,14 +30,14 @@ object DashboardCSS extends SPStyleSheet {
     float.left
   )
 
-  val widgetPanelHidden = style(
-    transitionDuration:=!"100ms",
-    &.not(_.hover) (
-      padding(0.px),
-      opacity(0),
-      height(8.px)
-    )
-  )
+  // val widgetPanelHidden = style(
+  //   transitionDuration:=!"100ms",
+  //   &.not(_.hover) (
+  //     padding(0.px),
+  //     opacity(0),
+  //     height(8.px)
+  //   )
+  // )
 
   val widgetPanelHeader = style(
     //padding(2.px),

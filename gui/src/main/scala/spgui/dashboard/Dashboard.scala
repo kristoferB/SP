@@ -6,8 +6,6 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import diode.react.ModelProxy
 
-import scalajs.js.Dynamic
-import scalajs.js.JSON
 import spgui.SPWidgetBase
 import spgui.circuit._
 import spgui.WidgetList
@@ -15,10 +13,7 @@ import spgui.WidgetList
 import spgui.dashboard.{ ReactGridLayout => RGL }
 
 import scala.scalajs.js
-import org.scalajs.dom.console
 import js.JSConverters._
-
-import scala.util.Random
 
 import org.scalajs.dom.window
 
@@ -29,10 +24,8 @@ object Dashboard {
   class Backend($: BackendScope[Props, State]) {
     def render(p: Props, s: State) = {
       window.onresize = { e: org.scalajs.dom.Event =>
-      println(window.innerWidth)
-      $.setState(State(
-        window.innerWidth.toInt)).runNow()
-    }
+        $.setState(State(window.innerWidth.toInt)).runNow()
+      }
 
       val widgets = for {
         openWidget <- p.proxy()._1.values
@@ -51,28 +44,31 @@ object Dashboard {
           ^.key := openWidget.id.toString
         )
       }
+ 
+      val bigLayout = (
+        for {
+          openWidget <- p.proxy()._1.values
+        } yield {
+          RGL.LayoutElement(
+            i = openWidget.id.toString,
+            x = openWidget.layout.x,
+            y = openWidget.layout.y,
+            w = openWidget.layout.w,
+            h = openWidget.layout.h,
+            isDraggable = true,
+            isResizable = true
+          )
+        }
+      ).toJSArray.asInstanceOf[RGL.Layout]
 
-      val bigLayout = for {
-        openWidget <- p.proxy()._1.values
-      } yield {
-        RGL.LayoutElement(
-          i = openWidget.id.toString,
-          x = openWidget.layout.x,
-          y = openWidget.layout.y,
-          w = openWidget.layout.w,
-          h = openWidget.layout.h,
-          isDraggable = true,
-          isResizable = true
-        )
-      }
       val rg = RGL(
-        layout = bigLayout.toJSArray.asInstanceOf[RGL.Layout],
+        layout = bigLayout,
         width = s.width,
         draggableHandle = "." + DashboardCSS.widgetPanelHeader.htmlClass,
         onLayoutChange = layout => {
           val changes: Map[String, RGL.LayoutElement] =
             layout.collect( {case e:RGL.LayoutElement => e.i -> e}).toMap
-            
+          
           val newLayout = p.proxy()._1.values.map(w =>  {
             val change = changes(w.id.toString)
             w.copy(
@@ -88,7 +84,7 @@ object Dashboard {
 
           SPGUICircuit.dispatch(
             SetLayout(newLayout.collect({case e:OpenWidget => e.id -> e.layout}).toMap))
-          },
+        },
         children = widgets.toVdomArray
       )
 
