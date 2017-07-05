@@ -55,30 +55,40 @@ object Dashboard {
       val bigLayout = for {
         openWidget <- p.proxy()._1.values
       } yield {
-          RGL.LayoutElement(
-            i = openWidget.id.toString,
-            x = openWidget.layout.x,
-            y = openWidget.layout.y,
-            w = openWidget.layout.w,
-            h = openWidget.layout.h,
-            isDraggable = true,
-            isResizable = true
-          )
+        RGL.LayoutElement(
+          i = openWidget.id.toString,
+          x = openWidget.layout.x,
+          y = openWidget.layout.y,
+          w = openWidget.layout.w,
+          h = openWidget.layout.h,
+          isDraggable = true,
+          isResizable = true
+        )
       }
       val rg = RGL(
         layout = bigLayout.toJSArray.asInstanceOf[RGL.Layout],
         width = s.width,
         draggableHandle = "." + DashboardCSS.widgetPanelHeader.htmlClass,
         onLayoutChange = layout => {
-          layout.asInstanceOf[RGL.Layout].foreach(
-            g => {
-              p.proxy()._1.values.toList.foreach(widget => if (widget.id.toString == g.i) {
-                val newLayout = WidgetLayout(g.x, g.y, g.w, g.h, widget.layout.collapsedHeight)
-                SPGUICircuit.dispatch(UpdateLayout(widget.id, newLayout))
-              })
-            }
-          )
-        },
+          val changes: Map[String, RGL.LayoutElement] =
+            layout.collect( {case e:RGL.LayoutElement => e.i -> e}).toMap
+            
+          val newLayout = p.proxy()._1.values.map(w =>  {
+            val change = changes(w.id.toString)
+            w.copy(
+              layout = w.layout.copy(
+                x = change.x,
+                y = change.y,
+                w = change.w,
+                h = change.h,
+                collapsedHeight = w.layout.collapsedHeight
+              )
+            )
+          })
+
+          SPGUICircuit.dispatch(
+            SetLayout(newLayout.collect({case e:OpenWidget => e.id -> e.layout}).toMap))
+          },
         children = widgets.toVdomArray
       )
 

@@ -34,6 +34,7 @@ case class CollapseWidgetToggle(id: UUID) extends Action
 case object CloseAllWidgets extends Action
 case class UpdateWidgetData(id: UUID, data: SPValue) extends Action
 case class UpdateLayout(id: UUID, newLayout: WidgetLayout) extends Action
+case class SetLayout(layout: Map[UUID, WidgetLayout]) extends Action
 case class UpdateGlobalState(state: GlobalState) extends Action
 case class SetTheme(theme: Theme) extends Action
 

@@ -57,6 +57,17 @@ class DashboardHandler[M](modelRW: ModelRW[M, OpenWidgets]) extends ActionHandle
         .getOrElse(value.xs)
       updated(OpenWidgets(updW))
     }
+    case SetLayout(newLayout) => {
+      val updW = OpenWidgets(value.xs.map(x =>
+        (
+          x._1,
+          x._2.copy(
+            layout = newLayout(x._1)
+          )
+        )
+      ))
+      updated(updW)
+    }
   }
 }
 
