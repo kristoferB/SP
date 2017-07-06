@@ -22,12 +22,35 @@ object DashboardCSS extends SPStyleSheet {
 
     borderRadius(0.px),
     borderWidth(0.px),
-    boxShadow := theme.value.shadow
+    boxShadow := theme.value.shadow,
+
+    transitionDuration:=!"300ms",
+    unsafeChild("i")(
+      transitionDuration:=!"300ms"
+    ),
+    unsafeChild("h5")(
+      transitionDuration:=!"300ms"
+    )
   )
 
   val widgetPanelLabel = style(
     addClassName("modal-title"),
     float.left
+  )
+
+  val widgetPanelHidden = style(
+    height(0.px),
+    paddingTop(0.px),
+    paddingBottom(0.px),
+    visibility.hidden,
+    unsafeChild("i")(
+      color(rgba(0,0,0,0)),
+      transitionDuration:=!"300ms"
+    ),
+    unsafeChild("h5")(
+      color(rgba(0,0,0,0)),
+      transitionDuration:=!"300ms"
+    )
   )
 
   // val widgetPanelHidden = style(
@@ -40,6 +63,7 @@ object DashboardCSS extends SPStyleSheet {
   // )
 
   val widgetPanelHeader = style(
+    transitionDuration:=!"300ms"
     //padding(2.px),
     //display.block,
     //backgroundColor := theme.value.widgetHeadingColor,
@@ -48,7 +72,8 @@ object DashboardCSS extends SPStyleSheet {
   )
 
   val widgetPanelButton = style(
-    paddingLeft(4.px)
+    paddingLeft(4.px),
+    transitionDuration:=!"300ms"
   )
 
   val widgetPanelBody = style("sp-panel-body")(

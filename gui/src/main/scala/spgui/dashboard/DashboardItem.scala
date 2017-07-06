@@ -20,8 +20,7 @@ object DashboardItem {
   class DashboardItemBackend($: BackendScope[Props, Unit]){
     def render (p: Props) = {
       <.div(
-        DashboardCSS.widgetPanel,
-        if(showHeaders.value){
+        DashboardCSS.widgetPanel,        
         <.div(
           ^.className := "modal-header",
           DashboardCSS.widgetPanelHeader,
@@ -43,9 +42,12 @@ object DashboardItem {
             DashboardCSS.widgetPanelButton,
             if(p.panelHeight == 1)Icon.arrowDown
             else Icon.arrowUp
-          )
-        )} else {EmptyVdom},
-
+          ),
+          {
+            if(!showHeaders.value) ^.className:= DashboardCSS.widgetPanelHidden.htmlClass
+            else {EmptyVdom}
+          }
+        ),
         <.div(
           ^.className := DashboardCSS.widgetPanelBody.htmlClass,
           <.div(

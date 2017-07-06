@@ -5,11 +5,15 @@ import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom._
 
 import spgui.components.{Icon, SPNavbarElements}
-import spgui.circuit.{CloseAllWidgets, SPGUICircuit, ToggleHeaders}
+import spgui.circuit.{CloseAllWidgets, SPGUICircuit, ToggleHeaders, Settings, SetTheme}
+import diode.react.ModelProxy
+import spgui.theming._
 
 object SPMenu {
-  private val component = ScalaComponent.builder[Unit]("SPMenu")
-    .render(_ =>
+  case class Props(proxy: ModelProxy[Settings])
+
+  class SPMenuBackend($: BackendScope[Props, Unit]){
+    def render(p: Props) = {
       <.nav(
         ^.className:= SPMenuCSS.topNav.htmlClass,
         ^.className := "navbar navbar-default",
@@ -49,7 +53,26 @@ object SPMenu {
             SPNavbarElements.dropdown(
               "Options",
               Seq(
-                <.li("Toggle headers", ^.onClick --> Callback(SPGUICircuit.dispatch(ToggleHeaders)))
+                <.li(
+                  {if(p.proxy().showHeaders) Icon.checkSquare else Icon.square},
+                  " Toggle headers",
+                  ^.onClick --> Callback(SPGUICircuit.dispatch(ToggleHeaders)
+                  )
+                ),
+                Themes.themeList.map(theme =>
+                  <.li(
+                    {if(p.proxy().theme.name == theme.name) Icon.checkSquare else Icon.square},
+                    theme.name,
+                    ^.onClick --> Callback({
+                      SPGUICircuit.dispatch(
+                        SetTheme(
+                          Themes.themeList.find(e => e.name == theme.name).get
+                        )
+                      )
+                      org.scalajs.dom.window.location.reload() // reload the page
+                    })
+                  )
+                ).toTagMod
               )
             ),
             SPNavbarElements.button("Close all", Callback(SPGUICircuit.dispatch(CloseAllWidgets)))
@@ -57,9 +80,14 @@ object SPMenu {
           )
         )
       )
-    ).build
+    } 
+  }
 
-  def apply() = component()
+  private val component = ScalaComponent.builder[Props]("SPMenu")
+    .renderBackend[SPMenuBackend]
+    .build
+
+  def apply(proxy: ModelProxy[Settings]) = component(Props(proxy))
 }
 
 
