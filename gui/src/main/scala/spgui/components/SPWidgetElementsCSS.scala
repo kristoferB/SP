@@ -62,7 +62,7 @@ object SPWidgetElementsCSS extends SPStyleSheet {
   )
 
   val dropdownElement = style(
-    margin(2.px),
+    padding(4.px),
     &.hover(
       (backgroundColor :=! theme.value.widgetButtonBackgroundHoverColor).important
     )

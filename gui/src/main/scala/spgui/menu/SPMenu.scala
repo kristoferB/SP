@@ -53,17 +53,16 @@ object SPMenu {
             SPNavbarElements.dropdown(
               "Options",
               Seq(
-                <.li(
+                SPNavbarElements.dropdownElement(
+                  "Toggle headers",
                   {if(p.proxy().showHeaders) Icon.checkSquare else Icon.square},
-                  " Toggle headers",
-                  ^.onClick --> Callback(SPGUICircuit.dispatch(ToggleHeaders)
-                  )
+                  Callback(SPGUICircuit.dispatch(ToggleHeaders))
                 ),
                 Themes.themeList.map(theme =>
-                  <.li(
-                    {if(p.proxy().theme.name == theme.name) Icon.checkSquare else Icon.square},
+                  SPNavbarElements.dropdownElement(
                     theme.name,
-                    ^.onClick --> Callback({
+                    {if(p.proxy().theme.name == theme.name) Icon.checkSquare else Icon.square},
+                    Callback({
                       SPGUICircuit.dispatch(
                         SetTheme(
                           Themes.themeList.find(e => e.name == theme.name).get

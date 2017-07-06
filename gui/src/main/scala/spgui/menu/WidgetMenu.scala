@@ -24,9 +24,9 @@ object WidgetMenu {
           (t: String) => { $.setState(State(filterText = t)) }
         ) :: WidgetList.list.collect{
           case e if (e._1.toLowerCase.contains(s.filterText.toLowerCase))=>
-            <.div(
-              ^.onClick --> ( addW(e._1, e._3, e._4) ),
-              e._1
+            SPNavbarElements.dropdownElement(
+              e._1,
+              addW(e._1, e._3, e._4)
             )
         }
       )

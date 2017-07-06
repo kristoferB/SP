@@ -39,7 +39,7 @@ object SPNavbarElements{
       ^.className := SPNavbarElementsCSS.dropdownRoot.htmlClass,
       ^.className := "navbar-dropdown",
       <.a(
-        <.span(text, ^.className:= SPWidgetElementsCSS.textIconClearance.htmlClass),
+        <.span(text, ^.className:= SPNavbarElementsCSS.textIconClearance.htmlClass),
         Icon.caretDown,
         VdomAttr("data-toggle") := "dropdown",
         ^.id:="something",
@@ -47,15 +47,25 @@ object SPNavbarElements{
         ^.className := "nav-link dropdown-toggle"
       ),
       <.ul(
-        contents.collect{
-          case e => <.div(
-            ^.className := SPNavbarElementsCSS.dropdownElement.htmlClass, 
-            e
-          )
-        }.toTagMod,
+        contents.toTagMod,
         ^.className := SPNavbarElementsCSS.dropDownList.htmlClass,
         ^.className := "dropdown-menu"
       )
+    )
+
+  def dropdownElement(text: String, icon: VdomNode, onClick: Callback): VdomNode = 
+    <.li(
+      ^.className := SPNavbarElementsCSS.dropdownElement.htmlClass,
+      <.span(icon, ^.className := SPNavbarElementsCSS.textIconClearance.htmlClass),
+      text,
+      ^.onClick --> onClick
+    )
+
+  def dropdownElement(text: String, onClick: Callback): VdomNode =
+    <.li(
+      ^.className := SPNavbarElementsCSS.dropdownElement.htmlClass,
+      text,
+      ^.onClick --> onClick
     )
 
   object TextBox {

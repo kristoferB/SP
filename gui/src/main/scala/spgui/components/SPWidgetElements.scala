@@ -68,6 +68,21 @@ object SPWidgetElements{
       )
     )
 
+  def dropdownElement(text: String, icon: VdomNode, onClick: Callback): VdomNode =
+    <.li(
+      ^.className := SPWidgetElementsCSS.dropdownElement.htmlClass,
+      <.span(icon, ^.className := SPWidgetElementsCSS.textIconClearance.htmlClass),
+      text,
+      ^.onClick --> onClick
+    )
+
+  def dropdownElement(text: String, onClick: Callback): VdomNode =
+    <.li(
+      ^.className := SPWidgetElementsCSS.dropdownElement.htmlClass,
+      text,
+      ^.onClick --> onClick
+    )
+
   def buttonGroup(contents: Seq[TagMod]): VdomElement =
     <.div(
       ^.className:= "form-inline",
