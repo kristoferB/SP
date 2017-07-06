@@ -55,7 +55,7 @@ object SPMenu {
               Seq(
                 SPNavbarElements.dropdownElement(
                   "Toggle headers",
-                  {if(p.proxy().showHeaders) Icon.checkSquare else Icon.square},
+                  {if(p.proxy().showHeaders) Icon.toggleOn else Icon.toggleOff},
                   Callback(SPGUICircuit.dispatch(ToggleHeaders))
                 ),
                 Themes.themeList.map(theme =>

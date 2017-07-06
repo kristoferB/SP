@@ -6,6 +6,7 @@ import org.scalajs.dom.ext.LocalStorage
 
 import scala.util.{Success, Try}
 import spgui.theming.Theme
+import spgui.dashboard.Dashboard
 
 object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] {
   def initialModel = BrowserStorage.load.getOrElse(InitialState())
@@ -22,8 +23,35 @@ object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] 
 class DashboardHandler[M](modelRW: ModelRW[M, OpenWidgets]) extends ActionHandler(modelRW) {
   override def handle = {
     case AddWidget(widgetType, width, height, id) =>
-      val rightmost = value.xs.values.foldLeft(0)((a, b) => math.max(a, b.layout.w + b.layout.x))
-      val newWidget = OpenWidget(id, WidgetLayout(rightmost, 0, width, height), widgetType)
+      val occupiedGrids = value.xs.values.map(w =>
+        for{x <- w.layout.x to w.layout.x + w.layout.w-1} yield {
+          for{y <- w.layout.y to w.layout.y + w.layout.h-1} yield {
+            (x, y)
+          }
+        }
+      ).flatten.flatten
+      val bestPosition:Int = Stream.from(0).find(i => {
+        val x = i % Dashboard.cols
+        val y = i / Dashboard.cols
+
+        val requiredGrids = (for{reqX <- x to x + width -1} yield {
+          for{reqY <- y to y + height-1} yield {
+            (reqX, reqY)
+          }
+        }).toSeq.flatten
+        requiredGrids.forall(req =>
+          occupiedGrids.forall(occ =>
+            !(occ._1 == req._1 && occ._2 == req._2 || req._1 >= Dashboard.cols)
+          )
+        )
+      }).get
+      val x:Int = bestPosition % Dashboard.cols
+      val y:Int = bestPosition / Dashboard.cols
+      val newWidget = OpenWidget(
+        id,
+        WidgetLayout(x, y, width, height),
+        widgetType
+      )
       updated(OpenWidgets(value.xs + (id -> newWidget)))
     case CloseWidget(id) =>
       updated(OpenWidgets(value.xs - id))

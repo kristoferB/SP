@@ -21,6 +21,8 @@ object Dashboard {
   case class Props(proxy: ModelProxy[(Map[UUID, OpenWidget], GlobalState)])
   case class State(width: Int)
 
+  val cols = 12
+
   class Backend($: BackendScope[Props, State]) {
     def render(p: Props, s: State) = {
       window.onresize = { e: org.scalajs.dom.Event =>
@@ -64,6 +66,7 @@ object Dashboard {
       val rg = RGL(
         layout = bigLayout,
         width = s.width,
+        cols = cols,
         draggableHandle = "." + DashboardCSS.widgetPanelHeader.htmlClass,
         onLayoutChange = layout => {
           val changes: Map[String, RGL.LayoutElement] =
