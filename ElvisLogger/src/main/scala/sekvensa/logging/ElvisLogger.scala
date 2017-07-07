@@ -127,7 +127,7 @@ class ElvisLogger extends PersistentActor {
       //println("Got snap")
       //val j = SPAttributes("hej"->s).bodyToJson
       //println(s)
-      s.patients.foreach(p => {
+      s.patients.sortBy(p => p.CareContactRegistrationTime).foreach(p => {
         val json = write(Map("new"->toNewPat(p)))
         playBack = json :: playBack
       })

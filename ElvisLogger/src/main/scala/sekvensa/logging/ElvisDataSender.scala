@@ -15,6 +15,7 @@ class ElvisDataSender extends Actor {
         mediator ! Publish("historical-elvis-data", x)
         Thread.sleep(1)
       }
+      mediator ! Publish("historical-elvis-data", "done")
       println("]")
       println("******** STOP ************")
     }
