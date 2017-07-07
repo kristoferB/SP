@@ -2,7 +2,7 @@ package spgui.menu
 
 import scalacss.Defaults._
 import spgui.circuit.SPGUICircuit
-import spgui.theming.SPStyleSheet
+import spgui.theming.Theming.SPStyleSheet
 
 object SPMenuCSS extends SPStyleSheet {
   import dsl._
@@ -19,7 +19,7 @@ object SPMenuCSS extends SPStyleSheet {
 
   val navbarContents = style(
     border.none,
-    backgroundColor:= theme.value.navbarBackgroundColor
+    backgroundColor(_rgb(theme.value.navbarBackgroundColor))
   )
 
   val topNavHeader = style(
@@ -34,7 +34,7 @@ object SPMenuCSS extends SPStyleSheet {
     border.none,
     textAlign.center,
     padding.unset,
-    color :=! theme.value.spOrange,
+    color(_rgb( theme.value.spOrange)),
     backgroundColor.transparent,
     position.relative
   )
@@ -70,7 +70,7 @@ object SPMenuCSS extends SPStyleSheet {
   )
 
   val spLogoDiv = style("sp-logo-outer")(
-    backgroundColor := theme.value.navbarLogoBackgroundColor,
+    backgroundColor(_rgb(theme.value.navbarLogoBackgroundColor)),
     height.inherit,
     display.flex,
     alignItems.center
@@ -97,8 +97,8 @@ object SPMenuCSS extends SPStyleSheet {
 
   val container = style("sp-navbar-container")(
     paddingLeft(0.px),
-    backgroundColor := theme.value.navbarBackgroundColor,
-    color :=! theme.value.defaultTextColor,
+    backgroundColor(_rgb(theme.value.navbarBackgroundColor)),
+    color(_rgb(theme.value.defaultTextColor)),
     border.none,
     display.flex,
     flexDirection.row,
@@ -110,8 +110,8 @@ object SPMenuCSS extends SPStyleSheet {
 
   val expandButtonOverride = style(
     unsafeRoot(".navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus")(
-      backgroundColor :=! theme.value.spOrange,
-      color :=! theme.value.navbarBackgroundColor
+      backgroundColor(_rgb(theme.value.spOrange)),
+      color(_rgb(theme.value.navbarBackgroundColor))
     )
   )
 

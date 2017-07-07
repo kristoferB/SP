@@ -7,7 +7,7 @@ import scalacss.Defaults._
 import diode._
 import org.scalajs.dom.Console
 import org.scalajs.dom.raw.Location
-import spgui.theming.SPStyleSheet
+import spgui.theming.Theming.SPStyleSheet
 
 object GlobalCSS extends SPStyleSheet {
   import dsl._
@@ -21,7 +21,7 @@ object GlobalCSS extends SPStyleSheet {
 
   var background = style(
     unsafeRoot("body")(
-      backgroundColor := theme.value.mainBackgroundColor
+      backgroundColor(_rgb(theme.value.mainBackgroundColor))
     )
   )
 

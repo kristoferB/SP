@@ -3,7 +3,7 @@ package spgui.circuit
 import diode._
 import java.util.UUID
 import sp.domain.SPValue
-import spgui.theming.Theme
+import spgui.theming.Theming.Theme
 
 // state
 case class SPGUIModel(

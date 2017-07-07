@@ -7,7 +7,7 @@ import org.scalajs.dom._
 import spgui.components.{Icon, SPNavbarElements}
 import spgui.circuit.{CloseAllWidgets, SPGUICircuit, ToggleHeaders, Settings, SetTheme}
 import diode.react.ModelProxy
-import spgui.theming._
+import spgui.theming.Theming
 
 object SPMenu {
   case class Props(proxy: ModelProxy[Settings])
@@ -58,14 +58,14 @@ object SPMenu {
                   {if(p.proxy().showHeaders) Icon.toggleOn else Icon.toggleOff},
                   Callback(SPGUICircuit.dispatch(ToggleHeaders))
                 ),
-                Themes.themeList.map(theme =>
+                Theming.themeList.map(theme =>
                   SPNavbarElements.dropdownElement(
                     theme.name,
                     {if(p.proxy().theme.name == theme.name) Icon.checkSquare else Icon.square},
                     Callback({
                       SPGUICircuit.dispatch(
                         SetTheme(
-                          Themes.themeList.find(e => e.name == theme.name).get
+                          Theming.themeList.find(e => e.name == theme.name).get
                         )
                       )
                       org.scalajs.dom.window.location.reload() // reload the page

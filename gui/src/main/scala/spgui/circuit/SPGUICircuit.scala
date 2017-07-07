@@ -5,7 +5,7 @@ import diode.react.ReactConnector
 import org.scalajs.dom.ext.LocalStorage
 
 import scala.util.{Success, Try}
-import spgui.theming.Theme
+import spgui.theming.Theming.Theme
 import spgui.dashboard.Dashboard
 
 object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] {

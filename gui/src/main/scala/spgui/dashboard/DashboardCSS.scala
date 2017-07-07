@@ -1,7 +1,7 @@
 package spgui.dashboard
 
 import scalacss.Defaults._
-import spgui.theming.SPStyleSheet
+import spgui.theming.Theming.SPStyleSheet
 
 object DashboardCSS extends SPStyleSheet {
   import dsl._
@@ -11,9 +11,9 @@ object DashboardCSS extends SPStyleSheet {
   val widgetHeadingIconColor = "#ffffff"
 
   val widgetPanel = style("sp-widget-panel")(
-    (color :=! theme.value.defaultTextColor).important,
+    color(_rgb(theme.value.defaultTextColor)).important,
     addClassName("panel panel-default"),
-    backgroundColor :=! theme.value.widgetBackgroundColor,
+    backgroundColor(_rgb(theme.value.widgetBackgroundColor)),
     height(100.%%),
     marginBottom(0.px),
     overflow.hidden,
@@ -26,12 +26,14 @@ object DashboardCSS extends SPStyleSheet {
 
     transitionDuration:=!"300ms",
     unsafeChild("i")(
+      (textShadow:= "none").important,
       transitionDuration:=!"300ms"
     ),
     unsafeChild("h5")(
       transitionDuration:=!"300ms"
     )
   )
+
 
   val widgetPanelLabel = style(
     addClassName("modal-title"),
@@ -42,55 +44,39 @@ object DashboardCSS extends SPStyleSheet {
     height(0.px),
     paddingTop(0.px),
     paddingBottom(0.px),
-    visibility.hidden,
+  
     unsafeChild("i")(
-      color(rgba(0,0,0,0)),
-      transitionDuration:=!"300ms"
+      color(_rgba(theme.value.defaultTextColor, 0)).important,
+      transitionDuration:=!"300ms",
+      visibility.hidden
     ),
     unsafeChild("h5")(
-      color(rgba(0,0,0,0)),
-      transitionDuration:=!"300ms"
+      color(_rgba(theme.value.defaultTextColor, 0)).important,
+      transitionDuration:=!"300ms",
+      visibility.hidden
     )
   )
 
-  // val widgetPanelHidden = style(
-  //   transitionDuration:=!"100ms",
-  //   &.not(_.hover) (
-  //     padding(0.px),
-  //     opacity(0),
-  //     height(8.px)
-  //   )
-  // )
-
   val widgetPanelHeader = style(
     transitionDuration:=!"300ms"
-    //padding(2.px),
-    //display.block,
-    //backgroundColor := theme.value.widgetHeadingColor,
-    //color := theme.value.widgetHeadingColor
-
   )
 
   val widgetPanelButton = style(
     paddingLeft(4.px),
-    transitionDuration:=!"300ms"
+    transitionDuration:=!"300ms",
+    color(_rgb(theme.value.defaultTextColor)).important
   )
 
   val widgetPanelBody = style("sp-panel-body")(
-    backgroundColor :=! theme.value.widgetBackgroundColor,
+    backgroundColor(_rgb(theme.value.widgetBackgroundColor)),
     overflow.auto,
     height(100.%%)
   )
 
   val widgetPanelContent = style("sp-widget-panel-content")(
-    backgroundColor :=! theme.value.widgetBackgroundColor,
+    backgroundColor(_rgb(theme.value.widgetBackgroundColor)),
     height(100.%%),
     padding(4.px)
-  )
-
-  val reactGridPlaceholder = style("react-grid-placeholder")(
-    backgroundColor(rgb(255,102,0)),
-    opacity(0.5)
   )
 
   val closeButton = style("close-button")(

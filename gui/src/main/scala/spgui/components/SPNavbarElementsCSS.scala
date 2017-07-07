@@ -1,15 +1,15 @@
 package spgui.components
 
 import scalacss.Defaults._
-import spgui.theming.SPStyleSheet
+import spgui.theming.Theming
 
-object SPNavbarElementsCSS extends SPStyleSheet {
+object SPNavbarElementsCSS extends Theming.SPStyleSheet {
   import dsl._
 
   val button = style(
-    (color :=! theme.value.defaultTextColor).important,
+    (color ( _rgb(theme.value.defaultTextColor))).important,
     unsafeChild("span")(
-      (color :=! theme.value.defaultTextColor).important
+      (color ( _rgb(theme.value.defaultTextColor))).important
     ),
     &.active(
       //(backgroundColor:= "#aaaaaa").important
@@ -29,11 +29,11 @@ object SPNavbarElementsCSS extends SPStyleSheet {
     ),
     unsafeRoot(".navbar-dropdown.open > a")(
       // bootstrap override
-      (color :=! theme.value.defaultTextColor).important
+      color(_rgb(theme.value.defaultTextColor)).important
     ),
     unsafeRoot(".navbar-default .navbar-nav > .open > a")(
       // another bootstrap override
-      (backgroundColor :=! theme.value.navbarBackgroundColor)
+      backgroundColor(_rgb(theme.value.navbarBackgroundColor))
     )
   )
 
@@ -41,24 +41,24 @@ object SPNavbarElementsCSS extends SPStyleSheet {
   val dropDownList = style(
     top.unset,
     cursor.pointer,
-    (backgroundColor :=! theme.value.navbarBackgroundColor).important,
-    color :=! theme.value.defaultTextColor
+    backgroundColor(_rgb(theme.value.navbarBackgroundColor)).important,
+    color(_rgb(theme.value.defaultTextColor))
   )
 
   val clickable = style(
-    (color :=! theme.value.defaultTextColor).important,
+    color(_rgb(theme.value.defaultTextColor)).important,
     cursor.pointer,
     userSelect := "none",
     listStyle := "none",
     &.hover(
-      (backgroundColor :=! theme.value.navbarButtonBackgroundHoverColor).important
+      backgroundColor(_rgb(theme.value.navbarButtonBackgroundHoverColor)).important
     )
   )
 
   val dropdownElement = style(
     padding(4.px),
     &.hover(
-      (backgroundColor :=! theme.value.navbarButtonBackgroundHoverColor).important
+      backgroundColor(_rgb(theme.value.navbarButtonBackgroundHoverColor)).important
     )
   )
 
