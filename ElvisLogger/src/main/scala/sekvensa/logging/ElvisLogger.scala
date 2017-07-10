@@ -103,38 +103,84 @@ class ElvisLogger extends PersistentActor {
     }
     case mess @ _ => println(s"ElvisLogger got: $mess")
   }
+
+  import scala.collection.mutable
+  val newIds = mutable.Set[Int]()
+  val removedIds = mutable.Set[Int]()
+
   var i = 0
   var xs = List[PatientDiff]()
   val receiveRecover: Receive = {
     case RecoveryCompleted => {
       val sender = context.actorOf(Props[ElvisDataSender], "ElvisDataSender")
       sender ! playBack.reverse
+      /*
+      println("newIds.size: " + newIds.size)
+      println("removedIds.size: " + removedIds.size)
+      val inNewButNotInRemoved = newIds -- removedIds
+      println("inNewButNotInRemoved.size: " + inNewButNotInRemoved.size)
+      */
     }
     case d: PatientDiff => {
       val json = write(Map("diff"->d))
       playBack = json :: playBack
-      //      xs = d :: xs
-//      if (i == 10){
-//        val j = SPAttributes("events"->xs).bodyToJson
-//        println(j)
-//      }
-//      i += 1
+      // TODO should actually mutate currentState here, some information in the diff will appear twice...
     }
     case np: NewPatient =>
       val json = write(Map("new"->np))
       playBack = json :: playBack
+      newIds.add(np.patient.CareContactId)
+      currentState = np.patient :: currentState
     case s: SnapShot =>  {
-      //println("Got snap")
-      //val j = SPAttributes("hej"->s).bodyToJson
-      //println(s)
-      s.patients.sortBy(p => p.CareContactRegistrationTime).foreach(p => {
-        val json = write(Map("new"->toNewPat(p)))
-        playBack = json :: playBack
+      // there is no time information in the snap but we need something to stamp the diffs with
+      // so I'm just taking the time of the latest occurring event
+      var latestDateTime: DateTime = null
+      s.patients.foreach(p => p.Events.foreach { ev =>
+        if(latestDateTime == null) latestDateTime = ev.Start
+        else if(ev.Start.isAfter(latestDateTime)) latestDateTime = ev.Start
       })
-    };
-    case r: RemovedPatient =>
-      val json = write(Map("removed"->r))
+
+      val ps = s.patients
+      if (currentState.isEmpty) {
+        ps.sortBy(p => p.CareContactRegistrationTime).foreach(p => {
+          val json = write(Map("new"->toNewPat(p)))
+          playBack = json :: playBack
+          newIds.add(p.CareContactId)
+        })
+      } else {
+        val changes = ps.filterNot(currentState.contains)
+        val removed = currentState.filterNot(p => ps.exists(_.CareContactId == p.CareContactId))
+        //println("removed -- in SS handling: " + removed.map(_.CareContactId).sortBy(int => int))
+        changes.map{p =>
+          val old = currentState.find(_.CareContactId == p.CareContactId)
+          diffPat(p, old, Some(latestDateTime)) match {
+            case None => {
+              val json = write(Map("new"->toNewPat(p)))
+              playBack = json :: playBack
+              newIds.add(toNewPat(p).patient.CareContactId)
+            }
+            case Some(d) => {
+              val diffPatient = PatientDiff(d._1, d._2, d._3)
+              val json = write(Map("diff"->diffPatient))
+              playBack = json :: playBack
+            }
+          }
+        }
+        removed.map{p =>
+          val removedPat = RemovedPatient(latestDateTime, p)
+          val json = write(Map("removed"->removedPat))
+          playBack = json :: playBack
+          removedIds.add(removedPat.patient.CareContactId)
+        }
+      }
+      currentState = ps
+    }
+    case r: RemovedPatient => {
+      val json = write(Map("removed" -> r))
       playBack = json :: playBack
+      removedIds.add(r.patient.CareContactId)
+      currentState = currentState.filterNot(_.CareContactId == r.patient.CareContactId)
+    }
   }
 
 
@@ -148,7 +194,7 @@ class ElvisLogger extends PersistentActor {
   }
 
 
-  def diffPat(curr: ElvisPatient, old: Option[ElvisPatient])={
+  def diffPat(curr: ElvisPatient, old: Option[ElvisPatient], timestamp: Option[DateTime] = None)={
     old.map {
       case prev: ElvisPatient => {
         (Map(
@@ -161,7 +207,7 @@ class ElvisLogger extends PersistentActor {
           "Team" -> diffThem(prev.Team, curr.Team),
           "VisitId" -> diffThem(prev.VisitId, curr.VisitId),
           "VisitRegistrationTime" -> diffThem(prev.VisitRegistrationTime, curr.VisitRegistrationTime),
-          "timestamp" -> Some(Extraction.decompose(getNow))
+          "timestamp" -> Some(Extraction.decompose(timestamp.getOrElse(getNow)))
         ).filter(kv=> kv._2 != None).map(kv=> kv._1 -> kv._2.get),
           curr.Events.filterNot(prev.Events.contains),
           prev.Events.filterNot(curr.Events.contains))
