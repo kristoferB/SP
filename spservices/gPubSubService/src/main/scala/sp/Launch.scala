@@ -14,17 +14,18 @@ object Launch extends App {
   implicit val ec = system.dispatcher
   val webServer = new sp.server.LaunchGUI(system)
   val f = webServer.launch
+  val log = org.slf4j.LoggerFactory.getLogger(getClass.getName)
 
   cluster.registerOnMemberUp {
 
     // Start all you actors here.
-    println("GPubSubService node has joined the cluster")
+    log.info("GPubSubService node has joined the cluster")
     system.actorOf(WidgetDevice.props)
     system.actorOf(GPubSubDevice.props, API_PatientEvent.attributes.service)
 
   }
   cluster.registerOnMemberRemoved{
-    println("GPubSubService node has been removed from the cluster")
+    log.info("GPubSubService node has been removed from the cluster")
   }
 
   scala.io.StdIn.readLine("Press ENTER to exit cluster.\n")

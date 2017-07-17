@@ -66,7 +66,7 @@ class WidgetDevice extends Actor with ActorLogging {
           widgetStarted = true
           publishOnAkka(header, api.State(localState))
         }
-        case _ => println("Not expected")
+        case _ => log.warning("Unexpected SP-message in matchRequests: " + b)
       }
     }
   }

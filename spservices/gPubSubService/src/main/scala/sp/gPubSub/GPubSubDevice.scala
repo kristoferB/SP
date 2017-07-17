@@ -78,7 +78,7 @@ class GPubSubDevice extends PersistentActor with DiffMagic {
 
   val receiveRecover: Receive = {
     case x: String =>
-      println("recover")
+      elvisActor ! "recovered" // dummy
  }
 
 

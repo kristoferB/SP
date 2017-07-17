@@ -126,7 +126,7 @@ class LaunchGUI(system: ActorSystem)  {
     //Http().setDefaultServerHttpContext(serverContext)
     val bindingFuture = Http().bindAndHandle(route, interface, port) //, connectionContext = serverContext)
 
-    println(s"Server started ${system.name}, $interface:$port")
+    log.info(s"Server started. System: ${system.name}, Adress: $interface:$port")
 
     bindingFuture
 
@@ -145,7 +145,7 @@ class LaunchGUI(system: ActorSystem)  {
       if (cmd.isEmpty)
         reject(SchemeRejection("no topic"))
 
-      println("tjo ho in post message: "+ url +" - "+cmd)
+      log.debug("postMessage event: "+ url +" - "+cmd)
 
       val topic = cmd.head
       val service = cmd.tail.headOption.getOrElse("")
@@ -203,6 +203,7 @@ import akka.http.scaladsl.model.ws.{ Message, TextMessage }
 
 
 class WebsocketHandler(mediator: ActorRef, topic: String, clientID: java.util.UUID) {
+  val log = org.slf4j.LoggerFactory.getLogger(getClass.getName)
   case class Filters(h: Map[String, Set[Pickle]], b: Map[String, Set[Pickle]])
   var filter = Filters(Map(), Map())
 
@@ -219,7 +220,7 @@ class WebsocketHandler(mediator: ActorRef, topic: String, clientID: java.util.UU
   })
 
   val fromWebSocketToAPI: Flow[Message, Try[APIWebSocket.APIWebSocket], NotUsed] = Flow[Message]
-    .collect{ case TextMessage.Strict(text) => println(s"Websocket got: $text"); text}
+    .collect{ case TextMessage.Strict(text) => log.debug(s"Websocket got: $text"); text}
     .map{str =>
       fromJson[APIWebSocket.APIWebSocket](str)
     }

@@ -1,5 +1,6 @@
 target/
 bin/
+logs/
 project/boot/
 project/target
 project/project
@@ -36,4 +37,3 @@ servicesJournal/
 
 # output from tests
 testFiles/gitIgnore/
-
