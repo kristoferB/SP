@@ -41,8 +41,16 @@ class TimelineHelper (
       OptionsTimeline(
         this.data.getNumberOfRows() * 31 + 40,
         this.options.width,
-        TimelineHelper.innerOptions,
-        this.options.title
+        this.options.timeline,
+        this.options.tooltip,
+        this.options.title,
+        this.options.avoidOverlappingGridLines,
+        this.options.backgroundColor,
+        this.options.colors,
+        this.options.enableInteractivity,
+        this.options.fontName,
+        this.options.fontSize,
+        this.options.forceIFrame
       ).toDynamic
     )
   }

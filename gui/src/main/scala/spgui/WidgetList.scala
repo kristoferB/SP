@@ -25,6 +25,7 @@ object WidgetList {
       ("Item explorer", widgets.itemexplorer.ItemExplorer(), 2, 4),
       ("Ability Handler", widgets.abilityhandler.AbilityHandlerWidget(), 2, 2),
       ("ServiceList", widgets.services.ServiceListWidget(), 2, 2),
+      ("Gantt ExampleService", widgets.charts.TimelineWebServiceExample(), 2,2 ),
       ("JSONExampleGantt", widgets.charts.TimelineJSONExample(), 5, 2),
       ("ExampleUseGantt", widgets.charts.TimelineExampleUse(), 4, 3),
       ("ChartTest", widgets.charts.ChartTest(), 5, 3),

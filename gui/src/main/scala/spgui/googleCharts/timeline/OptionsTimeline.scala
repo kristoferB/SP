@@ -65,6 +65,7 @@ class OptionsTimeline (
       singleColor = this.timeline.singleColor,
       rowLabelStyle = this.timeline.rowLabelStyle
     ),
+    title = this.title,
     tooltip = js.Dynamic.literal(
       isHtml = this.tooltip.isHtml,
       trigger = this.tooltip.trigger

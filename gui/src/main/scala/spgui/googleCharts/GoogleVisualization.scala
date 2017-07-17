@@ -73,7 +73,7 @@ object GoogleVisualization extends js.Object {
     override def addRow(row: js.Array[js.Any]): Unit =
       js.native
 
-    override def addRow() = js.native
+    override def addRow(): Unit = js.native
 
     // returns the numbers of rows
     override def getNumberOfRows(): Int = js.native

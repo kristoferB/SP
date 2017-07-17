@@ -46,7 +46,7 @@ trait DataTableAPI extends js.Object {
   // argument: row of type - js.Array of js.Any
   // Todo: fix result value
   def addRow(row: js.Array[js.Any]): Unit = js.native
-  def addRow() = js.native
+  def addRow(): Unit = js.native
   // add an array of new rows to the DataTable
   // argument:
   //          rows  of type:
