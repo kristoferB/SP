@@ -51,6 +51,7 @@ class LaunchGUI(system: ActorSystem)  {
   implicit val materializer = ActorMaterializer()
   implicit val dispatcher = system.dispatcher
   val mediator = DistributedPubSub(system).mediator
+  val log = org.slf4j.LoggerFactory.getLogger(getClass.getName)
 
   def launch = {
       val webFolder: String = system.settings.config getString "sp.webFolder"
