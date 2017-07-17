@@ -12,8 +12,6 @@ import sp.messages._
 import sp.messages.Pickles._
 import java.util
 
-
-
 import scala.collection.mutable.ListBuffer
 import sp.domain._
 import sp.domain.Logic._
@@ -36,7 +34,7 @@ case object Ticker
 case class APubSubMess(mess: PubsubMessage)
 case object FailedPubSub
 
-class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
+class GPubSubDevice extends PersistentActor with DiffMagic {
   override def persistenceId = "gPubSub"
 
   import akka.stream.scaladsl._
@@ -99,7 +97,7 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
          pT <- messT if mess.getPublishTime.getSeconds > pT.getSeconds
        } yield {
          messT = Some(mess.getPublishTime)
-         println("is newer")
+         log.debug("Recieved elvis snapshot is newer than the previous one.")
          mess.getData().toStringUtf8()
        }
 
@@ -108,7 +106,7 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
         attr <- SPAttributes.fromJson(json)
         xs <- attr.tryAs[List[api.ElvisPatient]]("patients").toOption
        } yield {
-         println("A snap: " + xs.size)
+         log.debug("An elvis snapshot with " + xs.size + " ElvisPatients was recieved.")
          val res = checkTheDiff(xs, prev)
          prev = xs
          res.flatten
@@ -119,9 +117,8 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
          persist(eventsJson) { events =>
            state = newEvents ++ state
            state = filterOldEvents(state)
-           newEvents.foreach(println)
-           println("number of events: " + state.size)
-           println("")
+           newEvents.foreach(e => log.debug("New EricaEvent persisted: " + e))
+           log.debug("Number of EricaEvents in current state: " + state.size)
 
            elvisActor ! state
 
@@ -144,7 +141,7 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
 
   override def postStop(): Unit = {
     elvisPubSub.res.map(_.stopAsync())
-    println("OFF")
+    log.debug(this + " said: OFF")
   }
 
 
@@ -159,7 +156,7 @@ trait DiffMagic {
   import org.json4s.native.Serialization.{read, write}
   import com.github.nscala_time.time.Imports._
   //implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
-
+  val log = org.slf4j.LoggerFactory.getLogger(getClass.getName)
 
   var currentState: List[api.ElvisPatient] = List()
 
@@ -235,7 +232,7 @@ trait DiffMagic {
   def newLocation(curr: api.ElvisPatient, old: Option[api.ElvisPatient]) = {
     old.foreach{o =>
       if (curr.Location != o.Location){
-        println(s"PATIENT MOVED: ${curr.CareContactId} " + o.Location +" -> "+ curr.Location )
+        log.info("Patient " + curr.CareContactId + " moved from location " + o.Location +" to "+ curr.Location )
       }
     }
   }
@@ -259,7 +256,7 @@ trait DiffMagic {
 
   def getEventTime(e: api.EricaEvent) = {
     val res = Try{DateTime.parse(e.TimeEvent, DateTimeFormat.forPattern(timePattern));}
-    if (res.isFailure) println(res)
+    if (res.isFailure) log.warn("" + res)
     res
   }
   def isLatest(f: api.EricaEvent, s: api.EricaEvent): Boolean = {
@@ -293,6 +290,7 @@ class ElvisPubSuber(project: String, topic: String, subscription: String, sendTo
   import com.google.api.core._
   import com.google.common.util.concurrent.MoreExecutors
 
+  val log = org.slf4j.LoggerFactory.getLogger(getClass.getName)
 
   /** Example of deleting a subscription. */
   def deleteSubscription(subscriptionId: String) = { // [START pubsub_delete_subscription]
@@ -301,7 +299,7 @@ class ElvisPubSuber(project: String, topic: String, subscription: String, sendTo
       try {
         val subscriptionName = SubscriptionName.create(project, subscriptionId)
         subscriptionAdminClient.deleteSubscription(subscriptionName)
-        println("subscriber deleted: "+ subscriptionId)
+        log.debug("Subscription " + subscriptionId + " DELETED")
         subscriptionName
       } finally if (subscriptionAdminClient != null) subscriptionAdminClient.close()
     }
@@ -320,7 +318,7 @@ class ElvisPubSuber(project: String, topic: String, subscription: String, sendTo
         val subscriptionName = SubscriptionName.create(project, subscriptionId)
         // create a pull subscription with default acknowledgement deadline
         val subscription = subscriptionAdminClient.createSubscription(subscriptionName, topicName, PushConfig.getDefaultInstance, 0)
-        println("subscriber created: "+ subscriptionId)
+        log.debug("Subscription " + subscriptionId + " CREATED")
 
         subscription
       } finally if (subscriptionAdminClient != null) subscriptionAdminClient.close()
@@ -332,10 +330,10 @@ class ElvisPubSuber(project: String, topic: String, subscription: String, sendTo
 
 
 
-  println("starting pubSub")
+  log.info("Connecting to Google pubsub. Subscription: " + subscription + " Topic: " + topic)
   deleteSubscription(subscription)
   val subTry = createSubscription(topic, subscription)
-  println(subTry)
+  log.debug("Subscription attempt resulted in: " + subTry)
   val res = subTry.map{s =>
 
     import com.google.cloud.pubsub.spi.v1.AckReplyConsumer
@@ -343,6 +341,7 @@ class ElvisPubSuber(project: String, topic: String, subscription: String, sendTo
     import com.google.pubsub.v1.PubsubMessage
     val receiver = new MessageReceiver() {
       override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
+        log.info("New elvis snapshot recieved from Google pubsub.")
         sendTo ! APubSubMess(message)
         consumer.ack()
       }
@@ -352,8 +351,8 @@ class ElvisPubSuber(project: String, topic: String, subscription: String, sendTo
     val x = Subscriber.defaultBuilder(s.getNameAsSubscriptionName, receiver).build()
     x.addListener(new Listener() {
       override def failed(from: ApiService.State, failure: Throwable ) {
-        println("pubSub failed: "+ failure.getMessage)
-        println("pubSub failed state: "+ from)
+        log.warn("pubSub failed: "+ failure.getMessage)
+        log.warn("pubSub failed state: "+ from)
         sendTo ! FailedPubSub
       }
     }, MoreExecutors.directExecutor())

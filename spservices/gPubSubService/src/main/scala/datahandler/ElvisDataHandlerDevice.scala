@@ -34,7 +34,8 @@ import datahandler.{API_Patient => patientApi}
 /**
 *  This is the actor (the service) that listens for messages on the bus
 */
-class ElvisDataHandlerDevice extends Actor with ActorLogging {
+class ElvisDataHandlerDevice extends Actor {
+  val log = org.slf4j.LoggerFactory.getLogger(getClass.getName)
   implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
 
   val externalFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
@@ -58,7 +59,7 @@ class ElvisDataHandlerDevice extends Actor with ActorLogging {
   */
   def receive = {
     case "NoElvisDataFlowing" => {
-      println("No updates in some time... Sending to front-end")
+      log.debug("No new elvis data recieved in some time... Notifying front-end")
       publishOnAkka(SPHeader(from = "elvisDataHandler"), api.ElvisDataFlowing(false), "spevents")
     }
     case "ElvisDataFlowing" => {
@@ -96,7 +97,7 @@ def handleElvisData(data: List[dataApi.EricaEvent]) {
       }
     }
   }
-  println("Patients with valid clinic: " + state.filter( pa => (isValidClinic(pa._2.Clinic))).size)
+  log.debug( state.filter( pa => (isValidClinic(pa._2.Clinic))).size + " patients with valid clinic-field were found in current state.")
   createVisualizablePatients(state.filter( pa => (isValidClinic(pa._2.Clinic))))
 }
 

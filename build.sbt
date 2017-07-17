@@ -8,8 +8,9 @@ lazy val akka = Seq(
   "com.typesafe.akka" %% "akka-cluster" % "2.4.16",
   "com.typesafe.akka" %% "akka-cluster-tools" % "2.4.16",
   "com.typesafe.akka" %% "akka-testkit" % "2.4.16",
+  "com.typesafe.akka" %% "akka-slf4j" % "2.4.16",
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
   "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test",
-  "org.slf4j" % "slf4j-simple" % "1.7.7",
   "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.1",
   "com.lihaoyi" %% "upickle" % "0.4.3"
 )

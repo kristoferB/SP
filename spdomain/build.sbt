@@ -14,7 +14,6 @@ scalacOptions  := Seq(
 
   libraryDependencies ++= Seq(
   "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test",
-  "org.slf4j" % "slf4j-simple" % "1.7.7",
   "com.github.nscala-time" %% "nscala-time" % "2.12.0",
   "org.json4s" %% "json4s-native" % "3.4.0",
   "org.json4s" %% "json4s-ext" % "3.4.0",
