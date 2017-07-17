@@ -16,6 +16,10 @@ import spgui.communication._
 import sp.domain._
 import sp.messages._
 import sp.messages.Pickles._
+import scalacss.ScalaCssReact._
+case class RenderNode(lol :Int)
+
+case class Pos(x:Int, y:Int)
 
 object measures {
   // from sopdrawer.js
@@ -43,7 +47,7 @@ object SopMakerWidget {
       "events"
     )
      */
-
+    
     def handleDrag(drag: String)(e: ReactDragEventFromInput): Callback = {
       Callback({
         e.dataTransfer.setData("json", drag)
@@ -55,25 +59,57 @@ object SopMakerWidget {
       Callback.log("Dropping " + drag + " onto " + drop)
     }
 
+    import scala.util.Random
+    def op(opname: String) =
+      <.span(
+        // extreme stylesheeting
+        ^.className := (
+          new SopMakerCSS.Position(
+            Random.nextInt(100),
+            Random.nextInt(300))
+        ).position.htmlClass,
+        SopMakerCSS.sopComponent,
+
+        OnDragMod(handleDrag(opname)),
+        OnDropMod(handleDrop(opname)),
+        svg.svg(
+          svg.width := measures.opW,
+          svg.height := measures.opH,
+          svg.rect(
+            svg.x:=0,
+            svg.y:=0,
+            svg.width:=measures.opW,
+            svg.height:=measures.opH,
+            svg.rx:=5, svg.ry:=5,
+            svg.fill := "white",
+            svg.stroke:="black",
+            svg.strokeWidth:=1
+          ),
+          svg.text(
+            svg.x:="50%",
+            svg.y:="50%",
+            svg.textAnchor:="middle",
+            svg.dy:=".3em", opname
+          )
+        )
+      )
+
     def render(state: State) = {
       val ops = List(Operation("op1"), Operation("op2"))
       val idm = ops.map(o=>o.id -> o).toMap
 
       ops
 
-      val fakeSop = SOP(ops(0), EmptySOP)
+      val fakeSop = Sequence(List(SOP(ops(1)), SOP(ops(0))))
+
       def drawSop(s: SOP): Seq[VdomTag] = {
         s match {
           case s:Sequence =>
             s.sop.flatMap(drawSop)
           case h:Hierarchy =>
-            val opname = idm.get(h.operation).map(_.name).getOrElse("[unknown op]")
+            val opname:String  = idm.get(h.operation).map(_.name).getOrElse("[unknown op]")
             Seq(
-              <.div(OnDragMod(handleDrag(opname)), OnDropMod(handleDrop(opname)),
-                svg.svg(svg.width := measures.opW, svg.height := measures.opH,
-                  svg.rect(svg.x:=0, svg.y:=0, svg.width:=measures.opW, svg.height:=measures.opH, svg.rx:=5, svg.ry:=5, svg.fill := "white", svg.stroke:="black", svg.strokeWidth:=1),
-                  svg.text(svg.x:="50%", svg.y:="50%", svg.textAnchor:="middle", svg.dy:=".3em", opname)
-                ))
+              op(opname)
             )
         }
       }
@@ -86,10 +122,29 @@ object SopMakerWidget {
       )
     }
 
+    def traverseTree(root:SOP): RenderNode = {
+      return null
+    }
+
+    def getRenderTree = {
+      // to sort out nested parallels/alternatives
+    }
+
+    def renderOP(positionMarker: Pos) = {
+
+    }
+
+    def renderParallel(positionMarker: Pos) = {
+
+    }
+
+    def renderAlternative(positionMarker: Pos) = {
+
+    }
+
     def onUnmount() = Callback {
       println("Unmounting sopmaker")
     }
-
   }
 
   private val component = ScalaComponent.builder[Unit]("SopMakerWidget")
