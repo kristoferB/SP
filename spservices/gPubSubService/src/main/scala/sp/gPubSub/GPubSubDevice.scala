@@ -66,9 +66,17 @@ class GPubSubDevice extends PersistentActor with ActorLogging with DiffMagic {
   def checkTimeSinceMessageReceived() {
     val timeDiff = Math.abs(timeWhenMessageReceived - System.currentTimeMillis)
     val timeLimit = 1000*60*5 // 5 minutes currently
+    var sendFailed = true
     if (timeDiff > timeLimit) {
       elvisActor ! "NoElvisDataFlowing"
     }
+    if (timeDiff > timeLimit*4 && sendFailed) {
+      self ! FailedPubSub
+      sendFailed = false
+    }
+    if (timeDiff < timeLimit) sendFailed = true
+
+
   }
 
   // A "ticker" that sends a "tick" string to self every 1 minute
