@@ -17,23 +17,26 @@ import sp.domain._
 import sp.messages._
 import sp.messages.Pickles._
 import scalacss.ScalaCssReact._
-case class RenderNode(lol :Int)
 
-case class Pos(x:Int, y:Int)
-
-object measures {
-  // from sopdrawer.js
-  val margin = 15
-  val opH = 50
-  val opW = 60
-  val para = 7
-  val arrow = 5
-  val textScale = 6
-  val animTime = 0
-  val commonLineColor = "black"
-  val condLineHeight = 12
-  val nameLineHeight = 50
+trait RenderNode {
+  val w: Int
+  val h: Int
 }
+
+trait RenderGroup extends RenderNode {
+  val children: List[RenderNode]
+}
+
+case class RenderParallel(w: Int, h:Int, children: List[RenderNode]) extends RenderGroup
+case class RenderAlternative(w: Int, h:Int, children: List[RenderNode]) extends RenderGroup
+case class RenderArbitrary(w: Int, h:Int, children: List[RenderNode]) extends RenderGroup
+case class RenderSequence(w: Int, h:Int, children: List[RenderNode]) extends RenderGroup
+case class RenderSometimeSequence(w: Int, h:Int, children: List[RenderNode]) extends RenderGroup
+case class RenderOther(w: Int, h:Int, children: List[RenderNode]) extends RenderGroup
+case class RenderHierarchy(w:Int, h:Int, sop: Hierarchy) extends RenderNode
+
+
+case class Pos(x: Int, y: Int)
 
 object SopMakerWidget {
   case class State(drag: String, drop: String, sop: List[String])
@@ -59,27 +62,27 @@ object SopMakerWidget {
       Callback.log("Dropping " + drag + " onto " + drop)
     }
 
-    import scala.util.Random
-    def op(opname: String) =
+    def op(opname: String, x: Int, y: Int) =
       <.span(
         // extreme stylesheeting
         ^.className := (
           new SopMakerCSS.Position(
-            Random.nextInt(100),
-            Random.nextInt(300))
+            x,
+            y
+          )
         ).position.htmlClass,
         SopMakerCSS.sopComponent,
 
         OnDragMod(handleDrag(opname)),
         OnDropMod(handleDrop(opname)),
         svg.svg(
-          svg.width := measures.opW,
-          svg.height := measures.opH,
+          svg.width := 40,
+          svg.height := 40,
           svg.rect(
             svg.x:=0,
             svg.y:=0,
-            svg.width:=measures.opW,
-            svg.height:=measures.opH,
+            svg.width:=40,
+            svg.height:=40,
             svg.rx:=5, svg.ry:=5,
             svg.fill := "white",
             svg.stroke:="black",
@@ -98,48 +101,67 @@ object SopMakerWidget {
       val ops = List(Operation("op1"), Operation("op2"))
       val idm = ops.map(o=>o.id -> o).toMap
 
-      ops
+      val fakeSop = Sequence(List(
+        Parallel(List(SOP(Operation("parallel1")), SOP(Operation("Parallel2")))),
+        Sequence(List(SOP(ops(1)), SOP(ops(0))))
+      ))
 
-      val fakeSop = Sequence(List(SOP(ops(1)), SOP(ops(0))))
-
-      def drawSop(s: SOP): Seq[VdomTag] = {
-        s match {
-          case s:Sequence =>
-            s.sop.flatMap(drawSop)
-          case h:Hierarchy =>
-            val opname:String  = idm.get(h.operation).map(_.name).getOrElse("[unknown op]")
-            Seq(
-              op(opname)
-            )
-        }
-      }
+      println(traverseTree(fakeSop))
 
       <.div(
         <.h2("Insert sop here:"),
         OnDataDrop(string => Callback.log("Received data: " + string)),
         <.br(),
-        drawSop(fakeSop).toTagMod
+        getRenderTree(traverseTree(fakeSop), 0, 0)
       )
     }
 
-    def traverseTree(root:SOP): RenderNode = {
-      return null
+    def getRenderTree(node: RenderNode, xOffset: Int, yOffset: Int): TagMod = {
+      println(node)
+      node match {
+        case n: RenderParallel => <.div("look a parallel")
+          <.div("parallel",
+            n.children.map(c => getRenderTree(c, xOffset, yOffset + 1)).toTagMod
+          )
+        case n: RenderSequence =>
+          <.div("sequence",
+            n.children.map(c => getRenderTree(c, xOffset, yOffset + 2)).toTagMod
+          )
+        case n: RenderHierarchy => op(n.sop.operation.toString, xOffset*100, yOffset*100)
+        case _ => <.div("shuold not happen right now")
+      }
     }
 
-    def getRenderTree = {
-      // to sort out nested parallels/alternatives
+    def traverseTree(sop: SOP): RenderNode = {
+      sop match {
+        case s: Parallel => RenderParallel(
+          w = getTreeWidth(s),
+          h = getTreeHeight(s),
+          children = sop.sop.collect{case e => traverseTree(e)}
+        )
+        case s: Sequence => RenderSequence(
+          w = getTreeWidth(s),
+          h = getTreeHeight(s),
+          children = sop.sop.collect{case e => traverseTree(e)}
+        )
+        case s: Hierarchy => RenderHierarchy(1,1, s)
+      }
     }
 
-    def renderOP(positionMarker: Pos) = {
-
+    def getTreeWidth(sop: SOP): Int = {
+      sop match {
+        // groups are as wide as the sum of all children widths
+        case s: Parallel => s.sop.map(e => getTreeWidth(e)).foldLeft(0)(_ + _)
+        case s: Sequence => { // sequences are as wide as their widest elements
+          if(s.sop.isEmpty) 0
+          else math.max(getTreeWidth(s.sop.head), getTreeWidth(Sequence(s.sop.tail)))
+        }
+        case s: Hierarchy => 1
+      }
     }
 
-    def renderParallel(positionMarker: Pos) = {
-
-    }
-
-    def renderAlternative(positionMarker: Pos) = {
-
+    def getTreeHeight(sop: SOP): Int = {
+      1 // TODO: implement
     }
 
     def onUnmount() = Callback {

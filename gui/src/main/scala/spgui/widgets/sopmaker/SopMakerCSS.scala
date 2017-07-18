@@ -16,8 +16,8 @@ object SopMakerCSS extends Theming.SPStyleSheet {
     // slightly different way of adding styles
     // multiple instances of this style can (and will) exist at a given time
     val position = style(
-      top(x.px),
-      left(y.px)
+      top(y.px),
+      left(x.px)
     )
 
     this.addToDocument()
