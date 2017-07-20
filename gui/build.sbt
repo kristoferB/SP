@@ -22,6 +22,9 @@ val scalaCssVersion = "0.5.1"
 val diodeVersion = "1.1.0"
 
 
+resolvers += sbt.Resolver.bintrayIvyRepo("aleastchs", "aleastChs-releases")
+libraryDependencies += "org.aleastChs" %%% "scalajs-google-charts" % "0.1.1"
+
 libraryDependencies ++= Seq(
   "com.github.japgolly.scalajs-react" %%% "core" % scalaJSReactVersion,
   "com.github.japgolly.scalajs-react" %%% "extra" % scalaJSReactVersion,
