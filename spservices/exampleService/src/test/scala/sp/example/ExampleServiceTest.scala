@@ -36,8 +36,8 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
   import sp.example.{ExampleService, ExampleServiceLogic}
   import sp.example.{API_ExampleService => api}
-  import sp.messages.Pickles._
-  import sp.messages.APISP
+  import Pickles._
+  import APISP
 
 
   override def beforeAll: Unit = {

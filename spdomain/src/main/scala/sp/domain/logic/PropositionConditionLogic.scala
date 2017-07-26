@@ -1,8 +1,8 @@
 package sp.domain.logic
 
-import org.json4s._
 import sp.domain._
 import sp.domain.Logic._
+import play.api.libs.json._
 
 case object PropositionConditionLogic extends PropositionConditionLogics
 
@@ -48,6 +48,7 @@ trait PropositionConditionLogics {
     }
   }
 
+
   /**
    * Evaluate Propositions by calling eval(proposition, state)
    */
@@ -56,18 +57,16 @@ trait PropositionConditionLogics {
     private implicit class inequalityAttributes(l: SPValue) {
       def >(r: SPValue) = {
         (l, r) match {
-          case (JInt(li), JInt(ri)) => li > ri
-          case (JDouble(li), JDouble(ri)) => li > ri
-          case (JDecimal(li), JDecimal(ri)) => li > ri
+          case (l: JsNumber, r: JsNumber) => l.value > r.value
           case _ => false
         }
       }
-      def <(r: SPValue) = (r > l)
+      def <(r: SPValue) = r > l
       def >=(r: SPValue) = (l > r) || (l == r)
       def <=(r: SPValue) = (r > l) || (l == r)
     }
 
-    def eval(state: State): Boolean = {
+    def eval(state: SPState): Boolean = {
       //Option[Boolean] = {
       def req(prop: Proposition): Option[Boolean] = prop match {
         case AND(ps) => listBooleanEval(ps, list => !list.flatten.contains(false))
@@ -118,29 +117,29 @@ trait PropositionConditionLogics {
    */
   implicit class condLogic(cond: Condition) {
     val c = cond.asInstanceOf[Condition]
-    def eval(s: State) = c.guard.eval(s)
-    def next(s: State) = s.next(c.action.map(a => a.id -> a.nextValue(s)) toMap)
-    def inDomain(s: State, stateVars: Map[ID, SPValue => Boolean]) = {
+    def eval(s: SPState) = c.guard.eval(s)
+    def next(s: SPState) = s.next(c.action.map(a => a.id -> a.nextValue(s)) toMap)
+    def inDomain(s: SPState, stateVars: Map[ID, SPValue => Boolean]) = {
       !(c.action map (_.inDomain(s, stateVars)) exists (!_))
     }
   }
 
   implicit class nextLogic(a: Action) {
 
-    def nextValue(s: State) = a.value match {
+    def nextValue(s: SPState) = a.value match {
       case ValueHolder(v) => v
       case INCR(n) => updateValue(s(a.id), _ + n)
       case DECR(n) => updateValue(s(a.id), _ - n)
       case ASSIGN(id) => s(id)
     }
-    def updateValue(v: JValue, func: BigInt => BigInt) = {
+    def updateValue(v: SPValue, func: BigDecimal => BigDecimal): SPValue = {
       v match {
-        case JInt(i) => JInt(func(i))
-        case _ => JNothing
+        case JsNumber(i) => SPValue(func(i))
+        case _ => JsNull
       }
     }
 
-    def inDomain(s: State, stateVars: Map[ID, SPValue => Boolean]): Boolean = {
+    def inDomain(s: SPState, stateVars: Map[ID, SPValue => Boolean]): Boolean = {
       val next = nextValue(s)
       val sv = stateVars.get(a.id).getOrElse( (x:SPValue) =>true)
       sv(next)

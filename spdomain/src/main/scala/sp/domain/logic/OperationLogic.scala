@@ -1,7 +1,6 @@
 package sp.domain.logic
 
 import sp.domain._
-//import sp.domain.Logic._
 
 case object OperationLogic extends OperationLogics {
 
@@ -19,7 +18,7 @@ trait OperationLogics {
 
   implicit class opLogic(o: Operation) {
     import PropositionConditionLogic._
-    def eval(s: State)(implicit props: EvaluateProp) = {
+    def eval(s: SPState)(implicit props: EvaluateProp) = {
 
       val opState = s(o.id)
       if (props.defs.completed(opState)) false
@@ -30,7 +29,7 @@ trait OperationLogics {
       }
     }
 
-    def next(s: State)(implicit props: EvaluateProp) = {
+    def next(s: SPState)(implicit props: EvaluateProp) = {
       props.defs.nextState(o, s)
     }
 
@@ -53,7 +52,7 @@ trait OperationLogics {
 
   import PropositionConditionLogic._
   trait OperationStateDefinition {
-    def nextState(operation: Operation, state: State)(implicit props: EvaluateProp): State
+    def nextState(operation: Operation, state: SPState)(implicit props: EvaluateProp): SPState
     def domain: List[SPValue]
 
     def completed(state: SPValue) = {
@@ -79,7 +78,7 @@ trait OperationLogics {
       })
     }
 
-    protected[OperationStateDefinition] def next(o: Operation, state: State)(implicit props: EvaluateProp) = {
+    protected[OperationStateDefinition] def next(o: Operation, state: SPState)(implicit props: EvaluateProp) = {
       val opState = state(o.id)
       val filtered = filterConds(opState, o.conditions)
 
@@ -105,7 +104,7 @@ trait OperationLogics {
       else throw new IllegalArgumentException(s"Can not understand operation state: $state")
     }
 
-    def nextState(o: Operation, state: State)(implicit props: EvaluateProp): State = {
+    def nextState(o: Operation, state: SPState)(implicit props: EvaluateProp): SPState = {
       next(o,state)
     }
   }
@@ -114,7 +113,7 @@ trait OperationLogics {
     
     def domain = List(init, executing, finished)
 
-    def nextState(o: Operation, state: State)(implicit props: EvaluateProp): State = {
+    def nextState(o: Operation, state: SPState)(implicit props: EvaluateProp): SPState = {
       next(o,state)
     }
 
@@ -124,7 +123,7 @@ trait OperationLogics {
     import OperationState._
     def domain = List(init, finished)
 
-    def nextState(o: Operation, state: State)(implicit props: EvaluateProp): State = {
+    def nextState(o: Operation, state: SPState)(implicit props: EvaluateProp): SPState = {
       next(o,next(o,state))
 
     }

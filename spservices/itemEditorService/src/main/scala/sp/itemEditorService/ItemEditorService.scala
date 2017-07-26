@@ -3,7 +3,7 @@ package sp.itemEditorService
 import sp.domain._
 import sp.domain.Logic._
 //import sp.messages._
-import sp.messages.Pickles._
+import Pickles._
 
 import akka.actor._
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish

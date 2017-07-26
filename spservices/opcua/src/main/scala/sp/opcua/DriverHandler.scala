@@ -8,8 +8,8 @@ import akka.actor._
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
 import sp.domain._
-import sp.messages.APISP
-import sp.messages.Pickles._
+import APISP
+import Pickles._
 
 package APIVirtualDevice {
   sealed trait Requests

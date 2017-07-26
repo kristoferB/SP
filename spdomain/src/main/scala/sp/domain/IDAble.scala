@@ -34,9 +34,14 @@ case class SPSpec(name: String,
                   attributes: SPAttributes = SPAttributes(),
                   id: ID = ID.newID) extends IDAble
 
-case class Result(name: String,
+case class SPResult(name: String,
                   attributes: SPAttributes = SPAttributes(),
                   id: ID = ID.newID) extends IDAble
+
+case class SPState(name: String,
+                   state: Map[ID, SPValue],
+                   attributes: SPAttributes = SPAttributes(),
+                   id: ID = ID.newID) extends IDAble
 
 case class Struct(name: String,
                   items: List[StructNode] = List(),
@@ -48,7 +53,5 @@ case class Struct(name: String,
 case class StructNode(item: ID, parent: Option[ID] = None, nodeID: ID = ID.newID, attributes: SPAttributes = SPAttributes())
 
 
-case class State(state: Map[ID, SPValue]) {
-  def add(tuple: (ID, SPValue)) = State(state.+(tuple))
-  def add(m: Map[ID, SPValue]) = State(state ++ m)
-}
+
+

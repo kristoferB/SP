@@ -94,7 +94,7 @@ object IDAbleLogic {
     }
 
     val t = sop match {
-      case h: Hierarchy => {
+      case h: OperationNode => {
         if (id.contains(h.operation)) None
         else {
           val newChildren = filter(h.sop)
@@ -116,8 +116,8 @@ object IDAbleLogic {
       }
     }
 
-    println(s"sop before: $sop")
-    println(s"sop after: $t")
+//    println(s"sop before: $sop")
+//    println(s"sop after: $t")
 
     t
   }
@@ -196,35 +196,31 @@ object IDAbleLogic {
     }
   }
 
-  import org.json4s._
+  // TODO: Update this to play json transformers
+  import play.api.libs.json._
   def removeIDFromAttribute(id: Set[ID], attr: SPAttributes): SPAttributes = {
     val idSet = id.map(_.toString())
-    val updated = reqRemoveFromAttr(idSet, attr.obj)
-    if (updated == attr.obj) attr else JObject(updated)
+    val updated = reqRemoveFromAttr(idSet, attr.value.toMap)
+    if (updated == attr.value.toMap) attr else JsObject(updated)
   }
-  def removeIDFromAttrValue(ids: Set[String], attrVal: JValue): Option[JValue] = {
+  def removeIDFromAttrValue(ids: Set[String], attrVal: SPValue): Option[SPValue] = {
     attrVal match {
-      case JString(x) => if (ids.contains(x)) None else Some(attrVal)
-      case JObject(xs) => {
-        val upd = reqRemoveFromAttr(ids, xs)
-        Some(JObject(upd))
+      case x: JsString => if (ids.contains(x.value)) None else Some(attrVal)
+      case x: JsObject => {
+        val upd = reqRemoveFromAttr(ids, x.value.toMap)
+        Some(JsObject(upd))
       }
-      case JArray(xs) => {
+      case JsArray(xs) => {
         val upd  = xs flatMap ((v => removeIDFromAttrValue(ids, v)))
-        Some(JArray(upd))
+        Some(JsArray(upd))
       }
       case _ => Some(attrVal)
     }
   }
-  private def reqRemoveFromAttr(id: Set[String], keyVal: List[(String, JValue)]): List[(String, JValue)] = {
-    val markID = keyVal map { case (key, attr) =>
-      val newAttr = removeIDFromAttrValue(id, attr)
-      newAttr match {
-        case Some(x) => key -> x
-        case None => "remove!!!!" -> JString("")
-      }
+  private def reqRemoveFromAttr(id: Set[String], keyVal: Map[String, JsValue]): Map[String, JsValue] = {
+    keyVal.flatMap { case (key, attr) =>
+      removeIDFromAttrValue(id, attr).map(x => key -> x)
     }
-    markID.filterNot(_._1 == "remove!!!!")
   }
 
 }

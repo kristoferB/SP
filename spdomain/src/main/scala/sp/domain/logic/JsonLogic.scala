@@ -1,124 +1,108 @@
 package sp.domain.logic
 
-import org.json4s._
+import org.threeten.bp._
 import sp.domain._
-import sp.messages._
+import play.api.libs.json._
+import julienrf.json.derived
 
 
-/**
- * Created by kristofer on 15-05-27.
- */
-object JsonLogic extends JsonLogics {
-  val theFormat = new JsonFormats {}
-}
+object JsonLogic extends JsonImplicit
 
-trait JsonImplicit extends JsonLogics {
-  implicit val formats = new JsonFormats {}
-}
+trait JsonImplicit extends JsonDerived {
 
-trait JsonLogics {
-  trait JsonFormats extends DefaultFormats {
-    override val typeHintFieldName = "isa"
-    override val customSerializers: List[Serializer[_]] = org.json4s.ext.JodaTimeSerializers.all :+
-      org.json4s.ext.UUIDSerializer :+
-      new IDSerializer :+
-      new StateSerializer
-    override val dateFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-    override val typeHints = ShortTypeHints(List(
-      classOf[Operation],
-      classOf[Thing],
-      classOf[SPSpec],
-      classOf[SOPSpec],
-      classOf[Parallel],
-      classOf[Alternative],
-      classOf[Arbitrary],
-      classOf[Hierarchy],
-      classOf[Other],
-      classOf[Sequence],
-      classOf[SometimeSequence],
-      classOf[AND],
-      classOf[OR],
-      classOf[NOT],
-      classOf[EQ],
-      classOf[NEQ],
-      classOf[GREQ],
-      classOf[LEEQ],
-      classOf[GR],
-      classOf[LE],
-      classOf[INCR],
-      classOf[DECR],
-      classOf[ASSIGN],
-      classOf[ValueHolder],
-      classOf[SVIDEval],
-      classOf[Condition]
-    ))
+  type JSFormat[T] = OFormat[T]
+  type JSReads[T] = Reads[T]
+  type JSWrites[T] = OWrites[T]
+
+  implicit lazy val stateEvFormat: OFormat[StateEvaluator] = derived.flat.oformat[StateEvaluator]((__ \ "isa").format[String])
+  implicit lazy val stateUpdFormat: OFormat[StateUpdater] = derived.flat.oformat[StateUpdater]((__ \ "isa").format[String])
+  implicit lazy val propFormat: OFormat[Proposition] = derived.flat.oformat[Proposition]((__ \ "isa").format[String])
+  implicit lazy val actionFormat = Json.format[Action]
+  implicit lazy val conditionFormat = Json.format[Condition]
+  implicit lazy val sopFormat: OFormat[SOP] = derived.flat.oformat[SOP]((__ \ "isa").format[String])
+  implicit lazy val structNode = Json.format[StructNode]
+
+  implicit lazy val stateF = new Format[Map[ID, SPValue]] {
+    override def reads(json: JsValue): JsResult[Map[ID, SPValue]] = {
+      json.validate[Map[String, SPValue]].map(xs => xs.collect{case (k, v) if ID.isID(k) => ID.makeID(k).get -> v})
+    }
+
+    override def writes(xs: Map[ID, SPValue]): JsValue = {
+      val toFixedMap = xs.map{case (k, v) => k.toString -> v}
+      SPValue(toFixedMap)
+    }
+
   }
 
+  implicit lazy val operationF: Reads[Operation] = derived.flat.reads[Operation]((__ \ "isa").read[String])
+  implicit lazy val thingF: Reads[Thing] = derived.flat.reads[Thing]((__ \ "isa").read[String])
+  implicit lazy val sopSpecF: Reads[SOPSpec] = derived.flat.reads[SOPSpec]((__ \ "isa").read[String])
+  implicit lazy val spSpecF: Reads[SPSpec] = derived.flat.reads[SPSpec]((__ \ "isa").read[String])
+  implicit lazy val spRes: Reads[SPResult] = derived.flat.reads[SPResult]((__ \ "isa").read[String])
+  implicit lazy val spState: Reads[SPState] = derived.flat.reads[SPState]((__ \ "isa").read[String])
+  implicit lazy val structF: Reads[Struct] = derived.flat.reads[Struct]((__ \ "isa").read[String])
+  implicit lazy val idableFormat: OFormat[IDAble] = derived.flat.oformat[IDAble]((__ \ "isa").format[String])
 
-  def timeStamp = {
-    implicit val formats2 = new JsonFormats {}
-    Extraction.decompose(org.joda.time.DateTime.now)
-  }
 
-  class IDSerializer extends CustomSerializer[ID](format => (
-    {
-      case JString(idStr) => {
-        val id = ID.makeID(idStr)
-        if (id == None) println(s"ID: $idStr is not an ID. A new one is created!!!")
-        id.getOrElse(ID.newID)
-      }
-      case JObject(JField("id", JString(idStr)) :: Nil) => {
-        val id = ID.makeID(idStr)
-        if (id == None) println(s"ID: $idStr is not an ID. A new one is created!!!")
-        id.getOrElse(ID.newID)
-      }
-    },
-    {
-      case x: ID =>
-        JString(x.toString())
+  val dateF = format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+  implicit lazy val javatimeF = new Format[ZonedDateTime] {
+    override def reads(json: JsValue): JsResult[ZonedDateTime] = {
+      json.validate[String].map(ZonedDateTime.parse(_, dateF))
     }
-    ))
 
-  class StateSerializer extends CustomSerializer[State](format => (
-    {
-      case JObject(xs) => {
-        val filtered = for {
-          kv <- xs if ID.isID(kv._1)
-          id <- ID.makeID(kv._1)
-        } yield (id, kv._2)
-        State(filtered.toMap)
-      }
-      case JArray(xs) => {
-        import sp.domain.logic.AttributeLogic._
-        implicit val formats2 = new JsonFormats {}
-        val filtered = for {
-          sv @ JObject(xs) <- xs
-          key <- sv.getAs[ID]("id")
-          v <- sv.get("value")
-        } yield (key -> v)
-        State(filtered.toMap)
-      }
-    },
-    {
-      case x: State => {
-        val res = x.state.map(kv => kv._1.toString() -> kv._2).toList
-        JObject(res)
-      }
+    override def writes(o: ZonedDateTime): JsValue = {
+      Json.toJson(o.format(dateF))
     }
-    ))
 
-
-  implicit class JoinJsonFormats(x: JsonFormats) {
-    def join(y: JsonFormats): JsonFormats = {
-      val tH = x.typeHints.hints ++ y.typeHints.hints distinct
-      val cS = x.customSerializers ++ y.customSerializers distinct
-
-      new JsonFormats {
-        override val typeHints = ShortTypeHints(tH)
-        override val customSerializers: List[Serializer[_]] = cS
-
-      }
-    }
   }
 
 }
+
+
+
+
+trait JsonDerived{
+  import language.experimental.macros
+  //def spFormat[A]: OFormat[A] =  derived.oformat[A]()
+  val jsonISA = (__ \ "isa").format[String]
+
+
+  import play.api.libs.json.{OFormat, OWrites, Reads}
+  import shapeless.Lazy
+  import julienrf.json.derived._
+
+  def deriveFormatSimple[A](implicit derivedReads: Lazy[DerivedReads[A]], derivedOWrites: Lazy[DerivedOWrites[A]]): OFormat[A] =
+    OFormat(derivedReads.value.reads(TypeTagReads.nested, NameAdapter.identity), derivedOWrites.value.owrites(TypeTagOWrites.nested, NameAdapter.identity))
+
+
+  def deriveFormatISA[A](implicit derivedReads: Lazy[DerivedReads[A]], derivedOWrites: Lazy[DerivedOWrites[A]]): OFormat[A] =
+    OFormat(derivedReads.value.reads(TypeTagReads.flat(jsonISA), NameAdapter.identity), derivedOWrites.value.owrites(TypeTagOWrites.flat(jsonISA), NameAdapter.identity))
+
+  object derived {
+
+    def reads[A](adapter: NameAdapter = NameAdapter.identity)(implicit derivedReads: Lazy[DerivedReads[A]]): Reads[A] = derivedReads.value.reads(TypeTagReads.nested, adapter)
+
+    def owrites[A](adapter: NameAdapter = NameAdapter.identity)(implicit derivedOWrites: Lazy[DerivedOWrites[A]]): OWrites[A] = derivedOWrites.value.owrites(TypeTagOWrites.nested, adapter)
+
+    def oformat[A](adapter: NameAdapter = NameAdapter.identity)(implicit derivedReads: Lazy[DerivedReads[A]], derivedOWrites: Lazy[DerivedOWrites[A]]): OFormat[A] =
+      OFormat(derivedReads.value.reads(TypeTagReads.nested, adapter), derivedOWrites.value.owrites(TypeTagOWrites.nested, adapter))
+
+    object flat {
+
+      def reads[A](typeName: Reads[String], adapter: NameAdapter = NameAdapter.identity)(implicit derivedReads: Lazy[DerivedReads[A]]): Reads[A] =
+        derivedReads.value.reads(TypeTagReads.flat(typeName), adapter)
+
+      def owrites[A](typeName: OWrites[String], adapter: NameAdapter = NameAdapter.identity)(implicit derivedOWrites: Lazy[DerivedOWrites[A]]): OWrites[A] =
+        derivedOWrites.value.owrites(TypeTagOWrites.flat(typeName), adapter)
+
+      def oformat[A](typeName: OFormat[String], adapter: NameAdapter = NameAdapter.identity)(implicit derivedReads: Lazy[DerivedReads[A]], derivedOWrites: Lazy[DerivedOWrites[A]]): OFormat[A] =
+        OFormat(derivedReads.value.reads(TypeTagReads.flat(typeName), adapter), derivedOWrites.value.owrites(TypeTagOWrites.flat(typeName), adapter))
+
+    }
+
+  }
+
+
+}
+
+

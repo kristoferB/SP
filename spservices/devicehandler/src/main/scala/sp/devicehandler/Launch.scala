@@ -9,7 +9,7 @@ object HackTest {
   import akka.cluster.pubsub.DistributedPubSub
   import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
   import sp.messages._
-  import sp.messages.Pickles._
+  import Pickles._
   import scala.util.{Failure, Success, Try}
 
   def hackTest(system: ActorSystem) : Unit = {

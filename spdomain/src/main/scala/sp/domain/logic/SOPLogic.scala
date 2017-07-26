@@ -1,8 +1,6 @@
 package sp.domain.logic
 
-import org.json4s._
 import sp.domain._
-import sp.domain.Logic._
 
 
 
@@ -10,24 +8,24 @@ object SOPLogic extends SOPLogics
 
 trait SOPLogics {
 
-  implicit def operationToSOP(o: Operation): SOP = Hierarchy(o.id)
-  implicit def operationIDToSOP(o: ID): SOP = Hierarchy(o)
+  implicit def operationToSOP(o: Operation): SOP = OperationNode(o.id)
+  implicit def operationIDToSOP(o: ID): SOP = OperationNode(o)
 
   implicit class sopLogic(sop: SOP) {
     def modifySOP(children: List[SOP]): SOP = {
       sop match {
-        case s: Hierarchy => Hierarchy(s.operation, s.conditions, children)
-        case s: Parallel => Parallel(children)
-        case s: Other => Other(children)
-        case s: Alternative => Alternative(children)
-        case s: Arbitrary => Arbitrary(children)
-        case s: Sequence => Sequence(children)
-        case s: SometimeSequence => SometimeSequence(children)
+        case s: OperationNode => s.copy(sop = children)
+        case s: Parallel => s.copy(sop = children)
+        case s: Other => s.copy(sop = children)
+        case s: Alternative => s.copy(sop = children)
+        case s: Arbitrary => s.copy(sop = children)
+        case s: Sequence => s.copy(sop = children)
+        case s: SometimeSequence => s.copy(sop = children)
         case EmptySOP => EmptySOP
       }
     }
 
-    def isEmpty = {sop == EmptySOP || (sop.sop.isEmpty && !sop.isInstanceOf[Hierarchy])}
+    def isEmpty = {sop == EmptySOP || (sop.sop.isEmpty && !sop.isInstanceOf[OperationNode])}
 
     def addChildren(children: Seq[SOP]): SOP = sop.modifySOP(sop.sop ++ children)
 
@@ -57,7 +55,7 @@ trait SOPLogics {
     }
 
     /**
-      * If you end up with a list of Map[ID, Condition], then this will merge them
+      * If you end up with a List[Map[ID, Condition]], then this will merge them
       * @param maps
       * @return
       */
@@ -87,7 +85,7 @@ trait SOPLogics {
 
     private def getOps(sop: SOP, seqEval: Seq[SOP] => Seq[SOP]) : Set[ID] = {
     sop match{
-      case x: Hierarchy => Set(x.operation)
+      case x: OperationNode => Set(x.operation)
       case x: SOP if x.isEmpty => Set()
       case x: Sequence => seqEval(x.sop).flatMap(s => getOps(s, seqEval)) toSet
       case x: SometimeSequence => seqEval(x.sop).flatMap(s => getOps(s, seqEval)) toSet
@@ -98,7 +96,7 @@ trait SOPLogics {
 
     def getCompleteProposition(sop: SOP): Proposition = {
       sop match {
-        case x: Hierarchy => EQ(x.operation, "f")
+        case x: OperationNode => EQ(x.operation, "f")
         case x: SOP if x.isEmpty => AlwaysTrue
         case x: Sequence => getCompleteProposition(x.sop.last)
         case x: SometimeSequence => getCompleteProposition(x.sop.last)
@@ -109,7 +107,7 @@ trait SOPLogics {
 
     def getStartProposition(sop: SOP): Proposition = {
       sop match {
-        case x: Hierarchy => EQ(x.operation, "i")
+        case x: OperationNode => EQ(x.operation, "i")
         case x: SOP if x.isEmpty => AlwaysTrue
         case x: Sequence => getStartProposition(x.sop.head)
         case x: SometimeSequence => getStartProposition(x.sop.head)
@@ -135,7 +133,7 @@ trait SOPLogics {
     def findOpProps(sop: SOP, map: Map[ID, Set[Proposition]], addToAll: Boolean = false): Map[ID, Set[Proposition]] = {
       sop match {
         case x: SOP if x.isEmpty => map
-        case x: Hierarchy => map // impl Hierarchy here later
+        case x: OperationNode => map // impl Hierarchy here later
         case x: SOP => {
           val childProps = x.sop.foldLeft(map) { (map, child) =>
             val props = findOpProps(child, map)
@@ -202,7 +200,7 @@ trait SOPLogics {
       * @param sops
       */
     def extractRelations(sops: List[SOP]): Map[Set[ID], SOP] = {
-      val result: Map[Set[ID], SOP] = (sops match {
+      val result: Map[Set[ID], SOP] = sops match {
         case Nil => Map()
         case EmptySOP :: Nil => Map()
         case x :: xs => {
@@ -212,7 +210,7 @@ trait SOPLogics {
           val rest = extractRelations(xs)
           relMap ++ chMap ++ rest
         }
-      })
+      }
       result.filter(kv => !kv._2.isInstanceOf[Parallel])
     }
 
@@ -220,7 +218,7 @@ trait SOPLogics {
       def extr(xs: Seq[SOP]): List[ID] = xs flatMap extractOps toList
 
       sop match {
-        case x: Hierarchy => x.operation :: extr(x.sop)
+        case x: OperationNode => x.operation :: extr(x.sop)
         case x: SOP => extr(x.sop)
       }
     }
@@ -233,7 +231,7 @@ trait SOPLogics {
           val map = for {
             head <- x
             other <- xs.flatten
-          } yield (Set(head, other)-> parent.modifySOP(List(head, other)))
+          } yield Set(head, other)-> parent.modifySOP(List(head, other))
           map.toMap ++ foldThem(parent, xs)
         }
       }
@@ -247,7 +245,7 @@ trait SOPLogics {
       val ops = sops flatMap getAllOperations
       val missing = (for {
         o1 <- ops
-        o2 <- ops if (o1 != o2 && !sopRels.contains(Set(o1, o2)))
+        o2 <- ops if o1 != o2 && !sopRels.contains(Set(o1, o2))
         rel <- relations.get(Set(o1, o2))
       } yield Set(o1, o2) -> rel).toMap
       val cond = makeProps(missing, relations)
@@ -297,7 +295,7 @@ trait SOPLogics {
 
       val filteredMap = temp.map{case (id, and) =>
         val seqs = and.props.flatMap{
-          case EQ(SVIDEval(id), ValueHolder(JString("f"))) => Some(id)
+          case EQ(SVIDEval(op), ValueHolder(st)) if op == id && st.asOpt[String].contains("f") => Some(id)
           case _ => None
         }
 
@@ -312,7 +310,7 @@ trait SOPLogics {
 
 
         val filteredProps = and.props.filterNot{
-          case EQ(SVIDEval(id), _) => removeIds.contains(id)
+          case EQ(SVIDEval(op), _) if op == id => removeIds.contains(id)
           case _ => false
         }
         id -> AND(filteredProps)
@@ -354,9 +352,9 @@ trait SOPLogics {
       val updCh = sop.sop.map(updateSOP(_, conds))
       val updSOP = if (updCh == sop.sop) sop else sop.modifySOP(updCh)
       updSOP match {
-        case h: Hierarchy => {
+        case h: OperationNode => {
           if (conds.contains(h.operation)){
-            Hierarchy(h.operation, conds(h.operation), updCh)
+            OperationNode(h.operation, conds(h.operation), updCh)
           } else updSOP
         }
         case _ => updSOP
@@ -365,7 +363,7 @@ trait SOPLogics {
 
     def relOrder(sop: SOP): Option[(ID, ID)] = {
       sop.sop.toList match {
-        case (h1: Hierarchy) :: (h2: Hierarchy) :: Nil => Some(h1.operation, h2.operation)
+        case (h1: OperationNode) :: (h2: OperationNode) :: Nil => Some(h1.operation, h2.operation)
         case _ => None
       }
     }

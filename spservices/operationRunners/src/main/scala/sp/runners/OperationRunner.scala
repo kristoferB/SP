@@ -6,7 +6,7 @@ import scala.util.{Failure, Random, Success, Try}
 import sp.domain._
 import sp.domain.Logic._
 import sp.messages._
-import sp.messages.Pickles._
+import Pickles._
 import sp.runners.APIAbilityHandler.AbilityStarted
 import sp.runners.API_OperationRunner.ForceComplete
 import sp.runners.{API_OperationRunner => api}

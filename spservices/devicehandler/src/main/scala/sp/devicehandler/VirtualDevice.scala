@@ -11,8 +11,8 @@ import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Subscribe}
 import akka.persistence._
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages.APISP
-import sp.messages.Pickles._
+import APISP
+import Pickles._
 
 package APIVirtualDevice {
   sealed trait Requests

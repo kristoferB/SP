@@ -10,14 +10,13 @@ lazy val akka = Seq(
   "com.typesafe.akka" %% "akka-testkit" % "2.4.16",
   "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test",
   "org.slf4j" % "slf4j-simple" % "1.7.7",
-  "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.1",
-  "com.lihaoyi" %% "upickle" % "0.4.3"
+  "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.1"
 )
 
 lazy val json = Seq(
-  "com.github.nscala-time" %% "nscala-time" % "2.12.0",
-  "org.json4s" %% "json4s-native" % "3.4.0",
-  "org.json4s" %% "json4s-ext" % "3.4.0"
+  "com.typesafe.play" %% "play-json" % "2.6.0",
+  "org.julienrf" %% "play-json-derived-codecs" % "4.0.0",
+  "io.github.cquiroz" %% "scala-java-time" % "2.0.0-M12"
 )
 
 lazy val support = Seq(

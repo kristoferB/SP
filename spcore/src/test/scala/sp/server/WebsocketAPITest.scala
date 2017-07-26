@@ -104,7 +104,7 @@ class WebsocketAPITest(_system: ActorSystem) extends TestKit(_system) with Impli
 //    }
 
 
-    import sp.messages.Pickles._
+    import Pickles._
 
 
 //    "Create a model"  in {

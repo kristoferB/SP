@@ -1,9 +1,7 @@
 package sp
 
 import org.scalatest._
-import sp.messages.APISP
-import sp.messages.Pickles._
-import sp.domain._
+import sp.domain.{APISP, _}
 import sp.domain.Logic._
 
 
@@ -46,32 +44,21 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
 
     }
 
-    "testing some header union" in {
-      val h = SPHeader(from = "tomte", to = "kalle")
-      val b = APISP.SPACK()
-      val x = SPMessage.make(h, b)
 
-      val headerEx = SPHeader(from = "upd", to = "yes")
-
-      val updM = x.extendHeader(headerEx)
-
-      println(updM)
-
-    }
 
     "extract info" in {
-      val x = L4(L3(L2(L1("JA"))))
-      val p = toPickle(x)
-
-      val p2 = toPickle(10)
-
-      val a = p / "d" / "c" / "b" / "a"
-      val b = p / "d" / "k" / "b" / "a"
-      val c = p2 / "a"
-
-      assert(a.contains(toPickle("JA")))
-      assert(b.isEmpty)
-      assert(c.isEmpty)
+//      val x = L4(L3(L2(L1("JA"))))
+//      val p = toPickle(x)
+//
+//      val p2 = toPickle(10)
+//
+//      val a = p / "d" / "c" / "b" / "a"
+//      val b = p / "d" / "k" / "b" / "a"
+//      val c = p2 / "a"
+//
+//      assert(a.contains(toPickle("JA")))
+//      assert(b.isEmpty)
+//      assert(c.isEmpty)
 
 
     }

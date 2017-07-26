@@ -1,67 +1,75 @@
 package sp
 
 import java.util.UUID
-
-import org.json4s.JsonAST.JValue
-import org.json4s._
-
+import play.api.libs.json._
 import scala.util.Try
+import org.threeten.bp._
 
 /**
  * Created by kristofer on 15-05-27.
  */
 package object domain {
+  /**
+    * The default data structure to store info about an item
+    * in SP. Is a json structure and can store any case class
+    * that has an implicit format defined for it.
+    */
+  type SPAttributes = JsObject
+  type SPValue = JsValue
 
-  type SPAttributes = JObject
-  type SPValue = JValue
+  /**
+    * A helper type that any case class that has a implicit format in
+    * scope can be converted into. Else, a compile error will happen.
+    */
+  type AttributeWrapper = Json.JsValueWrapper
+
+  /**
+    * The id used in SP. A standard UUID.
+    */
   type ID = java.util.UUID
 
+
+
+
   object SPAttributes {
-    def apply[T](pair: (String, T)*)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]): SPAttributes = {
-      val res = pair.map{
-        case (key, value) => key -> SPValue(value)
-      }
-      JObject(res.toList)
+    def apply(pair: (String, AttributeWrapper)*): SPAttributes = {
+      Json.obj(pair:_*)
     }
-    def apply(): SPAttributes = JObject()
-    def apply(fs: List[JField]): SPAttributes = JObject(fs.toList)
-    def fromJson(json: String) = {
-      try {
-        org.json4s.native.JsonMethods.parse(json) match {
-          case x: SPAttributes => Some(x)
-          case x: JValue => None
-        }
-      } catch {
-        case e: Exception => None
+    def apply(): SPAttributes = JsObject.empty
+    def fromJson(json: String): Try[SPAttributes] = {
+      Try {
+        Json.parse(json).asInstanceOf[SPAttributes]
       }
     }
-
-
   }
 
   object SPValue {
-    def apply[T](v: T)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]): SPValue = {
-      Extraction.decompose(v)
+    def apply(v: AttributeWrapper): SPValue = {
+      // should always work
+      // hack to be able to use JsonJsValueWrapper
+      Json.arr(v).value.head
     }
-    def apply(s: String): SPValue = JString(s)
-    def apply(i: Int): SPValue = JInt(i)
-    def apply(b: Boolean): SPValue = JBool(b)
-    def fromJson(json: String): Option[SPValue] = {
-      try {
-        Some(org.json4s.native.JsonMethods.parse(json))
-      } catch {
-        case e: Exception => None
-      }
-    }
-    def empty: SPValue = JObject()
 
+    def fromJson(json: String): Try[SPValue] = {
+      Try { Json.parse(json) }
+    }
+    def empty: SPValue = JsObject.empty
   }
 
   object ID {
-    def newID = UUID.randomUUID()
+    def newID: ID = UUID.randomUUID()
     def makeID(id: String): Option[ID] = Try{UUID.fromString(id)}.toOption
-    def isID(str: String) = makeID(str).nonEmpty
+    def isID(str: String): Boolean = makeID(str).nonEmpty
   }
+
+
+
+
+
+
+
+
+
 
 
 }

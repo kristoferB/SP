@@ -8,18 +8,8 @@ import sp.domain.logic._
 object Logic extends
   AttributeLogics with
   StateLogics with
-  JsonLogics with
   OperationLogics with
   ThingLogics with
   PropositionConditionLogics with
   StructLogics with
   JsonImplicit
-
-object LogicNoImplicit extends
-  AttributeLogics with
-  StateLogics with
-  JsonLogics with
-  OperationLogics with
-  ThingLogics with
-  PropositionConditionLogics with
-  StructLogics

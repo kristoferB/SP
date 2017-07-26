@@ -15,6 +15,7 @@ object Action {
   }
 
   implicit def strToProp(str: String)(implicit idables: List[IDAble] = List()): Action = parseStr(str, idables).get
+
 }
 
 
@@ -29,7 +30,6 @@ object Proposition {
   }
 
   implicit def strToProp(str: String)(implicit idables: List[IDAble] = List()): Proposition = parseStr(str, idables).get
-
 }
 
 
@@ -58,8 +58,8 @@ sealed trait StateUpdater
 
 object StateEvaluator {
   implicit def idToSE(id: ID): SVIDEval = SVIDEval(id)
-  implicit def strToSE(value: String): ValueHolder = ValueHolder(org.json4s.JString(value))
-  implicit def intToSE(value: Int): ValueHolder = ValueHolder(org.json4s.JInt(value))
+  implicit def strToSE(value: String): ValueHolder = ValueHolder(SPValue(value))
+  implicit def intToSE(value: Int): ValueHolder = ValueHolder(SPValue(value))
 }
 
 case class SVIDEval(id: ID) extends StateEvaluator

@@ -1,164 +1,109 @@
 package sp.domain.logic
 
-import org.json4s._
-//import org.json4s.native.Serialization._
-
+import play.api.libs.json._
+import scala.util.Try
+import org.threeten.bp._
 import sp.domain.{SPValue, SPAttributes}
 
 /**
- * You should import AttributeLogic._
- * Also implict val f = formats
- *
- * Created by kristofer on 15-05-26.
- */
-object AttributeLogic extends AttributeLogics {
-
-}
+  * To use the attributes, you also need to include the json formaters
+  * import sp.domain.Logic._ to get it all
+  */
+object AttributeLogic extends AttributeLogics
 
 trait AttributeLogics {
-  import JsonLogic._
-  import sp.domain.ID
+  // Attribute logic
 
-  implicit def strToJ(x: String): JValue = JString(x)
-  implicit def intToJ(x: Int): JValue = JInt(x)
-  implicit def boolToJ(x: Boolean): JValue = JBool(x)
-  implicit def doubleToJ(x: Double): JValue = JDouble(x)
-  implicit def idToJ(x: ID): JValue = JString(x.toString())
+  implicit def stringToSPValue(x: String): SPValue = SPValue(x)
+  implicit def intToSPValue(x: Int): SPValue = SPValue(x)
+  implicit def boolToSPValue(x: Boolean): SPValue = SPValue(x)
 
-
-  implicit class valueLogic(value: SPValue) {
-    def to[T](implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = {
-      tryWithOption(
-        value.extract[T]
-      )
+  implicit class SPValueLogic(value: SPValue) {
+    def to[T](implicit fjs: Reads[T]) = {
+      Try{ value.as[T] }.toOption
     }
-    import org.json4s.native.JsonMethods._
-    def pretty = org.json4s.native.JsonMethods.pretty(render(value))
-    def toJson = org.json4s.native.JsonMethods.compact(render(value))
+    def pretty = Json.prettyPrint(value)
+    def toJson = Json.stringify(value)
+
+    /**
+      * Special equal that also handles numbers and bools that are wrapped in strings
+      * @param obj
+      * @return
+      */
+    def ===(obj: scala.Any): Boolean = {
+      super.equals(obj) ||
+        (obj.isInstanceOf[SPValue] &&
+          (value.fixStringedTypes == obj.asInstanceOf[SPValue].fixStringedTypes))
+    }
+
+    def fixStringedTypes = {
+      value match {
+        case JsString(str) if str.nonEmpty =>
+          Try{SPValue(str.toInt)}
+            .orElse(Try{SPValue(str.toBoolean)})
+            .orElse(Try{SPValue(str.toDouble)})
+            .getOrElse(value)
+        case _ => value
+      }
+    }
   }
 
 
-  implicit class messLogic(x: SPAttributes) {
-    val obj = x.obj
-    def addTimeStamp = {
-      val m = obj.filterNot(_._1 == "time") :+ ("time" -> timeStamp)
-      SPAttributes(m)
-    }
-    def +(kv: (String, Any))(implicit formats : org.json4s.Formats) = {
-      val filtered = obj.filter(_._1 != kv._1)
-      SPAttributes(filtered :+ kv._1->Extraction.decompose(kv._2))
-    }
-    def +(xs: JObject) = {
-      val keys = xs.obj.map(_._1).toSet
-      val filtered = obj.filter(k => !keys.contains(k._1))
-      SPAttributes(filtered ++ xs.obj)
+
+
+  def timeStamp = {
+    import JsonLogic._
+    Json.toJson(ZonedDateTime.now)
+  }
+
+
+  implicit class SPAttributesLogic(x: SPAttributes) {
+    def addTimeStamp() = {
+      x + ("time" -> timeStamp)
     }
 
-    def merge(xs: SPAttributes) = x.+(xs)
-
-    def dig[T](keys: String*)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]): Option[T] = {
-      def req(list: List[String], obj: JObject): Option[T] = list match {
-        case Nil => None
-        case x :: Nil => {
-          for {
-            v <- obj.get(x)
-            t <- tryWithOption(v.extract[T])
-          } yield t
-        }
-        case x :: xs => {
-          for {
-            v <- obj.get(x) if v.isInstanceOf[JObject]
-            res <- req(xs, v.asInstanceOf[JObject])
-          } yield res
-        }
-      }
-      req(keys.toList, x)
-    }
+    def merge(xs: SPAttributes) = x.deepMerge(xs)
 
     def get(key: String) = {
-      val temp = if (key.nonEmpty) x \ key else x
-      temp match {
-        case JNothing => None
-        case res: JValue => Some(res)
+      x \ key match {
+        case JsDefined(res) => Some(res)
+        case e: JsUndefined if key.isEmpty => Some(x)
+        case e: JsUndefined => None
       }
     }
 
-    def getAs[T](key: String)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = {
+    def getAs[T](key: String = "")(implicit fjs: Reads[T]) = {
       for {
         x <- get(key)
-        t <- tryWithOption(x.extract[T])
+        t <- x.asOpt[T]
       } yield t
     }
 
-    def find(key: String) = x \\ key match {
-      case JObject(xs) => xs.map(_._2)
-      case x: JValue => List(x)
+    def find(key: String) = x \\ key toList
+
+
+    def findAs[T](key: String)(implicit fjs: Reads[T]) = {
+      find(key).flatMap(_.asOpt[T])
     }
 
-    def findAs[T](key: String)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = {
-      for {
-        x <- find(key)
-        t <- tryWithOption(x.extract[T])
-      } yield t
-    }
-
-    // TODO: Update the api to better handle objects in arrays KB 150907.
-
-    def findObjects(f: List[JField] => Boolean) = {
-      val t = x.filter {
-        case JObject(xs) => f(xs)
-        case _ => false
+    def findType[T](implicit fjs: Reads[T]): List[T] = {
+      def extrType(xs: List[JsValue]): List[T] = {
+        xs.collect {
+          case l: JsObject =>
+            l.asOpt[T] match {
+              case Some(found) => List(found)
+              case None => l.findType[T]
+            }
+          case l: JsArray =>
+            extrType(l.value.toList)
+        }.flatten
       }
-      t.asInstanceOf[List[SPAttributes]]
-    }
-    def findObjectsAs[T](f: List[JField] => Boolean)(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = {
-      for {
-        value <- findObjects(f)
-        t <- tryWithOption(value.extract[T])
-      } yield t
+      extrType(x.values.toList)
     }
 
-    def findObjectsWithKeys(keys: List[String]) = {
-      x.filterField {
-        case JField(key, JObject(xs)) => {
-          val inObj = xs.map(_._1).toSet
-          keys.forall(inObj contains)
-        }
-        case _ => false
-      }
-    }
-    def findObjectsWithKeysAs[T](keys: List[String])(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = {
-      for {
-        value <- findObjectsWithKeys(keys)
-        t <- tryWithOption(value._2.extract[T])
-      } yield (value._1, t)
-    }
-    def findObjectsWithField(fields: List[JField]) = {
-      x.filterField {
-        case JField(key, JObject(xs)) => {
-          fields.forall(xs contains)
-        }
-        case _ => false
-      }
-    }
-    def findObjectsWithFieldAs[T](fields: List[JField])(implicit formats : org.json4s.Formats, mf : scala.reflect.Manifest[T]) = {
-      for {
-        value <- findObjectsWithField(fields)
-        t <- tryWithOption(value._2.extract[T])
-      } yield (value._1, t)
-    }
-
-    import org.json4s.native.JsonMethods._
-    def pretty = org.json4s.native.JsonMethods.pretty(render(x))
-    def toJson = org.json4s.native.JsonMethods.compact(render(x))
-  }
 
 
-  def tryWithOption[T](t: => T): Option[T] = {
-    try {
-      Some(t)
-    } catch {
-      case e: Exception => None
-    }
+    def pretty = Json.prettyPrint(x)
+    def toJson = Json.stringify(x)
   }
 }

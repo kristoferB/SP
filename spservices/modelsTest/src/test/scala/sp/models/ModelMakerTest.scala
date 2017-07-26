@@ -11,7 +11,7 @@ import scala.util._
 import akka.cluster.pubsub._
 import DistributedPubSubMediator.{Publish, Subscribe}
 import org.json4s.ShortTypeHints
-import sp.messages.Pickles.{SPHeader, SPMessage}
+import Pickles.{SPHeader, SPMessage}
 
 import scala.concurrent.duration._
 

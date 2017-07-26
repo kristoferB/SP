@@ -5,9 +5,9 @@ import akka.actor._
 import scala.util.{Failure, Random, Success, Try}
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages.APISP.StatusResponse
+import APISP.StatusResponse
 import sp.messages._
-import sp.messages.Pickles._
+import Pickles._
 
 
 

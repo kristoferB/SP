@@ -7,7 +7,7 @@ import scala.concurrent.duration._
 import akka.persistence._
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages.Pickles._
+import Pickles._
 import sp.messages._
 import sp.models.APIModels.CreateModel
 
