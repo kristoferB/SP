@@ -7,7 +7,8 @@ object SopMakerCSS extends Theming.SPStyleSheet {
   import dsl._
 
   val sopComponent = style(
-    position.absolute
+    position.absolute,
+    display.flex
   )
 
   this.addToDocument()
