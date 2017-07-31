@@ -39,6 +39,12 @@ case class RenderSequenceElement(w: Float, h:Float, self: RenderNode) extends Re
 case class Pos(x: Float, y: Float)
 
 object SopMakerWidget {
+  val parallelBarHeight = 0f//45f
+  val opHeight = 50f
+  val opWidth = 60f
+  val opSpacingX = 10f
+  val opSpacingY = 10f
+
   case class State(drag: String, drop: String, sop: List[String])
 
   private class Backend($: BackendScope[Unit, State]) {
@@ -62,43 +68,71 @@ object SopMakerWidget {
       Callback.log("Dropping " + drag + " onto " + drop)
     }
 
-    def op(opname: String, x: Float, y: Float) =
-      
-    <.span(
-        // extreme stylesheeting
-        ^.className := (
-          new SopMakerCSS.Position(
-            x.toInt,
-            y.toInt
-          )
-        ).position.htmlClass,
-        SopMakerCSS.sopComponent,
+    def op(opname: String, x: Float, y: Float) = <.span(
+      // extreme stylesheeting
+      ^.className := (
+        new SopMakerCSS.Position(
+          x.toInt,
+          y.toInt
+        )
+      ).position.htmlClass,
+      SopMakerCSS.sopComponent,
 
-        OnDragMod(handleDrag(opname)),
-        OnDropMod(handleDrop(opname)),
-        svg.svg(
-          svg.width := 40,
-          svg.height := 40,
-          svg.rect(
-            svg.x:=0,
-            svg.y:=0,
-            svg.width:=40,
-            svg.height:=40,
-            svg.rx:=5, svg.ry:=5,
-            svg.fill := "white",
-            svg.stroke:="black",
-            svg.strokeWidth:=1
-          ),
-          svg.text(
-            svg.x:="50%",
-            svg.y:="50%",
-            svg.textAnchor:="middle",
-            svg.dy:=".3em", opname
-          )
+      OnDragMod(handleDrag(opname)),
+      OnDropMod(handleDrop(opname)),
+      svg.svg(
+        svg.width := opWidth.toInt,
+        svg.height := opHeight.toInt,
+        svg.rect(
+          svg.x:=0,
+          svg.y:=0,
+          svg.width:=opWidth.toInt,
+          svg.height:=opHeight.toInt,
+          svg.rx:=5, svg.ry:=5,
+          svg.fill := "white",
+          svg.stroke:="black",
+          svg.strokeWidth:=1
+        ),
+        svg.text(
+          svg.x:="50%",
+          svg.y:="50%",
+          svg.textAnchor:="middle",
+          svg.dy:=".3em", opname
         )
       )
+    )
 
-    val gridSize = 100
+    def parallelBars(x: Float, y: Float, w:Float) = <.span(
+      ^.className := (
+        new SopMakerCSS.Position(
+          (x - w/2 + opWidth/2).toInt,
+          y.toInt
+        )
+      ).position.htmlClass,
+      SopMakerCSS.sopComponent,
+      svg.svg(
+        svg.width := w.toInt,
+        svg.height := 12,
+        svg.rect(
+          svg.x:=0,
+          svg.y:=0,
+          svg.width:=w.toInt,
+          svg.height:=4,
+          svg.rx:=0, svg.ry:=0,
+          svg.fill := "black",
+          svg.strokeWidth:=1
+        ),
+        svg.rect(
+          svg.x:=0,
+          svg.y:=8,
+          svg.width:=w.toInt,
+          svg.height:=4,
+          svg.rx:=0, svg.ry:=0,
+          svg.fill := "black",
+          svg.strokeWidth:=1
+        )
+      )
+    )
 
     var ops = List(
       Operation("op1"),
@@ -117,17 +151,26 @@ object SopMakerWidget {
     val idm = ops.map(o=>o.id -> o).toMap
 
     def render(state: State) = {
-
       val fakeSop = Sequence(List(
         Sequence(
-          List(SOP(ops(7)), SOP(ops(7)), SOP(ops(8)))),
+          List(SOP(ops(7)), SOP(ops(8)))),
         Parallel(
           List(
+            SOP(ops(0)),
             SOP(ops(0)),
             SOP(ops(1)),
             SOP(ops(2)),
             Parallel(
-              List(SOP(ops(11)) ,SOP(ops(11)))
+              List(
+                SOP(ops(11)),
+                SOP(ops(11)),
+                Parallel(
+                  List(
+                    SOP(ops(11)),
+                    SOP(ops(11))
+                  )
+                )
+              )
             )
           )
         ),
@@ -139,6 +182,20 @@ object SopMakerWidget {
         Sequence(
           List(SOP(ops(7)), SOP(ops(8)))),
         Parallel(
+          List(
+            SOP(ops(9)),
+            Sequence(
+              List(
+                Parallel(
+                  List( SOP(ops(9)), SOP(ops(10)))),
+                Parallel(
+                  List( SOP(ops(9)), SOP(ops(10)),SOP(ops(10))))
+             
+              ))
+          )),
+        Parallel(
+          List( SOP(ops(9)), SOP(ops(10)), SOP(ops(10)) )),
+        Parallel(
           List( SOP(ops(9)), SOP(ops(10)) ))
       ))
 
@@ -148,25 +205,32 @@ object SopMakerWidget {
         <.h2("Insert sop here:"),
         OnDataDrop(string => Callback.log("Received data: " + string)),
         <.br(),
-        getRenderTree(traverseTree(fakeSop), 2*gridSize, 2*gridSize)
+        getRenderTree(traverseTree(fakeSop), 100f, 100f)
       )
     }
     
     def getRenderTree(node: RenderNode, xOffset: Float, yOffset: Float): TagMod = {
-     // println(node)
       node match {
         case n: RenderParallel => {
+          var w = 0f
           <.div("parallel",
-            (for{c <- (0 to n.children.length-1)} yield
-            {getRenderTree(n.children(c), (xOffset + (c + 0.5f - n.w/2)*gridSize), yOffset)}).toTagMod
+            //  parallelBars(xOffset,yOffset,n.w*gridSize)
+            n.children.collect{case e:RenderNode => {
+              w += e.w
+              getRenderTree(
+                e,
+                xOffset + w - e.w,
+                yOffset + opSpacingY + parallelBarHeight
+              )
+            }}.toTagMod
           )
         }
         case n: RenderSequence => <.div("sequence",
-           getRenderSequence(n, xOffset, yOffset)
+          getRenderSequence(n, xOffset, yOffset)
         )
         case n: RenderHierarchy => {
           val opname = idm.get(n.sop.operation).map(_.name).getOrElse("[unknown op]")
-          op(opname, xOffset, yOffset)
+          op(opname, xOffset, yOffset + opSpacingY)
         }
         case _ => <.div("shuold not happen right now")
       }
@@ -175,9 +239,9 @@ object SopMakerWidget {
     def getRenderSequence(seq: RenderSequence, xOffset: Float, yOffset: Float): TagMod = {
       var h = yOffset
       seq.children.collect{case q: RenderSequenceElement => {
-        h += q.h * gridSize
+        h += q.h
         <.div("sequence element",
-          getRenderTree( q.self, xOffset, h - q.h * gridSize )
+          getRenderTree( q.self, xOffset, h - q.h )
         )
       }}.toTagMod
     }
@@ -190,14 +254,14 @@ object SopMakerWidget {
           children = sop.sop.collect{case e => traverseTree(e)}
         )
         case s: Sequence => traverseSequence(s.sop)
-        case s: Hierarchy => RenderHierarchy(1,1, s)
+        case s: Hierarchy => RenderHierarchy(opWidth,opHeight,s)
       }
     }
 
     def traverseSequence(s: List[SOP]): RenderSequence = {
       if(!s.isEmpty) RenderSequence(
-        h = 1,
-        w = 1,
+        h = 60,
+        w = 60,
         children = s.collect{case e: SOP => {
           RenderSequenceElement(
             getTreeWidth(e),
@@ -211,12 +275,14 @@ object SopMakerWidget {
     def getTreeWidth(sop: SOP): Float = {
       sop match {
         // groups are as wide as the sum of all children widths
-        case s: Parallel => s.sop.map(e => getTreeWidth(e)).foldLeft(0f)(_ + _)
+        case s: Parallel => s.sop.map(e => getTreeWidth(e)).sum
         case s: Sequence => { // sequences are as wide as their widest elements
           if(s.sop.isEmpty) 0
           else math.max(getTreeWidth(s.sop.head), getTreeWidth(Sequence(s.sop.tail)))
         }
-        case s: Hierarchy => 1
+        case s: Hierarchy => {
+          opWidth
+        }
       }
     }
 
@@ -224,15 +290,15 @@ object SopMakerWidget {
       sop match  {
         case s: Parallel => {
           if(s.sop.isEmpty) 0
-          else math.max(getTreeHeight(s.sop.head), getTreeHeight(Parallel(s.sop.tail)))
+          else  math.max(getTreeHeight(s.sop.head) + opSpacingY, getTreeHeight(Parallel(s.sop.tail)))
         }
         case s: Sequence => {
           s.sop.map(e => getTreeHeight(e)).foldLeft(0f)(_ + _)
         }
-        case s:Hierarchy => 1
+        case s: Hierarchy => opHeight + opSpacingY
         case _ => {println("woops"); -1}
       }
-   }
+    }
 
     def onUnmount() = Callback {
       println("Unmounting sopmaker")
