@@ -43,7 +43,7 @@ object SopMakerWidget {
   val opHeight = 50f
   val opWidth = 60f
   val opSpacingX = 10f
-  val opSpacingY = 10f
+  val opSpacingY = 20f
 
   case class State(drag: String, drop: String, sop: List[String])
 
@@ -105,7 +105,7 @@ object SopMakerWidget {
     def parallelBars(x: Float, y: Float, w:Float) = <.span(
       ^.className := (
         new SopMakerCSS.Position(
-          (x - w/2 + opWidth/2).toInt,
+          (x + opWidth/2).toInt,
           y.toInt
         )
       ).position.htmlClass,
@@ -175,9 +175,40 @@ object SopMakerWidget {
           )
         ),
         Parallel(
+          List(
+            Parallel(
+              List(
+                SOP(ops(11)),
+                SOP(ops(11))
+              )
+            ),
+            Parallel(
+              List(
+                SOP(ops(11)),
+                SOP(ops(11))
+              )
+            ),
+            Parallel(
+              List(
+                SOP(ops(11)),
+                SOP(ops(11))
+              )
+            )
+          )
+        ),
+
+        Parallel(
           List( SOP(ops(4)), SOP(ops(5)), SOP(ops(6)),
             Sequence(
-              List(SOP(ops(7)), SOP(ops(7)), SOP(ops(8))))
+              List(
+                SOP(ops(7)),
+                SOP(ops(7)),
+                SOP(ops(8)),
+                Parallel(
+                  List( SOP(ops(9)), SOP(ops(10)) ))
+              )
+            ),
+            SOP(ops(7))
           )),
         Sequence(
           List(SOP(ops(7)), SOP(ops(8)))),
@@ -190,7 +221,6 @@ object SopMakerWidget {
                   List( SOP(ops(9)), SOP(ops(10)))),
                 Parallel(
                   List( SOP(ops(9)), SOP(ops(10)),SOP(ops(10))))
-             
               ))
           )),
         Parallel(
@@ -214,15 +244,17 @@ object SopMakerWidget {
         case n: RenderParallel => {
           var w = 0f
           <.div("parallel",
-            //  parallelBars(xOffset,yOffset,n.w*gridSize)
-            n.children.collect{case e:RenderNode => {
-              w += e.w
-              getRenderTree(
+            parallelBars(xOffset - n.w/2, yOffset,n.w),
+            n.children.collect{case e: RenderNode => {
+              val child = getRenderTree(
                 e,
-                xOffset + w - e.w,
+                xOffset + w + e.w/2 -n.w/2, 
                 yOffset + opSpacingY + parallelBarHeight
               )
-            }}.toTagMod
+              w += e.w
+              child
+            }}.toTagMod,
+            parallelBars(xOffset - n.w/2, yOffset + n.h,n.w)
           )
         }
         case n: RenderSequence => <.div("sequence",
@@ -253,16 +285,20 @@ object SopMakerWidget {
           h = getTreeHeight(s),
           children = sop.sop.collect{case e => traverseTree(e)}
         )
-        case s: Sequence => traverseSequence(s.sop)
-        case s: Hierarchy => RenderHierarchy(opWidth,opHeight,s)
+        case s: Sequence => traverseSequence(s)
+        case s: Hierarchy => RenderHierarchy(
+          w = getTreeWidth(s),
+          h = getTreeHeight(s),
+          sop = s
+        )
       }
     }
 
-    def traverseSequence(s: List[SOP]): RenderSequence = {
-      if(!s.isEmpty) RenderSequence(
-        h = 60,
-        w = 60,
-        children = s.collect{case e: SOP => {
+    def traverseSequence(s: Sequence): RenderSequence = {
+      if(!s.sop.isEmpty) RenderSequence(
+        h = getTreeHeight(s),
+        w = getTreeWidth(s),
+        children = s.sop.collect{case e: SOP => {
           RenderSequenceElement(
             getTreeWidth(e),
             getTreeHeight(e),
@@ -281,7 +317,7 @@ object SopMakerWidget {
           else math.max(getTreeWidth(s.sop.head), getTreeWidth(Sequence(s.sop.tail)))
         }
         case s: Hierarchy => {
-          opWidth
+          opWidth + opSpacingX
         }
       }
     }
@@ -290,7 +326,7 @@ object SopMakerWidget {
       sop match  {
         case s: Parallel => {
           if(s.sop.isEmpty) 0
-          else  math.max(getTreeHeight(s.sop.head) + opSpacingY, getTreeHeight(Parallel(s.sop.tail)))
+          else  math.max(getTreeHeight(s.sop.head) + opSpacingY*2, getTreeHeight(Parallel(s.sop.tail)))
         }
         case s: Sequence => {
           s.sop.map(e => getTreeHeight(e)).foldLeft(0f)(_ + _)
