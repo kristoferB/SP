@@ -40,8 +40,8 @@ case class Pos(x: Float, y: Float)
 
 object SopMakerWidget {
   val parallelBarHeight = 12f//45f
-  val opHeight = 50f
-  val opWidth = 60f
+  val opHeight = 80f
+  val opWidth = 80f
   val opSpacingX = 10f
   val opSpacingY = 10f
 
@@ -68,174 +68,86 @@ object SopMakerWidget {
       Callback.log("Dropping " + drag + " onto " + drop)
     }
 
-    def op(opname: String, x: Float, y: Float) = <.span(
-      // extreme stylesheeting
-      ^.className := (
-        new SopMakerCSS.Position(
-          x.toInt,
-          y.toInt
-        )
-      ).position.htmlClass,
-      SopMakerCSS.sopComponent,
 
-      OnDragMod(handleDrag(opname)),
-      OnDropMod(handleDrop(opname)),
+    val wTemp = getTreeWidth(ExampleSops.giantSop)
+    val hTemp = getTreeHeight(ExampleSops.giantSop)
+    val paddingTop = 50f
+    val paddingLeft = 50f
+
+    def op(opname: String, x: Float, y: Float) =
       svg.svg(
-        svg.width := opWidth.toInt,
-        svg.height := opHeight.toInt,
-        svg.rect(
-          svg.x:=0,
-          svg.y:=0,
-          svg.width:=opWidth.toInt,
-          svg.height:=opHeight.toInt,
-          svg.rx:=5, svg.ry:=5,
-          svg.fill := "white",
-          svg.stroke:="black",
-          svg.strokeWidth:=1
-        ),
-        svg.text(
-          svg.x:="50%",
-          svg.y:="50%",
-          svg.textAnchor:="middle",
-          svg.dy:=".3em", opname
+        SopMakerCSS.sopComponent,
+        svg.width := "100%",
+        svg.height := "100%",
+        svg.svg(
+          svg.width := opWidth.toInt,
+          svg.height:= opHeight.toInt,
+          svg.x := x.toInt,
+          svg.y := y.toInt,
+          OnDragMod(handleDrag(opname)),
+          OnDropMod(handleDrop(opname)),
+          svg.rect(
+            svg.x := 0,
+            svg.y := 0,
+            svg.width := opWidth.toInt,
+            svg.height:= opHeight.toInt,
+            svg.rx := 6, svg.ry := 6,
+            svg.fill := "white",
+            svg.stroke := "black",
+            svg.strokeWidth := 1
+          ),
+          svg.text(
+            svg.x := "50%",
+            svg.y := "50%",
+            svg.textAnchor := "middle",
+            svg.dy := ".3em", opname
+          )
+        )     
+      )
+
+    def parallelBars(x: Float, y: Float, w:Float) =
+      svg.svg(
+        SopMakerCSS.sopComponent,
+        svg.width := "100%",
+        svg.height := "100%",
+        svg.svg(
+          SopMakerCSS.sopComponent,
+          svg.width := w.toInt,
+          svg.height := 12,
+          svg.rect(
+            svg.x := (x + opWidth/2).toInt,
+            svg.y := y.toInt,
+            svg.width:=w.toInt,
+            svg.height:=4,
+            svg.fill := "black",
+            svg.strokeWidth:=1
+          ),
+          svg.rect(
+            svg.x := (x + opWidth/2).toInt,
+            svg.y := y.toInt + 8,
+            svg.width:=w.toInt,
+            svg.height:=4,
+            svg.fill := "black",
+            svg.strokeWidth:=1
+          )
         )
       )
-    )
 
-    def parallelBars(x: Float, y: Float, w:Float) = <.span(
-      ^.className := (
-        new SopMakerCSS.Position(
-          (x + opWidth/2).toInt,
-          y.toInt
-        )
-      ).position.htmlClass,
-      SopMakerCSS.sopComponent,
-      svg.svg(
-        svg.width := w.toInt,
-        svg.height := 12,
-        svg.rect(
-          svg.x:=0,
-          svg.y:=0,
-          svg.width:=w.toInt,
-          svg.height:=4,
-          svg.rx:=0, svg.ry:=0,
-          svg.fill := "black",
-          svg.strokeWidth:=1
-        ),
-        svg.rect(
-          svg.x:=0,
-          svg.y:=8,
-          svg.width:=w.toInt,
-          svg.height:=4,
-          svg.rx:=0, svg.ry:=0,
-          svg.fill := "black",
-          svg.strokeWidth:=1
-        )
-      )
-    )
-
-    var ops = List(
-      Operation("op1"),
-      Operation("op2"),
-      Operation("op3"),
-      Operation("op4"),
-      Operation("op5"),
-      Operation("op6"),
-      Operation("op7"),
-      Operation("op8"),
-      Operation("op9"),
-      Operation("op10"),
-      Operation("op11"),
-      Operation("test")
-    )
-    val idm = ops.map(o=>o.id -> o).toMap
+    val idm = ExampleSops.ops.map(o=>o.id -> o).toMap
 
     def render(state: State) = {
-      val fakeSop = Sequence(List(
-        Sequence(
-          List(SOP(ops(7)), SOP(ops(8)))),
-        Parallel(
-          List(
-            SOP(ops(0)),
-            SOP(ops(0)),
-            SOP(ops(1)),
-            SOP(ops(2)),
-            Parallel(
-              List(
-                SOP(ops(11)),
-                SOP(ops(11)),
-                Parallel(
-                  List(
-                    SOP(ops(11)),
-                    SOP(ops(11))
-                  )
-                )
-              )
-            )
-          )
-        ),
-        Parallel(
-          List(
-            Parallel(
-              List(
-                SOP(ops(11)),
-                SOP(ops(11))
-              )
-            ),
-            Parallel(
-              List(
-                SOP(ops(11)),
-                SOP(ops(11))
-              )
-            ),
-            Parallel(
-              List(
-                SOP(ops(11)),
-                SOP(ops(11))
-              )
-            )
-          )
-        ),
-
-        Parallel(
-          List( SOP(ops(4)), SOP(ops(5)), SOP(ops(6)),
-            Sequence(
-              List(
-                SOP(ops(7)),
-                SOP(ops(7)),
-                SOP(ops(8)),
-                Parallel(
-                  List( SOP(ops(9)), SOP(ops(10)) ))
-              )
-            ),
-            SOP(ops(7))
-          )),
-        Sequence(
-          List(SOP(ops(7)), SOP(ops(8)))),
-        Parallel(
-          List(
-            SOP(ops(9)),
-            Sequence(
-              List(
-                Parallel(
-                  List( SOP(ops(9)), SOP(ops(10)))),
-                Parallel(
-                  List( SOP(ops(9)), SOP(ops(10)),SOP(ops(10))))
-              ))
-          )),
-        Parallel(
-          List( SOP(ops(9)), SOP(ops(10)), SOP(ops(10)) )),
-        Parallel(
-          List( SOP(ops(9)), SOP(ops(10)) ))
-      ))
-
-      println(traverseTree(fakeSop))
-
       <.div(
-        <.h2("Insert sop here:"),
+      //  ^.className := SopMakerCSS.flex.htmlClass,
         OnDataDrop(string => Callback.log("Received data: " + string)),
-        <.br(),
-        getRenderTree(traverseTree(fakeSop), 100f, 100f)
+        svg.svg(
+          svg.width := (wTemp + paddingLeft* 2).toInt,
+        svg.height :=( hTemp + paddingTop * 2).toInt,
+        
+          getRenderTree(traverseTree(
+            ExampleSops.giantSop),
+            getTreeWidth(ExampleSops.giantSop)*0.5f + paddingLeft,
+            paddingTop)
+        )
       )
     }
     
@@ -243,12 +155,12 @@ object SopMakerWidget {
       node match {
         case n: RenderParallel => {
           var w = 0f
-          <.div("parallel",
-            parallelBars(xOffset - n.w/2 + opSpacingX/2, yOffset,n.w -opSpacingX),
+          svg.svg(
+            parallelBars(xOffset - n.w/2 + opSpacingX/2, yOffset,n.w - opSpacingX),
             n.children.collect{case e: RenderNode => {
               val child = getRenderTree(
                 e,
-                xOffset + w + e.w/2 -n.w/2 + opSpacingX, 
+                xOffset + w + e.w/2 -n.w/2 + opSpacingX,
                 yOffset  + parallelBarHeight + opSpacingY
               )
               w += e.w
@@ -256,15 +168,15 @@ object SopMakerWidget {
             }}.toTagMod,
             parallelBars(xOffset - n.w/2 +opSpacingX/2, yOffset + n.h-parallelBarHeight-opSpacingY,n.w -opSpacingX)
           )
+          
         }
-        case n: RenderSequence => <.div("sequence",
-          getRenderSequence(n, xOffset, yOffset)
-        )
+        case n: RenderSequence =>  getRenderSequence(n, xOffset, yOffset)
+          
         case n: RenderHierarchy => {
           val opname = idm.get(n.sop.operation).map(_.name).getOrElse("[unknown op]")
           op(opname, xOffset, yOffset)
         }
-        case _ => <.div("shuold not happen right now")
+        case _ => <.span("shuold not happen right now")
       }
     }
 
@@ -272,9 +184,7 @@ object SopMakerWidget {
       var h = yOffset
       seq.children.collect{case q: RenderSequenceElement => {
         h += q.h
-        <.div("sequence element",
-          getRenderTree( q.self, xOffset, h - q.h )
-        )
+         getRenderTree( q.self, xOffset, h - q.h )
       }}.toTagMod
     }
 

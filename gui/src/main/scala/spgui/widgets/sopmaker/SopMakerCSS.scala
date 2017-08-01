@@ -6,9 +6,11 @@ import spgui.theming.Theming
 object SopMakerCSS extends Theming.SPStyleSheet {
   import dsl._
 
+
   val sopComponent = style(
-    position.absolute,
-    display.flex
+    overflow.visible.important
+    //position.absolute
+    //display.flex
   )
 
   this.addToDocument()
