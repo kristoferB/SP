@@ -11,7 +11,8 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import spgui.circuit.SPGUICircuit
 import spgui.communication._
-import spgui.googleCharts._
+import spgui.googleCharts.GoogleChartsLoaded
+import aleastchs.facade.google
 import spgui.googleCharts.timeline._
 
 import scala.scalajs.js.annotation.JSName
@@ -50,15 +51,16 @@ object ChartTest {
       println(GoogleChartsLoaded)
       if(GoogleChartsLoaded.asInstanceOf[Boolean]) {
         val timelineElement = js.Dynamic.global.document.getElementById(id+"timeline")
-        val timeline = new GoogleVisualization.Timeline(timelineElement)
+        val ganttElement = js.Dynamic.global.document.getElementById(id+"gantt")
+        val timeline = new google.visualization.Timeline(timelineElement)
 
-        val data = new GoogleVisualization.DataTable()
+        val data = new google.visualization.DataTable()
         data.addColumn("string", "Timeline id", "1")
         data.addColumn("string", "Timeline Name", "2")
         data.addColumn("date", "Start Date", "4")
         data.addColumn("date", "End Date", "5")
 
-        val exampleRow = TimelineRow("g", "9", null, new js.Date(2014, 2, 22), new js.Date(2014, 5, 20), 4)
+        val exampleRow = TimelineRow("row", "bar", null, new js.Date(2014, 2, 22), new js.Date(2014, 5, 20), 4)
 
         data.addRow(exampleRow.toArray)
 
