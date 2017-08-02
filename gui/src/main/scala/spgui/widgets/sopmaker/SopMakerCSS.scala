@@ -6,6 +6,9 @@ import spgui.theming.Theming
 object SopMakerCSS extends Theming.SPStyleSheet {
   import dsl._
 
+  val hmm = style(
+    userSelect := "none"
+  )
 
   val sopComponent = style(
     overflow.visible.important
@@ -13,18 +16,9 @@ object SopMakerCSS extends Theming.SPStyleSheet {
     //display.flex
   )
 
+  val opText = style(
+    userSelect := "none"
+  )
+
   this.addToDocument()
-
-  class Position(x:Int, y:Int) extends Theming.SPStyleSheet {
-    // slightly different way of adding styles
-    // multiple instances of this style can (and will) exist at a given time
-    val position = style(
-      top(y.px),
-      left(x.px)
-    )
-
-    this.addToDocument()
-  }
-
-
 }

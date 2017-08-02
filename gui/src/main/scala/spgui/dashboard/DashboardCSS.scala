@@ -58,7 +58,8 @@ object DashboardCSS extends SPStyleSheet {
   )
 
   val widgetPanelHeader = style(
-    transitionDuration:=!"300ms"
+    transitionDuration:=!"300ms",
+    userSelect := "none"
   )
 
   val widgetPanelButton = style(

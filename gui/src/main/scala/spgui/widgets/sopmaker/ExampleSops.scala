@@ -4,7 +4,7 @@ import sp.domain._
 import japgolly.scalajs.react.vdom.all.svg
 
 object ExampleSops {
-  def ops = List(
+  val ops = List(
     Operation("op1"),
     Operation("op2"),
     Operation("op3"),
