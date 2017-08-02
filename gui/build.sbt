@@ -17,34 +17,26 @@ scalacOptions  := Seq(
   "-language:postfixOps"
 )
 
-val scalaJSReactVersion = "0.11.3"
-val scalaCssVersion = "0.5.1"
-val diodeVersion = "1.1.0"
+val scalaJSReactVersion = "1.0.0"
+val scalaCssVersion = "0.5.3-RC1"
+val diodeVersion = "1.1.2"
 
 resolvers += Resolver.url("me @ bintray", url("https://dl.bintray.com/aleastchs/aleastChs-releases"))(Resolver.ivyStylePatterns)
-//resolvers += sbt.Resolver.bintrayIvyRepo("aleastchs", "aleastChs-releases")
 libraryDependencies += "org.aleastChs" % "scalajs-google-charts_2.11" % "0.4.0"
-/*
-resolvers ++= Seq(
-  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/Releases",
-  "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/",
-  "sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/")
- */
+
 libraryDependencies ++= Seq(
   "com.github.japgolly.scalajs-react" %%% "core" % scalaJSReactVersion,
   "com.github.japgolly.scalajs-react" %%% "extra" % scalaJSReactVersion,
   "com.github.japgolly.scalacss" %%% "core" % scalaCssVersion,
   "com.github.japgolly.scalacss" %%% "ext-react" % scalaCssVersion,
-  "me.chrons" %%% "diode" % diodeVersion,
-  "me.chrons" %%% "diode-react" % diodeVersion,
+  "io.suzaku" %%% "diode" % diodeVersion,
+  "io.suzaku" %%% "diode-react" % diodeVersion,
   "com.lihaoyi" %%% "upickle" % "0.4.3",
   "com.lihaoyi" %%% "scalarx" % "0.3.2",
   "org.singlespaced" %%% "scalajs-d3" % "0.3.3",
   "org.scalatest" %%% "scalatest" % "3.0.0" % "test",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
   "eu.unicredit" %%% "paths-scala-js" % "0.4.5"
-  //,
-  //"org.aleastChs" % "scalajs-google-charts" % "0.2.5"
 )
 
 /* This is how to include js files. Put it in src/main/resources.
