@@ -9,37 +9,49 @@ import japgolly.scalajs.react.vdom.all.svg
 //import paths.mid.Bezier
 //import paths.mid.Rectangle
 
-import spgui.components.DragAndDrop.{ OnDragMod, OnDropMod, DataOnDrag, OnDataDrop }
+//import spgui.components.DragAndDrop.{ OnDragMod, OnDropMod, DataOnDrag, OnDataDrop }
 
 import spgui.communication._
 import sp.domain._
 import sp.messages._
 import sp.messages.Pickles._
 import scalacss.ScalaCssReact._
+import java.util.UUID
 
-trait RenderNode {
+sealed trait RenderNode {
   val w: Float
   val h: Float
 }
 
-trait RenderGroup extends RenderNode {
+sealed trait RenderGroup extends RenderNode {
   val children: List[RenderNode]
 }
 
-case class RenderParallel(w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
-case class RenderAlternative(w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
-case class RenderArbitrary(w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
-case class RenderSometimeSequence(w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
-case class RenderOther(w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
-case class RenderHierarchy(w:Float, h:Float, sop: Hierarchy) extends RenderNode
-
+case class RenderParallel(w: Float, h:Float, children: List[RenderNode])            extends RenderGroup
+case class RenderAlternative(w: Float, h:Float, children: List[RenderNode])         extends RenderGroup
+case class RenderArbitrary(w: Float, h:Float, children: List[RenderNode])           extends RenderGroup
+case class RenderSometimeSequence(w: Float, h:Float, children: List[RenderNode])    extends RenderGroup
+case class RenderOther(w: Float, h:Float, children: List[RenderNode])               extends RenderGroup
 case class RenderSequence(w: Float, h:Float, children: List[RenderSequenceElement]) extends RenderGroup
-case class RenderSequenceElement(w: Float, h:Float, self: RenderNode) extends RenderNode
+case class RenderSequenceElement(w: Float, h:Float, self: RenderNode)               extends RenderNode
+case class RenderHierarchy(w:Float, h:Float, sop: IdAbleHierarchy)                        extends RenderNode
 
-case class Pos(x: Float, y: Float)
+sealed trait SopWithId {
+  val id: UUID = UUID.randomUUID()
+  val sop: List[SopWithId]
+}
+abstract case class IdAbleEmptySOP()                     extends SopWithId
+case class IdAbleParallel( sop: List[SopWithId])         extends SopWithId
+case class IdAbleAlternative( sop: List[SopWithId])      extends SopWithId
+case class IdAbleArbitrary( sop: List[SopWithId])        extends SopWithId
+case class IdAbleSequence( sop: List[SopWithId])         extends SopWithId
+case class IdAbleSometimeSequence( sop: List[SopWithId]) extends SopWithId
+case class IdAbleOther( sop: List[SopWithId])            extends SopWithId
+case class IdAbleHierarchy( sop: List[SopWithId] = List(), self: Hierarchy)              extends SopWithId
 
 object SopMakerWidget {
-  val parallelBarHeight = 12f//45f
+
+  val parallelBarHeight = 12f
   val opHeight = 80f
   val opWidth = 80f
   val opSpacingX = 10f
@@ -51,9 +63,10 @@ object SopMakerWidget {
     currentlyDragging: Boolean = false
   )
 
-  case class State(drag: String, drop: String, sop: List[String], hover: Hover)
+  case class State(sop: SopWithId, hover: Hover)
 
   private class Backend($: BackendScope[Unit, State]) {
+
     /*
      val eventHandler = BackendCommunication.getMessageObserver(
      mess => {
@@ -62,7 +75,32 @@ object SopMakerWidget {
      "events"
      )
      */
-    
+    $.modState(s => s.copy(sop = idSop(ExampleSops.giantSop))).runNow()
+
+    def render(state: State) = {
+      println(state.sop)
+
+      <.div(
+        SopMakerCSS.noSelect,
+        <.div(state.hover.currentMouseOver),
+        <.div(state.hover.data),
+        <.div(state.hover.currentlyDragging.toString),
+
+        svg.svg(
+          ^.onMouseDownCapture --> handleMouseDown(state.hover),
+          ^.onMouseUp --> handleMouseUp(state.hover),
+          ^.onMouseLeave --> handleMouseLeftWidget(state.hover),
+          svg.width := (getTreeWidth(state.sop) + paddingLeft* 2).toInt,
+          svg.height := ( getTreeHeight(state.sop) + paddingTop * 2).toInt,
+          getRenderTree(
+            traverseTree( state.sop ),
+            getTreeWidth( state.sop ) * 0.5f + paddingLeft,
+            paddingTop
+          )
+        )
+      )
+    }
+
     def handleDrag(drag: String)(e: ReactDragEventFromInput): Callback = {
       Callback({
         e.dataTransfer.setData("json", drag)
@@ -74,8 +112,6 @@ object SopMakerWidget {
       Callback.log("Dropping " + drag + " onto " + drop)
     }
 
-    val wTemp = getTreeWidth(ExampleSops.giantSop)
-    val hTemp = getTreeHeight(ExampleSops.giantSop)
     val paddingTop = 40f
     val paddingLeft = 40f
 
@@ -84,9 +120,6 @@ object SopMakerWidget {
         ^.onMouseOver --> handleMouseOver( opname ),
         ^.onMouseLeave --> handleMouseLeave( opname ),
         SopMakerCSS.sopComponent,
-        //svg.width := "100%",
-        //svg.height := "100%",
-        //      SopMakerCSS.uh,
         ^.draggable := false,
         svg.svg(
           ^.draggable := false,
@@ -96,8 +129,6 @@ object SopMakerWidget {
           svg.y := y.toInt,
           svg.rect(
             ^.draggable := false,
-            //OnDragMod(handleDrag(opname)),
-            //OnDropMod(handleDrop(opname)),
             svg.x := 0,
             svg.y := 0,
             svg.width := opWidth.toInt,
@@ -147,13 +178,12 @@ object SopMakerWidget {
           )
         )
       )
-    
+
     val idm = ExampleSops.ops.map(o=>o.id -> o).toMap
 
     def handleMouseOver(zone: String): Callback = {
       $.modState(s =>
-        s.copy(hover = s.hover.copy(currentMouseOver = zone))
-        
+        s.copy(hover  = s.hover.copy(currentMouseOver = zone))
       )
     }
 
@@ -165,7 +195,6 @@ object SopMakerWidget {
     }
 
     def handleMouseDown(h: Hover): Callback = {
-      //println(h)
       $.modState(s =>
         s.copy(
           hover = s.hover.copy(
@@ -192,31 +221,6 @@ object SopMakerWidget {
         println("resetting hover state")
       })
     }
-
-    def render(state: State) = {
-      <.div(
-        SopMakerCSS.hmm,
-        <.div(state.hover.currentMouseOver),
-        <.div(state.hover.data),
-        <.div(state.hover.currentlyDragging.toString),
-        //OnDataDrop(string => Callback.log("Received data: " + string)),
-        svg.svg(
-          ^.onMouseDownCapture --> handleMouseDown(state.hover),
-          ^.onMouseUp --> handleMouseUp(state.hover),
-          ^.onMouseLeave --> handleMouseLeftWidget(state.hover),
-          svg.width := (wTemp + paddingLeft* 2).toInt,
-          svg.height := ( hTemp + paddingTop * 2).toInt,
-          
-          //    OnDragMod(handleDrag("ssfdsdfsadfasdfasd")),
-          //    OnDropMod(handleDrop("sdfsdf")),
-          getRenderTree(
-            traverseTree( ExampleSops.giantSop),
-            getTreeWidth( ExampleSops.giantSop)*0.5f + paddingLeft,
-            paddingTop
-          )
-        )
-      )
-    }
     
     def getRenderTree(node: RenderNode, xOffset: Float, yOffset: Float): TagMod = {
       node match {
@@ -242,10 +246,9 @@ object SopMakerWidget {
         case n: RenderSequence =>  getRenderSequence(n, xOffset, yOffset)
           
         case n: RenderHierarchy => {
-          val opname = idm.get(n.sop.operation).map(_.name).getOrElse("[unknown op]")
+          val opname = idm.get(n.sop.self.operation).map(_.name).getOrElse("[unknown op]")
           op(opname, xOffset, yOffset)
         }
-        case _ => <.span("shuold not happen right now")
       }
     }
 
@@ -257,15 +260,15 @@ object SopMakerWidget {
       }}.toTagMod
     }
 
-    def traverseTree(sop: SOP): RenderNode = {
+    def traverseTree(sop: SopWithId): RenderNode = {
       sop match {
-        case s: Parallel => RenderParallel(
+        case s: IdAbleParallel => RenderParallel(
           w = getTreeWidth(s),
           h = getTreeHeight(s),
           children = sop.sop.collect{case e => traverseTree(e)}
         )
-        case s: Sequence => traverseSequence(s)
-        case s: Hierarchy => RenderHierarchy(
+        case s: IdAbleSequence => traverseSequence(s)
+        case s: IdAbleHierarchy => RenderHierarchy(
           w = getTreeWidth(s),
           h = getTreeHeight(s),
           sop = s
@@ -273,47 +276,47 @@ object SopMakerWidget {
       }
     }
 
-    def traverseSequence(s: Sequence): RenderSequence = {
-      if(!s.sop.isEmpty) RenderSequence(
+    def traverseSequence(s: IdAbleSequence): RenderSequence = {
+      if(s.sop.isEmpty) null else RenderSequence(
         h = getTreeHeight(s),
         w = getTreeWidth(s),
-        children = s.sop.collect{case e: SOP => {
+        children = s.sop.collect{case e: SopWithId => {
           RenderSequenceElement(
             getTreeWidth(e),
             getTreeHeight(e),
             traverseTree(e)
           )
         }}
-      ) else null
+      ) 
     }
 
-    def getTreeWidth(sop: SOP): Float = {
+    def getTreeWidth(sop: SopWithId): Float = {
       sop match {
         // groups are as wide as the sum of all children widths + its own padding
-        case s: Parallel => s.sop.map(e => getTreeWidth(e)).sum + opSpacingX *2
-        case s: Sequence => { // sequences are as wide as their widest elements
+        case s: IdAbleParallel => s.sop.map(e => getTreeWidth(e)).sum + opSpacingX *2
+        case s: IdAbleSequence => { // sequences are as wide as their widest elements
           if(s.sop.isEmpty) 0
-          else math.max(getTreeWidth(s.sop.head), getTreeWidth(Sequence(s.sop.tail)))
+          else math.max(getTreeWidth(s.sop.head), getTreeWidth(IdAbleSequence(s.sop.tail)))
         }
-        case s: Hierarchy => {
+        case s: IdAbleHierarchy => {
           opWidth + opSpacingX
         }
       }
     }
 
-    def getTreeHeight(sop: SOP): Float = {
+    def getTreeHeight(sop: SopWithId): Float = {
       sop match  {
-        case s: Parallel => {
+        case s: IdAbleParallel => {
           if(s.sop.isEmpty) 0
           else math.max(
-            getTreeHeight(s.sop.head) + (parallelBarHeight*2+opSpacingY*2),
-            getTreeHeight(Parallel(s.sop.tail))
+            getTreeHeight(s.sop.head) + (parallelBarHeight*2 + opSpacingY*2),
+            getTreeHeight(IdAbleParallel(s.sop.tail))
           )
         }
-        case s: Sequence => {
+        case s: IdAbleSequence => {
           s.sop.map(e => getTreeHeight(e)).foldLeft(0f)(_ + _)
         }
-        case s: Hierarchy => opHeight + opSpacingY
+        case s: IdAbleHierarchy => opHeight + opSpacingY
       }
     }
 
@@ -322,8 +325,20 @@ object SopMakerWidget {
     }
   }
 
+  def idSop(sop: SOP): SopWithId = {
+      sop match {
+        case s: Parallel => IdAbleParallel(sop = s.sop.collect{case e => idSop(e)})
+        case s: Sequence => IdAbleSequence(sop = s.sop.collect{case e => idSop(e)})
+        case s: Hierarchy => IdAbleHierarchy(self = s)
+      }
+  }
+
+  def insertSop(targetId: UUID, sopId: UUID) {
+
+  }
+
   private val component = ScalaComponent.builder[Unit]("SopMakerWidget")
-    .initialState(State(drag = "", drop = "", sop = List(), hover = Hover()))
+    .initialState(State(sop = idSop(ExampleSops.giantSop), hover = Hover()))
     .renderBackend[Backend]
     .componentWillUnmount(_.backend.onUnmount())
     .build

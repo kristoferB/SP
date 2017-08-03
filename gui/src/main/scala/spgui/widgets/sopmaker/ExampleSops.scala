@@ -19,6 +19,8 @@ object ExampleSops {
     Operation("test")
   )
 
+  def tinySop = Sequence( List(SOP(ops(0)), SOP(ops(0))))
+
   def giantSop = Sequence(List(
     Sequence(
       List(SOP(ops(7)), SOP(ops(8)))),
@@ -97,4 +99,11 @@ object ExampleSops {
       List( SOP(ops(9)), SOP(ops(10)) ))
   ))
 
+  def megaSop = Sequence(List(
+    Parallel(List(
+      giantSop, giantSop, giantSop, giantSop
+    )),
+    giantSop,
+    giantSop
+  ))
 }

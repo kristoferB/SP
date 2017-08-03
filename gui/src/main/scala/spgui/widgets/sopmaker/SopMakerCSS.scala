@@ -6,7 +6,7 @@ import spgui.theming.Theming
 object SopMakerCSS extends Theming.SPStyleSheet {
   import dsl._
 
-  val hmm = style(
+  val noSelect = style(
     userSelect := "none"
   )
 
