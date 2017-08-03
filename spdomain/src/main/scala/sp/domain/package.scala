@@ -43,18 +43,39 @@ package object domain {
         Json.parse(json).asInstanceOf[SPAttributes]
       }
     }
-    def fromJsonAs[T](json: String, key: String = "")(implicit fjs: JSReads[T]) = {
+    def fromJsonGet(json: String, key: String = "") = {
+      val res = fromJson(json).toOption
+      res.flatMap(get(_, key))
+    }
+    def fromJsonGetAs[T](json: String, key: String = "")(implicit fjs: JSReads[T]) = {
       val res = fromJson(json)
-
+      getAs[T](res, key)
     }
     def empty = JsObject.empty
+
+    private def get(x: SPValue, key: String) = {
+      x \ key match {
+        case JsDefined(res) => Some(res)
+        case e: JsUndefined if key.isEmpty => Some(x)
+        case e: JsUndefined => None
+      }
+    }
+
+    private def getAs[T](v: Try[SPValue], key: String = "")(implicit fjs: JSReads[T]) = {
+      for {
+        vx <- v.toOption
+        x <- get(vx, key)
+        t <- x.asOpt[T]
+      } yield t
+    }
   }
 
   object SPValue {
     def apply(v: AttributeWrapper): SPValue = {
-      // should always work
-      // hack to be able to use JsonJsValueWrapper
       Json.arr(v).value.head
+    }
+    def wrap[T <: AnyRef](v: T)(implicit fjs: JSWrites[T]): SPValue = {
+      Json.toJson(v)
     }
 
     def fromJson(json: String): Try[SPValue] = {

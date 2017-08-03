@@ -10,6 +10,11 @@ object JsonLogic extends JsonImplicit
 trait JsonImplicit extends JsonDerived {
 
 
+  def writeJson[T](x: T)(implicit fjs: JSWrites[T]) = {
+    Json.stringify(Json.toJson(x))
+  }
+
+
 
 
   // testing not using derive macros to limit the compiled size

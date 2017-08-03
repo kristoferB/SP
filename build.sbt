@@ -1,5 +1,5 @@
 name := "SequencePlanner"
-scalaOrganization in ThisBuild := "org.typelevel"
+//scalaOrganization in ThisBuild := "org.typelevel"
 scalaVersion := "2.11.8"
 version := "2.0_M1"
 
@@ -16,7 +16,8 @@ lazy val akka = Seq(
 lazy val json = Seq(
   "com.typesafe.play" %% "play-json" % "2.6.0",
   "org.julienrf" %% "play-json-derived-codecs" % "4.0.0",
-  "io.github.cquiroz" %% "scala-java-time" % "2.0.0-M12"
+  "io.github.cquiroz" %% "scala-java-time" % "2.0.0-M12",
+  "org.joda" % "joda-convert" % "1.8.2"
 )
 
 lazy val support = Seq(
@@ -58,6 +59,8 @@ lazy val spcore = project
   .dependsOn(spdomain, macros)
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= akka)
+  .settings(libraryDependencies ++= json)
+
 
 
 lazy val macros = project

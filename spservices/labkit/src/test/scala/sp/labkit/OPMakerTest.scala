@@ -4,6 +4,7 @@ import akka.actor._
 import akka.testkit._
 import com.typesafe.config._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.threeten.bp.ZonedDateTime
 import sp.domain.Logic._
 import sp.domain._
 
@@ -59,7 +60,7 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
   "The OPMaker service" must {
     "make no new ops" in {
       val t = logic.makeMeOps(aState, time,  Map())
-      t shouldEqual List[APIOPMaker.OP]()
+      t shouldEqual List[APIOPMaker_OP]()
     }
     "make a start op" in {
       val t = logic.makeMeOps(aState + (logic.p3_mode->2), time,  Map())
@@ -84,12 +85,12 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
   }
 
   val prodLogic = new TrackProducts {}
-  def time = org.joda.time.DateTime.now
+  def time = ZonedDateTime.now
   "The product tracker" must {
     "add a new cylinder" in {
-      val start = APIOPMaker.OPEvent(logic.feedCylinder, time, "hej", "feeder", None)
+      val start = APIOPMaker_OPEvent(logic.feedCylinder, time, "hej", "feeder", None)
       val end = None
-      val op = APIOPMaker.OP(start, end)
+      val op = APIOPMaker_OP(start, end)
 
       val res = prodLogic.updPositionsAndOps(op)
       println("RESULT PROD")
@@ -101,9 +102,9 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
     }
     "add a new cylinder and add at end" in {
-      val start = APIOPMaker.OPEvent(logic.feedCylinder, time, "hej", "feeder", Some("cyl1"))
-      val end = Some(APIOPMaker.OPEvent(logic.feedCylinder, time, "hej", "feeder", None))
-      val op = APIOPMaker.OP(start, end)
+      val start = APIOPMaker_OPEvent(logic.feedCylinder, time, "hej", "feeder", Some("cyl1"))
+      val end = Some(APIOPMaker_OPEvent(logic.feedCylinder, time, "hej", "feeder", None))
+      val op = APIOPMaker_OP(start, end)
 
       val res = prodLogic.updPositionsAndOps(op)
       println("RESULT PROD")
@@ -115,9 +116,9 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
     }
 
     "remove the cylinder at the end" in {
-      val start = APIOPMaker.OPEvent(logic.p3move, time, "hej", logic.p3, Some("cyl1"))
-      val end = Some(APIOPMaker.OPEvent(logic.p3move, time, "hej", logic.p3, None))
-      val op = APIOPMaker.OP(start, end)
+      val start = APIOPMaker_OPEvent(logic.p3move, time, "hej", logic.p3, Some("cyl1"))
+      val end = Some(APIOPMaker_OPEvent(logic.p3move, time, "hej", logic.p3, None))
+      val op = APIOPMaker_OP(start, end)
 
       prodLogic.positions = prodLogic.positions + (logic.inP3 -> "cyl1")
       val res = prodLogic.updPositionsAndOps(op)
@@ -131,9 +132,9 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
 
     "move a cylinder via positions fromFeedToP1" in {
-      val start = APIOPMaker.OPEvent(logic.fromFeedToP1, time, "hej", logic.pnp1, None)
-      val end = Some(APIOPMaker.OPEvent(logic.fromFeedToP1, time, "hej", logic.pnp1, None))
-      val op = APIOPMaker.OP(start, None)
+      val start = APIOPMaker_OPEvent(logic.fromFeedToP1, time, "hej", logic.pnp1, None)
+      val end = Some(APIOPMaker_OPEvent(logic.fromFeedToP1, time, "hej", logic.pnp1, None))
+      val op = APIOPMaker_OP(start, None)
 
       // init position
       prodLogic.positions = prodLogic.positions + (logic.inLoader -> "cyl1")
@@ -168,9 +169,9 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
     }
 
     "move a cylinder via positions fromFeedToC" in {
-      val start = APIOPMaker.OPEvent(logic.fromFeedToC, time, "hej", logic.pnp1, None)
-      val end = Some(APIOPMaker.OPEvent(logic.fromFeedToC, time, "hej", logic.pnp1, None))
-      val op = APIOPMaker.OP(start, None)
+      val start = APIOPMaker_OPEvent(logic.fromFeedToC, time, "hej", logic.pnp1, None)
+      val end = Some(APIOPMaker_OPEvent(logic.fromFeedToC, time, "hej", logic.pnp1, None))
+      val op = APIOPMaker_OP(start, None)
 
       // init position
       prodLogic.positions = prodLogic.positions + (logic.inLoader -> "cyl1")
@@ -205,9 +206,9 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
     }
 
     "move a cylinder non via positions transport" in {
-      val start = APIOPMaker.OPEvent(logic.transport, time, "hej", logic.pnp1, None)
-      val end = Some(APIOPMaker.OPEvent(logic.transport, time, "hej", logic.pnp1, None))
-      val op = APIOPMaker.OP(start, None)
+      val start = APIOPMaker_OPEvent(logic.transport, time, "hej", logic.pnp1, None)
+      val end = Some(APIOPMaker_OPEvent(logic.transport, time, "hej", logic.pnp1, None))
+      val op = APIOPMaker_OP(start, None)
 
       // init position
       prodLogic.positions = prodLogic.positions + (logic.inConvIn -> "cyl1")

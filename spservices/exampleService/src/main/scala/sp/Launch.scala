@@ -1,9 +1,7 @@
 package sp
 
 import akka.actor._
-import sp.domain._
-import sp.example.{API_ExampleService, ExampleService}
-import sp.messages._
+import sp.example._
 
 import scala.util.{Failure, Success, Try}
 
@@ -18,7 +16,7 @@ object Launch extends App {
 
     // Start all you actors here.
     println("ExampleService node has joined the cluster")
-    system.actorOf(ExampleService.props, API_ExampleService.attributes.service)
+    system.actorOf(ExampleService.props, sp.example.APIExampleService.service)
 
   }
   cluster.registerOnMemberRemoved{

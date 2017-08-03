@@ -24,16 +24,18 @@ import scala.util._
 
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages._
-import Pickles._
 
-package APIWebSocket {
-  sealed trait APIWebSocket
-  case class PublishMessage(mess: SPMessage, topic: String = "services") extends APIWebSocket
-  case class FilterHeader(keyValues: Map[String, Set[Pickle]]) extends APIWebSocket
-  case class FilterBody(keyValues: Map[String, Set[Pickle]]) extends APIWebSocket
+object APIWebSocket {
+  sealed trait API
+  case class PublishMessage(mess: SPMessage, topic: String = "services") extends API
+  case class FilterHeader(keyValues: Map[String, Set[SPValue]]) extends API
+  case class FilterBody(keyValues: Map[String, Set[SPValue]]) extends API
   // removing filters with keys in the set keys. If it is empty, all keys are removed
-  case class ClearFilters(keys: Set[String] = Set()) extends APIWebSocket
+  case class ClearFilters(keys: Set[String] = Set()) extends API
+
+  object API {
+    implicit val apiFormat = deriveFormatISA[API]
+  }
 
 }
 import sp.server.{APIWebSocket => api}
@@ -127,12 +129,12 @@ class LaunchGUI(system: ActorSystem)  {
         if (shouldAsk){
           val answer = mediator.ask(Publish(topic, mess)).mapTo[String]
           completeOrRecoverWith(answer){ extr =>
-            val re = SPMessage(h, Pickles.*(APISP.SPError("No service answered the request")))
+            val re = SPMessage.make(h, APISP.SPError("No service answered the request"))
             complete(re.toJson)
           }
         } else {
           mediator ! Publish(topic, mess)
-          val re = SPMessage(h, Pickles.*(APISP.SPACK())) // SPAttributes("result" ->"Message sent")
+          val re = SPMessage.make(h, APISP.SPACK()) // SPAttributes("result" ->"Message sent")
           complete(re.toJson)
         }
       }}
@@ -145,12 +147,11 @@ class LaunchGUI(system: ActorSystem)  {
 
     val toSend = uP.map{ m =>
       val updH = if (service.nonEmpty) {
-        val h = Try{m.header.obj.toList :+ ("service" -> upickle.Js.Str(service))}.map(x => upickle.Js.Obj(x:_*))
-        h.getOrElse(m.header)
+        m.header + ("service" -> SPValue(service))
       } else m.header
-      (toJson(m.copy(header = updH)), updH)
+      (m.copy(header = updH).toJson, updH)
     }
-    toSend.getOrElse(mess, upickle.Js.Obj())
+    toSend.getOrElse(mess, SPAttributes.empty)
   }
 
 }
@@ -175,13 +176,13 @@ import akka.http.scaladsl.model.ws.{ Message, TextMessage }
 
 
 class WebsocketHandler(mediator: ActorRef, topic: String, clientID: java.util.UUID) {
-  case class Filters(h: Map[String, Set[Pickle]], b: Map[String, Set[Pickle]])
+  case class Filters(h: Map[String, Set[SPValue]], b: Map[String, Set[SPValue]])
   var filter = Filters(Map(), Map())
 
   lazy val fromFrontEnd: Sink[Message, NotUsed]  = Sink.fromGraph(GraphDSL.create() { implicit b: GraphDSL.Builder[NotUsed] =>
     import GraphDSL.Implicits._
     val toAPI = b.add(fromWebSocketToAPI)
-    val split = b.add(Broadcast[Try[APIWebSocket.APIWebSocket]](2))
+    val split = b.add(Broadcast[Try[APIWebSocket.API]](2))
     val sendToBus: Sink[Publish, NotUsed] = Sink.actorRef[Publish](mediator, "Killing me")
 
     toAPI ~> split ~> toBePublished ~> sendToBus
@@ -190,34 +191,33 @@ class WebsocketHandler(mediator: ActorRef, topic: String, clientID: java.util.UU
     SinkShape(toAPI.in)
   })
 
-  val fromWebSocketToAPI: Flow[Message, Try[APIWebSocket.APIWebSocket], NotUsed] = Flow[Message]
+  val fromWebSocketToAPI: Flow[Message, Try[APIWebSocket.API], NotUsed] = Flow[Message]
     .collect{ case TextMessage.Strict(text) => println(s"Websocket got: $text"); text}
     .map{str =>
-      fromJson[APIWebSocket.APIWebSocket](str)
+      SPAttributes.fromJson(str).flatMap(_.to[APIWebSocket.API])
     }
 
-  val toBePublished: Flow[Try[APIWebSocket.APIWebSocket], Publish, NotUsed] = Flow[Try[APIWebSocket.APIWebSocket]]
-    .collect{case x: Success[APIWebSocket.APIWebSocket] => x.value}
+  val toBePublished: Flow[Try[APIWebSocket.API], Publish, NotUsed] = Flow[Try[APIWebSocket.API]]
+    .collect{case x: Success[APIWebSocket.API] => x.value}
     .collect{
       case APIWebSocket.PublishMessage(mess, t) =>
         Publish(t, mess.toJson)
     }
 
 
-  def convM(m: Map[String, SPValue]) = m.map{case (k, v) => k -> Pickles.toPickle(v)}
-  val updFilters: Sink[Try[APIWebSocket.APIWebSocket], Future[Done]] = Sink.foreach[Try[APIWebSocket.APIWebSocket]] { x =>
+  val updFilters: Sink[Try[APIWebSocket.API], Future[Done]] = Sink.foreach[Try[APIWebSocket.API]] { x =>
     x.toOption.collect{
       case APIWebSocket.FilterBody(f) =>
-        val updM = f // convM(f)
+        val updM = f
         filter = filter.copy(b = filter.b ++ updM)
       case APIWebSocket.FilterHeader(f) =>
-        val updM = f // convM(f)
+        val updM = f
         filter = filter.copy(h = filter.h ++ updM)
       case APIWebSocket.ClearFilters(keys) =>
         if (keys.isEmpty)
           filter = Filters(Map(), Map())
         else {
-          val toRemove = (kv: (String, Set[Pickle])) => !keys.contains(kv._1)
+          val toRemove = (kv: (String, Set[SPValue])) => !keys.contains(kv._1)
           val newHF = filter.h.filter(toRemove)
           val newBF = filter.b.filter(toRemove)
           filter = Filters(newHF, newBF)
@@ -260,9 +260,9 @@ class WebsocketHandler(mediator: ActorRef, topic: String, clientID: java.util.UU
       (filterPickle(mess.header, filter.h) && filterPickle(mess.body, filter.b))
   }
 
-  def filterPickle(p: Pickle, f: Map[String, Set[Pickle]]) = {
+  def filterPickle(p: SPAttributes, f: Map[String, Set[SPValue]]) = {
     Try{
-      f.forall(x => !p.obj.contains(x._1) || p.obj.contains(x._1) && x._2.contains(p.obj(x._1)))
+      f.forall(x => !p.keys.contains(x._1) || p.keys.contains(x._1) && x._2.contains(p.value(x._1)))
     }.getOrElse(true)
   }
 

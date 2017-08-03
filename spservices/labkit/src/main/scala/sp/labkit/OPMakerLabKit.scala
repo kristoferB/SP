@@ -7,25 +7,27 @@ import scala.concurrent.duration._
 import akka.persistence._
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages._
-import org.joda.time._
+import org.threeten.bp._
 
 import scala.util.{Failure, Success, Try}
-import com.github.nscala_time.time.Imports._
 
 
 object APIOPMaker {
   sealed trait API
-  case class OPEvent(name: String, time: DateTime, id: String, resource: String, product: Option[String]) extends API
-  case class OP(start: OPEvent, end: Option[OPEvent], attributes: SPAttributes = SPAttributes()) extends API
-  case class Positions(positions: Map[String,String], time: DateTime) extends API
-
-
-
-
+  object API {
+    implicit lazy val readResp2 = deriveReadISA[APIOPMaker_OPEvent]
+    implicit lazy val writeResp2 = deriveWriteISA[APIOPMaker_OPEvent]
+    implicit lazy val readResp = deriveReadISA[API]
+    implicit lazy val writeResp = deriveWriteISA[API]
+  }
 }
 
+  case class APIOPMaker_OPEvent(name: String, time: ZonedDateTime, id: String, resource: String, product: Option[String]) extends APIOPMaker.API
+  case class APIOPMaker_OP(start: APIOPMaker_OPEvent, end: Option[APIOPMaker_OPEvent], attributes: SPAttributes = SPAttributes()) extends APIOPMaker.API
+  case class APIOPMaker_Positions(positions: Map[String,String], time: ZonedDateTime) extends APIOPMaker.API
+
 case class RawMess(state: Map[String, SPValue], time: String)
+
 
 class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic with TrackProducts {
   override def persistenceId = "rawPLC"
@@ -38,8 +40,10 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
   mediator ! Put(self)
 
   //private var state: Map[String, SPValue] = Map()
-  private var currentOps: Map[String, APIOPMaker.OP] = Map()
+  private var currentOps: Map[String, APIOPMaker_OP] = Map()
 
+
+  implicit lazy val rawMessF: JSFormat[RawMess] = deriveFormatSimple[RawMess]
 
   def receiveCommand = {
     case mess @ _ if {println(s"OPMaker got: $mess from $sender"); false} => Unit
@@ -54,19 +58,19 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
     val attr = SPValue.fromJson(mess)
     val rawMess = attr.flatMap(_.to[RawMess])
 
-    if (rawMess.isEmpty) println("Nope, no Raw mess parsing")
+    if (rawMess.isFailure) println("Nope, no Raw mess parsing")
 
     val updState = rawMess.map { mess =>
 
 
-      val time = Try{new DateTime(mess.time)}.getOrElse(org.joda.time.DateTime.now)
+      val time = Try{ZonedDateTime.parse(mess.time)}.getOrElse(ZonedDateTime.now)
       val updOps = makeMeOps(mess.state, time, currentOps).map(updPositionsAndOps)
       println("NEW OPS")
       updOps.foreach(println(_))
       updOps.foreach(mediator ! Publish("ops", _))
 
       if(updOps.nonEmpty) {
-        mediator ! Publish("pos", APIOPMaker.Positions(positions, postime))
+        mediator ! Publish("pos", APIOPMaker_Positions(positions, postime))
       }
 
       currentOps = (currentOps ++ updOps.map(x => x.start.name -> x)).filter{case (k,v) => v.end.isEmpty }
@@ -107,7 +111,6 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
       println("*********************************")
       println("*********************************")
       println("*********************************")
-     import Pickles._
       testRec = testRec.reverse
       val s: Map[String, SPValue] = extrState(testRec.head)
       println("hhh")
@@ -147,10 +150,9 @@ class OPMakerLabKit extends PersistentActor with ActorLogging with OPMakerLogic 
     case x => println("hej: "+x)
   }
 
-  def extrState(x: String) = {
-    val attr = SPAttributes.fromJson(x)
-    val t = SPValue(attr.flatMap(_.getAs[String]("time")))
-    SPAttributes.fromJson(x).flatMap(_.getAs[Map[String, SPValue]]("state").map(_ + ("time" -> t))).getOrElse(Map())
+  def extrState(x: String): Map[String, SPValue] = {
+    val t = SPAttributes.fromJsonGet(x, "time").getOrElse(SPValue(""))
+    SPAttributes.fromJsonGetAs[Map[String, SPValue]](x, "state").map(_ + ("time" -> t)).getOrElse(Map())
   }
 
 
@@ -221,7 +223,7 @@ trait NamesAndValues {
 trait OPMakerLogic extends NamesAndValues{
   private var opCounter = 0
 
-  def makeMeOps(state: Map[String, SPValue], time: DateTime, currentOps: Map[String, APIOPMaker.OP]) = {
+  def makeMeOps(state: Map[String, SPValue], time: ZonedDateTime, currentOps: Map[String, APIOPMaker_OP]) = {
     opCounter = opCounter + 1
     val ops = List(
       getOrMakeANew(feedCylinder,feeder, time, currentOps, checkValue(state, List(feeder_exec -> true, newCylinder_var -> true))),
@@ -262,8 +264,8 @@ trait OPMakerLogic extends NamesAndValues{
 
   def getOrMakeANew(name: String,
                     resource: String,
-                    time: DateTime,
-                    currentOps: Map[String, APIOPMaker.OP],
+                    time: ZonedDateTime,
+                    currentOps: Map[String, APIOPMaker_OP],
                     hasStarted: Boolean
                    ) = {
 
@@ -271,14 +273,14 @@ trait OPMakerLogic extends NamesAndValues{
     //println("OP "+name + ": "+hasStarted)
     val currOP = currentOps.get(name).orElse{
       if (hasStarted){
-        Some(APIOPMaker.OP(APIOPMaker.OPEvent(name, time, name+opCounter, resource, None), None))
+        Some(APIOPMaker_OP(APIOPMaker_OPEvent(name, time, name+opCounter, resource, None), None))
       } else None
     }
     currOP.map{op =>
       if (!hasStarted) { // it has completed now
-      val duration = op.start.time to time toDurationMillis
-        val end = APIOPMaker.OPEvent(op.start.name, time, op.start.id, op.start.resource, op.start.product)
-        op.copy(end = Some(end), attributes =  op.attributes + ("duration"->duration))
+      val duration = org.threeten.bp.Duration.between(op.start.time, time).toMillis  //op.start.time to time toDurationMillis
+        val end = APIOPMaker_OPEvent(op.start.name, time, op.start.id, op.start.resource, op.start.product)
+        op.copy(end = Some(end), attributes =  op.attributes + ("duration"->SPValue(duration)))
       } else op
     }
   }
@@ -299,7 +301,7 @@ trait OPMakerLogic extends NamesAndValues{
 trait TrackProducts extends NamesAndValues {
   var prodID = 0
 
-  var postime = org.joda.time.DateTime.now
+  var postime = ZonedDateTime.now
   var positions: Map[String, String] = Map(
     inLoader -> "",
     inP1     -> "",
@@ -331,7 +333,7 @@ trait TrackProducts extends NamesAndValues {
     p4Process        -> OPMove(inP4, inP4)
   )
 
-  def updPositionsAndOps(op: APIOPMaker.OP) = {
+  def updPositionsAndOps(op: APIOPMaker_OP) = {
 
     val move = opMovements(op.start.name)
     val from = positions(move.from)
@@ -391,10 +393,10 @@ trait TrackProducts extends NamesAndValues {
     positions = positions + (moveFrom -> "") + (moveTo -> id) + ("" -> "")
   }
 
-  def updProdStart(op: APIOPMaker.OP, prod: String) = op.copy(start = op.start.copy(product = Some(prod)))
-  def updProdEnd(op: APIOPMaker.OP, prod: String) = op.copy(end = op.end.map(_.copy(product = Some(prod))))
+  def updProdStart(op: APIOPMaker_OP, prod: String) = op.copy(start = op.start.copy(product = Some(prod)))
+  def updProdEnd(op: APIOPMaker_OP, prod: String) = op.copy(end = op.end.map(_.copy(product = Some(prod))))
 
-  def lastTime(op: APIOPMaker.OP) = {
+  def lastTime(op: APIOPMaker_OP) = {
     op.end.getOrElse(op.start).time
   }
 
@@ -402,63 +404,3 @@ trait TrackProducts extends NamesAndValues {
 
 }
 
-
-
-
-
-
-
-
-// Will be in the domain later
-
-
-import upickle._
-import scala.reflect.ClassTag
-import org.json4s.JsonAST
-object APIParser extends upickle.AttributeTagged {
-  override val tagName = "isa"
-
-  import sp.domain.Logic._
-
-  override def annotate[V: ClassTag](rw: Reader[V], n: String) = Reader[V]{
-    case x: Js.Obj if n == "org.json4s.JsonAST.JObject" =>
-      val res = x.value.map(kv => kv._1 -> fromUpickle(kv._2))
-      SPAttributes(res:_*).asInstanceOf[V]
-    case x: Js.Str if n == "org.joda.time.DateTime" =>
-      new DateTime(x.value).asInstanceOf[V]
-    case Js.Obj(x@_*) if x.contains((tagName, Js.Str(n.split('.').takeRight(2).mkString(".")))) =>
-      rw.read(Js.Obj(x.filter(_._1 != tagName):_*))
-  }
-
-  override def annotate[V: ClassTag](rw: Writer[V], n: String) = Writer[V]{
-    case x: SPValue =>
-      toUpickle(x)
-    case x: org.joda.time.DateTime =>
-      upickle.Js.Str(x.toString())
-    case x: V =>
-      val filter = n.split('.').takeRight(2).mkString(".")
-      Js.Obj((tagName, Js.Str(filter)) +: rw.write(x).asInstanceOf[Js.Obj].value:_*)
-  }
-
-
-  def toUpickle(value: SPValue): upickle.Js.Value = value match {
-    case x: JsonAST.JBool => upickle.default.writeJs(x.values)
-    case x: JsonAST.JDecimal => upickle.default.writeJs(x.values)
-    case x: JsonAST.JDouble => upickle.default.writeJs(x.values)
-    case x: JsonAST.JInt => upickle.default.writeJs(x.values)
-    case x: JsonAST.JLong => upickle.default.writeJs(x.values)
-    case x: JsonAST.JString => upickle.default.writeJs(x.values)
-    case x: JsonAST.JObject =>
-      val res = x.obj.map(kv => kv._1 -> toUpickle(kv._2))
-      upickle.Js.Obj(res:_*)
-    case x: JsonAST.JArray => upickle.Js.Arr(x.arr.map(toUpickle):_*)
-    case x => upickle.Js.Null
-  }
-  def fromUpickle(value: upickle.Js.Value): SPValue = {
-    val json = upickle.json.write(value)
-    SPValue.fromJson(json).getOrElse(SPValue("ERROR_UPICKLE"))
-  }
-
-
-
-}

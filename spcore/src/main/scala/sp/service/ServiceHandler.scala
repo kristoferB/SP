@@ -5,11 +5,9 @@ import java.util.UUID
 import akka.actor._
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages._
-import Pickles._
 
 
-import sp.service.{APIServiceHandler => api}
+import sp.service.APIServiceHandler._
 
 
 /**
@@ -34,10 +32,10 @@ class ServiceHandler extends Actor with ServiceHandlerLogic {
 
       ServiceHandlerComm.extractRequest(mess).map{case (h, b) =>
         b match {
-          case x: api.GetServices =>
+          case GetServices =>
             val res = services.map(_._2._1).toList
-            val updH = h.copy(from = api.attributes.service, to = h.from)
-            mediator ! Publish("answers", ServiceHandlerComm.makeMess(updH, api.Services(res)))
+            val updH = h.copy(from = attributes.service, to = h.from)
+            mediator ! Publish("answers", ServiceHandlerComm.makeMess(updH, Services(res)))
         }
       }
 
@@ -47,8 +45,8 @@ class ServiceHandler extends Actor with ServiceHandlerLogic {
             val res = addResponse(x, sender())
             context.watch(sender())
             if (res) {
-              val h = SPHeader(from = api.attributes.service)
-              mediator ! Publish("spevents", ServiceHandlerComm.makeMess(h, api.NewService(x)))
+              val h = SPHeader(from = attributes.service)
+              mediator ! Publish("spevents", ServiceHandlerComm.makeMess(h, NewService(x)))
             }
           case doNothing => Unit
          }
@@ -57,9 +55,9 @@ class ServiceHandler extends Actor with ServiceHandlerLogic {
     case Terminated(ref) =>
       println("Removing service")
       val res = deathWatch(ref)
-      val h = SPHeader(from = api.attributes.service)
+      val h = SPHeader(from = attributes.service)
       res.foreach{kv =>
-        mediator ! Publish("spevents", ServiceHandlerComm.makeMess(h, api.RemovedService(kv._2)))
+        mediator ! Publish("spevents", ServiceHandlerComm.makeMess(h, RemovedService(kv._2)))
       }
 
 

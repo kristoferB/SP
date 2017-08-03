@@ -1,4 +1,4 @@
-package sp.labkit
+package sp.example
 
 import akka.actor._
 import akka.testkit._
@@ -34,11 +34,6 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
   val mediator = akka.cluster.pubsub.DistributedPubSub(system).mediator
   val id = ID.newID
 
-  import sp.example.{ExampleService, ExampleServiceLogic}
-  import sp.example.{API_ExampleService => api}
-  import Pickles._
-  import APISP
-
 
   override def beforeAll: Unit = {
     val exampleS = system.actorOf(ExampleService.props, "exampleService")
@@ -48,7 +43,7 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
     TestKit.shutdownActorSystem(system)
   }
 
-
+  import APIExampleService._
 
 
   val logic = new ExampleServiceLogic {}
@@ -56,7 +51,7 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
   "The example service logic" must {
     "include a new pie" in {
-      val res = logic.commands(api.StartTheTicker(id))
+      val res = logic.commands(APIExampleService_StartTheTicker(id))
       val map = logic.thePies
 
       assert(map.size == 1 && map.contains(id) && map(id) == Map("first"->10, "second"-> 30, "third" -> 60))
@@ -64,10 +59,10 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
     }
 
     "remove a pie" in {
-      logic.commands(api.StartTheTicker(id))
+      logic.commands(APIExampleService_StartTheTicker(id))
       assert(logic.thePies.size == 1)
 
-      val res = logic.commands(api.StopTheTicker(id))
+      val res = logic.commands(APIExampleService_StopTheTicker(id))
       assert(logic.thePies.isEmpty)
       res.head shouldEqual APISP.SPDone()
 
@@ -75,7 +70,7 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
     "removing non existing pie" in {
 
-      val res = logic.commands(api.StopTheTicker(id))
+      val res = logic.commands(APIExampleService_StopTheTicker(id))
       assert(logic.thePies.isEmpty)
       res.head shouldEqual APISP.SPDone()
 
@@ -83,7 +78,7 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
     "include a predef pie" in {
       val xs = Map("foo"->10, "bar"-> 30)
-      val res = logic.commands(api.SetTheTicker(id, xs))
+      val res = logic.commands(APIExampleService_SetTheTicker(id, xs))
       val map = logic.thePies
 
       assert(map.size == 1 && map.contains(id) && map(id) == xs)
@@ -92,8 +87,8 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
     "multiple pies" in {
       val xs = Map("foo"->10, "bar"-> 30)
-      val res = logic.commands(api.SetTheTicker(id, xs))
-      logic.commands(api.StartTheTicker(ID.newID))
+      val res = logic.commands(APIExampleService_SetTheTicker(id, xs))
+      logic.commands(APIExampleService_StartTheTicker(ID.newID))
       val map = logic.thePies
 
       assert(map.size == 2)
@@ -110,14 +105,14 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
 
 
-  val header = SPHeader(to = api.attributes.service, from = "testing")
+  val header = SPHeader(to = APIExampleService.service, from = "testing")
 
   "The example service actor" must {
     val p = TestProbe()
     val e = TestProbe()
     mediator ! Subscribe("answers", p.ref)
     "start ticking on new pie" in {
-      val body = api.StartTheTicker(id)
+      val body = APIExampleService_StartTheTicker(id)
       val mess = SPMessage.makeJson(header, body)
       mediator ! Publish("services", mess)
 
@@ -126,7 +121,7 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
         case x: String if SPMessage.fromJson(x).isSuccess =>
           val mess = SPMessage.fromJson(x).get
-          val b = mess.getBodyAs[api.TickerEvent]
+          val b = mess.getBodyAs[APIExampleService.Response]
           b.isSuccess
       }
     }

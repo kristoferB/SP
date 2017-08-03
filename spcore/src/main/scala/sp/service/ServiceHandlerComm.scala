@@ -2,33 +2,42 @@ package sp.service
 
 
 import sp.domain._
-import sp.messages._
-import Pickles._
-import scala.util.{Try}
+import Logic._
+import scala.util.Try
 
-package APIServiceHandler {
+
+
+
+case object GetServices extends APIServiceHandler.Request
+case class Services(xs: List[APISP.StatusResponse]) extends APIServiceHandler.Response
+case class NewService(x: APISP.StatusResponse) extends APIServiceHandler.Response
+case class RemovedService(x: APISP.StatusResponse) extends APIServiceHandler.Response
+
+object APIServiceHandler {
   sealed trait Request
-  case class GetServices() extends Request
-
   sealed trait Response
-  case class Services(xs: List[APISP.StatusResponse]) extends Response
-  case class NewService(x: APISP.StatusResponse) extends Response
-  case class RemovedService(x: APISP.StatusResponse) extends Response
+  object Request {
+    implicit lazy val readReq = deriveReadISA[Request]
+    implicit lazy val writeReq = deriveWriteISA[Request]
+  }
+  object Response {
+    implicit lazy val readResp = deriveReadISA[Response]
+    implicit lazy val writeResp = deriveWriteISA[Response]
+  }
 
   object attributes {
     val service = "ServiceHandler"
   }
 }
 
-import sp.service.{APIServiceHandler => api}
 
 
 
 object ServiceHandlerComm {
   def extractRequest(mess: Try[SPMessage]) = for {
     m <- mess
-    h <- m.getHeaderAs[SPHeader] if h.to == api.attributes.service
-    b <- m.getBodyAs[api.Request]
+    h <- m.getHeaderAs[SPHeader] if h.to == "ServiceHandler"
+    b <- m.getBodyAs[APIServiceHandler.Request]
   } yield (h, b)
 
   def extractAPISP(mess: Try[SPMessage]) = for {
@@ -38,6 +47,6 @@ object ServiceHandlerComm {
   } yield (h, b)
 
 
-  def makeMess(h: SPHeader, b: api.Response) = SPMessage.makeJson[SPHeader, api.Response](h, b)
-  def makeMess(h: SPHeader, b: APISP) = SPMessage.makeJson[SPHeader, APISP](h, b)
+  def makeMess(h: SPHeader, b: APIServiceHandler.Response) = SPMessage.makeJson(h, b)
+  def makeMess(h: SPHeader, b: APISP) = SPMessage.makeJson(h, b)
 }
