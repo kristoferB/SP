@@ -24,9 +24,8 @@
         vm.removeVar = removeVar;
         vm.verify = verify;
         vm.state = 'selecting';
-        vm.calculate = calculate;
-        vm.dispOriginalSop= dispOriginalSop;
-        vm.solveWithCP=solveWithCP;
+        vm.GenerateSops = GenerateSops;
+        vm.calculateUsingSops = calculateUsingSops;
         vm.numStates = 0;
         vm.minTime = 0.0;
         vm.cpCompleted = false;
@@ -38,7 +37,16 @@
         vm.selectedVars = [];
         vm.selectedValues = {};
         vm.stateExists = 'uninitialized';
+        vm.updateSopID = updateSopID;
+        var SopID = '';
         var waitID = '';
+
+document.getElementById("sopIDTextBox").onchange = function() {updateSopID()};
+
+function updateSopID(){
+SopID = document.getElementById("sopIDTextBox").value;
+}
+
 
         function updateSelected(nowSelected, previouslySelected) {
             var n = _.difference(nowSelected, previouslySelected);
@@ -92,21 +100,36 @@
 
         activate();
 
+// This function listens to the message bus and depending on what ID's the messages have it takes action.
         function onEvent(ev){
-            if(ev.reqID == waitID) {
-                console.log(ev.attributes);
-                vm.numStates = ev.attributes['numStates'];
-                vm.sops = ev.attributes['cpSops'];
-                vm.bddName = ev.attributes['bddName'];
-                if(vm.sops.length == 0) {
-                    vm.state = 'no sols';
-                } else {
-                    vm.minTime = vm.sops[0]._1;
-                    vm.cpCompleted = ev.attributes['cpCompleted'];
-                    vm.cpTime = ev.attributes['cpTime'];
-                    vm.state = 'done';
-                }
-            }
+
+            if(ev.reqID == waitID && vm.state == 'GenerateSops') {
+                                SopID = ev.ids[0].id;
+                                //alert(SopID);
+                                document.getElementById("sopIDTextBox").value = SopID;
+                                if(ev.ids.length == 0) {
+                                                    alert("no sop!");
+                                                }
+                                else{
+                                   // alert(SopID);
+                                   // openSOP(SopID); // Find out the ID of the newly created SOP and open it
+                                }
+                              }
+
+            else if(ev.reqID == waitID && vm.state == 'calculateUsingSops') {
+               console.log(ev.attributes);
+                              vm.numStates = ev.attributes['numStates'];
+                              vm.sops = ev.attributes['cpSops'];
+                              vm.bddName = ev.attributes['bddName'];
+                              if(vm.sops.length == 0) {
+                                  vm.state = 'no sols';
+                              } else {
+                                  vm.minTime = vm.sops[0]._1;
+                                  vm.cpCompleted = ev.attributes['cpCompleted'];
+                                  vm.cpTime = ev.attributes['cpTime'];
+                                  vm.state = 'done';
+                              }
+             }
         }
         function activate() {
             $scope.$on('closeRequest', function() {
@@ -117,53 +140,60 @@
             actOnSelectionChanges();
         }
 
-        function calculate() {
+
+
+
+
+
+        function GenerateSops(){
             if(vm.selectedSchedules.length == 0) {
-                console.log('Must select a least one schedule');
-                return;
-            }
-            vm.state = 'calculating';
-            var selected = _.map(vm.selectedSchedules, function(x) {return x.id;});
-            var mess = {
-                'command' : 'calculate',
-                'core': {
-                    'model': modelService.activeModel.id,
-                    'responseToModel': true
-                },
-                'setup': {
-                    'selectedSchedules':selected
-                }
-            };
-            spServicesService.callService('VolvoRobotSchedule',{'data':mess},function(x){},function(x){}).then(function(repl){
-                waitID = repl.reqID;
-            });
-        }
-
-        function dispOriginalSop(sopid){
-        alert(sopid);
-         openSOP(sopid);
-        }
-
-        function solveWithCP(){
-         if(vm.selectedSchedules.length == 0) {
-                        console.log('Must select a least one schedule');
-                        return;
-                    }
-                    vm.state = 'calculating CP';
-         var selected = _.map(vm.selectedSchedules, function(x) {return x.id;});
-                     var mess = {
-                         'core': {
-                             'model': modelService.activeModel.id,
-                             'responseToModel': true
-                         },
-                         'setup': {
-                             'selectedSchedules':selected
+                             console.log('Must select a least one schedule');
+                             return;
                          }
-                     };
-                     spServicesService.callService('VolvoRobotSchedule',{'data':mess},function(x){},function(x){}).then(function(repl){
-                         waitID = repl.reqID;
-                     });
+                         vm.state = 'GenerateSops';
+                            var selected = _.map(vm.selectedSchedules, function(x) {return x.id;});
+                          var mess = {
+                          'command' : 'GenerateSops',
+                          'SopID' : SopID,
+                              'core': {
+                                  'model': modelService.activeModel.id,
+                                  'responseToModel': true
+                              },
+                              'setup': {
+                                  'selectedSchedules':selected
+                              }
+                          };
+                          spServicesService.callService('VolvoRobotSchedule',{'data':mess},function(x){},function(x){}).then(function(repl){
+                              waitID = repl.reqID;
+                          });
         }
+
+           function calculateUsingSops(){
+                                          /*  if(SopID == '') {
+                                                console.log('Must Create a SOP');
+                                                return;
+                                            }*/
+                                             if(vm.selectedSchedules.length == 0) {
+                                                                                 console.log('Must select a least one schedule');
+                                                                                 return;
+                                                                             }
+                                                                             vm.state = 'calculateUsingSops';
+                                                                                var selected = _.map(vm.selectedSchedules, function(x) {return x.id;});
+                                                                              var mess = {
+                                                                              'command' : 'calculateUsingSops',
+                                                                              'SopID' : SopID,
+                                                                                  'core': {
+                                                                                      'model': modelService.activeModel.id,
+                                                                                      'responseToModel': true
+                                                                                  },
+                                                                                  'setup': {
+                                                                                      'selectedSchedules':selected
+                                                                                  }
+                                                                              };
+                                                                              spServicesService.callService('VolvoRobotSchedule',{'data':mess},function(x){},function(x){}).then(function(repl){
+                                                                                  waitID = repl.reqID;
+                                                                              });
+                                                            }
 
 
         function openSOP(sopid) {

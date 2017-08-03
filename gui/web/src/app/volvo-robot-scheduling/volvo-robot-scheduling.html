@@ -2,36 +2,37 @@
     <div class="panel-content" style="padding: 10px;">
         <table>
             <thead>
-                <tr><td><h5>
-                            <div ng-if="vm.selectedSchedules.length == 0">
-                                Please select robot schedules
-                            </div>
-                            <div ng-if="vm.selectedSchedules.length > 0">
-                                Press calculate when done selecting
-                            </div>
-                </h5></td></tr>
+            <tr><td><h5>
+                <div ng-if="vm.selectedSchedules.length == 0">
+                    Please select robot schedules
+                </div>
+                <div ng-if="vm.selectedSchedules.length > 0">
+                    Press calculate when done selecting
+                </div>
+            </h5></td></tr>
             </thead>
             <tbody ng-repeat="s in vm.selectedSchedules | orderBy:'name'">
-                <tr>
-                    <td style="padding: 5px">
-                        <button type="button" class="btn btn-sm btn-primary" ng-click="vm.removeSchedule(s)">
-                            <i class="fa fa-close"></i> {{s.name}}
-                        </button>
-                    </td>
-                </tr>
+            <tr>
+                <td style="padding: 5px">
+                    <button type="button" class="btn btn-sm btn-primary" ng-click="vm.removeSchedule(s)">
+                        <i class="fa fa-close"></i> {{s.name}}
+                    </button>
+                </td>
+            </tr>
             </tbody>
         </table>
 
-        <br><br>
-        <button class="btn" ng-click="vm.dispOriginalSop()">
-            <i class="fa fa-bolt"></i> Display original model
+        <br><br>GenerateSops
+        <button class="btn" ng-click="vm.GenerateSops()">
+            <i class="fa fa-bolt"></i> Generate Sops
         </button>
-        <button class="btn" ng-click="vm.calculate()">
-            <i class="fa fa-bolt"></i> Calculate with <b>Supremica</b>
+        <button class="btn" ng-click="vm.calculateUsingSops()">
+            <i class="fa fa-bolt"></i> Optimize Sops
         </button>
-        <button class="btn" ng-click="vm.solveWithCP()">
-            <i class="fa fa-bolt"></i> Solve with CP
-        </button>
+        <form>
+            SOP ID :
+            <input type="text" id="sopIDTextBox" onchange="vm.updateSopID()"  >
+        </form>
         <div ng-if="vm.state == 'calculating'">
             Running calculations...<i class="fa fa-cog fa-spin fa-lg fa-fw"></i>
         </div>
@@ -46,51 +47,51 @@
             <br>Search complete? <b>{{vm.cpCompleted}}</b>
             <table width="90%">
                 <thead>
-                    <tr><td>Time</td><td>SOP</td><td>Gantt</td></tr>
+                <tr><td>Time</td><td>SOP</td><td>Gantt</td></tr>
                 </thead>
                 <tbody ng-repeat="s in vm.sops">
-                    <tr>
-                        <td>
-                            <b>{{s._1}}s</b>
-                        </td>
-                        <td>
-                            <a ng-click="vm.openSOP(s._2.id)" style="cursor:pointer;" uib-tooltip="open SOP"><b>Open SOP</b></a>
-                        </td>
-                        <td>
-                            <a ng-click="vm.openGantt(s._3)" style="cursor:pointer;" uib-tooltip="open gantt"><b>Open gantt</b></a>
-                        </td>
-                    </tr>
+                <tr>
+                    <td>
+                        <b>{{s._1}}s</b>
+                    </td>
+                    <td>
+                        <a ng-click="vm.openSOP(s._2.id)" style="cursor:pointer;" uib-tooltip="open SOP"><b>Open SOP</b></a>
+                    </td>
+                    <td>
+                        <a ng-click="vm.openGantt(s._3)" style="cursor:pointer;" uib-tooltip="open gantt"><b>Open gantt</b></a>
+                    </td>
+                </tr>
                 </tbody>
             </table>
 
             <br><br>
             <table>
                 <thead>
-                    <tr><td><h5>
-                                <div ng-if="vm.selectedVars.length == 0">
-                                    Select variables for verification
-                                </div>
-                                <div ng-if="vm.selectedVars.length > 0 && vm.stateExists == 'uninitialized'">
-                                    Can this situation happen?
-                                </div>
-                                <div ng-if="vm.selectedVars.length > 0 && vm.stateExists != 'uninitialized'">
-                                    This {{vm.stateExists}} happen.
-                                </div>
-                    </h5></td></tr>
+                <tr><td><h5>
+                    <div ng-if="vm.selectedVars.length == 0">
+                        Select variables for verification
+                    </div>
+                    <div ng-if="vm.selectedVars.length > 0 && vm.stateExists == 'uninitialized'">
+                        Can this situation happen?
+                    </div>
+                    <div ng-if="vm.selectedVars.length > 0 && vm.stateExists != 'uninitialized'">
+                        This {{vm.stateExists}} happen.
+                    </div>
+                </h5></td></tr>
                 </thead>
                 <tbody ng-repeat="v in vm.selectedVars | orderBy:'name'">
-                    <tr>
-                        <td style="padding: 5px">
-                            <button type="button" class="btn btn-sm btn-primary" ng-click="vm.removeVar(v)">
-                                <i class="fa fa-close"></i> {{v.name}}
-                            </button>
-                            <label for="repeatSelect"> value: </label>
-                            <select name="repeatSelect" id="repeatSelect" ng-model="vm.selectedValues[v.name]" ng-change="vm.verify()">
-                                <option ng-repeat="val in v.attributes.stateVariable.domain"
-                                        value="{{v.attributes.stateVariable.domain.indexOf(val)}}">{{val}}</option>
-                            </select>
-                        </td>
-                    </tr>
+                <tr>
+                    <td style="padding: 5px">
+                        <button type="button" class="btn btn-sm btn-primary" ng-click="vm.removeVar(v)">
+                            <i class="fa fa-close"></i> {{v.name}}
+                        </button>
+                        <label for="repeatSelect"> value: </label>
+                        <select name="repeatSelect" id="repeatSelect" ng-model="vm.selectedValues[v.name]" ng-change="vm.verify()">
+                            <option ng-repeat="val in v.attributes.stateVariable.domain"
+                                    value="{{v.attributes.stateVariable.domain.indexOf(val)}}">{{val}}</option>
+                        </select>
+                    </td>
+                </tr>
                 </tbody>
             </table>
 

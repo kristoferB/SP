@@ -12,11 +12,11 @@ import scala.concurrent._
 import akka.pattern.ask
 
 /**
- * Creates a wmod module from existing operations, things (variables), and SOPspec (forbidden expressions/mutex operations).
- * This module is synthesized.
- * The synthesized supervisor is returned as an extra preGuard for a subset of the operations.
- * Creates a Condition for each operation based on its attributes
- */
+  * Creates a wmod module from existing operations, things (variables), and SOPspec (forbidden expressions/mutex operations).
+  * This module is synthesized.
+  * The synthesized supervisor is returned as an extra preGuard for a subset of the operations.
+  * Creates a Condition for each operation based on its attributes
+  */
 class SynthesizeModelBasedOnAttributesService(modelHandler: ActorRef, serviceHandler: ActorRef) extends Actor {
   def receive = {
     case r@Request(service, attr, ids, reqID) =>
@@ -56,6 +56,12 @@ private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef, ser
       val vars = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing])
       val sopSpecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
 
+      //     println(" vars       :::" + vars)
+      //    println(" ops       :::" + ops)
+       //    println(" sopSpecs       :::" + sopSpecs)
+
+
+
       progress ! SPAttributes("progress" -> "got info and data from model")
 
       // Only set the name if there is a model
@@ -85,18 +91,24 @@ private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef, ser
           progress ! SPAttributes("progress" -> "Synthesizing supervisor")
           ptmw.SupervisorAsBDD()
         }
+
         val optSupervisorGuards = ptmwModule.getSupervisorGuards.map(_.filter(og => !og._2.equals("1")))
+        // error here, bad guard!
         val updatedOps = ops.map(o => ptmw.addSPConditionFromAttributes(ptmw.addSynthesizedGuardsToAttributes(o, optSupervisorGuards), optSupervisorGuards))
+
 
         lazy val synthesizedGuards = optSupervisorGuards.getOrElse(Map()).foldLeft(SPAttributes()) { case (acc, (event, guard)) =>
           acc merge SPAttributes("synthesizedGuards" -> SPAttributes(event -> guard))
         }
+
         lazy val nbrOfStates = SPAttributes("nbrOfStatesInSupervisor" -> ptmwModule.nbrOfStates())
 
-        println(s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
-        if (synthesizedGuards.obj.nonEmpty) println(synthesizedGuards.pretty)
+   //     println(s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
+    //    if (synthesizedGuards.obj.nonEmpty) println(synthesizedGuards.pretty)
 
         progress ! SPAttributes("progress" -> s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
+
+
 
         ptmw.addSupervisorGuardsToFreshFlower(optSupervisorGuards)
         ptmw.saveToWMODFile("./testFiles/gitIgnore/")
@@ -132,7 +144,13 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
       o.attributes.getAs[SPAttributes](key).map {
         _.obj.flatMap { case (variable, toTpia) =>
           lazy val tpia = toTpia.to[TransformationPatternInAttributes].get
-          nestedAttr.flatMap(_(tpia)).map(value => s"$variable $operator $value")
+          nestedAttr.flatMap(_(tpia)).map(value => {
+            val conditionList = value.split(" OR ")
+            if(conditionList.size > 1)
+              conditionList.mkString("(" + s"$variable $operator ", ")|(" + s"$variable $operator ", ")")
+            else
+              s"$variable $operator $value"}
+          )
         }
       }
     }.flatten
@@ -140,6 +158,7 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
 
   private def addTransition(o: Operation, event: String, directGuardAttr: Set[String], nestedGuardAttr: Set[TransformationPatternInAttributes => Option[String]],
                             directActionAttr: Set[String], nestedActionAttr: Set[TransformationPatternInAttributes => Option[String]]) = {
+
 
     val allGuards = directAttrValues(o, directGuardAttr) ++ nestedAttrValues(o, nestedGuardAttr, "==")
     val guardAsString = if (allGuards.isEmpty) "" else allGuards.mkString("(", ")&(", ")")
@@ -173,6 +192,7 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
       allInit = Set("init", "idleValue").flatMap(key => v.attributes.findAs[String](key))
       init <- if (allInit.size == 1) Some(allInit.head)
       else {
+        println("v.attributes     ::::::  "     + v.attributes)
         println(s"Problem with variable ${v.name}, attribute keys init and idleValue do not point to the same value")
         None
       }
@@ -187,10 +207,10 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
       }
       intMarkings = markings.flatMap(m => getFromVariableDomain(v.name, m, "Problem with marking"))
     } yield {
-        addVariable(v.name, 0, domain.size - 1, intInit, intMarkings)
-        //Add variable values to module comment
-        mModule.setComment(s"$getComment${TextFilePrefix.VARIABLE_PREFIX}${v.name} d${TextFilePrefix.COLON}${domain.mkString(",")}")
-      }
+      addVariable(v.name, 0, domain.size - 1, intInit, intMarkings)
+      //Add variable values to module comment
+      mModule.setComment(s"$getComment${TextFilePrefix.VARIABLE_PREFIX}${v.name} d${TextFilePrefix.COLON}${domain.mkString(",")}")
+    }
     }
   }
 
@@ -273,14 +293,16 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
     if (optSynthesizedGuardMap.isEmpty) o
     else {
       def parseAttributesToPropositionCondition(op: Operation, idablesToParseFromString: List[IDAble]): Option[Operation] = {
+
         def getGuard(directGuardAttr: Set[String], nestedGuardAttr: Set[TransformationPatternInAttributes => Option[String]]) = {
           lazy val allGuards = directAttrValues(o, directGuardAttr) ++ nestedAttrValues(o, nestedGuardAttr, "==")
-          lazy val guardAsString = if (allGuards.isEmpty) "" else allGuards.mkString("(", ")&(", ")")
+          var guardAsString = if (allGuards.isEmpty) "" else allGuards.mkString("(", ")&(", ")")
           PropositionParser(idablesToParseFromString).parseStr(stringPredicateToSupremicaSyntax(guardAsString)) match {
             case Right(p) => Some(p)
             case Left(fault) => println(s"PropositionParser failed for operation ${op.name} on guard: $guardAsString. Failure message: $fault"); None
           }
         }
+
         def getAction(directActionAttr: Set[String], nestedActionAttr: Set[TransformationPatternInAttributes => Option[String]]) = {
           val actionsAsStrings = directAttrValues(o, directActionAttr) ++ nestedAttrValues(o, nestedActionAttr, "=")
           actionsAsStrings.flatMap { action =>

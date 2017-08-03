@@ -167,6 +167,9 @@ class ProcessSimulate(modelHandler: ActorRef, eventHandler: ActorRef) extends Ac
       case p: Parallel => {
         ack merge SPAttributes("parallel" -> p.sop.map(createExportJsonHelper(_, ids, ack)))
       }
+      case a: Alternative => {
+        ack merge SPAttributes("alternative" -> a.sop.map(createExportJsonHelper(_, ids, ack)))
+      }
       case s: Sequence => {
         ack merge SPAttributes("sequence" -> s.sop.map(createExportJsonHelper(_, ids, ack)))
       }

@@ -3,6 +3,7 @@ package sp.domain
 // TODO: Clean this and move logic. Maybe also make sop: List[SOP]
 
 trait SOP {
+
   val sop: Seq[SOP]
   def +(sop: SOP) = SOP.addChildren(this, Seq(sop))
   def ++(sops: Seq[SOP]) = SOP.addChildren(this,sops)
@@ -49,6 +50,7 @@ object SOP {
       case _ => modifySOP(sop, sop.sop ++ children)
     }
   }
+
 
   def modifySOP(sop: SOP, children: Seq[SOP]): SOP = {
     sop match {

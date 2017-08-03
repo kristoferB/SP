@@ -52,6 +52,8 @@ class ExtendIDablesBasedOnTheirAttributesService extends Actor with ServiceSuppo
       val vars = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing])
       val sopSpecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
       val spSpecs = ids.filter(_.isInstanceOf[SPSpec]).map(_.asInstanceOf[SPSpec])
+   // println("vars  ExtendeIDs :::::"     +  vars)
+     // println("spSpecs  ::::: "   + spSpecs)
 
       //Extend Operations and Variables (TODO extend based on product sequences)
       val eiw = ExtendIDablesWrapper(ops, vars, sopSpecs, spSpecs)

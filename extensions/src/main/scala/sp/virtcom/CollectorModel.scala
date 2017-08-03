@@ -3,15 +3,18 @@ package sp.virtcom
 import org.json4s.JsonAST.{JField, JArray, JObject}
 import sp.domain._
 import sp.domain.Logic._
+import scala.collection.mutable.LinkedHashMap
+import scala.collection.mutable.LinkedHashSet
 
 /**
- * To store operation models
- */
+  * To store operation models
+  */
 
 trait CollectorModel {
   val modelName: String
   var variableSet: Set[Thing] = Set()
   var operationSet: Set[Operation] = Set()
+  var operationSetWithID  = LinkedHashMap[ID,Operation]()
   var forbiddenExpressionSet: Set[SOPSpec] = Set()
   var robotMovementsSet: Set[SPSpec] = Set()
 
@@ -28,9 +31,17 @@ trait CollectorModel {
   implicit def SPAttToSeqOfSpAtt(spa: SPAttributes): Seq[SPAttributes] = Seq(spa)
   implicit def stringStringToSeqOfSpAtt(kv: (String, String)): SPAttributes = SPAttributes(kv)
 
+
+  def opWithID(name: String, attributes: Seq[SPAttributes] = Seq(SPAttributes()), opId: ID = ID.newID) = {
+    operationSetWithID += opId -> Operation(name = name, List(), attributes = attributes.foldLeft(SPAttributes()) { case (acc, c) => acc merge c }, opId)
+  }
+
   def op(name: String, attributes: Seq[SPAttributes] = Seq(SPAttributes())) = {
     operationSet += Operation(name = name, attributes = attributes.foldLeft(SPAttributes()) { case (acc, c) => acc merge c })
   }
+
+
+
 
   def c(variable: String, fromValue: String, toValue: String): SPAttributes = {
     SPAttributes("preGuard" -> Set(s"$variable == $fromValue"), "preAction" -> Set(s"$variable = $toValue"))
@@ -83,8 +94,8 @@ trait CollectorModel {
 }
 
 /**
- * To work on a collector Model
- */
+  * To work on a collector Model
+  */
 object CollectorModelImplicits {
 
   implicit class CollectorModelWorker(cm: CollectorModel) {
@@ -103,6 +114,34 @@ object CollectorModelImplicits {
 
       //Operations------------------------------------------------------------------------------------
       lazy val opsToAdd = getIDablesFromSet(cm.operationSet, (n, as) => Operation(name = n, attributes = as))
+      lazy val operationMap = opsToAdd.map(o => o.name -> o).toMap
+
+      //ForbiddenExpressions--------------------------------------------------------------------------------------
+      lazy val fesToAddWithNoVisableOperations = getIDablesFromSet(cm.forbiddenExpressionSet, (n, as) => SOPSpec(name = n, sop = List(), attributes = as))
+      lazy val fesToAdd = fesToAddWithNoVisableOperations.map { obj =>
+        val mutexOperations = obj.attributes.findAs[List[String]]("mutexOperations").flatten
+        obj.copy(sop = if (mutexOperations.isEmpty) List() else List(Arbitrary(mutexOperations.flatMap(o => operationMap.get(o)).map(o => Hierarchy(o.id)): _*)),
+          attributes = obj.attributes.removeField { case JField("mutexOperations", _) => true; case _ => false }.to[SPAttributes].getOrElse(SPAttributes()))
+      }
+
+      //RobotMovements---------------------------------------------------------------------------------------------
+      lazy val robotMovementsToAdd = getIDablesFromSet(cm.robotMovementsSet, (n, as) => SPSpec(name = n, attributes = as))
+
+      //Return--------------------------------------------------------------------------------------------
+      varsToAdd ++ opsToAdd ++ fesToAdd ++ robotMovementsToAdd
+    }
+
+
+
+    def parseToIDablesWithIDs() = {
+      //Variables-----------------------------------------------------------------------------------------------------
+      lazy val varsToAddWithNonDistinctDomains = getIDablesFromSet(cm.variableSet, (n, as) => Thing(name = n, attributes = as))
+      lazy val varsToAdd = varsToAddWithNonDistinctDomains.map { obj => obj.copy(attributes =
+        obj.attributes.transformField { case ("domain", JArray(vs)) => ("domain", JArray(vs.distinct)) }.to[SPAttributes].getOrElse(SPAttributes()))
+      }
+
+      //Operations------------------------------------------------------------------------------------
+      lazy val opsToAdd = cm.operationSetWithID.map(_._2).toList//getIDablesFromSetWithIDs(cm.operationSet, (n, as) => Operation(name = n, List(), attributes = as, opID))
       lazy val operationMap = opsToAdd.map(o => o.name -> o).toMap
 
       //ForbiddenExpressions--------------------------------------------------------------------------------------

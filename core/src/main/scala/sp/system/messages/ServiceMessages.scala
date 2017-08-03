@@ -34,7 +34,7 @@ trait ServiceCommand extends SPCommand {
  * val toModel: Boolean // if the result from the service should update the model
  * val toBus: Boolean // if the result from the service should be forwarded out on the message bus
  * val onlyResponse: Boolean // replies to the asker only when done (used when asking with ? )
- * val fillIDs: List[ID] // if exists and ids is empty, the items with these ids will be added
+ * val fillIDs: List[ID] // if exists and ids is empty, the items with these ids will be addedServiceHandlerAttributes
  *                     // to the request.ids instead of the complete model
  *
  * @param service The name of the service
