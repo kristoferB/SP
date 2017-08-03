@@ -9,8 +9,8 @@ import scala.util.Try
 
 
 
+sealed trait APISP
 object APISP {
-  sealed trait APISP
 
   // topics
   val services = "services"
@@ -41,10 +41,14 @@ object APISP {
     }
   }
 
-  object APISP {
     import julienrf.json.derived
-    implicit val apispFormat: OFormat[APISP] = derived.flat.oformat[APISP]((__ \ "isa").format[String])
-  }
+    // using the extra reads to enable x.to[SPError] and SPValue(SPOK())
+    implicit val apiSPR1: JSReads[SPError] = deriveReadISA[SPError]
+    implicit val apiSPR2: JSReads[SPACK] = deriveReadISA[SPACK]
+    implicit val apiSPR3: JSReads[SPDone] = deriveReadISA[SPDone]
+    implicit val apiSPR4: JSReads[StatusRequest] = deriveReadISA[StatusRequest]
+    implicit val apiSPR5: JSReads[StatusResponse] = deriveReadISA[StatusResponse]
+    implicit val apispFormat: JSFormat[APISP] = deriveFormatISA[APISP]
 }
 
 
@@ -57,9 +61,9 @@ case class SPHeader(from: String = "", // the name of the sender
                     attributes: SPAttributes = SPAttributes() // to be used in some scenarios, where more info in the header is needed
                    )
 
-case class SPMessage(header: SPValue, body: SPValue) {
-  def getHeaderAs[T](implicit fjs: Reads[T]) = header.asOpt[T]
-  def getBodyAs[T](implicit fjs: Reads[T]) = body.asOpt[T]
+case class SPMessage(header: SPAttributes, body: SPAttributes) {
+  def getHeaderAs[T](implicit fjs: Reads[T]) = header.to[T]
+  def getBodyAs[T](implicit fjs: Reads[T]) = body.to[T]
   def toJson = Json.stringify(Json.toJson(this)(SPMessage.messageFormat))
 
   def make(h: AttributeWrapper, b: AttributeWrapper): SPMessage = {
@@ -73,13 +77,13 @@ case class SPMessage(header: SPValue, body: SPValue) {
 }
 
 object SPHeader {
-  import julienrf.json.derived
   implicit val headerFormat = Json.format[SPHeader]
 }
 
 object SPMessage {
-  import julienrf.json.derived
   implicit val messageFormat = Json.format[SPMessage]
+
+  //def apply(h: AttributeWrapper, b: AttributeWrapper): SPMessage = make(h, b)
 
   /**
     * Creates a SPMessage based on a header and a body. The paramterers must have a implicit format
@@ -89,7 +93,10 @@ object SPMessage {
     * @param b A body defined as a case class where an implicit format exist
     */
   def make(h: AttributeWrapper, b: AttributeWrapper): SPMessage = {
-    SPMessage(SPValue(h), SPValue(b))
+    val hAsO = Try{h.asInstanceOf[JsObject]}.getOrElse(JsObject.empty)
+    val bAsO = Try{b.asInstanceOf[JsObject]}.getOrElse(JsObject.empty)
+
+    SPMessage(hAsO, bAsO)
   }
   def makeJson(h: AttributeWrapper, b: AttributeWrapper): String = make(h, b).toJson
   def fromJson(json: String) = Try{Json.parse(json).as[SPMessage](SPMessage.messageFormat)}

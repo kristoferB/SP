@@ -3,7 +3,6 @@ package sp
 import java.util.UUID
 import play.api.libs.json._
 import scala.util.Try
-import org.threeten.bp._
 
 /**
  * Created by kristofer on 15-05-27.
@@ -22,6 +21,9 @@ package object domain {
     * scope can be converted into. Else, a compile error will happen.
     */
   type AttributeWrapper = Json.JsValueWrapper
+  type JSFormat[T] = OFormat[T]
+  type JSReads[T] = Reads[T]
+  type JSWrites[T] = OWrites[T]
 
   /**
     * The id used in SP. A standard UUID.
@@ -41,6 +43,11 @@ package object domain {
         Json.parse(json).asInstanceOf[SPAttributes]
       }
     }
+    def fromJsonAs[T](json: String, key: String = "")(implicit fjs: JSReads[T]) = {
+      val res = fromJson(json)
+
+    }
+    def empty = JsObject.empty
   }
 
   object SPValue {

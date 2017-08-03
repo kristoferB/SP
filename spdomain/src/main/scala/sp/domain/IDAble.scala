@@ -50,7 +50,10 @@ case class Struct(name: String,
   lazy val nodeMap = items.map(l => l.nodeID -> l).toMap
 }
 
-case class StructNode(item: ID, parent: Option[ID] = None, nodeID: ID = ID.newID, attributes: SPAttributes = SPAttributes())
+case class StructNode(item: ID,
+                      parent: Option[ID] = None,
+                      nodeID: ID = ID.newID,
+                      attributes: SPAttributes = SPAttributes())
 
 
 

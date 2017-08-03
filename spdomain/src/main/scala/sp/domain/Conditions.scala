@@ -2,7 +2,7 @@ package sp.domain
 
 
 case class Condition(guard: Proposition,
-                     action: List[Action],
+                     action: List[Action] = List(),
                      attributes: SPAttributes = SPAttributes())
 
 

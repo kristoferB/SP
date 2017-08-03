@@ -3,7 +3,7 @@ package sp.domain.logic
 import play.api.libs.json._
 import scala.util.Try
 import org.threeten.bp._
-import sp.domain.{SPValue, SPAttributes}
+import sp.domain._
 
 /**
   * To use the attributes, you also need to include the json formaters
@@ -19,8 +19,8 @@ trait AttributeLogics {
   implicit def boolToSPValue(x: Boolean): SPValue = SPValue(x)
 
   implicit class SPValueLogic(value: SPValue) {
-    def to[T](implicit fjs: Reads[T]) = {
-      Try{ value.as[T] }.toOption
+    def to[T](implicit fjs: JSReads[T]) = {
+      Try{ value.as[T] }
     }
     def pretty = Json.prettyPrint(value)
     def toJson = Json.stringify(value)
@@ -72,7 +72,7 @@ trait AttributeLogics {
       }
     }
 
-    def getAs[T](key: String = "")(implicit fjs: Reads[T]) = {
+    def getAs[T](key: String = "")(implicit fjs: JSReads[T]) = {
       for {
         x <- get(key)
         t <- x.asOpt[T]
@@ -82,11 +82,11 @@ trait AttributeLogics {
     def find(key: String) = x \\ key toList
 
 
-    def findAs[T](key: String)(implicit fjs: Reads[T]) = {
+    def findAs[T](key: String)(implicit fjs: JSReads[T]) = {
       find(key).flatMap(_.asOpt[T])
     }
 
-    def findType[T](implicit fjs: Reads[T]): List[T] = {
+    def findType[T](implicit fjs: JSReads[T]): List[T] = {
       def extrType(xs: List[JsValue]): List[T] = {
         xs.collect {
           case l: JsObject =>

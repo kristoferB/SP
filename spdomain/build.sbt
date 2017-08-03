@@ -11,5 +11,5 @@ libraryDependencies ++= Seq(
     "com.typesafe.play" %% "play-json" % "2.6.0",
     "org.julienrf" %% "play-json-derived-codecs" % "4.0.0",
     "io.github.cquiroz" %% "scala-java-time" % "2.0.0-M12",
-  "joda-time" % "joda-time" % "2.9.9" // to be removed soon. Not dep in JS!
+    "org.joda" % "joda-convert" % "1.8.2"
 )
