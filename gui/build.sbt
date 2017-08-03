@@ -17,12 +17,12 @@ scalacOptions  := Seq(
   "-language:postfixOps"
 )
 
-val scalaJSReactVersion = "1.0.0"
-val scalaCssVersion = "0.5.3-RC1"
-val diodeVersion = "1.1.2"
+val scalaJSReactVersion = "0.11.3"
+val scalaCssVersion = "0.5.1"
+val diodeVersion = "1.1.0"
 
 resolvers += Resolver.url("me @ bintray", url("https://dl.bintray.com/aleastchs/aleastChs-releases"))(Resolver.ivyStylePatterns)
-libraryDependencies += "org.aleastChs" % "scalajs-google-charts_2.11" % "0.4.0"
+libraryDependencies += "org.aleastChs" % "scalajs-google-charts_2.11" % "0.4.1"
 
 libraryDependencies ++= Seq(
   "com.github.japgolly.scalajs-react" %%% "core" % scalaJSReactVersion,

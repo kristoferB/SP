@@ -11,9 +11,9 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import spgui.circuit.SPGUICircuit
 import spgui.communication._
-import spgui.googleCharts.GoogleChartsLoaded
-import aleastchs.facade.google
-import spgui.googleCharts.timeline._
+import aleastchs.googleCharts.helpers.chartsHelp.GoogleChartsLoaded
+import aleastchs.googleCharts.google
+import aleastchs.googleCharts.helpers.chartsHelp._
 
 import scala.scalajs.js.annotation.JSName
 
@@ -64,7 +64,7 @@ object ChartTest {
 
         data.addRow(exampleRow.toArray)
 
-        val exampleOptions = OptionsTimeline(300,400, "example")
+        val exampleOptions = TimelineOption(300,400, "example")
 
         timeline.draw(data, exampleOptions.toDynamic)
       }
