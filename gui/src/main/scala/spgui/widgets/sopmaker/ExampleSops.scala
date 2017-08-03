@@ -19,11 +19,11 @@ object ExampleSops {
     Operation("test")
   )
 
-  def tinySop = Sequence( List(SOP(ops(0)), SOP(ops(0))))
+  def tinySop = Sequence( List(SOP(ops(0)), SOP(ops(1))))
 
   def giantSop = Sequence(List(
     Sequence(
-      List(SOP(ops(7)), SOP(ops(8)))),
+      List(SOP(ops(3)), SOP(ops(8)))),
     Parallel(
       List(
         SOP(ops(0)),

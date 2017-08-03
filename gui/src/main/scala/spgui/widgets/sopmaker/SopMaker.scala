@@ -58,12 +58,15 @@ object SopMakerWidget {
   val opSpacingY = 10f
 
   case class Hover (
-    currentMouseOver: String = "no_target",
-    data: String = "nothing",
+    fromId: UUID = null,
+    toId: UUID = null,
     currentlyDragging: Boolean = false
   )
 
   case class State(sop: SopWithId, hover: Hover)
+
+  val idm = ExampleSops.ops.map(o=>o.id -> o).toMap
+
 
   private class Backend($: BackendScope[Unit, State]) {
 
@@ -75,16 +78,18 @@ object SopMakerWidget {
      "events"
      )
      */
-    $.modState(s => s.copy(sop = idSop(ExampleSops.giantSop))).runNow()
 
     def render(state: State) = {
-      println(state.sop)
-
+      //println(state.sop)
       <.div(
         SopMakerCSS.noSelect,
-        <.div(state.hover.currentMouseOver),
-        <.div(state.hover.data),
+
+        // hover logic debug divs
+        <.div(
+          if(state.hover.fromId != null) state.hover.fromId.toString else "nop"),
+        <.div(if(state.hover.toId != null)state.hover.toId.toString else "nop"),
         <.div(state.hover.currentlyDragging.toString),
+        //<.div(state.sop.toString),
 
         svg.svg(
           ^.onMouseDownCapture --> handleMouseDown(state.hover),
@@ -101,24 +106,24 @@ object SopMakerWidget {
       )
     }
 
-    def handleDrag(drag: String)(e: ReactDragEventFromInput): Callback = {
-      Callback({
-        e.dataTransfer.setData("json", drag)
-      })
-    }
+    // def handleDrag(drag: String)(e: ReactDragEventFromInput): Callback = {
+    //   Callback({
+    //     e.dataTransfer.setData("json", drag)
+    //   })
+    // }
 
-    def handleDrop(drop: String)(e: ReactDragEvent): Callback = {
-      val drag = e.dataTransfer.getData("json")
-      Callback.log("Dropping " + drag + " onto " + drop)
-    }
+    // def handleDrop(drop: String)(e: ReactDragEvent): Callback = {
+    //   val drag = e.dataTransfer.getData("json")
+    //   Callback.log("Dropping " + drag + " onto " + drop)
+    // }
 
     val paddingTop = 40f
     val paddingLeft = 40f
 
-    def op(opname: String, x: Float, y: Float) =
+    def op(opId: UUID, opname: String, x: Float, y: Float) =
       svg.svg(
-        ^.onMouseOver --> handleMouseOver( opname ),
-        ^.onMouseLeave --> handleMouseLeave( opname ),
+        ^.onMouseOver --> handleMouseOver( opId ),
+        ^.onMouseLeave --> handleMouseLeave( opId ),
         SopMakerCSS.sopComponent,
         ^.draggable := false,
         svg.svg(
@@ -179,17 +184,15 @@ object SopMakerWidget {
         )
       )
 
-    val idm = ExampleSops.ops.map(o=>o.id -> o).toMap
-
-    def handleMouseOver(zone: String): Callback = {
+    def handleMouseOver(zoneId: UUID): Callback = {
       $.modState(s =>
-        s.copy(hover  = s.hover.copy(currentMouseOver = zone))
+        s.copy(hover  = s.hover.copy(toId = zoneId))
       )
     }
 
-    def handleMouseLeave(zone: String): Callback = {
+    def handleMouseLeave(zoneId: UUID): Callback = {
       $.modState(s =>
-        if(!s.hover.currentlyDragging) s.copy(hover = s.hover.copy(currentMouseOver = "no_target"))
+        if(!s.hover.currentlyDragging) s.copy(hover = s.hover.copy(toId = null))
         else s
       )
     }
@@ -198,8 +201,8 @@ object SopMakerWidget {
       $.modState(s =>
         s.copy(
           hover = s.hover.copy(
-            currentlyDragging = (s.hover.currentMouseOver != "no_target"),
-            data = h.currentMouseOver
+            currentlyDragging = (s.hover.toId != null),
+            fromId = h.toId
           )
         )
       )
@@ -207,11 +210,19 @@ object SopMakerWidget {
 
     def handleMouseUp(h: Hover): Callback = {
       Callback({
-        $.modState(s => s.copy(hover = s.hover.copy(
-          data = "nothing",
-          currentlyDragging = false
-        ))).runNow()
-        println("dragged " + h.data + " onto " + h.currentMouseOver)
+        $.modState(s => {
+          s.copy(
+            sop = insertSop(
+              root = s.sop,
+              targetId = s.hover.toId,
+              sopId = s.hover.fromId
+            ),
+            hover = s.hover.copy(
+              toId = null,
+              currentlyDragging = false
+            ))
+        }).runNow()
+        println("dragged " + h.fromId + " onto " + h.toId)
       })
     }
 
@@ -247,7 +258,7 @@ object SopMakerWidget {
           
         case n: RenderHierarchy => {
           val opname = idm.get(n.sop.self.operation).map(_.name).getOrElse("[unknown op]")
-          op(opname, xOffset, yOffset)
+          op(n.sop.id, opname, xOffset, yOffset)
         }
       }
     }
@@ -287,7 +298,7 @@ object SopMakerWidget {
             traverseTree(e)
           )
         }}
-      ) 
+      )
     }
 
     def getTreeWidth(sop: SopWithId): Float = {
@@ -323,18 +334,45 @@ object SopMakerWidget {
     def onUnmount() = Callback {
       println("Unmounting sopmaker")
     }
+
+    def sopList(root: SopWithId): List[SopWithId] = {
+      root :: root.sop.map(e => sopList(e)).toList.flatten
+    }
+
+    def findSop(root: SopWithId, sopId: UUID): SopWithId = {
+      println(sopList(root).filter(x => x.id != sopId).head) 
+      sopList(root).filter(x => x.id == sopId).head
+    }
+    
+    def insertSop(root: SopWithId, targetId: UUID, sopId: UUID): SopWithId = {
+      if(root.id == targetId) {
+        root match {
+          case r: IdAbleParallel =>
+            IdAbleParallel(sop = findSop($.state.runNow().sop, sopId) :: r.sop)
+          case r: IdAbleSequence =>
+            IdAbleSequence(sop = findSop($.state.runNow().sop, sopId) :: r.sop)
+          case r: IdAbleHierarchy => IdAbleParallel(
+            sop = List(r, findSop($.state.runNow().sop, sopId))) // $.state abuse
+        }
+      } else {
+        root match {
+          case r: IdAbleParallel =>
+            IdAbleParallel(sop = r.sop.collect{case e => insertSop(e, targetId, sopId)})
+          case r: IdAbleSequence =>
+            IdAbleSequence(sop = r.sop.collect{case e => insertSop(e, targetId, sopId)})
+          case r: IdAbleHierarchy => r // TODO
+        }
+      }
+    }
   }
+
 
   def idSop(sop: SOP): SopWithId = {
-      sop match {
-        case s: Parallel => IdAbleParallel(sop = s.sop.collect{case e => idSop(e)})
-        case s: Sequence => IdAbleSequence(sop = s.sop.collect{case e => idSop(e)})
-        case s: Hierarchy => IdAbleHierarchy(self = s)
-      }
-  }
-
-  def insertSop(targetId: UUID, sopId: UUID) {
-
+    sop match {
+      case s: Parallel => IdAbleParallel(sop = s.sop.collect{case e => idSop(e)})
+      case s: Sequence => IdAbleSequence(sop = s.sop.collect{case e => idSop(e)})
+      case s: Hierarchy => IdAbleHierarchy(self = s)
+    }
   }
 
   private val component = ScalaComponent.builder[Unit]("SopMakerWidget")
