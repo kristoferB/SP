@@ -97,7 +97,7 @@ class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
     }
   //  println("After onSolution------------------------------------------------------------------------------------------------")
 
-    val stats = start(timeLimit = 60) // (nSols =1, timeLimit = 60)
+    val stats = start(timeLimit = 120) // (nSols =1, timeLimit = 60)
   //  println("===== oscar stats =====\n" + stats)
 
     val sops = ss.map { case (makespan, xs) =>
@@ -719,6 +719,10 @@ precedences = precedences.distinct
           ro.test
         }
 
+
+
+
+      /*
         for {
           (cpCompl, cpTime, cpSols) <- roFuture
           gantt = cpSols.map { case (makespan, sop, gantt) =>
@@ -737,7 +741,7 @@ precedences = precedences.distinct
         }
 
 
-
+*/
 
 
 
@@ -770,12 +774,12 @@ precedences = precedences.distinct
 
         ids_merged2 = ids_merged.filter(x => !ids2.exists(y => y.id == x.id)) ++ ids2
 
-      /*
+
         //Get info about the CP solution
         (cpCompl, cpTime, cpSols) <- roFuture
         sops = cpSols.map { case (makespan, sop, gantt) =>
-          (makespan, SOPSpec(s"path_${makespan}", sop), gantt)
-        }.sortBy(_._1)*/
+          (makespan, SOPSpec(s"path_${makespan}", ss), gantt)
+        }.sortBy(_._1)
 
       } yield {
         // Create a response message and send it on the bus "back to the GUI"
@@ -783,15 +787,15 @@ precedences = precedences.distinct
        // println("makespans        "   + makespans)
 
       //  println("ganttChart        "   + ganttChart)
-        val cpCompl = true
-        val cpTime = 38
-        val sops = (makespans.max, SOPSpec(s"path_${makespans.max}", ss), ganttChart)
+       // val cpCompl = true
+       // val cpTime = 38
+       // val sops = (makespans.max, SOPSpec(s"path_${makespans.max}", ss), ganttChart)
 
-        val resAttr = SPAttributes("numStates" -> numstates, "cpCompleted" -> cpCompl, "cpTime" -> cpTime, "cpSops" -> List(sops), "bddName" -> bddName)
+        val resAttr = SPAttributes("numStates" -> numstates, "cpCompleted" -> cpCompl, "cpTime" -> cpTime, "cpSops" -> sops, "bddName" -> bddName)
         // println("resAttr          ______:::  " + resAttr)
         // println("List(sops).map(_._2)                 ::: "   + List(sops).map(_._2))
         // println("ids_merged2 :::::    "    + ids_merged2)
-        replyTo ! Response(ids_merged2 ++ List(sops).map(_._2), resAttr, rnr.req.service, rnr.req.reqID)
+        replyTo ! Response(ids_merged2 ++ sops.map(_._2), resAttr, rnr.req.service, rnr.req.reqID)
 
         terminate(progress)
       }
