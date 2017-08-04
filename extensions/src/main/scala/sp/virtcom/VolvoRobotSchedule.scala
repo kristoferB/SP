@@ -71,7 +71,7 @@ class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
       val c = CPIntVar(0, numOps)
       add(countEq(c, e, s(indexMap(op.id))))
       // NOTE: only works when all tasks have a duration>0
-      add(s(indexMap(op.id)) === 0 || (c >>= 0))       // Gets here then stops!!!!
+      add(s(indexMap(op.id)) === 0 || (c >>= 0))    
     }
    // println(" add(maximum(e, m))    !")
     add(maximum(e, m))
@@ -97,7 +97,7 @@ class RobotOptimization(ops: List[Operation], precedences: List[(ID,ID)],
     }
   //  println("After onSolution------------------------------------------------------------------------------------------------")
 
-    val stats = start(timeLimit = 1200) // (nSols =1, timeLimit = 60)
+    val stats = start(timeLimit = 60) // (nSols =1, timeLimit = 60)
   //  println("===== oscar stats =====\n" + stats)
 
     val sops = ss.map { case (makespan, xs) =>
@@ -659,6 +659,7 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
           }.toMap
 
         mutexes = mutexes.distinct
+        
 */
         // Run the CP optimization
 /*
@@ -701,7 +702,9 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
           })
         } */
       })
-
+mutexes = mutexes.distinct
+forceEndTimes = forceEndTimes.distinct
+precedences = precedences.distinct
         // When all of the operation sequences have been processed and the precedences + forceEndTimes have been created.
         // The mutexes which are just given by the great zonemap and all operations + precedences & forceEndTimes are sent to the robot optimization.
         // The optimization is working for straight sequences, but when the
@@ -709,7 +712,8 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         println("forceEndTimes :::::   " + forceEndTimes  )
 
         println("precedences :::::   " + precedences  )
-
+		 // println("allops     .::::   "   + allops)
+		  
         val ro = new RobotOptimization(allops, precedences, mutexes, forceEndTimes)
         val roFuture = Future {
           ro.test

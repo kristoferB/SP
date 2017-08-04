@@ -51,7 +51,7 @@ SopID = document.getElementById("sopIDTextBox").value;
         function updateSelected(nowSelected, previouslySelected) {
             var n = _.difference(nowSelected, previouslySelected);
             if(vm.state == 'selecting') { // first we select schedules
-                n = _.filter(n, function(x) { return !_.isUndefined(x.isa) && x.isa == 'Operation'; });
+                n = _.filter(n, function(x) { return !_.isUndefined(x.isa) && (x.isa == 'Operation' || x.isa == 'SOPSpec'); });
                 vm.selectedSchedules = _.union(vm.selectedSchedules,n);
             } else if(vm.state == 'done') { // then we select variables
                 n = _.filter(n, function(x) { return !_.isUndefined(x.isa) && x.isa == 'Thing'; });
