@@ -6,10 +6,8 @@ import akka.testkit._
 import com.typesafe.config._
 import org.scalatest._
 import sp.abilityhandler.{APIAbilityHandler => api}
-import sp.domain.Logic._
 import sp.domain._
-import sp.messages._
-import Pickles._
+import sp.domain.Logic._
 import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Put, Subscribe}
 import scala.concurrent.duration._
 
@@ -74,7 +72,7 @@ class AbilityHandlerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       mediator ! Subscribe("spevents", probeAnswers.ref)
 
       val rID = ID.newID
-      val stateUpd = SPMessage.makeJson(h.copy(from = vdID.toString, reply = vdID), vdAPI.StateEvent("r", rID, Map(v1.id -> 1)))
+      val stateUpd = SPMessage.makeJson(h.copy(from = vdID.toString, reply = vdID.toString), vdAPI.StateEvent("r", rID, Map(v1.id -> 1)))
       val mess = SPMessage.makeJson(h.copy(reqID = rID), api.SetUpAbility(ability))
       mediator ! Publish("events", stateUpd)
       Thread.sleep(100)
@@ -83,10 +81,11 @@ class AbilityHandlerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       val start = SPMessage.makeJson(h, api.StartAbility(ability.id))
       mediator ! Publish("services", start)
 
-      mediator ! Publish("events", SPMessage.makeJson(h.copy(from = vdID.toString, reply = vdID), vdAPI.StateEvent("r", rID, Map(v1.id -> 2))))
-      mediator ! Publish("events", SPMessage.makeJson(h.copy(from = vdID.toString, reply = vdID), vdAPI.StateEvent("r", rID, Map(v1.id -> 3))))
-      mediator ! Publish("events", SPMessage.makeJson(h.copy(from = vdID.toString, reply = vdID), vdAPI.StateEvent("r", rID, Map(v1.id -> 4))))
-      mediator ! Publish("events", SPMessage.makeJson(h.copy(from = vdID.toString, reply = vdID), vdAPI.StateEvent("r", rID, Map(v1.id -> 1))))
+      mediator ! Publish("events", SPMessage.makeJson(h.copy(from = vdID.toString, reply = vdID.toString), vdAPI.StateEvent("r", rID, Map(v1.id -> 2))))
+      mediator ! Publish("events", SPMessage.makeJson(h.copy(from = vdID.toString, reply = vdID.toString), vdAPI.StateEvent("r", rID, Map(v1.id -> 3))))
+      mediator ! Publish("events", SPMessage.makeJson(h.copy(from = vdID.toString, reply = vdID.toString), vdAPI.StateEvent("r", rID, Map(v1.id -> 4))))
+      mediator ! Publish("events", SPMessage.makeJson(h.copy(from = vdID.toString, reply = vdID.toString), vdAPI.StateEvent("r", rID, Map(v1.id -> 1))))
+      mediator ! Publish("events", SPMessage.makeJson(h.copy(from = vdID.toString, reply = vdID.toString), APISP.StatusRequest))
 
 
       probeAnswers.fishForMessage(1 second){

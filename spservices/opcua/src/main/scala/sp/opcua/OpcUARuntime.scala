@@ -11,8 +11,6 @@ import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Subscribe}
 import sp.domain._
 import sp.domain.Logic._
-import APISP
-import Pickles._
 import sp.milowrapper.{MiloOPCUAClient, StateUpdate}
 // the vd api
 import sp.opcua.{APIVirtualDevice => vdapi}

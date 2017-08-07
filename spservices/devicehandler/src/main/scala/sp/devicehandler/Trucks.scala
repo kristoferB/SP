@@ -7,8 +7,6 @@ import sp.domain.Logic._
 import java.util.UUID
 import akka.cluster.pubsub.DistributedPubSub
 import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
-import sp.messages._
-import Pickles._
 import scala.util.{Failure, Success, Try}
 import sp.domain.logic.{PropositionParser, ActionParser}
 

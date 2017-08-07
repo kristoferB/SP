@@ -49,7 +49,7 @@ object LabKitComm {
   def extractServiceRequest(mess: Try[SPMessage]) = for {
     m <- mess
     h <- m.getHeaderAs[SPHeader]
-    b <- m.getBodyAs[APISP.StatusRequest]
+    m.getBodyAs[APISP] if b == APISP.StatusRequest
     } yield (h, b)
 
   def extractAbilityResponse(mess: Try[SPMessage]) = for {

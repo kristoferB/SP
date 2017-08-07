@@ -34,7 +34,6 @@ class OperationRunnerLogicTest(_system: ActorSystem) extends TestKit(_system) wi
   }
 
 
-   import com.github.nscala_time.time.Imports._
 
 
   "Op runner logic" must {
@@ -77,7 +76,7 @@ class OperationRunnerLogicTest(_system: ActorSystem) extends TestKit(_system) wi
 
     val setup = api.Setup("r1", ID.newID, Set(o1, o2, o3), abOp, init)
 
-    val initState = State(init)
+    val initState = SPState(state = init)
     val ops = Set(o1, o2, o3)
 
     "evaluate ops" in {
@@ -107,8 +106,8 @@ class OperationRunnerLogicTest(_system: ActorSystem) extends TestKit(_system) wi
       var starting = List[Operation]()
       val f = (o: Operation) => starting = o :: starting
 
-      var states = List[State]()
-      val f2 = (o: State) => states = o :: states
+      var states = List[SPState]()
+      val f2 = (o: SPState) => states = o :: states
 
       val upd = logic.newState(s, ops, f, f2, false)
       println("jhsfd")
@@ -129,8 +128,8 @@ class OperationRunnerLogicTest(_system: ActorSystem) extends TestKit(_system) wi
       var starting = List[ID]()
       val f = (o: ID) => starting = o :: starting
 
-      var states = List[State]()
-      val f2 = (o: State, id: ID) => states = o :: states
+      var states = List[SPState]()
+      val f2 = (o: SPState, id: ID) => states = o :: states
 
       logic.setRunnerState(setup.runnerID, initState, f, f2(_, setup.runnerID))
 
@@ -172,7 +171,7 @@ trait Parsing {
     val cRes = if (cond.isEmpty) AlwaysTrue else c(cond).get
     val aRes = a(actions)
 
-    PropositionCondition(cRes, aRes, SPAttributes("kind" -> kind))
+    Condition(cRes, aRes, SPAttributes("kind" -> kind))
   }
 
 }

@@ -11,46 +11,72 @@ import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Subscribe}
 import akka.persistence._
 import sp.domain._
 import sp.domain.Logic._
-import APISP
-import Pickles._
 
-package APIVirtualDevice {
-  sealed trait Requests
+object APIVirtualDevice {
+  sealed trait Request
   // requests setup
-  case class SetUpDeviceDriver(driver: Driver) extends Requests
-  case class SetUpResource(resource: Resource) extends Requests
-  case class GetResources() extends Requests
+  case class SetUpDeviceDriver(driver: Driver) extends Request
+  case class SetUpResource(resource: Resource) extends Request
+  case class GetResources() extends Request
 
   sealed trait DriverStateMapper
   case class OneToOneMapper(thing: UUID, driverID: UUID, driverIdentifier: String) extends DriverStateMapper
 
   // requests command (gets a SPACK and when applied, SPDone (and indirectly a StateEvent))
-  case class ResourceCommand(resource: UUID, stateRequest: Map[UUID, SPValue], timeout: Int = 0) extends Requests
+  case class ResourceCommand(resource: UUID, stateRequest: Map[UUID, SPValue], timeout: Int = 0) extends Request
 
   // requests from driver
-  case class DriverStateChange(name: String, id: UUID, state: Map[String, SPValue], diff: Boolean = false) extends Requests
-  case class DriverCommand(name: String, id: UUID, state: Map[String, SPValue]) extends Requests
-  case class DriverCommandDone(requestID: UUID, result: Boolean) extends Requests
+  case class DriverStateChange(name: String, id: UUID, state: Map[String, SPValue], diff: Boolean = false) extends Request
+  case class DriverCommand(name: String, id: UUID, state: Map[String, SPValue]) extends Request
+  case class DriverCommandDone(requestID: UUID, result: Boolean) extends Request
 
   // answers
-  sealed trait Replies
-  case class StateEvent(resource: String, id: UUID, state: Map[UUID, SPValue], diff: Boolean = false) extends Replies
+  sealed trait Response
+  case class StateEvent(resource: String, id: UUID, state: Map[UUID, SPValue], diff: Boolean = false) extends Response
 
-  case class Resources(xs: List[Resource]) extends Replies
-  case class Drivers(xs: List[Driver]) extends Replies
-  case class NewResource(x: Resource) extends Replies
-  case class RemovedResource(x: Resource) extends Replies
-  case class NewDriver(x: Driver) extends Replies
-  case class RemovedDriver(x: Driver) extends Replies
+  case class Resources(xs: List[Resource]) extends Response
+  case class Drivers(xs: List[Driver]) extends Response
+  case class NewResource(x: Resource) extends Response
+  case class RemovedResource(x: Resource) extends Response
+  case class NewDriver(x: Driver) extends Response
+  case class RemovedDriver(x: Driver) extends Response
 
   case class Resource(name: String, id: UUID, things: Set[UUID], stateMap: List[DriverStateMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
   case class Driver(name: String, id: UUID, driverType: String, setup: SPAttributes)
 
 
-  object  attributes {
-    val service = "virtualDevice"
+  implicit lazy val fDriver: JSFormat[Driver] = deriveFormatISA[Driver]
+  implicit lazy val fResource: JSFormat[Resource] = deriveFormatISA[Resource]
+  object Request {
+    implicit lazy val fVirtualDeviceRequest: JSFormat[Request] = deriveFormatISA[Request]
   }
+  object Response {
+    implicit lazy val fVirtualDeviceResponse: JSFormat[Response] = deriveFormatISA[Response]
+  }
+  object DriverStateMapper {
+    implicit lazy val fDriverStateMapper: JSFormat[DriverStateMapper] = deriveFormatISA[DriverStateMapper]
+  }
+
 }
+
+
+object VirtualDeviceInfo {
+  case class ExampleServiceSchema(request: APIVirtualDevice.Request, response: APIVirtualDevice.Response)
+  val s: com.sksamuel.avro4s.SchemaFor[ExampleServiceSchema] = com.sksamuel.avro4s.SchemaFor[ExampleServiceSchema]
+
+  private val id = ID.newID
+  val attributes: APISP.StatusResponse = APISP.StatusResponse(
+    service = "VirtualDevice",
+    instanceID = Some(id),
+    instanceName = s"VD-$id",
+    tags = List("virtual device", "vd", "runtime", "communication"),
+    api = SPAttributes.fromJson(s().toString).get,
+    version = 1,
+    attributes = SPAttributes.empty
+  )
+}
+
+
 import sp.devicehandler.{APIVirtualDevice => api}
 
 
@@ -81,7 +107,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
       for {
         m <- mess
         h <- m.getHeaderAs[SPHeader]
-        b <- m.getBodyAs[api.Requests]
+        b <- m.getBodyAs[api.Request]
       } yield {
         b match {
           case api.SetUpDeviceDriver(d) =>
@@ -117,13 +143,13 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
             activeDriverRequests = request.headOption match {
               case Some((rid,reqs)) =>
                 if(!success) {
-                  val errorHeader = SPHeader(reqID = reqid, from = api.attributes.service)
+                  val errorHeader = SPHeader(reqID = reqid, from = VirtualDeviceInfo.attributes.service)
                   mediator ! Publish("answers", SPMessage.makeJson(errorHeader, APISP.SPError("driver command failed")))
                   activeDriverRequests - rid
                 } else {
                   val nr = reqs.filter(_!=reqid)
                   if(nr.isEmpty) {
-                    val doneHeader = SPHeader(reqID = reqid, from = api.attributes.service)
+                    val doneHeader = SPHeader(reqID = reqid, from = VirtualDeviceInfo.attributes.service)
                     mediator ! Publish("answers", SPMessage.makeJson(doneHeader, APISP.SPDone()))
                     activeDriverRequests - rid
                   } else {
@@ -134,12 +160,12 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
             }
 
           case r : api.ResourceCommand =>
-            val ackHeader = h.copy(reply = api.attributes.service)
+            val ackHeader = h.copy(reply = VirtualDeviceInfo.attributes.service)
             mediator ! Publish("answers", SPMessage.makeJson(ackHeader, APISP.SPACK()))
 
             val diffs = getDriverDiffs(r)
 
-            val doneHeader = h.copy(reply = api.attributes.service)
+            val doneHeader = h.copy(reply = VirtualDeviceInfo.attributes.service)
             if(diffs.isEmpty || diffs.forall { case (k,v) => v.isEmpty }) {
               println("No variables to update... Sending done immediately for requst: " + h.reqID)
               mediator ! Publish("answers", SPMessage.makeJson(doneHeader, APISP.SPDone()))
@@ -186,12 +212,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
 
   }
 
-  val statusResponse = SPAttributes(
-    "service" -> name,
-    "instanceID" -> id,
-    "groups" -> List("devices"),
-    "attributes" -> api.attributes
-  )
+  val statusResponse = VirtualDeviceInfo.attributes
 
 }
 

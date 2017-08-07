@@ -4,8 +4,6 @@ import java.util.UUID
 
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages._
-import Pickles._
 import akka.actor._
 import akka.persistence._
 
@@ -91,11 +89,14 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
 
     case StateIsMissingIDs(abID, ids) =>
       val h = SPHeader(from = handlerID.toString)
-
-      mediator ! Publish("spevents", AbilityComm.makeMess(h, APISP.SPError("Ability has ids that is not found in the state. Either the VD is unavailible or something is wrong",
-        SPAttributes("ability" -> abilities.get(abID).map(_.ability.name).getOrElse("missing name"),
+      val errorAttr = SPAttributes(
+        "ability" -> abilities.get(abID).map(_.ability.name),
         "id" -> abID, "missingThings" -> ids)
-      )))
+
+      mediator ! Publish("spevents", AbilityComm.makeMess(h,
+        APISP.SPError("Ability has ids that is not found in the state. Either the VD is unavailable or something is wrong",
+        errorAttr)
+      ))
 
   }
 
@@ -143,7 +144,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
           }
           mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPDone()))
 
-        case x: api.ForceResetAllAbilities =>
+        case api.ForceResetAllAbilities =>
           val r = ResetAbility(state)
           abilities.foreach(kv => kv._2.actor ! r)
           mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPDone()))
@@ -151,7 +152,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
         case api.ExecuteCmd(cmd) =>
         // to be implemented
 
-        case x: api.GetAbilities =>
+        case api.GetAbilities =>
           val xs = abilities.map(_._2.ability).toList
 
           val abs = abilities.map(a=>(a._2.ability.id,a._2.ability.name)).toList
@@ -202,18 +203,17 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
 
   }
 
-  val info = SPAttributes(
-    "service" -> api.attributes.service,
-    "name" -> name,
-    "instanceID" -> handlerID,
-    "group" -> "runtime",
-    "attributes" -> SPAttributes("vd" -> vd)
+  val info = AbilityHandlerInfo.attributes.copy(
+    instanceName = this.name,
+    instanceID = Some(handlerID),
+    attributes = SPAttributes("vd" -> vd)
   )
 
   def matchServiceRequests(mess: Try[SPMessage]) = {
     AbilityComm.extractServiceRequest(mess) map { case (h, b) =>
+      println("HOHOHOHOHOHOH")
       val spHeader = h.copy(from = handlerID.toString)
-      mediator ! Publish("spevents", AbilityComm.makeMess(spHeader, APISP.StatusResponse(info)))
+      mediator ! Publish("spevents", AbilityComm.makeMess(spHeader, info))
     }
   }
 
@@ -344,7 +344,7 @@ trait AbilityActorLogic extends AbilityLogic{
 
 
   def evalState(s: Map[ID, SPValue], force: String = "") = {
-    val theState = State(s)
+    val theState = SPState(state = s)
     val aS = if (force.isEmpty) state else force
     val abilityState = updateState(aS, theState)
 
@@ -355,7 +355,7 @@ trait AbilityActorLogic extends AbilityLogic{
     (newAState, newRState)
   }
 
-  def updateState(s: String, theState: State): (String, State) = s match {
+  def updateState(s: String, theState: SPState): (String, SPState) = s match {
     case "starting" if ability.preCondition.eval(theState) && state != starting => (starting, ability.preCondition.next(theState))
     case "forcedReset" if state != forcedReset=> (forcedReset, ability.resetCondition.next(theState))
     case "forcedReset" => (checkEnabled(theState), ability.resetCondition.next(theState))
@@ -369,7 +369,7 @@ trait AbilityActorLogic extends AbilityLogic{
     case x => (state, theState)
   }
 
-  def checkEnabled(tS: State) = if (ability.preCondition.eval(tS)) enabled else notEnabled
+  def checkEnabled(tS: SPState) = if (ability.preCondition.eval(tS)) enabled else notEnabled
 
 
 

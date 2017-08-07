@@ -4,14 +4,8 @@ import java.util.UUID
 
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages._
-import Pickles._
 import akka.actor._
-import akka.persistence._
 
-import scala.util.Try
-
-import sp.abilityhandler.{APIAbilityHandler => api}
 
 object Sp1Talker {
   def props = Props(classOf[Sp1Talker])
@@ -34,15 +28,15 @@ class Sp1Talker extends Actor {
       val cmd = x.getAs[String]("command").getOrElse("")
 
       if(cmd == "GetAbs") {
-        val h = SPHeader(from = from, to = api.attributes.service)
-        val b = api.GetAbilities()
+        val h = SPHeader(from = from, to = AbilityHandlerInfo.attributes.service)
+        val b = APIAbilityHandler.GetAbilities
         mediator ! Publish("services", SPMessage.makeJson(h, b))
       }
 
       if(cmd == "StartAb") {
         x.getAs[ID]("id").map{abid =>
-          val h = SPHeader(from = from, to = api.attributes.service)
-          val b = api.StartAbility(abid)
+          val h = SPHeader(from = from, to = AbilityHandlerInfo.attributes.service)
+          val b = APIAbilityHandler.StartAbility(abid)
           mediator ! Publish("services", SPMessage.makeJson(h, b))
         }
       }
@@ -55,9 +49,8 @@ class Sp1Talker extends Actor {
         val name = "Hej"
         val id = ID.newID
 
-        import sp.runners.{API_OperationRunner => runnerapi}
-        val h = SPHeader(from = from, to = runnerapi.attributes.service)
-        val b = runnerapi.Setup(name, id, ops, abmap, initstate)
+        val h = SPHeader(from = from, to = API_OperationRunner.service)
+        val b = API_OperationRunner.Setup(name, id, ops, abmap, initstate)
         println("Starting sop!")
         mediator ! Publish("services", SPMessage.makeJson(h, b))
       }
@@ -67,19 +60,19 @@ class Sp1Talker extends Actor {
       for {
         m <- mess
         h <- m.getHeaderAs[SPHeader]
-        b <- m.getBodyAs[api.Response]
+        b <- m.getBodyAs[APIAbilityHandler.Response]
       } yield {
         println(b)
         b match {
-          case api.Abs(a) =>
+          case APIAbilityHandler.Abs(a) =>
             println("got abilities!!. sending on")
             val reply = SPAttributes("from" -> "AbilityHandler", "abilities" -> a)
             mediator ! Publish("sp1answers", reply)
-          case api.AbilityStarted(id) =>
+          case APIAbilityHandler.AbilityStarted(id) =>
             println("got abilty started!!. sending on")
             val reply = SPAttributes("from" -> "AbilityHandler", "started" -> id)
             mediator ! Publish("sp1answers", reply)
-          case api.AbilityCompleted(id, result) =>
+          case APIAbilityHandler.AbilityCompleted(id, result) =>
             println("got abilty completed!!. sending on")
             val reply = SPAttributes("from" -> "AbilityHandler", "finished" -> id, "result" -> result)
             mediator ! Publish("sp1answers", reply)

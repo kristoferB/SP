@@ -8,6 +8,7 @@ import Logic._
 object APIExampleService {
   sealed trait Request
   sealed trait Response
+  val service = "ExampleService"
 
   // The messages that this service can send and receive is defined as case classes
   // Messages you can send to me
@@ -44,16 +45,18 @@ object APIExampleService {
     implicit lazy val fExampleServiceResponse: JSFormat[Response] = deriveFormatISA[Response]
   }
 
+
+
 }
 
 
 
 object ExampleServiceInfo {
-  case class ExampleServiceSchema(request: APIExampleService.Request, response: APIExampleService.Response)
-  val s: com.sksamuel.avro4s.SchemaFor[ExampleServiceSchema] = com.sksamuel.avro4s.SchemaFor[ExampleServiceSchema]
+  case class Schema(request: APIExampleService.Request, response: APIExampleService.Response)
+  val s: com.sksamuel.avro4s.SchemaFor[Schema] = com.sksamuel.avro4s.SchemaFor[Schema]
 
   val attributes: APISP.StatusResponse = APISP.StatusResponse(
-    service = "ExampleServiceSchema",
+    service = APIExampleService.service,
     instanceID = Some(ID.newID),
     instanceName = "",
     tags = List("example"),

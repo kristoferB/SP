@@ -5,9 +5,6 @@ import akka.actor._
 import scala.util.{Failure, Random, Success, Try}
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages._
-import Pickles._
-import sp.runners.APIAbilityHandler.AbilityStarted
 import sp.runners.API_OperationRunner.ForceComplete
 import sp.runners.{API_OperationRunner => api}
 import sp.runners.{APIAbilityHandler => abilityAPI}
@@ -22,7 +19,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
   mediator ! Subscribe("answers", self)
   mediator ! Subscribe("events", self)
 
-  val myH = SPHeader(from = api.attributes.service, to = abilityAPI.attributes.service, reply = api.attributes.service)
+  val myH = SPHeader(from = api.service, to = abilityAPI.service, reply = api.service)
 
 
 
@@ -43,7 +40,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
   def matchRequests(mess: Try[SPMessage]) = {
 
     OperationRunnerComm.extractRequest(mess).map{ case (h, b) =>
-      val updH = h.copy(from = api.attributes.service)
+      val updH = h.copy(from = api.service)
       mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, APISP.SPACK()))
       mediator ! Publish("services", OperationRunnerComm.makeMess(myH, abilityAPI.GetAbilities()))
       b match {
@@ -54,12 +51,12 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
             val state = runners(setup.runnerID).currentState
 
             println("Runner started. Init state: " + state)
-            setRunnerState(setup.runnerID, State(state), startAbility, sendState(_, setup.runnerID), false)
+            setRunnerState(setup.runnerID, SPState(state = state), startAbility, sendState(_, setup.runnerID), false)
 
           }
 
         case api.SetState(id, s) =>
-          setRunnerState(id, State(s), startAbility, sendState(_, id)) match {
+          setRunnerState(id, SPState(state = s), startAbility, sendState(_, id)) match {
             case Some(_) =>
             case None =>
               mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, APISP.SPError(s"no runner with id: $id")))
@@ -118,8 +115,8 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
 
   def matchServiceRequests(mess: Try[SPMessage]) = {
     OperationRunnerComm.extractServiceRequest(mess) map { case (h, b) =>
-      val spHeader = h.copy(from = api.attributes.service)
-      mediator ! Publish("spevents", OperationRunnerComm.makeMess(spHeader, APISP.StatusResponse(statusResponse)))
+      val spHeader = h.copy(from = api.service)
+      mediator ! Publish("spevents", OperationRunnerComm.makeMess(spHeader, statusResponse))
     }
   }
 
@@ -127,13 +124,13 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
   val startAbility = (id: ID) => {
 
     println("Starting ability: " + id)
-    val myH = SPHeader(from = api.attributes.service, to = abilityAPI.attributes.service, reply = api.attributes.service)
+    val myH = SPHeader(from = api.service, to = abilityAPI.service, reply = api.service)
     mediator ! Publish("services", OperationRunnerComm.makeMess(myH, abilityAPI.StartAbility(id)))
   }
 
-  val sendState = (s: State, id: ID) => {
+  val sendState = (s: SPState, id: ID) => {
     println(s"new state for $id: " +s)
-    val myH = SPHeader(from = api.attributes.service)
+    val myH = SPHeader(from = api.service)
     mediator ! Publish("events", OperationRunnerComm.makeMess(myH, api.StateEvent(id, s.state)))
 
   }
@@ -141,17 +138,11 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
 
 
 
-  val statusResponse = SPAttributes(
-    "service" -> api.attributes.service,
-    "api" -> "to be added with macros later",
-    "tags" -> List("operation", "runtime"),
-    "attributes" -> api.attributes,
-    "instanceID" -> ID.newID
-  )
+  val statusResponse = OperationRunnerInfo.attributes
 
   // Sends a status response when the actor is started so service handlers finds it
   override def preStart() = {
-    val mess = SPMessage.makeJson(SPHeader(from = api.attributes.service, to = "serviceHandler"), statusResponse)
+    val mess = SPMessage.makeJson(SPHeader(from = api.service, to = "serviceHandler"), statusResponse)
     mediator ! Publish("spevents", mess)
   }
 
@@ -188,7 +179,7 @@ trait OperationRunnerLogic {
 
   def updOPs(o: Operation, opAbilityMap: Map[ID, ID]) = {
     opAbilityMap.get(o.id).map{id =>
-      val c = PropositionCondition(EQ(SVIDEval(id), ValueHolder("enabled")), List(), SPAttributes("kind" -> "pre"))
+      val c = Condition(EQ(SVIDEval(id), ValueHolder("enabled")), List(), SPAttributes("kind" -> "pre"))
       o.copy(conditions = c :: o.conditions)
     }
   }
@@ -211,7 +202,7 @@ trait OperationRunnerLogic {
                 remove: Set[ID],
                 opAbilityMap: Map[ID, ID],
                 startAbility: ID => Unit,
-                sendState: State => Unit
+                sendState: SPState => Unit
                ) = {
     val updR = runners.get(runner).map {runner =>
       val updMap = (runner.setup.opAbilityMap ++ opAbilityMap).filter(kv => !remove.contains(kv._1))
@@ -224,7 +215,7 @@ trait OperationRunnerLogic {
     }
     updR.foreach{r =>
       runners += runner -> r
-      setRunnerState(runner, State(r.currentState), startAbility, sendState)
+      setRunnerState(runner, SPState(state = r.currentState), startAbility, sendState)
     }
   }
 
@@ -233,35 +224,35 @@ trait OperationRunnerLogic {
     //setup.ops.forall(o => setup.opAbilityMap.contains(o.id))
   }
 
-  def completeOPs(ability: ID, startAbility: ID => Unit, sendState: (State, ID) => Unit, runOneAtTheTime: Boolean = false) = {
+  def completeOPs(ability: ID, startAbility: ID => Unit, sendState: (SPState, ID) => Unit, runOneAtTheTime: Boolean = false) = {
     val tempR = runners
     val ops = tempR.map{r =>
       val opsID = r._2.setup.opAbilityMap.filter(_._2 == ability).keySet
       val xs = r._2.setup.ops.filter(o => opsID.contains(o.id))
       xs.map{o =>
-        val cS = State(runners(r._1).currentState)
+        val cS = SPState(state = runners(r._1).currentState)
         val s = completeOP(o, cS)
         setRunnerState(r._1, s, startAbility, sendState(_,r._1), runOneAtTheTime)
       }
       r._2.noAbilityOps.map {o =>
-        val cS = State(runners(r._1).currentState)
+        val cS = SPState(state = runners(r._1).currentState)
         val s = completeOP(o, cS)
         setRunnerState(r._1, s, startAbility, sendState(_,r._1), runOneAtTheTime)
       }
     }
   }
 
-  def newAbilityState(ability: ID, abilityState: SPValue, startAbility: ID => Unit, sendState: (State, ID) => Unit) = {
+  def newAbilityState(ability: ID, abilityState: SPValue, startAbility: ID => Unit, sendState: (SPState, ID) => Unit) = {
     runners.map{r =>
       if (r._2.setup.opAbilityMap.values.toSet.contains(ability)){
         println("An ability has an operation and was updated")
-        val cS = State(runners(r._1).currentState + (ability -> abilityState))
+        val cS = SPState(state = runners(r._1).currentState + (ability -> abilityState))
         setRunnerState(r._1, cS, startAbility, sendState(_,r._1))
       }
     }
   }
 
-  def setRunnerState(runnerID: ID, s: State, startAbility: ID => Unit, sendState: State => Unit, runOneAtTheTime: Boolean = false) = {
+  def setRunnerState(runnerID: ID, s: SPState, startAbility: ID => Unit, sendState: SPState => Unit, runOneAtTheTime: Boolean = false) = {
     val r = runners.get(runnerID)
     r.map { x =>
       //println("set runner state from: " + x.currentState + " to " + s)
@@ -288,7 +279,7 @@ trait OperationRunnerLogic {
 
 
 
-  def newState(s: State, ops: Set[Operation], sendCmd: Operation => Unit, sendState: State => Unit, runOneAtTheTime: Boolean = false): State = {
+  def newState(s: SPState, ops: Set[Operation], sendCmd: Operation => Unit, sendState: SPState => Unit, runOneAtTheTime: Boolean = false): SPState = {
     val enabled = ops.filter(isEnabled(_, s))
     val tempR = runners
     val enAb = runners.map(r =>
@@ -306,23 +297,23 @@ trait OperationRunnerLogic {
   }
 
 
-  def runOp(o: Operation, s: State) = {
+  def runOp(o: Operation, s: SPState) = {
       val filtered = filterConditions(o.conditions, Set("pre", "precondition"))
       val newState = filtered.foldLeft(s){(tempS, cond) => cond.next(tempS)}
       newState.next(o.id -> OperationState.executing)
   }
 
-  def completeOP(o: Operation, s: State) = {
+  def completeOP(o: Operation, s: SPState) = {
     val filtered = filterConditions(o.conditions, Set("post", "postcondition"))
     val newState = filtered.foldLeft(s){(tempS, cond) => cond.next(tempS)}
     newState.next(o.id -> OperationState.finished)
   }
 
-  def evaluateOps(ops: List[Operation], s: State) = {
+  def evaluateOps(ops: List[Operation], s: SPState) = {
     ops.filter(o => isEnabled(o, s))
   }
 
-  def isEnabled(o: Operation, s: State) = {
+  def isEnabled(o: Operation, s: SPState) = {
     val oState = s(o.id)
     val xs = filterConditions(o.conditions, Set("pre", "precondition"))
     xs.forall(_.eval(s)) && oState == OperationState.init
