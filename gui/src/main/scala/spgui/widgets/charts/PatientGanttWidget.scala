@@ -1,16 +1,20 @@
 package spgui.widgets.charts
 
 import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react._
 
-import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
+import scalacss.ScalaCssReact._
 
 import sp.messages.Pickles.SPHeader
-import spgui.communication.BackendCommunication
+
+import spgui.communication._
 
 import spgui.widgets.{API_Patient => apiPatient, API_PatientEvent => api}
 import spgui.widgets.ToAndFrom
+import spgui.widgets.css.{WidgetStyles => Styles}
 
 object PatientGanttWidget {
+
   private class Backend($: BackendScope[Unit, Map[String, apiPatient.Patient]]) {
 
     var patientObs = Option.empty[rx.Obs]
@@ -29,11 +33,8 @@ object PatientGanttWidget {
       BackendCommunication.publish(json, "widget-event")
     }
 
-    def render() = {
-      <.div(
-
-      )
-
+    def render(p: String, s: Map[String, apiPatient.Patient]) = {
+      <.div(Styles.helveticaZ)
     }
 
     def onUnmount() = {
