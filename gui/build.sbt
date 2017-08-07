@@ -17,7 +17,7 @@ scalacOptions  := Seq(
   "-language:postfixOps"
 )
 
-val scalaJSReactVersion = "1.0.0"
+val scalaJSReactVersion = "1.1.0"
 val scalaCssVersion = "0.5.3-RC1"
 val diodeVersion = "1.1.2"
 
@@ -34,13 +34,7 @@ libraryDependencies ++= Seq(
   "org.singlespaced" %%% "scalajs-d3" % "0.3.3",
   "org.scalatest" %%% "scalatest" % "3.0.0" % "test",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
-  "org.scala-js" %%% "scalajs-java-time" % "0.2.0",
   "eu.unicredit" %%% "paths-scala-js" % "0.4.5"
 )
 
-
-/* This is how to include js files. Put it in src/main/resources.
-jsDependencies ++= Seq(
-  ProvidedJS / "SomeJSFile.js"
-)
-*/
+libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.2"

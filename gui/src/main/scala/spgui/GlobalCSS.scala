@@ -2,7 +2,7 @@ package spgui
 
 import spgui.menu.SPMenuCSS
 
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 
 import spgui.circuit.SPGUICircuit
 import diode._

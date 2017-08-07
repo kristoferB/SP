@@ -33,7 +33,7 @@ import org.singlespaced.d3js.Ops._
 import js.Dynamic.{ global => g }
 
 import scalacss.ScalaCssReact._
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 
 
 import scala.collection.mutable.ListBuffer

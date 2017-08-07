@@ -16,7 +16,7 @@ import scala.concurrent.duration._
 import scala.scalajs.js
 
 import scalacss.ScalaCssReact._
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 
 
 object ClockWidget {

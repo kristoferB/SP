@@ -32,7 +32,7 @@ import org.singlespaced.d3js.d3
 import org.singlespaced.d3js.Ops._
 
 import scalacss.ScalaCssReact._
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 
 import scala.collection.mutable.ListBuffer
 

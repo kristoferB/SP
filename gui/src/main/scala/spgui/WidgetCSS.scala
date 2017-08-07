@@ -1,6 +1,6 @@
 package spgui.widgets.css
 
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 
 object WidgetStyles extends StyleSheet.Inline {
   import dsl._

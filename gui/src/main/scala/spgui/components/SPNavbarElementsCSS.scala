@@ -1,6 +1,6 @@
 package spgui.components
 
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 
 object SPNavbarElementsCSS extends StyleSheet.Inline {
   import dsl._

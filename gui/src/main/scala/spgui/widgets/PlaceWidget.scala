@@ -29,7 +29,7 @@ import org.singlespaced.d3js.Ops._
 import spgui.circuit.SPGUICircuit
 
 import scalacss.ScalaCssReact._
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 import scala.collection.mutable.ListBuffer
 import spgui.widgets.{API_PatientEvent => api}
 import spgui.widgets.{API_Patient => apiPatient}
