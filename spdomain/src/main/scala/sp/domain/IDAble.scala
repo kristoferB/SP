@@ -38,7 +38,7 @@ case class SPResult(name: String,
                   attributes: SPAttributes = SPAttributes(),
                   id: ID = ID.newID) extends IDAble
 
-case class SPState(name: String,
+case class SPState(name: String = "state",
                    state: Map[ID, SPValue],
                    attributes: SPAttributes = SPAttributes(),
                    id: ID = ID.newID) extends IDAble

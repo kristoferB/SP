@@ -1,5 +1,7 @@
 name := "SequencePlanner"
 version := "2.1"
+scalaOrganization := "org.scala-lang"
+scalaVersion := "2.12.3"
 
 lazy val akka = Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.5.3",
@@ -81,7 +83,7 @@ lazy val labkit = (project in file("spservices/labkit"))
   .settings(libraryDependencies ++= akka)
 
 lazy val devicehandler = (project in file("spservices/devicehandler"))
-  .dependsOn(spdomain, operationRunners)
+  .dependsOn(spdomain)
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= akka)
 

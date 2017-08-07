@@ -170,10 +170,14 @@ class SpAttributesTest extends FreeSpec with TestClasses{
 
     "testing spmessages" in {
       val done = SPValue(APISP.SPDone())
-      val req = SPValue(APISP.StatusRequest())
+      val req = SPValue(APISP.StatusRequest)
 
       println(done.toJson)
-      println(req.as[APISP.StatusRequest])
+      println(req.as[APISP])
+
+    }
+
+    "testing matching" in {
 
     }
 

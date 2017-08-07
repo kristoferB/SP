@@ -25,7 +25,7 @@ object APISP {
   case class SPACK() extends APISP
   case class SPDone() extends APISP
 
-  case class StatusRequest(attributes: SPAttributes = SPAttributes()) extends APISP
+  case object StatusRequest extends APISP
   case class StatusResponse(service: String, instanceID: Option[ID] = None, instanceName: String = "", tags: List[String] = List(), api: SPAttributes = SPAttributes(), version: Int = 1, attributes: SPAttributes = SPAttributes()) extends APISP
 
 
@@ -45,7 +45,6 @@ object APISP {
     implicit val apiSPR1: JSReads[SPError] = deriveReadISA[SPError]
     implicit val apiSPR2: JSReads[SPACK] = deriveReadISA[SPACK]
     implicit val apiSPR3: JSReads[SPDone] = deriveReadISA[SPDone]
-    implicit val apiSPR4: JSReads[StatusRequest] = deriveReadISA[StatusRequest]
     implicit val apiSPR5: JSReads[StatusResponse] = deriveReadISA[StatusResponse]
     implicit val apispFormat: JSFormat[APISP] = deriveFormatISA[APISP]
 }

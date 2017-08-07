@@ -19,6 +19,7 @@ trait StateLogics {
     def get(id: ID): Option[SPValue] = s.state.get(id)
     def next(idValueMap: (ID, SPValue)) = s.copy(state = s.state + idValueMap)
     def next(idValueMap:  Map[ID, SPValue]) = s.copy(state = s.state ++ idValueMap)
+    def add(idValueMap:  Map[ID, SPValue]) = next(idValueMap)
   }
 }
 
