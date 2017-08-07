@@ -20,7 +20,9 @@ scalacOptions  := Seq(
 val scalaJSReactVersion = "1.1.0"
 val scalaCssVersion = "0.5.3-RC1"
 val diodeVersion = "1.1.2"
+val scalajsGoogleChartsVersion = "0.4.1"
 
+resolvers += sbt.Resolver.url("aleastchs Bintray Releases", url("https://dl.bintray.com/aleastchs/aleastChs-releases"))(Resolver.ivyStylePatterns)
 
 libraryDependencies ++= Seq(
   "com.github.japgolly.scalajs-react" %%% "core" % scalaJSReactVersion,
@@ -34,7 +36,8 @@ libraryDependencies ++= Seq(
   "org.singlespaced" %%% "scalajs-d3" % "0.3.3",
   "org.scalatest" %%% "scalatest" % "3.0.0" % "test",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
-  "eu.unicredit" %%% "paths-scala-js" % "0.4.5"
+  "eu.unicredit" %%% "paths-scala-js" % "0.4.5",
+  "org.aleastChs" % "scalajs-google-charts_2.11" % scalajsGoogleChartsVersion
 )
 
 libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.2"
