@@ -1,8 +1,37 @@
-package sp
+package sp.messages
 
 import org.scalatest._
-import sp.domain.{APISP, _}
+import sp.domain._
 import sp.domain.Logic._
+
+object Test {
+  sealed trait API
+  case class X1(a: String, b: Int = 3) extends API
+  case class X2(a: String) extends API
+  case class X3(a: API) extends API
+
+
+  sealed trait API2
+  case class TestAPI(api: API2)
+  case class APIOPMaker_OPEvent(name: String, time: String, id: String, resource: String, product: Option[String])
+  case class APIOPMaker_OP(start: APIOPMaker_OPEvent, end: Option[APIOPMaker_OPEvent], attributes: SPAttributes = SPAttributes()) extends API2
+  case class APIOPMaker_Positions(positions: Map[String,String], time: String) extends API2
+
+
+  object API {
+    implicit lazy val fx: JSFormat[API] = deriveFormatISA[API]
+  }
+
+  object API2 {
+    implicit lazy val fOPEV = deriveFormatISA[APIOPMaker_OPEvent]
+    implicit lazy val fTestAPI2 = deriveFormatISA[API2]
+  }
+
+
+}
+
+
+
 
 
 case class L1(a: String)
@@ -10,39 +39,44 @@ case class L2(b: L1)
 case class L3(c: L2)
 case class L4(d: L3)
 
-
-class ModelMakerAPITest extends FreeSpec with Matchers {
+//import MyServiceAPI.Json._
+class SPMessageTest extends FreeSpec with Matchers {
   "Picklers" - {
     "make SPMessage" in {
-      val h = SPHeader(from = "from", to = "to")
-      val b = APISP.SPACK()
-      val x = SPMessage.make(h, b)
+      val h = SPHeader("test", "test")
+      val x1 = Test.X1("hej")
 
-      assert(true)
+      val mess = SPMessage.makeJson(h, x1)
+      println(mess)
 
-    }
-
-    "SPMessage to json" in {
-      val h = SPHeader(from = "tomte", to = "kalle")
-      val b = APISP.SPACK()
-      val x = SPMessage.makeJson(h, b)
-
-      println(x)
-      assert(x.nonEmpty)
+      assert(SPAttributes.fromJson(mess).get == SPAttributes(
+        "header"->h,
+        "body" -> SPAttributes(
+          "isa" -> "X1",
+          "a" -> "hej",
+          "b" -> 3
+        )))
 
     }
 
-    "SPMessage from json" in {
-      val h = SPHeader(from = "from", to = "to")
-      val b = APISP.SPACK()
-      val x = SPMessage.makeJson(h, b)
+    "merge two messages" in {
+      val h = SPHeader("test", "test")
+      val x1 = Test.X1("hej")
+      val x1N = Test.X1("då")
+      val x3 = Test.X3(x1)
 
-      val res = SPMessage.fromJson(x)
+      val mess1 = SPMessage.make(h, x1)
+      val mess2 = mess1.make(h, x1N)
+      println("************************")
+      println(mess2)
+      assert(mess2 == SPMessage.make(h, x1N))
 
-      println(res)
-      assert(res.isSuccess)
+      val mess3 = mess1.make(SPAttributes("from"->"foo"), x3)
+      println(mess3.header.getAs[String]("from").contains("foo") && mess3.header.getAs[String]("to").contains("test"))
+
 
     }
+
 
 
 

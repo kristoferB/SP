@@ -14,9 +14,9 @@ class AttributesLogicTest extends FreeSpec with TestClasses {
       val t2 = SPValue(anO)
       val t3 = SPValue(anIn2)
 
-      assert(t1.to[Int].contains(anInt))
-      assert(t2.to[Operation].contains(anO))
-      assert(t3.to[API.Comm].contains(anIn2))
+      assert(t1.to[Int].toOption.contains(anInt))
+      assert(t2.to[Operation].toOption.contains(anO))
+      assert(t3.to[API.Comm].toOption.contains(anIn2))
 
       assert(t1.as[Int] == anInt)
       assert(t2.as[Operation] == anO)

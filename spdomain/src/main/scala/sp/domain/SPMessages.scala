@@ -41,7 +41,6 @@ object APISP {
     }
   }
 
-    import julienrf.json.derived
     // using the extra reads to enable x.to[SPError] and SPValue(SPOK())
     implicit val apiSPR1: JSReads[SPError] = deriveReadISA[SPError]
     implicit val apiSPR2: JSReads[SPACK] = deriveReadISA[SPACK]
@@ -62,18 +61,23 @@ case class SPHeader(from: String = "", // the name of the sender
                    )
 
 case class SPMessage(header: SPAttributes, body: SPAttributes) {
-  def getHeaderAs[T](implicit fjs: Reads[T]) = header.to[T]
-  def getBodyAs[T](implicit fjs: Reads[T]) = body.to[T]
+  def getHeaderAs[T](implicit fjs: JSReads[T]) = header.to[T]
+  def getBodyAs[T](implicit fjs: JSReads[T]) = body.to[T]
   def toJson = Json.stringify(Json.toJson(this)(SPMessage.messageFormat))
 
-  def make(h: AttributeWrapper, b: AttributeWrapper): SPMessage = {
-    val headerAsO = Try{header.asInstanceOf[JsObject]}.getOrElse(JsObject.empty)
-    val hAsO = Try{h.asInstanceOf[JsObject]}.getOrElse(JsObject.empty)
-    val bodyAsO = Try{body.asInstanceOf[JsObject]}.getOrElse(JsObject.empty)
-    val bAsO = Try{b.asInstanceOf[JsObject]}.getOrElse(JsObject.empty)
-    SPMessage(headerAsO.deepMerge(hAsO), bodyAsO.deepMerge(bAsO))
+  /**
+    * Merge the header and replaces the body of the message
+    * @param h The extra fields to add to the header. In most cases use SPAttributes("from" -> "me", ...) and not SPHeader
+    * @param b The new body (will not merge with the existing body)
+    * @param fjt An implicit format that needs to be in scope
+    * @param fjs An implicit format that needs to be in scope
+    * @return An SPMessage. Will always work since if the implicit do not exist, it will not compile
+    */
+  def make[T, S](h: T, b: S)(implicit fjt: JSWrites[T], fjs: JSWrites[S]): SPMessage = {
+    val updSP = SPMessage.make(h, b)
+    SPMessage(header.deepMerge(updSP.header), updSP.body)
   }
-  def makeJson(h: AttributeWrapper, b: AttributeWrapper): String = this.make(h, b).toJson
+  def makeJson[T, S](h: T, b: S)(implicit fjt: JSWrites[T], fjs: JSWrites[S]): String = this.make(h, b).toJson
 }
 
 object SPHeader {
@@ -92,13 +96,16 @@ object SPMessage {
     * @param h A header as a case class where an implicit format exist (preferable SPHeader)
     * @param b A body defined as a case class where an implicit format exist
     */
-  def make(h: AttributeWrapper, b: AttributeWrapper): SPMessage = {
-    val hAsO = Try{h.asInstanceOf[JsObject]}.getOrElse(JsObject.empty)
-    val bAsO = Try{b.asInstanceOf[JsObject]}.getOrElse(JsObject.empty)
+  def make[T, S](h: T, b: S)(implicit fjt: JSWrites[T], fjs: JSWrites[S]): SPMessage = {
+    val hR = SPValue(h)
+    val bR = SPValue(b)
+    val hAsO = Try{hR.asInstanceOf[JsObject]}.getOrElse(JsObject.empty)
+    val bAsO = Try{bR.asInstanceOf[JsObject]}.getOrElse(JsObject.empty)
 
     SPMessage(hAsO, bAsO)
   }
-  def makeJson(h: AttributeWrapper, b: AttributeWrapper): String = make(h, b).toJson
+  def makeJson[T, S](h: T, b: S)(implicit fjt: JSWrites[T], fjs: JSWrites[S]): String = this.make(h, b).toJson
+
   def fromJson(json: String) = Try{Json.parse(json).as[SPMessage](SPMessage.messageFormat)}
 
 }

@@ -21,9 +21,9 @@ package object domain {
     * scope can be converted into. Else, a compile error will happen.
     */
   type AttributeWrapper = Json.JsValueWrapper
-  type JSFormat[T] = OFormat[T]
+  type JSFormat[T] = Format[T]
   type JSReads[T] = Reads[T]
-  type JSWrites[T] = OWrites[T]
+  type JSWrites[T] = Writes[T]
 
   /**
     * The id used in SP. A standard UUID.
@@ -71,10 +71,7 @@ package object domain {
   }
 
   object SPValue {
-    def apply(v: AttributeWrapper): SPValue = {
-      Json.arr(v).value.head
-    }
-    def wrap[T <: AnyRef](v: T)(implicit fjs: JSWrites[T]): SPValue = {
+    def apply[T](v: T)(implicit fjs: JSWrites[T]): SPValue = {
       Json.toJson(v)
     }
 

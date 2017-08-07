@@ -1,16 +1,14 @@
 name := "SequencePlanner"
-//scalaOrganization in ThisBuild := "org.typelevel"
-scalaVersion := "2.11.8"
-version := "2.0_M1"
+version := "2.1"
 
 lazy val akka = Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.4.16",
-  "com.typesafe.akka" %% "akka-cluster" % "2.4.16",
-  "com.typesafe.akka" %% "akka-cluster-tools" % "2.4.16",
-  "com.typesafe.akka" %% "akka-testkit" % "2.4.16",
-  "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test",
+  "com.typesafe.akka" %% "akka-actor" % "2.5.3",
+  "com.typesafe.akka" %% "akka-cluster" % "2.5.3",
+  "com.typesafe.akka" %% "akka-cluster-tools" % "2.5.3",
+  "com.typesafe.akka" %% "akka-testkit" % "2.5.3",
   "org.slf4j" % "slf4j-simple" % "1.7.7",
-  "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.1"
+  "com.github.romix.akka" %% "akka-kryo-serialization" % "0.5.1",
+  "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
 
 lazy val json = Seq(
@@ -22,14 +20,16 @@ lazy val json = Seq(
 
 lazy val support = Seq(
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
-  "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test"
+  "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
 
 lazy val scalaReflect = Def.setting { "org.scala-lang" % "scala-reflect" % scalaVersion.value }
 
 lazy val commonSettings = Seq(
-  scalaOrganization in ThisBuild := "org.typelevel",
-  scalaVersion := "2.11.8",
+//  scalaOrganization := "org.typelevel",
+//  scalaVersion := "2.12.3-bin-typelevel-4",
+   scalaOrganization := "org.scala-lang",
+   scalaVersion := "2.12.3",
   resolvers ++= Seq(
     "Sonatype OSS Snapshots" at "https://oss.sonatype.org/Releases",
     "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases/",
@@ -45,7 +45,8 @@ lazy val commonSettings = Seq(
   ),
   fork := true,
   javaOptions += s"-Dconfig.file=${root.base.getCanonicalPath}/cluster.conf",
-  connectInput in run := true
+  connectInput in run := true,
+  version := "2.0_M1"
 )
 
 
