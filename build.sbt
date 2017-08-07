@@ -51,7 +51,7 @@ lazy val commonSettings = Seq(
 
 
 lazy val root = project.in( file(".") )
-  //.aggregate(spdomain, spcore, macros, gui)
+//.aggregate(spdomain, spcore, macros, gui)
 
 lazy val spdomain = project
   .settings(commonSettings: _*)
@@ -85,43 +85,43 @@ lazy val devicehandler = (project in file("spservices/devicehandler"))
 
 lazy val modelsTest = (project in file("spservices/modelsTest"))
   .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= akka)
 
 lazy val opcua = (project in file("spservices/opcua"))
   .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= akka)
 
 lazy val fakeElvisService = (project in file("spservices/fakeElvisService"))
   .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= akka)
 
 lazy val widgetService = (project in file("spservices/widgetService"))
   .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= akka)
 
 lazy val exampleService = (project in file("spservices/exampleService"))
   .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= akka)
 
 lazy val operationRunners = (project in file("spservices/operationRunners"))
   .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= akka)
 
 lazy val d3exampleService = (project in file("spservices/d3exampleservice"))
   .dependsOn(spdomain, macros)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= akka)
 
 lazy val ericaBackend = (project in file("spservices/gPubSubService"))
   .dependsOn(spdomain, macros, spcore, widgetService)
-.settings(commonSettings: _*)
-.settings(libraryDependencies ++= akka)
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= akka)
 
 lazy val spseed = (project in file("spservices/spseed"))
   .settings(commonSettings: _*)

@@ -34,14 +34,14 @@ class WidgetDevice extends Actor with ActorLogging {
 
   /**
   Receives incoming messages on the AKKA-bus
-  */
+    */
   def receive = {
     case x: String => handleRequests(x)
   }
 
   /**
   Handles the received message and sends it further
-  */
+    */
   def handleRequests(x: String): Unit = {
     val mess = SPMessage.fromJson(x)
     matchRequests(mess)
@@ -49,7 +49,7 @@ class WidgetDevice extends Actor with ActorLogging {
 
   /**
   Identifies the body of the SP-message and acts correspondingly
-  */
+    */
   def matchRequests(mess: Try[SPMessage]) = {
     val header = SPHeader(from = "widgetService")
     WidgetComm.extractEvent(mess) map { case (h, b) =>
@@ -73,14 +73,14 @@ class WidgetDevice extends Actor with ActorLogging {
 
   /**
   Publishes a SPMessage on bus with header and body.
-  */
+    */
   def publishOnAkka(header: SPHeader, body: api.StateEvent) {
     val toSend = WidgetComm.makeMess(header, body)
     mediator ! Publish("patient-cards-widget-topic", toSend)
   }
 
-  }
+}
 
-  object WidgetDevice {
-    def props = Props(classOf[WidgetDevice])
-  }
+object WidgetDevice {
+  def props = Props(classOf[WidgetDevice])
+}

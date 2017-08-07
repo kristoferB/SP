@@ -23,18 +23,18 @@ package API_Patient {
   case class Undefined() extends PatientProperty
 
   case class Patient(
-    var careContactId: String,
-    var priority: Priority,
-    var attended: Attended,
-    var location: Location,
-    var team: Team,
-    var examination: Examination,
-    var latestEvent: LatestEvent,
-    var plan: Plan,
-    var arrivalTime: ArrivalTime,
-    var debugging: Debugging,
-    var finished: Finished
-  )
+                      var careContactId: String,
+                      var priority: Priority,
+                      var attended: Attended,
+                      var location: Location,
+                      var team: Team,
+                      var examination: Examination,
+                      var latestEvent: LatestEvent,
+                      var plan: Plan,
+                      var arrivalTime: ArrivalTime,
+                      var debugging: Debugging,
+                      var finished: Finished
+                    )
 }
 
 package API_PatientEvent {
