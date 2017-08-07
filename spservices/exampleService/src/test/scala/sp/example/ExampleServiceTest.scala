@@ -43,15 +43,12 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
     TestKit.shutdownActorSystem(system)
   }
 
-  import APIExampleService._
-
-
   val logic = new ExampleServiceLogic {}
 
 
   "The example service logic" must {
     "include a new pie" in {
-      val res = logic.commands(APIExampleService_StartTheTicker(id))
+      val res = logic.commands(APIExampleService.StartTheTicker(id))
       val map = logic.thePies
 
       assert(map.size == 1 && map.contains(id) && map(id) == Map("first"->10, "second"-> 30, "third" -> 60))
@@ -59,10 +56,10 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
     }
 
     "remove a pie" in {
-      logic.commands(APIExampleService_StartTheTicker(id))
+      logic.commands(APIExampleService.StartTheTicker(id))
       assert(logic.thePies.size == 1)
 
-      val res = logic.commands(APIExampleService_StopTheTicker(id))
+      val res = logic.commands(APIExampleService.StopTheTicker(id))
       assert(logic.thePies.isEmpty)
       res.head shouldEqual APISP.SPDone()
 
@@ -70,7 +67,7 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
     "removing non existing pie" in {
 
-      val res = logic.commands(APIExampleService_StopTheTicker(id))
+      val res = logic.commands(APIExampleService.StopTheTicker(id))
       assert(logic.thePies.isEmpty)
       res.head shouldEqual APISP.SPDone()
 
@@ -78,7 +75,7 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
     "include a predef pie" in {
       val xs = Map("foo"->10, "bar"-> 30)
-      val res = logic.commands(APIExampleService_SetTheTicker(id, xs))
+      val res = logic.commands(APIExampleService.SetTheTicker(id, xs))
       val map = logic.thePies
 
       assert(map.size == 1 && map.contains(id) && map(id) == xs)
@@ -87,8 +84,8 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
     "multiple pies" in {
       val xs = Map("foo"->10, "bar"-> 30)
-      val res = logic.commands(APIExampleService_SetTheTicker(id, xs))
-      logic.commands(APIExampleService_StartTheTicker(ID.newID))
+      val res = logic.commands(APIExampleService.SetTheTicker(id, xs))
+      logic.commands(APIExampleService.StartTheTicker(ID.newID))
       val map = logic.thePies
 
       assert(map.size == 2)
@@ -105,15 +102,21 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
 
 
-  val header = SPHeader(to = APIExampleService.service, from = "testing")
+  val header = SPHeader(to = ExampleServiceInfo.attributes.service, from = "testing")
 
   "The example service actor" must {
     val p = TestProbe()
     val e = TestProbe()
     mediator ! Subscribe("answers", p.ref)
     "start ticking on new pie" in {
-      val body = APIExampleService_StartTheTicker(id)
+      val body = APIExampleService.StartTheTicker(id)
       val mess = SPMessage.makeJson(header, body)
+
+
+      println("a mess")
+      println(body)
+      println(SPValue(body).toJson)
+
       mediator ! Publish("services", mess)
 
       p.fishForMessage(10 seconds){
@@ -126,21 +129,23 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
       }
     }
 
+
     mediator ! Subscribe("spevents", e.ref)
-    "answer to status request" in {
-      val body = APISP.StatusRequest()
-      val mess = SPMessage.makeJson(header, body)
-      mediator ! Publish("spevents", mess)
 
-      e.fishForMessage(10 seconds){
-        case mess @ _ if {println(s"spevents probe got: $mess"); false} => false
-
-        case x: String if SPMessage.fromJson(x).isSuccess =>
-          val mess = SPMessage.fromJson(x).get
-          val b = mess.getBodyAs[APISP.StatusResponse]
-          b.isSuccess
-      }
-    }
+//    "answer to status request" in {
+//      val body = APISP.StatusRequest()
+//      val mess = SPMessage.makeJson(header, body)
+//      mediator ! Publish("spevents", mess)
+//
+//      e.fishForMessage(10 seconds){
+//        case mess @ _ if {println(s"spevents probe got: $mess"); false} => false
+//
+//        case x: String if SPMessage.fromJson(x).isSuccess =>
+//          val mess = SPMessage.fromJson(x).get
+//          val b = mess.getBodyAs[APISP.StatusResponse]
+//          b.isSuccess
+//      }
+//    }
 
   }
 
