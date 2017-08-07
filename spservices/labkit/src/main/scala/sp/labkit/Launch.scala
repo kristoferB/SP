@@ -10,7 +10,6 @@ object Launch extends App {
   cluster.registerOnMemberUp {
     // Add root actors used in node here
     println("labkit node has joined the cluster")
-    system.actorOf(OPC.props, "OPC")
     system.actorOf(OPMakerLabKit.props, "opMakerLabKit")
     system.actorOf(ProductAggregator.props, "ProductAggregator")
     system.actorOf(ResourceAggregator.props, "ResourceAggregator")
