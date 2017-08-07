@@ -61,14 +61,14 @@ object PatientReminderWidget {
     }
 
     /**
-    * Checks if the patient belongs to this team.
-    */
+      * Checks if the patient belongs to this team.
+      */
     def belongsToThisTeam(patient: apiPatient.Patient, filter: String): Boolean = {
       patient.team.team.contains(filter)
     }
     /**
-    * Returns the correct hex color for each priority.
-    */
+      * Returns the correct hex color for each priority.
+      */
     def decodeTriageColor(p: apiPatient.Priority): String = {
       p.color match {
         case "NotTriaged" => "#D5D5D5"
@@ -89,14 +89,14 @@ object PatientReminderWidget {
     **/
     def decodeAttended(a: apiPatient.Attended): (Boolean, String) = {
       if (a.attended)
-      (true, a.doctorId)
+        (true, a.doctorId)
       else
-      (false, "Ej Påtittad")
+        (false, "Ej Påtittad")
     }
     /**
     Decodes the initial background and icon colors of the progress bar. Tuple values as follows:
     (initial background, initial symbol)
-    */
+      */
     def progressBarInitialColoring(p: apiPatient.Priority): (String, String) = {
       p.color match {
         case "NotTriaged" => ("#E0E0E0", "#AFAFAF")
@@ -117,7 +117,7 @@ object PatientReminderWidget {
     List((attended background color, attended symbol color, patient is attended),
     (plan background color, plan symbol color, plan does exist),
     (finished background color, finished symbol color, patient is finished))
-    */
+      */
     def progressBarColoring(p: apiPatient.Patient): List[(String, String, Boolean)] = {
       val coloring = ListBuffer[(String, String, Boolean)]()
       val initColoring = progressBarInitialColoring(p.priority)
@@ -135,8 +135,8 @@ object PatientReminderWidget {
     }
 
     /**
-    * Converts milliseconds to hours and minutes, visualized in string.
-    */
+      * Converts milliseconds to hours and minutes, visualized in string.
+      */
     def getTimeDiffReadable(milliseconds: Long): (String, String) = {
       val minutes = ((milliseconds / (1000*60)) % 60)
       val hours = ((milliseconds / (1000*60*60)) )//% 24)
@@ -332,7 +332,7 @@ object PatientReminderWidget {
       }
 
       (sortPatientsByLatestEvent(ccidsWithPrio1) ::: sortPatientsByLatestEvent(ccidsWithPrio2) ::: sortPatientsByLatestEvent(ccidsWithPrio3) ::: sortPatientsByLatestEvent(ccidsWithPrio4) ::: sortPatientsByLatestEvent(ccidsWithPrio5) ::: sortPatientsByLatestEvent(ccidsWithPrioNA) :::
-      sortPatientsByLatestEvent(ccidsMissingPriority))
+        sortPatientsByLatestEvent(ccidsMissingPriority))
     }
 
     val globalState = SPGUICircuit.connect(x => (x.openWidgets.xs, x.globalState))
@@ -352,12 +352,12 @@ object PatientReminderWidget {
             )
           ),
           {
-          ccidsToDraw = sortPatientsByPriority(pats.filter((t) => hasWaitedTooLong(t._2)))
-          ccidsToDraw.take(numberToDraw).map{ ccid =>
-            patientCard(pats(ccid))
-            //sortPatientsByPriority(pats.filter((t) => t._2.latestEvent.needsAttention)).take(numberToDraw) map { ccid =>
-            // patientCard(pats(ccid))
-          }.toVdomArray},
+            ccidsToDraw = sortPatientsByPriority(pats.filter((t) => hasWaitedTooLong(t._2)))
+            ccidsToDraw.take(numberToDraw).map{ ccid =>
+              patientCard(pats(ccid))
+              //sortPatientsByPriority(pats.filter((t) => t._2.latestEvent.needsAttention)).take(numberToDraw) map { ccid =>
+              // patientCard(pats(ccid))
+            }.toVdomArray},
           // <.div(^.`class` := "hallå", Styles.widgetText)(
           //   svg.text(
           //     "widgetWidth: " + widgetWidth
@@ -393,19 +393,19 @@ object PatientReminderWidget {
   }
 
   private val cardHolderComponent = ScalaComponent.builder[Unit]("cardHolderComponent")
-  .initialState(Map("-1" ->
-    apiPatient.Patient(
-      "4502085",
-      apiPatient.Priority("NotTriaged", "2017-02-01T15:49:19Z"),
-      apiPatient.Attended(true, "SARLI29", "2017-02-01T15:58:33Z"),
-      apiPatient.Location("52", "2017-02-01T15:58:33Z"),
-      apiPatient.Team("GUL", "NAKME", "B", "2017-02-01T15:58:33Z"),
-      apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
-      apiPatient.LatestEvent("OmsKoord", -1, false, "2017-02-01T15:58:33Z"),
-      apiPatient.Plan(false, "2017-02-01T15:58:33Z"),
-      apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
-      apiPatient.Debugging("NAKKK","B","B23"),
-      apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
+    .initialState(Map("-1" ->
+      apiPatient.Patient(
+        "4502085",
+        apiPatient.Priority("NotTriaged", "2017-02-01T15:49:19Z"),
+        apiPatient.Attended(true, "SARLI29", "2017-02-01T15:58:33Z"),
+        apiPatient.Location("52", "2017-02-01T15:58:33Z"),
+        apiPatient.Team("GUL", "NAKME", "B", "2017-02-01T15:58:33Z"),
+        apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
+        apiPatient.LatestEvent("OmsKoord", -1, false, "2017-02-01T15:58:33Z"),
+        apiPatient.Plan(false, "2017-02-01T15:58:33Z"),
+        apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
+        apiPatient.Debugging("NAKKK","B","B23"),
+        apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
       )))
     .renderBackend[Backend]
     // .componentDidMount(_.backend.getWidgetWidth())
@@ -413,7 +413,7 @@ object PatientReminderWidget {
     .componentWillUnmount(_.backend.onUnmount())
     .build
 
-    def apply() = spgui.SPWidget(spwb => {
-      cardHolderComponent()
-    })
-  }
+  def apply() = spgui.SPWidget(spwb => {
+    cardHolderComponent()
+  })
+}

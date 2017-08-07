@@ -19,6 +19,9 @@ object WidgetList {
       ("Lång tid sedan händelse", widgets.PatientReminderWidget(), 1, 19),
       // <--
 
+      // Gantt
+      ("Patienter inne", widgets.charts.PatientGanttWidget() , 2, 2),
+
       // Coordinator widgets -->
       ("Rumskarta (koordinator)", widgets.RoomOverviewWidget(), 4, 15),
       ("Triage- och statusdiagram (koordinator)", widgets.CoordinatorDiagramWidget(), 3, 17),
