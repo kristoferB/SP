@@ -166,6 +166,16 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
 
 
         case api.SetUpAbility(ab, hand) =>
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println("--------------------------------------------------")
+          println(ab)
           val ids = idsFromAbility(ab)
           val act = context.actorOf(AbilityActor.props(ab))
           abilities += ab.id -> AbilityStorage(ab, act, ids)
@@ -244,6 +254,7 @@ class AbilityActor(val ability: api.Ability) extends Actor with AbilityActorLogi
       sendAbilityState(sender())
 
     case StartAbility(s, id, p, attr) =>
+      println("STARTING ABILITY")
       val res = start(s)
       res.foreach { updS =>
         reqID = Some(id)
@@ -296,13 +307,13 @@ class AbilityActor(val ability: api.Ability) extends Actor with AbilityActorLogi
 
 // The various states that an ability can be in
 object AbilityState {
-  val unavailable = "unavailable"
-  val notEnabled = "notEnabled"
-  val enabled = "enabled"
-  val starting = "starting"
-  val executing = "executing"
-  val finished = "finished"
-  val forcedReset = "forcedReset"
+    val unavailable = "unavailable"
+    val notEnabled = "notEnabled"
+    val enabled = "enabled"
+    val starting = "starting"
+    val executing = "executing"
+    val finished = "finished"
+    val forcedReset = "forcedReset"
 }
 
 trait AbilityActorLogic extends AbilityLogic{

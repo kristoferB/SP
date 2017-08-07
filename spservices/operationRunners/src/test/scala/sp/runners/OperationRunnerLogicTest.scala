@@ -6,8 +6,7 @@ import com.typesafe.config._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import sp.domain.Logic._
 import sp.domain._
-
-
+import sp.domain.logic.{ActionParser, PropositionParser}
 import sp.runners.{API_OperationRunner => api}
 
 
@@ -15,7 +14,7 @@ import sp.runners.{API_OperationRunner => api}
   * Created by kristofer on 2016-05-04.
   */
 class OperationRunnerLogicTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
-  with WordSpecLike with Matchers with BeforeAndAfterAll with Helpers2 {
+  with WordSpecLike with Matchers with BeforeAndAfterAll with Parsing {
 
   def this() = this(ActorSystem("myTest", ConfigFactory.parseString(
     """
@@ -147,5 +146,33 @@ class OperationRunnerLogicTest(_system: ActorSystem) extends TestKit(_system) wi
 
   }
 
+
+}
+
+import sp.domain.logic.{PropositionParser, ActionParser}
+trait Parsing {
+  def v(name: String, drivername: String) = Thing(name, SPAttributes("drivername" -> drivername))
+  def prop(vars: List[IDAble], cond: String, actions: List[String] = List(), kind: String = "pre") = {
+    def c(condition: String): Option[Proposition] = {
+      PropositionParser(vars).parseStr(condition) match {
+        case Right(p) => Some(p)
+        case Left(err) => println(s"Parsing failed on condition: $condition: $err"); None
+      }
+    }
+
+    def a(actions: List[String]): List[Action] = {
+      actions.flatMap { action =>
+        ActionParser(vars).parseStr(action) match {
+          case Right(a) => Some(a)
+          case Left(err) => println(s"Parsing failed on action: $action: $err"); None
+        }
+      }
+    }
+
+    val cRes = if (cond.isEmpty) AlwaysTrue else c(cond).get
+    val aRes = a(actions)
+
+    PropositionCondition(cRes, aRes, SPAttributes("kind" -> kind))
+  }
 
 }

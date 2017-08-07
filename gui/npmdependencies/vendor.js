@@ -18,6 +18,12 @@ require('jsoneditor/dist/jsoneditor.css');
 var jQuery = require('jquery');
 window.jQuery = jQuery;
 
+var chart = require('chart.js');
+window.Chart = chart;
+
+var pathlib = require('paths-js/path.js');
+window.Pathlib = pathlib;
+
 var bootstrap = require('bootstrap');
 window.bootstrap = bootstrap;
 require('bootstrap/dist/css/bootstrap.css');

@@ -22,6 +22,9 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
   mediator ! Subscribe("answers", self)
   mediator ! Subscribe("events", self)
 
+  val myH = SPHeader(from = api.attributes.service, to = abilityAPI.attributes.service, reply = api.attributes.service)
+
+
 
   def receive = {
     case x: String if sender() != self =>
@@ -30,6 +33,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
       matchRequests(mess)
       matchAbilityAPI(mess)
       matchServiceRequests(mess)
+      // if needed, also get the state from the VD here
 
 
   }
@@ -41,13 +45,16 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
     OperationRunnerComm.extractRequest(mess).map{ case (h, b) =>
       val updH = h.copy(from = api.attributes.service)
       mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, APISP.SPACK()))
+      mediator ! Publish("services", OperationRunnerComm.makeMess(myH, abilityAPI.GetAbilities()))
       b match {
         case setup: api.Setup =>
           addRunner(setup).foreach{xs =>
             mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, api.Runners(xs)))
 
-            println("Runner started. Init state: " + setup.initialState)
-            setRunnerState(setup.runnerID, State(setup.initialState), startAbility, sendState(_, setup.runnerID), false)
+            val state = runners(setup.runnerID).currentState
+
+            println("Runner started. Init state: " + state)
+            setRunnerState(setup.runnerID, State(state), startAbility, sendState(_, setup.runnerID), false)
 
           }
 
@@ -57,6 +64,10 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
             case None =>
               mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, APISP.SPError(s"no runner with id: $id")))
           }
+        case api.AddOperations(id, ops, map) =>
+          updRunner(id, ops, Set(), map, startAbility, sendState(_, id) )
+        case api.RemoveOperations(id, ops) =>
+          updRunner(id, Set(), ops, Map(), startAbility, sendState(_, id) )
         case api.TerminateRunner(id) =>
           val xs = removeRunner(id)
           mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, api.Runners(xs)))
@@ -93,8 +104,15 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
             println(s"The ability with id $id completed for operations: $ops")
             completeOPs(id, startAbility, sendState)
           case abilityAPI.AbilityState(id, s) =>
-        }
 
+            //val ops = getOPFromAbility(id).flatMap(_._2)
+            val abState = (for {
+              x <- s.get(id) if x.isInstanceOf[SPAttributes]
+              v <- x.asInstanceOf[SPAttributes].get("state")
+            } yield v).getOrElse(SPValue("notEnabled"))
+            println(s"The ability with id $id updated with state: $abState")
+            newAbilityState(id, abState, startAbility, sendState)
+        }
     }
   }
 
@@ -107,12 +125,14 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
 
 
   val startAbility = (id: ID) => {
+
     println("Starting ability: " + id)
     val myH = SPHeader(from = api.attributes.service, to = abilityAPI.attributes.service, reply = api.attributes.service)
     mediator ! Publish("services", OperationRunnerComm.makeMess(myH, abilityAPI.StartAbility(id)))
   }
 
   val sendState = (s: State, id: ID) => {
+    println(s"new state for $id: " +s)
     val myH = SPHeader(from = api.attributes.service)
     mediator ! Publish("events", OperationRunnerComm.makeMess(myH, api.StateEvent(id, s.state)))
 
@@ -150,7 +170,9 @@ object OperationRunner {
  * Using a trait to make the logic testable
  */
 trait OperationRunnerLogic {
-  case class Runner(setup: api.Setup, currentState: Map[ID, SPValue])
+  case class Runner(setup: api.Setup, currentState: Map[ID, SPValue]) {
+    val noAbilityOps = setup.ops.filter(o => !setup.opAbilityMap.contains(o.id))
+  }
   var runners: Map[ID, Runner] = Map()
   var abilities: Set[ID] = Set()
 
@@ -164,10 +186,19 @@ trait OperationRunnerLogic {
   }
 
 
+  def updOPs(o: Operation, opAbilityMap: Map[ID, ID]) = {
+    opAbilityMap.get(o.id).map{id =>
+      val c = PropositionCondition(EQ(SVIDEval(id), ValueHolder("enabled")), List(), SPAttributes("kind" -> "pre"))
+      o.copy(conditions = c :: o.conditions)
+    }
+  }
 
   def addRunner(setup: api.Setup) = {
-    val updState = setup.initialState ++ setup.ops.map(o => o.id -> SPValue(OperationState.init))
-    val r = Runner(setup.copy(initialState = updState), updState)
+    val updState = setup.initialState ++
+      setup.ops.map(o => o.id -> SPValue(OperationState.init)) ++
+      setup.opAbilityMap.values.toList.map(id => id -> SPValue("notEnabled"))
+    val updOps = setup.ops.flatMap(o => updOPs(o, setup.opAbilityMap))
+    val r = Runner(setup.copy(initialState = updState, ops = updOps), updState)
     if (! validateRunner(setup)) None
     else {
       runners += setup.runnerID -> r
@@ -175,8 +206,31 @@ trait OperationRunnerLogic {
     }
   }
 
+  def updRunner(runner: ID,
+                add: Set[Operation],
+                remove: Set[ID],
+                opAbilityMap: Map[ID, ID],
+                startAbility: ID => Unit,
+                sendState: State => Unit
+               ) = {
+    val updR = runners.get(runner).map {runner =>
+      val updMap = (runner.setup.opAbilityMap ++ opAbilityMap).filter(kv => !remove.contains(kv._1))
+      val updOps = (runner.setup.ops ++ add).filter(o => !remove.contains(o.id)).flatMap(o => updOPs(o, updMap))
+      val updSetup = runner.setup.copy(ops = updOps, opAbilityMap = updMap)
+      val updState = (runner.currentState ++ add.map(o => o.id -> SPValue(OperationState.init))).filter(kv => !remove.contains(kv._1)) ++
+        updMap.values.toList.map(id => id -> SPValue("notEnabled"))
+
+      Runner(updSetup, updState)
+    }
+    updR.foreach{r =>
+      runners += runner -> r
+      setRunnerState(runner, State(r.currentState), startAbility, sendState)
+    }
+  }
+
   private def validateRunner(setup: api.Setup) = {
-    setup.ops.forall(o => setup.opAbilityMap.contains(o.id))
+    !runners.contains(setup.runnerID)
+    //setup.ops.forall(o => setup.opAbilityMap.contains(o.id))
   }
 
   def completeOPs(ability: ID, startAbility: ID => Unit, sendState: (State, ID) => Unit, runOneAtTheTime: Boolean = false) = {
@@ -184,23 +238,36 @@ trait OperationRunnerLogic {
     val ops = tempR.map{r =>
       val opsID = r._2.setup.opAbilityMap.filter(_._2 == ability).keySet
       val xs = r._2.setup.ops.filter(o => opsID.contains(o.id))
-      var s = State(r._2.currentState)
       xs.map{o =>
-        s = completeOP(o, s)
+        val cS = State(runners(r._1).currentState)
+        val s = completeOP(o, cS)
+        setRunnerState(r._1, s, startAbility, sendState(_,r._1), runOneAtTheTime)
+      }
+      r._2.noAbilityOps.map {o =>
+        val cS = State(runners(r._1).currentState)
+        val s = completeOP(o, cS)
         setRunnerState(r._1, s, startAbility, sendState(_,r._1), runOneAtTheTime)
       }
     }
+  }
 
+  def newAbilityState(ability: ID, abilityState: SPValue, startAbility: ID => Unit, sendState: (State, ID) => Unit) = {
+    runners.map{r =>
+      if (r._2.setup.opAbilityMap.values.toSet.contains(ability)){
+        println("An ability has an operation and was updated")
+        val cS = State(runners(r._1).currentState + (ability -> abilityState))
+        setRunnerState(r._1, cS, startAbility, sendState(_,r._1))
+      }
+    }
   }
 
   def setRunnerState(runnerID: ID, s: State, startAbility: ID => Unit, sendState: State => Unit, runOneAtTheTime: Boolean = false) = {
     val r = runners.get(runnerID)
     r.map { x =>
-      println("set runner state from: " + x.currentState + " to " + s)
+      //println("set runner state from: " + x.currentState + " to " + s)
       if (s != x.currentState) sendState(s)
       val startOP = (o: Operation) => {
-        val a = x.setup.opAbilityMap(o.id)
-        startAbility(a)
+        x.setup.opAbilityMap.get(o.id).foreach(startAbility)
       }
       runners += runnerID -> x.copy(currentState = s.state)
       newState(s,x.setup.ops, startOP, sendState, runOneAtTheTime)
@@ -220,8 +287,14 @@ trait OperationRunnerLogic {
 
 
 
+
   def newState(s: State, ops: Set[Operation], sendCmd: Operation => Unit, sendState: State => Unit, runOneAtTheTime: Boolean = false): State = {
     val enabled = ops.filter(isEnabled(_, s))
+    val tempR = runners
+    val enAb = runners.map(r =>
+       r._2.setup.opAbilityMap.filter(a => a.equals(SPValue("notEnabled")))).toList
+    // kolla abilities. Jämföra och kolla vilka som är not enabled, kanske.
+    println("runner enabled abilities: " + enAb.toString())
     println("runner enabled ops: " + enabled.map(_.name).mkString(", "))
     val res = enabled.headOption.map{o =>
       val updS = runOp(o, s)

@@ -40,7 +40,6 @@ object APIWebSocket {
 }
 import sp.server.{APIWebSocket => api}
 
-
 /**
  * Used by the SP launcher file
  * Created by Kristofer on 2014-06-19.

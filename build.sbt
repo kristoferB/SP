@@ -76,7 +76,7 @@ lazy val sp1 = project
 
 
 lazy val labkit = (project in file("spservices/labkit"))
-  .dependsOn(spdomain, macros)
+  .dependsOn(spdomain, macros, devicehandler, operationRunners)
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= akka)
 

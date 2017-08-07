@@ -13,6 +13,8 @@ package API_OperationRunner {
 
   case class Setup(name: String, runnerID: ID, ops: Set[Operation], opAbilityMap: Map[ID, ID], initialState: Map[ID, SPValue]) extends Request
   case class SetState(runnerID: ID, state: Map[ID, SPValue]) extends Request
+  case class AddOperations(runnerID: ID, ops: Set[Operation], opAbilityMap: Map[ID, ID]) extends Request
+  case class RemoveOperations(runnerID: ID, ops: Set[ID]) extends Request
   case class ForceComplete(ability: ID) extends Request
   case class TerminateRunner(runnerID: ID) extends Request
   case class GetState(runnerID: ID) extends Request
@@ -71,15 +73,36 @@ object OperationRunnerComm {
 
 package APIAbilityHandler {
   sealed trait Request
-  sealed trait Response
 
   case class StartAbility(id: ID, params: Map[ID, SPValue] = Map(), attributes: SPAttributes = SPAttributes()) extends Request
   case class ForceResetAbility(id: ID) extends Request
+  case class ForceResetAllAbilities() extends Request
 
+  // to be used when handshake is on
+  case class ExecuteCmd(cmd: ID) extends Request
+
+  case class GetAbilities() extends Request
+  case class SetUpAbility(ability: Ability, handshake: Boolean = false) extends Request
+
+
+  sealed trait Response
+
+  case class CmdID(cmd: ID) extends Response
   case class AbilityStarted(id: ID) extends Response
   case class AbilityCompleted(id: ID, result: Map[ID, SPValue]) extends Response
   case class AbilityState(id: ID, state: Map[ID, SPValue]) extends Response
+  case class Abilities(xs: List[Ability]) extends Response
+  case class Abs(a: List[(ID,String)]) extends Response
 
+  case class Ability(name: String,
+                     id: ID,
+                     preCondition: PropositionCondition = PropositionCondition(AlwaysFalse, List()),
+                     started: PropositionCondition = PropositionCondition(AlwaysFalse, List()),
+                     postCondition: PropositionCondition = PropositionCondition(AlwaysTrue, List()),
+                     resetCondition: PropositionCondition = PropositionCondition(AlwaysTrue, List()),
+                     parameters: List[ID] = List(),
+                     result: List[ID] = List(),
+                     attributes: SPAttributes = SPAttributes()) extends Response
 
   object attributes {
     val service = "abilityHandler"
