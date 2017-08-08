@@ -27,6 +27,7 @@ object DragAndDrop {
         )
       )
     }
+    
     def handleNameChange(s: Props)(e: ReactEventFromInput) =
       $.setState(s.copy(
         name = e.target.value
@@ -41,17 +42,17 @@ object DragAndDrop {
         ),
         <.h3(
           "last message from " + s.mailbox
-        ),
-        <.div(
-          ^.className := DragAndDropCSS.dragZone.htmlClass,
-          OnDragMod(handleDrag(s)),
-          "drag me!"
-        ),
-        <.div(
-          ^.className := DragAndDropCSS.dropZone.htmlClass,
-          OnDropMod(handleDrop(s)),
-          "drag to me!"
-        )
+        ) //,
+//        <.div(
+//          ^.className := DragAndDropCSS.dragZone.htmlClass,
+//          OnDragMod(handleDrag(s)),
+//          "drag me!"
+//        ),
+//        <.div(
+//          ^.className := DragAndDropCSS.dropZone.htmlClass,
+//          OnDropMod(handleDrop(s)),
+//          "drag to me!"
+//        )
       )
   }
 

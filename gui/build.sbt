@@ -17,10 +17,12 @@ scalacOptions  := Seq(
   "-language:postfixOps"
 )
 
-val scalaJSReactVersion = "1.0.0"
+val scalaJSReactVersion = "1.1.0"
 val scalaCssVersion = "0.5.3-RC1"
 val diodeVersion = "1.1.2"
+val scalajsGoogleChartsVersion = "0.4.1"
 
+resolvers += sbt.Resolver.url("aleastchs Bintray Releases", url("https://dl.bintray.com/aleastchs/aleastChs-releases"))(Resolver.ivyStylePatterns)
 
 libraryDependencies ++= Seq(
   "com.github.japgolly.scalajs-react" %%% "core" % scalaJSReactVersion,
@@ -37,8 +39,11 @@ libraryDependencies ++= Seq(
   "eu.unicredit" %%% "paths-scala-js" % "0.4.5",
   "com.typesafe.play" %%% "play-json" % "2.6.0",
   "org.julienrf" %%% "play-json-derived-codecs" % "4.0.0",
-  "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M12"
+  "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M12",
+  "org.aleastChs" % "scalajs-google-charts_2.11" % scalajsGoogleChartsVersion
 )
+
+libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.2"
 
 /* This is how to include js files. Put it in src/main/resources.
 jsDependencies ++= Seq(

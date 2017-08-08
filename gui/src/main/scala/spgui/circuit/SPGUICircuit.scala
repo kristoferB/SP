@@ -103,6 +103,9 @@ class GlobalStateHandler[M](modelRW: ModelRW[M, GlobalState]) extends ActionHand
   override def handle = {
     case UpdateGlobalState(state) =>
       updated(state)
+    case UpdateGlobalAttributes(key, v) =>
+      val attr = value.attributes + (key->v)
+      updated(value.copy(attributes = attr))
   }
 }
 

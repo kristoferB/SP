@@ -2,11 +2,35 @@ package spgui
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import spgui.widgets.examples._
 
 
 object WidgetList {
-  val list =
+
+   val erica =
+    List[(String, SPWidgetBase => VdomElement, Int, Int)](
+      ("Klocka", widgets.ClockWidget(), 2, 2),
+
+      // Team widgets -->
+      ("Triagediagram", widgets.TriageWidget(), 2, 8),
+      ("Statusdiagram", widgets.StatusWidget(), 2, 3),
+      ("Platsdiagram", widgets.PlaceWidget(), 2, 3),
+      ("Patientkort", widgets.PatientCardsWidget(), 5, 19),
+      ("Felsökning", widgets.DebuggingWidget(), 5, 19),
+      ("Lång tid sedan händelse", widgets.PatientReminderWidget(), 1, 19),
+      // <--
+
+      // Gantt
+      ("Patienter inne", widgets.charts.PatientGanttWidget() , 2, 2),
+
+      // Coordinator widgets -->
+      ("Rumskarta (koordinator)", widgets.RoomOverviewWidget(), 4, 15),
+      ("Triage- och statusdiagram (koordinator)", widgets.CoordinatorDiagramWidget(), 3, 17),
+      ("Väntrumsdiagram (koordinator)", widgets.WaitingRoomWidget(), 3, 4)
+      // <--
+    )
+
+
+  val sp =
     List[(String, SPWidgetBase => VdomElement, Int, Int)](
       ("Grid Test",                   spgui.dashboard.GridTest(),                    5, 5),
       ("Widget Injection",            widgets.injection.WidgetInjectionTest(),       3, 4),
@@ -31,6 +55,8 @@ object WidgetList {
       ("SopMaker",                    widgets.sopmaker.SopMakerWidget(),             3, 4)
     )
 
+   val list = erica ++ sp
+
   val map = list.map(t => t._1 -> (t._2, t._3, t._4)).toMap
 }
 
@@ -40,4 +66,13 @@ object PlaceholderComp {
     .build
 
   def apply() = SPWidget(spwb => component())
+}
+
+
+object SectionList {
+  // To be loaded from the backend soon!
+  val sections = List(
+    "gul",
+    "blå"
+  )
 }

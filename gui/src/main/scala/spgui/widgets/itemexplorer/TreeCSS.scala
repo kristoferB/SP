@@ -1,15 +1,15 @@
 package spgui.widgets.itemexplorer
 
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 import scalacss.ScalaCssReact._
 
 object Style extends StyleSheet.Inline {
   import dsl._
 
   val itemContent = style(
-    &.hover(
-      cursor.pointer
-    )
+//    &.hover(
+//      cursor.pointer
+//    )
   )
 
   val outerDiv = style(
@@ -50,8 +50,10 @@ object Style extends StyleSheet.Inline {
                          cursor.pointer,
                          fontWeight._500,
                          mixinIfElse(selected)(color :=! "#555555", backgroundColor :=! "#A5C2EE")(
-                           backgroundColor.white,
-                           &.hover(color :=! "#555555", backgroundColor :=! "#A5C2EE"))
+                           backgroundColor.white
+//                           ,
+//                           &.hover(color :=! "#555555", backgroundColor :=! "#A5C2EE"))
+                         )
                        ))
 
   val icon = style(

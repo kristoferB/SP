@@ -1,17 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-  <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>%date{HH:mm:ss} %-5level [%X{akkaSource}] - %msg%n</pattern>
-    </encoder>
-  </appender>
+    <appender name="console-appender" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS}: %-5level in %logger{15} ¤ %blue(%m%n%rEx)</pattern> <!--%X{akkaSource} |-->
+        </encoder>
+    </appender>
 
-  <logger name="service" level="debug" additivity="false">
-    <appender-ref ref="console" />
-  </logger>
+    <appender name="file-appender" class="ch.qos.logback.core.FileAppender">
+        <file>../../logs/erica.log</file>
+        <!-- <append>false</append>  Append to existing log file or create new each restart. -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>../../logs/erica.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy
+              class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- or whenever the file size reaches 50MB -->
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!-- keep 30 days' worth of history -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%date{yyyy-MM-dd} %d{HH:mm:ss.SSS}: %-5level at [%thread] in %logger ¤ %msg%n</pattern>
+        </encoder>
+    </appender>
 
-  <root level="warn">
-    <appender-ref ref="console"/>
-  </root>
+
+    <!-- Loggers. Change logging level here. Options: off, error, warning, info, debug -->
+    <!-- additivity="true" adds this loggers output to higher-order loggers (i.e the root logger) -->
+    <logger name="sp" level="info"
+            additivity="true">
+        <appender-ref ref="console-appender"/>
+    </logger>
+
+    <logger name="datahandler" level="debug"
+            additivity="true">
+        <appender-ref ref="console-appender"/>
+    </logger>
+
+
+    <!-- The root logger -->
+    <root level="debug">
+        <appender-ref ref="file-appender"/>
+    </root>
+
+
 
 </configuration>

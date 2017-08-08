@@ -20,7 +20,8 @@ case class GlobalState(
   currentModel: Option[UUID] = None,
   selectedItems: List[UUID] = List(),
   userID: Option[UUID] = None,
-  clientID: UUID = UUID.randomUUID()
+  clientID: UUID = UUID.randomUUID(),
+  attributes: Map[String, SPValue] = Map()
 )
 case class WidgetData(xs: Map[UUID, SPValue])
 
@@ -39,6 +40,7 @@ case class UpdateLayout(id: UUID, newLayout: WidgetLayout) extends Action
 case class SetLayout(layout: Map[UUID, WidgetLayout]) extends Action
 case class UpdateGlobalState(state: GlobalState) extends Action
 case class SetTheme(theme: Theme) extends Action
+case class UpdateGlobalAttributes(key: String, value: SPValue) extends Action
 case object ToggleHeaders extends Action
 
 // used when failing to retrieve a state from browser storage

@@ -82,7 +82,7 @@ object ResponsiveReactGridLayout {
   def apply(
     width: Int,
     autoSize: Boolean = true,
-    cols: js.Object = js.Dynamic.literal("lg" -> 12, "md" -> 8, "sm" -> 6, "xs" -> 4, "xxs" -> 2),
+    cols: js.Object = js.Dynamic.literal("lg" -> 8, "md" -> 4, "sm" -> 3, "xs" -> 2, "xxs" -> 1),
     draggableCancel: String = "",
     draggableHandle: String = "",
     verticalCompact: Boolean = true,

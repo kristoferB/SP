@@ -50,7 +50,9 @@ class LaunchGUI(system: ActorSystem)  {
   import akka.pattern.ask
   implicit val actorSystem = system
   implicit val materializer = ActorMaterializer()
+  implicit val dispatcher = system.dispatcher
   val mediator = DistributedPubSub(system).mediator
+  val log = org.slf4j.LoggerFactory.getLogger(getClass.getName)
 
   def launch = {
       val webFolder: String = system.settings.config getString "sp.webFolder"
@@ -97,9 +99,35 @@ class LaunchGUI(system: ActorSystem)  {
         getFromFile(webFolder + "/index.html")
 
 
-    val bindingFuture = Http().bindAndHandle(route, interface, port)
 
-    println(s"Server started ${system.name}, $interface:$port")
+    import java.io.InputStream
+    import java.security.{ SecureRandom, KeyStore }
+    import javax.net.ssl.{ SSLContext, TrustManagerFactory, KeyManagerFactory }
+
+    import akka.actor.ActorSystem
+    import akka.http.scaladsl.server.{ Route, Directives }
+    import akka.http.scaladsl.{ ConnectionContext, HttpsConnectionContext, Http }
+    import akka.stream.ActorMaterializer
+    import com.typesafe.sslconfig.akka.AkkaSSLConfig
+
+
+    val serverContext: ConnectionContext = {
+      val password = "abcdef".toCharArray
+      val context = SSLContext.getInstance("TLS")
+      val ks = KeyStore.getInstance("PKCS12")
+      ks.load(getClass.getClassLoader.getResourceAsStream("keys/server.p12"), password)
+      val keyManagerFactory = KeyManagerFactory.getInstance("SunX509")
+      keyManagerFactory.init(ks, password)
+      context.init(keyManagerFactory.getKeyManagers, null, new SecureRandom)
+      // start up the web server
+      ConnectionContext.https(context)
+    }
+
+
+    //Http().setDefaultServerHttpContext(serverContext)
+    val bindingFuture = Http().bindAndHandle(route, interface, port) //, connectionContext = serverContext)
+
+    log.info(s"Server started. System: ${system.name}, Adress: $interface:$port")
 
     bindingFuture
 
@@ -118,7 +146,7 @@ class LaunchGUI(system: ActorSystem)  {
       if (cmd.isEmpty)
         reject(SchemeRejection("no topic"))
 
-      println("tjo ho in post message: "+ url +" - "+cmd)
+      log.debug("postMessage event: "+ url +" - "+cmd)
 
       val topic = cmd.head
       val service = cmd.tail.headOption.getOrElse("")
@@ -175,6 +203,7 @@ import akka.http.scaladsl.model.ws.{ Message, TextMessage }
 
 
 class WebsocketHandler(mediator: ActorRef, topic: String, clientID: java.util.UUID) {
+  val log = org.slf4j.LoggerFactory.getLogger(getClass.getName)
   case class Filters(h: Map[String, Set[SPValue]], b: Map[String, Set[SPValue]])
   var filter = Filters(Map(), Map())
 
@@ -191,7 +220,7 @@ class WebsocketHandler(mediator: ActorRef, topic: String, clientID: java.util.UU
   })
 
   val fromWebSocketToAPI: Flow[Message, Try[APIWebSocket.API], NotUsed] = Flow[Message]
-    .collect{ case TextMessage.Strict(text) => println(s"Websocket got: $text"); text}
+    .collect{ case TextMessage.Strict(text) => log.debug(s"Websocket got: $text"); text}
     .map{str =>
       SPAttributes.fromJson(str).flatMap(_.to[APIWebSocket.API])
     }
