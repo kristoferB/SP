@@ -1,6 +1,5 @@
-package sp.messages
+package sp.domain
 
-import sp.domain._
 import Logic._
 
 object MyServiceAPI {
@@ -28,4 +27,3 @@ object MyServiceAPI {
 
 
 }
-

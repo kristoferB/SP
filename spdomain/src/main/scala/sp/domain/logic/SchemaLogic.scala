@@ -26,6 +26,32 @@ trait SchemaImplicit {
   implicit object SOPToSchema extends ToSchema[SOP] {
     override val schema: Schema = Schema.createRecord("SOP", "SP Sequences of Operation. Schema to come. For now, check case classes in SP source", "sp.domain", false)
   }
+  implicit object IDToSchema extends ToSchema[java.util.UUID] {
+    override val schema: Schema = Schema.createRecord("ID", "An SP ID as an UUID", "sp.domain", false)
+  }
+
+
+  implicit object OperationToSchema extends ToSchema[Operation] {
+    override val schema: Schema = AvroSchema[Operation]
+  }
+  implicit object ThingToSchema extends ToSchema[Thing] {
+    override val schema: Schema = AvroSchema[Thing]
+  }
+  implicit object SOPSpecToSchema extends ToSchema[SOPSpec] {
+    override val schema: Schema = AvroSchema[SOPSpec]
+  }
+  implicit object SPSpecToSchema extends ToSchema[SPSpec] {
+    override val schema: Schema = AvroSchema[SPSpec]
+  }
+  implicit object SPResultToSchema extends ToSchema[SPResult] {
+    override val schema: Schema = AvroSchema[SPResult]
+  }
+  implicit object SPStateToSchema extends ToSchema[SPState] {
+    override val schema: Schema = AvroSchema[SPState]
+  }
+  implicit object StructToSchema extends ToSchema[Struct] {
+    override val schema: Schema = AvroSchema[Struct]
+  }
 
 
   def makeMeASchema(request: Schema, response: Schema) = {

@@ -1,13 +1,16 @@
 package sp.models
 
 import sp.domain._
-import sp.messages._
-import Pickles._
-import scala.util.{Try}
+import Logic._
+
+import scala.util.Try
 
 
-package APIModels {
+object APIModel {
   sealed trait Request
+  sealed trait Response
+  val service = "Models"
+
   case class CreateModel(name: String, attributes: SPAttributes = SPAttributes(), id: ID = ID.newID) extends Request
   case class DeleteModel(id: ID) extends Request
   case class UpdateModelAttributes(name: Option[String], attributes: Option[SPAttributes]) extends Request
@@ -28,7 +31,6 @@ package APIModels {
   case class PutItems(items: List[IDAble], info: SPAttributes = SPAttributes()) extends Request
   case class DeleteItems(items: List[ID], info: SPAttributes = SPAttributes()) extends Request
 
-  sealed trait Response
   case class TheModel(name: String, id: ID, version: Int, attributes: SPAttributes = SPAttributes(), items: List[IDAble]) extends Response
   case class ModelInformation(name: String, id: ID, version: Int, attributes: SPAttributes = SPAttributes()) extends Response
   case class ModelDeleted(model: ID) extends Response
@@ -40,13 +42,37 @@ package APIModels {
   case class SPItem(item: IDAble) extends Response
   case class SPItems(items: List[IDAble]) extends Response
 
-
-  object attributes {
-    val service = "Models"
+  object Request {
+    implicit lazy val fExampleServiceRequest: JSFormat[Request] = deriveFormatISA[Request]
   }
+  object Response {
+    implicit lazy val fExampleServiceResponse: JSFormat[Response] = deriveFormatISA[Response]
+  }
+
 }
 
-import sp.models.{APIModels => api}
+object ModelInfo {
+  case class ModelRequest(request: APIModel.Request)
+  case class ModelResponse(response: APIModel.Response)
+
+  val req: com.sksamuel.avro4s.SchemaFor[ModelRequest] = com.sksamuel.avro4s.SchemaFor[ModelRequest]
+  val resp: com.sksamuel.avro4s.SchemaFor[ModelResponse] = com.sksamuel.avro4s.SchemaFor[ModelResponse]
+
+  val apischema = makeMeASchema(
+    req(),
+    resp()
+  )
+
+  val attributes: APISP.StatusResponse = APISP.StatusResponse(
+    service = APIModel.service,
+    tags = List("model"),
+    api = apischema,
+    version = 1,
+    attributes = SPAttributes.empty
+  )
+}
+
+import sp.models.{APIModel => api}
 
 
 object ModelsComm {
@@ -59,7 +85,7 @@ object ModelsComm {
   def extractAPISP(mess: Try[SPMessage]): Option[(SPHeader, APISP)] = for {
     m <- mess.toOption
     h <- m.getHeaderAs[SPHeader].toOption
-    b <- m.getBodyAs[APISP].toOption
+    b <- m.getBodyAs[APISP].toOption if b == APISP.StatusRequest
   } yield (h, b)
 
 
