@@ -2,57 +2,91 @@ package spgui.widgets.itemeditor
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
+
 import scalacss.ScalaCssReact._
 import scalajs.js
-import js.Dynamic.{ literal => l }
+import js.Dynamic.{literal => l}
+import js.JSON
+import spgui.{SPWidget, SPWidgetBase}
+import spgui.components.DragAndDrop.OnDataDrop
+import spgui.communication._
+import sp.domain._
+//import sp.messages._
+import sp.messages.Pickles._
 
-import spgui.SPWidgetBase
-import spgui.SPWidget
-import sp.domain.SPValue
-// TODO: function to convert SPValue to JSONEditor-props
+import java.util.UUID
 
 object ItemEditor {
 
-  private val jsonEditorOptions = JSONEditorOptions(
-    mode = "tree",
-    schema = l(
-      "title" -> "SP item",
-      "type" -> "object",
-      "properties" -> l(
-        "isa" -> l(
-          "enum" -> js.Array("HierarchyRoot", "Operation", "SOPSpec")
-        ),
-        "name" -> l(
-          "type" -> "string"
-        ),
-        /*
-        "age" -> l(
-          "description" -> "Age in years",
-          "type" -> "integer",
-          "minimum" -> 0
-        ),
-         */
-        "id" -> l(
-          // dk if this is visible somewhere, but I think it would be nice
-          "description" -> "UUID as string",
-          "type" -> "string",
-          // jsoneditor doesn't, care, it seems, should facade onEditable
-          "readOnly" -> true
-        )
-      ),
-      "required" -> js.Array("isa", "name", "id")
-    )
-  )
+  class Backend($: BackendScope[SPWidgetBase, Unit]) {
 
-  val json = l(
-    "isa" -> "SomethingIncorrect",
-    "name" -> "SampleJSON",
-    "id" -> "this-should-be-an-uuid"
-  )
+    var jsonEditor: JSONEditor = null // initialized for real upon mounting, or receiving Item(item)
+
+    def handleCommand: API_ItemServiceDummy => Unit = {
+      case API_ItemServiceDummy.Hello() =>
+        println("ItemEditorWidget: Somebody said hi")
+      case API_ItemServiceDummy.Item(item) =>
+        jsonEditor = JSONEditor($.getDOMNode.runNow(), ItemEditorOptions())
+        $.forceUpdate.runNow() // explicit rerendering cause jsonEditor is not in State
+        jsonEditor.set(JSON.parse(SPValue(item).toJson))
+      case op: API_ItemServiceDummy.SampleItem =>
+        jsonEditor.set(JSON.parse(SPValue(op.operation).toJson))
+      case API_ItemServiceDummy.SampleItemList(items) =>
+        println("received items: " + items)
+      case x =>
+        println(s"THIS WAS NOT EXPECTED IN ItemEditorWidget: $x")
+    }
+
+    val messObs = BackendCommunication.getMessageObserver(
+      spm => spm.getBodyAs[API_ItemServiceDummy] foreach handleCommand,
+      "itemEditorAnswers"
+    )
+
+    // send ItemRequest command to service once websocket is open
+    // TODO maybe make this in some less weird way
+    /* something like this will be used if itemeditor will know what item to edit before its opened
+    import rx._
+    implicit val ctx: Ctx.Owner = Ctx.Owner.safe()
+    val statusVar = BackendCommunication.getWebSocketStatus("services")
+    statusVar.trigger(if(statusVar.now == true) {
+        requestSampleItem().runNow()
+        statusVar.kill()
+      }
+    )
+    */
+
+    def sendCommand(cmd: API_ItemServiceDummy) = Callback{
+      val h = SPHeader(from = "ItemEditorWidget", to = API_ItemServiceDummy.attributes.service, reply = *("ItemEditorWidget"))
+      val jsonMsg = SPMessage.make(h, cmd)
+      BackendCommunication.publishMessage("services", jsonMsg)
+      //BackendCommunication.ask(jsonMsg)
+    }
+
+    def requestSampleItem() = sendCommand(API_ItemServiceDummy.RequestSampleItem())
+
+    def returnItem(): Callback = {
+      // TODO remove shitty gets
+      val idAble = fromJsonToSPValue(JSON.stringify(jsonEditor.get())).get.getAs[IDAble]("").get
+      sendCommand(API_ItemServiceDummy.Item(idAble))
+    }
+
+    def render(spwb: SPWidgetBase) =
+      <.div(
+        <.button("Save", ^.onClick --> returnItem()),
+        <.div(
+          "drop an item from item explorer tree to edit it",
+          OnDataDrop(idAsStr => sendCommand(API_ItemServiceDummy.RequestItem(UUID.fromString(idAsStr))))
+        ).when(jsonEditor == null)
+      ) // editor added after mount, or on item dropped
+  }
 
   private val component = ScalaComponent.builder[SPWidgetBase]("ItemEditor")
-    //.render_P(p => <.div(ItemEditorCSS.editor, JSONEditor(p.getWidgetData)))
-    .render_P(p => <.div(ItemEditorCSS.editor, JSONEditor(jsonEditorOptions, json)))
+    .renderBackend[Backend]
+    /* // this will be used if itemeditor will know what item to edit before its opened
+    .componentDidMount(dcb =>
+      Callback(dcb.backend.jsonEditor = JSONEditor(dcb.getDOMNode, ItemEditorOptions()))
+    )
+    */
     .build
 
   def apply() = SPWidget(spwb => component(spwb))
