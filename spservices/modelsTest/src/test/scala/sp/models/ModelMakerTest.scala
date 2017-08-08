@@ -5,17 +5,15 @@ import akka.testkit._
 import com.typesafe.config._
 import org.scalatest._
 import sp.domain._
-import sp.messages._
-
+import Logic._
 import scala.util._
 import akka.cluster.pubsub._
 import DistributedPubSubMediator.{Publish, Subscribe}
-import org.json4s.ShortTypeHints
-import Pickles.{SPHeader, SPMessage}
+
 
 import scala.concurrent.duration._
 
-import sp.models.{APIModels => api}
+import sp.models.{APIModel => api}
 
 
 
@@ -76,7 +74,7 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
     val ma = system.actorOf(ModelActor.props(cm))
 
     "create and initial model" in {
-      val h = SPHeader(from = "test", to = api.attributes.service, reply = SPValue("test"))
+      val h = SPHeader(from = "test", to = api.service, reply = SPValue("test"))
       send(api.GetModel())
       val o = Operation("o1")
       send(api.PutItems(List(o, Thing("t1"))))

@@ -2,11 +2,7 @@ package sp
 
 import akka.actor._
 import sp.domain._
-import sp.messages._
-import Pickles._
-
-import scala.util.{Failure, Success, Try}
-
+import Logic._
 
 
 

@@ -6,14 +6,11 @@ import akka.util.Timeout
 
 import scala.concurrent.duration._
 import sp.domain._
-import sp.messages._
-import Pickles._
 import sp.domain.Logic._
 import akka.persistence._
-import sp.models.APIModels.SPItem
 
 import scala.util.{Failure, Success, Try}
-import sp.models.{APIModels => api}
+import sp.models.{APIModel => api}
 
 
 object ModelActor {
@@ -37,7 +34,7 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
       val mess = SPMessage.fromJson(x)
 
       ModelsComm.extractRequest(mess, "modelActor",id).foreach{case (h, b) =>
-        val updH = h.copy(from = api.attributes.service, to = h.from)
+        val updH = h.copy(from = api.service, to = h.from)
         sendAnswer(updH, APISP.SPACK())
 
         b match {
@@ -62,7 +59,7 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
             sendAnswer(updH, api.SPItems(state.items))
           case api.GetItem(itemID) =>
             state.idMap.get(itemID) match {
-              case Some(r) => sendAnswer(updH, SPItem(r))
+              case Some(r) => sendAnswer(updH, api.SPItem(r))
               case None => sendAnswer(updH, APISP.SPError(s"item $itemID does not exist"))
             }
           case api.GetItemsInList(xs) =>
@@ -82,12 +79,11 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
 
 
       ModelsComm.extractAPISP(mess).collect{
-        case (h, b: APISP.StatusRequest) =>
-          val updH = h.copy(from = api.attributes.service, to = h.from)
-          val resp = APISP.StatusResponse(
+        case (h, APISP.StatusRequest) =>
+          val updH = h.copy(from = api.service, to = h.from)
+          val resp = ModelInfo.attributes.copy(
             service = id.toString,
             instanceID = Some(id),
-            tags = List("models"),
             attributes = SPAttributes("modelInfo" -> getModelInfo)
           )
 
@@ -99,13 +95,13 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
 
   override def receiveRecover: Receive = {
     case x: String =>
-      val diff = fromJson[ModelDiff](x)
+      val diff = SPAttributes.fromJsonGetAs[ModelDiff](x)
       diff.foreach(updateState)
   }
 
   def handleModelDiff(d: Option[ModelDiff], h: SPHeader) = {
     d.foreach{diff =>
-      persist(write(diff)){json =>
+      persistAll(SPValue(diff).toJson){json =>
         val res = makeModelUpdate(diff)
         sendEvent(h, res)
       }
@@ -133,6 +129,10 @@ trait ModelLogic {
                        name: String,
                        modelAttr: SPAttributes = SPAttributes().addTimeStamp
                       )
+
+  object ModelDiff {
+    implicit lazy val fModelDiff: JSFormat[ModelDiff] = deriveFormatSimple[ModelDiff]
+  }
 
   var state = ModelState(0, Map(), Map(), SPAttributes(), "noName")
 
@@ -178,7 +178,7 @@ trait ModelLogic {
       }
       if (upd.isEmpty ) None
       else {
-        val updInfo = if (info.obj.isEmpty) SPAttributes("info"->s"updated: ${upd.map(_.name).mkString(",")}") else info
+        val updInfo = if (info.values.isEmpty) SPAttributes("info"->s"updated: ${upd.map(_.name).mkString(",")}") else info
         Some(ModelDiff(id,
           upd,
           List(),
@@ -195,7 +195,7 @@ trait ModelLogic {
       val del = (state.idMap.filter( kv =>  delete.contains(kv._1))).values
       if (delete.nonEmpty && del.isEmpty) None
       else {
-        val updInfo = if (info.obj.isEmpty) SPAttributes("info"->s"deleted: ${del.map(_.name).mkString(",")}") else info
+        val updInfo = if (info.values.isEmpty) SPAttributes("info"->s"deleted: ${del.map(_.name).mkString(",")}") else info
         Some(ModelDiff(id, upd, del.toList, updInfo, state.version, state.name, modelAttr.addTimeStamp))
       }
     }

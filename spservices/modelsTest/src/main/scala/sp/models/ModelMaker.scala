@@ -7,12 +7,9 @@ import scala.concurrent.duration._
 import akka.persistence._
 import sp.domain._
 import sp.domain.Logic._
-import Pickles._
-import sp.messages._
-import sp.models.APIModels.CreateModel
 
 import scala.util.{Failure, Success, Try}
-import sp.models.{APIModels => api}
+import sp.models.{APIModel => api}
 
 
 class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentActor with ActorLogging  {
@@ -33,9 +30,9 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
     case x: String if sender() != self =>
       val mess = SPMessage.fromJson(x)
 
-      ModelsComm.extractRequest(mess, api.attributes.service, instanceID).collect{
+      ModelsComm.extractRequest(mess, api.service, instanceID).collect{
         case (h, b: api.CreateModel) =>
-          val updH = h.copy(from = api.attributes.service, to = h.from)
+          val updH = h.copy(from = api.service, to = h.from)
           if (modelMap.contains(b.id)){
             sendAnswer(updH, APISP.SPError(s"Model ${b.id} already exist. Can not be created"))
           } else {
@@ -47,7 +44,7 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
 
           }
         case (h, b: api.DeleteModel) =>
-          val updH = h.copy(from = api.attributes.service, to = h.from)
+          val updH = h.copy(from = api.service, to = h.from)
           if (!modelMap.contains(b.id)){
             sendAnswer(updH, APISP.SPError(s"Model ${b.id} does not exists. Can not be deleted"))
           } else {
@@ -60,17 +57,17 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
 
           }
         case (h, b: api.GetModels) =>
-          val updH = h.copy(from = api.attributes.service, to = h.from)
+          val updH = h.copy(from = api.service, to = h.from)
           sendAnswer(updH, api.ModelList(modelMap.keys.toList))
           sendAnswer(updH, APISP.SPDone())
       }
 
 
       ModelsComm.extractAPISP(mess).collect{
-        case (h, b: APISP.StatusRequest) =>
-          val updH = h.copy(from = api.attributes.service, to = h.from)
+        case (h, APISP.StatusRequest) =>
+          val updH = h.copy(from = api.service, to = h.from)
           val resp = APISP.StatusResponse(
-            service = api.attributes.service,
+            service = api.service,
             instanceID = Some(instanceID),
             tags = List("models", "modelhandler"),
             attributes = SPAttributes("models" -> modelMap.keys.toList)
@@ -105,7 +102,7 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
 
      val mess = SPMessage.fromJson(x)
 
-     ModelsComm.extractRequest(mess, api.attributes.service, instanceID).map{
+     ModelsComm.extractRequest(mess, api.service, instanceID).map{
       case (h, b: api.CreateModel) => models += (b.id -> b)
       case (h, b: api.DeleteModel) => models = models - b.id
       case _ => Unit

@@ -9,7 +9,7 @@ import scala.util.Try
 object APIModel {
   sealed trait Request
   sealed trait Response
-  val service = "Models"
+  val service = "Model"
 
   case class CreateModel(name: String, attributes: SPAttributes = SPAttributes(), id: ID = ID.newID) extends Request
   case class DeleteModel(id: ID) extends Request
@@ -37,8 +37,6 @@ object APIModel {
   case class ModelUpdate(model: ID, version: Int, updatedItems: List[IDAble] = List(), deletedItems: List[ID] = List(), info: SPAttributes = SPAttributes()) extends Response
   case class ModelHistory(model: ID, history: List[(Int, SPAttributes)]) extends Response
   case class ModelList(models: List[ID]) extends Response
-
-
   case class SPItem(item: IDAble) extends Response
   case class SPItems(items: List[IDAble]) extends Response
 
@@ -50,6 +48,8 @@ object APIModel {
   }
 
 }
+
+
 
 object ModelInfo {
   case class ModelRequest(request: APIModel.Request)
