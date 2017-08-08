@@ -7,7 +7,7 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import sp.domain.Logic._
 import sp.domain._
 import sp.domain.logic.{ActionParser, PropositionParser}
-import sp.runners.{API_OperationRunner => api}
+import sp.runners.{APIOperationRunner => api}
 
 
 /**
@@ -141,6 +141,13 @@ class OperationRunnerLogicTest(_system: ActorSystem) extends TestKit(_system) wi
       println(states)
 
 
+    }
+
+    "testing messages" in {
+      val s = OperationRunnerInfo.apischema
+      println(s)
+      val t = api.GetRunners
+      println(SPValue(t))
     }
 
   }

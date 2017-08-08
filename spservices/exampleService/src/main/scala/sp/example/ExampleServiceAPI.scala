@@ -38,6 +38,12 @@ object APIExampleService {
   case class TickerEvent(map: Map[String, Int], id: ID) extends APIExampleService.Response
   case class TheTickers(ids: List[ID]) extends APIExampleService.Response
 
+
+  // testing
+  case class Testing(a: SPAttributes, b: SPValue) extends Request
+
+
+
   object Request {
     implicit lazy val fExampleServiceRequest: JSFormat[Request] = deriveFormatISA[Request]
   }
@@ -52,15 +58,25 @@ object APIExampleService {
 
 
 object ExampleServiceInfo {
-  case class Schema(request: APIExampleService.Request, response: APIExampleService.Response)
-  val s: com.sksamuel.avro4s.SchemaFor[Schema] = com.sksamuel.avro4s.SchemaFor[Schema]
+  case class ExampleServiceRequest(request: APIExampleService.Request)
+  case class ExampleServiceResponse(response: APIExampleService.Response)
+
+  val req: com.sksamuel.avro4s.SchemaFor[ExampleServiceRequest] = com.sksamuel.avro4s.SchemaFor[ExampleServiceRequest]
+  val resp: com.sksamuel.avro4s.SchemaFor[ExampleServiceResponse] = com.sksamuel.avro4s.SchemaFor[ExampleServiceResponse]
+
+  val apischema = makeMeASchema(
+    req(),
+    resp()
+  )
+
+  val test = com.sksamuel.avro4s.AvroSchema[APIExampleService.TheTickers]
 
   val attributes: APISP.StatusResponse = APISP.StatusResponse(
     service = APIExampleService.service,
     instanceID = Some(ID.newID),
     instanceName = "",
     tags = List("example"),
-    api = SPAttributes.fromJson(s().toString).get,
+    api = apischema,
     version = 1,
     attributes = SPAttributes.empty
   )

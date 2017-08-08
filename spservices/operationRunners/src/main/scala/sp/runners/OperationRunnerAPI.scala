@@ -5,7 +5,7 @@ import sp.domain.Logic._
 import scala.util._
 
 
-object API_OperationRunner {
+object APIOperationRunner {
   sealed trait Request
   sealed trait Response
   val service = "OperationRunner"
@@ -34,16 +34,19 @@ object API_OperationRunner {
 }
 
 object OperationRunnerInfo {
-  case class OperationRunnerRequest(request: API_OperationRunner.Request)
-  case class OperationRunnerResponse(response: API_OperationRunner.Response)
+  case class OperationRunnerRequest(request: APIOperationRunner.Request)
+  case class OperationRunnerResponse(response: APIOperationRunner.Response)
+
+  val req: com.sksamuel.avro4s.SchemaFor[OperationRunnerRequest] = com.sksamuel.avro4s.SchemaFor[OperationRunnerRequest]
+  val resp: com.sksamuel.avro4s.SchemaFor[OperationRunnerResponse] = com.sksamuel.avro4s.SchemaFor[OperationRunnerResponse]
 
   val apischema = makeMeASchema(
-    com.sksamuel.avro4s.SchemaFor[OperationRunnerRequest](),
-    com.sksamuel.avro4s.SchemaFor[OperationRunnerResponse]()
+    req(),
+    resp()
   )
 
   val attributes: APISP.StatusResponse = APISP.StatusResponse(
-    service = API_OperationRunner.service,
+    service = APIOperationRunner.service,
     instanceID = Some(ID.newID),
     instanceName = "",
     tags = List("runtime", "operations", "runner"),
@@ -53,20 +56,19 @@ object OperationRunnerInfo {
   )
 }
 
-import sp.runners.{API_OperationRunner => api}
 import sp.runners.{APIAbilityHandler => abilityAPI}
 
 
 object OperationRunnerComm {
   def extractRequest(mess: Try[SPMessage]) = for {
       m <- mess
-      h <- m.getHeaderAs[SPHeader] if h.to == api.service
-      b <- m.getBodyAs[api.Request]
+      h <- m.getHeaderAs[SPHeader] if h.to == APIOperationRunner.service
+      b <- m.getBodyAs[APIOperationRunner.Request]
     } yield (h, b)
 
   def extractAbilityReply(mess: Try[SPMessage]) = for {
     m <- mess
-    h <- m.getHeaderAs[SPHeader] // if h.reply == SPValue(api.attributes.service)
+    h <- m.getHeaderAs[SPHeader] // if h.reply == SPValue(APIOperationRunner.attributes.service)
     b <- m.getBodyAs[abilityAPI.Response]
     } yield (h, b)
 
@@ -83,7 +85,7 @@ object OperationRunnerComm {
     } yield (h, b)
 
 
-  def makeMess(h: SPHeader, b: api.Response) = SPMessage.makeJson[SPHeader, api.Response](h, b)
+  def makeMess(h: SPHeader, b: APIOperationRunner.Response) = SPMessage.makeJson[SPHeader, APIOperationRunner.Response](h, b)
   def makeMess(h: SPHeader, b: abilityAPI.Request) = SPMessage.makeJson[SPHeader, abilityAPI.Request](h, b)
   def makeMess(h: SPHeader, b: APISP) = SPMessage.makeJson[SPHeader, APISP](h, b)
 
@@ -93,47 +95,3 @@ object OperationRunnerComm {
 
 
 
-object APIAbilityHandler {
-  sealed trait Request
-  sealed trait Response
-  val service = "abilityHandler"
-
-  case class StartAbility(id: ID, params: Map[ID, SPValue] = Map(), attributes: SPAttributes = SPAttributes()) extends Request
-  case class ForceResetAbility(id: ID) extends Request
-  case class ForceResetAllAbilities() extends Request
-
-  // to be used when handshake is on
-  case class ExecuteCmd(cmd: ID) extends Request
-
-  case class GetAbilities() extends Request
-  case class SetUpAbility(ability: Ability, handshake: Boolean = false) extends Request
-
-
-
-  case class CmdID(cmd: ID) extends Response
-  case class AbilityStarted(id: ID) extends Response
-  case class AbilityCompleted(id: ID, result: Map[ID, SPValue]) extends Response
-  case class AbilityState(id: ID, state: Map[ID, SPValue]) extends Response
-  case class Abilities(xs: List[Ability]) extends Response
-  case class Abs(a: List[(ID,String)]) extends Response
-
-  case class Ability(name: String,
-                     id: ID,
-                     preCondition: Condition = Condition(AlwaysFalse, List()),
-                     started: Condition = Condition(AlwaysFalse, List()),
-                     postCondition: Condition = Condition(AlwaysTrue, List()),
-                     resetCondition: Condition = Condition(AlwaysTrue, List()),
-                     parameters: List[ID] = List(),
-                     result: List[ID] = List(),
-                     attributes: SPAttributes = SPAttributes()) extends Response
-
-
-  implicit lazy val fAbility: JSReads[Ability] = deriveReadISA[Ability]
-  implicit lazy val fAbilityState: JSReads[AbilityState] = deriveReadISA[AbilityState]
-  object Request {
-    implicit lazy val fExampleServiceRequest: JSFormat[Request] = deriveFormatISA[Request]
-  }
-  object Response {
-    implicit lazy val fExampleServiceResponse: JSFormat[Response] = deriveFormatISA[Response]
-  }
-}

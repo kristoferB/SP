@@ -12,73 +12,6 @@ import akka.persistence._
 import sp.domain._
 import sp.domain.Logic._
 
-object APIVirtualDevice {
-  sealed trait Request
-  // requests setup
-  case class SetUpDeviceDriver(driver: Driver) extends Request
-  case class SetUpResource(resource: Resource) extends Request
-  case class GetResources() extends Request
-
-  sealed trait DriverStateMapper
-  case class OneToOneMapper(thing: UUID, driverID: UUID, driverIdentifier: String) extends DriverStateMapper
-
-  // requests command (gets a SPACK and when applied, SPDone (and indirectly a StateEvent))
-  case class ResourceCommand(resource: UUID, stateRequest: Map[UUID, SPValue], timeout: Int = 0) extends Request
-
-  // requests from driver
-  case class DriverStateChange(name: String, id: UUID, state: Map[String, SPValue], diff: Boolean = false) extends Request
-  case class DriverCommand(name: String, id: UUID, state: Map[String, SPValue]) extends Request
-  case class DriverCommandDone(requestID: UUID, result: Boolean) extends Request
-
-  // answers
-  sealed trait Response
-  case class StateEvent(resource: String, id: UUID, state: Map[UUID, SPValue], diff: Boolean = false) extends Response
-
-  case class Resources(xs: List[Resource]) extends Response
-  case class Drivers(xs: List[Driver]) extends Response
-  case class NewResource(x: Resource) extends Response
-  case class RemovedResource(x: Resource) extends Response
-  case class NewDriver(x: Driver) extends Response
-  case class RemovedDriver(x: Driver) extends Response
-
-  case class Resource(name: String, id: UUID, things: Set[UUID], stateMap: List[DriverStateMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
-  case class Driver(name: String, id: UUID, driverType: String, setup: SPAttributes)
-
-
-  implicit lazy val fDriver: JSFormat[Driver] = deriveFormatISA[Driver]
-  implicit lazy val fResource: JSFormat[Resource] = deriveFormatISA[Resource]
-  object Request {
-    implicit lazy val fVirtualDeviceRequest: JSFormat[Request] = deriveFormatISA[Request]
-  }
-  object Response {
-    implicit lazy val fVirtualDeviceResponse: JSFormat[Response] = deriveFormatISA[Response]
-  }
-  object DriverStateMapper {
-    implicit lazy val fDriverStateMapper: JSFormat[DriverStateMapper] = deriveFormatISA[DriverStateMapper]
-  }
-
-}
-
-
-object VirtualDeviceInfo {
-  case class ExampleServiceSchema(request: APIVirtualDevice.Request, response: APIVirtualDevice.Response)
-  val s: com.sksamuel.avro4s.SchemaFor[ExampleServiceSchema] = com.sksamuel.avro4s.SchemaFor[ExampleServiceSchema]
-
-  private val id = ID.newID
-  val attributes: APISP.StatusResponse = APISP.StatusResponse(
-    service = "VirtualDevice",
-    instanceID = Some(id),
-    instanceName = s"VD-$id",
-    tags = List("virtual device", "vd", "runtime", "communication"),
-    api = SPAttributes.fromJson(s().toString).get,
-    version = 1,
-    attributes = SPAttributes.empty
-  )
-}
-
-
-import sp.devicehandler.{APIVirtualDevice => api}
-
 
 object VirtualDevice {
   def props(name: String, id: UUID) = Props(classOf[VirtualDevice], name, id)
@@ -107,20 +40,20 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
       for {
         m <- mess
         h <- m.getHeaderAs[SPHeader]
-        b <- m.getBodyAs[api.Request]
+        b <- m.getBodyAs[APIVirtualDevice.Request]
       } yield {
         b match {
-          case api.SetUpDeviceDriver(d) =>
+          case APIVirtualDevice.SetUpDeviceDriver(d) =>
             println("new driver " + d)
             newDriver(d)
             mediator ! Publish("driverCommands", x)
 
-          case api.SetUpResource(r) =>
+          case APIVirtualDevice.SetUpResource(r) =>
             println("new resource " + r)
             newResource(r)
             sendResources
 
-          case e @ api.DriverStateChange(name, did, state, _) =>
+          case e @ APIVirtualDevice.DriverStateChange(name, did, state, _) =>
             //println("got a statechange:" + e)
             val oldrs = resourceState
             driverEvent(e)
@@ -134,11 +67,11 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
               }
             }.foreach { case (rid, state) if resources.contains(rid) =>
               val header = SPHeader(from = id.toString)
-              val body = api.StateEvent(resources(rid).r.name, rid, state)
+              val body = APIVirtualDevice.StateEvent(resources(rid).r.name, rid, state)
               mediator ! Publish("events", SPMessage.makeJson(header, body))
             }
 
-          case api.DriverCommandDone(reqid, success) =>
+          case APIVirtualDevice.DriverCommandDone(reqid, success) =>
             val request = activeDriverRequests.filter { case (rid,reqs) => reqs.contains(reqid) }
             activeDriverRequests = request.headOption match {
               case Some((rid,reqs)) =>
@@ -159,7 +92,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
               case None => activeDriverRequests
             }
 
-          case r : api.ResourceCommand =>
+          case r : APIVirtualDevice.ResourceCommand =>
             val ackHeader = h.copy(reply = VirtualDeviceInfo.attributes.service)
             mediator ! Publish("answers", SPMessage.makeJson(ackHeader, APISP.SPACK()))
 
@@ -184,7 +117,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
                 context.system.scheduler.scheduleOnce(Duration(r.timeout, TimeUnit.MILLISECONDS), self, dct)
               }
             }
-          case x: api.GetResources =>
+          case x: APIVirtualDevice.GetResources =>
             sendResources
 
           case x => println("todo: " + x)
@@ -201,7 +134,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
 
   def sendResources = {
     val h = SPHeader(from = id.toString)
-    val b = api.Resources(resources.values.toList.map(_.r))
+    val b = APIVirtualDevice.Resources(resources.values.toList.map(_.r))
     mediator ! Publish("answers", SPMessage.makeJson(h, b))
   }
 
@@ -226,26 +159,26 @@ trait VirtualDeviceLogic {
   case class StateReader(f: (Map[UUID, DriverState], Map[UUID, ResourceState]) =>  Map[UUID, ResourceState])
   case class StateWriter(f: (Map[UUID, ResourceState], Map[UUID, DriverState]) =>  Map[UUID, DriverState])
 
-  case class Resource(r: api.Resource, read: List[StateReader], write: List[StateWriter])
+  case class Resource(r: APIVirtualDevice.Resource, read: List[StateReader], write: List[StateWriter])
 
   type ResourceState = Map[UUID, SPValue]
   type DriverState = Map[String, SPValue]
 
-  var drivers: Map[UUID, api.Driver] = Map()
+  var drivers: Map[UUID, APIVirtualDevice.Driver] = Map()
   var driverState: Map[UUID, DriverState] = Map()
   var activeDriverRequests: Map[UUID, List[UUID]] = Map()
 
   var resources: Map[UUID, Resource] = Map()
   var resourceState: Map[UUID, ResourceState] = Map()
 
-  def newDriver(d: api.Driver) = {
+  def newDriver(d: APIVirtualDevice.Driver) = {
     drivers += d.id -> d
     driverState += d.id -> Map[String, SPValue]()
   }
 
-  def newResource(resource: api.Resource) = {
-    val rw = resource.stateMap.map {
-      case api.OneToOneMapper(t, id, name) =>
+  def newResource(resource: APIVirtualDevice.Resource) = {
+    val rw = resource.stateMap.flatMap {
+      case APIVirtualDevice.OneToOneMapper(t, id, name) =>
         val reader = StateReader{ case (drivers, resources) =>
           val nr = for {
             driver <- drivers.get(id)
@@ -268,13 +201,13 @@ trait VirtualDeviceLogic {
         }
         Some((reader,writer))
       case _ => None // potentially add other mapping types
-    }.flatten
+    }
 
     resources += resource.id -> Resource(resource, rw.map(_._1), rw.map(_._2))
     resourceState += resource.id -> Map()
   }
 
-  def driverEvent(e: api.DriverStateChange) = {
+  def driverEvent(e: APIVirtualDevice.DriverStateChange) = {
     val current = driverState.get(e.id)
     current.foreach{ state =>
       val upd = state ++ e.state
@@ -284,7 +217,7 @@ trait VirtualDeviceLogic {
       r._2.read.foldLeft(rs){ case (rs, reader) => reader.f(driverState, rs)}}
   }
 
-  def getDriverDiffs(c: api.ResourceCommand) = {
+  def getDriverDiffs(c: APIVirtualDevice.ResourceCommand) = {
     val diffs = for {
       r <- resources.get(c.resource)
     } yield {
@@ -305,7 +238,7 @@ trait VirtualDeviceLogic {
       (did,stateDiff) <- diffs if stateDiff.nonEmpty
       d <- drivers.get(did)
     } yield {
-      api.DriverCommand(d.name, did, stateDiff)
+      APIVirtualDevice.DriverCommand(d.name, did, stateDiff)
     }
   }
 }

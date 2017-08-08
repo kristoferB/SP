@@ -95,7 +95,7 @@ class OPC extends Actor {
         b <- m.getBodyAs[api.API_OpcUARuntime]
       } yield b
 
-      val bodySP = for {m <- message; m.getBodyAs[APISP] if b == APISP.StatusRequest} yield b
+      val bodySP = for {m <- message; b <- m.getBodyAs[APISP] if b == APISP.StatusRequest} yield b
 
       for {
         body <- bodyAPI

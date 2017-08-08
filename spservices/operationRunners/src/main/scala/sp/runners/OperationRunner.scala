@@ -5,8 +5,8 @@ import akka.actor._
 import scala.util.{Failure, Random, Success, Try}
 import sp.domain._
 import sp.domain.Logic._
-import sp.runners.API_OperationRunner.ForceComplete
-import sp.runners.{API_OperationRunner => api}
+import sp.runners.APIOperationRunner.ForceComplete
+import sp.runners.{APIOperationRunner => api}
 import sp.runners.{APIAbilityHandler => abilityAPI}
 
 
@@ -44,7 +44,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
       mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, APISP.SPACK()))
       mediator ! Publish("services", OperationRunnerComm.makeMess(myH, abilityAPI.GetAbilities()))
       b match {
-        case setup: api.Setup =>
+        case api.CreateRunner(setup) =>
           addRunner(setup).foreach{xs =>
             mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, api.Runners(xs)))
 
@@ -75,7 +75,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
             case None =>
               mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, APISP.SPError(s"no runner with id: $id")))
           }
-        case b: api.GetRunners =>
+        case api.GetRunners =>
           val xs = runners.map(_._2.setup).toList
           mediator ! Publish("answers", OperationRunnerComm.makeMess(updH, api.Runners(xs)))
         case ForceComplete(id) =>

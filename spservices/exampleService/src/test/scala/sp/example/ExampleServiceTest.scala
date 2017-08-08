@@ -98,6 +98,11 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
       println(logic.updPie(res))
     }
 
+    "testing schema" in {
+      println("LLLLLLLL")
+      println(ExampleServiceInfo.test)
+    }
+
   }
 
 
@@ -149,9 +154,5 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
   }
 
-  "The example service API" must {
-    "parse the classes" in {
 
-    }
-  }
 }

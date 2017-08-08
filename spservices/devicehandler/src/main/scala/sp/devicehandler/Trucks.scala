@@ -10,8 +10,8 @@ import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
 import scala.util.{Failure, Success, Try}
 import sp.domain.logic.{PropositionParser, ActionParser}
 
-import sp.devicehandler.{APIVirtualDevice => vdapi}
-import sp.abilityhandler.{APIAbilityHandler => abapi}
+import sp.abilityhandler.APIAbilityHandler
+
 
 object Trucks {
   def props(ahid: ID) = Props(classOf[Trucks], ahid)
@@ -204,30 +204,30 @@ class Trucks(ahid: ID) extends Actor with Helpers {
 
   // setup driver
   val driverID = UUID.randomUUID()
-  def sm(vars: List[Thing]): List[vdapi.OneToOneMapper] = vars.flatMap { v =>
-    v.attributes.getAs[String]("drivername").map(dn => vdapi.OneToOneMapper(v.id, driverID, dn))
+  def sm(vars: List[Thing]): List[APIVirtualDevice.OneToOneMapper] = vars.flatMap { v =>
+    v.attributes.getAs[String]("drivername").map(dn => APIVirtualDevice.OneToOneMapper(v.id, driverID, dn))
   }
   val setup = SPAttributes("url" -> "opc.tcp://localhost:12686", "identifiers" -> sm(allVars).map(_.driverIdentifier))
-  val driver = vdapi.Driver("opclocal", driverID, "OPCUA", setup)
-  mediator ! Publish("services", SPMessage.makeJson[SPHeader, vdapi.SetUpDeviceDriver](SPHeader(from = "hej"), vdapi.SetUpDeviceDriver(driver)))
+  val driver = APIVirtualDevice.Driver("opclocal", driverID, "OPCUA", setup)
+  mediator ! Publish("services", SPMessage.makeJson[SPHeader, APIVirtualDevice.SetUpDeviceDriver](SPHeader(from = "hej"), APIVirtualDevice.SetUpDeviceDriver(driver)))
 
   // setup resources
-  val lf1 = vdapi.Resource("loadFixture1", UUID.randomUUID(), lf1vars.map(_.id).toSet, sm(lf1vars), SPAttributes())
-  val lf2 = vdapi.Resource("loadFixture2", UUID.randomUUID(), lf2vars.map(_.id).toSet, sm(lf2vars), SPAttributes())
-  val ar31 = vdapi.Resource("ar31", UUID.randomUUID(), ar31vars.map(_.id).toSet, sm(ar31vars), SPAttributes())
-  val ar41 = vdapi.Resource("ar41", UUID.randomUUID(), ar41vars.map(_.id).toSet, sm(ar41vars), SPAttributes())
+  val lf1 = APIVirtualDevice.Resource("loadFixture1", UUID.randomUUID(), lf1vars.map(_.id).toSet, sm(lf1vars), SPAttributes())
+  val lf2 = APIVirtualDevice.Resource("loadFixture2", UUID.randomUUID(), lf2vars.map(_.id).toSet, sm(lf2vars), SPAttributes())
+  val ar31 = APIVirtualDevice.Resource("ar31", UUID.randomUUID(), ar31vars.map(_.id).toSet, sm(ar31vars), SPAttributes())
+  val ar41 = APIVirtualDevice.Resource("ar41", UUID.randomUUID(), ar41vars.map(_.id).toSet, sm(ar41vars), SPAttributes())
 
   val resources = List(lf1, lf2, ar31, ar41)
 
   resources.foreach { res =>
-    val body = vdapi.SetUpResource(res)
-    mediator ! Publish("services", SPMessage.makeJson[SPHeader, vdapi.SetUpResource](SPHeader(from = "hej"), body))
+    val body = APIVirtualDevice.SetUpResource(res)
+    mediator ! Publish("services", SPMessage.makeJson[SPHeader, APIVirtualDevice.SetUpResource](SPHeader(from = "hej"), body))
   }
 
   // setup abilities
   abs.foreach { ab =>
-    val body = abapi.SetUpAbility(ab)
-    val msg = SPMessage.makeJson[SPHeader, abapi.SetUpAbility](SPHeader(to = ahid.toString, from = "hej"), body)
+    val body = APIAbilityHandler.SetUpAbility(ab)
+    val msg = SPMessage.makeJson[SPHeader, APIAbilityHandler.SetUpAbility](SPHeader(to = ahid.toString, from = "hej"), body)
     mediator ! Publish("services", msg)
   }
 

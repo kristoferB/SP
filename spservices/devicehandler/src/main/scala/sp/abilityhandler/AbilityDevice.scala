@@ -11,24 +11,20 @@ import scala.util.Try
 
 
 
-import sp.abilityhandler.{APIAbilityHandler => api}
-import sp.devicehandler.{APIVirtualDevice => vdAPI}
-
-
 object AbilityHandler {
   def props(name: String, id: UUID, vd: UUID) = Props(classOf[AbilityHandler], name, id, vd)
 }
 
 
-
+import sp.devicehandler._
 
 // This actor will keep track of the abilities and parse all messages from the VD
 class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends PersistentActor with ActorLogging with AbilityLogic {
   override def persistenceId = handlerID.toString
-  case class AbilityStorage(ability: api.Ability, actor: ActorRef, ids: Set[ID] = Set(), current: Option[AbilityStateChange] = None)
+  case class AbilityStorage(ability: APIAbilityHandler.Ability, actor: ActorRef, ids: Set[ID] = Set(), current: Option[AbilityStateChange] = None)
 
   var abilities: Map[ID, AbilityStorage] = Map()
-  var resources: List[vdAPI.Resource] = List()
+  var resources: List[APIVirtualDevice.Resource] = List()
   var state: Map[ID, SPValue] = Map()
 
   import context.dispatcher
@@ -41,7 +37,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   mediator ! Subscribe("answers", self)
 
 
-  val getResources = AbilityComm.makeMess(SPHeader(from = handlerID.toString, to = vd.toString), vdAPI.GetResources())
+  val getResources = AbilityComm.makeMess(SPHeader(from = handlerID.toString, to = vd.toString), APIVirtualDevice.GetResources())
   mediator ! Publish("services", getResources)
 
   override def receiveCommand = {
@@ -63,15 +59,15 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
         "state" -> s,
         "counter" -> cnt
       )
-      val b = api.AbilityState(abID, Map(abID -> abilityState))
+      val b = APIAbilityHandler.AbilityState(abID, Map(abID -> abilityState))
       mediator ! Publish("events", AbilityComm.makeMess(h, b))
 
       req.foreach{ req =>
         val res = s match {
           case "executing" =>
-            mediator ! Publish("answers", AbilityComm.makeMess(h, api.AbilityStarted(abID)))
+            mediator ! Publish("answers", AbilityComm.makeMess(h, APIAbilityHandler.AbilityStarted(abID)))
           case "finished" =>
-            mediator ! Publish("answers", AbilityComm.makeMess(h, api.AbilityCompleted(abID, Map())))
+            mediator ! Publish("answers", AbilityComm.makeMess(h, APIAbilityHandler.AbilityCompleted(abID, Map())))
             mediator ! Publish("answers", AbilityComm.makeMess(h, APISP.SPDone()))
           case _ => Unit
 
@@ -83,7 +79,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
       val res = resources.filter(r => r.things.intersect(s.keySet).nonEmpty)
       val toSend = res.map{r =>
         val h = SPHeader(from = handlerID.toString, to = vd.toString, reply = SPValue(handlerID))
-        val b = vdAPI.ResourceCommand(r.id, s.filter(kv => r.things.contains(kv._1)))
+        val b = APIVirtualDevice.ResourceCommand(r.id, s.filter(kv => r.things.contains(kv._1)))
         mediator ! Publish("services", AbilityComm.makeMess(h, b))
       }
 
@@ -125,7 +121,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
       mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPACK()))
 
       b match {
-        case api.StartAbility(id, params, attr) =>
+        case APIAbilityHandler.StartAbility(id, params, attr) =>
           abilities.get(id) match {
             case Some(a) =>
               a.actor ! StartAbility(state, h.reqID, params, attr)
@@ -135,7 +131,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
 
           }
 
-        case api.ForceResetAbility(id) =>
+        case APIAbilityHandler.ForceResetAbility(id) =>
           abilities.get(id) match {
             case Some(a) =>
               a.actor ! ResetAbility(state)
@@ -144,29 +140,29 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
           }
           mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPDone()))
 
-        case api.ForceResetAllAbilities =>
+        case APIAbilityHandler.ForceResetAllAbilities =>
           val r = ResetAbility(state)
           abilities.foreach(kv => kv._2.actor ! r)
           mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPDone()))
 
-        case api.ExecuteCmd(cmd) =>
+        case APIAbilityHandler.ExecuteCmd(cmd) =>
         // to be implemented
 
-        case api.GetAbilities =>
+        case APIAbilityHandler.GetAbilities =>
           val xs = abilities.map(_._2.ability).toList
 
           val abs = abilities.map(a=>(a._2.ability.id,a._2.ability.name)).toList
 
           println("got getabilitiies request")
-          mediator ! Publish("answers", AbilityComm.makeMess(updH, api.Abilities(xs)))
-          mediator ! Publish("answers", AbilityComm.makeMess(updH, api.Abs(abs)))
+          mediator ! Publish("answers", AbilityComm.makeMess(updH, APIAbilityHandler.Abilities(xs)))
+          mediator ! Publish("answers", AbilityComm.makeMess(updH, APIAbilityHandler.Abs(abs)))
 
           mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPDone()))
 
           abilities.foreach(a => a._2.actor ! GetState)
 
 
-        case api.SetUpAbility(ab, hand) =>
+        case APIAbilityHandler.SetUpAbility(ab, hand) =>
           println("--------------------------------------------------")
           println("--------------------------------------------------")
           println("--------------------------------------------------")
@@ -191,11 +187,11 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   def matchVDMessages(mess: Try[SPMessage]) = {
     AbilityComm.extractVDReply(mess, handlerID, vd.toString) map { case (h, b) =>
       b match {
-        case vdAPI.StateEvent(r, rID, s, d) =>
+        case APIVirtualDevice.StateEvent(r, rID, s, d) =>
           state = state ++ s
           val f = abilities.filter(kv => kv._2.ids.intersect(s.keySet).nonEmpty)
           f.foreach{kv => kv._2.actor ! NewState(filterState(kv._2.ids, state))}
-        case vdAPI.Resources(xs) =>
+        case APIVirtualDevice.Resources(xs) =>
           resources = xs
         case x =>
       }
@@ -240,11 +236,11 @@ case class StateUpdReq(ability: ID, state: Map[ID, SPValue])
 
 
 object AbilityActor {
-  def props(ability: api.Ability) =
+  def props(ability: APIAbilityHandler.Ability) =
     Props(classOf[AbilityActor], ability)
 }
 
-class AbilityActor(val ability: api.Ability) extends Actor with AbilityActorLogic{
+class AbilityActor(val ability: APIAbilityHandler.Ability) extends Actor with AbilityActorLogic{
   var reqID: Option[ID] = None
 
   override def receive = {
@@ -317,7 +313,7 @@ object AbilityState {
 }
 
 trait AbilityActorLogic extends AbilityLogic{
-  val ability: api.Ability
+  val ability: APIAbilityHandler.Ability
   lazy val ids = idsFromAbility(ability)
 
   import AbilityState._
@@ -382,7 +378,7 @@ trait AbilityActorLogic extends AbilityLogic{
 trait AbilityLogic {
 
 
-  def idsFromAbility(a: api.Ability) = {
+  def idsFromAbility(a: APIAbilityHandler.Ability) = {
     Set(a.preCondition,
       a.postCondition,
       a.started, a.resetCondition).flatMap(extractVariables) ++

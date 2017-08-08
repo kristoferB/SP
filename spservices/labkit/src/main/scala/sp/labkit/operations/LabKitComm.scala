@@ -3,8 +3,6 @@ package sp.labkit.operations
 
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages._
-import Pickles._
 import scala.util._
 
 
@@ -31,7 +29,7 @@ package APILabkitControl {
 import sp.labkit.operations.{APILabkitControl => api}
 import sp.labkit.operations.{APIAbilityHandler => abAPI}
 import sp.labkit.operations.{APIVirtualDevice => vdAPI}
-import sp.labkit.operations.{API_OperationRunner => opAPI}
+import sp.labkit.operations.{APIOperationRunner => opAPI}
 
 object LabKitComm {
   def extractRequest(mess: Try[SPMessage]) = for {
@@ -49,7 +47,7 @@ object LabKitComm {
   def extractServiceRequest(mess: Try[SPMessage]) = for {
     m <- mess
     h <- m.getHeaderAs[SPHeader]
-    m.getBodyAs[APISP] if b == APISP.StatusRequest
+    b <- m.getBodyAs[APISP] if b == APISP.StatusRequest
     } yield (h, b)
 
   def extractAbilityResponse(mess: Try[SPMessage]) = for {
@@ -75,46 +73,54 @@ object LabKitComm {
 }
 
 
-package API_OperationRunner {
+
+
+
+object APIOperationRunner {
   sealed trait Request
   sealed trait Response
+  val service = "OperationRunner"
 
-  case class Setup(name: String, runnerID: ID, ops: Set[Operation], opAbilityMap: Map[ID, ID], initialState: Map[ID, SPValue]) extends Request
+  case class CreateRunner(setup: Setup) extends Request
   case class SetState(runnerID: ID, state: Map[ID, SPValue]) extends Request
   case class AddOperations(runnerID: ID, ops: Set[Operation], opAbilityMap: Map[ID, ID]) extends Request
   case class RemoveOperations(runnerID: ID, ops: Set[ID]) extends Request
   case class ForceComplete(ability: ID) extends Request
   case class TerminateRunner(runnerID: ID) extends Request
   case class GetState(runnerID: ID) extends Request
-  case class GetRunners() extends Request
+  case object GetRunners extends Request
 
   case class StateEvent(runnerID: ID, state: Map[ID, SPValue]) extends Response
   case class Runners(ids: List[Setup]) extends Response
 
+  case class Setup(name: String, runnerID: ID, ops: Set[Operation], opAbilityMap: Map[ID, ID], initialState: Map[ID, SPValue])
 
-  object attributes {
-    val service = "OperationRunner"
-    val version = 1.0
-    val api = "to be fixed by macros"
+  implicit lazy val fSetup: JSFormat[Setup] = deriveFormatISA[Setup]
+  object Request {
+    implicit lazy val fExampleServiceRequest: JSFormat[Request] = deriveFormatISA[Request]
+  }
+  object Response {
+    implicit lazy val fExampleServiceResponse: JSFormat[Response] = deriveFormatISA[Response]
   }
 }
 
 
-package APIAbilityHandler {
+object APIAbilityHandler {
   sealed trait Request
+  sealed trait Response
+  val service = "abilityHandler"
 
   case class StartAbility(id: ID, params: Map[ID, SPValue] = Map(), attributes: SPAttributes = SPAttributes()) extends Request
   case class ForceResetAbility(id: ID) extends Request
-  case class ForceResetAllAbilities() extends Request
+  case object ForceResetAllAbilities extends Request
 
   // to be used when handshake is on
   case class ExecuteCmd(cmd: ID) extends Request
 
-  case class GetAbilities() extends Request
+  case object GetAbilities extends Request
   case class SetUpAbility(ability: Ability, handshake: Boolean = false) extends Request
 
 
-  sealed trait Response
 
   case class CmdID(cmd: ID) extends Response
   case class AbilityStarted(id: ID) extends Response
@@ -122,27 +128,31 @@ package APIAbilityHandler {
   case class AbilityState(id: ID, state: Map[ID, SPValue]) extends Response
   case class Abilities(xs: List[Ability]) extends Response
   case class Abs(a: List[(ID,String)]) extends Response
-  case class sendThings(things: List[String], things2: List[String]) extends Response
-
 
   case class Ability(name: String,
                      id: ID,
-                     preCondition: PropositionCondition = PropositionCondition(AlwaysFalse, List()),
-                     started: PropositionCondition = PropositionCondition(AlwaysFalse, List()),
-                     postCondition: PropositionCondition = PropositionCondition(AlwaysTrue, List()),
-                     resetCondition: PropositionCondition = PropositionCondition(AlwaysTrue, List()),
+                     preCondition: Condition = Condition(AlwaysFalse, List()),
+                     started: Condition = Condition(AlwaysFalse, List()),
+                     postCondition: Condition = Condition(AlwaysTrue, List()),
+                     resetCondition: Condition = Condition(AlwaysTrue, List()),
                      parameters: List[ID] = List(),
                      result: List[ID] = List(),
-                     attributes: SPAttributes = SPAttributes()) extends Response
+                     attributes: SPAttributes = SPAttributes())
 
-  object attributes {
-    val service = "abilityHandler"
+
+  implicit lazy val fAbility: JSFormat[Ability] = deriveFormatISA[Ability]
+  //implicit lazy val fAbilityState: JSReads[AbilityState] = deriveReadISA[AbilityState]
+  object Request {
+    implicit lazy val fExampleServiceRequest: JSFormat[Request] = deriveFormatISA[Request]
+  }
+  object Response {
+    implicit lazy val fExampleServiceResponse: JSFormat[Response] = deriveFormatISA[Response]
   }
 }
 
-package APIVirtualDevice {
+
+object APIVirtualDevice {
   sealed trait Request
-  sealed trait Response
   // requests setup
   case class SetUpDeviceDriver(driver: Driver) extends Request
   case class SetUpResource(resource: Resource) extends Request
@@ -160,6 +170,7 @@ package APIVirtualDevice {
   case class DriverCommandDone(requestID: ID, result: Boolean) extends Request
 
   // answers
+  sealed trait Response
   case class StateEvent(resource: String, id: ID, state: Map[ID, SPValue], diff: Boolean = false) extends Response
 
   case class Resources(xs: List[Resource]) extends Response
@@ -173,7 +184,16 @@ package APIVirtualDevice {
   case class Driver(name: String, id: ID, driverType: String, setup: SPAttributes)
 
 
-  object  attributes {
-    val service = "virtualDevice"
+  implicit lazy val fDriver: JSFormat[Driver] = deriveFormatISA[Driver]
+  implicit lazy val fResource: JSFormat[Resource] = deriveFormatISA[Resource]
+  object Request {
+    implicit lazy val fVirtualDeviceRequest: JSFormat[Request] = deriveFormatISA[Request]
   }
+  object Response {
+    implicit lazy val fVirtualDeviceResponse: JSFormat[Response] = deriveFormatISA[Response]
+  }
+  object DriverStateMapper {
+    implicit lazy val fDriverStateMapper: JSFormat[DriverStateMapper] = deriveFormatISA[DriverStateMapper]
+  }
+
 }
