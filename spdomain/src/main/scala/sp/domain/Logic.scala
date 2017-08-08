@@ -12,4 +12,5 @@ object Logic extends
   ThingLogics with
   PropositionConditionLogics with
   StructLogics with
-  JsonImplicit
+  JsonImplicit with
+  SchemaImplicit

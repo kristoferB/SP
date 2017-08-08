@@ -10,33 +10,21 @@ object API_OperationRunner {
   sealed trait Response
   val service = "OperationRunner"
 
-  case class Setup(name: String, runnerID: ID, ops: Set[Operation], opAbilityMap: Map[ID, ID], initialState: Map[ID, SPValue]) extends Request
+  case class CreateRunner(setup: Setup) extends Request
   case class SetState(runnerID: ID, state: Map[ID, SPValue]) extends Request
   case class AddOperations(runnerID: ID, ops: Set[Operation], opAbilityMap: Map[ID, ID]) extends Request
   case class RemoveOperations(runnerID: ID, ops: Set[ID]) extends Request
   case class ForceComplete(ability: ID) extends Request
   case class TerminateRunner(runnerID: ID) extends Request
   case class GetState(runnerID: ID) extends Request
-  case class GetRunners() extends Request
+  case object GetRunners extends Request
 
   case class StateEvent(runnerID: ID, state: Map[ID, SPValue]) extends Response
   case class Runners(ids: List[Setup]) extends Response
 
+  case class Setup(name: String, runnerID: ID, ops: Set[Operation], opAbilityMap: Map[ID, ID], initialState: Map[ID, SPValue])
 
-  import play.api.libs.json._
-
-  implicit lazy val ididReads: JSReads[Map[ID, ID]] = new JSReads[Map[ID, ID]] {
-    override def reads(json: JsValue): JsResult[Map[ID, ID]] = {
-      json.validate[Map[String, String]].map(xs => xs.collect{case (k, v) if ID.isID(k) && ID.isID(v) => ID.makeID(k).get -> ID.makeID(v).get})
-    }
-  }
-  implicit lazy val ididWrites: JSWrites[Map[ID, ID]] = new OWrites[Map[ID, ID]] {
-    override def writes(xs: Map[ID, ID]): JsObject = {
-      val toFixedMap = xs.map{case (k, v) => k.toString -> SPValue(v)}
-      JsObject(toFixedMap)
-    }
-  }
-  implicit lazy val fSetup: JSReads[Setup] = deriveReadISA[Setup]
+  implicit lazy val fSetup: JSFormat[Setup] = deriveFormatISA[Setup]
   object Request {
     implicit lazy val fExampleServiceRequest: JSFormat[Request] = deriveFormatISA[Request]
   }
@@ -46,15 +34,20 @@ object API_OperationRunner {
 }
 
 object OperationRunnerInfo {
-  case class Schema(request: API_OperationRunner.Request, response: API_OperationRunner.Response)
-  val s: com.sksamuel.avro4s.SchemaFor[Schema] = com.sksamuel.avro4s.SchemaFor[Schema]
+  case class OperationRunnerRequest(request: API_OperationRunner.Request)
+  case class OperationRunnerResponse(response: API_OperationRunner.Response)
+
+  val apischema = makeMeASchema(
+    com.sksamuel.avro4s.SchemaFor[OperationRunnerRequest](),
+    com.sksamuel.avro4s.SchemaFor[OperationRunnerResponse]()
+  )
 
   val attributes: APISP.StatusResponse = APISP.StatusResponse(
     service = API_OperationRunner.service,
     instanceID = Some(ID.newID),
     instanceName = "",
     tags = List("runtime", "operations", "runner"),
-    api = SPAttributes.fromJson(s().toString).get,
+    api = apischema, //SPAttributes.fromJson(s().toString).get,
     version = 1,
     attributes = SPAttributes.empty
   )
@@ -86,7 +79,7 @@ object OperationRunnerComm {
   def extractServiceRequest(mess: Try[SPMessage]) = for {
     m <- mess
     h <- m.getHeaderAs[SPHeader]
-    m.getBodyAs[APISP] if b == APISP.StatusRequest
+    b <- m.getBodyAs[APISP] if b == APISP.StatusRequest
     } yield (h, b)
 
 

@@ -275,6 +275,16 @@ trait JsonImplicit extends JsonDerived {
     )
   }
 
+  def parseMe(x: SPValue): JsResult[Proposition] = {
+    val res = x.asOpt[String].flatMap{ p =>
+      Proposition.parseStr(p)
+    }
+    res match {
+      case Some(ok) => JsSuccess[Proposition](ok)
+      case None => JsError("Could not convert proposition from a string ")
+    }
+  }
+
   implicit lazy val readProp: Reads[Proposition] = new JSReads[Proposition] {
     override def reads(json: SPValue): JsResult[Proposition] = {
       json.validate[PropositionEvaluator] orElse
@@ -282,7 +292,8 @@ trait JsonImplicit extends JsonDerived {
         json.validate[OR] orElse
         json.validate[NOT] orElse
         (JsPath \ "isa").read[String](verifying[String](_ == "AlwaysTrue")).reads(json).map(x => AlwaysTrue) orElse
-        (JsPath \ "isa").read[String](verifying[String](_ == "AlwaysFalse")).reads(json).map(x => AlwaysFalse)
+        (JsPath \ "isa").read[String](verifying[String](_ == "AlwaysFalse")).reads(json).map(x => AlwaysFalse) orElse
+        parseMe(json)
     }
   }
   implicit object WriteProp extends Writes[Proposition]  {
@@ -612,6 +623,31 @@ trait JsonImplicit extends JsonDerived {
 
 
 
+  // Extra formats
+
+  val dateF = format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+  implicit lazy val javatimeF = new Format[ZonedDateTime] {
+    override def reads(json: JsValue): JsResult[ZonedDateTime] = {
+      json.validate[String].map(ZonedDateTime.parse(_, dateF))
+    }
+
+    override def writes(o: ZonedDateTime): JsValue = {
+      Json.toJson(o.format(dateF))
+    }
+
+  }
+
+  implicit lazy val ididReads: JSReads[Map[ID, ID]] = new JSReads[Map[ID, ID]] {
+    override def reads(json: JsValue): JsResult[Map[ID, ID]] = {
+      json.validate[Map[String, String]].map(xs => xs.collect{case (k, v) if ID.isID(k) && ID.isID(v) => ID.makeID(k).get -> ID.makeID(v).get})
+    }
+  }
+  implicit lazy val ididWrites: JSWrites[Map[ID, ID]] = new OWrites[Map[ID, ID]] {
+    override def writes(xs: Map[ID, ID]): JsObject = {
+      val toFixedMap = xs.map{case (k, v) => k.toString -> SPValue(v)}
+      JsObject(toFixedMap)
+    }
+  }
 
 
 
@@ -722,17 +758,7 @@ trait JsonImplicit extends JsonDerived {
 //  }
 
 
-  val dateF = format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-  implicit lazy val javatimeF = new Format[ZonedDateTime] {
-    override def reads(json: JsValue): JsResult[ZonedDateTime] = {
-      json.validate[String].map(ZonedDateTime.parse(_, dateF))
-    }
 
-    override def writes(o: ZonedDateTime): JsValue = {
-      Json.toJson(o.format(dateF))
-    }
-
-  }
 
 }
 

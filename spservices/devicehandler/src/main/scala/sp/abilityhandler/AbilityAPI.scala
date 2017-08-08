@@ -36,11 +36,11 @@ object APIAbilityHandler {
                      resetCondition: Condition = Condition(AlwaysTrue, List()),
                      parameters: List[ID] = List(),
                      result: List[ID] = List(),
-                     attributes: SPAttributes = SPAttributes()) extends Response
+                     attributes: SPAttributes = SPAttributes())
 
 
-  implicit lazy val fAbility: JSReads[Ability] = deriveReadISA[Ability]
-  implicit lazy val fAbilityState: JSReads[AbilityState] = deriveReadISA[AbilityState]
+  implicit lazy val fAbility: JSFormat[Ability] = deriveFormatISA[Ability]
+  //implicit lazy val fAbilityState: JSReads[AbilityState] = deriveReadISA[AbilityState]
   object Request {
     implicit lazy val fExampleServiceRequest: JSFormat[Request] = deriveFormatISA[Request]
   }
@@ -51,16 +51,15 @@ object APIAbilityHandler {
 
 
 object AbilityHandlerInfo {
-//  case class Schema(request: APIAbilityHandler.Request) //, response: APIAbilityHandler.Response)
-//  val s: com.sksamuel.avro4s.SchemaFor[Schema] = com.sksamuel.avro4s.SchemaFor[Schema]
-//  println(s())
+  case class Schema(request: APIAbilityHandler.Response) //, response: APIAbilityHandler.Response)
+  implicit val s: com.sksamuel.avro4s.SchemaFor[Schema] = com.sksamuel.avro4s.SchemaFor[Schema]
 
   val attributes: APISP.StatusResponse = APISP.StatusResponse(
     service = APIAbilityHandler.service,
     instanceID = Some(ID.newID),
     instanceName = "",
     tags = List("ability", "virtual device", "vd", "runtime", "communication"),
-    api = SPAttributes.empty,//SPAttributes.fromJson(s().toString).get,
+    api = SPAttributes.fromJson(s().toString).get,
     version = 1,
     attributes = SPAttributes.empty
   )
@@ -88,7 +87,6 @@ object AbilityComm {
     h <- m.getHeaderAs[SPHeader]
     b <- m.getBodyAs[APISP] if b == APISP.StatusRequest
     } yield {
-    println("SSSSSSSSSSSSSSSS")
     (h, b)
   }
 
