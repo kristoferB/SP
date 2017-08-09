@@ -2,11 +2,9 @@ package datahandler
 
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages._
-import Pickles._
 import scala.util._
 
-package API_Patient {
+object API_Patient {
   sealed trait PatientProperty
   case class Priority(color: String, timestamp: String) extends PatientProperty
   case class Attended(attended: Boolean, doctorId: String, timestamp: String) extends PatientProperty
@@ -36,7 +34,7 @@ package API_Patient {
   )
 }
 
-package API_Data {
+object API_Data {
   case class EricaPatient(CareContactId: Int,
                         DepartmentComment: String,
                         Location: String,
@@ -65,7 +63,7 @@ package API_Data {
                       TimeEvent: String)
 }
 
-package API_PatientEvent {
+object API_PatientEvent {
   import datahandler.{API_Data => api}
   import datahandler.{API_Patient => patientApi}
 

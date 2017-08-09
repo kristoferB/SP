@@ -4,7 +4,6 @@ import akka.actor._
 import sp.domain._
 import sp.gPubSub.{API_PatientEvent, GPubSubDevice}
 import sp.widgetservice.{WidgetDevice}
-import sp.messages._
 
 import scala.util.{Failure, Success, Try}
 

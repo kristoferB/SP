@@ -2,20 +2,9 @@ package sp.widgetservice
 
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages._
-import sp.messages.Pickles._
 
 import akka.actor._
-import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 import scala.util.{ Try, Success, Failure }
-
-import scala.collection.mutable.ListBuffer
-
-import java.util.Date
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.chrono.ChronoLocalDate
 
 import sp.widgetservice.{API_PatientEvent => api}
 import sp.widgetservice.{API_Patient => apiPatient}

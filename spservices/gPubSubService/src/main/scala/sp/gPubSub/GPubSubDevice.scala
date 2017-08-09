@@ -8,8 +8,6 @@ import akka.actor._
 import akka.persistence._
 
 import scala.util.{Failure, Random, Success, Try}
-import sp.messages._
-import sp.messages.Pickles._
 import java.util
 
 import scala.collection.mutable.ListBuffer
@@ -18,7 +16,6 @@ import sp.domain.Logic._
 import datahandler.ElvisDataHandlerDevice
 import sp.gPubSub.API_Data.ElvisPatient
 import sp.gPubSub.{API_Data => api}
-import sp.gPubSub.{API_PatientEvent => sendApi}
 
 
 import com.google.protobuf.Timestamp
@@ -106,7 +103,7 @@ class GPubSubDevice extends PersistentActor with DiffMagic {
        } yield {
          messT = Some(mess.getPublishTime)
          log.debug("Recieved elvis snapshot is newer than the previous one.")
-         mess.getData().toStringUtf8()
+         mess.getData.toStringUtf8
        }
 
        val newEvents: List[api.EricaEvent] = (for {
@@ -170,8 +167,8 @@ trait DiffMagic {
 
   def clearState() = currentState = List()
 
+  val dataAggregation = new elastic.DataAggregation
   def checkTheDiff(ps: List[api.ElvisPatient], currentState: List[api.ElvisPatient]): List[List[api.EricaEvent]] = {
-    val dataAggregation = new elastic.DataAggregation
     if (currentState.isEmpty) {
       ps.map{p =>
         dataAggregation.convertToEricaEvents(p)
