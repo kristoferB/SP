@@ -26,6 +26,11 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-http" % "10.0.3",
     "com.typesafe.akka" %% "akka-http-testkit" % "10.0.3",
     "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.1",
-    "com.google.cloud" % "google-cloud" % "0.19.0-alpha"
+    "com.google.cloud" % "google-cloud-pubsub" % "0.21.1-beta",
+    "com.google.cloud" % "google-cloud" % "0.21.1-alpha",
+    "com.google.api-client" % "google-api-client" % "1.22.0",
+    "io.netty" % "netty-all" % "4.1.14.Final",
+    "io.netty" % "netty-tcnative-boringssl-static" % "2.0.3.Final" classifier "windows-x86_64",
+    "io.netty" % "netty-tcnative" % "2.0.3.Final" classifier "windows-x86_64"
   )
 }

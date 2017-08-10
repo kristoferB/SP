@@ -9,11 +9,11 @@
     </appender>
 
     <appender name="file-appender" class="ch.qos.logback.core.FileAppender">
-        <file>../../logs/erica.log</file>
+        <file>../logs/erica.log</file>
         <!-- <append>false</append>  Append to existing log file or create new each restart. -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover -->
-            <fileNamePattern>../../logs/erica.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>../logs/erica.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy
               class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <!-- or whenever the file size reaches 50MB -->

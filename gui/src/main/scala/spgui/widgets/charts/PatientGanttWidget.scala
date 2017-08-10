@@ -13,7 +13,7 @@ import spgui.widgets.css.{WidgetStyles => Styles}
 
 object PatientGanttWidget {
 
-  private class Backend($: BackendScope[Unit, Unit]) {
+  private class Backend($: BackendScope[String, Map[String, apiPatient.Patient]]) {
 
     var patientObs = Option.empty[rx.Obs]
     def setPatientObs(): Unit = {
@@ -31,7 +31,7 @@ object PatientGanttWidget {
       BackendCommunication.publish(json, "widget-event")
     }
 
-    def render() = {
+    def render(p: String, s: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
     }
 
@@ -43,7 +43,7 @@ object PatientGanttWidget {
     }
   }
 
-  private val ganttComponent = ScalaComponent.builder[Unit]("ganttComponent")
+  private val ganttComponent = ScalaComponent.builder[String]("ganttComponent")
     .initialState(Map("-1" ->
       apiPatient.Patient(
         "4502085",
@@ -64,14 +64,14 @@ object PatientGanttWidget {
     .componentWillUnmount(_.backend.onUnmount())
     .build
 
-//  def extractTeam(attributes: Map[String, SPValue]) = {
-//    attributes.get("team").map(x => x.str).getOrElse("medicin")
-//  }
+  def extractTeam(attributes: Map[String, SPValue]) = {
+    attributes.get("team").map(x => x.str).getOrElse("medicin")
+  }
 
-  def apply() = spgui.SPWidget(spwb => ganttComponent())
+  //def apply() = spgui.SPWidget(spwb => ganttComponent())
 
-//  def apply() = spgui.SPWidget(spwb => {
-//    val currentTeam = extractTeam(spwb.frontEndState.attributes)
-//    ganttComponent(currentTeam)
-//  })
+  def apply() = spgui.SPWidget(spwb => {
+    val currentTeam = extractTeam(spwb.frontEndState.attributes)
+    ganttComponent(currentTeam)
+  })
 }

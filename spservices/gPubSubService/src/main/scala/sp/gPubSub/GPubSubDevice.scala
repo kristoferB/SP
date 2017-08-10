@@ -287,14 +287,14 @@ trait DiffMagic {
 
 class ElvisPubSuber(project: String, topic: String, subscription: String, sendTo: ActorRef) {
 
-  import com.google.cloud.pubsub.spi.v1.SubscriptionAdminClient
+  import com.google.cloud.pubsub.v1.SubscriptionAdminClient
   import com.google.pubsub.v1.PushConfig
   import com.google.pubsub.v1.Subscription
   import com.google.pubsub.v1.SubscriptionName
   import com.google.pubsub.v1.TopicName
   import com.google.api.core.ApiService.Listener
   import com.google.protobuf.Timestamp
-  import com.google.cloud.pubsub.spi.v1.Subscriber
+  import com.google.cloud.pubsub.v1.Subscriber
   import com.google.api.core._
   import com.google.common.util.concurrent.MoreExecutors
 
@@ -344,8 +344,8 @@ class ElvisPubSuber(project: String, topic: String, subscription: String, sendTo
   log.debug("Subscription attempt resulted in: " + subTry)
   val res = subTry.map{s =>
 
-    import com.google.cloud.pubsub.spi.v1.AckReplyConsumer
-    import com.google.cloud.pubsub.spi.v1.MessageReceiver
+    import com.google.cloud.pubsub.v1.AckReplyConsumer
+    import com.google.cloud.pubsub.v1.MessageReceiver
     import com.google.pubsub.v1.PubsubMessage
     val receiver = new MessageReceiver() {
       override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
