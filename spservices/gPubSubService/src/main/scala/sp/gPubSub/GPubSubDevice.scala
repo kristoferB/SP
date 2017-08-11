@@ -339,7 +339,11 @@ class ElvisPubSuber(project: String, topic: String, subscription: String, sendTo
 
 
   log.info("Connecting to Google pubsub. Subscription: " + subscription + " Topic: " + topic)
-  deleteSubscription(subscription)
+  println("Connecting to Google pubsub. Subscription: " + subscription + " Topic: " + topic)
+  val x = deleteSubscription(subscription)
+  println("delete:")
+  println(x)
+
   val subTry = createSubscription(topic, subscription)
   log.debug("Subscription attempt resulted in: " + subTry)
   val res = subTry.map{s =>

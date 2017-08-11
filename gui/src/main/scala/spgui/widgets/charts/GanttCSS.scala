@@ -9,6 +9,10 @@ object GanttCSS extends StyleSheet.Inline {
     cursor.pointer
   )
 
+  val background = style(
+    backgroundColor(rgb(0,180,50))
+  )
+
   this.addToDocument()
 }
 

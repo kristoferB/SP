@@ -26,6 +26,7 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-http" % "10.0.9",
     "com.typesafe.akka" %% "akka-http-testkit" % "10.0.9",
     "com.github.romix.akka" %% "akka-kryo-serialization" % "0.4.2",
-    "com.google.cloud" % "google-cloud" % "0.21.1-alpha"
+    "com.google.cloud" % "google-cloud" % "0.21.1-alpha",
+    "io.netty" % "netty-all" % "4.1.14.Final"
   )
 }
