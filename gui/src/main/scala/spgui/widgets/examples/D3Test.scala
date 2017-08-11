@@ -11,7 +11,8 @@ import org.singlespaced.d3js.Ops._
 import org.scalajs.dom.raw
 import util.Random.nextInt
 
-import spgui.components.SPButton
+import scalajs.js.JSConverters._
+import spgui.components.SPWidgetElements
 
 object D3Example {
   def apply() = SPWidget{spwb =>
@@ -22,7 +23,7 @@ object D3Example {
     .initialState(List.fill(8)(nextInt(50)))
     .render{dcb =>
       <.div(
-        SPButton("mod state", Seq(^.onClick --> dcb.modState(_.map(_ => nextInt(50))))),
+        SPWidgetElements.button("mod state", dcb.modState(_.map(_ => nextInt()))),
         D3BarsComponent(dcb.state)
       )
     }
