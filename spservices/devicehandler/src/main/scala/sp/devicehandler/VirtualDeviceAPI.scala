@@ -5,6 +5,9 @@ import sp.domain.Logic._
 
 object APIVirtualDevice {
   sealed trait Request
+  sealed trait Response
+  val service = "VirtualDevice"
+
   // requests setup
   case class SetUpDeviceDriver(driver: Driver) extends Request
   case class SetUpResource(resource: Resource) extends Request
@@ -22,7 +25,6 @@ object APIVirtualDevice {
   case class DriverCommandDone(requestID: ID, result: Boolean) extends Request
 
   // answers
-  sealed trait Response
   case class StateEvent(resource: String, id: ID, state: Map[ID, SPValue], diff: Boolean = false) extends Response
 
   case class Resources(xs: List[Resource]) extends Response

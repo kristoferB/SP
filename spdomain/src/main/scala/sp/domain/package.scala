@@ -92,6 +92,11 @@ package object domain {
   }
 
 
+  def fromJsonAs[T](json: String)(implicit fjs: JSReads[T]): Try[T] = {
+      SPValue.fromJson(json).flatMap(x => Try{x.as[T]})
+  }
+
+  def toJson[T](x: T)(implicit fjs: JSWrites[T]): String = Json.stringify(SPValue(x))
 
 
 

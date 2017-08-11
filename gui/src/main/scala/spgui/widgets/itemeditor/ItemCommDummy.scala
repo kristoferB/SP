@@ -2,8 +2,6 @@ package spgui.widgets.itemeditor
 
 import sp.domain._
 import sp.domain.Logic._
-//import sp.messages._
-import sp.messages.Pickles._
 
 import scala.util.Try
 import java.util.UUID
@@ -21,6 +19,8 @@ object API_ItemServiceDummy {
   object attributes {
     val service = "Item"
   }
+
+  implicit val fAPIItemServiceDummy: JSFormat[API_ItemServiceDummy] = deriveFormatISA[API_ItemServiceDummy]
 
   def extract(mess: Try[SPMessage]): Option[(SPHeader, API_ItemServiceDummy)] = for {
     m <- mess.toOption

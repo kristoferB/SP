@@ -30,6 +30,9 @@ case class Settings(
   showHeaders: Boolean = true 
 )
 
+
+
+
 // actions
 case class AddWidget(widgetType: String, width: Int = 2, height: Int = 2, id: UUID = UUID.randomUUID()) extends Action
 case class CloseWidget(id: UUID) extends Action

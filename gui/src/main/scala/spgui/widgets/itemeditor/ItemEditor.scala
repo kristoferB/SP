@@ -11,10 +11,10 @@ import spgui.{SPWidget, SPWidgetBase}
 import spgui.components.DragAndDrop.OnDataDrop
 import spgui.communication._
 import sp.domain._
-//import sp.messages._
-import sp.messages.Pickles._
-
+import sp.domain.Logic._
 import java.util.UUID
+
+import scala.util.Try
 
 object ItemEditor {
 
@@ -55,19 +55,23 @@ object ItemEditor {
     )
     */
 
-    def sendCommand(cmd: API_ItemServiceDummy) = Callback{
-      val h = SPHeader(from = "ItemEditorWidget", to = API_ItemServiceDummy.attributes.service, reply = *("ItemEditorWidget"))
-      val jsonMsg = SPMessage.make(h, cmd)
-      BackendCommunication.publishMessage("services", jsonMsg)
+    def sendCommand(cmd: Try[API_ItemServiceDummy]) = Callback{
+      cmd.foreach{c =>
+        val h = SPHeader(from = "ItemEditorWidget", to = API_ItemServiceDummy.attributes.service, reply = SPValue("ItemEditorWidget"))
+        val jsonMsg = SPMessage.make(h, c)
+        BackendCommunication.publishMessage("services", jsonMsg)
+
+      }
       //BackendCommunication.ask(jsonMsg)
     }
 
-    def requestSampleItem() = sendCommand(API_ItemServiceDummy.RequestSampleItem())
+    def requestSampleItem() = sendCommand(Try(API_ItemServiceDummy.RequestSampleItem()))
 
     def returnItem(): Callback = {
       // TODO remove shitty gets
-      val idAble = fromJsonToSPValue(JSON.stringify(jsonEditor.get())).get.getAs[IDAble]("").get
-      sendCommand(API_ItemServiceDummy.Item(idAble))
+      val idAble = fromJsonAs[IDAble](JSON.stringify(jsonEditor.get()))
+      val mess = idAble.map(x => API_ItemServiceDummy.Item(x))
+      sendCommand(mess)
     }
 
     def render(spwb: SPWidgetBase) =
@@ -75,7 +79,7 @@ object ItemEditor {
         <.button("Save", ^.onClick --> returnItem()),
         <.div(
           "drop an item from item explorer tree to edit it",
-          OnDataDrop(idAsStr => sendCommand(API_ItemServiceDummy.RequestItem(UUID.fromString(idAsStr))))
+          OnDataDrop(idAsStr => sendCommand(Try(API_ItemServiceDummy.RequestItem(UUID.fromString(idAsStr)))))
         ).when(jsonEditor == null)
       ) // editor added after mount, or on item dropped
   }

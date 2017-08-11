@@ -2,8 +2,6 @@ package sp.widgetservice
 
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages._
-import sp.messages.Pickles._
 
 import scala.util.Try
 

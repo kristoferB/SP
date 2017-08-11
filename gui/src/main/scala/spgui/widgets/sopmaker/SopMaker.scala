@@ -13,8 +13,7 @@ import japgolly.scalajs.react.vdom.all.svg
 
 import spgui.communication._
 import sp.domain._
-import sp.messages._
-import sp.messages.Pickles._
+import sp.domain.Logic._
 import scalacss.ScalaCssReact._
 import java.util.UUID
 
@@ -34,20 +33,9 @@ case class RenderSometimeSequence(w: Float, h:Float, children: List[RenderNode])
 case class RenderOther(w: Float, h:Float, children: List[RenderNode])               extends RenderGroup
 case class RenderSequence(w: Float, h:Float, children: List[RenderSequenceElement]) extends RenderGroup
 case class RenderSequenceElement(w: Float, h:Float, self: RenderNode)               extends RenderNode
-case class RenderHierarchy(w:Float, h:Float, sop: IdAbleHierarchy)                        extends RenderNode
+case class RenderHierarchy(w:Float, h:Float, sop: OperationNode)                        extends RenderNode
 
-sealed trait SopWithId {
-  val id: UUID = UUID.randomUUID()
-  val sop: List[SopWithId]
-}
-abstract case class IdAbleEmptySOP()                     extends SopWithId
-case class IdAbleParallel( sop: List[SopWithId])         extends SopWithId
-case class IdAbleAlternative( sop: List[SopWithId])      extends SopWithId
-case class IdAbleArbitrary( sop: List[SopWithId])        extends SopWithId
-case class IdAbleSequence( sop: List[SopWithId])         extends SopWithId
-case class IdAbleSometimeSequence( sop: List[SopWithId]) extends SopWithId
-case class IdAbleOther( sop: List[SopWithId])            extends SopWithId
-case class IdAbleHierarchy( sop: List[SopWithId] = List(), self: Hierarchy)              extends SopWithId
+
 
 object SopMakerWidget {
 
@@ -63,7 +51,7 @@ object SopMakerWidget {
     currentlyDragging: Boolean = false
   )
 
-  case class State(sop: SopWithId, hover: Hover)
+  case class State(sop: SOP, hover: Hover)
 
   val idm = ExampleSops.ops.map(o=>o.id -> o).toMap
 
@@ -232,7 +220,7 @@ object SopMakerWidget {
         println("resetting hover state")
       })
     }
-    
+
     def getRenderTree(node: RenderNode, xOffset: Float, yOffset: Float): TagMod = {
       node match {
         case n: RenderParallel => {
@@ -255,10 +243,10 @@ object SopMakerWidget {
           )
         }
         case n: RenderSequence =>  getRenderSequence(n, xOffset, yOffset)
-          
+
         case n: RenderHierarchy => {
-          val opname = idm.get(n.sop.self.operation).map(_.name).getOrElse("[unknown op]")
-          op(n.sop.id, opname, xOffset, yOffset)
+          val opname = idm.get(n.sop.operation).map(_.name).getOrElse("[unknown op]")
+          op(n.sop.nodeID, opname, xOffset, yOffset)
         }
       }
     }
@@ -271,15 +259,15 @@ object SopMakerWidget {
       }}.toTagMod
     }
 
-    def traverseTree(sop: SopWithId): RenderNode = {
+    def traverseTree(sop: SOP): RenderNode = {
       sop match {
-        case s: IdAbleParallel => RenderParallel(
+        case s: Parallel => RenderParallel(
           w = getTreeWidth(s),
           h = getTreeHeight(s),
           children = sop.sop.collect{case e => traverseTree(e)}
         )
-        case s: IdAbleSequence => traverseSequence(s)
-        case s: IdAbleHierarchy => RenderHierarchy(
+        case s: Sequence => traverseSequence(s)
+        case s: OperationNode => RenderHierarchy(
           w = getTreeWidth(s),
           h = getTreeHeight(s),
           sop = s
@@ -287,11 +275,11 @@ object SopMakerWidget {
       }
     }
 
-    def traverseSequence(s: IdAbleSequence): RenderSequence = {
+    def traverseSequence(s: Sequence): RenderSequence = {
       if(s.sop.isEmpty) null else RenderSequence(
         h = getTreeHeight(s),
         w = getTreeWidth(s),
-        children = s.sop.collect{case e: SopWithId => {
+        children = s.sop.collect{case e: SOP => {
           RenderSequenceElement(
             getTreeWidth(e),
             getTreeHeight(e),
@@ -301,33 +289,33 @@ object SopMakerWidget {
       )
     }
 
-    def getTreeWidth(sop: SopWithId): Float = {
+    def getTreeWidth(sop: SOP): Float = {
       sop match {
         // groups are as wide as the sum of all children widths + its own padding
-        case s: IdAbleParallel => s.sop.map(e => getTreeWidth(e)).sum + opSpacingX *2
-        case s: IdAbleSequence => { // sequences are as wide as their widest elements
+        case s: Parallel => s.sop.map(e => getTreeWidth(e)).sum + opSpacingX *2
+        case s: Sequence => { // sequences are as wide as their widest elements
           if(s.sop.isEmpty) 0
-          else math.max(getTreeWidth(s.sop.head), getTreeWidth(IdAbleSequence(s.sop.tail)))
+          else math.max(getTreeWidth(s.sop.head), getTreeWidth(Sequence(s.sop.tail)))
         }
-        case s: IdAbleHierarchy => {
+        case s: OperationNode => {
           opWidth + opSpacingX
         }
       }
     }
 
-    def getTreeHeight(sop: SopWithId): Float = {
+    def getTreeHeight(sop: SOP): Float = {
       sop match  {
-        case s: IdAbleParallel => {
+        case s: Parallel => {
           if(s.sop.isEmpty) 0
           else math.max(
             getTreeHeight(s.sop.head) + (parallelBarHeight*2 + opSpacingY*2),
-            getTreeHeight(IdAbleParallel(s.sop.tail))
+            getTreeHeight(Parallel(s.sop.tail))
           )
         }
-        case s: IdAbleSequence => {
+        case s: Sequence => {
           s.sop.map(e => getTreeHeight(e)).foldLeft(0f)(_ + _)
         }
-        case s: IdAbleHierarchy => opHeight + opSpacingY
+        case s: OperationNode => opHeight + opSpacingY
       }
     }
 
@@ -335,48 +323,40 @@ object SopMakerWidget {
       println("Unmounting sopmaker")
     }
 
-    def sopList(root: SopWithId): List[SopWithId] = {
+    def sopList(root: SOP): List[SOP] = {
       root :: root.sop.map(e => sopList(e)).toList.flatten
     }
 
-    def findSop(root: SopWithId, sopId: UUID): SopWithId = {
-      println(sopList(root).filter(x => x.id != sopId).head) 
-      sopList(root).filter(x => x.id == sopId).head
+    def findSop(root: SOP, sopId: UUID): SOP = {
+      println(sopList(root).filter(x => x.nodeID != sopId).head)
+      sopList(root).filter(x => x.nodeID == sopId).head
     }
-    
-    def insertSop(root: SopWithId, targetId: UUID, sopId: UUID): SopWithId = {
-      if(root.id == targetId) {
+
+    def insertSop(root: SOP, targetId: UUID, sopId: UUID): SOP = {
+      if(root.nodeID == targetId) {
         root match {
-          case r: IdAbleParallel =>
-            IdAbleParallel(sop = findSop($.state.runNow().sop, sopId) :: r.sop)
-          case r: IdAbleSequence =>
-            IdAbleSequence(sop = findSop($.state.runNow().sop, sopId) :: r.sop)
-          case r: IdAbleHierarchy => IdAbleParallel(
+          case r: Parallel =>
+            Parallel(sop = findSop($.state.runNow().sop, sopId) :: r.sop)
+          case r: Sequence =>
+            Sequence(sop = findSop($.state.runNow().sop, sopId) :: r.sop)
+          case r: OperationNode => Parallel(
             sop = List(r, findSop($.state.runNow().sop, sopId))) // $.state abuse
         }
       } else {
         root match {
-          case r: IdAbleParallel =>
-            IdAbleParallel(sop = r.sop.collect{case e => insertSop(e, targetId, sopId)})
-          case r: IdAbleSequence =>
-            IdAbleSequence(sop = r.sop.collect{case e => insertSop(e, targetId, sopId)})
-          case r: IdAbleHierarchy => r // TODO
+          case r: Parallel =>
+            Parallel(sop = r.sop.collect{case e => insertSop(e, targetId, sopId)})
+          case r: Sequence =>
+            Sequence(sop = r.sop.collect{case e => insertSop(e, targetId, sopId)})
+          case r: OperationNode => r // TODO
         }
       }
     }
   }
 
 
-  def idSop(sop: SOP): SopWithId = {
-    sop match {
-      case s: Parallel => IdAbleParallel(sop = s.sop.collect{case e => idSop(e)})
-      case s: Sequence => IdAbleSequence(sop = s.sop.collect{case e => idSop(e)})
-      case s: Hierarchy => IdAbleHierarchy(self = s)
-    }
-  }
-
   private val component = ScalaComponent.builder[Unit]("SopMakerWidget")
-    .initialState(State(sop = idSop(ExampleSops.giantSop), hover = Hover()))
+    .initialState(State(sop = ExampleSops.giantSop, hover = Hover()))
     .renderBackend[Backend]
     .componentWillUnmount(_.backend.onUnmount())
     .build

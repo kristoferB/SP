@@ -6,8 +6,6 @@ import scala.util.{Failure, Random, Success, Try}
 import scala.util.matching.Regex
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages._
-import sp.messages.Pickles._
 
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 

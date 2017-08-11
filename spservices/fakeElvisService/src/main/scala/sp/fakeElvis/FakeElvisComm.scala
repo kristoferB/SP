@@ -2,8 +2,6 @@ package sp.fakeElvis
 
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages._
-import Pickles._
 import scala.util._
 
 package API_PatientEvent {

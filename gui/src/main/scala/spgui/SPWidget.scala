@@ -47,10 +47,10 @@ object SPWidget {
 
 
 object SPWidgetBaseTest {
-  import sp.messages.Pickles._
+  import sp.domain.Logic._
   def apply() = SPWidget{spwb =>
     def saveOnChange(e: ReactEventFromInput): Callback =
-      Callback(spwb.updateWidgetData(*(e.target.value)))
+      Callback(spwb.updateWidgetData(SPValue(e.target.value)))
 
     def copyMe(): Callback = {
       val d = spwb.getWidgetData

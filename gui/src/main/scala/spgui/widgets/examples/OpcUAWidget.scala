@@ -5,31 +5,35 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import spgui.communication._
 import sp.domain._
-import sp.messages._
-import sp.messages.Pickles._
+import sp.domain.Logic._
 
 // Copy paste the APIs you want to communicate with here
-package API_OpcUARuntime {
-  sealed trait API_OpcUARuntime
-  sealed trait API_OpcUARuntimeSubTrait
+object APIOpcUARuntime {
+  sealed trait Request
+  sealed trait Response
+  val service = "OpcUARuntime"
 
   // requests
-  case class Connect(url: String) extends API_OpcUARuntime
-  case class Disconnect() extends API_OpcUARuntime
-  case class GetNodes() extends API_OpcUARuntime
-  case class Subscribe(nodeIDs: List[String]) extends API_OpcUARuntime
-  case class Write(node: String, value: SPValue) extends API_OpcUARuntime
+  case class Connect(url: String) extends Request
+  case object Disconnect extends Request
+  case object GetNodes extends Request
+  case class Subscribe(nodeIDs: List[String]) extends Request
+  case class Write(node: String, value: SPValue) extends Request
 
   // answers
-  case class ConnectionStatus(connected: Boolean) extends API_OpcUARuntime
-  case class AvailableNodes(nodes: Map[String, String]) extends API_OpcUARuntime
-  case class StateUpdate(state: Map[String, SPValue], timeStamp: String) extends API_OpcUARuntime
+  case class ConnectionStatus(connected: Boolean) extends Response
+  case class AvailableNodes(nodes: Map[String, String]) extends Response
+  case class StateUpdate(state: Map[String, SPValue], timeStamp: String) extends Response
 
-  object attributes {
-    val service = "OpcUARuntime"
+
+  object Request {
+    implicit lazy val fOPCUARuntimeRequest: JSFormat[Request] = deriveFormatISA[Request]
+  }
+  object Response {
+    implicit lazy val fOPCUARuntimeResponse: JSFormat[Response] = deriveFormatISA[Response]
   }
 }
-import spgui.widgets.examples.{API_OpcUARuntime => api}
+import spgui.widgets.examples.{APIOpcUARuntime => api}
 
 object OpcUAWidget {
   case class Node(name: String, datatype: String)
@@ -39,7 +43,7 @@ object OpcUAWidget {
   private class Backend($: BackendScope[Unit, State]) {
     val messObs = BackendCommunication.getMessageObserver(
       mess => {
-        val testing = fromSPValue[api.API_OpcUARuntime](mess.body).map{
+        val testing = mess.body.to[api.Response].foreach{
           case api.ConnectionStatus(connected) =>
             $.modState(s => s.copy(connected = connected, nodes = (if(!connected) List() else s.nodes))).runNow()
           case api.AvailableNodes(nodes) =>
@@ -69,19 +73,19 @@ object OpcUAWidget {
         ),
         <.button(
           ^.className := "btn btn-default",
-          ^.onClick --> send(API_OpcUARuntime.Connect(s.url)), "Connect"
+          ^.onClick --> send(api.Connect(s.url)), "Connect"
         ),
         <.button(
           ^.className := "btn btn-default",
-          ^.onClick --> send(API_OpcUARuntime.Disconnect()), "Disconnect"
+          ^.onClick --> send(api.Disconnect), "Disconnect"
         ),
         <.button(
           ^.className := "btn btn-default",
-          ^.onClick --> send(API_OpcUARuntime.GetNodes()), "Get nodes"
+          ^.onClick --> send(api.GetNodes), "Get nodes"
         ),
         <.button(
           ^.className := "btn btn-default",
-          ^.onClick --> {println("SUB"); println(s.nodes.map(n=>n.name).toList); send(API_OpcUARuntime.Subscribe(s.nodes.map(n=>n.name).toList)) }, "Subscribe to all"
+          ^.onClick --> {println("SUB"); println(s.nodes.map(n=>n.name).toList); send(api.Subscribe(s.nodes.map(n=>n.name).toList)) }, "Subscribe to all"
         ),
         renderNodes(s)
       )
@@ -107,7 +111,7 @@ object OpcUAWidget {
         ),
         <.tbody(
           s.nodes.map(n=> {
-            val value = s.opcState.get(n.name).getOrElse(*(0))
+            val value = s.opcState.get(n.name).getOrElse(SPValue(0))
             val internalValue = s.internalValues.get(n.name).getOrElse("")
             <.tr(
               <.td(n.name),
@@ -122,7 +126,7 @@ object OpcUAWidget {
                 <.button(
                   ^.width := "70px",
                   ^.className := "btn btn-small",
-                  ^.onClick --> send(API_OpcUARuntime.Write(n.name, changeType(n.datatype, internalValue))), "write"
+                  ^.onClick --> send(api.Write(n.name, changeType(n.datatype, internalValue))), "write"
                 )
               ))
           }).toTagMod
@@ -132,27 +136,27 @@ object OpcUAWidget {
 
     def changeType(dt: String, v: String) = {
       dt match {
-        case "String" => toSPValue[String](v)
-        case "Integer" => toSPValue[Int](v.toInt)
+        case "String" => SPValue[String](v)
+        case "Integer" => SPValue[Int](v.toInt)
         case "Boolean" =>
           val b = v.toLowerCase == "true" || v == "1"
-          toSPValue[Boolean](b)
-        case "Long" => toSPValue[Long](v.toLong)
-        case "Short" => toSPValue[Short](v.toShort)
-        case "Double" => toSPValue[Double](v.toDouble)
+          SPValue[Boolean](b)
+        case "Long" => SPValue[Long](v.toLong)
+        case "Short" => SPValue[Short](v.toShort)
+        case "Double" => SPValue[Double](v.toDouble)
       }
     }
 
     def onUnmount() = {
       println("Unmounting")
       messObs.kill()
-      send(API_OpcUARuntime.Disconnect())
+      send(api.Disconnect)
       Callback.empty
     }
 
-    def send(mess: api.API_OpcUARuntime): Callback = {
-      val h = SPHeader(from = "OpcUAWidget", to = api.attributes.service, reply = SPValue("OpcUAWidget"), reqID = java.util.UUID.randomUUID())
-      val json = SPMessage(*(h), *(mess)) // *(...) is a shorthand for toSpValue(...)
+    def send(mess: api.Request): Callback = {
+      val h = SPHeader(from = "OpcUAWidget", to = api.service, reply = SPValue("OpcUAWidget"), reqID = java.util.UUID.randomUUID())
+      val json = SPMessage.make(h, mess)
       // BackendCommunication.publishMessage("services", json)
       BackendCommunication.publish(json, "services")
       Callback.empty

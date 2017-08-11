@@ -5,8 +5,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import spgui.communication._
 import sp.domain._
-import sp.messages._
-import sp.messages.Pickles._
+import sp.domain.Logic._
 
 
 object ServiceListWidget {
@@ -74,11 +73,11 @@ object ServiceListWidget {
     }
 
     def onMount() = {
-      sendToHandler(api.GetServices())
+      sendToHandler(api.GetServices)
     }
 
     def sendToHandler(mess: api.Request): Callback = {
-      val h = SPHeader(from = "ServiceListWidget", to = api.attributes.service,
+      val h = SPHeader(from = "ServiceListWidget", to = api.service,
         reply = SPValue("ServiceListWidget"), reqID = java.util.UUID.randomUUID())
       val json = ServiceWidgetComm.makeMess(h, mess)
       BackendCommunication.publish(json, "services")

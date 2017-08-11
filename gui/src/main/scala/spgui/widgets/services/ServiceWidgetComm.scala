@@ -1,21 +1,26 @@
 package spgui.widgets.services
 
-import sp.messages._
-import Pickles._
 import scala.util.{Try}
+import sp.domain._
+import Logic._
 
 
-package APIServiceHandler {
+object APIServiceHandler {
   sealed trait Request
-  case class GetServices() extends Request
-
   sealed trait Response
+  val service = "ServiceHandler"
+
+  case object GetServices extends Request
   case class Services(xs: List[APISP.StatusResponse]) extends Response
   case class NewService(x: APISP.StatusResponse) extends Response
   case class RemovedService(x: APISP.StatusResponse) extends Response
 
-  object attributes {
-    val service = "ServiceHandler"
+
+  object Request {
+    implicit lazy val fServiceHandlerRequest: JSFormat[Request] = deriveFormatISA[Request]
+  }
+  object Response {
+    implicit lazy val fServiceHandlerResponse: JSFormat[Response] = deriveFormatISA[Response]
   }
 }
 

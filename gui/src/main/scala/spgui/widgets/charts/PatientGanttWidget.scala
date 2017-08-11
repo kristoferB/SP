@@ -2,13 +2,12 @@ package spgui.widgets.charts
 
 import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react._
-import sp.domain.SPValue
+import sp.domain._
+import Logic._
 
 import scalacss.ScalaCssReact._
-import sp.messages.Pickles.SPHeader
 import spgui.communication._
-import spgui.widgets.{API_Patient => apiPatient, API_PatientEvent => api}
-import spgui.widgets.ToAndFrom
+import spgui.widgets.{EricaLogic, ToAndFrom, API_Patient => apiPatient, API_PatientEvent => api}
 import spgui.widgets.css.{WidgetStyles => Styles}
 
 object PatientGanttWidget {
@@ -26,7 +25,7 @@ object PatientGanttWidget {
       if (mess) send(api.GetState())
     }, "patient-gantt-widget-topic")
 
-    def send(mess: api.StateEvent) {
+    def send(mess: api.Event) {
       val json = ToAndFrom.make(SPHeader(from = "PatientGanttWidget", to = "WidgetService"), mess)
       BackendCommunication.publish(json, "widget-event")
     }
@@ -45,19 +44,7 @@ object PatientGanttWidget {
 
   private val ganttComponent = ScalaComponent.builder[String]("ganttComponent")
     .initialState(Map("-1" ->
-      apiPatient.Patient(
-        "4502085",
-        apiPatient.Priority("NotTriaged", "2017-02-01T15:49:19Z"),
-        apiPatient.Attended(true, "SARLI29", "2017-02-01T15:58:33Z"),
-        apiPatient.Location("52", "2017-02-01T15:58:33Z"),
-        apiPatient.Team("GUL", "NAKME", "B", "2017-02-01T15:58:33Z"),
-        apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
-        apiPatient.LatestEvent("OmsKoord", -1, false, "2017-02-01T15:58:33Z"),
-        apiPatient.Plan(false, "2017-02-01T15:58:33Z"),
-        apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
-        apiPatient.Debugging("NAKKK","B","B23"),
-        apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
-      )))
+      EricaLogic.dummyPatient))
     .renderBackend[Backend]
     // .componentDidMount(_.backend.getWidgetWidth())
     .componentDidMount(ctx => Callback(ctx.backend.setPatientObs()))
@@ -65,7 +52,7 @@ object PatientGanttWidget {
     .build
 
   def extractTeam(attributes: Map[String, SPValue]) = {
-    attributes.get("team").map(x => x.str).getOrElse("medicin")
+    attributes.get("team").flatMap(x => x.asOpt[String]).getOrElse("medicin")
   }
 
   def apply() = spgui.SPWidget(spwb => {

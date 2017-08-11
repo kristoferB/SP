@@ -8,7 +8,6 @@ import spgui.{SPWidget, SPWidgetBase}
 import spgui.components.DragAndDrop.DataOnDrag
 import spgui.communication.BackendCommunication
 import spgui.widgets.itemeditor.{API_ItemServiceDummy => api}
-import sp.messages.Pickles.{SPHeader, SPMessage}
 import sp.domain._
 
 import scalajs.js

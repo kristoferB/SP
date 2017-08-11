@@ -16,37 +16,64 @@ import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Put, Subscribe}
 import java.util.concurrent.TimeUnit
 
 import org.joda.time.DateTime
-import sp.messages._
-import Pickles._
 
 import scala.util.{Failure, Success, Try}
 
 // to be able to use opcua runtime api
-package API_OpcUARuntime {
-  sealed trait
-  API_OpcUARuntime
+object APIOpcUARuntime {
+  sealed trait Request
+  sealed trait Response
+  val service = "OpcUARuntime"
+
   // requests
-  case class Connect(url: String) extends API_OpcUARuntime
-  case class Disconnect() extends API_OpcUARuntime
-  case class GetNodes() extends API_OpcUARuntime
-  case class Subscribe(nodeIDs: List[String]) extends API_OpcUARuntime
-  case class Write(node: String, value: SPValue) extends API_OpcUARuntime
+  case class Connect(url: String) extends Request
+  case object Disconnect extends Request
+  case object GetNodes extends Request
+  case class Subscribe(nodeIDs: List[String]) extends Request
+  case class Write(node: String, value: SPValue) extends Request
 
   // answers
-  case class ConnectionStatus(connected: Boolean) extends API_OpcUARuntime
-  case class AvailableNodes(nodes: Map[String, String]) extends API_OpcUARuntime
-  case class StateUpdate(state: Map[String, SPValue], timeStamp: String) extends API_OpcUARuntime
+  case class ConnectionStatus(connected: Boolean) extends Response
+  case class AvailableNodes(nodes: Map[String, String]) extends Response
+  case class StateUpdate(state: Map[String, SPValue], timeStamp: String) extends Response
 
-  object attributes {
-    val service = "OpcUARuntime"
+
+  object Request {
+    implicit lazy val fOPCUARuntimeRequest: JSFormat[Request] = deriveFormatISA[Request]
   }
+  object Response {
+    implicit lazy val fOPCUARuntimeResponse: JSFormat[Response] = deriveFormatISA[Response]
+  }
+}
+
+object OpcUARuntimeInfo {
+  case class OpcUARuntimeRequest(request: APIOpcUARuntime.Request)
+  case class OpcUARuntimeResponse(response: APIOpcUARuntime.Response)
+
+  val req: com.sksamuel.avro4s.SchemaFor[OpcUARuntimeRequest] = com.sksamuel.avro4s.SchemaFor[OpcUARuntimeRequest]
+  val resp: com.sksamuel.avro4s.SchemaFor[OpcUARuntimeResponse] = com.sksamuel.avro4s.SchemaFor[OpcUARuntimeResponse]
+
+  val apischema = makeMeASchema(
+    req(),
+    resp()
+  )
+
+  val attributes: APISP.StatusResponse = APISP.StatusResponse(
+    service = APIOpcUARuntime.service,
+    instanceID = Some(ID.newID),
+    instanceName = "",
+    tags = List("runtime", "opc", "driver"),
+    api = apischema,
+    version = 1,
+    attributes = SPAttributes.empty
+  )
 }
 
 object OPC {
   def props = Props(classOf[OPC])
 }
 
-import sp.labkit.{API_OpcUARuntime => api}
+import sp.labkit.{APIOpcUARuntime => api}
 
 // simple example opc ua client useage
 class OPC extends Actor {
@@ -80,7 +107,7 @@ class OPC extends Actor {
 
     case "connect" =>
       println("labkit: connecting to opc")
-      val header = SPHeader(from = api.attributes.service,  to = api.attributes.service)
+      val header = SPHeader(from = api.service,  to = api.service)
       val body = api.Connect(url)
       val message = SPMessage.makeJson(header, body)
       mediator ! Publish("services", message)
@@ -91,8 +118,8 @@ class OPC extends Actor {
       val header = for {m <- message; h <- m.getHeaderAs[SPHeader]} yield h
       val bodyAPI = for {
         m <- message
-        h <- header if h.to == api.attributes.service
-        b <- m.getBodyAs[api.API_OpcUARuntime]
+        h <- header if h.to == api.service
+        b <- m.getBodyAs[api.Request]
       } yield b
 
       val bodySP = for {m <- message; b <- m.getBodyAs[APISP] if b == APISP.StatusRequest} yield b
@@ -105,7 +132,7 @@ class OPC extends Actor {
         body match {
           case api.ConnectionStatus(connectionStatus) if !connected && connectionStatus =>
               connected = true
-              val header = SPHeader(from = api.attributes.service,  to = api.attributes.service)
+              val header = SPHeader(from = api.service,  to = api.service)
               val body = api.Subscribe(nodeIDsToNode.keys.toList)
               val message = SPMessage.makeJson(header, body)
               mediator ! Publish("services", message)
@@ -125,7 +152,7 @@ class OPC extends Actor {
         body <- bodySP
         oldMess <- message
       } yield {
-        val mess = oldMess.makeJson(SPHeader(from = api.attributes.service, to = "serviceHandler"), APISP.StatusResponse(statusResponse))
+        val mess = oldMess.makeJson(SPHeader(from = api.service, to = "serviceHandler"), APISP.StatusResponse(statusResponse))
         mediator ! Publish("spevents", mess)
 
       }
@@ -133,12 +160,7 @@ class OPC extends Actor {
 
   }
 
-  val statusResponse = SPAttributes(
-    "service" -> api.attributes.service,
-    "api" -> "to be added with macros later",
-    "groups" -> List("opc"),
-    "attributes" -> api.attributes
-  )
+  val statusResponse = OpcUARuntimeInfo.attributes
 
 }
 

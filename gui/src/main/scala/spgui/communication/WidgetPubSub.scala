@@ -3,7 +3,7 @@ package spgui.communication
 import java.util.UUID
 
 import sp.domain._
-import sp.messages.Pickles._
+import sp.domain.Logic._
 
 import scala.collection.immutable.Queue
 

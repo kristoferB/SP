@@ -7,7 +7,6 @@ import scala.concurrent.duration._
 import akka.persistence._
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages._
 import org.joda.time._
 
 import scala.util.{Failure, Success, Try}

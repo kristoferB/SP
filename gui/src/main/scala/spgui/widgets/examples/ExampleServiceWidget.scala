@@ -13,30 +13,31 @@ package spgui.widgets.examples {
 
   // Import this to make SPAttributes work including json handling
   import sp.domain._
-  import sp.messages._
-  import Pickles._
+  import Logic._
 
 
-  package API_ExampleService {
+  object APIExampleService {
+    sealed trait Request
+    sealed trait Response
+    val service = "ExampleService"
 
-    // Copy paste the APIs you want to communicate with here
-    sealed trait API_ExampleService
-    case object dummy extends API_ExampleService
-    case class StartTheTicker(id: java.util.UUID) extends API_ExampleService
-    case class StopTheTicker(id: java.util.UUID) extends API_ExampleService
-    case class SetTheTicker(id: java.util.UUID, map: Map[String, Int]) extends API_ExampleService
-    case class ResetAllTickers() extends API_ExampleService
-    case class TickerEvent(map: Map[String, Int], id: java.util.UUID) extends API_ExampleService
-    case class TheTickers(ids: List[java.util.UUID]) extends API_ExampleService
+    case class StartTheTicker(id: ID) extends Request
+    case class StopTheTicker(id: ID) extends Request
+    case class SetTheTicker(id: ID, map: Map[String, Int]) extends Request
+    case object GetTheTickers extends Request
+    case object ResetAllTickers extends Request
+    case class TickerEvent(map: Map[String, Int], id: ID) extends Response
+    case class TheTickers(ids: List[ID]) extends Response
 
-    object attributes {
-      val service = "exampleService"
-      val version = 1.0
-      val api = "to be fixed by macros"
+    object Request {
+      implicit lazy val fExampleServiceRequest: JSFormat[Request] = deriveFormatISA[Request]
+    }
+    object Response {
+      implicit lazy val fExampleServiceResponse: JSFormat[Response] = deriveFormatISA[Response]
     }
 
   }
-  import spgui.widgets.examples.{API_ExampleService => api}
+  import spgui.widgets.examples.{APIExampleService => api}
 
 
 
@@ -61,7 +62,7 @@ package spgui.widgets.examples {
       val messObs = BackendCommunication.getMessageObserver(
         mess => {
           //println(s"The widget example got: $mess" +s"parsing: ${mess.getBodyAs[api.API_ExampleService]}")
-          mess.getBodyAs[api.API_ExampleService].map {
+          mess.getBodyAs[api.Response].foreach {
             case api.TickerEvent(m, id) =>
               if (id == pieID) {
                 val p = Pie(id, m)
@@ -101,7 +102,7 @@ package spgui.widgets.examples {
 
           <.button(
             ^.className := "btn btn-default",
-            ^.onClick --> send(api.ResetAllTickers()), "Reset all Pies"
+            ^.onClick --> send(api.ResetAllTickers), "Reset all Pies"
           )
         )
       }
@@ -114,8 +115,8 @@ package spgui.widgets.examples {
       }
 
 
-      def send(mess: api.API_ExampleService): Callback = {
-        val h = SPHeader(from = "ExampleServiceWidget", to = api.attributes.service, reply = SPValue("ExampleServiceWidget"))
+      def send(mess: api.Request): Callback = {
+        val h = SPHeader(from = "ExampleServiceWidget", to = api.service, reply = SPValue("ExampleServiceWidget"))
 
         val json = SPMessage.make(h, mess) // *(...) is a shorthand for toSpValue(...)
         BackendCommunication.publish(json, "services")

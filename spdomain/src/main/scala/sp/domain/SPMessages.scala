@@ -60,9 +60,9 @@ case class SPHeader(from: String = "", // the name of the sender
                    )
 
 case class SPMessage(header: SPAttributes, body: SPAttributes) {
-  def getHeaderAs[T](implicit fjs: JSReads[T]) = header.to[T]
-  def getBodyAs[T](implicit fjs: JSReads[T]) = body.to[T]
-  def toJson = Json.stringify(Json.toJson(this)(SPMessage.messageFormat))
+  def getHeaderAs[T](implicit fjs: JSReads[T]): Try[T] = header.to[T]
+  def getBodyAs[T](implicit fjs: JSReads[T]): Try[T] = body.to[T]
+  def toJson: String = Json.stringify(Json.toJson(this)(SPMessage.messageFormat))
 
   /**
     * Merge the header and replaces the body of the message
@@ -80,11 +80,11 @@ case class SPMessage(header: SPAttributes, body: SPAttributes) {
 }
 
 object SPHeader {
-  implicit val headerFormat = Json.format[SPHeader]
+  implicit val headerFormat: JSFormat[SPHeader] = Json.format[SPHeader]
 }
 
 object SPMessage {
-  implicit val messageFormat = Json.format[SPMessage]
+  implicit val messageFormat: JSFormat[SPMessage] = Json.format[SPMessage]
 
   //def apply(h: AttributeWrapper, b: AttributeWrapper): SPMessage = make(h, b)
 

@@ -6,9 +6,9 @@ import japgolly.scalajs.react.ReactDOM
 
 import spgui.SPWidget
 import spgui.communication._
-import sp.messages.Pickles._
+import sp.domain._
+import sp.domain.Logic._
 
-import upickle._
 import org.singlespaced.d3js.d3
 import org.singlespaced.d3js.Ops._
 import org.scalajs.dom.raw
@@ -22,6 +22,8 @@ object API_D3ExampleService {
   case class D3Data(barHeights: List[Int]) extends API_D3ExampleService
 
   val service = "d3ExampleService"
+
+  implicit val fAPI_D3ExampleService: JSFormat[API_D3ExampleService] = deriveFormatISA[API_D3ExampleService]
 }
 
 object D3ExampleServiceWidget {
@@ -42,14 +44,14 @@ object D3ExampleServiceWidget {
     )
 
     def start: Callback = {
-      val h = SPHeader(from = "D3ExampleServiceWidget", to = API_D3ExampleService.service, reply = *("D3ExampleServiceWidget"))
+      val h = SPHeader(from = "D3ExampleServiceWidget", to = API_D3ExampleService.service, reply = SPValue("D3ExampleServiceWidget"))
       val json = SPMessage.make(h, API_D3ExampleService.Start())
       BackendCommunication.publishMessage("services", json)
       Callback.empty
     }
 
     def stop: Callback = {
-      val h = SPHeader(from = "D3ExampleServiceWidget", to = API_D3ExampleService.service, reply = *("D3ExampleServiceWidget"))
+      val h = SPHeader(from = "D3ExampleServiceWidget", to = API_D3ExampleService.service, reply = SPValue("D3ExampleServiceWidget"))
       val json = SPMessage.make(h, API_D3ExampleService.Stop())
       BackendCommunication.publishMessage("services", json)
       Callback.empty

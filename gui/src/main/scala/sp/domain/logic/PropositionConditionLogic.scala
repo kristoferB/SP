@@ -2,39 +2,71 @@ package sp.domain.logic
 
 import sp.domain._
 import sp.domain.Logic._
-import upickle._
-
+import play.api.libs.json._
 
 case object PropositionConditionLogic extends PropositionConditionLogics
 
 trait PropositionConditionLogics {
 
   /**
-    * Evaluate Propositions by calling eval(proposition, state)
+    * Pretty-printing
     */
+  private def stateVal(x : StateEvaluator, ids: List[IDAble]): String = {
+    x match {
+      case ValueHolder(v: SPValue) => v.toString
+      case SVIDEval(id: ID) => ids.find(x => x.id == id).map(_.name).getOrElse(id.toString)
+      case _ => "not implemented"
+    }
+  }
+
+  def prettyPrint(ids: List[IDAble])(prop: Proposition): String = {
+    prop match {
+      case AND(props: List[Proposition]) => props.map(prettyPrint(ids)).mkString(" && ")
+      case OR(props: List[Proposition]) => props.map(prettyPrint(ids)).mkString(" || ")
+      case EQ(left: StateEvaluator, right: StateEvaluator) => stateVal(left,ids) + " == " + stateVal(right,ids)
+      case NEQ(left: StateEvaluator, right: StateEvaluator) => stateVal(left,ids) + " != " + stateVal(right,ids)
+      case GREQ(left: StateEvaluator, right: StateEvaluator) => stateVal(left,ids) + " >= " + stateVal(right,ids)
+      case LEEQ(left: StateEvaluator, right: StateEvaluator) => stateVal(left,ids) + " <= " + stateVal(right,ids)
+      case GR(left: StateEvaluator, right: StateEvaluator) => stateVal(left,ids) + " > " + stateVal(right,ids)
+      case LE(left: StateEvaluator, right: StateEvaluator) => stateVal(left,ids) + " < " + stateVal(right,ids)
+      case AlwaysTrue => "true"
+      case AlwaysFalse => "false"
+      case s@_ => "i forgot something: " + s.toString
+    }
+  }
+
+  def prettyPrintAction(ids: List[IDAble])(action: Action): String = {
+    val id = ids.find(x => x.id == action.id).map(_.name).getOrElse(action.id.toString)
+    action.value match {
+      case INCR(1) => id + "++"
+      case INCR(n) => id + " += " + n.toString
+      case DECR(1) => id + "--"
+      case DECR(n) => id + " -= " + n.toString
+      case ASSIGN(rhs: ID) => id + " := " + ids.find(x => x.id == rhs).map(_.name).getOrElse(rhs.toString)
+      case ValueHolder(v : SPValue) => id + " := " + v.toString
+      case s@_ => "i forgot something: " + s.toString
+    }
+  }
+
+
+  /**
+   * Evaluate Propositions by calling eval(proposition, state)
+   */
   implicit class propLogic(iProp: Proposition) {
 
     private implicit class inequalityAttributes(l: SPValue) {
       def >(r: SPValue) = {
         (l, r) match {
-          case (upickle.Js.Num(li), upickle.Js.Num(ri)) => li > ri
-          case (upickle.Js.Str(li), upickle.Js.Str(ri)) =>
-            try {
-              val longl = li.toLong
-              val longr = ri.toLong
-              li > ri
-            } catch {
-              case _: Throwable => false
-            }
+          case (l: JsNumber, r: JsNumber) => l.value > r.value
           case _ => false
         }
       }
-      def <(r: SPValue) = (r > l)
+      def <(r: SPValue) = r > l
       def >=(r: SPValue) = (l > r) || (l == r)
       def <=(r: SPValue) = (r > l) || (l == r)
     }
 
-    def eval(state: State): Boolean = {
+    def eval(state: SPState): Boolean = {
       //Option[Boolean] = {
       def req(prop: Proposition): Option[Boolean] = prop match {
         case AND(ps) => listBooleanEval(ps, list => !list.flatten.contains(false))
@@ -84,43 +116,30 @@ trait PropositionConditionLogics {
    * @param cond: Condition, but must be of type PropositionCondition
    */
   implicit class condLogic(cond: Condition) {
-    val c = cond.asInstanceOf[PropositionCondition]
-    def eval(s: State) = c.guard.eval(s)
-    def next(s: State) = s.next(c.action.map(a => a.id -> a.nextValue(s)) toMap)
-    def inDomain(s: State, stateVars: Map[ID, SPValue => Boolean]) = {
+    val c = cond.asInstanceOf[Condition]
+    def eval(s: SPState) = c.guard.eval(s)
+    def next(s: SPState) = s.next(c.action.map(a => a.id -> a.nextValue(s)) toMap)
+    def inDomain(s: SPState, stateVars: Map[ID, SPValue => Boolean]) = {
       !(c.action map (_.inDomain(s, stateVars)) exists (!_))
     }
   }
 
   implicit class nextLogic(a: Action) {
 
-    def nextValue(s: State) = a.value match {
+    def nextValue(s: SPState) = a.value match {
       case ValueHolder(v) => v
       case INCR(n) => updateValue(s(a.id), _ + n)
       case DECR(n) => updateValue(s(a.id), _ - n)
       case ASSIGN(id) => s(id)
     }
-    def updateValue(v: SPValue, func: Long => Long) = {
+    def updateValue(v: SPValue, func: BigDecimal => BigDecimal): SPValue = {
       v match {
-        case upickle.Js.Num(i) =>
-          try {
-            val long = i.toLong
-            SPValue(func(long))
-          } catch {
-            case _: Throwable => SPValue.empty
-          }
-        case upickle.Js.Str(i) =>
-          try {
-            val long = i.toLong
-            SPValue(func(long))
-          } catch {
-            case _: Throwable => SPValue.empty
-          }
-        case _ => SPValue.empty
+        case JsNumber(i) => SPValue(func(i))
+        case _ => JsNull
       }
     }
 
-    def inDomain(s: State, stateVars: Map[ID, SPValue => Boolean]): Boolean = {
+    def inDomain(s: SPState, stateVars: Map[ID, SPValue => Boolean]): Boolean = {
       val next = nextValue(s)
       val sv = stateVars.get(a.id).getOrElse( (x:SPValue) =>true)
       sv(next)

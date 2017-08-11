@@ -9,11 +9,10 @@ import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Subscribe}
 import sp.domain.Logic._
 import sp.domain._
 import sp.domain.logic.{ActionParser, PropositionParser}
-import sp.messages.Pickles._
+import sp.domain.Logic._
 import sp.labkit.operations.{APIAbilityHandler => abapi}
 import sp.labkit.operations.{APIVirtualDevice => vdapi}
 import sp.labkit.operations.{API_OperationRunner => opAPI}
-import sp.messages.APISP
 import sp.runners.{API_OperationRunner, OperationRunnerComm}
 
 import scala.util.Try

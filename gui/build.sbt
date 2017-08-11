@@ -2,11 +2,11 @@ enablePlugins(ScalaJSPlugin)
 
 name := "spgui"
 
-version := "0.0.1"
+version := "2.1"
 
-scalaOrganization in ThisBuild := "org.typelevel"
+scalaOrganization := "org.scala-lang"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.12.3"
 
 scalacOptions  := Seq(
   "-encoding", "utf8",
@@ -18,7 +18,7 @@ scalacOptions  := Seq(
 )
 
 val scalaJSReactVersion = "1.1.0"
-val scalaCssVersion = "0.5.3-RC1"
+val scalaCssVersion = "0.5.3"
 val diodeVersion = "1.1.2"
 val scalajsGoogleChartsVersion = "0.4.1"
 
@@ -31,16 +31,14 @@ libraryDependencies ++= Seq(
   "com.github.japgolly.scalacss" %%% "ext-react" % scalaCssVersion,
   "io.suzaku" %%% "diode" % diodeVersion,
   "io.suzaku" %%% "diode-react" % diodeVersion,
-  "com.lihaoyi" %%% "upickle" % "0.4.3",
   "com.lihaoyi" %%% "scalarx" % "0.3.2",
-  "org.singlespaced" %%% "scalajs-d3" % "0.3.3",
+  "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
   "org.scalatest" %%% "scalatest" % "3.0.1" % "test",
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
-  "eu.unicredit" %%% "paths-scala-js" % "0.4.5",
+  "org.scala-lang.modules" %%% "scala-parser-combinators" % "1.0.5",
   "com.typesafe.play" %%% "play-json" % "2.6.0",
   "org.julienrf" %%% "play-json-derived-codecs" % "4.0.0",
   "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M12",
-  "org.aleastChs" % "scalajs-google-charts_2.11" % scalajsGoogleChartsVersion
+  "org.aleastChs" % "scalajs-google-charts_2.12" % scalajsGoogleChartsVersion
 )
 
 libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.2"

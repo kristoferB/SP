@@ -9,12 +9,8 @@ import org.scalajs._
 import org.scalajs.dom.ext.Ajax
 import org.scalajs.dom.raw.WebSocket
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.reflect.ClassTag
 import sp.domain._
-import sp.messages._
-import Pickles._
-
+import Logic._
 
 import spgui.communication.{APIWebSocket => socketAPI}
 
@@ -25,6 +21,7 @@ import spgui.communication.{APIWebSocket => socketAPI}
 object BackendCommunication {
   import rx._
   implicit val ctx: Ctx.Owner = Ctx.Owner.safe()
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   // Since Comm is an object, to init the communication, we have to trigger it in a method
   // Each topic has its own websocket listener. Any one of them can be used for sending to any topic
@@ -42,12 +39,12 @@ object BackendCommunication {
 
   def ask( mess: SPMessage, topic: String = "requests"): Future[SPMessage] = {
     val url = org.scalajs.dom.window.location.href + "api/ask/"+topic
-    post(toJson(mess), url)
+    post(mess.toJson, url)
   }
 
   def publish(mess: SPMessage, topic: String = "services"): Future[String] = {
     val url = org.scalajs.dom.window.location.href + "api/publish/"+topic
-    post(toJson(mess), url).map(x => "posted")
+    post(mess.toJson, url).map(x => "posted")
   }
 
   /**
@@ -117,12 +114,13 @@ object BackendCommunication {
 
   private def post(x: String, url: String) = {
     val p = Promise[SPMessage]
-    Ajax.post(url, x).onSuccess{ case xhr =>
-      val api =  fromJson[socketAPI.APIWebSocket](xhr.responseText)
-      val message =  fromJson[SPMessage](xhr.responseText)
-      p.complete(message)
-      api.map{case x => println("post got: " + x)}
-      api.recover{case x => println("post got (parse error): " + x.getMessage)}
+    Ajax.post(url, x).onComplete{
+      case Success(xhr) =>
+        val api =  SPAttributes.fromJsonGetAs[socketAPI.API](xhr.responseText)
+        val message =  SPMessage.fromJson(xhr.responseText)
+        p.complete(message)
+        api.map{case x => println("post got: " + x)}
+      case Failure(e) =>
     }
     p.future
   }
@@ -218,8 +216,8 @@ case class WebSocketHandler(uri: String) {
 
 
 
-  def getAsSPE(p: Pickle) = p.getAs[APISP.SPError]()
-  def getAsSPAPI(p: Pickle) = p.getAs[APISP]()
+  def getAsSPE(p: SPAttributes) = p.getAs[APISP.SPError]()
+  def getAsSPAPI(p: SPAttributes) = p.getAs[APISP]()
 
   val separateGeneralMessages = Rx {
     val a = convWebsocketStringToSPMessage()

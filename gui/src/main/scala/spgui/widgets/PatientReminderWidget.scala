@@ -19,8 +19,6 @@ import spgui.widgets.css.{WidgetStyles => Styles}
 import spgui.communication._
 
 import sp.domain._
-import sp.messages._
-import Pickles._
 
 import scala.concurrent.duration._
 import scala.scalajs.js
@@ -55,7 +53,7 @@ object PatientReminderWidget {
     send(api.GetState())
 
 
-    def send(mess: api.StateEvent) {
+    def send(mess: api.Event) {
       val json = ToAndFrom.make(SPHeader(from = "PatientCardsWidget", to = "WidgetService"), mess)
       BackendCommunication.publish(json, "widget-event")
     }
@@ -340,7 +338,7 @@ object PatientReminderWidget {
     def render(pmap: Map[String, apiPatient.Patient]) = {
 
       globalState{x =>
-        val filter = x()._2.attributes.get("team").map(x => x.str).getOrElse("medicin")
+        val filter = x()._2.attributes.get("team").flatMap(x => x.asOpt[String]).getOrElse("medicin")
         val pats = (pmap - "-1").filter(p => belongsToThisTeam(p._2, filter))
         var numberToDraw = 10
         var ccidsToDraw = List[String]()
@@ -394,19 +392,7 @@ object PatientReminderWidget {
 
   private val cardHolderComponent = ScalaComponent.builder[Unit]("cardHolderComponent")
     .initialState(Map("-1" ->
-      apiPatient.Patient(
-        "4502085",
-        apiPatient.Priority("NotTriaged", "2017-02-01T15:49:19Z"),
-        apiPatient.Attended(true, "SARLI29", "2017-02-01T15:58:33Z"),
-        apiPatient.Location("52", "2017-02-01T15:58:33Z"),
-        apiPatient.Team("GUL", "NAKME", "B", "2017-02-01T15:58:33Z"),
-        apiPatient.Examination(false, "2017-02-01T15:58:33Z"),
-        apiPatient.LatestEvent("OmsKoord", -1, false, "2017-02-01T15:58:33Z"),
-        apiPatient.Plan(false, "2017-02-01T15:58:33Z"),
-        apiPatient.ArrivalTime("", "2017-02-01T10:01:38Z"),
-        apiPatient.Debugging("NAKKK","B","B23"),
-        apiPatient.Finished(false, false, "2017-02-01T10:01:38Z")
-      )))
+      EricaLogic.dummyPatient))
     .renderBackend[Backend]
     // .componentDidMount(_.backend.getWidgetWidth())
     .componentDidMount(ctx => Callback(ctx.backend.setPatientObs()))

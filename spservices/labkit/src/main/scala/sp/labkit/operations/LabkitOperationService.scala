@@ -6,7 +6,7 @@ import scala.util.{Failure, Random, Success, Try}
 import sp.domain._
 import sp.domain.Logic._
 import sp.messages._
-import sp.messages.Pickles._
+import sp.domain.Logic._
 
 
 import sp.labkit.operations.{APILabkitControl => api}

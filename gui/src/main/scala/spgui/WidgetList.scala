@@ -40,18 +40,16 @@ object WidgetList {
       ("PlcHldrC",                    PlaceholderComp(),                             3, 4),
       ("SPWBTest",                    SPWidgetBaseTest(),                            3, 4),
       ("Widget with data",            widgets.examples.WidgetWithData(),             3, 4),
-      ("CommTest",                    widgets.WidgetCommTest(),                      3, 4),
       ("D3Example",                   widgets.examples.D3Example(),                  3, 4),
       ("D3ExampleServiceWidget",      widgets.examples.D3ExampleServiceWidget(),     3, 4),
-      ("ExampleServiceWidget",        ExampleServiceWidget(),                        3, 4),
-      ("ExampleServiceWidgetState",   ExampleServiceWidgetState(),                   3, 3),
-      ("OpcUAWidget",                 OpcUAWidget(),                                 5, 4),
+      ("ExampleServiceWidget",        widgets.examples.ExampleServiceWidget(),                        3, 4),
+      ("ExampleServiceWidgetState",   widgets.examples.ExampleServiceWidgetState(),                   3, 3),
+      ("OpcUAWidget",                 widgets.examples.OpcUAWidget(),                                 5, 4),
       ("Item explorer",               widgets.itemexplorer.ItemExplorer(),           3, 4),
-	  ("Item explorer tree", widgets.itemtree.ItemExplorer(), 2, 4),
+	    ("Item explorer tree", widgets.itemtree.ItemExplorer(), 2, 4),
       ("Ability Handler",             widgets.abilityhandler.AbilityHandlerWidget(), 3, 4),
       ("ServiceList",                 widgets.services.ServiceListWidget(),          3, 4),
       ("ComponentTest",               widgets.componenttest.ComponentTest(),         3, 4),      
-	  ("Settings", widgets.settings.SettingsWidget(), 2, 4),
       ("SopMaker",                    widgets.sopmaker.SopMakerWidget(),             3, 4)
     )
 

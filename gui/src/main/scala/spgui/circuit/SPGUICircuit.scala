@@ -132,13 +132,44 @@ class SettingsHandler[M](modelRW: ModelRW[M, Settings]) extends ActionHandler(mo
   }
 }
 
-import sp.messages.Pickles._
 object BrowserStorage {
+  import sp.domain._
+  import sp.domain.Logic._
+  import JsonifyUIState._
   val namespace = "SPGUIState"
-  def store(spGUIState: SPGUIModel) = LocalStorage(namespace) = write(spGUIState)
+  def store(spGUIState: SPGUIModel) = LocalStorage(namespace) = SPValue(spGUIState).toJson
   def load: Option[SPGUIModel] =
-    Try(LocalStorage(namespace) map read[SPGUIModel]) match {
-      case Success(Some(state)) => Some(state)
-      case _ => None
+    LocalStorage(namespace).flatMap(x => SPAttributes.fromJsonGetAs[SPGUIModel](x))
+}
+
+object JsonifyUIState {
+  import sp.domain._
+  import Logic._
+  import play.api.libs.json._
+
+  implicit val fTheme: JSFormat[Theme] = deriveFormatSimple[Theme]
+  implicit val fSettings: JSFormat[Settings] = deriveFormatSimple[Settings]
+  implicit val fWidgetData: JSFormat[WidgetData] = deriveFormatSimple[WidgetData]
+  implicit val fWidgetLayout: JSFormat[WidgetLayout] = deriveFormatSimple[WidgetLayout]
+  implicit val fOpenWidget: JSFormat[OpenWidget] = deriveFormatSimple[OpenWidget]
+
+  implicit lazy val openWidgetMapReads: JSReads[Map[ID, OpenWidget]] = new JSReads[Map[ID, OpenWidget]] {
+    override def reads(json: JsValue): JsResult[Map[ID, OpenWidget]] = {
+      json.validate[Map[String, SPValue]].map{xs =>
+        def isCorrect(k: String, v: SPValue) = ID.isID(k) && v.to[OpenWidget].isSuccess
+        xs.collect{case (k, v) if isCorrect(k, v) => ID.makeID(k).get -> v.to[OpenWidget].get}}
     }
+  }
+  implicit lazy val openWidgetMapWrites: JSWrites[Map[ID, OpenWidget]] = new OWrites[Map[ID, OpenWidget]] {
+    override def writes(xs: Map[ID, OpenWidget]): JsObject = {
+      val toFixedMap = xs.map{case (k, v) => k.toString -> SPValue(v)}
+      JsObject(toFixedMap)
+    }
+  }
+
+
+  implicit val fOpenWidgets: JSFormat[OpenWidgets] = deriveFormatSimple[OpenWidgets]
+  implicit val fGlobalState: JSFormat[GlobalState] = deriveFormatSimple[GlobalState]
+  implicit val fSPGUIModel: JSFormat[SPGUIModel] = deriveFormatSimple[SPGUIModel]
+
 }

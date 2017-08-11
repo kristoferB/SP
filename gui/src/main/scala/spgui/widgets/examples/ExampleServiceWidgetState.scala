@@ -11,16 +11,18 @@ import scala.util.{Random, Try}
 
   // Import this to make SPAttributes work including json handling
   import sp.domain._
-  import sp.messages._
-  import Pickles._
+  import Logic._
 
 
-  import spgui.widgets.examples.{API_ExampleService => api}
+  import spgui.widgets.examples.{APIExampleService => api}
 
 
   object ExampleServiceWidgetState {
     case class Pie(id: UUID, map: Map[String, Int])
     case class State(pie: Option[Pie], otherPies: List[UUID], brodcast: Int = 0)
+    implicit val fExamplePie: JSFormat[Pie] = deriveFormatSimple[Pie]
+    implicit val fExampleState: JSFormat[State] = deriveFormatSimple[State]
+
 
     private class Backend($: BackendScope[SPWidgetBase, State]) {
 
@@ -29,7 +31,7 @@ import scala.util.{Random, Try}
           //println(s"The widget example got: $mess" +s"parsing: ${mess.getBodyAs[api.API_ExampleService]}")
           val s = $.state.runNow()
           val pieID = s.pie.map(_.id).getOrElse(UUID.randomUUID())
-          val updState = mess.getBodyAs[api.API_ExampleService].map {
+          val updState = mess.getBodyAs[api.Response].map {
             case api.TickerEvent(m, id) =>
               if (id == pieID) {
                 val p = Pie(id, m)
@@ -83,7 +85,7 @@ import scala.util.{Random, Try}
 
           <.button(
             ^.className := "btn btn-default",
-            ^.onClick --> send(api.ResetAllTickers()), "Reset all Pies"
+            ^.onClick --> send(api.ResetAllTickers), "Reset all Pies"
           ),
           <.br(),
           <.button(
@@ -115,8 +117,8 @@ import scala.util.{Random, Try}
       }
 
 
-      def send(mess: api.API_ExampleService): Callback = {
-        val h = SPHeader(from = "ExampleServiceWidget", to = api.attributes.service, reply = SPValue("ExampleServiceWidget"))
+      def send(mess: api.Request): Callback = {
+        val h = SPHeader(from = "ExampleServiceWidget", to = api.service, reply = SPValue("ExampleServiceWidget"))
 
         val json = SPMessage.make(h, mess) // *(...) is a shorthand for toSpValue(...)
         BackendCommunication.publish(json, "services")
@@ -135,7 +137,7 @@ import scala.util.{Random, Try}
     }
 
     def initState(spwb: SPWidgetBase): State = {
-      spwb.getWidgetData.getAs[State]().getOrElse(State(None, List()))
+      spwb.getWidgetData.to[State].getOrElse(State(None, List()))
     }
 
     private val component = ScalaComponent.builder[SPWidgetBase]("ExampleServiceWidget")
