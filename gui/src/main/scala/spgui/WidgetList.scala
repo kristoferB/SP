@@ -1,13 +1,13 @@
 package spgui
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import spgui.widgets.examples._
 
 
 object WidgetList {
   val list =
-    List[(String, SPWidgetBase => ReactElement, Int, Int)](
+    List[(String, SPWidgetBase => VdomElement, Int, Int)](
       ("Grid Test", spgui.dashboard.GridTest(), 5, 5),
       ("Widget Injection", widgets.injection.WidgetInjectionTest(), 2, 2),
       ("Item Editor", widgets.itemeditor.ItemEditor(), 2, 2),
@@ -37,7 +37,7 @@ object WidgetList {
 }
 
 object PlaceholderComp {
-  val component = ReactComponentB[Unit]("PlaceholderComp")
+  val component = ScalaComponent.builder[Unit]("PlaceholderComp")
     .render(_ => <.h2("placeholder"))
     .build
 

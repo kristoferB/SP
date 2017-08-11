@@ -1744,7 +1744,7 @@ $c_Ljapgolly_scalajs_react_ReactComponentB.prototype.init___T__F1__s_Option__F1_
 });
 var $d_Ljapgolly_scalajs_react_ReactComponentB = new $TypeData().initClass({
   Ljapgolly_scalajs_react_ReactComponentB: 0
-}, false, "japgolly.scalajs.react.ReactComponentB", {
+}, false, "japgolly.scalajs.react.ScalaComponent.builder", {
   Ljapgolly_scalajs_react_ReactComponentB: 1,
   O: 1
 });

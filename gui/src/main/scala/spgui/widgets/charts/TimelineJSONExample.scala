@@ -7,7 +7,7 @@ package spgui.widgets.charts
 import javax.xml.stream.events.{EndDocument, StartDocument}
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 
 import scala.reflect.ClassTag
 import org.scalajs.dom.document
@@ -15,8 +15,9 @@ import org.scalajs.dom.html.Div
 
 import scalajs.js
 import spgui.communication._
-import spgui.googleCharts.GoogleChartsLoaded
-import spgui.googleCharts.timeline._
+import aleastchs.googleCharts.helpers.chartsHelp.{GoogleChartsLoaded, TimelineRow, TimelineHelper}
+import aleastchs.googleCharts.helpers.chartsHelp._
+
 /*
  * TODO: Remove debugging messages
  */
@@ -124,7 +125,7 @@ object TimelineJSONExample {
 
   // Create a value component of type:
   //                                  ReactComponent
-  private val component = ReactComponentB[Unit]("TimelineWidget")
+  private val component = ScalaComponent.builder[Unit]("TimelineWidget")
     .initialState(// Set the initial state
       State(
         zoom = "default"

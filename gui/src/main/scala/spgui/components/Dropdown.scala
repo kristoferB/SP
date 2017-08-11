@@ -1,16 +1,16 @@
 package spgui.components
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.vdom.all.aria
 
 object Dropdown {
   case class Props(
     label:String,
     tags: Option[Seq[TagMod]] = None,
-    contents: Seq[ReactNode])
+    contents: Seq[VdomNode])
 
-  private val component = ReactComponentB[Props]("Dropdown")
+  private val component = ScalaComponent.builder[Props]("Dropdown")
     .render_P(p =>
         <.div(SPButton(p.label,
           <.span(^.className:="caret " +ComponentCSS.buttonCaret.htmlClass ),
@@ -28,10 +28,10 @@ object Dropdown {
     )
     .build
 
-  def apply(label:String, tags:Seq[TagMod], contents: ReactNode*) =
+  def apply(label:String, tags:Seq[TagMod], contents: VdomNode*) =
     component(Props(label, Some(tags), contents.toSeq ))
 
-  // def apply(label:String, contents: ReactNode*) =
+  // def apply(label:String, contents: VdomNode*) =
   //   component(Props(label, None, contents.toSeq))
 
 }

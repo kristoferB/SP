@@ -1,7 +1,7 @@
 package spgui.widgets.charts
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 
 import scalajs.js
 import scalajs.js.Dynamic
@@ -79,7 +79,7 @@ object ChartTest {
 
   }
 
-  private val component = ReactComponentB[Unit]("ChartTest")
+  private val component = ScalaComponent.builder[Unit]("ChartTest")
     .initialState(State(x = 5))
     .renderBackend[Backend]
     .componentDidMount(_.backend.onMount())

@@ -1,7 +1,7 @@
 package spgui.widgets.examples
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 
 import spgui.SPWidget
 import spgui.components.DragAndDrop.{ OnDragMod, OnDropMod }
@@ -13,7 +13,7 @@ object DragAndDrop {
                           )
 
   private class MyBackend($: BackendScope[Unit, State]) {
-    def handleDrag(s: State)(e: ReactDragEventI): Callback = {
+    def handleDrag(s: State)(e: ReactDragEventFromInput): Callback = {
       Callback({
         e.dataTransfer.setData("json", s.name)
       })
@@ -27,7 +27,7 @@ object DragAndDrop {
       )
     }
     
-    def handleNameChange(s: State)(e: ReactEventI) =
+    def handleNameChange(s: State)(e: ReactEventFromInput) =
       $.setState(s.copy(
         name = e.target.value
       ))
@@ -55,7 +55,7 @@ object DragAndDrop {
       )
   }
 
-  private val component = ReactComponentB[Unit]("DragAndDrop")
+  private val component = ScalaComponent.builder[Unit]("DragAndDrop")
     .initialState(
     State(
       name = "default",

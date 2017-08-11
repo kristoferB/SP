@@ -41,7 +41,7 @@ object SopMakerWidget {
       "events"
     )
 
-    def handleDrag(drag: String)(e: ReactDragEventI): Callback = {
+    def handleDrag(drag: String)(e: ReactDragEventFromInput): Callback = {
       Callback({
         e.dataTransfer.setData("json", drag)
       })
@@ -98,7 +98,7 @@ object SopMakerWidget {
 
   }
 
-  private val component = ReactComponentB[Unit]("SopMakerWidget")
+  private val component = ScalaComponent.builder[Unit]("SopMakerWidget")
     .initialState(State(drag = "", drop = "", sop = List()))
     .renderBackend[Backend]
     .componentWillUnmount(_.backend.onUnmount())

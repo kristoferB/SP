@@ -1,16 +1,16 @@
 package spgui.menu
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 
 import org.scalajs.dom._
 
 object NavBar {
   case class Props (
-    navItems: Option[Seq[ReactNode]] = None
+    navItems: Option[Seq[VdomNode]] = None
   )
 
-  private val component = ReactComponentB[Props]("WidgetItem")
+  private val component = ScalaComponent.builder[Props]("WidgetItem")
   .render_P(p =>
     <.div(
       <.div(
@@ -28,6 +28,6 @@ object NavBar {
     )
   ).build
 
-  def apply(navItems:Seq[ReactNode]) = component(Props(Some(navItems)))
+  def apply(navItems:Seq[VdomNode]) = component(Props(Some(navItems)))
 
 }

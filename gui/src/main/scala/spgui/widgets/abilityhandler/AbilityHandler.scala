@@ -2,7 +2,7 @@ package spgui.widgets.abilityhandler
 
 import java.util.UUID
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import spgui.communication._
 import sp.domain._
 import sp.messages._
@@ -152,7 +152,7 @@ object AbilityHandlerWidget {
     }
   }
 
-  private val component = ReactComponentB[Unit]("AbilityHandlerWidget")
+  private val component = ScalaComponent.builder[Unit]("AbilityHandlerWidget")
     .initialState(State(resources = List(), abilities = List(), abilityState = Map()))
     .renderBackend[Backend]
     .componentWillUnmount(_.backend.onUnmount())

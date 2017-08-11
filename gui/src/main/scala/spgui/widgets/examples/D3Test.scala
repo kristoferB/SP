@@ -1,7 +1,7 @@
 package spgui.widgets.examples
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.ReactDOM
 
 import spgui.SPWidget
@@ -18,7 +18,7 @@ object D3Example {
     component()
   }
 
-  private val component = ReactComponentB[Unit]("D3Example")
+  private val component = ScalaComponent.builder[Unit]("D3Example")
     .initialState(List.fill(8)(nextInt(50)))
     .render{dcb =>
       <.div(
@@ -33,7 +33,7 @@ object D3Example {
 object D3BarsComponent {
   def apply(data: List[Int]) = component(data)
 
-  private val component = ReactComponentB[List[Int]]("d3DivComponent")
+  private val component = ScalaComponent.builder[List[Int]]("d3DivComponent")
     .render(_ => <.div())
     .componentDidUpdate(dcb => Callback(addTheD3(ReactDOM.findDOMNode(dcb.component), dcb.currentProps)))
     .build

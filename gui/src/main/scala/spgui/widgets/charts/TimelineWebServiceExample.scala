@@ -3,7 +3,7 @@ package spgui.widgets.charts {
   import java.util.UUID
 
   import japgolly.scalajs.react._
-  import japgolly.scalajs.react.vdom.prefix_<^._
+  import japgolly.scalajs.react.vdom.html_<^._
 
 
   import spgui.communication._
@@ -110,7 +110,7 @@ package spgui.widgets.charts {
     }
 
 
-    private val component = ReactComponentB[Unit]("TimelineService")
+    private val component = ScalaComponent.builder[Unit]("TimelineService")
       .initialState(State(None, List(), "100%"))
       .renderBackend[Backend]
       .componentWillUnmount(_.backend.onUnmount())

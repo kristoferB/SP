@@ -1,14 +1,14 @@
 package spgui.dashboard
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 
 import spgui.circuit.{ SPGUICircuit, CloseWidget }
 import spgui.components.{Icon,SPButton}
 
 object DashboardItem {
-  case class Props(element: ReactElement, widgetType: String, id: java.util.UUID)
-  private val component = ReactComponentB[Props]("Widget")
+  case class Props(element: VdomElement, widgetType: String, id: java.util.UUID)
+  private val component = ScalaComponent.builder[Props]("Widget")
     .render_P(props =>
       <.div(
         ^.className := DashboardCSS.widgetPanel.htmlClass,
@@ -32,6 +32,6 @@ object DashboardItem {
     ).build
 
 
-  def apply(element: ReactElement, widgetType: String,id: java.util.UUID) =
+  def apply(element: VdomElement, widgetType: String,id: java.util.UUID) =
     component(Props(element, widgetType, id))
 }

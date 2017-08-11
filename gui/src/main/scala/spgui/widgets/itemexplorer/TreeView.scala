@@ -1,19 +1,20 @@
 package spgui.widgets.itemexplorer
 
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.raw.VdomNode
+import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.vdom.all.aria
-import scalacss.ScalaCssReact._
 
-import spgui.components.DragAndDrop.{ DataOnDrag, OnDataDrop }
-import spgui.components.{ Icon, Dropdown,SPButton }
+import scalacss.ScalaCssReact._
+import spgui.components.DragAndDrop.{DataOnDrag, OnDataDrop}
+import spgui.components.{Dropdown, Icon, SPButton}
 
 object TreeView {
   case class TreeViewProps(
     rootDirectory: RootDirectory,
     itemCreators: Seq[(String, () => DirectoryItem)],
-    getItemIcon: DirectoryItem => ReactNode,
-    renderContent: DirectoryItem => ReactNode,
+    getItemIcon: DirectoryItem => VdomNode,
+    renderContent: DirectoryItem => VdomNode,
     onSaveButtonClick: RootDirectory => Callback
   )
 
@@ -30,7 +31,7 @@ object TreeView {
     def onDrop(senderId: String, receiverId: String) =
         $.modState(s => s.copy(s.rt.moveItem(senderId, receiverId)))
 
-    def onFilterTextChange(e :ReactEventI): CallbackTo[Unit] =
+    def onFilterTextChange(e :ReactEventFromInput): CallbackTo[Unit] =
         e.extract(_.target.value)(searchText => { $.state >>= (p => ( filter(searchText,p.rt)))  })
 
     private def filter(s:String,rts:RootDirectory) = {
@@ -78,7 +79,7 @@ object TreeView {
       )
   }
 
-  private val component = ReactComponentB[TreeViewProps]("TreeView")
+  private val component = ScalaComponent.builder[TreeViewProps]("TreeView")
     .initialState_P(p => TreeViewState(p.rootDirectory, p.rootDirectory.items.map(item => item.id) ) )
     .renderBackend[TreeViewBackend]
     .build
@@ -86,10 +87,10 @@ object TreeView {
   def apply(
     rootDirectory: RootDirectory,
     itemCreators: Seq[(String, () => DirectoryItem)],
-    getItemIcon: DirectoryItem => ReactNode,
-    renderContent: DirectoryItem => ReactNode,
+    getItemIcon: DirectoryItem => VdomNode,
+    renderContent: DirectoryItem => VdomNode,
     onSaveButtonClick: RootDirectory => Callback
-  ): ReactElement =
+  ): VdomElement =
     component(TreeViewProps(rootDirectory, itemCreators, getItemIcon, renderContent, onSaveButtonClick))
 
 }
@@ -98,8 +99,8 @@ object TVColumn {
   case class TVColumnProps(
     items: Seq[DirectoryItem],
     itemIds: Seq[String],
-    getItemIcon: DirectoryItem => ReactNode,
-    renderContent: DirectoryItem => ReactNode,
+    getItemIcon: DirectoryItem => VdomNode,
+    renderContent: DirectoryItem => VdomNode,
     onDrop: (String, String) => Callback,
     visIds : Seq[String]
   )
@@ -144,7 +145,7 @@ object TVColumn {
       )
   }
 
-  val component = ReactComponentB[TVColumnProps]("TVColumn")
+  val component = ScalaComponent.builder[TVColumnProps]("TVColumn")
     .initialState(TVColumnState())
     .renderBackend[TVColumnBackend]
     .build
@@ -152,10 +153,10 @@ object TVColumn {
   def apply(
     items: Seq[DirectoryItem],
     itemIds: Seq[String],
-    getItemIcon: DirectoryItem => ReactNode,
-    renderContent: DirectoryItem => ReactNode,
+    getItemIcon: DirectoryItem => VdomNode,
+    renderContent: DirectoryItem => VdomNode,
     onDrop: (String, String) => Callback,
     visIds : Seq[String]
-  ): ReactElement =
+  ): VdomElement =
     component(TVColumnProps(items, itemIds, getItemIcon, renderContent, onDrop,visIds))
 }

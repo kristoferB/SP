@@ -4,7 +4,7 @@ import japgolly.scalajs.react._
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSName
 import scala.scalajs.js.Dynamic._
-import japgolly.scalajs.react.vdom.prefix_<^._
+import japgolly.scalajs.react.vdom.html_<^._
 
 import scalacss.Defaults._
 
@@ -31,7 +31,7 @@ object GridTest {
 object Grid {
   CSS.addToDocument()
 
-  val component = ReactComponentB[Unit]("Grid")
+  val component = ScalaComponent.builder[Unit]("Grid")
     .render(_ =>
     <.div(
       ^.className:=CSS.dashboard.htmlClass,
@@ -61,7 +61,7 @@ object ReactGridLayoutItem {
     static: js.UndefOr[Boolean] = false,
     isDraggable: js.UndefOr[Boolean] = true,
     isResizable: js.UndefOr[Boolean] = true,
-    child: ReactNode
+    child: VdomNode
   ) = {
     def jsObject: js.Object = {
       val p = js.Dynamic.literal()
@@ -136,7 +136,7 @@ object ReactGridLayout {
   def apply(
     width: Int,
     draggableHandle: String,
-    onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit, children: ReactNode*) = {
+    onLayoutChange: (js.Array[js.Object with js.Dynamic]) => Unit, children: VdomNode*) = {
     // access real js component
     val f = React.asInstanceOf[js.Dynamic].createFactory(ReactGridLayoutJS)
     val facade = ReactGridLayoutFacade(Props(
