@@ -1,6 +1,6 @@
 package spgui.widgets.sopmaker
 
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 import spgui.theming.Theming
 
 object SopMakerCSS extends Theming.SPStyleSheet {

@@ -778,7 +778,6 @@ trait JsonDerived{
   def deriveFormatSimple[A](implicit derivedReads: Lazy[DerivedReads[A]], derivedOWrites: Lazy[DerivedOWrites[A]]): OFormat[A] =
     OFormat(derivedReads.value.reads(TypeTagReads.nested, NameAdapter.identity), derivedOWrites.value.owrites(TypeTagOWrites.nested, NameAdapter.identity))
 
-
   def deriveFormatISA[A](implicit derivedReads: Lazy[DerivedReads[A]], derivedOWrites: Lazy[DerivedOWrites[A]]): OFormat[A] =
     OFormat(derivedReads.value.reads(TypeTagReads.flat(jsonISA), NameAdapter.identity), derivedOWrites.value.owrites(TypeTagOWrites.flat(jsonISA), NameAdapter.identity))
 
@@ -787,6 +786,14 @@ trait JsonDerived{
 
  def deriveWriteISA[A](implicit derivedOWrites: Lazy[DerivedOWrites[A]]): OWrites[A] =
      derivedOWrites.value.owrites(TypeTagOWrites.flat(jsonISA), NameAdapter.identity)
+
+
+
+
+  // testing simplified
+  //def deriveSPFormatClass[T] = Json.format
+
+
 
 
 }

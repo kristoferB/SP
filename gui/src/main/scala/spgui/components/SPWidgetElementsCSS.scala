@@ -1,6 +1,6 @@
 package spgui.components
 
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 import spgui.theming.Theming.SPStyleSheet
 
 object SPWidgetElementsCSS extends SPStyleSheet {

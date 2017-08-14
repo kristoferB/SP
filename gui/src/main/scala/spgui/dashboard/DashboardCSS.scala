@@ -1,6 +1,6 @@
 package spgui.dashboard
 
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 import spgui.theming.Theming.SPStyleSheet
 
 object DashboardCSS extends SPStyleSheet {

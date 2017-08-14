@@ -1,6 +1,6 @@
 package spgui.menu
 
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 import spgui.circuit.SPGUICircuit
 import spgui.theming.Theming.SPStyleSheet
 

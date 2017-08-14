@@ -1,6 +1,6 @@
 package spgui.widgets.itemeditor
 
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 
 object ItemEditorCSS extends StyleSheet.Inline {
   import dsl._

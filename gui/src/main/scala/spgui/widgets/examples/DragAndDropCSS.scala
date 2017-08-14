@@ -1,6 +1,6 @@
 package spgui.widgets.examples
 
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 
 object DragAndDropCSS extends StyleSheet.Inline {
   import dsl._

@@ -1,6 +1,6 @@
 package spgui.theming
 
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 
 object Theming {
   trait SPStyleSheet extends StyleSheet.Inline {

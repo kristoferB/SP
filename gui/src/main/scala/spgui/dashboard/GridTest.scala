@@ -7,7 +7,7 @@ import js.Dynamic._
 import js.JSConverters._
 import japgolly.scalajs.react.vdom.html_<^._
 
-import scalacss.Defaults._
+import scalacss.DevDefaults._
 
 import spgui.SPWidget
 import spgui.dashboard.{ ResponsiveReactGridLayout => RRGL }

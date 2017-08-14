@@ -1,6 +1,8 @@
 package spgui.widgets.abilityhandler
 
 import java.util.UUID
+
+import julienrf.json.derived.TypeTagOWrites
 import sp.domain._
 import sp.domain.Logic._
 
@@ -38,14 +40,33 @@ object APIVirtualDevice {
   case class Resource(name: String, id: ID, things: Set[ID], stateMap: List[DriverStateMapper], setup: SPAttributes, sendOnlyDiffs: Boolean = false)
   case class Driver(name: String, id: ID, driverType: String, setup: SPAttributes)
 
+  import play.api.libs.json._
 
-  implicit lazy val fDriver: JSFormat[Driver] = deriveFormatISA[Driver]
-  implicit lazy val fResource: JSFormat[Resource] = deriveFormatISA[Resource]
+  implicit lazy val fDriver: JSFormat[Driver] = Json.format[Driver]
+  implicit lazy val fResource: JSFormat[Resource] = Json.format[Resource]
+
+  implicit lazy val fSetUpDeviceDriver: JSFormat[SetUpDeviceDriver] = Json.format[SetUpDeviceDriver]
+  implicit lazy val fSetUpResource:     JSFormat[SetUpResource]     = Json.format[SetUpResource]
+  implicit lazy val fGetResources:     JSFormat[GetResources]     = deriveFormatISA[GetResources]
+  implicit lazy val fOneToOneMapper:     JSFormat[OneToOneMapper]     = Json.format[OneToOneMapper]
+  implicit lazy val fResourceCommand:     JSFormat[ResourceCommand]     = Json.format[ResourceCommand]
+  implicit lazy val fDriverStateChange:     JSFormat[DriverStateChange]     = Json.format[DriverStateChange]
+  implicit lazy val fDriverCommand:     JSFormat[DriverCommand]     = Json.format[DriverCommand]
+  implicit lazy val fDriverCommandDone:     JSFormat[DriverCommandDone]     = Json.format[DriverCommandDone]
+  implicit lazy val fStateEvent:     JSFormat[StateEvent]     = Json.format[StateEvent]
+  implicit lazy val fResources:     JSFormat[Resources]     = Json.format[Resources]
+  implicit lazy val fDrivers:     JSFormat[Drivers]     = Json.format[Drivers]
+  implicit lazy val fNewResource:     JSFormat[NewResource]     = Json.format[NewResource]
+  implicit lazy val fRemovedResource:     JSFormat[RemovedResource]     = Json.format[RemovedResource]
+  implicit lazy val fNewDriver:     JSFormat[NewDriver]     = Json.format[NewDriver]
+  implicit lazy val fRemovedDriver:     JSFormat[RemovedDriver]     = Json.format[RemovedDriver]
+  
+
   object Request {
-    implicit lazy val fVirtualDeviceRequest: JSFormat[Request] = deriveFormatISA[Request]
+    implicit lazy val fVirtualDeviceRequest: JSFormat[Request] = Json.format[Request]
   }
   object Response {
-    implicit lazy val fVirtualDeviceResponse: JSFormat[Response] = deriveFormatISA[Response]
+    implicit lazy val fVirtualDeviceResponse: JSFormat[Response] = Json.format[Response]
   }
   object DriverStateMapper {
     implicit lazy val fDriverStateMapper: JSFormat[DriverStateMapper] = deriveFormatISA[DriverStateMapper]
@@ -58,26 +79,26 @@ object APIAbilityHandler {
   sealed trait Response
   val service = "abilityHandler"
 
-  case class StartAbility(id: ID, params: Map[ID, SPValue] = Map(), attributes: SPAttributes = SPAttributes()) extends Request
-  case class ForceResetAbility(id: ID) extends Request
+  final case class StartAbility(id: ID, params: Map[ID, SPValue] = Map(), attributes: SPAttributes = SPAttributes()) extends Request
+  final case class ForceResetAbility(id: ID) extends Request
   case object ForceResetAllAbilities extends Request
 
   // to be used when handshake is on
-  case class ExecuteCmd(cmd: ID) extends Request
+  final case class ExecuteCmd(cmd: ID) extends Request
 
   case object GetAbilities extends Request
-  case class SetUpAbility(ability: Ability, handshake: Boolean = false) extends Request
+  final case class SetUpAbility(ability: Ability, handshake: Boolean = false) extends Request
 
 
 
-  case class CmdID(cmd: ID) extends Response
-  case class AbilityStarted(id: ID) extends Response
-  case class AbilityCompleted(id: ID, result: Map[ID, SPValue]) extends Response
-  case class AbilityState(id: ID, state: Map[ID, SPValue]) extends Response
-  case class Abilities(xs: List[Ability]) extends Response
-  case class Abs(a: List[(ID,String)]) extends Response
+  final case class CmdID(cmd: ID) extends Response
+  final case class AbilityStarted(id: ID) extends Response
+  final case class AbilityCompleted(id: ID, result: Map[ID, SPValue]) extends Response
+  final case class AbilityState(id: ID, state: Map[ID, SPValue]) extends Response
+  final case class Abilities(xs: List[Ability]) extends Response
+  final case class Abs(a: List[(ID,String)]) extends Response
 
-  case class Ability(name: String,
+  final case class Ability(name: String,
                      id: ID,
                      preCondition: Condition = Condition(AlwaysFalse, List()),
                      started: Condition = Condition(AlwaysFalse, List()),
@@ -88,12 +109,75 @@ object APIAbilityHandler {
                      attributes: SPAttributes = SPAttributes())
 
 
-  implicit lazy val fAbility: JSFormat[Ability] = deriveFormatISA[Ability]
-  //implicit lazy val fAbilityState: JSReads[AbilityState] = deriveReadISA[AbilityState]
-  object Request {
-    implicit lazy val fExampleServiceRequest: JSFormat[Request] = deriveFormatISA[Request]
-  }
+
+  import play.api.libs.json._
+  import play.api.libs.json.Reads._
+
+
+  implicit lazy val fAbility: JSFormat[Ability] = Json.format[Ability]
+  // handcrafting json due to too large macro-generation in scalajs
   object Response {
-    implicit lazy val fExampleServiceResponse: JSFormat[Response] = deriveFormatISA[Response]
+    val fCmdID: JSFormat[CmdID] = Json.format[CmdID]
+    val fAbilityStarted: JSFormat[AbilityStarted] = Json.format[AbilityStarted]
+    val fAbilityCompleted: JSFormat[AbilityCompleted] = Json.format[AbilityCompleted]
+    val fAbilityState: JSFormat[AbilityState] = Json.format[AbilityState]
+    val fAbilities: JSFormat[Abilities] = Json.format[Abilities]
+    val fAbs: JSFormat[Abs] = Json.format[Abs]
+    implicit lazy val fExampleServiceRequest: JSFormat[Response] = new JSFormat[Response] {
+
+      override def reads(json: SPValue): JsResult[Response] = {
+        (JsPath \ "isa").read[String].reads(json).flatMap{
+          case "CmdID" => json.validate[CmdID](fCmdID)
+          case "AbilityStarted" =>json.validate[AbilityStarted](fAbilityStarted)
+          case "AbilityCompleted" => json.validate[AbilityCompleted](fAbilityCompleted)
+          case "AbilityState" => json.validate[AbilityState](fAbilityState)
+          case "Abilities" => json.validate[Abilities](fAbilities)
+          case "Abs" => json.validate[Abs](fAbs)
+        }
+      }
+
+      override def writes(o: Response): SPValue = {
+        o match {
+          case x: CmdID => SPValue(x)(fCmdID)
+          case x: AbilityStarted => SPValue(x)(fAbilityStarted)
+          case x: AbilityCompleted => SPValue(x)(fAbilityCompleted)
+          case x: AbilityState => SPValue(x)(fAbilityState)
+          case x: Abilities => SPValue(x)(fAbilities)
+          case x: Abs => SPValue(x)(fAbs)
+        }
+      }
+    }
+  }
+
+
+  object Request {
+    val fStartAbility: JSFormat[StartAbility] = Json.format[StartAbility]
+    val fSetUpAbility: JSFormat[SetUpAbility] = Json.format[SetUpAbility]
+    val fForceResetAbility: JSFormat[ForceResetAbility] = Json.format[ForceResetAbility]
+    val fExecuteCmd: JSFormat[ExecuteCmd] = Json.format[ExecuteCmd]
+    implicit lazy val fExampleServiceRequest: JSFormat[Request] = new JSFormat[Request] {
+
+      override def reads(json: SPValue): JsResult[Request] = {
+        (JsPath \ "isa").read[String].reads(json).flatMap{
+          case "StartAbility" => json.validate[StartAbility](fStartAbility)
+          case "ForceResetAbility" =>json.validate[ForceResetAbility](fForceResetAbility)
+          case "ForceResetAllAbilities " =>JsSuccess(ForceResetAllAbilities)
+          case "ExecuteCmd" => json.validate[SetUpAbility](fSetUpAbility)
+          case "GetAbilities" => JsSuccess(GetAbilities)
+          case "SetUpAbility" => json.validate[ExecuteCmd](fExecuteCmd)
+        }
+      }
+
+      override def writes(o: Request): SPValue = {
+        o match {
+          case x: StartAbility => SPValue(x)(fStartAbility)
+          case x: ForceResetAbility => SPValue(x)(fForceResetAbility)
+          case ForceResetAllAbilities => SPAttributes("isa"-> "ForceResetAllAbilities")
+          case x: ExecuteCmd => SPValue(x)(fExecuteCmd)
+          case GetAbilities => SPAttributes("isa"-> "GetAbilities")
+          case x: SetUpAbility => SPValue(x)(fSetUpAbility)
+        }
+      }
+    }
   }
 }
