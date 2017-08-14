@@ -9,12 +9,13 @@ import spgui.dashboard.Dashboard
 
 object Layout {
   val widgetsConnection = SPGUICircuit.connect(x => (x.openWidgets.xs, x.globalState))
+  val menuConnection = SPGUICircuit.connect(x => (x.settings))
 
   val component = ScalaComponent.builder[Unit]("Layout")
     .render(_ =>
       <.div(
         ^.className := GlobalCSS.layout.htmlClass,
-        SPMenu(),
+        menuConnection(SPMenu(_)),
         widgetsConnection(Dashboard(_))
       )
     )
