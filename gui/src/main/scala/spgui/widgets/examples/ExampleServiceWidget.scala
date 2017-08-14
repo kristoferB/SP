@@ -87,11 +87,11 @@ package spgui.widgets.examples {
       def render(s: State) = {
         <.div(
           <.h1(s"The Pie ID:"),
-          s.pie.toList.map { p => <.div(p.id.toString) },
-          s.pie.toList.flatMap { p => p.map.map { case (key, v) => <.div(key + "--" + v.toString) } },
+          s.pie.toList.map { p => <.div(p.id.toString) }.toTagMod,
+          s.pie.toList.flatMap { p => p.map.map { case (key, v) => <.div(key + "--" + v.toString) } }.toTagMod,
           <.br(),
           <.h1("Other pies"),
-          s.otherPies.map { id => <.div(id.toString) },
+          s.otherPies.map { id => <.div(id.toString) }.toTagMod,
           <.br(),
 
           <.button(

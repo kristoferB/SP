@@ -73,11 +73,11 @@ package spgui.widgets.charts {
       def render(s: State) = {
         <.div(
           <.h1("Gantt ID:"),
-          s.gantt.toList.map { p => <.div(p.id.toString) },
-          s.gantt.toList.flatMap { p => p.map.map { case (key, v) => <.div(key + "--" + v.toString) } },
+          s.gantt.toList.map { p => <.div(p.id.toString) }.toTagMod,
+          s.gantt.toList.flatMap { p => p.map.map { case (key, v) => <.div(key + "--" + v.toString) } }.toTagMod,
           <.br(),
           <.h1("Other gantts"),
-          s.otherGantts.map { id => <.div(id.toString) },
+          s.otherGantts.map { id => <.div(id.toString) }.toTagMod,
           <.button(
             ^.className := "btn btn-default",
             ^.onClick --> send(api_t.StartTheTicker(ganttID)), "Create Gantt"

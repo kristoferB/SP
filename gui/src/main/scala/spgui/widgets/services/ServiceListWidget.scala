@@ -60,7 +60,7 @@ object ServiceListWidget {
               <.td(s.api.toString()),
               <.td(s.version)
             )
-          })
+          }).toTagMod
         )
       )
     }

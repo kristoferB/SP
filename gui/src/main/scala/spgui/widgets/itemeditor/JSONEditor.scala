@@ -17,7 +17,7 @@ object JSONEditor {
   case class Props(options: JSONEditorOptions, json: js.Object)
 
   val component = ScalaComponent.builder[Props]("JSONEditor")
-    .initialState_P(p => JSONEditorElement(p.options, p.json))
+    .initialStateFromProps(p => JSONEditorElement(p.options, p.json))
     .render(dcb => dcb.state)
     .build
 

@@ -7,6 +7,7 @@ import scalajs.js
 import js.Dynamic.{ literal => l }
 
 import spgui.SPWidgetBase
+import spgui.SPWidget
 import sp.domain.SPValue
 // TODO: function to convert SPValue to JSONEditor-props
 
@@ -54,5 +55,5 @@ object ItemEditor {
     .render_P(p => <.div(ItemEditorCSS.editor, JSONEditor(jsonEditorOptions, json)))
     .build
 
-  def apply() = (spwb: SPWidgetBase) => component(spwb)
+  def apply() = SPWidget(spwb => component(spwb))
 }

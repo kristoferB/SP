@@ -82,7 +82,7 @@ object AbilityHandlerWidget {
             <.tr(
               <.td(r.name)
             )
-          })
+          }).toTagMod
         )
       )
     }
@@ -123,7 +123,7 @@ object AbilityHandlerWidget {
                 ^.onClick --> sendToAB(abapi.ForceResetAbility(a.id)), "Reset"
               ))
             )
-          })
+          }).toTagMod
         )
       )
     }
