@@ -56,7 +56,7 @@ object AbilityHandlerWidget {
         <.br(),
         <.button(
           ^.className := "btn btn-default",
-          ^.onClick --> sendToVD(vdapi.GetResources()), "Get resources"
+          ^.onClick --> sendToVD(vdapi.GetResources), "Get resources"
         ),
         <.button(
           ^.className := "btn btn-default",

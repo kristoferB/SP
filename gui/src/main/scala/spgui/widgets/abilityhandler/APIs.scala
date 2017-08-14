@@ -13,7 +13,7 @@ object APIVirtualDevice {
   // requests setup
   case class SetUpDeviceDriver(driver: Driver) extends Request
   case class SetUpResource(resource: Resource) extends Request
-  case class GetResources() extends Request
+  case object GetResources extends Request
 
   sealed trait DriverStateMapper
   case class OneToOneMapper(thing: ID, driverID: ID, driverIdentifier: String) extends DriverStateMapper
@@ -45,29 +45,81 @@ object APIVirtualDevice {
   implicit lazy val fDriver: JSFormat[Driver] = Json.format[Driver]
   implicit lazy val fResource: JSFormat[Resource] = Json.format[Resource]
 
-  implicit lazy val fSetUpDeviceDriver: JSFormat[SetUpDeviceDriver] = Json.format[SetUpDeviceDriver]
-  implicit lazy val fSetUpResource:     JSFormat[SetUpResource]     = Json.format[SetUpResource]
-  implicit lazy val fGetResources:     JSFormat[GetResources]     = deriveFormatISA[GetResources]
-  implicit lazy val fOneToOneMapper:     JSFormat[OneToOneMapper]     = Json.format[OneToOneMapper]
-  implicit lazy val fResourceCommand:     JSFormat[ResourceCommand]     = Json.format[ResourceCommand]
-  implicit lazy val fDriverStateChange:     JSFormat[DriverStateChange]     = Json.format[DriverStateChange]
-  implicit lazy val fDriverCommand:     JSFormat[DriverCommand]     = Json.format[DriverCommand]
-  implicit lazy val fDriverCommandDone:     JSFormat[DriverCommandDone]     = Json.format[DriverCommandDone]
-  implicit lazy val fStateEvent:     JSFormat[StateEvent]     = Json.format[StateEvent]
-  implicit lazy val fResources:     JSFormat[Resources]     = Json.format[Resources]
-  implicit lazy val fDrivers:     JSFormat[Drivers]     = Json.format[Drivers]
-  implicit lazy val fNewResource:     JSFormat[NewResource]     = Json.format[NewResource]
-  implicit lazy val fRemovedResource:     JSFormat[RemovedResource]     = Json.format[RemovedResource]
-  implicit lazy val fNewDriver:     JSFormat[NewDriver]     = Json.format[NewDriver]
-  implicit lazy val fRemovedDriver:     JSFormat[RemovedDriver]     = Json.format[RemovedDriver]
-  
 
   object Request {
-    implicit lazy val fVirtualDeviceRequest: JSFormat[Request] = Json.format[Request]
+    lazy val fSetUpDeviceDriver: JSFormat[SetUpDeviceDriver] = Json.format[SetUpDeviceDriver]
+    lazy val fSetUpResource:     JSFormat[SetUpResource]     = Json.format[SetUpResource]
+    lazy val fResourceCommand:     JSFormat[ResourceCommand]     = Json.format[ResourceCommand]
+    lazy val fDriverStateChange:     JSFormat[DriverStateChange]     = Json.format[DriverStateChange]
+    lazy val fDriverCommand:     JSFormat[DriverCommand]     = Json.format[DriverCommand]
+    lazy val fDriverCommandDone:     JSFormat[DriverCommandDone]     = Json.format[DriverCommandDone]
+
+    implicit lazy val fAPIVirtualDeviceRequest: JSFormat[Request] = new JSFormat[Request] {
+
+      override def reads(json: SPValue): JsResult[Request] = {
+        (JsPath \ "isa").read[String].reads(json).flatMap{
+          case "SetUpDeviceDriver" => json.validate[SetUpDeviceDriver](fSetUpDeviceDriver)
+          case "SetUpResource" =>json.validate[SetUpResource](fSetUpResource)
+          case "GetResources" =>JsSuccess(GetResources)
+          case "ResourceCommand" => json.validate[ResourceCommand](fResourceCommand)
+          case "DriverStateChange" => json.validate[DriverStateChange](fDriverStateChange)
+          case "DriverCommand" => json.validate[DriverCommand](fDriverCommand)
+          case "DriverCommandDone" => json.validate[DriverCommandDone](fDriverCommandDone)
+        }
+      }
+
+      override def writes(o: Request): SPValue = {
+        o match {
+          case x: SetUpDeviceDriver => SPValue(x)(fSetUpDeviceDriver)
+          case x: SetUpResource => SPValue(x)(fSetUpResource)
+          case GetResources => SPAttributes("isa"-> "GetResources")
+          case x: ResourceCommand => SPValue(x)(fResourceCommand)
+          case x: DriverStateChange => SPValue(x)(fDriverStateChange)
+          case x: DriverCommand => SPValue(x)(fDriverCommand)
+          case x: DriverCommandDone => SPValue(x)(fDriverCommandDone)
+        }
+      }
+    }
   }
+
   object Response {
-    implicit lazy val fVirtualDeviceResponse: JSFormat[Response] = Json.format[Response]
+    lazy val fStateEvent:     JSFormat[StateEvent]     = Json.format[StateEvent]
+    lazy val fResources:     JSFormat[Resources]     = Json.format[Resources]
+    lazy val fDrivers:     JSFormat[Drivers]     = Json.format[Drivers]
+    lazy val fNewResource:     JSFormat[NewResource]     = Json.format[NewResource]
+    lazy val fRemovedResource:     JSFormat[RemovedResource]     = Json.format[RemovedResource]
+    lazy val fNewDriver:     JSFormat[NewDriver]     = Json.format[NewDriver]
+    lazy val fRemovedDriver:     JSFormat[RemovedDriver]     = Json.format[RemovedDriver]
+
+    implicit lazy val fAPIVirtualDeviceRequest: JSFormat[Response] = new JSFormat[Response] {
+
+      override def reads(json: SPValue): JsResult[Response] = {
+        (JsPath \ "isa").read[String].reads(json).flatMap{
+          case "StateEvent" => json.validate[StateEvent](fStateEvent)
+          case "Resources" =>json.validate[Resources](fResources)
+          case "Drivers" => json.validate[Drivers](fDrivers)
+          case "NewResource" => json.validate[NewResource](fNewResource)
+          case "RemovedResource" => json.validate[RemovedResource](fRemovedResource)
+          case "NewDriver" => json.validate[NewDriver](fNewDriver)
+          case "RemovedDriver" => json.validate[RemovedDriver](fRemovedDriver)
+        }
+      }
+
+      override def writes(o: Response): SPValue = {
+        o match {
+          case x: StateEvent => SPValue(x)(fStateEvent)
+          case x: Resources => SPValue(x)(fResources)
+          case x: Drivers => SPValue(x)(fDrivers)
+          case x: NewResource => SPValue(x)(fNewResource)
+          case x: RemovedResource => SPValue(x)(fRemovedResource)
+          case x: NewDriver => SPValue(x)(fNewDriver)
+          case x: RemovedDriver => SPValue(x)(fRemovedDriver)
+        }
+      }
+    }
   }
+
+
   object DriverStateMapper {
     implicit lazy val fDriverStateMapper: JSFormat[DriverStateMapper] = deriveFormatISA[DriverStateMapper]
   }
@@ -123,7 +175,7 @@ object APIAbilityHandler {
     val fAbilityState: JSFormat[AbilityState] = Json.format[AbilityState]
     val fAbilities: JSFormat[Abilities] = Json.format[Abilities]
     val fAbs: JSFormat[Abs] = Json.format[Abs]
-    implicit lazy val fExampleServiceRequest: JSFormat[Response] = new JSFormat[Response] {
+    implicit lazy val fAPIAbilityHandlerRequest: JSFormat[Response] = new JSFormat[Response] {
 
       override def reads(json: SPValue): JsResult[Response] = {
         (JsPath \ "isa").read[String].reads(json).flatMap{
@@ -155,7 +207,7 @@ object APIAbilityHandler {
     val fSetUpAbility: JSFormat[SetUpAbility] = Json.format[SetUpAbility]
     val fForceResetAbility: JSFormat[ForceResetAbility] = Json.format[ForceResetAbility]
     val fExecuteCmd: JSFormat[ExecuteCmd] = Json.format[ExecuteCmd]
-    implicit lazy val fExampleServiceRequest: JSFormat[Request] = new JSFormat[Request] {
+    implicit lazy val fAPIAbilityHandlerRequest: JSFormat[Request] = new JSFormat[Request] {
 
       override def reads(json: SPValue): JsResult[Request] = {
         (JsPath \ "isa").read[String].reads(json).flatMap{
@@ -164,7 +216,7 @@ object APIAbilityHandler {
           case "ForceResetAllAbilities " =>JsSuccess(ForceResetAllAbilities)
           case "ExecuteCmd" => json.validate[SetUpAbility](fSetUpAbility)
           case "GetAbilities" => JsSuccess(GetAbilities)
-          case "SetUpAbility" => json.validate[ExecuteCmd](fExecuteCmd)
+          case "SetUpAbility" => json.validate[SetUpAbility](fSetUpAbility)
         }
       }
 
