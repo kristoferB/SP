@@ -12,12 +12,12 @@ object Layout {
 
   val component = ScalaComponent.builder[Unit]("Layout")
     .render(_ =>
-    <.div(
-      ^.className := GlobalCSS.layout.htmlClass,
-      SPMenu(),
-      widgetsConnection(Dashboard(_))
+      <.div(
+        ^.className := GlobalCSS.layout.htmlClass,
+        SPMenu(),
+        widgetsConnection(Dashboard(_))
+      )
     )
-  )
     .build
 
   def apply() = component()

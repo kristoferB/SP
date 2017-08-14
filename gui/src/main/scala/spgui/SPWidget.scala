@@ -41,8 +41,8 @@ object SPWidget {
     .render_P(p => p.renderWidget(p.spwb))
     .build
 
-  def apply(renderWidget: SPWidgetBase => VdomElement) =
-    (spwb: SPWidgetBase) => component(Props(spwb, renderWidget))
+  def apply(renderWidget: SPWidgetBase => VdomElement): SPWidgetBase => VdomElement =
+    spwb => component(Props(spwb, renderWidget))
 }
 
 

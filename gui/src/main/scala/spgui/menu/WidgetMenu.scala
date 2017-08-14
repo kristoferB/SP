@@ -3,11 +3,11 @@ package spgui.menu
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.vdom.all.aria
-import scalacss.ScalaCssReact._
 
-import spgui.circuit.{SPGUICircuit, AddWidget}
+import scalacss.ScalaCssReact._
+import spgui.circuit.{AddWidget, SPGUICircuit}
 import spgui.WidgetList
-import spgui.components.{ Dropdown, Icon }
+import spgui.components.{Icon, SPNavbarElements}
 
 object WidgetMenu {
   case class State(filterText: String)
@@ -19,19 +19,18 @@ object WidgetMenu {
       e.extract(_.target.value)(v => $.modState(_.copy(filterText = v)))
 
     def render(s: State) =
-      Dropdown("New widget", Seq(),
-        <.div(
-          ^.className := "input-group",
-          <.input(
-            ^.className := "form-control",
-            ^.placeholder := "Find widget...",
-            ^.aria.describedby := "basic-addon1",
-            ^.onChange ==> onFilterTextChange
-          )
+      SPNavbarElements.dropdown(
+        "New widget",
+        SPNavbarElements.TextBox(
+          "Find widget...",
+          (t: String) => { $.setState(State(filterText = t)) }
         ) :: WidgetList.list.collect{
-            case w if (w._1.toLowerCase.contains(s.filterText.toLowerCase)) =>
-              <.div(w._1, ^.onClick --> addW(w._1, w._3, w._4))
-          }: _*
+          case e if (e._1.toLowerCase.contains(s.filterText.toLowerCase))=>
+            SPNavbarElements.dropdownElement(
+              e._1,
+              addW(e._1, e._3, e._4)
+            )
+        }
       )
   }
 

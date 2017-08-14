@@ -3,13 +3,14 @@ package spgui.widgets.sopmaker
 import java.util.UUID
 import japgolly.scalajs.react._
 
-import japgolly.scalajs.react.vdom.all.{ a, h1, h2, href, div, className, onClick, br, key }
-import japgolly.scalajs.react.vdom.svg.all._
-import paths.mid.Bezier
-import paths.mid.Rectangle
+//import japgolly.scalajs.react.vdom.all.{ a, h1, h2, href, div, className, onClick, br, key }
+import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.vdom.all.svg
+//import paths.mid.Bezier
+//import paths.mid.Rectangle
 
 
-import spgui.components.DragAndDrop.{ OnDragMod, OnDropMod }
+import spgui.components.DragAndDrop.{ OnDragMod, OnDropMod, DataOnDrag, OnDataDrop }
 
 import spgui.communication._
 import sp.domain._
@@ -34,12 +35,14 @@ object SopMakerWidget {
   case class State(drag: String, drop: String, sop: List[String])
 
   private class Backend($: BackendScope[Unit, State]) {
+    /*
     val eventHandler = BackendCommunication.getMessageObserver(
       mess => {
         println("[SopMaker] Got event " + mess.toString)
       },
       "events"
     )
+     */
 
     def handleDrag(drag: String)(e: ReactDragEventFromInput): Callback = {
       Callback({
@@ -49,51 +52,42 @@ object SopMakerWidget {
 
     def handleDrop(drop: String)(e: ReactDragEvent): Callback = {
       val drag = e.dataTransfer.getData("json")
-      Callback({
-        println("Dropping " + drag + " onto " + drop)
-      })
+      Callback.log("Dropping " + drag + " onto " + drop)
     }
 
     def render(state: State) = {
       val ops = List(Operation("op1"), Operation("op2"))
       val idm = ops.map(o=>o.id -> o).toMap
 
-      val fakeSop = Sequence(ops(0), ops(1))
-      def drawSop(s: SOP): Seq[ReactTag] = {
+      ops
+
+      val fakeSop = SOP(ops(0), EmptySOP)
+      def drawSop(s: SOP): Seq[VdomTag] = {
         s match {
           case s:Sequence =>
             s.sop.flatMap(drawSop)
           case h:Hierarchy =>
             val opname = idm.get(h.operation).map(_.name).getOrElse("[unknown op]")
-            // val preGuardYPos = measures.condLineHeight
-            // val preActionYPos = preGuardYPos + struct.clientSideAdditions.preGuards.length * measures.condLineHeight
-            // val preLineYPos = preActionYPos + struct.clientSideAdditions.preActions.length * measures.condLineHeight
-            // val postGuardYPos = preLineYPos + measures.nameLineHeight
-            // val postLineYPos = postGuardYPos - measures.condLineHeight
-            // val postActionYPos = postGuardYPos + struct.clientSideAdditions.postGuards.length * measures.condLineHeight
-
             Seq(
-              div(OnDragMod(handleDrag(opname)), OnDropMod(handleDrop(opname)),
-                svg(width := measures.opW, height := measures.opH,
-                  rect(x:=0, y:=0, width:=measures.opW, height:=measures.opH, rx:=5, ry:=5, fill := "white", stroke:="black", strokeWidth:=1),
-                  text(x:="50%", y:="50%", textAnchor:="middle", dy:=".3em", opname) // ,
-                  // text(struct.clientSideAdditions.width / 2, ystart + measures.condLineHeight*j, array[j])
+              <.div(OnDragMod(handleDrag(opname)), OnDropMod(handleDrop(opname)),
+                svg.svg(svg.width := measures.opW, svg.height := measures.opH,
+                  svg.rect(svg.x:=0, svg.y:=0, svg.width:=measures.opW, svg.height:=measures.opH, svg.rx:=5, svg.ry:=5, svg.fill := "white", svg.stroke:="black", svg.strokeWidth:=1),
+                  svg.text(svg.x:="50%", svg.y:="50%", svg.textAnchor:="middle", svg.dy:=".3em", opname)
                 ))
             )
         }
       }
 
-      div(
-        h2("Insert sop here:"),
-        br(),
-        drawSop(fakeSop)
+      <.div(
+        <.h2("Insert sop here:"),
+        OnDataDrop(string => Callback.log("Received data: " + string)),
+        <.br(),
+        drawSop(fakeSop).toTagMod
       )
     }
 
-    def onUnmount() = {
+    def onUnmount() = Callback {
       println("Unmounting sopmaker")
-      eventHandler.kill()
-      Callback.empty
     }
 
   }

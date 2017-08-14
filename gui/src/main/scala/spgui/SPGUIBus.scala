@@ -12,9 +12,9 @@ object SPGUIBus {
     else callbacks(topic) = ListBuffer((widgetId, cb))
 
   def unsubscribeWidget(widgetId: Int): Unit =
-    //for((_, listB) <- callbacks) listB.filter{
-      //case (id: Int, _) => id != widgetId
-    //}
+  //for((_, listB) <- callbacks) listB.filter{
+  //case (id: Int, _) => id != widgetId
+  //}
     callbacks.foreach{
       case (topic, listB) => callbacks(topic) = listB.filter(_._1 != widgetId)
     }

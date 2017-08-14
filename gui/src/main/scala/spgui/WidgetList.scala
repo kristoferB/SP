@@ -29,7 +29,6 @@ object WidgetList {
       ("JSONExampleGantt", widgets.charts.TimelineJSONExample(), 5, 2),
       ("ExampleUseGantt", widgets.charts.TimelineExampleUse(), 4, 3),
       ("ChartTest", widgets.charts.ChartTest(), 5, 3),
-      ("Settings", widgets.settings.SettingsWidget(), 2, 4),
       ("SopMaker", widgets.sopmaker.SopMakerWidget(), 2, 4)
     )
 
