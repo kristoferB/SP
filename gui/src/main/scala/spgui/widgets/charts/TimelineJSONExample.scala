@@ -98,14 +98,14 @@ object TimelineJSONExample {
 
         // draw timeline chart
         helper.draw()
-        println("Print DataTable in JSON-format")
-        println(helper.data.toJSON())
-
-        // try to create JSON-copy
-        val timelineElement2 = js.Dynamic.global.document.getElementById(idName +"2")
-        // create a new Timeline chart - helper
-        val helper2 = TimelineHelper(timelineElement2, helper.data.toJSON(), "CopyOfData")
-        helper2.draw()
+//        println("Print DataTable in JSON-format")
+//        println(helper.data.toJSON())
+//
+//        // try to create JSON-copy
+//        val timelineElement2 = js.Dynamic.global.document.getElementById(idName +"2")
+//        // create a new Timeline chart - helper
+//        val helper2 = TimelineHelper(timelineElement2, helper.data.toJSON(), "CopyOfData")
+//        helper2.draw()
 
 
       }
