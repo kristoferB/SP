@@ -23,7 +23,7 @@ val diodeVersion = "1.1.0"
 
 resolvers += Resolver.url("me @ bintray", url("https://dl.bintray.com/aleastchs/aleastChs-releases"))(Resolver.ivyStylePatterns)
 //resolvers += sbt.Resolver.bintrayIvyRepo("aleastchs", "aleastChs-releases")
-libraryDependencies += "org.aleastChs" % "scalajs-google-charts_2.11" % "0.4.0"
+libraryDependencies += "org.aleastChs" % "scalajs-google-charts_2.11" % "0.4.3"
 /*
 resolvers ++= Seq(
   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/Releases",

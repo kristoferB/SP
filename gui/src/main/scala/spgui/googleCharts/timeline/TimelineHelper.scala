@@ -4,7 +4,7 @@
 
 package spgui.googleCharts.timeline
 
-import aleastchs.facade.google.visualization.{DataTable, Timeline}
+import aleastchs.googleCharts.google.visualization.{DataTable, Timeline}
 
 import scala.scalajs.js
 

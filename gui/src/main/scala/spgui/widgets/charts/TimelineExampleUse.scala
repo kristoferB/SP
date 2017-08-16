@@ -16,9 +16,7 @@ import org.scalajs.dom.html.Div
 import scalajs.js
 import spgui.communication._
 import spgui.googleCharts.GoogleChartsLoaded
-import spgui.googleCharts.timeline.TimelineHelper
-import spgui.googleCharts.timeline.TimelineRow
-import spgui.googleCharts.general.Tooltips
+import aleastchs.googleCharts.helpers.chartsHelp.{TimelineRow, TimelineHelper}
 
 import scala.scalajs.js.Date
 /*
