@@ -6,20 +6,27 @@ import js.annotation.{ JSName, JSGlobal }
 import japgolly.scalajs.react.vdom.html_<^.VdomArray
 import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom.html._
+import org.scalajs.dom.console
 
 object ReactDraggable {
   @js.native
   @JSGlobal("ReactDraggable")
   object ReactDraggableJS extends js.Object
 
-  type DraggableEventHandler = (ReactEvent, DraggableData) => scala.Option[Boolean]
+  type DraggableEventHandler = (ReactEvent, DraggableDataJS) => Unit
+  type DraggableEventHandlerJS = js.Function2[ReactEvent, DraggableDataJS, Unit]
 
-  case class DraggableData (
-    node: org.scalajs.dom.html.Element,
-    x: Float, y: Float,
-    deltaX: Float, deltaY: Float,
-    lastX: Float, lastY: Float
-  )
+  trait DraggableData extends js.Object {
+    var node: org.scalajs.dom.html.Element = js.native
+    var x: Float= js.native
+    var y: Float= js.native
+    var deltaX: Float= js.native
+    var deltaY: Float= js.native
+    var lastX: Float= js.native
+    var lastY: Float= js.native
+  }
+    
+  type DraggableDataJS = js.Object
 
   @js.native
   trait Props extends js.Object {
@@ -35,19 +42,20 @@ object ReactDraggable {
     var grid: js.Array[Float]= js.native
     var handle: String = js.native
     var offsetParent: org.scalajs.dom.html.Element = js.native
-    var onMouseDown: ((ReactMouseEvent) => Unit) = js.native
-    var onStart: DraggableEventHandler = js.native
-    var onDrag: DraggableEventHandler = js.native
-    var onStop: DraggableEventHandler = js.native
+    var onMouseDown: js.Function1[ReactMouseEvent, Unit] = js.native
+    var onStart: DraggableEventHandlerJS = js.native
+    var onDrag: DraggableEventHandlerJS = js.native
+    var onStop: DraggableEventHandlerJS = js.native
     var position: Position = js.native
   }
 
-  trait Bounds extends js.Object {
-    var left: Float = js.native
-    var top: Float = js.native
-    var right: Float = js.native
-    var bottom: Float  = js.native
-  }
+  // trait Bounds extends js.Object {
+  //   var left: Float = js.native
+  //   var top: Float = js.native
+  //   var right: Float = js.native
+  //   var bottom: Float  = js.native
+  // }
+  type Bounds = String
 
   trait Position extends js.Object {
     var x: Float = js.native
@@ -56,8 +64,8 @@ object ReactDraggable {
 
   def apply(
     allowAnyClick: Boolean = true,
-    axis: String = "",
-    bounds: (Float, Float, Float, Float) = (0f, 0f, 0f, 0f),
+    axis: String = "both",
+    bounds: String = "parent",
     cancel: String = "",
     defaultClassName: String = "",
     defaultClassNameDragging: String = "",
@@ -68,21 +76,26 @@ object ReactDraggable {
     handle: String = "",
     offsetParent: org.scalajs.dom.html.Element = null,
     onMouseDown: ((ReactMouseEvent) => Unit) = ((e: ReactMouseEvent) => Unit),
-    onStart: DraggableEventHandler = (ReactEvent, DraggableData) => None,
-    onDrag: DraggableEventHandler = (ReactEvent, DraggableData) => None,
-    onStop: DraggableEventHandler = (ReactEvent, DraggableData) => None,
+
+    onStart: DraggableEventHandler =
+      (e: ReactEvent,d: DraggableDataJS) => console.log(d.asInstanceOf[DraggableData]),
+    onDrag: DraggableEventHandler =
+      (e: ReactEvent, d: DraggableDataJS) => console.log(d.asInstanceOf[DraggableData]),
+    onStop: DraggableEventHandler =
+      (e: ReactEvent, d: DraggableDataJS) => console.log(d.asInstanceOf[DraggableData]),
+
     position: (Float, Float) = (0f, 0f)
-  ) = {
+  )(children: VdomNode ) = {
     val p = (new js.Object).asInstanceOf[Props]
     p.allowAnyClick = allowAnyClick
     p.axis = axis
 
-    var b = (new js.Object).asInstanceOf[Bounds]
-    b.left = bounds._1
-    b.top = bounds._2
-    b.right = bounds._3
-    b.bottom = bounds._4
-    p.bounds = b
+    // var b = (new js.Object).asInstanceOf[Bounds]
+    // b.left = bounds._1
+    // b.top = bounds._2
+    // b.right = bounds._3
+    // b.bottom = bounds._4
+    p.bounds = bounds
 
     p.cancel = cancel
     p.defaultClassName = defaultClassName
@@ -109,5 +122,10 @@ object ReactDraggable {
     po.x = position._1
     po.y = position._2
     p.position = po
+
+    
+    val component = JsComponent[Props, Children.Varargs, Null](ReactDraggableJS)
+    
+    component(p)(children)
   }
 }

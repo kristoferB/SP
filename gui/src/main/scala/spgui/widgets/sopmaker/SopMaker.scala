@@ -17,6 +17,7 @@ import sp.messages._
 import sp.messages.Pickles._
 import scalacss.ScalaCssReact._
 import java.util.UUID
+import spgui.components.ReactDraggable
 
 sealed trait RenderNode {
   val w: Float
@@ -82,14 +83,17 @@ object SopMakerWidget {
     def render(state: State) = {
       //println(state.sop)
       <.div(
-        SopMakerCSS.noSelect,
-
-        // hover logic debug divs
         <.div(
-          if(state.hover.fromId != null) state.hover.fromId.toString else "nop"),
-        <.div(if(state.hover.toId != null)state.hover.toId.toString else "nop"),
-        <.div(state.hover.currentlyDragging.toString),
-        //<.div(state.sop.toString),
+          "hello",
+          ReactDraggable(handle  = ".test-draggable")(
+            <.div(
+              "sdfasd",
+              ^.className := "test-draggable"
+            )
+          )
+        ),
+
+        //SopMakerCSS.noSelect,
 
         svg.svg(
           ^.onMouseDownCapture --> handleMouseDown(state.hover),
