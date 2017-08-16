@@ -11,8 +11,7 @@ import spgui.communication._
 import spgui.widgets.{API_Patient => apiPatient, API_PatientEvent => api}
 import spgui.widgets.ToAndFrom
 import spgui.widgets.css.{WidgetStyles => Styles}
-import aleastchs.googleCharts.helpers.chartsHelp.{GoogleChartsLoaded, TimelineHelper, TimelineRow, TimelineOption}
-import aleastchs.googleCharts.google
+import aleastchs.googleCharts.helpers.chartsHelp.{TimelineHelper, TimelineRow}
 
 import scala.scalajs.js
 
