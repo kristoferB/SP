@@ -18,6 +18,7 @@ import sp.messages.Pickles._
 import scalacss.ScalaCssReact._
 import java.util.UUID
 import spgui.components.ReactDraggable
+import scala.scalajs.js
 
 sealed trait RenderNode {
   val w: Float
@@ -58,15 +59,16 @@ object SopMakerWidget {
   val opSpacingX = 10f
   val opSpacingY = 10f
 
-  case class Hover (
-    fromId: UUID = null,
-    toId: UUID = null,
-    currentlyDragging: Boolean = false
-  )
-
-  case class State(sop: SopWithId, hover: Hover)
+  case class State(sop: SopWithId)
 
   val idm = ExampleSops.ops.map(o=>o.id -> o).toMap
+
+  trait Rect extends js.Object {
+    var left: Float = js.native
+    var top: Float = js.native
+    var width: Float = js.native
+    var height: Float = js.native
+  }
 
 
   private class Backend($: BackendScope[Unit, State]) {
@@ -84,195 +86,145 @@ object SopMakerWidget {
       //println(state.sop)
       <.div(
         <.div(
-          "hello",
-          ReactDraggable(handle  = ".test-draggable")(
-            <.div(
-              "sdfasd",
-              ^.className := "test-draggable"
-            )
-          )
-        ),
-
-        //SopMakerCSS.noSelect,
-
-        svg.svg(
-          ^.onMouseDownCapture --> handleMouseDown(state.hover),
-          ^.onMouseUp --> handleMouseUp(state.hover),
-          ^.onMouseLeave --> handleMouseLeftWidget(state.hover),
-          svg.width := (getTreeWidth(state.sop) + paddingLeft* 2).toInt,
-          svg.height := ( getTreeHeight(state.sop) + paddingTop * 2).toInt,
+          SopMakerCSS.sopContainer,
+          // svg.width := (getTreeWidth(state.sop) + paddingLeft* 2).toInt,
+          // svg.height := ( getTreeHeight(state.sop) + paddingTop * 2).toInt,
           getRenderTree(
             traverseTree( state.sop ),
             getTreeWidth( state.sop ) * 0.5f + paddingLeft,
             paddingTop
-          )
+          ).toTagMod
         )
       )
     }
-
-    // def handleDrag(drag: String)(e: ReactDragEventFromInput): Callback = {
-    //   Callback({
-    //     e.dataTransfer.setData("json", drag)
-    //   })
-    // }
-
-    // def handleDrop(drop: String)(e: ReactDragEvent): Callback = {
-    //   val drag = e.dataTransfer.getData("json")
-    //   Callback.log("Dropping " + drag + " onto " + drop)
-    // }
 
     val paddingTop = 40f
     val paddingLeft = 40f
 
-    def op(opId: UUID, opname: String, x: Float, y: Float) =
-      svg.svg(
-        ^.onMouseOver --> handleMouseOver( opId ),
-        ^.onMouseLeave --> handleMouseLeave( opId ),
+    import scala.util.Random
+
+    def op(opId: UUID, opname: String, x: Float, y: Float): TagMod = {
+      val handle = "drag-handle-" + opId.toString
+      ReactDraggable(
+        handle = "." + handle
+      )( <.span(
+        ^.className := handle,
         SopMakerCSS.sopComponent,
-        ^.draggable := false,
+        ^.style := {
+          var rect =  (js.Object()).asInstanceOf[Rect]
+          rect.left = x
+          rect.top = y
+          rect.height = opHeight
+          rect.width = opWidth
+          rect
+        },
         svg.svg(
-          ^.draggable := false,
-          svg.width := opWidth.toInt,
-          svg.height:= opHeight.toInt,
-          svg.x := x.toInt,
-          svg.y := y.toInt,
-          svg.rect(
-            ^.draggable := false,
-            svg.x := 0,
-            svg.y := 0,
+          svg.svg(
             svg.width := opWidth.toInt,
             svg.height:= opHeight.toInt,
-            svg.rx := 6, svg.ry := 6,
-            svg.fill := "white",
-            svg.stroke := "black",
-            svg.strokeWidth := 1
-          ),
-          svg.svg(
-            ^.draggable := false,
-            SopMakerCSS.opText,
-            svg.text(
-              svg.x := "50%",
-              svg.y := "50%",
-              svg.textAnchor := "middle",
-              svg.dy := ".3em", opname
+            svg.x := 0, //x.toInt,
+            svg.y := 0, //y.toInt,
+            svg.rect(
+              svg.x := 0,
+              svg.y := 0,
+              svg.width := opWidth.toInt,
+              svg.height:= opHeight.toInt,
+              svg.rx := 6, svg.ry := 6,
+              svg.fill := "white",
+              svg.stroke := "black",
+              svg.strokeWidth := 1
+            ),
+            svg.svg(
+              //SopMakerCSS.opText,
+              svg.text(
+                svg.x := "50%",
+                svg.y := "50%",
+                svg.textAnchor := "middle",
+                svg.dy := ".3em", opname
+              )
             )
           )
         )
       )
-
-    def parallelBars(x: Float, y: Float, w:Float) =
-      svg.svg(
+      )
+    }
+    def parallelBars(x: Float, y: Float, w:Float): TagMod =
+      <.span(
         SopMakerCSS.sopComponent,
-        svg.width := "100%",
-        svg.height := "100%",
+        ^.style := {
+          var rect =  (js.Object()).asInstanceOf[Rect]
+          rect.left = x + opWidth/2
+          rect.top = y
+          rect.height = 12
+          rect.width = w
+          rect
+        },
         svg.svg(
-          SopMakerCSS.sopComponent,
-          svg.width := w.toInt,
-          svg.height := 12,
-          svg.rect(
-            svg.x := (x + opWidth/2).toInt,
-            svg.y := y.toInt,
-            svg.width:=w.toInt,
-            svg.height:=4,
-            svg.fill := "black",
-            svg.strokeWidth:=1
-          ),
-          svg.rect(
-            svg.x := (x + opWidth/2).toInt,
-            svg.y := y.toInt + 8,
-            svg.width:=w.toInt,
-            svg.height:=4,
-            svg.fill := "black",
-            svg.strokeWidth:=1
-          )
-        )
-      )
-
-    def handleMouseOver(zoneId: UUID): Callback = {
-      $.modState(s =>
-        s.copy(hover  = s.hover.copy(toId = zoneId))
-      )
-    }
-
-    def handleMouseLeave(zoneId: UUID): Callback = {
-      $.modState(s =>
-        if(!s.hover.currentlyDragging) s.copy(hover = s.hover.copy(toId = null))
-        else s
-      )
-    }
-
-    def handleMouseDown(h: Hover): Callback = {
-      $.modState(s =>
-        s.copy(
-          hover = s.hover.copy(
-            currentlyDragging = (s.hover.toId != null),
-            fromId = h.toId
-          )
-        )
-      )
-    }
-
-    def handleMouseUp(h: Hover): Callback = {
-      Callback({
-        $.modState(s => {
-          s.copy(
-            sop = insertSop(
-              root = s.sop,
-              targetId = s.hover.toId,
-              sopId = s.hover.fromId
+          svg.width := "100%",
+          svg.height := "100%",
+          svg.svg(
+            svg.width := w.toInt,
+            svg.height := 12,
+            svg.rect(
+              svg.x := 0, //,(x + opWidth/2).toInt,
+              svg.y := 0, //y.toInt,
+              svg.width:=w.toInt,
+              svg.height:=4,
+              svg.fill := "black",
+              svg.strokeWidth:=1
             ),
-            hover = s.hover.copy(
-              toId = null,
-              currentlyDragging = false
-            ))
-        }).runNow()
-        println("dragged " + h.fromId + " onto " + h.toId)
-      })
-    }
-
-    def handleMouseLeftWidget(h: Hover): Callback = {
-      Callback({
-        $.modState(s => s.copy(hover = Hover())).runNow()
-        println("resetting hover state")
-      })
-    }
-    
-    def getRenderTree(node: RenderNode, xOffset: Float, yOffset: Float): TagMod = {
+            svg.rect(
+              svg.x := 0, //(x + opWidth/2).toInt,
+              svg.y :=  8,
+              svg.width:=w.toInt,
+              svg.height:=4,
+              svg.fill := "black",
+              svg.strokeWidth:=1
+            )
+          )
+        )
+      )
+    def getRenderTree(node: RenderNode, xOffset: Float, yOffset: Float): List[TagMod] = {
       node match {
         case n: RenderParallel => {
           var w = 0f
-          svg.svg(
-            parallelBars(xOffset - n.w/2 + opSpacingX/2, yOffset,n.w - opSpacingX),
-            n.children.collect{case e: RenderNode => {
-              val child = getRenderTree(
+          
+          var children = List[TagMod]()
+          for(e <- n.children) {
+            val child = getRenderTree(
                 e,
                 xOffset + w + e.w/2 - n.w/2 + opSpacingX,
                 yOffset  + parallelBarHeight + opSpacingY
               )
               w += e.w
-              child
-            }}.toTagMod,
-            parallelBars(
-              xOffset - n.w/2 + opSpacingX/2,
-              yOffset + n.h - parallelBarHeight - opSpacingY,
-              n.w - opSpacingX)
-          )
+              children = children ++ child
+          }
+
+          List(parallelBars(xOffset - n.w/2 + opSpacingX/2, yOffset,n.w - opSpacingX)) ++
+          children ++
+          List(parallelBars(
+            xOffset - n.w/2 + opSpacingX/2,
+            yOffset + n.h - parallelBarHeight - opSpacingY,
+            n.w - opSpacingX
+          ))
         }
         case n: RenderSequence =>  getRenderSequence(n, xOffset, yOffset)
           
         case n: RenderHierarchy => {
           val opname = idm.get(n.sop.self.operation).map(_.name).getOrElse("[unknown op]")
-          op(n.sop.id, opname, xOffset, yOffset)
+          List(op(n.sop.id, opname, xOffset, yOffset))
         }
       }
     }
 
-    def getRenderSequence(seq: RenderSequence, xOffset: Float, yOffset: Float): TagMod = {
+    def getRenderSequence(seq: RenderSequence, xOffset: Float, yOffset: Float): List[TagMod] = {
       var h = yOffset
-      seq.children.collect{case q: RenderSequenceElement => {
-        h += q.h
-        getRenderTree( q.self, xOffset, h - q.h )
-      }}.toTagMod
+      var children = List[TagMod]()
+      for(q <- seq.children){
+         h += q.h
+         children = children ++ getRenderTree( q.self, xOffset, h - q.h )
+      }
+      children
     }
 
     def traverseTree(sop: SopWithId): RenderNode = {
@@ -380,7 +332,7 @@ object SopMakerWidget {
   }
 
   private val component = ScalaComponent.builder[Unit]("SopMakerWidget")
-    .initialState(State(sop = idSop(ExampleSops.giantSop), hover = Hover()))
+    .initialState(State(sop = idSop(ExampleSops.giantSop)))
     .renderBackend[Backend]
     .componentWillUnmount(_.backend.onUnmount())
     .build

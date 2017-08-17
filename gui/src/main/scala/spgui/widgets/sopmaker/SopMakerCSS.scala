@@ -10,9 +10,15 @@ object SopMakerCSS extends Theming.SPStyleSheet {
     userSelect := "none"
   )
 
+  val sopContainer = style(
+    position.relative
+  )
+
   val sopComponent = style(
-    overflow.visible.important
-    //position.absolute
+    overflow.visible.important,
+   // backgroundColor.red,
+    position.absolute,
+    zIndex := 100.px
     //display.flex
   )
 
