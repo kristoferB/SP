@@ -26,5 +26,9 @@ object SopMakerCSS extends Theming.SPStyleSheet {
     userSelect := "none"
   )
 
+  val disablePointerEvents = style(
+    pointerEvents := "none"
+  )
+
   this.addToDocument()
 }

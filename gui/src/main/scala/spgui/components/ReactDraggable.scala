@@ -9,13 +9,6 @@ import org.scalajs.dom.html._
 import org.scalajs.dom.console
 
 object ReactDraggable {
-  @js.native
-  @JSGlobal("ReactDraggable")
-  object ReactDraggableJS extends js.Object
-
-  type DraggableEventHandler = (ReactEvent, DraggableDataJS) => Unit
-  type DraggableEventHandlerJS = js.Function2[ReactEvent, DraggableDataJS, Unit]
-
   trait DraggableData extends js.Object {
     var node: org.scalajs.dom.html.Element = js.native
     var x: Float= js.native
@@ -25,9 +18,15 @@ object ReactDraggable {
     var lastX: Float= js.native
     var lastY: Float= js.native
   }
-    
-  type DraggableDataJS = js.Object
 
+  @js.native
+  @JSGlobal("ReactDraggable")
+  object ReactDraggableJS extends js.Object
+
+  type DraggableEventHandler = (ReactEvent, DraggableData) => Unit
+  type DraggableEventHandlerJS = js.Function2[ReactEvent, DraggableData, Unit]
+
+    
   @js.native
   trait Props extends js.Object {
     var allowAnyClick: Boolean = js.native
@@ -78,11 +77,11 @@ object ReactDraggable {
     onMouseDown: ((ReactMouseEvent) => Unit) = ((e: ReactMouseEvent) => Unit),
 
     onStart: DraggableEventHandler =
-      (e: ReactEvent,d: DraggableDataJS) => console.log(d.asInstanceOf[DraggableData]),
+      (e: ReactEvent,d: DraggableData) => Unit,//console.log(d),
     onDrag: DraggableEventHandler =
-      (e: ReactEvent, d: DraggableDataJS) => console.log(d.asInstanceOf[DraggableData]),
+      (e: ReactEvent, d: DraggableData) => Unit,//console.log(d),
     onStop: DraggableEventHandler =
-      (e: ReactEvent, d: DraggableDataJS) => console.log(d.asInstanceOf[DraggableData]),
+      (e: ReactEvent, d: DraggableData) => Unit,//console.log(d),
 
     position: (Float, Float) = (0f, 0f)
   )(children: VdomNode ) = {

@@ -3,13 +3,8 @@ package spgui.widgets.sopmaker
 import java.util.UUID
 import japgolly.scalajs.react._
 
-//import japgolly.scalajs.react.vdom.all.{ a, h1, h2, href, div, className, onClick, br, key }
 import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.vdom.all.svg
-//import paths.mid.Bezier
-//import paths.mid.Rectangle
-
-//import spgui.components.DragAndDrop.{ OnDragMod, OnDropMod, DataOnDrag, OnDataDrop }
 
 import spgui.communication._
 import sp.domain._
@@ -59,7 +54,9 @@ object SopMakerWidget {
   val opSpacingX = 10f
   val opSpacingY = 10f
 
-  case class State(sop: SopWithId)
+  case class HoverData(currentPosition: UUID = null)
+
+  case class State(sop: SopWithId, hoverData: HoverData)
 
   val idm = ExampleSops.ops.map(o=>o.id -> o).toMap
 
@@ -82,9 +79,11 @@ object SopMakerWidget {
      )
      */
 
+    import scala.util.Try
     def render(state: State) = {
       //println(state.sop)
       <.div(
+        Try(state.hoverData.currentPosition.toString).getOrElse("none").toString,
         <.div(
           SopMakerCSS.sopContainer,
           // svg.width := (getTreeWidth(state.sop) + paddingLeft* 2).toInt,
@@ -101,53 +100,61 @@ object SopMakerWidget {
     val paddingTop = 40f
     val paddingLeft = 40f
 
-    import scala.util.Random
+    val handlePrefix = "drag-handle-"
+    def makeHandle(id: UUID) = handlePrefix + id.toString
+    def readHandle(handle: String) = UUID.fromString(handle.split(handlePrefix+"| ")(1))
 
     def op(opId: UUID, opname: String, x: Float, y: Float): TagMod = {
-      val handle = "drag-handle-" + opId.toString
+      val handle = makeHandle(opId)
       ReactDraggable(
-        handle = "." + handle
-      )( <.span(
-        ^.className := handle,
-        SopMakerCSS.sopComponent,
-        ^.style := {
-          var rect =  (js.Object()).asInstanceOf[Rect]
-          rect.left = x
-          rect.top = y
-          rect.height = opHeight
-          rect.width = opWidth
-          rect
-        },
-        svg.svg(
+        handle = "." + handle,
+        onStart = (e: ReactEvent, d: ReactDraggable.DraggableData) => println("drag started"),
+        onStop = (e: ReactEvent, d: ReactDraggable.DraggableData) => handleOpDrop(d)
+      )(
+        <.span(
+          ^.className := handle,
+          SopMakerCSS.sopComponent,
+          ^.onMouseOverCapture --> handleMouseOver( opId ),
+          ^.onMouseOutCapture --> handleMouseLeave( opId ),
+          ^.style := {
+            var rect =  (js.Object()).asInstanceOf[Rect]
+            rect.left = x
+            rect.top = y
+            rect.height = opHeight
+            rect.width = opWidth
+            rect
+          },
           svg.svg(
-            svg.width := opWidth.toInt,
-            svg.height:= opHeight.toInt,
-            svg.x := 0, //x.toInt,
-            svg.y := 0, //y.toInt,
-            svg.rect(
-              svg.x := 0,
-              svg.y := 0,
+            svg.svg(
               svg.width := opWidth.toInt,
               svg.height:= opHeight.toInt,
-              svg.rx := 6, svg.ry := 6,
-              svg.fill := "white",
-              svg.stroke := "black",
-              svg.strokeWidth := 1
-            ),
-            svg.svg(
-              //SopMakerCSS.opText,
-              svg.text(
-                svg.x := "50%",
-                svg.y := "50%",
-                svg.textAnchor := "middle",
-                svg.dy := ".3em", opname
+              svg.x := 0,
+              svg.y := 0,
+              svg.rect(
+                svg.x := 0,
+                svg.y := 0,
+                svg.width := opWidth.toInt,
+                svg.height:= opHeight.toInt,
+                svg.rx := 6, svg.ry := 6,
+                svg.fill := "white",
+                svg.stroke := "black",
+                svg.strokeWidth := 1
+              ),
+              svg.svg(
+                //SopMakerCSS.opText,
+                svg.text(
+                  svg.x := "50%",
+                  svg.y := "50%",
+                  svg.textAnchor := "middle",
+                  svg.dy := ".3em", opname
+                )
               )
             )
           )
         )
       )
-      )
     }
+
     def parallelBars(x: Float, y: Float, w:Float): TagMod =
       <.span(
         SopMakerCSS.sopComponent,
@@ -166,15 +173,15 @@ object SopMakerWidget {
             svg.width := w.toInt,
             svg.height := 12,
             svg.rect(
-              svg.x := 0, //,(x + opWidth/2).toInt,
-              svg.y := 0, //y.toInt,
+              svg.x := 0, 
+              svg.y := 0, 
               svg.width:=w.toInt,
               svg.height:=4,
               svg.fill := "black",
               svg.strokeWidth:=1
             ),
             svg.rect(
-              svg.x := 0, //(x + opWidth/2).toInt,
+              svg.x := 0, 
               svg.y :=  8,
               svg.width:=w.toInt,
               svg.height:=4,
@@ -184,6 +191,27 @@ object SopMakerWidget {
           )
         )
       )
+
+    def handleMouseOver(zoneId: UUID): Callback = {
+      $.modState(s =>
+        s.copy(hoverData = HoverData(zoneId))
+      )
+    }
+    def handleMouseLeave(zoneId: UUID): Callback = {
+      $.modState(s =>
+        if(s.hoverData.currentPosition == zoneId) s.copy(hoverData = HoverData(null))
+        else s.copy(hoverData = HoverData(zoneId))
+      )
+    }
+
+    def handleOpDrop(d: ReactDraggable.DraggableData) = {
+      $.modState(s => {
+        // println(readHandle(d.node.className)
+        // println(s.hoverData.currentPosition)
+        s.copy(sop = insertSop(s.sop, s.hoverData.currentPosition, readHandle(d.node.className)))
+      }).runNow()
+    }
+
     def getRenderTree(node: RenderNode, xOffset: Float, yOffset: Float): List[TagMod] = {
       node match {
         case n: RenderParallel => {
@@ -322,7 +350,6 @@ object SopMakerWidget {
     }
   }
 
-
   def idSop(sop: SOP): SopWithId = {
     sop match {
       case s: Parallel => IdAbleParallel(sop = s.sop.collect{case e => idSop(e)})
@@ -332,7 +359,7 @@ object SopMakerWidget {
   }
 
   private val component = ScalaComponent.builder[Unit]("SopMakerWidget")
-    .initialState(State(sop = idSop(ExampleSops.giantSop)))
+    .initialState(State(sop = idSop(ExampleSops.giantSop), hoverData = HoverData()))
     .renderBackend[Backend]
     .componentWillUnmount(_.backend.onUnmount())
     .build
