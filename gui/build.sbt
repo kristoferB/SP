@@ -1,4 +1,4 @@
-enablePlugins(ScalaJSPlugin)
+ enablePlugins(ScalaJSPlugin)
 
 name := "spgui"
 
@@ -20,7 +20,7 @@ scalacOptions  := Seq(
 val scalaJSReactVersion = "1.1.0"
 val scalaCssVersion = "0.5.3-RC1"
 val diodeVersion = "1.1.2"
-val scalajsGoogleChartsVersion = "0.4.1"
+val scalajsGoogleChartsVersion = "0.4.4.Final"
 
 resolvers += sbt.Resolver.url("aleastchs Bintray Releases", url("https://dl.bintray.com/aleastchs/aleastChs-releases"))(Resolver.ivyStylePatterns)
 
