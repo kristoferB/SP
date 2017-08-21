@@ -1,5 +1,6 @@
 package spgui.widgets.charts
 
+import aleastchs.googleCharts.google
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.vdom.all.svg
@@ -45,7 +46,7 @@ object PatientGanttWidget {
           ^.id := id,
           <.div(^.id := id+"scheme")
         )
-      )
+        )
     }
 
     /*********EXAMPLE USE OF GOOGLE API WITH Helper-class*************/
@@ -72,17 +73,36 @@ object PatientGanttWidget {
 
     def onMount() = {
       println("Hej Google Charts Mount")
-      println(GoogleChartsLoaded)
-      if(GoogleChartsLoaded.asInstanceOf[Boolean]) {
+      google.charts.load("current", js.Dynamic.literal(packages = js.Array("timeline")))
+      google.charts.setOnLoadCallback(drawFunction)
+
+      def drawFunction = {
         val timelineElement = js.Dynamic.global.document.getElementById(id+"scheme")
-        val timelineHelper = TimelineHelper(timelineElement, "Gantt För Patienter")
 
+        val timeline = new google.visualization.Timeline(timelineElement)
 
-        rowList.foreach(row => timelineHelper.newRow(row))
+        val dataTable = new google.visualization.DataTable()
 
-        timelineHelper.draw()
-        //onUpdate(rowList, timelineHelper)
+        dataTable.addColumn("string", "TimelineString", "Row Label")
+        dataTable.addColumn("string", "TimelineString", "Bar Label")
+        dataTable.addColumn("date", "TimelineDate", "Start Date")
+        dataTable.addColumn("date", "TimelineDate", "End Date")
+
+        rowList.foreach(row => dataTable.addRow(row.toArray))
+
+        val options = js.Dynamic.literal(timeline = js.Dynamic.literal(colorByRowLabel = true))
+
+        timeline.draw(dataTable, options)
+
       }
+
+      //        val timelineHelper = TimelineHelper(timelineElement, "Gantt För Patienter")
+      //
+      //        rowList.foreach(row => timelineHelper.newRow(row))
+      //
+      //        timelineHelper.draw()
+      //        //onUpdate(rowList, timelineHelper)
+
       Callback.empty
     }
 
