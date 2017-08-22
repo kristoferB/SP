@@ -16,6 +16,7 @@ import aleastchs.googleCharts.google
 import aleastchs.googleCharts.helpers.chartsHelp.TimelineRow
 
 import scala.scalajs.js
+import scala.scalajs.js.Any
 import scala.scalajs.js.annotation.JSGlobal
 
 object PatientGanttWidget {
@@ -74,10 +75,14 @@ object PatientGanttWidget {
     def onMount() = {
       println("Hej Google Charts Mount")
 
-      google.charts.load("current", js.Dynamic.literal(packages = js.Array("timeline", "corechart", "controls")))
-      google.charts.setOnLoadCallback(drawFunction)
+      google.charts.load("current",
+        js.Dynamic.literal(
+          packages = js.Array("timeline", "corechart", "controls")
+        )
+      )
+      google.charts.setOnLoadCallback(drawFunction())
 
-      def drawFunction: Unit = {
+      def drawFunction(): Unit = {
         val timelineElement: js.Dynamic = js.Dynamic.global.document.getElementById(id+"scheme")
 
         val timeline = new google.visualization.Timeline(timelineElement)
