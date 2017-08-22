@@ -1,6 +1,6 @@
 package spgui.widgets.charts
 
-import aleastchs.googleCharts.google
+
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.vdom.all.svg
@@ -12,9 +12,11 @@ import spgui.communication._
 import spgui.widgets.{API_Patient => apiPatient, API_PatientEvent => api}
 import spgui.widgets.ToAndFrom
 import spgui.widgets.css.{WidgetStyles => Styles}
-import aleastchs.googleCharts.helpers.chartsHelp.{TimelineHelper, TimelineRow}
+import aleastchs.googleCharts.google
+import aleastchs.googleCharts.helpers.chartsHelp.TimelineRow
 
 import scala.scalajs.js
+import scala.scalajs.js.annotation.JSGlobal
 
 object PatientGanttWidget {
 
@@ -40,13 +42,11 @@ object PatientGanttWidget {
 
     def render(p: String, s: Map[String, apiPatient.Patient]) = {
       <.div(Styles.helveticaZ)
-      (
-        <.div(
-          ^.className := GanttCSS.background.htmlClass,
-          ^.id := id,
-          <.div(^.id := id+"scheme")
-        )
-        )
+      <.div(
+        ^.className := GanttCSS.background.htmlClass,
+        ^.id := id,
+        <.div(^.id := id + "scheme")
+      )
     }
 
     /*********EXAMPLE USE OF GOOGLE API WITH Helper-class*************/
@@ -73,11 +73,12 @@ object PatientGanttWidget {
 
     def onMount() = {
       println("Hej Google Charts Mount")
-      google.charts.load("current", js.Dynamic.literal(packages = js.Array("timeline")))
+
+      google.charts.load("current", js.Dynamic.literal(packages = js.Array("timeline", "corechart", "controls")))
       google.charts.setOnLoadCallback(drawFunction)
 
-      def drawFunction = {
-        val timelineElement = js.Dynamic.global.document.getElementById(id+"scheme")
+      def drawFunction: Unit = {
+        val timelineElement: js.Dynamic = js.Dynamic.global.document.getElementById(id+"scheme")
 
         val timeline = new google.visualization.Timeline(timelineElement)
 
@@ -106,7 +107,7 @@ object PatientGanttWidget {
       Callback.empty
     }
 
-
+    /*
     /** When EricaPatients from Google Pub/Sub is updated,
       * clear gantt scheme.
       *
@@ -121,7 +122,8 @@ object PatientGanttWidget {
       *
       * @return the new TimelineHelper that just drawn the updated gantt scheme
       */
-    def onUpdate(rows: List[TimelineRow], helperToUse: TimelineHelper): TimelineHelper = {
+      * */
+    /*def onUpdate(rows: List[TimelineRow], helperToUse: TimelineHelper): TimelineHelper = {
       helperToUse.clear()
 
       rows.foreach(row => helperToUse.newRow(row))
@@ -129,7 +131,7 @@ object PatientGanttWidget {
       helperToUse.draw()
 
       helperToUse
-    }
+    }*/
 
     def onUnmount() = {
       println("Unmounting")
