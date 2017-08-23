@@ -21,7 +21,7 @@ lazy val scalaJSReactVersion = "1.1.0"
 lazy val scalaCssVersion = "0.5.3-RC1"
 lazy val diodeVersion = "1.1.2"
 
-lazy val scalajsGoogleChartsVersion = "0.4.6.Test"
+lazy val scalajsGoogleChartsVersion = "0.5.1.Test"
 lazy val chartsScalaVersion = "2.11"
 lazy val chartsSbtVersion = "0.13"
 
