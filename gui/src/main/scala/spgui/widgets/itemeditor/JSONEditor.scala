@@ -2,14 +2,16 @@ package spgui.widgets.itemeditor
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import scalacss.ScalaCssReact._
 
+import scalacss.ScalaCssReact._
 import sp.domain.SPValue
 
 import scalajs.js
-import js.Dynamic.{ literal => l }
+import js.Dynamic.{literal => l}
 import js.JSConverters._
 import org.scalajs.dom.raw
+
+import scala.scalajs.js.annotation.JSGlobal
 
 // the state of the jsoneditor is best handled by the jsoneditor-module itself
 // the whole jsoneditor-element is put as state to let it do that
@@ -45,6 +47,7 @@ object JSONEditorElement {
 // TODO facade more stuff than just set
 // TODO facading destroy() perhaps a good idea
 @js.native
+@JSGlobal
 class JSONEditor(element: raw.Element, options: js.UndefOr[js.Object] = js.undefined, json: js.UndefOr[js.Object] = js.undefined) extends js.Object {
   def set(json: js.Object): Unit = js.native
   def resize(): Unit = js.native
