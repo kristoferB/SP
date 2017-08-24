@@ -1,13 +1,12 @@
 package spgui.widgets.charts
 
-
-import aleastchs.googleCharts.helpers.chartsHelp.TimelineRow
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 
 import spgui.googleCharts.Charts
 import spgui.googleCharts.DataTable
 import spgui.googleCharts.Timeline
+import spgui.googleCharts.helpers.TimelineRow
 
 import scala.scalajs.js
 
