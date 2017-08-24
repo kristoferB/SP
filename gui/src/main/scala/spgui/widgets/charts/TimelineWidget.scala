@@ -85,7 +85,7 @@ object TimelineWidget {
   }
 
   private val ganttComponent = ScalaComponent.builder[Unit]("ganttComponent")
-    .initialState("100")
+    .initialState(State("100"))
     .renderBackend[Backend]
     .componentDidMount(_.backend.onMount())
     .componentWillUnmount(_.backend.onUnmount())
