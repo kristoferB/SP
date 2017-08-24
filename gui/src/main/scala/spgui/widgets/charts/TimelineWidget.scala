@@ -3,7 +3,7 @@ package spgui.widgets.charts
 import aleastchs.googleCharts.helpers.chartsHelp.TimelineRow
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import aleastchs.googleCharts.google.charts
+import aleastchs.googleCharts.google
 import aleastchs.googleCharts.google.visualization.{DataTable, Timeline}
 
 import scala.scalajs.js
@@ -49,12 +49,12 @@ object TimelineWidget {
     def onMount() = {
       println("Hej Google Charts Mount")
 
-      charts.load("current",
+      google.charts.load("current",
         js.Dynamic.literal(
           packages = js.Array("timeline", "corechart", "controls")
         )
       )
-      charts.setOnLoadCallback(drawFunction())
+      google.charts.setOnLoadCallback(drawFunction())
 
       def drawFunction(): Unit = {
         val timelineElement: js.Dynamic = js.Dynamic.global.document.getElementById(idS)
