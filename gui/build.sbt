@@ -21,7 +21,7 @@ val scalaJSReactVersion = "1.0.0"
 val scalaCssVersion = "0.5.3-RC1"
 val diodeVersion = "1.1.2"
 
-lazy val scalajsGoogleChartsVersion = "0.5.6.Beta"
+lazy val scalajsGoogleChartsVersion = "0.5.7.Beta"
 lazy val chartsScalaVersion = "2.11"
 lazy val chartsSbtVersion = "0.13"
 lazy val aleastchsBintray = "https://dl.bintray.com/aleastchs/aleastChs-releases/org.aleastChs/"
@@ -44,7 +44,7 @@ libraryDependencies ++= Seq(
   "org.scalatest" %%% "scalatest" % "3.0.0" % "test",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
   "eu.unicredit" %%% "paths-scala-js" % "0.4.5",
-  "org.aleastChs" % charts % scalajsGoogleChartsVersion
+  "org.aleastChs" % charts % scalajsGoogleChartsVersion from googleChartsUrl
 )
 
 /* This is how to include js files. Put it in src/main/resources.
