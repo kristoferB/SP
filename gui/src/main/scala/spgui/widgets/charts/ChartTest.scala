@@ -11,8 +11,9 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import spgui.circuit.SPGUICircuit
 import spgui.communication._
-import aleastchs.googleCharts.helpers.chartsHelp.GoogleChartsLoaded
-import aleastchs.googleCharts.google
+import spgui.googleCharts.GoogleChartsLoaded
+import aleastchs.googleCharts.google.visualization.Timeline
+import aleastchs.googleCharts.google.visualization.DataTable
 import aleastchs.googleCharts.helpers.chartsHelp._
 
 import scala.scalajs.js.annotation.JSName
@@ -52,9 +53,9 @@ object ChartTest {
       if(GoogleChartsLoaded.asInstanceOf[Boolean]) {
         val timelineElement = js.Dynamic.global.document.getElementById(id+"timeline")
         val ganttElement = js.Dynamic.global.document.getElementById(id+"gantt")
-        val timeline = new google.visualization.Timeline(timelineElement)
+        val timeline = new Timeline(timelineElement)
 
-        val data = new google.visualization.DataTable()
+        val data = new DataTable()
         data.addColumn("string", "Timeline id", "1")
         data.addColumn("string", "Timeline Name", "2")
         data.addColumn("date", "Start Date", "4")
@@ -68,7 +69,7 @@ object ChartTest {
 
         timeline.draw(data, exampleOptions.toDynamic)
       }
-      Callback.empty
+      Callback.log("Mounting ChartTest Done!")
     }
 
     def onUnmount() = {

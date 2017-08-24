@@ -15,8 +15,8 @@ import org.scalajs.dom.html.Div
 
 import scalajs.js
 import spgui.communication._
-import aleastchs.googleCharts.helpers.chartsHelp.{GoogleChartsLoaded, TimelineRow, TimelineHelper}
-import aleastchs.googleCharts.helpers.chartsHelp._
+import spgui.googleCharts.GoogleChartsLoaded
+import aleastchs.googleCharts.helpers.chartsHelp.{TimelineRow, TimelineHelper}
 
 /*
  * TODO: Remove debugging messages

@@ -15,13 +15,10 @@ import org.scalajs.dom.html.Div
 
 import scalajs.js
 import spgui.communication._
-import aleastchs.googleCharts.helpers.chartsHelp.GoogleChartsLoaded
+import spgui.googleCharts.GoogleChartsLoaded
 import aleastchs.googleCharts.helpers.chartsHelp.TimelineHelper
 import aleastchs.googleCharts.helpers.chartsHelp.TimelineRow
-import aleastchs.googleCharts.helpers.generalHelp.Tooltips
 
-
-import scala.scalajs.js.Date
 /*
  * TODO: Remove debugging messages
  */
