@@ -8,6 +8,7 @@ import spgui.widgets.examples._
 object WidgetList {
   val list =
     List[(String, SPWidgetBase => VdomElement, Int, Int)](
+      ("Timeline Widget",             widgets.charts.TimelineWidget(),               5, 5),
       ("Grid Test",                   spgui.dashboard.GridTest(),                    5, 5),
       ("Widget Injection",            widgets.injection.WidgetInjectionTest(),       3, 4),
       ("Item Editor",                 widgets.itemeditor.ItemEditor(),               3, 4),
