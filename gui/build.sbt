@@ -21,11 +21,15 @@ val scalaJSReactVersion = "0.11.3"
 val scalaCssVersion = "0.5.1"
 val diodeVersion = "1.1.1"
 
-lazy val scalajsGoogleChartsVersion = "0.5.6.Alpha"
+lazy val scalajsGoogleChartsVersion = "0.5.6.Beta"
 lazy val chartsScalaVersion = "2.11"
 lazy val chartsSbtVersion = "0.13"
-
-lazy val googleChartsUrl = "https://dl.bintray.com/aleastchs/aleastChs-releases/org.aleastChs/scalajs-google-charts/scala_"+ chartsScalaVersion +"/sbt_"+ chartsSbtVersion +"/"+ scalajsGoogleChartsVersion +"/jars/scalajs-google-charts.jar"
+lazy val aleastchsBintray = "https://dl.bintray.com/aleastchs/aleastChs-releases/org.aleastChs/"
+lazy val charts ="scalajs-google-charts/"
+lazy val googleChartsUrl = aleastchsBintray +
+  charts +"scala_"+
+  chartsScalaVersion +"/sbt_"+ chartsSbtVersion +"/"+
+  scalajsGoogleChartsVersion +"/jars/"+ charts +".jar"
 
 libraryDependencies ++= Seq(
   "com.github.japgolly.scalajs-react" %%% "core" % scalaJSReactVersion,
