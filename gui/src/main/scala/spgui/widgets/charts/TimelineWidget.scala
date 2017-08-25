@@ -2,9 +2,7 @@ package spgui.widgets.charts
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import spgui.googleCharts.GoogleChartsLoaded
-import spgui.googleCharts.GoogleVisualization
-import spgui.googleCharts.helpers.TimelineRow
+
 
 import scala.scalajs.js
 
