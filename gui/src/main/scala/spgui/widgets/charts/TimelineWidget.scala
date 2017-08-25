@@ -3,6 +3,9 @@ package spgui.widgets.charts
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 
+import aleastchs.googleCharts.helpers.chartsHelp.TimelineRow
+import aleastchs.googleCharts.GoogleVisualization
+import aleastchs.googleCharts.GoogleChartsLoaded
 
 import scala.scalajs.js
 
