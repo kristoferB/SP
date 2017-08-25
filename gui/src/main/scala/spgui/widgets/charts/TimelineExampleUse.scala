@@ -15,7 +15,7 @@ import org.scalajs.dom.html.Div
 
 import scalajs.js
 import spgui.communication._
-import spgui.googleCharts.GoogleChartsLoaded
+import aleastchs.googleCharts.GoogleChartsLoaded
 import aleastchs.googleCharts.helpers.chartsHelp.TimelineHelper
 import aleastchs.googleCharts.helpers.chartsHelp.TimelineRow
 

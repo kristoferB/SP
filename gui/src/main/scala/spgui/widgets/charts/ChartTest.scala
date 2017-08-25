@@ -4,19 +4,12 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 
 import scalajs.js
-import scalajs.js.Dynamic
-import org.scalajs.dom.raw.Element
-import org.scalajs.dom.document
-import java.util.concurrent.atomic.AtomicInteger
 
-import spgui.circuit.SPGUICircuit
 import spgui.communication._
-import spgui.googleCharts.GoogleChartsLoaded
-import aleastchs.googleCharts.google.visualization.Timeline
-import aleastchs.googleCharts.google.visualization.DataTable
+import aleastchs.googleCharts.GoogleChartsLoaded
+import aleastchs.googleCharts.GoogleVisualization
 import aleastchs.googleCharts.helpers.chartsHelp._
 
-import scala.scalajs.js.annotation.JSName
 
 object ChartTest {
   case class State(x: Int)
@@ -53,9 +46,9 @@ object ChartTest {
       if(GoogleChartsLoaded.asInstanceOf[Boolean]) {
         val timelineElement = js.Dynamic.global.document.getElementById(id+"timeline")
         val ganttElement = js.Dynamic.global.document.getElementById(id+"gantt")
-        val timeline = new Timeline(timelineElement)
+        val timeline = new GoogleVisualization.Timeline(timelineElement)
 
-        val data = new DataTable()
+        val data = new GoogleVisualization.DataTable()
         data.addColumn("string", "Timeline id", "1")
         data.addColumn("string", "Timeline Name", "2")
         data.addColumn("date", "Start Date", "4")
