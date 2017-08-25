@@ -1,3 +1,4 @@
+/*
 package spgui.googleCharts
 
 import scala.scalajs.js
@@ -74,4 +75,4 @@ class DataView (
   def toDataTable(): DataTable = js.native
 
   def toJSON(): String = js.native
-}
+}*/

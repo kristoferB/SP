@@ -1,3 +1,4 @@
+/*
 package spgui.googleCharts
 
 import scala.scalajs.js
@@ -15,4 +16,4 @@ class Timeline(container: js.Dynamic) extends js.Object {
   def clearChart(): Unit = js.native
 
   def getSelection(): js.Array[js.Any] = js.native
-}
+}*/

@@ -1,3 +1,4 @@
+/*
 package spgui.googleCharts
 
 import scala.scalajs.js.annotation.JSGlobal
@@ -119,4 +120,4 @@ class DataTable(
   def toJSON(): String = js.native
 
   override def clone(): DataTable = js.native
-}
+}*/
