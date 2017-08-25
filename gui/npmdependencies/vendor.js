@@ -10,6 +10,15 @@ window.ResponsiveReactGridLayout = WidthProvider(ReactGridLayout.Responsive);
 window.ReactGridLayout = ReactGridLayout;
 require('react-grid-layout/css/styles.css');
 
+window.GoogleChartsLoaded = false;
+const script = (typeof window !== 'undefined') ? require('scriptjs') : null;
+script("https://www.gstatic.com/charts/loader.js", () => {
+    google.charts.load('current', {packages: ['corechart','gantt','timeline']});
+    google.charts.setOnLoadCallback(() => {
+        window.GoogleChartsLoaded = true;
+        window.GoogleVisualization = google.visualization;
+    });
+});
 
 var JSONEditor = require('jsoneditor');
 window.JSONEditor = JSONEditor;
