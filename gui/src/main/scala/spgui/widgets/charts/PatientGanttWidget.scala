@@ -12,7 +12,8 @@ import spgui.communication._
 import spgui.widgets.{API_Patient => apiPatient, API_PatientEvent => api}
 import spgui.widgets.ToAndFrom
 import spgui.widgets.css.{WidgetStyles => Styles}
-import aleastchs.googleCharts.google
+import aleastchs.googleCharts.GoogleVisualization
+import aleastchs.googleCharts.GoogleChartsLoaded
 import aleastchs.googleCharts.helpers.chartsHelp.TimelineRow
 
 import scala.scalajs.js
@@ -75,19 +76,19 @@ object PatientGanttWidget {
     def onMount() = {
       println("Hej Google Charts Mount")
 
-      google.charts.load("current",
-        js.Dynamic.literal(
-          packages = js.Array("timeline", "corechart", "controls")
-        )
-      )
-      google.charts.setOnLoadCallback(drawFunction())
+      println(GoogleChartsLoaded)
+      if(GoogleChartsLoaded.asInstanceOf[Boolean])
+        drawFunction()
+      else
+        println("Could not draw and load the google charts")
+
 
       def drawFunction(): Unit = {
         val timelineElement: js.Dynamic = js.Dynamic.global.document.getElementById(id+"scheme")
 
-        val timeline = new google.visualization.Timeline(timelineElement)
+        val timeline = new GoogleVisualization.Timeline(timelineElement)
 
-        val dataTable = new google.visualization.DataTable()
+        val dataTable = new GoogleVisualization.DataTable()
 
         dataTable.addColumn("string", "TimelineString", "Row Label")
         dataTable.addColumn("string", "TimelineString", "Bar Label")
@@ -109,7 +110,7 @@ object PatientGanttWidget {
       //        timelineHelper.draw()
       //        //onUpdate(rowList, timelineHelper)
 
-      Callback.empty
+      Callback.log("Mounting Done! Widget Gantt")
     }
 
     /*
