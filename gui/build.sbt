@@ -21,7 +21,7 @@ val scalaJSReactVersion = "1.0.0"
 val scalaCssVersion = "0.5.3-RC1"
 val diodeVersion = "1.1.2"
 
-lazy val scalajsGoogleChartsVersion = "0.6.0"
+lazy val scalajsGoogleChartsVersion = "0.6.0.Alpha"
 lazy val chartsScalaVersion = "2.11"
 lazy val chartsSbtVersion = "0.13"
 lazy val aleastchsBintray = "https://dl.bintray.com/aleastchs/aleastChs-releases/org.aleastChs/"
