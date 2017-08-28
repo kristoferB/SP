@@ -14,7 +14,7 @@ import scala.util.{Random, Try}
   import Logic._
 
 
-  import spgui.widgets.examples.{APIExampleService => api}
+  import sp.example.{APIExampleService => api}
 
 
   object ExampleServiceWidgetState {

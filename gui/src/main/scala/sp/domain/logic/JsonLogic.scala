@@ -765,15 +765,28 @@ trait JsonImplicit extends JsonDerived {
 
 
 
+
 trait JsonDerived{
-  import language.experimental.macros
-  //def spFormat[A]: OFormat[A] =  derived.oformat[A]()
-  val jsonISA = (__ \ "isa").format[String]
+
 
 
   import play.api.libs.json.{OFormat, OWrites, Reads}
   import shapeless.Lazy
   import julienrf.json.derived._
+
+
+
+  val derive: Json.type = Json
+
+  def deriveCaseObject[A](implicit derivedReads: Lazy[DerivedReads[A]], derivedOWrites: Lazy[DerivedOWrites[A]]): OFormat[A] =
+    OFormat(derivedReads.value.reads(TypeTagReads.nested, NameAdapter.identity), derivedOWrites.value.owrites(TypeTagOWrites.nested, NameAdapter.identity))
+
+
+
+
+  //def spFormat[A]: OFormat[A] =  derived.oformat[A]()
+  val jsonISA = (__ \ "isa").format[String]
+
 
   def deriveFormatSimple[A](implicit derivedReads: Lazy[DerivedReads[A]], derivedOWrites: Lazy[DerivedOWrites[A]]): OFormat[A] =
     OFormat(derivedReads.value.reads(TypeTagReads.nested, NameAdapter.identity), derivedOWrites.value.owrites(TypeTagOWrites.nested, NameAdapter.identity))

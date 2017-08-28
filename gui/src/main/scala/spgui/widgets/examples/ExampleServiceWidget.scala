@@ -16,28 +16,7 @@ package spgui.widgets.examples {
   import Logic._
 
 
-  object APIExampleService {
-    sealed trait Request
-    sealed trait Response
-    val service = "ExampleService"
-
-    case class StartTheTicker(id: ID) extends Request
-    case class StopTheTicker(id: ID) extends Request
-    case class SetTheTicker(id: ID, map: Map[String, Int]) extends Request
-    case object GetTheTickers extends Request
-    case object ResetAllTickers extends Request
-    case class TickerEvent(map: Map[String, Int], id: ID) extends Response
-    case class TheTickers(ids: List[ID]) extends Response
-
-    object Request {
-      implicit lazy val fExampleServiceRequest: JSFormat[Request] = deriveFormatISA[Request]
-    }
-    object Response {
-      implicit lazy val fExampleServiceResponse: JSFormat[Response] = deriveFormatISA[Response]
-    }
-
-  }
-  import spgui.widgets.examples.{APIExampleService => api}
+  import sp.example.{APIExampleService => api}
 
 
 

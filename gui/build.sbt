@@ -8,7 +8,7 @@ scalaOrganization := "org.scala-lang"
 
 scalaVersion := "2.12.3"
 
-javaOptions += "-Xmx2048m"
+//javaOptions += "-Xmx2048m"
 
 
 scalacOptions  := Seq(
