@@ -41,7 +41,7 @@ object APISP {
     }
   }
 
-    // using the extra reads to enable x.to[SPError] and SPValue(SPOK())
+    // using the extra reads to enable x.to[SPError]
     implicit val apiSPR1: JSReads[SPError] = deriveReadISA[SPError]
     implicit val apiSPR2: JSReads[SPACK] = deriveReadISA[SPACK]
     implicit val apiSPR3: JSReads[SPDone] = deriveReadISA[SPDone]

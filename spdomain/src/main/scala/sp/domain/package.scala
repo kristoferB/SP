@@ -1,29 +1,30 @@
 package sp
 
 import java.util.UUID
-import play.api.libs.json._
 import scala.util.Try
 
 /**
  * Created by kristofer on 15-05-27.
  */
 package object domain {
+
   /**
     * The default data structure to store info about an item
     * in SP. Is a json structure and can store any case class
     * that has an implicit format defined for it.
     */
-  type SPAttributes = JsObject
-  type SPValue = JsValue
+  type SPAttributes = play.api.libs.json.JsObject
+  type SPValue = play.api.libs.json.JsValue
 
   /**
     * A helper type that any case class that has a implicit format in
     * scope can be converted into. Else, a compile error will happen.
     */
-  type AttributeWrapper = Json.JsValueWrapper
-  type JSFormat[T] = Format[T]
-  type JSReads[T] = Reads[T]
-  type JSWrites[T] = Writes[T]
+  type AttributeWrapper = play.api.libs.json.Json.JsValueWrapper
+  type JSFormat[T] = play.api.libs.json.Format[T]
+  type JSReads[T] = play.api.libs.json.Reads[T]
+  type JSWrites[T] = play.api.libs.json.Writes[T]
+
 
   /**
     * The id used in SP. A standard UUID.
@@ -31,6 +32,7 @@ package object domain {
   type ID = java.util.UUID
 
 
+  import play.api.libs.json._
 
 
   object SPAttributes {

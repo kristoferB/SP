@@ -4,6 +4,7 @@ import org.threeten.bp._
 import sp.domain._
 import play.api.libs.json._
 import julienrf.json.derived
+import play.api.libs.json.Reads.verifying
 
 object JsonLogic extends JsonImplicit
 
@@ -774,6 +775,15 @@ trait JsonDerived{
   import play.api.libs.json.{OFormat, OWrites, Reads}
   import shapeless.Lazy
   import julienrf.json.derived._
+
+  val derive: Json.type = Json
+
+  def deriveCaseObject[A](implicit derivedReads: Lazy[DerivedReads[A]], derivedOWrites: Lazy[DerivedOWrites[A]]): OFormat[A] =
+    OFormat(derivedReads.value.reads(TypeTagReads.nested, NameAdapter.identity), derivedOWrites.value.owrites(TypeTagOWrites.nested, NameAdapter.identity))
+
+
+
+
 
   def deriveFormatSimple[A](implicit derivedReads: Lazy[DerivedReads[A]], derivedOWrites: Lazy[DerivedOWrites[A]]): OFormat[A] =
     OFormat(derivedReads.value.reads(TypeTagReads.nested, NameAdapter.identity), derivedOWrites.value.owrites(TypeTagOWrites.nested, NameAdapter.identity))
