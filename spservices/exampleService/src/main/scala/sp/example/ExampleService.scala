@@ -8,11 +8,13 @@ import sp.domain.Logic._
 
 
 
+
+
 /**
   *  This is the actor (the service) that listens for messages on the bus
   *  It keeps track of a set of Pie diagrams that is updated every second
   */
-class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
+class ExampleService extends Actor with ActorLogging with ExampleServiceLogic with ExampleServiceInfo {
 
   // connecting to the pubsub bus using the mediator actor
   import akka.cluster.pubsub._
@@ -31,7 +33,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
       val upd = tick  // Updated the pies on a tick
       tick.foreach{ e =>
         val header = SPAttributes(
-          "from" -> ExampleServiceInfo.attributes.service,
+          "from" -> attributes.service,
           "reqID" -> e.id
         ).addTimeStamp
         val mess = SPMessage.makeJson(header, e)
@@ -49,11 +51,11 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
       // use the m.make(...) below
       val bodyAPI = for {
         m <- message
-        h <- m.getHeaderAs[SPHeader] if h.to == ExampleServiceInfo.attributes.service  // only extract body if it is to me
+        h <- m.getHeaderAs[SPHeader] if h.to == attributes.service  // only extract body if it is to me
         b <- m.getBodyAs[APIExampleService.Request]
       } yield {
         val toSend = commands(b) // doing the logic
-        val spHeader = h.copy(from = ExampleServiceInfo.attributes.service) // upd header put keep most info
+        val spHeader = h.copy(from = attributes.service) // upd header put keep most info
 
         // We must do a pattern match here to enable the json conversion (SPMessage.make. Or the command can return pickled bodies
         toSend.foreach{
@@ -77,7 +79,7 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
         h <- m.getHeaderAs[SPHeader]
         b <- m.getBodyAs[APISP] if b == APISP.StatusRequest
       } yield {
-        val spHeader = h.copy(from = ExampleServiceInfo.attributes.service) // upd header put keep most info
+        val spHeader = h.copy(from = attributes.service) // upd header put keep most info
         mediator ! Publish("spevents", m.makeJson(spHeader, statusResponse))
       }
 
@@ -87,11 +89,11 @@ class ExampleService extends Actor with ActorLogging with ExampleServiceLogic {
 
 
 
-  val statusResponse = ExampleServiceInfo.attributes
+  val statusResponse = attributes
 
   // Sends a status response when the actor is started so service handlers finds it
   override def preStart() = {
-    val mess = SPMessage.makeJson(SPHeader(from = ExampleServiceInfo.attributes.service, to = "serviceHandler"), statusResponse)
+    val mess = SPMessage.makeJson(SPHeader(from = attributes.service, to = "serviceHandler"), statusResponse)
     mediator ! Publish("spevents", mess)
   }
 
@@ -168,4 +170,27 @@ trait ExampleServiceLogic {
     pie.map{case (key, v) => key -> ((v.toDouble / sum)*100).toInt}
   }
 
+}
+
+trait ExampleServiceInfo {
+  case class ExampleServiceRequest(request: APIExampleService.Request)
+  case class ExampleServiceResponse(response: APIExampleService.Response)
+
+  lazy val req: com.sksamuel.avro4s.SchemaFor[ExampleServiceRequest] = com.sksamuel.avro4s.SchemaFor[ExampleServiceRequest]
+  lazy val resp: com.sksamuel.avro4s.SchemaFor[ExampleServiceResponse] = com.sksamuel.avro4s.SchemaFor[ExampleServiceResponse]
+
+  val apischema = makeMeASchema(
+    req(),
+    resp()
+  )
+
+  val attributes: APISP.StatusResponse = APISP.StatusResponse(
+    service = APIExampleService.service,
+    instanceID = Some(ID.newID),
+    instanceName = "",
+    tags = List("example"),
+    api = apischema,
+    version = 1,
+    attributes = SPAttributes.empty
+  )
 }

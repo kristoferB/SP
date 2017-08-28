@@ -1,4 +1,4 @@
-package sp.models
+package sp.models {
 
 import sp.domain._
 import Logic._
@@ -17,15 +17,15 @@ object APIModel {
   case class RevertModel(toVersion: Int) extends Request
   case class Import(name: String, id: ID, version: Int, attributes: SPAttributes = SPAttributes(), items: List[IDAble]) extends Request
 
-  case class GetModel() extends Request
-  case class GetModels() extends Request
-  case class GetModelInfo() extends Request
-  case class GetModelHistory() extends Request
+  case object GetModel extends Request
+  case object GetModels extends Request
+  case object GetModelInfo extends Request
+  case object GetModelHistory extends Request
 
-  case class GetItems() extends Request
+  case object GetItems extends Request
   case class GetItem(itemID: ID) extends Request
   case class GetItemsInList(items: List[ID]) extends Request
-  case class GetStructures() extends Request
+  case object GetStructures extends Request
   // add more messages here later
 
   case class PutItems(items: List[IDAble], info: SPAttributes = SPAttributes()) extends Request
@@ -40,11 +40,41 @@ object APIModel {
   case class SPItem(item: IDAble) extends Response
   case class SPItems(items: List[IDAble]) extends Response
 
+  object Formats {
+    import play.api.libs.json._
+
+    implicit val fCreateModel: JSFormat[CreateModel] = Json.format[CreateModel]
+    implicit val fDeleteModel: JSFormat[DeleteModel] = Json.format[DeleteModel]
+    implicit val fUpdateModelAttributes: JSFormat[UpdateModelAttributes] = Json.format[UpdateModelAttributes]
+    implicit val fRevertModel: JSFormat[RevertModel] = Json.format[RevertModel]
+    implicit val fImport: JSFormat[Import] = Json.format[Import]
+    implicit val fGetModel : JSFormat[GetModel.type] = deriveCaseObject[GetModel.type]
+    implicit val fGetModels : JSFormat[GetModels.type] = deriveCaseObject[GetModels.type]
+    implicit val fGetModelInfo : JSFormat[GetModelInfo.type] = deriveCaseObject[GetModelInfo.type]
+    implicit val fGetModelHistory : JSFormat[GetModelHistory.type] = deriveCaseObject[GetModelHistory.type]
+    implicit val fGetItems : JSFormat[GetItems.type] = deriveCaseObject[GetItems.type]
+    implicit val fGetItem: JSFormat[GetItem] = Json.format[GetItem]
+    implicit val fGetItemsInList: JSFormat[GetItemsInList] = Json.format[GetItemsInList]
+    implicit val fGetStructures : JSFormat[GetStructures.type] = deriveCaseObject[GetStructures.type]
+    implicit val fPutItems: JSFormat[PutItems] = Json.format[PutItems]
+    implicit val fDeleteItems: JSFormat[DeleteItems] = Json.format[DeleteItems]
+    implicit val fTheModel: JSFormat[TheModel] = Json.format[TheModel]
+    implicit val fModelInformation: JSFormat[ModelInformation] = Json.format[ModelInformation]
+    implicit val fModelDeleted: JSFormat[ModelDeleted] = Json.format[ModelDeleted]
+    implicit val fModelUpdate: JSFormat[ModelUpdate] = Json.format[ModelUpdate]
+    implicit val fModelHistory: JSFormat[ModelHistory] = Json.format[ModelHistory]
+    implicit val fModelList: JSFormat[ModelList] = Json.format[ModelList]
+    implicit val fSPItem: JSFormat[SPItem] = Json.format[SPItem]
+    implicit val fSPItems: JSFormat[SPItems] = Json.format[SPItems]
+    def defModelRequest: JSFormat[Request] = Json.format[Request]
+    def defModelResponse: JSFormat[Response] = Json.format[Response]
+  }
+
   object Request {
-    implicit lazy val fExampleServiceRequest: JSFormat[Request] = deriveFormatISA[Request]
+    implicit lazy val fModelRequest: JSFormat[Request] = Formats.defModelRequest
   }
   object Response {
-    implicit lazy val fExampleServiceResponse: JSFormat[Response] = deriveFormatISA[Response]
+    implicit lazy val fModelResponse: JSFormat[Response] = Formats.defModelResponse
   }
 
 }
@@ -91,4 +121,7 @@ object ModelsComm {
 
   def makeMess(h: SPHeader, b: api.Response) = SPMessage.makeJson[SPHeader, api.Response](h, b)
   def makeMess(h: SPHeader, b: APISP) = SPMessage.makeJson[SPHeader, APISP](h, b)
+}
+
+
 }

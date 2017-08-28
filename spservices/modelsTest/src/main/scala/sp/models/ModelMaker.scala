@@ -56,7 +56,7 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
             }
 
           }
-        case (h, b: api.GetModels) =>
+        case (h, api.GetModels) =>
           val updH = h.copy(from = api.service, to = h.from)
           sendAnswer(updH, api.ModelList(modelMap.keys.toList))
           sendAnswer(updH, APISP.SPDone())

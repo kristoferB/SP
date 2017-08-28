@@ -20,7 +20,15 @@ class ModelMakerAPITest extends FreeSpec with Matchers {
 
 
         val s = ModelInfo.apischema
+        println(s)
         assert(s.get("error").isEmpty)
+      }
+
+      "model API" in {
+        val m = APIModel.CreateModel("hej")
+
+        println(SPValue(m))
+
       }
     }
 

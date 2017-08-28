@@ -75,7 +75,7 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
 
     "create and initial model" in {
       val h = SPHeader(from = "test", to = api.service, reply = SPValue("test"))
-      send(api.GetModel())
+      send(api.GetModel)
       val o = Operation("o1")
       send(api.PutItems(List(o, Thing("t1"))))
       send(api.DeleteItems(List(o.id)))

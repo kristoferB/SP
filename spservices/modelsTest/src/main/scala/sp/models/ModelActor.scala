@@ -48,14 +48,14 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
             val res = updateAttributes(k.name, k.attributes)
             handleModelDiff(res, updH)
           case k: api.RevertModel =>
-          case k: api.GetModel =>
+          case api.GetModel =>
             sendAnswer(updH, getTheModel)
-          case k: api.GetModelInfo =>
+          case api.GetModelInfo =>
             sendAnswer(updH, getModelInfo)
-          case k: api.GetModelHistory =>
+          case api.GetModelHistory =>
             val res = getModelHistory
             sendAnswer(updH, getModelHistory)
-          case k: api.GetItems =>
+          case api.GetItems =>
             sendAnswer(updH, api.SPItems(state.items))
           case api.GetItem(itemID) =>
             state.idMap.get(itemID) match {
@@ -65,7 +65,7 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
           case api.GetItemsInList(xs) =>
             val res = xs.flatMap(state.idMap.get)
             sendAnswer(updH, api.SPItems(res))
-          case k: api.GetStructures   =>
+          case api.GetStructures   =>
             val res = state.items.filter(_.isInstanceOf[Struct])
             sendAnswer(updH, api.SPItems(res))
           case k: api.DeleteModel =>
