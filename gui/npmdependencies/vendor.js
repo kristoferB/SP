@@ -26,3 +26,10 @@ require('bootstrap/fonts/glyphicons-halflings-regular.eot');
 require('bootstrap/fonts/glyphicons-halflings-regular.svg');
 
 require('font-awesome/css/font-awesome.css');
+
+var angular = require('angular');
+window.angular = angular;
+require('angular-gantt');
+require('angular-gantt/assets/angular-gantt.css');
+require('angular-gantt/assets/angular-gantt-plugins.css');
+require('angular-moment');
