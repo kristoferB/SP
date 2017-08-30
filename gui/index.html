@@ -17,11 +17,13 @@
       spgui.Main().main();
     </script>
 
-    <div ng-app="ganttApp" ng-controller="gantCtrl" ng-strict-di>
-      <div gantt data="data">
-        <gantt-tree></gantt-tree>
-      </div>
-    </div>
+    <script type="text/javascript">
+      angular.element(document.body).ready(function() {
+        angular.bootstrap(document.body, ['ganttApp']);
+      });
+    </script>
+
+    <gantt-component></gantt-component>
 
   </body>
 </html>

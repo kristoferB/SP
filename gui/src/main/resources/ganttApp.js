@@ -17,3 +17,14 @@ app.controller('gantCtrl', ['$scope', function ($scope) {
 
     ];
 }]);
+
+app.component("ganttComponent", {
+  template : `
+      <h1>ng1 component</h1>
+      <div ng-controller="gantCtrl">
+        <div gantt data="data">
+          <gantt-tree></gantt-tree>
+        </div>
+      </div>
+    `
+});
