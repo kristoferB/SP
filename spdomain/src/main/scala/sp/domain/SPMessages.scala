@@ -1,7 +1,5 @@
 package sp.domain
 
-import java.util
-
 import play.api.libs.json._
 import sp.domain.Logic._
 

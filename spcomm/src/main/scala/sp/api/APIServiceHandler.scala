@@ -4,7 +4,7 @@ package sp.service
 import sp.domain._
 import Logic._
 import scala.util.Try
-
+import sp.domain.SchemaLogic._
 
 
 

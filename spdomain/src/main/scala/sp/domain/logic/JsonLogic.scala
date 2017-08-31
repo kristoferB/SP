@@ -3,7 +3,6 @@ package sp.domain.logic
 import org.threeten.bp._
 import sp.domain._
 import play.api.libs.json._
-import julienrf.json.derived
 import play.api.libs.json.Reads.verifying
 
 object JsonLogic extends JsonImplicit
@@ -767,7 +766,6 @@ trait JsonImplicit extends JsonDerived {
 
 
 trait JsonDerived{
-  import language.experimental.macros
   //def spFormat[A]: OFormat[A] =  derived.oformat[A]()
   val jsonISA = (__ \ "isa").format[String]
 

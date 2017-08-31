@@ -1,7 +1,6 @@
 package sp.domain
 
 import java.util.UUID
-import sp.domain._
 
 sealed trait IDAble {
   val name: String

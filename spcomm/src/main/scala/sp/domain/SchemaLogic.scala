@@ -1,4 +1,4 @@
-package sp.domain.logic
+package sp.domain
 
 import org.threeten.bp._
 import sp.domain._

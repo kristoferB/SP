@@ -363,7 +363,7 @@ trait SOPLogics {
 
     def relOrder(sop: SOP): Option[(ID, ID)] = {
       sop.sop.toList match {
-        case (h1: OperationNode) :: (h2: OperationNode) :: Nil => Some(h1.operation, h2.operation)
+        case (h1: OperationNode) :: (h2: OperationNode) :: Nil => Some((h1.operation, h2.operation))
         case _ => None
       }
     }

@@ -34,7 +34,7 @@ class ServiceHandler extends Actor with ServiceHandlerLogic {
         b match {
           case GetServices =>
             val res = services.map(_._2._1).toList
-            val updH = h.copy(from = attributes.service, to = h.from)
+            val updH = h.copy(from = APIServiceHandler.service, to = h.from)
             mediator ! Publish("answers", ServiceHandlerComm.makeMess(updH, Services(res)))
         }
       }
@@ -45,7 +45,7 @@ class ServiceHandler extends Actor with ServiceHandlerLogic {
             val res = addResponse(x, sender())
             context.watch(sender())
             if (res) {
-              val h = SPHeader(from = attributes.service)
+              val h = SPHeader(from = APIServiceHandler.service)
               mediator ! Publish("spevents", ServiceHandlerComm.makeMess(h, NewService(x)))
             }
           case doNothing => Unit
@@ -55,7 +55,7 @@ class ServiceHandler extends Actor with ServiceHandlerLogic {
     case Terminated(ref) =>
       println("Removing service")
       val res = deathWatch(ref)
-      val h = SPHeader(from = attributes.service)
+      val h = SPHeader(from = APIServiceHandler.service)
       res.foreach{kv =>
         mediator ! Publish("spevents", ServiceHandlerComm.makeMess(h, RemovedService(kv._2)))
       }
@@ -65,7 +65,7 @@ class ServiceHandler extends Actor with ServiceHandlerLogic {
     case Tick =>
       aTick()
       val h = SPHeader("ServiceHandler")
-      val b = APISP.StatusRequest(SPAttributes().addTimeStamp)
+      val b = APISP.StatusRequest
       val m = SPMessage.makeJson(h, b)
       mediator ! Publish("services", m)
       //services.foreach(x => println(x._1))
