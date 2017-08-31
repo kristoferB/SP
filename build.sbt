@@ -49,54 +49,33 @@ val backendDeps: Seq[ClasspathDep[ProjectReference]] = Seq(spdomainJVM, spcomm, 
 val frontendDeps: Seq[ClasspathDep[ProjectReference]] = Seq(spdomainJS, spgui)
 
 
-//lazy val spcontrol = crossProject.in(file("spcontrol"))
-//    .dependsOn(spdomain)
-//    .settings(
-//      libraryDependencies ++= domainDependencies.value,
-//      commonSettings
-//      )
-//    .jvmSettings(
-//      libraryDependencies ++= Seq(
-//        "com.typesafe.akka" %% "akka-persistence" % versions.akka,
-//        "org.iq80.leveldb"            % "leveldb"          % "0.7",
-//        "org.fusesource.leveldbjni"   % "leveldbjni-all"   % "1.8",
-//        "com.github.nscala-time" %% "nscala-time" % "2.16.0"
-//      ),
-//      libraryDependencies ++= commDependencies.value,
-//      serviceSettings
-//    )
-//    .jsSettings(
-//      jsSettings
-//    )
-//
-//lazy val spcontrolJVM = spcontrol.jvm.dependsOn(backendDeps:_*)
-//lazy val spcontrolJS = spcontrol.js.dependsOn(frontendDeps:_*)
-
-
-lazy val spcontrolAPI = crossProject.crossType(CrossType.Pure).in(file("spcontrol/api"))
+lazy val spControlAPI = crossProject.crossType(CrossType.Pure).in(file("spcontrol/api"))
   .settings(
     libraryDependencies ++= domainDependencies.value,
     commonSettings
   )
   .dependsOn(spdomain)
 
-lazy val spcontrolAPIJVM = spcontrolAPI.jvm
-lazy val spcontrolAPIJS = spcontrolAPI.js
+lazy val spControlAPIJVM = spControlAPI.jvm
+lazy val spControlAPIJS = spControlAPI.js
 
-lazy val spcontrolBackend = project.in(file("spcontrol/backend"))
+lazy val spControlBackend = project.in(file("spcontrol/backend"))
   .settings(
     libraryDependencies ++= domainDependencies.value,
     libraryDependencies ++= commDependencies.value,
     commonSettings,
     serviceSettings
   )
-  .dependsOn(spdomainJVM, spcontrolAPIJVM, spcomm)
+  .dependsOn(spControlAPIJVM)
+  .dependsOn(backendDeps:_*)
 
-lazy val spcontrolFrontEnd = project.in(file("spcontrol/frontend"))
+
+lazy val spControlFrontEnd = project.in(file("spcontrol/frontend"))
   .settings(
     libraryDependencies ++= domainDependencies.value,
     commonSettings,
     jsSettings
   )
-  .dependsOn(spdomainJS, spcontrolAPIJS, spgui)
+  .dependsOn(spControlAPIJS)
+  .dependsOn(frontendDeps:_*)
   .enablePlugins(ScalaJSPlugin)

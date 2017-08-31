@@ -3,24 +3,23 @@ package sp
 import akka.actor._
 import sp.domain._
 import Logic._
+import sp.server._
 
 
 
 object Launch extends App {
-
   implicit val system = ActorSystem("SP")
   val cluster = akka.cluster.Cluster(system)
 
 
   cluster.registerOnMemberUp {
+    println("SPCore node has joined the cluster")
+    SPCore.launch(system)
 
-    // Start all you actors here.
-    println("modelstest node has joined the cluster")
-    //system.actorOf(Props(classOf[TestingWidget]), "testingWidget")
 
   }
   cluster.registerOnMemberRemoved{
-    println("Modelstest node has been removed from the cluster")
+    println("SPCore node has been removed from the cluster")
   }
 
 
@@ -28,14 +27,31 @@ object Launch extends App {
   cluster.leave(cluster.selfAddress)
 
   scala.io.StdIn.readLine("Press ENTER to exit application.\n")
-  system.terminate()
-
+  // terminates in SPCore launch
 
 
 
 }
 
-import sp.domain.Logic._
+object SPCore {
+  def launch(system: ActorSystem): Unit = {
+    implicit val sys = system
+    implicit val ec = sys.dispatcher
+    val webServer = new LaunchGUI(sys)
+    val f = webServer.launch
+    val cluster = akka.cluster.Cluster(sys)
+
+    sys.actorOf(sp.service.ServiceHandler.props)
+
+    cluster.registerOnMemberRemoved{
+      println("SP core will terminate")
+      f.flatMap(_.unbind()) // trigger unbinding from the port
+        .onComplete{_ =>
+        sys.terminate()
+      } // and shutdown when done
+    }
+  }
+}
 
 
 
