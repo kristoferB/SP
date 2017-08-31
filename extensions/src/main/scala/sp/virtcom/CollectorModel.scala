@@ -53,12 +53,7 @@ trait CollectorModel {
     "resourceTrans" -> SPAttributes(resource -> SPAttributes("atStart" -> atStart, "atExecute" -> atExecute, "atComplete" -> atComplete))
   }
   def aCarrierTrans(carrier: String, atStart: Option[String] = None, atExecute: Option[String] = None, atComplete: Option[String] = None) = {
-    "carrierTrans" -> SPAttributes(carrier ->
-      SPAttributes("atStart" -> atStart, "atExecute" -> atExecute, "atComplete" -> atComplete)
-      //        .foldLeft(Seq(): Seq[(String, String)]) {
-      //        case (acc, (key, optValue)) => acc ++ (if (optValue.isDefined) Seq(key -> optValue.get) else Seq())
-      //      })
-    )
+    "carrierTrans" -> SPAttributes(carrier -> SPAttributes("atStart" -> atStart, "atExecute" -> atExecute, "atComplete" -> atComplete) )
   }
 
   def x(name: String, forbiddenExpressions: Set[String] = Set(), operations: Set[String] = Set(), attributes: SPAttributes = SPAttributes()) = {
@@ -141,7 +136,7 @@ object CollectorModelImplicits {
       }
 
       //Operations------------------------------------------------------------------------------------
-      lazy val opsToAdd = cm.operationSetWithID.map(_._2).toList//getIDablesFromSetWithIDs(cm.operationSet, (n, as) => Operation(name = n, List(), attributes = as, opID))
+      lazy val opsToAdd = cm.operationSetWithID.map(_._2).toList
       lazy val operationMap = opsToAdd.map(o => o.name -> o).toMap
 
       //ForbiddenExpressions--------------------------------------------------------------------------------------

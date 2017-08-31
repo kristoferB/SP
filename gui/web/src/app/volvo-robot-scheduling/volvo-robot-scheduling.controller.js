@@ -26,6 +26,7 @@
         vm.state = 'selecting';
         vm.GenerateSops = GenerateSops;
         vm.calculateUsingSops = calculateUsingSops;
+        vm.loadCases = loadCases;
         vm.numStates = 0;
         vm.minTime = 0.0;
         vm.cpCompleted = false;
@@ -37,21 +38,33 @@
         vm.selectedVars = [];
         vm.selectedValues = {};
         vm.stateExists = 'uninitialized';
-        vm.updateSopID = updateSopID;
+        vm.caseMap = {};
+        vm.updateSelectedCases = updateSelectedCases;
+        vm.checkSOP = checkSOP;
+        vm.checkTime = checkTime;
         var SopID = '';
         var waitID = '';
+        var caselist = {};
+        var checkedSOP = false;
+        var checkedTime = false;
+
 
 document.getElementById("sopIDTextBox").onchange = function() {updateSopID()};
 
-function updateSopID(){
-SopID = document.getElementById("sopIDTextBox").value;
+
+function checkSOP(){ checkedSOP = ! checkedSOP; }
+
+function checkTime(){ checkedTime = ! checkedTime;}
+
+function updateSelectedCases(k,v){
+caselist[k] = v;
 }
 
 
         function updateSelected(nowSelected, previouslySelected) {
             var n = _.difference(nowSelected, previouslySelected);
             if(vm.state == 'selecting') { // first we select schedules
-                n = _.filter(n, function(x) { return !_.isUndefined(x.isa) && (x.isa == 'Operation' || x.isa == 'SOPSpec'); });
+                n = _.filter(n, function(x) { return !_.isUndefined(x.isa) && (x.isa == 'Operation'); }); // || x.isa == 'SOPSpec'
                 vm.selectedSchedules = _.union(vm.selectedSchedules,n);
             } else if(vm.state == 'done') { // then we select variables
                 n = _.filter(n, function(x) { return !_.isUndefined(x.isa) && x.isa == 'Thing'; });
@@ -71,6 +84,7 @@ SopID = document.getElementById("sopIDTextBox").value;
         function removeSchedule(s) {
             vm.selectedSchedules = _.difference(vm.selectedSchedules,[s]);
         }
+
         function removeVar(v) {
             vm.selectedVars = _.difference(vm.selectedVars,[v]);
             vm.selectedValues = _.omitBy(vm.selectedValues,function(val,key) { return key == v.name; });
@@ -100,21 +114,25 @@ SopID = document.getElementById("sopIDTextBox").value;
 
         activate();
 
+
+
 // This function listens to the message bus and depending on what ID's the messages have it takes action.
         function onEvent(ev){
+        alert("new Event...");
+
 
             if(ev.reqID == waitID && vm.state == 'GenerateSops') {
                                 SopID = ev.ids[0].id;
-                                //alert(SopID);
-                                document.getElementById("sopIDTextBox").value = SopID;
                                 if(ev.ids.length == 0) {
                                                     alert("no sop!");
                                                 }
                                 else{
-                                   // alert(SopID);
-                                   // openSOP(SopID); // Find out the ID of the newly created SOP and open it
+                                vm.state = 'GeneratedSops';
                                 }
                               }
+                else if(ev.reqID == waitID && vm.state == 'loadCases') {
+                     vm.caseMap = ev.attributes['caseMap'];
+                 }
 
             else if(ev.reqID == waitID && vm.state == 'calculateUsingSops') {
                console.log(ev.attributes);
@@ -142,9 +160,6 @@ SopID = document.getElementById("sopIDTextBox").value;
 
 
 
-
-
-
         function GenerateSops(){
             if(vm.selectedSchedules.length == 0) {
                              console.log('Must select a least one schedule');
@@ -155,6 +170,35 @@ SopID = document.getElementById("sopIDTextBox").value;
                           var mess = {
                           'command' : 'GenerateSops',
                           'SopID' : SopID,
+                          'neglectedCases' : vm.caseMap,
+                          'checkedSOP' : checkedSOP,
+                          'checkedTime' : checkedTime,
+                              'core': {
+                                  'model': modelService.activeModel.id,
+                                  'responseToModel': true
+                              },
+                              'setup': {
+                                  'selectedSchedules':selected
+                              }
+                          };
+                          spServicesService.callService('VolvoRobotSchedule',{'data':mess},function(x){},function(x){}).then(function(repl){
+                              waitID = repl.reqID;
+                          });
+        }
+
+        function loadCases(){
+            if(vm.selectedSchedules.length == 0) {
+                             console.log('Must select a least one schedule');
+                             return;
+                         }
+                         vm.state = 'loadCases';
+                            var selected = _.map(vm.selectedSchedules, function(x) {return x.id;});
+                          var mess = {
+                          'command' : 'loadCases',
+                          'SopID' : SopID,
+                          'neglectedCases' : vm.caseMap,
+                           'checkedSOP' : checkedSOP,
+                           'checkedTime' : checkedTime,
                               'core': {
                                   'model': modelService.activeModel.id,
                                   'responseToModel': true
@@ -169,10 +213,14 @@ SopID = document.getElementById("sopIDTextBox").value;
         }
 
            function calculateUsingSops(){
-                                          /*  if(SopID == '') {
-                                                console.log('Must Create a SOP');
-                                                return;
-                                            }*/
+
+            var caseMapdiff = {};
+
+          for( var k in caselist){
+               var a = vm.caseMap[k];
+                var diff = a.filter(c => (c !== caselist[k]));
+               caseMapdiff[k] = diff;
+          }
                                              if(vm.selectedSchedules.length == 0) {
                                                                                  console.log('Must select a least one schedule');
                                                                                  return;
@@ -182,6 +230,9 @@ SopID = document.getElementById("sopIDTextBox").value;
                                                                               var mess = {
                                                                               'command' : 'calculateUsingSops',
                                                                               'SopID' : SopID,
+                                                                              'neglectedCases' : caseMapdiff,
+                                                                              'checkedSOP' : checkedSOP,
+                                                                              'checkedTime' : checkedTime,
                                                                                   'core': {
                                                                                       'model': modelService.activeModel.id,
                                                                                       'responseToModel': true

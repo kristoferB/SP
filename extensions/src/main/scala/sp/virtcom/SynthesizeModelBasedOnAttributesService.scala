@@ -56,12 +56,6 @@ private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef, ser
       val vars = ids.filter(_.isInstanceOf[Thing]).map(_.asInstanceOf[Thing])
       val sopSpecs = ids.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])
 
-      //     println(" vars       :::" + vars)
-      //    println(" ops       :::" + ops)
-       //    println(" sopSpecs       :::" + sopSpecs)
-
-
-
       progress ! SPAttributes("progress" -> "got info and data from model")
 
       // Only set the name if there is a model
@@ -103,8 +97,8 @@ private class SynthesizeModelBasedOnAttributesRunner(modelHandler: ActorRef, ser
 
         lazy val nbrOfStates = SPAttributes("nbrOfStatesInSupervisor" -> ptmwModule.nbrOfStates())
 
-   //     println(s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
-    //    if (synthesizedGuards.obj.nonEmpty) println(synthesizedGuards.pretty)
+       println(s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
+        if (synthesizedGuards.obj.nonEmpty) println(synthesizedGuards.pretty)
 
         progress ! SPAttributes("progress" -> s"Nbr of states in supervisor: ${nbrOfStates.getAs[String]("nbrOfStatesInSupervisor").getOrElse("-")}")
 
@@ -192,7 +186,6 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
       allInit = Set("init", "idleValue").flatMap(key => v.attributes.findAs[String](key))
       init <- if (allInit.size == 1) Some(allInit.head)
       else {
-        println("v.attributes     ::::::  "     + v.attributes)
         println(s"Problem with variable ${v.name}, attribute keys init and idleValue do not point to the same value")
         None
       }
@@ -373,7 +366,7 @@ case class ParseToModuleWrapper(moduleName: String, vars: List[Thing], ops: List
     case AlwaysTrue => "1"
     case AlwaysFalse => "0"
     case other =>
-      println(s"propToSupremicaSyntax cannot handle: $other right no. sorry")
+      println(s"propToSupremicaSyntax cannot handle: $other right now. sorry")
       other.toString
   }
 
