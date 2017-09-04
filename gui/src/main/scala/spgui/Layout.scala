@@ -11,13 +11,6 @@ import spgui.menu.SPMenu
 import spgui.dashboard.Dashboard
 
 object Layout {
-
-  @js.native
-  @JSGlobal("bootstrapGantt")
-  object bootstrapGantt extends js.Any {
-    def apply(element: dom.raw.HTMLElement): Unit = js.native
-  }
-
   val widgetsConnection = SPGUICircuit.connect(x => (x.openWidgets.xs, x.globalState))
   val menuConnection = SPGUICircuit.connect(x => (x.settings))
 
@@ -29,7 +22,6 @@ object Layout {
         widgetsConnection(Dashboard(_))
       )
     )
-    .componentDidMount(dcb => Callback(bootstrapGantt(dom.document.body)))
     .build
 
   def apply() = component()

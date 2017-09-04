@@ -19,6 +19,7 @@ object WidgetList {
       ("CommTest",                    widgets.WidgetCommTest(),                      3, 4),
       ("D3Example",                   widgets.examples.D3Example(),                  3, 4),
       ("D3ExampleServiceWidget",      widgets.examples.D3ExampleServiceWidget(),     3, 4),
+      ("GanttExample",                widgets.gantt.GanttExample(),                  10, 6),
       ("ExampleServiceWidget",        ExampleServiceWidget(),                        3, 4),
       ("ExampleServiceWidgetState",   ExampleServiceWidgetState(),                   3, 3),
       ("OpcUAWidget",                 OpcUAWidget(),                                 5, 4),

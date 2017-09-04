@@ -28,11 +28,3 @@ app.component("ganttComponent", {
       </div>
     `
 });
-
-function bootstrapGantt(element) {
-  angular.bootstrap(element, ['ganttApp']);
-  //var ganttComponent = document.createElement("gantt-component");
-  var ganttComponent = angular.element('gantt-component');
-  angular.element(document.body).append(ganttComponent);
-  //angular.bootstrap(element, ['ganttComponent']);
-}
