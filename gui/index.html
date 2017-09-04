@@ -13,17 +13,12 @@
 
     <script type="text/javascript" src="target/scala-2.11/spgui-jsdeps.js"></script>
     <script type="text/javascript" src="target/scala-2.11/spgui-fastopt.js"></script>
+
+    <gantt-component></gantt-component>
+
     <script type="text/javascript">
       spgui.Main().main();
     </script>
-
-    <script type="text/javascript">
-      angular.element(document.body).ready(function() {
-        angular.bootstrap(document.body, ['ganttApp']);
-      });
-    </script>
-
-    <gantt-component></gantt-component>
 
   </body>
 </html>

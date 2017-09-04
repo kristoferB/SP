@@ -1,8 +1,8 @@
 'use strict';
 
-var app = angular.module('ganttApp',['gantt']);
+var app = angular.module('ganttApp', ['gantt']);
 
-app.controller('gantCtrl', ['$scope', function ($scope) {
+app.controller('ganttCtrl', ['$scope', function ($scope) {
     $scope.data = [
         {name: 'row1', tasks: [
             {name: 'task1', from: new Date(2013, 3, 30, 18, 0, 0), to: new Date(2013, 4, 10, 18, 0, 0)},
@@ -21,10 +21,18 @@ app.controller('gantCtrl', ['$scope', function ($scope) {
 app.component("ganttComponent", {
   template : `
       <h1>ng1 component</h1>
-      <div ng-controller="gantCtrl">
+      <div ng-controller="ganttCtrl">
         <div gantt data="data">
           <gantt-tree></gantt-tree>
         </div>
       </div>
     `
 });
+
+function bootstrapGantt(element) {
+  angular.bootstrap(element, ['ganttApp']);
+  //var ganttComponent = document.createElement("gantt-component");
+  var ganttComponent = angular.element('gantt-component');
+  angular.element(document.body).append(ganttComponent);
+  //angular.bootstrap(element, ['ganttComponent']);
+}
