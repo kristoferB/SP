@@ -11,11 +11,17 @@ import sp.domain._
 import sp.messages._
 import sp.messages.Pickles._
 import scalacss.ScalaCssReact._
-import java.util.UUID
 import spgui.components.ReactDraggable
 import scala.scalajs.js
 
+import org.scalajs.dom.window
+import org.scalajs.dom.MouseEvent
+import org.scalajs.dom.document
+
+
+
 sealed trait RenderNode {
+  val nodeId: UUID
   val w: Float
   val h: Float
 }
@@ -24,14 +30,22 @@ sealed trait RenderGroup extends RenderNode {
   val children: List[RenderNode]
 }
 
-case class RenderParallel(w: Float, h:Float, children: List[RenderNode])            extends RenderGroup
-case class RenderAlternative(w: Float, h:Float, children: List[RenderNode])         extends RenderGroup
-case class RenderArbitrary(w: Float, h:Float, children: List[RenderNode])           extends RenderGroup
-case class RenderSometimeSequence(w: Float, h:Float, children: List[RenderNode])    extends RenderGroup
-case class RenderOther(w: Float, h:Float, children: List[RenderNode])               extends RenderGroup
-case class RenderSequence(w: Float, h:Float, children: List[RenderSequenceElement]) extends RenderGroup
-case class RenderSequenceElement(w: Float, h:Float, self: RenderNode)               extends RenderNode
-case class RenderOperationNode(w:Float, h:Float, sop: OperationNode)                        extends RenderNode
+case class RenderParallel(
+  nodeId: UUID, w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
+case class RenderAlternative(
+  nodeId: UUID, w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
+case class RenderArbitrary(
+  nodeId: UUID, w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
+case class RenderSometimeSequencenode(
+  nodeId: UUID, w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
+case class RenderOther(
+  nodeId: UUID, w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
+case class RenderSequence(
+  nodeId: UUID, w: Float, h:Float, children: List[RenderSequenceElement]) extends RenderGroup
+case class RenderSequenceElement(
+  nodeId: UUID, w: Float, h:Float, self: RenderNode) extends RenderNode
+case class RenderOperationNode(
+  nodeId: UUID, w:Float, h:Float, sop: OperationNode) extends RenderNode
 
 object SopMakerWidget {
 
@@ -41,7 +55,14 @@ object SopMakerWidget {
   val opSpacingX = 10f
   val opSpacingY = 10f
 
-  case class HoverData(currentPosition: UUID = null)
+  var xOrigin = 0f
+  var yOrigin = 0f
+
+  case class HoverData(
+    position: UUID = null,
+    dragging: Boolean = false,
+    dragPosition: (Float, Float) = (0,0)
+  )
 
   case class State(sop: SOP, hoverData: HoverData)
 
@@ -54,7 +75,6 @@ object SopMakerWidget {
     var height: Float = js.native
   }
 
-
   private class Backend($: BackendScope[Unit, State]) {
 
     /*
@@ -65,16 +85,18 @@ object SopMakerWidget {
      "events"
      )
      */
-
     import scala.util.Try
     def render(state: State) = {
-      //println(state.sop)
+  
       <.div(
-        Try(state.hoverData.currentPosition.toString).getOrElse("none").toString,
+        Try(state.hoverData.position.toString).getOrElse("none").toString,
+        //<.div(state.hoverData.dragOrigin._1.toString),
+        //<.div(state.hoverData.dragOrigin._2.toString),
+        // <.div(state.hoverData.dragPosition._1.toString),
+        // <.div(state.hoverData.dragPosition._2.toString),
+        
         <.div(
           SopMakerCSS.sopContainer,
-          // svg.width := (getTreeWidth(state.sop) + paddingLeft* 2).toInt,
-          // svg.height := ( getTreeHeight(state.sop) + paddingTop * 2).toInt,
           getRenderTree(
             traverseTree( state.sop ),
             getTreeWidth( state.sop ) * 0.5f + paddingLeft,
@@ -84,9 +106,41 @@ object SopMakerWidget {
       )
     }
 
+
+    /*
+     This is used to generate mouse events when dragging on a touch screen, which will trigger
+     the ^.onMouseOver on any element targeted by the touch event. Mobile browsers do not support
+     mouse-hover related events (and why should they) so this is a way to deal with that.
+     */
+    def handleTouchDrag(e: ReactTouchEvent): Callback =  {
+      val touch = e.touches.item(0) 
+      val target = document.elementFromPoint(touch.pageX, touch.pageY)
+      if(target == null) {return Callback.empty} // this will be null if event outside of viewport
+
+      val evnt: MouseEvent = document.createEvent("MouseEvents").asInstanceOf[MouseEvent]
+
+      evnt.initMouseEvent(
+        typeArg = "mousemove",
+        canBubbleArg = true,
+        cancelableArg = true,
+        viewArg = window.window,
+        detailArg = 0,
+        screenXArg = touch.pageX.toInt,
+        screenYArg = touch.pageY.toInt,
+        clientXArg = touch.pageX.toInt,
+        clientYArg = touch.pageY.toInt,
+        ctrlKeyArg = false,
+        altKeyArg = false,
+        shiftKeyArg = false,
+        metaKeyArg = false,
+        buttonArg = 0,
+        relatedTargetArg = document.getElementById("spgui-root")
+      )
+      Callback(target.dispatchEvent(evnt))
+    }
+
     val paddingTop = 40f
     val paddingLeft = 40f
-
     val handlePrefix = "drag-handle-"
     def makeHandle(id: UUID) = handlePrefix + id.toString
     def readHandle(handle: String) = UUID.fromString(handle.split(handlePrefix+"| ")(1))
@@ -95,14 +149,17 @@ object SopMakerWidget {
       val handle = makeHandle(opId)
       ReactDraggable(
         handle = "." + handle,
-        onStart = (e: ReactEvent, d: ReactDraggable.DraggableData) => println("drag started"),
-        onStop = (e: ReactEvent, d: ReactDraggable.DraggableData) => handleOpDrop(d)
+        onStart= (e: ReactEvent, d: ReactDraggable.DraggableData) => handleDragStart(d, x, y),
+        onStop = (e: ReactEvent, d: ReactDraggable.DraggableData) => handleOpDrop(d),
+        onDrag = (e: ReactEvent, d: ReactDraggable.DraggableData) => handleOpDragging(d)
       )(
         <.span(
+          // ^.onTouchStart  ==> debugEvent,   // commented; might become relevant
+          // ^.onTouchEnd    ==> debugEvent,
+          // ^.onTouchCancel ==> debugEvent,
+          ^.onTouchMove ==> handleTouchDrag,
           ^.className := handle,
           SopMakerCSS.sopComponent,
-          ^.onMouseOverCapture --> handleMouseOver( opId ),
-          ^.onMouseOutCapture --> handleMouseLeave( opId ),
           ^.style := {
             var rect =  (js.Object()).asInstanceOf[Rect]
             rect.left = x
@@ -168,7 +225,7 @@ object SopMakerWidget {
               svg.strokeWidth:=1
             ),
             svg.rect(
-              svg.x := 0, 
+              svg.x := 0,
               svg.y :=  8,
               svg.width:=w.toInt,
               svg.height:=4,
@@ -179,23 +236,80 @@ object SopMakerWidget {
         )
       )
 
+    def dropZone(id: UUID, x: Float, y: Float, w: Float, h: Float): TagMod =
+      <.span(
+        ^.style := {
+          var rect =  (js.Object()).asInstanceOf[Rect]
+          rect.left = x
+          rect.top = y
+          rect.height = h
+          rect.width = w
+          rect
+        },
+        SopMakerCSS.dropZone,
+        {if(!$.state.runNow().hoverData.dragging) SopMakerCSS.disableDropZone
+        else ""},
+        {if($.state.runNow().hoverData.position == id) SopMakerCSS.blue
+        else ""},
+        ^.onMouseMove --> handleMouseOver( id )//,
+        //^.onMouseLeave --> handleMouseLeave( id )
+      )
+
     def handleMouseOver(zoneId: UUID): Callback = {
+      println("Dragging")
       $.modState(s =>
-        s.copy(hoverData = HoverData(zoneId))
+        s.copy(hoverData = HoverData(zoneId, s.hoverData.dragging))
       )
     }
+
     def handleMouseLeave(zoneId: UUID): Callback = {
-      $.modState(s =>
-        if(s.hoverData.currentPosition == zoneId) s.copy(hoverData = HoverData(null))
-        else s.copy(hoverData = HoverData(zoneId))
+      $.modState(s => {
+        if(s.hoverData.position == zoneId) s.copy()
+         else s.copy(hoverData = HoverData(zoneId))
+      })
+    }
+
+    def handleDragStart(d: ReactDraggable.DraggableData, x:Float, y:Float) = {
+      $.modState(s => {
+        s.copy(hoverData = s.hoverData.copy(
+          dragging = true
+        ))
+      }).runNow()
+      xOrigin = x
+      yOrigin = y
+    }
+
+    def handleOpDragging(d: ReactDraggable.DraggableData) = {
+      //println(d.x + " " +d.y)
+      checkHoverState(
+        d.x + xOrigin,
+        d.y + yOrigin
       )
+
+      // cannot modify state every loop
+ 
+       // $.modState(s => {
+       //   //println(d.x + " " +d.y)
+       //   s.copy(hoverData = s.hoverData.copy(
+       //     dragPosition = (
+       //       d.x + s.hoverData.dragOrigin._1,
+       //       d.y + s.hoverData.dragOrigin._2
+       //   )))
+       // }).runNow()
+    }
+
+    def checkHoverState(x:Float, y:Float) {
+//      println(x + "   " + y)
     }
 
     def handleOpDrop(d: ReactDraggable.DraggableData) = {
       $.modState(s => {
         // println(readHandle(d.node.className)
         // println(s.hoverData.currentPosition)
-        s.copy(sop = insertSop(s.sop, s.hoverData.currentPosition, readHandle(d.node.className)))
+        s.copy(
+          sop = insertSop(s.sop, s.hoverData.position, readHandle(d.node.className)),
+          hoverData = s.hoverData.copy(dragging = false)
+        )
       }).runNow()
     }
 
@@ -207,14 +321,21 @@ object SopMakerWidget {
           var children = List[TagMod]()
           for(e <- n.children) {
             val child = getRenderTree(
-                e,
-                xOffset + w + e.w/2 - n.w/2 + opSpacingX,
-                yOffset  + parallelBarHeight + opSpacingY
-              )
-              w += e.w
-              children = children ++ child
+              e,
+              xOffset + w + e.w/2 - n.w/2 + opSpacingX,
+              yOffset  + parallelBarHeight + opSpacingY
+            )
+            w += e.w
+            children = children ++ child
           }
 
+          List(dropZone(   // dropone for the whole parallel
+            id = n.nodeId,
+            x = xOffset - n.w/2 + opSpacingX/2 + opWidth/2,
+            y = yOffset,
+            w = n.w,
+            h = n.h
+          )) ++
           List(parallelBars(xOffset - n.w/2 + opSpacingX/2, yOffset,n.w - opSpacingX)) ++
           children ++
           List(parallelBars(
@@ -227,7 +348,14 @@ object SopMakerWidget {
           
         case n: RenderOperationNode => {
           val opname = idm.get(n.sop.operation).map(_.name).getOrElse("[unknown op]")
-          List(op(n.sop.nodeID, opname, xOffset, yOffset))
+          List(op(n.sop.nodeID, opname, xOffset, yOffset)) ++
+          List(dropZone(
+            id = n.nodeId,
+            x = xOffset,
+            y = yOffset,
+            w = opWidth,
+            h = opHeight
+          ))
         }
       }
     }
@@ -245,12 +373,14 @@ object SopMakerWidget {
     def traverseTree(sop: SOP): RenderNode = {
       sop match {
         case s: Parallel => RenderParallel(
+          nodeId = s.nodeID,
           w = getTreeWidth(s),
           h = getTreeHeight(s),
           children = sop.sop.collect{case e => traverseTree(e)}
         )
         case s: Sequence => traverseSequence(s)
         case s: OperationNode => RenderOperationNode(
+          nodeId = s.nodeID,
           w = getTreeWidth(s),
           h = getTreeHeight(s),
           sop = s
@@ -260,10 +390,12 @@ object SopMakerWidget {
 
     def traverseSequence(s: Sequence): RenderSequence = {
       if(s.sop.isEmpty) null else RenderSequence(
+        nodeId = s.nodeID,
         h = getTreeHeight(s),
         w = getTreeWidth(s),
         children = s.sop.collect{case e: SOP => {
           RenderSequenceElement(
+            nodeId = e.nodeID,
             getTreeWidth(e),
             getTreeHeight(e),
             traverseTree(e)
@@ -336,14 +468,6 @@ object SopMakerWidget {
       }
     }
   }
-
-  // def idSop(sop: SOP): SopWithId = {
-  //   sop match {
-  //     case s: Parallel => IdAbleParallel(sop = s.sop.collect{case e => idSop(e)})
-  //     case s: Sequence => IdAbleSequence(sop = s.sop.collect{case e => idSop(e)})
-  //     case s: OperationNode => IdAbleOperationNode(self = s)
-  //   }
-  // }
 
   private val component = ScalaComponent.builder[Unit]("SopMakerWidget")
     .initialState(State(sop = ExampleSops.giantSop, hoverData = HoverData()))

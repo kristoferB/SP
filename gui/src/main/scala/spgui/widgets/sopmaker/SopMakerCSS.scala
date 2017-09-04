@@ -26,8 +26,20 @@ object SopMakerCSS extends Theming.SPStyleSheet {
     userSelect := "none"
   )
 
-  val disablePointerEvents = style(
-    pointerEvents := "none"
+  val dropZone = style(
+    position.absolute,
+    zIndex(100),
+  //  backgroundColor.red,
+    opacity:= "0.5"
+  )
+
+  val disableDropZone = style(
+    pointerEvents := "none",
+    visibility.hidden
+  )
+
+  val blue = style(
+    backgroundColor:= "blue"
   )
 
   this.addToDocument()

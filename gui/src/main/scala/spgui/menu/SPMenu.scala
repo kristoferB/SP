@@ -17,7 +17,6 @@ object SPMenu {
       <.nav(
         ^.className:= SPMenuCSS.topNav.htmlClass,
         ^.className := "navbar navbar-default",
-
         // navbar header: logo+toggle button
         <.div(
           ^.className := "navbar-header",
