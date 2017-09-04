@@ -22,60 +22,60 @@ lazy val spdomain = (crossProject.crossType(CrossType.Pure) in file("spdomain"))
     jsSettings
   )
 
-lazy val spdomainJVM = spdomain.jvm
-lazy val spdomainJS = spdomain.js
+lazy val spdomain_jvm = spdomain.jvm
+lazy val spdomain_js = spdomain.js
 
 lazy val spcomm = project
-  .dependsOn(spdomainJVM)
+  .dependsOn(spdomain_jvm)
   .settings(commonSettings)
   .settings(libraryDependencies ++= commDependencies.value)
 
 lazy val spcore = project
-  .dependsOn(spdomainJVM, spcomm)
+  .dependsOn(spdomain_jvm, spcomm)
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= domainDependencies.value)
   .settings(libraryDependencies ++= commDependencies.value)
 
 
 lazy val spgui = project
-  .dependsOn(spdomainJS)
+  .dependsOn(spdomain_js)
   .settings(commonSettings: _*)
   .settings(jsSettings: _*)
   .enablePlugins(ScalaJSPlugin)
 
 lazy val sp1 = project
 
-val backendDeps: Seq[ClasspathDep[ProjectReference]] = Seq(spdomainJVM, spcomm, spcore)
-val frontendDeps: Seq[ClasspathDep[ProjectReference]] = Seq(spdomainJS, spgui)
+val backendDeps: Seq[ClasspathDep[ProjectReference]] = Seq(spdomain_jvm, spcomm, spcore)
+val frontendDeps: Seq[ClasspathDep[ProjectReference]] = Seq(spdomain_js, spgui)
 
 
-lazy val spControlAPI = crossProject.crossType(CrossType.Pure).in(file("spcontrol/api"))
+lazy val control_api = crossProject.crossType(CrossType.Pure).in(file("spcontrol/api"))
   .settings(
     libraryDependencies ++= domainDependencies.value,
     commonSettings
   )
   .dependsOn(spdomain)
 
-lazy val spControlAPIJVM = spControlAPI.jvm
-lazy val spControlAPIJS = spControlAPI.js
+lazy val control_api_jvm = control_api.jvm
+lazy val control_api_js = control_api.js
 
-lazy val spControlBackend = project.in(file("spcontrol/backend"))
+lazy val control_backend = project.in(file("spcontrol/backend"))
   .settings(
     libraryDependencies ++= domainDependencies.value,
     libraryDependencies ++= commDependencies.value,
     commonSettings,
     serviceSettings
   )
-  .dependsOn(spControlAPIJVM)
+  .dependsOn(control_api_jvm)
   .dependsOn(backendDeps:_*)
 
 
-lazy val spControlFrontEnd = project.in(file("spcontrol/frontend"))
+lazy val control_frontend = project.in(file("spcontrol/frontend"))
   .settings(
     libraryDependencies ++= domainDependencies.value,
     commonSettings,
     jsSettings
   )
-  .dependsOn(spControlAPIJS)
+  .dependsOn(control_api_js)
   .dependsOn(frontendDeps:_*)
   .enablePlugins(ScalaJSPlugin)

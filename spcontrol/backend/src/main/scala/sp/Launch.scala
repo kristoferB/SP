@@ -16,7 +16,7 @@ object Launch extends App {
     // Start all you actors here.
     println("ExampleService node has joined the cluster")
     sp.SPCore.launch(system)
-    system.actorOf(ExampleService.props, APIExampleService.service)
+    //system.actorOf(ExampleService.props, APIExampleService.service)
 
   }
   cluster.registerOnMemberRemoved{
