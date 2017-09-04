@@ -2,9 +2,6 @@ package spgui
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import scalajs.js
-import js.annotation.JSGlobal
-import org.scalajs.dom
 
 import spgui.circuit.SPGUICircuit
 import spgui.menu.SPMenu
@@ -16,12 +13,12 @@ object Layout {
 
   val component = ScalaComponent.builder[Unit]("Layout")
     .render(_ =>
-      <.div(
-        ^.className := GlobalCSS.layout.htmlClass,
-        menuConnection(SPMenu(_)),
-        widgetsConnection(Dashboard(_))
-      )
+    <.div(
+      ^.className := GlobalCSS.layout.htmlClass,
+      menuConnection(SPMenu(_)),
+      widgetsConnection(Dashboard(_))
     )
+  )
     .build
 
   def apply() = component()
