@@ -10,7 +10,6 @@ scalaVersion := "2.12.3"
 
 //javaOptions += "-Xmx2048m"
 
-
 scalacOptions  := Seq(
   "-encoding", "utf8",
   "-feature",
@@ -45,6 +44,33 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.2"
+
+
+//scalajs-bundler
+enablePlugins(ScalaJSBundlerPlugin)
+
+webpackConfigFile in fastOptJS := Some(baseDirectory.value / "npmdependencies/webpack.config.js")
+
+npmDependencies in Compile += "bootstrap" -> "3.3.7"
+//  dependencies": {
+//  "bootstrap": "~3.3.7",
+//  "chart.js": "~2.5.0",
+//  "paths-js": "~0.4.5",
+//  "font-awesome": "~4.7.0",
+//  "jquery": "~3.1.1",
+//  "jsoneditor": "~5.6.0",
+//  "react": "~15.3.2",
+//  "react-dom": "~15.3.2",
+//  "react-grid-layout": "~0.13.9"
+//  },
+//  "devDependencies": {
+//  "css-loader": "~0.26.1",
+//  "file-loader": "~0.9.0",
+//  "json-loader": "~0.5.4",
+//  "style-loader": "~0.13.1",
+//  "url-loader": "~0.5.7",
+//  "webpack": "~1.14.0",
+//  "webpack-uglify-js-plugin": "~1.1.9"
 
 /* This is how to include js files. Put it in src/main/resources.
 jsDependencies ++= Seq(
