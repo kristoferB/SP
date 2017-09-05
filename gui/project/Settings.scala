@@ -1,0 +1,5 @@
+package project
+
+object Settings {
+
+}
