@@ -10,8 +10,10 @@ case class SPGUIModel(
   openWidgets: OpenWidgets = OpenWidgets(),
   globalState: GlobalState = GlobalState(),
   widgetData: WidgetData = WidgetData(Map()),
-  settings: Settings = Settings()
+  settings: Settings = Settings(),
+  draggingState: DraggingState = DraggingState()
 )
+
 case class OpenWidgets(xs: Map[UUID, OpenWidget] = Map())
 case class OpenWidget(id: UUID, layout: WidgetLayout, widgetType: String)
 case class WidgetLayout(x: Int, y: Int, w: Int, h: Int, collapsedHeight: Int = 1)
@@ -29,6 +31,14 @@ case class Settings(
   showHeaders: Boolean = true 
 )
 
+case class DraggingState(
+  dragging: Boolean = false,
+  renderStyle: String = "",
+  data: String = "",
+  x: Float = 0f,
+  y: Float = 0f
+)
+
 // actions
 case class AddWidget(widgetType: String, width: Int = 2, height: Int = 2, id: UUID = UUID.randomUUID()) extends Action
 case class CloseWidget(id: UUID) extends Action
@@ -40,6 +50,11 @@ case class SetLayout(layout: Map[UUID, WidgetLayout]) extends Action
 case class UpdateGlobalState(state: GlobalState) extends Action
 case class SetTheme(theme: Theme) extends Action
 case object ToggleHeaders extends Action
+
+case class SetMousePosition(x: Float, y: Float) extends Action
+case class SetDraggableRenderStyle(style:String) extends Action
+case class SetDraggableData(data: String) extends Action
+case class SetCurrentlyDragging(enabled: Boolean) extends Action 
 
 // used when failing to retrieve a state from browser storage
 object InitialState {

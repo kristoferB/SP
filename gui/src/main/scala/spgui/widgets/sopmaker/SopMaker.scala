@@ -18,7 +18,7 @@ import org.scalajs.dom.window
 import org.scalajs.dom.MouseEvent
 import org.scalajs.dom.document
 
-
+import spgui.dragging
 
 sealed trait RenderNode {
   val nodeId: UUID
@@ -112,31 +112,38 @@ object SopMakerWidget {
      the ^.onMouseOver on any element targeted by the touch event. Mobile browsers do not support
      mouse-hover related events (and why should they) so this is a way to deal with that.
      */
-    def handleTouchDrag(e: ReactTouchEvent): Callback =  {
-      val touch = e.touches.item(0) 
-      val target = document.elementFromPoint(touch.pageX, touch.pageY)
-      if(target == null) {return Callback.empty} // this will be null if event outside of viewport
-
-      val evnt: MouseEvent = document.createEvent("MouseEvents").asInstanceOf[MouseEvent]
-
-      evnt.initMouseEvent(
-        typeArg = "mousemove",
-        canBubbleArg = true,
-        cancelableArg = true,
-        viewArg = window.window,
-        detailArg = 0,
-        screenXArg = touch.pageX.toInt,
-        screenYArg = touch.pageY.toInt,
-        clientXArg = touch.pageX.toInt,
-        clientYArg = touch.pageY.toInt,
-        ctrlKeyArg = false,
-        altKeyArg = false,
-        shiftKeyArg = false,
-        metaKeyArg = false,
-        buttonArg = 0,
-        relatedTargetArg = document.getElementById("spgui-root")
+    def handleTouchDrag(e: ReactTouchEvent) = Callback {
+      spgui.dragging.Dragging.onDragMove(
+        e.touches.item(0).pageX.toFloat,
+        e.touches.item(0).pageY.toFloat
       )
-      Callback(target.dispatchEvent(evnt))
+
+      // val touch = e.touches.item(0) 
+      // val target = document.elementFromPoint(touch.pageX, touch.pageY)
+      // if(target == null) {return Callback.empty} // this will be null if event outside of viewport
+
+      // val evnt: MouseEvent = document.createEvent("MouseEvents").asInstanceOf[MouseEvent]
+
+      // evnt.initMouseEvent(
+      //   typeArg = "mousemove",
+      //   canBubbleArg = true,
+      //   cancelableArg = true,
+      //   viewArg = window.window,
+      //   detailArg = 0,
+      //   screenXArg = touch.pageX.toInt,
+      //   screenYArg = touch.pageY.toInt,
+      //   clientXArg = touch.pageX.toInt,
+      //   clientYArg = touch.pageY.toInt,
+      //   ctrlKeyArg = false,
+      //   altKeyArg = false,
+      //   shiftKeyArg = false,
+      //   metaKeyArg = false,
+      //   buttonArg = 0,
+      //   relatedTargetArg = document.getElementById("spgui-root")
+      // )
+      // Callback(target.dispatchEvent(evnt))
+
+
     }
 
     val paddingTop = 40f
@@ -145,19 +152,34 @@ object SopMakerWidget {
     def makeHandle(id: UUID) = handlePrefix + id.toString
     def readHandle(handle: String) = UUID.fromString(handle.split(handlePrefix+"| ")(1))
 
+
+    import spgui.dragging.Dragging
     def op(opId: UUID, opname: String, x: Float, y: Float): TagMod = {
       val handle = makeHandle(opId)
-      ReactDraggable(
-        handle = "." + handle,
-        onStart= (e: ReactEvent, d: ReactDraggable.DraggableData) => handleDragStart(d, x, y),
-        onStop = (e: ReactEvent, d: ReactDraggable.DraggableData) => handleOpDrop(d),
-        onDrag = (e: ReactEvent, d: ReactDraggable.DraggableData) => handleOpDragging(d)
-      )(
+      // ReactDraggable(
+      //   handle = "." + handle,
+      //   onStart= (e: ReactEvent, d: ReactDraggable.DraggableData) => handleDragStart(d, x, y),
+      //   onStop = (e: ReactEvent, d: ReactDraggable.DraggableData) => handleOpDrop(d),
+      //   onDrag = (e: ReactEvent, d: ReactDraggable.DraggableData) => handleOpDragging(d)
+      // )(
         <.span(
           // ^.onTouchStart  ==> debugEvent,   // commented; might become relevant
           // ^.onTouchEnd    ==> debugEvent,
           // ^.onTouchCancel ==> debugEvent,
-          ^.onTouchMove ==> handleTouchDrag,
+          // ^.onTouchMove ==> handleTouchDrag,
+          ^.onTouchStart ==> handleTouchDragStart(opname),
+          ^.onTouchMoveCapture ==> {
+            (e: ReactTouchEvent) => Callback ({
+              var x = 0f; var y = 0f
+              for(n <- 0 to e.touches.length-1) {
+                x += e.touches.item(n).pageX.toFloat
+                y += e.touches.item(n).pageY.toFloat
+              }
+              Dragging.onDragMove(x, y)
+            })
+          },
+
+          ^.onMouseDown ==> handleDragStart(opname),
           ^.className := handle,
           SopMakerCSS.sopComponent,
           ^.style := {
@@ -196,7 +218,7 @@ object SopMakerWidget {
             )
           )
         )
-      )
+ //     )
     }
 
     def parallelBars(x: Float, y: Float, w:Float): TagMod =
@@ -255,6 +277,20 @@ object SopMakerWidget {
         //^.onMouseLeave --> handleMouseLeave( id )
       )
 
+    def handleTouchDragStart(data:String)(e: ReactTouchEvent): Callback = {
+      Callback(
+        spgui.dragging.Dragging.onDragStart(
+        data, e.touches.item(0).pageX.toFloat, e.touches.item(0).pageY.toFloat
+      ))
+    }
+
+    def handleDragStart(data:String)(e: ReactMouseEvent): Callback = {
+      Callback(
+        spgui.dragging.Dragging.onDragStart(
+        data, e.pageX.toFloat, e.pageY.toFloat
+      ))
+    }
+
     def handleMouseOver(zoneId: UUID): Callback = {
       println("Dragging")
       $.modState(s =>
@@ -268,6 +304,7 @@ object SopMakerWidget {
          else s.copy(hoverData = HoverData(zoneId))
       })
     }
+
 
     def handleDragStart(d: ReactDraggable.DraggableData, x:Float, y:Float) = {
       $.modState(s => {
@@ -285,7 +322,10 @@ object SopMakerWidget {
         d.x + xOrigin,
         d.y + yOrigin
       )
-
+      spgui.dragging.Dragging.onDragMove(
+        d.x,
+        d.y 
+      )
       // cannot modify state every loop
  
        // $.modState(s => {
@@ -299,7 +339,7 @@ object SopMakerWidget {
     }
 
     def checkHoverState(x:Float, y:Float) {
-//      println(x + "   " + y)
+      //println(x + "   " + y)
     }
 
     def handleOpDrop(d: ReactDraggable.DraggableData) = {

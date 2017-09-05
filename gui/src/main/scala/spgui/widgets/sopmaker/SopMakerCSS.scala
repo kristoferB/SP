@@ -18,7 +18,7 @@ object SopMakerCSS extends Theming.SPStyleSheet {
     overflow.visible.important,
    // backgroundColor.red,
     position.absolute,
-    zIndex := 100.px
+    zIndex := "1"
     //display.flex
   )
 

@@ -14,7 +14,9 @@ object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] 
     new DashboardHandler(zoomRW(_.openWidgets)((m,v) => m.copy(openWidgets = v))),
     new GlobalStateHandler(zoomRW(_.globalState)((m, v) => m.copy(globalState = v))),
     new SettingsHandler(zoomRW(_.settings)((m, v) => m.copy(settings = v))),
-    new WidgetDataHandler(zoomRW(_.widgetData)((m,v) => m.copy(widgetData = v)))
+    new WidgetDataHandler(zoomRW(_.widgetData)((m,v) => m.copy(widgetData = v))),
+    new DraggingHandler(zoomRW(_.draggingState)((m,v) => m.copy(draggingState = v)))
+
   )
   // store state upon any model change
   subscribe(zoomRW(myM => myM)((m,v) => v))(m => BrowserStorage.store(m.value))
@@ -126,6 +128,17 @@ class SettingsHandler[M](modelRW: ModelRW[M, Settings]) extends ActionHandler(mo
         showHeaders = !value.showHeaders
       ))
     }
+  }
+}
+
+class DraggingHandler[M](modelRW: ModelRW[M, DraggingState]) extends ActionHandler(modelRW) {
+  override def handle = {
+    case  SetMousePosition(x, y) => {
+      updated(value.copy(x=x, y=y))
+    }
+    case SetDraggableRenderStyle(renderStyle) => updated(value.copy(renderStyle = renderStyle))
+    case SetDraggableData(data) => updated(value.copy(data = data))
+    case SetCurrentlyDragging(dragging) => updated((value.copy(dragging = dragging)))
   }
 }
 
