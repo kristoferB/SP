@@ -12,7 +12,7 @@
     "react-dom": "~15.3.2",
     "react-grid-layout": "~0.13.9",
     "angular": "~1.6.4",
-    "angular-gantt": "~1.2.14",
+    "angular-gantt": "~1.3.3",
     "moment": "~2.18.1",
     "angular-moment": "~1.0.1"
   },
