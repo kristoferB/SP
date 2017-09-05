@@ -2,6 +2,8 @@ var webpack = require('webpack');
 
 var PROD = (process.env.NODE_ENV === 'production');
 
+module.exports = require('./scalajs.webpack.config');
+
 module.exports = {
     entry: [
         './vendor.js'
