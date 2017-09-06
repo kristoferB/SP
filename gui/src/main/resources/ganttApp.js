@@ -4,7 +4,7 @@ function addTheGantt(element) {
 
   var facadedObject = {};
 
-  var app = angular.module('ganttApp', ['gantt']);
+  var app = angular.module('ganttApp', ['gantt', 'gantt.tooltips']);
 
   function ganttCtrl($scope) {
 
@@ -43,7 +43,10 @@ function addTheGantt(element) {
     template: `
         <h1>ng1 component</h1>
           <div gantt data="data">
-            <gantt-tree></gantt-tree>
+            <!-- TODO need to fix some dependency stuff if we want this
+            <gantt-tree enabled="true"></gantt-tree>
+            -->
+            <gantt-tooltips date-format="'mm:ss'" delay="100"></gantt-tooltips>
           </div>
           <button ng-click="addRow()">add row</button>
       `
