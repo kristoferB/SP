@@ -16,6 +16,7 @@ object SopMakerCSS extends Theming.SPStyleSheet {
 
   val sopComponent = style(
     overflow.visible.important,
+    touchAction:="none",
    // backgroundColor.red,
     position.absolute,
     zIndex := "1"

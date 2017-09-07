@@ -16,13 +16,14 @@ object Layout {
   val component = ScalaComponent.builder[Unit]("Layout")
     .render(_ =>
       <.div(
-      ^.className := GlobalCSS.layout.htmlClass,
-      menuConnection(SPMenu(_)),
-      widgetsConnection(Dashboard(_)),
-      draggingConnection(Dragging(_))
+        Dragging.mouseMoveCapture,
+        ^.className := GlobalCSS.layout.htmlClass,
+        menuConnection(SPMenu(_)),
+        widgetsConnection(Dashboard(_)),
+        draggingConnection(Dragging(_))
+      )
     )
-)
-  .build
+    .build
 
   def apply() = component()
 }

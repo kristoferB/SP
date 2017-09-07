@@ -139,6 +139,10 @@ class DraggingHandler[M](modelRW: ModelRW[M, DraggingState]) extends ActionHandl
     case SetDraggableRenderStyle(renderStyle) => updated(value.copy(renderStyle = renderStyle))
     case SetDraggableData(data) => updated(value.copy(data = data))
     case SetCurrentlyDragging(dragging) => updated((value.copy(dragging = dragging)))
+    case SetDraggingTarget(id) => updated((value.copy(target = id)))
+    case UnsetDraggingTarget(id) =>
+      if(value.target == id) updated((value.copy(target = null)))
+      else updated(value)
   }
 }
 

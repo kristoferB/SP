@@ -118,4 +118,74 @@ object SPWidgetElements{
     def apply(defaultText: String, onChange: String => Callback) =
       component(Props(defaultText, onChange))
   }
+
+
+  import java.util.UUID
+  import spgui.circuit._
+  import scala.scalajs.js
+
+  object DragoverZone {
+    trait Rectangle extends js.Object {
+      var left: Float = js.native
+      var top: Float = js.native
+      var width: Float = js.native
+      var height: Float = js.native
+    }
+
+    case class Props(
+      id: UUID, x: Float, y: Float, w: Float, h: Float
+    )
+
+    case class State(target: UUID = null, isActive: Boolean = false)
+
+    import diode.ModelRO
+    class Backend($: BackendScope[Props, State]) {
+      SPGUICircuit.subscribe(SPGUICircuit.zoomRW(myM => myM)((m,v) => v))(m =>
+        $.modState(s =>
+          State(
+            target = m.value.draggingState.target,
+            isActive = m.value.draggingState.dragging
+          )
+        ).runNow()
+      )
+
+      def render(p:Props, s:State) =
+        <.span(
+          ^.style := {
+            var rect =  (js.Object()).asInstanceOf[Rectangle]
+            rect.left = p.x
+            rect.top = p.y
+            rect.height = p.h
+            rect.width = p.w
+            rect
+          },
+          ^.className := spgui.widgets.sopmaker.SopMakerCSS.dropZone.htmlClass,
+          {if(!s.isActive) ^.className := spgui.widgets.sopmaker.SopMakerCSS.disableDropZone.htmlClass
+          else ""},
+          {if(s.target == p.id)
+            ^.className := spgui.widgets.sopmaker.SopMakerCSS.blue.htmlClass
+          else ""},
+
+          ^.onMouseOver --> handleMouseOver( p.id ),
+          ^.onMouseLeave --> handleMouseLeave( p.id )
+        )
+
+      def handleMouseOver(id: UUID)= Callback{
+        println("moused over " + id.toString)
+        SPGUICircuit.dispatch(SetDraggingTarget(id))
+      }
+
+      def handleMouseLeave(id: UUID): Callback = Callback{
+          SPGUICircuit.dispatch(UnsetDraggingTarget(id))
+      }
+    }
+
+    private val component = ScalaComponent.builder[Props]("SPDragZone")
+      .initialState(State())
+      .renderBackend[Backend]
+      .build
+
+    def apply(id: UUID, x: Float, y: Float, w: Float, h: Float): VdomNode =
+      component(Props(id, x, y, w, h))
+  }
 }
