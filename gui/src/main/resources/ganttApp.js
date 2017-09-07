@@ -1,4 +1,4 @@
-function addTheGantt(element) {
+function SPGantt(element) {
 
   'use strict';
 
@@ -22,8 +22,8 @@ function addTheGantt(element) {
 
       ];
 
-      $scope.addRow = function() {
-        console.log("clicked addRow");
+      $scope.addSomeRow = function() {
+        console.log("clicked addSomeRow");
         $scope.data.push(
           {name: 'newRow', tasks: [
               {name: 'newRowTask', from: new Date(2013, 3, 30, 18, 0, 0), to: new Date(2013, 4, 12, 18, 0, 0)}
@@ -33,8 +33,12 @@ function addTheGantt(element) {
 
       };
 
-      facadedObject.addRow = function() {
-        $scope.addRow();
+      facadedObject.addSomeRow = function() {
+        $scope.addSomeRow();
+        $scope.$apply();
+      }
+      facadedObject.addRow = function(row) {
+        $scope.data.push(row);
         $scope.$apply();
       }
   }
@@ -42,9 +46,12 @@ function addTheGantt(element) {
   app.component("ganttComponent", {
     template: `
         <h1>ng1 component</h1>
+          <!--
+          <div gantt data="data" headers="['minute']" headers-formats="{ minute: 'mm:ss', second: 'ss' }" view-scale="'20 second'" column-width="50">
+          -->
           <div gantt data="data">
             <!-- TODO need to fix some dependency stuff if we want this
-            <gantt-tree enabled="true"></gantt-tree>
+            <gantt-tree></gantt-tree>
             -->
             <gantt-tooltips date-format="'mm:ss'" delay="100"></gantt-tooltips>
           </div>
