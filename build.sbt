@@ -79,3 +79,36 @@ lazy val control_frontend = project.in(file("spcontrol/frontend"))
   .dependsOn(control_api_js)
   .dependsOn(frontendDeps:_*)
   .enablePlugins(ScalaJSPlugin)
+
+
+
+lazy val erica_api = crossProject.crossType(CrossType.Pure).in(file("sperica/api"))
+  .settings(
+    libraryDependencies ++= domainDependencies.value,
+    commonSettings
+  )
+  .dependsOn(spdomain)
+
+lazy val erica_api_jvm = erica_api.jvm
+lazy val erica_api_js = erica_api.js
+
+lazy val erica_backend = project.in(file("sperica/backend"))
+  .settings(
+    libraryDependencies ++= domainDependencies.value,
+    libraryDependencies ++= commDependencies.value,
+    commonSettings,
+    serviceSettings
+  )
+  .dependsOn(erica_api_jvm)
+  .dependsOn(backendDeps:_*)
+
+
+lazy val erica_frontend = project.in(file("sperica/frontend"))
+  .settings(
+    libraryDependencies ++= domainDependencies.value,
+    commonSettings,
+    jsSettings
+  )
+  .dependsOn(erica_api_js)
+  .dependsOn(frontendDeps:_*)
+  .enablePlugins(ScalaJSPlugin)

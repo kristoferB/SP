@@ -54,6 +54,7 @@ package object domain {
       getAs[T](res, key)
     }
     def empty = JsObject.empty
+    def make(map: Map[String, SPValue]) = JsObject(map)
     def make[T](x: T)(implicit fjs: JSWrites[T]): SPAttributes = {
       val res = SPValue(x)
       Try{res.asInstanceOf[SPAttributes]}.getOrElse({s"Did not convert to SPAttributes: $x"; empty})

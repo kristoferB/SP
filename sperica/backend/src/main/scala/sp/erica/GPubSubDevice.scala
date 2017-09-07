@@ -13,11 +13,7 @@ import java.util
 import scala.collection.mutable.ListBuffer
 import sp.domain._
 import sp.domain.Logic._
-import datahandler.ElvisDataHandlerDevice
-import sp.erica.API_Data.ElvisPatient
 import sp.erica.{API_Data => api}
-
-
 import com.google.protobuf.Timestamp
 import com.google.pubsub.v1.PubsubMessage
 
@@ -88,7 +84,7 @@ class GPubSubDevice extends PersistentActor with DiffMagic {
 
 
   var messT: Option[Timestamp] = None
-  var prev: List[ElvisPatient] = List()
+  var prev: List[api.ElvisPatient] = List()
 
    val receiveCommand: Receive = {
      case "tick" => checkTimeSinceMessageReceived()
@@ -108,8 +104,8 @@ class GPubSubDevice extends PersistentActor with DiffMagic {
 
        val newEvents: List[api.EricaEvent] = (for {
         json <- res
-        attr <- SPAttributes.fromJson(json)
-        xs <- attr.tryAs[List[api.ElvisPatient]]("patients").toOption
+        attr <- SPAttributes.fromJson(json).toOption
+        xs <- attr.getAs[List[api.ElvisPatient]]("patients")
        } yield {
          log.debug("An elvis snapshot with " + xs.size + " ElvisPatients was recieved.")
          val res = checkTheDiff(xs, prev)
@@ -118,7 +114,7 @@ class GPubSubDevice extends PersistentActor with DiffMagic {
        }).getOrElse(List())
 
        if (newEvents.nonEmpty){
-         val eventsJson = write(newEvents)
+         val eventsJson = SPValue(newEvents).toJson
          persist(eventsJson) { events =>
            state = newEvents ++ state
            state = filterOldEvents(state)
@@ -156,18 +152,14 @@ class GPubSubDevice extends PersistentActor with DiffMagic {
 
 
 trait DiffMagic {
-  import org.json4s._
-  import org.json4s.native.Serialization
-  import org.json4s.native.Serialization.{read, write}
   import com.github.nscala_time.time.Imports._
-  //implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
   val log = org.slf4j.LoggerFactory.getLogger(getClass.getName)
 
   var currentState: List[api.ElvisPatient] = List()
 
   def clearState() = currentState = List()
 
-  val dataAggregation = new elastic.DataAggregation
+  val dataAggregation = new DataAggregation
   def checkTheDiff(ps: List[api.ElvisPatient], currentState: List[api.ElvisPatient]): List[List[api.EricaEvent]] = {
     if (currentState.isEmpty) {
       ps.map{p =>
@@ -217,16 +209,16 @@ trait DiffMagic {
     old.map { prev =>
       newLocation(curr, old)
       (Map(
-        "CareContactId" -> Some(Extraction.decompose(curr.CareContactId)),
+        "CareContactId" -> Some(SPValue(curr.CareContactId)),
         "CareContactRegistrationTime" -> diffThem(prev.CareContactRegistrationTime, curr.CareContactRegistrationTime),
         "DepartmentComment" -> diffThem(prev.DepartmentComment, curr.DepartmentComment),
         "Location" -> diffThem(prev.Location, curr.Location),
-        "PatientId" -> Some(Extraction.decompose(curr.PatientId)),
+        "PatientId" -> Some(SPValue(curr.PatientId)),
         "ReasonForVisit" -> diffThem(prev.ReasonForVisit, curr.ReasonForVisit),
         "Team" -> diffThem(prev.Team, curr.Team),
         "VisitId" -> diffThem(prev.VisitId, curr.VisitId),
         "VisitRegistrationTime" -> diffThem(prev.VisitRegistrationTime, curr.VisitRegistrationTime),
-        "timestamp" -> Some(Extraction.decompose(getNowString))
+        "timestamp" -> Some(SPValue(getNowString))
       ).filter(kv=> kv._2 != None).map(kv=> kv._1 -> kv._2.get),
         curr.Events.filterNot(prev.Events.contains),
         prev.Events.filterNot(curr.Events.contains))
@@ -242,9 +234,9 @@ trait DiffMagic {
     }
   }
 
-  def diffThem[T](prev: T, current: T): Option[JValue]= {
+  def diffThem[T](prev: T, current: T)(implicit fjs: JSWrites[T]): Option[SPValue]= {
     if (prev == current) None
-    else Some(Extraction.decompose(current))
+    else Some(SPValue(current))
   }
 
 

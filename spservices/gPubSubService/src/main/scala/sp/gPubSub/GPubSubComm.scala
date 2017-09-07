@@ -1,4 +1,4 @@
-package sp.gPubSub
+package sp.erica
 
 import sp.domain._
 import sp.domain.Logic._

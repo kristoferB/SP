@@ -1,30 +1,12 @@
-package datahandler
+package sp.erica
+
+import java.text.SimpleDateFormat
 
 import akka.actor._
-
-import scala.util.{Failure, Random, Success, Try}
-import scala.util.matching.Regex
 import sp.domain._
-import sp.domain.Logic._
+import sp.erica.{API_Data => dataApi, API_Patient => patientApi, API_PatientEvent => api}
 
-import akka.cluster.pubsub.DistributedPubSubMediator.Publish
-
-import scala.collection.mutable.ListBuffer
-
-import java.util.Date
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.chrono.ChronoLocalDate
-
-import org.json4s.jackson.JsonMethods._
-import org.json4s.jackson.Serialization._
-import org.json4s._
-import org.json4s.JsonDSL._
-
-import sp.erica.{API_PatientEvent => api}
-import sp.erica.{API_Data => dataApi}
-import datahandler.{API_Patient => patientApi}
+import scala.util.{Success, Try}
 //import spgui.circuit.{SPGUICircuit, UpdateGlobalAttributes}
 //import japgolly.scalajs.react._
 
@@ -43,7 +25,7 @@ class ElvisDataHandlerDevice extends Actor {
 
 
   import akka.cluster.pubsub._
-  import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
+  import DistributedPubSubMediator.{Publish, Subscribe}
   val mediator = DistributedPubSub(context.system).mediator
   mediator ! Subscribe("services", self)
   mediator ! Subscribe("spevents", self)
@@ -217,7 +199,7 @@ def constructPatient(events: List[dataApi.EricaEvent]): dataApi.EricaPatient = {
 Publishes messages on the AKKA-bus.
 */
 def publishOnAkka(header: SPHeader, body: api.Event, topic: String) {
-  val toSend = ElvisDataHandlerComm.makeMess(header, body)
+  val toSend = SPMessage.makeJson[SPHeader, api.Event](header, body)
   mediator ! Publish(topic, toSend)
 }
 
@@ -408,7 +390,7 @@ def isValidTriageColor(string: String): Boolean = {
 }
 
 val info = SPAttributes(
-   "service" -> api.attributes.service,
+   "service" -> api.service,
    "group" -> "runtime"
  )
 

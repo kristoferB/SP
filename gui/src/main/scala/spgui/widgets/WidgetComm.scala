@@ -70,7 +70,7 @@ object API_Patient {
     implicit val fapipat10: JSFormat[Debugging] = Json.format[Debugging]
     implicit val fapipat11: JSFormat[Removed] = Json.format[Removed]
 
-    implicit val fPatient: JSFormat[Patient] = deriveFormatSimple[Patient]
+    implicit val fPatient: JSFormat[Patient] = Json.Format[Patient]
   }
 
 }

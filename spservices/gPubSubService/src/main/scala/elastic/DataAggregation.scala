@@ -12,7 +12,7 @@ import org.json4s.JsonDSL._
 import scala.concurrent.ExecutionContext.Implicits.global // Client.get gets sad without this
 import scala.collection.mutable.ListBuffer
 
-import sp.gPubSub.{API_Data => api}
+import sp.erica.{API_Data => api}
 
 class DataAggregation {
   implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all // json4s needs this for something

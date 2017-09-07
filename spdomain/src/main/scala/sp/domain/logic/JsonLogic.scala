@@ -625,7 +625,7 @@ trait JsonImplicit extends JsonDerived {
 
   // Extra formats
 
-  val dateF = format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+  lazy val dateF = format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
   implicit lazy val javatimeF = new Format[ZonedDateTime] {
     override def reads(json: JsValue): JsResult[ZonedDateTime] = {
       json.validate[String].map(ZonedDateTime.parse(_, dateF))

@@ -86,7 +86,7 @@ object API_PatientEvent {
   }
 }
 
-import sp.gPubSub.{API_PatientEvent => api}
+import sp.erica.{API_PatientEvent => api}
 
 object ElvisDataHandlerComm {
 /**
