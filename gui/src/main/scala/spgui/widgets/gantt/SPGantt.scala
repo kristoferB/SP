@@ -5,9 +5,10 @@ import scalajs.js
 import js.annotation.JSGlobal
 
 @js.native
-trait SPGantt extends js.Object { // facades "facadedObject in gui/src/main/resources/ganttApp.js
+trait SPGantt extends js.Object { // facades "facadedObject" in gui/src/main/resources/ganttApp.js
+  def setData(rows: js.Array[Row]): Unit = js.native
   def addSomeRow(): Unit = js.native
-  def addRow(row: js.Object): Unit = js.native
+  def addRow(row: Row): Unit = js.native
 }
 @js.native
 @JSGlobal("SPGantt")

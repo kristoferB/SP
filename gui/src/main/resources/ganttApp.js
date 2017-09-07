@@ -7,40 +7,18 @@ function SPGantt(element) {
   var app = angular.module('ganttApp', ['gantt', 'gantt.tooltips']);
 
   function ganttCtrl($scope) {
-
-      $scope.data = [
-          {name: 'row1', tasks: [
-              {name: 'task1', from: new Date(2013, 3, 30, 18, 0, 0), to: new Date(2013, 4, 10, 18, 0, 0)},
-              {name: 'task2', from: new Date(2013, 4, 15, 18, 0, 0), to: new Date(2013, 4, 20, 18, 0, 0)}
-            ]
-          },
-          {name: 'row2', tasks: [
-              {name: 'task3', from: new Date(2013, 3, 30, 18, 0, 0), to: new Date(2013, 4, 12, 18, 0, 0)},
-              {name: 'task4', from: new Date(2013, 4, 15, 18, 0, 0), to: new Date(2013, 4, 20, 18, 0, 0)}
-            ]
-          }
-
-      ];
-
-      $scope.addSomeRow = function() {
-        console.log("clicked addSomeRow");
-        $scope.data.push(
-          {name: 'newRow', tasks: [
-              {name: 'newRowTask', from: new Date(2013, 3, 30, 18, 0, 0), to: new Date(2013, 4, 12, 18, 0, 0)}
-              ]
-          }
-        )
-
+      facadedObject.setData = function (rows) {
+        $scope.data = rows;
+        $scope.$apply();
       };
-
       facadedObject.addSomeRow = function() {
         $scope.addSomeRow();
         $scope.$apply();
-      }
+      };
       facadedObject.addRow = function(row) {
         $scope.data.push(row);
         $scope.$apply();
-      }
+      };
   }
 
   app.component("ganttComponent", {
