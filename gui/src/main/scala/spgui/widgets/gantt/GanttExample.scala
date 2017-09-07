@@ -12,10 +12,8 @@ object GanttExample {
 
   def somRow() = Row(
     name = "sampleRow",
-    tasks = js.Array(Task("scalajs task", new js.Date(2013, 3, 30, 18, 0, 0), new js.Date(2013, 4, 12, 18, 0, 0)))
+    tasks = js.Array(Task("scalajs task", new js.Date(2017, 5, 20, 9, 0, 0), new js.Date(2017, 5, 20, 10, 0, 0)))
   )
-
-  def newData() = js.Array(somRow(), somRow())
 
   def patientTimeLine() = js.Array(
     Row("Besök", js.Array(Task("Patientens Besök På Sjukhuset",
@@ -54,7 +52,10 @@ object GanttExample {
 
   private val component = ScalaComponent.builder[SPWidgetBase]("GanttExample")
     .renderBackend[Backend]
-    .componentDidMount(dcb => Callback(dcb.backend.spGantt = SPGantt(dcb.getDOMNode)))
+    .componentDidMount(dcb => Callback{
+      dcb.backend.spGantt = SPGantt(dcb.getDOMNode)
+      dcb.backend.spGantt.setData(patientTimeLine())
+    })
     .build
 
   def apply() = SPWidget(spwb => component(spwb))
