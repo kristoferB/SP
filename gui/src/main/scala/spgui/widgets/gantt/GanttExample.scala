@@ -16,26 +16,27 @@ object GanttExample {
   )
 
   def patientTimeLine() = js.Array(
-    Row("Besök", js.Array(Task("Patientens Besök På Sjukhuset",
-      new js.Date(2017, 5, 20, 8, 5, 3, 2), new js.Date(2017, 5, 20, 10, 32, 23, 9)))),
-      Row("Kölapp", js.Array(
-        Task("Tar Kölapp", new js.Date(2017, 5, 20, 8, 6, 13, 8), new js.Date(2017, 5, 20, 8, 6, 31, 7))
-      )),
-      Row("Väntetid", js.Array(
-        Task("Patient Väntar På inskrivning", new js.Date(2017, 5, 20, 8, 6, 31, 7), new js.Date(2017, 5, 20, 8, 23, 54, 1)),
-        Task("Patienten väntar på läkare", new js.Date(2017, 5, 20, 8, 26, 46, 3), new js.Date(2017, 5, 20, 9, 1, 35, 4)),
-        Task("Patient väntar på diagnos", new js.Date(2017, 5, 20, 9, 9, 21, 5), new js.Date(2017, 5, 20, 9, 59, 1, 0))
-      )),
-      Row("Inskrivning", js.Array(
-        Task("Patient Skriver in sig", new js.Date(2017, 5, 20, 8, 24, 11, 2), new js.Date(2017, 5, 20, 8, 26, 46, 3))
-      )),
-      Row("Läkarbesök", js.Array(
-        Task("Patient träffar läkare", new js.Date(2017, 5, 20, 9, 1, 35, 4), new js.Date(2017, 5, 20, 9, 9, 21, 5)),
-        Task("Patient träffar läkare", new js.Date(2017, 5, 20, 9, 59, 1, 0), new js.Date(2017, 5, 20, 10, 14, 13, 4))
-      )),
-      Row("Diagnostiering", js.Array(
-        Task("Läkare sätter diagnos", new js.Date(2017, 5, 20, 9, 9, 21, 5), new js.Date(2017, 5, 20, 9, 27, 54, 9))
-      ))
+    Row("Besök", js.Array(
+      Task("Patientens Besök På Sjukhuset", new js.Date(2017, 5, 20, 8, 5, 3, 2), new js.Date(2017, 5, 20, 10, 32, 23, 9), "#f3ed84")
+    )),
+    Row("Kölapp", js.Array(
+      Task("Tar Kölapp", new js.Date(2017, 5, 20, 8, 6, 13, 8), new js.Date(2017, 5, 20, 8, 6, 31, 7), "#ff5a36")
+    )),
+    Row("Väntetid", js.Array(
+      Task("Patient Väntar På inskrivning", new js.Date(2017, 5, 20, 8, 6, 31, 7), new js.Date(2017, 5, 20, 8, 23, 54, 1)),
+      Task("Patienten väntar på läkare", new js.Date(2017, 5, 20, 8, 26, 46, 3), new js.Date(2017, 5, 20, 9, 1, 35, 4)),
+      Task("Patient väntar på diagnos", new js.Date(2017, 5, 20, 9, 9, 21, 5), new js.Date(2017, 5, 20, 9, 59, 1, 0))
+    )),
+    Row("Inskrivning", js.Array(
+      Task("Patient Skriver in sig", new js.Date(2017, 5, 20, 8, 24, 11, 2), new js.Date(2017, 5, 20, 8, 26, 46, 3), "#b0e89e")
+    )),
+    Row("Läkarbesök", js.Array(
+      Task("Patient träffar läkare", new js.Date(2017, 5, 20, 9, 1, 35, 4), new js.Date(2017, 5, 20, 9, 9, 21, 5), "#8f2525"),
+      Task("Patient träffar läkare", new js.Date(2017, 5, 20, 9, 59, 1, 0), new js.Date(2017, 5, 20, 10, 14, 13, 4), "#8f2525")
+    )),
+    Row("Diagnostiering", js.Array(
+      Task("Läkare sätter diagnos", new js.Date(2017, 5, 20, 9, 9, 21, 5), new js.Date(2017, 5, 20, 9, 27, 54, 9), "#8dbad8")
+    ))
   )
 
 

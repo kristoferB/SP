@@ -21,14 +21,16 @@ trait Task extends js.Object {
   var name: String = js.native
   var from: js.Date = js.native
   var to: js.Date = js.native
+  var color: String = js.native // actually js.UndefOr but setting to null gives correct behaviour
 }
 // atm there is no perfect way to facade "options" kind of jsObjects, but this is one way
 object Task {
-  def apply(name: String, from: js.Date, to: js.Date): Task = {
+  def apply(name: String, from: js.Date, to: js.Date, color: String = null): Task = {
     val jsObj = (new js.Object).asInstanceOf[Task]
     jsObj.name = name
     jsObj.from = from
     jsObj.to = to
+    jsObj.color = color
     jsObj
   }
 }
