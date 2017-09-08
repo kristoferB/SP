@@ -1,4 +1,4 @@
-function SPGantt(element) {
+function SPGantt(element, options) {
 
   'use strict';
 
@@ -7,7 +7,7 @@ function SPGantt(element) {
   var app = angular.module('ganttApp', ['gantt', 'gantt.tooltips', 'gantt.table']);
 
   function ganttCtrl($scope) {
-      facadedObject.setData = function (rows) {
+      facadedObject.setData = function(rows) {
         $scope.data = rows;
         $scope.$apply();
       };
@@ -19,6 +19,8 @@ function SPGantt(element) {
         $scope.data.push(row);
         $scope.$apply();
       };
+
+      $scope.headers = options.headers;
 
       $scope.headersFormats = {
         hour: 'H:mm',
@@ -34,15 +36,17 @@ function SPGantt(element) {
         minute: twentyMinutes
       };
       */
+
+      $scope.viewScale = options.viewScale;
   }
 
   app.component("ganttComponent", {
     template: `
-          <div gantt data="data" headers="['hour']" headers-formats="headersFormats" headers-scales="headersScales" view-scale="'10 minutes'" column-width="50">
+          <div gantt data="data" headers="headers" headers-formats="headersFormats" headers-scales="headersScales" view-scale="viewScale" column-width="50">
             <!-- TODO need to fix some dependency stuff if we want this
             <gantt-tree></gantt-tree>
             -->
-            <gantt-tooltips date-format="'H:mm'" delay="100"></gantt-tooltips>
+            <gantt-tooltips date-format="'H:mm:ss'" delay="100"></gantt-tooltips>
             <gantt-table headers="{'model.name': ''}"></gantt-table>
           </div>
       `

@@ -2,7 +2,7 @@ package spgui.widgets.gantt
 
 import org.scalajs.dom
 import scalajs.js
-import js.annotation.JSGlobal
+import js.annotation.{ JSGlobal, JSExportAll }
 
 @js.native
 trait SPGantt extends js.Object { // facades "facadedObject" in gui/src/main/resources/ganttApp.js
@@ -12,12 +12,23 @@ trait SPGantt extends js.Object { // facades "facadedObject" in gui/src/main/res
 }
 @js.native
 @JSGlobal("SPGantt")
-object SPGantt extends js.Object {
-  def apply(element: dom.Element): SPGantt = js.native
+object SPGanttJS extends js.Object { // one boilerplate object bc js.natives cannot have real default parameter values
+  def apply(element: dom.Element, options: SPGanttOptions): SPGantt = js.native
+}
+object SPGantt {
+  def apply(element: dom.Element, options: SPGanttOptions = SPGanttOptions()) = SPGanttJS(element, options)
 }
 
+// TODO I think we should define a couple of convenient scale-alternatives to throw with this object
+// then do the tweaking corresponding to each value in ganttApp.js
+@JSExportAll
+case class SPGanttOptions( // "options" in gui/src/main/resources/ganttApp.js)
+                         headers: js.Array[String] = js.Array("hour"), // "day", "hour" etc
+                         viewScale: String = "10 minutes" // "day", "2 days", "1 minutes" etc
+                         )
+
 @js.native
-trait Task extends js.Object {
+trait Task extends js.Object { // facades data format of angular-gantt package
   var name: String = js.native
   var from: js.Date = js.native
   var to: js.Date = js.native
@@ -36,7 +47,7 @@ object Task {
 }
 
 @js.native
-trait Row extends js.Object {
+trait Row extends js.Object { // facades data format of angular-gantt package
   var name: String = js.native
   var tasks: js.Array[Task] = js.native
 }
