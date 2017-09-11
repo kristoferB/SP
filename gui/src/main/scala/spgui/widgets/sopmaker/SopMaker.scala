@@ -113,33 +113,6 @@ object SopMakerWidget {
         e.touches.item(0).pageX.toFloat,
         e.touches.item(0).pageY.toFloat
       )
-
-      // val touch = e.touches.item(0)
-      // val target = document.elementFromPoint(touch.pageX, touch.pageY)
-      // if(target == null) {return Callback.empty} // this will be null if event outside of viewport
-
-      // val evnt: MouseEvent = document.createEvent("MouseEvents").asInstanceOf[MouseEvent]
-
-      // evnt.initMouseEvent(
-      //   typeArg = "mousemove",
-      //   canBubbleArg = true,
-      //   cancelableArg = true,
-      //   viewArg = window.window,
-      //   detailArg = 0,
-      //   screenXArg = touch.pageX.toInt,
-      //   screenYArg = touch.pageY.toInt,
-      //   clientXArg = touch.pageX.toInt,
-      //   clientYArg = touch.pageY.toInt,
-      //   ctrlKeyArg = false,
-      //   altKeyArg = false,
-      //   shiftKeyArg = false,
-      //   metaKeyArg = false,
-      //   buttonArg = 0,
-      //   relatedTargetArg = document.getElementById("spgui-root")
-      // )
-      // Callback(target.dispatchEvent(evnt))
-
-
     }
 
     val paddingTop = 40f
@@ -152,28 +125,16 @@ object SopMakerWidget {
     import spgui.dragging.Dragging
     def op(opId: UUID, opname: String, x: Float, y: Float): TagMod = {
       val handle = makeHandle(opId)
-      // ReactDraggable(
-      //   handle = "." + handle,
-      //   onStart= (e: ReactEvent, d: ReactDraggable.DraggableData) => handleDragStart(d, x, y),
-      //   onStop = (e: ReactEvent, d: ReactDraggable.DraggableData) => handleOpDrop(d),
-      //   onDrag = (e: ReactEvent, d: ReactDraggable.DraggableData) => handleOpDragging(d)
-      // )(
       <.span(
-        // ^.onTouchStart  ==> debugEvent,   // commented; might become relevant
-        // ^.onTouchEnd    ==> debugEvent,
-        // ^.onTouchCancel ==> debugEvent,
-        // ^.onTouchMove ==> handleTouchDrag,
-        
         ^.onTouchStart ==> handleTouchDragStart(opname),
         ^.onTouchMoveCapture ==> {
           (e: ReactTouchEvent) => Callback ({
+            println("touch moving")
             var x = 0f; var y = 0f
             for(n <- 0 to e.touches.length-1) {
               x += e.touches.item(n).pageX.toFloat
               y += e.touches.item(n).pageY.toFloat
             }
-            //  Dragging.onDragMove(x, y)
-            //})
             val target = document.elementFromPoint(x, y)
             org.scalajs.dom.console.log(target)
             val evnt: MouseEvent = document.createEvent("MouseEvents").asInstanceOf[MouseEvent]
@@ -239,7 +200,6 @@ object SopMakerWidget {
           )
         )
       )
-      //     )
     }
 
     def parallelBars(x: Float, y: Float, w:Float): TagMod =
@@ -311,54 +271,6 @@ object SopMakerWidget {
          else s.copy(hoverData = HoverData(zoneId))
       })
     }
-
-
-    // def handleDragStart(d: ReactDraggable.DraggableData, x:Float, y:Float) = {
-    //   $.modState(s => {
-    //     s.copy(hoverData = s.hoverData.copy(
-    //       dragging = true
-    //     ))
-    //   }).runNow()
-    //   xOrigin = x
-    //   yOrigin = y
-    // }
-
-    // def handleOpDragging(d: ReactDraggable.DraggableData) = {
-    //   //println(d.x + " " +d.y)
-    //   checkHoverState(
-    //     d.x + xOrigin,
-    //     d.y + yOrigin
-    //   )
-    //   spgui.dragging.Dragging.onDragMove(
-    //     d.x,
-    //     d.y
-    //   )
-    //   // cannot modify state every loop
-    
-    //    // $.modState(s => {
-    //    //   //println(d.x + " " +d.y)
-    //    //   s.copy(hoverData = s.hoverData.copy(
-    //    //     dragPosition = (
-    //    //       d.x + s.hoverData.dragOrigin._1,
-    //    //       d.y + s.hoverData.dragOrigin._2
-    //    //   )))
-    //    // }).runNow()
-    // }
-
-    // def checkHoverState(x:Float, y:Float) {
-    //   //println(x + "   " + y)
-    // }
-
-    // def handleOpDrop(d: ReactDraggable.DraggableData) = {
-    //   $.modState(s => {
-    //     // println(readHandle(d.node.className)
-    //     // println(s.hoverData.currentPosition)
-    //     s.copy(
-    //       sop = insertSop(s.sop, s.hoverData.position, readHandle(d.node.className)),
-    //       hoverData = s.hoverData.copy(dragging = false)
-    //     )
-    //   }).runNow()
-    // }
 
     def getRenderTree(node: RenderNode, xOffset: Float, yOffset: Float): List[TagMod] = {
       node match {

@@ -25,7 +25,12 @@ import spgui.circuit.{SetMousePosition, SetDraggableData, SetDraggableRenderStyl
 object Dragging {
   case class Props(proxy: ModelProxy[DraggingState])
 
+  var x = 0f; var y = 0f;
+  def getX() = x
+  def getY() = y
+
   case class State(
+    x: Float = 0f, y: Float = 0f
   )
 
   trait Rect extends js.Object {
@@ -37,7 +42,12 @@ object Dragging {
 
   val opHeight = 80f
   val opWidth = 80f
+
+  var updateMouse = (x:Float, y:Float) => {}
+
   class Backend($: BackendScope[Props, State]) {
+    updateMouse = (x,y) => $.setState(State(x,y)).runNow()  
+
     def render(state: State, props: Props) = {
       <.span(
         ^.pointerEvents.none,
@@ -52,8 +62,8 @@ object Dragging {
               ^.className := DraggingCSS.dragElement.htmlClass,
               ^.style := {
                 var rect =  (js.Object()).asInstanceOf[Rect]
-                rect.left = props.proxy().x - opWidth/2
-                rect.top = props.proxy().y - opHeight/2
+                rect.left = state.x - opWidth/2
+                rect.top = state.y - opHeight/2
                 rect.height = opHeight
                 rect.width = opWidth
                 rect
@@ -91,6 +101,8 @@ object Dragging {
     }
   }
 
+  private var myself = null
+
   private val component = ScalaComponent.builder[Props]("Dragging")
     .initialState(State())
     .renderBackend[Backend]
@@ -100,12 +112,14 @@ object Dragging {
 
   def onDragStart(data: String, x:Float, y:Float) = {
     SPGUICircuit.dispatch(SetDraggableData(data))
-    SPGUICircuit.dispatch(SetMousePosition(x,y))
     SPGUICircuit.dispatch(SetCurrentlyDragging(true))
+    updateMouse(x,y)
   }
 
   def onDragMove(x:Float, y:Float) = {
-    SPGUICircuit.dispatch(SetMousePosition(x,y))
+    this.x = x
+    this.y = y
+    updateMouse(x,y)
   }
 
   def onDragStop() = {
@@ -113,7 +127,6 @@ object Dragging {
   }
 
   def setDraggingStyle(style: String) = {
-    //println(style)
     SPGUICircuit.dispatch(SetDraggableRenderStyle(style))
   }
 
@@ -129,18 +142,13 @@ object Dragging {
       })
     },
     ^.onMouseMove ==> {
-      (e:ReactMouseEvent) => Callback(
-        Dragging.onDragMove(e.pageX.toFloat, e.pageY.toFloat
-        )
-      )
+      (e:ReactMouseEvent) => Callback{
+        println("mouse capture")
+        Dragging.onDragMove(e.pageX.toFloat, e.pageY.toFloat)
+      }
     },
     ^.onMouseUp ==> {
       (e:ReactMouseEvent) => Callback(
-        Dragging.onDragStop()
-      )
-    },
-    ^.onTouchEnd ==> {
-      (e:ReactTouchEvent) => Callback(
         Dragging.onDragStop()
       )
     }

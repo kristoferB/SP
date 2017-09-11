@@ -151,32 +151,54 @@ object SPWidgetElements{
 
       def render(p:Props, s:State) =
         <.span(
-          ^.style := {
-            var rect =  (js.Object()).asInstanceOf[Rectangle]
-            rect.left = p.x
-            rect.top = p.y
-            rect.height = p.h
-            rect.width = p.w
-            rect
-          },
-          ^.className := spgui.widgets.sopmaker.SopMakerCSS.dropZone.htmlClass,
-          {if(!s.isActive) ^.className := spgui.widgets.sopmaker.SopMakerCSS.disableDropZone.htmlClass
-          else ""},
-          {if(s.target == p.id)
-            ^.className := spgui.widgets.sopmaker.SopMakerCSS.blue.htmlClass
-          else ""},
+          <.span(
+            ^.style := {
+              var rect =  (js.Object()).asInstanceOf[Rectangle]
+              rect.left = p.x-100f
+              rect.top = p.y-100f
+              rect.height = p.h+200f
+              rect.width = p.w+200f
+              rect
+            },
+            ^.className := spgui.widgets.sopmaker.SopMakerCSS.dropZoneOuter.htmlClass,
+            {if(!s.isActive) ^.className := spgui.widgets.sopmaker.SopMakerCSS.disableDropZone.htmlClass
+            else ""},
+            //{if(s.target == p.id)
+            //  ^.className := spgui.widgets.sopmaker.SopMakerCSS.blue.htmlClass
+            //else ""},
 
-          ^.onMouseOver --> handleMouseOver( p.id ),
-          ^.onMouseLeave --> handleMouseLeave( p.id )
+            //    ^.onMouseOver --> handleMouseOver( p.id ),
+            ^.onMouseOver --> handleMouseLeave( p.id )
+          ),
+          <.span(
+            ^.style := {
+              var rect =  (js.Object()).asInstanceOf[Rectangle]
+              rect.left = p.x
+              rect.top = p.y
+              rect.height = p.h
+              rect.width = p.w
+              rect
+            },
+            ^.className := spgui.widgets.sopmaker.SopMakerCSS.dropZone.htmlClass,
+            {if(!s.isActive) ^.className := spgui.widgets.sopmaker.SopMakerCSS.disableDropZone.htmlClass
+            else ""},
+            {if(s.target == p.id)
+              ^.className := spgui.widgets.sopmaker.SopMakerCSS.blue.htmlClass
+            else ""},
+
+            ^.onMouseOver --> handleMouseOver( p.id )
+            //   ^.onMouseLeave --> handleMouseLeave( p.id )
+          )
         )
 
       def handleMouseOver(id: UUID)= Callback{
-        println("moused over " + id.toString)
+     //   println("moused over " + id.toString)
         SPGUICircuit.dispatch(SetDraggingTarget(id))
       }
 
       def handleMouseLeave(id: UUID): Callback = Callback{
-          SPGUICircuit.dispatch(UnsetDraggingTarget(id))
+      //  println("mouse left " + id.toString)
+        SPGUICircuit.dispatch(UnsetDraggingTarget(id))
       }
     }
 

@@ -33,6 +33,11 @@ object SopMakerCSS extends Theming.SPStyleSheet {
   //  backgroundColor.red,
     opacity:= "0.5"
   )
+  val dropZoneOuter = style(
+    position.absolute,
+    zIndex(99),
+    opacity:= "0.5"
+  )
 
   val disableDropZone = style(
     pointerEvents := "none",
