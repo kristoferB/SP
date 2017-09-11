@@ -25,12 +25,12 @@ import spgui.circuit.{SetMousePosition, SetDraggableData, SetDraggableRenderStyl
 object Dragging {
   case class Props(proxy: ModelProxy[DraggingState])
 
-  var x = 0f; var y = 0f;
-  def getX() = x
-  def getY() = y
+  case class State(x: Float = 0f, y: Float = 0f)
 
-  case class State(
-    x: Float = 0f, y: Float = 0f
+  case class Data(
+    label: String,
+    id: UUID,
+    typ: String
   )
 
   trait Rect extends js.Object {
@@ -46,7 +46,7 @@ object Dragging {
   var updateMouse = (x:Float, y:Float) => {}
 
   class Backend($: BackendScope[Props, State]) {
-    updateMouse = (x,y) => $.setState(State(x,y)).runNow()  
+    updateMouse = (x,y) => $.setState(State(x,y)).runNow()
 
     def render(state: State, props: Props) = {
       <.span(
@@ -117,8 +117,6 @@ object Dragging {
   }
 
   def onDragMove(x:Float, y:Float) = {
-    this.x = x
-    this.y = y
     updateMouse(x,y)
   }
 
@@ -143,7 +141,6 @@ object Dragging {
     },
     ^.onMouseMove ==> {
       (e:ReactMouseEvent) => Callback{
-        println("mouse capture")
         Dragging.onDragMove(e.pageX.toFloat, e.pageY.toFloat)
       }
     },
