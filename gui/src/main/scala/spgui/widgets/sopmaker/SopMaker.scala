@@ -63,12 +63,6 @@ object SopMakerWidget {
 
   val idm = ExampleSops.ops.map(o=>o.id -> o).toMap
 
-  trait Rect extends js.Object {
-    var left: Float = js.native
-    var top: Float = js.native
-    var width: Float = js.native
-    var height: Float = js.native
-  }
 
   private class Backend($: BackendScope[Unit, State]) {
 
@@ -82,6 +76,8 @@ object SopMakerWidget {
      */
     def render(state: State) = {
       <.div(
+        SPWidgetElements.DragoverContext(),
+        <.span(
         ^.onMouseOver ==> handleMouseOver("sop_style"),
         ^.onMouseOut ==> handleMouseOver("not_sop_style"),
         SopMakerCSS.sopContainer,
@@ -90,7 +86,7 @@ object SopMakerWidget {
           getTreeWidth( state.sop ) * 0.5f + paddingLeft,
           paddingTop
         ).toTagMod
-      )
+      ))
     }
 
     def handleMouseOver(style:String)(e: ReactMouseEvent) = Callback {
@@ -104,85 +100,12 @@ object SopMakerWidget {
     def readHandle(handle: String) = UUID.fromString(handle.split(handlePrefix+"| ")(1))
 
     def op(opId: UUID, opname: String, x: Float, y: Float): TagMod = {
-      val handle = makeHandle(opId)
       <.span(
+        ^.draggable := false,
         SPWidgetElements.draggable(opname, opId, "sop"),
-
-        SopMakerCSS.sopComponent,
-        ^.style := {
-          var rect =  (js.Object()).asInstanceOf[Rect]
-          rect.left = x
-          rect.top = y
-          rect.height = opHeight
-          rect.width = opWidth
-          rect
-        },
-        svg.svg(
-          svg.svg(
-            svg.width := opWidth.toInt,
-            svg.height:= opHeight.toInt,
-            svg.x := 0,
-            svg.y := 0,
-            svg.rect(
-              svg.x := 0,
-              svg.y := 0,
-              svg.width := opWidth.toInt,
-              svg.height:= opHeight.toInt,
-              svg.rx := 6, svg.ry := 6,
-              svg.fill := "white",
-              svg.stroke := "black",
-              svg.strokeWidth := 1
-            ),
-            svg.svg(
-              //SopMakerCSS.opText,
-              svg.text(
-                svg.x := "50%",
-                svg.y := "50%",
-                svg.textAnchor := "middle",
-                svg.dy := ".3em", opname
-              )
-            )
-          )
-        )
+        SopMakerGraphics.sop(opname, x.toInt, y.toInt)
       )
-    }
-
-    def parallelBars(x: Float, y: Float, w:Float): TagMod =
-      <.span(
-        SopMakerCSS.sopComponent,
-        ^.style := {
-          var rect =  (js.Object()).asInstanceOf[Rect]
-          rect.left = x + opWidth/2
-          rect.top = y
-          rect.height = 12
-          rect.width = w
-          rect
-        },
-        svg.svg(
-          svg.width := "100%",
-          svg.height := "100%",
-          svg.svg(
-            svg.width := w.toInt,
-            svg.height := 12,
-            svg.rect(
-              svg.x := 0,
-              svg.y := 0,
-              svg.width:=w.toInt,
-              svg.height:=4,
-              svg.fill := "black",
-              svg.strokeWidth:=1
-            ),
-            svg.rect(
-              svg.x := 0,
-              svg.y :=  8,
-              svg.width:=w.toInt,
-              svg.height:=4,
-              svg.fill := "black",
-              svg.strokeWidth:=1
-            )
-          )
-        )
-      )
+  }
 
     def dropZone(  id: UUID, x: Float, y: Float, w: Float, h: Float) =
       spgui.components.SPWidgetElements.DragoverZone(id, x, y, w, h)
@@ -223,9 +146,10 @@ object SopMakerWidget {
             w = n.w,
             h = n.h
           )) ++
-          List(parallelBars(xOffset - n.w/2 + opSpacingX/2, yOffset,n.w - opSpacingX)) ++
+          List(
+            SopMakerGraphics.parallelBars(xOffset - n.w/2 + opSpacingX/2, yOffset,n.w - opSpacingX)) ++
           children ++
-          List(parallelBars(
+          List(SopMakerGraphics.parallelBars(
             xOffset - n.w/2 + opSpacingX/2,
             yOffset + n.h - parallelBarHeight - opSpacingY,
             n.w - opSpacingX
@@ -342,7 +266,7 @@ object SopMakerWidget {
           case r: Sequence =>
             Sequence(sop = findSop($.state.runNow().sop, sopId) :: r.sop)
           case r: OperationNode => Parallel(
-            sop = List(r, findSop($.state.runNow().sop, sopId))) // $.state abuse
+            sop = List(r, findSop($.state.runNow().sop, sopId)))
         }
       } else {
         root match {

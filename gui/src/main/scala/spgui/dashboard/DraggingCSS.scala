@@ -8,7 +8,8 @@ object DraggingCSS extends Theming.SPStyleSheet {
 
   val dragElement = style(
     position.absolute,
-    userSelect:= "none"
+    userSelect:= "none",
+    pointerEvents:= "none"
   )
 
   val overlay = style(

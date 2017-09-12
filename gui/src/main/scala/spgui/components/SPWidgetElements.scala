@@ -147,7 +147,7 @@ object SPWidgetElements{
     import diode.ModelRO
     class Backend($: BackendScope[Props, State]) {
       SPGUICircuit.subscribe(SPGUICircuit.zoomRW(myM => myM)((m,v) => v))(m =>
-        $.modState(s =>
+        $.modState(s => 
           State(
             target = m.value.draggingState.target,
             isActive = m.value.draggingState.dragging
@@ -160,40 +160,19 @@ object SPWidgetElements{
           <.span(
             ^.style := {
               var rect =  (js.Object()).asInstanceOf[Rectangle]
-              rect.left = p.x-100f
-              rect.top = p.y-100f
-              rect.height = p.h+200f
-              rect.width = p.w+200f
-              rect
-            },
-            ^.className := spgui.widgets.sopmaker.SopMakerCSS.dropZoneOuter.htmlClass,
-            {if(!s.isActive) ^.className := spgui.widgets.sopmaker.SopMakerCSS.disableDropZone.htmlClass
-            else ""},
-            //{if(s.target == p.id)
-            //  ^.className := spgui.widgets.sopmaker.SopMakerCSS.blue.htmlClass
-            //else ""},
-
-            //    ^.onMouseOver --> handleMouseOver( p.id ),
-            ^.onMouseOver --> handleMouseLeave( p.id )
-          ),
-          <.span(
-            ^.style := {
-              var rect =  (js.Object()).asInstanceOf[Rectangle]
               rect.left = p.x
               rect.top = p.y
               rect.height = p.h
               rect.width = p.w
               rect
             },
-            ^.className := spgui.widgets.sopmaker.SopMakerCSS.dropZone.htmlClass,
-            {if(!s.isActive) ^.className := spgui.widgets.sopmaker.SopMakerCSS.disableDropZone.htmlClass
+            ^.className := SPWidgetElementsCSS.dropZone.htmlClass,
+            {if(!s.isActive) ^.className := SPWidgetElementsCSS.disableDropZone.htmlClass
             else ""},
             {if(s.target == p.id)
-              ^.className := spgui.widgets.sopmaker.SopMakerCSS.blue.htmlClass
+              ^.className := SPWidgetElementsCSS.blue.htmlClass
             else ""},
-
             ^.onMouseOver --> handleMouseOver( p.id )
-            //   ^.onMouseLeave --> handleMouseLeave( p.id )
           )
         )
 
@@ -202,10 +181,10 @@ object SPWidgetElements{
         SPGUICircuit.dispatch(SetDraggingTarget(id))
       }
 
-      def handleMouseLeave(id: UUID): Callback = Callback{
-      //  println("mouse left " + id.toString)
-        SPGUICircuit.dispatch(UnsetDraggingTarget(id))
-      }
+      // def handleMouseLeave(id: UUID): Callback = Callback{
+      // //  println("mouse left " + id.toString)
+      //   SPGUICircuit.dispatch(UnsetDraggingTarget)
+      // }
     }
 
     private val component = ScalaComponent.builder[Props]("SPDragZone")
@@ -216,6 +195,34 @@ object SPWidgetElements{
     def apply(id: UUID, x: Float, y: Float, w: Float, h: Float): VdomNode =
       component(Props(id, x, y, w, h))
   }
+
+  object DragoverContext {
+    class Backend($: BackendScope[Unit, Boolean]) {
+      SPGUICircuit.subscribe(SPGUICircuit.zoomRW(myM => myM)((m,v) => v))(m =>
+        $.modState(s =>
+          m.value.draggingState.dragging
+        ).runNow()
+      )
+      def render(p:Unit, s:Boolean) =
+        <.span(
+          ^.className := SPWidgetElementsCSS.dropZoneContext.htmlClass,
+          {if(!s) ^.className := SPWidgetElementsCSS.disableDropZone.htmlClass
+          else ""},
+          ^.onMouseOver --> Callback(SPGUICircuit.dispatch(UnsetDraggingTarget))
+        )
+    }
+
+    private val component = ScalaComponent.builder[Unit]("SPDragZoneContext")
+      .initialState(false)
+      .renderBackend[Backend]
+      .build
+
+    def apply(): VdomNode =
+      component()
+  }
+
+  
+   
 
   def draggable(label:String, id: UUID, typ: String): TagMod = {
     val data = Dragging.Data(label, id, typ)
@@ -245,7 +252,7 @@ object SPWidgetElements{
             buttonArg = 0,
             relatedTargetArg = document.getElementById("spgui-root")
           )
-          target.dispatchEvent(evnt)
+          if(evnt != null) target.dispatchEvent(evnt)
         })
       }),
       (^.onTouchEnd ==> {

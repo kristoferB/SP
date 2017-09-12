@@ -35,9 +35,7 @@ case class DraggingState(
   target: UUID = null,
   dragging: Boolean = false,
   renderStyle: String = "",
-  data: String = "",
-  x: Float = 0f,
-  y: Float = 0f
+  data: String = ""
 )
 
 // actions
@@ -52,12 +50,11 @@ case class UpdateGlobalState(state: GlobalState) extends Action
 case class SetTheme(theme: Theme) extends Action
 case object ToggleHeaders extends Action
 
-case class SetMousePosition(x: Float, y: Float) extends Action
 case class SetDraggableRenderStyle(style:String) extends Action
 case class SetDraggableData(data: String) extends Action
 case class SetCurrentlyDragging(enabled: Boolean) extends Action 
 case class SetDraggingTarget(id: UUID) extends Action
-case class UnsetDraggingTarget(id: UUID) extends Action
+case object UnsetDraggingTarget extends Action
 
 // used when failing to retrieve a state from browser storage
 object InitialState {

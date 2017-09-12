@@ -6,10 +6,6 @@ import spgui.theming.Theming
 object SopMakerCSS extends Theming.SPStyleSheet {
   import dsl._
 
-  val noSelect = style(
-    userSelect := "none"
-  )
-
   val sopContainer = style(
     position.relative
   )
@@ -17,10 +13,9 @@ object SopMakerCSS extends Theming.SPStyleSheet {
   val sopComponent = style(
     overflow.visible.important,
     touchAction:="none",
-   // backgroundColor.red,
+    userSelect := "none",
     position.absolute,
     zIndex := "1"
-    //display.flex
   )
 
   val opText = style(
@@ -30,7 +25,6 @@ object SopMakerCSS extends Theming.SPStyleSheet {
   val dropZone = style(
     position.absolute,
     zIndex(100),
-  //  backgroundColor.red,
     opacity:= "0.5"
   )
   val dropZoneOuter = style(

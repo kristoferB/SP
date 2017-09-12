@@ -20,7 +20,8 @@ import org.scalajs.dom.document
 
 import diode.react.ModelProxy
 import spgui.circuit._
-import spgui.circuit.{SetMousePosition, SetDraggableData, SetDraggableRenderStyle}
+import spgui.circuit.{SetDraggableData, SetDraggableRenderStyle}
+
 
 object Dragging {
   case class Props(proxy: ModelProxy[DraggingState])
@@ -45,6 +46,8 @@ object Dragging {
 
   var updateMouse = (x:Float, y:Float) => {}
 
+  window.onmouseup = ((e:MouseEvent) => onDragStop())
+
   class Backend($: BackendScope[Props, State]) {
     updateMouse = (x,y) => $.setState(State(x,y)).runNow()
 
@@ -53,12 +56,10 @@ object Dragging {
         ^.pointerEvents.none,
         {if(!props.proxy().dragging) ^.className := DraggingCSS.hidden.htmlClass
         else EmptyVdom},
-        ^.className := DraggingCSS.overlay.htmlClass,
-        mouseMoveCapture,
         props.proxy().renderStyle match {
           case _ =>
             <.span(
-              ^.pointerEvents.none,
+//              ^.pointerEvents.none,
               ^.className := DraggingCSS.dragElement.htmlClass,
               ^.style := {
                 var rect =  (js.Object()).asInstanceOf[Rect]
@@ -120,9 +121,11 @@ object Dragging {
     updateMouse(x,y)
   }
 
+
   def onDragStop() = {
     SPGUICircuit.dispatch(SetCurrentlyDragging(false))
   }
+
 
   def setDraggingStyle(style: String) = {
     SPGUICircuit.dispatch(SetDraggableRenderStyle(style))
@@ -143,11 +146,6 @@ object Dragging {
       (e:ReactMouseEvent) => Callback{
         Dragging.onDragMove(e.pageX.toFloat, e.pageY.toFloat)
       }
-    },
-    ^.onMouseUp ==> {
-      (e:ReactMouseEvent) => Callback(
-        Dragging.onDragStop()
-      )
     }
   ).toTagMod
 }

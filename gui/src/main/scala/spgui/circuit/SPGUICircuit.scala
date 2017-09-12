@@ -133,16 +133,11 @@ class SettingsHandler[M](modelRW: ModelRW[M, Settings]) extends ActionHandler(mo
 
 class DraggingHandler[M](modelRW: ModelRW[M, DraggingState]) extends ActionHandler(modelRW) {
   override def handle = {
-    case  SetMousePosition(x, y) => {
-      updated(value.copy(x=x, y=y))
-    }
     case SetDraggableRenderStyle(renderStyle) => updated(value.copy(renderStyle = renderStyle))
     case SetDraggableData(data) => updated(value.copy(data = data))
     case SetCurrentlyDragging(dragging) => updated((value.copy(dragging = dragging)))
     case SetDraggingTarget(id) => updated((value.copy(target = id)))
-    case UnsetDraggingTarget(id) =>
-      if(value.target == id || true) updated((value.copy(target = null)))
-      else updated(value)
+    case UnsetDraggingTarget => updated((value.copy(target = null)))
   }
 }
 
