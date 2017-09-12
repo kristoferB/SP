@@ -35,4 +35,3 @@ object SOP {
   def apply(op: ID) = OperationNode(op)
 
 }
-

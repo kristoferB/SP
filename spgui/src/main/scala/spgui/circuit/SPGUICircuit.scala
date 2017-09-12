@@ -14,7 +14,9 @@ object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] 
     new DashboardHandler(zoomRW(_.openWidgets)((m,v) => m.copy(openWidgets = v))),
     new GlobalStateHandler(zoomRW(_.globalState)((m, v) => m.copy(globalState = v))),
     new SettingsHandler(zoomRW(_.settings)((m, v) => m.copy(settings = v))),
-    new WidgetDataHandler(zoomRW(_.widgetData)((m,v) => m.copy(widgetData = v)))
+    new WidgetDataHandler(zoomRW(_.widgetData)((m,v) => m.copy(widgetData = v))),
+    new DraggingHandler(zoomRW(_.draggingState)((m,v) => m.copy(draggingState = v)))
+
   )
   // store state upon any model change
   subscribe(zoomRW(myM => myM)((m,v) => v))(m => BrowserStorage.store(m.value))
@@ -132,6 +134,16 @@ class SettingsHandler[M](modelRW: ModelRW[M, Settings]) extends ActionHandler(mo
   }
 }
 
+class DraggingHandler[M](modelRW: ModelRW[M, DraggingState]) extends ActionHandler(modelRW) {
+  override def handle = {
+    case SetDraggableRenderStyle(renderStyle) => updated(value.copy(renderStyle = renderStyle))
+    case SetDraggableData(data) => updated(value.copy(data = data))
+    case SetCurrentlyDragging(dragging) => updated((value.copy(dragging = dragging)))
+    case SetDraggingTarget(id) => updated((value.copy(target = Some(id))))
+    case UnsetDraggingTarget => updated((value.copy(target = None)))
+  }
+}
+
 object BrowserStorage {
   import sp.domain._
   import sp.domain.Logic._
@@ -152,6 +164,7 @@ object JsonifyUIState {
   implicit val fWidgetData: JSFormat[WidgetData] = deriveFormatSimple[WidgetData]
   implicit val fWidgetLayout: JSFormat[WidgetLayout] = deriveFormatSimple[WidgetLayout]
   implicit val fOpenWidget: JSFormat[OpenWidget] = deriveFormatSimple[OpenWidget]
+  implicit val fDraggingState: JSFormat[DraggingState] = deriveFormatSimple[DraggingState]
 
   implicit lazy val openWidgetMapReads: JSReads[Map[ID, OpenWidget]] = new JSReads[Map[ID, OpenWidget]] {
     override def reads(json: JsValue): JsResult[Map[ID, OpenWidget]] = {

@@ -32,3 +32,7 @@ require('bootstrap/fonts/glyphicons-halflings-regular.eot');
 require('bootstrap/fonts/glyphicons-halflings-regular.svg');
 
 require('font-awesome/css/font-awesome.css');
+
+var ReactDraggable = require('react-draggable');
+window.ReactDraggable = ReactDraggable;
+

@@ -3,21 +3,20 @@ package spgui.widgets.sopmaker
 import java.util.UUID
 import japgolly.scalajs.react._
 
-//import japgolly.scalajs.react.vdom.all.{ a, h1, h2, href, div, className, onClick, br, key }
 import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.vdom.all.svg
-//import paths.mid.Bezier
-//import paths.mid.Rectangle
-
-//import spgui.components.DragAndDrop.{ OnDragMod, OnDropMod, DataOnDrag, OnDataDrop }
 
 import spgui.communication._
 import sp.domain._
 import sp.domain.Logic._
 import scalacss.ScalaCssReact._
-import java.util.UUID
+import spgui.components.ReactDraggable
+import scala.scalajs.js
+import spgui.components.SPWidgetElements
+import spgui.dragging._
 
 sealed trait RenderNode {
+  val nodeId: UUID
   val w: Float
   val h: Float
 }
@@ -26,32 +25,40 @@ sealed trait RenderGroup extends RenderNode {
   val children: List[RenderNode]
 }
 
-case class RenderParallel(w: Float, h:Float, children: List[RenderNode])            extends RenderGroup
-case class RenderAlternative(w: Float, h:Float, children: List[RenderNode])         extends RenderGroup
-case class RenderArbitrary(w: Float, h:Float, children: List[RenderNode])           extends RenderGroup
-case class RenderSometimeSequence(w: Float, h:Float, children: List[RenderNode])    extends RenderGroup
-case class RenderOther(w: Float, h:Float, children: List[RenderNode])               extends RenderGroup
-case class RenderSequence(w: Float, h:Float, children: List[RenderSequenceElement]) extends RenderGroup
-case class RenderSequenceElement(w: Float, h:Float, self: RenderNode)               extends RenderNode
-case class RenderHierarchy(w:Float, h:Float, sop: OperationNode)                        extends RenderNode
-
-
+case class RenderParallel(
+  nodeId: UUID, w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
+case class RenderAlternative(
+  nodeId: UUID, w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
+case class RenderArbitrary(
+  nodeId: UUID, w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
+case class RenderSometimeSequencenode(
+  nodeId: UUID, w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
+case class RenderOther(
+  nodeId: UUID, w: Float, h:Float, children: List[RenderNode]) extends RenderGroup
+case class RenderSequence(
+  nodeId: UUID, w: Float, h:Float, children: List[RenderSequenceElement]) extends RenderGroup
+case class RenderSequenceElement(
+  nodeId: UUID, w: Float, h:Float, self: RenderNode) extends RenderNode
+case class RenderOperationNode(
+  nodeId: UUID, w:Float, h:Float, sop: OperationNode) extends RenderNode
 
 object SopMakerWidget {
-
   val parallelBarHeight = 12f
   val opHeight = 80f
   val opWidth = 80f
   val opSpacingX = 10f
   val opSpacingY = 10f
 
-  case class Hover (
-    fromId: UUID = null,
-    toId: UUID = null,
-    currentlyDragging: Boolean = false
+  var xOrigin = 0f
+  var yOrigin = 0f
+
+  case class HoverData(
+    position: UUID = null,
+    dragging: Boolean = false,
+    dragPosition: (Float, Float) = (0,0)
   )
 
-  case class State(sop: SOP, hover: Hover)
+  case class State(sop: SOP, hoverData: HoverData)
 
   val idm = ExampleSops.ops.map(o=>o.id -> o).toMap
 
@@ -66,208 +73,123 @@ object SopMakerWidget {
      "events"
      )
      */
-
     def render(state: State) = {
-      //println(state.sop)
       <.div(
-        SopMakerCSS.noSelect,
-
-        // hover logic debug divs
-        <.div(
-          if(state.hover.fromId != null) state.hover.fromId.toString else "nop"),
-        <.div(if(state.hover.toId != null)state.hover.toId.toString else "nop"),
-        <.div(state.hover.currentlyDragging.toString),
-        //<.div(state.sop.toString),
-
-        svg.svg(
-          ^.onMouseDownCapture --> handleMouseDown(state.hover),
-          ^.onMouseUp --> handleMouseUp(state.hover),
-          ^.onMouseLeave --> handleMouseLeftWidget(state.hover),
-          svg.width := (getTreeWidth(state.sop) + paddingLeft* 2).toInt,
-          svg.height := ( getTreeHeight(state.sop) + paddingTop * 2).toInt,
-          getRenderTree(
-            traverseTree( state.sop ),
-            getTreeWidth( state.sop ) * 0.5f + paddingLeft,
-            paddingTop
-          )
-        )
-      )
+        SPWidgetElements.DragoverContext(),
+        <.span(
+        ^.onMouseOver ==> handleMouseOver("sop_style"),
+        ^.onMouseOut ==> handleMouseOver("not_sop_style"),
+        SopMakerCSS.sopContainer,
+        getRenderTree(
+          traverseTree( state.sop ),
+          getTreeWidth( state.sop ) * 0.5f + paddingLeft,
+          paddingTop
+        ).toTagMod
+      ))
     }
 
-    // def handleDrag(drag: String)(e: ReactDragEventFromInput): Callback = {
-    //   Callback({
-    //     e.dataTransfer.setData("json", drag)
-    //   })
-    // }
-
-    // def handleDrop(drop: String)(e: ReactDragEvent): Callback = {
-    //   val drag = e.dataTransfer.getData("json")
-    //   Callback.log("Dropping " + drag + " onto " + drop)
-    // }
+    def handleMouseOver(style:String)(e: ReactMouseEvent) = Callback {
+      Dragging.setDraggingStyle(style)
+    }
 
     val paddingTop = 40f
     val paddingLeft = 40f
+    val handlePrefix = "drag-handle-"
+    def makeHandle(id: UUID) = handlePrefix + id.toString
+    def readHandle(handle: String) = UUID.fromString(handle.split(handlePrefix+"| ")(1))
 
-    def op(opId: UUID, opname: String, x: Float, y: Float) =
-      svg.svg(
-        ^.onMouseOver --> handleMouseOver( opId ),
-        ^.onMouseLeave --> handleMouseLeave( opId ),
-        SopMakerCSS.sopComponent,
+    def op(opId: UUID, opname: String, x: Float, y: Float): TagMod = {
+      <.span(
         ^.draggable := false,
-        svg.svg(
-          ^.draggable := false,
-          svg.width := opWidth.toInt,
-          svg.height:= opHeight.toInt,
-          svg.x := x.toInt,
-          svg.y := y.toInt,
-          svg.rect(
-            ^.draggable := false,
-            svg.x := 0,
-            svg.y := 0,
-            svg.width := opWidth.toInt,
-            svg.height:= opHeight.toInt,
-            svg.rx := 6, svg.ry := 6,
-            svg.fill := "white",
-            svg.stroke := "black",
-            svg.strokeWidth := 1
-          ),
-          svg.svg(
-            ^.draggable := false,
-            SopMakerCSS.opText,
-            svg.text(
-              svg.x := "50%",
-              svg.y := "50%",
-              svg.textAnchor := "middle",
-              svg.dy := ".3em", opname
-            )
-          )
-        )
+        SPWidgetElements.draggable(opname, opId, "sop"),
+        SopMakerGraphics.sop(opname, x.toInt, y.toInt)
       )
+  }
 
-    def parallelBars(x: Float, y: Float, w:Float) =
-      svg.svg(
-        SopMakerCSS.sopComponent,
-        svg.width := "100%",
-        svg.height := "100%",
-        svg.svg(
-          SopMakerCSS.sopComponent,
-          svg.width := w.toInt,
-          svg.height := 12,
-          svg.rect(
-            svg.x := (x + opWidth/2).toInt,
-            svg.y := y.toInt,
-            svg.width:=w.toInt,
-            svg.height:=4,
-            svg.fill := "black",
-            svg.strokeWidth:=1
-          ),
-          svg.rect(
-            svg.x := (x + opWidth/2).toInt,
-            svg.y := y.toInt + 8,
-            svg.width:=w.toInt,
-            svg.height:=4,
-            svg.fill := "black",
-            svg.strokeWidth:=1
-          )
-        )
-      )
+    def dropZone(  id: UUID, x: Float, y: Float, w: Float, h: Float) =
+      spgui.components.SPWidgetElements.DragoverZone(id, x, y, w, h)
 
     def handleMouseOver(zoneId: UUID): Callback = {
       $.modState(s =>
-        s.copy(hover  = s.hover.copy(toId = zoneId))
+        s.copy(hoverData = HoverData(zoneId, s.hoverData.dragging))
       )
     }
 
     def handleMouseLeave(zoneId: UUID): Callback = {
-      $.modState(s =>
-        if(!s.hover.currentlyDragging) s.copy(hover = s.hover.copy(toId = null))
-        else s
-      )
-    }
-
-    def handleMouseDown(h: Hover): Callback = {
-      $.modState(s =>
-        s.copy(
-          hover = s.hover.copy(
-            currentlyDragging = (s.hover.toId != null),
-            fromId = h.toId
-          )
-        )
-      )
-    }
-
-    def handleMouseUp(h: Hover): Callback = {
-      Callback({
-        $.modState(s => {
-          s.copy(
-            sop = insertSop(
-              root = s.sop,
-              targetId = s.hover.toId,
-              sopId = s.hover.fromId
-            ),
-            hover = s.hover.copy(
-              toId = null,
-              currentlyDragging = false
-            ))
-        }).runNow()
-        println("dragged " + h.fromId + " onto " + h.toId)
+      $.modState(s => {
+        if(s.hoverData.position == zoneId) s.copy()
+         else s.copy(hoverData = HoverData(zoneId))
       })
     }
 
-    def handleMouseLeftWidget(h: Hover): Callback = {
-      Callback({
-        $.modState(s => s.copy(hover = Hover())).runNow()
-        println("resetting hover state")
-      })
-    }
-
-    def getRenderTree(node: RenderNode, xOffset: Float, yOffset: Float): TagMod = {
+    def getRenderTree(node: RenderNode, xOffset: Float, yOffset: Float): List[TagMod] = {
       node match {
         case n: RenderParallel => {
           var w = 0f
-          svg.svg(
-            parallelBars(xOffset - n.w/2 + opSpacingX/2, yOffset,n.w - opSpacingX),
-            n.children.collect{case e: RenderNode => {
-              val child = getRenderTree(
-                e,
-                xOffset + w + e.w/2 - n.w/2 + opSpacingX,
-                yOffset  + parallelBarHeight + opSpacingY
-              )
-              w += e.w
-              child
-            }}.toTagMod,
-            parallelBars(
-              xOffset - n.w/2 + opSpacingX/2,
-              yOffset + n.h - parallelBarHeight - opSpacingY,
-              n.w - opSpacingX)
-          )
+
+          var children = List[TagMod]()
+          for(e <- n.children) {
+            val child = getRenderTree(
+              e,
+              xOffset + w + e.w/2 - n.w/2 + opSpacingX,
+              yOffset  + parallelBarHeight + opSpacingY
+            )
+            w += e.w
+            children = children ++ child
+          }
+
+          List(dropZone(   // dropzone for the whole parallel
+            id = n.nodeId,
+            x = xOffset - n.w/2 + opSpacingX/2 + opWidth/2,
+            y = yOffset,
+            w = n.w,
+            h = n.h
+          )) ++
+          List(
+            SopMakerGraphics.parallelBars(xOffset - n.w/2 + opSpacingX/2, yOffset,n.w - opSpacingX)) ++
+          children ++
+          List(SopMakerGraphics.parallelBars(
+            xOffset - n.w/2 + opSpacingX/2,
+            yOffset + n.h - parallelBarHeight - opSpacingY,
+            n.w - opSpacingX
+          ))
         }
         case n: RenderSequence =>  getRenderSequence(n, xOffset, yOffset)
-
-        case n: RenderHierarchy => {
+        case n: RenderOperationNode => {
           val opname = idm.get(n.sop.operation).map(_.name).getOrElse("[unknown op]")
-          op(n.sop.nodeID, opname, xOffset, yOffset)
+          List(op(n.sop.nodeID, opname, xOffset, yOffset)) ++
+          List(dropZone(
+            id = n.nodeId,
+            x = xOffset,
+            y = yOffset,
+            w = opWidth,
+            h = opHeight
+          ))
         }
       }
     }
 
-    def getRenderSequence(seq: RenderSequence, xOffset: Float, yOffset: Float): TagMod = {
+    def getRenderSequence(seq: RenderSequence, xOffset: Float, yOffset: Float): List[TagMod] = {
       var h = yOffset
-      seq.children.collect{case q: RenderSequenceElement => {
+      var children = List[TagMod]()
+      for(q <- seq.children){
         h += q.h
-        getRenderTree( q.self, xOffset, h - q.h )
-      }}.toTagMod
+        children = children ++ getRenderTree( q.self, xOffset, h - q.h )
+      }
+      children
     }
 
     def traverseTree(sop: SOP): RenderNode = {
       sop match {
         case s: Parallel => RenderParallel(
+          nodeId = s.nodeID,
           w = getTreeWidth(s),
           h = getTreeHeight(s),
           children = sop.sop.collect{case e => traverseTree(e)}
         )
         case s: Sequence => traverseSequence(s)
-        case s: OperationNode => RenderHierarchy(
+        case s: OperationNode => RenderOperationNode(
+          nodeId = s.nodeID,
           w = getTreeWidth(s),
           h = getTreeHeight(s),
           sop = s
@@ -277,10 +199,12 @@ object SopMakerWidget {
 
     def traverseSequence(s: Sequence): RenderSequence = {
       if(s.sop.isEmpty) null else RenderSequence(
+        nodeId = s.nodeID,
         h = getTreeHeight(s),
         w = getTreeWidth(s),
         children = s.sop.collect{case e: SOP => {
           RenderSequenceElement(
+            nodeId = e.nodeID,
             getTreeWidth(e),
             getTreeHeight(e),
             traverseTree(e)
@@ -340,7 +264,7 @@ object SopMakerWidget {
           case r: Sequence =>
             Sequence(sop = findSop($.state.runNow().sop, sopId) :: r.sop)
           case r: OperationNode => Parallel(
-            sop = List(r, findSop($.state.runNow().sop, sopId))) // $.state abuse
+            sop = List(r, findSop($.state.runNow().sop, sopId)))
         }
       } else {
         root match {
@@ -354,9 +278,8 @@ object SopMakerWidget {
     }
   }
 
-
   private val component = ScalaComponent.builder[Unit]("SopMakerWidget")
-    .initialState(State(sop = ExampleSops.giantSop, hover = Hover()))
+    .initialState(State(sop = ExampleSops.giantSop, hoverData = HoverData()))
     .renderBackend[Backend]
     .componentWillUnmount(_.backend.onUnmount())
     .build

@@ -46,7 +46,7 @@ object SPWidgetElementsCSS extends SPStyleSheet {
     userSelect := "none",
     //backgroundColor.transparent,
     listStyle := "none",
-    
+
     &.hover (
       borderColor(_rgb(theme.value.spOrange)),
       backgroundColor(_rgb(theme.value.widgetButtonBackgroundHoverColor))
@@ -71,6 +71,29 @@ object SPWidgetElementsCSS extends SPStyleSheet {
   val hidden = style(
     visibility.hidden
   )
+
+  val dropZoneContext = style(
+    position.absolute,
+    zIndex(100),
+    height(100.%%),
+    width(100.%%)
+  )
+
+  val dropZone = style(
+    position.absolute,
+    zIndex(101),
+    opacity:= "0.5"
+  )
+
+  val disableDropZone = style(
+    pointerEvents := "none",
+    visibility.hidden
+  )
+
+  val blue = style(
+    backgroundColor:= "blue"
+  )
+
 
   this.addToDocument()
 }
