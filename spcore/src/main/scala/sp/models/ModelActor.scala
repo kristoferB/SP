@@ -14,10 +14,10 @@ import sp.models.{APIModel => api}
 
 
 object ModelActor {
-  def props(cm: api.CreateModel) = Props(classOf[ModelActor], cm)
+  def props(cm: APIModelMaker.CreateModel) = Props(classOf[ModelActor], cm)
 }
 
-class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with ModelLogic with ActorLogging  {
+class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentActor with ModelLogic with ActorLogging  {
   val id: ID = modelSetup.id
   override def persistenceId = id.toString
 
@@ -33,9 +33,19 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
     case x: String if sender() != self =>
       val mess = SPMessage.fromJson(x)
 
-      ModelsComm.extractRequest(mess, "modelActor",id).foreach{case (h, b) =>
+
+
+      for {
+        m <- mess.toOption
+        h <- m.getHeaderAs[SPHeader].toOption if h.to == modelSetup.id.toString || h.to == api.service
+        b <-   m.getBodyAs[api.Request].toOption
+      } yield {
         val updH = h.copy(from = api.service, to = h.from)
         sendAnswer(updH, APISP.SPACK())
+
+        println("****")
+        println("ModelActor: " + mess)
+        println("****")
 
         b match {
           case k: api.PutItems =>
@@ -68,8 +78,6 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
           case api.GetStructures   =>
             val res = state.items.filter(_.isInstanceOf[Struct])
             sendAnswer(updH, api.SPItems(res))
-          case k: api.DeleteModel =>
-            if (k.id == id) context.parent ! k
           case k =>
         }
 
@@ -87,7 +95,7 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
             attributes = SPAttributes("modelInfo" -> getModelInfo)
           )
 
-          mediator ! Publish(APISP.spevents, ModelsComm.makeMess(updH, resp))
+          mediator ! Publish(APISP.spevents, SPMessage.makeJson(updH, resp))
 
       }
 
@@ -101,16 +109,18 @@ class ModelActor(val modelSetup: api.CreateModel) extends PersistentActor with M
 
   def handleModelDiff(d: Option[ModelDiff], h: SPHeader) = {
     d.foreach{diff =>
-      persistAll(SPValue(diff).toJson){json =>
+      println("handleModelDiffBeforePersist")
+      persist(SPValue(diff).toJson){json =>
+      println("handleModelDiffAfterPersist")
         val res = makeModelUpdate(diff)
         sendEvent(h, res)
       }
     }
   }
 
-  def sendAnswer(h: SPHeader, b: APISP) = mediator ! Publish(APISP.answers, ModelsComm.makeMess(h, b))
-  def sendAnswer(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.answers, ModelsComm.makeMess(h, b))
-  def sendEvent(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.spevents, ModelsComm.makeMess(h.copy(to = ""), b))
+  def sendAnswer(h: SPHeader, b: APISP) = mediator ! Publish(APISP.answers, SPMessage.makeJson(h, b))
+  def sendAnswer(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.answers, SPMessage.makeJson(h, b))
+  def sendEvent(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.spevents, SPMessage.makeJson(h.copy(to = ""), b))
 }
 
 
@@ -171,11 +181,13 @@ trait ModelLogic {
 
 
     def createDiffUpd(ids: List[IDAble], info: SPAttributes): Option[ModelDiff] = {
+      println("createDiffUpdFirst")
       val upd = ids.flatMap{i =>
         val xs = state.idMap.get(i.id)
         if (!xs.contains(i)) Some(i)
         else None
       }
+      println("an update in diffUpd "+ upd.isEmpty)
       if (upd.isEmpty ) None
       else {
         val updInfo = if (info.values.isEmpty) SPAttributes("info"->s"updated: ${upd.map(_.name).mkString(",")}") else info

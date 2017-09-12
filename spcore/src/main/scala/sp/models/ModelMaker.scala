@@ -9,7 +9,7 @@ import sp.domain._
 import sp.domain.Logic._
 
 import scala.util.{Failure, Success, Try}
-import sp.models.{APIModel => api}
+import sp.models.{APIModelMaker => api}
 
 
 class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentActor with ActorLogging  {
@@ -24,54 +24,64 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
   private var modelMap: Map[ID, ActorRef] = Map()
 
   val instanceID = ID.newID
+  val serviceInfo = ModelMakerInfo.attributes.copy(instanceID = Some(instanceID))
 
 
   def receiveCommand = {
     case x: String if sender() != self =>
       val mess = SPMessage.fromJson(x)
 
-      ModelsComm.extractRequest(mess, api.service, instanceID).collect{
-        case (h, b: api.CreateModel) =>
-          val updH = h.copy(from = api.service, to = h.from)
-          if (modelMap.contains(b.id)){
-            sendAnswer(updH, APISP.SPError(s"Model ${b.id} already exist. Can not be created"))
-          } else {
-            sendAnswer(updH, APISP.SPACK())
-            persist(x){mess =>
-              createModel(b)
-              sendAnswer(updH, APISP.SPDone())
-            }
 
-          }
-        case (h, b: api.DeleteModel) =>
-          val updH = h.copy(from = api.service, to = h.from)
-          if (!modelMap.contains(b.id)){
-            sendAnswer(updH, APISP.SPError(s"Model ${b.id} does not exists. Can not be deleted"))
-          } else {
-            sendAnswer(updH, APISP.SPACK())
-            persist(x){mess =>
-              deleteModel(b)
-              sendEvent(updH, api.ModelDeleted(b.id))
-              sendAnswer(updH, APISP.SPDone())
-            }
+      for {
+        m <- mess
+        h <- m.getHeaderAs[SPHeader] if h.to == instanceID.toString || h.to == api.service
+        b <-   m.getBodyAs[api.Request]
+      } yield {
 
-          }
-        case (h, api.GetModels) =>
-          val updH = h.copy(from = api.service, to = h.from)
-          sendAnswer(updH, api.ModelList(modelMap.keys.toList))
-          sendAnswer(updH, APISP.SPDone())
+        println("****")
+        println("ModelMaker: " + mess)
+        println("****")
+
+        b match {
+          case b: api.CreateModel =>
+            val updH = h.copy(from = api.service, to = h.from)
+            if (modelMap.contains(b.id)){
+              sendAnswer(updH, APISP.SPError(s"Model ${b.id} already exist. Can not be created"))
+            } else {
+              sendAnswer(updH, APISP.SPACK())
+              persist(x){mess =>
+                createModel(b)
+                sendAnswer(updH, api.ModelCreated(b.name, b.attributes, b.id))
+                sendAnswer(updH, APISP.SPDone())
+              }
+
+            }
+          case b: api.DeleteModel =>
+            val updH = h.copy(from = api.service, to = h.from)
+            if (!modelMap.contains(b.id)){
+              sendAnswer(updH, APISP.SPError(s"Model ${b.id} does not exists. Can not be deleted"))
+            } else {
+              sendAnswer(updH, APISP.SPACK())
+              persist(x){mess =>
+                deleteModel(b)
+                sendEvent(updH, api.ModelDeleted(b.id))
+                sendAnswer(updH, APISP.SPDone())
+              }
+
+            }
+          case api.GetModels =>
+            val updH = h.copy(from = api.service, to = h.from)
+            sendAnswer(updH, api.ModelList(modelMap.keys.toList))
+            sendAnswer(updH, APISP.SPDone())
+        }
+
       }
 
 
       ModelsComm.extractAPISP(mess).collect{
         case (h, APISP.StatusRequest) =>
           val updH = h.copy(from = api.service, to = h.from)
-          val resp = APISP.StatusResponse(
-            service = api.service,
-            instanceID = Some(instanceID),
-            tags = List("models", "modelhandler"),
-            attributes = SPAttributes("models" -> modelMap.keys.toList)
-          )
+          val resp = serviceInfo
 
           sendEvent(updH, resp)
 
@@ -94,20 +104,20 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
       }
     }
 
-
-
   var models = Map[ID, api.CreateModel]()
  def receiveRecover = {
    case x: String =>
-
      val mess = SPMessage.fromJson(x)
-
-     ModelsComm.extractRequest(mess, api.service, instanceID).map{
-      case (h, b: api.CreateModel) => models += (b.id -> b)
-      case (h, b: api.DeleteModel) => models = models - b.id
-      case _ => Unit
+     for {
+       m <- mess
+       b <-   m.getBodyAs[api.Request]
+     } yield {
+       b match {
+         case b: api.CreateModel => models += (b.id -> b)
+         case b: api.DeleteModel => models = models - b.id
+         case _ => Unit
+       }
      }
-
 
     case RecoveryCompleted =>
       models.values.foreach(createModel)
@@ -115,10 +125,10 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
   }
 
 
-  def sendAnswer(h: SPHeader, b: APISP) = mediator ! Publish(APISP.answers, ModelsComm.makeMess(h, b))
-  def sendAnswer(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.answers, ModelsComm.makeMess(h, b))
-  def sendEvent(h: SPHeader, b: APISP) = mediator ! Publish(APISP.spevents, ModelsComm.makeMess(h.copy(to = ""), b))
-  def sendEvent(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.spevents, ModelsComm.makeMess(h.copy(to = ""), b))
+  def sendAnswer(h: SPHeader, b: APISP) = mediator ! Publish(APISP.answers, SPMessage.makeJson(h, b))
+  def sendAnswer(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.answers, SPMessage.makeJson(h, b))
+  def sendEvent(h: SPHeader, b: APISP) = mediator ! Publish(APISP.spevents, SPMessage.makeJson(h.copy(to = ""), b))
+  def sendEvent(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.spevents, SPMessage.makeJson(h.copy(to = ""), b))
 
 }
 

@@ -40,7 +40,7 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
   import DistributedPubSubMediator.{ Put, Subscribe }
   val mediator = DistributedPubSub(system).mediator
 
-  val mh = system.actorOf(ModelMaker.props(MockMaker.props), "modelHandler")
+  val mh = system.actorOf(ModelMaker.props(ModelActor.props), "modelHandler")
   val p = TestProbe()
   mediator ! Subscribe(APISP.answers, p.ref)
   mediator ! Subscribe(APISP.spevents, p.ref)
@@ -56,51 +56,71 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
 
 
 
-//  "create Model and SPOK" in {
-//    val x = api.CreateModel("hej")
-//    val h = SPHeader(from = "test", to = api.attributes.service, reply = SPValue("test"))
-//    mediator ! Publish(APISP.services, SPMessage.makeJson(h, x))
-//
-//      p.fishForMessage(1 seconds) {
-//        case m: String =>
-//          println("create got reply: "+m)
-//          false
-//      }
-//    }
+  "create Model and SPOK" in {
+    val x = APIModelMaker.CreateModel("hej")
+    val h = SPHeader(from = "test", to = APIModelMaker.service, reply = SPValue("test"))
+    mediator ! Publish(APISP.services, SPMessage.makeJson(h, x))
+
+    mediator ! Publish(APISP.services, SPMessage.makeJson(h, APIModelMaker.GetModels))
 
 
-  val cm = api.CreateModel("hej")
-  "Model actor" - {
-    val ma = system.actorOf(ModelActor.props(cm))
 
-    "create and initial model" in {
-      val h = SPHeader(from = "test", to = api.service, reply = SPValue("test"))
-      send(api.GetModel)
-      val o = Operation("o1")
-      send(api.PutItems(List(o, Thing("t1"))))
-      send(api.DeleteItems(List(o.id)))
-      p.fishForMessage(3 seconds) {
+
+
+
+  var go = true
+      p.fishForMessage(1 seconds) {
         case m: String =>
-          println("fishing got reply: "+m)
-          m.contains("APISP.SPDone")
+          for {
+            mess <- SPMessage.fromJson(m).toOption
+            h <- mess.getHeaderAs[SPHeader].toOption if h.from == x.id.toString && go
+          } yield {
+            go = false
+            val h2 = SPHeader(from = "test", to = x.id.toString, reply = SPValue("test"))
+            val o = Operation("Kalle")
+            mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.PutItems(List(o))))
+            mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.PutItems(List(Operation("Kalle2")))))
+          }
+          println("create got reply: "+m)
           false
       }
-
-
     }
-  }
+
+
+//  val cm = APIModelMaker.CreateModel("hej")
+//  "Model actor" - {
+//    val ma = system.actorOf(ModelActor.props(cm))
+//
+//    "create and initial model" in {
+//      println("STARTING")
+//      send(api.GetModel)
+//      println("Sent GetModel from TEST")
+//      val o = Operation("o1")
+//      send(api.PutItems(List(o, Thing("t1"))))
+//      send(api.DeleteItems(List(o.id)))
+//      println("Sending some more")
+//      p.fishForMessage(3 seconds) {
+//        case m: String =>
+//          println("fishing got reply: "+m)
+//          m.contains("APISP.SPDone")
+//          false
+//      }
+//
+//
+//    }
+//  }
 
 
 
-def send(mess: api.Request) = {
-  val h = SPHeader(from = "test", to = cm.id.toString, reply = SPValue("test"))
-  mediator ! Publish(APISP.services, SPMessage.makeJson(h, mess))
+//def send(mess: api.Request) = {
+//  val h = SPHeader(from = "test", to = cm.id.toString, reply = SPValue("test"))
+//  mediator ! Publish(APISP.services, SPMessage.makeJson(h, mess))
+//}
+
+
 }
 
-
-}
-
-class MockMaker(cm: api.CreateModel) extends Actor {
+class MockMaker(cm: APIModelMaker.CreateModel) extends Actor {
 
   def receive = {
     case x => println("sp.models.MockMaker got : "+ x)
@@ -108,6 +128,6 @@ class MockMaker(cm: api.CreateModel) extends Actor {
 }
 
 object MockMaker {
-  def props(cm : api.CreateModel) = Props(classOf[MockMaker], cm)
+  def props(cm : APIModelMaker.CreateModel) = Props(classOf[MockMaker], cm)
 }
 

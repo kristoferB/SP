@@ -14,6 +14,7 @@ object APIModelMaker {
 
   case class ModelCreated(name: String, attributes: SPAttributes = SPAttributes(), model: ID) extends Response
   case class ModelDeleted(model: ID) extends Response
+  case class ModelList(models: List[ID]) extends Response
 
   object Formats {
     import play.api.libs.json._
@@ -21,7 +22,10 @@ object APIModelMaker {
     implicit val fCreateModel: JSFormat[CreateModel] = Json.format[CreateModel]
     implicit val fDeleteModel: JSFormat[DeleteModel] = Json.format[DeleteModel]
     implicit val fGetModels : JSFormat[GetModels.type] = deriveCaseObject[GetModels.type]
+    implicit val fModelCreated: JSFormat[ModelCreated] = Json.format[ModelCreated]
     implicit val fModelDeleted: JSFormat[ModelDeleted] = Json.format[ModelDeleted]
+    implicit val fModelList: JSFormat[ModelList] = Json.format[ModelList]
+
     def defModelMakerRequest: JSFormat[Request] = Json.format[Request]
     def defModelMakerResponse: JSFormat[Response] = Json.format[Response]
   }
@@ -63,7 +67,7 @@ object APIModel {
   case class ModelDeleted(model: ID) extends Response
   case class ModelUpdate(model: ID, version: Int, updatedItems: List[IDAble] = List(), deletedItems: List[ID] = List(), info: SPAttributes = SPAttributes()) extends Response
   case class ModelHistory(model: ID, history: List[(Int, SPAttributes)]) extends Response
-  case class ModelList(models: List[ID]) extends Response
+
   case class SPItem(item: IDAble) extends Response
   case class SPItems(items: List[IDAble]) extends Response
 
@@ -87,7 +91,6 @@ object APIModel {
     implicit val fModelDeleted: JSFormat[ModelDeleted] = Json.format[ModelDeleted]
     implicit val fModelUpdate: JSFormat[ModelUpdate] = Json.format[ModelUpdate]
     implicit val fModelHistory: JSFormat[ModelHistory] = Json.format[ModelHistory]
-    implicit val fModelList: JSFormat[ModelList] = Json.format[ModelList]
     implicit val fSPItem: JSFormat[SPItem] = Json.format[SPItem]
     implicit val fSPItems: JSFormat[SPItems] = Json.format[SPItems]
     def defModelRequest: JSFormat[Request] = Json.format[Request]

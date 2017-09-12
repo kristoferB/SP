@@ -8,6 +8,27 @@ import scala.util.Try
 
 
 
+object ModelMakerInfo {
+  case class ModelMakerRequest(request: APIModelMaker.Request)
+  case class ModelMakerResponse(response: APIModelMaker.Response)
+
+  val req: com.sksamuel.avro4s.SchemaFor[ModelMakerRequest] = com.sksamuel.avro4s.SchemaFor[ModelMakerRequest]
+  val resp: com.sksamuel.avro4s.SchemaFor[ModelMakerResponse] = com.sksamuel.avro4s.SchemaFor[ModelMakerResponse]
+
+  val apischema = makeMeASchema(
+    req(),
+    resp()
+  )
+
+  val attributes: APISP.StatusResponse = APISP.StatusResponse(
+    service = APIModelMaker.service,
+    tags = List("model", "modelmaker"),
+    api = apischema,
+    version = 1,
+    attributes = SPAttributes.empty
+  )
+}
+
 object ModelInfo {
   case class ModelRequest(request: APIModel.Request)
   case class ModelResponse(response: APIModel.Response)
@@ -33,11 +54,11 @@ import sp.models.{APIModel => api}
 
 
 object ModelsComm {
-  def extractRequest(mess: Try[SPMessage], name: String,  id: ID): Option[(SPHeader, api.Request)] = for {
-    m <- mess.toOption
-    h <- m.getHeaderAs[SPHeader].toOption if h.to == id.toString || h.to == name
-    b <- m.getBodyAs[api.Request].toOption
-  } yield (h, b)
+//  def extractRequest(mess: Try[SPMessage], name: String,  id: ID): Option[(SPHeader, api.Request)] = for {
+//    m <- mess.toOption
+//    h <- m.getHeaderAs[SPHeader].toOption if h.to == id.toString || h.to == name
+//    b <- m.getBodyAs[api.Request].toOption
+//  } yield (h, b)
 
   def extractAPISP(mess: Try[SPMessage]): Option[(SPHeader, APISP)] = for {
     m <- mess.toOption
@@ -45,7 +66,4 @@ object ModelsComm {
     b <- m.getBodyAs[APISP].toOption if b == APISP.StatusRequest
   } yield (h, b)
 
-
-  def makeMess(h: SPHeader, b: api.Response) = SPMessage.makeJson[SPHeader, api.Response](h, b)
-  def makeMess(h: SPHeader, b: APISP) = SPMessage.makeJson[SPHeader, APISP](h, b)
 }
