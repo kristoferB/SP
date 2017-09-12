@@ -11,12 +11,12 @@ import Logic._
 
 
 
-class SpAttributesTest extends FreeSpec with TestClasses{
+class SpAttributesTest extends FreeSpec {
 
   "ServiceHandlerComm " - {
 
     "correct request" in {
-      val x = SPValue(GetServices)
+      val x = SPValue(APIServiceHandler.GetServices)
       println(x)
       println(x.as[APIServiceHandler.Request])
     }

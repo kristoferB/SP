@@ -25,28 +25,35 @@ lazy val spdomain = (crossProject.crossType(CrossType.Pure) in file("spdomain"))
 lazy val spdomain_jvm = spdomain.jvm
 lazy val spdomain_js = spdomain.js
 
-lazy val spcomm = project
-  .dependsOn(spdomain_jvm)
+lazy val spcomm = crossProject.in(file("spcomm"))
+  .jvmSettings(
+   libraryDependencies ++= commDependencies.value
+  )
+  .jsSettings()
+  .dependsOn(spdomain)
   .settings(commonSettings)
-  .settings(libraryDependencies ++= commDependencies.value)
+
+lazy val spcomm_jvm = spcomm.jvm
+lazy val spcomm_js = spcomm.js
+
 
 lazy val spcore = project
-  .dependsOn(spdomain_jvm, spcomm)
+  .dependsOn(spdomain_jvm, spcomm_jvm)
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= domainDependencies.value)
   .settings(libraryDependencies ++= commDependencies.value)
 
 
 lazy val spgui = project
-  .dependsOn(spdomain_js)
+  .dependsOn(spdomain_js, spcomm_js)
   .settings(commonSettings: _*)
   .settings(jsSettings: _*)
   .enablePlugins(ScalaJSPlugin)
 
 lazy val sp1 = project
 
-val backendDeps: Seq[ClasspathDep[ProjectReference]] = Seq(spdomain_jvm, spcomm, spcore)
-val frontendDeps: Seq[ClasspathDep[ProjectReference]] = Seq(spdomain_js, spgui)
+val backendDeps: Seq[ClasspathDep[ProjectReference]] = Seq(spdomain_jvm, spcomm_jvm, spcore)
+val frontendDeps: Seq[ClasspathDep[ProjectReference]] = Seq(spdomain_js, spcomm_js, spgui)
 
 
 lazy val control_api = crossProject.crossType(CrossType.Pure).in(file("spcontrol/api"))

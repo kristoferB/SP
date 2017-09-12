@@ -1,7 +1,6 @@
-package sp.domain.logic
+package sp.domain
 
 import org.scalatest._
-import sp.domain._
 import sp.domain.Logic._
 
 
