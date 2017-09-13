@@ -175,7 +175,7 @@ trait ModelLogic {
       modelAttr = uA))
   }
 
-  def getTheModel = api.TheModel(state.name, id, state.version, state.attributes, state.items)
+  def getTheModel = api.TheModel(state.name, id, state.version, state.attributes, state.items.map(_.id))
   def getModelInfo = api.ModelInformation(state.name, id, state.version, state.attributes)
   def getModelHistory = api.ModelHistory(id, state.history.toList.sortWith(_._1 > _._1))
 
@@ -236,7 +236,3 @@ trait ModelLogic {
 
 
 }
-
-
-
-

@@ -63,7 +63,7 @@ object APIModel {
   case class Import(name: String, id: ID, version: Int, attributes: SPAttributes = SPAttributes(), items: List[IDAble]) extends Request
 
 
-  case class TheModel(name: String, id: ID, version: Int, attributes: SPAttributes = SPAttributes(), items: List[IDAble]) extends Response
+  case class TheModel(name: String, id: ID, version: Int, attributes: SPAttributes = SPAttributes(), items: List[ID]) extends Response
   case class ModelInformation(name: String, id: ID, version: Int, attributes: SPAttributes = SPAttributes()) extends Response
   case class ModelDeleted(model: ID) extends Response
   case class ModelUpdate(model: ID, version: Int, updatedItems: List[IDAble] = List(), deletedItems: List[ID] = List(), info: SPAttributes = SPAttributes()) extends Response
@@ -108,6 +108,3 @@ object APIModel {
 }
 
 }
-
-
-
