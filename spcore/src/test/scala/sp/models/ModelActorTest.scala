@@ -1,20 +1,16 @@
 package sp.models
 
 import akka.actor._
+import akka.cluster.pubsub.DistributedPubSubMediator.Publish
+import akka.cluster.pubsub._
 import akka.testkit._
 import com.typesafe.config._
 import org.scalatest._
+import sp.domain.Logic._
 import sp.domain._
-import Logic._
-import scala.util._
-import akka.cluster.pubsub._
-import DistributedPubSubMediator.{Publish, Subscribe}
-
-
-import scala.concurrent.duration._
-
 import sp.models.{APIModel => api}
 
+import scala.concurrent.duration._
 
 
 /**
@@ -37,10 +33,10 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
 
 
   import akka.cluster.pubsub._
-  import DistributedPubSubMediator.{ Put, Subscribe }
+  import DistributedPubSubMediator.Subscribe
   val mediator: ActorRef = DistributedPubSub(system).mediator
 
-  val mh = system.actorOf(ModelMaker.props(MockMaker.props), "modelHandler")
+  val mh = system.actorOf(ModelMaker.props(ModelActor.props), "modelHandler")
   val p = TestProbe()
   mediator ! Subscribe(APISP.answers, p.ref)
   mediator ! Subscribe(APISP.spevents, p.ref)
@@ -56,20 +52,21 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
 
 
 
-  "create Model and SPOK" in {
-    val x = APIModelMaker.CreateModel("hej")
+  "Communicating with the model actors" in {
+    val x1 = APIModelMaker.CreateModel("hej")
+    val x2 = APIModelMaker.CreateModel("då")
     val h = SPHeader(from = "test", to = APIModelMaker.service, reply = SPValue("test"))
 
-    mediator ! Publish(APISP.services, SPMessage.makeJson(h, x))
-    mediator ! Publish(APISP.services, SPMessage.makeJson(h, APIModelMaker.GetModels))
-    mediator ! Publish(APISP.services, SPMessage.makeJson(h, APIModelMaker.DeleteModel(x.id)))
+    mediator ! Publish(APISP.services, SPMessage.makeJson(h, x1))
+    mediator ! Publish(APISP.services, SPMessage.makeJson(h, x2))
 
-    var go = true
-    var modelCreatedMess = false
-    var modelListMess = false
-    var modelInfoFromModelMess = false
-    var modelUpdateMess = false
-    var modelDeleted = false
+    var go1 = true
+    var modelInfoMess = false
+    var modelModelUpd = false
+    var modelMess = false
+    var modelItemsMess = false
+    var modelItemMess = false
+
     p.fishForMessage(3 seconds) {
       case m: String =>
         //println("create got reply: "+m)
@@ -80,37 +77,23 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
           mess <- aMess
           h <- aH
         } yield {
-          println("ModelMakerTesting got")
+          println("ModelActorTesting got")
           println(s"from: ${h.from}")
           val bodyType = mess.body.get("_type").orElse(mess.body.get("isa"))
           println(s"got a $bodyType message")
         }
 
 
-
+        val o = Operation("Kalle")
         for {
-          mess <- aMess
-          h <- aH if h.from == APIModelMaker.service
-          b <- mess.getBodyAs[APIModelMaker.Response].toOption
+          mess <- SPMessage.fromJson(m).toOption
+          h <- mess.getHeaderAs[SPHeader].toOption if h.from == x1.id.toString && go1
         } yield {
-          b match {
-            case x: APIModelMaker.ModelCreated =>
-              modelCreatedMess = true
-            case x: APIModelMaker.ModelDeleted => modelDeleted = true
-            case x: APIModelMaker.ModelList => modelListMess = true
-          }
+          go1 = false
+          val h2 = SPHeader(from = "test", to = x1.id.toString, reply = SPValue("test"))
+          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.PutItems(List(o, Operation("Kalle2")))))
+          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.PutItems(List(Operation("Kalle2")))))
         }
-
-//        for {
-//          mess <- SPMessage.fromJson(m).toOption
-//          h <- mess.getHeaderAs[SPHeader].toOption if h.from == x.id.toString && go
-//        } yield {
-//          go = false
-//          val h2 = SPHeader(from = "test", to = x.id.toString, reply = SPValue("test"))
-//          val o = Operation("Kalle")
-//          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.PutItems(List(o))))
-//          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.PutItems(List(Operation("Kalle2")))))
-//        }
 
 
 
@@ -152,14 +135,5 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
 
 }
 
-class MockMaker(cm: APIModelMaker.CreateModel) extends Actor {
 
-  def receive = {
-    case x => println("sp.models.MockMaker got : "+ x)
-  }
-}
-
-object MockMaker {
-  def props(cm : APIModelMaker.CreateModel) = Props(classOf[MockMaker], cm)
-}
 
