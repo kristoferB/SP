@@ -277,7 +277,7 @@ class WebsocketHandler(mediator: ActorRef, topic: String, clientID: java.util.UU
     //.map{x => println(s"ws got before conv: $x"); x}
     .collect{case str: String => str}
     .map(str => SPMessage.fromJson(str))
-    .collect{case x: Success[SPMessage] => x.value}
+    .collect{case x: Some[SPMessage] => x.value}
     .filter(messFilter)
     .map(mess => mess.toJson)
     //.map{x => println(s"ws will forward: $x"); x}

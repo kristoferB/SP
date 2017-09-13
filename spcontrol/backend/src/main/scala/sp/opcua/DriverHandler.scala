@@ -32,8 +32,7 @@ class DriverHandler extends Actor {
 
     case x: String =>
       println(x)
-      SPMessage.fromJson(x) match {
-        case Success(mess) =>
+      SPMessage.fromJson(x).foreach{mess =>
           for {
             h <- mess.getHeaderAs[SPHeader]
             b <- mess.getBodyAs[vdapi.Request]
@@ -44,7 +43,6 @@ class DriverHandler extends Actor {
               case _ =>
             }
           }
-        case Failure(err) =>
       }
     case _ => sender ! APISP.SPError("Ill formed request")
   }

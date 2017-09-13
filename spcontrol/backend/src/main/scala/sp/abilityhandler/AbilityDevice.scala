@@ -137,7 +137,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   }
 
 
-  def matchRequests(mess: Try[SPMessage]) = {
+  def matchRequests(mess: Option[SPMessage]) = {
     AbilityComm.extractRequest(mess, handlerID, name) map { case (h, b) =>
       val updH = h.copy(from = h.to, to = "")
 
@@ -208,7 +208,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
 
   def filterState(ids: Set[ID], state: Map[ID, SPValue]) = state.filter(kv => ids.contains(kv._1))
 
-  def matchVDMessages(mess: Try[SPMessage]) = {
+  def matchVDMessages(mess: Option[SPMessage]) = {
     AbilityComm.extractVDReply(mess, handlerID, vd.toString) map { case (h, b) =>
       b match {
         case APIVirtualDevice.StateEvent(r, rID, s, d) =>
@@ -229,7 +229,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
     attributes = SPAttributes("vd" -> vd)
   )
 
-  def matchServiceRequests(mess: Try[SPMessage]) = {
+  def matchServiceRequests(mess: Option[SPMessage]) = {
     AbilityComm.extractServiceRequest(mess) map { case (h, b) =>
       println("HOHOHOHOHOHOH")
       val spHeader = h.copy(from = handlerID.toString)

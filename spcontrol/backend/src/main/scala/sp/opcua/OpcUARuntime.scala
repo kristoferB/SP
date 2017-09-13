@@ -49,8 +49,7 @@ class OpcUARuntime(name: String, id: UUID, setup: SPAttributes) extends Actor {
 
     case x: String =>
       // SPMessage uses the APIParser to parse the json string
-      SPMessage.fromJson(x) match {
-        case Success(mess) =>
+      SPMessage.fromJson(x).foreach{mess =>
           for {
             h <- mess.getHeaderAs[SPHeader]
             b <- mess.getBodyAs[vdapi.Request]
@@ -64,7 +63,7 @@ class OpcUARuntime(name: String, id: UUID, setup: SPAttributes) extends Actor {
               case _ =>
             }
           }
-        case Failure(err) => {}
+
       }
     case StateUpdate(activeState) =>
       val header = SPHeader(from = name)

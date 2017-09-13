@@ -73,8 +73,8 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
     p.fishForMessage(3 seconds) {
       case m: String =>
         //println("create got reply: "+m)
-        val aMess = SPMessage.fromJson(m).toOption
-        val aH = aMess.flatMap(_.getHeaderAs[SPHeader].toOption)
+        val aMess = SPMessage.fromJson(m)
+        val aH = aMess.flatMap(_.getHeaderAs[SPHeader])
 
         for {
           mess <- aMess
@@ -91,7 +91,7 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
         for {
           mess <- aMess
           h <- aH if h.from == APIModelMaker.service
-          b <- mess.getBodyAs[APIModelMaker.Response].toOption
+          b <- mess.getBodyAs[APIModelMaker.Response]
         } yield {
           b match {
             case x: APIModelMaker.ModelCreated =>
@@ -102,8 +102,8 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
         }
 
 //        for {
-//          mess <- SPMessage.fromJson(m).toOption
-//          h <- mess.getHeaderAs[SPHeader].toOption if h.from == x.id.toString && go
+//          mess <- SPMessage.fromJson(m)
+//          h <- mess.getHeaderAs[SPHeader] if h.from == x.id.toString && go
 //        } yield {
 //          go = false
 //          val h2 = SPHeader(from = "test", to = x.id.toString, reply = SPValue("test"))

@@ -16,7 +16,7 @@ import scala.concurrent.duration._
 /**
  * Testing ModelMakers
  */
-class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
+class ModelActorTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
   with FreeSpecLike with Matchers with BeforeAndAfterAll {
 
   def this() = this(ActorSystem("SP", ConfigFactory.parseString(
@@ -62,7 +62,7 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
 
     var go1 = true
     var modelInfoMess = false
-    var modelModelUpd = false
+    var modelUpd = false
     var modelMess = false
     var modelItemsMess = false
     var modelItemMess = false
@@ -70,8 +70,8 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
     p.fishForMessage(3 seconds) {
       case m: String =>
         //println("create got reply: "+m)
-        val aMess = SPMessage.fromJson(m).toOption
-        val aH = aMess.flatMap(_.getHeaderAs[SPHeader].toOption)
+        val aMess = SPMessage.fromJson(m)
+        val aH = aMess.flatMap(_.getHeaderAs[SPHeader])
 
         for {
           mess <- aMess
@@ -86,18 +86,50 @@ class ModelMakerTest(_system: ActorSystem) extends TestKit(_system) with Implici
 
         val o = Operation("Kalle")
         for {
-          mess <- SPMessage.fromJson(m).toOption
-          h <- mess.getHeaderAs[SPHeader].toOption if h.from == x1.id.toString && go1
+          mess <- SPMessage.fromJson(m)
+          h <- mess.getHeaderAs[SPHeader] if h.from == x1.id.toString && go1
         } yield {
           go1 = false
           val h2 = SPHeader(from = "test", to = x1.id.toString, reply = SPValue("test"))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.PutItems(List(o, Operation("Kalle2")))))
-          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.PutItems(List(Operation("Kalle2")))))
+          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetModel))
+          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetItems))
+          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetItem(o.id)))
+          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.DeleteItems(List(o.id))))
+          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetItem(o.id)))
+        }
+
+        for {
+          mess <- SPMessage.fromJson(m)
+          h <- mess.getHeaderAs[SPHeader] if h.from == x1.id.toString && !go1
+          b <- mess.getBodyAs[api.Response]
+        } yield {
+          b match {
+            case x: api.TheModel => modelMess = true
+            case x: api.ModelInformation => modelInfoMess = true
+            case x: api.ModelUpdate => modelUpd = true
+            case x: api.SPItem => modelItemMess = true
+            case x: api.SPItems => modelItemsMess = true
+            case _ =>
+          }
+        }
+
+        for {
+          mess <- SPMessage.fromJson(m)
+          h <- mess.getHeaderAs[SPHeader] if h.from == x1.id.toString && !go1
+          b <- mess.getBodyAs[APISP]
+        } yield {
+          b match {
+            case x: APISP.SPError =>
+              println("go an error response in model actor test, which is good")
+              println(x)
+            case _ =>
+          }
         }
 
 
 
-        modelCreatedMess && modelListMess && modelDeleted
+        modelInfoMess && modelItemMess && modelItemsMess && modelMess && modelUpd
     }
   }
 

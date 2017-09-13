@@ -4,7 +4,6 @@ import akka.actor._
 import akka.testkit._
 import com.typesafe.config._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import sp.APIExampleService
 import sp.domain.Logic._
 import sp.domain._
 
@@ -101,14 +100,14 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
 
     "testing schema" in {
       println("LLLLLLLL")
-      println(ExampleServiceInfo.test)
+      println(sp.example.ExampleServiceInfo.attributes)
     }
 
   }
 
 
 
-  val header = SPHeader(to = ExampleServiceInfo.attributes.service, from = "testing")
+  val header = SPHeader(to = sp.example.APIExampleService.service, from = "testing")
 
   "The example service actor" must {
     val p = TestProbe()
@@ -128,10 +127,10 @@ class OPMakerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSe
       p.fishForMessage(10 seconds){
         case mess @ _ if {println(s"answers probe got: $mess"); false} => false
 
-        case x: String if SPMessage.fromJson(x).isSuccess =>
+        case x: String if SPMessage.fromJson(x).nonEmpty =>
           val mess = SPMessage.fromJson(x).get
           val b = mess.getBodyAs[APIExampleService.Response]
-          b.isSuccess
+          b.nonEmpty
       }
     }
 

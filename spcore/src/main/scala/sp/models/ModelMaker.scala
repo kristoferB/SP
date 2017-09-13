@@ -38,10 +38,6 @@ class ModelMaker(modelActorMaker: api.CreateModel => Props) extends PersistentAc
         b <-   m.getBodyAs[api.Request]
       } yield {
 
-        println("****")
-        println("ModelMaker: " + mess)
-        println("****")
-
         b match {
           case b: api.CreateModel =>
             val updH = h.copy(from = api.service, to = h.from)

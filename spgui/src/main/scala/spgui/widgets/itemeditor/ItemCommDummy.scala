@@ -24,8 +24,8 @@ object API_ItemServiceDummy {
 
   def extract(mess: Try[SPMessage]): Option[(SPHeader, API_ItemServiceDummy)] = for {
     m <- mess.toOption
-    h <- m.getHeaderAs[SPHeader].toOption if h.to == attributes.service
-    b <- m.getBodyAs[API_ItemServiceDummy].toOption
+    h <- m.getHeaderAs[SPHeader] if h.to == attributes.service
+    b <- m.getBodyAs[API_ItemServiceDummy]
   } yield (h, b)
 
   def makeMess(h: SPHeader, b: API_ItemServiceDummy) = SPMessage.makeJson[SPHeader, API_ItemServiceDummy](h, b)

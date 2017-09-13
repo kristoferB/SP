@@ -37,7 +37,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
 
 
 
-  def matchRequests(mess: Try[SPMessage]) = {
+  def matchRequests(mess: Option[SPMessage]) = {
 
     OperationRunnerComm.extractRequest(mess).map{ case (h, b) =>
       val updH = h.copy(from = api.service)
@@ -89,7 +89,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
   }
 
 
-  def matchAbilityAPI(mess: Try[SPMessage]) = {
+  def matchAbilityAPI(mess: Option[SPMessage]) = {
     OperationRunnerComm.extractAbilityReply(mess).map { case (h, b) =>
 
         b match {
@@ -113,7 +113,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
     }
   }
 
-  def matchServiceRequests(mess: Try[SPMessage]) = {
+  def matchServiceRequests(mess: Option[SPMessage]) = {
     OperationRunnerComm.extractServiceRequest(mess) map { case (h, b) =>
       val spHeader = h.copy(from = api.service)
       mediator ! Publish("spevents", OperationRunnerComm.makeMess(spHeader, statusResponse))
@@ -138,7 +138,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
 
 
 
-  val statusResponse = OperationRunner.attributes
+  val statusResponse = OperationRunnerInfo.attributes
 
   // Sends a status response when the actor is started so service handlers finds it
   override def preStart() = {
@@ -151,29 +151,6 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
 
 object OperationRunner {
   def props = Props(classOf[OperationRunner])
-
-  import sp.domain.SchemaLogic._
-
-  case class OperationRunnerRequest(request: APIOperationRunner.Request)
-  case class OperationRunnerResponse(response: APIOperationRunner.Response)
-
-  val req: com.sksamuel.avro4s.SchemaFor[OperationRunnerRequest] = com.sksamuel.avro4s.SchemaFor[OperationRunnerRequest]
-  val resp: com.sksamuel.avro4s.SchemaFor[OperationRunnerResponse] = com.sksamuel.avro4s.SchemaFor[OperationRunnerResponse]
-
-  val apischema = makeMeASchema(
-    req(),
-    resp()
-  )
-
-  val attributes: APISP.StatusResponse = APISP.StatusResponse(
-    service = APIOperationRunner.service,
-    instanceID = Some(ID.newID),
-    instanceName = "",
-    tags = List("runtime", "operations", "runner"),
-    api = apischema, //SPAttributes.fromJson(s().toString).get,
-    version = 1,
-    attributes = SPAttributes.empty
-  )
 }
 
 

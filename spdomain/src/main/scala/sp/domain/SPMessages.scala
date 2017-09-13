@@ -58,8 +58,8 @@ case class SPHeader(from: String = "", // the name of the sender
                    )
 
 case class SPMessage(header: SPAttributes, body: SPAttributes) {
-  def getHeaderAs[T](implicit fjs: JSReads[T]): Try[T] = header.to[T]
-  def getBodyAs[T](implicit fjs: JSReads[T]): Try[T] = body.to[T]
+  def getHeaderAs[T](implicit fjs: JSReads[T]): Option[T] = header.to[T].toOption
+  def getBodyAs[T](implicit fjs: JSReads[T]): Option[T] = body.to[T].toOption
   def toJson: String = Json.stringify(Json.toJson(this)(SPMessage.messageFormat))
 
   /**
@@ -103,7 +103,8 @@ object SPMessage {
   }
   def makeJson[T, S](h: T, b: S)(implicit fjt: JSWrites[T], fjs: JSWrites[S]): String = this.make(h, b).toJson
 
-  def fromJson(json: String) = Try{Json.parse(json).as[SPMessage](SPMessage.messageFormat)}
+  def fromJsonTry(json: String) = Try{Json.parse(json).as[SPMessage](SPMessage.messageFormat)}
+  def fromJson(json: String) = fromJsonTry(json).toOption
 
 }
 

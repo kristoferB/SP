@@ -60,10 +60,10 @@ object ModelsComm {
 //    b <- m.getBodyAs[api.Request].toOption
 //  } yield (h, b)
 
-  def extractAPISP(mess: Try[SPMessage]): Option[(SPHeader, APISP)] = for {
-    m <- mess.toOption
-    h <- m.getHeaderAs[SPHeader].toOption
-    b <- m.getBodyAs[APISP].toOption if b == APISP.StatusRequest
+  def extractAPISP(mess: Option[SPMessage]): Option[(SPHeader, APISP)] = for {
+    m <- mess
+    h <- m.getHeaderAs[SPHeader]
+    b <- m.getBodyAs[APISP] if b == APISP.StatusRequest
   } yield (h, b)
 
 }

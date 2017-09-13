@@ -11,19 +11,19 @@ import sp.devicehandler.{APIVirtualDevice => vdAPI}
 
 
 object AbilityComm {
-  def extractRequest(mess: Try[SPMessage], instanceID: ID, name: String) = for {
+  def extractRequest(mess: Option[SPMessage], instanceID: ID, name: String) = for {
       m <- mess
       h <- m.getHeaderAs[SPHeader] if h.to == instanceID.toString || h.to == name || h.to == AbilityHandler.attributes.service
       b <- m.getBodyAs[api.Request]
     } yield (h, b)
 
-  def extractVDReply(mess: Try[SPMessage], instanceID: ID, vd: String) = for {
+  def extractVDReply(mess: Option[SPMessage], instanceID: ID, vd: String) = for {
     m <- mess
     h <- m.getHeaderAs[SPHeader] if h.from.contains(vd) || h.reply == SPValue(instanceID)
     b <- m.getBodyAs[vdAPI.Response]
     } yield (h, b)
 
-  def extractServiceRequest(mess: Try[SPMessage]) = for {
+  def extractServiceRequest(mess: Option[SPMessage]) = for {
     m <- mess
     h <- m.getHeaderAs[SPHeader]
     b <- m.getBodyAs[APISP] if b == APISP.StatusRequest

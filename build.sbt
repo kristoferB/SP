@@ -8,7 +8,18 @@ lazy val serviceSettings = Seq(
 )
 
 lazy val root = project.in( file(".") )
-  //.aggregate(SPSettings.spdomain, SPSettings.spcomm, SPSettings.spcore, SPSettings.spgui)
+
+//  lazy val all = project.in( file(".") )
+//  .aggregate(
+//    spdomain_jvm,
+//    spdomain_js,
+//    spcomm_jvm,
+//    spcomm_js,
+//    spcore,
+//    spgui,
+//    spcontrol_frontend,
+//    spcontrol_backend
+//  )
 
 
 lazy val spdomain = (crossProject.crossType(CrossType.Pure) in file("spdomain"))
@@ -56,34 +67,34 @@ val backendDeps: Seq[ClasspathDep[ProjectReference]] = Seq(spdomain_jvm, spcomm_
 val frontendDeps: Seq[ClasspathDep[ProjectReference]] = Seq(spdomain_js, spcomm_js, spgui)
 
 
-lazy val control_api = crossProject.crossType(CrossType.Pure).in(file("spcontrol/api"))
+lazy val spcontrol_api = crossProject.crossType(CrossType.Pure).in(file("spcontrol/api"))
   .settings(
     libraryDependencies ++= domainDependencies.value,
     commonSettings
   )
   .dependsOn(spdomain)
 
-lazy val control_api_jvm = control_api.jvm
-lazy val control_api_js = control_api.js
+lazy val spcontrol_api_jvm = spcontrol_api.jvm
+lazy val spcontrol_api_js = spcontrol_api.js
 
-lazy val control_backend = project.in(file("spcontrol/backend"))
+lazy val spcontrol_backend = project.in(file("spcontrol/backend"))
   .settings(
     libraryDependencies ++= domainDependencies.value,
     libraryDependencies ++= commDependencies.value,
     commonSettings,
     serviceSettings
   )
-  .dependsOn(control_api_jvm)
+  .dependsOn(spcontrol_api_jvm)
   .dependsOn(backendDeps:_*)
 
 
-lazy val control_frontend = project.in(file("spcontrol/frontend"))
+lazy val spcontrol_frontend = project.in(file("spcontrol/frontend"))
   .settings(
     libraryDependencies ++= domainDependencies.value,
     commonSettings,
     jsSettings
   )
-  .dependsOn(control_api_js)
+  .dependsOn(spcontrol_api_js)
   .dependsOn(frontendDeps:_*)
   .enablePlugins(ScalaJSPlugin)
 

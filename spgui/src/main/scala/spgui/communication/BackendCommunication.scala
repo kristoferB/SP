@@ -117,7 +117,7 @@ object BackendCommunication {
     Ajax.post(url, x).onComplete{
       case Success(xhr) =>
         val api =  SPAttributes.fromJsonGetAs[socketAPI.API](xhr.responseText)
-        val message =  SPMessage.fromJson(xhr.responseText)
+        val message =  SPMessage.fromJsonTry(xhr.responseText)
         p.complete(message)
         api.map{case x => println("post got: " + x)}
       case Failure(e) =>
@@ -206,7 +206,7 @@ case class WebSocketHandler(uri: String) {
   }
 
   // need to have separete functions for json magic due to macro problems
-  def fJ(str: String) = SPMessage.fromJson(str)
+  def fJ(str: String) = SPMessage.fromJsonTry(str)
   val convWebsocketStringToSPMessage = Rx{
     val str = mess()
     //println("websocket got a message: "+ str)

@@ -33,19 +33,13 @@ class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentAc
     case x: String if sender() != self =>
       val mess = SPMessage.fromJson(x)
 
-
-
       for {
-        m <- mess.toOption
-        h <- m.getHeaderAs[SPHeader].toOption if h.to == modelSetup.id.toString || h.to == api.service
-        b <-   m.getBodyAs[api.Request].toOption
+        m <- mess
+        h <- m.getHeaderAs[SPHeader] if h.to == modelSetup.id.toString || h.to == api.service
+        b <-   m.getBodyAs[api.Request]
       } yield {
-        val updH = h.copy(from = api.service, to = h.from)
+        val updH = h.copy(from = id.toString, to = h.from)
         sendAnswer(updH, APISP.SPACK())
-
-        println("****")
-        println("ModelActor: " + mess)
-        println("****")
 
         b match {
           case k: api.PutItems =>
@@ -109,9 +103,7 @@ class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentAc
 
   def handleModelDiff(d: Option[ModelDiff], h: SPHeader) = {
     d.foreach{diff =>
-      println("handleModelDiffBeforePersist")
       persist(SPValue(diff).toJson){json =>
-      println("handleModelDiffAfterPersist")
         val res = makeModelUpdate(diff)
         sendEvent(h, res)
       }
@@ -181,13 +173,11 @@ trait ModelLogic {
 
 
     def createDiffUpd(ids: List[IDAble], info: SPAttributes): Option[ModelDiff] = {
-      println("createDiffUpdFirst")
       val upd = ids.flatMap{i =>
         val xs = state.idMap.get(i.id)
         if (!xs.contains(i)) Some(i)
         else None
       }
-      println("an update in diffUpd "+ upd.isEmpty)
       if (upd.isEmpty ) None
       else {
         val updInfo = if (info.values.isEmpty) SPAttributes("info"->s"updated: ${upd.map(_.name).mkString(",")}") else info
@@ -214,7 +204,7 @@ trait ModelLogic {
 
     def updateState(diff: ModelDiff) = {
       if (state.version != diff.fromVersion)
-        println(s"MODEL DIFF UPDATE IS no in phase: diffState: ${diff.fromVersion}, current: ${state.version}")
+        println(s"MODEL DIFF UPDATE is not in phase: diffState: ${diff.fromVersion}, current: ${state.version}")
 
       val version = state.version + 1
       val diffMap = state.history + (version -> diff.diffInfo)

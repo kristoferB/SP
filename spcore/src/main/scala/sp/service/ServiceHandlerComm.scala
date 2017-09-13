@@ -37,13 +37,13 @@ object ServiceHandlerInfo {
 
 
 object ServiceHandlerComm {
-  def extractRequest(mess: Try[SPMessage]) = for {
+  def extractRequest(mess: Option[SPMessage]) = for {
     m <- mess
     h <- m.getHeaderAs[SPHeader] if h.to == "ServiceHandler"
     b <- m.getBodyAs[APIServiceHandler.Request]
   } yield (h, b)
 
-  def extractAPISP(mess: Try[SPMessage]) = for {
+  def extractAPISP(mess: Option[SPMessage]) = for {
     m <- mess
     h <- m.getHeaderAs[SPHeader]
     b <- m.getBodyAs[APISP]
