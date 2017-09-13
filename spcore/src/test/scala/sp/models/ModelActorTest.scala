@@ -69,19 +69,19 @@ class ModelActorTest(_system: ActorSystem) extends TestKit(_system) with Implici
 
     p.fishForMessage(3 seconds) {
       case m: String =>
-        //println("create got reply: "+m)
-        val aMess = SPMessage.fromJson(m)
-        val aH = aMess.flatMap(_.getHeaderAs[SPHeader])
-
-        for {
-          mess <- aMess
-          h <- aH
-        } yield {
-          println("ModelActorTesting got")
-          println(s"from: ${h.from}")
-          val bodyType = mess.body.get("_type").orElse(mess.body.get("isa"))
-          println(s"got a $bodyType message")
-        }
+//        //println("create got reply: "+m)
+//        val aMess = SPMessage.fromJson(m)
+//        val aH = aMess.flatMap(_.getHeaderAs[SPHeader])
+//
+//        for {
+//          mess <- aMess
+//          h <- aH
+//        } yield {
+//          println("ModelActorTesting got")
+//          println(s"from: ${h.from}")
+//          val bodyType = mess.body.get("_type").orElse(mess.body.get("isa"))
+//          println(s"got a $bodyType message")
+//        }
 
 
         val o = Operation("Kalle")
@@ -92,8 +92,8 @@ class ModelActorTest(_system: ActorSystem) extends TestKit(_system) with Implici
           go1 = false
           val h2 = SPHeader(from = "test", to = x1.id.toString, reply = SPValue("test"))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.PutItems(List(o, Operation("Kalle2")))))
-          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetModel))
-          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetAllItems))
+          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.ExportModel))
+          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetItemList(0, 1)))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetItem(o.id)))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.DeleteItems(List(o.id))))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetItem(o.id)))
@@ -104,12 +104,19 @@ class ModelActorTest(_system: ActorSystem) extends TestKit(_system) with Implici
           h <- mess.getHeaderAs[SPHeader] if h.from == x1.id.toString && !go1
           b <- mess.getBodyAs[api.Response]
         } yield {
+          println("ModelActorTesting got")
+          println(s"from: ${h.from}")
+          val bodyType = mess.body.get("_type").orElse(mess.body.get("isa"))
+          println(s"got a $bodyType message")
           b match {
-            case x: api.TheModel => modelMess = true
+            case x: api.ModelToExport => modelMess = true
             case x: api.ModelInformation => modelInfoMess = true
             case x: api.ModelUpdate => modelUpd = true
             case x: api.SPItem => modelItemMess = true
-            case x: api.SPItems => modelItemsMess = true
+            case x: api.SPItems =>
+              println(x)
+
+              modelItemsMess = true
             case _ =>
           }
         }

@@ -52,7 +52,7 @@ object APIModel {
 
   case class GetItem(itemID: ID) extends Request
   case class GetItems(itemIDs: List[ID]) extends Request
-  case class GetItemList(size: Int = 100, from: Int = 0, filter: ItemFilter = ItemFilter("", "")) extends Request
+  case class GetItemList(from: Int = 0, size: Int = 100, filter: ItemFilter = ItemFilter("", "")) extends Request
 
   case object GetStructures extends Request
 

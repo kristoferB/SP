@@ -42,53 +42,45 @@ class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentAc
         val updH = h.copy(from = id.toString, to = h.from)
         sendAnswer(updH, APISP.SPACK())
 
-        // Messages that update the model should only target one model
         if (h.to == id.toString) {
           b match {
-            case k: api.PutItems =>
+            case k: api.PutItems if h.to == id.toString =>
               val res = putItems(k.items, k.info)
               handleModelDiff(res, updH)
-            case k: api.DeleteItems =>
+            case k: api.DeleteItems if h.to == id.toString =>
               val res = deleteItems(k.items, k.info)
               handleModelDiff(res, updH)
-            case k: api.UpdateModelAttributes =>
+            case k: api.UpdateModelAttributes if h.to == id.toString =>
               val res = updateAttributes(k.name, k.attributes)
               handleModelDiff(res, updH)
-            case k: api.RevertModel =>
+            case k: api.RevertModel if h.to == id.toString =>
+            case api.ExportModel =>
+              sendAnswer(updH, getTheModelToExport)
+            case api.GetModelInfo =>
+              sendAnswer(updH, getModelInfo)
+            case api.GetModelHistory =>
+              val res = getModelHistory
+              sendAnswer(updH, getModelHistory)
+            case api.GetItems(xs) =>
+              val res = xs.flatMap(state.idMap.get)
+              sendAnswer(updH, api.SPItems(res.toList))
+            case api.GetItemList(from, size, filter) =>
+              val res = state.items.slice(from, from + size)
+              // TODO: add filter soon
+              sendAnswer(updH, SPItems(res))
+            case api.GetItem(itemID) =>
+              state.idMap.get(itemID) match {
+                case Some(r) => sendAnswer(updH, api.SPItem(r))
+                case None => sendAnswer(updH, APISP.SPError(s"item $itemID does not exist"))
+              }
+            case api.GetStructures   =>
+              val res = state.items.filter(_.isInstanceOf[Struct])
+              sendAnswer(updH, api.SPItems(res))
+            case x if h.to == id.toString =>
+              println(s"Model $id got something not implemented: ${x}")
             case _ =>
-              println("The model Actor got a message that is not implemented yet")
-              println(b)
           }
         }
-
-        // Matching messages that may be sent to multiple models
-        b match {
-          case api.ExportModel =>
-            sendAnswer(updH, getTheModelToExport)
-          case api.GetModelInfo =>
-            sendAnswer(updH, getModelInfo)
-          case api.GetModelHistory =>
-            val res = getModelHistory
-            sendAnswer(updH, getModelHistory)
-          case api.GetItems(xs) =>
-            val res = xs.flatMap(state.idMap.get)
-            sendAnswer(updH, api.SPItems(res.toList))
-          case api.GetItemList(size, from, filter) =>
-            val res = state.items.drop(from).take(size)
-            // TODO: add filter soon
-            sendAnswer(updH, SPItems(res))
-          case api.GetItem(itemID) =>
-            state.idMap.get(itemID) match {
-              case Some(r) => sendAnswer(updH, api.SPItem(r))
-              case None => sendAnswer(updH, APISP.SPError(s"item $itemID does not exist"))
-            }
-          case api.GetStructures   =>
-            val res = state.items.filter(_.isInstanceOf[Struct])
-            sendAnswer(updH, api.SPItems(res))
-          case _ =>
-        }
-
-
 
           sendAnswer(updH, APISP.SPDone())
 
