@@ -171,13 +171,13 @@ trait ModelLogic {
   }
 
   def getTheModelToExport = api.ModelToExport(state.name, id, state.version, state.attributes, state.items)
-  def getModelInfo = api.ModelInformation(state.name, id, state.version, state.attributes, state.items.size)
+  def getModelInfo = api.ModelInformation(state.name, id, state.version, state.items.size, state.attributes)
   def getModelHistory = api.ModelHistory(id, state.history.toList.sortWith(_._1 > _._1))
 
 
   def makeModelUpdate(diff: ModelDiff) = {
     updateState(diff)
-    api.ModelUpdate(id, state.version, diff.updatedItems, diff.deletedItems.map(_.id), diff.diffInfo)
+    api.ModelUpdate(id, state.version, state.items.size, diff.updatedItems, diff.deletedItems.map(_.id), diff.diffInfo)
   }
 
 

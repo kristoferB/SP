@@ -40,7 +40,7 @@ object ModelsWidget {
   def makeMess(h: SPHeader, b: mapi.Request) = SPMessage.make[SPHeader, mapi.Request](h, b)
   def makeMess(h: SPHeader, b: APISP) = SPMessage.make[SPHeader, APISP](h, b)
 
-  case class State(models: List[ID], modelinfo: Map[ID,mapi.ModelInformation])
+  case class State(models: List[ID], modelinfo: Map[ID,mapi.ModelInformation], idables: List[IDAble])
 
   private class Backend($: BackendScope[Unit, State]) {
 
@@ -51,24 +51,27 @@ object ModelsWidget {
           case mmapi.ModelList(models) =>
             println("Got model list")
             models.foreach { m => sendToModel(m, mapi.GetModelInfo) }
-            $.modState(s => State(models, s.modelinfo))
+            $.modState(s => s.copy(models = models))
           case mmapi.ModelCreated(name, attr, modelid) =>
             println("Model created")
             sendToModel(modelid, mapi.PutItems(TestModel.getTestModel))
-            $.modState(s => State(modelid :: s.models, s.modelinfo))
+            $.modState(s => s.copy(models = modelid :: s.models))
           case mmapi.ModelDeleted(modelid) =>
-            $.modState(s => State(s.models.filterNot(_ == modelid), s.modelinfo))
+            $.modState(s => s.copy(models = s.models.filterNot(_ == modelid)))
         }
         res.runNow()
       }
       extractMResponse(mess).map{ case (h, b) =>
         val res = b match {
-          case mi@mapi.ModelInformation(name, id, version, attributes) => $.modState(s=>State(s.models, s.modelinfo + (id -> mi)))
-          case mu@mapi.ModelUpdate(modelid, version, updatedItems, deletedItems, info) => $.modState{ s =>
-            val info = s.modelinfo.get(modelid)
-            val nfi = s.modelinfo ++ info.map(info => (modelid -> mapi.ModelInformation(info.name, info.id, version, info.attributes)))
-            State(s.models, nfi)
-          }
+          case mi@mapi.ModelInformation(name, id, version, noitems, attributes) => $.modState(s=>s.copy(modelinfo = s.modelinfo + (id -> mi)))
+          case mu@mapi.ModelUpdate(modelid, version, noitems, updatedItems, deletedItems, info) =>
+            val f = $.zoomState(_.modelinfo)(value => _.copy(modelinfo = value))
+            f.modState{ s =>
+              val info = s.get(modelid)
+              s ++ info.map(info => (modelid -> mapi.ModelInformation(info.name, info.id, version, noitems, info.attributes)))
+            }
+          case tm@mapi.SPItems(items) =>
+            $.modState(s=>s.copy(idables = items))
         }
         res.runNow()
       }
@@ -92,15 +95,20 @@ object ModelsWidget {
           <.th("id"),
           <.th("name"),
           <.th("version"),
+          <.th("number of items"),
           <.th("put dummy items"),
           <.th("delete")
         ),
         <.tbody(
           s.models.map(m=> {
             <.tr(
-              <.td(m.toString),
+              <.td(
+                <.a(^.onClick --> sendToModel(m, mapi.GetItemList()), "+"),
+                m.toString
+              ),
               <.td(s.modelinfo.get(m).map(_.name).getOrElse("").toString),
               <.td(s.modelinfo.get(m).map(_.version).getOrElse(-1).toString),
+              <.td(s.modelinfo.get(m).map(_.noOfItems).getOrElse(-1).toString),
               <.td(
                 <.button(
                   ^.className := "btn btn-sm",
@@ -126,7 +134,9 @@ object ModelsWidget {
         <.button(
           ^.className := "btn btn-default",
           ^.onClick --> sendToHandler(mmapi.CreateModel("testmodel")), "Create test model"
-        )
+        ),
+        <.br,
+        state.idables.toString
       )
     }
 
@@ -155,7 +165,7 @@ object ModelsWidget {
   }
 
   private val component = ScalaComponent.builder[Unit]("ModelsWidget")
-    .initialState(State(models = List(), modelinfo = Map()))
+    .initialState(State(models = List(), modelinfo = Map(), idables = List()))
     .renderBackend[Backend]
 //    .componentDidMount(_.backend.onMount())
     .componentWillUnmount(_.backend.onUnmount())

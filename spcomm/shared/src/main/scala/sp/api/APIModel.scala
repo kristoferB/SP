@@ -65,9 +65,9 @@ object APIModel {
 
 
   case class ModelToExport(name: String, id: ID, version: Int, attributes: SPAttributes = SPAttributes(), items: List[IDAble]) extends Response
-  case class ModelInformation(name: String, id: ID, version: Int, attributes: SPAttributes = SPAttributes(), noOfItems: Int) extends Response
+  case class ModelInformation(name: String, id: ID, version: Int, noOfItems: Int, attributes: SPAttributes = SPAttributes()) extends Response
   case class ModelDeleted(model: ID) extends Response
-  case class ModelUpdate(model: ID, version: Int, updatedItems: List[IDAble] = List(), deletedItems: List[ID] = List(), info: SPAttributes = SPAttributes()) extends Response
+  case class ModelUpdate(model: ID, version: Int, noOfItems: Int, updatedItems: List[IDAble] = List(), deletedItems: List[ID] = List(), info: SPAttributes = SPAttributes()) extends Response
   case class ModelHistory(model: ID, history: List[(Int, SPAttributes)]) extends Response
 
   case class SPItem(item: IDAble) extends Response
