@@ -8,6 +8,7 @@ import scala.concurrent.duration._
 import sp.domain._
 import sp.domain.Logic._
 import akka.persistence._
+import sp.models.APIModel.SPItems
 
 import scala.util.{Failure, Success, Try}
 import sp.models.{APIModel => api}
@@ -62,23 +63,25 @@ class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentAc
 
         // Matching messages that may be sent to multiple models
         b match {
-          case api.GetModel =>
-            sendAnswer(updH, getTheModel)
+          case api.ExportModel =>
+            sendAnswer(updH, getTheModelToExport)
           case api.GetModelInfo =>
             sendAnswer(updH, getModelInfo)
           case api.GetModelHistory =>
             val res = getModelHistory
             sendAnswer(updH, getModelHistory)
-          case api.GetItems =>
-            sendAnswer(updH, api.SPItems(state.items))
+          case api.GetItems(xs) =>
+            val res = xs.flatMap(state.idMap.get)
+            sendAnswer(updH, api.SPItems(res.toList))
+          case api.GetItemList(size, from, filter) =>
+            val res = state.items.drop(from).take(size)
+            // TODO: add filter soon
+            sendAnswer(updH, SPItems(res))
           case api.GetItem(itemID) =>
             state.idMap.get(itemID) match {
               case Some(r) => sendAnswer(updH, api.SPItem(r))
               case None => sendAnswer(updH, APISP.SPError(s"item $itemID does not exist"))
             }
-          case api.GetItemsInList(xs) =>
-            val res = xs.flatMap(state.idMap.get)
-            sendAnswer(updH, api.SPItems(res))
           case api.GetStructures   =>
             val res = state.items.filter(_.isInstanceOf[Struct])
             sendAnswer(updH, api.SPItems(res))
@@ -175,8 +178,8 @@ trait ModelLogic {
       modelAttr = uA))
   }
 
-  def getTheModel = api.TheModel(state.name, id, state.version, state.attributes, state.items.map(_.id))
-  def getModelInfo = api.ModelInformation(state.name, id, state.version, state.attributes)
+  def getTheModelToExport = api.ModelToExport(state.name, id, state.version, state.attributes, state.items)
+  def getModelInfo = api.ModelInformation(state.name, id, state.version, state.attributes, state.items.size)
   def getModelHistory = api.ModelHistory(id, state.history.toList.sortWith(_._1 > _._1))
 
 

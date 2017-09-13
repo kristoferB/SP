@@ -93,7 +93,7 @@ class ModelActorTest(_system: ActorSystem) extends TestKit(_system) with Implici
           val h2 = SPHeader(from = "test", to = x1.id.toString, reply = SPValue("test"))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.PutItems(List(o, Operation("Kalle2")))))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetModel))
-          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetItems))
+          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetAllItems))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetItem(o.id)))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.DeleteItems(List(o.id))))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetItem(o.id)))
