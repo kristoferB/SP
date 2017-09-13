@@ -12,8 +12,8 @@ object APIModelMaker {
   case class DeleteModel(id: ID) extends Request
   case object GetModels extends Request
 
-  case class ModelCreated(name: String, attributes: SPAttributes = SPAttributes(), model: ID) extends Response
-  case class ModelDeleted(model: ID) extends Response
+  case class ModelCreated(name: String, attributes: SPAttributes = SPAttributes(), id: ID) extends Response
+  case class ModelDeleted(id: ID) extends Response
   case class ModelList(models: List[ID]) extends Response
 
   object Formats {

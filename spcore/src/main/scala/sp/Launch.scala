@@ -3,6 +3,7 @@ package sp
 import akka.actor._
 import sp.domain._
 import Logic._
+import sp.models.{ModelActor, ModelMaker}
 import sp.server._
 
 
@@ -42,6 +43,7 @@ object SPCore {
     val cluster = akka.cluster.Cluster(sys)
 
     sys.actorOf(sp.service.ServiceHandler.props)
+    system.actorOf(ModelMaker.props(ModelActor.props), "modelMaker")
 
     cluster.registerOnMemberRemoved{
       println("SP core will terminate")
