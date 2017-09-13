@@ -22,26 +22,27 @@ object TestModel {
 }
 
 object ModelsWidget {
-  case class State(models: List[ID])
+  import sp.models.{APIModelMaker => mmapi}
+  import sp.models.{APIModel => mapi}
+
+  def extractMMResponse(m: SPMessage) = for {
+    h <- m.getHeaderAs[SPHeader]
+    b <- m.getBodyAs[mmapi.Response]
+  } yield (h, b)
+
+  def extractMResponse(m: SPMessage) = for {
+    h <- m.getHeaderAs[SPHeader]
+    b <- m.getBodyAs[mapi.Response]
+  } yield (h, b)
+
+
+  def makeMess(h: SPHeader, b: mmapi.Request) = SPMessage.make[SPHeader, mmapi.Request](h, b)
+  def makeMess(h: SPHeader, b: mapi.Request) = SPMessage.make[SPHeader, mapi.Request](h, b)
+  def makeMess(h: SPHeader, b: APISP) = SPMessage.make[SPHeader, APISP](h, b)
+
+  case class State(models: List[ID], modelinfo: Map[ID,mapi.ModelInformation])
 
   private class Backend($: BackendScope[Unit, State]) {
-    import sp.models.{APIModelMaker => mmapi}
-    import sp.models.{APIModel => mapi}
-
-    def extractMMResponse(m: SPMessage) = for {
-      h <- m.getHeaderAs[SPHeader]
-      b <- m.getBodyAs[mmapi.Response]
-    } yield (h, b)
-
-    def extractMResponse(m: SPMessage) = for {
-      h <- m.getHeaderAs[SPHeader]
-      b <- m.getBodyAs[mapi.Response]
-    } yield (h, b)
-
-
-    def makeMess(h: SPHeader, b: mmapi.Request) = SPMessage.make[SPHeader, mmapi.Request](h, b)
-    def makeMess(h: SPHeader, b: mapi.Request) = SPMessage.make[SPHeader, mapi.Request](h, b)
-    def makeMess(h: SPHeader, b: APISP) = SPMessage.make[SPHeader, APISP](h, b)
 
     def handleMess(mess: SPMessage): Unit = {
       println("handlemess: " + mess)
@@ -49,21 +50,27 @@ object ModelsWidget {
         val res = b match {
           case mmapi.ModelList(models) =>
             println("Got model list")
-            $.setState(State(models))
+            models.foreach { m => sendToModel(m, mapi.GetModelInfo) }
+            $.modState(s => State(models, s.modelinfo))
           case mmapi.ModelCreated(name, attr, modelid) =>
             println("Model created")
-            sendToHandler(mapi.PutItems(TestModel.getTestModel))
-            $.modState(s => State(modelid :: s.models))
+            sendToModel(modelid, mapi.PutItems(TestModel.getTestModel))
+            $.modState(s => State(modelid :: s.models, s.modelinfo))
           case mmapi.ModelDeleted(modelid) =>
-            $.modState(s => State(s.models.filterNot(_ == modelid)))
+            $.modState(s => State(s.models.filterNot(_ == modelid), s.modelinfo))
         }
         res.runNow()
       }
       extractMResponse(mess).map{ case (h, b) =>
-        // val res = b match {
-        //   case mapi.ModelList(models) => $.setState(State(models))
-        // }
-        // res.runNow()
+        val res = b match {
+          case mi@mapi.ModelInformation(name, id, version, attributes) => $.modState(s=>State(s.models, s.modelinfo + (id -> mi)))
+          case mu@mapi.ModelUpdate(modelid, version, updatedItems, deletedItems, info) => $.modState{ s =>
+            val info = s.modelinfo.get(modelid)
+            val nfi = s.modelinfo ++ info.map(info => (modelid -> mapi.ModelInformation(info.name, info.id, version, info.attributes)))
+            State(s.models, nfi)
+          }
+        }
+        res.runNow()
       }
     }
 
@@ -77,18 +84,29 @@ object ModelsWidget {
     val answerHandler = BackendCommunication.getMessageObserver(handleMess, "answers")
     val speventHandler = BackendCommunication.getMessageObserver(handleMess, "spevents")
 
-    def renderModels(models: List[ID]) = {
+    def renderModels(s: State) = {
       <.table(
         ^.className := "table table-striped",
         <.caption("Models"),
         <.thead(
           <.th("id"),
+          <.th("name"),
+          <.th("version"),
+          <.th("put dummy items"),
           <.th("delete")
         ),
         <.tbody(
-          models.map(m=> {
+          s.models.map(m=> {
             <.tr(
               <.td(m.toString),
+              <.td(s.modelinfo.get(m).map(_.name).getOrElse("").toString),
+              <.td(s.modelinfo.get(m).map(_.version).getOrElse(-1).toString),
+              <.td(
+                <.button(
+                  ^.className := "btn btn-sm",
+                  ^.onClick --> sendToModel(m, mapi.PutItems(TestModel.getTestModel)), "+"
+                )
+              ),
               <.td(
                 <.button(
                   ^.className := "btn btn-sm",
@@ -104,7 +122,7 @@ object ModelsWidget {
     def render(state: State) = {
       <.div(
         <.h2("Models : " + state.models.size),
-        renderModels(state.models),
+        renderModels(state),
         <.button(
           ^.className := "btn btn-default",
           ^.onClick --> sendToHandler(mmapi.CreateModel("testmodel")), "Create test model"
@@ -120,8 +138,8 @@ object ModelsWidget {
       Callback.empty
     }
 
-    def sendToHandler(mess: mapi.Request): Callback = {
-      val h = SPHeader(from = "ModelWidget", to = mapi.service,
+    def sendToModel(model: ID, mess: mapi.Request): Callback = {
+      val h = SPHeader(from = "ModelWidget", to = model.toString,
         reply = SPValue("ModelWidget"), reqID = java.util.UUID.randomUUID())
       val json = makeMess(h, mess)
       BackendCommunication.publish(json, "services")
@@ -137,7 +155,7 @@ object ModelsWidget {
   }
 
   private val component = ScalaComponent.builder[Unit]("ModelsWidget")
-    .initialState(State(models = List()))
+    .initialState(State(models = List(), modelinfo = Map()))
     .renderBackend[Backend]
 //    .componentDidMount(_.backend.onMount())
     .componentWillUnmount(_.backend.onUnmount())
