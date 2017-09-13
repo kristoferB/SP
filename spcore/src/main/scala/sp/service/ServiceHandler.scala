@@ -75,7 +75,7 @@ class ServiceHandler extends Actor with ServiceHandlerLogic {
 
   import scala.concurrent.duration._
   import context.dispatcher
-  val ticker = context.system.scheduler.schedule(5 seconds, 5 seconds, self, Tick)
+  val ticker = context.system.scheduler.schedule(60 seconds, 60 seconds, self, Tick)
 
 }
 

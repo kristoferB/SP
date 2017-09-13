@@ -2,6 +2,7 @@ package spgui.widgets.services
 
 import scala.util.{Try}
 import sp.domain._
+import spgui.communication._
 import Logic._
 
 
@@ -36,4 +37,3 @@ object ServiceWidgetComm {
   def makeMess(h: SPHeader, b: api.Request) = SPMessage.make[SPHeader, api.Request](h, b)
   def makeMess(h: SPHeader, b: APISP) = SPMessage.make[SPHeader, APISP](h, b)
 }
-
