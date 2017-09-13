@@ -36,22 +36,32 @@ class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentAc
       for {
         m <- mess
         h <- m.getHeaderAs[SPHeader] if h.to == modelSetup.id.toString || h.to == api.service
-        b <-   m.getBodyAs[api.Request]
+        b <- m.getBodyAs[api.Request]
       } yield {
         val updH = h.copy(from = id.toString, to = h.from)
         sendAnswer(updH, APISP.SPACK())
 
+        // Messages that update the model should only target one model
+        if (h.to == id.toString) {
+          b match {
+            case k: api.PutItems =>
+              val res = putItems(k.items, k.info)
+              handleModelDiff(res, updH)
+            case k: api.DeleteItems =>
+              val res = deleteItems(k.items, k.info)
+              handleModelDiff(res, updH)
+            case k: api.UpdateModelAttributes =>
+              val res = updateAttributes(k.name, k.attributes)
+              handleModelDiff(res, updH)
+            case k: api.RevertModel =>
+            case _ =>
+              println("The model Actor got a message that is not implemented yet")
+              println(b)
+          }
+        }
+
+        // Matching messages that may be sent to multiple models
         b match {
-          case k: api.PutItems =>
-            val res = putItems(k.items, k.info)
-            handleModelDiff(res, updH)
-          case k: api.DeleteItems =>
-            val res = deleteItems(k.items, k.info)
-            handleModelDiff(res, updH)
-          case k: api.UpdateModelAttributes =>
-            val res = updateAttributes(k.name, k.attributes)
-            handleModelDiff(res, updH)
-          case k: api.RevertModel =>
           case api.GetModel =>
             sendAnswer(updH, getTheModel)
           case api.GetModelInfo =>
@@ -72,12 +82,15 @@ class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentAc
           case api.GetStructures   =>
             val res = state.items.filter(_.isInstanceOf[Struct])
             sendAnswer(updH, api.SPItems(res))
-          case k =>
+          case _ =>
         }
+
+
 
           sendAnswer(updH, APISP.SPDone())
 
       }
+
 
 
       ModelsComm.extractAPISP(mess).collect{
