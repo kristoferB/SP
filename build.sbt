@@ -3,7 +3,7 @@ import SPSettings._
 
 lazy val serviceSettings = Seq(
   fork := true,
-  javaOptions += s"-Dconfig.file=${root.base.getCanonicalPath}/cluster.conf",
+  javaOptions += s"-Dconfig.file=${root.base.getCanonicalPath}/cluster.conf -XX:MaxMetaspaceSize=512m -Xms1024m -Xmx1024m",
   connectInput in run := true
 )
 

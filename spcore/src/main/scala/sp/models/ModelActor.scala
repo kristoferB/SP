@@ -118,6 +118,7 @@ class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentAc
 
 trait ModelLogic {
   val id: ID
+  val modelSetup: APIModelMaker.CreateModel
 
   case class ModelState(version: Int, idMap: Map[ID, IDAble], history: Map[Int, SPAttributes], attributes: SPAttributes, name: String){
     lazy val items = idMap.values.toList
@@ -136,7 +137,7 @@ trait ModelLogic {
     implicit lazy val fModelDiff: JSFormat[ModelDiff] = deriveFormatSimple[ModelDiff]
   }
 
-  var state = ModelState(0, Map(), Map(), SPAttributes(), "noName")
+  var state = ModelState(1, Map(), Map(), modelSetup.attributes, modelSetup.name)
 
 
   def putItems(items: List[IDAble], info: SPAttributes) = {
