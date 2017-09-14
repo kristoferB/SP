@@ -46,6 +46,9 @@ object ModelsWidget {
 
   private class Backend($: BackendScope[Unit, State]) {
 
+    private val mu = $.zoomState(_.modelState)(value => _.copy(modelState = value))
+    private val iu = $.zoomState(_.uiState)(value => _.copy(uiState = value))
+
     def handleMess(mess: SPMessage): Unit = {
       println("handlemess: " + mess)
       extractMMResponse(mess).map{ case (h, b) =>
@@ -54,13 +57,13 @@ object ModelsWidget {
             println("Got model list")
             models.foreach { m => sendToModel(m, mapi.GetModelInfo) }
             models.foreach { m => sendToModel(m, mapi.GetModelHistory) }
-            $.modState(s => s.copy(modelState = s.modelState.copy(models = models)))
+            mu.modState(s => s.copy(models = models))
           case mmapi.ModelCreated(name, attr, modelid) =>
             println("Model created")
             sendToModel(modelid, mapi.PutItems(TestModel.getTestModel))
-            $.modState(s => s.copy(modelState = s.modelState.copy(models = modelid :: s.modelState.models)))
+            mu.modState(s => s.copy(models = modelid :: s.models))
           case mmapi.ModelDeleted(modelid) =>
-            $.modState(s => s.copy(modelState = s.modelState.copy(models = s.modelState.models.filterNot(_ == modelid))))
+            mu.modState(s => s.copy(models = s.models.filterNot(_ == modelid)))
           case x => Callback.empty
         }
         res.runNow()
@@ -68,18 +71,19 @@ object ModelsWidget {
       extractMResponse(mess).map{ case (h, b) =>
         val res = b match {
           case mi@mapi.ModelInformation(name, id, version, noitems, attributes) =>
-            $.modState(s=>s.copy(modelState = s.modelState.copy(modelInfo = s.modelState.modelInfo + (id -> mi))))
-          case mh@mapi.ModelHistory(id, history) => $.modState(s=>s.copy(modelState = s.modelState.copy(modelHistory = s.modelState.modelHistory + (id -> mh))))
-          case mu@mapi.ModelUpdate(modelid, version, noitems, updatedItems, deletedItems, info) =>
+            mu.modState(s=>s.copy(modelInfo = s.modelInfo + (id -> mi)))
+          case mh@mapi.ModelHistory(id, history) =>
+            mu.modState(s=>s.copy(modelHistory = s.modelHistory + (id -> mh)))
+          case mapi.ModelUpdate(modelid, version, noitems, updatedItems, deletedItems, info) =>
             // fetch new version history
             sendToModel(modelid, mapi.GetModelHistory)
-            $.modState{ s =>
-              val info = s.modelState.modelInfo.get(modelid)
-              val nmi = s.modelState.modelInfo ++ info.map(info => (modelid -> mapi.ModelInformation(info.name, info.id, version, noitems, info.attributes)))
-              s.copy(modelState = s.modelState.copy(modelInfo = nmi))
+            mu.modState{ s =>
+              val info = s.modelInfo.get(modelid)
+              val nmi = s.modelInfo ++ info.map(info => (modelid -> mapi.ModelInformation(info.name, info.id, version, noitems, info.attributes)))
+              s.copy(modelInfo = nmi)
             }
           case tm@mapi.SPItems(items) =>
-            $.modState(s=>s.copy(uiState = s.uiState.copy(shownIdables = items)))
+            iu.modState(s=>s.copy(shownIdables = items))
           case x => Callback.empty
         }
         res.runNow()
@@ -113,10 +117,10 @@ object ModelsWidget {
                 <.td(
                   (if(s.uiState.historyExpanded.contains(m))
                     <.button(^.className := "btn btn-sm",
-                      ^.onClick --> $.modState(s=>s.copy(uiState = s.uiState.copy(historyExpanded = s.uiState.historyExpanded - m))), "-")
+                      ^.onClick --> iu.modState(s=>s.copy(historyExpanded = s.historyExpanded - m)), "-")
                   else
                     <.button(^.className := "btn btn-sm",
-                      ^.onClick --> $.modState(s=>s.copy(uiState = s.uiState.copy(historyExpanded = s.uiState.historyExpanded + m))), "+")
+                      ^.onClick --> iu.modState(s=>s.copy(historyExpanded = s.historyExpanded + m)), "+")
                   ),
                   m.toString
                 ),
