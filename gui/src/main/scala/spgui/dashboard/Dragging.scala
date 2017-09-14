@@ -26,7 +26,14 @@ import spgui.circuit.{SetDraggableData, SetDraggableRenderStyle}
 object Dragging {
   case class Props(proxy: ModelProxy[DraggingState])
 
-  case class State(x: Float = 0f, y: Float = 0f)
+  case class State(
+    x: Float = 0f,
+    y: Float = 0f,
+    hoverTarget: UUID = null,
+    isDragging: Boolean = false,
+    renderStyle: String = "",
+    data: Data = null
+  )
 
   case class Data(
     label: String,
@@ -34,7 +41,29 @@ object Dragging {
     typ: String
   )
 
-  trait Rect extends js.Object {
+  var setHoveringMap = Map[UUID, (Boolean) => Unit]() 
+  var setEnabledMap = Map[UUID, (Boolean) => Unit]() 
+  var currentZone: UUID = null
+
+  def dropzoneSubscribe(
+    id: UUID,
+    setEnabled: (Boolean) => Unit,
+    setHovering: (Boolean) => Unit
+  ) {
+    setHoveringMap += id -> setHovering
+    setEnabledMap += id -> setEnabled
+  }
+
+  def dropzoneUnsubscribe(id: UUID) = Callback{
+    println(setHoveringMap)
+    println("lolololololol")
+    setHoveringMap = setHoveringMap.filter(c => c._1 != id )
+    setEnabledMap = setEnabledMap.filter(c => c._1 != id)
+    println(setHoveringMap)
+
+  }
+
+  trait Rect extends js.Object { 
     var left: Float = js.native
     var top: Float = js.native
     var width: Float = js.native
@@ -42,7 +71,7 @@ object Dragging {
   }
 
   val opHeight = 80f
-  val opWidth = 80f
+  val opWidth = 120f
 
   var updateMouse = (x:Float, y:Float) => {}
 
@@ -59,7 +88,6 @@ object Dragging {
         props.proxy().renderStyle match {
           case _ =>
             <.span(
-//              ^.pointerEvents.none,
               ^.className := DraggingCSS.dragElement.htmlClass,
               ^.style := {
                 var rect =  (js.Object()).asInstanceOf[Rect]
@@ -102,8 +130,6 @@ object Dragging {
     }
   }
 
-  private var myself = null
-
   private val component = ScalaComponent.builder[Props]("Dragging")
     .initialState(State())
     .renderBackend[Backend]
@@ -115,37 +141,57 @@ object Dragging {
     SPGUICircuit.dispatch(SetDraggableData(data))
     SPGUICircuit.dispatch(SetCurrentlyDragging(true))
     updateMouse(x,y)
+
+    setEnabledMap.map(c => c._2(true))
   }
 
   def onDragMove(x:Float, y:Float) = {
     updateMouse(x,y)
+    val target = document.elementFromPoint(x, y)
+    draggedOverTarget(target)
   }
-
 
   def onDragStop() = {
     SPGUICircuit.dispatch(SetCurrentlyDragging(false))
+    setEnabledMap.map(c => c._2(false))
   }
-
 
   def setDraggingStyle(style: String) = {
     SPGUICircuit.dispatch(SetDraggableRenderStyle(style))
   }
 
+  def setDraggingTarget(id: UUID) = {
+    setHoveringMap.getOrElse(currentZone, (e:Boolean) => Unit)(false)
+    setHoveringMap.getOrElse(id, (e:Boolean) => Unit)(true)
+    currentZone = id
+  }
+
+  import scala.util.Try
+  def makeUUID(id: String) = {
+    Try(UUID.fromString(id)).getOrElse(null)
+  }
+
+  def draggedOverTarget(target: org.scalajs.dom.raw.Element) = {
+    if(target != null) {
+      val newTarget = target.id
+      setDraggingTarget(makeUUID(newTarget))
+    }
+  }
+
   def mouseMoveCapture = Seq(
-    ^.onTouchMoveCapture ==> {
-      (e: ReactTouchEvent) => Callback ({
-        var x = 0f; var y = 0f
-        for(n <- 0 to e.touches.length-1) {
-          x += e.touches.item(n).pageX.toFloat
-          y += e.touches.item(n).pageY.toFloat
-        }
-        Dragging.onDragMove(x, y)
-      })
-    },
     ^.onMouseMove ==> {
       (e:ReactMouseEvent) => Callback{
         Dragging.onDragMove(e.pageX.toFloat, e.pageY.toFloat)
       }
-    }
+    },
+    (^.onTouchMoveCapture ==> {
+        (e: ReactTouchEvent) => Callback ({
+          val x =  e.touches.item(0).pageX.toFloat
+          val y = e.touches.item(0).pageY.toFloat
+          val target = document.elementFromPoint(x, y)
+          //Dragging.draggedOverTarget(target) 
+          Dragging.onDragMove(x, y)
+        })
+      })
   ).toTagMod
 }

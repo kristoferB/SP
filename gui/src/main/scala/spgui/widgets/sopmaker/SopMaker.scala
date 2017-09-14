@@ -16,6 +16,7 @@ import scala.scalajs.js
 import spgui.components.SPWidgetElements
 import spgui.dragging._
 
+
 sealed trait RenderNode {
   val nodeId: UUID
   val w: Float
@@ -46,7 +47,7 @@ case class RenderOperationNode(
 object SopMakerWidget {
   val parallelBarHeight = 12f
   val opHeight = 80f
-  val opWidth = 80f
+  val opWidth = 120f
   val opSpacingX = 10f
   val opSpacingY = 10f
 
@@ -76,7 +77,7 @@ object SopMakerWidget {
      */
     def render(state: State) = {
       <.div(
-        SPWidgetElements.DragoverContext(),
+        //SPWidgetElements.DragoverContext(),
         <.span(
         ^.onMouseOver ==> handleMouseOver("sop_style"),
         ^.onMouseOut ==> handleMouseOver("not_sop_style"),
@@ -107,21 +108,12 @@ object SopMakerWidget {
       )
   }
 
-    def dropZone(  id: UUID, x: Float, y: Float, w: Float, h: Float) =
-      spgui.components.SPWidgetElements.DragoverZone(id, x, y, w, h)
-
-    def handleMouseOver(zoneId: UUID): Callback = {
-      $.modState(s =>
-        s.copy(hoverData = HoverData(zoneId, s.hoverData.dragging))
-      )
-    }
-
-    def handleMouseLeave(zoneId: UUID): Callback = {
-      $.modState(s => {
-        if(s.hoverData.position == zoneId) s.copy()
-         else s.copy(hoverData = HoverData(zoneId))
-      })
-    }
+    import spgui.circuit._
+    import spgui.components.SPWidgetElements
+    val draggingConnection = SPGUICircuit.connect(x => (x.draggingState.dragging, x.draggingState.target))
+          
+    def dropZone(  id: UUID, x: Float, y: Float, w: Float, h: Float): TagMod =
+      SPWidgetElements.DragoverZone(id, x, y, w, h)
 
     def getRenderTree(node: RenderNode, xOffset: Float, yOffset: Float): List[TagMod] = {
       node match {
@@ -138,7 +130,6 @@ object SopMakerWidget {
             w += e.w
             children = children ++ child
           }
-
           List(dropZone(   // dropzone for the whole parallel
             id = n.nodeId,
             x = xOffset - n.w/2 + opSpacingX/2 + opWidth/2,

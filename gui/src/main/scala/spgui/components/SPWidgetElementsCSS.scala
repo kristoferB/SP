@@ -76,13 +76,15 @@ object SPWidgetElementsCSS extends SPStyleSheet {
     position.absolute,
     zIndex(100),
     height(100.%%),
-    width(100.%%)
+    width(100.%%),
+    userSelect:="none"
   )
 
   val dropZone = style(
     position.absolute,
     zIndex(101),
-    opacity:= "0.5"
+    opacity:= "0.5",
+    userSelect:="none"
   )
 
   val disableDropZone = style(

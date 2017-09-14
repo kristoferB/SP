@@ -25,6 +25,8 @@ object SopMakerGraphics {
         rect
       },
       svg.svg(
+        svg.width := SopMakerWidget.opWidth.toInt,
+        svg.height:= SopMakerWidget.opHeight.toInt,
         svg.svg(
           svg.width := SopMakerWidget.opWidth.toInt,
           svg.height:= SopMakerWidget.opHeight.toInt,

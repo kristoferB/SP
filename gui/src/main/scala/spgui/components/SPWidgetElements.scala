@@ -128,7 +128,7 @@ object SPWidgetElements{
   import org.scalajs.dom.MouseEvent
   import org.scalajs.dom.document
   import spgui.dragging._
-
+  import diode.react.ModelProxy
 
   object DragoverZone {
     trait Rectangle extends js.Object {
@@ -142,22 +142,23 @@ object SPWidgetElements{
       id: UUID, x: Float, y: Float, w: Float, h: Float
     )
 
-    case class State(target: UUID = null, isActive: Boolean = false)
+    case class State(enabled: Boolean = false, hovering: Boolean = false)
 
     import diode.ModelRO
     class Backend($: BackendScope[Props, State]) {
-      SPGUICircuit.subscribe(SPGUICircuit.zoomRW(myM => myM)((m,v) => v))(m =>
-        $.modState(s => 
-          State(
-            target = m.value.draggingState.target,
-            isActive = m.value.draggingState.dragging
-          )
-        ).runNow()
-      )
 
-      def render(p:Props, s:State) =
+      def setHovering(hovering: Boolean) =
+        $.modState(s => s.copy(hovering = hovering)).runNow()
+
+      def setEnabled(enabled: Boolean) =
+        $.modState(s => s.copy(enabled = enabled)).runNow()
+
+      Dragging.dropzoneSubscribe($.props.runNow().id, setEnabled, setHovering)
+
+      def render(p:Props, s:State) = {
         <.span(
           <.span(
+            ^.id := p.id.toString,
             ^.style := {
               var rect =  (js.Object()).asInstanceOf[Rectangle]
               rect.left = p.x
@@ -167,62 +168,26 @@ object SPWidgetElements{
               rect
             },
             ^.className := SPWidgetElementsCSS.dropZone.htmlClass,
-            {if(!s.isActive) ^.className := SPWidgetElementsCSS.disableDropZone.htmlClass
+            {if(!s.enabled) ^.className := SPWidgetElementsCSS.disableDropZone.htmlClass
             else ""},
-            {if(s.target == p.id)
+            {if(s.hovering)
               ^.className := SPWidgetElementsCSS.blue.htmlClass
             else ""},
-            ^.onMouseOver --> handleMouseOver( p.id )
+            ^.onMouseOver --> Callback(Dragging.setDraggingTarget(p.id))
           )
         )
-
-      def handleMouseOver(id: UUID)= Callback{
-     //   println("moused over " + id.toString)
-        SPGUICircuit.dispatch(SetDraggingTarget(id))
       }
-
-      // def handleMouseLeave(id: UUID): Callback = Callback{
-      // //  println("mouse left " + id.toString)
-      //   SPGUICircuit.dispatch(UnsetDraggingTarget)
-      // }
     }
 
     private val component = ScalaComponent.builder[Props]("SPDragZone")
       .initialState(State())
       .renderBackend[Backend]
+      .componentWillUnmount(c => Dragging.dropzoneUnsubscribe(c.props.id))
       .build
 
-    def apply(id: UUID, x: Float, y: Float, w: Float, h: Float): VdomNode =
+    def apply(id: UUID, x: Float, y: Float, w: Float, h: Float) =
       component(Props(id, x, y, w, h))
   }
-
-  object DragoverContext {
-    class Backend($: BackendScope[Unit, Boolean]) {
-      SPGUICircuit.subscribe(SPGUICircuit.zoomRW(myM => myM)((m,v) => v))(m =>
-        $.modState(s =>
-          m.value.draggingState.dragging
-        ).runNow()
-      )
-      def render(p:Unit, s:Boolean) =
-        <.span(
-          ^.className := SPWidgetElementsCSS.dropZoneContext.htmlClass,
-          {if(!s) ^.className := SPWidgetElementsCSS.disableDropZone.htmlClass
-          else ""},
-          ^.onMouseOver --> Callback(SPGUICircuit.dispatch(UnsetDraggingTarget))
-        )
-    }
-
-    private val component = ScalaComponent.builder[Unit]("SPDragZoneContext")
-      .initialState(false)
-      .renderBackend[Backend]
-      .build
-
-    def apply(): VdomNode =
-      component()
-  }
-
-  
-   
 
   def draggable(label:String, id: UUID, typ: String): TagMod = {
     val data = Dragging.Data(label, id, typ)
@@ -232,27 +197,7 @@ object SPWidgetElements{
         (e: ReactTouchEvent) => Callback ({
           val x =  e.touches.item(0).pageX.toFloat
           val y = e.touches.item(0).pageY.toFloat
-          
-          val target = document.elementFromPoint(x, y)
-          val evnt: MouseEvent = document.createEvent("MouseEvents").asInstanceOf[MouseEvent]
-          evnt.initMouseEvent(
-            typeArg = "mouseover",
-            canBubbleArg = true,
-            cancelableArg = true,
-            viewArg = window.window,
-            detailArg = 0,
-            screenXArg = x.toInt,
-            screenYArg = y.toInt,
-            clientXArg = x.toInt,
-            clientYArg = y.toInt,
-            ctrlKeyArg = false,
-            altKeyArg = false,
-            shiftKeyArg = false,
-            metaKeyArg = false,
-            buttonArg = 0,
-            relatedTargetArg = document.getElementById("spgui-root")
-          )
-          if(evnt != null) target.dispatchEvent(evnt)
+          Dragging.onDragMove(x, y)
         })
       }),
       (^.onTouchEnd ==> {
@@ -261,6 +206,7 @@ object SPWidgetElements{
       (^.onMouseDown ==> handleDragStart(data.label))
     ).toTagMod
   }
+
   /*
    This is used to generate mouse events when dragging on a touch screen, which will trigger
    the ^.onMouseOver on any element targeted by the touch event. Mobile browsers do not support

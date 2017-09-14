@@ -26,7 +26,9 @@ object GlobalCSS extends SPStyleSheet {
   )
 
   val layout = style("sp-layout")(
-
+    height(100.%%),
+    width(100.%%),
+    position.absolute
   )
 
   this.addToDocument()

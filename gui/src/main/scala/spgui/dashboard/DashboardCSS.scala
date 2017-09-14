@@ -31,8 +31,7 @@ object DashboardCSS extends SPStyleSheet {
     ),
     unsafeChild("h5")(
       transitionDuration:=!"300ms"
-    ),
-    userSelect := "none"
+    )
   )
 
 
