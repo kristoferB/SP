@@ -74,7 +74,9 @@ object SPSettings {
     "com.lihaoyi" %%% "scalarx" % versions.scalarx,
     "org.singlespaced" %%% "scalajs-d3" % versions.scalaD3,
     "org.scalatest" %%% "scalatest" % versions.scalaTest % "test",
-    "com.lihaoyi" %%% "utest" % versions.uTest % Test
+    "com.lihaoyi" %%% "utest" % versions.uTest % Test,
+    "com.github.julien-truffaut" %%%  "monocle-core"  % "1.4.0",
+    "com.github.julien-truffaut" %%%  "monocle-macro" % "1.4.0"
   ))
 
   lazy val commonSettings = Seq(
@@ -87,7 +89,8 @@ object SPSettings {
 
   lazy val jsSettings = Seq(
     libraryDependencies ++= guiDependencies.value,
-    testFrameworks += new TestFramework("utest.runner.Framework")
+    testFrameworks += new TestFramework("utest.runner.Framework"),
+    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
   )
 
 

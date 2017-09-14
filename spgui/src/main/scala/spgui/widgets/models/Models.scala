@@ -10,6 +10,8 @@ import sp.domain._
 import spgui.communication._
 import sp.domain.Logic._
 
+import monocle.macros._
+
 object TestModel {
   def getTestModel: List[IDAble] = {
     List(
@@ -40,9 +42,9 @@ object ModelsWidget {
   def makeMess(h: SPHeader, b: mapi.Request) = SPMessage.make[SPHeader, mapi.Request](h, b)
   def makeMess(h: SPHeader, b: APISP) = SPMessage.make[SPHeader, APISP](h, b)
 
-  case class UIState(historyExpanded: Set[ID], shownIdables: List[IDAble])
-  case class ModelState(models: List[ID], modelInfo: Map[ID,mapi.ModelInformation], modelHistory: Map[ID, mapi.ModelHistory])
-  case class State(modelState: ModelState, uiState: UIState)
+  @Lenses case class UIState(historyExpanded: Set[ID], shownIdables: List[IDAble])
+  @Lenses case class ModelState(models: List[ID], modelInfo: Map[ID,mapi.ModelInformation], modelHistory: Map[ID, mapi.ModelHistory])
+  @Lenses case class State(modelState: ModelState, uiState: UIState)
 
   private class Backend($: BackendScope[Unit, State]) {
 
@@ -57,13 +59,13 @@ object ModelsWidget {
             println("Got model list")
             models.foreach { m => sendToModel(m, mapi.GetModelInfo) }
             models.foreach { m => sendToModel(m, mapi.GetModelHistory) }
-            mu.modState(s => s.copy(models = models))
+            mu.modState(s => ModelState.models.set(models)(s))
           case mmapi.ModelCreated(name, attr, modelid) =>
             println("Model created")
             sendToModel(modelid, mapi.PutItems(TestModel.getTestModel))
-            mu.modState(s => s.copy(models = modelid :: s.models))
+            mu.modState(s => ModelState.models.set(modelid :: s.models)(s))
           case mmapi.ModelDeleted(modelid) =>
-            mu.modState(s => s.copy(models = s.models.filterNot(_ == modelid)))
+            mu.modState(s => ModelState.models.set(s.models.filterNot(_ == modelid))(s))
           case x => Callback.empty
         }
         res.runNow()
@@ -71,19 +73,19 @@ object ModelsWidget {
       extractMResponse(mess).map{ case (h, b) =>
         val res = b match {
           case mi@mapi.ModelInformation(name, id, version, noitems, attributes) =>
-            mu.modState(s=>s.copy(modelInfo = s.modelInfo + (id -> mi)))
+            mu.modState(s=>ModelState.modelInfo.set(s.modelInfo + (id -> mi))(s))
           case mh@mapi.ModelHistory(id, history) =>
-            mu.modState(s=>s.copy(modelHistory = s.modelHistory + (id -> mh)))
+            mu.modState(s=>ModelState.modelHistory.set(s.modelHistory + (id -> mh))(s))
           case mapi.ModelUpdate(modelid, version, noitems, updatedItems, deletedItems, info) =>
             // fetch new version history
             sendToModel(modelid, mapi.GetModelHistory)
             mu.modState{ s =>
               val info = s.modelInfo.get(modelid)
               val nmi = s.modelInfo ++ info.map(info => (modelid -> mapi.ModelInformation(info.name, info.id, version, noitems, info.attributes)))
-              s.copy(modelInfo = nmi)
+              ModelState.modelInfo.set(nmi)(s)
             }
           case tm@mapi.SPItems(items) =>
-            iu.modState(s=>s.copy(shownIdables = items))
+            iu.modState(s=>UIState.shownIdables.set(items)(s))
           case x => Callback.empty
         }
         res.runNow()
@@ -117,10 +119,10 @@ object ModelsWidget {
                 <.td(
                   (if(s.uiState.historyExpanded.contains(m))
                     <.button(^.className := "btn btn-sm",
-                      ^.onClick --> iu.modState(s=>s.copy(historyExpanded = s.historyExpanded - m)), "-")
+                      ^.onClick --> iu.modState(s=>UIState.historyExpanded.set(s.historyExpanded - m)(s)), "-")
                   else
                     <.button(^.className := "btn btn-sm",
-                      ^.onClick --> iu.modState(s=>s.copy(historyExpanded = s.historyExpanded + m)), "+")
+                      ^.onClick --> iu.modState(s=>UIState.historyExpanded.set(s.historyExpanded + m)(s)), "+")
                   ),
                   m.toString
                 ),
