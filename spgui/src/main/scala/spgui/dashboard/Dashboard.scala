@@ -5,17 +5,16 @@ import java.util.UUID
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import diode.react.ModelProxy
-
 import spgui.SPWidgetBase
 import spgui.circuit._
 import spgui.WidgetList
-
-import spgui.dashboard.{ ReactGridLayout => RGL }
+import spgui.dashboard.{ReactGridLayout => RGL}
 
 import scala.scalajs.js
 import js.JSConverters._
-
 import org.scalajs.dom.window
+
+import scala.util.Try
 
 object Dashboard {
   case class Props(proxy: ModelProxy[(Map[UUID, OpenWidget], GlobalState)])
@@ -29,23 +28,26 @@ object Dashboard {
         $.setState(State(window.innerWidth.toInt)).runNow()
       }
 
-      val widgets = for {
-        openWidget <- p.proxy()._1.values
+      val widgets = (for {
+        openWidget <- p.proxy()._1.values.toList
       } yield {
+
         val frontEndState = p.proxy()._2
 
-        <.div(
-          DashboardItem(
-            WidgetList.map(openWidget.widgetType)._1(
-              SPWidgetBase(openWidget.id, frontEndState)
+        Try {
+          <.div(
+            DashboardItem(
+              WidgetList.map(openWidget.widgetType)._1(
+                SPWidgetBase(openWidget.id, frontEndState)
+              ),
+              openWidget.widgetType,
+              openWidget.id,
+              openWidget.layout.h
             ),
-            openWidget.widgetType,
-            openWidget.id,
-            openWidget.layout.h
-          ),
-          ^.key := openWidget.id.toString
-        )
-      }
+            ^.key := openWidget.id.toString
+          )
+        }.toOption
+      }).flatten
  
       val bigLayout = (
         for {
