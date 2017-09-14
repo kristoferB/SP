@@ -24,7 +24,16 @@ object APISP {
   case class SPDone() extends APISP
 
   case object StatusRequest extends APISP
-  case class StatusResponse(service: String, instanceID: Option[ID] = None, instanceName: String = "", tags: List[String] = List(), api: SPAttributes = SPAttributes(), version: Int = 1, attributes: SPAttributes = SPAttributes()) extends APISP
+  case class StatusResponse(
+                 service: String,
+                 instanceID: Option[ID] = None,
+                 instanceName: String = "",
+                 tags: List[String] = List(),
+                 api: SPAttributes = SPAttributes(),
+                 version: Int = 1,
+                 topicRequest: String = "services",
+                 topicResponse: String = "answers",
+                 attributes: SPAttributes = SPAttributes()) extends APISP
 
 
   object StatusResponse {
@@ -35,7 +44,9 @@ object APISP {
       val tags = attr.getAs[List[String]]("tags").getOrElse(List())
       val api = attr.getAs[SPAttributes]("api").getOrElse(SPAttributes())
       val version = attr.getAs[Int]("version").getOrElse(1)
-      StatusResponse(service, id, instanceName, tags, api, version, attr)
+      val topicRequest = attr.getAs[String]("topicRequest").getOrElse("services")
+      val topicResponse = attr.getAs[String]("topicResponse").getOrElse("answers")
+      StatusResponse(service, id, instanceName, tags, api, version, topicRequest, topicResponse, attr)
     }
   }
 

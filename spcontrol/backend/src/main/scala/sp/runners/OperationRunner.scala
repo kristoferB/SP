@@ -109,6 +109,7 @@ class OperationRunner extends Actor with ActorLogging with OperationRunnerLogic 
             } yield v).getOrElse(SPValue("notEnabled"))
             println(s"The ability with id $id updated with state: $abState")
             newAbilityState(id, abState, startAbility, sendState)
+          case x => println(s"Operation Runner got a message it do not handle: $x")
         }
     }
   }

@@ -61,6 +61,7 @@ object ModelsWidget {
             $.modState(s => s.copy(modelState = s.modelState.copy(models = modelid :: s.modelState.models)))
           case mmapi.ModelDeleted(modelid) =>
             $.modState(s => s.copy(modelState = s.modelState.copy(models = s.modelState.models.filterNot(_ == modelid))))
+          case x => Callback.empty
         }
         res.runNow()
       }

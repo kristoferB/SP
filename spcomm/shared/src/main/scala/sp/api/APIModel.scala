@@ -7,6 +7,8 @@ object APIModelMaker {
   sealed trait Request
   sealed trait Response
   val service = "ModelMaker"
+  val topicRequest = "modelRequests"
+  val topicResponse = "modelResponse"
 
   case class CreateModel(name: String, attributes: SPAttributes = SPAttributes(), id: ID = ID.newID) extends Request
   case class DeleteModel(id: ID) extends Request
@@ -43,6 +45,8 @@ object APIModel {
   sealed trait Request
   sealed trait Response
   val service = "AModel"
+  val topicRequest = "modelRequests"
+  val topicResponse = "modelResponse"
 
   case object GetModelInfo extends Request
   case object GetModelHistory extends Request
