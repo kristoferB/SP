@@ -40,7 +40,9 @@ object ModelsWidget {
   def makeMess(h: SPHeader, b: mapi.Request) = SPMessage.make[SPHeader, mapi.Request](h, b)
   def makeMess(h: SPHeader, b: APISP) = SPMessage.make[SPHeader, APISP](h, b)
 
-  case class State(models: List[ID], modelinfo: Map[ID,mapi.ModelInformation], idables: List[IDAble])
+  case class UIState(historyExpanded: Set[ID], shownIdables: List[IDAble])
+  case class ModelState(models: List[ID], modelInfo: Map[ID,mapi.ModelInformation], modelHistory: Map[ID, mapi.ModelHistory])
+  case class State(modelState: ModelState, uiState: UIState)
 
   private class Backend($: BackendScope[Unit, State]) {
 
@@ -51,27 +53,32 @@ object ModelsWidget {
           case mmapi.ModelList(models) =>
             println("Got model list")
             models.foreach { m => sendToModel(m, mapi.GetModelInfo) }
-            $.modState(s => s.copy(models = models))
+            models.foreach { m => sendToModel(m, mapi.GetModelHistory) }
+            $.modState(s => s.copy(modelState = s.modelState.copy(models = models)))
           case mmapi.ModelCreated(name, attr, modelid) =>
             println("Model created")
             sendToModel(modelid, mapi.PutItems(TestModel.getTestModel))
-            $.modState(s => s.copy(models = modelid :: s.models))
+            $.modState(s => s.copy(modelState = s.modelState.copy(models = modelid :: s.modelState.models)))
           case mmapi.ModelDeleted(modelid) =>
-            $.modState(s => s.copy(models = s.models.filterNot(_ == modelid)))
+            $.modState(s => s.copy(modelState = s.modelState.copy(models = s.modelState.models.filterNot(_ == modelid))))
         }
         res.runNow()
       }
       extractMResponse(mess).map{ case (h, b) =>
         val res = b match {
-          case mi@mapi.ModelInformation(name, id, version, noitems, attributes) => $.modState(s=>s.copy(modelinfo = s.modelinfo + (id -> mi)))
+          case mi@mapi.ModelInformation(name, id, version, noitems, attributes) =>
+            $.modState(s=>s.copy(modelState = s.modelState.copy(modelInfo = s.modelState.modelInfo + (id -> mi))))
+          case mh@mapi.ModelHistory(id, history) => $.modState(s=>s.copy(modelState = s.modelState.copy(modelHistory = s.modelState.modelHistory + (id -> mh))))
           case mu@mapi.ModelUpdate(modelid, version, noitems, updatedItems, deletedItems, info) =>
-            val f = $.zoomState(_.modelinfo)(value => _.copy(modelinfo = value))
-            f.modState{ s =>
-              val info = s.get(modelid)
-              s ++ info.map(info => (modelid -> mapi.ModelInformation(info.name, info.id, version, noitems, info.attributes)))
+            // fetch new version history
+            sendToModel(modelid, mapi.GetModelHistory)
+            $.modState{ s =>
+              val info = s.modelState.modelInfo.get(modelid)
+              val nmi = s.modelState.modelInfo ++ info.map(info => (modelid -> mapi.ModelInformation(info.name, info.id, version, noitems, info.attributes)))
+              s.copy(modelState = s.modelState.copy(modelInfo = nmi))
             }
           case tm@mapi.SPItems(items) =>
-            $.modState(s=>s.copy(idables = items))
+            $.modState(s=>s.copy(uiState = s.uiState.copy(shownIdables = items)))
         }
         res.runNow()
       }
@@ -80,9 +87,6 @@ object ModelsWidget {
     val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
       if (mess) sendToHandler(mmapi.GetModels)
     }, "services")
-
-
-
 
     val answerHandler = BackendCommunication.getMessageObserver(handleMess, "answers")
     val speventHandler = BackendCommunication.getMessageObserver(handleMess, "spevents")
@@ -97,46 +101,109 @@ object ModelsWidget {
           <.th("version"),
           <.th("number of items"),
           <.th("put dummy items"),
+          <.th("preview"),
           <.th("delete")
         ),
         <.tbody(
-          s.models.map(m=> {
-            <.tr(
-              <.td(
-                <.a(^.onClick --> sendToModel(m, mapi.GetItemList()), "+"),
-                m.toString
-              ),
-              <.td(s.modelinfo.get(m).map(_.name).getOrElse("").toString),
-              <.td(s.modelinfo.get(m).map(_.version).getOrElse(-1).toString),
-              <.td(s.modelinfo.get(m).map(_.noOfItems).getOrElse(-1).toString),
-              <.td(
-                <.button(
-                  ^.className := "btn btn-sm",
-                  ^.onClick --> sendToModel(m, mapi.PutItems(TestModel.getTestModel)), "+"
+          s.modelState.models.map(m=> {
+            List(
+              <.tr(
+                <.td(
+                  (if(s.uiState.historyExpanded.contains(m))
+                    <.button(^.className := "btn btn-sm",
+                      ^.onClick --> $.modState(s=>s.copy(uiState = s.uiState.copy(historyExpanded = s.uiState.historyExpanded - m))), "-")
+                  else
+                    <.button(^.className := "btn btn-sm",
+                      ^.onClick --> $.modState(s=>s.copy(uiState = s.uiState.copy(historyExpanded = s.uiState.historyExpanded + m))), "+")
+                  ),
+                  m.toString
+                ),
+                <.td(s.modelState.modelInfo.get(m).map(_.name).getOrElse("").toString),
+                <.td(s.modelState.modelInfo.get(m).map(_.version).getOrElse(-1).toString),
+                <.td(s.modelState.modelInfo.get(m).map(_.noOfItems).getOrElse(-1).toString),
+                <.td(
+                  <.button(
+                    ^.className := "btn btn-sm",
+                    ^.onClick --> sendToModel(m, mapi.PutItems(TestModel.getTestModel)), "+"
+                  )
+                ),
+                <.td(
+                  <.button(
+                    ^.className := "btn btn-sm",
+                    ^.onClick --> sendToModel(m, mapi.GetItemList()), "P"
+                  )
+                ),
+                <.td(
+                  <.button(
+                    ^.className := "btn btn-sm",
+                    ^.onClick --> sendToHandler(mmapi.DeleteModel(m)), "X"
+                  )
                 )
               ),
-              <.td(
-                <.button(
-                  ^.className := "btn btn-sm",
-                  ^.onClick --> sendToHandler(mmapi.DeleteModel(m)), "X"
-                )
-              )
-            )
-          }).toTagMod
+              if(s.uiState.historyExpanded.contains(m))
+                <.tr(<.td(^.colSpan := 42, renderHistoryTable(s,m)))
+              else ""
+            ) : List[TagMod]
+          }).flatten.toTagMod
         )
       )
     }
 
+    def renderHistoryTable(s: State, m: ID) = {
+      val hist = s.modelState.modelHistory.get(m).map(_.history).getOrElse(List())
+      <.table(
+        ^.className := "table table-striped",
+        <.caption("History"),
+        <.thead(
+          <.th("Version"),
+          <.th("Info"),
+          <.th("Revert")
+        ),
+        <.tbody(
+          hist.map(h =>
+            <.tr(
+              <.td(h._1),
+              <.td(h._2.getAs[String]("info").getOrElse("no info").toString),
+              <.td(
+                <.button(
+                    ^.className := "btn btn-sm",
+                    ^.onClick --> sendToModel(m,mapi.RevertModel(h._1)), "<<"
+                  )
+              ))).toTagMod
+        ))
+    }
+
+    def renderModelPreview(s: State): TagMod = {
+      if(s.uiState.shownIdables.nonEmpty)
+        <.table(
+          ^.className := "table table-striped",
+          <.caption("Model Preview"),
+          <.thead(
+            <.th("Type"),
+            <.th("Name"),
+            <.th("ID")
+          ),
+          <.tbody(
+            s.uiState.shownIdables.map(i =>
+              <.tr(
+                <.td(i.getClass.getSimpleName),
+                <.td(i.name),
+                <.td(i.id.toString)
+              )).toTagMod
+          ))
+      else
+        ""
+    }
+
     def render(state: State) = {
       <.div(
-        <.h2("Models : " + state.models.size),
+        <.h2("Models : " + state.modelState.models.size),
         renderModels(state),
         <.button(
           ^.className := "btn btn-default",
           ^.onClick --> sendToHandler(mmapi.CreateModel("testmodel")), "Create test model"
         ),
-        <.br,
-        state.idables.toString
+        renderModelPreview(state)
       )
     }
 
@@ -162,12 +229,19 @@ object ModelsWidget {
       Callback.empty
     }
 
+    def onMount() = {
+      Callback.empty
+    }
+
   }
 
+  val initialUIState = UIState(Set(), shownIdables = List())
+  val initialModelState = ModelState(models = List(), modelInfo = Map(), modelHistory = Map())
+  val initialState = State(initialModelState, initialUIState)
   private val component = ScalaComponent.builder[Unit]("ModelsWidget")
-    .initialState(State(models = List(), modelinfo = Map(), idables = List()))
+    .initialState(initialState)
     .renderBackend[Backend]
-//    .componentDidMount(_.backend.onMount())
+    .componentDidMount(_.backend.onMount())
     .componentWillUnmount(_.backend.onUnmount())
     .build
 
