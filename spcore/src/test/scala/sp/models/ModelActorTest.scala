@@ -84,7 +84,7 @@ class ModelActorTest(_system: ActorSystem) extends TestKit(_system) with Implici
 //        }
 
 
-        val o = Operation("Kalle")
+        val o = Operation("Op1")
         for {
           mess <- SPMessage.fromJson(m)
           h <- mess.getHeaderAs[SPHeader] if h.from == x1.id.toString && go1
@@ -94,6 +94,7 @@ class ModelActorTest(_system: ActorSystem) extends TestKit(_system) with Implici
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.PutItems(List(o, Operation("Kalle2")))))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.ExportModel))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetItemList(0, 1)))
+          mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetItemList(filter = api.ItemFilter(regexName = ".*ka.*"))))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetItem(o.id)))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.DeleteItems(List(o.id))))
           mediator ! Publish(APISP.services, SPMessage.makeJson(h2, api.GetItem(o.id)))

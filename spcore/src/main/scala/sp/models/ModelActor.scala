@@ -66,8 +66,12 @@ class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentAc
               sendAnswer(updH, api.SPItems(res.toList))
             case api.GetItemList(from, size, filter) =>
               val res = state.items.slice(from, from + size)
-              // TODO: add filter soon
-              sendAnswer(updH, SPItems(res))
+              val appliedFilter = res.filter{item =>
+                val nameM = filter.regexName.isEmpty || item.name.toLowerCase.matches(filter.regexName)
+                val typeM = filter.regexType.isEmpty || item.getClass.getSimpleName.toLowerCase.matches(filter.regexType)
+                nameM && typeM
+              }
+              sendAnswer(updH, SPItems(appliedFilter))
             case api.GetItem(itemID) =>
               state.idMap.get(itemID) match {
                 case Some(r) => sendAnswer(updH, api.SPItem(r))

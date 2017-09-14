@@ -48,7 +48,7 @@ object APIModel {
   case object GetModelHistory extends Request
   case object ExportModel extends Request
 
-  case class ItemFilter(matchNames: String, matchTypes: String)
+  case class ItemFilter(regexName: String = "", regexType: String = "")
 
   case class GetItem(itemID: ID) extends Request
   case class GetItems(itemIDs: List[ID]) extends Request
