@@ -80,6 +80,7 @@ object ModelsWidget {
             }
           case tm@mapi.SPItems(items) =>
             $.modState(s=>s.copy(uiState = s.uiState.copy(shownIdables = items)))
+          case x => Callback.empty
         }
         res.runNow()
       }
