@@ -131,7 +131,7 @@ object ModelsWidget {
                       <.i(^.className := "fa fa-chevron-down")
                     )
                   ),
-                  m.toString
+                  " " + m.toString
                 ),
                 <.td(s.modelState.modelInfo.get(m).map(_.name).getOrElse("").toString),
                 <.td(s.modelState.modelInfo.get(m).map(_.version).getOrElse(-1).toString),
@@ -220,12 +220,15 @@ object ModelsWidget {
 
     def render(state: State) = {
       <.div(
-        <.h2("Models : " + state.modelState.models.size),
-        renderModels(state),
         <.button(
           ^.className := "btn btn-default",
           ^.onClick --> sendToHandler(mmapi.CreateModel("testmodel")), <.i(^.className := "fa fa-bolt"), " Create test model"
         ),
+        <.button(
+          ^.className := "btn btn-default",
+          ^.onClick --> sendToHandler(mmapi.GetModels), <.i(^.className := "fa fa-refresh"), " Refresh models"
+        ),
+        renderModels(state),
         renderModelPreview(state)
       )
     }
