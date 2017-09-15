@@ -11,6 +11,8 @@ import spgui.communication._
 import sp.domain.Logic._
 
 import monocle.macros._
+import monocle.Lens
+
 
 object TestModel {
   def getTestModel: List[IDAble] = {
@@ -48,8 +50,8 @@ object ModelsWidget {
 
   private class Backend($: BackendScope[Unit, State]) {
 
-    private val mu = $.zoomState(_.modelState)(value => _.copy(modelState = value))
-    private val iu = $.zoomState(_.uiState)(value => _.copy(uiState = value))
+    def mL[T](lens: Lens[ModelState, T]): Lens[State, T] = (State.modelState composeLens lens)
+    def uiL[T](lens: Lens[UIState, T]): Lens[State, T] = (State.uiState composeLens lens)
 
     def handleMess(mess: SPMessage): Unit = {
       println("handlemess: " + mess)
@@ -59,13 +61,13 @@ object ModelsWidget {
             println("Got model list")
             models.foreach { m => sendToModel(m, mapi.GetModelInfo) }
             models.foreach { m => sendToModel(m, mapi.GetModelHistory) }
-            mu.modState(s => ModelState.models.set(models)(s))
+            $.modState(s => mL(ModelState.models).set(models)(s))
           case mmapi.ModelCreated(name, attr, modelid) =>
             println("Model created")
             sendToModel(modelid, mapi.PutItems(TestModel.getTestModel))
-            mu.modState(s => ModelState.models.set(modelid :: s.models)(s))
+            $.modState(s => mL(ModelState.models).modify(modelid :: _)(s))
           case mmapi.ModelDeleted(modelid) =>
-            mu.modState(s => ModelState.models.set(s.models.filterNot(_ == modelid))(s))
+            $.modState(s => mL(ModelState.models).modify(_.filterNot(_ == modelid))(s))
           case x => Callback.empty
         }
         res.runNow()
@@ -73,19 +75,20 @@ object ModelsWidget {
       extractMResponse(mess).map{ case (h, b) =>
         val res = b match {
           case mi@mapi.ModelInformation(name, id, version, noitems, attributes) =>
-            mu.modState(s=>ModelState.modelInfo.set(s.modelInfo + (id -> mi))(s))
+            $.modState(s=>mL(ModelState.modelInfo).modify(_ + (id -> mi))(s))
           case mh@mapi.ModelHistory(id, history) =>
-            mu.modState(s=>ModelState.modelHistory.set(s.modelHistory + (id -> mh))(s))
+            $.modState(s=>mL(ModelState.modelHistory).modify(_ + (id -> mh))(s))
           case mapi.ModelUpdate(modelid, version, noitems, updatedItems, deletedItems, info) =>
             // fetch new version history
             sendToModel(modelid, mapi.GetModelHistory)
-            mu.modState{ s =>
-              val info = s.modelInfo.get(modelid)
-              val nmi = s.modelInfo ++ info.map(info => (modelid -> mapi.ModelInformation(info.name, info.id, version, noitems, info.attributes)))
-              ModelState.modelInfo.set(nmi)(s)
+            $.modState{ s =>
+              mL(ModelState.modelInfo).modify(modelinfo => {
+                val info = modelinfo.get(modelid)
+                modelinfo ++ info.map(info => (modelid -> mapi.ModelInformation(info.name, info.id, version, noitems, info.attributes)))
+              })(s)
             }
           case tm@mapi.SPItems(items) =>
-            iu.modState(s=>UIState.shownIdables.set(items)(s))
+            $.modState(s=>uiL(UIState.shownIdables).set(items)(s))
           case x => Callback.empty
         }
         res.runNow()
@@ -119,10 +122,10 @@ object ModelsWidget {
                 <.td(
                   (if(s.uiState.historyExpanded.contains(m))
                     <.button(^.className := "btn btn-sm",
-                      ^.onClick --> iu.modState(s=>UIState.historyExpanded.set(s.historyExpanded - m)(s)), "-")
+                      ^.onClick --> $.modState(s=>uiL(UIState.historyExpanded).modify(_ - m)(s)), "-")
                   else
                     <.button(^.className := "btn btn-sm",
-                      ^.onClick --> iu.modState(s=>UIState.historyExpanded.set(s.historyExpanded + m)(s)), "+")
+                      ^.onClick --> $.modState(s=>uiL(UIState.historyExpanded).modify(_ + m)(s)), "+")
                   ),
                   m.toString
                 ),
