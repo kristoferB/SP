@@ -45,7 +45,7 @@ object ModelsWidget {
   def makeMess(h: SPHeader, b: APISP) = SPMessage.make[SPHeader, APISP](h, b)
 
   @Lenses case class UIState(historyExpanded: Set[ID], shownIdables: List[IDAble])
-  @Lenses case class ModelState(models: List[ID], modelInfo: Map[ID,mapi.ModelInformation], modelHistory: Map[ID, mapi.ModelHistory])
+  @Lenses case class ModelState(models: Set[ID], modelInfo: Map[ID,mapi.ModelInformation], modelHistory: Map[ID, mapi.ModelHistory])
   @Lenses case class State(modelState: ModelState, uiState: UIState)
 
   private class Backend($: BackendScope[Unit, State]) {
@@ -61,11 +61,11 @@ object ModelsWidget {
             println("Got model list")
             models.foreach { m => sendToModel(m, mapi.GetModelInfo) }
             models.foreach { m => sendToModel(m, mapi.GetModelHistory) }
-            $.modState(s => mL(ModelState.models).set(models)(s))
+            $.modState(s => mL(ModelState.models).set(models.toSet)(s))
           case mmapi.ModelCreated(name, attr, modelid) =>
             println("Model created")
             sendToModel(modelid, mapi.PutItems(TestModel.getTestModel))
-            $.modState(s => mL(ModelState.models).modify(modelid :: _)(s))
+            $.modState(s => mL(ModelState.models).modify(_ + modelid)(s))
           case mmapi.ModelDeleted(modelid) =>
             $.modState(s => mL(ModelState.models).modify(_.filterNot(_ == modelid))(s))
           case x => Callback.empty
@@ -97,7 +97,7 @@ object ModelsWidget {
 
     val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
       if (mess) sendToHandler(mmapi.GetModels)
-    }, "services")
+    }, mmapi.topicResponse)
 
     val modelMakerHandler = BackendCommunication.getMessageObserver(handleMess, mmapi.topicResponse)
     val modelsHandler = BackendCommunication.getMessageObserver(handleMess, mapi.topicResponse)
@@ -106,7 +106,7 @@ object ModelsWidget {
       <.table(
         ^.className := "table table-striped",
         <.caption("Models"),
-        <.thead(
+        <.thead(<.tr(
           <.th("id"),
           <.th("name"),
           <.th("version"),
@@ -114,9 +114,9 @@ object ModelsWidget {
           <.th("put dummy items"),
           <.th("preview"),
           <.th("delete")
-        ),
+        )),
         <.tbody(
-          s.modelState.models.map(m=> {
+          s.modelState.models.toList.sorted.map(m=> {
             List(
               <.tr(
                 <.td(
@@ -161,11 +161,8 @@ object ModelsWidget {
                   )
                 )
               ),
-              if(s.uiState.historyExpanded.contains(m))
-                <.tr(<.td(^.colSpan := 42, renderHistoryTable(s,m)))
-              else ""
-            ) : List[TagMod]
-          }).flatten.toTagMod
+              <.tr(<.td(^.colSpan := 42, renderHistoryTable(s,m))).when(s.uiState.historyExpanded.contains(m))
+            )}).flatten.toTagMod
         )
       )
     }
@@ -175,11 +172,11 @@ object ModelsWidget {
       <.table(
         ^.className := "table table-striped",
         <.caption("History"),
-        <.thead(
+        <.thead(<.tr(
           <.th("Version"),
           <.th("Info"),
           <.th("Revert")
-        ),
+        )),
         <.tbody(
           hist.map(h =>
             <.tr(
@@ -197,25 +194,22 @@ object ModelsWidget {
     }
 
     def renderModelPreview(s: State): TagMod = {
-      if(s.uiState.shownIdables.nonEmpty)
-        <.table(
-          ^.className := "table table-striped",
-          <.caption("Model Preview"),
-          <.thead(
-            <.th("Type"),
-            <.th("Name"),
-            <.th("ID")
-          ),
-          <.tbody(
-            s.uiState.shownIdables.map(i =>
-              <.tr(
-                <.td(i.getClass.getSimpleName),
-                <.td(i.name),
-                <.td(i.id.toString)
-              )).toTagMod
-          ))
-      else
-        ""
+      <.table(
+        ^.className := "table table-striped",
+        <.caption("Model Preview"),
+        <.thead(<.tr(
+          <.th("Type"),
+          <.th("Name"),
+          <.th("ID")
+        )),
+        <.tbody(
+          s.uiState.shownIdables.map(i =>
+            <.tr(
+              <.td(i.getClass.getSimpleName),
+              <.td(i.name),
+              <.td(i.id.toString)
+            )).toTagMod
+        )).when(s.uiState.shownIdables.nonEmpty)
     }
 
     def render(state: State) = {
@@ -262,7 +256,7 @@ object ModelsWidget {
   }
 
   val initialUIState = UIState(Set(), shownIdables = List())
-  val initialModelState = ModelState(models = List(), modelInfo = Map(), modelHistory = Map())
+  val initialModelState = ModelState(models = Set(), modelInfo = Map(), modelHistory = Map())
   val initialState = State(initialModelState, initialUIState)
   private val component = ScalaComponent.builder[Unit]("ModelsWidget")
     .initialState(initialState)
