@@ -149,7 +149,8 @@ trait ModelLogic {
     implicit lazy val fModelDiff: JSFormat[ModelDiff] = deriveFormatSimple[ModelDiff]
   }
 
-  var state = ModelState(1, Map(), Map(), modelSetup.attributes, modelSetup.name)
+  val initialHistory = SPAttributes("info"->s"Model created.")
+  var state = ModelState(1, Map(), Map(1 -> initialHistory), modelSetup.attributes, modelSetup.name)
 
 
   def putItems(items: List[IDAble], info: SPAttributes) = {
