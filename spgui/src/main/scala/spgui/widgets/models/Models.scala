@@ -122,10 +122,14 @@ object ModelsWidget {
                 <.td(
                   (if(s.uiState.historyExpanded.contains(m))
                     <.button(^.className := "btn btn-sm",
-                      ^.onClick --> $.modState(s=>uiL(UIState.historyExpanded).modify(_ - m)(s)), "-")
+                      ^.onClick --> $.modState(s=>uiL(UIState.historyExpanded).modify(_ - m)(s)),
+                      <.i(^.className := "fa fa-chevron-up")
+                    )
                   else
                     <.button(^.className := "btn btn-sm",
-                      ^.onClick --> $.modState(s=>uiL(UIState.historyExpanded).modify(_ + m)(s)), "+")
+                      ^.onClick --> $.modState(s=>uiL(UIState.historyExpanded).modify(_ + m)(s)),
+                      <.i(^.className := "fa fa-chevron-down")
+                    )
                   ),
                   m.toString
                 ),
@@ -135,19 +139,25 @@ object ModelsWidget {
                 <.td(
                   <.button(
                     ^.className := "btn btn-sm",
-                    ^.onClick --> sendToModel(m, mapi.PutItems(TestModel.getTestModel)), "+"
+                    ^.title := "Add some dummy items",
+                    ^.onClick --> sendToModel(m, mapi.PutItems(TestModel.getTestModel)),
+                    <.i(^.className := "fa fa-bolt")
                   )
                 ),
                 <.td(
                   <.button(
                     ^.className := "btn btn-sm",
-                    ^.onClick --> sendToModel(m, mapi.GetItemList()), "P"
+                    ^.title := "Preview model",
+                    ^.onClick --> sendToModel(m, mapi.GetItemList()),
+                    <.i(^.className := "fa fa-eye")
                   )
                 ),
                 <.td(
                   <.button(
                     ^.className := "btn btn-sm",
-                    ^.onClick --> sendToHandler(mmapi.DeleteModel(m)), "X"
+                    ^.title := "Delete model",
+                    ^.onClick --> sendToHandler(mmapi.DeleteModel(m)),
+                    <.i(^.className := "fa fa-trash")
                   )
                 )
               ),
@@ -177,9 +187,11 @@ object ModelsWidget {
               <.td(h._2.getAs[String]("info").getOrElse("no info").toString),
               <.td(
                 <.button(
-                    ^.className := "btn btn-sm",
-                    ^.onClick --> sendToModel(m,mapi.RevertModel(h._1)), "<<"
-                  )
+                  ^.className := "btn btn-sm",
+                  ^.title := ("Revert to version " + h._1),
+                  ^.onClick --> sendToModel(m,mapi.RevertModel(h._1)),
+                  <.i(^.className := "fa fa-undo")
+                )
               ))).toTagMod
         ))
     }
@@ -212,7 +224,7 @@ object ModelsWidget {
         renderModels(state),
         <.button(
           ^.className := "btn btn-default",
-          ^.onClick --> sendToHandler(mmapi.CreateModel("testmodel")), "Create test model"
+          ^.onClick --> sendToHandler(mmapi.CreateModel("testmodel")), <.i(^.className := "fa fa-bolt"), " Create test model"
         ),
         renderModelPreview(state)
       )
