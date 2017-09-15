@@ -14,10 +14,8 @@ object APISP {
   val services = "services"
   val answers = "answers"
   val spevents = "spevents"
-  val commands = "commands"
-  val events = "events"
-
-
+  val serviceStatusRequest = "serviceStatusRequest"
+  val serviceStatusResponse = "serviceStatusResponse"
 
   case class SPError(message: String, attributes: SPAttributes = SPAttributes()) extends APISP
   case class SPACK() extends APISP

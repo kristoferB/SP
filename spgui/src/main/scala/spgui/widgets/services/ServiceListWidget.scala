@@ -7,28 +7,28 @@ import spgui.communication._
 import sp.domain._
 import sp.domain.Logic._
 
+import sp.service.{APIServiceHandler => api}
 
 object ServiceListWidget {
   case class State(services: List[APISP.StatusResponse])
 
   private class Backend($: BackendScope[Unit, State]) {
-    import spgui.widgets.services.{APIServiceHandler => api}
 
     def handelMess(mess: SPMessage): Unit = {
-      ServiceWidgetComm.extractResponse(mess).map{ case (h, b) =>
+      for {
+        h <- mess.getHeaderAs[SPHeader]
+        b <- mess.getBodyAs[api.Response]
+      } yield {
         val res = b match {
           case api.Services(xs) => $.setState(State(xs))
-          case api.NewService(s) => $.modState(state => State(s :: state.services))
-          case api.RemovedService(s) => $.modState(state => State(state.services.filter(x => x.service != s.service)))
+          case api.ServiceAdded(s) => $.modState(state => State(s :: state.services))
+          case api.ServiceRemoved(s) => $.modState(state => State(state.services.filter(x => x.service != s.service)))
         }
-          res.runNow()
+        res.runNow()
       }
     }
 
-
-    val answerHandler = BackendCommunication.getMessageObserver(handelMess, "answers")
-    val speventHandler = BackendCommunication.getMessageObserver(handelMess, "spevents")
-
+    val answerHandler = BackendCommunication.getMessageObserver(handelMess, api.topicResponse)
 
     def render(s: State) = {
       <.div(
@@ -68,7 +68,6 @@ object ServiceListWidget {
 
     def onUnmount() = {
       answerHandler.kill()
-      speventHandler.kill()
       Callback.empty
     }
 
@@ -77,10 +76,9 @@ object ServiceListWidget {
     }
 
     def sendToHandler(mess: api.Request): Callback = {
-      val h = SPHeader(from = "ServiceListWidget", to = api.service,
-        reply = SPValue("ServiceListWidget"), reqID = java.util.UUID.randomUUID())
-      val json = ServiceWidgetComm.makeMess(h, mess)
-      BackendCommunication.publish(json, "services")
+      val h = SPHeader(from = "ServiceListWidget", to = api.service, reply = SPValue("ServiceListWidget"))
+      val json = SPMessage.make[SPHeader, api.Request](h, api.GetServices)
+      BackendCommunication.publish(json, api.topicRequest)
       Callback.empty
     }
 

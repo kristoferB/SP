@@ -1,13 +1,8 @@
 package sp.service
 
-import java.util.UUID
-
 import akka.actor._
 import sp.domain._
 import sp.domain.Logic._
-
-
-import sp.service.APIServiceHandler._
 
 
 /**
@@ -23,59 +18,65 @@ class ServiceHandler extends Actor with ServiceHandlerLogic {
   import akka.cluster.pubsub._
   import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
   val mediator = DistributedPubSub(context.system).mediator
-  mediator ! Subscribe("spevents", self)
-  mediator ! Subscribe("services", self)
+  mediator ! Subscribe(APIServiceHandler.topicRequest, self)
+  mediator ! Subscribe(APISP.serviceStatusResponse, self)
 
   override def receive = {
     case x: String if sender() != self =>
       val mess = SPMessage.fromJson(x)
 
-      ServiceHandlerComm.extractRequest(mess).map{case (h, b) =>
-        b match {
-          case GetServices =>
+      for {
+        m <- mess
+        h <- m.getHeaderAs[SPHeader] if h.to == APIServiceHandler.service
+        b <- m.getBodyAs[APIServiceHandler.Request]
+      } yield { b match {
+          case APIServiceHandler.GetServices =>
             val res = services.map(_._2._1).toList
             val updH = h.copy(from = APIServiceHandler.service, to = h.from)
-            mediator ! Publish("answers", ServiceHandlerComm.makeMess(updH, Services(res)))
+            sendAnswer(updH, APIServiceHandler.Services(res))
+          case APIServiceHandler.RemoveService(sR) =>
+            removeService(sR)
+            sendAnswer(SPHeader(from = APIServiceHandler.service), APIServiceHandler.ServiceRemoved(sR))
         }
       }
 
-      ServiceHandlerComm.extractAPISP(mess).map{case (h, b) =>
-        b match {
-          case x: APISP.StatusResponse =>
-            val res = addResponse(x, sender())
-            context.watch(sender())
-            if (res) {
-              val h = SPHeader(from = APIServiceHandler.service)
-              mediator ! Publish("spevents", ServiceHandlerComm.makeMess(h, NewService(x)))
-            }
-          case doNothing => Unit
-         }
+      for {
+        m <- mess
+        h <- m.getHeaderAs[SPHeader]
+        b <- m.getBodyAs[APISP] if b.isInstanceOf[APISP.StatusResponse]
+      } yield {
+        val sR = b.asInstanceOf[APISP.StatusResponse]
+        val res = addResponse(sR, sender())
+        context.watch(sender())
+        if (res) {
+          val h = SPHeader(from = APIServiceHandler.service)
+          sendAnswer(h, APIServiceHandler.ServiceAdded(sR))
+        }
       }
 
+    // Watching all services that are actors. Other services should send a
+    // APIServiceHandler.RemoveService
     case Terminated(ref) =>
       println("Removing service")
       val res = deathWatch(ref)
-      val h = SPHeader(from = APIServiceHandler.service)
       res.foreach{kv =>
-        mediator ! Publish("spevents", ServiceHandlerComm.makeMess(h, RemovedService(kv._2)))
+        sendAnswer(SPHeader(from = APIServiceHandler.service), APIServiceHandler.ServiceRemoved(kv._2))
       }
-
-
 
     case Tick =>
       aTick()
       val h = SPHeader("ServiceHandler")
       val b = APISP.StatusRequest
-      val m = SPMessage.makeJson(h, b)
-      mediator ! Publish("services", m)
-      //services.foreach(x => println(x._1))
+      sendReq(h, b)
   }
 
+  def sendReq(h: SPHeader, b: APISP) = mediator ! Publish(APISP.serviceStatusRequest, SPMessage.makeJson(h, b))
+  def sendAnswer(h: SPHeader, b: APIServiceHandler.Response) = mediator ! Publish(APIServiceHandler.topicResponse, SPMessage.makeJson(h, b))
 
 
   import scala.concurrent.duration._
   import context.dispatcher
-  val ticker = context.system.scheduler.schedule(60 seconds, 60 seconds, self, Tick)
+  val ticker = context.system.scheduler.schedule(5 seconds, 5 seconds, self, Tick)
 
 }
 
@@ -115,11 +116,17 @@ trait ServiceHandlerLogic {
     re
   }
 
+  def removeService(sR: APISP.StatusResponse): Unit = {
+    val n = createName(sR)
+    services = services - n
+    waitingResponse = waitingResponse - n
+  }
+
 
   def createName(x: APISP.StatusResponse ) = {
-    val id = if (x.instanceID.isEmpty) "" else "-" +x.instanceID.get.toString
-    val n = if (x.instanceName.isEmpty) id else "-" +x.instanceName
-    x.service + n
+    val n = if (x.instanceName.isEmpty) "" else "-" +x.instanceName
+    val id = if (x.instanceID.isEmpty) n else "-" +x.instanceID.get.toString
+    x.service + id
   }
 
 

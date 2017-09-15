@@ -1,70 +1,62 @@
 package sp.models
 
 import akka.actor._
-import akka.pattern.ask
-import akka.util.Timeout
 
-import scala.concurrent.duration._
 import sp.domain._
 import sp.domain.Logic._
+import sp.service._
 import akka.persistence._
 import sp.models.APIModel.SPItems
-
-import scala.util.{Failure, Success, Try}
-import sp.models.{APIModel => api}
 
 
 object ModelActor {
   def props(cm: APIModelMaker.CreateModel) = Props(classOf[ModelActor], cm)
 }
 
-class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentActor with ModelLogic with ActorLogging  {
+class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentActor with ModelLogic with ActorLogging with ServiceCommunicationSupport {
   val id: ID = modelSetup.id
   override def persistenceId = id.toString
 
   import akka.cluster.pubsub._
   import DistributedPubSubMediator.{ Publish, Subscribe }
   val mediator = DistributedPubSub(context.system).mediator
-  mediator ! Subscribe(APISP.services, self)
+  mediator ! Subscribe(APIModel.topicRequest, self)
 
-  sendEvent(SPHeader(from = id.toString), getModelInfo)
+  triggerServiceRequestComm(mediator, serviceResp, context.system)
+  sendAnswer(SPHeader(from = id.toString), getModelInfo)
 
 
   def receiveCommand = {
     case x: String if sender() != self =>
-      val mess = SPMessage.fromJson(x)
-
       for {
-        m <- mess
-        h <- m.getHeaderAs[SPHeader] if h.to == modelSetup.id.toString || h.to == api.service
-        b <- m.getBodyAs[api.Request]
+        m <- SPMessage.fromJson(x)
+        h <- m.getHeaderAs[SPHeader] if h.to == modelSetup.id.toString || h.to == APIModel.service
+        b <- m.getBodyAs[APIModel.Request]
       } yield {
         val updH = h.copy(from = id.toString, to = h.from)
         sendAnswer(updH, APISP.SPACK())
-
-        if (h.to == id.toString) {
           b match {
-            case k: api.PutItems if h.to == id.toString =>
+            case k: APIModel.PutItems if h.to == id.toString =>
               val res = putItems(k.items, k.info)
               handleModelDiff(res, updH)
-            case k: api.DeleteItems if h.to == id.toString =>
+            case k: APIModel.DeleteItems if h.to == id.toString =>
               val res = deleteItems(k.items, k.info)
               handleModelDiff(res, updH)
-            case k: api.UpdateModelAttributes if h.to == id.toString =>
+            case k: APIModel.UpdateModelAttributes if h.to == id.toString =>
               val res = updateAttributes(k.name, k.attributes)
               handleModelDiff(res, updH)
-            case k: api.RevertModel if h.to == id.toString =>
-            case api.ExportModel =>
+            case k: APIModel.RevertModel if h.to == id.toString =>
+            case APIModel.ExportModel =>
               sendAnswer(updH, getTheModelToExport)
-            case api.GetModelInfo =>
+            case APIModel.GetModelInfo =>
               sendAnswer(updH, getModelInfo)
-            case api.GetModelHistory =>
+            case APIModel.GetModelHistory =>
               val res = getModelHistory
               sendAnswer(updH, getModelHistory)
-            case api.GetItems(xs) =>
+            case APIModel.GetItems(xs) =>
               val res = xs.flatMap(state.idMap.get)
-              sendAnswer(updH, api.SPItems(res.toList))
-            case api.GetItemList(from, size, filter) =>
+              sendAnswer(updH, APIModel.SPItems(res.toList))
+            case APIModel.GetItemList(from, size, filter) =>
               val res = state.items.slice(from, from + size)
               val appliedFilter = res.filter{item =>
                 val nameM = filter.regexName.isEmpty || item.name.toLowerCase.matches(filter.regexName)
@@ -72,40 +64,30 @@ class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentAc
                 nameM && typeM
               }
               sendAnswer(updH, SPItems(appliedFilter))
-            case api.GetItem(itemID) =>
+            case APIModel.GetItem(itemID) =>
               state.idMap.get(itemID) match {
-                case Some(r) => sendAnswer(updH, api.SPItem(r))
+                case Some(r) => sendAnswer(updH, APIModel.SPItem(r))
                 case None => sendAnswer(updH, APISP.SPError(s"item $itemID does not exist"))
               }
-            case api.GetStructures   =>
+            case APIModel.GetStructures   =>
               val res = state.items.filter(_.isInstanceOf[Struct])
-              sendAnswer(updH, api.SPItems(res))
+              sendAnswer(updH, APIModel.SPItems(res))
             case x if h.to == id.toString =>
               println(s"Model $id got something not implemented: ${x}")
             case _ =>
           }
-        }
 
           sendAnswer(updH, APISP.SPDone())
 
       }
 
-
-
-      ModelsComm.extractAPISP(mess).collect{
-        case (h, APISP.StatusRequest) =>
-          val updH = h.copy(from = api.service, to = h.from)
-          val resp = ModelInfo.attributes.copy(
-            service = id.toString,
-            instanceID = Some(id),
-            attributes = SPAttributes("modelInfo" -> getModelInfo)
-          )
-
-          mediator ! Publish(APISP.spevents, SPMessage.makeJson(updH, resp))
-
-      }
-
   }
+
+  def serviceResp = ModelInfo.attributes.copy(
+    instanceName = id.toString,
+    instanceID = Some(id),
+    attributes = SPAttributes("modelInfo" -> getModelInfo)
+  )
 
   override def receiveRecover: Receive = {
     case x: String =>
@@ -117,14 +99,14 @@ class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentAc
     d.foreach{diff =>
       persist(SPValue(diff).toJson){json =>
         val res = makeModelUpdate(diff)
-        sendEvent(h, res)
+        sendAnswer(h, res)
       }
     }
   }
 
-  def sendAnswer(h: SPHeader, b: APISP) = mediator ! Publish(APISP.answers, SPMessage.makeJson(h, b))
-  def sendAnswer(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.answers, SPMessage.makeJson(h, b))
-  def sendEvent(h: SPHeader, b: api.Response) = mediator ! Publish(APISP.spevents, SPMessage.makeJson(h.copy(to = ""), b))
+  def sendAnswer(h: SPHeader, b: APISP) = mediator ! Publish(APIModel.topicResponse, SPMessage.makeJson(h, b))
+  def sendAnswer(h: SPHeader, b: APIModel.Response) = mediator ! Publish(APIModel.topicResponse, SPMessage.makeJson(h, b))
+  //def sendEvent(h: SPHeader, b: APIModel.Response) = mediator ! Publish(APISP.spevents, SPMessage.makeJson(h.copy(to = ""), b))
 }
 
 
@@ -175,14 +157,14 @@ trait ModelLogic {
       modelAttr = uA))
   }
 
-  def getTheModelToExport = api.ModelToExport(state.name, id, state.version, state.attributes, state.items)
-  def getModelInfo = api.ModelInformation(state.name, id, state.version, state.items.size, state.attributes)
-  def getModelHistory = api.ModelHistory(id, state.history.toList.sortWith(_._1 > _._1))
+  def getTheModelToExport = APIModel.ModelToExport(state.name, id, state.version, state.attributes, state.items)
+  def getModelInfo = APIModel.ModelInformation(state.name, id, state.version, state.items.size, state.attributes)
+  def getModelHistory = APIModel.ModelHistory(id, state.history.toList.sortWith(_._1 > _._1))
 
 
   def makeModelUpdate(diff: ModelDiff) = {
     updateState(diff)
-    api.ModelUpdate(id, state.version, state.items.size, diff.updatedItems, diff.deletedItems.map(_.id), diff.diffInfo)
+    APIModel.ModelUpdate(id, state.version, state.items.size, diff.updatedItems, diff.deletedItems.map(_.id), diff.diffInfo)
   }
 
 
