@@ -25,7 +25,7 @@ class ModelMaker(modelActorMaker: APIModelMaker.CreateModel => Props) extends Pe
   val instanceID = ID.newID
   val serviceInfo = ModelMakerInfo.attributes.copy(instanceID = Some(instanceID))
 
-  triggerServiceRequestComm(mediator, serviceInfo, context.system)
+  triggerServiceRequestComm(mediator, serviceInfo)
 
   // TODO: ModelMaker needs to check if there are already
   // running models and or modelmakers. Ask the serviceHandler
@@ -80,6 +80,7 @@ class ModelMaker(modelActorMaker: APIModelMaker.CreateModel => Props) extends Pe
   def createModel(model: APIModelMaker.CreateModel) = {
     val a = context.actorOf(modelActorMaker(model))
     modelMap += (model.id -> a)
+
   }
 
     def deleteModel(del: APIModelMaker.DeleteModel) = {

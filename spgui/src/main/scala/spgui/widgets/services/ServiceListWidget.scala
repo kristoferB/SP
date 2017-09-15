@@ -14,6 +14,10 @@ object ServiceListWidget {
 
   private class Backend($: BackendScope[Unit, State]) {
 
+    val wsObs = BackendCommunication.getWebSocketStatusObserver(connected => {
+      if (connected) sendToHandler(api.GetServices)
+    }, api.topicRequest)
+
     def handelMess(mess: SPMessage): Unit = {
       for {
         h <- mess.getHeaderAs[SPHeader]
@@ -68,6 +72,7 @@ object ServiceListWidget {
 
     def onUnmount() = {
       answerHandler.kill()
+      wsObs.kill()
       Callback.empty
     }
 

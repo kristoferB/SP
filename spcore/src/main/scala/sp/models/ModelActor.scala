@@ -22,7 +22,7 @@ class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentAc
   val mediator = DistributedPubSub(context.system).mediator
   mediator ! Subscribe(APIModel.topicRequest, self)
 
-  triggerServiceRequestComm(mediator, serviceResp, context.system)
+  triggerServiceRequestComm(mediator, serviceResp)
   sendAnswer(SPHeader(from = id.toString), getModelInfo)
 
 
@@ -102,6 +102,11 @@ class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentAc
         sendAnswer(h, res)
       }
     }
+  }
+
+  override def postStop() = {
+    println("MODEL remove: " + id)
+    super.postStop()
   }
 
   def sendAnswer(h: SPHeader, b: APISP) = mediator ! Publish(APIModel.topicResponse, SPMessage.makeJson(h, b))

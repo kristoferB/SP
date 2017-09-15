@@ -99,8 +99,8 @@ object ModelsWidget {
       if (mess) sendToHandler(mmapi.GetModels)
     }, "services")
 
-    val answerHandler = BackendCommunication.getMessageObserver(handleMess, "answers")
-    val speventHandler = BackendCommunication.getMessageObserver(handleMess, "spevents")
+    val modelMakerHandler = BackendCommunication.getMessageObserver(handleMess, mmapi.topicResponse)
+    val modelsHandler = BackendCommunication.getMessageObserver(handleMess, mapi.topicResponse)
 
     def renderModels(s: State) = {
       <.table(
@@ -235,23 +235,23 @@ object ModelsWidget {
 
     def sendToHandler(mess: mmapi.Request): Callback = {
       val h = SPHeader(from = "ModelWidget", to = mmapi.service,
-        reply = SPValue("ModelWidget"), reqID = java.util.UUID.randomUUID())
+        reply = SPValue("ModelWidget"))
       val json = makeMess(h, mess)
-      BackendCommunication.publish(json, "services")
+      BackendCommunication.publish(json, mapi.topicRequest)
       Callback.empty
     }
 
     def sendToModel(model: ID, mess: mapi.Request): Callback = {
       val h = SPHeader(from = "ModelWidget", to = model.toString,
-        reply = SPValue("ModelWidget"), reqID = java.util.UUID.randomUUID())
+        reply = SPValue("ModelWidget"))
       val json = makeMess(h, mess)
-      BackendCommunication.publish(json, "services")
+      BackendCommunication.publish(json, mapi.topicRequest)
       Callback.empty
     }
 
     def onUnmount() = {
-      answerHandler.kill()
-      speventHandler.kill()
+      modelMakerHandler.kill()
+      modelsHandler.kill()
       Callback.empty
     }
 

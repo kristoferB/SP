@@ -5,14 +5,17 @@ import akka.cluster.pubsub.DistributedPubSubMediator._
 import sp.domain._
 
 trait ServiceCommunicationSupport {
+  val context: ActorContext
   var shComm: Option[ActorRef] = None
-  def triggerServiceRequestComm(mediator: ActorRef, resp: APISP.StatusResponse, system: ActorSystem): Unit = {
-    val x = system.actorOf(Props(classOf[ServiceHanderComm], mediator, resp))
+  def triggerServiceRequestComm(mediator: ActorRef, resp: APISP.StatusResponse): Unit = {
+    val x = context.actorOf(Props(classOf[ServiceHanderComm], mediator, resp))
     shComm = Some(x)
   }
   def updateServiceRequest(resp: APISP.StatusResponse): Unit = {
     shComm.foreach(_ ! resp)
   }
+
+
 
 }
 
@@ -31,6 +34,11 @@ class ServiceHanderComm(mediator: ActorRef, resp: APISP.StatusResponse) extends 
       } yield {
         sendEvent(h.copy(to = h.from, from = serviceResponse.instanceName))
       }
+  }
+
+  override def postStop() = {
+    println("MODEL ServiceComm handler removed: " + resp.instanceID)
+    super.postStop()
   }
 
   def sendEvent(h: SPHeader) =
