@@ -16,12 +16,13 @@ import monocle.Lens
 
 object TestModel {
   def getTestModel: List[IDAble] = {
-    List(
-      Operation("TestOp1"),
-      Operation("TestOp2"),
-      Thing("TestThing1"),
-      Thing("TestThing2")
+    val ops = List(Operation("TestOp1"), Operation("TestOp2"), Operation("TestOp3"))
+    val things = List(Thing("TestThing1"), Thing("TestThing2"))
+    val sops = List(
+      SOPSpec("TestSop1", List(Sequence(List(SOP(ops(0)), SOP(ops(1)), SOP(ops(2)))))),
+      SOPSpec("TestSop2", List(Parallel(List(SOP(ops(0)), SOP(ops(1)), SOP(ops(2))))))
     )
+    ops ++ things ++ sops
   }
 }
 
@@ -58,12 +59,10 @@ object ModelsWidget {
       extractMMResponse(mess).map{ case (h, b) =>
         val res = b match {
           case mmapi.ModelList(models) =>
-            println("Got model list")
             models.foreach { m => sendToModel(m, mapi.GetModelInfo) }
             models.foreach { m => sendToModel(m, mapi.GetModelHistory) }
             $.modState(s => mL(ModelState.models).set(models.toSet)(s))
           case mmapi.ModelCreated(name, attr, modelid) =>
-            println("Model created")
             sendToModel(modelid, mapi.PutItems(TestModel.getTestModel))
             $.modState(s => mL(ModelState.models).modify(_ + modelid)(s))
           case mmapi.ModelDeleted(modelid) =>
@@ -79,7 +78,6 @@ object ModelsWidget {
           case mh@mapi.ModelHistory(id, history) =>
             $.modState(s=>mL(ModelState.modelHistory).modify(_ + (id -> mh))(s))
           case mapi.ModelUpdate(modelid, version, noitems, updatedItems, deletedItems, info) =>
-            // fetch new version history
             sendToModel(modelid, mapi.GetModelHistory)
             $.modState{ s =>
               mL(ModelState.modelInfo).modify(modelinfo => {
@@ -95,12 +93,11 @@ object ModelsWidget {
       }
     }
 
+    val topic = mmapi.topicResponse
     val wsObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
       if (mess) sendToHandler(mmapi.GetModels)
-    }, mmapi.topicResponse)
-
-    val modelMakerHandler = BackendCommunication.getMessageObserver(handleMess, mmapi.topicResponse)
-    val modelsHandler = BackendCommunication.getMessageObserver(handleMess, mapi.topicResponse)
+    }, topic)
+    val topicHandler = BackendCommunication.getMessageObserver(handleMess, topic)
 
     def renderModels(s: State) = {
       <.table(
@@ -244,8 +241,7 @@ object ModelsWidget {
     }
 
     def onUnmount() = {
-      modelMakerHandler.kill()
-      modelsHandler.kill()
+      topicHandler.kill()
       Callback.empty
     }
 
