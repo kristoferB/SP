@@ -1,5 +1,6 @@
 package sp.domain
 
+import org.threeten.bp.ZonedDateTime
 import play.api.libs.json._
 import sp.domain.Logic._
 
@@ -63,9 +64,10 @@ case class SPHeader(from: String = "", // the name of the sender
                     reply: SPValue = SPAttributes(), // A data structure that should be included in all replies to be used for matching
                     fromTags: List[String] = List(), // a list of tags to define things about the sender. For example where the sender is located
                     toTags: List[String] = List(), // a list of tags to define things about possible receivers
-                    attributes: SPAttributes = SPAttributes() // to be used in some scenarios, where more info in the header is needed
+                    attributes: SPAttributes = SPAttributes(), // to be used in some scenarios, where more info in the header is needed
+                    timestamp: SPValue = SPMessage.timeStamp
                    ) {
-  def swapToAndFrom = this.copy(from = this.to, to = this.from)
+  def swapToAndFrom = this.copy(from = this.to, to = this.from, timestamp = SPMessage.timeStamp)
 }
 
 case class SPMessage(header: SPAttributes, body: SPAttributes) {
@@ -117,7 +119,13 @@ object SPMessage {
   def fromJsonTry(json: String) = Try{Json.parse(json).as[SPMessage](SPMessage.messageFormat)}
   def fromJson(json: String) = fromJsonTry(json).toOption
 
+  def timeStamp: SPValue = {
+    import sp.domain.logic.JsonLogic._
+    Json.toJson(ZonedDateTime.now)
+  }
 }
+
+
 
 
 
