@@ -16,7 +16,7 @@ object ServiceListWidget {
 
     val wsObs = BackendCommunication.getWebSocketStatusObserver(connected => {
       if (connected) sendToHandler(api.GetServices)
-    }, api.topicRequest)
+    }, api.topicResponse)
 
     def handelMess(mess: SPMessage): Unit = {
       for {
@@ -50,7 +50,6 @@ object ServiceListWidget {
             <.th("name"),
             <.th("id"),
             <.th("tags"),
-            <.th("api"),
             <.th("version")
         ),
         <.tbody(
@@ -60,7 +59,6 @@ object ServiceListWidget {
               <.td(s.instanceName),
               <.td(s.instanceID.toString),
               <.td(s.tags.toString),
-              <.td(s.api.toString()),
               <.td(s.version)
             )
           }).toTagMod

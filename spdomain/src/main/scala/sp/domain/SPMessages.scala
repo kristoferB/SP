@@ -64,7 +64,9 @@ case class SPHeader(from: String = "", // the name of the sender
                     fromTags: List[String] = List(), // a list of tags to define things about the sender. For example where the sender is located
                     toTags: List[String] = List(), // a list of tags to define things about possible receivers
                     attributes: SPAttributes = SPAttributes() // to be used in some scenarios, where more info in the header is needed
-                   )
+                   ) {
+  def swapToAndFrom = this.copy(from = this.to, to = this.from)
+}
 
 case class SPMessage(header: SPAttributes, body: SPAttributes) {
   def getHeaderAs[T](implicit fjs: JSReads[T]): Option[T] = header.to[T].toOption

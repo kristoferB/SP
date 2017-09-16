@@ -8,7 +8,7 @@ trait ServiceCommunicationSupport {
   val context: ActorContext
   var shComm: Option[ActorRef] = None
   def triggerServiceRequestComm(mediator: ActorRef, resp: APISP.StatusResponse): Unit = {
-    val x = context.actorOf(Props(classOf[ServiceHanderComm], mediator, resp))
+    val x = context.actorOf(Props(classOf[ServiceHandlerComm], mediator, resp))
     shComm = Some(x)
   }
   def updateServiceRequest(resp: APISP.StatusResponse): Unit = {
@@ -19,7 +19,7 @@ trait ServiceCommunicationSupport {
 
 }
 
-class ServiceHanderComm(mediator: ActorRef, resp: APISP.StatusResponse) extends Actor {
+class ServiceHandlerComm(mediator: ActorRef, resp: APISP.StatusResponse) extends Actor {
   var serviceResponse: APISP.StatusResponse = resp
   mediator ! Subscribe(APISP.serviceStatusRequest, self)
   sendEvent(SPHeader(from = serviceResponse.instanceName, to = APIServiceHandler.service))
