@@ -18,11 +18,11 @@ object ExampleServiceInfo {
 
     val attributes: APISP.StatusResponse = APISP.StatusResponse(
       service = APIExampleService.service,
-      instanceID = Some(ID.newID),
-      instanceName = "",
       tags = List("example"),
       api = apischema,
       version = 1,
+      topicRequest = APIExampleService.topicRequest,
+      topicResponse = APIExampleService.topicResponse,
       attributes = SPAttributes.empty
     )
   }

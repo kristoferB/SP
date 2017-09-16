@@ -10,22 +10,23 @@ import sp.service._
 
 
 
-class ModelMaker(modelActorMaker: APIModelMaker.CreateModel => Props) extends PersistentActor with ActorLogging with ServiceCommunicationSupport  {
+class ModelMaker(modelActorMaker: APIModelMaker.CreateModel => Props)
+  extends PersistentActor with
+    ActorLogging with
+    ServiceCommunicationSupport with
+    MessageBussSupport
+{
 
   override def persistenceId = "modelMaker"
   import context.dispatcher
-  import akka.cluster.pubsub._
-  import DistributedPubSubMediator.{ Put, Subscribe }
-  val mediator = DistributedPubSub(context.system).mediator
-  mediator ! Subscribe(APIModelMaker.topicRequest, self)
-  mediator ! Put(self)
 
   private var modelMap: Map[ID, ActorRef] = Map()
 
   val instanceID = ID.newID
   val serviceInfo = ModelMakerInfo.attributes.copy(instanceID = Some(instanceID))
 
-  triggerServiceRequestComm(mediator, serviceInfo)
+  subscribe(APIModelMaker.topicRequest)
+  triggerServiceRequestComm(serviceInfo)
 
   // TODO: ModelMaker needs to check if there are already
   // running models and or modelmakers. Ask the serviceHandler
@@ -111,9 +112,9 @@ class ModelMaker(modelActorMaker: APIModelMaker.CreateModel => Props) extends Pe
   }
 
 
-  def sendAnswer(h: SPHeader, b: APISP) = mediator ! Publish(APIModelMaker.topicResponse, SPMessage.makeJson(h, b))
-  def sendAnswer(h: SPHeader, b: APIModelMaker.Response) = mediator ! Publish(APIModelMaker.topicResponse, SPMessage.makeJson(h, b))
-  //def sendEvent(h: SPHeader, b: APIModelMaker.Response) = mediator ! Publish(APISP.spevents, SPMessage.makeJson(h, b))
+  def sendAnswer(h: SPHeader, b: APISP) = publish(APIModelMaker.topicResponse, SPMessage.makeJson(h, b))
+  def sendAnswer(h: SPHeader, b: APIModelMaker.Response) = publish(APIModelMaker.topicResponse, SPMessage.makeJson(h, b))
+  //def sendEvent(h: SPHeader, b: APIModelMaker.Response) = publish(APISP.spevents, SPMessage.makeJson(h, b))
 
 }
 

@@ -11,15 +11,11 @@ import sp.domain.Logic._
   * Monitors services and keeps track if they are removed or not behaving.
   *
   */
-class ServiceHandler extends Actor with ServiceHandlerLogic {
+class ServiceHandler extends Actor with ServiceHandlerLogic with MessageBussSupport {
   case object Tick
 
-  // connecting to the pubsub bus using the mediator actor
-  import akka.cluster.pubsub._
-  import DistributedPubSubMediator.{ Put, Send, Subscribe, Publish }
-  val mediator = DistributedPubSub(context.system).mediator
-  mediator ! Subscribe(APIServiceHandler.topicRequest, self)
-  mediator ! Subscribe(APISP.serviceStatusResponse, self)
+  subscribe(APIServiceHandler.topicRequest)
+  subscribe(APISP.serviceStatusResponse)
 
   override def receive = {
     case x: String if sender() != self =>
@@ -70,8 +66,8 @@ class ServiceHandler extends Actor with ServiceHandlerLogic {
       sendReq(h, b)
   }
 
-  def sendReq(h: SPHeader, b: APISP) = mediator ! Publish(APISP.serviceStatusRequest, SPMessage.makeJson(h, b))
-  def sendAnswer(h: SPHeader, b: APIServiceHandler.Response) = mediator ! Publish(APIServiceHandler.topicResponse, SPMessage.makeJson(h, b))
+  def sendReq(h: SPHeader, b: APISP) = publish(APISP.serviceStatusRequest, SPMessage.makeJson(h, b))
+  def sendAnswer(h: SPHeader, b: APIServiceHandler.Response) = publish(APIServiceHandler.topicResponse, SPMessage.makeJson(h, b))
 
 
   import scala.concurrent.duration._

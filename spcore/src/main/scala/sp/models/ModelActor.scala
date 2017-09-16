@@ -13,16 +13,19 @@ object ModelActor {
   def props(cm: APIModelMaker.CreateModel) = Props(classOf[ModelActor], cm)
 }
 
-class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentActor with ModelLogic with ActorLogging with ServiceCommunicationSupport {
+class ModelActor(val modelSetup: APIModelMaker.CreateModel)
+  extends PersistentActor with
+    ModelLogic with
+    ActorLogging with
+    ServiceCommunicationSupport with
+    MessageBussSupport
+{
   val id: ID = modelSetup.id
   override def persistenceId = id.toString
 
-  import akka.cluster.pubsub._
-  import DistributedPubSubMediator.{ Publish, Subscribe }
-  val mediator = DistributedPubSub(context.system).mediator
-  mediator ! Subscribe(APIModel.topicRequest, self)
 
-  triggerServiceRequestComm(mediator, serviceResp)
+  subscribe(APIModel.topicRequest)
+  triggerServiceRequestComm(serviceResp)
   sendAnswer(SPHeader(from = id.toString), getModelInfo)
 
 
@@ -109,9 +112,9 @@ class ModelActor(val modelSetup: APIModelMaker.CreateModel) extends PersistentAc
     super.postStop()
   }
 
-  def sendAnswer(h: SPHeader, b: APISP) = mediator ! Publish(APIModel.topicResponse, SPMessage.makeJson(h, b))
-  def sendAnswer(h: SPHeader, b: APIModel.Response) = mediator ! Publish(APIModel.topicResponse, SPMessage.makeJson(h, b))
-  //def sendEvent(h: SPHeader, b: APIModel.Response) = mediator ! Publish(APISP.spevents, SPMessage.makeJson(h.copy(to = ""), b))
+  def sendAnswer(h: SPHeader, b: APISP) = publish(APIModel.topicResponse, SPMessage.makeJson(h, b))
+  def sendAnswer(h: SPHeader, b: APIModel.Response) = publish(APIModel.topicResponse, SPMessage.makeJson(h, b))
+  //def sendEvent(h: SPHeader, b: APIModel.Response) = publish(APISP.spevents, SPMessage.makeJson(h.copy(to = ""), b))
 }
 
 

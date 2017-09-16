@@ -5,12 +5,11 @@ package sp.example {
 
   // this object is used for converting to and from json.
   object APIExampleService {
-
     sealed trait Request
-
     sealed trait Response
-
     val service = "ExampleService"
+    val topicRequest = "exampleServiceRequests"
+    val topicResponse = "exampleServiceResponse"
 
     // The messages that this service can send and receive is defined as case classes
     // Messages you can send to me
@@ -35,21 +34,16 @@ package sp.example {
       * @param map A map representing a pie
       */
     case class SetTheTicker(id: ID, map: Map[String, Int]) extends Request
-
     case object GetTheTickers extends Request
-
     case object ResetAllTickers extends Request
 
 
     // Messages that I will send as answer
     case class TickerEvent(map: Map[String, Int], id: ID) extends Response
-
     case class TheTickers(ids: List[ID]) extends Response
-
 
     // The below is an example how to create the json formaters
     object Formats {
-
       import play.api.libs.json._
 
       implicit val fStartTheTicker: JSFormat[StartTheTicker] = Json.format[StartTheTicker]
