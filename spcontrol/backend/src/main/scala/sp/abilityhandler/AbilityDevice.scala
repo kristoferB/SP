@@ -43,7 +43,12 @@ object AbilityHandler {
 import sp.devicehandler._
 
 // This actor will keep track of the abilities and parse all messages from the VD
-class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends PersistentActor with ActorLogging with AbilityLogic {
+class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends PersistentActor
+    with ActorLogging
+    with AbilityLogic
+    with sp.service.ServiceCommunicationSupport
+    with sp.service.MessageBussSupport {
+
   override def persistenceId = handlerID.toString
   case class AbilityStorage(ability: APIAbilityHandler.Ability, actor: ActorRef, ids: Set[ID] = Set(), current: Option[AbilityStateChange] = None)
 
@@ -52,17 +57,26 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
   var state: Map[ID, SPValue] = Map()
 
   import context.dispatcher
-  import akka.cluster.pubsub.DistributedPubSubMediator.{Publish, Put, Subscribe}
-  val mediator = akka.cluster.pubsub.DistributedPubSub(context.system).mediator
 
-  mediator ! Subscribe("services", self)
-  mediator ! Subscribe("spevents", self)
-  mediator ! Subscribe("events", self)
-  mediator ! Subscribe("answers", self)
+  import sp.abilityhandler.{APIAbilityHandler => abapi}
 
+  subscribe(abapi.topicRequest)
+
+  // Setting up the status response that is used for identifying the service in the cluster
+  val statusResponse = AbilityHandler.attributes.copy(
+    instanceName = this.name,
+    instanceID = Some(handlerID),
+    attributes = SPAttributes("vd" -> vd)
+  )
+
+  // starts wiating for ping requests from service handler
+  triggerServiceRequestComm(statusResponse)
+
+  subscribe(APIVirtualDevice.topicResponse)
+  subscribe(abapi.topicRequest)
 
   val getResources = AbilityComm.makeMess(SPHeader(from = handlerID.toString, to = vd.toString), APIVirtualDevice.GetResources)
-  mediator ! Publish("services", getResources)
+  publish("services", getResources)
 
   override def receiveCommand = {
 
@@ -71,8 +85,8 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
       // move this to a partial function
     case CanNotStart(req, abID, error) =>
       val h = SPHeader(from = handlerID.toString)
-      mediator ! Publish("answers", AbilityComm.makeMess(h, APISP.SPError(s"ability $abID couldn't start. $error")))
-      mediator ! Publish("answers", AbilityComm.makeMess(h, APISP.SPDone()))
+      publish(abapi.topicResponse, AbilityComm.makeMess(h, APISP.SPError(s"ability $abID couldn't start. $error")))
+      publish(abapi.topicResponse, AbilityComm.makeMess(h, APISP.SPDone()))
 
     case x @ AbilityStateChange(abID, s, cnt, req) =>
       val h = SPHeader(from = handlerID.toString, reqID = req.getOrElse(ID.newID))
@@ -83,16 +97,16 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
         "state" -> s,
         "counter" -> cnt
       )
-      val b = APIAbilityHandler.AbilityState(abID, Map(abID -> abilityState))
-      mediator ! Publish("events", AbilityComm.makeMess(h, b))
+      val b = abapi.AbilityState(abID, Map(abID -> abilityState))
+      publish("events", AbilityComm.makeMess(h, b))
 
       req.foreach{ req =>
         val res = s match {
           case "executing" =>
-            mediator ! Publish("answers", AbilityComm.makeMess(h, APIAbilityHandler.AbilityStarted(abID)))
+            publish(abapi.topicResponse, AbilityComm.makeMess(h, abapi.AbilityStarted(abID)))
           case "finished" =>
-            mediator ! Publish("answers", AbilityComm.makeMess(h, APIAbilityHandler.AbilityCompleted(abID, Map())))
-            mediator ! Publish("answers", AbilityComm.makeMess(h, APISP.SPDone()))
+            publish(abapi.topicResponse, AbilityComm.makeMess(h, abapi.AbilityCompleted(abID, Map())))
+            publish(abapi.topicResponse, AbilityComm.makeMess(h, APISP.SPDone()))
           case _ => Unit
 
         }
@@ -104,7 +118,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
       val toSend = res.map{r =>
         val h = SPHeader(from = handlerID.toString, to = vd.toString, reply = SPValue(handlerID))
         val b = APIVirtualDevice.ResourceCommand(r.id, s.filter(kv => r.things.contains(kv._1)))
-        mediator ! Publish("services", AbilityComm.makeMess(h, b))
+        publish("services", AbilityComm.makeMess(h, b))
       }
 
     case StateIsMissingIDs(abID, ids) =>
@@ -113,7 +127,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
         "ability" -> abilities.get(abID).map(_.ability.name),
         "id" -> abID, "missingThings" -> ids)
 
-      mediator ! Publish("spevents", AbilityComm.makeMess(h,
+      publish("spevents", AbilityComm.makeMess(h,
         APISP.SPError("Ability has ids that is not found in the state. Either the VD is unavailable or something is wrong",
         errorAttr)
       ))
@@ -131,8 +145,6 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
 
     matchRequests(mess)
     matchVDMessages(mess)
-    matchServiceRequests(mess)
-
 
   }
 
@@ -142,51 +154,51 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
       val updH = h.copy(from = h.to, to = "")
 
       // Message was to me so i send an SPACK
-      mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPACK()))
+      publish(abapi.topicResponse, AbilityComm.makeMess(updH, APISP.SPACK()))
 
       b match {
-        case APIAbilityHandler.StartAbility(id, params, attr) =>
+        case abapi.StartAbility(id, params, attr) =>
           abilities.get(id) match {
             case Some(a) =>
               a.actor ! StartAbility(state, h.reqID, params, attr)
             case None =>
-              mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPError(s"ability $id does not exists in this handler")))
-              mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPDone()))
+              publish(abapi.topicResponse, AbilityComm.makeMess(updH, APISP.SPError(s"ability $id does not exists in this handler")))
+              publish(abapi.topicResponse, AbilityComm.makeMess(updH, APISP.SPDone()))
 
           }
 
-        case APIAbilityHandler.ForceResetAbility(id) =>
+        case abapi.ForceResetAbility(id) =>
           abilities.get(id) match {
             case Some(a) =>
               a.actor ! ResetAbility(state)
             case None =>
-              mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPError(s"ability $id does not exists in this handler")))
+              publish(abapi.topicResponse, AbilityComm.makeMess(updH, APISP.SPError(s"ability $id does not exists in this handler")))
           }
-          mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPDone()))
+          publish(abapi.topicResponse, AbilityComm.makeMess(updH, APISP.SPDone()))
 
-        case APIAbilityHandler.ForceResetAllAbilities =>
+        case abapi.ForceResetAllAbilities =>
           val r = ResetAbility(state)
           abilities.foreach(kv => kv._2.actor ! r)
-          mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPDone()))
+          publish(abapi.topicResponse, AbilityComm.makeMess(updH, APISP.SPDone()))
 
-        case APIAbilityHandler.ExecuteCmd(cmd) =>
+        case abapi.ExecuteCmd(cmd) =>
         // to be implemented
 
-        case APIAbilityHandler.GetAbilities =>
+        case abapi.GetAbilities =>
           val xs = abilities.map(_._2.ability).toList
 
           val abs = abilities.map(a=>(a._2.ability.id,a._2.ability.name)).toList
 
           println("got getabilitiies request")
-          mediator ! Publish("answers", AbilityComm.makeMess(updH, APIAbilityHandler.Abilities(xs)))
-          mediator ! Publish("answers", AbilityComm.makeMess(updH, APIAbilityHandler.Abs(abs)))
+          publish(abapi.topicResponse, AbilityComm.makeMess(updH, abapi.Abilities(xs)))
+          publish(abapi.topicResponse, AbilityComm.makeMess(updH, abapi.Abs(abs)))
 
-          mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPDone()))
+          publish(abapi.topicResponse, AbilityComm.makeMess(updH, APISP.SPDone()))
 
           abilities.foreach(a => a._2.actor ! GetState)
 
 
-        case APIAbilityHandler.SetUpAbility(ab, hand) =>
+        case abapi.SetUpAbility(ab, hand) =>
           println("--------------------------------------------------")
           println("--------------------------------------------------")
           println("--------------------------------------------------")
@@ -201,7 +213,7 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
           val act = context.actorOf(AbilityActor.props(ab))
           abilities += ab.id -> AbilityStorage(ab, act, ids)
           act ! NewState(filterState(ids, state))
-          mediator ! Publish("answers", AbilityComm.makeMess(updH, APISP.SPDone()))
+          publish(abapi.topicResponse, AbilityComm.makeMess(updH, APISP.SPDone()))
       }
     }
   }
@@ -222,22 +234,6 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
     }
 
   }
-
-  val info = AbilityHandler.attributes.copy(
-    instanceName = this.name,
-    instanceID = Some(handlerID),
-    attributes = SPAttributes("vd" -> vd)
-  )
-
-  def matchServiceRequests(mess: Option[SPMessage]) = {
-    AbilityComm.extractServiceRequest(mess) map { case (h, b) =>
-      println("HOHOHOHOHOHOH")
-      val spHeader = h.copy(from = handlerID.toString)
-      mediator ! Publish("spevents", AbilityComm.makeMess(spHeader, info))
-    }
-  }
-
-
 
 }
 

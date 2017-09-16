@@ -45,19 +45,24 @@ object VirtualDeviceInfo {
 
 
 
-class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with ActorLogging with VirtualDeviceLogic {
+class VirtualDevice(val name: String, val id: UUID) extends PersistentActor
+    with ActorLogging
+    with VirtualDeviceLogic
+    with sp.service.ServiceCommunicationSupport
+    with sp.service.MessageBussSupport {
   override def persistenceId = id.toString
 
   import context.dispatcher
-  val mediator = DistributedPubSub(context.system).mediator
 
-  mediator ! Subscribe("services", self)
-  mediator ! Subscribe("spevents", self)
-  mediator ! Subscribe("driverEvents", self)
+  subscribe(APIVirtualDevice.topicRequest)
+  subscribe("driverEvents")
 
-
-
-
+    // Setting up the status response that is used for identifying the service in the cluster
+  val statusResponse = VirtualDeviceInfo.attributes.copy(
+    instanceID = Some(id)
+  )
+  // starts wiating for ping requests from service handler
+  triggerServiceRequestComm(statusResponse)
 
   override def receiveCommand = {
     case x: String =>
@@ -72,7 +77,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
           case APIVirtualDevice.SetUpDeviceDriver(d) =>
             println("new driver " + d)
             newDriver(d)
-            mediator ! Publish("driverCommands", x)
+            publish("driverCommands", x)
 
           case APIVirtualDevice.SetUpResource(r) =>
             println("new resource " + r)
@@ -94,7 +99,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
             }.foreach { case (rid, state) if resources.contains(rid) =>
               val header = SPHeader(from = id.toString)
               val body = APIVirtualDevice.StateEvent(resources(rid).r.name, rid, state)
-              mediator ! Publish("events", SPMessage.makeJson(header, body))
+              publish("events", SPMessage.makeJson(header, body))
             }
 
           case APIVirtualDevice.DriverCommandDone(reqid, success) =>
@@ -103,13 +108,13 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
               case Some((rid,reqs)) =>
                 if(!success) {
                   val errorHeader = SPHeader(reqID = reqid, from = VirtualDeviceInfo.attributes.service)
-                  mediator ! Publish("answers", SPMessage.makeJson(errorHeader, APISP.SPError("driver command failed")))
+                  publish("answers", SPMessage.makeJson(errorHeader, APISP.SPError("driver command failed")))
                   activeDriverRequests - rid
                 } else {
                   val nr = reqs.filter(_!=reqid)
                   if(nr.isEmpty) {
                     val doneHeader = SPHeader(reqID = reqid, from = VirtualDeviceInfo.attributes.service)
-                    mediator ! Publish("answers", SPMessage.makeJson(doneHeader, APISP.SPDone()))
+                    publish("answers", SPMessage.makeJson(doneHeader, APISP.SPDone()))
                     activeDriverRequests - rid
                   } else {
                     activeDriverRequests + (rid -> nr)
@@ -120,20 +125,20 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
 
           case r : APIVirtualDevice.ResourceCommand =>
             val ackHeader = h.copy(reply = VirtualDeviceInfo.attributes.service)
-            mediator ! Publish("answers", SPMessage.makeJson(ackHeader, APISP.SPACK()))
+            publish("answers", SPMessage.makeJson(ackHeader, APISP.SPACK()))
 
             val diffs = getDriverDiffs(r)
 
             val doneHeader = h.copy(reply = VirtualDeviceInfo.attributes.service)
             if(diffs.isEmpty || diffs.forall { case (k,v) => v.isEmpty }) {
               println("No variables to update... Sending done immediately for requst: " + h.reqID)
-              mediator ! Publish("answers", SPMessage.makeJson(doneHeader, APISP.SPDone()))
+              publish("answers", SPMessage.makeJson(doneHeader, APISP.SPDone()))
             } else {
               val commands = getDriverCommands(diffs)
               val requests = commands.map { command =>
                 // send commands to the drivers
                 val header = SPHeader(from = id.toString)
-                mediator ! Publish("driverCommands", SPMessage.makeJson(header, command))
+                publish("driverCommands", SPMessage.makeJson(header, command))
                 header.reqID
               }
               activeDriverRequests += (h.reqID -> requests.toList)
@@ -161,7 +166,7 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
   def sendResources = {
     val h = SPHeader(from = id.toString)
     val b = APIVirtualDevice.Resources(resources.values.toList.map(_.r))
-    mediator ! Publish("answers", SPMessage.makeJson(h, b))
+    publish("answers", SPMessage.makeJson(h, b))
   }
 
   def receiveRecover = {
@@ -170,9 +175,6 @@ class VirtualDevice(val name: String, val id: UUID) extends PersistentActor with
     case RecoveryCompleted =>
 
   }
-
-  val statusResponse = VirtualDeviceInfo.attributes
-
 }
 
 

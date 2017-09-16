@@ -7,48 +7,45 @@ import spgui.communication._
 import sp.domain._
 import Logic._
 
-import spgui.widgets.abilityhandler.{APIVirtualDevice => vdapi}
-import spgui.widgets.abilityhandler.{APIAbilityHandler => abapi}
-
 object AbilityHandlerWidget {
+  import sp.devicehandler.{APIVirtualDevice => vdapi}
+  import sp.abilityhandler.{APIAbilityHandler => abapi}
+
   case class State(resources: List[vdapi.Resource], abilities: List[abapi.Ability], abilityState: Map[ID, SPValue])
 
   private class Backend($: BackendScope[Unit, State]) {
-    val answerHandler = BackendCommunication.getMessageObserver(
-      mess => {
-        mess.body.to[vdapi.Response].map{
-          case vdapi.Resources(r) =>
-            $.modState(s => s.copy(resources = r)).runNow()
-          case x =>
-            println(s"AbilityHandlerWidget - TODO: $x")
-        }
-        mess.body.to[abapi.Response].map{
-          case abapi.Abilities(a) =>
-            $.modState(s => s.copy(abilities = a)).runNow()
-          case abapi.AbilityState(id, state) =>
-            $.modState{s =>
-              val ns = s.abilityState ++ state
-              s.copy(abilityState = ns)}.runNow()
-          case x =>
-            println(s"AbilityHandlerWidget - answers - TODO: $x")
-        }
-      },
-      "answers"
-    )
 
-    val eventHandler = BackendCommunication.getMessageObserver(
-      mess => {
-        mess.body.to[abapi.Response].map{
-          case abapi.AbilityState(id, state) =>
-            $.modState{s =>
-              val ns = s.abilityState ++ state
-              s.copy(abilityState = ns)}.runNow()
-          case x =>
-            println(s"AbilityHandlerWidget - events - TODO: $x")
-        }
-      },
-      "events"
-    )
+    val abObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
+      if (mess) sendToAB(abapi.GetAbilities)
+    }, abapi.topicResponse)
+    val vdObs = BackendCommunication.getWebSocketStatusObserver(  mess => {
+      if (mess) sendToVD(vdapi.GetResources)
+    }, vdapi.topicResponse)
+
+    val vdapiHandler = BackendCommunication.getMessageObserver(handleVDMess, vdapi.topicResponse)
+    val abapiHandler = BackendCommunication.getMessageObserver(handleABMess, abapi.topicResponse)
+
+    def handleVDMess(mess: SPMessage): Unit = {
+      mess.body.to[vdapi.Response].map{
+        case vdapi.Resources(r) =>
+          $.modState(s => s.copy(resources = r)).runNow()
+        case x =>
+          println(s"AbilityHandlerWidget - TODO: $x")
+      }
+    }
+
+    def handleABMess(mess: SPMessage): Unit = {
+      mess.body.to[abapi.Response].map{
+        case abapi.Abilities(a) =>
+          $.modState(s => s.copy(abilities = a)).runNow()
+        case abapi.AbilityState(id, state) =>
+          $.modState{s =>
+            val ns = s.abilityState ++ state
+            s.copy(abilityState = ns)}.runNow()
+        case x =>
+          println(s"AbilityHandlerWidget - answers - TODO: $x")
+      }
+    }
 
     def render(s: State) = {
       <.div(
@@ -129,8 +126,8 @@ object AbilityHandlerWidget {
 
     def onUnmount() = {
       println("Unmounting")
-      answerHandler.kill()
-      eventHandler.kill()
+      vdapiHandler.kill()
+      abapiHandler.kill()
       Callback.empty
     }
 
@@ -138,7 +135,7 @@ object AbilityHandlerWidget {
       val h = SPHeader(from = "AbilityHandlerWidget", to = vdapi.service,
         reply = SPValue("AbilityHandlerWidget"), reqID = java.util.UUID.randomUUID())
       val json = SPMessage.make(SPValue(h), SPValue(mess))
-      BackendCommunication.publish(json, "services")
+      BackendCommunication.publish(json, vdapi.topicRequest)
       Callback.empty
     }
 
@@ -146,7 +143,7 @@ object AbilityHandlerWidget {
       val h = SPHeader(from = "AbilityHandlerWidget", to = abapi.service,
         reply = SPValue("AbilityHandlerWidget"), reqID = java.util.UUID.randomUUID())
       val json = SPMessage.make(SPValue(h), SPValue(mess))
-      BackendCommunication.publish(json, "services")
+      BackendCommunication.publish(json, abapi.topicRequest)
       Callback.empty
     }
   }

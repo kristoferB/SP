@@ -209,7 +209,7 @@ class Trucks(ahid: ID) extends Actor with Helpers {
   }
   val setup = SPAttributes("url" -> "opc.tcp://localhost:12686", "identifiers" -> sm(allVars).map(_.driverIdentifier))
   val driver = APIVirtualDevice.Driver("opclocal", driverID, "OPCUA", setup)
-  mediator ! Publish("services", SPMessage.makeJson[SPHeader, APIVirtualDevice.SetUpDeviceDriver](SPHeader(from = "hej"), APIVirtualDevice.SetUpDeviceDriver(driver)))
+  mediator ! Publish(APIVirtualDevice.topicRequest, SPMessage.makeJson[SPHeader, APIVirtualDevice.SetUpDeviceDriver](SPHeader(from = "hej"), APIVirtualDevice.SetUpDeviceDriver(driver)))
 
   // setup resources
   val lf1 = APIVirtualDevice.Resource("loadFixture1", UUID.randomUUID(), lf1vars.map(_.id).toSet, sm(lf1vars), SPAttributes())
@@ -221,14 +221,14 @@ class Trucks(ahid: ID) extends Actor with Helpers {
 
   resources.foreach { res =>
     val body = APIVirtualDevice.SetUpResource(res)
-    mediator ! Publish("services", SPMessage.makeJson[SPHeader, APIVirtualDevice.SetUpResource](SPHeader(from = "hej"), body))
+    mediator ! Publish(APIVirtualDevice.topicRequest, SPMessage.makeJson[SPHeader, APIVirtualDevice.SetUpResource](SPHeader(from = "hej"), body))
   }
 
   // setup abilities
   abs.foreach { ab =>
     val body = APIAbilityHandler.SetUpAbility(ab)
     val msg = SPMessage.makeJson[SPHeader, APIAbilityHandler.SetUpAbility](SPHeader(to = ahid.toString, from = "hej"), body)
-    mediator ! Publish("services", msg)
+    mediator ! Publish(APIAbilityHandler.topicRequest, msg)
   }
 
   def receive = {

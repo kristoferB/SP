@@ -5,6 +5,9 @@ package sp.devicehandler {
 
   object APIVirtualDevice {
     val service = "VirtualDevice"
+    val topicRequest = "virtualDeviceRequests"
+    val topicResponse = "virtualDeviceResponse"
+
     sealed trait Request
     sealed trait Response
 
