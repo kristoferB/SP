@@ -36,7 +36,7 @@ object APISP {
 
 
   object StatusResponse {
-    def apply(attr: SPAttributes): StatusResponse = {
+    def fromAttribute(attr: SPAttributes): StatusResponse = {
       val service = attr.getAs[String]("service").getOrElse("noName")
       val instanceName = attr.getAs[String]("instanceName").orElse(attr.getAs[String]("name")).getOrElse("")
       val id = attr.getAs[ID]("instanceID")
