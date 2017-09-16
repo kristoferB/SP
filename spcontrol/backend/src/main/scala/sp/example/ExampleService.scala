@@ -105,6 +105,7 @@ trait ExampleServiceLogic {
         thePies += id -> map
       case APIExampleService.ResetAllTickers =>
         thePies = Map()
+      case APIExampleService.GetTheTickers => 
     }
     getTheTickers
   }

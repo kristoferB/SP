@@ -147,11 +147,11 @@ object JsonifyUIState {
   import Logic._
   import play.api.libs.json._
 
-  implicit val fTheme: JSFormat[Theme] = deriveFormatSimple[Theme]
-  implicit val fSettings: JSFormat[Settings] = deriveFormatSimple[Settings]
-  implicit val fWidgetData: JSFormat[WidgetData] = deriveFormatSimple[WidgetData]
-  implicit val fWidgetLayout: JSFormat[WidgetLayout] = deriveFormatSimple[WidgetLayout]
-  implicit val fOpenWidget: JSFormat[OpenWidget] = deriveFormatSimple[OpenWidget]
+  implicit val fTheme: JSFormat[Theme] = Json.format[Theme]
+  implicit val fSettings: JSFormat[Settings] = Json.format[Settings]
+  implicit val fWidgetData: JSFormat[WidgetData] = Json.format[WidgetData]
+  implicit val fWidgetLayout: JSFormat[WidgetLayout] = Json.format[WidgetLayout]
+  implicit val fOpenWidget: JSFormat[OpenWidget] = Json.format[OpenWidget]
 
   implicit lazy val openWidgetMapReads: JSReads[Map[ID, OpenWidget]] = new JSReads[Map[ID, OpenWidget]] {
     override def reads(json: JsValue): JsResult[Map[ID, OpenWidget]] = {
@@ -168,8 +168,8 @@ object JsonifyUIState {
   }
 
 
-  implicit val fOpenWidgets: JSFormat[OpenWidgets] = deriveFormatSimple[OpenWidgets]
-  implicit val fGlobalState: JSFormat[GlobalState] = deriveFormatSimple[GlobalState]
-  implicit val fSPGUIModel: JSFormat[SPGUIModel] = deriveFormatSimple[SPGUIModel]
+  implicit val fOpenWidgets: JSFormat[OpenWidgets] = Json.format[OpenWidgets]
+  implicit val fGlobalState: JSFormat[GlobalState] = Json.format[GlobalState]
+  implicit val fSPGUIModel: JSFormat[SPGUIModel] = Json.format[SPGUIModel]
 
 }
