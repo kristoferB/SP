@@ -55,10 +55,10 @@ class ExampleService extends Actor
     case Tick =>
       val upd = tick  // Updated the pies on a tick
       tick.foreach{ e =>
-        val header = SPAttributes(
-          "from" -> ExampleServiceInfo.attributes.service,
-          "reqID" -> e.id
-        ).addTimeStamp
+        val header = SPHeader(
+          from = ExampleServiceInfo.attributes.service,
+          reqID = e.id
+        )
         val mess = SPMessage.makeJson(header, e)
         sendAnswer(mess)  // sends out the updated pies
       }

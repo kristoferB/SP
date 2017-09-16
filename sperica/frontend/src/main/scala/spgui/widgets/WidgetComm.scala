@@ -29,10 +29,8 @@ object EricaLogic {
 }
 
 
-
-
 object ToAndFrom {
-  def eventBody(mess: SPMessage): Try[API_PatientEvent.Event] = mess.getBodyAs[API_PatientEvent.Event]
+  def eventBody(mess: SPMessage): Option[API_PatientEvent.Event] = mess.getBodyAs[API_PatientEvent.Event]
 
   def make(h: SPHeader, b: API_PatientEvent.Event): SPMessage = SPMessage.make(h, b)
 }

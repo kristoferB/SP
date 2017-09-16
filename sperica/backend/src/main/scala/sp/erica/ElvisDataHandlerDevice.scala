@@ -14,7 +14,7 @@ import scala.util.{Success, Try}
 /**
 *  This is the actor (the service) that listens for messages on the bus
 */
-class ElvisDataHandlerDevice extends Actor {
+class ElvisDataHandlerDevice extends Actor  {
   val log = org.slf4j.LoggerFactory.getLogger(getClass.getName)
   implicit val formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all // for json serialization
 
