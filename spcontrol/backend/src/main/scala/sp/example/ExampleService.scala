@@ -14,20 +14,20 @@ import sp.domain.Logic._
 class ExampleService extends Actor
   with ActorLogging with
   ExampleServiceLogic with
-  sp.service.ServiceCommunicationSupport with
-  sp.service.MessageBussSupport {
+  sp.service.ServiceSupport {
 
   val instanceID = ID.newID
 
-  subscribe(APIExampleService.topicRequest)
 
   // Setting up the status response that is used for identifying the service in the cluster
   val statusResponse = ExampleServiceInfo.attributes.copy(
     instanceID = Some(this.instanceID)
   )
-  // starts wiating for ping requests from service handler
+  // starts waiting for ping requests from service handler
   triggerServiceRequestComm(statusResponse)
 
+  // subscribe to the topic where requests are sent for this API
+  subscribe(APIExampleService.topicRequest)
 
 
   // The method that receive messages. Add service logic in a trait so you can test it. Here the focus in on parsing
@@ -36,7 +36,23 @@ class ExampleService extends Actor
     // enable the line below for troubleshooting
     //case mess @ _ if {println(s"ExampleService MESSAGE: $mess from $sender"); false} => Unit
 
-    case "tick" =>
+    case x: String =>
+      // extract the body if it is a case class from my api as well as the header.to has my name
+      // act on the messages from the API. Always add the logic in a trait to enable testing
+      val bodyAPI = for {
+        mess <- SPMessage.fromJson(x)
+        h <- mess.getHeaderAs[SPHeader] if h.to == instanceID.toString || h.to == APIExampleService.service  // only extract body if it is to me
+        b <- mess.getBodyAs[APIExampleService.Request]
+      } yield {
+        val spHeader = h.swapToAndFrom
+        sendAnswer(SPMessage.makeJson(spHeader, APISP.SPACK()))
+
+        val toSend = commands(b) // doing the logic
+        sendAnswer(SPMessage.makeJson(spHeader, toSend))
+        sendAnswer(SPMessage.makeJson(spHeader, APISP.SPACK()))
+      }
+
+    case Tick =>
       val upd = tick  // Updated the pies on a tick
       tick.foreach{ e =>
         val header = SPAttributes(
@@ -46,31 +62,6 @@ class ExampleService extends Actor
         val mess = SPMessage.makeJson(header, e)
         sendAnswer(mess)  // sends out the updated pies
       }
-
-    case x: String =>
-      // extract the body if it is an case class from my api as well as the header.to has my name
-      // act on the messages from the API. Always add the logic in a trait to enable testing
-      val bodyAPI = for {
-        m <- SPMessage.fromJson(x)
-        h <- m.getHeaderAs[SPHeader] if h.to == instanceID.toString || h.to == ExampleServiceInfo.attributes.service  // only extract body if it is to me
-        b <- m.getBodyAs[APIExampleService.Request]
-      } yield {
-        val toSend = commands(b) // doing the logic
-        val spHeader = h.swapToAndFrom
-
-        // We must do a pattern match here to enable the json conversion (SPMessage.make. Or the command can return pickled bodies
-        toSend.foreach{
-          case x: APIExampleService.Request =>
-              sendAnswer(m.makeJson(spHeader, x))
-          case x: APISP =>
-              sendAnswer(m.makeJson(spHeader, x))
-        }
-      }
-
-
-
-
-
   }
 
   def sendAnswer(mess: String) = publish(APIExampleService.topicResponse, mess)
@@ -80,7 +71,7 @@ class ExampleService extends Actor
   // A "ticker" that sends a "tick" string to self every 2 second
   import scala.concurrent.duration._
   import context.dispatcher
-  val ticker = context.system.scheduler.schedule(2 seconds, 2 seconds, self, "tick")
+  val ticker = context.system.scheduler.schedule(2 seconds, 2 seconds, self, Tick)
 
 }
 
@@ -88,8 +79,7 @@ object ExampleService {
   def props = Props(classOf[ExampleService])
 }
 
-
-
+case object Tick
 
 
 /*
@@ -109,20 +99,14 @@ trait ExampleServiceLogic {
     body match {
       case APIExampleService.StartTheTicker(id) =>
         thePies += id -> Map("first"->10, "second"-> 30, "third" -> 60)
-        List(APISP.SPACK(), getTheTickers)
       case APIExampleService.StopTheTicker(id) =>
         thePies -= id
-        List(APISP.SPDone(), getTheTickers)
       case APIExampleService.SetTheTicker(id, map) =>
         thePies += id -> map
-        List(APISP.SPACK(), getTheTickers)
       case APIExampleService.ResetAllTickers =>
         thePies = Map()
-        List(getTheTickers)
-      case x => List(APISP.SPError(s"ExampleService can not understand: $x"))
     }
-
-
+    getTheTickers
   }
 
   def tick = {

@@ -9,19 +9,6 @@ lazy val serviceSettings = Seq(
 
 lazy val root = project.in( file(".") )
 
-//  lazy val all = project.in( file(".") )
-//  .aggregate(
-//    spdomain_jvm,
-//    spdomain_js,
-//    spcomm_jvm,
-//    spcomm_js,
-//    spcore,
-//    spgui,
-//    spcontrol_frontend,
-//    spcontrol_backend
-//  )
-
-
 lazy val spdomain = (crossProject.crossType(CrossType.Pure) in file("spdomain"))
   .settings(name := "spdomain")
   .settings(commonSettings)

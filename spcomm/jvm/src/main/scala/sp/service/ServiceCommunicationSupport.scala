@@ -3,6 +3,9 @@ package sp.service
 import akka.actor._
 import sp.domain._
 
+
+trait ServiceSupport extends ServiceCommunicationSupport with MessageBussSupport
+
 trait ServiceCommunicationSupport {
   val context: ActorContext
   private var shComm: Option[ActorRef] = None
@@ -38,6 +41,7 @@ class ServiceHandlerComm(resp: APISP.StatusResponse) extends Actor with MessageB
   }
 
   override def postStop() = {
+    println("ServiceCommSupportActor closed for: " + serviceResponse.instanceID)
     publish(APISP.serviceStatusResponse,
       SPMessage.makeJson(
         SPHeader(to = APIServiceHandler.service, from = serviceResponse.instanceID.toString ),

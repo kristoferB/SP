@@ -26,7 +26,7 @@ object ServiceListWidget {
         val res = b match {
           case api.Services(xs) => $.setState(State(xs))
           case api.ServiceAdded(s) => $.modState(state => State(s :: state.services))
-          case api.ServiceRemoved(s) => $.modState(state => State(state.services.filter(x => x.service != s.service)))
+          case api.ServiceRemoved(s) => $.modState(state => State(state.services.filter(x => x.instanceID != s.instanceID)))
         }
         res.runNow()
       }

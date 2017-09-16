@@ -1,67 +1,48 @@
 package spgui.widgets.examples
 
-import java.util.UUID
+import japgolly.scalajs.react._
+import japgolly.scalajs.react.vdom.html_<^._
 
-  import japgolly.scalajs.react._
-  import japgolly.scalajs.react.vdom.html_<^._
+import spgui.communication._
 
-
-  import spgui.communication._
-
-  import scala.util.Try
-
-
-  // Import this to make SPAttributes work including json handling
-  import sp.domain._
-  import Logic._
+// Import this to make SPAttributes work including json handling
+import sp.domain._
+import Logic._
 
 
-  import sp.example.{APIExampleService => api}
+import sp.example.{APIExampleService => api}
 
 
 
   object ExampleServiceWidget {
 
-
-    //   Sometimes this needs to be added to make the json magic work. The compiler will complain if
-    //   you need it. Another option is to add your api in another file
-    //  implicit val readWriter: ReadWriter[API_ExampleService] =
-    //    macroRW[StartTheTicker] merge macroRW[StopTheTicker] merge
-    //      macroRW[API_ExampleService.SetTheTicker] merge macroRW[API_ExampleService.TickerEvent] merge
-    //      macroRW[API_ExampleService.TheTickers] merge macroRW[API_ExampleService.ResetAllTickers]
-
-    case class Pie(id: UUID, map: Map[String, Int])
-
-    case class State(pie: Option[Pie], otherPies: List[UUID])
-
+    case class Pie(id: ID, map: Map[String, Int])
+    case class State(pie: Option[Pie], otherPies: List[ID])
 
     private class Backend($: BackendScope[Unit, State]) {
-      val pieID = UUID.randomUUID()
+      val pieID = ID.newID
 
       val messObs = BackendCommunication.getMessageObserver(
         mess => {
-          //println(s"The widget example got: $mess" +s"parsing: ${mess.getBodyAs[api.API_ExampleService]}")
-          mess.getBodyAs[api.Response].foreach {
+          val callback: Option[CallbackTo[Unit]] = mess.getBodyAs[api.Response].map {
             case api.TickerEvent(m, id) =>
               if (id == pieID) {
-                val p = Pie(id, m)
-                $.modState(s => s.copy(pie = Some(p))).runNow()
+                $.modState(s => s.copy(pie = Some(Pie(id, m))))
               } else
                 $.modState { s =>
                   val updIds = if (s.otherPies.contains(id)) s.otherPies else id :: s.otherPies
                   s.copy(otherPies = updIds)
-                }.runNow()
+                }
             case api.TheTickers(ids) =>
               $.modState { s =>
                 val p = if (!ids.contains(pieID)) None else s.pie
                 State(pie = p, otherPies = ids)
-              }.runNow()
-            case x =>
-              println(s"THIS WAS NOT EXPECTED IN EXAMPLEWIDGET: $x")
+              }
           }
+          callback.foreach(_.runNow())
 
         },
-        "answers" // the topic you want to listen to. Soon we will also add some kind of backend filter,  but for now you get all answers
+        api.topicResponse
       )
 
       def render(s: State) = {
@@ -96,9 +77,8 @@ import java.util.UUID
 
       def send(mess: api.Request): Callback = {
         val h = SPHeader(from = "ExampleServiceWidget", to = api.service, reply = SPValue("ExampleServiceWidget"))
-
         val json = SPMessage.make(h, mess) // *(...) is a shorthand for toSpValue(...)
-        BackendCommunication.publish(json, "services")
+        BackendCommunication.publish(json, api.topicRequest)
         Callback.empty
       }
 
