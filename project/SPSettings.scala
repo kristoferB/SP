@@ -87,8 +87,13 @@ object SPSettings {
     organization := projectname
   )
 
+  val jsFiles = Seq(
+    ProvidedJS / "ganttApp.js"
+  )
+
   lazy val jsSettings = Seq(
     libraryDependencies ++= guiDependencies.value,
+    jsDependencies ++= jsFiles,
     testFrameworks += new TestFramework("utest.runner.Framework"),
     addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
   )

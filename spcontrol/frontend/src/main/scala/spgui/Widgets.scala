@@ -24,6 +24,7 @@ object LoadingWidgets {
       ("OpcUAWidget",                 widgets.examples.OpcUAWidget(),                                 5, 4),
       ("Item explorer",               widgets.itemexplorer.ItemExplorer(),           3, 4),
       ("Item explorer tree", widgets.itemtree.ItemExplorer(), 2, 4),
+      ("Live Gantt Example",          widgets.gantt.LiveGanttExample(), 10, 5),
       ("Ability Handler",             widgets.abilityhandler.AbilityHandlerWidget(), 3, 4),
       ("ServiceList",                 widgets.services.ServiceListWidget(),          3, 4),
       ("SopMaker",                    widgets.sopmaker.SopMakerWidget(),             3, 4),
