@@ -42,25 +42,17 @@ object Dragging {
   )
 
   var setHoveringMap = Map[UUID, (Boolean) => Unit]() 
-  var setEnabledMap = Map[UUID, (Boolean) => Unit]() 
   var currentZone: UUID = null
 
   def dropzoneSubscribe(
     id: UUID,
-    setEnabled: (Boolean) => Unit,
     setHovering: (Boolean) => Unit
   ) {
     setHoveringMap += id -> setHovering
-    setEnabledMap += id -> setEnabled
   }
 
   def dropzoneUnsubscribe(id: UUID) = Callback{
-    println(setHoveringMap)
-    println("lolololololol")
     setHoveringMap = setHoveringMap.filter(c => c._1 != id )
-    setEnabledMap = setEnabledMap.filter(c => c._1 != id)
-    println(setHoveringMap)
-
   }
 
   trait Rect extends js.Object { 
@@ -142,7 +134,6 @@ object Dragging {
     SPGUICircuit.dispatch(SetCurrentlyDragging(true))
     updateMouse(x,y)
 
-    setEnabledMap.map(c => c._2(true))
   }
 
   def onDragMove(x:Float, y:Float) = {
@@ -153,7 +144,6 @@ object Dragging {
 
   def onDragStop() = {
     SPGUICircuit.dispatch(SetCurrentlyDragging(false))
-    setEnabledMap.map(c => c._2(false))
   }
 
   def setDraggingStyle(style: String) = {

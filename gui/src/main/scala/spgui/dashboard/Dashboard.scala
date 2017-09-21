@@ -23,6 +23,8 @@ object Dashboard {
 
   val cols = 12
 
+  val currentlyDragging = SPGUICircuit.zoom(_.draggingState.dragging)
+
   class Backend($: BackendScope[Props, State]) {
     def render(p: Props, s: State) = {
       window.onresize = { e: org.scalajs.dom.Event =>
@@ -92,6 +94,7 @@ object Dashboard {
       )
 
       <.div(
+        {if(!currentlyDragging.value) ^.className := "dropzonesDisabled" else EmptyVdom},
         rg
       )
     }

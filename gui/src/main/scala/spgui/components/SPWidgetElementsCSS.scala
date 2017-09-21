@@ -87,15 +87,15 @@ object SPWidgetElementsCSS extends SPStyleSheet {
     userSelect:="none"
   )
 
-  val disableDropZone = style(
-    pointerEvents := "none",
-    visibility.hidden
-  )
-
   val blue = style(
     backgroundColor:= "blue"
   )
 
+  val disableDropzones = style(
+    unsafeRoot( ".dropzonesDisabled ." + dropZone.htmlClass)(
+      visibility.hidden
+    )
+  )
 
   this.addToDocument()
 }

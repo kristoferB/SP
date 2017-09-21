@@ -16,10 +16,11 @@ object Layout {
   val component = ScalaComponent.builder[Unit]("Layout")
     .render(_ =>
       <.div(
-        Dragging.mouseMoveCapture,
         ^.className := GlobalCSS.layout.htmlClass,
         menuConnection(SPMenu(_)),
         widgetsConnection(Dashboard(_)),
+
+        Dragging.mouseMoveCapture,
         draggingConnection(Dragging(_))
       )
     )

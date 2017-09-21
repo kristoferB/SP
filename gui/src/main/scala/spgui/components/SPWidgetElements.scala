@@ -142,7 +142,7 @@ object SPWidgetElements{
       id: UUID, x: Float, y: Float, w: Float, h: Float
     )
 
-    case class State(enabled: Boolean = false, hovering: Boolean = false)
+    case class State(hovering: Boolean = false)
 
     import diode.ModelRO
     class Backend($: BackendScope[Props, State]) {
@@ -150,10 +150,7 @@ object SPWidgetElements{
       def setHovering(hovering: Boolean) =
         $.modState(s => s.copy(hovering = hovering)).runNow()
 
-      def setEnabled(enabled: Boolean) =
-        $.modState(s => s.copy(enabled = enabled)).runNow()
-
-      Dragging.dropzoneSubscribe($.props.runNow().id, setEnabled, setHovering)
+      Dragging.dropzoneSubscribe($.props.runNow().id, setHovering)
 
       def render(p:Props, s:State) = {
         <.span(
@@ -168,8 +165,6 @@ object SPWidgetElements{
               rect
             },
             ^.className := SPWidgetElementsCSS.dropZone.htmlClass,
-            {if(!s.enabled) ^.className := SPWidgetElementsCSS.disableDropZone.htmlClass
-            else ""},
             {if(s.hovering)
               ^.className := SPWidgetElementsCSS.blue.htmlClass
             else ""},
