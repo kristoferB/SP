@@ -98,7 +98,9 @@ class AbilityHandler(name: String, handlerID: UUID, vd: UUID) extends Persistent
         "counter" -> cnt
       )
       val b = abapi.AbilityState(abID, Map(abID -> abilityState))
-      publish("events", AbilityComm.makeMess(h, b))
+      // hur ska vi ha det med event/answer-topics?
+      // publish("events", AbilityComm.makeMess(h, b))
+      publish(abapi.topicResponse, AbilityComm.makeMess(h, b))
 
       req.foreach{ req =>
         val res = s match {
