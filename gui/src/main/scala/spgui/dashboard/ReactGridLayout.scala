@@ -14,18 +14,18 @@ object ReactGridLayout {
 
   @js.native
   trait LayoutElement extends js.Object {
-    val i: String = js.native
-    val x: Int = js.native
-    val y: Int = js.native
-    val w: Int = js.native
-    val h: Int = js.native
-    val minW: Int = js.native
-    val maxW: Int = js.native
-    val minH: Int = js.native
-    val maxH: Int = js.native
-    val static: Boolean = js.native
-    val isDraggable: Boolean = js.native
-    val isResizable: Boolean = js.native
+    var i: String = js.native
+    var x: Int = js.native
+    var y: Int = js.native
+    var w: Int = js.native
+    var h: Int = js.native
+    var minW: Int = js.native
+    var maxW: Int = js.native
+    var minH: Int = js.native
+    var maxH: Int = js.native
+    var static: Boolean = js.native
+    var isDraggable: Boolean = js.native
+    var isResizable: Boolean = js.native
   }
   // atm there is no perfect way to facade "options" kind of jsObjects, but this is one way
   object LayoutElement {
@@ -42,20 +42,22 @@ object ReactGridLayout {
       static: Boolean = false,
       isDraggable: Boolean = true,
       isResizable: Boolean = true
-    ) = js.Dynamic.literal(
-      i = i,
-      x = x,
-      y = y,
-      w = w,
-      h = h,
-      minW = minW,
-      maxW = maxW,
-      minH = minH,
-      maxH = maxH,
-      static = static,
-      isDraggable = isDraggable,
-      isResizable = isResizable
-    )
+    ): LayoutElement = {
+      val jsObj = (new js.Object).asInstanceOf[LayoutElement]
+      jsObj.i = i
+      jsObj.x = x
+      jsObj.y = y
+      jsObj.w = w
+      jsObj.h = h
+      jsObj.minW = minW
+      jsObj.maxW = maxW
+      jsObj.minH = minH
+      jsObj.maxH = maxH
+      jsObj.static = static
+      jsObj.isDraggable = isDraggable
+      jsObj.isResizable = isResizable
+      jsObj
+    }
   }
   type Layout = js.Array[LayoutElement]
 
