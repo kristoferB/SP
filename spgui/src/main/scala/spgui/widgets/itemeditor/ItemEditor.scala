@@ -63,7 +63,7 @@ object ItemEditor {
 
     def render(spwb: SPWidgetBase) =
       <.div(
-        <.button("Save", ^.onClick --> Callback.log("save button, does nothing")),
+        <.button("Save", ^.onClick --> Callback.log("clicked save button, here is the json: " + JSON.stringify(jsonEditor.get))),
         <.div(
           "drop an item from item explorer tree to edit it",
           OnDataDrop(idAsStr => sendToModel(spwb.frontEndState.currentModel.get, mapi.GetItem(UUID.fromString(idAsStr))))
