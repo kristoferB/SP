@@ -50,7 +50,9 @@ object WidgetList {
       ("Ability Handler",             widgets.abilityhandler.AbilityHandlerWidget(), 3, 4),
       ("ServiceList",                 widgets.services.ServiceListWidget(),          3, 4),
       ("ComponentTest",               widgets.componenttest.ComponentTest(),         3, 4),      
-      ("SopMaker",                    widgets.sopmaker.SopMakerWidget(),             3, 4)
+      ("SopMaker",                    widgets.sopmaker.SopMakerWidget(),             3, 4),
+       ("GanttExample",                widgets.gantt.GanttExample(),                  10, 6),
+      ("LiveGanttExample",            widgets.gantt.LiveGanttExample(),              10, 6)
     )
 
    val list = erica ++ sp
