@@ -7,13 +7,12 @@ import scala.concurrent.duration._
 import akka.persistence._
 import sp.domain._
 import sp.domain.Logic._
-import sp.messages._
 import org.joda.time._
 
 import scala.util.{Failure, Success, Try}
 import com.github.nscala_time.time.Imports._
 
-
+import sp.labkit.{ APILabkit => api }
 
 
 class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
@@ -29,7 +28,7 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
   case class Pos(name: String, time: DateTime, duration: Option[Long])
 
   case class Prod(name: String,
-                   ops: List[APIOPMaker.OP],
+                   ops: List[api.OP],
                    positions: List[Pos],
                    startTime: DateTime,
                    endTime: Option[DateTime] = None,
@@ -56,7 +55,7 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
     case "tick" =>
       sendProds(latestTimeStamp)
       latestTimeStamp = latestTimeStamp.plus(300)
-    case op: APIOPMaker.OP if op.end.nonEmpty =>
+    case op: api.OP if op.end.nonEmpty =>
       op.start.product.foreach { name =>
         val updP = if (currentProds.contains(name)) {
           addOPToProd(currentProds(name), op)
@@ -64,7 +63,7 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
           addOPToProd(completedProds(name), op)
         } else {
           newestProd = name
-          Prod(name, List(op), List(), op.start.time)  // new product
+          Prod(name, List(op), List(), new DateTime(op.start.time))  // new product
         }
 
         if (!completedProds.contains(name))
@@ -75,7 +74,8 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
         latestTimeStamp = lastTime(op)
       }
 
-    case APIOPMaker.Positions(positions, time) =>
+    case api.Positions(positions, t) =>
+      val time = new DateTime(t)
       println("AGGREGATOR pos:")
       println("posLine: "+positions)
 
@@ -129,10 +129,10 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
     val compl = newestCompleted.map(makeMeAPie)
     val pie = (livepie +: compl)
 
-    if (pie.nonEmpty) mediator ! Publish("frontend", ProductPies(pie))
+    if (pie.nonEmpty) mediator ! Publish("frontend", api.ProductPies(pie))
 
     val pStats = createProdStats
-    if (pStats.nonEmpty)  mediator ! Publish("frontend", ProductStats(pStats))
+    if (pStats.nonEmpty)  mediator ! Publish("frontend", api.ProductStats(pStats))
 
   }
 
@@ -147,19 +147,19 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
       .take(2)
   }
 
-  def lastTime(op: APIOPMaker.OP) = {
-    op.end.getOrElse(op.start).time
+  def lastTime(op: api.OP) = {
+    new DateTime(op.end.getOrElse(op.start).time)
   }
 
   def createProdStats = {
     val t = completedProds.toList.sortWith((a, b) => a._2.endTime.getOrElse(a._2.startTime) > b._2.endTime.getOrElse(b._2.startTime) ).map{case (name, prod) =>
-      ProdStat(name, prod.currentDuration/1000 toInt, prod.processed/1000 toInt, prod.waited/1000 toInt, prod.ops.size, prod.positions.size)
+      api.ProdStat(name, prod.currentDuration/1000 toInt, prod.processed/1000 toInt, prod.waited/1000 toInt, prod.ops.size, prod.positions.size)
     }
     t.take(10)
   }
 
 
-  def addOPToProd(prod: Prod, op: APIOPMaker.OP) = {
+  def addOPToProd(prod: Prod, op: api.OP) = {
     reCalculateProd(prod.copy(ops = prod.ops :+ op), lastTime(op))
   }
 
@@ -177,7 +177,7 @@ class ProductAggregator extends Actor with ActorLogging with NamesAndValues {
   }
 
   def sortAndMakeInterval(prod: Prod) = {
-    val intervals = prod.ops.filter(_.end.nonEmpty).map(x => x.start.time to x.end.get.time).sortWith(_.start < _.start)
+    val intervals = prod.ops.filter(_.end.nonEmpty).map(x => new DateTime(x.start.time) to new DateTime(x.end.get.time)).sortWith(_.start < _.start)
     val kalle: Option[org.joda.time.Interval] = None
     intervals.foldLeft(0L, kalle){(a, b) =>
       val act = a._1

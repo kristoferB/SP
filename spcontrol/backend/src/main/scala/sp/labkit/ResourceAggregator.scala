@@ -1,9 +1,6 @@
 package sp.labkit
 
 import akka.actor._
-import sp.domain.logic.{ActionParser, PropositionParser}
-import org.json4s.JsonAST.{JValue,JBool,JInt,JString}
-import org.json4s.DefaultFormats
 import sp.domain._
 import sp.domain.Logic._
 import scala.concurrent.Future
@@ -17,7 +14,7 @@ import akka.cluster.pubsub.DistributedPubSubMediator.{ Put, Subscribe, Publish }
 import org.joda.time.DateTime
 import java.util.concurrent.TimeUnit
 
-import APIOPMaker._
+import sp.labkit.{ APILabkit => api }
 
 object ResourceAggregator {
   def props() = Props(classOf[ResourceAggregator])
@@ -45,7 +42,7 @@ class ResourceAggregator extends Actor {
       val m = Map("move" -> moveTime, "Process" -> processTime, "Idle" -> idleTime)
       (resource -> m)
     }
-    mediator ! Publish("frontend", ResourcePies(toSend.toMap))
+    mediator ! Publish("frontend", api.ResourcePies(toSend.toMap))
   }
 
   def receive = {
@@ -53,7 +50,7 @@ class ResourceAggregator extends Actor {
       updateIdle
       context.system.scheduler.scheduleOnce(Duration(100, TimeUnit.MILLISECONDS), self, "UpdateIdle")
 
-    case OP(start: OPEvent, end: Option[OPEvent], attributes: SPAttributes) =>
+    case api.OP(start: api.OPEvent, end: Option[api.OPEvent], attributes: SPAttributes) =>
       val t = start.name
       val name = start.id
       val resource = start.resource
@@ -68,22 +65,23 @@ class ResourceAggregator extends Actor {
 
       if(started) {
         // update gantt view
-        mediator ! Publish("frontend", OperationStarted(name, resource, product, t, start.time.toString))
+        mediator ! Publish("frontend", api.OperationStarted(name, resource, product, t, start.time))
       }
       else {
         // update gantt view
-        mediator ! Publish("frontend", OperationFinished(name, resource, product, t, end.get.time.toString))
+        mediator ! Publish("frontend", api.OperationFinished(name, resource, product, t, end.get.time))
 
         // update pie charts
         if(processResources.contains(resource)) {
+          val startTime = new org.joda.time.DateTime(start.time)
+          val endTime = new org.joda.time.DateTime(end.get.time)
+          val duration = (endTime.getMillis() - startTime.getMillis()).intValue()
           if(name.contains("Process")) {
-            val duration = (end.get.time.getMillis() - start.time.getMillis()).intValue()
             val nt = processes(resource).get("Process").getOrElse(0) + duration
             val nm = processes(resource) + ("Process" -> nt)
             processes ++= Map(resource -> nm)
           }
           if(name.contains("move")) {
-            val duration = (end.get.time.getMillis() - start.time.getMillis()).intValue()
             val nt = processes(resource).get("move").getOrElse(0) + duration
             val nm = processes(resource) + ("move" -> nt)
             processes ++= Map(resource -> nm)
