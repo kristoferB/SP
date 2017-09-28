@@ -5,7 +5,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 
 import scalacss.ScalaCssReact._
 import spgui.{SPWidget, SPWidgetBase}
-import spgui.components.DragAndDrop.DataOnDrag
+import spgui.components.DragAndDrop.{ DataOnDrag, OnDataDrop }
 import spgui.communication.BackendCommunication
 import spgui.widgets.itemeditor.{API_ItemServiceDummy => api}
 import spgui.circuit.{ SPGUICircuit, UpdateGlobalState, GlobalState }
@@ -20,7 +20,7 @@ import java.util.UUID
 
 object ItemExplorer {
 
-  // TODO temporary way of setting currentModel
+  // TODO temporary way of setting currentModel, currentModel-field will be moved to global state attributes
   @JSExportTopLevel("setCurrentModel")
   def setCurrentModel(modelIDString: String) = {
     val id = UUID.fromString(modelIDString)
@@ -67,7 +67,10 @@ object ItemExplorer {
     val topicHandler = BackendCommunication.getMessageObserver(handleMess, topic)
 
     def render(p: SPWidgetBase, s: ItemExplorerState) =
-      if (p.frontEndState.currentModel.isDefined) renderItems(s.items) else renderIfNoModel
+      <.div(
+        if (p.frontEndState.currentModel.isDefined) renderItems(s.items) else renderIfNoModel,
+        OnDataDrop(str => Callback.log("dropped " + str + " on item explorer tree"))
+      )
 
     def renderIfNoModel =
       <.div(
@@ -77,7 +80,8 @@ object ItemExplorer {
     def renderItems(items: List[IDAble]) =
       <.div(
         <.ul(
-          items.toTagMod(idAble => <.li(idAble.name, DataOnDrag(idAble.id.toString)))
+          items.toTagMod(idAble => <.li(idAble.name, DataOnDrag(idAble.id.toString, Callback.log("picked sumthing up"))))
+          //items.toTagMod(idAble => <.li(idAble.name))
         )
       )
   }
