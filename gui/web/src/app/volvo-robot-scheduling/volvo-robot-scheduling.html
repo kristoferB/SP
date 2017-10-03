@@ -39,31 +39,7 @@
         </form>
 
 
-        <table>
-            <thead>
-            <tr><td><h5>
-                <div ng-if="vm.selectedResources.length == 0">
-                </div>
-                <div ng-if="vm.selectedResources.length > 0">
-                    <!--- Press calculate when done selecting --->
-                </div>
-            </h5></td></tr>
-            </thead>
-            <tbody ng-repeat="s in vm.selectedResources | orderBy:'name'">
-            <tr>
-                <td style="padding: 5px">
-                    <button type="button" class="btn btn-sm btn-primary" ng-click="vm.removeResource(s)">
-                        <i class="fa fa-close"></i> {{s.name}}
-                    </button>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-
-
-       <input type="checkbox" ng-click= "vm.checkSOP()">Run Supremica with the whole SOP<br>
         <input type="checkbox" ng-click= "vm.checkTime()">Add time to ops that have none
-
 
 
         <ul>

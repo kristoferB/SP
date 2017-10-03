@@ -45,7 +45,6 @@
         var SopID = '';
         var waitID = '';
         var caselist = {};
-        var checkedSOP = false;
         var checkedTime = false;
 
 
@@ -171,7 +170,6 @@ caselist[k] = v;
                           'command' : 'GenerateSops',
                           'SopID' : SopID,
                           'neglectedCases' : vm.caseMap,
-                          'checkedSOP' : checkedSOP,
                           'checkedTime' : checkedTime,
                               'core': {
                                   'model': modelService.activeModel.id,
@@ -197,7 +195,6 @@ caselist[k] = v;
                           'command' : 'loadCases',
                           'SopID' : SopID,
                           'neglectedCases' : vm.caseMap,
-                           'checkedSOP' : checkedSOP,
                            'checkedTime' : checkedTime,
                               'core': {
                                   'model': modelService.activeModel.id,
@@ -231,7 +228,6 @@ caselist[k] = v;
                                                                               'command' : 'calculateUsingSops',
                                                                               'SopID' : SopID,
                                                                               'neglectedCases' : caseMapdiff,
-                                                                              'checkedSOP' : checkedSOP,
                                                                               'checkedTime' : checkedTime,
                                                                                   'core': {
                                                                                       'model': modelService.activeModel.id,

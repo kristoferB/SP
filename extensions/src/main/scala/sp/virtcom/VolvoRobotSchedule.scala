@@ -126,7 +126,6 @@ object VolvoRobotSchedule extends SPService {
     "command" -> KeyDefinition("String", List(), None),
     "SopID"   -> KeyDefinition("String", List(), None),
     "neglectedCases" -> KeyDefinition("Map", List(), None),
-    "checkedSOP"  -> KeyDefinition("Bool", List(), None),
     "checkedTime" -> KeyDefinition("Bool", List(), None),
     "service" -> SPAttributes(
       "group" -> "External",
@@ -142,7 +141,7 @@ object VolvoRobotSchedule extends SPService {
     TransformValue("command", _.getAs[String]("command")),
     TransformValue("SopID", _.getAs[String]("SopID")),
     TransformValue("neglectedCases", _.getAs[Map[String,List[Operation]]]("neglectedCases")),
-    TransformValue("checkedSOP", _.getAs[Boolean]("checkedSOP")),
+   // TransformValue("checkedSOP", _.getAs[Boolean]("checkedSOP")),
     TransformValue("checkedTime", _.getAs[Boolean]("checkedTime"))
   )
   val transformation = transformToList(transformTuple.productIterator.toList)
@@ -231,7 +230,9 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
 
         var zonespecs = allZoneSopMapsMerged.map { case (z, l) => SOPSpec(z, List((Arbitrary(SOP()) <-- l)), h) } // Creates arbitrary SOPs for each Zone and SopSpecs for them
 
-        val nids = List(sopspec) ++ zonespecs ++ operations // new ids, i.e everything that we want to return
+        val plcSOP = List(SOPSpec("PLC_SOP", List[SOP](), h)) // Create an empty sopSpec, that the user can fill in to model the PLC and connections between different operations from different resources.
+
+        val nids = List(sopspec) ++ zonespecs ++ plcSOP ++ operations // new ids, i.e everything that we want to return
         val hids = nids ++ addHierarchies(nids, "hierarchy") // hierarchy ids, everything that we want to return and a bit more to actually add the Hierarchy to the SP tree.
 
         // Create a response message and send it on the bus "back to the GUI"
@@ -297,8 +298,7 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
 
         val SopID = transform(VolvoRobotSchedule.transformTuple._3) // Get the SOP ID from the message, sent from the GUI
         val neglectedCases = transform(VolvoRobotSchedule.transformTuple._4) // Get cases that should not be a part of the solution
-        val checkedSOP = transform(VolvoRobotSchedule.transformTuple._5)  // If you want to send back the original SOP but with added conditions for transitions,
-        val checkedTime = transform(VolvoRobotSchedule.transformTuple._6) // Will add a duration of 1 to the operations that have none
+        val checkedTime = transform(VolvoRobotSchedule.transformTuple._5) // Will add a duration of 1 to the operations that have none
 
         val neglectedOpIds = neglectedCases.values.flatten.toList.map(op => op.id) // Gets the IDs of the neglected cases
 
@@ -314,12 +314,12 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         val allNodesInHierarchy = ids.filter(o=>parentNodeToSop.children.exists(c=>c.item == o.id)) // Get all of the Hierarchy children as idable objects from ids
         val allSopSpecs = allNodesInHierarchy.filter(_.isInstanceOf[SOPSpec]).map(_.asInstanceOf[SOPSpec])  // filter out the Sop Specs
         var sopSpec = allSopSpecs.find(c=> c.id.toString == SopID).get //Get the SOPSpec with the Right ID. ( the one from the generate SOPS)
-        var zonespecs = if(allSopSpecs.size >1) allSopSpecs.diff(List(sopSpec)).toIterable  else Iterable[SOPSpec]()// Remove the main sopspec from the list, remaining are the zone/station sopspecs
+        var plcSOP = allSopSpecs.find(c=> c.name == "PLC_SOP").get
+        var zonespecs = if(allSopSpecs.size >1) allSopSpecs.diff(List(sopSpec)).diff(List(plcSOP)).toIterable  else Iterable[SOPSpec]()// Remove the main sopspec from the list, remaining are the zone sopspecs
         val allOpsInHierarchy = allNodesInHierarchy.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation])  // filter out the Operations
 
-        val collector2 = VolvoRobotScheduleCollector()
         // Go through the list of (operations) get their schedule names and create Collector variables.
-       allOpsInHierarchy.map{op => op.attributes.getAs[String]("robotSchedule").getOrElse("error")}.distinct.foreach{s => {collector.v(s, idleValue = Some(idle), attributes = h) ; collector2.v(s, idleValue = Some(idle), attributes = h)} }
+       allOpsInHierarchy.map{op => op.attributes.getAs[String]("robotSchedule").getOrElse("error")}.distinct.foreach{s => collector.v(s, idleValue = Some(idle), attributes = h)}
 
         // Go through the SOPs for each resource, one by one and create straight operation sequences for the optimization.
         // Create new IDs for the operations, and new SOPs for those IDs
@@ -336,6 +336,13 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         import CollectorModelImplicits._
         uids = collector.parseToIDablesWithIDs() // extract variables, transitions and operations from collector
         var operations = uids.filter(_.isInstanceOf[Operation]).map(_.asInstanceOf[Operation]) // Get all operations from the collector
+
+
+        plcSOP.sop.foreach(individualSop => {
+          var exOps =  extractFromPLCSOP(individualSop :SOP,operations)
+          exOps.foreach(oplist => {oplist.foreach(op => println("op :" + op.name + ", ID :" + op.id)); println("\n")})
+          opSequences ++= exOps
+        })
 
 
         var zoneMapping = Map[Operation,Set[String]]() // Create op zone Map
@@ -378,19 +385,10 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
           (newSop, zoneMappingNew)
         } // Create a zonemap and a new zonespec with the new operation ids.
 
-
-
-
-
-        // Solve with CP for every possible sequence of operations.
-        var ganttChart = List[(ID, Double,Double)]() // A list where if the CP optimization is run in several steps could contain the result from each step
-        var makespans = List[Double]() // A list where if the CP optimization is run in several steps could contain the result from each step
-
         val zones = zoneMapping.map { case (o, zones) => zones }.flatten.toSet // All the zone names as a set of strings
         var mutexes: List[(ID,ID)] = List() // Should contain all a list for all operations in zones (that should not execute at the same time) ex: Zone 1: op1, op2, op3 -> mutexes: (op1,op2),(op1,op3),(op2,op3)
 
-
-        // Creates the mutexes, seems correct
+        // Creates the mutexes
         val zoneSeqs = zones.map { zone =>
           val opsInZone = zoneMapping.filter { case (o,zones) => zones.contains(zone) }.map(_._1)
 
@@ -417,20 +415,19 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
 
         mutexes = mutexes.distinct
 
-
         var precedences: List[(ID,ID)] = List()
         var forceEndTimes: List[(ID,ID)] = List()
 
-
         var approvedOps = List[Operation]()  // Create a list where all the wanted operations from the next step can be saved
-        // going through each oplist and adding information to the precedence and forceEndTime lists
-        opSequences.foreach(oplist => {
-
-          operations = updateOpSequenceFromCollector(oplist,collector)
+        opSequences.foreach(oplist => {  // going through each oplist and adding information to the precedence and forceEndTime lists
 
           var opListIds = oplist.map(op => op.attributes.getAs[ID]("original").get)
 
-          if (opListIds.intersect(neglectedOpIds).isEmpty){
+          if (opListIds.intersect(neglectedOpIds).isEmpty){ // Check that the current oplist does not have an operation which was not selected during the alternative selection
+
+
+            operations = updateOpSequenceFromCollector(oplist,collector) // Get updated operation Ids and attributes from collector, not sure this is actually needed anymore...
+            approvedOps ++= operations // add all of the operations of the oplist to a list of operations for the later optimization
 
             // Creates a new Zonemap where all of the zonemap operations are contained in the current oplist
             var zoneMappingNew = Map[Operation, Set[String]]()
@@ -441,27 +438,11 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
               }
             })
 
-
-            //Adds transition conditions to the operations
-            operations.foldLeft(idle) { case (s, o) => {
-              val done = if (operations.reverse.head == o) idle else o.name + "_done" // go back to init
-              val rs = o.attributes.getAs[String]("robotSchedule").getOrElse("error")
-              val trans = SPAttributes(collector2.aResourceTrans(rs, s, o.name, done))
-              var duration =  o.attributes.getAs[Double]("duration").getOrElse(0.0)
-              val spAttrDuration = if(duration > 0.0 || !checkedTime) SPAttributes("duration" -> duration) else SPAttributes("duration" -> 1.0)
-              collector2.opWithID(o.name, Seq(o.attributes merge trans merge h merge spAttrDuration), o.id)
-              done
-            }
-            }
-            operations = updateOpSequenceFromCollector(oplist,collector2)
-            approvedOps ++= operations
-
             var zoneMap = zoneMappingNew //zoneMapping
 
             // Creates a new ZoneMap for the current operation Sequence, containing only those operations.
 
-            // makes sure that the zonemap has the right IDs
-            val zoness = zoneMap.map { case (o, zoness) => zoness }.flatten.toSet
+            // makes sure that the zonemap has the right IDs. This might also be redundant now... If not this could probably be done earlier
             var newZoneMap = Map[Operation, Set[String]]()
             zoneMap.map { case (o, zoness) => {
               operations.foreach({ opWithTrans => if (opWithTrans.id == o.id) newZoneMap += (opWithTrans -> zoness) })
@@ -476,7 +457,7 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
               precedences ++= np.map { case (o1, o2) => (o1.id, o2.id) } // Orders all operations after eachother in the order they were given from the op list
               if (!zoneMap.isEmpty) {
                 // Checks which operations have the same zoneMap
-                val fe = np.filter { case (o1, o2) => zoneMap(o1) == zoneMap(o2) }.map { case (o1, o2) => (o1.id, o2.id) } // Seems to do it like: If there are more than one operation with the same zones, then they are placed in fe.
+                val fe = np.filter { case (o1, o2) => zoneMap(o1) == zoneMap(o2) }.map { case (o1, o2) => (o1.id, o2.id) } // Seems to do it like: If there are more than one operation with the same zones, then they are placed in fe. This will speed up the optimization in some way.
                 // Like: op1: in zones: Station1,Zone1
                 //       op2: in zones: Station1,Zone1 --> fe: (op1,op2),
                 forceEndTimes ++= fe
@@ -496,89 +477,10 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         // When all of the operation sequences have been processed and the precedences + forceEndTimes have been created.
         // The mutexes which are just given by the great zonemap and all operations + precedences & forceEndTimes are sent to the robot optimization.
 
-        val ro = new RobotOptimization(approvedOps, precedences, mutexes, forceEndTimes)
+        val ro = new RobotOptimization(approvedOps, precedences, mutexes, forceEndTimes) // Create CP variables and (op index -> op duration maps), solve the problem and create SOPs & gantt charts.
         val roFuture = Future {
           ro.test
         }
-
-
-        if(!checkedSOP) {
-
-
-          // Create a new ZoneSpec based on the selected cases.
-          var zonespecsStraight = List[SOPSpec]() // Create a new zonespec with the new operation ids and create the zone mapping
-          zonespecs.foreach(zSpec => {
-            val zoneName = zSpec.name
-            var zonesops = List[SOP]()
-            zSpec.sop.foreach(sopNode => {
-              zonesops :+= straightZoneSpecs(sopNode, zoneName)
-            })
-            zonespecsStraight :+= SOPSpec(zoneName, zonesops, h)
-          })
-          zonespecs = zonespecsStraight.toIterable
-
-          def straightZoneSpecs(sopNode: SOP, zoneName: String): (SOP) = {
-            var newSop = SOP()
-            if (sopNode.isInstanceOf[Arbitrary]) {
-              var arbSeqs = Seq[SOP]()
-              sopNode.sop.foreach(subSopNode => {
-                if (straightZoneSpecs(subSopNode, zoneName) != SOP()) arbSeqs :+= straightZoneSpecs(subSopNode, zoneName)
-              })
-              if (!arbSeqs.isEmpty)
-                newSop = Arbitrary(SOP()) <-- arbSeqs
-            }
-            else if (sopNode.isInstanceOf[Sequence]) {
-              var seqSeqs = Seq[SOP]()
-              sopNode.sop.foreach(subSopNode => {
-                if (straightZoneSpecs(subSopNode, zoneName) != SOP()) seqSeqs :+= straightZoneSpecs(subSopNode, zoneName)
-              })
-              if (!seqSeqs.isEmpty)
-                newSop = Sequence(SOP()) <-- seqSeqs
-            }
-            else if (sopNode.isInstanceOf[Hierarchy]) {
-              val op = approvedOps.filter(op => op.id == sopNode.asInstanceOf[Hierarchy].operation)
-              if (op.nonEmpty) {
-                newSop = SOP() <-- Seq(Hierarchy(op.head.id))
-              }
-            }
-            newSop
-          } // Create a zonemap and a new zonespec with the new operation ids.
-
-          // Create a new sopSpec based on the selected cases
-          var newSopSeq = SOP()
-
-          var sopSeqs = Seq[SOP]()
-          sopSpec.sop.foreach(individualSop => {
-            straightSop(individualSop: SOP)
-            sopSeqs :+= newSopSeq
-            newSopSeq = SOP()
-          })
-
-          ss = sopSeqs.toList
-          sopSpec = SOPSpec(schedules.map(_.name).toSet.mkString("_") + "_Optimized", ss, h)
-
-          def straightSop(individualSop: SOP): (SOP) = {
-            var newSop = SOP()
-
-            if (individualSop.isInstanceOf[Sequence] || individualSop.isInstanceOf[Alternative]) {
-              individualSop.sop.foreach(sopNode => {
-                straightSop(sopNode) // call the function again with the sopNode Sop
-              })
-            }
-            else if (individualSop.isInstanceOf[Hierarchy]) {
-              if (approvedIds.contains(individualSop.asInstanceOf[Hierarchy].operation)) {
-                newSop = SOP() <-- Seq(Hierarchy(individualSop.asInstanceOf[Hierarchy].operation))
-                if (newSopSeq.isEmpty) newSopSeq = Sequence(SOP()) <-- Seq(newSop) else newSopSeq += newSop
-              }
-            }
-            (newSop)
-          }
-
-          import CollectorModelImplicits._
-          uids = collector2.parseToIDablesWithIDs()
-
-        }
-
 
         // For the synthesis:
         var nids = List(sopSpec) ++ zonespecs ++ uids
@@ -588,7 +490,7 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         //--------------------------------------------------------------------------------------------------------------------------
         // now, extend model, run synthesis and get the optimization results
         for {
-        // Extend model
+        // Extend operations with transition variables
           Response(ids, _, _, _) <- askAService(Request("ExtendIDablesBasedOnAttributes",
             SPAttributes("core" -> ServiceHandlerAttributes(model = None,
               responseToModel = false, onlyResponse = true, includeIDAbles = List())),
@@ -786,7 +688,6 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         (Sequence(SOP()) <-- activeOps.map(op=> Hierarchy(op.id)).toSeq)
       }
 
-
       def opsAtLevel(node: HierarchyNode, ops: List[Operation]): List[Operation] = {
         ops.filter(o=>node.children.exists(c=>c.item == o.id))
       }
@@ -896,6 +797,45 @@ class VolvoRobotSchedule(sh: ActorRef) extends Actor with ServiceSupport with Ad
         }
 
         (newOpSequences, startCondition, newSop) // return this
+      }
+
+      def extractFromPLCSOP(individualSop :SOP, ops : List[Operation]) : (List[List[Operation]]) ={
+        var newOpSequences = List[List[Operation]]()
+
+
+        if(individualSop.isInstanceOf[Sequence]) {
+
+          individualSop.sop.foreach(sopNode => {
+            var tmpOpSequences = List[List[Operation]]()
+
+            var opSeqs = extractFromPLCSOP(sopNode,ops) // call the function again with the subNode Sop
+
+            opSeqs.foreach(opSeq =>{
+              if(newOpSequences.isEmpty) {tmpOpSequences :+= opSeq}
+              else {newOpSequences.foreach(opsInSeq => tmpOpSequences :+= opsInSeq ++ opSeq)}
+            }) // for each opSeq, append all of its sequences to the already existing ones. Create new lists as required.
+            newOpSequences = tmpOpSequences
+          })
+        }
+
+        else if(individualSop.isInstanceOf[Hierarchy]){
+          var op = ops.filter(op => op.attributes.getAs[ID]("original").get == individualSop.asInstanceOf[Hierarchy].operation).head // get the ID from the node, find the corresponding operation
+          newOpSequences :+= List(op) // add the operation to the list
+        }
+
+        else if(individualSop.isInstanceOf[Alternative]){
+          var opSeqstmp = List[List[Operation]]()
+          individualSop.sop.foreach(subNode => {
+            var (altSeqs) = extractFromPLCSOP(subNode,ops) // call the function again with the subNode Sop
+            altSeqs.foreach(altSeq => {
+              if(newOpSequences.isEmpty){opSeqstmp :+= altSeq }
+              else // for each alternative, append all of its sequences to the already existing ones. Create new lists as required.
+                newOpSequences.foreach(opsInSeq => opSeqstmp :+= opsInSeq ++ altSeq )
+            })
+          })
+          newOpSequences = opSeqstmp // update the opSeq list
+        }
+        (newOpSequences) // return this
       }
 
       def addOpToCollector (op : Operation, startcond : String, lastNode : Boolean, collector : CollectorModel, h : SPAttributes, checkedTime : Boolean) : String={
