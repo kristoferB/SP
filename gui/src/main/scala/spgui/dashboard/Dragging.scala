@@ -21,9 +21,11 @@ import org.scalajs.dom.document
 import diode.react.ModelProxy
 import spgui.circuit._
 import spgui.circuit.{SetDraggableData, SetDraggableRenderStyle}
+import scala.util.Try
 
 
 object Dragging {
+  
   case class Props(proxy: ModelProxy[DraggingState])
 
   case class State(
@@ -121,7 +123,7 @@ object Dragging {
       )
     }
   }
-
+ 
   private val component = ScalaComponent.builder[Props]("Dragging")
     .initialState(State())
     .renderBackend[Backend]
@@ -129,11 +131,11 @@ object Dragging {
 
   def apply(proxy: ModelProxy[DraggingState]) = component(Props(proxy))
 
-  def onDragStart(data: String, x:Float, y:Float) = {
-    SPGUICircuit.dispatch(SetDraggableData(data))
+  def onDragStart(label: String, id: UUID, typ: String, x:Float, y:Float) = {
+    SPGUICircuit.dispatch(SetDraggableData(label))
     SPGUICircuit.dispatch(SetCurrentlyDragging(true))
     updateMouse(x,y)
-
+    println(id.toString)
   }
 
   def onDragMove(x:Float, y:Float) = {
@@ -156,7 +158,6 @@ object Dragging {
     currentZone = id
   }
 
-  import scala.util.Try
   def makeUUID(id: String) = {
     Try(UUID.fromString(id)).getOrElse(null)
   }

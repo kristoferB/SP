@@ -16,7 +16,6 @@ import scala.scalajs.js
 import spgui.components.SPWidgetElements
 import spgui.dragging._
 
-
 sealed trait RenderNode {
   val nodeId: UUID
   val w: Float
@@ -64,7 +63,6 @@ object SopMakerWidget {
 
   val idm = ExampleSops.ops.map(o=>o.id -> o).toMap
 
-
   private class Backend($: BackendScope[Unit, State]) {
 
     /*
@@ -110,7 +108,7 @@ object SopMakerWidget {
 
     import spgui.circuit._
     import spgui.components.SPWidgetElements
-    val draggingConnection = SPGUICircuit.connect(x => (x.draggingState.dragging, x.draggingState.target))
+    //val draggingConnection = SPGUICircuit.connect(x => (x.draggingState.dragging, x.draggingState.target))
           
     def dropZone(  id: UUID, x: Float, y: Float, w: Float, h: Float): TagMod =
       SPWidgetElements.DragoverZone(id, x, y, w, h)
@@ -270,7 +268,8 @@ object SopMakerWidget {
       }
     }
   }
-
+  
+ 
   private val component = ScalaComponent.builder[Unit]("SopMakerWidget")
     .initialState(State(sop = ExampleSops.giantSop, hoverData = HoverData()))
     .renderBackend[Backend]

@@ -31,11 +31,13 @@ case class Settings(
   showHeaders: Boolean = true 
 )
 
+case class DropEventData(droppedId: UUID, targetId: UUID)
 case class DraggingState(
   target: UUID = null,
   dragging: Boolean = false,
   renderStyle: String = "",
-  data: String = ""
+  data: String = "",
+  latestDropEvent: DropEventData = DropEventData(null, null) 
 )
 
 // actions
@@ -55,6 +57,7 @@ case class SetDraggableData(data: String) extends Action
 case class SetCurrentlyDragging(enabled: Boolean) extends Action 
 case class SetDraggingTarget(id: UUID) extends Action
 case object UnsetDraggingTarget extends Action
+case class DropEvent(dropped: UUID, target: UUID) extends Action
 
 // used when failing to retrieve a state from browser storage
 object InitialState {

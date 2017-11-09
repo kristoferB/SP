@@ -119,7 +119,6 @@ object SPWidgetElements{
       component(Props(defaultText, onChange))
   }
 
-
   import java.util.UUID
   import spgui.circuit._
   import scala.scalajs.js
@@ -129,6 +128,7 @@ object SPWidgetElements{
   import org.scalajs.dom.document
   import spgui.dragging._
   import diode.react.ModelProxy
+  import diode.ModelRO
 
   object DragoverZone {
     trait Rectangle extends js.Object {
@@ -138,13 +138,10 @@ object SPWidgetElements{
       var height: Float = js.native
     }
 
-    case class Props(
-      id: UUID, x: Float, y: Float, w: Float, h: Float
-    )
+    case class Props(id: UUID, x: Float, y: Float, w: Float, h: Float)
 
     case class State(hovering: Boolean = false)
 
-    import diode.ModelRO
     class Backend($: BackendScope[Props, State]) {
 
       def setHovering(hovering: Boolean) =
@@ -185,12 +182,11 @@ object SPWidgetElements{
   }
 
   def draggable(label:String, id: UUID, typ: String): TagMod = {
-    val data = Dragging.Data(label, id, typ)
     Seq(
-      (^.onTouchStart ==> handleTouchDragStart(data.label)),
+      (^.onTouchStart ==> handleTouchDragStart(label, id, typ)),
       (^.onTouchMoveCapture ==> {
         (e: ReactTouchEvent) => Callback ({
-          val x =  e.touches.item(0).pageX.toFloat
+          val x = e.touches.item(0).pageX.toFloat
           val y = e.touches.item(0).pageY.toFloat
           Dragging.onDragMove(x, y)
         })
@@ -198,7 +194,7 @@ object SPWidgetElements{
       (^.onTouchEnd ==> {
         (e: ReactTouchEvent) => Callback (Dragging.onDragStop())
       }),
-      (^.onMouseDown ==> handleDragStart(data.label))
+      (^.onMouseDown ==> handleDragStart(label, id, typ))
     ).toTagMod
   }
 
@@ -213,17 +209,28 @@ object SPWidgetElements{
       e.touches.item(0).pageY.toFloat
     )
   }
-  def handleTouchDragStart(data:String)(e: ReactTouchEvent): Callback = {
+
+  def handleTouchDragStart(label: String, id: UUID, typ: String)(e: ReactTouchEvent): Callback = {
     Callback(
       Dragging.onDragStart(
-        data, e.touches.item(0).pageX.toFloat, e.touches.item(0).pageY.toFloat
-      ))
+        label = label,
+        id = id,
+        typ = typ,
+        x = e.touches.item(0).pageX.toFloat,
+        y = e.touches.item(0).pageY.toFloat
+      )
+    )
   }
 
-  def handleDragStart(data:String)(e: ReactMouseEvent): Callback = {
+  def handleDragStart(label: String, id: UUID, typ: String)(e: ReactMouseEvent): Callback = {
     Callback(
       Dragging.onDragStart(
-        data, e.pageX.toFloat, e.pageY.toFloat
-      ))
+        label = label,
+        id = id,
+        typ = typ,
+        x = e.pageX.toFloat,
+        y = e.pageY.toFloat
+      )
+    )
   }
 }
