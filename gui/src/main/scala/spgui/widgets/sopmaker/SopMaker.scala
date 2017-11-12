@@ -15,6 +15,7 @@ import spgui.components.ReactDraggable
 import scala.scalajs.js
 import spgui.components.SPWidgetElements
 import spgui.dragging._
+import spgui.circuit._
 
 sealed trait RenderNode {
   val nodeId: UUID
@@ -53,13 +54,7 @@ object SopMakerWidget {
   var xOrigin = 0f
   var yOrigin = 0f
 
-  case class HoverData(
-    position: UUID = null,
-    dragging: Boolean = false,
-    dragPosition: (Float, Float) = (0,0)
-  )
-
-  case class State(sop: SOP, hoverData: HoverData)
+  case class State(sop: SOP)
 
   val idm = ExampleSops.ops.map(o=>o.id -> o).toMap
 
@@ -77,15 +72,15 @@ object SopMakerWidget {
       <.div(
         //SPWidgetElements.DragoverContext(),
         <.span(
-        ^.onMouseOver ==> handleMouseOver("sop_style"),
-        ^.onMouseOut ==> handleMouseOver("not_sop_style"),
-        SopMakerCSS.sopContainer,
-        getRenderTree(
-          traverseTree( state.sop ),
-          getTreeWidth( state.sop ) * 0.5f + paddingLeft,
-          paddingTop
-        ).toTagMod
-      ))
+          ^.onMouseOver ==> handleMouseOver("sop_style"),
+          ^.onMouseOut ==> handleMouseOver("not_sop_style"),
+          SopMakerCSS.sopContainer,
+          getRenderTree(
+            traverseTree( state.sop ),
+            getTreeWidth( state.sop ) * 0.5f + paddingLeft,
+            paddingTop
+          ).toTagMod
+        ))
     }
 
     def handleMouseOver(style:String)(e: ReactMouseEvent) = Callback {
@@ -104,13 +99,12 @@ object SopMakerWidget {
         SPWidgetElements.draggable(opname, opId, "sop"),
         SopMakerGraphics.sop(opname, x.toInt, y.toInt)
       )
-  }
+    }
 
     import spgui.circuit._
     import spgui.components.SPWidgetElements
-    //val draggingConnection = SPGUICircuit.connect(x => (x.draggingState.dragging, x.draggingState.target))
-          
-    def dropZone(  id: UUID, x: Float, y: Float, w: Float, h: Float): TagMod =
+
+    def dropZone(id: UUID, x: Float, y: Float, w: Float, h: Float): TagMod =
       SPWidgetElements.DragoverZone(id, x, y, w, h)
 
     def getRenderTree(node: RenderNode, xOffset: Float, yOffset: Float): List[TagMod] = {
@@ -231,9 +225,19 @@ object SopMakerWidget {
           s.sop.map(e => getTreeHeight(e)).foldLeft(0f)(_ + _)
         }
         case s: OperationNode => opHeight + opSpacingY
+      }   
+    }
+  
+    def onMount() = Callback{
+      SPGUICircuit.subscribe(SPGUICircuit.zoom(z => z.draggingState.latestDropEvent)){
+        x => {
+          $.modState(
+            s => State(insertSop(s.sop, x.value.targetId, x.value.droppedId ))
+          )
+        }.runNow()
       }
     }
-
+    
     def onUnmount() = Callback {
       println("Unmounting sopmaker")
     }
@@ -243,7 +247,7 @@ object SopMakerWidget {
     }
 
     def findSop(root: SOP, sopId: UUID): SOP = {
-      println(sopList(root).filter(x => x.nodeID != sopId).head)
+      //println(sopList(root).filter(x => x.nodeID != sopId).head)
       sopList(root).filter(x => x.nodeID == sopId).head
     }
     
@@ -268,11 +272,12 @@ object SopMakerWidget {
       }
     }
   }
- 
+  
   private val component = ScalaComponent.builder[Unit]("SopMakerWidget")
-    .initialState(State(sop = ExampleSops.giantSop, hoverData = HoverData()))
+    .initialState(State(sop = ExampleSops.giantSop))
     .renderBackend[Backend]
     .componentWillUnmount(_.backend.onUnmount())
+    .componentDidMount(_.backend.onMount()) 
     .build
 
   def apply() = spgui.SPWidget(spwb => component())
