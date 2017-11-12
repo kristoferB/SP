@@ -268,7 +268,6 @@ object SopMakerWidget {
       }
     }
   }
-  
  
   private val component = ScalaComponent.builder[Unit]("SopMakerWidget")
     .initialState(State(sop = ExampleSops.giantSop, hoverData = HoverData()))

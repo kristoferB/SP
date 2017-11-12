@@ -43,8 +43,10 @@ object Dragging {
     typ: String
   )
 
-  var setHoveringMap = Map[UUID, (Boolean) => Unit]() 
-  var currentZone: UUID = null
+  var setHoveringMap = Map[UUID, (Boolean) => Unit]()
+
+  var draggingTarget: UUID = null
+  var draggingObject: UUID = null
 
   def dropzoneSubscribe(
     id: UUID,
@@ -57,7 +59,7 @@ object Dragging {
     setHoveringMap = setHoveringMap.filter(c => c._1 != id )
   }
 
-  trait Rect extends js.Object { 
+  trait Rect extends js.Object {
     var left: Float = js.native
     var top: Float = js.native
     var width: Float = js.native
@@ -123,7 +125,7 @@ object Dragging {
       )
     }
   }
- 
+  
   private val component = ScalaComponent.builder[Props]("Dragging")
     .initialState(State())
     .renderBackend[Backend]
@@ -132,10 +134,10 @@ object Dragging {
   def apply(proxy: ModelProxy[DraggingState]) = component(Props(proxy))
 
   def onDragStart(label: String, id: UUID, typ: String, x:Float, y:Float) = {
+    setDraggingObject(id)
     SPGUICircuit.dispatch(SetDraggableData(label))
     SPGUICircuit.dispatch(SetCurrentlyDragging(true))
     updateMouse(x,y)
-    println(id.toString)
   }
 
   def onDragMove(x:Float, y:Float) = {
@@ -145,17 +147,26 @@ object Dragging {
   }
 
   def onDragStop() = {
+    if(draggingObject != null && draggingTarget != null) {
+      SPGUICircuit.dispatch(DropEvent(draggingObject, draggingTarget))   
+    }
     SPGUICircuit.dispatch(SetCurrentlyDragging(false))
+    setDraggingObject(null)
+    setDraggingTarget(null)
   }
 
   def setDraggingStyle(style: String) = {
     SPGUICircuit.dispatch(SetDraggableRenderStyle(style))
   }
 
+  def setDraggingObject(id: UUID) = {
+    draggingObject = id
+  }
+
   def setDraggingTarget(id: UUID) = {
-    setHoveringMap.getOrElse(currentZone, (e:Boolean) => Unit)(false)
+    setHoveringMap.getOrElse(draggingTarget, (e:Boolean) => Unit)(false)
     setHoveringMap.getOrElse(id, (e:Boolean) => Unit)(true)
-    currentZone = id
+    draggingTarget = id
   }
 
   def makeUUID(id: String) = {
@@ -176,13 +187,12 @@ object Dragging {
       }
     },
     (^.onTouchMoveCapture ==> {
-        (e: ReactTouchEvent) => Callback ({
-          val x =  e.touches.item(0).pageX.toFloat
-          val y = e.touches.item(0).pageY.toFloat
-          val target = document.elementFromPoint(x, y)
-          //Dragging.draggedOverTarget(target) 
-          Dragging.onDragMove(x, y)
-        })
+      (e: ReactTouchEvent) => Callback ({
+        val x =  e.touches.item(0).pageX.toFloat
+        val y = e.touches.item(0).pageY.toFloat
+        val target = document.elementFromPoint(x, y)
+        Dragging.onDragMove(x, y)
       })
+    })
   ).toTagMod
 }

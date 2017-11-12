@@ -16,7 +16,6 @@ object SPGUICircuit extends Circuit[SPGUIModel] with ReactConnector[SPGUIModel] 
     new SettingsHandler(zoomRW(_.settings)((m, v) => m.copy(settings = v))),
     new WidgetDataHandler(zoomRW(_.widgetData)((m,v) => m.copy(widgetData = v))),
     new DraggingHandler(zoomRW(_.draggingState)((m,v) => m.copy(draggingState = v)))
-
   )
   // store state upon any model change
   subscribe(zoomRW(myM => myM)((m,v) => v))(m => BrowserStorage.store(m.value))
@@ -139,6 +138,7 @@ class DraggingHandler[M](modelRW: ModelRW[M, DraggingState]) extends ActionHandl
     case SetDraggingTarget(id) => updated((value.copy(target = id)))
     case UnsetDraggingTarget => updated((value.copy(target = null)))
     case DropEvent(dropped, target) =>
+      println("dragged " + dropped + " onto " + target)
       updated((value.copy(latestDropEvent = DropEventData(dropped, target))))
   }
 }
