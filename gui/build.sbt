@@ -37,8 +37,7 @@ libraryDependencies ++= Seq(
   "eu.unicredit" %%% "paths-scala-js" % "0.4.5"
 )
 
-/* This is how to include js files. Put it in src/main/resources.
+// This is how to include js files. Put it in src/main/resources.
 jsDependencies ++= Seq(
-  ProvidedJS / "SomeJSFile.js"
+  ProvidedJS / "ganttApp.js"
 )
-*/
